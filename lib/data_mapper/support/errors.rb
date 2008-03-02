@@ -6,6 +6,7 @@ module DataMapper
   
   class MaterializationError < StandardError; end
   
+  class RepositoryNotSetupError < StandardError; end
 end
 
 class StandardError

@@ -1,17 +1,20 @@
 require File.join(File.dirname(__FILE__), 'support', 'inflector')
+require File.join(File.dirname(__FILE__), 'property_set')
+require File.join(File.dirname(__FILE__), 'property')
+require File.join(File.dirname(__FILE__), 'repository')
 
 module DataMapper
-  
-  def self.repository
-    :default
-  end
   
   module Resource
     
     def self.included(target)
       target.send(:extend, ClassMethods)
       target.instance_variable_set("@resource_names", Hash.new { |h,k| h[k] = Inflector.tableize(target.name) })
-      target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = [] })
+      target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? [] : h[:default].dup) })
+    end
+    
+    def self.===(other)
+      other.ancestors.include?(Resource)
     end
     
     module ClassMethods
@@ -25,29 +28,25 @@ module DataMapper
       end
       
       def property(name, type, options = {})
-        properties(DataMapper.repository) << Property.new(name, type, options)
-      end
-      
-      def properties(repository_name)
-        if repository_name == :default
-          @properties[repository_name]
-        else
-          @properties[:default].map do |property|
-            @properties[repository_name].detect { |override| property.name == override.name } || property
-          end
-        end
-      end
-      
-      class Property
-        def initialize(name, type, options)
-          @name, @type, @options = name, type, options
+        property = properties(repository.name) << Property.new(self, name, type, options)
+        
+        # Add property to the other mappings as well if this is for the default repository.
+        if repository.name == :default
+          @properties.each_pair do |repository_name, properties|
+            next if repository_name == :default
+            properties << property
+          end          
         end
         
-        def name
-          @name
-        end
+        property
       end
+      # +has+ is nice. Inspired by the Traits gem. Declared as the alias to avoid conflicts.
+      alias has property
       
+      def properties(repository_name)
+        @properties[repository_name]
+      end
+    
     end
   end
 end

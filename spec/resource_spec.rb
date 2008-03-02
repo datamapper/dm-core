@@ -1,15 +1,20 @@
+$:.unshift(File.dirname(__FILE__))
 require File.dirname(__FILE__) + "/../lib/data_mapper/resource"
 
 describe DataMapper::Resource do
   
   before(:all) do
+    DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository[:default]
+    DataMapper.setup(:legacy, "mock://localhost/mock") unless DataMapper::Repository[:legacy]
+    DataMapper.setup(:yet_another_repository, "mock://localhost/mock") unless DataMapper::Repository[:yet_another_repository]
+    
     class Planet
       include DataMapper::Resource
       
       resource_names[:legacy] = "dying_planets"
       
-      property :name, String
-      property :age, Fixnum
+      has :name, String
+      has :age, Fixnum
     end
   end
   

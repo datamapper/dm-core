@@ -1,10 +1,8 @@
-require 'data_mapper/adapters/abstract_adapter'
-require 'data_mapper/adapters/sql/commands/load_command'
-require 'data_mapper/adapters/sql/coersion'
-require 'data_mapper/adapters/sql/quoting'
-require 'data_mapper/adapters/sql/mappings/schema'
-require 'data_mapper/support/connection_pool'
-require 'data_mapper/query'
+require File.join(File.dirname(__FILE__), 'abstract_adapter')
+require File.join(File.dirname(__FILE__), 'sql', 'commands', 'load_command')
+require File.join(File.dirname(__FILE__), 'sql', 'coersion')
+require File.join(File.dirname(__FILE__), 'sql', 'quoting')
+require File.join(File.dirname(__FILE__), '..', 'query')
 
 module DataMapper
 
@@ -39,8 +37,23 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectAdapter < AbstractAdapter
 
-      $LOAD_PATH << (DM_PLUGINS_ROOT + '/dataobjects')
+      TYPES = {
+        :integer => 'int'.freeze,
+        :string => 'varchar'.freeze,
+        :text => 'text'.freeze,
+        :class => 'varchar'.freeze,
+        :decimal => 'decimal'.freeze,
+        :float => 'float'.freeze,
+        :datetime => 'datetime'.freeze,
+        :date => 'date'.freeze,
+        :boolean => 'boolean'.freeze,
+        :object => 'text'.freeze
+      }
 
+      include Sql
+      include Quoting
+      include Coersion
+      
       FIND_OPTIONS = [
         :select, :offset, :limit, :class, :include, :shallow_include, :reload, :conditions, :order, :intercept_load
       ]
@@ -51,11 +64,6 @@ module DataMapper
       SYNTAX = {
         :now => 'NOW()'.freeze
       }
-
-      def initialize(configuration)
-        super
-        @connection_pool = Support::ConnectionPool.new { create_connection }
-      end
 
       def activated?
         @activated
@@ -156,10 +164,6 @@ module DataMapper
 
       def handle_error(error)
         raise error
-      end
-
-      def schema
-        @schema || ( @schema = self.class::Mappings::Schema.new(self, @configuration.database) )
       end
 
       def column_exists_for_table?(table_name, column_name)
@@ -443,35 +447,12 @@ module DataMapper
           commands.const_set(name, Class.new(Sql::Commands.const_get(name)))
         end
 
-        mappings = base.const_set('Mappings', Module.new)
-
-        Sql::Mappings.constants.each do |name|
-          mappings.const_set(name, Class.new(Sql::Mappings.const_get(name)))
-        end
-
         base.const_set('TYPES', TYPES.dup)
         base.const_set('FIND_OPTIONS', FIND_OPTIONS.dup)
         base.const_set('SYNTAX', SYNTAX.dup)
 
         super
       end
-
-      TYPES = {
-        :integer => 'int'.freeze,
-        :string => 'varchar'.freeze,
-        :text => 'text'.freeze,
-        :class => 'varchar'.freeze,
-        :decimal => 'decimal'.freeze,
-        :float => 'float'.freeze,
-        :datetime => 'datetime'.freeze,
-        :date => 'date'.freeze,
-        :boolean => 'boolean'.freeze,
-        :object => 'text'.freeze
-      }
-
-      include Sql
-      include Quoting
-      include Coersion
 
     end # class DoAdapter
 

@@ -1,4 +1,4 @@
-require 'data_mapper/identity_map'
+require File.join(File.dirname(__FILE__), 'identity_map')
 
 module DataMapper
   
@@ -9,8 +9,13 @@ module DataMapper
     
     attr_reader :adapter
     
-    def initialize(adapter)
-      @adapter = adapter
+    def initialize(repository)
+      @repository = repository
+      @adapter = repository.adapter
+    end
+    
+    def name
+      @repository.name
     end
     
     def identity_map
@@ -84,24 +89,12 @@ module DataMapper
       table(klass).exists?
     end
     
-    def column_exists_for_table?(klass, column_name)
-      @adapter.column_exists_for_table?(klass, column_name)
-    end
-    
     def execute(*args)
       @adapter.execute(*args)
     end
     
     def query(*args)      
       @adapter.query(*args)
-    end
-    
-    def schema
-      @adapter.schema
-    end
-    
-    def table(klass)
-      @adapter.table(klass)
     end
     
     def logger

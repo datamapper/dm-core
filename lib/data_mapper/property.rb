@@ -1,3 +1,6 @@
+require 'date'
+require 'time'
+require 'bigdecimal'
 
 module DataMapper
 
@@ -158,33 +161,41 @@ module DataMapper
     # PROPERTY_OPTIONS is a constant
     PROPERTY_OPTIONS = [
       :public, :protected, :private, :accessor, :reader, :writer,
-      :lazy, :default, :nullable, :key, :serial, :column, :size, :length,
+      :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :check, :ordinal, :auto_validation
+    ]
+    
+    TYPES = [
+      TrueClass,
+      String,
+      Float,
+      Fixnum,
+      BigDecimal,
+      DateTime,
+      Date,
+      Object,
+      Class
     ]
     
     VISIBILITY_OPTIONS = [:public, :protected, :private]
     
-    def initialize(klass, name, type, options)
+    def initialize(target, name, type, options)
       
-      @klass, @name, @type, @options = klass, name.to_sym, type, options
+      raise ArgumentError.new("#{target.inspect} should be a type of Resource") unless Resource === target
+      raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
+      raise ArgumentError.new("#{type.inspect} is not a supported type. Valid types are:\n #{TYPES.inspect}") unless TYPES.include?(type)
+      
+      @target, @name, @type, @options = target, name, type, options
       @symbolized_name = name.to_s.sub(/\?$/, '').to_sym
+      @instance_variable_name = "@#{@symbolized_name}"
       
-      validate_type!
       validate_options!
       determine_visibility!
-      
-      repository.schema[klass].add_column(@symbolized_name, @type, @options)
-      klass::ATTRIBUTES << @symbolized_name
       
       create_getter!
       create_setter!
       auto_validations! unless @options[:auto_validation] == false
       
-    end
-    
-    def validate_type! # :nodoc:
-      adapter_class = repository.adapter.class
-      raise ArgumentError.new("#{@type.inspect} is not a supported type in the database adapter. Valid types are:\n #{adapter_class::TYPES.keys.inspect}") unless adapter_class::TYPES.has_key?(@type)
     end
     
     def validate_options! # :nodoc:
@@ -204,7 +215,7 @@ module DataMapper
     # defines the getter for the property
     def create_getter!
       if lazy?
-        klass.class_eval <<-EOS
+        @target.class_eval <<-EOS
         #{reader_visibility.to_s}
         def #{name}
           lazy_load!(#{name.inspect})
@@ -215,7 +226,7 @@ module DataMapper
         end
         EOS
       else
-        klass.class_eval <<-EOS
+        @target.class_eval <<-EOS
         #{reader_visibility.to_s}
         def #{name}
           #{instance_variable_name}
@@ -237,7 +248,7 @@ module DataMapper
     # defines the setter for the property
     def create_setter!
       if lazy?
-        klass.class_eval <<-EOS
+        @target.class_eval <<-EOS
         #{writer_visibility.to_s}
         def #{name}=(value)
           class << self;
@@ -247,7 +258,7 @@ module DataMapper
         end
         EOS
       else
-        klass.class_eval <<-EOS
+        @target.class_eval <<-EOS
         #{writer_visibility.to_s}
         def #{name}=(value)
           #{instance_variable_name} = value
@@ -270,10 +281,10 @@ module DataMapper
     # defines the inferred validations given a property definition.
     def auto_validations!
       AUTO_VALIDATIONS.each do |key, value|
-        next unless options.has_key?(key)
-        validation = value.call(name, options[key])
+        next unless @options.has_key?(key)
+        validation = value.call(name, @options[key])
         next if validation.empty?
-        klass.class_eval <<-EOS
+        @target.class_eval <<-EOS
         begin
           #{validation}
         rescue ArgumentError => e
@@ -283,14 +294,12 @@ module DataMapper
       end
     end
     
-    def klass
-      @klass
+    def target
+      @target
     end
     
-    def column
-      column = repository.table(klass)[@name]
-      raise StandardError.new("#{@name.inspect} is not a valid column name") unless column
-      return column
+    def field
+      @field
     end
      
     def name
@@ -298,15 +307,11 @@ module DataMapper
     end
     
     def instance_variable_name # :nodoc:
-      column.instance_variable_name
+      @instance_variable_name
     end
     
     def type
-      column.type
-    end
-    
-    def options
-      column.options
+      @type
     end
     
     def reader_visibility # :nodoc:
@@ -318,7 +323,7 @@ module DataMapper
     end
     
     def lazy?
-      column.lazy?
+      @lazy
     end
   end
 end

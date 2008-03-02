@@ -35,7 +35,7 @@ unless defined?(INITIAL_CLASSES)
   # secondary_configuration_options = configuration_options.dup
   # secondary_configuration_options.merge!(:database => (adapter == "sqlite3" ? "data_mapper_2.db" : "data_mapper_2"))
 
-  # DataMapper.setup(repository_uri)
+  DataMapper.setup(:default, repository_uri)
   
   # DataMapper::Repository.setup(configuration_options)
   # DataMapper::Repository.setup(:secondary, secondary_configuration_options)
