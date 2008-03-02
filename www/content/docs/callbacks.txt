@@ -1,0 +1,80 @@
+--- 
+title:      Callbacks
+body_id:    docs
+created_at: Fri Nov 30 15:29:01 +1030 2007
+filter:
+  - erb
+  - coderay
+  - textile
+--- 
+
+h1. <%= @page.title %>
+
+DataMapper implements a series of before and after callback hooks for you to use to call your own code whenever you create, save, update or destroy a record. You might use this to sanitize certain values, or generate values that you don't want users to directly access -- say a salt to mix in with an encrypted password.
+
+Before and after callbacks are defined for:
+
+* Materialize (pulling a record from the DB)
+* Create
+* Save
+* Validation
+* Update
+* Destroy
+
+h2. Adding a Callback
+
+Callbacks are declared inside your model. There are multiple ways of adding a callback. Each behaves slightly differently.
+
+h3. Block or Procs
+
+Blocks and Procs are not evaluated inside the model instance. Instead they are passed a reference to the model. You should be aware of this if you need to access private methods, in which case you need to set the callbacks using a symbol or string.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  before_save do |post|
+    logger.info("We are saving the post")
+    true
+  end
+  
+  before_destroy Proc.new {|post| logger.info("We are destroying the post #{post.name}"); true}
+end
+</coderay>
+</notextile>
+
+h3. Symbol or String
+
+Symbols and Strings are treated as a reference to a method inside your model. 
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  after_validation :log_success
+  
+  def log_success
+    logger.info("YAY!") if errors.empty?
+    true
+  end
+end
+</coderay>
+</notextile>
+
+h2. True to Go, False to Stop
+
+Callbacks have to return true else the relevant action will be halted. For example if you use a before_save callback and fail to return true, the record will not save. 
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  # This record will save properly
+  before_save do |post|
+    true
+  end
+  
+  # But it will not be destroyed
+  before_destroy do |post|
+    false
+  end
+end
+</coderay>
+</notextile>

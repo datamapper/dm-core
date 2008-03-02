@@ -1,0 +1,124 @@
+:include:QUICKLINKS
+
+= FAQ
+
+=== I don't want to use :id as a primary key, but I don't see
+=== <tt>set_primary_key</tt> anywhere. What do I do?
+
+If you're working with a table that doesn't have a <tt>:id</tt> column, you
+can declare your properties as you usually do, and declare one of them as a
+natural key.
+
+   property :name, :string, :key => true
+
+You should now be able to do <tt>Class['name_string']</tt> as well. Remember:
+this column should be unique, so treat it that way. This is the equivalent to
+using <tt>set_primary_key</tt> in ActiveRecord.
+
+
+=== How do I make a model paranoid?
+
+  property :deleted_at, :datetime
+
+If you've got deleted_at, your model is paranoid auto-magically. All of your
+calls to <tt>##all()</tt>, <tt>##first()</tt>, and <tt>##count()</tt> will be
+scoped with <tt>where deleted_at is null</tt>. Plus, you won't see deleted
+objects in your associations.
+
+=== Does DataMapper support Has Many Through?
+
+Write me!
+
+=== What about Self-Referential Has And Belongs to Many?
+
+Sure does.  Here's an example implementation:
+
+  class Task < DataMapper::Base
+    has_and_belongs_to_many :tasks,
+      :join_table => "task_relationships", :left_foreign_key => "parent_id",
+      :right_foreign_key => "child_id"
+  end
+
+You'll notice that instead of <tt>foreign_key</tt> and
+<tt>association_foreign_key</tt>, DataMapper uses the "database-y" terms
+<tt>left_foreign_key</tt>, and <tt>right_foreign_key</tt>.
+
+=== Does DataMapper do Single Table Inheritance?
+
+Oh yes, and particularly well too.
+
+  class Person < Datamapper::Base
+    property :type, :class ## other shared properties here
+  end
+
+  class Salesperson < Person; end
+
+You can claim a column to have the type <tt>:class</tt> and DataMapper will
+automatically drop the class name of the inherited classes into that column of
+the database.
+
+=== What about Class Table Inheritance?
+
+Class Table Inheritance is on the drawing board and everyone's drooling over
+it. So no, not yet, but soon.
+
+=== How do I run my own commands?
+
+You're probably asking for <tt>find_by_sql</tt>, and DataMapper has that in
+it's ActiveRecordImpersonation, but if you want to go straight-up DataMapper,
+you'll want to use <tt>repository.query</tt>
+
+  repository.query("select * from users where clue > 0")
+
+This does not return any Users (har har), but rather Struct's that will quack
+like Users. They'll be read-only as well.
+
+<tt>repository.query</tt> shouldn't be used if you aren't expecting a result set
+back.  If you want to just execute something against the database, use
+<tt>repository.execute</tt> instead.
+
+=== Can I batch-process a ton of records at once?
+
+  User.each(:performance_rating => "low") do |u|
+    u.employment_status = "fired" 
+    u.save
+  end
+
+With ActiveRecord, doing a <tt>User.find(:all).each{}</tt> would execute the
+find, instantiate an object for EVERY result, THEN apply your transformations
+to each object in turn. Doesn't sound too horrible unless you have a TON of
+records; you WILL grind your system to a screeching and bloody halt.
+
+Datamapper's <tt>#each</tt> works in sets of 500 so the amount of objects
+instantiated at a time won't make your computer think it's a victim in a Saw
+movie. Once it's done executing your block on the first set of 500, it moves
+on to the next.
+
+What's more is <tt>#each</tt> is secretly a finder too. You can pass it an
+options hash and it'll only iterate on 500-item sets matching your query.
+Don't send it <tt>:offset</tt> though, because that's how it pages. You can
+overload the page size by sending it <tt>:limit</tt>
+
+=== Can I get an SQL log of what queries DataMapper is issuing?
+
+Yup, when you issue <tt>Repository.setup</tt>, tack on the <tt>log_stream</tt>
+and <tt>log_level</tt>:
+
+  DataMapper::Repository.setup({
+   :adapter    => 'mysql', :host       => 'localhost', :username   => 'root',
+   :password   => 'R00tPaswooooord', :database   =>
+   'myspiffyblog_development', :log_stream => 'log/sql.log', :log_level  => 0
+  })
+
+By supplying the <tt>log_stream</tt> you're telling DataMapper what file you
+want to see your sql logs in. <tt>log_level</tt> is the
+Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc/] level of output you
+want to see there. 0, in this case, says that you want to see all DEBUG level
+messages (and higher) sent to the logger. For more information on how to work
+with Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc/], hit up
+http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc/.
+
+Incidentally, if you'd like to send a message into the Datamapper logger, do:
+
+  repository.adapter.logger.info "your message here"
+

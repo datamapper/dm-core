@@ -1,0 +1,6 @@
+--- 
+- id: 1
+  content: 
+    :second: dos
+    :first: 1
+    :third: 3.0

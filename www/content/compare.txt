@@ -1,0 +1,11 @@
+--- 
+body_id: compare
+title: Compare DataMapper?
+filter:
+  - erb
+  - textile
+---
+
+h1. Compare with other Ruby O/R Mappers
+
+Be bold!

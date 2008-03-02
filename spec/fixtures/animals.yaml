@@ -1,0 +1,33 @@
+- name: Frog
+  notes: I am a Frog!
+- name: Bear
+  notes: I am a Bear!
+- name: Giraffe
+  notes: I am a Giraffe!
+- name: Zebra
+  notes: I am a Zebra!
+- name: Cow
+  notes: I am a Cow!
+- name: Pig
+  notes: I am a Pig!
+- name: Cup
+  notes: I am a Cup!
+- name: Cat
+  notes: I am a Cat!
+- name: Dog
+  notes: I am a Dog!
+- name: Elephant
+  notes: I am a Elephant!
+- name: Whale
+  notes: I am a Whale!
+- name: Dolphin
+  notes: I am a Dolphin!
+  nice: true
+- name: Mouse
+  notes: I am a Mouse!
+- name: Rat
+  notes: I am a Rat!
+- name: Camel
+  notes: I am a Camel!
+- name: Fox
+  notes: I am a Fox!

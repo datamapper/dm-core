@@ -1,0 +1,51 @@
+--- 
+title: Contribute to DataMapper
+created_at: Wed Aug 29 20:37:00 +0930 2007
+filter:
+  - erb
+  - textile
+  - coderay
+--- 
+h1. <%= @page.title %>
+
+DataMapper is always looking for more contributers.  If you'd like to help out, check out the code via Subversion.
+
+h2. Git
+
+DataMapper development has switched to "Git":http://git.or.cz. Please see "using git":using-git.html to learn how to contribute.
+
+h2. SVN
+
+<notextile>
+<coderay lang="bash" line_numbers="inline">
+$ svn co http://datamapper.rubyforge.org/svn/trunk/ data_mapper
+</coderay>
+</notextile>
+
+h2. What we need
+
+Currently DataMapper needs help in a few particular areas:
+
+* API Documentation
+* Tutorials
+* Code contributions
+* Bug Reports
+
+h2. Code Style Guidelines
+
+When contributing any code to DataMapper, please follow these guidelines.
+
+# Spec first. Spec thoroughly. (DataMapper is written with "Rspec":http://rspec.info/)
+# Parentheses around parameter lists for methods
+# Two space indent - not tabs!
+# Documentation is required
+
+h2. Submissions
+
+When you've got an itch to scratch, jump in and contribute!  Write a few specs showing us how your code works, create a patch and "submit it":http://wm.lighthouseapp.com/projects/4819-datamapper/overview as a new ticket or a fix for an existing one.  After a few patches and many thanks, you'll get commit access.  Also remember that we benchmark all but the most trivial of patches, because we care about performance and you should too!
+
+<notextile>
+<coderay lang="bash" line_numbers="inline">
+$ svn diff > your_patch.diff
+</coderay>
+</notextile>

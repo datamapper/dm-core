@@ -1,0 +1,31 @@
+--- 
+title:      Documentation
+body_id:    docs
+created_at: Fri Nov 30 15:29:01 +1030 2007
+filter:
+  - erb
+  - textile
+--- 
+
+h1. <%= @page.title %>
+
+<dl>
+  <dt><a href="http://datamapper.rubyforge.org/">API</a></dt>
+  <dd>The API for the current gem release.</dd>
+  <dt><a href="/why.html">Why DataMapper?</a></dt>
+  <dd>If you haven't read this yet, you should, right now!</dd>
+  <dt><a href="/getting_started.html">Getting Started</a></dt>
+  <dd>A whirlwind tour of DM. This is the place to start if you haven't used the library before.</dd>
+  <dt><a href="/docs/install.html">Common installation issues</a></dt>
+  <dd>Troubleshooting installation, with instructions for specific platforms.</dd>
+  <dt><a href="/docs/properties.html">Properties</a></dt>
+  <dd>Properties declared in your model map to the fields in the database.</dd>
+  <dt><a href="/docs/create_and_destroy.html">Creating, Saving and Destroying Records</a></dt>
+  <dd>Obviously you're going to be doing a lot of this :)</dd>
+  <dt><a href="/docs/find.html">Finding and Counting Records</a></dt>
+  <dd>There are lots of nice ways to find records, including some found in the ActiveRecord impersonation module.</dd>
+  <dt><a href="/docs/associations.html">Associations</a></dt>
+  <dd>Models can be associated to each other in various ways -- has_many, belongs_to, has_and_belongs_to_many</dd>
+  <dt><a href="/docs/callbacks.html">Callbacks</a></dt>
+  <dd>Callbacks allow you to call your own code each time a record is created, validated and saved if you need.</dd>
+</dl>

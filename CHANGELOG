@@ -1,0 +1,145 @@
+-- 0.1.0
+* Initial Public Release
+
+-- 0.1.1
+* Removed /lib/data_mapper/extensions
+* Moved ActiveRecordImpersonation into DataMapper::Support module
+* Moved CallbackHelper methods into DataMapper::Base class
+* Moved ValidationHelper into DataMapper::Validations module
+* Removed LoadedSet since it's not necessary for it to reference the Database, so it's nothing more than an array now; Replaced with Array
+* Modified data_mapper.rb to load DataMapper::Support::Enumerable
+* Modified example.rb and performance.rb to require 'lib/data_mapper' instead of modifying $LOADPATH
+* Created SqlAdapter base-class
+* Refactored MysqlAdapter to use SqlAdapter superclass
+* Refactored Sqlite3Adapter to use SqlAdapter superclass
+* Moved /lib/data_mapper/queries to /lib/data_mapper/adapters/sql/queries
+* Moved Connection, Result and Reader classes along with Coersion and Quoting modules to DataMapper::Adapters::Sql module
+* Moved DataMapper::Adapters::Sql::Queries to ::Commands
+* Moved Mappings to SqlAdapter
+* Added monolithic DeleteCommand
+* Added monolithic SaveCommand
+* Added TableExistsCommand
+* Moved save/delete logic out of Session
+* Added create-table functionality to SaveCommand
+* Cleaned up Session; #find no longer supported, use #all or #first
+* Moved object materialization into LoadCommand
+* Migrated Sqlite3Adapter::Commands
+* Added Session#query support back in
+* Removed Connection/Reader/Result classes
+* Set DataMapper::Base#key on load to avoid double-hit against Schema
+* Added DataMapper::Support::Struct for increased Session#query performance
+* Added AdvancedHasManyAssociation (preview status)
+* Added benchmarks comparing ActiveRecord::Base::find_by_sql with Session#query
+
+-- 0.2.0
+* AdvancedHasManyAssociation now functional for fetches
+* AdvancedHasManyAssociation renamed to HasNAssociation
+* HasManyAssociation refactored to use HasNAssociation superclass
+* Slight spec tweaks to accomodate the updates
+* HasOneAssociation refactored to use HasNAssociation superclass
+* Added HasAndBelongsToManyAssociation, using HasNAssociation as a basis; Need to add corresponding SQL generation code in AdvancedLoadCommand
+* Added spec for habtm query generation
+* HasNAssociation#foreign_key returns a DataMapper::Adapters::Sql::Mappings::Column instance instead of a raw String now
+* Added table, association, association_table and to_sql methods to HasNAssociation
+* Added associations_spec.rb
+* Added a forced table-recreation to spec_helper.rb so the tests could run with a clean version of the database, including any new columns added to the models
+* Added HasAndBelongsToManyAssociation#to_sql (all current specs pass now!)
+* Minor tweaks to Callbacks
+* Added CallbacksHelper to declare class-method ::callbacks on DataMapper::Base
+* Implemented before_validate and after_validate hooks in ValidationHelper
+* Minor documentation additions in callbacks.rb
+* Added callbacks_spec
+* Moved class-method declarations for built-in callbacks to the callbacks helper instead of DataMapper::Base
+* Renamed :before/after_validate callback to :before/after_validation to match ActiveRecord
+* Callbacks#add now accepts a Symbol which maps a callback to a method call on the targetted instance, also added a spec to verify this behavior
+* Documented callbacks.rb
+* Added DataMapper::Associations::Reference class
+* Documented DataMapper::Associations::Reference class
+* Upgraded BelongsToAssociation to new style
+* Added AssociationsSet to handle simple "last-in" for association bindings
+* Fixed extra spec loading
+* Added *Association#columns
+* Some refactoring in AdvancedLoadCommand regarding :include options
+* Added support for class-less Mappings::Table instances, with just a string name
+* HasAndBelongsToManyAssociation#join_table #left_foreign_key and #right_foreign_key reference actual Table or Column objects now
+* Added :shallow_include option for HABTM joins in AdvancedLoadCommand and corresponding spec
+* Added Commands::AdvancedConditions
+* Added ORDER, LIMIT, OFFSET and WHERE support to AdvancedLoadCommand
+* Renamed spec/has_many.rb to spec/has_many_spec.rb
+* Tweaked the loading of has_many relationships; big performance boost; got rid of an extra query
+* Added EmbeddedValue support, and accompanying spec
+* Fleshed out AdvancedConditions a bit; added conditions_spec.rb
+* Added more AdvancedConditions specs
+* Added Loader to handle multi-instanced rows
+* AdvancedLoadCommand replaced LoadCommand; down to 3 failing specs
+* All specs pass
+* Added :intercept_load finder option and accompanying spec
+* Modified :intercept_load block signature to |instance,columns,row|
+* HasAndBelongsToMany works, all specs pass
+* Fixed a couple bugs with keys; Added DataMapper::Base#key= method
+* Made DataMapper::Base#lazy_load! a little more flexible
+* Removed LoadCommand overwrites from MysqlAdapter
+* Default Database#single_threaded mode is true now
+* Removed MysqlAdapter#initialize, which only served to setup the connections, moved to SqlAdapter
+* Added SqlAdapter#create_connection and SqlAdapter#close_connection abstract methods
+* Added MysqlAdapter#create_connection and MysqlAdapter#close_connection concrete methods
+* Made SqlAdapter#connection a concrete method (instead of abstract), with support for single_threaded operation
+* Database#setup now takes a Hash of options instead of a block-initializer
+* Validation chaining should work for all association types
+* Save chaining should work for has_many associations
+* Added benchmarks for in-session performance to performance.rb
+* Removed block conditions; They're slower and don't offer any real advantages
+* Removed DeleteCommand
+* Removed SaveCommand
+* Removed TableExistsCommand
+* Session renamed to Context
+* Most command implementations moved to methods in SqlAdapter
+* Removed UnitOfWork module, instead moving a slightly refactored implementation into Base
+
+-- 0.2.1
+* Added :float column support
+* Added association proxies: ie: Zoo.first.exhibits.animals
+* Columns stored in SortedSet
+* Swig files are no longer RDOCed
+* Added :date column support
+* BUG: Fixed UTC issues with datetimes
+* Added #to_yaml method
+* Added #to_xml method
+* Added #to_json method
+* BUG: Fixed HasManyAssociation::Set#inspect
+* BUG: Fixed #reload!
+* BUG: Column copy for STI moved into Table#initialize to better handle STI with multiple mapped databases
+* BUG: before_create callbacks moved in the execution flow since they weren't guaranteed to fire before
+* Threading enhancements: Removed single_threaded_mode, #database block form adjusted for thread-safety
+* BUG: Fixed String#blank? when a multi-line string contained a blank line (thanks zapnap!)
+* Performance enhancements: (thanks wycats!)
+
+-- 0.2.2
+* Removed C extension bundles and log files from package
+
+-- 0.2.3
+* Added String#t for translation and overrides for default validation messages
+* Give credit where it's due: zapnap, not pimpmaster, submitted the String#blank? patch. My bad. :-(
+* MAJOR: Resolve issue with non-unique-hash values and #dirty?; now frozen original values are stored instead
+* Added Base#update_attributes
+* MAJOR: Queries are now passed to the database drivers in a parameterized fashion
+* Updated PostgreSQL driver and adapter to current
+
+-- 0.2.4
+* Bug fixes
+* Added paranoia
+
+-- 0.2.5
+* has_one bugfixes
+* Added syntax for setting CHECK-constraints directly in your properties (Postgres)
+* You can now set indexes with :index => true and :index => :unique
+* Support for composite indexes (thanks to Jeffrey Gelens)
+* Add composite scope to validates_uniqueness
+* Added private/protected properties
+* Remove HasOneAssociation, Make HasManyAssociation impersonate has_one relationships
+* Added #get method
+* Persistence module added, inheriting from DataMapper::Base no longer necessary
+
+-- 0.3.0
+* HasManyAssociation::Set now has a nil? method, so we can do stuff like cage.animal.nil?
+

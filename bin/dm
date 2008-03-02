@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+require "rubygems"
+require "data_mapper"
+require "data_mapper/cli"
+require "optparse"
+
+DataMapper::CLI.start

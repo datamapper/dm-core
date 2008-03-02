@@ -1,0 +1,6 @@
+- name: task_relax
+  notes: I am the relaxed task an should be related to task_vacation
+- name: task_drink_heartily
+  notes: I am the drink heartily task and should be related to task_relax
+- name: task_vacation
+  notes: I am the vacation task and should be related to task_relax

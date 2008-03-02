@@ -1,0 +1,38 @@
+--- 
+body_id: home
+title: DataMapper
+filter:
+  - erb
+  - textile
+  - coderay
+--- 
+
+DataMapper is a "Object Relational Mapper":http://en.wikipedia.org/wiki/Object-relational_mapping written in "Ruby.":http://ruby-lang.org/ The goal is to create an ORM which is fast, thread-safe and feature rich.
+
+To learn a little more about this project, our reasons for starting it and why you should be interested, read the "Why Datamapper?":/why.html page.
+
+h2(newRelease). 0.2.5 release out now!
+
+p(newRelease). Please see "Getting Started":/getting_started.html for instructions
+on installing the required "DataObjects.rb":http://dataobjects.devjavu.com drivers.
+
+h1. Examples
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Animal < DataMapper::Base
+  property :name, :string
+  property :notes, :text, :lazy => true
+  
+  has_one :favourite_fruit, :class => 'Fruit'
+  has_and_belongs_to_many :exhibits
+end
+</coderay>
+</notextile>
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+monkey = Animal.first(:name => 'Monkey')
+monkey.favourite_fruit.name # => 'Bananas'
+</coderay>
+</notextile>

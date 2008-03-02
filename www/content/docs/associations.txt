@@ -1,0 +1,65 @@
+--- 
+title:      Associations
+body_id:    docs
+created_at: Tue Dec 04 14:46:32 +1030 2007
+filter:
+  - erb
+  - coderay
+  - textile
+--- 
+
+h1. <%= @page.title %>
+
+Associations are a way of declaring relationships between models, for example a blog Post "has many" Comments, or a Post belongs to an Author. They add a series of methods to your models which allow you to create relationships and retrieve related models along with a few other useful features. Which records are related to which are determined by their foreign keys.
+
+The types of associations currently in DataMapper are:
+
+<ul>
+  <li>Has Many</li>
+  <li>Has One</li>
+  <li>Belongs To</li>
+  <li>Has and Belongs to Many</li>
+</ul>
+
+h2. Declaring Associations
+
+This is done via declarations inside your model class. The class name of the related model is determined by the symbol you pass in. For illustration, we'll add an association of each type. Pay attention to the pluralisation or the related model's name.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  has_many :comments
+  has_and_belongs_to_many :categories
+  belongs_to :author
+end
+</coderay>
+</notextile>
+
+h2. Customising Associations
+
+The association declarations make certain assumptions about which classes are being related and the names of foreign keys based on some simple conventions. In some situations you may need to tweak them a little. The association declarations accept additional options to allow you to customise them as you need
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  belongs_to :author, :class => 'User', :foreign_key => 'user_id'
+end
+</coderay>
+</notextile>
+
+h2. Creating New Records via Associations
+
+You can create an instance, update it and save or you can create and save an associated record in a single step.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+post = Post[1]
+# Creates a new instance of Comment and sets it's foreign key to point to the post
+comment = post.comments.build
+# Then we update and save it
+comment.attributes = {:name => 'King Rat', :body => 'London will be mine!'}
+comment.save
+# Alternately we can create a new instance and save it in one step
+post.comments.create(:name => 'Anansi', :body => 'I would lose a leg before I let you!')
+</coderay>
+</notextile>

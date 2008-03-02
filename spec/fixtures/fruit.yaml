@@ -1,0 +1,6 @@
+- name: Kiwi
+  devourer_id: 5
+- name: Pear
+  devourer_id: 11
+- name: Watermelon
+  devourer_id: 7

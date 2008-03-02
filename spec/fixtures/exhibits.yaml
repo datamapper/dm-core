@@ -1,0 +1,90 @@
+- name: Horses & Courses
+  zoo_id: 1
+- name: Aviary
+  zoo_id: 1
+- name: Polar Planet
+  zoo_id: 2
+- name: Monkey Mayhem
+  zoo_id: 2
+- name: Amazonia
+  zoo_id: 3
+- name: Deep Blue Ocean
+  zoo_id: 3
+- name: Fish Fight!
+  zoo_id: 3
+- name: The Dolphin Show
+  zoo_id: 3
+- name: Canal Life
+  zoo_id: 4
+- name: The Reptile Pit
+  zoo_id: 4
+- name: Kangaroo Exhibit
+  zoo_id: 4
+- name: A Million Years Ago...
+  zoo_id: 5
+- name: The Wild West
+  zoo_id: 5
+- name: Tumble Weeds
+  zoo_id: 5
+- name: Missisipi Mud
+  zoo_id: 6
+- name: Craw-Daddy's of the Deep!
+  zoo_id: 6
+- name: The Littlest Big City
+  zoo_id: 7
+- name: Jellyfish On Parade
+  zoo_id: 8
+- name: Sea-Life Among the Rigs
+  zoo_id: 8
+- name: Monsters of the Rainforest
+  zoo_id: 8
+- name: So You Wanna Be A Street-Kid?
+  zoo_id: 9
+- name: Don't Feed the Hippies!
+  zoo_id: 9
+- name: At the Equator
+  zoo_id: 10
+- name: River Habitats
+  zoo_id: 10
+- name: A Fiesta of Plant-life
+  zoo_id: 10
+- name: Smog World!
+  zoo_id: 11
+- name: Where Are They Now? Extinct Species Edition
+  zoo_id: 11
+- name: The Fragile Eco-System of the Cheese-Steak
+  zoo_id: 12
+- name: Rats!
+  zoo_id: 13
+- name: Penguins on Wall St.
+  zoo_id: 13
+- name: King of the Jungle
+  zoo_id: 13
+- name: The World's Fish-Market
+  zoo_id: 14
+- name: Water-World
+  zoo_id: 14
+- name: Micro-sized Soft-shelled Crabs
+  zoo_id: 14
+- name: Do Animals Like Coffee?
+  zoo_id: 14
+- name: On A Clear Day...
+  zoo_id: 15
+- name: Twenty Thousand Leagues Under the Sky
+  zoo_id: 15
+- name: Closed for Renovation
+  zoo_id: 16
+- name: Ducks!
+  zoo_id: 17
+- name: Retired Animal Life
+  zoo_id: 18
+- name: The Clean Side of the Gulf
+  zoo_id: 18
+- name: The Complete History of Rice
+  zoo_id: 19
+- name: Safari World
+  zoo_id: 19
+- name: Of Mice & Men
+  zoo_id: 20
+- name: Snakes!
+  zoo_id: 20

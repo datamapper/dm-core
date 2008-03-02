@@ -1,0 +1,100 @@
+--- 
+title:      Properties
+body_id:    docs
+created_at: Tue Dec 04 13:27:16 +1030 2007
+filter:
+  - erb
+  - coderay
+  - textile
+--- 
+
+h1. <%= @page.title %>
+
+A model's properties are not introspected from the fields in the database; In fact the reverse happens. You declare the properties for a model inside it's class definition, which is then used to generate the fields in the database.
+
+This has a few advantages. First it means that a model's properties are documented in the model itself, not a migration or XML file. If you've ever been annoyed at having to look in a schema file to see the list of properties and types for a model, you'll find this particularly useful.
+
+Second, it lets you limit access to properties using Ruby's access semantics. Properties can be declared public, private or protected. They are public by default.
+
+Finally, since Datamapper only cares about properties explicitly defined in your models, Datamappers plays well with legacy databases and shares databases easily with other applications.
+
+h2. Declaring Properties
+
+Inside your class, call the property method for each property you want to add. The only two required arguments are the name and type, everything else is optional.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  property :title,   :string, :nullable => false # Cannot be null
+  property :publish, :boolen, :default  => false # Default value for new records is false
+end
+</coderay>
+</notextile>
+
+h2. Limiting Access
+
+Access for properties is defined using the same semantics as Ruby. Accessors are public by default, but you can declare them as private or protected if you need. You can set access using the @:accessor@ option.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  property :title,  :string, :accessor => :private   # Both reader and writer are private
+  property :body,   :text,   :accessor => :protected # Both reader and writer are protected
+end
+</coderay>
+</notextile>
+
+You also have more fine grained control over how you declare access. You can, for example, have a public reader and private writer by using the @:writer@ and @:reader@ options. (Remember, the default is Public)
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  property :title, :string, :writer => :private    # Only writer is private
+  property :tags,  :string, :reader => :protected  # Only reader is protected
+end
+</coderay>
+</notextile>
+
+h2. Over-riding Accessors
+
+When a property has declared accessors for getting and setting, it's values are added to the model. Just like using @attr_accessor@, you can over-ride these with your own custom accessors. It's a simple matter of adding an accessor after the property declaration.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  property :title,  :string
+  
+  def title=(new_title)
+    raise ArgumentError if new_title != 'DataMapper is Awesome'
+    @title = new_title
+  end
+end
+</coderay>
+</notextile>
+
+h2. Lazy Loading
+
+Properties can be configured to be lazy loading. A lazily loaded property is not requested from the database by default. Instead it is only loaded when it's accessor is called for the first time. This means you can stop default queries from being greedy, a particular problem with text fields. Text fields are lazily loaded by default, which you can over-ride if you need to.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  property :title,  :string                 
+  property :body,   :text                   # Is lazily loaded by default
+  property :notes,  :text, :lazy => false   # Isn't lazily loaded
+end
+</coderay>
+</notextile>
+
+h2. Primary and Natural Keys
+
+To set your own primary key, and even use a string column as a primary 'natural' key, pass @:key => true@ as an option.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+  class Post < DataMapper::Base
+    property :slug,  :string, :key => true
+  end
+</coderay>
+</notextile>
+

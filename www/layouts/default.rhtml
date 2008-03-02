@@ -1,0 +1,41 @@
+--- 
+extension: html
+filter:    erb
+--- 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+     <title>Datamapper - <%= @page.title %></title>
+     <link rel="stylesheet" href="/css/site.css" type="text/css" media="screen, projection" />
+     <link rel="stylesheet" href="/css/coderay.css" type="text/css" media="screen, projection" />
+     <!--[if lt IE 7]> <link rel="stylesheet" href="css/ie_hacks.css" type="text/css" media="screen, projection" /> <![endif]-->
+  </head>
+  
+  <body id="<%= @page.body_id %>">
+    <div id="content">
+      <div id="header">
+        <h1><a href="/">DataMapper</a></h1>
+        
+        <ul>
+          <li><a href="/why.html">Why DataMapper?</a></li>
+          <li><a href="/getting_started.html">Getting started</a></li>
+          <li><a href="/contribute.html">Contribute</a></li>
+          <li><a href="/docs">Documentation</a></li>
+          <li><a href="http://wm.lighthouseapp.com/projects/4819-datamapper/overview">Tickets</a></li>
+          <li><a href="/get.html" id="getDataMapper">Get DataMapper</a></li>
+        </ul>
+      </div>
+      
+      <%= @content %>
+      
+      <div id="footer">
+        <p>Copyright Sam Smoot 2007</p>
+        <p>Website by <a href="http://www.mr-eel.com/">Luke Matthew Sutton</a></p>
+      </div>
+    </div>
+
+  </body>
+</html>
