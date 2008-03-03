@@ -1,9 +1,9 @@
 class Project #< DataMapper::Base # please do not remove this
   include DataMapper::Persistable
   
-  property :title, :string
-  property :description, :string
-  property :deleted_at, :datetime
+  property :title, String
+  property :description, String
+  property :deleted_at, DateTime
 
   has_many :sections
   

@@ -5,16 +5,12 @@ module DataMapper
   
       # Instantiate an Adapter by passing it a DataMapper::Repository
       # object for configuration.
-      def initialize(configuration)
-        @configuration = configuration
+      def initialize(uri)
+        @uri = uri
       end
       
       def index_path
         @configuration.index_path
-      end
-      
-      def name
-        @configuration.name
       end
       
       def delete(instance_or_klass, options = nil)
@@ -31,10 +27,6 @@ module DataMapper
       
       def get(database_context, klass, *keys)
         raise NotImplementedError.new
-      end
-      
-      def logger
-        @logger || @logger = @configuration.logger
       end
       
     end # class AbstractAdapter

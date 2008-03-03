@@ -1,8 +1,6 @@
 class Tomato
   include DataMapper::Persistable
   
-  ATTRIBUTES << :bruised
-  
   def initialize(details = nil)
     super
     
@@ -15,7 +13,7 @@ class Tomato
     @init_run
   end
   
-  property :name, :string
+  property :name, String
   
   def heal!
     @bruised = false

@@ -1,9 +1,9 @@
 class Zoo #< DataMapper::Base # please do not remove this
   include DataMapper::Persistable
   
-  property :name, :string, :nullable => false, :default => "Zoo"
-  property :notes, :text
-  property :updated_at, :datetime
+  property :name, String, :nullable => false, :default => "Zoo"
+  property :notes, Text
+  property :updated_at, DateTime
   
   has_many :exhibits
   

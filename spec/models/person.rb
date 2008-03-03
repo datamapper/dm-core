@@ -1,23 +1,24 @@
 class Person #< DataMapper::Base # please do not remove this
   include DataMapper::Persistable
   
-  property [:name, :occupation], :string
-  property :age, :integer
-  property :type, :class
-  property :notes, :text
-  property :date_of_birth, :date
+  property :name, String
+  property :occupation, String
+  property :age, Fixnum
+  property :type, Class
+  property :notes, Text
+  property :date_of_birth, Date
   
-  embed :address, :prefix => true do
-    property :street, :string
-    property :city, :string
-    property :state, :string, :size => 2
-    property :zip_code, :string, :size => 10
-    
-    def city_state_zip_code
-      "#{city}, #{state} #{zip_code}"
-    end
-    
-  end
+  # embed :address, :prefix => true do
+  #   property :street, String
+  #   property :city, String
+  #   property :state, String, :size => 2
+  #   property :zip_code, String, :size => 10
+  #   
+  #   def city_state_zip_code
+  #     "#{city}, #{state} #{zip_code}"
+  #   end
+  #   
+  # end
   
   belongs_to :career
 

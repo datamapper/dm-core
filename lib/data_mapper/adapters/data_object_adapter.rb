@@ -348,72 +348,72 @@ module DataMapper
         self.class::Commands::LoadCommand.new(self, database_context, klass, options).call
       end
 
-      def get(database_context, klass, keys)
-        table = self.table(klass)
-        instance_id = table.key.type_cast_value(keys.first)
-        instance = database_context.identity_map.get(klass, instance_id)
-
-        return instance if instance
-
-        column_indexes = {}
-        select_columns = []
-
-        table.columns.each_with_index do |column, i|
-          column_indexes[column] = i
-          select_columns << column.to_sql
+      def table_name(resource_name)
+        resource_name.to_s.ensure_wrapped_with('"')
+      end
+      
+      def column_name(field_name)
+        field_name.to_s.ensure_wrapped_with('"')
+      end
+      
+      def get(context, target, key_values)
+        instance = nil
+        
+        table_name = table_name(target.resource_name(repository.name))
+        column_names = target.properties(repository.name).map do |property|
+          column_name(property.field)
         end
+        key_columns = target.key.map { |property| column_name(property.field) }
 
-        sql = "SELECT #{select_columns.join(', ')} FROM #{table.to_sql} WHERE #{table.keys.map { |key| "#{key.to_sql} = ?" }.join(' AND ')}"
+        sql = "SELECT #{column_names.join(', ')} FROM #{table_name} WHERE #{key_columns.map { |key| "#{key} = ?" }.join(' AND ')}"
+        
+        connection = create_connection
+        reader = nil
+        
+        begin
+          reader = connection.create_command(sql).execute_reader(*key_values)
 
-        connection do |db|
-          reader = nil
-          begin
-            reader = db.create_command(sql).execute_reader(*keys)
+          instance_type = target
 
-            if reader.has_rows?
+          # if table.multi_class? && table.type_column
+          #   value = reader.item(column_indexes[table.type_column])
+          #   instance_type = table.type_column.type_cast_value(value) unless value.blank?
+          # end
 
-              instance_type = klass
-
-              if table.multi_class? && table.type_column
-                value = reader.item(column_indexes[table.type_column])
-                instance_type = table.type_column.type_cast_value(value) unless value.blank?
-              end
-
-              if instance.nil?
-                instance = instance_type.allocate()
-                instance.instance_variable_set(:@__key, instance_id)
-                instance.instance_variable_set(:@new_record, false)
-                database_context.identity_map.set(instance)
-              elsif instance.new_record?
-                instance.instance_variable_set(:@__key, instance_id)
-                instance.instance_variable_set(:@new_record, false)
-                database_context.identity_map.set(instance)
-              end
-
-              instance.database_context = database_context
-
-              instance_type.callbacks.execute(:before_materialize, instance)
-
-              originals = instance.original_values
-
-              column_indexes.each_pair do |column, i|
-                value = column.type_cast_value(reader.item(i))
-                instance.instance_variable_set(column.instance_variable_name, value)
-
-                case value
-                  when String, Date, Time then originals[column.name] = value.dup
-                  else originals[column.name] = value
-                end
-              end
-
-              instance.loaded_set = [instance]
-
-              instance_type.callbacks.execute(:after_materialize, instance)
-            end # if reader.has_rows?
-          ensure
-            reader.close if reader && reader.open?
+          if instance.nil?
+            instance = instance_type.allocate()
+            # instance.instance_variable_set(:@__key, instance_id)
+            instance.instance_variable_set(:@new_record, false)
+            database_context.identity_map.set(instance)
+          elsif instance.new_record?
+            # instance.instance_variable_set(:@__key, instance_id)
+            instance.instance_variable_set(:@new_record, false)
+            database_context.identity_map.set(instance)
           end
-        end # connection
+
+          instance.database_context = database_context
+
+          instance_type.callbacks.execute(:before_materialize, instance)
+
+          originals = instance.original_values
+
+          column_indexes.each_pair do |column, i|
+            value = column.type_cast_value(reader.item(i))
+            instance.instance_variable_set(column.instance_variable_name, value)
+
+            case value
+              when String, Date, Time then originals[column.name] = value.dup
+              else originals[column.name] = value
+            end
+          end
+
+          instance.loaded_set = [instance]
+
+          instance_type.callbacks.execute(:after_materialize, instance)
+        ensure
+          reader.close if reader
+          connection.close
+        end
 
         return instance
       end

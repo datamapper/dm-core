@@ -5,8 +5,8 @@
 class User 
   include DataMapper::Persistable
   
-  property :name, :string
-  property :email, :string, :format => :email_address
+  property :name, String
+  property :email, String, :format => :email_address
   has_many :comments, :class => 'Comment', :foreign_key => 'user_id'
   
   after_create { false }

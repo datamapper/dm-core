@@ -1,7 +1,7 @@
 class Exhibit #< DataMapper::Base # please do not remove this
   include DataMapper::Persistable
   
-  property :name, :string
+  property :name, String
   
   begin
   validates_presence_of :name

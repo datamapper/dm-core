@@ -1,6 +1,7 @@
 require 'date'
 require 'time'
 require 'bigdecimal'
+require File.join(File.dirname(__FILE__), 'types', 'text')
 
 module DataMapper
 
@@ -168,6 +169,7 @@ module DataMapper
     TYPES = [
       TrueClass,
       String,
+      Text,
       Float,
       Fixnum,
       BigDecimal,
@@ -185,9 +187,14 @@ module DataMapper
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
       raise ArgumentError.new("#{type.inspect} is not a supported type. Valid types are:\n #{TYPES.inspect}") unless TYPES.include?(type)
       
-      @target, @name, @type, @options = target, name, type, options
-      @symbolized_name = name.to_s.sub(/\?$/, '').to_sym
-      @instance_variable_name = "@#{@symbolized_name}"
+      @target, @name, @type, @options = target, name.to_s.sub(/\?$/, '').to_sym, type, options
+      @instance_variable_name = "@#{@name}"
+      
+      @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
+      
+      @lazy = (@type != Text || @options[:lazy] != false)
+      
+      @key = (@options[:key] || @options[:serial]) == true
       
       validate_options!
       determine_visibility!
@@ -324,6 +331,14 @@ module DataMapper
     
     def lazy?
       @lazy
+    end
+    
+    def getter
+      @getter
+    end
+    
+    def key?
+      @key
     end
   end
 end

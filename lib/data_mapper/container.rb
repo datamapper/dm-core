@@ -1,4 +1,3 @@
-require 'data_mapper/property'
 require 'data_mapper/attributes'
 require 'data_mapper/validations'
 require 'data_mapper/associations'

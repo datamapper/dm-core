@@ -66,7 +66,7 @@ module DataMapper
       options[:reader] ||= options[:accessor] || @container_reader_visibility
       options[:writer] ||= options[:accessor] || @container_writer_visibility
       
-      property_name = @container_prefix ? @container_prefix + name.to_s : name
+      property_name = (@container_prefix ? @container_prefix + name.to_s : name).to_sym
       
       property = containing_class.property(property_name, type, options)
       define_property_getter(name, property)

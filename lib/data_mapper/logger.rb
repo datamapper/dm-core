@@ -48,8 +48,8 @@ module DataMapper
     #     info:  generic (useful) information about system operation
     #     debug: low-level information for developers
     #
-    #   DataMapper::Logger::Levels[:fatal, :error, :warn, :info, :debug]
-    Levels = 
+    #   DataMapper::Logger::LEVELS[:fatal, :error, :warn, :info, :debug]
+    LEVELS = 
     {
       :fatal => 7, 
       :error => 6, 
@@ -126,10 +126,10 @@ module DataMapper
     # delimiter<String>
     #   Delimiter to use between message sections
     def set_log(log, log_level = nil, delimiter = " ~ ")
-      if log_level && Levels[log_level.to_sym]
-        @level = Levels[log_level.to_sym]
+      if log_level && LEVELS[log_level.to_sym]
+        @level = LEVELS[log_level.to_sym]
       else
-        @level = Levels[:debug]
+        @level = LEVELS[:debug]
       end
       @buffer    = []
       @delimiter = delimiter
@@ -186,7 +186,7 @@ module DataMapper
 
     # Generate the following logging methods for DataMapper.logger as described in the api:
     #  :fatal, :error, :warn, :info, :debug 
-    Levels.each_pair do |name, number|
+    LEVELS.each_pair do |name, number|
       class_eval <<-LEVELMETHODS, __FILE__, __LINE__
 
       # DOC

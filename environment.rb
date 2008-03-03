@@ -28,14 +28,17 @@ unless defined?(INITIAL_CLASSES)
   #   configuration_options.merge!(:log_stream => log_path, :log_level => DataMapper::Logger::Levels[:debug])
   # end
 
-  load_models = lambda do
-    Dir[File.dirname(__FILE__) + "/spec/models/*.rb"].sort.each { |path| load path }
-  end
-
   # secondary_configuration_options = configuration_options.dup
   # secondary_configuration_options.merge!(:database => (adapter == "sqlite3" ? "data_mapper_2.db" : "data_mapper_2"))
 
   DataMapper.setup(:default, repository_uri)
+  
+  # Determine log path.
+  ENV['_'] =~ /(\w+)/
+  DataMapper::Logger.new(File.join(File.dirname(__FILE__), "log", "#{$1}.log"), 0)
+  at_exit { DataMapper.logger.close }
+  
+  Dir[File.dirname(__FILE__) + "/spec/models/*.rb"].sort.each { |path| load path }
   
   # DataMapper::Repository.setup(configuration_options)
   # DataMapper::Repository.setup(:secondary, secondary_configuration_options)
@@ -48,7 +51,4 @@ unless defined?(INITIAL_CLASSES)
   #   [:default, :secondary].each { |name| repository(name) { DataMapper::Persistable.auto_migrate! } }
   # end
 
-  # Save the initial database layout so we can put everything back together
-  # after auto migrations testing
-  # INITIAL_CLASSES = Array.new(DataMapper::Persistable.subclasses.to_a)
 end

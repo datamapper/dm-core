@@ -1,4 +1,5 @@
-require 'data_mapper/adapters/data_object_adapter'
+require File.join(File.dirname(__FILE__), 'data_object_adapter')
+
 begin
   require 'do_sqlite3'
 rescue LoadError
@@ -28,10 +29,9 @@ module DataMapper
       FALSE_ALIASES << 'f'.freeze
       
       def create_connection
-        conn = DataObject::Sqlite3::Connection.new("dbname=#{@configuration.database}")
-        conn.logger = self.logger
-        conn.open if conn.respond_to?(:open)
-        return conn
+        connnection = DataObjects::Sqlite3::Connection.new(@uri)
+        # connnection.logger = DataMapper.logger
+        return connnection
       end
       
       def batch_insertable?
@@ -39,19 +39,7 @@ module DataMapper
       end
       
       module Mappings
-        
-        class Schema
-          def to_tables_sql
-            @to_tables_sql || @to_tables_sql = <<-EOS.compress_lines
-              SELECT "name" 
-              FROM sqlite_master 
-              where "type"= "table"
-              and "name" <> "sqlite_sequence"
-            EOS
-          end
-          alias_method :database_tables, :get_database_tables
-        end # class Schema
-        
+                
         class Table
           def to_exists_sql
             @to_exists_sql || @to_exists_sql = <<-EOS.compress_lines

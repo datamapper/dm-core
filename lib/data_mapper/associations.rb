@@ -12,6 +12,11 @@ module DataMapper
     end
     
     module ClassMethods
+      
+      def associations
+        @associations
+      end
+      
       # Adds the following methods for query of a single associated object:
       # * <tt>collection(</tt> - returns a set containing the associated objects. Returns
       #   an empty set if no objects are found.
@@ -39,7 +44,7 @@ module DataMapper
       # Option examples:
       #   has_many :favourite_fruits, :class => 'Fruit', :dependent => :destroy
       def has_many(association_name, options = {})
-        repository.schema[self].associations << HasManyAssociation.new(self, association_name, options)
+        #self.associations << HasManyAssociation.new(self, association_name, options)
       end
       
       # Adds the following methods for query of a single associated object:
@@ -65,7 +70,7 @@ module DataMapper
       # Option examples:
       #   has_one :favourite_fruit, :class => 'Fruit', :foreign_key => 'devourer_id'
       def has_one(association_name, options = {})
-        repository.schema[self].associations << HasManyAssociation.new(self, association_name, options)
+        #self.associations << HasManyAssociation.new(self, association_name, options)
       end
       
       # Adds the following methods for query of a single associated object:
@@ -78,7 +83,7 @@ module DataMapper
       #   saving it to the database.
       # * <tt>create_association</tt> - creates and saves a new object of the associated type.
       def belongs_to(association_name, options = {})
-        repository.schema[self].associations << BelongsToAssociation.new(self, association_name, options)
+        #self.associations << BelongsToAssociation.new(self, association_name, options)
       end
       
       # Associates two classes via an intermediate join table.
@@ -97,7 +102,7 @@ module DataMapper
       #   effectively nullifying the foreign key.
       #   default is :nullify
       def has_and_belongs_to_many(association_name, options = {})
-        repository.schema[self].associations << HasAndBelongsToManyAssociation.new(self, association_name, options)
+        #self.associations << HasAndBelongsToManyAssociation.new(self, association_name, options)
       end
       
     end

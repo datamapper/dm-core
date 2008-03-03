@@ -1,4 +1,5 @@
 require 'uri'
+require File.join(File.dirname(__FILE__), 'support', 'errors')
 require File.join(File.dirname(__FILE__), 'logger')
 require File.join(File.dirname(__FILE__), 'context')
 require File.join(File.dirname(__FILE__), 'adapters', 'abstract_adapter')
@@ -57,13 +58,12 @@ module DataMapper
     unless block_given?
       begin
         Repository.context.last || Context.new(Repository[name])
-      rescue NoMethodError
-        raise RepositoryNotSetupError.new("#{name.inspect} repository not set up.")
+      #rescue NoMethodError
+       # raise RepositoryNotSetupError.new("#{name.inspect} repository not set up.")
       end
     else
       begin
-        Repository.context.push(Context.new(Repository[name]))
-        return yield(Repository.context.last)
+        return yield(Repository.context.push(Context.new(Repository[name])))
       ensure
         Repository.context.pop
       end
@@ -139,7 +139,7 @@ module DataMapper
       Thread::current[:repository_contexts] || Thread::current[:repository_contexts] = []
     end
     
-    attr_reader :name, :uri, :logger, :adapter
+    attr_reader :name, :uri, :adapter
         
     # Creates a new repository object with the name you specify.
     def initialize(name, uri)
@@ -149,9 +149,6 @@ module DataMapper
       @name = name
       @uri = uri
       
-      @logger = DataMapper::Logger.new(nil, 0)
-      at_exit { self.logger.close }
-      
       unless Adapters::const_defined?(Inflector.classify(uri.scheme) + "Adapter")
         begin
           require File.join(File.dirname(__FILE__), 'adapters', "#{Inflector.underscore(uri.scheme)}_adapter")
@@ -160,7 +157,7 @@ module DataMapper
         end
       end
       
-      @adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(self)
+      @adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(uri)
     end
 
   end

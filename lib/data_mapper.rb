@@ -9,11 +9,7 @@
 
 # This line just let's us require anything in the +lib+ sub-folder
 # without specifying a full path.
-unless defined?(DM_PLUGINS_ROOT)
-  $LOAD_PATH.unshift(File.dirname(__FILE__))
-
-  DM_PLUGINS_ROOT = (File.dirname(__FILE__) + '/../plugins')
-end
+$:.unshift(File.dirname(__FILE__))
 
 # Require the basics...
 require 'uri'
@@ -28,19 +24,16 @@ require 'data_mapper/support/object'
 require 'data_mapper/support/blank'
 require 'data_mapper/support/enumerable'
 require 'data_mapper/support/symbol'
-require 'data_mapper/support/string'
 require 'data_mapper/support/silence'
 require 'data_mapper/support/inflector'
-require 'data_mapper/support/errors'
 require 'data_mapper/support/typed_set'
-require 'data_mapper/logger'
-require 'data_mapper/repository'
-require 'data_mapper/persistable'
-require 'data_mapper/container'
-require 'data_mapper/resource'
-require 'data_mapper/types/string'
-require 'data_mapper/model'
 
+require File.join(File.dirname(__FILE__), 'data_mapper', 'dependency_queue')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'struct')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'persistable')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'resource')
+
+require 'data_mapper/types/string'
 
 begin
   # This block of code is for compatibility with Ruby On Rails' or Merb's database.yml
