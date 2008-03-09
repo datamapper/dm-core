@@ -192,7 +192,7 @@ module DataMapper
       
       @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
       
-      @lazy = (@type != Text || @options[:lazy] != false)
+      @lazy = @options.has_key?(:lazy) ? @options[:lazy] : @type == Text
       
       @key = (@options[:key] || @options[:serial]) == true
       

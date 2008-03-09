@@ -1,0 +1,6 @@
+* Figure out what to do about Resource::context
+* Add dirty-tracking to Resource
+* Get DataObjectAdapter working...
+* Spec out Events
+* Spec out Validations
+* Spec out Associations

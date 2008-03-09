@@ -14,6 +14,10 @@ module DataMapper
       target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? [] : h[:default].dup) })
     end
     
+    def context
+      @context
+    end
+    
     def initialize(details = nil) # :nodoc:
       validate_resource!
       
@@ -107,8 +111,8 @@ module DataMapper
     
     module ClassMethods
       
-      def repository_name
-        DataMapper::repository.name
+      def context
+        DataMapper::context
       end
       
       def resource_name(repository_name)
@@ -132,8 +136,6 @@ module DataMapper
         
         property
       end
-      # +has+ is nice. Inspired by the Traits gem. Declared as the alias to avoid conflicts.
-      alias has property
       
       def properties(repository_name)
         @properties[repository_name]
