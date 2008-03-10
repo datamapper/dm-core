@@ -14,6 +14,10 @@ module DataMapper
       @adapter = repository.adapter
     end
     
+    def repository
+      @repository
+    end
+    
     def name
       @repository.name
     end

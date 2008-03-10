@@ -6,12 +6,17 @@ require File.join(File.dirname(__FILE__), 'adapters', 'abstract_adapter')
 
 # Delegates to DataMapper::repository.
 # Will not overwrite if a method of the same name is pre-defined.
-def repository(name = :default, &block)
-  DataMapper::repository(name, &block)
-end unless methods.include?(:repository)
-alias repo repository
+module Kernerl
+  def self.repository(name = :default, &block)
+    DataMapper::repository(name, &block)
+  end
+end
 
 module DataMapper
+  
+  def self.scope(name)
+    Repository.context.last || Context.new(Repository[name])
+  end
   
   # Setup creates a repository and sets all of your properties for that repository.
   # Setup looks for either a hash of options passed in to the repository or a symbolized name

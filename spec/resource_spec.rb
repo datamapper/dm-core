@@ -56,8 +56,7 @@ describe "DataMapper::Resource" do
   end
   
   it "should provide a repository context" do
-    pending("Sigh... Resource::context is incompatible with RSpec. :-(")
-    Planet.context.repository.should == DataMapper::Repository[:default]
+    Planet.scope.repository.should == DataMapper::Repository[:default]
   end
   
 end

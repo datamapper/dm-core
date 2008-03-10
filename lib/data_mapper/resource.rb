@@ -14,8 +14,8 @@ module DataMapper
       target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? [] : h[:default].dup) })
     end
     
-    def context
-      @context
+    def scope
+      @scope || self.class.scope
     end
     
     def initialize(details = nil) # :nodoc:
@@ -39,21 +39,19 @@ module DataMapper
     end
     
     def validate_resource! # :nodoc:
-      raise IncompleteResourceError.new("Resources must have at least one property to be initialized.") if self.class.properties(repository_name).empty?
+      if self.class.properties(self.class.default_repository_name).empty?
+        raise IncompleteResourceError.new("Resources must have at least one property to be initialized.")
+      end
     end
     
     def self.===(other)
       other.is_a?(Module) && other.ancestors.include?(Resource)
     end
     
-    def repository_name
-      DataMapper::repository.name
-    end
-    
     def attributes
       pairs = {}
       
-      self.class.properties(repository_name).each do |property|
+      self.class.properties(scope.repository.name).each do |property|
         if property.reader_visibility == :public
           pairs[property.name] = send(property.getter)
         end
@@ -111,8 +109,12 @@ module DataMapper
     
     module ClassMethods
       
-      def context
-        DataMapper::context
+      def scope
+        DataMapper::scope(default_repository_name)
+      end
+      
+      def default_repository_name
+        :default
       end
       
       def resource_name(repository_name)
@@ -124,12 +126,12 @@ module DataMapper
       end
       
       def property(name, type, options = {})
-        property = properties(repository.name) << Property.new(self, name, type, options)
+        property = properties(scope.name) << Property.new(self, name, type, options)
         
         # Add property to the other mappings as well if this is for the default repository.
-        if repository.name == :default
+        if scope.name == default_repository_name
           @properties.each_pair do |repository_name, properties|
-            next if repository_name == :default
+            next if repository_name == default_repository_name
             properties << property
           end          
         end
@@ -142,7 +144,7 @@ module DataMapper
       end
       
       def key
-        @key = @properties[:default].select { |property| property.key? }
+        @key = @properties[default_repository_name].select { |property| property.key? }
         
         if @key.nil?
           @key = [property(:id, Fixnum, :serial => true)]

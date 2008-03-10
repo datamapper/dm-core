@@ -1,4 +1,4 @@
-* Figure out what to do about Resource::context
+* Figure out what to do about Resource::context (scope for now :-p)
 * Add dirty-tracking to Resource
 * Get DataObjectAdapter working...
 * Spec out Events

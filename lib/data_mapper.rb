@@ -62,7 +62,7 @@ begin
         :socket => config[:socket]
       }
   
-      DataMapper::Repository.setup(default_database_config)
+      DataMapper.setup(default_database_config)
     
     elsif application_root && FileTest.directory?(application_root + '/config')
     
