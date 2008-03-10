@@ -277,27 +277,30 @@ module DataMapper
     end
     
     # NOTE: :length may also be used in place of :size
-    AUTO_VALIDATIONS = {
-      :nullable => lambda { |k,v| "validates_presence_of :#{k}" if v == false },
-      :size => lambda { |k,v| "validates_length_of :#{k}, " + (v.is_a?(Range) ? ":minimum => #{v.first}, :maximum => #{v.last}" : ":maximum => #{v}") },
-      :format => lambda { |k, v| "validates_format_of :#{k}, :with => #{v.inspect}" }
-    }
-    
-    AUTO_VALIDATIONS[:length] = AUTO_VALIDATIONS[:size].dup
-    
+    AUTO_VALIDATIONS = [
+      [:nullable, lambda { |k,v| "validates_presence_of :#{k}" if v == false }],
+      [[:size, :length], lambda { |k,v| "validates_length_of :#{k}, " + (v.is_a?(Range) ? ":within => #{v}" : ":maximum => #{v}") } ],
+      [:format, lambda { |k, v| "validates_format_of :#{k}, :with => #{v.inspect}" }]
+    ]
+
     # defines the inferred validations given a property definition.
     def auto_validations!
-      AUTO_VALIDATIONS.each do |key, value|
-        next unless @options.has_key?(key)
-        validation = value.call(name, @options[key])
-        next if validation.empty?
-        @target.class_eval <<-EOS
-        begin
-          #{validation}
-        rescue ArgumentError => e
-          throw e unless e.message =~ /specify a unique key/
+      AUTO_VALIDATIONS.each do |v|
+        keys, value = v[0], v[1]
+        keys = [keys].flatten
+
+        keys.each do |key|
+          next unless @options.has_key?(key)
+          validation = value.call(name, @options[key])
+          next if validation.empty?
+          @target.class_eval <<-EOS
+          begin
+            #{validation}
+          rescue ArgumentError => e
+            throw e unless e.message =~ /specify a unique key/
+          end
+          EOS
         end
-        EOS
       end
     end
     
