@@ -31,7 +31,7 @@ module DataMapper
   #    :host     => 'localhost'
   #    :username => 'root'
   #    :password => 'R00tPaswooooord'
-  #    :repository => 'selecta_development'
+  #    :database => 'selecta_development'
   #   })
   #
   #
@@ -40,7 +40,7 @@ module DataMapper
   #    :host     => 'localhost'
   #    :username => 'root'
   #    :password => 'R00tPaswooooord'
-  #    :repository => 'selecta_development'
+  #    :database => 'selecta_development'
   #   })
   def self.setup(name, uri)
     Repository[name] = Repository.new(name, uri.is_a?(String) ? URI.parse(uri) : uri)
