@@ -76,7 +76,7 @@ dm = namespace :dm do
   end
 end
 
-PACKAGE_VERSION = '0.3.0'
+PACKAGE_VERSION = '0.9.0'
 
 PACKAGE_FILES = FileList[
   'README',
