@@ -1,6 +1,6 @@
-require File.dirname(__FILE__) + '/column'
-require File.dirname(__FILE__) + '/conditions'
-require File.dirname(__FILE__) + '/associations_set'
+require File.join(File.dirname(__FILE__), 'column')
+require File.join(File.dirname(__FILE__), 'conditions')
+require File.join(File.dirname(__FILE__), 'associations_set')
 
 module DataMapper
   module Adapters

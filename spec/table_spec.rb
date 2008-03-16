@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/spec_helper"
+require File.join(File.dirname(__FILE__), 'spec_helper')
 
 describe DataMapper::Adapters::Sql::Mappings::Table do
   it "should return all columns from the database" do

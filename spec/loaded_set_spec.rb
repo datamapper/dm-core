@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + "/../lib/data_mapper/repository"
-require File.dirname(__FILE__) + "/../lib/data_mapper/resource"
-require File.dirname(__FILE__) + "/../lib/data_mapper/loaded_set"
-require File.dirname(__FILE__) + "/mock_adapter"
+require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'repository')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'resource')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'loaded_set')
+require File.join(File.dirname(__FILE__), 'mock_adapter')
 
 describe "DataMapper::LoadedSet" do
   

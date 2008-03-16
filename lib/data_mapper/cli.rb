@@ -1,6 +1,6 @@
 require "yaml"
 require "irb"
-require "irb/completion"
+require File.join('irb', 'completion')
 
 # TODO: error handling for:
 #   missing adapter, host or database

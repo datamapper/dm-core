@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + "/spec_helper"
-require File.dirname(__FILE__) + "/../lib/data_mapper/migration"
+require File.join(File.dirname(__FILE__), 'spec_helper')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'migration')
 
 class MigrationUser
   include DataMapper::Persistable

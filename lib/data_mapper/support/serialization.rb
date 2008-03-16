@@ -1,4 +1,4 @@
-require 'rexml/document'
+require File.join('rexml', 'document')
 
 begin
   require 'faster_csv'
@@ -7,9 +7,9 @@ rescue LoadError
 end
 
 begin
-  require 'json/ext'
+  require File.join('json', 'ext')
 rescue LoadError
-  require 'json/pure'
+  require File.join('json', 'pure')
 end
 
 module DataMapper

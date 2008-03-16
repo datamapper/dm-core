@@ -1,4 +1,4 @@
-require 'data_mapper/associations/has_n_association'
+require File.join(File.dirname(__FILE__), 'has_n_association')
 
 module DataMapper
   module Associations

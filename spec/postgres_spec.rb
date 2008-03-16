@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/spec_helper"
+require File.join(File.dirname(__FILE__), 'spec_helper')
 
 # Only run these specs when the ADAPTER env-variable is set to 'postgresql'
 # You will probably need to set the DATABASE and USERNAME vars as well.

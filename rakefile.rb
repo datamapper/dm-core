@@ -2,12 +2,12 @@
 
 require 'rubygems'
 require 'rake'
-require 'spec/rake/spectask'
-require 'rake/rdoctask'
-require 'rake/gempackagetask'
-require 'rake/contrib/rubyforgepublisher'
+require File.join('spec', 'rake', 'spectask')
+require File.join('rake', 'rdoctask')
+require File.join('rake', 'gempackagetask')
+require File.join('rake', 'contrib', 'rubyforgepublisher')
 
-Dir[File.dirname(__FILE__) + '/tasks/*'].each { |t| require(t) }
+Dir[File.join(File.dirname(__FILE__), 'tasks', '*')].each { |t| require(t) }
 
 task :default => 'dm:spec'
 
@@ -23,7 +23,7 @@ dm = namespace :dm do
   desc "Run specifications"
   Spec::Rake::SpecTask.new('spec') do |t|
     t.spec_opts = ["--format", "specdoc", "--colour"]
-    t.spec_files = FileList[(ENV['FILES'] || 'spec/**/*_spec.rb')]
+    t.spec_files = FileList[(ENV['FILES'] || File.join('spec', '**', '*_spec.rb'))]
     unless ENV['NO_RCOV']
       t.rcov = true
       t.rcov_opts = ['--exclude', 'examples,spec,environment.rb']
@@ -63,7 +63,7 @@ dm = namespace :dm do
 
     desc "Run specifications with DataMapper::Base compatibilty"
     task :compat do
-      fl = FileList['spec/**/*.rb'].exclude(/\b\.svn/)
+      fl = FileList[File.join('spec', '**', '*.rb')].exclude(/\b\.svn/)
 
       set_model_mode(fl, :compat)
 

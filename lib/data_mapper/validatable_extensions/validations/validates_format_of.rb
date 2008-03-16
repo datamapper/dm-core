@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/formats/email.rb'
+require File.join(File.dirname(__FILE__), 'formats', 'email.rb')
 
 module Validatable
   

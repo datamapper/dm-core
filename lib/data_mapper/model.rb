@@ -1,4 +1,4 @@
-require 'data_mapper/persistable'
+require File.join(File.dirname(__FILE__), 'persistable')
 
 module DataMapper
   class Model

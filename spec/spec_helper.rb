@@ -1,11 +1,11 @@
 require 'pp'
 
 ENV['LOG_NAME'] = 'spec'
-require File.dirname(__FILE__) + '/../environment'
+require File.join(File.dirname(__FILE__), '..', 'environment')
 
 # Define a fixtures helper method to load up our test data.
 def fixtures(name)
-  entry = YAML::load_file(File.dirname(__FILE__) + "/fixtures/#{name}.yaml")
+  entry = YAML::load_file(FIle.join(File.dirname(__FILE__), 'fixtures', "#{name}.yaml"))
   klass = begin
     Kernel::const_get(Inflector.classify(Inflector.singularize(name)))
   rescue
@@ -37,7 +37,7 @@ def fixtures(name)
 end
 
 def load_database
-  Dir[File.dirname(__FILE__) + "/fixtures/*.yaml"].each do |path|
+  Dir[File.join(File.dirname(__FILE__), 'fixtures' , '*.yaml')].each do |path|
     fixtures(File::basename(path).sub(/\.yaml$/, ''))
   end
 end

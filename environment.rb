@@ -1,7 +1,7 @@
 unless defined?(INITIAL_CLASSES)
   # Require the DataMapper, and a Mock Adapter.
-  require File.dirname(__FILE__) + "/lib/data_mapper"
-  require File.dirname(__FILE__) + "/spec/mock_adapter"
+  require File.join(File.dirname(__FILE__), 'lib', 'data_mapper')
+  require File.join(File.dirname(__FILE__), 'spec', 'mock_adapter')
 
   adapter = ENV["ADAPTER"] || "sqlite3"
   
@@ -38,7 +38,7 @@ unless defined?(INITIAL_CLASSES)
   DataMapper::Logger.new(File.join(File.dirname(__FILE__), "log", "#{$1}.log"), 0)
   at_exit { DataMapper.logger.close }
   
-  Dir[File.dirname(__FILE__) + "/spec/models/*.rb"].sort.each { |path| load path }
+  Dir[File.join(File.dirname(__FILE__), 'spec', 'models', '*.rb')].sort.each { |path| load path }
   
   # DataMapper::Repository.setup(configuration_options)
   # DataMapper::Repository.setup(:secondary, secondary_configuration_options)

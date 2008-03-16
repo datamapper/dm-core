@@ -1,4 +1,4 @@
-require 'data_mapper/validations/validator'
+require File.join(File.dirname(__FILE__), 'validator')
 
 module DataMapper 
   module Validations 

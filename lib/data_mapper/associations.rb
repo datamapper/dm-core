@@ -1,7 +1,7 @@
-require 'data_mapper/associations/reference'
-require 'data_mapper/associations/has_many_association'
-require 'data_mapper/associations/belongs_to_association'
-require 'data_mapper/associations/has_and_belongs_to_many_association'
+require File.join(File.dirname(__FILE__), 'associations', 'reference')
+require File.join(File.dirname(__FILE__), 'associations', 'has_many_association')
+require File.join(File.dirname(__FILE__), 'associations', 'belongs_to_association')
+require File.join(File.dirname(__FILE__), 'associations', 'has_and_belongs_to_many_association')
 
 module DataMapper
   module Associations

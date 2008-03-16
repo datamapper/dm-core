@@ -1,4 +1,4 @@
-require 'data_mapper/adapters/data_object_adapter'
+require File.join(File.dirname(__FILE__), 'data_object_adapter')
 begin
   require 'do_mysql'
 rescue LoadError

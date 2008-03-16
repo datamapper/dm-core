@@ -1,4 +1,4 @@
-Dir[File.dirname(__FILE__) + "/validatable_extensions/**/*.rb"].each do |path|
+Dir[File.join(File.dirname(__FILE__), 'validatable_extensions', '**' , '*.rb')].each do |path|
   require path
 end
 

@@ -1,4 +1,4 @@
-require 'data_mapper/types/base'
+require File.join(File.dirname(__FILE__), 'base')
 
 module DataMapper
   module Types

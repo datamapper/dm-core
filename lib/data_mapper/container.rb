@@ -1,12 +1,12 @@
-require 'data_mapper/attributes'
-require 'data_mapper/validations'
-require 'data_mapper/associations'
-require 'data_mapper/callbacks'
-require 'data_mapper/dependency_queue'
-require 'data_mapper/support/struct'
-require 'data_mapper/persistable'
-require 'data_mapper/is/tree'
-require 'data_mapper/persistable'
+require File.join(File.dirname(__FILE__), 'attributes')
+require File.join(File.dirname(__FILE__), 'validations')
+require File.join(File.dirname(__FILE__), 'associations')
+require File.join(File.dirname(__FILE__), 'callbacks')
+require File.join(File.dirname(__FILE__), 'dependency_queue')
+require File.join(File.dirname(__FILE__), 'support', 'struct')
+require File.join(File.dirname(__FILE__), 'persistable')
+require File.join(File.dirname(__FILE__), 'is', 'tree')
+require File.join(File.dirname(__FILE__), 'persistable')
 
 module DataMapper
   class Container

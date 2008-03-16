@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + "/spec_helper"
+require File.join(File.dirname(__FILE__), 'spec_helper')
 
 # Can't describe DataMapper::Persistable because
 # rspec will include it for some crazy reason!

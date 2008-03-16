@@ -1,5 +1,5 @@
 require 'bigdecimal' 
-require 'bigdecimal/util'
+require File.join('bigdecimal', 'util')
 
 module DataMapper
   module Adapters

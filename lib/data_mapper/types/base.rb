@@ -1,5 +1,5 @@
-require 'data_mapper/validations/number_validator'
-require 'data_mapper/validations/string_validator'
+require File.join(File.dirname(__FILE__), '..', 'validations', 'number_validator')
+require File.join(File.dirname(__FILE__), '..', 'validations', 'string_validator')
 
 module DataMapper
   module Types

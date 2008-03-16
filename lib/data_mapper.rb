@@ -20,20 +20,21 @@ require 'yaml'
 require 'set'
 require 'fastthread'
 require 'validatable'
-require 'data_mapper/support/object'
-require 'data_mapper/support/blank'
-require 'data_mapper/support/enumerable'
-require 'data_mapper/support/symbol'
-require 'data_mapper/support/silence'
-require 'data_mapper/support/inflector'
-require 'data_mapper/support/typed_set'
+
+require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'object')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'blank')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'enumerable')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'symbol')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'silence')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'inflector')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'typed_set')
 
 require File.join(File.dirname(__FILE__), 'data_mapper', 'dependency_queue')
 require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'struct')
 require File.join(File.dirname(__FILE__), 'data_mapper', 'persistable')
 require File.join(File.dirname(__FILE__), 'data_mapper', 'resource')
 
-require 'data_mapper/types/string'
+require File.join(File.dirname(__FILE__), 'data_mapper', 'types', 'string')
 
 begin
   # This block of code is for compatibility with Ruby On Rails' or Merb's database.yml
@@ -46,9 +47,9 @@ begin
   
     DM_APP_ROOT = application_root || Dir::pwd
   
-    if application_root && File.exists?(application_root + '/config/database.yml')
+    if application_root && File.exists?(File.join(application_root, 'config', 'database.yml'))
 
-      database_configurations = YAML::load_file(application_root + '/config/database.yml')
+      database_configurations = YAML::load_file(File.join(application_root, 'config', 'database.yml'))
       current_database_config = database_configurations[application_environment] || database_configurations[application_environment.to_sym]
     
       config = lambda { |key| current_database_config[key.to_s] || current_database_config[key] }
@@ -64,7 +65,7 @@ begin
   
       DataMapper.setup(default_database_config)
     
-    elsif application_root && FileTest.directory?(application_root + '/config')
+    elsif application_root && FileTest.directory?(File.join(application_root, 'config'))
     
       %w(development testing production).map do |environment|
         <<-EOS.margin
@@ -73,6 +74,7 @@ begin
             username: root
             password:
             host: localhost
+            #TODO don't use '/' in split
             database: #{File.dirname(DM_APP_ROOT).split('/').last}_#{environment}
         EOS
       end
