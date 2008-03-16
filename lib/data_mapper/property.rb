@@ -181,6 +181,9 @@ module DataMapper
     
     VISIBILITY_OPTIONS = [:public, :protected, :private]
     
+    attr_writer :loaded
+    attr_writer :dirty
+    
     def initialize(target, name, type, options)
       
       raise ArgumentError.new("#{target.inspect} should be a type of Resource") unless Resource === target
@@ -195,6 +198,10 @@ module DataMapper
       @lazy = @options.has_key?(:lazy) ? @options[:lazy] : @type == Text
       
       @key = (@options[:key] || @options[:serial]) == true
+      
+      @dirty = @loaded = false
+      
+      @original_value = nil
       
       validate_options!
       determine_visibility!
@@ -221,30 +228,17 @@ module DataMapper
     
     # defines the getter for the property
     def create_getter!
-      if lazy?
-        @target.class_eval <<-EOS
-        #{reader_visibility.to_s}
-        def #{name}
-          lazy_load!(#{name.inspect})
-          class << self;
-            attr_accessor #{name.inspect}
-          end
-          @#{name}
-        end
-        EOS
-      else
-        @target.class_eval <<-EOS
-        #{reader_visibility.to_s}
-        def #{name}
-          #{instance_variable_name}
-        end
-        EOS
+      @target.class_eval <<-EOS
+      #{reader_visibility.to_s}
+      def #{@name}
+        attribute_get("#{name}")
       end
+      EOS
       if type == :boolean
         klass.class_eval <<-EOS
         #{reader_visibility.to_s}
         def #{name.to_s.ensure_ends_with('?')}
-          #{instance_variable_name}
+          #{@name}
         end
         EOS
       end
@@ -254,24 +248,12 @@ module DataMapper
     
     # defines the setter for the property
     def create_setter!
-      if lazy?
-        @target.class_eval <<-EOS
-        #{writer_visibility.to_s}
-        def #{name}=(value)
-          class << self;
-            attr_accessor #{name.inspect}
-          end
-          @#{name} = value
-        end
-        EOS
-      else
-        @target.class_eval <<-EOS
-        #{writer_visibility.to_s}
-        def #{name}=(value)
-          #{instance_variable_name} = value
-        end
-        EOS
+      @target.class_eval <<-EOS
+      #{writer_visibility.to_s}
+      def #{@name}=(value)
+        attribute_set("#{name}", value)
       end
+      EOS
     rescue SyntaxError
       raise SyntaxError.new(column)
     end
@@ -342,6 +324,14 @@ module DataMapper
     
     def key?
       @key
+    end
+    
+    def loaded?
+      @loaded
+    end
+    
+    def dirty?
+      @dirty
     end
   end
 end

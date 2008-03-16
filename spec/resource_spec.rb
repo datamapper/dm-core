@@ -62,5 +62,26 @@ describe "DataMapper::Resource" do
   it "should provide a repository" do
     Planet.repository.name.should == :default
   end
-  
+
+  it "should not mark properties loaded until values submitted" do
+    attributes = { :name => 'Jupiter', :age => 1_000_000 }
+    jupiter = Planet.new(attributes)
+    jupiter.class.properties(:default)[:name].loaded?.should == true
+    jupiter.class.properties(:default)[:core].loaded?.should == false
+    jupiter.send(:private_attributes=, attributes.merge({ :core => 'Magma' }))
+    jupiter.class.properties(:default)[:core].loaded?.should == true
+  end
+
+  it "should not mark properties dirty until values submitted" do
+    attributes = { :name => 'Jupiter', :age => 1_000_000 }
+    jupiter = Planet.new(attributes)
+    jupiter.class.properties(:default)[:name].dirty?.should == false
+    jupiter.name = 'jupiter'
+    jupiter.class.properties(:default)[:name].dirty?.should == true
+    jupiter.class.properties(:default)[:core].dirty?.should == false
+    jupiter.send(:private_attributes=, attributes.merge({ :core => 'Magma' }))
+    jupiter.class.properties(:default)[:core].dirty?.should == false
+    jupiter.send(:private_attributes=, attributes.merge({ :core => 'magma' }))
+    jupiter.class.properties(:default)[:core].dirty?.should == true
+  end
 end
