@@ -1,8 +1,4 @@
 require File.join(File.dirname(__FILE__), 'abstract_adapter')
-require File.join(File.dirname(__FILE__), 'sql', 'commands', 'load_command')
-require File.join(File.dirname(__FILE__), 'sql', 'coersion')
-require File.join(File.dirname(__FILE__), 'sql', 'quoting')
-require File.join(File.dirname(__FILE__), '..', 'query')
 
 module DataMapper
 
@@ -58,67 +54,23 @@ module DataMapper
         :select, :offset, :limit, :class, :include, :shallow_include, :reload, :conditions, :order, :intercept_load
       ]
 
-      TABLE_QUOTING_CHARACTER = '`'.freeze
-      COLUMN_QUOTING_CHARACTER = '`'.freeze
-
-      SYNTAX = {
-        :now => 'NOW()'.freeze
-      }
-
-      def activated?
-        @activated
-      end
-
-      def activate!
-        @activated = true
-        schema.activate!
-      end
-
-      def create_connection
-        raise NotImplementedError.new
-      end
-
-      def batch_insertable?
-        true
-      end
-
-      # Yields an available connection. Flushes the connection-pool and reconnects
-      # if the connection returns an error.
-      def connection
-        begin
-          # Yield the appropriate connection
-          @connection_pool.hold { |active_connection| yield(active_connection) }
-        rescue => execution_error
-          # Log error on failure
-          logger.error { execution_error }
-
-          # Close all open connections, assuming that if one
-          # had an error, it's likely due to a lost connection,
-          # in which case all connections are likely broken.
-          flush_connections!
-
-          raise execution_error
-        end
-      end
-
-      # Close any open connections.
-      def flush_connections!
-        begin
-          @connection_pool.available_connections.each do |active_connection|
-            active_connection.close
-          end
-        rescue => close_connection_error
-          # An error on closing the connection is almost expected
-          # if the socket is broken.
-          logger.warn { close_connection_error }
-        end
-
-        # Reopen fresh connections.
-        @connection_pool.available_connections.clear
-      end
+      TABLE_QUOTING_CHARACTER  = %{"}.freeze  # SQL-2003 standard is double-quoted
+      COLUMN_QUOTING_CHARACTER = %{}.freeze   # unquoted
 
       def transaction(&block)
         raise NotImplementedError.new
+      end
+
+      # Database-specific method
+      def execute(*args)
+        db = create_connection
+        command = db.create_command(args.shift)
+        return command.execute_non_query(*args)
+      rescue => e
+        logger.error { e }
+        raise e
+      ensure
+        db.close
       end
 
       def query(*args)
@@ -149,31 +101,6 @@ module DataMapper
       ensure
         reader.close if reader
         db.close
-      end
-
-      def execute(*args)
-        db = create_connection
-        command = db.create_command(args.shift)
-        return command.execute_non_query(*args)
-      rescue => e
-        logger.error { e }
-        raise e
-      ensure
-        db.close
-      end
-
-      def handle_error(error)
-        raise error
-      end
-
-      def column_exists_for_table?(table_name, column_name)
-        connection do |db|
-          table = self.table(table_name)
-          command = db.create_command(table.to_column_exists_sql)
-          command.execute_reader(table.name, column_name, table.schema.name) do |reader|
-            reader.any? { reader.item(1) == column_name.to_s }
-          end
-        end
       end
 
       def delete(database_context, instance)

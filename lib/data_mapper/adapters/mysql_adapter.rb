@@ -35,7 +35,7 @@ module DataMapper
         
         logger.debug { connection_string.strip }
         
-        conn = DataObject::Mysql::Connection.new(connection_string.strip)
+        conn = DataObjects::Mysql::Connection.new(connection_string.strip)
         conn.logger = self.logger
         conn.open
         cmd = conn.create_command("SET NAMES UTF8")

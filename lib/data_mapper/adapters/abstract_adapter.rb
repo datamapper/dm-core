@@ -13,22 +13,30 @@ module DataMapper
         @configuration.index_path
       end
       
+      def create(database_context, instance)
+        raise NotImplementedError.new
+      end
+      
+      def read(database_context, klass, *keys)
+        raise NotImplementedError.new
+      end
+      
+      def update(database_context, instance)
+        raise NotImplementedError.new
+      end
+      
       def delete(instance_or_klass, options = nil)
         raise NotImplementedError.new
       end
       
       def save(database_context, instance)
-        raise NotImplementedError.new
+        if instance.new_record?
+          create(database_context, instance)
+        else
+          update(database_context, instance)
+        end
       end
-      
-      def load(database_context, klass, options)
-        raise NotImplementedError.new
-      end
-      
-      def get(database_context, klass, *keys)
-        raise NotImplementedError.new
-      end
-      
+
     end # class AbstractAdapter
     
   end # module Adapters
