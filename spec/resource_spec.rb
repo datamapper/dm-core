@@ -1,5 +1,5 @@
-$:.unshift(File.dirname(__FILE__))
 require File.dirname(__FILE__) + "/../lib/data_mapper/resource"
+require File.dirname(__FILE__) + "/mock_adapter"
 
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.
@@ -8,9 +8,9 @@ describe "DataMapper::Resource" do
   
   before(:all) do
     
-    DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository[:default]
-    DataMapper.setup(:legacy, "mock://localhost/mock") unless DataMapper::Repository[:legacy]
-    DataMapper.setup(:yet_another_repository, "mock://localhost/mock") unless DataMapper::Repository[:yet_another_repository]
+    DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
+    DataMapper.setup(:legacy, "mock://localhost/mock") unless DataMapper::Repository.adapters[:legacy]
+    DataMapper.setup(:yet_another_repository, "mock://localhost/mock") unless DataMapper::Repository.adapters[:yet_another_repository]
     
     class Planet
       
@@ -21,6 +21,10 @@ describe "DataMapper::Resource" do
       property :name, String
       property :age, Fixnum
       property :core, String, :private => true
+      
+      # repository(:legacy) do
+      #   property :name, String
+      # end
     end
   end
   
@@ -55,8 +59,8 @@ describe "DataMapper::Resource" do
     jupiter.attributes.should == attributes.merge({ :core => 'Magma' })
   end
   
-  it "should provide a repository context" do
-    Planet.scope.repository.should == DataMapper::Repository[:default]
+  it "should provide a repository" do
+    Planet.repository.name.should == :default
   end
   
 end

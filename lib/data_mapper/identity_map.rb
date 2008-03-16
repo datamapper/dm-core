@@ -19,10 +19,13 @@ module DataMapper
     # Pass an instance to add it to the IdentityMap.
     # The instance must have an assigned key.
     def set(instance)
-      instance_key = instance.key
-      raise "Can't store an instance with a nil key in the IdentityMap" if instance_key.nil?
+      key = instance.class.key(instance.loaded_set.repository).map do |property|
+        instance.instance_variable_get(property.instance_variable_name)
+      end
       
-      @cache[mapped_class(instance.class)][instance_key] = instance
+      raise "Can't store an instance with a nil key in the IdentityMap" if key.empty?
+      
+      @cache[mapped_class(instance.class)][key] = instance
     end
     
     # Remove an instance from the IdentityMap.

@@ -1,22 +1,18 @@
 require 'uri'
 require File.join(File.dirname(__FILE__), 'support', 'errors')
 require File.join(File.dirname(__FILE__), 'logger')
-require File.join(File.dirname(__FILE__), 'context')
 require File.join(File.dirname(__FILE__), 'adapters', 'abstract_adapter')
+require File.join(File.dirname(__FILE__), 'identity_map')
 
 # Delegates to DataMapper::repository.
 # Will not overwrite if a method of the same name is pre-defined.
 module Kernerl
-  def self.repository(name = :default, &block)
+  def repository(name = :default, &block)
     DataMapper::repository(name, &block)
   end
 end
 
 module DataMapper
-  
-  def self.scope(name)
-    Repository.context.last || Context.new(Repository[name])
-  end
   
   # Setup creates a repository and sets all of your properties for that repository.
   # Setup looks for either a hash of options passed in to the repository or a symbolized name
@@ -43,7 +39,22 @@ module DataMapper
   #    :database => 'selecta_development'
   #   })
   def self.setup(name, uri)
-    Repository[name] = Repository.new(name, uri.is_a?(String) ? URI.parse(uri) : uri)
+    uri = uri.is_a?(String) ? URI.parse(uri) : uri
+    
+    raise ArgumentError.new("'name' must be a Symbol") unless name.is_a?(Symbol)
+    raise ArgumentError.new("'uri' must be a URI") unless uri.is_a?(URI)
+    
+    unless Adapters::const_defined?(Inflector.classify(uri.scheme) + "Adapter")
+      begin
+        require File.join(File.dirname(__FILE__), 'adapters', "#{Inflector.underscore(uri.scheme)}_adapter")
+      rescue LoadError
+        require "#{Inflector.underscore(uri.scheme)}_adapter"
+      end
+    end
+    
+    adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(uri)
+    
+    Repository.adapters[name] = adapter
   end
   
   # ===Block Syntax:
@@ -62,109 +73,46 @@ module DataMapper
   def self.repository(name = :default) # :yields: current_context
     unless block_given?
       begin
-        Repository.context.last || Context.new(Repository[name])
+        Repository.context.last || Repository.new(name)
       #rescue NoMethodError
        # raise RepositoryNotSetupError.new("#{name.inspect} repository not set up.")
       end
     else
       begin
-        return yield(Repository.context.push(Context.new(Repository[name])))
+        return yield(Repository.context.push(Repository.new(name)))
       ensure
         Repository.context.pop
       end
     end
   end
   
-  # The Repository class allows us to setup a default repository for use throughout our applications
-  # or allows us to setup a collection of repositories to use.
-  #
-  # === Example
-  # ==== To setup a default database
-  #   DataMapper::Repository.setup({
-  #    :adapter  => 'mysql'
-  #    :host     => 'localhost'
-  #    :username => 'root'
-  #    :password => 'R00tPaswooooord'
-  #    :database => 'selecta_development'
-  #   })
-  #
-  # ==== To setup a named database
-  #   DataMapper::Repository.setup(:second_repository, {
-  #    :adapter  => 'postgresql'
-  #    :host     => 'localhost'
-  #    :username => 'second_user'
-  #    :password => 'second_password'
-  #    :database => 'second_database'
-  #   })
-  #
-  #
-  # ==== Working with multiple repositories (see #DataMapper::repository)
-  #   DataMapper.repository(:second_repository) do
-  #     ...
-  #   end
-  #
-  #   DataMapper.repository(:default) do
-  #     ...
-  #   end
-  #
-  # or even...
-  #
-  #   #The below variables still hold on to their repository sessions.
-  #   #So no confusion happens when passing variables around scopes.
-  #
-  #   DataMapper.repository(:second_repository) do
-  #
-  #     animal = Animal.first
-  #
-  #     DataMapper.repository(:default) do
-  #       Animal.new(animal).save
-  #     end # :default repository
-  #
-  #   end # :second_repository
   class Repository
     
-    @repositories = {}
+    @adapters = {}
     
-    # Allows you to access any of the named repositories you have already setup.
-    #
-    #   default_db = DataMapper::Repository[:default]
-    #   second_db = DataMapper::Repository[:second_repository]
-    def self.[](name)
-      @repositories[name]
+    def self.adapters
+      @adapters
     end
     
-    def self.[]=(name, repository)
-      @repositories[name] = repository
-    end
-    
-    # Returns the array of Repository sessions currently being used
-    #
-    # This is what gives us thread safety, boys and girls
     def self.context
       Thread::current[:repository_contexts] || Thread::current[:repository_contexts] = []
     end
     
-    attr_reader :name, :uri, :adapter
+    attr_reader :name, :adapter
         
-    # Creates a new repository object with the name you specify.
-    def initialize(name, uri)
-      raise ArgumentError.new("'name' must be a Symbol") unless name.is_a?(Symbol)
-      raise ArgumentError.new("'uri' must be a URI") unless uri.is_a?(URI)
-      
+    def initialize(name)
       @name = name
-      @uri = uri
-      
-      unless Adapters::const_defined?(Inflector.classify(uri.scheme) + "Adapter")
-        begin
-          require File.join(File.dirname(__FILE__), 'adapters', "#{Inflector.underscore(uri.scheme)}_adapter")
-        rescue LoadError
-          require "#{Inflector.underscore(uri.scheme)}_adapter"
-        end
-      end
-      
-      @adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(uri)
+      @adapter = self.class.adapters[name]
+      @identity_map = IdentityMap.new
     end
 
+    def identity_map_get(type, key)
+      @identity_map.get(type, key)
+    end
+    
+    def identity_map_set(instance)
+      @identity_map.set(instance)
+    end
   end
   
 end

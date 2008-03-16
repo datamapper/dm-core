@@ -14,8 +14,24 @@ module DataMapper
       target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? [] : h[:default].dup) })
     end
     
-    def scope
-      @scope || self.class.scope
+    def repository
+      @loaded_set ? @loaded_set.repository : self.class.repository
+    end
+    
+    def loaded_set
+      @loaded_set
+    end
+    
+    def loaded_set=(value)
+      @loaded_set = value
+    end
+    
+    def readonly!
+      @readonly = true
+    end
+    
+    def readonly?
+      @readonly == true
     end
     
     def initialize(details = nil) # :nodoc:
@@ -51,7 +67,7 @@ module DataMapper
     def attributes
       pairs = {}
       
-      self.class.properties(scope.repository.name).each do |property|
+      self.class.properties(repository.name).each do |property|
         if property.reader_visibility == :public
           pairs[property.name] = send(property.getter)
         end
@@ -109,8 +125,8 @@ module DataMapper
     
     module ClassMethods
       
-      def scope
-        DataMapper::scope(default_repository_name)
+      def repository
+        DataMapper::repository(default_repository_name)
       end
       
       def default_repository_name
@@ -126,10 +142,10 @@ module DataMapper
       end
       
       def property(name, type, options = {})
-        property = properties(scope.name) << Property.new(self, name, type, options)
+        property = properties(repository.name) << Property.new(self, name, type, options)
         
         # Add property to the other mappings as well if this is for the default repository.
-        if scope.name == default_repository_name
+        if repository.name == default_repository_name
           @properties.each_pair do |repository_name, properties|
             next if repository_name == default_repository_name
             properties << property
@@ -143,18 +159,12 @@ module DataMapper
         @properties[repository_name]
       end
       
-      def key
-        @key = @properties[default_repository_name].select { |property| property.key? }
-        
-        if @key.nil?
-          @key = [property(:id, Fixnum, :serial => true)]
-        end
-        
-        def key
-          @key
-        end
-        
-        key
+      def key(repository_name)
+        @properties[repository_name].select { |property| property.key? }
+      end
+      
+      def inheritance_property(repository_name)
+        @properties[repository_name].detect { |property| property.type == Class }
       end
     
     end
