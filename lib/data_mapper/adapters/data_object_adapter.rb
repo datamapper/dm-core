@@ -45,10 +45,6 @@ module DataMapper
         :boolean => 'boolean'.freeze,
         :object => 'text'.freeze
       }
-
-      include Sql
-      include Quoting
-      include Coersion
       
       FIND_OPTIONS = [
         :select, :offset, :limit, :class, :include, :shallow_include, :reload, :conditions, :order, :intercept_load
@@ -367,17 +363,7 @@ module DataMapper
       # aren't just inheriting a single class, you're inheriting
       # a whole graph of Types. For convenience.
       def self.inherited(base)
-
-        commands = base.const_set('Commands', Module.new)
-
-        Sql::Commands.constants.each do |name|
-          commands.const_set(name, Class.new(Sql::Commands.const_get(name)))
-        end
-
         base.const_set('TYPES', TYPES.dup)
-        base.const_set('FIND_OPTIONS', FIND_OPTIONS.dup)
-        base.const_set('SYNTAX', SYNTAX.dup)
-
         super
       end
 
