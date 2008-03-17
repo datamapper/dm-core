@@ -15,7 +15,6 @@ $:.unshift(File.dirname(__FILE__))
 require 'pathname'
 require 'uri'
 require 'date'
-require 'pathname'
 require 'time'
 require 'rubygems'
 require 'yaml'

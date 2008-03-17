@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
-require "rubygems"
 require "pathname"
+require "rubygems"
 require "data_mapper"
 require Pathname('data_mapper/cli')
 require "optparse"
