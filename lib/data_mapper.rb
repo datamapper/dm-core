@@ -32,4 +32,5 @@ require File.join(File.dirname(__FILE__), 'data_mapper', 'dependency_queue')
 require File.join(File.dirname(__FILE__), 'data_mapper', 'resource')
 
 require File.join(File.dirname(__FILE__), 'data_mapper', 'adapters', 'abstract_adapter')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'adapters', 'data_object_adapter')
+
+require File.join(File.dirname(__FILE__), 'data_mapper', 'cli')
