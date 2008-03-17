@@ -13,18 +13,8 @@ module DataMapper
         raise NotImplementedError.new
       end
       
+      # Zoo.get(1) for example.
       def read(repository, klass, *keys)
-        raise NotImplementedError.new
-      end
-      
-      # This may be "good enough" for most adapters.
-      def first(repository, klass, query)
-        all(repository, klass, query.merge(:limit => 1)).first
-      end
-      
-      # +query+ would be an "options-hash". I'm just tired of
-      # writing "options". It's a dumb name for an arg. ;-)
-      def all(repository, klass, query)
         raise NotImplementedError.new
       end
       
@@ -43,6 +33,25 @@ module DataMapper
           update(repository, instance)
         end
       end
+      
+      # ======== Finders
+
+      # This may be "good enough" for most adapters.
+      def first(repository, klass, query)
+        all(repository, klass, query.merge(:limit => 1)).first
+      end
+      
+      # +query+ would be an "options-hash". I'm just tired of
+      # writing "options". It's a dumb name for an arg. ;-)
+      def all(repository, klass, query)
+        raise NotImplementedError.new
+      end
+      
+      # Future Enumerable/convenience finders. Please leave in place. :-)
+      # def each(repository, klass, query)
+      #   raise NotImplementedError.new
+      #   raise ArgumentError.new unless block_given?
+      # end
 
     end # class AbstractAdapter
     
