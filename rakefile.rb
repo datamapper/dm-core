@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
 require 'pathname'
+require 'rubygems'
 require 'rake'
 require Pathname('spec/rake/spectask')
 require Pathname('rake/rdoctask')
