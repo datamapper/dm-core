@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'spec_helper')
+require Pathname(__FILE__).dirname + 'spec_helper'
 
 describe DataMapper::CLI do
 

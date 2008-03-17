@@ -1,9 +1,9 @@
 require 'uri'
-require File.join(File.dirname(__FILE__), 'support', 'errors')
-require File.join(File.dirname(__FILE__), 'logger')
-require File.join(File.dirname(__FILE__), 'adapters', 'abstract_adapter')
-require File.join(File.dirname(__FILE__), 'identity_map')
-require File.join(File.dirname(__FILE__), 'naming_conventions')
+require Pathname(__FILE__).dirname + 'support/errors'
+require Pathname(__FILE__).dirname + 'logger'
+require Pathname(__FILE__).dirname + 'adapters/abstract_adapter'
+require Pathname(__FILE__).dirname + 'identity_map'
+require Pathname(__FILE__).dirname + 'naming_conventions'
 
 # Delegates to DataMapper::repository.
 # Will not overwrite if a method of the same name is pre-defined.
@@ -47,7 +47,7 @@ module DataMapper
     
     unless Adapters::const_defined?(Inflector.classify(uri.scheme) + "Adapter")
       begin
-        require File.join(File.dirname(__FILE__), 'adapters', "#{Inflector.underscore(uri.scheme)}_adapter")
+        require Pathname(__FILE__).dirname + "adapters/#{Inflector.underscore(uri.scheme)}_adapter"
       rescue LoadError
         require "#{Inflector.underscore(uri.scheme)}_adapter"
       end

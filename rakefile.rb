@@ -1,20 +1,20 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
+require 'pathname'
 require 'rake'
-require File.join('spec', 'rake', 'spectask')
-require File.join('rake', 'rdoctask')
-require File.join('rake', 'gempackagetask')
-require File.join('rake', 'contrib', 'rubyforgepublisher')
+require Pathname('spec/rake/spectask')
+require Pathname('rake/rdoctask')
+require Pathname('rake/gempackagetask')
+require Pathname('rake/contrib/rubyforgepublisher')
 
-Dir[File.join(File.dirname(__FILE__), 'tasks', '*')].each { |t| require(t) }
+Pathname.glob(Pathname(__FILE__).dirname + 'tasks/**/*.rb') { |t| require t }
 
 task :default => 'dm:spec'
 
 task :environment => 'dm:environment'
 
-dm = namespace :dm do
-
+namespace :dm do
   desc "Setup Environment"
   task :environment do
     require 'environment'
@@ -23,7 +23,7 @@ dm = namespace :dm do
   desc "Run specifications"
   Spec::Rake::SpecTask.new('spec') do |t|
     t.spec_opts = ["--format", "specdoc", "--colour"]
-    t.spec_files = FileList[(ENV['FILES'] || File.join('spec', '**', '*_spec.rb'))]
+    t.spec_files = Pathname.glob(ENV['FILES'] || 'spec/**/*_spec.rb')
     unless ENV['NO_RCOV']
       t.rcov = true
       t.rcov_opts = ['--exclude', 'examples,spec,environment.rb']
@@ -43,34 +43,34 @@ dm = namespace :dm do
   namespace :spec do
     def set_model_mode(fl, mode)
       fl.each do |fname|
-	contents = File.open(fname, 'r') { |f| f.read }
+        contents = fname.read
 
-	if mode == :compat
-	  contents.gsub!(/#< DataMapper::Base #/, '< DataMapper::Base #')
-	  contents.gsub!(/include DataMapper::Persistence/, '#include DataMapper::Persistence')
-	elsif mode == :normal
-	  contents.gsub!(/< DataMapper::Base #/, '#< DataMapper::Base #')
-	  contents.gsub!(/#include DataMapper::Persistence/, 'include DataMapper::Persistence')
-	else
-	  raise "Unknown mode #{mode}."
-	end
+        if mode == :compat
+          contents.gsub!(/#< DataMapper::Base #/, '< DataMapper::Base #')
+          contents.gsub!(/include DataMapper::Persistence/, '#include DataMapper::Persistence')
+        elsif mode == :normal
+          contents.gsub!(/< DataMapper::Base #/, '#< DataMapper::Base #')
+          contents.gsub!(/#include DataMapper::Persistence/, 'include DataMapper::Persistence')
+        else
+          raise "Unknown mode #{mode}."
+        end
 
-	File.open(fname, 'w') do |f|
-	  f.write(contents)
-	end
+        fname.open('w') do |f|
+          f.write(contents)
+        end
       end
     end
 
     desc "Run specifications with DataMapper::Base compatibilty"
     task :compat do
-      fl = FileList[File.join('spec', '**', '*.rb')].exclude(/\b\.svn/)
+      fl = Pathname.glob('spec/**/*.rb').reject { |path| path =~ /\b\.svn/ }
 
       set_model_mode(fl, :compat)
 
       begin
-	dm[:spec].execute
+        Rake::Task['dm:spec'].invoke
       ensure
-	set_model_mode(fl, :normal)
+        set_model_mode(fl, :normal)
       end
     end
   end
@@ -78,7 +78,7 @@ end
 
 PACKAGE_VERSION = '0.9.0'
 
-PACKAGE_FILES = FileList[
+PACKAGE_FILES = Pathname.glob([
   'README',
   'FAQ',
   'QUICKLINKS',
@@ -89,16 +89,16 @@ PACKAGE_FILES = FileList[
   'spec/**/*.{rb,yaml}',
   'tasks/**/*',
   'plugins/**/*'
-].to_a.reject { |path| path =~ /(\/db|Makefile|\.bundle|\.log|\.o)$/ }
+]).reject { |path| path =~ /(\/db|Makefile|\.bundle|\.log|\.o)\z/ }
 
 DOCUMENTED_FILES = PACKAGE_FILES.reject do |path|
-  FileTest.directory?(path) || path =~ /(^spec|\/spec|\/swig\_)/
+  path.directory? || path =~ /(^spec|\/spec|\/swig\_)/
 end
 
 PROJECT = "datamapper"
 
 task :ls do
-  p PACKAGE_FILES
+  puts PACKAGE_FILES
 end
 
 desc "Generate Documentation"

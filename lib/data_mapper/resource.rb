@@ -1,8 +1,8 @@
-require File.join(File.dirname(__FILE__), 'support', 'inflector')
-require File.join(File.dirname(__FILE__), 'support', 'string')
-require File.join(File.dirname(__FILE__), 'property_set')
-require File.join(File.dirname(__FILE__), 'property')
-require File.join(File.dirname(__FILE__), 'repository')
+require Pathname(__FILE__).dirname + 'support/inflector'
+require Pathname(__FILE__).dirname + 'support/string'
+require Pathname(__FILE__).dirname + 'property_set'
+require Pathname(__FILE__).dirname + 'property'
+require Pathname(__FILE__).dirname + 'repository'
 
 module DataMapper
   

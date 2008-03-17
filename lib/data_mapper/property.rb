@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'property_set')
+require Pathname(__FILE__).dirname + 'property_set'
 
 require 'date'
 require 'time'

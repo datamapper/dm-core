@@ -87,12 +87,10 @@ module DataMapper
       log ||= "log/dm.log"
       if log.respond_to?(:write)
         @log = log
-      elsif File.exist?(log)
-        @log = open(log, (File::WRONLY | File::APPEND))
-        @log.sync = true
       else
-        FileUtils.mkdir_p(File.dirname(log)) unless File.directory?(File.dirname(log))
-        @log = open(log, (File::WRONLY | File::APPEND | File::CREAT))
+        log = Pathname(log)
+        log.dirname.mkpath
+        @log = log.open('a')
         @log.sync = true
         @log.write("#{Time.now.httpdate} #{delimiter} info #{delimiter} Logfile created\n")
       end

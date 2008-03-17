@@ -1,7 +1,7 @@
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'repository')
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'resource')
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'loaded_set')
-require File.join(File.dirname(__FILE__), 'mock_adapter')
+require Pathname(__FILE__).dirname.parent + 'lib/data_mapper/repository'
+require Pathname(__FILE__).dirname.parent + 'lib/data_mapper/resource'
+require Pathname(__FILE__).dirname.parent + 'lib/data_mapper/loaded_set'
+require Pathname(__FILE__).dirname + 'mock_adapter'
 
 describe "DataMapper::LoadedSet" do
   

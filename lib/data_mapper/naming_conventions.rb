@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'support', 'inflector')
+require Pathname(__FILE__).dirname + 'support/inflector'
 
 module DataMapper
   

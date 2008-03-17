@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'naming_conventions')
+require Pathname(__FILE__).dirname.parent + 'lib/data_mapper/naming_conventions'
 
 describe "DataMapper::NamingConventions" do
   it "should coerce a string into the convention" do

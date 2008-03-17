@@ -1,6 +1,6 @@
-require File.join(File.dirname(__FILE__), '../../lib/data_mapper')
-require File.join(File.dirname(__FILE__), '../../lib/data_mapper/adapters/data_object_adapter')
-require File.join(File.dirname(__FILE__), '..', 'adapter_sharedspec')
+require Pathname(__FILE__).dirname.parent.parent + 'lib/data_mapper'
+require Pathname(__FILE__).dirname.parent.parent + 'lib/data_mapper/adapters/data_object_adapter'
+require Pathname(__FILE__).dirname.parent + 'adapter_sharedspec'
 
 describe DataMapper::Adapters::DataObjectAdapter do
   before do

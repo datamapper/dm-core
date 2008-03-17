@@ -1,5 +1,5 @@
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'resource')
-require File.join(File.dirname(__FILE__), 'mock_adapter')
+require Pathname(__FILE__).dirname.parent + 'lib/data_mapper/resource'
+require Pathname(__FILE__).dirname + 'mock_adapter'
 
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.

@@ -12,24 +12,26 @@
 $:.unshift(File.dirname(__FILE__))
 
 # Require the basics...
+require 'pathname'
 require 'uri'
 require 'date'
+require 'pathname'
 require 'time'
 require 'rubygems'
 require 'yaml'
 require 'set'
 require 'fastthread'
 
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'object')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'blank')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'enumerable')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'symbol')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'inflector')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'struct')
+require Pathname(__FILE__).dirname + 'data_mapper/support/object'
+require Pathname(__FILE__).dirname + 'data_mapper/support/blank'
+require Pathname(__FILE__).dirname + 'data_mapper/support/enumerable'
+require Pathname(__FILE__).dirname + 'data_mapper/support/symbol'
+require Pathname(__FILE__).dirname + 'data_mapper/support/inflector'
+require Pathname(__FILE__).dirname + 'data_mapper/support/struct'
 
-require File.join(File.dirname(__FILE__), 'data_mapper', 'dependency_queue')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'resource')
+require Pathname(__FILE__).dirname + 'data_mapper/dependency_queue'
+require Pathname(__FILE__).dirname + 'data_mapper/resource'
 
-require File.join(File.dirname(__FILE__), 'data_mapper', 'adapters', 'abstract_adapter')
+require Pathname(__FILE__).dirname + 'data_mapper/adapters/abstract_adapter'
 
-require File.join(File.dirname(__FILE__), 'data_mapper', 'cli')
+require Pathname(__FILE__).dirname + 'data_mapper/cli'

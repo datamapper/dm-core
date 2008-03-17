@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'data_object_adapter')
+require Pathname(__FILE__).dirname + 'data_object_adapter'
 begin
   require 'do_mysql'
 rescue LoadError

@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require Pathname(__FILE__).dirname.parent + 'spec_helper'
 
 describe DataMapper::Support::Object do
   

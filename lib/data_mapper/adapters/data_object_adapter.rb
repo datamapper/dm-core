@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'abstract_adapter')
+require Pathname(__FILE__).dirname + 'abstract_adapter'
 
 module DataMapper
 

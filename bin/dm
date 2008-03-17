@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 require "rubygems"
+require "pathname"
 require "data_mapper"
-require File.join('data_mapper', 'cli')
+require Pathname('data_mapper/cli')
 require "optparse"
 
 DataMapper::CLI.start
