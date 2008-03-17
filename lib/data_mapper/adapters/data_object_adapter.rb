@@ -72,7 +72,7 @@ module DataMapper
         DataMapper.logger.error { e } if DataMapper.logger
         raise e
       ensure
-        db.close unless db.nil?
+        db.close if db
       end
 
       def query(*args)
@@ -81,10 +81,10 @@ module DataMapper
         command = db.create_command(args.shift)
 
         reader = command.execute_reader(*args)
-        fields = reader.fields.map { |field| Inflector.underscore(field).to_sym }
         results = []
 
-        if fields.size > 1
+        if (fields = reader.fields).size > 1
+          fields = fields.map { |field| Inflector.underscore(field).to_sym }
           struct = Struct.new(*fields)
 
           while(reader.next!) do
