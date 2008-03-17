@@ -1,4 +1,4 @@
-require Pathname(__FILE__).dirname + 'support/inflector'
+require __DIR__ + 'support/inflector'
 
 module DataMapper
   

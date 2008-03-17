@@ -1,9 +1,9 @@
 require 'uri'
-require Pathname(__FILE__).dirname + 'support/errors'
-require Pathname(__FILE__).dirname + 'logger'
-require Pathname(__FILE__).dirname + 'adapters/abstract_adapter'
-require Pathname(__FILE__).dirname + 'identity_map'
-require Pathname(__FILE__).dirname + 'naming_conventions'
+require __DIR__ + 'support/errors'
+require __DIR__ + 'logger'
+require __DIR__ + 'adapters/abstract_adapter'
+require __DIR__ + 'identity_map'
+require __DIR__ + 'naming_conventions'
 
 # Delegates to DataMapper::repository.
 # Will not overwrite if a method of the same name is pre-defined.
@@ -47,7 +47,7 @@ module DataMapper
     
     unless Adapters::const_defined?(Inflector.classify(uri.scheme) + "Adapter")
       begin
-        require Pathname(__FILE__).dirname + "adapters/#{Inflector.underscore(uri.scheme)}_adapter"
+        require __DIR__ + "adapters/#{Inflector.underscore(uri.scheme)}_adapter"
       rescue LoadError
         require "#{Inflector.underscore(uri.scheme)}_adapter"
       end

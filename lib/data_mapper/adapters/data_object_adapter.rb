@@ -1,4 +1,4 @@
-require Pathname(__FILE__).dirname + 'abstract_adapter'
+require __DIR__ + 'abstract_adapter'
 
 module DataMapper
 

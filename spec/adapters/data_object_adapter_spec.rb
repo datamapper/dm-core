@@ -1,6 +1,6 @@
-require Pathname(__FILE__).dirname.parent.parent + 'lib/data_mapper'
-require Pathname(__FILE__).dirname.parent.parent + 'lib/data_mapper/adapters/data_object_adapter'
-require Pathname(__FILE__).dirname.parent + 'adapter_sharedspec'
+require __DIR__.parent.parent + 'lib/data_mapper'
+require __DIR__.parent.parent + 'lib/data_mapper/adapters/data_object_adapter'
+require __DIR__.parent + 'adapter_sharedspec'
 
 describe DataMapper::Adapters::DataObjectAdapter do
   before do

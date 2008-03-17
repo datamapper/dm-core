@@ -1,8 +1,8 @@
-require Pathname(__FILE__).dirname + 'support/inflector'
-require Pathname(__FILE__).dirname + 'support/string'
-require Pathname(__FILE__).dirname + 'property_set'
-require Pathname(__FILE__).dirname + 'property'
-require Pathname(__FILE__).dirname + 'repository'
+require __DIR__ + 'support/inflector'
+require __DIR__ + 'support/string'
+require __DIR__ + 'property_set'
+require __DIR__ + 'property'
+require __DIR__ + 'repository'
 
 module DataMapper
   
