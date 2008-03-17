@@ -8,7 +8,7 @@ unless defined?(INITIAL_CLASSES)
   repository_uri = URI.parse case ENV["ADAPTER"]
     when 'mysql' then "mysql://localhost/data_mapper_1"
     when 'postgres' then "postgres://localhost/data_mapper_1"
-    else "sqlite3:///#{Dir.pwd}/data_mapper_1.db"
+    else "sqlite3://#{Dir.getwd}/data_mapper_1.db"
   end
 
   # Prepare the log path, and remove the existing spec.log
