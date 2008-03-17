@@ -347,15 +347,6 @@ module DataMapper
         return instance
       end
 
-      def table(instance)
-        case instance
-        when DataMapper::Adapters::Sql::Mappings::Table then instance
-        when DataMapper::Persistable then schema[instance.class]
-        when Class, String then schema[instance]
-        else raise "Don't know how to map #{instance.inspect} to a table."
-        end
-      end
-
       def callback(instance, callback_name)
         instance.class.callbacks.execute(callback_name, instance)
       end

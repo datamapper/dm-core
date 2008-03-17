@@ -43,7 +43,7 @@ module DataMapper
     uri = uri.is_a?(String) ? URI.parse(uri) : uri
     
     raise ArgumentError.new("'name' must be a Symbol") unless name.is_a?(Symbol)
-    raise ArgumentError.new("'uri' must be a URI") unless uri.is_a?(URI)
+    raise ArgumentError.new("'uri' must be a URI or String") unless uri.is_a?(URI)
     
     unless Adapters::const_defined?(Inflector.classify(uri.scheme) + "Adapter")
       begin

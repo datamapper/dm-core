@@ -121,11 +121,10 @@ gem_spec = Gem::Specification.new do |s|
   s.rubyforge_project = PROJECT 
   s.homepage = "http://datamapper.org" 
  
-  s.files = PACKAGE_FILES 
+  s.files = PACKAGE_FILES.map { |f| f.to_s }
  
   s.require_path = "lib"
   s.requirements << "none"
-  s.autorequire = "data_mapper"
   s.executables = ["dm"]
   s.bindir = "bin"
   s.add_dependency("fastthread")
@@ -135,7 +134,7 @@ gem_spec = Gem::Specification.new do |s|
 
   s.has_rdoc = true 
   s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
-  s.extra_rdoc_files = DOCUMENTED_FILES
+  s.extra_rdoc_files = DOCUMENTED_FILES.map { |f| f.to_s }
 end
 
 Rake::GemPackageTask.new(gem_spec) do |p|
