@@ -39,7 +39,7 @@ describe "DataMapper::Resource" do
   end
   
   it "should provide mapping defaults" do
-    Planet.resource_name(:yet_another_repository) == 'planets'
+    Planet.resource_name(:yet_another_repository).should == 'planets'
     Planet.properties(:yet_another_repository).should have(3).entries
   end
   
