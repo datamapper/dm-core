@@ -4,10 +4,13 @@ module DataMapper
   # See: http://www.martinfowler.com/eaaCatalog/identityMap.html
   class IdentityMap
     
-    def initialize
-      # WeakHash is much more expensive, and not necessary if the IdentityMap is tied to Session instead of Repository.
-      # @cache = Hash.new { |h,k| h[k] = Support::WeakHash.new }
-      @cache = Hash.new { |h,k| h[k] = Hash.new }
+    def initialize(second_level_cache = nil)
+      @second_level_cache = second_level_cache
+      @cache = if second_level_cache.nil?
+        Hash.new { |h,k| h[k] = Hash.new }
+      else
+        Hash.new { |h,k| h[k] = Hash.new { |h2,k2| h2[k2] = @second_level_cache.get(k, k2) } }
+      end
     end
 
     # Pass a Class and a key, and to retrieve an instance.
