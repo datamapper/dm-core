@@ -17,16 +17,16 @@ describe DataMapper::Adapters::AbstractAdapter do
 
   it 'should call #create when #save is called on a new record' do
     instance = mock("Model", :"new_record?" => true)
-    @adapter.should_receive(:create).with(:database_context, instance)
+    @adapter.should_receive(:create).with(:repository, instance)
 
-    @adapter.save(:database_context, instance)
+    @adapter.save(:repository, instance)
   end
 
   it 'should call #update when #save is called on an existing record' do
     instance = mock("Model", :"new_record?" => false)
-    @adapter.should_receive(:update).with(:database_context, instance)
+    @adapter.should_receive(:update).with(:repository, instance)
 
-    @adapter.save(:database_context, instance)
+    @adapter.save(:repository, instance)
   end
 
   describe '#first' do
