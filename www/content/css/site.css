@@ -169,33 +169,49 @@ p#download a {
   display:block;
 }
 /* DOCUMENTATION */
-#docs dl {
+dl {
   margin-top:1em;
   margin-bottom:2em;
   border-bottom:1px dotted #ffffff;
   float:left;
 }
-#docs dt,
-#docs dd {
+dt,
+dd {
   border-top:1px dotted #ffffff;
   padding:1.2em 0;
 }
-#docs dt {
+dt {
   width:240px;
   float:left;
   clear:left;
 }
-#docs dd {
+dd {
   width:480px;
   float:left;
   clear:right;
 }
-#docs dt a {
+dt a {
   color:#66FF33 !important;
   text-decoration:none !important;
   font-weight:bold;
   display:block;
 }
-#docs dd {
+dd {
   clear:right;
+}
+
+div.yearbook {
+  margin:1em;
+}
+div.yearbook div.thumb {
+  display:block;
+  float:left;
+  width:120px;
+  height:180px;
+  margin:0.5em;
+  text-align:center;
+}
+
+div.yearbook div.thumb p {
+  margin:auto -0.5em;
 }
