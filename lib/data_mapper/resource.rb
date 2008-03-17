@@ -11,7 +11,7 @@ module DataMapper
     def self.included(target)
       target.send(:extend, ClassMethods)
       target.instance_variable_set("@resource_names", Hash.new { |h,k| h[k] = Inflector.tableize(target.name) })
-      target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? {} : h[:default].dup) })
+      target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
     end
     
     def repository
@@ -38,16 +38,9 @@ module DataMapper
       validate_resource!
       
       def initialize(details = nil)
-        self.class.properties(repository.name).each_value do |property|
-          property.dirty = false
-          property.loaded = false
-          property.instance_variable_set(:@value, nil)
-        end
-
         if details
           initialize_with_attributes(details)
         end
-        
       end
       
       initialize(details)
@@ -74,7 +67,7 @@ module DataMapper
     def attributes
       pairs = {}
       
-      self.class.properties(repository.name).each_value do |property|
+      self.class.properties(repository.name).each do |property|
         if property.reader_visibility == :public
           pairs[property.name] = send(property.getter)
         end
@@ -105,7 +98,7 @@ module DataMapper
     def private_attributes
       pairs = {}
       
-      self.class.properties(repository_name).each_value do |property|
+      self.class.properties(repository.name).each do |property|
         pairs[property.name] = send(property.getter)
       end
       
@@ -127,40 +120,40 @@ module DataMapper
       success
     end
 
-    def attribute_get(property_name)
-      property = self.class.properties(repository.name)[property_name.to_sym]
-      if property.lazy? && !property.loaded?
-        lazy_load!(property_name)
-      end
-      property.instance_variable_get(:@value)
-    end
-
-    def attribute_set(property_name, value)
-      property = self.class.properties(repository.name)[property_name.to_sym]
-
-=begin
-      We've got three options here to handle dirty tracking
-
-      1) Simply as soon as the property is loaded then any change results in the property being dirty
-      property.dirty = property.loaded?
-      
-      2) We can store the original value of the field as soon as make a change after it is loaded
-      if !property.dirty? && property.loaded?
-        property.instance_variable_set(:@original_value, property.instance_variable_get(:@value))
-        property.dirty = true
-      end
-
-      3) We can do full tracking where the value is tracked and if changed and then reverted the dirty flag is cleared
-      if property.loaded?
-        property.instance_variable_set(:original_value, property.instance_variable_get(:value)) unless property.original_value_set?
-        property.dirty = !(property.instance_variable_get(:@original_value) == value)
-      end
-=end
-      
-      property.dirty = property.loaded?
-      property.instance_variable_set(:@value, value)
-      property.loaded = true
-    end
+#     def attribute_get(property_name)
+#       property = self.class.properties(repository.name)[property_name.to_sym]
+#       if property.lazy? && !property.loaded?
+#         lazy_load!(property_name)
+#       end
+#       property.instance_variable_get(:@value)
+#     end
+# 
+#     def attribute_set(property_name, value)
+#       property = self.class.properties(repository.name).name(property_name.to_sym)
+# 
+# =begin
+#       We've got three options here to handle dirty tracking
+# 
+#       1) Simply as soon as the property is loaded then any change results in the property being dirty
+#       property.dirty = property.loaded?
+#       
+#       2) We can store the original value of the field as soon as make a change after it is loaded
+#       if !property.dirty? && property.loaded?
+#         property.instance_variable_set(:@original_value, property.instance_variable_get(:@value))
+#         property.dirty = true
+#       end
+# 
+#       3) We can do full tracking where the value is tracked and if changed and then reverted the dirty flag is cleared
+#       if property.loaded?
+#         property.instance_variable_set(:original_value, property.instance_variable_get(:value)) unless property.original_value_set?
+#         property.dirty = !(property.instance_variable_get(:@original_value) == value)
+#       end
+# =end
+#       
+#       property.dirty = property.loaded?
+#       property.instance_variable_set(:@value, value)
+#       property.loaded = true
+#     end
 
     public
     
@@ -183,14 +176,13 @@ module DataMapper
       end
       
       def property(name, type, options = {})
-        property = Property.new(self, name, type, options)
-        properties(repository.name)[name] = property
+        property = properties(repository.name) << Property.new(self, name, type, options)
         
         # Add property to the other mappings as well if this is for the default repository.
         if repository.name == default_repository_name
           @properties.each_pair do |repository_name, properties|
             next if repository_name == default_repository_name
-            properties[name]= property
+            properties << property
           end          
         end
         
@@ -202,7 +194,7 @@ module DataMapper
       end
       
       def key(repository_name)
-        @properties[repository_name].select { |name, property| property.key? }
+        @properties[repository_name].select { |property| property.key? }
       end
       
       def inheritance_property(repository_name)
