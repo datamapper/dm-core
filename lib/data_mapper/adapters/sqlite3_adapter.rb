@@ -20,13 +20,13 @@ module DataMapper
           :column_quoting_character => %{"},
           :types => {
             :integer => 'INTEGER'.freeze,
-            :string => 'TEXT'.freeze,
-            :text => 'TEXT'.freeze,
-            :class => 'TEXT'.freeze,
+            :string  => 'TEXT'.freeze,
+            :text    => 'TEXT'.freeze,
+            :class   => 'TEXT'.freeze,
             :boolean => 'INTEGER'.freeze
           },
           :batch_insertable? => false
-        }
+        })
       end
 
       def create_connection

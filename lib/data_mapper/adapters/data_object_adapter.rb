@@ -33,15 +33,9 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectAdapter < AbstractAdapter
 
-      TYPES = {
-      }
-      
       FIND_OPTIONS = [
         :select, :offset, :limit, :class, :include, :shallow_include, :reload, :conditions, :order, :intercept_load
       ]
-
-      TABLE_QUOTING_CHARACTER  = %{"}.freeze  # SQL-2003 standard is double-quoted
-      COLUMN_QUOTING_CHARACTER = %{}.freeze   # unquoted
 
       def constants
         {
@@ -75,10 +69,10 @@ module DataMapper
         command = db.create_command(args.shift)
         return command.execute_non_query(*args)
       rescue => e
-        logger.error { e }
+        DataMapper.logger.error { e } if DataMapper.logger
         raise e
       ensure
-        db.close
+        db.close unless db.nil?
       end
 
       def query(*args)
@@ -93,22 +87,22 @@ module DataMapper
         if fields.size > 1
           struct = Struct.new(*fields)
 
-          reader.each do
-            results << struct.new(*reader.current_row)
+          while(reader.next!) do
+            results << struct.new(*reader.values)
           end
         else
-          reader.each do
-            results << reader.item(0)
+          while(reader.next!) do
+            results << reader.values[0]
           end
         end
 
         return results
       rescue => e
-        logger.error { e }
+        DataMapper.logger.error { e } if DataMapper.logger
         raise e
       ensure
         reader.close if reader
-        db.close
+        db.close if db
       end
 
       def delete(database_context, instance)
@@ -364,19 +358,6 @@ module DataMapper
 
       def callback(instance, callback_name)
         instance.class.callbacks.execute(callback_name, instance)
-      end
-
-      # This callback copies and sub-classes modules and classes
-      # in the DoAdapter to the inherited class so you don't
-      # have to copy and paste large blocks of code from the
-      # DoAdapter.
-      #
-      # Basically, when inheriting from the DoAdapter, you
-      # aren't just inheriting a single class, you're inheriting
-      # a whole graph of Types. For convenience.
-      def self.inherited(base)
-        base.const_set('TYPES', TYPES.dup)
-        super
       end
 
     end # class DoAdapter
