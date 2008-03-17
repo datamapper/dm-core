@@ -14,9 +14,6 @@ module DataMapper
     
     class MysqlAdapter < DataObjectAdapter
       
-      TRUE_ALIASES << "T".freeze << "\004\bT".freeze
-      FALSE_ALIASES << "F".freeze << "\004\bF".freeze
-      
       def empty_insert_sql
         "() VALUES ()"
       end
@@ -47,24 +44,6 @@ module DataMapper
         "TABLE_SCHEMA"
       end
       
-      module Mappings
-        
-        def to_create_table_sql
-          @to_create_table_sql || @to_create_table_sql = begin
-            "CREATE TABLE #{to_sql} (#{columns.map { |c| c.to_long_form }.join(', ')}) Type=MyISAM CHARACTER SET utf8"
-          end
-        end
-        
-        class Schema
-
-          def database_tables
-            get_database_tables(@adapter.schema.name)
-          end
-
-        end
-
-        
-      end # module Mappings
     end # class MysqlAdapter
     
   end # module Adapters

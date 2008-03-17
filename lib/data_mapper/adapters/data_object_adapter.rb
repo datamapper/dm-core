@@ -34,16 +34,6 @@ module DataMapper
     class DataObjectAdapter < AbstractAdapter
 
       TYPES = {
-        :integer => 'int'.freeze,
-        :string => 'varchar'.freeze,
-        :text => 'text'.freeze,
-        :class => 'varchar'.freeze,
-        :decimal => 'decimal'.freeze,
-        :float => 'float'.freeze,
-        :datetime => 'datetime'.freeze,
-        :date => 'date'.freeze,
-        :boolean => 'boolean'.freeze,
-        :object => 'text'.freeze
       }
       
       FIND_OPTIONS = [
@@ -52,6 +42,28 @@ module DataMapper
 
       TABLE_QUOTING_CHARACTER  = %{"}.freeze  # SQL-2003 standard is double-quoted
       COLUMN_QUOTING_CHARACTER = %{}.freeze   # unquoted
+
+      def constants
+        {
+          :table_quoting_character  => %{"},
+          :column_quoting_character => %{},
+          :true_aliases  => %w{1 T},
+          :false_aliases => %w{0 F},
+          :types => {
+            :integer  => 'int'.freeze,
+            :string   => 'varchar'.freeze,
+            :text     => 'text'.freeze,
+            :class    => 'varchar'.freeze,
+            :decimal  => 'decimal'.freeze,
+            :float    => 'float'.freeze,
+            :datetime => 'datetime'.freeze,
+            :date     => 'date'.freeze,
+            :boolean  => 'boolean'.freeze,
+            :object   => 'text'.freeze
+          },
+          :batch_insertable => true
+        }
+      end
 
       def transaction(&block)
         raise NotImplementedError.new
