@@ -9,27 +9,27 @@ module DataMapper
         @uri = uri
       end
       
-      def create(database_context, instance)
+      def create(repository, instance)
         raise NotImplementedError.new
       end
       
-      def read(database_context, klass, *keys)
+      def read(repository, klass, *keys)
         raise NotImplementedError.new
       end
       
-      def update(database_context, instance)
+      def update(repository, instance)
         raise NotImplementedError.new
       end
       
-      def delete(instance_or_klass, options = nil)
+      def delete(repository, options = nil)
         raise NotImplementedError.new
       end
       
-      def save(database_context, instance)
+      def save(repository, instance)
         if instance.new_record?
-          create(database_context, instance)
+          create(repository, instance)
         else
-          update(database_context, instance)
+          update(repository, instance)
         end
       end
 
