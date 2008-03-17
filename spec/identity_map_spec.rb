@@ -1,4 +1,4 @@
-require Pathname(__FILE__).dirname + 'spec_helper'
+require __DIR__ + 'spec_helper'
 
 describe "DataMapper::IdentityMap" do
   
