@@ -28,7 +28,6 @@ require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'inflector')
 require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'struct')
 
 require File.join(File.dirname(__FILE__), 'data_mapper', 'dependency_queue')
-
 require File.join(File.dirname(__FILE__), 'data_mapper', 'resource')
 
 require File.join(File.dirname(__FILE__), 'data_mapper', 'adapters', 'abstract_adapter')

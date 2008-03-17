@@ -3,6 +3,7 @@ require File.join(File.dirname(__FILE__), 'support', 'errors')
 require File.join(File.dirname(__FILE__), 'logger')
 require File.join(File.dirname(__FILE__), 'adapters', 'abstract_adapter')
 require File.join(File.dirname(__FILE__), 'identity_map')
+require File.join(File.dirname(__FILE__), 'naming_conventions')
 
 # Delegates to DataMapper::repository.
 # Will not overwrite if a method of the same name is pre-defined.
@@ -53,6 +54,7 @@ module DataMapper
     end
     
     adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(uri)
+    adapter.resource_naming_convention = NamingConventions::UnderscoredAndPluralized
     
     Repository.adapters[name] = adapter
   end
