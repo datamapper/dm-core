@@ -6,7 +6,7 @@ describe "a DataMapper Adapter", :shared => true do
     new_adapter.instance_variable_get('@uri').should == 'some://uri/string'
   end
 
-  %w{create read update delete save} .each do |meth|
+  %w{create read first all update delete save} .each do |meth|
     it "should have a #{meth} method" do
       @adapter.should respond_to(meth.intern)
     end

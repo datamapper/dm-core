@@ -17,6 +17,17 @@ module DataMapper
         raise NotImplementedError.new
       end
       
+      # This may be "good enough" for most adapters.
+      def first(repository, klass, query)
+        all(repository, klass, query.merge(:limit => 1)).first
+      end
+      
+      # +query+ would be an "options-hash". I'm just tired of
+      # writing "options". It's a dumb name for an arg. ;-)
+      def all(repository, klass, query)
+        raise NotImplementedError.new
+      end
+      
       def update(repository, instance)
         raise NotImplementedError.new
       end
