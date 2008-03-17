@@ -38,6 +38,7 @@ module DataMapper
 
       # This may be "good enough" for most adapters.
       def first(repository, klass, query)
+        raise ArgumentError.new("You cannot pass in a :limit option to #first") if query.key?(:limit)
         all(repository, klass, query.merge(:limit => 1)).first
       end
       
