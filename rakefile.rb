@@ -125,9 +125,6 @@ gem_spec = Gem::Specification.new do |s|
  
   s.require_path = "lib"
   s.requirements << "none"
-  s.autorequire = "data_mapper"
-  s.executables = ["dm"]
-  s.bindir = "bin"
   s.add_dependency("fastthread")
   s.add_dependency("json")
   s.add_dependency("rspec")
