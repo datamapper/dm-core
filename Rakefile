@@ -35,12 +35,12 @@ namespace :dm do
   
   desc "Run comparison with ActiveRecord"
   task :perf do
-    load 'performance.rb'
+    load __DIR__ + 'script/performance.rb'
   end
 
   desc "Profile DataMapper"
   task :profile do
-    load 'profile_data_mapper.rb'
+    load __DIR__ + 'script/profile_data_mapper.rb'
   end
 
   namespace :spec do

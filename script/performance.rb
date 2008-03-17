@@ -28,7 +28,7 @@ class ARPerson < ActiveRecord::Base #:nodoc:
   set_table_name 'people'
 end
 
-require __DIR__ + 'lib/data_mapper'
+require __DIR__.parent + 'lib/data_mapper'
 
 DataMapper::Repository.setup(configuration_options)
 
