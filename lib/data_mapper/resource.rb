@@ -14,6 +14,14 @@ module DataMapper
       target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
     end
     
+    def self.dependencies
+      @dependencies = DependencyQueue.new
+      def self.dependencies
+        @dependencies
+      end
+      @dependencies
+    end
+    
     def repository
       @loaded_set ? @loaded_set.repository : self.class.repository
     end

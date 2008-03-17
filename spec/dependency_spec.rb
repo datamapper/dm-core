@@ -8,20 +8,19 @@ describe "DataMapper::Persistable" do
     
     $happy_cow_defined = false
     
-    DataMapper::Persistable.dependencies.add('HappyCow') do |klass|
+    DataMapper::Resource.dependencies.add('HappyCow') do |klass|
       klass.should eql(Object.const_get('HappyCow'))
-      repository.table(klass).key.name.should eql(:name)
+      klass.key(:default).first.name.should eql(:name)
       $happy_cow_defined = true
     end
     
     class HappyCow #< DataMapper::Base # please do not remove this
-      include DataMapper::Persistable
+      include DataMapper::Resource
       
-      property :name, :string, :key => true
+      property :name, String, :key => true
     end
     
-    # Dependencies are not resolved until you try to access the key for a table...
-    repository.table(HappyCow).key
+    DataMapper::Resource.dependencies.resolve!
     
     raise 'Dependency not called for HappyCow :-(' unless $happy_cow_defined
   end

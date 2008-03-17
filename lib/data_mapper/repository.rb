@@ -7,7 +7,7 @@ require File.join(File.dirname(__FILE__), 'naming_conventions')
 
 # Delegates to DataMapper::repository.
 # Will not overwrite if a method of the same name is pre-defined.
-module Kernerl
+module Kernel
   def repository(name = :default, &block)
     DataMapper::repository(name, &block)
   end
