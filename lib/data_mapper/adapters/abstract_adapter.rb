@@ -4,13 +4,9 @@ module DataMapper
     class AbstractAdapter
   
       # Instantiate an Adapter by passing it a DataMapper::Repository
-      # object for configuration.
+      # connection string for configuration.
       def initialize(uri)
         @uri = uri
-      end
-      
-      def index_path
-        @configuration.index_path
       end
       
       def create(database_context, instance)

@@ -36,6 +36,11 @@ require File.join(File.dirname(__FILE__), 'data_mapper', 'resource')
 
 require File.join(File.dirname(__FILE__), 'data_mapper', 'types', 'string')
 
+require File.join(File.dirname(__FILE__), 'data_mapper', 'adapters', 'abstract_adapter')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'adapters', 'data_object_adapter')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'adapters', 'mysql_adapter')
+require File.join(File.dirname(__FILE__), 'data_mapper', 'adapters', 'sqlite3_adapter')
+
 begin
   # This block of code is for compatibility with Ruby On Rails' or Merb's database.yml
   # file, allowing you to simply require the data_mapper.rb in your
