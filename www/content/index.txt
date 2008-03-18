@@ -13,7 +13,7 @@ To learn a little more about this project and why you should be interested, read
 
 h2(newRelease). The Great Refactoring
 
-p(newRelease). Edge DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a rather dramatic refactor.  If your riding Edge, consider hopping off and freezing on the 0.2.5 gem until the new public api is stable.
+p(newRelease). Edge DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a rather dramatic refactor.  If your riding Edge, consider hopping off and freezing on the SVN HEAD until the new public api is stable.
 
 h1. Examples
 
