@@ -190,7 +190,9 @@ module DataMapper
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
       raise ArgumentError.new("#{type.inspect} is not a supported type. Valid types are:\n #{TYPES.inspect}") unless TYPES.include?(type)
       
-      @target, @name, @type, @options = target, name.to_s.sub(/\?$/, '').to_sym, type, options
+      @target, @name, @type = target, name.to_s.sub(/\?$/, '').to_sym, type
+      @options = type.ancestors.include?(DM::Type) ? type.options.merge(options) : options
+      
       @instance_variable_name = "@#{@name}"
       
       @field = @options.fetch(:field, name.to_s.sub(/\?$/, ''))
@@ -284,6 +286,10 @@ module DataMapper
           EOS
         end
       end
+    end
+    
+    def primitive
+      @type.ancestors.include?(DM::Type) ? @type.primitive : @type
     end
     
     def target
