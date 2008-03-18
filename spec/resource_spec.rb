@@ -66,4 +66,46 @@ describe "DataMapper::Resource" do
   it "should provide a repository" do
     Planet.repository.name.should == :default
   end
+  
+  it "should track attributes" do
+    pending
+    
+    # So attribute tracking is a feature of the Resource,
+    # not the Property. Properties are class-level declarations.
+    # Instance-level operations like this happen in Resource with methods
+    # and ivars it sets up. Like a @dirty_attributes Array for example to
+    # track dirty attributes.
+    
+    mars = Planet.new :name => 'Mars'
+    # #attribute_loaded? and #attribute_dirty? are a bit verbose,
+    # but I like the consistency and grouping of the methods.
+    
+    # initialize-set values are dirty as well. DM sets ivars
+    # directly when materializing, so an ivar won't exist
+    # if the value wasn't loaded by DM initially. Touching that
+    # ivar at all will declare it, so at that point it's loaded.
+    # This means #attribute_loaded?'s implementation could be very
+    # similar (if not identical) to:
+    #   def attribute_loaded?(name)
+    #     instance_variables.include?(name.to_s.ensure_starts_with('@'))
+    #   end
+    mars.attribute_loaded?(:name).should be_true
+    mars.attribute_dirty?(:name).should be_true
+    mars.attribute_loaded?(:age).should be_false
+    mars.age.should be_nil
+    
+    # So accessing a value should ensure it's loaded.
+    mars.attribute_loaded?(:age).should be_true
+    
+    # A value should be able to be both loaded and nil.
+    mars.attribute_get(:age).should be_nil
+    
+    # Unless you call #attribute_set it's not dirty.
+    mars.attribute_dirty?(:age).should be_false
+    
+    mars.attribute_set(:age, 30)
+    # Obviously. :-)
+    mars.attribute_dirty?(:age).should be_true
+    
+  end
 end
