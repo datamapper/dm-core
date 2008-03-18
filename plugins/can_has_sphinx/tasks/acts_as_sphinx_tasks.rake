@@ -1,4 +1,8 @@
 namespace :sphinx do
+  def pid_file
+    @pid_file ||= Pathname('/var/run/searchd.pid')
+  end
+
   desc "Run indexer"
   task :index do
     cd 'config' do
@@ -15,7 +19,7 @@ namespace :sphinx do
   
   desc "Start searchd server"
   task :start do
-    if File.exists?('/var/run/searchd.pid')
+    if pid_file.file?
       puts 'Sphinx searchd server is already started.'
     else
       cd 'config' do
@@ -27,10 +31,10 @@ namespace :sphinx do
   
   desc "Stop searchd server"
   task :stop do
-    unless File.exists?('/var/run/searchd.pid')
+    unless pid_file.file?
       puts 'Sphinx searchd server is not running.'
     else
-      pid = File.read('/var/run/searchd.pid').chomp
+      pid = pid_file.read.chomp
       system "kill #{pid}"
       puts 'Sphinx searchd server stopped.'
     end

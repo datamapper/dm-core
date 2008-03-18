@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'abstract_adapter')
+require __DIR__ + 'abstract_adapter'
 
 module DataMapper
 
@@ -33,15 +33,9 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectAdapter < AbstractAdapter
 
-      TYPES = {
-      }
-      
       FIND_OPTIONS = [
         :select, :offset, :limit, :class, :include, :shallow_include, :reload, :conditions, :order, :intercept_load
       ]
-
-      TABLE_QUOTING_CHARACTER  = %{"}.freeze  # SQL-2003 standard is double-quoted
-      COLUMN_QUOTING_CHARACTER = %{}.freeze   # unquoted
 
       def constants
         {
@@ -75,10 +69,10 @@ module DataMapper
         command = db.create_command(args.shift)
         return command.execute_non_query(*args)
       rescue => e
-        logger.error { e }
+        DataMapper.logger.error { e } if DataMapper.logger
         raise e
       ensure
-        db.close
+        db.close if db
       end
 
       def query(*args)
@@ -87,28 +81,28 @@ module DataMapper
         command = db.create_command(args.shift)
 
         reader = command.execute_reader(*args)
-        fields = reader.fields.map { |field| Inflector.underscore(field).to_sym }
         results = []
 
-        if fields.size > 1
+        if (fields = reader.fields).size > 1
+          fields = fields.map { |field| Inflector.underscore(field).to_sym }
           struct = Struct.new(*fields)
 
-          reader.each do
-            results << struct.new(*reader.current_row)
+          while(reader.next!) do
+            results << struct.new(*reader.values)
           end
         else
-          reader.each do
-            results << reader.item(0)
+          while(reader.next!) do
+            results << reader.values[0]
           end
         end
 
         return results
       rescue => e
-        logger.error { e }
+        DataMapper.logger.error { e } if DataMapper.logger
         raise e
       ensure
         reader.close if reader
-        db.close
+        db.close if db
       end
 
       def delete(database_context, instance)
@@ -353,30 +347,8 @@ module DataMapper
         return instance
       end
 
-      def table(instance)
-        case instance
-        when DataMapper::Adapters::Sql::Mappings::Table then instance
-        when DataMapper::Persistable then schema[instance.class]
-        when Class, String then schema[instance]
-        else raise "Don't know how to map #{instance.inspect} to a table."
-        end
-      end
-
       def callback(instance, callback_name)
         instance.class.callbacks.execute(callback_name, instance)
-      end
-
-      # This callback copies and sub-classes modules and classes
-      # in the DoAdapter to the inherited class so you don't
-      # have to copy and paste large blocks of code from the
-      # DoAdapter.
-      #
-      # Basically, when inheriting from the DoAdapter, you
-      # aren't just inheriting a single class, you're inheriting
-      # a whole graph of Types. For convenience.
-      def self.inherited(base)
-        base.const_set('TYPES', TYPES.dup)
-        super
       end
 
     end # class DoAdapter

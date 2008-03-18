@@ -1,8 +1,8 @@
-require File.join(File.dirname(__FILE__), 'support', 'inflector')
-require File.join(File.dirname(__FILE__), 'support', 'string')
-require File.join(File.dirname(__FILE__), 'property_set')
-require File.join(File.dirname(__FILE__), 'property')
-require File.join(File.dirname(__FILE__), 'repository')
+require __DIR__ + 'support/inflector'
+require __DIR__ + 'support/string'
+require __DIR__ + 'property_set'
+require __DIR__ + 'property'
+require __DIR__ + 'repository'
 
 module DataMapper
   
@@ -10,8 +10,16 @@ module DataMapper
     
     def self.included(target)
       target.send(:extend, ClassMethods)
-      target.instance_variable_set("@resource_names", Hash.new { |h,k| h[k] = Inflector.tableize(target.name) })
+      target.instance_variable_set("@resource_names", Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(target.name) })
       target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
+    end
+    
+    def self.dependencies
+      @dependencies = DependencyQueue.new
+      def self.dependencies
+        @dependencies
+      end
+      @dependencies
     end
     
     def repository

@@ -1,5 +1,5 @@
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'resource')
-require File.join(File.dirname(__FILE__), 'mock_adapter')
+require __DIR__.parent + 'lib/data_mapper/resource'
+require __DIR__ + 'mock_adapter'
 
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.
@@ -10,7 +10,11 @@ describe "DataMapper::Resource" do
     
     DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
     DataMapper.setup(:legacy, "mock://localhost/mock") unless DataMapper::Repository.adapters[:legacy]
-    DataMapper.setup(:yet_another_repository, "mock://localhost/mock") unless DataMapper::Repository.adapters[:yet_another_repository]
+    
+    unless DataMapper::Repository.adapters[:yet_another_repository]
+      adapter = DataMapper.setup(:yet_another_repository, "mock://localhost/mock")
+      adapter.resource_naming_convention = DataMapper::NamingConventions::Underscored
+    end
     
     class Planet
       
@@ -32,6 +36,7 @@ describe "DataMapper::Resource" do
     Planet.new respond_to(:resource_name)
     Planet.resource_name(:default).should == 'planets'
     Planet.resource_name(:legacy).should == 'dying_planets'
+    Planet.resource_name(:yet_another_repository).should == 'planet'
   end
   
   it "should provide properties" do
@@ -39,7 +44,6 @@ describe "DataMapper::Resource" do
   end
   
   it "should provide mapping defaults" do
-    Planet.resource_name(:yet_another_repository).should == 'planets'
     Planet.properties(:yet_another_repository).should have(3).entries
   end
   

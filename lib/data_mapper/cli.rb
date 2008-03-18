@@ -1,6 +1,6 @@
 require "yaml"
 require "irb"
-require File.join('irb', 'completion')
+require Pathname('irb/completion')
 
 # TODO: error handling for:
 #   missing adapter, host or database
@@ -63,30 +63,30 @@ module DataMapper
           opt.banner = usage
 
           opt.on("-m", "--models MODELS", "The directory to load models from.") do |models|
-            @config[:models] = models
+            @config[:models] = Pathname(models)
           end
 
           opt.on("-c", "--config FILE", "Entire configuration structure, useful for testing scenarios.") do |config_file|
-            @config = YAML::load_file config_file
+            @config = YAML::load_file Pathname(config_file)
           end
 
           opt.on("--merb", "--rails", "Loads application settings: config/database.yml, app/models.") do
-            @config[:models] = "app/models"
-            @config[:yaml]   = "config/database.yml"
+            @config[:models] = Pathname('app/models')
+            @config[:yaml]   = Pathname('config/database.yml')
           end
 
           opt.on("-y", "--yaml YAML", "The database connection configuration yaml file.") do |yaml_file|
-            if File.exists?(yaml_file)
-              @config[:yaml] = yaml_file
-            elsif File.exists?("#{Dir.pwd}/#{yaml_file}")
-              @config[:yaml] = "#{Dir.pwd}/#{yaml_file}"
+            if (yaml = Pathname(yaml_file)).file?
+              @config[:yaml] = yaml
+            elsif (yaml = Pathname("#{Dir.pwd}/#{yaml_file}")).file?
+              @config[:yaml] = yaml
             else
               raise "yaml file was specifed as #{yaml_file} but does not exist."
             end
           end
 
           opt.on("-l", "--log LOGFILE", "A string representing the logfile to use.") do |log_file|
-            @config[:log_file] = log_file
+            @config[:log_file] = Pathname(log_file)
           end
 
           opt.on("-e", "--environment STRING", "Run merb in the correct mode(development, production, testing)") do |environment|
@@ -166,7 +166,7 @@ module DataMapper
       end
 
       def load_models
-        Dir["#{config[:models]}/**/*.rb"].each { |file| load file }
+        Pathname.glob("#{config[:models]}/**/*.rb") { |file| load file }
       end
 
       def start(argv = ARGV)
@@ -178,7 +178,7 @@ module DataMapper
           load_models if config[:models]
 
           puts "DataMapper has been loaded using the '#{options[:adapter] || options["adapter"]}' database '#{options[:database] || options["database"]}' on '#{options[:host] || options["host"]}' as '#{options[:username] || options["username"]}'"
-          ENV["IRBRC"] = File.dirname(__FILE__) + "/../../bin/.irbrc"
+          ENV["IRBRC"] = __DIR__.parent.parent + 'bin/.irbrc'
           IRB.start
 
         rescue => error

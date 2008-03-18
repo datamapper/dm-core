@@ -1,11 +1,11 @@
 require 'benchmark'
 require 'active_record'
 
-socket_file = [
+socket_file = Pathname.glob([ 
   "/opt/local/var/run/mysql5/mysqld.sock",
   "tmp/mysqld.sock",
   "tmp/mysql.sock"
-].find { |path| File.exists?(path) }
+]).find { |path| path.socket? }
 
 configuration_options = {
   :adapter => 'mysql',
@@ -28,7 +28,7 @@ class ARPerson < ActiveRecord::Base #:nodoc:
   set_table_name 'people'
 end
 
-require File.join(File.dirname(__FILE__), 'lib', 'data_mapper')
+require __DIR__.parent + 'lib/data_mapper'
 
 DataMapper::Repository.setup(configuration_options)
 

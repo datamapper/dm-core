@@ -9,6 +9,8 @@ module DataMapper
         @uri = uri
       end
       
+      attr_accessor :resource_naming_convention
+
       def create(repository, instance)
         raise NotImplementedError.new
       end
