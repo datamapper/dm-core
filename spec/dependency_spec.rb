@@ -1,4 +1,4 @@
-require Pathname(__FILE__).dirname + 'spec_helper'
+require __DIR__ + 'spec_helper'
 
 # Can't describe DataMapper::Persistable because
 # rspec will include it for some crazy reason!

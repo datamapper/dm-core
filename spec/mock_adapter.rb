@@ -1,4 +1,4 @@
-require Pathname(__FILE__).dirname.parent + 'lib/data_mapper/adapters/data_object_adapter'
+require __DIR__.parent + 'lib/data_mapper/adapters/data_object_adapter'
 
 module DataMapper
   module Adapters

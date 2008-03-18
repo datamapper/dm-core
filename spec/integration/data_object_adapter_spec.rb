@@ -1,5 +1,4 @@
-require 'pathname'
-require Pathname(__FILE__).dirname + '../../lib/data_mapper'
+require __DIR__.parent.parent + 'lib/data_mapper'
 
 DataMapper.setup(:default, "sqlite3://#{Dir.pwd}/integration_test.db")
 

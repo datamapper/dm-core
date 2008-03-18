@@ -1,4 +1,4 @@
-require Pathname(__FILE__).dirname.parent + 'spec_helper'
+require __DIR__.parent + 'spec_helper'
 
 describe DataMapper::Support::Object do
   

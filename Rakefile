@@ -8,7 +8,9 @@ require Pathname('rake/rdoctask')
 require Pathname('rake/gempackagetask')
 require Pathname('rake/contrib/rubyforgepublisher')
 
-Pathname.glob(Pathname(__FILE__).dirname + 'tasks/**/*.rb') { |t| require t }
+require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'lib/data_mapper/support/kernel' # __DIR__
+
+Pathname.glob(__DIR__ + 'tasks/**/*.rb') { |t| require t }
 
 task :default => 'dm:spec'
 
@@ -24,6 +26,7 @@ namespace :dm do
   Spec::Rake::SpecTask.new('spec') do |t|
     t.spec_opts = ["--format", "specdoc", "--colour"]
     t.spec_files = Pathname.glob(ENV['FILES'] || 'spec/**/*_spec.rb')
+    t.ruby_opts << '-r' << __DIR__ + 'lib/data_mapper/support/kernel'  # bring __DIR__ into specs
     unless ENV['NO_RCOV']
       t.rcov = true
       t.rcov_opts = ['--exclude', 'examples,spec,environment.rb']
@@ -32,12 +35,12 @@ namespace :dm do
   
   desc "Run comparison with ActiveRecord"
   task :perf do
-    load 'performance.rb'
+    load __DIR__ + 'script/performance.rb'
   end
 
   desc "Profile DataMapper"
   task :profile do
-    load 'profile_data_mapper.rb'
+    load __DIR__ + 'script/profile_data_mapper.rb'
   end
 
   namespace :spec do
@@ -121,7 +124,7 @@ gem_spec = Gem::Specification.new do |s|
   s.rubyforge_project = PROJECT 
   s.homepage = "http://datamapper.org" 
  
-  s.files = PACKAGE_FILES 
+  s.files = PACKAGE_FILES.map { |f| f.to_s }
  
   s.require_path = "lib"
   s.requirements << "none"
@@ -134,7 +137,7 @@ gem_spec = Gem::Specification.new do |s|
 
   s.has_rdoc = true 
   s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
-  s.extra_rdoc_files = DOCUMENTED_FILES
+  s.extra_rdoc_files = DOCUMENTED_FILES.map { |f| f.to_s }
 end
 
 Rake::GemPackageTask.new(gem_spec) do |p|

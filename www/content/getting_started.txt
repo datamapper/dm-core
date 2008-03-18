@@ -1,6 +1,6 @@
 --- 
 page_id: gettingStarted
-title:      Getting started with datamapper
+title:      Getting started with DataMapper 0.2.5
 created_at: Wed Aug 29 20:36:53 +0930 2007
 filter:
   - erb

@@ -1,4 +1,4 @@
-require Pathname(__FILE__).dirname + 'data_object_adapter'
+require __DIR__ + 'data_object_adapter'
 begin
   require "do_postgres"
 rescue LoadError

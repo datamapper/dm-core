@@ -1,5 +1,4 @@
-require 'pathname'
 require 'pp'
 
 ENV['LOG_NAME'] = 'spec'
-require Pathname(__FILE__).dirname.parent + 'environment'
+require File.join(File.dirname(__FILE__), '..', 'environment')

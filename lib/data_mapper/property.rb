@@ -1,4 +1,4 @@
-require Pathname(__FILE__).dirname + 'property_set'
+require __DIR__ + 'property_set'
 
 require 'date'
 require 'time'

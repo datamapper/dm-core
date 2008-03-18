@@ -178,7 +178,7 @@ module DataMapper
           load_models if config[:models]
 
           puts "DataMapper has been loaded using the '#{options[:adapter] || options["adapter"]}' database '#{options[:database] || options["database"]}' on '#{options[:host] || options["host"]}' as '#{options[:username] || options["username"]}'"
-          ENV["IRBRC"] = Pathname(__FILE__).dirname.parent.parent + 'bin/.irbrc'
+          ENV["IRBRC"] = __DIR__.parent.parent + 'bin/.irbrc'
           IRB.start
 
         rescue => error
