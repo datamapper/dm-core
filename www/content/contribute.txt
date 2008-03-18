@@ -47,3 +47,4 @@ When contributing any code to DataMapper, please follow these guidelines.
 # Parentheses around parameter lists for methods
 # Two space indent - not tabs!
 # Documentation is required (use the "Merb documentation style":http://yehudakatz.com/2008/01/14/merbnext/)
+

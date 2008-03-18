@@ -49,4 +49,9 @@ h3. The People Behind DataMapper
     <img src="http://gravatar.com/avatar/089d4a0c54ac9eee0950444826ed20f0?s=80" title="Adam French" alt="Adam French" />
     <p>Adam French</p>
   </div>
+  
+  <div class="thumb">
+    <img src="/images/martini.gif" title="you" alt="you could be here" />
+    <p>More to come!</p>
+  </div>
 </div>
