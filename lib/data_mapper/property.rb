@@ -1,4 +1,5 @@
 require __DIR__ + 'property_set'
+require __DIR__ + 'type'
 
 require 'date'
 require 'time'
@@ -163,6 +164,7 @@ module DataMapper
     # NOTE: check is only for psql, so maybe the postgres adapter should define
     # its own property options. currently it will produce a warning tho since
     # PROPERTY_OPTIONS is a constant
+    # NOTE2: PLEASE update PROPERTY_OPTIONS in DataMapper::Type when updating them here
     PROPERTY_OPTIONS = [
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
@@ -188,10 +190,10 @@ module DataMapper
       
       raise ArgumentError.new("#{target.inspect} should be a type of Resource") unless Resource === target
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
-      raise ArgumentError.new("#{type.inspect} is not a supported type. Valid types are:\n #{TYPES.inspect}") unless TYPES.include?(type)
+      raise ArgumentError.new("#{type.inspect} is not a supported type. Valid types are:\n #{TYPES.inspect}") unless TYPES.include?(type) || (type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
       
       @target, @name, @type = target, name.to_s.sub(/\?$/, '').to_sym, type
-      @options = type.ancestors.include?(DM::Type) ? type.options.merge(options) : options
+      @options = type.ancestors.include?(DataMapper::Type) ? type.options.merge(options) : options
       
       @instance_variable_name = "@#{@name}"
       
@@ -209,7 +211,8 @@ module DataMapper
       
       create_getter!
       create_setter!
-      auto_validations! unless @options[:auto_validation] == false
+      #TODO: get validations working with dm-more
+      #auto_validations! unless @options[:auto_validation] == false
       
     end
     
@@ -289,7 +292,7 @@ module DataMapper
     end
     
     def primitive
-      @type.ancestors.include?(DM::Type) ? @type.primitive : @type
+      @type.ancestors.include?(DataMapper::Type) ? @type.primitive : @type
     end
     
     def target

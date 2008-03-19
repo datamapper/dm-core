@@ -3,10 +3,14 @@
 module DataMapper
   class Type
     #TODO: figure out a way to read this from DataMapper::Property without cyclic require(s)
-    #This should ALWAYS mirror DataMapper::Property::PROPERTY_OPTIONS
-    PROPERTY_OPTIONS = [ :public, :protected, :private, :accessor, :reader, :writer, :lazy,
-      :default, :nullable, :key, :serial, :field, :size, :length,
+    #This should ALWAYS mirror DataMapper::Property::PROPERTY_OPTIONS, with the exception of aliases
+    PROPERTY_OPTIONS = [ :public, :protected, :private, :accessor, :reader,
+      :writer, :lazy, :default, :nullable, :key, :serial, :field, :size,
       :format, :index, :check, :ordinal, :auto_validation ]
+      
+    PROPERTY_OPTION_ALIASES = {
+      :size => [ :length ]
+    }
       
     class << self
       #attr_accessor :primitive #map to Ruby type
@@ -18,19 +22,27 @@ module DataMapper
       end
 
       #load DataMapper::Property options
-      # DataMapper::Property::PROPERTY_OPTIONS.each do |property_option|
       PROPERTY_OPTIONS.each do |property_option|
-        # attr_accessor property_option
-        
         self.class_eval <<-EOS
-        def #{property_option}(#{property_option} = nil)
-          return @#{property_option} if #{property_option}.nil?
+        def #{property_option}(arg = nil)
+          return @#{property_option} if arg.nil?
           
-          @#{property_option} = #{property_option}
+          @#{property_option} = arg
         end
         EOS
       end
-
+      
+      #create property aliases
+      PROPERTY_OPTION_ALIASES.each do |property_option, aliases|
+        aliases.each do |ali|
+          self.class_eval <<-EOS
+          def #{ali}(arg = nil)
+            #{property_option}(arg)
+          end
+          EOS
+        end
+      end
+      
       def options
         PROPERTY_OPTIONS.inject({}) do |options, method|
           value = send(method)

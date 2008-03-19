@@ -22,8 +22,13 @@ describe DataMapper::Type do
     TestType.size.should == 10
   end
   
-  it "options hash should be exactly the options specified in custom type" do
+  it "should have options hash exactly equal to options specified in custom type" do
+    #ie. it should not include null elements
     TestType.options.should == { :size => 10 }
+  end
+  
+  it "should have length aliased to size" do
+    TestType.length.should == TestType.size
   end
 
 end
