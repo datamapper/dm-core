@@ -18,7 +18,7 @@ p(newRelease). 0.3.0 is a maintenance release, bringing minor bug-fixes and mini
 
 h2(newRelease). The Great Refactoring
 
-p(newRelease). Edge DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a rather dramatic refactor.  The public API is being uncoupled from database-specific terminology and will soon support other persistence layers.  Watch "github":http://github.com/sam/dm-core/commits/master commit messages for up-to-the-minute updates on The Great Refactoring
+p(newRelease). "Tip" DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a rather dramatic refactor.  The public API is being uncoupled from database-specific terminology and will soon support other persistence layers.  Watch "github":http://github.com/sam/dm-core/commits/master commit messages for up-to-the-minute updates on The Great Refactoring
 
 h1. Examples
 
