@@ -37,17 +37,27 @@ h3. The People Behind DataMapper
 
   <div class="thumb">
     <img src="/images/people/yehuda.jpg" title="Yehuda Katz" alt="Yehuda Katz" />
-    <p>Yehuda Katz</p>
+    <p><a href="http://www.yehudakatz.com/">Yehuda Katz</a></p>
   </div>
 
   <div class="thumb">
     <img src="/images/people/rando.jpg" title="Paul Sadauskas" alt="Paul Sadauskas" />
-    <p>Paul Sadauskas</p>
+    <p><a href="http://www.theamazingrando.com/">Paul Sadauskas</a></p>
   </div>
   
   <div class="thumb">
     <img src="http://gravatar.com/avatar/089d4a0c54ac9eee0950444826ed20f0?s=80" title="Adam French" alt="Adam French" />
-    <p>Adam French</p>
+    <p><a href="http://adam.speaksoutofturn.com">Adam French</a></p>
+  </div>
+  
+  <div class="thumb">
+    <img src="/images/people/ben_burket.png" title="Ben Burket" alt="Ben Burket" />
+    <p>Ben Burket</p>
+  </div>
+  
+  <div class="thumb">
+    <img src="http://www.gravatar.com/avatar.php?gravatar_id=9d1f5d2d9de70bd9a934f557dc95a406" title="Daniel Neighman" alt="Daniel Neighman" />
+    <p>Daniel Neighman</p>
   </div>
   
   <div class="thumb">
