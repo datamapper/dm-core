@@ -134,3 +134,29 @@ describe DataMapper::Adapters::DataObjectAdapter do
     end
   end
 end
+
+describe DataMapper::Adapters::DataObjectAdapter::SQL, "creating, reading, updating, deleting statements" do
+  before do
+    @adapter = DataMapper::Adapters::DataObjectAdapter.new('mock::/localhost')
+  end
+  
+  describe "#create_statement" do
+    it 'should have specs'
+  end
+  
+  describe "#create_statement_with_returning" do
+    it 'should have specs'
+  end
+  
+  describe "#read_statement" do
+    it 'should have specs'
+  end
+  
+  describe "#update_statement" do
+    it 'should have specs'
+  end
+  
+  describe "#delete_statement" do
+    it 'should have specs'
+  end  
+end

@@ -62,6 +62,50 @@ module DataMapper
       def transaction(&block)
         raise NotImplementedError.new
       end
+      
+      # all of our CRUD
+      # Methods dealing with a single instance object
+      def create(repository, instance)
+        raise NotImplementedError.new
+      end
+      
+      def read(repository, instance)
+        raise NotImplementedError.new
+      end
+      
+      def update(repository, instance)
+        raise NotImplementedError.new
+      end
+      
+      def delete(repository, instance)
+        raise NotImplementedError.new
+      end
+      
+      def save(repository, instance)
+        if instance.new_record?
+          create(repository, instance)
+        else
+          update(repository, instance)
+        end
+      end
+
+      # Methods dealing with locating a single object, by keys
+      def read_one(repository, klass, *keys)
+        raise NotImplementedError.new
+      end
+
+      def delete_one(repository, klass, *keys)
+        raise NotImplementedError.new
+      end
+
+      # Methods dealing with finding stuff by some query parameters
+      def read_set(repository, klass, query = {})
+        raise NotImplementedError.new
+      end
+
+      def delete_set(repository, klass, query = {})
+        raise NotImplementedError.new
+      end
 
       # Database-specific method
       def execute(*args)
@@ -352,6 +396,55 @@ module DataMapper
       end
 
       module SQL
+        def self.create_statement(adapter, resource)
+          properties = resource.properties(adapter.name)
+          <<-EOS.compress_lines
+            INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
+              #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
+            ) VALUES (
+              #{(['?'] * properties.size).join(', ')}
+            )
+          EOS
+        end
+
+        def self.create_statement_with_returning(adapter, resource)
+          properties = resource.properties(adapter.name)
+          <<-EOS.compress_lines
+            INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
+              #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
+            ) VALUES (
+              #{(['?'] * properties.size).join(', ')}
+            ) RETURNING #{adapter.quote_column_name(resource.key(adapter.name).first.field)}
+          EOS
+        end
+        
+        def self.read_statement(adapter, resource)
+          properties = resource.properties(adapter.name)
+          <<-EOS.compress_lines
+            SELECT #{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')} 
+            FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+          EOS
+        end
+        
+        def self.update_statement(adapter, resource, instance)
+          #these properties need to be dirty TODO
+          properties = instance.class.properties(adapter.name)
+          <<-EOS.compress_lines
+            UPDATE #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+            SET #{properties.map {|attribute| "#{adapter.quote_column_name(attribute.field)} = ?" }.join(', ')}
+            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+          EOS
+        end
+        
+        def self.delete_statement(adapter, resource)
+          properties = resource.properties(adapter.name)
+          <<-EOS.compress_lines
+            DELETE FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+          EOS
+        end
+        
         module Quoting
 
           def quote_table_name(table_name)
@@ -390,6 +483,11 @@ module DataMapper
 
         end # module Quoting
       end #module SQL
+      
+      # We want each adapter to override this
+      def syntax_returning?
+        @syntax_returning || @syntax_returning = false
+      end
 
       include SQL
       include SQL::Quoting
