@@ -8,6 +8,19 @@ describe DataMapper::Type do
       primitive String
       size 10
     end
+    
+    class TestType2 < DataMapper::Type
+      primitive String
+      size 10
+      
+      def self.materialize(value)
+        value
+      end
+      
+      def self.serialize(value)
+        value
+      end
+    end
   end
   
   it "should have the same PROPERTY_OPTIONS aray as DataMapper::Property" do
@@ -31,6 +44,22 @@ describe DataMapper::Type do
   
   it "should have length aliased to size" do
     TestType.length.should == TestType.size
+  end
+  
+  it "should raise NotImplmenetedException if serialize wasn't overriden" do
+    lambda { TestType.serialize("test") }.should raise_error(NotImplementedError)
+  end
+  
+  it "should raise NotImplmenetedException if materialize wasn't overriden" do
+    lambda { TestType.materialize("test") }.should raise_error(NotImplementedError)
+  end
+
+  it "should not raise NotImplmenetedException if serialize was overriden" do
+    TestType2.serialize("test").should == "test"
+  end
+  
+  it "should not raise NotImplmenetedException if materialize was overriden" do
+    TestType2.materialize("test").should == "test"
   end
 
 end
