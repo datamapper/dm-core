@@ -11,12 +11,12 @@ module DataMapper
       
       attr_accessor :resource_naming_convention
 
+      # Methods dealing with a single instance object
       def create(repository, instance)
         raise NotImplementedError.new
       end
       
-      # Zoo.get(1) for example.
-      def read(repository, klass, *keys)
+      def read(repository, instance)
         raise NotImplementedError.new
       end
       
@@ -24,7 +24,7 @@ module DataMapper
         raise NotImplementedError.new
       end
       
-      def delete(repository, options = nil)
+      def delete(repository, instance)
         raise NotImplementedError.new
       end
       
@@ -35,19 +35,29 @@ module DataMapper
           update(repository, instance)
         end
       end
-      
-      # ======== Finders
 
-      # This may be "good enough" for most adapters.
-      def first(repository, klass, query)
-        raise ArgumentError.new("You cannot pass in a :limit option to #first") if query.key?(:limit)
-        all(repository, klass, query.merge(:limit => 1)).first
+      # Methods dealing with locating a single object, by keys
+      def read_one(repository, klass, *keys)
+        raise NotImplementedError.new
+      end
+
+      def delete_one(repository, klass, *keys)
+        raise NotImplementedError.new
+      end
+
+      # Methods dealing with finding stuff by some query parameters
+      def read_set(repository, klass, query = {})
+        raise NotImplementedError.new
+      end
+
+      def delete_set(repository, klass, query = {})
+        raise NotImplementedError.new
       end
       
-      # +query+ would be an "options-hash". I'm just tired of
-      # writing "options". It's a dumb name for an arg. ;-)
-      def all(repository, klass, query)
-        raise NotImplementedError.new
+      # Shortcuts
+      def first(repository, klass, query = {})
+        raise ArgumentError.new("You cannot pass in a :limit option to #first") if query.key?(:limit)
+        read_set(repository, klass, query.merge(:limit => 1)).first
       end
       
       # Future Enumerable/convenience finders. Please leave in place. :-)
