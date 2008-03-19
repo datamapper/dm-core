@@ -1,2 +1,0 @@
-class Text
-end
