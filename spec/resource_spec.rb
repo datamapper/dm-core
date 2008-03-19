@@ -1,5 +1,4 @@
-require __DIR__.parent + 'lib/data_mapper/resource'
-require __DIR__ + 'mock_adapter'
+require File.join(File.dirname(__FILE__), 'spec_helper')
 
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.
@@ -68,7 +67,6 @@ describe "DataMapper::Resource" do
   end
   
   it "should track attributes" do
-    pending
     
     # So attribute tracking is a feature of the Resource,
     # not the Property. Properties are class-level declarations.
