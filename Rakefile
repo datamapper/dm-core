@@ -8,7 +8,8 @@ require Pathname('rake/rdoctask')
 require Pathname('rake/gempackagetask')
 require Pathname('rake/contrib/rubyforgepublisher')
 
-require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'lib/data_mapper/support/kernel' # __DIR__
+# for __DIR__
+require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'lib/data_mapper/support/kernel'
 
 Pathname.glob(__DIR__ + 'tasks/**/*.rb') { |t| require t }
 

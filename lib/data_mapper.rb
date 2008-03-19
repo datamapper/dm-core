@@ -17,7 +17,8 @@ require 'yaml'
 require 'set'
 require 'fastthread'
 
-require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'data_mapper/support/kernel' # __DIR__
+# for __DIR__
+require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'data_mapper/support/kernel'
 
 require __DIR__ + 'data_mapper/support/object'
 require __DIR__ + 'data_mapper/support/blank'

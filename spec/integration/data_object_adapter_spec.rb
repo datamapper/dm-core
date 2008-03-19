@@ -1,6 +1,6 @@
 require __DIR__.parent.parent + 'lib/data_mapper'
 
-DataMapper.setup(:default, "sqlite3://#{Dir.pwd}/integration_test.db")
+DataMapper.setup(:default, "sqlite3://#{Dir.getwd}/integration_test.db")
 
 describe DataMapper::Adapters::DataObjectAdapter, "reading & writing a database" do
 

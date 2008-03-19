@@ -1,6 +1,7 @@
 unless defined?(INITIAL_CLASSES)
   # Require the DataMapper, and a Mock Adapter.
-  require File.join(File.dirname(__FILE__), 'lib', 'data_mapper')
+  require 'pathname'
+  require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'lib/data_mapper'
   require __DIR__ + 'spec/mock_adapter'
 
   adapter = ENV["ADAPTER"] || "sqlite3"
@@ -8,7 +9,7 @@ unless defined?(INITIAL_CLASSES)
   repository_uri = URI.parse case ENV["ADAPTER"]
     when 'mysql' then "mysql://localhost/data_mapper_1"
     when 'postgres' then "postgres://localhost/data_mapper_1"
-    else "sqlite3:///#{Dir.pwd}/data_mapper_1.db"
+    else "sqlite3://#{Dir.getwd}/data_mapper_1.db"
   end
 
   # Prepare the log path, and remove the existing spec.log

@@ -78,7 +78,7 @@ module DataMapper
           opt.on("-y", "--yaml YAML", "The database connection configuration yaml file.") do |yaml_file|
             if (yaml = Pathname(yaml_file)).file?
               @config[:yaml] = yaml
-            elsif (yaml = Pathname("#{Dir.pwd}/#{yaml_file}")).file?
+            elsif (yaml = Pathname("#{Dir.getwd}/#{yaml_file}")).file?
               @config[:yaml] = yaml
             else
               raise "yaml file was specifed as #{yaml_file} but does not exist."
