@@ -1,6 +1,7 @@
 unless defined?(INITIAL_CLASSES)
   # Require the DataMapper, and a Mock Adapter.
-  require File.join(File.dirname(__FILE__), 'lib', 'data_mapper')
+  require 'pathname'
+  require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'lib/data_mapper'
   require __DIR__ + 'spec/mock_adapter'
 
   adapter = ENV["ADAPTER"] || "sqlite3"
