@@ -39,7 +39,7 @@ module DataMapper
 
       def constants
         {
-          :table_quoting_character  => %{"},
+          :table_quoting_character  => %{},
           :column_quoting_character => %{},
           :true_aliases  => %w{1 T},
           :false_aliases => %w{0 F},
@@ -350,6 +350,49 @@ module DataMapper
       def callback(instance, callback_name)
         instance.class.callbacks.execute(callback_name, instance)
       end
+
+      module SQL
+        module Quoting
+
+          def quote_table_name(table_name)
+            escaped_name = escape_identifier_name(table_name)
+
+            # don't bother quoting if there's no quote character
+            return escaped_name unless constants[:quote_table_name]
+
+            wrap_string_in_char(escaped_name, constants[:quote_table_name])
+          end
+
+          def quote_column_name(column_name)
+            escaped_name = escape_identifier_name(column_name)
+
+            # don't bother quoting if there's no quote character
+            return escaped_name unless constants[:quote_column_name]
+
+            wrap_string_in_char(escaped_name, constants[:quote_column_name])
+          end
+
+          def escape_identifier_name(identifier_name)
+            # SQL says to double-up single quotes to escape them
+            if identifier_name.match(/'/)
+              identifier_name.gsub!(/'/, "''")
+            else
+              identifier_name
+            end
+          end
+
+          def wrap_string_in_char(string, char)
+            # don't quote it if its already quoted
+            return string if string[0] == char[0] && string[string.length-1] == char[0]
+
+            char + string + char
+          end
+
+        end # module Quoting
+      end #module SQL
+
+      include SQL
+      include SQL::Quoting
 
     end # class DoAdapter
 
