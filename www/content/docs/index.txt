@@ -34,7 +34,7 @@ h1. <%= @page.title %>
 
 h1. Development
 
-DataMapper development has switched to the "Git":http://git.or.cz SCM. Please see "using git":using-git.html to learn how to contribute.
+DataMapper development has switched to the "Git":http://git.or.cz SCM. Please see "using git":/using-git.html to learn how to contribute.
 
 <div class="CodeRay">
   <pre>$ git clone git://github.com/sam/dm-core.git</pre>
@@ -42,7 +42,7 @@ DataMapper development has switched to the "Git":http://git.or.cz SCM. Please se
 
 h2. SVN - Bug Fixes for 0.2.5 (gem before The Great Refactor)
 
-SVN development is for 0.2.5 (Stable) bug-fixes only. Edge DataMapper has moved to "Git":http://github.com/sam/dm-core
+SVN development is for 0.2.5 (Stable) bug-fixes only. Edge DataMapper has moved to "Git":http://github.com/sam/dm-core.
 
 <notextile>
 <coderay lang="bash" line_numbers="inline">
@@ -59,3 +59,4 @@ When contributing any code to DataMapper, please follow these guidelines.
 # Two space indent - not tabs!
 # Documentation is required (use the "Merb documentation style":http://yehudakatz.com/2008/01/14/merbnext/)
 
+Consider following the "code optimization tips":http://wiki.datamapper.org/doku.php?id=codeoptimizationtips page on the wiki.

@@ -224,38 +224,20 @@ module DataMapper
     
     # defines the getter for the property
     def create_getter!
-      # @target.class_eval <<-EOS
-      # #{reader_visibility.to_s}
-      # def #{@name}
-      #   attribute_get("#{name}")
-      # end
-      # EOS
-      if lazy?
-        @target.class_eval <<-EOS
+      @target.class_eval <<-EOS
+      #{reader_visibility.to_s}
+      def #{name}
+        attribute_get(#{name.inspect})
+      end
+      EOS
+      
+      if type == :boolean
+        klass.class_eval <<-EOS
         #{reader_visibility.to_s}
-        def #{name}
-          lazy_load!(#{name.inspect})
-          class << self;
-            attr_accessor #{name.inspect}
-          end
-          @#{name}
+        def #{name.to_s.ensure_ends_with('?')}
+          attribute_get(#{name.inspect})
         end
         EOS
-      else
-        @target.class_eval <<-EOS
-        #{reader_visibility.to_s}
-        def #{name}
-          #{instance_variable_name}
-        end
-        EOS
-        if type == :boolean
-          klass.class_eval <<-EOS
-          #{reader_visibility.to_s}
-          def #{name.to_s.ensure_ends_with('?')}
-            #{instance_variable_name}
-          end
-          EOS
-        end
       end
     rescue SyntaxError
       raise SyntaxError.new(column)
@@ -263,30 +245,12 @@ module DataMapper
     
     # defines the setter for the property
     def create_setter!
-      # @target.class_eval <<-EOS
-      # #{writer_visibility.to_s}
-      # def #{@name}=(value)
-      #   attribute_set("#{name}", value)
-      # end
-      # EOS
-      if lazy?
-        @target.class_eval <<-EOS
-        #{writer_visibility.to_s}
-        def #{name}=(value)
-          class << self;
-            attr_accessor #{name.inspect}
-          end
-          @#{name} = value
-        end
-        EOS
-      else
-        @target.class_eval <<-EOS
-        #{writer_visibility.to_s}
-        def #{name}=(value)
-          #{instance_variable_name} = value
-        end
-        EOS
+      @target.class_eval <<-EOS
+      #{writer_visibility.to_s}
+      def #{name}=(value)
+        attribute_set(#{name.inspect}, value)
       end
+      EOS
     rescue SyntaxError
       raise SyntaxError.new(column)
     end
