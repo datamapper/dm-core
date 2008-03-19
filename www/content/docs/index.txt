@@ -34,15 +34,17 @@ h1. <%= @page.title %>
 
 h1. Development
 
-DataMapper development has switched to the "Git":http://git.or.cz SCM. Please see "using git":/using-git.html to learn how to contribute.
+DataMapper development has switched to the "Git":http://git.or.cz SCM. Please see "using git":/using-git.html to learn how to contribute.  To check out "tip" DataMapper anonymously:
 
 <div class="CodeRay">
   <pre>$ git clone git://github.com/sam/dm-core.git</pre>
 </div>
 
-h2. SVN - Bug Fixes for 0.2.5 (gem before The Great Refactor)
+If you have a "github":http://www.github.com account, log in, and "fork" "Sam's Repo":http://github.com/sam/dm-core/tree/master.  When you think you're ready, send Sam a "pull request".
 
-SVN development is for 0.2.5 (Stable) bug-fixes only. Edge DataMapper has moved to "Git":http://github.com/sam/dm-core.
+h2. SVN - Bug Fixes for 0.3.0 (gem before The Great Refactor)
+
+SVN development is for 0.3.0 (Stable) bug-fixes only. "Tip" DataMapper has moved to "Git":http://github.com/sam/dm-core.
 
 <notextile>
 <coderay lang="bash" line_numbers="inline">

@@ -57,7 +57,7 @@ h3. The People Behind DataMapper
   
   <div class="thumb">
     <img src="http://www.gravatar.com/avatar.php?gravatar_id=9d1f5d2d9de70bd9a934f557dc95a406" title="Daniel Neighman" alt="Daniel Neighman" />
-    <p>Daniel Neighman</p>
+    <p><a href="http://hassox.blogspot.com">Daniel Neighman</a></p>
   </div>
   
   <div class="thumb">
