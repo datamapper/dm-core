@@ -7,11 +7,8 @@
 # * Sets up the database using the config from the yaml file or from the environment
 # * 
 
-# This line just let's us require anything in the +lib+ sub-folder
-# without specifying a full path.
-$:.unshift(File.dirname(__FILE__))
-
 # Require the basics...
+require 'pathname'
 require 'uri'
 require 'date'
 require 'time'
@@ -20,16 +17,19 @@ require 'yaml'
 require 'set'
 require 'fastthread'
 
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'object')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'blank')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'enumerable')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'symbol')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'inflector')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'struct')
+# for __DIR__
+require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'data_mapper/support/kernel'
 
-require File.join(File.dirname(__FILE__), 'data_mapper', 'dependency_queue')
-require File.join(File.dirname(__FILE__), 'data_mapper', 'resource')
+require __DIR__ + 'data_mapper/support/object'
+require __DIR__ + 'data_mapper/support/blank'
+require __DIR__ + 'data_mapper/support/enumerable'
+require __DIR__ + 'data_mapper/support/symbol'
+require __DIR__ + 'data_mapper/support/inflector'
+require __DIR__ + 'data_mapper/support/struct'
 
-require File.join(File.dirname(__FILE__), 'data_mapper', 'adapters', 'abstract_adapter')
+require __DIR__ + 'data_mapper/dependency_queue'
+require __DIR__ + 'data_mapper/resource'
 
-require File.join(File.dirname(__FILE__), 'data_mapper', 'cli')
+require __DIR__ + 'data_mapper/adapters/abstract_adapter'
+
+require __DIR__ + 'data_mapper/cli'

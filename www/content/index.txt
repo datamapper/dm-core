@@ -9,11 +9,16 @@ filter:
 
 DataMapper is a "Object Relational Mapper":http://en.wikipedia.org/wiki/Object-relational_mapping written in "Ruby.":http://ruby-lang.org/ The goal is to create an ORM which is fast, thread-safe and feature rich.
 
-To learn a little more about this project, our reasons for starting it and why you should be interested, read the "Why Datamapper?":/why.html page.
+To learn a little more about this project and why you should be interested, read the "Why Datamapper?":/why.html page.
+
+h2(newRelease). 0.3.0 is out!
+
+p(newRelease). 0.3.0 is a maintenance release, bringing minor bug-fixes and minimal new features to DataMapper 0.2.5. This is the latest stable gem using database terminology and metaphors.
+
 
 h2(newRelease). The Great Refactoring
 
-p(newRelease). Edge DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a rather dramatic refactor.  If your riding Edge, consider hopping off and freezing on the 0.2.5 gem until the new public api is stable.
+p(newRelease). "Tip" DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a rather dramatic refactor.  The public API is being uncoupled from database-specific terminology and will soon support other persistence layers like XML and RESTful web-services.  Watch "github":http://github.com/sam/dm-core/commits/master commit messages for up-to-the-minute updates on The Great Refactoring.
 
 h1. Examples
 
@@ -23,7 +28,7 @@ class Animal < DataMapper::Base
   property :name, :string
   property :notes, :text, :lazy => true
   
-  has_one :favourite_fruit, :class => 'Fruit'
+  has_one :favorite_fruit, :class => 'Fruit'
   has_and_belongs_to_many :exhibits
 end
 </coderay>
@@ -32,6 +37,6 @@ end
 <notextile>
 <coderay lang="ruby" line_numbers="inline">
 monkey = Animal.first(:name => 'Monkey')
-monkey.favourite_fruit.name # => 'Bananas'
+monkey.favorite_fruit.name # => 'Bananas'
 </coderay>
 </notextile>

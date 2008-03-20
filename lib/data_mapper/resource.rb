@@ -1,12 +1,15 @@
-require File.join(File.dirname(__FILE__), 'support', 'inflector')
-require File.join(File.dirname(__FILE__), 'support', 'string')
-require File.join(File.dirname(__FILE__), 'property_set')
-require File.join(File.dirname(__FILE__), 'property')
-require File.join(File.dirname(__FILE__), 'repository')
+require __DIR__ + 'support/inflector'
+require __DIR__ + 'support/string'
+require __DIR__ + 'property_set'
+require __DIR__ + 'property'
+require __DIR__ + 'repository'
 
 module DataMapper
   
   module Resource
+    
+    # +----------------------
+    # Resource module methods
     
     def self.included(target)
       target.send(:extend, ClassMethods)
@@ -21,6 +24,9 @@ module DataMapper
       end
       @dependencies
     end
+    
+    # +---------------
+    # Instance methods
     
     def repository
       @loaded_set ? @loaded_set.repository : self.class.repository
@@ -40,6 +46,36 @@ module DataMapper
     
     def readonly?
       @readonly == true
+    end
+    
+    def attribute_loaded?(name)
+      instance_variables.include?(name.to_s.ensure_starts_with('@'))
+    end
+    
+    def dirty_attributes
+      @dirty_attributes || @dirty_attributes = Set.new
+    end
+    
+    def attribute_dirty?(name)
+      raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
+      dirty_attributes.include?(name)
+    end
+    
+    def attribute_get(name)
+      if attribute_loaded?(name)
+        instance_variable_get(name.to_s.ensure_starts_with('@'))
+      else
+        lazy_load!(name)
+      end
+    end
+    
+    def attribute_set(name, value)
+      dirty_attributes << name
+      instance_variable_set(name.to_s.ensure_starts_with('@'), value)
+    end
+    
+    def lazy_load!(*names)
+      instance_variable_set(names.first.to_s.ensure_starts_with('@'), nil)
     end
     
     def initialize(details = nil) # :nodoc:

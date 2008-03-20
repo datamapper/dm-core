@@ -1,0 +1,22 @@
+Autotest.add_hook :initialize do |at|
+  ignore = %w{.git burn www log plugins script tasks bin CHANGELOG FAQ MIT-LICENSE PERFORMANCE QUICKLINKS README}
+  unless ENV['AUTOTEST'] == 'integration'
+    ignore << 'spec/integration'
+  end
+  
+  ignore.each do |exception| 
+    at.add_exception(exception)
+  end
+  
+  at.clear_mappings
+  at.add_mapping(%r%^spec/.*\.rb$%) { |filename, _| 
+    filename 
+  }
+  at.add_mapping(%r%^lib/data_mapper/(.*)\.rb$%) { |_, m| 
+    ["spec/#{m[1]}_spec.rb"]
+  }
+  at.add_mapping(%r%^spec/spec_helper.rb$%) { 
+    at.files_matching %r%^spec/.*_spec\.rb$%
+  }
+  
+end

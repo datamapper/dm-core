@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require __DIR__.parent + 'spec_helper'
 
 describe DataMapper::Support do
   it "should mark empty objects as blank" do

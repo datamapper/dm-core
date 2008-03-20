@@ -1,6 +1,6 @@
 --- 
 page_id: gettingStarted
-title:      Getting started with datamapper
+title:      Getting started with DataMapper 0.3.0
 created_at: Wed Aug 29 20:36:53 +0930 2007
 filter:
   - erb
@@ -12,7 +12,7 @@ h1. <%= @page.title %>
 
 First, if you think you might need some help, there's an active community supporting DataMapper through "the mailing list":http://groups.google.com/group/datamapper and the @#datamapper@ IRC channel on irc.freenode.net.
 
-So lets imagine we're setting up some models for a blogging app. We'll keep it nice and simple. The first thing to decide on is how what models we want. Say a Post, Category and Comment to be attached to posts.
+So lets imagine we're setting up some models for a blogging app. We'll keep it nice and simple. The first thing to decide on is what models we want. Post is a given. So is Comment. But let's mix it up and do Category too.
 
 h2. Install DataMapper
 
@@ -61,7 +61,7 @@ DataMapper::Database.setup({
 
 h2. Define your models
 
-The Post model will inherits from DataMapper::Base. The convention with model names is to use the singular, not plural version. 
+The Post model should inherit from DataMapper::Base. The convention with model names is to use the singular, not plural version. 
 
 <notextile>
 <coderay lang="ruby" line_numbers="inline">
@@ -129,3 +129,11 @@ Comment.table.create!
 </notextile>
 
 This will issue the necessary CREATE statements to define each table according to their properties.
+
+You could also do:
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+DataMapper::Persistence.auto_migrate!
+</coderay>
+</notextile>

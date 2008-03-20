@@ -110,7 +110,7 @@ Person.all(:name.not => 'bob')
 # If the value of a pair is an Array, we do an IN-clause for you.
 Person.all(:name.like => 'S%', :id => [1, 2, 3, 4, 5])
 
-# An alias for Zoo.find(11)
+# An alias for Zoo.get(11)
 Zoo[11]
 
 # Does a NOT IN () clause for you.

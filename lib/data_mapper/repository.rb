@@ -1,9 +1,9 @@
 require 'uri'
-require File.join(File.dirname(__FILE__), 'support', 'errors')
-require File.join(File.dirname(__FILE__), 'logger')
-require File.join(File.dirname(__FILE__), 'adapters', 'abstract_adapter')
-require File.join(File.dirname(__FILE__), 'identity_map')
-require File.join(File.dirname(__FILE__), 'naming_conventions')
+require __DIR__ + 'support/errors'
+require __DIR__ + 'logger'
+require __DIR__ + 'adapters/abstract_adapter'
+require __DIR__ + 'identity_map'
+require __DIR__ + 'naming_conventions'
 
 # Delegates to DataMapper::repository.
 # Will not overwrite if a method of the same name is pre-defined.
@@ -43,11 +43,11 @@ module DataMapper
     uri = uri.is_a?(String) ? URI.parse(uri) : uri
     
     raise ArgumentError.new("'name' must be a Symbol") unless name.is_a?(Symbol)
-    raise ArgumentError.new("'uri' must be a URI") unless uri.is_a?(URI)
+    raise ArgumentError.new("'uri' must be a URI or String") unless uri.is_a?(URI)
     
     unless Adapters::const_defined?(Inflector.classify(uri.scheme) + "Adapter")
       begin
-        require File.join(File.dirname(__FILE__), 'adapters', "#{Inflector.underscore(uri.scheme)}_adapter")
+        require __DIR__ + "adapters/#{Inflector.underscore(uri.scheme)}_adapter"
       rescue LoadError
         require "#{Inflector.underscore(uri.scheme)}_adapter"
       end

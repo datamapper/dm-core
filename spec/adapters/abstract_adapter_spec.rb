@@ -1,6 +1,8 @@
+require 'pathname'
+require Pathname(__FILE__).dirname.expand_path(Dir.getwd).parent + 'spec_helper'
 
-require File.join(File.dirname(__FILE__), '../../lib/data_mapper/adapters/abstract_adapter')
-require File.join(File.dirname(__FILE__), '../adapter_sharedspec')
+require __DIR__.parent.parent + 'lib/data_mapper/adapters/abstract_adapter'
+require __DIR__.parent + 'adapter_sharedspec'
 
 describe DataMapper::Adapters::AbstractAdapter do
   before do
@@ -9,7 +11,7 @@ describe DataMapper::Adapters::AbstractAdapter do
 
   it_should_behave_like 'a DataMapper Adapter'
 
-  %w{create read update delete}.each do |meth|
+  %w{create read update delete read_one read_set delete_one delete_set}.each do |meth|
     it "should raise NotImplementedError when ##{meth} is called" do
       lambda { @adapter.send(meth.intern, nil, nil) }.should raise_error(NotImplementedError)
     end
@@ -34,8 +36,8 @@ describe DataMapper::Adapters::AbstractAdapter do
       lambda { @adapter.first(:repository, Class, :limit => 10) }.should raise_error(ArgumentError)
     end
 
-    it 'should pass all query options + :limit to #all' do
-      @adapter.should_receive(:all) { |repo, klass, query|
+    it 'should pass all query options + :limit to #read_set' do
+      @adapter.should_receive(:read_set) { |repo, klass, query|
         repo.should  == :repository
         klass.should == Class
         query.should be_kind_of(Hash)
@@ -51,7 +53,4 @@ describe DataMapper::Adapters::AbstractAdapter do
     end
   end
 
-  it "should raise NotImplementedError when #all is called" do
-    lambda { @adapter.all(:repository, Class, {}) }.should raise_error(NotImplementedError)
-  end
 end

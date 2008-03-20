@@ -3,15 +3,11 @@ namespace :dm do
     require 'yaml'
     
     def fixtures_path
-      return ENV['FIXTURE_PATH'] if ENV['FIXTURE_PATH']
-      
-      fixture_path = %w(db dev schema spec).find do |parent|
-        File.exists?("#{DM_APP_ROOT}/#{parent}/fixtures")
+      @fixture_path ||= if ENV['FIXTURE_PATH']
+        Pathname(ENV['FIXTURE_PATH'])
+      else
+        Pathname.glob("#{DM_APP_ROOT}/{db,dev,schema,spec}/fixtures").first || raise('Fixtures path not found.')
       end
-      
-      raise "Fixtures path not found." unless fixture_path
-      
-      "#{DM_APP_ROOT}/#{fixture_path}/fixtures"
     end
     
     task :dm_app_root do
@@ -22,11 +18,11 @@ namespace :dm do
     task :dump do
       ENV['AUTO_MIGRATE'] = 'false'
       Rake::Task['environment'].invoke
-      directory fixtures_path
+      fixtures_path.mkpath
       DataMapper::Base.subclasses.each do |klass|
         table = repository.table(klass)
         puts "Dumping #{table}"
-        File.open( "#{fixtures_path}/#{table}.yaml", "w+") do |file|
+        (fixtures_path + "#{table}.yaml").open('w+') do |file|
           file.write YAML::dump(klass.all)
         end
       end
@@ -35,14 +31,14 @@ namespace :dm do
     desc 'Load database fixtures'
     task :load do
       Rake::Task['environment'].invoke
-      directory fixtures_path
+      fixtures_path.mkpath
       DataMapper::Base.subclasses.each do |klass|
         table = repository.table(klass)
-        file_name = "#{fixtures_path}/#{table}.yaml"
-        next unless File.exists?( file_name )
+        file_name = fixtures_path + "#{table}.yaml"
+        next unless file_name.file?
         puts "Loading #{table}"
         klass.delete_all
-        File.open( file_name, "r") do |file|
+        file_name.open('r') do |file|
           YAML::load(file).each do |attributes|
             klass.create(attributes)
           end

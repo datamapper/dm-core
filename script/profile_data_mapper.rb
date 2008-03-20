@@ -8,7 +8,7 @@ def profile(&b)
   result = RubyProf.profile &b
 
   printer = RubyProf::GraphHtmlPrinter.new(result)
-  File::open('profile_results.html', 'w+') do |file|
+  Pathname('profile_results.html').open('w+') do |file|
     printer.print(file, 0)
   end
 end

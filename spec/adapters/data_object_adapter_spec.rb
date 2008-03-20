@@ -1,6 +1,6 @@
-require File.join(File.dirname(__FILE__), '../../lib/data_mapper')
-require File.join(File.dirname(__FILE__), '../../lib/data_mapper/adapters/data_object_adapter')
-require File.join(File.dirname(__FILE__), '..', 'adapter_sharedspec')
+require __DIR__.parent.parent + 'lib/data_mapper'
+require __DIR__.parent.parent + 'lib/data_mapper/adapters/data_object_adapter'
+require __DIR__.parent + 'adapter_sharedspec'
 
 describe DataMapper::Adapters::DataObjectAdapter do
   before do
@@ -133,4 +133,30 @@ describe DataMapper::Adapters::DataObjectAdapter do
       lambda { @adapter.execute('SQL STRING') }.should raise_error("Oh Noes!")
     end
   end
+end
+
+describe DataMapper::Adapters::DataObjectAdapter::SQL, "creating, reading, updating, deleting statements" do
+  before do
+    @adapter = DataMapper::Adapters::DataObjectAdapter.new('mock::/localhost')
+  end
+  
+  describe "#create_statement" do
+    it 'should have specs'
+  end
+  
+  describe "#create_statement_with_returning" do
+    it 'should have specs'
+  end
+  
+  describe "#read_statement" do
+    it 'should have specs'
+  end
+  
+  describe "#update_statement" do
+    it 'should have specs'
+  end
+  
+  describe "#delete_statement" do
+    it 'should have specs'
+  end  
 end

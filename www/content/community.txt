@@ -1,0 +1,67 @@
+--- 
+title:      DataMapper's Community
+created_at: Sun Mar 16 23:55:11 -0500 2008
+filter:
+  - erb
+  - textile
+--- 
+h2. <%= @page.title %>
+
+Like all open-source projects, DataMapper has a burgeoning community.  
+
+h3. Links, Blogs, Wiki's, and Stuff
+
+<dl>
+  <dt><a href="http://wiki.datamapper.org/doku.php">Wiki</a></dt>
+  <dd>Official Wiki</dd>
+  <dt><a href="http://github.com/sam/dm-core/tree/master">DM on GitHub</a></dt>
+  <dd>Source Repository</dd>
+  <dt><a href="http://datamapper.rubyforge.org/">API on RubyForge</a></dt>
+  <dd>Documentation</dd>
+  <dt><a href="irc://irc.freenode.net/#datamapper"><code>#datamapper</code> on irc.Freenode.net</a></dt>
+  <dd>Official IRC Channel</dd>
+  <dt><a href="http://groups.google.com/group/datamapper"> Google Groups</a></dt>
+  <dd>Official Mailing List</dd>
+  
+  
+</dl> 
+
+
+h3. The People Behind DataMapper
+
+<div class="yearbook">
+  <div class="thumb">
+    <img src="http://www.gravatar.com/avatar/41c597a48c80e37ba68d1adc7095ea0e?s=80" title="Sam Smoot" alt="Sam Smoot" />
+    <p>Sam Smoot (Lead)</p>
+  </div> 
+
+  <div class="thumb">
+    <img src="/images/people/yehuda.jpg" title="Yehuda Katz" alt="Yehuda Katz" />
+    <p><a href="http://www.yehudakatz.com/">Yehuda Katz</a></p>
+  </div>
+
+  <div class="thumb">
+    <img src="/images/people/rando.jpg" title="Paul Sadauskas" alt="Paul Sadauskas" />
+    <p><a href="http://www.theamazingrando.com/">Paul Sadauskas</a></p>
+  </div>
+  
+  <div class="thumb">
+    <img src="http://gravatar.com/avatar/089d4a0c54ac9eee0950444826ed20f0?s=80" title="Adam French" alt="Adam French" />
+    <p><a href="http://adam.speaksoutofturn.com">Adam French</a></p>
+  </div>
+  
+  <div class="thumb">
+    <img src="/images/people/ben_burket.png" title="Ben Burket" alt="Ben Burket" />
+    <p>Ben Burket</p>
+  </div>
+  
+  <div class="thumb">
+    <img src="http://www.gravatar.com/avatar.php?gravatar_id=9d1f5d2d9de70bd9a934f557dc95a406" title="Daniel Neighman" alt="Daniel Neighman" />
+    <p><a href="http://hassox.blogspot.com">Daniel Neighman</a></p>
+  </div>
+  
+  <div class="thumb">
+    <img src="/images/martini.gif" title="you" alt="you could be here" />
+    <p>More to come!</p>
+  </div>
+</div>
