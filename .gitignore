@@ -6,3 +6,4 @@ pkg
 www/output
 coverage/*
 *.db
+nbproject
