@@ -43,41 +43,6 @@ namespace :dm do
   task :profile do
     load __DIR__ + 'script/profile_data_mapper.rb'
   end
-
-  namespace :spec do
-    def set_model_mode(fl, mode)
-      fl.each do |fname|
-        contents = fname.read
-
-        if mode == :compat
-          contents.gsub!(/#< DataMapper::Base #/, '< DataMapper::Base #')
-          contents.gsub!(/include DataMapper::Persistence/, '#include DataMapper::Persistence')
-        elsif mode == :normal
-          contents.gsub!(/< DataMapper::Base #/, '#< DataMapper::Base #')
-          contents.gsub!(/#include DataMapper::Persistence/, 'include DataMapper::Persistence')
-        else
-          raise "Unknown mode #{mode}."
-        end
-
-        fname.open('w') do |f|
-          f.write(contents)
-        end
-      end
-    end
-
-    desc "Run specifications with DataMapper::Base compatibilty"
-    task :compat do
-      fl = Pathname.glob('spec/**/*.rb').reject { |path| path =~ /\b\.svn/ }
-
-      set_model_mode(fl, :compat)
-
-      begin
-        Rake::Task['dm:spec'].invoke
-      ensure
-        set_model_mode(fl, :normal)
-      end
-    end
-  end
 end
 
 PACKAGE_VERSION = '0.9.0'
