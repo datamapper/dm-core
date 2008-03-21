@@ -29,8 +29,8 @@ module DataMapper
       private
 
       def scope_stack
-        scope_stack_for = Thread.current[:scope_stack] ||= {}
-        scope_stack_for[self] ||= []
+        scope_stack_for = Thread.current[:scope_stack] ||= Hash.new { |h,k| h[k] = [] }
+        scope_stack_for[self]
       end
 
       def current_scope
