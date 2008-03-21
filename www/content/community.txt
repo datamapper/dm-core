@@ -61,6 +61,11 @@ h3. The People Behind DataMapper
   </div>
   
   <div class="thumb">
+    <img src="http://en.gravatar.com/avatar/b9b5ff40232c1dfd61238c2a90467f84?s=80&r=any" title="Wayne E. Seguin" alt="Wayne E. Seguin"/>
+    <p><a href="http://wayneseguin.us">Wayne E Seguin</a></p>
+  </div>
+  
+  <div class="thumb">
     <img src="/images/martini.gif" title="you" alt="you could be here" />
     <p>More to come!</p>
   </div>
