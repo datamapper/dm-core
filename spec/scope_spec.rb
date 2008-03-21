@@ -116,6 +116,11 @@ describe DataMapper::Scope do
   end
 
   describe '.scope_stack' do
+    it 'should be private' do
+      klass = class << Article; self; end
+      klass.should be_private_method_defined(:scope_stack)
+    end
+
     it 'should provide an Array' do
       Article.publicize_methods do
         Article.scope_stack.should be_kind_of(Array)
@@ -139,6 +144,11 @@ describe DataMapper::Scope do
   end
 
   describe '.current_scope' do
+    it 'should be private' do
+      klass = class << Article; self; end
+      klass.should be_private_method_defined(:current_scope)
+    end
+
     it 'should return nil if the scope stack is empty' do
       Article.publicize_methods do
         Article.scope_stack.should be_empty
