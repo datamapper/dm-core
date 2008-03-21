@@ -1,4 +1,5 @@
-require __DIR__ + 'spec_helper'
+require 'pathname'
+require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
 # describe DataMapper::Property do
 #   

@@ -1,5 +1,5 @@
 require 'pathname'
-require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'spec_helper'
+require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.

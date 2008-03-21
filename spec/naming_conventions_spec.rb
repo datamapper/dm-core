@@ -1,3 +1,6 @@
+require 'pathname'
+require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
+
 require __DIR__.parent + 'lib/data_mapper/naming_conventions'
 
 describe "DataMapper::NamingConventions" do

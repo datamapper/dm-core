@@ -1,5 +1,5 @@
 require 'pathname'
-require Pathname(__FILE__).dirname.expand_path(Dir.getwd).parent + 'spec_helper'
+require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 require __DIR__.parent.parent + 'lib/data_mapper/adapters/abstract_adapter'
 require __DIR__.parent + 'adapter_sharedspec'

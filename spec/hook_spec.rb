@@ -1,4 +1,7 @@
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'hook')
+require 'pathname'
+require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
+
+require __DIR__.parent + 'lib/data_mapper/hook'
 
 describe "DataMapper::Hook" do
   before(:each) do

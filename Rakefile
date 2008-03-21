@@ -9,7 +9,7 @@ require Pathname('rake/gempackagetask')
 require Pathname('rake/contrib/rubyforgepublisher')
 
 # for __DIR__
-require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'lib/data_mapper/support/kernel'
+require Pathname(__FILE__).dirname.expand_path + 'lib/data_mapper/support/kernel'
 
 Pathname.glob(__DIR__ + 'tasks/**/*.rb') { |t| require t }
 
@@ -26,11 +26,10 @@ namespace :dm do
   desc "Run specifications"
   Spec::Rake::SpecTask.new('spec') do |t|
     t.spec_opts = ["--format", "specdoc", "--colour"]
-    t.spec_files = Pathname.glob(ENV['FILES'] || 'spec/**/*_spec.rb')
-    t.ruby_opts << '-r' << __DIR__ + 'lib/data_mapper/support/kernel'  # bring __DIR__ into specs
+    t.spec_files = Pathname.glob(ENV['FILES'] || __DIR__ + 'spec/**/*_spec.rb')
     unless ENV['NO_RCOV']
       t.rcov = true
-      t.rcov_opts = ['--exclude', 'examples,spec,environment.rb']
+      t.rcov_opts = ['--exclude', 'spec,environment.rb']
     end
   end
   
