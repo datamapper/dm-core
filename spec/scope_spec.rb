@@ -10,7 +10,7 @@ module ScopeSpecHelper
         DataMapper::Query.stub!(:new).and_return(@dm_query)
       end
 
-      base.before do
+      base.after do
         Article.publicize_methods do
           Article.scope_stack.clear  # reset the stack before each spec
         end
@@ -119,6 +119,8 @@ describe DataMapper::Scope do
   end
 
   describe '.scope_stack' do
+    include ScopeSpecHelper
+
     it 'should provide an Array' do
       Article.publicize_methods do
         Article.scope_stack.should be_kind_of(Array)
@@ -142,6 +144,8 @@ describe DataMapper::Scope do
   end
 
   describe '.current_scope' do
+    include ScopeSpecHelper
+
     it 'should return nil if the scope stack is empty' do
       Article.publicize_methods do
         Article.scope_stack.should be_empty
