@@ -1,6 +1,13 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
+# NOTE: These specs mock out DM::Query, since it is currently in the burn
+# folder.  Once that class is pulled into core, I expect these specs to
+# change and simplify considerably.  Instead of mocking the object, I would
+# likely just inspect the current_scope within the scoped block to see if it
+# matches my expectations.  This should be enough to know whether or not the
+# passed-in conditions were merged properly with the existing scope.
+
 module ScopeSpecHelper
   class << self
     def included(base)
