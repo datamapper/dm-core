@@ -8,24 +8,6 @@ require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 # matches my expectations.  This should be enough to know whether or not the
 # passed-in conditions were merged properly with the existing scope.
 
-module ScopeSpecHelper
-  class << self
-    def included(base)
-      base.before do
-        @dm_query = mock('DataMapper::Query')
-        @dm_query.stub!(:merge)
-        DataMapper::Query.stub!(:new).and_return(@dm_query)
-      end
-
-      base.after do
-        Article.publicize_methods do
-          Article.scope_stack.clear  # reset the stack before each spec
-        end
-      end
-    end
-  end
-end
-
 describe DataMapper::Scope do
   before :all do
     class Article
@@ -37,9 +19,19 @@ describe DataMapper::Scope do
     end
   end
 
-  describe '.with_scope' do
-    include ScopeSpecHelper
+  before do
+    @dm_query = mock('DataMapper::Query')
+    @dm_query.stub!(:merge)
+    DataMapper::Query.stub!(:new).and_return(@dm_query)
+  end
 
+  after do
+    Article.publicize_methods do
+      Article.scope_stack.clear  # reset the stack before each spec
+    end
+  end
+
+  describe '.with_scope' do
     it 'should be protected' do
       klass = class << Article; self; end
       klass.should be_protected_method_defined(:with_scope)
@@ -90,8 +82,6 @@ describe DataMapper::Scope do
   end
 
   describe '.with_exclusive_scope' do
-    include ScopeSpecHelper
-
     it 'should be protected' do
       klass = class << Article; self; end
       klass.should be_protected_method_defined(:with_exclusive_scope)
@@ -126,8 +116,6 @@ describe DataMapper::Scope do
   end
 
   describe '.scope_stack' do
-    include ScopeSpecHelper
-
     it 'should provide an Array' do
       Article.publicize_methods do
         Article.scope_stack.should be_kind_of(Array)
@@ -151,8 +139,6 @@ describe DataMapper::Scope do
   end
 
   describe '.current_scope' do
-    include ScopeSpecHelper
-
     it 'should return nil if the scope stack is empty' do
       Article.publicize_methods do
         Article.scope_stack.should be_empty
