@@ -1,6 +1,24 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
+module ScopeInstanceMethodSpecHelper
+  class << self
+    def included(base)
+      base.before do
+        @dm_query = mock('DataMapper::Query')
+        @dm_query.stub!(:merge)
+        DataMapper::Query.stub!(:new).and_return(@dm_query)
+      end
+
+      base.before do
+        Article.publicize_methods do
+          Article.scope_stack.clear  # reset the stack before each spec
+        end
+      end
+    end
+  end
+end
+
 describe DataMapper::Scope do
   before :all do
     class Article
@@ -10,12 +28,6 @@ describe DataMapper::Scope do
     class DataMapper::Query
       # FIXME: stub this out until DM::Query is moved from burn into lib
     end
-  end
-
-  before do
-    @dm_query = mock('DataMapper::Query')
-    @dm_query.stub!(:merge)
-    DataMapper::Query.stub!(:new).and_return(@dm_query)
   end
 
   describe '.scope_stack' do
@@ -58,11 +70,7 @@ describe DataMapper::Scope do
   end
 
   describe '#with_scope' do
-    before do
-      Article.publicize_methods do
-        Article.scope_stack.clear  # reset the stack before each spec
-      end
-    end
+    include ScopeInstanceMethodSpecHelper
 
     it 'should be protected' do
       klass = class << Article; self; end
@@ -114,6 +122,8 @@ describe DataMapper::Scope do
   end
 
   describe '#with_exclusive_scope' do
+    include ScopeInstanceMethodSpecHelper
+
     it 'should be protected' do
       klass = class << Article; self; end
       klass.should be_protected_method_defined(:with_exclusive_scope)
