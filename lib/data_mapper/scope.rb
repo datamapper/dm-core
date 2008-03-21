@@ -36,6 +36,6 @@ module DataMapper
       def current_scope
         scope_stack.last
       end
-    end
-  end
-end
+    end # module ClassMethods
+  end # module Scope
+end # module DataMapper
