@@ -19,6 +19,8 @@ The types of associations currently in DataMapper are:
   <li>Has One</li>
   <li>Belongs To</li>
   <li>Has and Belongs to Many</li>
+  <li>Self-Referential Has And Belongs To Many</li>
+  <li>Has Many Through (done manually - see below)</li>
 </ul>
 
 h2. Declaring Associations
@@ -63,3 +65,20 @@ comment.save
 post.comments.create(:name => 'Anansi', :body => 'I would lose a leg before I let you!')
 </coderay>
 </notextile>
+
+h2. Has Many Through
+
+Has Many Through is a special kind of Has Many relationship which, rather than using an 'automatic' @table_table@ join table, uses another model's table.  Though at present Datamapper does no have a special syntax for defining an HMT relationship, it's very easily done manually with the following:
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Post < DataMapper::Base
+  has_many :categories,
+     :join_table => "categorizations",
+     :left_foreign_key => "post_id",
+     :right_foreign_key => "category_id",
+     :class => "Category"
+end
+</coderay>
+</notextile>
+

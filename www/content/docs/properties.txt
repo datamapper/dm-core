@@ -26,7 +26,7 @@ Inside your class, call the property method for each property you want to add. T
 <coderay lang="ruby" line_numbers="inline">
 class Post < DataMapper::Base
   property :title,   :string, :nullable => false # Cannot be null
-  property :publish, :boolen, :default  => false # Default value for new records is false
+  property :publish, :boolean, :default  => false # Default value for new records is false
 end
 </coderay>
 </notextile>

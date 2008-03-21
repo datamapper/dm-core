@@ -29,6 +29,9 @@ h1. <%= @page.title %>
   <dd>Models can be associated to each other in various ways -- has_many, belongs_to, has_and_belongs_to_many</dd>
   <dt><a href="/docs/callbacks.html">Callbacks</a></dt>
   <dd>Callbacks allow you to call your own code each time a record is created, validated and saved if you need.</dd>
+  <dt><a href="/docs/misc.html">Misc. Features</a></dt>
+  <dd>Paranoia, Single Table Inheritance, Multiple Database Connections, and Chained Associations</dd>
+  
 </dl>
 
 

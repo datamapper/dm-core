@@ -52,7 +52,7 @@ h3. The People Behind DataMapper
   
   <div class="thumb">
     <img src="/images/people/ben_burket.png" title="Ben Burket" alt="Ben Burket" />
-    <p>Ben Burket</p>
+    <p><a href="http://benburkert.com">Ben Burket</a></p>
   </div>
   
   <div class="thumb">

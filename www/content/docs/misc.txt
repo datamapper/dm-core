@@ -1,0 +1,100 @@
+--- 
+title:      Miscellaneous Features
+created_at: Thu Mar 20 23:26:54 -0500 2008
+filter:
+  - erb
+  - coderay
+  - textile
+--- 
+h1. <%= @page.title %>
+
+DataMapper comes loaded features, many of which other ORMs must external libraries for.
+
+h2. Single Table Inheritance
+
+Many ORMs support Single Table Inheritance and DataMapper is no different.  In order to declare a model for Single Table Inheritance, define a property with the data-type of @:class@
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+class Person < DataMapper::Base
+  property :name, :string
+  property :job, :string, :length => 255
+  property :type, :class
+  ...
+end
+  
+class Geek < Person; end
+class Nerd < Person; end
+</coderay>
+</notextile>
+
+When DataMapper sees your @type@ column declared as type @:class@, it will automatically insert the class name of the object you've created and later instantiate that row as that class.
+
+h2. Paranoia
+
+Sometimes...most times...you don't _really_ want to destroy a row in the database, you just want to mark it as deleted so that you can restore it later if need be.  This is aptly-named Paranoia and DataMapper has basic support for this baked right in.  When you declare a @deleted_at@ or @deleted_on@ property, DataMapper will pick up on it and assume they are for storing when an object was deleted.  
+
+Once these columns exist, DataMapper will also tack on @deleted_at IS NULL@ to generated queries in order to avoid retrieving rows marked as deleted.
+
+To subvert paranoia and pull back previously deleted rows, simply use manual querying:
+
+<notextile>
+  <coderay lang="ruby">
+    dead_people = database.query('SELECT id, name, job FROM people WHERE deleted_at IS NOT NULL')
+  </coderay>
+</notextile>
+
+For now, you'll get back Structs which will "quack like" a Person object, but won't have any of the decorations you defined in the Person class.  This is plenty to resurrect the row from it's deleted-ness.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+dead_people.map do |zombie|
+  Person.new(zombie.attributes.reject{ |k, v| k == :deleted_at} )
+end   # dead_people will no longer contain zombies, but real live people
+</coderay>
+</notextile>
+
+
+
+h2. Multiple Database Connections
+
+DataMapper sports a concept called a Context which encapsulates the database context in which you want operations to occur.  For example, when you setup a database connection in "getting_started":/getting_started.html, you were defining a context known as @:default@
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+DataMapper::Database.setup({  # :default is the default context name
+  :adapter  => 'mysql',
+  :host     => 'localhost',
+  :username => 'root',
+  :password => 'R00tPaswooooord',
+  :database => 'myspiffyblog_development'
+})
+</coderay>
+</notextile>
+
+But if you supply a context name, you will now have 2 database contexts with their own unique loggers, connection pool, identity map....one default context and one named context
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+DataMapper::Database.setup(:external, {  # :external is the context name
+  :adapter  => 'mysql',
+  :host     => 'otherhose',
+  :username => 'root',
+  :password => 'R00tPaswooooord2',
+  :database => 'someother_development'
+})
+</coderay>
+</notextile>
+
+To use one context rather than another, simply wrap your code block inside a @database@ call. It will return whatever your block of code returns.
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+  database(:external) { Person.first }
+</coderay>
+</notextile>
+
+This will use your connection to the @:external@ database and retrieve people from there.
+
+h2. Chained Associations
+
