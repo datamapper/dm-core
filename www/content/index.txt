@@ -18,9 +18,9 @@ p(newRelease). 0.3.0 is a maintenance release, bringing minor bug-fixes and mini
 
 h2(newRelease). The Great Refactoring
 
-p(newRelease). "Tip" DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a rather dramatic refactor.  The public API is being uncoupled from database-specific terminology and will soon support other persistence layers like XML and RESTful web-services.  Watch "github":http://github.com/sam/dm-core/commits/master commit messages for up-to-the-minute updates on The Great Refactoring.
+p(newRelease). "Tip" DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a dramatic re-factor.  The public API is being uncoupled from database-specific terminology and will soon support other persistence layers like XML and RESTful web-services.  "Tip" is not stable by any stretch of the imagination and should only be used for experimental purposes. Watch "github commit messages":http://github.com/sam/dm-core/commits/master for updates.
 
-h1. Examples
+h1. Examples using 0.3.0
 
 <notextile>
 <coderay lang="ruby" line_numbers="inline">

@@ -66,6 +66,11 @@ h3. The People Behind DataMapper
   </div>
   
   <div class="thumb">
+    <img src="/images/people/reinh.jpg" title="Rein Henrichs" alt="Rein Henrichs"/>
+    <p><a href="http://reinh.com">Rein Henrichs</a></p>
+  </div>
+  
+  <div class="thumb">
     <img src="/images/martini.gif" title="you" alt="you could be here" />
     <p>More to come!</p>
   </div>
