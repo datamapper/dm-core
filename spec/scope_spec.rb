@@ -58,11 +58,11 @@ describe DataMapper::Scope do
 
     it 'should set the current scope for an inner block, merged with the outer scope' do
       Article.publicize_methods do
-        DataMapper::Query.should_receive(:new).with(:blog_id => 1).once.and_return(@dm_query)
+        DataMapper::Query.should_receive(:new).with(:blog_id => 1).once.ordered.and_return(@dm_query)
 
         Article.with_scope :blog_id => 1 do
           nested_query = mock('Nested DataMapper::Query')
-          @dm_query.should_receive(:merge).with(:author => 'dkubb').once.and_return(nested_query)
+          @dm_query.should_receive(:merge).with(:author => 'dkubb').once.ordered.and_return(nested_query)
 
           Article.with_scope :author => 'dkubb' do
             Article.current_scope.should == nested_query
@@ -92,13 +92,13 @@ describe DataMapper::Scope do
 
     it 'should set the current scope for an inner block, ignoring the outer scope' do
       Article.publicize_methods do
-        DataMapper::Query.should_receive(:new).with(:blog_id => 1).once.and_return(@dm_query)
+        DataMapper::Query.should_receive(:new).with(:blog_id => 1).once.ordered.and_return(@dm_query)
         @dm_query.should_not_receive(:merge)
 
         Article.with_scope :blog_id => 1 do
           exclusive_query = mock('Exclusive DataMapper::Query')
           exclusive_query.should_not_receive(:merge)
-          DataMapper::Query.should_receive(:new).with(:author => 'dkubb').once.and_return(exclusive_query)
+          DataMapper::Query.should_receive(:new).with(:author => 'dkubb').once.ordered.and_return(exclusive_query)
 
           Article.with_exclusive_scope :author => 'dkubb' do
             Article.current_scope.should == exclusive_query
