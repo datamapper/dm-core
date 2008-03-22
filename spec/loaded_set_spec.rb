@@ -28,7 +28,7 @@ describe "DataMapper::LoadedSet" do
     results.should have(2).entries
     
     bob, nancy = results[0], results[1]
-    p bob.instance_variables
+
     bob.name.should eql('Bob')
     bob.age.should eql(10)
     

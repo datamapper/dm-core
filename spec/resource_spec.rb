@@ -26,6 +26,8 @@ describe "DataMapper::Resource" do
       property :age, Fixnum
       property :core, String, :private => true
       
+      # An example of how to scope a property to a specific repository.
+      # Un-specced currently.
       # repository(:legacy) do
       #   property :name, String
       # end
