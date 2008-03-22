@@ -2,36 +2,15 @@ require __DIR__ + 'abstract_adapter'
 
 module DataMapper
 
-  # An Adapter is really a Factory for three types of object,
-  # so they can be selectively sub-classed where needed.
-  #
-  # The first type is a Query. The Query is an object describing
-  # the database-specific operations we wish to perform, in an
-  # abstract manner. For example: While most if not all databases
-  # support a mechanism for limiting the size of results returned,
-  # some use a "LIMIT" keyword, while others use a "TOP" keyword.
-  # We can set a SelectStatement#limit field then, and allow
-  # the adapter to override the underlying SQL generated.
-  # Refer to DataMapper::Queries.
-  #
-  # The final type provided is a DataMapper::Transaction.
-  # Transactions are duck-typed Connections that span multiple queries.
-  #
-  # Note: It is assumed that the Adapter implements it's own
-  # ConnectionPool if any since some libraries implement their own at
-  # a low-level, and it wouldn't make sense to pay a performance
-  # cost twice by implementing a secondary pool in the DataMapper itself.
-  # If the library being adapted does not provide such functionality,
-  # DataMapper::Support::ConnectionPool can be used.
   module Adapters
 
     # You must inherit from the DoAdapter, and implement the
     # required methods to adapt a database library for use with the DataMapper.
     #
-    # NOTE: By inheriting from DoAdapter, you get a copy of all the
+    # NOTE: By inheriting from DataObjectsAdapter, you get a copy of all the
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
-    class DataObjectAdapter < AbstractAdapter
+    class DataObjectsAdapter < AbstractAdapter
 
       FIND_OPTIONS = [
         :select, :offset, :limit, :class, :include, :shallow_include, :reload, :conditions, :order, :intercept_load
@@ -474,7 +453,9 @@ module DataMapper
             end
           end
 
+          # DEPRECATED
           def wrap_string_in_char(string, char)
+            warn("DataObjectsAdapter#wrap_string_in_char is deprecated in favor of Support::String#ensure_wrapped_with")
             # don't quote it if its already quoted
             return string if string[0] == char[0] && string[string.length-1] == char[0]
 

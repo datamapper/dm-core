@@ -2,13 +2,12 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 require __DIR__.parent.parent + 'lib/data_mapper'
-require __DIR__.parent.parent + 'lib/data_mapper/adapters/data_object_adapter'
+require __DIR__.parent.parent + 'lib/data_mapper/adapters/data_objects_adapter'
 require __DIR__.parent + 'adapter_sharedspec'
 
-describe DataMapper::Adapters::DataObjectAdapter do
+describe DataMapper::Adapters::DataObjectsAdapter do
   before do
-    @adapter = DataMapper::Adapters::DataObjectAdapter.new('mock::/localhost')
-
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new('mock::/localhost')
   end
 
   it_should_behave_like 'a DataMapper Adapter'
@@ -138,9 +137,9 @@ describe DataMapper::Adapters::DataObjectAdapter do
   end
 end
 
-describe DataMapper::Adapters::DataObjectAdapter::SQL, "creating, reading, updating, deleting statements" do
+describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, updating, deleting statements" do
   before do
-    @adapter = DataMapper::Adapters::DataObjectAdapter.new('mock::/localhost')
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new('mock::/localhost')
   end
   
   describe "#create_statement" do
