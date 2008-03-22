@@ -57,26 +57,27 @@ describe DataMapper::Adapters::AbstractAdapter do
     @adapter.save(:repository, instance)
   end
 
-  describe '#first' do
-    it 'should raise an argument error if a limit was set in the query' do
-      lambda { @adapter.first(:repository, Class, :limit => 10) }.should raise_error(ArgumentError)
-    end
-
-    it 'should pass all query options + :limit to #read_set' do
-      @adapter.should_receive(:read_set) { |repo, klass, query|
-        repo.should  == :repository
-        klass.should == Class
-        query.should be_kind_of(Hash)
-        query.should have_key(:limit)
-        query[:limit].should == 1
-        query.should have_key(:custom)
-        query[:custom].should == :opts
-
-        [:first_record]
-      }
-
-      @adapter.first(:repository, Class, {:custom => :opts}).should == :first_record
-    end
-  end
+  # Deprecated in favor of AbstractAdapter#read_one(repository, query)
+  # describe '#first' do
+  #   it 'should raise an argument error if a limit was set in the query' do
+  #     lambda { @adapter.first(:repository, Class, :limit => 10) }.should raise_error(ArgumentError)
+  #   end
+  # 
+  #   it 'should pass all query options + :limit to #read_set' do
+  #     @adapter.should_receive(:read_set) { |repo, klass, query|
+  #       repo.should  == :repository
+  #       klass.should == Class
+  #       query.should be_kind_of(Hash)
+  #       query.should have_key(:limit)
+  #       query[:limit].should == 1
+  #       query.should have_key(:custom)
+  #       query[:custom].should == :opts
+  # 
+  #       [:first_record]
+  #     }
+  # 
+  #     @adapter.first(:repository, Class, {:custom => :opts}).should == :first_record
+  #   end
+  # end
 
 end
