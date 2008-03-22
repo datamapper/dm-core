@@ -142,23 +142,85 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     @adapter = DataMapper::Adapters::DataObjectsAdapter.new('mock::/localhost')
   end
   
+  # @mock_db.should_receive(:create_command).with('SQL STRING').and_return(@mock_command)
+  
   describe "#create_statement" do
-    it 'should have specs'
+    it 'should generate SQL' do
+      pending
+      
+      # def self.create_statement(adapter, instance)
+      #   properties = resource.properties(adapter.name)
+      #   <<-EOS.compress_lines
+      #     INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
+      #       #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
+      #     ) VALUES (
+      #       #{(['?'] * properties.size).join(', ')}
+      #     )
+      #   EOS
+      # end
+    end
   end
   
   describe "#create_statement_with_returning" do
-    it 'should have specs'
-  end
-  
-  describe "#read_statement" do
-    it 'should have specs'
+    it 'should generate SQL' do
+      pending
+      
+      # def self.create_statement_with_returning(adapter, instance)
+      #   properties = resource.properties(adapter.name)
+      #   <<-EOS.compress_lines
+      #     INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
+      #       #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
+      #     ) VALUES (
+      #       #{(['?'] * properties.size).join(', ')}
+      #     ) RETURNING #{adapter.quote_column_name(resource.key(adapter.name).first.field)}
+      #   EOS
+      # end
+    end
   end
   
   describe "#update_statement" do
-    it 'should have specs'
+    it 'should generate SQL' do
+      pending
+      
+      # def self.update_statement(adapter, instance)
+      #   #these properties need to be dirty TODO
+      #   properties = instance.class.properties(adapter.name)
+      #   <<-EOS.compress_lines
+      #     UPDATE #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+      #     SET #{properties.map {|attribute| "#{adapter.quote_column_name(attribute.field)} = ?" }.join(', ')}
+      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+      #   EOS
+      # end
+    end
   end
   
   describe "#delete_statement" do
-    it 'should have specs'
-  end  
+    it 'should generate SQL' do
+      pending
+      
+      # def self.delete_statement(adapter, instance)
+      #   properties = resource.properties(adapter.name)
+      #   <<-EOS.compress_lines
+      #     DELETE FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+      #   EOS
+      # end
+    end
+  end
+  
+  describe "#read_statement" do
+    
+    it 'should generate SQL' do
+      pending
+      
+      # def self.read_statement(adapter, resource)
+      #   properties = resource.properties(adapter.name)
+      #   <<-EOS.compress_lines
+      #     SELECT #{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')} 
+      #     FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+      #   EOS
+      # end
+    end
+  end
 end

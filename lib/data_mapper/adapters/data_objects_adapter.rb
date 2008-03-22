@@ -375,7 +375,7 @@ module DataMapper
       end
 
       module SQL
-        def self.create_statement(adapter, resource)
+        def self.create_statement(adapter, instance)
           properties = resource.properties(adapter.name)
           <<-EOS.compress_lines
             INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
@@ -386,7 +386,7 @@ module DataMapper
           EOS
         end
 
-        def self.create_statement_with_returning(adapter, resource)
+        def self.create_statement_with_returning(adapter, instance)
           properties = resource.properties(adapter.name)
           <<-EOS.compress_lines
             INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
@@ -397,16 +397,7 @@ module DataMapper
           EOS
         end
         
-        def self.read_statement(adapter, resource)
-          properties = resource.properties(adapter.name)
-          <<-EOS.compress_lines
-            SELECT #{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')} 
-            FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
-            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
-          EOS
-        end
-        
-        def self.update_statement(adapter, resource, instance)
+        def self.update_statement(adapter, instance)
           #these properties need to be dirty TODO
           properties = instance.class.properties(adapter.name)
           <<-EOS.compress_lines
@@ -416,10 +407,19 @@ module DataMapper
           EOS
         end
         
-        def self.delete_statement(adapter, resource)
+        def self.delete_statement(adapter, instance)
           properties = resource.properties(adapter.name)
           <<-EOS.compress_lines
             DELETE FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+          EOS
+        end
+        
+        def self.read_statement(adapter, resource)
+          properties = resource.properties(adapter.name)
+          <<-EOS.compress_lines
+            SELECT #{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')} 
+            FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
             WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end

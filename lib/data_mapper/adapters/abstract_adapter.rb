@@ -16,7 +16,7 @@ module DataMapper
         raise NotImplementedError.new
       end
       
-      def read(repository, instance)
+      def read(repository, resource, keys)
         raise NotImplementedError.new
       end
       
@@ -37,27 +37,27 @@ module DataMapper
       end
 
       # Methods dealing with locating a single object, by keys
-      def read_one(repository, klass, *keys)
+      def read_one(repository, resource, *keys)
         raise NotImplementedError.new
       end
 
-      def delete_one(repository, klass, *keys)
+      def delete_one(repository, resource, *keys)
         raise NotImplementedError.new
       end
 
       # Methods dealing with finding stuff by some query parameters
-      def read_set(repository, klass, query = {})
+      def read_set(repository, resource, query = {})
         raise NotImplementedError.new
       end
 
-      def delete_set(repository, klass, query = {})
+      def delete_set(repository, resource, query = {})
         raise NotImplementedError.new
       end
       
       # Shortcuts
-      def first(repository, klass, query = {})
+      def first(repository, resource, query = {})
         raise ArgumentError.new("You cannot pass in a :limit option to #first") if query.key?(:limit)
-        read_set(repository, klass, query.merge(:limit => 1)).first
+        read_set(repository, resource, query.merge(:limit => 1)).first
       end
       
       # Future Enumerable/convenience finders. Please leave in place. :-)

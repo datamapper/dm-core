@@ -10,11 +10,37 @@ describe DataMapper::Adapters::AbstractAdapter do
   end
 
   it_should_behave_like 'a DataMapper Adapter'
-
-  %w{create read update delete read_one read_set delete_one delete_set}.each do |meth|
-    it "should raise NotImplementedError when ##{meth} is called" do
-      lambda { @adapter.send(meth.intern, nil, nil) }.should raise_error(NotImplementedError)
-    end
+  
+  it "should raise NotImplementedError when #create is called" do
+    lambda { @adapter.create(:repository, :instance) }.should raise_error(NotImplementedError)
+  end
+  
+  it "should raise NotImplementedError when #read is called" do
+    lambda { @adapter.read(:repository, :resource, [:key]) }.should raise_error(NotImplementedError)
+  end
+  
+  it "should raise NotImplementedError when #update is called" do
+    lambda { @adapter.update(:repository, :instance) }.should raise_error(NotImplementedError)
+  end
+  
+  it "should raise NotImplementedError when #delete is called" do
+    lambda { @adapter.delete(:repository, :instance) }.should raise_error(NotImplementedError)
+  end
+  
+  it "should raise NotImplementedError when #read_one is called" do
+    lambda { @adapter.read_one(:repository, :query) }.should raise_error(NotImplementedError)
+  end
+  
+  it "should raise NotImplementedError when #read_set is called" do
+    lambda { @adapter.create(:repository, :query) }.should raise_error(NotImplementedError)
+  end
+  
+  it "should raise NotImplementedError when #delete_one is called" do
+    lambda { @adapter.create(:repository, :query) }.should raise_error(NotImplementedError)
+  end
+  
+  it "should raise NotImplementedError when #delete_set is called" do
+    lambda { @adapter.create(:repository, :query) }.should raise_error(NotImplementedError)
   end
 
   it 'should call #create when #save is called on a new record' do
