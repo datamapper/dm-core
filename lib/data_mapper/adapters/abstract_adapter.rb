@@ -5,10 +5,12 @@ module DataMapper
   
       # Instantiate an Adapter by passing it a DataMapper::Repository
       # connection string for configuration.
-      def initialize(uri)
+      def initialize(name, uri)
+        @name = name
         @uri = uri
       end
       
+      attr_reader :name
       attr_accessor :resource_naming_convention
 
       # Methods dealing with a single instance object

@@ -193,6 +193,8 @@ module DataMapper
       @target, @name, @type, @options = target, name.to_s.sub(/\?$/, '').to_sym, type, options
       @instance_variable_name = "@#{@name}"
       
+      @field = @options.fetch(:field, name.to_s.sub(/\?$/, ''))
+      
       @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
       
       @lazy = @options.has_key?(:lazy) ? @options[:lazy] : @type == Text

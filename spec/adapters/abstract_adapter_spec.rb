@@ -6,7 +6,7 @@ require __DIR__.parent + 'adapter_sharedspec'
 
 describe DataMapper::Adapters::AbstractAdapter do
   before do
-    @adapter = DataMapper::Adapters::AbstractAdapter.new('mock_uri_string')
+    @adapter = DataMapper::Adapters::AbstractAdapter.new(:default, 'mock_uri_string')
   end
 
   it_should_behave_like 'a DataMapper Adapter'
