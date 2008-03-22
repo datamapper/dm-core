@@ -2,10 +2,11 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 require __DIR__.parent.parent + 'lib/data_mapper'
+require __DIR__.parent.parent + 'lib/data_mapper/adapters/data_objects_adapter'
 
 DataMapper.setup(:default, "sqlite3://#{Dir.getwd}/integration_test.db")
 
-describe DataMapper::Adapters::DataObjectAdapter, "reading & writing a database" do
+describe DataMapper::Adapters::DataObjectsAdapter, "reading & writing a database" do
 
   before do
     @adapter = DataMapper.repository(:default).adapter
