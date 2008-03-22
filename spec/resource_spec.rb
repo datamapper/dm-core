@@ -107,4 +107,13 @@ describe "DataMapper::Resource" do
     mars.attribute_dirty?(:age).should be_true
     
   end
+
+  it 'should add hook functionality to including class' do
+    klass = Class.new do
+      include DataMapper::Resource
+    end
+
+    klass.should respond_to(:before)
+    klass.should respond_to(:after)
+  end
 end

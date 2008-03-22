@@ -1,7 +1,4 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
-
-require __DIR__.parent + 'lib/data_mapper/hook'
+require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper', 'hook')
 
 describe "DataMapper::Hook" do
   before(:each) do
@@ -18,7 +15,7 @@ describe "DataMapper::Hook" do
       def some_method(a, b, c)
         [a, b, c]
       end
-      
+
       def yet_another(a, *heh)p
         [a, *heh]
       end
