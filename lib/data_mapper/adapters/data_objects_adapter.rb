@@ -12,32 +12,19 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
 
-      FIND_OPTIONS = [
-        :select, :offset, :limit, :class, :include, :shallow_include, :reload, :conditions, :order, :intercept_load
-      ]
-
-      def constants
-        {
-          :table_quoting_character  => %{},
-          :column_quoting_character => %{},
-          :true_aliases  => %w{1 T},
-          :false_aliases => %w{0 F},
-          :types => {
-            :integer  => 'int'.freeze,
-            :string   => 'varchar'.freeze,
-            :text     => 'text'.freeze,
-            :class    => 'varchar'.freeze,
-            :decimal  => 'decimal'.freeze,
-            :float    => 'float'.freeze,
-            :datetime => 'datetime'.freeze,
-            :date     => 'date'.freeze,
-            :boolean  => 'boolean'.freeze,
-            :object   => 'text'.freeze
-          },
-          :batch_insertable => true
-        }
-      end
-
+      TYPES = {
+        Fixnum  => 'int'.freeze,
+        String   => 'varchar'.freeze,
+        Text     => 'text'.freeze,
+        Class    => 'varchar'.freeze,
+        BigDecimal  => 'decimal'.freeze,
+        Float    => 'float'.freeze,
+        DateTime => 'datetime'.freeze,
+        Date     => 'date'.freeze,
+        TrueClass  => 'boolean'.freeze,
+        Object   => 'text'.freeze
+      }
+      
       def transaction(&block)
         raise NotImplementedError.new
       end
@@ -48,8 +35,24 @@ module DataMapper
         raise NotImplementedError.new
       end
       
-      def read(repository, instance)
-        raise NotImplementedError.new
+      def read(repository, resource, key)
+        properties = resource.properties(repository.name).select { |property| !property.lazy? }
+        properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
+        # p properties_with_indexes
+        set = LoadedSet.new(repository, resource, properties_with_indexes)
+        
+        connection = create_connection
+        command = connection.create_command(read_statement(self, resource, key))
+        command.set_types(properties.map { |property| property.type })
+        reader = command.execute_reader(*key)
+        while(reader.next!)
+          set.materialize!(reader.values)
+        end
+        
+        reader.close
+        connection.close
+        
+        set.to_a.first
       end
       
       def update(repository, instance)
@@ -120,74 +123,35 @@ module DataMapper
         db.close if db
       end
 
-      def delete(database_context, instance)
-        table = self.table(instance)
-
-        if instance.is_a?(Class)
-          table.delete_all!
-        else
-          callback(instance, :before_destroy)
-
-          table.associations.each do |association|
-            instance.send(association.name).deactivate unless association.is_a?(::DataMapper::Associations::BelongsToAssociation)
-          end
-
-          if table.paranoid?
-            instance.instance_variable_set(table.paranoid_column.instance_variable_name, Time::now)
-            instance.save
-          else
-            if connection do |db|
-                command = db.create_command("DELETE FROM #{table.to_sql} WHERE #{table.key.to_sql} = ?")
-                command.execute_non_query(instance.key).to_i > 0
-              end # connection do...end # if continued below:
-              instance.instance_variable_set(:@new_record, true)
-              instance.database_context = database_context
-              instance.original_values.clear
-              database_context.identity_map.delete(instance)
-              callback(instance, :after_destroy)
-            end
-          end
-        end
-      end
-
-      def save(database_context, instance, validate = true, cleared = Set.new)
-        case instance
-        when Class then
-          table(instance).create!
-          table(instance).activate_associations!
-        when Mappings::Table then instance.create!
-        when DataMapper::Persistable then
-          event = instance.new_record? ? :create : :update
-
-          return false if (validate && !instance.validate_recursively(event, Set.new)) || cleared.include?(instance)
-          cleared << instance
-
-          callback(instance, :before_save)
-
-          return true unless instance.new_record? || instance.dirty?
-
-          result = send(event, database_context, instance)
-
-          instance.database_context = database_context
-          instance.attributes.each_pair do |name, value|
-            instance.original_values[name] = value
-          end
-
-          instance.loaded_associations.each do |association|
-            association.save_without_validation(database_context, cleared) if association.dirty?
-          end
-
-          callback(instance, :after_save)
-          result
-        end
-      rescue => error
-        logger.error(error)
-        raise error
-      end
-
-      def save_without_validation(database_context, instance, cleared = Set.new)
-        save(database_context, instance, false, cleared)
-      end
+      # def delete(database_context, instance)
+      #   table = self.table(instance)
+      # 
+      #   if instance.is_a?(Class)
+      #     table.delete_all!
+      #   else
+      #     callback(instance, :before_destroy)
+      # 
+      #     table.associations.each do |association|
+      #       instance.send(association.name).deactivate unless association.is_a?(::DataMapper::Associations::BelongsToAssociation)
+      #     end
+      # 
+      #     if table.paranoid?
+      #       instance.instance_variable_set(table.paranoid_column.instance_variable_name, Time::now)
+      #       instance.save
+      #     else
+      #       if connection do |db|
+      #           command = db.create_command("DELETE FROM #{table.to_sql} WHERE #{table.key.to_sql} = ?")
+      #           command.execute_non_query(instance.key).to_i > 0
+      #         end # connection do...end # if continued below:
+      #         instance.instance_variable_set(:@new_record, true)
+      #         instance.database_context = database_context
+      #         instance.original_values.clear
+      #         database_context.identity_map.delete(instance)
+      #         callback(instance, :after_destroy)
+      #       end
+      #     end
+      #   end
+      # end
 
       def update(database_context, instance)
         callback(instance, :before_update)
@@ -274,31 +238,19 @@ module DataMapper
         end
       end
 
-      MAGIC_PROPERTIES = {
-        :updated_at => lambda { self.updated_at = Time::now },
-        :updated_on => lambda { self.updated_on = Date::today },
-        :created_at => lambda { self.created_at ||= Time::now },
-        :created_on => lambda { self.created_on ||= Date::today }
-      }
-
-      def update_magic_properties(database_context, instance)
-        instance.class.properties.find_all { |property| MAGIC_PROPERTIES.has_key?(property.name) }.each do |property|
-          instance.instance_eval(&MAGIC_PROPERTIES[property.name])
-        end
-        instance
-      end
-
-      def load(database_context, klass, options)
-        self.class::Commands::LoadCommand.new(self, database_context, klass, options).call
-      end
-
-      def table_name(resource_name)
-        resource_name.to_s.ensure_wrapped_with('"')
-      end
-      
-      def column_name(field_name)
-        field_name.to_s.ensure_wrapped_with('"')
-      end
+      # MAGIC_PROPERTIES = {
+      #   :updated_at => lambda { self.updated_at = Time::now },
+      #   :updated_on => lambda { self.updated_on = Date::today },
+      #   :created_at => lambda { self.created_at ||= Time::now },
+      #   :created_on => lambda { self.created_on ||= Date::today }
+      # }
+      # 
+      # def update_magic_properties(database_context, instance)
+      #   instance.class.properties.find_all { |property| MAGIC_PROPERTIES.has_key?(property.name) }.each do |property|
+      #     instance.instance_eval(&MAGIC_PROPERTIES[property.name])
+      #   end
+      #   instance
+      # end
       
       def get(context, target, key_values)
         instance = nil
@@ -432,10 +384,7 @@ module DataMapper
         column_name.ensure_wrapped_with('"')
       end
       
-      def self.inherited(target)
-        sql = target.const_set('SQL', Module.new)
-        sql.send(:include, SQL)
-      end
+      include SQL
       
     end # class DoAdapter
 

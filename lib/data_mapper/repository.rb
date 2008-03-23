@@ -15,30 +15,6 @@ end
 
 module DataMapper
   
-  # Setup creates a repository and sets all of your properties for that repository.
-  # Setup looks for either a hash of options passed in to the repository or a symbolized name
-  # for your repository, as well as it's hash of parameters
-  #
-  # If no options are passed, an ArgumentException will be raised.
-  #   
-  #   DataMapper::Repository.setup(name = :default, options_hash)
-  #
-  #   DataMapper::Repository.setup({
-  #    :adapter  => 'mysql'
-  #    :host     => 'localhost'
-  #    :username => 'root'
-  #    :password => 'R00tPaswooooord'
-  #    :database => 'selecta_development'
-  #   })
-  #
-  #
-  #   DataMapper::Repository.setup(:named_repository, {
-  #    :adapter  => 'mysql'
-  #    :host     => 'localhost'
-  #    :username => 'root'
-  #    :password => 'R00tPaswooooord'
-  #    :database => 'selecta_development'
-  #   })
   def self.setup(name, uri)
     uri = uri.is_a?(String) ? URI.parse(uri) : uri
     

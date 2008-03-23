@@ -1,3 +1,4 @@
+require __DIR__.parent + 'loaded_set'
 module DataMapper
   module Adapters
       
@@ -10,6 +11,10 @@ module DataMapper
         @uri = uri
         
         @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
+      end
+      
+      def batch_insertable?
+        false
       end
       
       attr_reader :name
