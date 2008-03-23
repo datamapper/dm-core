@@ -42,7 +42,7 @@ module DataMapper
         set = LoadedSet.new(repository, resource, properties_with_indexes)
         
         connection = create_connection
-        command = connection.create_command(read_statement(self, resource, key))
+        command = connection.create_command(read_statement(resource, key))
         command.set_types(properties.map { |property| property.type })
         reader = command.execute_reader(*key)
         while(reader.next!)
@@ -318,58 +318,61 @@ module DataMapper
         instance.class.callbacks.execute(callback_name, instance)
       end
 
+      # This model is just for organization. The methods are included into the Adapter below.
       module SQL
-        def self.create_statement(adapter, instance)
+        def create_statement(instance)
           dirty_attribute_names = instance.dirty_attributes.keys
-          properties = instance.class.properties(adapter.name).select { |property| dirty_attribute_names.include?(property.name) }
+          properties = instance.class.properties(name).select { |property| dirty_attribute_names.include?(property.name) }
           <<-EOS.compress_lines
-            INSERT INTO #{adapter.quote_table_name(instance.class.resource_name(adapter.name))}
-            (#{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')})
+            INSERT INTO #{quote_table_name(instance.class.resource_name(name))}
+            (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
             VALUES
             (#{(['?'] * properties.size).join(', ')})
           EOS
         end
 
-        def self.create_statement_with_returning(adapter, instance)
+        def create_statement_with_returning(instance)
           dirty_attribute_names = instance.dirty_attributes.keys
-          properties = instance.class.properties(adapter.name).select { |property| dirty_attribute_names.include?(property.name) }
+          properties = instance.class.properties(name).select { |property| dirty_attribute_names.include?(property.name) }
           <<-EOS.compress_lines
-            INSERT INTO #{adapter.quote_table_name(instance.class.resource_name(adapter.name))}
-            (#{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')})
+            INSERT INTO #{quote_table_name(instance.class.resource_name(name))}
+            (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
             VALUES
             (#{(['?'] * properties.size).join(', ')})
-            RETURNING #{adapter.quote_column_name(instance.class.key(adapter.name).first.field)}
+            RETURNING #{quote_column_name(instance.class.key(name).first.field)}
           EOS
         end
         
-        def self.update_statement(adapter, instance)
+        def update_statement(instance)
           dirty_attribute_names = instance.dirty_attributes.keys
-          properties = instance.class.properties(adapter.name).select { |property| dirty_attribute_names.include?(property.name) }
+          properties = instance.class.properties(name).select { |property| dirty_attribute_names.include?(property.name) }
           <<-EOS.compress_lines
-            UPDATE #{adapter.quote_table_name(instance.class.resource_name(adapter.name))} 
-            SET #{properties.map {|attribute| "#{adapter.quote_column_name(attribute.field)} = ?" }.join(', ')}
-            WHERE #{instance.class.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+            UPDATE #{quote_table_name(instance.class.resource_name(name))} 
+            SET #{properties.map {|attribute| "#{quote_column_name(attribute.field)} = ?" }.join(', ')}
+            WHERE #{instance.class.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
         
-        def self.delete_statement(adapter, instance)
+        def delete_statement(instance)
           <<-EOS.compress_lines
-            DELETE FROM #{adapter.quote_table_name(instance.class.resource_name(adapter.name))} 
-            WHERE #{instance.class.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+            DELETE FROM #{quote_table_name(instance.class.resource_name(name))} 
+            WHERE #{instance.class.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
         
-        def self.read_statement(adapter, resource, key)
-          properties = resource.properties(adapter.name).select { |property| !property.lazy? }
+        def read_statement(resource, key)
+          properties = resource.properties(name).select { |property| !property.lazy? }
           <<-EOS.compress_lines
-            SELECT #{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')} 
-            FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
-            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+            SELECT #{properties.map { |property| quote_column_name(property.field) }.join(', ')} 
+            FROM #{quote_table_name(resource.resource_name(name))} 
+            WHERE #{resource.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
         
       end #module SQL
       
+      include SQL
+            
       # Adapters requiring a RETURNING syntax for create statements
       # should overwrite this to return true.
       def syntax_returning?
@@ -383,8 +386,6 @@ module DataMapper
       def quote_column_name(column_name)
         column_name.ensure_wrapped_with('"')
       end
-      
-      include SQL
       
     end # class DoAdapter
 
