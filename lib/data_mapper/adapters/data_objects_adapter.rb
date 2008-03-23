@@ -399,12 +399,12 @@ module DataMapper
         end
         
         def self.update_statement(adapter, instance)
-          #these properties need to be dirty TODO
-          properties = instance.class.properties(adapter.name)
+          dirty_attribute_names = instance.dirty_attributes.keys
+          properties = instance.class.properties(adapter.name).select { |property| dirty_attribute_names.include?(property.name) }
           <<-EOS.compress_lines
-            UPDATE #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+            UPDATE #{adapter.quote_table_name(instance.class.resource_name(adapter.name))} 
             SET #{properties.map {|attribute| "#{adapter.quote_column_name(attribute.field)} = ?" }.join(', ')}
-            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+            WHERE #{instance.class.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
         

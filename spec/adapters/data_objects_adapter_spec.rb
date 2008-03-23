@@ -147,6 +147,13 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       property :name, String
       property :color, String
     end
+    
+    class LittleBox
+      include DataMapper::Resource
+      property :street, String, :key => true
+      property :color, String, :key => true
+      property :hillside, TrueClass, :default => true      
+    end
   end
   
   # @mock_db.should_receive(:create_command).with('SQL STRING').and_return(@mock_command)
@@ -210,19 +217,53 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   end
   
   describe "#update_statement" do
-    it 'should generate SQL' do
-      pending
+    
+    it 'should generate a SQL statement for all fields' do      
+      cheese = Cheese.new
+      cheese.name = 'Gouda'
+      cheese.color = 'White'
       
-      # def self.update_statement(adapter, instance)
-      #   #these properties need to be dirty TODO
-      #   properties = instance.class.properties(adapter.name)
-      #   <<-EOS.compress_lines
-      #     UPDATE #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
-      #     SET #{properties.map {|attribute| "#{adapter.quote_column_name(attribute.field)} = ?" }.join(', ')}
-      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
-      #   EOS
-      # end
+      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        UPDATE "cheeses" SET
+        "name" = ?,
+        "color" = ?
+        WHERE "id" = ?
+      EOS
     end
+    
+    it "should generate a SQL statement for only dirty fields" do      
+      cheese = Cheese.new
+      cheese.name = 'Parmigiano-Reggiano'
+
+      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        UPDATE "cheeses" SET "name" = ? WHERE "id" = ?
+      EOS
+      
+      cheese = Cheese.new
+      cheese.color = 'White'
+
+      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
+      EOS
+    end
+    
+    it "should generate a SQL statement that includes a Composite Key" do
+      box = LittleBox.new
+      box.instance_variable_set('@street', 'Merry Lane')
+      box.instance_variable_set('@color', 'Yellow')
+      
+      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        UPDATE "boxes" SET "street" = ? WHERE "id" = ?
+      EOS
+      
+      cheese = Cheese.new
+      cheese.color = 'White'
+
+      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
+      EOS
+    end
+
   end
   
   describe "#delete_statement" do
