@@ -90,9 +90,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   end
   
   describe "CRUD for Composite Key" do
-    before do
-      @adapter = repository(:sqlite3).adapter
-      
+    before do      
       class BankCustomer
         include DataMapper::Resource
         
@@ -100,6 +98,9 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :account_number, String, :key => true
         property :name, String
       end
+      
+      @adapter = repository(:sqlite3).adapter
+      @adapter.execute('CREATE TABLE "bank_customers" ("bank" VARCHAR(50), "account_number" VARCHAR(50), "name" VARCHAR(50))')
     end
 
     it 'should be able to create a record' do
@@ -116,6 +117,10 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     
     it 'should be able to delete a record' do
       pending
+    end
+    
+    after do
+      @adapter.execute('DROP TABLE "bank_customers"')
     end
   end
   
