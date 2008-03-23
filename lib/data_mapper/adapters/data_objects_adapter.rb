@@ -415,8 +415,8 @@ module DataMapper
           EOS
         end
         
-        def self.read_statement(adapter, resource)
-          properties = resource.properties(adapter.name)
+        def self.read_statement(adapter, resource, key)
+          properties = resource.properties(adapter.name).select { |property| !property.lazy? }
           <<-EOS.compress_lines
             SELECT #{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')} 
             FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
