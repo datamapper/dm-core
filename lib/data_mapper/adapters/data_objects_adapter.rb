@@ -376,24 +376,25 @@ module DataMapper
 
       module SQL
         def self.create_statement(adapter, instance)
-          properties = instance.class.properties(adapter.name)
+          dirty_attribute_names = instance.dirty_attributes.keys
+          properties = instance.class.properties(adapter.name).select { |property| dirty_attribute_names.include?(property.name) }
           <<-EOS.compress_lines
-            INSERT INTO #{adapter.quote_table_name(instance.class.resource_name(adapter.name))} (
-              #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
-            ) VALUES (
-              #{(['?'] * properties.size).join(', ')}
-            )
+            INSERT INTO #{adapter.quote_table_name(instance.class.resource_name(adapter.name))}
+            (#{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')})
+            VALUES
+            (#{(['?'] * properties.size).join(', ')})
           EOS
         end
 
         def self.create_statement_with_returning(adapter, instance)
-          properties = resource.properties(adapter.name)
+          dirty_attribute_names = instance.dirty_attributes.keys
+          properties = instance.class.properties(adapter.name).select { |property| dirty_attribute_names.include?(property.name) }
           <<-EOS.compress_lines
-            INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
-              #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
-            ) VALUES (
-              #{(['?'] * properties.size).join(', ')}
-            ) RETURNING #{adapter.quote_column_name(resource.key(adapter.name).first.field)}
+            INSERT INTO #{adapter.quote_table_name(instance.class.resource_name(adapter.name))}
+            (#{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')})
+            VALUES
+            (#{(['?'] * properties.size).join(', ')})
+            RETURNING #{adapter.quote_column_name(instance.class.key(adapter.name).first.field)}
           EOS
         end
         

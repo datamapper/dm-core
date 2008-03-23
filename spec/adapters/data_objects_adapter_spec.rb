@@ -152,9 +152,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   # @mock_db.should_receive(:create_command).with('SQL STRING').and_return(@mock_command)
   
   describe "#create_statement" do
-    it 'should generate a SQL statement for all fields' do
-      pending("Resource#dirty_attributes implementation")
-      
+    it 'should generate a SQL statement for all fields' do      
       cheese = Cheese.new
       cheese.name = 'Havarti'
       cheese.color = 'Ivory'
@@ -164,40 +162,51 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       EOS
     end
     
-    it "should generate a SQL statement for only dirty fields" do
-      pending("Resource#dirty_attributes implementation")
-      
+    it "should generate a SQL statement for only dirty fields" do      
       cheese = Cheese.new
       cheese.name = 'Cheddar'
 
       @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
-        INSERT INTO "cheeses" ("name") VALUES (?, ?)
+        INSERT INTO "cheeses" ("name") VALUES (?)
       EOS
       
       cheese = Cheese.new
       cheese.color = 'Orange'
 
       @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
-        INSERT INTO "cheeses" ("color") VALUES (?, ?)
+        INSERT INTO "cheeses" ("color") VALUES (?)
       EOS
     end
   end
   
   describe "#create_statement_with_returning" do
-    it 'should generate SQL' do
-      pending
+    
+    it 'should generate a SQL statement for all fields' do      
+      cheese = Cheese.new
+      cheese.name = 'Swiss'
+      cheese.color = 'White'
       
-      # def self.create_statement_with_returning(adapter, instance)
-      #   properties = resource.properties(adapter.name)
-      #   <<-EOS.compress_lines
-      #     INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
-      #       #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
-      #     ) VALUES (
-      #       #{(['?'] * properties.size).join(', ')}
-      #     ) RETURNING #{adapter.quote_column_name(resource.key(adapter.name).first.field)}
-      #   EOS
-      # end
+      @adapter.class::SQL.create_statement_with_returning(@adapter, cheese).should eql <<-EOS.compress_lines
+        INSERT INTO "cheeses" ("name", "color") VALUES (?, ?) RETURNING "id"
+      EOS
     end
+    
+    it "should generate a SQL statement for only dirty fields" do      
+      cheese = Cheese.new
+      cheese.name = 'Munster'
+
+      @adapter.class::SQL.create_statement_with_returning(@adapter, cheese).should eql <<-EOS.compress_lines
+        INSERT INTO "cheeses" ("name") VALUES (?) RETURNING "id"
+      EOS
+      
+      cheese = Cheese.new
+      cheese.color = 'White'
+
+      @adapter.class::SQL.create_statement_with_returning(@adapter, cheese).should eql <<-EOS.compress_lines
+        INSERT INTO "cheeses" ("color") VALUES (?) RETURNING "id"
+      EOS
+    end
+
   end
   
   describe "#update_statement" do

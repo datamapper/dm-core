@@ -110,6 +110,11 @@ describe "DataMapper::Resource" do
     
   end
 
+  it 'should return the dirty attributes' do
+    pluto = Planet.new(:name => 'Pluto', :age => 500_000)
+    pluto.dirty_attributes.should == { :name => 'Pluto', :age => 500_000 }
+  end
+  
   it 'should add hook functionality to including class' do
     klass = Class.new do
       include DataMapper::Resource

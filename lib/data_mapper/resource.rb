@@ -56,7 +56,7 @@ module DataMapper
     end
     
     def dirty_attributes
-      @dirty_attributes || @dirty_attributes = Set.new
+      @dirty_attributes || @dirty_attributes = Hash.new
     end
     
     def attribute_dirty?(name)
@@ -73,8 +73,7 @@ module DataMapper
     end
     
     def attribute_set(name, value)
-      dirty_attributes << name
-      instance_variable_set(name.to_s.ensure_starts_with('@'), value)
+      dirty_attributes[name] = instance_variable_set(name.to_s.ensure_starts_with('@'), value)
     end
     
     def lazy_load!(*names)
