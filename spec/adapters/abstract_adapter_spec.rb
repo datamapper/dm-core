@@ -32,52 +32,15 @@ describe DataMapper::Adapters::AbstractAdapter do
   end
   
   it "should raise NotImplementedError when #read_set is called" do
-    lambda { @adapter.create(:repository, :query) }.should raise_error(NotImplementedError)
+    lambda { @adapter.read_set(:repository, :query) }.should raise_error(NotImplementedError)
   end
   
   it "should raise NotImplementedError when #delete_one is called" do
-    lambda { @adapter.create(:repository, :query) }.should raise_error(NotImplementedError)
+    lambda { @adapter.delete_one(:repository, :query) }.should raise_error(NotImplementedError)
   end
   
   it "should raise NotImplementedError when #delete_set is called" do
-    lambda { @adapter.create(:repository, :query) }.should raise_error(NotImplementedError)
+    lambda { @adapter.delete_set(:repository, :query) }.should raise_error(NotImplementedError)
   end
-
-  it 'should call #create when #save is called on a new record' do
-    instance = mock("Model", :"new_record?" => true)
-    @adapter.should_receive(:create).with(:repository, instance)
-
-    @adapter.save(:repository, instance)
-  end
-
-  it 'should call #update when #save is called on an existing record' do
-    instance = mock("Model", :"new_record?" => false)
-    @adapter.should_receive(:update).with(:repository, instance)
-
-    @adapter.save(:repository, instance)
-  end
-
-  # Deprecated in favor of AbstractAdapter#read_one(repository, query)
-  # describe '#first' do
-  #   it 'should raise an argument error if a limit was set in the query' do
-  #     lambda { @adapter.first(:repository, Class, :limit => 10) }.should raise_error(ArgumentError)
-  #   end
-  # 
-  #   it 'should pass all query options + :limit to #read_set' do
-  #     @adapter.should_receive(:read_set) { |repo, klass, query|
-  #       repo.should  == :repository
-  #       klass.should == Class
-  #       query.should be_kind_of(Hash)
-  #       query.should have_key(:limit)
-  #       query[:limit].should == 1
-  #       query.should have_key(:custom)
-  #       query[:custom].should == :opts
-  # 
-  #       [:first_record]
-  #     }
-  # 
-  #     @adapter.first(:repository, Class, {:custom => :opts}).should == :first_record
-  #   end
-  # end
 
 end

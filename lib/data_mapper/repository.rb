@@ -107,16 +107,16 @@ module DataMapper
       @identity_map = IdentityMap.new
     end
 
-    # def identity_map_get(resource, key)
-    #   @identity_map.get(resource, key)
-    # end
-    # 
-    # def identity_map_set(instance)
-    #   @identity_map.set(instance)
-    # end
+    def identity_map_get(resource, key)
+      @identity_map.get(resource, key)
+    end
+    
+    def identity_map_set(instance)
+      @identity_map.set(instance)
+    end
     
     def get(resource, key)
-      @identity_map.get(resource, key) || @identity_map.set(@adapter.read(self, resource, key))
+      @identity_map.get(resource, key) || @adapter.read(self, resource, key)
     end
     
     def first(resource, options)
@@ -135,7 +135,7 @@ module DataMapper
     end
     
     def save(instance)
-      if instance.new_record?
+      if instance.new_record?        
         @identity_map.set(@adapter.create(self, instance))
       else
         @adapter.update(self, instance)
