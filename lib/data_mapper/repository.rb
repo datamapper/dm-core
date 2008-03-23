@@ -111,8 +111,14 @@ module DataMapper
     end
     
     def save(instance)
-      if instance.new_record?        
-        @identity_map.set(@adapter.create(self, instance))
+      if instance.new_record?
+        if @adapter.create(self, instance)
+          @identity_map.set(instance)
+          instance.instance_variable_set('@new_record', false)
+          instance.dirty_attributes.clear
+        else
+          false
+        end
       else
         @adapter.update(self, instance)
       end

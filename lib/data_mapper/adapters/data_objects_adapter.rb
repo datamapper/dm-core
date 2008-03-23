@@ -12,6 +12,10 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
 
+      def self.inherited(target)
+        target.const_set('TYPES', TYPES.dup)
+      end
+      
       TYPES = {
         Fixnum  => 'int'.freeze,
         String   => 'varchar'.freeze,
@@ -32,7 +36,26 @@ module DataMapper
       # all of our CRUD
       # Methods dealing with a single instance object
       def create(repository, instance)
-        raise NotImplementedError.new
+        dirty_attributes = instance.dirty_attributes
+        properties = instance.class.properties(name).select { |property| dirty_attributes.key?(property.name) }
+        
+        connection = create_connection
+        command = connection.create_command(create_statement(instance.class, properties))
+        
+        values = properties.map { |property| dirty_attributes[property.name] }
+        result = command.execute_non_query(*values)
+
+        connection.close
+        
+        if result.to_i == 1
+          key = instance.class.key(name)
+          if key.size == 1 && key.first.serial?
+            instance.instance_variable_set(key.first.instance_variable_name, result.insert_id)
+          end
+          true
+        else
+          false
+        end
       end
       
       def read(repository, resource, key)
@@ -193,50 +216,50 @@ module DataMapper
         "DEFAULT VALUES"
       end
 
-      def create(database_context, instance)
-        callback(instance, :before_create)
-
-        instance = update_magic_properties(database_context, instance)
-
-        table = self.table(instance)
-        attributes = instance.dirty_attributes
-
-        if table.multi_class?
-          instance.instance_variable_set(
-            table[:type].instance_variable_name,
-            attributes[:type] = instance.class.name
-          )
-        end
-
-        keys = []
-        values = []
-        attributes.each_pair do |key, value|
-          raise ArgumentError.new("#{value.inspect} is not a valid value for #{key.inspect}") if value.is_a?(Array)
-
-          keys << table[key].to_sql
-          values << value
-        end
-
-        sql = if keys.size > 0
-          "INSERT INTO #{table.to_sql} (#{keys.join(', ')}) VALUES ?"
-        else
-          "INSERT INTO #{table.to_sql} #{self.empty_insert_sql}"
-        end
-
-        result = connection do |db|
-          db.create_command(sql).execute_non_query(values)
-        end
-
-        if result.to_i > 0
-          instance.instance_variable_set(:@new_record, false)
-          instance.key = result.last_insert_row if table.key.serial? && !attributes.include?(table.key.name)
-          database_context.identity_map.set(instance)
-          callback(instance, :after_create)
-          return true
-        else
-          return false
-        end
-      end
+      # def create(database_context, instance)
+      #   callback(instance, :before_create)
+      # 
+      #   instance = update_magic_properties(database_context, instance)
+      # 
+      #   table = self.table(instance)
+      #   attributes = instance.dirty_attributes
+      # 
+      #   if table.multi_class?
+      #     instance.instance_variable_set(
+      #       table[:type].instance_variable_name,
+      #       attributes[:type] = instance.class.name
+      #     )
+      #   end
+      # 
+      #   keys = []
+      #   values = []
+      #   attributes.each_pair do |key, value|
+      #     raise ArgumentError.new("#{value.inspect} is not a valid value for #{key.inspect}") if value.is_a?(Array)
+      # 
+      #     keys << table[key].to_sql
+      #     values << value
+      #   end
+      # 
+      #   sql = if keys.size > 0
+      #     "INSERT INTO #{table.to_sql} (#{keys.join(', ')}) VALUES ?"
+      #   else
+      #     "INSERT INTO #{table.to_sql} #{self.empty_insert_sql}"
+      #   end
+      # 
+      #   result = connection do |db|
+      #     db.create_command(sql).execute_non_query(values)
+      #   end
+      # 
+      #   if result.to_i > 0
+      #     instance.instance_variable_set(:@new_record, false)
+      #     instance.key = result.last_insert_row if table.key.serial? && !attributes.include?(table.key.name)
+      #     database_context.identity_map.set(instance)
+      #     callback(instance, :after_create)
+      #     return true
+      #   else
+      #     return false
+      #   end
+      # end
 
       # MAGIC_PROPERTIES = {
       #   :updated_at => lambda { self.updated_at = Time::now },
@@ -251,95 +274,25 @@ module DataMapper
       #   end
       #   instance
       # end
-      
-      def get(context, target, key_values)
-        instance = nil
-        
-        table_name = table_name(target.resource_name(repository.name))
-        column_names = target.properties(repository.name).map do |property|
-          column_name(property.field)
-        end
-        key_columns = target.key.map { |property| column_name(property.field) }
-
-        sql = "SELECT #{column_names.join(', ')} FROM #{table_name} WHERE #{key_columns.map { |key| "#{key} = ?" }.join(' AND ')}"
-        
-        connection = create_connection
-        reader = nil
-        
-        begin
-          reader = connection.create_command(sql).execute_reader(*key_values)
-
-          instance_type = target
-
-          # if table.multi_class? && table.type_column
-          #   value = reader.item(column_indexes[table.type_column])
-          #   instance_type = table.type_column.type_cast_value(value) unless value.blank?
-          # end
-
-          if instance.nil?
-            instance = instance_type.allocate()
-            # instance.instance_variable_set(:@__key, instance_id)
-            instance.instance_variable_set(:@new_record, false)
-            database_context.identity_map.set(instance)
-          elsif instance.new_record?
-            # instance.instance_variable_set(:@__key, instance_id)
-            instance.instance_variable_set(:@new_record, false)
-            database_context.identity_map.set(instance)
-          end
-
-          instance.database_context = database_context
-
-          instance_type.callbacks.execute(:before_materialize, instance)
-
-          originals = instance.original_values
-
-          column_indexes.each_pair do |column, i|
-            value = column.type_cast_value(reader.item(i))
-            instance.instance_variable_set(column.instance_variable_name, value)
-
-            case value
-              when String, Date, Time then originals[column.name] = value.dup
-              else originals[column.name] = value
-            end
-          end
-
-          instance.loaded_set = [instance]
-
-          instance_type.callbacks.execute(:after_materialize, instance)
-        ensure
-          reader.close if reader
-          connection.close
-        end
-
-        return instance
-      end
-
-      def callback(instance, callback_name)
-        instance.class.callbacks.execute(callback_name, instance)
-      end
 
       # This model is just for organization. The methods are included into the Adapter below.
       module SQL
-        def create_statement(instance)
-          dirty_attribute_names = instance.dirty_attributes.keys
-          properties = instance.class.properties(name).select { |property| dirty_attribute_names.include?(property.name) }
+        def create_statement(resource, properties)
           <<-EOS.compress_lines
-            INSERT INTO #{quote_table_name(instance.class.resource_name(name))}
+            INSERT INTO #{quote_table_name(resource.resource_name(name))}
             (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
             VALUES
             (#{(['?'] * properties.size).join(', ')})
           EOS
         end
 
-        def create_statement_with_returning(instance)
-          dirty_attribute_names = instance.dirty_attributes.keys
-          properties = instance.class.properties(name).select { |property| dirty_attribute_names.include?(property.name) }
+        def create_statement_with_returning(resource, properties)
           <<-EOS.compress_lines
-            INSERT INTO #{quote_table_name(instance.class.resource_name(name))}
+            INSERT INTO #{quote_table_name(resource.resource_name(name))}
             (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
             VALUES
             (#{(['?'] * properties.size).join(', ')})
-            RETURNING #{quote_column_name(instance.class.key(name).first.field)}
+            RETURNING #{quote_column_name(resource.key(name).first.field)}
           EOS
         end
         
@@ -372,7 +325,7 @@ module DataMapper
       end #module SQL
       
       include SQL
-            
+      
       # Adapters requiring a RETURNING syntax for create statements
       # should overwrite this to return true.
       def syntax_returning?
