@@ -2,7 +2,7 @@
 describe "a DataMapper Adapter", :shared => true do
 
   it "should initialize the connection uri" do
-    new_adapter = @adapter.class.new('some://uri/string')
+    new_adapter = @adapter.class.new(:default, 'some://uri/string')
     new_adapter.instance_variable_get('@uri').should == 'some://uri/string'
   end
 

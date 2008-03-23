@@ -53,7 +53,7 @@ module DataMapper
       end
     end
     
-    adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(uri)
+    adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(name, uri)
     adapter.resource_naming_convention = NamingConventions::UnderscoredAndPluralized
     
     Repository.adapters[name] = adapter

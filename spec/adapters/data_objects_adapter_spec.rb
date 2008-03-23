@@ -1,11 +1,13 @@
+require 'pathname'
+require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+
 require __DIR__.parent.parent + 'lib/data_mapper'
-require __DIR__.parent.parent + 'lib/data_mapper/adapters/data_object_adapter'
+require __DIR__.parent.parent + 'lib/data_mapper/adapters/data_objects_adapter'
 require __DIR__.parent + 'adapter_sharedspec'
 
-describe DataMapper::Adapters::DataObjectAdapter do
+describe DataMapper::Adapters::DataObjectsAdapter do
   before do
-    @adapter = DataMapper::Adapters::DataObjectAdapter.new('mock::/localhost')
-
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, 'mock::/localhost')
   end
 
   it_should_behave_like 'a DataMapper Adapter'
@@ -135,28 +137,112 @@ describe DataMapper::Adapters::DataObjectAdapter do
   end
 end
 
-describe DataMapper::Adapters::DataObjectAdapter::SQL, "creating, reading, updating, deleting statements" do
+describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, updating, deleting statements" do
   before do
-    @adapter = DataMapper::Adapters::DataObjectAdapter.new('mock::/localhost')
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, 'mock::/localhost')
+    
+    class Cheese
+      include DataMapper::Resource
+      property :id, Fixnum, :serial => true
+      property :name, String
+      property :color, String
+    end
   end
   
+  # @mock_db.should_receive(:create_command).with('SQL STRING').and_return(@mock_command)
+  
   describe "#create_statement" do
-    it 'should have specs'
+    it 'should generate a SQL statement for all fields' do
+      pending("Resource#dirty_attributes implementation")
+      
+      cheese = Cheese.new
+      cheese.name = 'Havarti'
+      cheese.color = 'Ivory'
+      
+      @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        INSERT INTO "cheeses" ("name", "color") VALUES (?, ?)
+      EOS
+    end
+    
+    it "should generate a SQL statement for only dirty fields" do
+      pending("Resource#dirty_attributes implementation")
+      
+      cheese = Cheese.new
+      cheese.name = 'Cheddar'
+
+      @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        INSERT INTO "cheeses" ("name") VALUES (?, ?)
+      EOS
+      
+      cheese = Cheese.new
+      cheese.color = 'Orange'
+
+      @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        INSERT INTO "cheeses" ("color") VALUES (?, ?)
+      EOS
+    end
   end
   
   describe "#create_statement_with_returning" do
-    it 'should have specs'
-  end
-  
-  describe "#read_statement" do
-    it 'should have specs'
+    it 'should generate SQL' do
+      pending
+      
+      # def self.create_statement_with_returning(adapter, instance)
+      #   properties = resource.properties(adapter.name)
+      #   <<-EOS.compress_lines
+      #     INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
+      #       #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
+      #     ) VALUES (
+      #       #{(['?'] * properties.size).join(', ')}
+      #     ) RETURNING #{adapter.quote_column_name(resource.key(adapter.name).first.field)}
+      #   EOS
+      # end
+    end
   end
   
   describe "#update_statement" do
-    it 'should have specs'
+    it 'should generate SQL' do
+      pending
+      
+      # def self.update_statement(adapter, instance)
+      #   #these properties need to be dirty TODO
+      #   properties = instance.class.properties(adapter.name)
+      #   <<-EOS.compress_lines
+      #     UPDATE #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+      #     SET #{properties.map {|attribute| "#{adapter.quote_column_name(attribute.field)} = ?" }.join(', ')}
+      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+      #   EOS
+      # end
+    end
   end
   
   describe "#delete_statement" do
-    it 'should have specs'
-  end  
+    it 'should generate SQL' do
+      pending
+      
+      # def self.delete_statement(adapter, instance)
+      #   properties = resource.properties(adapter.name)
+      #   <<-EOS.compress_lines
+      #     DELETE FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+      #   EOS
+      # end
+    end
+  end
+  
+  describe "#read_statement" do
+    
+    it 'should generate SQL' do
+      pending
+      
+      # def self.read_statement(adapter, resource)
+      #   properties = resource.properties(adapter.name)
+      #   <<-EOS.compress_lines
+      #     SELECT #{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')} 
+      #     FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+      #   EOS
+      # end
+    end
+  end
 end

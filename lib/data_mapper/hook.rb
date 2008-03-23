@@ -12,21 +12,21 @@ module DataMapper
       def install_hook(type, name, to_method, method_sym = nil, &block)
         hooks[name] << (block || instance_method(method_sym))
 
-        target = instance_method(to_method)
-        old_methods[name] ||= target
-        
-        args = args_for(target)
-        hook_call = args == "" ? args : ", " << args
+        unless (old_methods[name])
+          target = instance_method(to_method)
+          old_methods[name] ||= target
 
-        method_def =  "def #{to_method}(#{args})\n"
-        method_def << "  run_hook :#{name}#{hook_call}\n" \
-          if type == :before
-        method_def << "  self.class.old_methods[:#{name}].bind(self).call #{args}\n"
-        method_def << "  run_hook :#{name}#{hook_call}\n" \
-          if type == :after
-        method_def << "end"
+          args = args_for(target)
+          hook_call = args == "" ? args : ", " << args
 
-        class_eval method_def
+          method_def =  "def #{to_method}(#{args})\n"
+          method_def << "  run_hook :#{name} #{hook_call}\n" if type == :before
+          method_def << "  self.class.old_methods[:#{name}].bind(self).call #{args}\n"
+          method_def << "  run_hook :#{name} #{hook_call}\n" if type == :after
+          method_def << "end"
+
+          class_eval method_def
+        end
       end
       
       def args_for(method)

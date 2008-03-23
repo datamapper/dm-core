@@ -5,7 +5,7 @@
 # * Sets the applications root and environment for compatibility with rails or merb
 # * Checks for the database.yml and loads it if it exists
 # * Sets up the database using the config from the yaml file or from the environment
-# * 
+# *
 
 # Require the basics...
 require 'pathname'
@@ -18,7 +18,7 @@ require 'set'
 require 'fastthread'
 
 # for __DIR__
-require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'data_mapper/support/kernel'
+require Pathname(__FILE__).dirname.expand_path + 'data_mapper/support/kernel'
 
 require __DIR__ + 'data_mapper/support/object'
 require __DIR__ + 'data_mapper/support/blank'
@@ -29,7 +29,6 @@ require __DIR__ + 'data_mapper/support/struct'
 
 require __DIR__ + 'data_mapper/dependency_queue'
 require __DIR__ + 'data_mapper/resource'
-
 require __DIR__ + 'data_mapper/adapters/abstract_adapter'
-
 require __DIR__ + 'data_mapper/cli'
+require __DIR__ + 'data_mapper/scope'

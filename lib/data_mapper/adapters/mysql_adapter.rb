@@ -1,4 +1,4 @@
-require __DIR__ + 'data_object_adapter'
+require __DIR__ + 'data_objects_adapter'
 begin
   require 'do_mysql'
 rescue LoadError
@@ -12,7 +12,7 @@ end
 module DataMapper
   module Adapters
     
-    class MysqlAdapter < DataObjectAdapter
+    class MysqlAdapter < DataObjectsAdapter
       
       def empty_insert_sql
         "() VALUES ()"

@@ -1,4 +1,4 @@
-require __DIR__ + 'data_object_adapter'
+require __DIR__ + 'data_objects_adapter'
 
 begin
   require 'do_sqlite3'
@@ -13,7 +13,7 @@ end
 module DataMapper
   module Adapters
     
-    class Sqlite3Adapter < DataObjectAdapter
+    class Sqlite3Adapter < DataObjectsAdapter
       
       def constants
         super.merge({

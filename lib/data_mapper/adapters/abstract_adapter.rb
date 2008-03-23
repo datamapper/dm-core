@@ -5,10 +5,12 @@ module DataMapper
   
       # Instantiate an Adapter by passing it a DataMapper::Repository
       # connection string for configuration.
-      def initialize(uri)
+      def initialize(name, uri)
+        @name = name
         @uri = uri
       end
       
+      attr_reader :name
       attr_accessor :resource_naming_convention
 
       # Methods dealing with a single instance object
@@ -16,7 +18,7 @@ module DataMapper
         raise NotImplementedError.new
       end
       
-      def read(repository, instance)
+      def read(repository, resource, key)
         raise NotImplementedError.new
       end
       
@@ -37,28 +39,29 @@ module DataMapper
       end
 
       # Methods dealing with locating a single object, by keys
-      def read_one(repository, klass, *keys)
+      def read_one(repository, query)
         raise NotImplementedError.new
       end
 
-      def delete_one(repository, klass, *keys)
+      def delete_one(repository, query)
         raise NotImplementedError.new
       end
 
       # Methods dealing with finding stuff by some query parameters
-      def read_set(repository, klass, query = {})
+      def read_set(repository, query)
         raise NotImplementedError.new
       end
 
-      def delete_set(repository, klass, query = {})
+      def delete_set(repository, query)
         raise NotImplementedError.new
       end
       
-      # Shortcuts
-      def first(repository, klass, query = {})
-        raise ArgumentError.new("You cannot pass in a :limit option to #first") if query.key?(:limit)
-        read_set(repository, klass, query.merge(:limit => 1)).first
-      end
+      # # Shortcuts
+      # Deprecated in favor of read_one
+      # def first(repository, resource, query = {})
+      #   raise ArgumentError.new("You cannot pass in a :limit option to #first") if query.key?(:limit)
+      #   read_set(repository, resource, query.merge(:limit => 1)).first
+      # end
       
       # Future Enumerable/convenience finders. Please leave in place. :-)
       # def each(repository, klass, query)

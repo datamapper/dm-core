@@ -1,7 +1,9 @@
+require 'pathname'
+require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
+
 require __DIR__.parent + 'lib/data_mapper/repository'
 require __DIR__.parent + 'lib/data_mapper/resource'
 require __DIR__.parent + 'lib/data_mapper/loaded_set'
-require __DIR__ + 'mock_adapter'
 
 describe "DataMapper::LoadedSet" do
   
@@ -26,7 +28,7 @@ describe "DataMapper::LoadedSet" do
     results.should have(2).entries
     
     bob, nancy = results[0], results[1]
-    p bob.instance_variables
+
     bob.name.should eql('Bob')
     bob.age.should eql(10)
     

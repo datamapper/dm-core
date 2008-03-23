@@ -1,5 +1,5 @@
 require 'pathname'
-require Pathname(__FILE__).dirname.expand_path(Dir.getwd) + 'spec_helper'
+require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.
@@ -26,6 +26,8 @@ describe "DataMapper::Resource" do
       property :age, Fixnum
       property :core, String, :private => true
       
+      # An example of how to scope a property to a specific repository.
+      # Un-specced currently.
       # repository(:legacy) do
       #   property :name, String
       # end
@@ -106,5 +108,14 @@ describe "DataMapper::Resource" do
     # Obviously. :-)
     mars.attribute_dirty?(:age).should be_true
     
+  end
+
+  it 'should add hook functionality to including class' do
+    klass = Class.new do
+      include DataMapper::Resource
+    end
+
+    klass.should respond_to(:before)
+    klass.should respond_to(:after)
   end
 end

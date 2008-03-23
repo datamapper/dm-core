@@ -2,36 +2,15 @@ require __DIR__ + 'abstract_adapter'
 
 module DataMapper
 
-  # An Adapter is really a Factory for three types of object,
-  # so they can be selectively sub-classed where needed.
-  #
-  # The first type is a Query. The Query is an object describing
-  # the database-specific operations we wish to perform, in an
-  # abstract manner. For example: While most if not all databases
-  # support a mechanism for limiting the size of results returned,
-  # some use a "LIMIT" keyword, while others use a "TOP" keyword.
-  # We can set a SelectStatement#limit field then, and allow
-  # the adapter to override the underlying SQL generated.
-  # Refer to DataMapper::Queries.
-  #
-  # The final type provided is a DataMapper::Transaction.
-  # Transactions are duck-typed Connections that span multiple queries.
-  #
-  # Note: It is assumed that the Adapter implements it's own
-  # ConnectionPool if any since some libraries implement their own at
-  # a low-level, and it wouldn't make sense to pay a performance
-  # cost twice by implementing a secondary pool in the DataMapper itself.
-  # If the library being adapted does not provide such functionality,
-  # DataMapper::Support::ConnectionPool can be used.
   module Adapters
 
     # You must inherit from the DoAdapter, and implement the
     # required methods to adapt a database library for use with the DataMapper.
     #
-    # NOTE: By inheriting from DoAdapter, you get a copy of all the
+    # NOTE: By inheriting from DataObjectsAdapter, you get a copy of all the
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
-    class DataObjectAdapter < AbstractAdapter
+    class DataObjectsAdapter < AbstractAdapter
 
       FIND_OPTIONS = [
         :select, :offset, :limit, :class, :include, :shallow_include, :reload, :conditions, :order, :intercept_load
@@ -396,10 +375,10 @@ module DataMapper
       end
 
       module SQL
-        def self.create_statement(adapter, resource)
-          properties = resource.properties(adapter.name)
+        def self.create_statement(adapter, instance)
+          properties = instance.class.properties(adapter.name)
           <<-EOS.compress_lines
-            INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
+            INSERT INTO #{adapter.quote_table_name(instance.class.resource_name(adapter.name))} (
               #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
             ) VALUES (
               #{(['?'] * properties.size).join(', ')}
@@ -407,7 +386,7 @@ module DataMapper
           EOS
         end
 
-        def self.create_statement_with_returning(adapter, resource)
+        def self.create_statement_with_returning(adapter, instance)
           properties = resource.properties(adapter.name)
           <<-EOS.compress_lines
             INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
@@ -415,6 +394,24 @@ module DataMapper
             ) VALUES (
               #{(['?'] * properties.size).join(', ')}
             ) RETURNING #{adapter.quote_column_name(resource.key(adapter.name).first.field)}
+          EOS
+        end
+        
+        def self.update_statement(adapter, instance)
+          #these properties need to be dirty TODO
+          properties = instance.class.properties(adapter.name)
+          <<-EOS.compress_lines
+            UPDATE #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+            SET #{properties.map {|attribute| "#{adapter.quote_column_name(attribute.field)} = ?" }.join(', ')}
+            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+          EOS
+        end
+        
+        def self.delete_statement(adapter, instance)
+          properties = resource.properties(adapter.name)
+          <<-EOS.compress_lines
+            DELETE FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
+            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
         
@@ -427,71 +424,27 @@ module DataMapper
           EOS
         end
         
-        def self.update_statement(adapter, resource, instance)
-          #these properties need to be dirty TODO
-          properties = instance.class.properties(adapter.name)
-          <<-EOS.compress_lines
-            UPDATE #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
-            SET #{properties.map {|attribute| "#{adapter.quote_column_name(attribute.field)} = ?" }.join(', ')}
-            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
-          EOS
-        end
-        
-        def self.delete_statement(adapter, resource)
-          properties = resource.properties(adapter.name)
-          <<-EOS.compress_lines
-            DELETE FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
-            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
-          EOS
-        end
-        
-        module Quoting
-
-          def quote_table_name(table_name)
-            escaped_name = escape_identifier_name(table_name)
-
-            # don't bother quoting if there's no quote character
-            return escaped_name unless constants[:quote_table_name]
-
-            wrap_string_in_char(escaped_name, constants[:quote_table_name])
-          end
-
-          def quote_column_name(column_name)
-            escaped_name = escape_identifier_name(column_name)
-
-            # don't bother quoting if there's no quote character
-            return escaped_name unless constants[:quote_column_name]
-
-            wrap_string_in_char(escaped_name, constants[:quote_column_name])
-          end
-
-          def escape_identifier_name(identifier_name)
-            # SQL says to double-up single quotes to escape them
-            if identifier_name.match(/'/)
-              identifier_name.gsub!(/'/, "''")
-            else
-              identifier_name
-            end
-          end
-
-          def wrap_string_in_char(string, char)
-            # don't quote it if its already quoted
-            return string if string[0] == char[0] && string[string.length-1] == char[0]
-
-            char + string + char
-          end
-
-        end # module Quoting
       end #module SQL
       
-      # We want each adapter to override this
+      # Adapters requiring a RETURNING syntax for create statements
+      # should overwrite this to return true.
       def syntax_returning?
-        @syntax_returning || @syntax_returning = false
+        false
       end
 
-      include SQL
-      include SQL::Quoting
+      def quote_table_name(table_name)
+        table_name.ensure_wrapped_with('"')
+      end
 
+      def quote_column_name(column_name)
+        column_name.ensure_wrapped_with('"')
+      end
+      
+      def self.inherited(target)
+        sql = target.const_set('SQL', Module.new)
+        sql.send(:include, SQL)
+      end
+      
     end # class DoAdapter
 
   end # module Adapters

@@ -1,8 +1,10 @@
-require __DIR__.parent + 'lib/data_mapper/adapters/data_object_adapter'
+require 'pathname'
+require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
+require __DIR__.parent + 'lib/data_mapper/adapters/data_objects_adapter'
 
 module DataMapper
   module Adapters
-    class MockAdapter < DataMapper::Adapters::DataObjectAdapter
+    class MockAdapter < DataMapper::Adapters::DataObjectsAdapter
       COLUMN_QUOTING_CHARACTER = "`"
       TABLE_QUOTING_CHARACTER = "`"
   

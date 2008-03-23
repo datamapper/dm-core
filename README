@@ -21,7 +21,6 @@ Pretty profound impact. If you run the following code in ActiveRecord you'll
 see all <tt>false</tt> results. Do the same in DataMapper and it's
 <tt>true</tt> all the way down.
 
-
   @parent = Tree.find(:first, :conditions => ['name = ?', 'bob'])
 
   @parent.children.each do |child|
@@ -45,7 +44,9 @@ be a bad actor causing trouble for all of your other processes.
 
 Ready for something amazing? The following example executes only two queries.
 
-  zoos = Zoo.all first = zoos.first first.exhibits 
+  zoos = Zoo.all
+  first = zoos.first
+  first.exhibits
   # Loads the exhibits for all the Zoo objects in the zoos variable.
 
 Pretty impressive huh? The idea is that you aren't going to load a set of
@@ -71,17 +72,17 @@ control you can enable or disable this feature for any column (not just
 text-fields) by passing a @lazy@ option to your column mapping with a value of
 <tt>true</tt> or <tt>false</tt>.
 
-
   class Animal < DataMapper::Base
-    property :name, :string property :notes, :text, :lazy => false
+    property :name, :string
+    property :notes, :text, :lazy => false
   end
-
 
 Plus, lazy-loading of text fields happens automatically and intelligently when
 working with associations.  The following only issues 2 queries to load up all
 of the notes fields on each animal:
 
-  animals = Animal.all animals.each do |pet|
+  animals = Animal.all
+  animals.each do |pet|
     pet.notes
   end
 
@@ -99,11 +100,10 @@ like seeing a method called <tt>col2Name</tt> on your model just because
 that's what it's called in an old database you can't afford to change right
 now? In DataMapper you control the mappings:
 
-
   class Fruit < DataMapper::Base
-    set_table_name 'frt' property :name, :string, :column => 'col2'
+    set_table_name 'frt'
+    property :name, :string, :column => 'col2Name'
   end
-
 
 == All Ruby, All The Time
 
@@ -121,7 +121,6 @@ It's just a little thing, but it's so much nicer than writing
 <tt>Zoo.find(:all, :conditions => ['name = ?', 'Dallas'])</tt>. What if you
 need other comparisons though? Try these:
 
-
   Zoo.first(:name => 'Galveston')
 
   # 'gt' means greater-than. We also do 'lt'.  Person.all(:age.gt => 30)
@@ -136,9 +135,8 @@ need other comparisons though? Try these:
 
   # An alias for Zoo.find(11) Zoo[11]
 
-  # Does a NOT IN () clause for you.  Person.all(:name.not =>
-  ['bob','rick','steve'])
-
+  # Does a NOT IN () clause for you.
+  Person.all(:name.not => ['bob','rick','steve'])
 
 See? Fewer SQL fragments dirtying your Ruby code. And that's just a few of the
 nice syntax tweaks DataMapper delivers out of the box...

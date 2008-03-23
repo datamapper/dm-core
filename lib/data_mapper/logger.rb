@@ -177,7 +177,6 @@ module DataMapper
       end
       message << "\n" unless message[-1] == ?\n
       @buffer << message
-      message
       flush # Force a flush for now until we figure out where we want to use the buffering.
     end
     alias :push :<<

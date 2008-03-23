@@ -1,4 +1,4 @@
-require __DIR__ + 'data_object_adapter'
+require __DIR__ + 'data_objects_adapter'
 begin
   require "do_postgres"
 rescue LoadError
@@ -12,7 +12,7 @@ end
 module DataMapper
   module Adapters
     
-    class PostgresqlAdapter < DataObjectAdapter
+    class PostgresqlAdapter < DataObjectsAdapter
       
       def schema_search_path
         @schema_search_path || @schema_search_path = begin

@@ -15,7 +15,7 @@ describe "DataMapper::Hook" do
       def some_method(a, b, c)
         [a, b, c]
       end
-      
+
       def yet_another(a, *heh)p
         [a, *heh]
       end
