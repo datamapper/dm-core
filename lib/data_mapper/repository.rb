@@ -54,7 +54,6 @@ module DataMapper
     end
     
     adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(name, uri)
-    adapter.resource_naming_convention = NamingConventions::UnderscoredAndPluralized
     
     Repository.adapters[name] = adapter
   end
@@ -108,13 +107,46 @@ module DataMapper
       @identity_map = IdentityMap.new
     end
 
-    def identity_map_get(type, key)
-      @identity_map.get(type, key)
+    def identity_map_get(resource, key)
+      @identity_map.get(resource, key)
     end
     
     def identity_map_set(instance)
       @identity_map.set(instance)
     end
+    
+    def get(resource, key)
+      @identity_map.get(resource, key) || @adapter.read(self, resource, key)
+    end
+    
+    def first(resource, options)
+      raise NotImplementedError.new
+      @adapter.read_one(self, Query.new(resource, options))
+    end
+    
+    def all(resource, options)
+      raise NotImplementedError.new
+      @adapter.read_set(self, Query.new(resource, options))      
+    end
+    
+    def first(resource, options)
+      raise NotImplementedError.new
+      @adapter.read_set(self, Query.new(resource, options))
+    end
+    
+    def save(instance)
+      if instance.new_record?        
+        @identity_map.set(@adapter.create(self, instance))
+      else
+        @adapter.update(self, instance)
+      end
+    end
+
+    def destroy(instance)
+      @adapter.delete(self, instance)
+      @identity_map.delete(instance.class, instance.key)
+    end
+    
   end
   
 end

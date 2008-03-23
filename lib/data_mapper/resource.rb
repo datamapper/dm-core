@@ -51,6 +51,14 @@ module DataMapper
       @readonly == true
     end
     
+    def save
+      repository.save(self)
+    end
+    
+    def destroy
+      repository.destroy(self)
+    end
+    
     def attribute_loaded?(name)
       instance_variables.include?(name.to_s.ensure_starts_with('@'))
     end
@@ -108,6 +116,12 @@ module DataMapper
     
     def self.===(other)
       other.is_a?(Module) && other.ancestors.include?(Resource)
+    end
+    
+    # Returns <tt>true</tt> if this model hasn't been saved to the 
+    # database, <tt>false</tt> otherwise.
+    def new_record?
+      @new_record.nil? || @new_record
     end
     
     def attributes
@@ -246,6 +260,26 @@ module DataMapper
       def inheritance_property(repository_name)
         @properties[repository_name].detect { |property| property.type == Class }
       end
+      
+      def get(key)
+        repository.get(self, key)
+      end
+      
+      def [](key)
+        instance = get(key)
+        raise ObjectNotFoundError.new "Could not find #{self.name} with key: #{key.inspect}"
+        
+        instance
+      end
+      
+      def all(options)
+        repository.all(self, options)
+      end
+      
+      def first(options)
+        repository.first(self, options)
+      end
+
     end
   end
 end

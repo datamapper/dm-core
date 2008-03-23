@@ -146,17 +146,17 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       property :id, Fixnum, :serial => true
       property :name, String
       property :color, String
+      property :notes, String, :lazy => true
     end
     
     class LittleBox
       include DataMapper::Resource
       property :street, String, :key => true
       property :color, String, :key => true
-      property :hillside, TrueClass, :default => true      
+      property :hillside, TrueClass, :default => true
+      property :notes, String, :lazy => true
     end
   end
-  
-  # @mock_db.should_receive(:create_command).with('SQL STRING').and_return(@mock_command)
   
   describe "#create_statement" do
     it 'should generate a SQL statement for all fields' do      
@@ -164,7 +164,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       cheese.name = 'Havarti'
       cheese.color = 'Ivory'
       
-      @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+      @adapter.class::SQL.create_statement(@adapter, cheese).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name", "color") VALUES (?, ?)
       EOS
     end
@@ -173,14 +173,14 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       cheese = Cheese.new
       cheese.name = 'Cheddar'
 
-      @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+      @adapter.class::SQL.create_statement(@adapter, cheese).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name") VALUES (?)
       EOS
       
       cheese = Cheese.new
       cheese.color = 'Orange'
 
-      @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+      @adapter.class::SQL.create_statement(@adapter, cheese).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("color") VALUES (?)
       EOS
     end
@@ -193,7 +193,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       cheese.name = 'Swiss'
       cheese.color = 'White'
       
-      @adapter.class::SQL.create_statement_with_returning(@adapter, cheese).should eql <<-EOS.compress_lines
+      @adapter.class::SQL.create_statement_with_returning(@adapter, cheese).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name", "color") VALUES (?, ?) RETURNING "id"
       EOS
     end
@@ -202,14 +202,14 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       cheese = Cheese.new
       cheese.name = 'Munster'
 
-      @adapter.class::SQL.create_statement_with_returning(@adapter, cheese).should eql <<-EOS.compress_lines
+      @adapter.class::SQL.create_statement_with_returning(@adapter, cheese).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name") VALUES (?) RETURNING "id"
       EOS
       
       cheese = Cheese.new
       cheese.color = 'White'
 
-      @adapter.class::SQL.create_statement_with_returning(@adapter, cheese).should eql <<-EOS.compress_lines
+      @adapter.class::SQL.create_statement_with_returning(@adapter, cheese).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("color") VALUES (?) RETURNING "id"
       EOS
     end
@@ -223,7 +223,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       cheese.name = 'Gouda'
       cheese.color = 'White'
       
-      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+      @adapter.class::SQL.update_statement(@adapter, cheese).should == <<-EOS.compress_lines
         UPDATE "cheeses" SET
         "name" = ?,
         "color" = ?
@@ -235,14 +235,14 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       cheese = Cheese.new
       cheese.name = 'Parmigiano-Reggiano'
 
-      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+      @adapter.class::SQL.update_statement(@adapter, cheese).should == <<-EOS.compress_lines
         UPDATE "cheeses" SET "name" = ? WHERE "id" = ?
       EOS
       
       cheese = Cheese.new
       cheese.color = 'White'
 
-      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+      @adapter.class::SQL.update_statement(@adapter, cheese).should == <<-EOS.compress_lines
         UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
       EOS
     end
@@ -251,48 +251,49 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       box = LittleBox.new
       box.instance_variable_set('@street', 'Merry Lane')
       box.instance_variable_set('@color', 'Yellow')
+      box.hillside = true
       
-      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
-        UPDATE "boxes" SET "street" = ? WHERE "id" = ?
+      @adapter.class::SQL.update_statement(@adapter, box).should == <<-EOS.compress_lines
+        UPDATE "little_boxes" SET "hillside" = ? WHERE "street" = ? AND "color" = ?
       EOS
       
-      cheese = Cheese.new
-      cheese.color = 'White'
+      box.color = 'Red'
 
-      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
-        UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
+      @adapter.class::SQL.update_statement(@adapter, box).should == <<-EOS.compress_lines
+        UPDATE "little_boxes" SET "color" = ?, "hillside" = ? WHERE "street" = ? AND "color" = ?
       EOS
     end
 
   end
   
   describe "#delete_statement" do
-    it 'should generate SQL' do
-      pending
-      
-      # def self.delete_statement(adapter, instance)
-      #   properties = resource.properties(adapter.name)
-      #   <<-EOS.compress_lines
-      #     DELETE FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
-      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
-      #   EOS
-      # end
+    
+    it 'should generate a SQL statement for a serial Key' do      
+      @adapter.class::SQL.delete_statement(@adapter, Cheese.new).should == <<-EOS.compress_lines
+        DELETE FROM "cheeses" WHERE "id" = ?
+      EOS
     end
+    
+    it "should generate a SQL statement for a Composite Key" do
+      @adapter.class::SQL.delete_statement(@adapter, LittleBox.new).should == <<-EOS.compress_lines
+        DELETE FROM "little_boxes" WHERE "street" = ? AND "color" = ?
+      EOS
+    end
+    
   end
   
-  describe "#read_statement" do
+  describe "#read_statement (without lazy attributes)" do
     
-    it 'should generate SQL' do
-      pending
-      
-      # def self.read_statement(adapter, resource)
-      #   properties = resource.properties(adapter.name)
-      #   <<-EOS.compress_lines
-      #     SELECT #{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')} 
-      #     FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
-      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
-      #   EOS
-      # end
+    it 'should generate a SQL statement for a serial Key' do      
+      @adapter.class::SQL.read_statement(@adapter, Cheese, [1]).should == <<-EOS.compress_lines
+        SELECT "id", "name", "color" FROM "cheeses" WHERE "id" = ?
+      EOS
+    end
+    
+    it "should generate a SQL statement that includes a Composite Key" do      
+      @adapter.class::SQL.read_statement(@adapter, LittleBox, ['Shady Drive', 'Blue']).should == <<-EOS.compress_lines
+        SELECT "street", "color", "hillside" FROM "little_boxes" WHERE "street" = ? AND "color" = ?
+      EOS
     end
   end
 end

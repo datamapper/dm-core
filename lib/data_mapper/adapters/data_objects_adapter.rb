@@ -59,14 +59,6 @@ module DataMapper
       def delete(repository, instance)
         raise NotImplementedError.new
       end
-      
-      def save(repository, instance)
-        if instance.new_record?
-          create(repository, instance)
-        else
-          update(repository, instance)
-        end
-      end
 
       # Methods dealing with locating a single object, by keys
       def read_one(repository, klass, *keys)
@@ -409,15 +401,14 @@ module DataMapper
         end
         
         def self.delete_statement(adapter, instance)
-          properties = resource.properties(adapter.name)
           <<-EOS.compress_lines
-            DELETE FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
-            WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
+            DELETE FROM #{adapter.quote_table_name(instance.class.resource_name(adapter.name))} 
+            WHERE #{instance.class.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
         
-        def self.read_statement(adapter, resource)
-          properties = resource.properties(adapter.name)
+        def self.read_statement(adapter, resource, key)
+          properties = resource.properties(adapter.name).select { |property| !property.lazy? }
           <<-EOS.compress_lines
             SELECT #{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')} 
             FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
