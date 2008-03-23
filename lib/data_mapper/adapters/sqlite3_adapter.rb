@@ -7,7 +7,7 @@ rescue LoadError
 You must install the DataObjects::SQLite3 driver.
   gem install do_sqlite3
 EOS
-  exit
+  raise $!
 end
 
 module DataMapper
