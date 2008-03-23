@@ -8,7 +8,7 @@ filter:
 --- 
 h1. <%= @page.title %>
 
-DataMapper comes loaded features, many of which other ORMs must external libraries for.
+DataMapper comes loaded features, many of which other ORMs require external libraries for.
 
 h2. Single Table Inheritance
 
@@ -32,9 +32,9 @@ When DataMapper sees your @type@ column declared as type @:class@, it will autom
 
 h2. Paranoia
 
-Sometimes...most times...you don't _really_ want to destroy a row in the database, you just want to mark it as deleted so that you can restore it later if need be.  This is aptly-named Paranoia and DataMapper has basic support for this baked right in.  When you declare a @deleted_at@ or @deleted_on@ property, DataMapper will pick up on it and assume they are for storing when an object was deleted.  
+Sometimes...most times...you don't _really_ want to destroy a row in the database, you just want to mark it as deleted so that you can restore it later if need be.  This is aptly-named Paranoia and DataMapper has basic support for this baked right in.  When you declare a @deleted_at@ or @deleted_on@ (datetime) property, DataMapper will pick up on it and assume they are for storing when an object was deleted.  
 
-Once these columns exist, DataMapper will also tack on @deleted_at IS NULL@ to generated queries in order to avoid retrieving rows marked as deleted.
+Once these columns exist, DataMapper will also tack on @deleted_[at|on] IS NULL@ to generated queries in order to avoid retrieving rows marked as deleted.
 
 To subvert paranoia and pull back previously deleted rows, simply use manual querying:
 
@@ -48,7 +48,7 @@ For now, you'll get back Structs which will "quack like" a Person object, but wo
 
 <notextile>
 <coderay lang="ruby" line_numbers="inline">
-dead_people.map do |zombie|
+dead_people.each do |zombie|
   Person.new(zombie.attributes.reject{ |k, v| k == :deleted_at} )
 end   # dead_people will no longer contain zombies, but real live people
 </coderay>
@@ -72,13 +72,13 @@ DataMapper::Database.setup({  # :default is the default context name
 </coderay>
 </notextile>
 
-But if you supply a context name, you will now have 2 database contexts with their own unique loggers, connection pool, identity map....one default context and one named context
+But if you supply a context name, you will now have 2 database contexts with their own unique loggers, connection pool, identity map....one default context and one named context.
 
 <notextile>
 <coderay lang="ruby" line_numbers="inline">
 DataMapper::Database.setup(:external, {  # :external is the context name
   :adapter  => 'mysql',
-  :host     => 'otherhose',
+  :host     => 'otherhost',
   :username => 'root',
   :password => 'R00tPaswooooord2',
   :database => 'someother_development'
@@ -91,10 +91,23 @@ To use one context rather than another, simply wrap your code block inside a @da
 <notextile>
 <coderay lang="ruby" line_numbers="inline">
   database(:external) { Person.first }
+  # hits up your :external database and retrieves the first Person
 </coderay>
 </notextile>
 
-This will use your connection to the @:external@ database and retrieve people from there.
+This will use your connection to the @:external@ database and the first Person it finds.  Later, when you call @.save@ on that person, it'll get saved back to the @:external@ database; An object is aware of what context it came from and should be saved back to.
 
 h2. Chained Associations
 
+Say you want to find all of the animals in a zoo, but Animal belongs to Exhibit which belongs to Zoo.  Other ORMs solve this problem by providing a means to describe the double JOINs into the retrieval call for Animals. ActiveRecord specifically will let you specify JOINs in a hash-of-hashes syntax which will make most developers throw up a little in their mouths.
+
+Datamapper's solution is to let you chain association calls:
+
+<notextile>
+<coderay lang="ruby" line_numbers="inline">
+zoo = Zoo.first
+zoo.exhibits.animals # retrieves all animals for all exhibits for that zoo
+</coderay>
+</notextile>
+
+This has great potential for browsing collections of content, like browsing all blog posts' comments by category or tag.  At present, chaining beyond 2 associations is still experimental.
