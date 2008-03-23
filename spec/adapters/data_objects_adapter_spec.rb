@@ -7,7 +7,7 @@ require __DIR__.parent + 'adapter_sharedspec'
 
 describe DataMapper::Adapters::DataObjectsAdapter do
   before do
-    @adapter = DataMapper::Adapters::DataObjectsAdapter.new('mock::/localhost')
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, 'mock::/localhost')
   end
 
   it_should_behave_like 'a DataMapper Adapter'
@@ -139,25 +139,47 @@ end
 
 describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, updating, deleting statements" do
   before do
-    @adapter = DataMapper::Adapters::DataObjectsAdapter.new('mock::/localhost')
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, 'mock::/localhost')
+    
+    class Cheese
+      include DataMapper::Resource
+      property :id, Fixnum, :serial => true
+      property :name, String
+      property :color, String
+    end
   end
   
   # @mock_db.should_receive(:create_command).with('SQL STRING').and_return(@mock_command)
   
   describe "#create_statement" do
-    it 'should generate SQL' do
-      pending
+    it 'should generate a SQL statement for all fields' do
+      pending("Resource#dirty_attributes implementation")
       
-      # def self.create_statement(adapter, instance)
-      #   properties = resource.properties(adapter.name)
-      #   <<-EOS.compress_lines
-      #     INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
-      #       #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
-      #     ) VALUES (
-      #       #{(['?'] * properties.size).join(', ')}
-      #     )
-      #   EOS
-      # end
+      cheese = Cheese.new
+      cheese.name = 'Havarti'
+      cheese.color = 'Ivory'
+      
+      @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        INSERT INTO "cheeses" ("name", "color") VALUES (?, ?)
+      EOS
+    end
+    
+    it "should generate a SQL statement for only dirty fields" do
+      pending("Resource#dirty_attributes implementation")
+      
+      cheese = Cheese.new
+      cheese.name = 'Cheddar'
+
+      @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        INSERT INTO "cheeses" ("name") VALUES (?, ?)
+      EOS
+      
+      cheese = Cheese.new
+      cheese.color = 'Orange'
+
+      @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
+        INSERT INTO "cheeses" ("color") VALUES (?, ?)
+      EOS
     end
   end
   

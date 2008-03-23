@@ -376,9 +376,9 @@ module DataMapper
 
       module SQL
         def self.create_statement(adapter, instance)
-          properties = resource.properties(adapter.name)
+          properties = instance.class.properties(adapter.name)
           <<-EOS.compress_lines
-            INSERT INTO #{adapter.quote_table_name(resource.resource_name(adapter.name))} (
+            INSERT INTO #{adapter.quote_table_name(instance.class.resource_name(adapter.name))} (
               #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
             ) VALUES (
               #{(['?'] * properties.size).join(', ')}
@@ -424,55 +424,27 @@ module DataMapper
           EOS
         end
         
-        module Quoting
-
-          def quote_table_name(table_name)
-            escaped_name = escape_identifier_name(table_name)
-
-            # don't bother quoting if there's no quote character
-            return escaped_name unless constants[:quote_table_name]
-
-            wrap_string_in_char(escaped_name, constants[:quote_table_name])
-          end
-
-          def quote_column_name(column_name)
-            escaped_name = escape_identifier_name(column_name)
-
-            # don't bother quoting if there's no quote character
-            return escaped_name unless constants[:quote_column_name]
-
-            wrap_string_in_char(escaped_name, constants[:quote_column_name])
-          end
-
-          def escape_identifier_name(identifier_name)
-            # SQL says to double-up single quotes to escape them
-            if identifier_name.match(/'/)
-              identifier_name.gsub!(/'/, "''")
-            else
-              identifier_name
-            end
-          end
-
-          # DEPRECATED
-          def wrap_string_in_char(string, char)
-            warn("DataObjectsAdapter#wrap_string_in_char is deprecated in favor of Support::String#ensure_wrapped_with")
-            # don't quote it if its already quoted
-            return string if string[0] == char[0] && string[string.length-1] == char[0]
-
-            char + string + char
-          end
-
-        end # module Quoting
       end #module SQL
       
-      # We want each adapter to override this
+      # Adapters requiring a RETURNING syntax for create statements
+      # should overwrite this to return true.
       def syntax_returning?
-        @syntax_returning || @syntax_returning = false
+        false
       end
 
-      include SQL
-      include SQL::Quoting
+      def quote_table_name(table_name)
+        table_name.ensure_wrapped_with('"')
+      end
 
+      def quote_column_name(column_name)
+        column_name.ensure_wrapped_with('"')
+      end
+      
+      def self.inherited(target)
+        sql = target.const_set('SQL', Module.new)
+        sql.send(:include, SQL)
+      end
+      
     end # class DoAdapter
 
   end # module Adapters
