@@ -36,5 +36,11 @@ module DataMapper
       end
     end
     
+    module Yaml
+      def self.call(value)
+        Inflector.pluralize(Inflector.underscore(value)) + ".yaml"
+      end
+    end
+    
   end # module NamingConventions
 end # module DataMapper

@@ -22,7 +22,7 @@ module DataMapper
     # Pass an instance to add it to the IdentityMap.
     # The instance must have an assigned key.
     def set(instance)
-      key = instance.class.key(instance.loaded_set.repository).map do |property|
+      key = instance.class.key(instance.repository).map do |property|
         instance.instance_variable_get(property.instance_variable_name)
       end
       
@@ -32,8 +32,8 @@ module DataMapper
     end
     
     # Remove an instance from the IdentityMap.
-    def delete(instance)
-      @cache[mapped_class(instance.class)].delete(instance.key)
+    def delete(resource, key)
+      @cache[mapped_class(resource)].delete(key)
     end
     
     # Clears a particular set of classes from the IdentityMap.
