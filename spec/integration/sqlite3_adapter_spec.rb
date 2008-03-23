@@ -2,7 +2,6 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 require __DIR__.parent.parent + 'lib/data_mapper'
-require __DIR__.parent.parent + 'lib/data_mapper/adapters/data_objects_adapter'
 
 DataMapper.setup(:sqlite3, "sqlite3://#{Dir.getwd}/integration_test.db")
 
@@ -69,7 +68,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       game.should_not be_a_new_record
       game.should_not be_dirty
       
-      @adapter.query('SELECT "id" FROM "video_games" WHERE "name" = ?', game.name).first.should == game.id      
+      @adapter.query('SELECT "id" FROM "video_games" WHERE "name" = ?', game.name).first.should == game.id
     end
 
     it 'should be able to read a record' do
@@ -104,7 +103,15 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should be able to create a record' do
-      pending
+      customer = BankCustomer.new(:bank => 'Community Bank', :acount_number => '123456', :name => 'David Hasselhoff')
+      repository(:sqlite3).save(customer)
+      
+      customer.should_not be_a_new_record
+      customer.should_not be_dirty
+      
+      row = @adapter.query('SELECT "bank", "account_number" FROM "bank_customers" WHERE "name" = ?', customer.name).first
+      row.bank.should == customer.bank
+      row.account_number.should == customer.account_number
     end
 
     it 'should be able to read a record' do
