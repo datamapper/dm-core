@@ -8,6 +8,8 @@ module DataMapper
       def initialize(name, uri)
         @name = name
         @uri = uri
+        
+        @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
       end
       
       attr_reader :name
@@ -28,14 +30,6 @@ module DataMapper
       
       def delete(repository, instance)
         raise NotImplementedError.new
-      end
-      
-      def save(repository, instance)
-        if instance.new_record?
-          create(repository, instance)
-        else
-          update(repository, instance)
-        end
       end
 
       # Methods dealing with locating a single object, by keys
