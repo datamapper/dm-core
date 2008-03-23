@@ -267,17 +267,19 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   end
   
   describe "#delete_statement" do
-    it 'should generate SQL' do
-      pending
-      
-      # def self.delete_statement(adapter, instance)
-      #   properties = resource.properties(adapter.name)
-      #   <<-EOS.compress_lines
-      #     DELETE FROM #{adapter.quote_table_name(resource.resource_name(adapter.name))} 
-      #     WHERE #{resource.key(adapter.name).map { |key| "#{adapter.quote_column_name(key.field)} = ?" }.join(' AND ')}
-      #   EOS
-      # end
+    
+    it 'should generate a SQL statement for a serial Key' do      
+      @adapter.class::SQL.delete_statement(@adapter, Cheese.new).should eql <<-EOS.compress_lines
+        DELETE FROM "cheeses" WHERE "id" = ?
+      EOS
     end
+    
+    it "should generate a SQL statement for a Composite Key" do
+      @adapter.class::SQL.delete_statement(@adapter, LittleBox.new).should eql <<-EOS.compress_lines
+        DELETE FROM "little_boxes" WHERE "street" = ? AND "color" = ?
+      EOS
+    end
+    
   end
   
   describe "#read_statement" do
