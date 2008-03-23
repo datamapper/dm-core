@@ -22,13 +22,17 @@ module DataMapper
     # Pass an instance to add it to the IdentityMap.
     # The instance must have an assigned key.
     def set(instance)
-      key = instance.class.key(instance.repository).map do |property|
-        instance.instance_variable_get(property.instance_variable_name)
+      # TODO could we not cause a nasty bug by dropping nil value keys when the 
+      # user is using composite keys? Should we not rather raise an error if
+      # the value is nil?
+      key = []
+      instance.class.key(instance.repository).map do |property|
+        value = instance.instance_variable_get(property.instance_variable_name)
+        key << value if !value.nil?
       end
-      
-      raise "Can't store an instance with a nil key in the IdentityMap" if key.empty?
-      
-      @cache[mapped_class(instance.class)][key] = instance
+           
+      raise ArgumentError.new("+key+ must be an Array, and can not be empty") if key.empty?       
+      @cache[mapped_class(instance.class)][key] = instance      
     end
     
     # Remove an instance from the IdentityMap.

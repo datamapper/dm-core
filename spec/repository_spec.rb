@@ -25,7 +25,7 @@ describe DataMapper::Repository do
 
   it 'should call #create when #save is called on a new record' do
     repository = repository(:repository_spec)
-    instance = Vegetable.new(:name => 'Potato')
+    instance = Vegetable.new({:id => 1, :name => 'Potato'})
     
     @adapter.should_receive(:create).with(repository, instance).and_return(instance)
 

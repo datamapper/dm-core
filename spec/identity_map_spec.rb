@@ -1,9 +1,97 @@
+
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
 describe "DataMapper::IdentityMap" do
+  before(:all) do
+    class Cow
+      include DataMapper::Resource
+      property :id, Fixnum, :key => true
+      property :name, String
+    end   
+
+    class Chicken    
+      include DataMapper::Resource
+      property :name, String
+    end    
+
+    class Pig
+      include DataMapper::Resource
+      property :id, Fixnum, :key => true
+      property :composite, Fixnum, :key => true
+      property :name, String
+    end         
+  end
   
-  it "should"
+  it "should use a second level cache if created with on"
+  
+  it "should return nil on #get when it does not find the requested instance" do    
+    map = DataMapper::IdentityMap.new
+    map.get(Cow,[23]).nil?.should == true 
+  end
+  
+  it "should return an instance on #get when it finds the requested instance" do
+    betsy = Cow.new({:id=>23,:name=>'Betsy'})
+    map = DataMapper::IdentityMap.new
+    map.set(betsy)    
+    map.get(Cow,[23]).should == betsy    
+  end  
+    
+  it "should store an instance on #set" do
+    betsy = Cow.new({:id=>23,:name=>'Betsy'})
+    map = DataMapper::IdentityMap.new
+    map.set(betsy)    
+    map.get(Cow,[23]).should == betsy
+  end
+  
+  it "should raise ArgumentError on #set if there is no key property" do
+    cluck = Chicken.new({:name => 'Cluck'})
+    map = DataMapper::IdentityMap.new
+    lambda{map.set(cluck)}.should raise_error(ArgumentError)
+  end
+  
+  it "should raise ArgumentError on #set if the key property is nil" do
+    betsy = Cow.new({:name=>'Betsy'})
+    map = DataMapper::IdentityMap.new
+    lambda{ map.set(betsy)}.should raise_error(ArgumentError)    
+  end
+  
+  it "should store instances with composite keys on #set" do
+    pig = Pig.new({:id=>1,:composite=>1,:name=> 'Pig'})
+    piggy = Pig.new({:id=>1,:composite=>2,:name=>'Piggy'})
+    
+    map = DataMapper::IdentityMap.new
+    map.set(pig)
+    map.set(piggy)
+    
+    map.get(Pig,[1,1]).should == pig
+    map.get(Pig,[1,2]).should == piggy
+  end
+  
+  it "should remove an instance on #delete" do
+    betsy = Cow.new({:id=>23,:name=>'Betsy'})
+    map = DataMapper::IdentityMap.new
+    map.set(betsy)  
+    map.delete(Cow,[23])  
+    map.get(Cow,[23]).nil?.should == true
+  end
+
+  it "should remove all instances of a given class on #clear!" do
+    betsy = Cow.new({:id=>23,:name=>'Betsy'})
+    bert = Cow.new({:id=>24,:name=>'Bert'})
+    piggy = Pig.new({:id=>1,:composite=>2,:name=>'Piggy'})
+        
+    map = DataMapper::IdentityMap.new
+    map.set(betsy)
+    map.set(bert)
+    map.set(piggy)
+    map.clear!(Cow)
+    map.get(Cow,[23]).nil?.should == true
+    map.get(Cow,[24]).nil?.should == true
+    map.get(Pig,[1,2]).should == piggy
+  end
+    
+  
   
 end
 
