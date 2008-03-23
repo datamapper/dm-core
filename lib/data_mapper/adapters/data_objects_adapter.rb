@@ -376,13 +376,13 @@ module DataMapper
 
       module SQL
         def self.create_statement(adapter, instance)
-          properties = instance.class.properties(adapter.name)
+          dirty_attribute_names = instance.dirty_attributes.keys
+          properties = instance.class.properties(adapter.name).select { |property| dirty_attribute_names.include?(property.name) }
           <<-EOS.compress_lines
-            INSERT INTO #{adapter.quote_table_name(instance.class.resource_name(adapter.name))} (
-              #{properties.map { |property| adapter.quote_column_name(property.field) }.join($/)}
-            ) VALUES (
-              #{(['?'] * properties.size).join(', ')}
-            )
+            INSERT INTO #{adapter.quote_table_name(instance.class.resource_name(adapter.name))}
+            (#{properties.map { |property| adapter.quote_column_name(property.field) }.join(', ')})
+            VALUES
+            (#{(['?'] * properties.size).join(', ')})
           EOS
         end
 

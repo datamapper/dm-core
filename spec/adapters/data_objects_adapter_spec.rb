@@ -152,9 +152,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   # @mock_db.should_receive(:create_command).with('SQL STRING').and_return(@mock_command)
   
   describe "#create_statement" do
-    it 'should generate a SQL statement for all fields' do
-      pending("Resource#dirty_attributes implementation")
-      
+    it 'should generate a SQL statement for all fields' do      
       cheese = Cheese.new
       cheese.name = 'Havarti'
       cheese.color = 'Ivory'
@@ -164,21 +162,19 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       EOS
     end
     
-    it "should generate a SQL statement for only dirty fields" do
-      pending("Resource#dirty_attributes implementation")
-      
+    it "should generate a SQL statement for only dirty fields" do      
       cheese = Cheese.new
       cheese.name = 'Cheddar'
 
       @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
-        INSERT INTO "cheeses" ("name") VALUES (?, ?)
+        INSERT INTO "cheeses" ("name") VALUES (?)
       EOS
       
       cheese = Cheese.new
       cheese.color = 'Orange'
 
       @adapter.class::SQL.create_statement(@adapter, cheese).should eql <<-EOS.compress_lines
-        INSERT INTO "cheeses" ("color") VALUES (?, ?)
+        INSERT INTO "cheeses" ("color") VALUES (?)
       EOS
     end
   end
