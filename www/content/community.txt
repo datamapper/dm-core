@@ -76,6 +76,11 @@ h3. The People Behind DataMapper
   </div>
   
   <div class="thumb">
+    <img src="http://en.gravatar.com/avatar/ee5c1f36549c4ddca2189f9c4cf36f2c?s=80" title="Scott Bauer" alt="Scott Bauer" />
+    <p><a href="http://railsaddict.com">Scott Bauer</a></p>
+  </div> 
+
+  <div class="thumb">
     <img src="/images/martini.gif" title="you" alt="you could be here" />
     <p>More to come!</p>
   </div>

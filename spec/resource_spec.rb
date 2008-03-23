@@ -34,8 +34,20 @@ describe "DataMapper::Resource" do
     end
   end
   
+  it "should provide persistance methods" do
+    Planet.should respond_to(:get)
+    Planet.should respond_to(:first)
+    Planet.should respond_to(:all)
+    Planet.should respond_to(:[])
+
+    planet = Planet.new
+    planet.should respond_to(:new_record?)
+    planet.should respond_to(:save)
+    planet.should respond_to(:destroy)
+  end
+  
   it "should provide a resource_name" do
-    Planet.new respond_to(:resource_name)
+    Planet.should respond_to(:resource_name)
     Planet.resource_name(:default).should == 'planets'
     Planet.resource_name(:legacy).should == 'dying_planets'
     Planet.resource_name(:yet_another_repository).should == 'planet'
