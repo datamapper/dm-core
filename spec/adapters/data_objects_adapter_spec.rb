@@ -251,16 +251,16 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       box = LittleBox.new
       box.instance_variable_set('@street', 'Merry Lane')
       box.instance_variable_set('@color', 'Yellow')
+      box.hillside = true
       
-      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
-        UPDATE "boxes" SET "street" = ? WHERE "id" = ?
+      @adapter.class::SQL.update_statement(@adapter, box).should eql <<-EOS.compress_lines
+        UPDATE "little_boxes" SET "hillside" = ? WHERE "street" = ? AND "color" = ?
       EOS
       
-      cheese = Cheese.new
-      cheese.color = 'White'
+      box.color = 'Red'
 
-      @adapter.class::SQL.update_statement(@adapter, cheese).should eql <<-EOS.compress_lines
-        UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
+      @adapter.class::SQL.update_statement(@adapter, box).should eql <<-EOS.compress_lines
+        UPDATE "little_boxes" SET "color" = ?, "hillside" = ? WHERE "street" = ? AND "color" = ?
       EOS
     end
 
