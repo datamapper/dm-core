@@ -5,7 +5,6 @@ created_at: Tue Dec 04 13:20:00 +1030 2007
 filter:
   - erb
   - textile
-  - coderay
 --- 
 
 h1. <%= @page.title %>
@@ -29,12 +28,10 @@ h2(#trunk). Using Trunk
 
 You will also need to install the DataObject gem and the adaptor for your platform
 
-<notextile>
-<coderay lang="bash" line_numbers="inline">
-$ sudo gem install data_objects
-$ sudo gem install do_mysql
-</coderay>
-</notextile>
+<% coderay(:lang => "bash", :line_numbers => "inline") do -%>
+sudo gem install data_objects
+sudo gem install do_mysql
+<% end %>
 
 The current database adaptors are:
 

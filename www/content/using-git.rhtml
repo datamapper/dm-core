@@ -43,23 +43,31 @@ git config  --global user.email "my@email"</code></pre>
 
 <p>The supporting details could be a bulleted enumeration or an explanatory paragraph. The single summary line helps folks reviewing commits. An example commit:</p>
 
-<div class="CodeRay"><pre><code>Fixes for Module#make_my_day return values.
+<% coderay(:lang => "bash") do -%>
+Fixes for Module#make_my_day return values.
   
 * Return nil when passed ':('
 * Return true when passed ':)'
 * Updated specs for #make_my_day for nil argument case
-* Updated CI excludes.</code></pre></div>
+* Updated CI excludes.
+<% end %>
+
 <h2>Getting the Code</h2>
 
 <p>DataMapper is hosted at <a href="http://github.com">GitHub</a>. Getting the code is easy once you have git installed but is slightly different depending on your access. In both cases that exact command will put the repository in a local directory called dm. You can give it a different name just by appending it to the command.</p>
 
 <h3>New Users and Developers</h3>
 
-<div class="CodeRay"><pre><code>git clone git://github.com/sam/dm.git</code></pre></div>
+<% coderay(:lang => "bash", :line_numbers => "inline") do -%>
+git clone git://github.com/sam/dm.git
+<% end %>
 
 <h3>Committers with Commit Bit</h3>
 
-<div class="CodeRay"><pre><code>git clone git@github.com/sam/dm.git</code></pre></div>
+<% coderay(:lang => "bash", :line_numbers => "inline") do -%>
+git clone git@github.com/sam/dm.git
+<% end %>
+
 
 <h2>Commit Rights</h2>
 

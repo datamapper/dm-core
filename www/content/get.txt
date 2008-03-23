@@ -3,27 +3,23 @@ title:      Get DataMapper
 created_at: Wed Aug 29 20:37:05 +0930 2007
 filter:
   - erb
-  - coderay
   - textile
 --- 
 h1. <%= @page.title %>
 
 To get the 0.2.4 release of DataMapper you can download it here, or install it via RubyGems
 
-<notextile>
-<coderay lang="bash" line_numbers="inline">
-$ gem install datamapper
-</coderay>
-</notextile>
+<% coderay(:lang => "bash", :line_numbers => "inline") do -%>
+gem install datamapper
+<% end %>
+
 
 h1. Get the source
 
 If you feel like contributing - yes please! - you can check out the code via Subversion.
 
-<notextile>
-<coderay lang="bash" line_numbers="inline">
-$ svn co http://datamapper.rubyforge.org/svn/trunk/ data_mapper
-</coderay>
-</notextile>
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
+svn co http://datamapper.rubyforge.org/svn/trunk/ data_mapper
+<% end %>
 
 You will also need to "install the DataObjects plugin":/docs/install.html#trunk to use the trunk version of DataMapper.

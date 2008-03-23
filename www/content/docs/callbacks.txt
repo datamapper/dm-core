@@ -4,7 +4,6 @@ body_id:    docs
 created_at: Fri Nov 30 15:29:01 +1030 2007
 filter:
   - erb
-  - coderay
   - textile
 --- 
 
@@ -29,8 +28,7 @@ h3. Block or Procs
 
 Blocks and Procs are not evaluated inside the model instance. Instead they are passed a reference to the model. You should be aware of this if you need to access private methods, in which case you need to set the callbacks using a symbol or string.
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 class Post < DataMapper::Base
   before_save do |post|
     logger.info("We are saving the post")
@@ -39,15 +37,13 @@ class Post < DataMapper::Base
   
   before_destroy Proc.new {|post| logger.info("We are destroying the post #{post.name}"); true}
 end
-</coderay>
-</notextile>
+<% end %>
 
 h3. Symbol or String
 
 Symbols and Strings are treated as a reference to a method inside your model. 
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 class Post < DataMapper::Base
   after_validation :log_success
   
@@ -56,15 +52,13 @@ class Post < DataMapper::Base
     true
   end
 end
-</coderay>
-</notextile>
+<% end %>
 
 h2. True to Go, False to Stop
 
 Callbacks have to return true else the relevant action will be halted. For example if you use a before_save callback and fail to return true, the record will not save. 
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 class Post < DataMapper::Base
   # This record will save properly
   before_save do |post|
@@ -76,5 +70,4 @@ class Post < DataMapper::Base
     false
   end
 end
-</coderay>
-</notextile>
+<% end %>

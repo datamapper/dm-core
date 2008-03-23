@@ -3,7 +3,6 @@ body_id: why
 title: Why DataMapper?
 filter:
   - erb
-  - coderay
   - textile
 ---
 
@@ -15,15 +14,13 @@ h2. Identity Map
 
 One row in the database should equal one object reference. Pretty simple idea. Pretty profound impact. If you run the following code in ActiveRecord you'll see all @false@ results. Do the same in DataMapper and it's @true@ all the way down.
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 @parent = Tree.find(:first, :conditions => ['name = ?', 'bob'])
 
 @parent.children.each do |child|
   puts @parent.object_id == child.parent.object_id
 end
-</coderay>
-</notextile>
+<% end %>
 
 This makes DataMapper faster and allocate less resources to get things done.
 
@@ -33,14 +30,12 @@ In ActiveRecord, all your columns are mapped, whether you want them or not. This
 
 Unless of course you want to map to a legacy database. Raise your hand if you like seeing a method called @col2Name@ on your model just because that's what it's called in an old database you can't afford to change right now? In DataMapper you control the mappings:
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 class Fruit < DataMapper::Base
   set_table_name 'frt'
   property :name, :string, :column => 'col2'
 end
-</coderay>
-</notextile>
+<% end %>
 
 Additionally, ActiveRecord updates every column in a row during a save whether that column changed or not. So it performs work it doesn't really need to making it much slower, and more likely to eat data during concurrent access if you don't go around adding locking support to everything. 
 
@@ -52,38 +47,31 @@ Text columns are expensive in databases. They're generally stored in a different
 
 Not so with the DataMapper. Text fields are treated like in-row associations by default, meaning they only load when you need them. If you want more control you can enable or disable this feature for any column (not just text-fields) by passing a @lazy@ option to your column mapping with a value of @true@ or @false@.
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 class Animal < DataMapper::Base
   property :name, :string
   property :notes, :text, :lazy => false
 end
-</coderay>
-</notextile>
- 
+<% end %> 
+
 Plus, lazy-loading of text fields happens automatically and intelligently when working with associations.  The following only issues 2 queries to load up all of the notes fields on each animal:
 
-<notextile>
-  <coderay lang="ruby" line_number="inline">
-    animals = Animal.all
-    animals.each do |pet|
-      pet.notes
-    end
-  </coderay>
-</notextile>
-
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
+animals = Animal.all
+animals.each do |pet|
+  pet.notes
+end
+<% end %>
 
 h2. Strategic Eager Loading
 
 Ready for something amazing? The following example executes only two queries.
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 zoos = Zoo.all
 first = zoos.first
 first.exhibits # Loads the exhibits for all the Zoo objects in the zoos variable.
-</coderay>
-</notextile>
+<% end %>
 
 Pretty impressive huh? The idea is that you aren't going to load a set of objects and use only an association in just one of them. This should hold up pretty well against a 99% rule. When you don't want it to work like this, just load the item you want in it's own set. So the DataMapper thinks ahead. We like to call it "performant by default". This feature single-handedly wipes out the "N+1 Query Problem". No need to specify an @include@ option in your finders.
 
@@ -95,8 +83,7 @@ DataMapper supports issuing your own SQL, but it also provides more helpers and 
 
 It's just a little thing, but it's so much nicer than writing @Zoo.find(:all, :conditions => ['name = ?', 'Dallas'])@. What if you need other comparisons though? Try these:
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 Zoo.first(:name => 'Galveston')
 
 # 'gt' means greater-than. We also do 'lt'.
@@ -115,8 +102,7 @@ Zoo[11]
 
 # Does a NOT IN () clause for you.
 Person.all(:name.not => ['bob','rick','steve'])
-</coderay>
-</notextile>
+<% end %>
 
 See? Fewer SQL fragments dirtying your Ruby code. And that's just a few of the nice syntax tweaks DataMapper delivers out of the box...
 

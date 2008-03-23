@@ -4,7 +4,6 @@ created_at: Wed Aug 29 20:37:00 +0930 2007
 filter:
   - erb
   - textile
-  - coderay
 --- 
 h1. <%= @page.title %>
 
@@ -33,11 +32,9 @@ h2. SVN - Bug Fixes for 0.2.5 (gem before The Great Refactor)
 
 SVN development is for 0.2.5 (Stable) bug-fixes only. Edge DataMapper has moved to "Git":http://github.com/sam/dm-core
 
-<notextile>
-<coderay lang="bash" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 $ svn co http://datamapper.rubyforge.org/svn/trunk/ data_mapper
-</coderay>
-</notextile>
+<% end %>
 
 h2. Code Style Guidelines
 

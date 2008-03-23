@@ -4,7 +4,6 @@ body_id:    docs
 created_at: Tue Dec 04 14:46:32 +1030 2007
 filter:
   - erb
-  - coderay
   - textile
 --- 
 
@@ -27,34 +26,31 @@ h2. Declaring Associations
 
 This is done via declarations inside your model class. The class name of the related model is determined by the symbol you pass in. For illustration, we'll add an association of each type. Pay attention to the pluralisation or the related model's name.
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 class Post < DataMapper::Base
   has_many :comments
   has_and_belongs_to_many :categories
   belongs_to :author
 end
-</coderay>
-</notextile>
+<% end %>
+
 
 h2. Customising Associations
 
 The association declarations make certain assumptions about which classes are being related and the names of foreign keys based on some simple conventions. In some situations you may need to tweak them a little. The association declarations accept additional options to allow you to customise them as you need
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 class Post < DataMapper::Base
   belongs_to :author, :class => 'User', :foreign_key => 'user_id'
 end
-</coderay>
-</notextile>
+<% end %>
 
 h2. Creating New Records via Associations
 
 You can create an instance, update it and save or you can create and save an associated record in a single step.
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 post = Post[1]
 # Creates a new instance of Comment and sets it's foreign key to point to the post
 comment = post.comments.build
@@ -63,15 +59,13 @@ comment.attributes = {:name => 'King Rat', :body => 'London will be mine!'}
 comment.save
 # Alternately we can create a new instance and save it in one step
 post.comments.create(:name => 'Anansi', :body => 'I would lose a leg before I let you!')
-</coderay>
-</notextile>
+<% end %>
 
 h2. Has Many Through
 
 Has Many Through is a special kind of Has Many relationship which, rather than using an 'automatic' @table_table@ join table, uses another model's table.  Though at present Datamapper does no have a special syntax for defining an HMT relationship, it's very easily done manually with the following:
 
-<notextile>
-<coderay lang="ruby" line_numbers="inline">
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 class Post < DataMapper::Base
   has_many :categories,
      :join_table => "categorizations",
@@ -79,6 +73,5 @@ class Post < DataMapper::Base
      :right_foreign_key => "category_id",
      :class => "Category"
 end
-</coderay>
-</notextile>
+<% end %>
 

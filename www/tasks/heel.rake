@@ -1,26 +1,28 @@
 
-if HAVE_HEEL
-
 namespace :heel do
 
-  desc 'start the heel server to view website'
-  task :run do
-    sh "heel --root #{SITE.output_dir} --daemonize"
+  desc 'Start the heel server to view website (not for Windows)'
+  task :start do
+    sh "heel --root #{SITE.output_dir} --port #{SITE.heel_port} --daemonize"
   end
-
-  desc 'stop the heel server'
-  task :kill do
+  
+  desc 'Stop the heel server'
+  task :stop do
     sh "heel --kill"
   end
 
-  task :autobuild => :run do
-    at_exit {sh "heel --kill"}
+  task :autorun do
+    heel_exe = File.join(Gem.bindir, 'heel')
+    @heel_spawner = Spawner.new(Spawner.ruby, heel_exe, '--root', SITE.output_dir, '--port', SITE.heel_port.to_s, :pause => 86_400)
+    @heel_spawner.start
+  end
+
+  task :autobuild => :autorun do
+    at_exit {@heel_spawner.stop if defined? @heel_spawner and not @heel_spawner.nil?}
   end
 
 end
 
 task :autobuild => 'heel:autobuild'
-
-end  # HAVE_HEEL
 
 # EOF
