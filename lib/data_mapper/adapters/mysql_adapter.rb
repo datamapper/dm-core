@@ -6,10 +6,6 @@ module DataMapper
     
     class MysqlAdapter < DataObjectsAdapter
       
-      def create_connection
-        DataObjects::Mysql::Connection.new(@uri)
-      end
-      
       def quote_table_name(table_name)
         table_name.ensure_wrapped_with('`')
       end
