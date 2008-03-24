@@ -251,11 +251,11 @@ module DataMapper
       end
 
       def quote_table_name(table_name)
-        table_name.gsub('"', '\"').ensure_wrapped_with('"')
+        table_name.gsub('"', '""').ensure_wrapped_with('"')
       end
 
       def quote_column_name(column_name)
-        column_name.gsub('"', '\"').ensure_wrapped_with('"')
+        column_name.gsub('"', '""').ensure_wrapped_with('"')
       end
       
     end # class DoAdapter
