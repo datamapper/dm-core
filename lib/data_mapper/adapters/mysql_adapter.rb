@@ -7,10 +7,7 @@ module DataMapper
     class MysqlAdapter < DataObjectsAdapter
       
       def create_connection
-        DataObjects::Connection.new(@uri)
-        # TODO: The above returns a connection from the pool built-in to DataObjects, NOT
-        # a new Connection. So the URI should probably have a charset=UTF8 param by default.
-        # cmd = conn.create_command("SET NAMES UTF8")
+        DataObjects::Mysql::Connection.new(@uri)
       end
       
       def quote_table_name(table_name)

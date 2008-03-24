@@ -29,16 +29,36 @@ module DataMapper
         Object   => 'text'.freeze
       }
       
-      def transaction(&block)
+      def begin_transaction
+        raise NotImplementedError.new
+      end
+      
+      def commit_transaction
+        raise NotImplementedError.new
+      end
+      
+      def rollback_transaction
         raise NotImplementedError.new
       end
       
       def within_transaction?
-        false
+        !Thread::current["doa_#{@uri.scheme}_transaction"].nil?
       end
       
+      # DataObjects::Connection.new(uri) will give you back the right 
+      # driver based on the scheme, so we can implement this directly
+      # in the DataObjectsAdapter for a little flexibility. We can
+      # avoid a few method calls and const-lookups by overwriting
+      # this in the respective adapters however. For example:
+      #
+      #   # For Mysql without the const-lookups:
+      #   DataObjects::Mysql::Connection.new(@uri)
       def create_connection
-        DataObjects::Connection.new(@uri)
+        if within_transaction?
+          Thread::current["doa_#{@uri.scheme}_transaction"]
+        else
+          DataObjects::Connection.new(@uri)
+        end
       end
       
       def close_connection(connection)
