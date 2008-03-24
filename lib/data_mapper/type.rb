@@ -37,7 +37,6 @@ module DataMapper
   #       <work some magic>
   #     end
   #   end
-  #
   class Type
     #TODO: figure out a way to read this from DataMapper::Property without cyclic require(s)
     #This should ALWAYS mirror DataMapper::Property::PROPERTY_OPTIONS, with the exception of aliases
