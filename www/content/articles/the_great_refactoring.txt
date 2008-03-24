@@ -14,7 +14,7 @@ h1. <%= @page.title %>
 
 "Tip" DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a dramatic re-factor.  Here's a quick summary of the anticipated NEW public API.
 
-h2. Not just for databases anymore
+h2. Not Just for Databases Anymore
 
 DataMapper's class terminology will change and 'de-couple' itself from database-specific terminology.  Gone are "database", "table", "column" and "join".  Say hello to "Repository", "Resource", "Property", and "Link".
 
@@ -22,7 +22,7 @@ DataMapper's class terminology will change and 'de-couple' itself from database-
 
 As an added benefit, DataMapper become more "RESTful". "Ryan Tomayko":http://tomayko.com/writings/rest-to-my-wife has a very good explanation of REST that all should read entitled "How I Explained REST to My Wife":http://tomayko.com/writings/rest-to-my-wife.
 
-h2. Model definitions are a little different
+h2. Model Definitions Are a Little Different
 
 Since we're changing up the terminology, model definitions are going to change up a little bit.  Here's what a Planet model would look like using the new API:
 
@@ -63,7 +63,7 @@ An IRB session boots up...
 
 This is very similar to @script/console@ in Rails or @merb -i@ in Merb, only it won't load up the entire environment of your application, just your DataMapper resources and their associations, methods, and such.  If you prefer "fat models", this will constitute the core of your application.
 
-h2. How this all comes together
+h2. How This All Comes Together
 
 This is the coolest new feature of DataMapper: we're skipping all the way from 0.3.0 to 0.9! Get excited, contact the press, fire up the blogosphere!  Its a huge jump and we're honestly concerned that people may not be able to handle it. 
 
