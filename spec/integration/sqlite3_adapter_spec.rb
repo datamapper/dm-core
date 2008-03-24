@@ -118,7 +118,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
     
     after do
-      #@adapter.execute('DROP TABLE "video_games"')
+      @adapter.execute('DROP TABLE "video_games"')
     end
   end
   
