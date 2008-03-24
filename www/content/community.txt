@@ -12,6 +12,8 @@ Like all open-source projects, DataMapper has a burgeoning community.
 h3. Links, Blogs, Wiki's, and Stuff
 
 <dl>
+  <dt><a href="/news.html">News and Notes</a></dt>
+  <dd>Official News and other contributed articles</dd>
   <dt><a href="http://wiki.datamapper.org/doku.php">Wiki</a></dt>
   <dd>Official Wiki</dd>
   <dt><a href="http://github.com/sam/dm-core/tree/master">DM on GitHub</a></dt>

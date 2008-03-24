@@ -1,0 +1,80 @@
+--- 
+body_id: news
+title: The Great Refactoring
+created_at: Sun Mar 22 15:55:50 -0500 2008
+summary: Change is afoot
+release_type: blog
+author: Adam
+filter:
+  - erb
+  - textile
+---
+
+h1. <%= @page.title %>
+
+"Tip" DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a dramatic re-factor.  Here's a quick summary of the anticipated NEW public API.
+
+h2. Not Just for Databases Anymore
+
+DataMapper's class terminology will change and 'de-couple' itself from database-specific terminology.  Gone are "database", "table", "column" and "join".  Say hello to "Repository", "Resource", "Property", and "Link".
+
+"Why would you want to do that?", you ask. Ultimately it's because DataMapper will soon support different types of persistence layers, not just databases.  It'll talk to all sorts of things like web services (REST and such), XML files, YAML files, non-relational databases, even custom file-types or services of your own design.  Just implement an Adapter that conforms to a certain API and DataMapper could support any type of data store.  No need for a completely separate library or anything.
+
+As an added benefit, DataMapper become more "RESTful". "Ryan Tomayko":http://tomayko.com/writings/rest-to-my-wife has a very good explanation of REST that all should read entitled "How I Explained REST to My Wife":http://tomayko.com/writings/rest-to-my-wife.
+
+h2. Model Definitions Are a Little Different
+
+Since we're changing up the terminology, model definitions are going to change up a little bit.  Here's what a Planet model would look like using the new API:
+
+<% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
+class Planet
+  
+  include DataMapper::Resource
+  
+  resource_names[:legacy] = "dying_planets"
+  
+  property :name, String
+  property :age, Fixnum
+  property :core, String, :private => true
+  
+end
+<% end %>
+
+A couple of things are going on here.  First, DataMapper::Base and DataMapper::Persistence are gone and replaced with DataMapper::Resource.  Next @set_table_name@ has been replaced with @resource_names@ hash where you specify which arena play occurs in. After that we have a couple of Property definitions that look a little different.
+
+First off, Properties will no longer take @:symbols@ for their types and instead take real constants like String, Fixnum, DateTime.  Also on the docket are the ability to define your own custom types.
+
+Think about that for a minute.  If developers are able to define their own custom types with their own materialization and serialization methods, DataMapper will be able to support all kinds of wild data-types like GIS information, network information, marshaled objects, JSON...pretty much anything a developer might need, or want.
+
+h2. A Command-Line Interface
+
+Taking a lesson from web frameworks, DataMapper will sport an interactive command-line so that you can browse your resources without the need to load up the entire environment of your application.  Here's an example session:
+
+<% coderay(:lang => "bash", :line_numbers => "inline") do -%>
+$ dm mysql://root@localhost/great_musicians # connecting to a repository
+<% end %>
+
+An IRB session boots up...
+
+<% coderay(:lang => "ruby") do -%>
+>> the_king = Person.first(:name => 'elvis')
+>> the_king.alive? # => maybe
+<% end %>
+
+This is very similar to @script/console@ in Rails or @merb -i@ in Merb, only it won't load up the entire environment of your application, just your DataMapper resources and their associations, methods, and such.  If you prefer "fat models", this will constitute the core of your application.
+
+h2. How This All Comes Together
+
+This is the coolest new feature of DataMapper: we're skipping all the way from 0.3.0 to 0.9! Get excited, contact the press, fire up the blogosphere!  Its a huge jump and we're honestly concerned that people may not be able to handle it. 
+
+Alright, so it's not _that_ big of a deal, but we're confident that all of this will get DataMapper so close to going 1.0 that we'll be able to taste it.  To get there, DataMapper's more advanced features like single table inheritance, paranoia, and chained associations will be re-implimented to use all this new stuff, and then we're sure 0.9 will need a touch up or two.
+
+So close....so very very close...
+
+Stay tuned in to the "mailing list":http://groups.google.com/group/datamapper, check up on the "wiki":http://wiki.datamapper.org/doku.php, chat it up in "#datamapper":irc://irc.freenode.net/#datamapper and watch "github commit messages":http://github.com/sam/dm-core/commits/master for updates.
+
+
+
+
+
+

@@ -1,0 +1,22 @@
+--- 
+body_id: news
+title: 0.3.0 Gem Released!
+created_at: Tue Mar 18 15:55:50 -0500 2008
+summary: DataMapper 0.3.0 has been released.
+release_type: important
+author: Sam
+filter:
+  - erb
+  - textile
+---
+
+h1. <%= @page.title %>
+
+0.3.0 is a maintenance release, bringing minor bug-fixes and minimal new features to DataMapper 0.2.5. This is the latest stable gem using database terminology and metaphors.
+
+This changeset includes:
+
+* Updated documentation, now with quick links to commonly used sections and FAQs
+* Fixed bugs related to @loaded_associations@
+* Improved support for @:dependant => :destroy@ and @:dependent => :protect@
+* Other updates, fixes, and patches from bugs reports
