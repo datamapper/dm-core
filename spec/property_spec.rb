@@ -1,6 +1,45 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
+describe DataMapper::Property do
+  
+  before(:all) do
+    class Zoo
+      include DataMapper::Resource
+    end
+
+    class Name < DataMapper::Type
+      primitive String
+      size 100
+    end
+  end
+  
+  it "should create a String property" do
+    property = DataMapper::Property.new(Zoo, :name, String, { :size => 30 })
+    
+    property.primitive.should == String
+  end
+  
+  it "should use a custom type Name property" do
+    class Name < DataMapper::Type
+      primitive String
+    end
+    
+    property = DataMapper::Property.new(Zoo, :name, Name, {})
+    
+    property.primitive.should == String
+    property.type.should == Name
+    property.primitive.should == property.type.primitive
+  end
+  
+  it "should override type options with property options" do
+    property = DataMapper::Property.new(Zoo, :name, Name, { :size => 50 })
+    options = property.instance_variable_get(:@options)
+    
+    options[:size].should == 50
+  end
+end
+
 # describe DataMapper::Property do
 #   
 #   before(:all) do
