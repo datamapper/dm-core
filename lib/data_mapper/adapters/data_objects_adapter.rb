@@ -45,18 +45,18 @@ module DataMapper
         !Thread::current["doa_#{@uri.scheme}_transaction"].nil?
       end
       
-      # DataObjects::Connection.new(uri) will give you back the right 
-      # driver based on the scheme, so we can implement this directly
-      # in the DataObjectsAdapter for a little flexibility. We can
-      # avoid a few method calls and const-lookups by overwriting
-      # this in the respective adapters however. For example:
-      #
-      #   # For Mysql without the const-lookups:
-      #   DataObjects::Mysql::Connection.new(@uri)
       def create_connection
         if within_transaction?
           Thread::current["doa_#{@uri.scheme}_transaction"]
         else
+          # DataObjects::Connection.new(uri) will give you back the right 
+          # driver based on the scheme, so we can implement this directly
+          # in the DataObjectsAdapter for a little flexibility. We can
+          # avoid a few method calls and const-lookups by overwriting
+          # this in the respective adapters however. For example:
+          #
+          #   # For Mysql without the const-lookups:
+          #   DataObjects::Mysql::Connection.new(@uri)
           DataObjects::Connection.new(@uri)
         end
       end
