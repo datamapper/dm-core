@@ -1,6 +1,43 @@
 #require __DIR__ + 'property'
 
 module DataMapper
+
+  # :include:/QUICKLINKS
+  #
+  # = Types
+  # Provides means of writing custom types for properties. Each type is based
+  # on a ruby primitive and handles its own serialization and materialization,
+  # and therefore is responsible for providing those methods.
+  # 
+  # To see complete list of supported types, see documentation for
+  # DataMapper::Property::TYPES
+  #
+  # == Defining new Types
+  # To define a new type, subclass DataMapper::Type, pick ruby primitive, and
+  # set the options for this type.
+  # 
+  #   class MyType < DataMapper::Type
+  #     primitive String
+  #     size 10
+  #   end
+  # 
+  # Following this, you will be able to use MyType as a type for any given
+  # property. If special materialization and serialization is required,
+  # override the class methods
+  #
+  #   class MyType < DataMapper::Type
+  #     primitive String
+  #     size 10
+  #
+  #     def self.materialize(value)
+  #       <work some magic>
+  #     end
+  #
+  #     def self.serialize(value)
+  #       <work some magic>
+  #     end
+  #   end
+  #
   class Type
     #TODO: figure out a way to read this from DataMapper::Property without cyclic require(s)
     #This should ALWAYS mirror DataMapper::Property::PROPERTY_OPTIONS, with the exception of aliases
@@ -15,6 +52,18 @@ module DataMapper
     class << self
       #attr_accessor :primitive #map to Ruby type
       
+      # The Ruby primitive type to use as basis for this type. See
+      # DataMapper::Property::TYPES for list of types.
+      #
+      # ==== Parameters
+      # primitive<Class, nil>::
+      #   The class for the primitive. If nil is passed in, it returns the
+      #   current primitive
+      #
+      # ==== Returns
+      # Class:: if the <primitive> param is nil, return the current primitive.
+      #
+      # @public
       def primitive(primitive = nil)
         return @primitive if primitive.nil?
         
@@ -43,6 +92,12 @@ module DataMapper
         end
       end
       
+      # Gives all the options set on this type
+      #
+      # ==== Returns
+      # Hash:: with all options and their values set on this type
+      #
+      # @public
       def options
         PROPERTY_OPTIONS.inject({}) do |options, method|
           value = send(method)
@@ -51,11 +106,32 @@ module DataMapper
       end
     end
     
+    # Stub instance method for materialization
+    #
+    # ==== Parameters
+    # value<Object, nil>::
+    #   The value to materialize
+    #
+    # ==== Returns
+    # Object:: Materialized object
+    #
+    #
+    # @public
     def self.materialize(value)
       raise NotImplementedError
     end
     
-    # Must return a value of type :primitive, or nil.
+    # Stub instance method for serialization
+    #
+    # ==== Parameters
+    # value<Object, nil>::
+    #   The value to serialize
+    #
+    # ==== Returns
+    # Object:: Serialized object. Must be the same type as the ruby primitive
+    #
+    #
+    # @public
     def self.serialize(value)
       raise NotImplementedError
     end
