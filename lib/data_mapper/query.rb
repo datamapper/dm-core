@@ -105,7 +105,7 @@ module DataMapper
     # validate that it is valid for the resource?
 
     def append_condition!(clause, value)
-      @conditions << case clause
+      @conditions.push case clause
         when Symbol::Operator : [ clause.type, clause.value, value ]
         when Symbol           : [ :eql,        clause,       value ]
         when String           : value.nil? ? [ clause ] : [ clause, Array(value) ]  # when passed in a raw Query
@@ -151,7 +151,6 @@ module DataMapper
               when :gt,  :gte  : [ value, other_value ].min
               when :lt,  :lte  : [ value, other_value ].max
               when :not, :in   : Array(value) | Array(other_value)
-              else value
             end
 
             next  # process the next other condition
@@ -159,7 +158,7 @@ module DataMapper
         end
 
         # otherwise append the other condition
-        @conditions << [ other_operator, other_clause, other_value ]
+        @conditions << other_condition.dup
       end
     end
   end # class Query

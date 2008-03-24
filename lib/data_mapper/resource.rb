@@ -280,7 +280,7 @@ module DataMapper
       
       def [](key)
         instance = get(key)
-        raise ObjectNotFoundError.new "Could not find #{self.name} with key: #{key.inspect}"
+        raise ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}"
         
         instance
       end

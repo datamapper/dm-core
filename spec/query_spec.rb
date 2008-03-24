@@ -54,7 +54,7 @@ describe DataMapper::Query do
       end
 
       GOOD_OPTIONS.each do |(attribute,value)|
-        it "##{attribute} with options[:#{attribute}]" do
+        it "##{attribute} with options[:#{attribute}] if it is #{value.inspect}" do
           query = DataMapper::Query.new(Article, attribute => value)
           query.send(attribute).should == value
         end
@@ -204,8 +204,8 @@ describe DataMapper::Query do
     describe 'should append the attribute' do
       [ :order, :fields, :link, :include ].each do |attribute|
         it "##{attribute} with other #{attribute} unique values" do
-          other = DataMapper::Query.new(Comment, attribute => [ :other, :stub ])
-          @query.update(other).send(attribute).should == [ :stub, :other ]
+          other = DataMapper::Query.new(Comment, attribute => [ :other, :stub, :new ])
+          @query.update(other).send(attribute).should == [ :stub, :other, :new ]
         end
       end
 
@@ -215,7 +215,7 @@ describe DataMapper::Query do
 
         # update the conditions, but merge the conditions together
         other = DataMapper::Query.new(Comment, :author => 'dkubb')
-        @query.update(other).conditions == [ [ :eql, :title, 'On DataMapper' ], [ :eql, :author, 'dkubb' ] ]
+        @query.update(other).conditions.should == [ [ :eql, :title, 'On DataMapper' ], [ :eql, :author, 'dkubb' ] ]
       end
 
       [ :not, :in ].each do |operator|
@@ -234,8 +234,8 @@ describe DataMapper::Query do
         @query.update(:title => 'On DataMapper')
 
         # update the conditions, but merge the conditions together
-        other = DataMapper::Query.new(Comment, :conditions => [ 'author = "dkubb"' ] )
-        @query.update(other).conditions == [ [ :eql, :title, 'On DataMapper' ], [ 'author = "dkubb"' ] ]
+        other = DataMapper::Query.new(Comment, :conditions => [ 'author = "dkubb"' ])
+        @query.update(other).conditions.should == [ [ :eql, :title, 'On DataMapper' ], [ 'author = "dkubb"' ] ]
       end
 
       it '#conditions with other conditions when they have a two or more element condition' do
@@ -243,8 +243,8 @@ describe DataMapper::Query do
         @query.update(:title => 'On DataMapper')
 
         # update the conditions, but merge the conditions together
-        other = DataMapper::Query.new(Comment, :conditions => [ 'author = ?', 'dkubb' ] )
-        @query.update(other).conditions == [ [ :eql, :title, 'On DataMapper' ], [ 'author = ?', [ 'dkubb' ] ] ]
+        other = DataMapper::Query.new(Comment, :conditions => [ 'author = ?', 'dkubb' ])
+        @query.update(other).conditions.should == [ [ :eql, :title, 'On DataMapper' ], [ 'author = ?', [ 'dkubb' ] ] ]
       end
     end
 
@@ -286,14 +286,21 @@ describe DataMapper::Query do
   end
 
   describe '#merge' do
+    before do
+      @query = DataMapper::Query.new(Article)
+    end
+
     it 'should pass arguments as-is to duplicate object\'s #update method' do
-      query      = DataMapper::Query.new(Article)
-      dupe_query = query.dup
-
-      query.should_receive(:dup).with(no_args).ordered.and_return(dupe_query)
+      dupe_query = @query.dup
+      @query.should_receive(:dup).with(no_args).ordered.and_return(dupe_query)
       dupe_query.should_receive(:update).with(:author => 'dkubb').ordered
+      @query.merge(:author => 'dkubb')
+    end
 
-      query.merge(:author => 'dkubb')
+    it 'should return the duplicate object' do
+      dupe_query = @query.merge(:author => 'dkubb')
+      @query.object_id.should_not == dupe_query.object_id
+      @query.merge(:author => 'dkubb').should == dupe_query
     end
   end
 
