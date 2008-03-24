@@ -9,10 +9,6 @@ describe DataMapper::Scope do
     end
   end
 
-  before do
-    @basic_query = DataMapper::Query.new(Article)
-  end
-
   after do
     Article.publicize_methods do
       Article.scope_stack.clear  # reset the stack before each spec
