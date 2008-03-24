@@ -67,6 +67,10 @@ module DataMapper
       @dirty_attributes || @dirty_attributes = Hash.new
     end
     
+    def dirty?
+      !@dirty_attributes.blank?
+    end
+    
     def attribute_dirty?(name)
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
       dirty_attributes.include?(name)

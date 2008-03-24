@@ -200,6 +200,7 @@ module DataMapper
       @lazy = @options.has_key?(:lazy) ? @options[:lazy] : @type == Text
       
       @key = (@options[:key] || @options[:serial]) == true
+      @serial = @options.fetch(:serial, false)
       
       validate_options!
       determine_visibility!
@@ -323,6 +324,10 @@ module DataMapper
     
     def key?
       @key
+    end
+    
+    def serial?
+      @serial
     end
   end
 end

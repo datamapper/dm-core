@@ -9,6 +9,15 @@ module DataMapper
     def name(name)
       @cache_by_names[name]
     end
+    
+    alias __rb_select select
+    def select(*args, &b)
+      if block_given?
+        super
+      else
+        __rb_select { |property| args.include?(property.name) }
+      end
+    end
   end
   
 end

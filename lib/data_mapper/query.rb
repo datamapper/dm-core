@@ -4,30 +4,30 @@ module DataMapper
       :reload, :offset, :limit, :order, :fields, :link, :include, :conditions
     ]
 
-    attr_reader :adapter, :model, *OPTIONS
+    attr_reader :resource, *OPTIONS
 
-    def initialize(adapter, model, options = {})
-      # TODO: assert adapter and model are expected object types
+    def initialize(resource, options = {})
+      # TODO: assert resource is the expected object type
 
-      # TODO: abstact into assert_boolean_keys!(options, *keys) helper
-      if options.has_key?(:reload) && reload != true && reload != false
-        raise ArgumentError, ":relad must be true or false, but was #{conditions_option.inspect}"
+      if options.has_key?(:reload) && options[:reload] != true && options[:reload] != false
+        raise ArgumentError, ":reload must be true or false, but was #{options[:reload].inspect}"
       end
 
-      # TODO: abstract into assert_integer_keys!(options, *keys) helper
       ([ :offset, :limit ] & options.keys).each do |attribute|
-        option = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Integer, but was #{option.inspect}" unless option.kind_of?(Integer)
+        value = options[attribute]
+        raise ArgumentError, ":#{attribute} must be an Integer, but was #{value.inspect}" unless value.kind_of?(Integer)
+        raise ArgumentError, ":#{attribute} must be greater than or equal to 0" unless value >= 0
       end
 
-      # TODO: abstract into assert_array_keys!(options, *keys) helper
+      # TODO: document what each of the Array-options can contain
+
       ([ :order, :fields, :link, :include, :conditions ] & options.keys).each do |attribute|
-        option = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Array, but was #{option.inspect}" unless option.kind_of?(Array)
-        raise ArgumentError, ":#{attribute} cannot be an empty Array" unless option.any?
+        value = options[attribute]
+        raise ArgumentError, ":#{attribute} must be an Array, but was #{value.inspect}" unless value.kind_of?(Array)
+        raise ArgumentError, ":#{attribute} cannot be an empty Array" unless value.any?
       end
 
-      @adapter, @model = adapter, model
+      @resource = resource
 
       @reload     = options.fetch :reload,  false
       @offset     = options.fetch :offset,  0
@@ -49,9 +49,9 @@ module DataMapper
     end
 
     def update(other)
-      other = self.class.new(adapter, model, other) unless other.kind_of?(self.class)
+      other = self.class.new(resource, other) if other.kind_of?(Hash)
 
-      @adapter, @model, @reload = other.adapter, other.model, other.reload
+      @resource, @reload = other.resource, other.reload
 
       @offset = other.offset if other.offset
       @limit  = other.limit  if other.limit
@@ -73,7 +73,7 @@ module DataMapper
     private
 
     def initialize_copy(original)
-       @conditions = original.conditions.map { |tuple| tuple.dup }
+      @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 
     def append_condition!(clause, value)
@@ -105,6 +105,7 @@ module DataMapper
       # loop over each of the other's conditions, and overwrite the
       # conditions when in conflict
       other.conditions.each do |other_condition|
+        next unless other_condition.size == 3
         other_operator, other_clause, other_value = *other_condition
 
         if condition = conditions_index[other_clause][other_operator]

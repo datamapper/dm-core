@@ -160,27 +160,17 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   
   describe "#create_statement" do
     it 'should generate a SQL statement for all fields' do      
-      cheese = Cheese.new
-      cheese.name = 'Havarti'
-      cheese.color = 'Ivory'
-      
-      @adapter.create_statement(cheese).should == <<-EOS.compress_lines
+      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).select(:name, :color)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name", "color") VALUES (?, ?)
       EOS
     end
     
-    it "should generate a SQL statement for only dirty fields" do      
-      cheese = Cheese.new
-      cheese.name = 'Cheddar'
-
-      @adapter.create_statement(cheese).should == <<-EOS.compress_lines
+    it "should generate a SQL statement for only dirty fields" do
+      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).select(:name)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name") VALUES (?)
       EOS
-      
-      cheese = Cheese.new
-      cheese.color = 'Orange'
 
-      @adapter.create_statement(cheese).should == <<-EOS.compress_lines
+      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).select(:color)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("color") VALUES (?)
       EOS
     end
@@ -189,27 +179,17 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   describe "#create_statement_with_returning" do
     
     it 'should generate a SQL statement for all fields' do      
-      cheese = Cheese.new
-      cheese.name = 'Swiss'
-      cheese.color = 'White'
-      
-      @adapter.create_statement_with_returning(cheese).should == <<-EOS.compress_lines
+      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).select(:name, :color)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name", "color") VALUES (?, ?) RETURNING "id"
       EOS
     end
     
     it "should generate a SQL statement for only dirty fields" do      
-      cheese = Cheese.new
-      cheese.name = 'Munster'
-
-      @adapter.create_statement_with_returning(cheese).should == <<-EOS.compress_lines
+      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).select(:name)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name") VALUES (?) RETURNING "id"
       EOS
       
-      cheese = Cheese.new
-      cheese.color = 'White'
-
-      @adapter.create_statement_with_returning(cheese).should == <<-EOS.compress_lines
+      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).select(:color)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("color") VALUES (?) RETURNING "id"
       EOS
     end
