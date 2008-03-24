@@ -215,3 +215,11 @@ div.yearbook div.thumb {
 div.yearbook div.thumb p {
   margin:auto -0.5em;
 }
+small {
+  font-size:.8em;
+}
+
+blockquote {
+  margin: auto 1em;
+  font-style: italic;
+}

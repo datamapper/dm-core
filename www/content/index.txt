@@ -10,14 +10,13 @@ DataMapper is a "Object Relational Mapper":http://en.wikipedia.org/wiki/Object-r
 
 To learn a little more about this project and why you should be interested, read the "Why Datamapper?":/why.html page.
 
-h2(newRelease). 0.3.0 is out!
+<% update = @pages.find(1, :in_directory => "articles", :sort_by => "created_at", :reverse => true, :release_type => 'important')
+%>
 
-p(newRelease). 0.3.0 is a maintenance release, bringing minor bug-fixes and minimal new features to DataMapper 0.2.5. This is the latest stable gem using database terminology and metaphors.
+h2(newRelease). <%= update.title %>
 
+p(newRelease). <%= update.summary %> <a href="<%= update.url %>" class="read_more">Read More</a>
 
-h2(newRelease). The Great Refactoring
-
-p(newRelease). "Tip" DataMapper (hosted on "github":http://github.com/sam/dm-core) is going through a dramatic re-factor.  The public API is being uncoupled from database-specific terminology and will soon support other persistence layers like XML and RESTful web-services.  "Tip" is not stable by any stretch of the imagination and should only be used for experimental purposes. Watch "github commit messages":http://github.com/sam/dm-core/commits/master for updates.
 
 h1. Examples using 0.3.0
 
