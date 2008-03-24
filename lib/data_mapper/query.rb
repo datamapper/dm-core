@@ -1,5 +1,9 @@
+# TODO: define exception classes instead of using ArgumentError everywhere
+
 module DataMapper
   class Query
+    # XXX: since :fields and :conditions are plural, shouldn't :link and :include
+    # also be pluralized?  Not sure :order can be pluralized and still make sense tho
     OPTIONS = [
       :reload, :offset, :limit, :order, :fields, :link, :include, :conditions
     ]
@@ -34,7 +38,7 @@ module DataMapper
       @fields     = options.fetch :fields,  []     # TODO: must be an Array of ??
       @link       = options.fetch :link,    []     # TODO: must be an Array of ??
       @include    = options.fetch :include, []     # TODO: must be an Array of ??
-      @conditions = []                             # must be an Array of triplit (or pairs when passing in raw String queries)
+      @conditions = []                             # must be an Array of triplets (or pairs when passing in raw String queries)
 
       (options.keys - OPTIONS).each do |k|
         append_condition!(k, options[k])
@@ -51,8 +55,8 @@ module DataMapper
 
       @resource, @reload = other.resource, other.reload
 
-      @offset = other.offset if other.offset > 0
-      @limit  = other.limit  if other.limit
+      @offset = other.offset unless other.offset == 0
+      @limit  = other.limit  unless other.limit.nil?
 
       @order   |= other.order
       @fields  |= other.fields
@@ -68,9 +72,22 @@ module DataMapper
       self.dup.update(other)
     end
 
+    def ==(other)
+      @resource   == other.resource &&
+      @reload     == other.reload   &&
+      @offset     == other.offset   &&
+      @limit      == other.limit    &&
+      @order      == other.order    &&
+      @fields     == other.fields   &&
+      @link       == other.link     &&
+      @include    == other.include  &&
+      @conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ]  } == other.conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ]  }
+    end
+
     private
 
     def initialize_copy(original)
+      # deep-copy the condition tuples when copying the object
       @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 

@@ -1,28 +1,16 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
-# NOTE: These specs mock out DM::Query, since it is currently in the burn
-# folder.  Once that class is pulled into core, I expect these specs to
-# change and simplify considerably.  Instead of mocking the object, I would
-# likely just inspect the current_scope within the scoped block to see if it
-# matches my expectations.  This should be enough to know whether or not the
-# passed-in conditions were merged properly with the existing scope.
-
 describe DataMapper::Scope do
   before :all do
     class Article
+      include DataMapper::Resource
       include DataMapper::Scope
-    end
-
-    class DataMapper::Query
-      # FIXME: stub this out until DM::Query is moved from burn into lib
     end
   end
 
   before do
-    @dm_query = mock('DataMapper::Query')
-    @dm_query.stub!(:merge)
-    DataMapper::Query.stub!(:new).and_return(@dm_query)
+    @basic_query = DataMapper::Query.new(Article)
   end
 
   after do
@@ -39,32 +27,25 @@ describe DataMapper::Scope do
 
     it 'should set the current scope for the block when given a Hash' do
       Article.publicize_methods do
-        DataMapper::Query.should_receive(:new).with(Article, :blog_id => 1).once.and_return(@dm_query)
-
         Article.with_scope :blog_id => 1 do
-          Article.current_scope.should == @dm_query
+          Article.current_scope.should == DataMapper::Query.new(Article, :blog_id => 1)
         end
       end
     end
 
     it 'should set the current scope for the block when given a DataMapper::Query' do
       Article.publicize_methods do
-        Article.with_scope @dm_query do
-          Article.current_scope.should == @dm_query
+        Article.with_scope query = DataMapper::Query.new(Article) do
+          Article.current_scope.should == query
         end
       end
     end
 
     it 'should set the current scope for an inner block, merged with the outer scope' do
       Article.publicize_methods do
-        DataMapper::Query.should_receive(:new).with(Article, :blog_id => 1).once.ordered.and_return(@dm_query)
-
         Article.with_scope :blog_id => 1 do
-          nested_query = mock('Nested DataMapper::Query')
-          @dm_query.should_receive(:merge).with(:author => 'dkubb').once.ordered.and_return(nested_query)
-
           Article.with_scope :author => 'dkubb' do
-            Article.current_scope.should == nested_query
+            Article.current_scope.should == DataMapper::Query.new(Article, :blog_id => 1, :author => 'dkubb')
           end
         end
       end
@@ -89,16 +70,9 @@ describe DataMapper::Scope do
 
     it 'should set the current scope for an inner block, ignoring the outer scope' do
       Article.publicize_methods do
-        DataMapper::Query.should_receive(:new).with(Article, :blog_id => 1).once.ordered.and_return(@dm_query)
-        @dm_query.should_not_receive(:merge)
-
         Article.with_scope :blog_id => 1 do
-          exclusive_query = mock('Exclusive DataMapper::Query')
-          exclusive_query.should_not_receive(:merge)
-          DataMapper::Query.should_receive(:new).with(Article, :author => 'dkubb').once.ordered.and_return(exclusive_query)
-
           Article.with_exclusive_scope :author => 'dkubb' do
-            Article.current_scope.should == exclusive_query
+            Article.current_scope.should == DataMapper::Query.new(Article, :author => 'dkubb')
           end
         end
       end
@@ -158,8 +132,9 @@ describe DataMapper::Scope do
 
     it 'should return the last element of the scope stack' do
       Article.publicize_methods do
-        Article.scope_stack << @dm_query
-        Article.current_scope.object_id.should == @dm_query.object_id
+        query = DataMapper::Query.new(Article)
+        Article.scope_stack << query
+        Article.current_scope.object_id.should == query.object_id
       end
     end
   end
