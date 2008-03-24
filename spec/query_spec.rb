@@ -3,16 +3,16 @@ require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
 describe DataMapper::Query do
   GOOD_OPTIONS = [
-    [ :reload,  false,     ],
-    [ :reload,  true,      ],
-    [ :offset,  0,         ],
-    [ :offset,  1,         ],
-    [ :limit,   1,         ],
-    [ :limit,   2,         ],
-    [ :order,   [ :stub ], ], # TODO: fill in allowed default value
-    [ :fields,  [ :stub ], ], # TODO: fill in allowed default value
-    [ :link,    [ :stub ], ], # TODO: fill in allowed default value
-    [ :include, [ :stub ], ], # TODO: fill in allowed default value
+    [ :reload,  false     ],
+    [ :reload,  true      ],
+    [ :offset,  0         ],
+    [ :offset,  1         ],
+    [ :limit,   1         ],
+    [ :limit,   2         ],
+    [ :order,   [ :stub ] ], # TODO: fill in allowed default value
+    [ :fields,  [ :stub ] ], # TODO: fill in allowed default value
+    [ :link,    [ :stub ] ], # TODO: fill in allowed default value
+    [ :include, [ :stub ] ], # TODO: fill in allowed default value
   ]
 
   BAD_OPTIONS = {
@@ -26,7 +26,8 @@ describe DataMapper::Query do
     :conditions => [],
   }
 
-  # flatten Array into a Hash, and remove default values
+  # flatten GOOD_OPTIONS into a Hash to remove default values, since
+  # default value, when defined, is always listed first in GOOD_OPTIONS
   UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
     options.update attribute => value
   end
@@ -127,14 +128,7 @@ describe DataMapper::Query do
 
   describe '#update' do
     before do
-      @query = DataMapper::Query.new(Article,
-        :offset  => 1,
-        :limit   => 1,
-        :order   => [ :stub ],
-        :fields  => [ :stub ],
-        :link    => [ :stub ],
-        :include => [ :stub ]
-      )
+      @query = DataMapper::Query.new(Article, UPDATED_OPTIONS)
     end
 
     it 'should instantiate a DataMapper::Query object from other when it is a Hash' do
