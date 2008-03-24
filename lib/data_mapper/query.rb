@@ -73,14 +73,14 @@ module DataMapper
     end
 
     def ==(other)
-      @resource   == other.resource &&
-      @reload     == other.reload   &&
-      @offset     == other.offset   &&
-      @limit      == other.limit    &&
-      @order      == other.order    &&
-      @fields     == other.fields   &&
-      @link       == other.link     &&
-      @include    == other.include  &&
+      @resource == other.resource &&
+      @reload   == other.reload   &&
+      @offset   == other.offset   &&
+      @limit    == other.limit    &&
+      @order    == other.order    &&
+      @fields   == other.fields   &&
+      @link     == other.link     &&
+      @include  == other.include  &&
       @conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ]  } == other.conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ]  }
     end
 

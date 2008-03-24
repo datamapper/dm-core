@@ -15,9 +15,6 @@ module DataMapper
       end
 
       def with_exclusive_scope(query, &block)
-        # TODO: allow DM::Query.new to accept a Hash or another DM::Query
-        # object, and remove the if condition, and always pass in query to
-        # DM::Query.new
         query = DataMapper::Query.new(self, query) if query.kind_of?(Hash)
 
         scope_stack << query
