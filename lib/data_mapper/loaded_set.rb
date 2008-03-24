@@ -47,6 +47,7 @@ module DataMapper
           end
           @entries << instance
           instance.loaded_set = self
+          instance.instance_variable_set("@new_record", false)
           @repository.identity_map_set(instance)
         else
           @entries << instance

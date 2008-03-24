@@ -58,7 +58,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       end
       
       @adapter = repository(:sqlite3).adapter
-      @adapter.execute('CREATE TABLE "video_games" ("id" INTEGER PRIMARY KEY, "name" VARCHAR(50))')
+      @adapter.execute('CREATE TABLE "video_games" ("id" INTEGER PRIMARY KEY, "name" VARCHAR(50))') rescue nil
     end
 
     it 'should be able to create a record' do
@@ -69,18 +69,53 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       game.should_not be_dirty
       
       @adapter.query('SELECT "id" FROM "video_games" WHERE "name" = ?', game.name).first.should == game.id
+      @adapter.execute('DELETE FROM "video_games" WHERE "id" = ?', game.id).to_i.should == 1
     end
 
     it 'should be able to read a record' do
-      pending
+      name = 'Wing Commander: Privateer'
+      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
+      
+      game = repository(:sqlite3).get(VideoGame, [id])
+      game.name.should == name
+      game.should_not be_dirty
+      game.should_not be_a_new_record
+      
+      @adapter.execute('DELETE FROM "video_games" WHERE "name" = ?', name)
     end
 
     it 'should be able to update a record' do
-      pending
+      pending("The DataObjects::Result isn't consistently returning the number of affected rows.")
+      name = 'Resistance: Fall of Mon'
+      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
+      
+      game = repository(:sqlite3).get(VideoGame, [id])
+      game.name = game.name.sub(/Mon/, 'Man')
+      
+      game.should_not be_a_new_record
+      game.should be_dirty
+      
+      repository(:sqlite3).save(game)
+      
+      game.should_not be_dirty
+      
+      clone = repository(:sqlite3).get(VideoGame, [id])
+      
+      clone.name.should == game.name
+      
+      @adapter.execute('DELETE FROM "video_games" WHERE "id" = ?', id)
     end
     
     it 'should be able to delete a record' do
-      pending
+      name = 'Zelda'
+      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
+      
+      game = repository(:sqlite3).get(VideoGame, [id])
+      game.name.should == name
+      
+      repository(:sqlite3).destroy(game).should be_true
+      game.should be_a_new_record
+      game.should be_dirty
     end
     
     after do
@@ -99,7 +134,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       end
       
       @adapter = repository(:sqlite3).adapter
-      @adapter.execute('CREATE TABLE "bank_customers" ("bank" VARCHAR(50), "account_number" VARCHAR(50), "name" VARCHAR(50))')
+      @adapter.execute('CREATE TABLE "bank_customers" ("bank" VARCHAR(50), "account_number" VARCHAR(50), "name" VARCHAR(50))') rescue nil
     end
 
     it 'should be able to create a record' do
@@ -115,15 +150,46 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should be able to read a record' do
-      pending
+      bank, account_number, name = 'Chase', '4321', 'Super Wonderful'
+      @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
+      
+      repository(:sqlite3).get(BankCustomer, [bank, account_number]).name.should == name
+      
+      @adapter.execute('DELETE FROM "bank_customers" WHERE "bank" = ? AND "account_number" = ?', bank, account_number)
     end
 
     it 'should be able to update a record' do
-      pending
+      pending("The DataObjects::Result isn't consistently returning the number of affected rows.")
+      bank, account_number, name = 'Wells Fargo', '00101001', 'Spider Pig'
+      @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
+      
+      customer = repository(:sqlite3).get(BankCustomer, [bank, account_number])
+      customer.name = 'Bat-Pig'
+      
+      customer.should_not be_a_new_record
+      customer.should be_dirty
+      
+      repository(:sqlite3).save(customer)
+      
+      customer.should_not be_dirty
+      
+      clone = repository(:sqlite3).get(BankCustomer, [bank, account_number])
+      
+      clone.name.should == customer.name
+      
+      @adapter.execute('DELETE FROM "bank_customers" WHERE "bank" = ? AND "account_number" = ?', bank, account_number)
     end
     
     it 'should be able to delete a record' do
-      pending
+      bank, account_number, name = 'Megacorp', 'ABC', 'Flash Gordon'
+      @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
+      
+      customer = repository(:sqlite3).get(BankCustomer, [bank, account_number])
+      customer.name.should == name
+      
+      repository(:sqlite3).destroy(customer).should be_true
+      customer.should be_a_new_record
+      customer.should be_dirty
     end
     
     after do

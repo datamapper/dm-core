@@ -25,11 +25,7 @@ module DataMapper
       # TODO could we not cause a nasty bug by dropping nil value keys when the 
       # user is using composite keys? Should we not rather raise an error if
       # the value is nil?
-      key = []
-      instance.class.key(instance.repository).map do |property|
-        value = instance.instance_variable_get(property.instance_variable_name)
-        key << value if !value.nil?
-      end
+      key = instance.key
            
       raise ArgumentError.new("+key+ must be an Array, and can not be empty") if key.empty?       
       @cache[mapped_class(instance.class)][key] = instance      

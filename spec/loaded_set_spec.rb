@@ -31,8 +31,10 @@ describe "DataMapper::LoadedSet" do
 
     bob.name.should eql('Bob')
     bob.age.should eql(10)
+    bob.should_not be_a_new_record
     
     nancy.name.should eql('Nancy')
     nancy.age.should eql(11)
+    nancy.should_not be_a_new_record
   end
 end

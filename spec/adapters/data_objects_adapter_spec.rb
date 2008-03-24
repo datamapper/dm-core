@@ -199,11 +199,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   describe "#update_statement" do
     
     it 'should generate a SQL statement for all fields' do      
-      cheese = Cheese.new
-      cheese.name = 'Gouda'
-      cheese.color = 'White'
-      
-      @adapter.update_statement(cheese).should == <<-EOS.compress_lines
+      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).select(:name, :color)).should == <<-EOS.compress_lines
         UPDATE "cheeses" SET
         "name" = ?,
         "color" = ?
@@ -212,34 +208,21 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     end
     
     it "should generate a SQL statement for only dirty fields" do      
-      cheese = Cheese.new
-      cheese.name = 'Parmigiano-Reggiano'
-
-      @adapter.update_statement(cheese).should == <<-EOS.compress_lines
+      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).select(:name)).should == <<-EOS.compress_lines
         UPDATE "cheeses" SET "name" = ? WHERE "id" = ?
       EOS
-      
-      cheese = Cheese.new
-      cheese.color = 'White'
 
-      @adapter.update_statement(cheese).should == <<-EOS.compress_lines
+      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).select(:color)).should == <<-EOS.compress_lines
         UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
       EOS
     end
     
     it "should generate a SQL statement that includes a Composite Key" do
-      box = LittleBox.new
-      box.instance_variable_set('@street', 'Merry Lane')
-      box.instance_variable_set('@color', 'Yellow')
-      box.hillside = true
-      
-      @adapter.update_statement(box).should == <<-EOS.compress_lines
+      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).select(:hillside)).should == <<-EOS.compress_lines
         UPDATE "little_boxes" SET "hillside" = ? WHERE "street" = ? AND "color" = ?
       EOS
       
-      box.color = 'Red'
-
-      @adapter.update_statement(box).should == <<-EOS.compress_lines
+      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).select(:color, :hillside)).should == <<-EOS.compress_lines
         UPDATE "little_boxes" SET "color" = ?, "hillside" = ? WHERE "street" = ? AND "color" = ?
       EOS
     end
@@ -249,13 +232,13 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   describe "#delete_statement" do
     
     it 'should generate a SQL statement for a serial Key' do      
-      @adapter.delete_statement(Cheese.new).should == <<-EOS.compress_lines
+      @adapter.delete_statement(Cheese).should == <<-EOS.compress_lines
         DELETE FROM "cheeses" WHERE "id" = ?
       EOS
     end
     
     it "should generate a SQL statement for a Composite Key" do
-      @adapter.delete_statement(LittleBox.new).should == <<-EOS.compress_lines
+      @adapter.delete_statement(LittleBox).should == <<-EOS.compress_lines
         DELETE FROM "little_boxes" WHERE "street" = ? AND "color" = ?
       EOS
     end

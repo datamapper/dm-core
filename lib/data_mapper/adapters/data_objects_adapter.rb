@@ -61,7 +61,7 @@ module DataMapper
       def read(repository, resource, key)
         properties = resource.properties(repository.name).select { |property| !property.lazy? }
         properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
-        # p properties_with_indexes
+
         set = LoadedSet.new(repository, resource, properties_with_indexes)
         
         connection = create_connection
@@ -79,11 +79,30 @@ module DataMapper
       end
       
       def update(repository, instance)
-        raise NotImplementedError.new
+        dirty_attributes = instance.dirty_attributes
+        properties = instance.class.properties(name).select { |property| dirty_attributes.key?(property.name) }
+        
+        connection = create_connection
+        command = connection.create_command(update_statement(instance.class, properties))
+        
+        values = properties.map { |property| dirty_attributes[property.name] }
+        result = command.execute_non_query(*values)
+
+        connection.close
+
+        result.to_i == 1
       end
       
       def delete(repository, instance)
-        raise NotImplementedError.new
+        connection = create_connection
+        command = connection.create_command(delete_statement(instance.class))
+        
+        key = instance.class.key(name).map { |property| instance.instance_variable_get(property.instance_variable_name) }
+        result = command.execute_non_query(*key)
+
+        connection.close
+
+        result.to_i == 1
       end
 
       # Methods dealing with locating a single object, by keys
@@ -176,104 +195,9 @@ module DataMapper
       #   end
       # end
 
-      def update(database_context, instance)
-        callback(instance, :before_update)
-
-        instance = update_magic_properties(database_context, instance)
-
-        table = self.table(instance)
-        attributes = instance.dirty_attributes
-        parameters = []
-
-        unless attributes.empty?
-          sql = "UPDATE " << table.to_sql << " SET "
-
-          sql << attributes.map do |key, value|
-            parameters << value
-            "#{table[key].to_sql} = ?"
-          end.join(', ')
-
-          sql << " WHERE #{table.key.to_sql} = ?"
-          parameters << instance.key
-
-          result = connection do |db|
-            db.create_command(sql).execute_non_query(*parameters)
-          end
-
-          # BUG: do_mysql returns inaccurate affected row counts for UPDATE statements.
-          if true || result.to_i > 0
-            callback(instance, :after_update)
-            return true
-          else
-            return false
-          end
-        else
-          true
-        end
-      end
-
       def empty_insert_sql
         "DEFAULT VALUES"
       end
-
-      # def create(database_context, instance)
-      #   callback(instance, :before_create)
-      # 
-      #   instance = update_magic_properties(database_context, instance)
-      # 
-      #   table = self.table(instance)
-      #   attributes = instance.dirty_attributes
-      # 
-      #   if table.multi_class?
-      #     instance.instance_variable_set(
-      #       table[:type].instance_variable_name,
-      #       attributes[:type] = instance.class.name
-      #     )
-      #   end
-      # 
-      #   keys = []
-      #   values = []
-      #   attributes.each_pair do |key, value|
-      #     raise ArgumentError.new("#{value.inspect} is not a valid value for #{key.inspect}") if value.is_a?(Array)
-      # 
-      #     keys << table[key].to_sql
-      #     values << value
-      #   end
-      # 
-      #   sql = if keys.size > 0
-      #     "INSERT INTO #{table.to_sql} (#{keys.join(', ')}) VALUES ?"
-      #   else
-      #     "INSERT INTO #{table.to_sql} #{self.empty_insert_sql}"
-      #   end
-      # 
-      #   result = connection do |db|
-      #     db.create_command(sql).execute_non_query(values)
-      #   end
-      # 
-      #   if result.to_i > 0
-      #     instance.instance_variable_set(:@new_record, false)
-      #     instance.key = result.last_insert_row if table.key.serial? && !attributes.include?(table.key.name)
-      #     database_context.identity_map.set(instance)
-      #     callback(instance, :after_create)
-      #     return true
-      #   else
-      #     return false
-      #   end
-      # end
-
-      # MAGIC_PROPERTIES = {
-      #   :updated_at => lambda { self.updated_at = Time::now },
-      #   :updated_on => lambda { self.updated_on = Date::today },
-      #   :created_at => lambda { self.created_at ||= Time::now },
-      #   :created_on => lambda { self.created_on ||= Date::today }
-      # }
-      # 
-      # def update_magic_properties(database_context, instance)
-      #   instance.class.properties.find_all { |property| MAGIC_PROPERTIES.has_key?(property.name) }.each do |property|
-      #     instance.instance_eval(&MAGIC_PROPERTIES[property.name])
-      #   end
-      #   instance
-      # end
 
       # This model is just for organization. The methods are included into the Adapter below.
       module SQL
@@ -296,28 +220,26 @@ module DataMapper
           EOS
         end
         
-        def update_statement(instance)
-          dirty_attribute_names = instance.dirty_attributes.keys
-          properties = instance.class.properties(name).select { |property| dirty_attribute_names.include?(property.name) }
-          <<-EOS.compress_lines
-            UPDATE #{quote_table_name(instance.class.resource_name(name))} 
-            SET #{properties.map {|attribute| "#{quote_column_name(attribute.field)} = ?" }.join(', ')}
-            WHERE #{instance.class.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
-          EOS
-        end
-        
-        def delete_statement(instance)
-          <<-EOS.compress_lines
-            DELETE FROM #{quote_table_name(instance.class.resource_name(name))} 
-            WHERE #{instance.class.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
-          EOS
-        end
-        
         def read_statement(resource, key)
           properties = resource.properties(name).select { |property| !property.lazy? }
           <<-EOS.compress_lines
             SELECT #{properties.map { |property| quote_column_name(property.field) }.join(', ')} 
             FROM #{quote_table_name(resource.resource_name(name))} 
+            WHERE #{resource.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
+          EOS
+        end
+        
+        def update_statement(resource, properties)
+          <<-EOS.compress_lines
+            UPDATE #{quote_table_name(resource.resource_name(name))} 
+            SET #{properties.map {|attribute| "#{quote_column_name(attribute.field)} = ?" }.join(', ')}
+            WHERE #{resource.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
+          EOS
+        end
+        
+        def delete_statement(resource)
+          <<-EOS.compress_lines
+            DELETE FROM #{quote_table_name(resource.resource_name(name))} 
             WHERE #{resource.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end

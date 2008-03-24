@@ -35,6 +35,15 @@ module DataMapper
       @loaded_set ? @loaded_set.repository : self.class.repository
     end
     
+    def key
+      key = []
+      self.class.key(repository.name).map do |property|
+        value = instance_variable_get(property.instance_variable_name)
+        key << value if !value.nil?
+      end
+      key
+    end
+    
     def loaded_set
       @loaded_set
     end

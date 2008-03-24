@@ -116,17 +116,33 @@ module DataMapper
           @identity_map.set(instance)
           instance.instance_variable_set('@new_record', false)
           instance.dirty_attributes.clear
+          true
         else
           false
         end
       else
-        @adapter.update(self, instance)
+        if @adapter.update(self, instance)
+          instance.dirty_attributes.clear
+          true
+        else
+          false
+        end
       end
     end
 
     def destroy(instance)
-      @adapter.delete(self, instance)
-      @identity_map.delete(instance.class, instance.key)
+      if @adapter.delete(self, instance)
+        @identity_map.delete(instance.class, instance.key)
+        instance.instance_variable_set('@new_record', true)
+        instance.class.properties(name).map do |property|
+          if instance.attribute_loaded?(property.name)
+            instance.dirty_attributes[property.name] = instance.instance_variable_get(property.instance_variable_name)
+          end
+        end
+        true
+      else
+        false
+      end
     end
     
   end
