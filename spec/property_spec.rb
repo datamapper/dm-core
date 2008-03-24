@@ -12,6 +12,10 @@ describe DataMapper::Property do
       primitive String
       size 100
     end
+    
+    class Tomato
+      include DataMapper::Resource
+    end
   end
   
   it "should create a String property" do
@@ -38,6 +42,73 @@ describe DataMapper::Property do
     
     options[:size].should == 50
   end
+  
+#      :public, :protected, :private, :accessor, :reader, :writer,
+#      :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
+#      :format, :index, :check, :ordinal, :auto_validation
+  
+
+  it "should determine nullness" do
+    DataMapper::Property.new(Tomato,:botanical_name,String,{:nullable => true}).options[:nullable].should == true    
+  end
+
+  it "should determine its name"  do
+    DataMapper::Property.new(Tomato,:botanical_name,String,{}).name.should == :botanical_name
+  end
+  
+  it "should determine lazyness" do
+    DataMapper::Property.new(Tomato,:botanical_name,String,{:lazy => true}).lazy?.should == true
+    DataMapper::Property.new(Tomato,:seedless,TrueClass,{}).lazy?.should == false
+  end
+  
+  it "should automatically set lazyness to true on text fields?" do
+    DataMapper::Property.new(Tomato,:botanical_name,Text,{}).lazy?.should == true
+  end
+  
+  it "should determine keyness" do
+    DataMapper::Property.new(Tomato,:id,Fixnum,{:key => true}).key?.should == true
+    DataMapper::Property.new(Tomato,:botanical_name,String,{}).key?.should == false
+  end
+  
+  it "should determine serialness" do
+    DataMapper::Property.new(Tomato,:id,Fixnum,{:serial => true}).serial?.should == true
+    DataMapper::Property.new(Tomato,:botanical_name,String,{}).serial?.should == false    
+  end
+
+  it "should determine a default value" do
+    DataMapper::Property.new(Tomato,:botanical_name,String,{:default => 'Tomato'}).options[:default].should == 'Tomato'   
+  end
+  
+  it "should determine visibility of readers and writers" do
+    name = DataMapper::Property.new(Tomato,:botanical_name,String,{})
+    name.reader_visibility.should == :public
+    name.writer_visibility.should == :public
+    
+    seeds = DataMapper::Property.new(Tomato,:seeds,TrueClass,{:accessor=>:private})
+    seeds.reader_visibility.should == :private
+    seeds.writer_visibility.should == :private
+    
+    family = DataMapper::Property.new(Tomato,:family,String,{:reader => :public, :writer => :private })
+    family.reader_visibility.should == :public
+    family.writer_visibility.should == :private
+  end
+  
+  it "should return an instance variable name"
+  
+  it "should append ? to TrueClass property reader methods"
+
+  it "should allow accessors to be overridden"
+  
+  it "should raise an argument error when created with an invalid option" do
+    lambda{
+      DataMapper::Property.new(Tomato,:botanical_name,String,{:foo=>:bar}).serial?.should == false
+    }.should raise_error(ArgumentError)
+  end
+  
+  
+
+  # All auto_validation specs moved to dm-more/spec/validation_spec.rb
+  
 end
 
 # describe DataMapper::Property do

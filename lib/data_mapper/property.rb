@@ -168,7 +168,7 @@ module DataMapper
     PROPERTY_OPTIONS = [
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-      :format, :index, :check, :ordinal, :auto_validation
+      :format, :index, :check, :ordinal, :auto_validation, :validation_context
     ]
     
     TYPES = [
@@ -211,9 +211,11 @@ module DataMapper
       
       create_getter!
       create_setter!
-      #TODO: get validations working with dm-more
-      #auto_validations! unless @options[:auto_validation] == false
       
+      # Auto validation has moved to dm-more 
+      # auto_generate_validations_for_property is mixed in from
+      # DataMapper::Validate::AutoValidate in dm-more
+      target.auto_generate_validations_for_property(self) if target.respond_to?(:auto_generate_validations_for_property)        
     end
     
     def validate_options! # :nodoc:
@@ -239,6 +241,7 @@ module DataMapper
       end
       EOS
       
+      # TODO type is now a class 
       if type == :boolean
         klass.class_eval <<-EOS
         #{reader_visibility.to_s}
@@ -262,35 +265,7 @@ module DataMapper
     rescue SyntaxError
       raise SyntaxError.new(column)
     end
-    
-    # NOTE: :length may also be used in place of :size
-    AUTO_VALIDATIONS = [
-      [:nullable, lambda { |k,v| "validates_presence_of :#{k}" if v == false }],
-      [[:size, :length], lambda { |k,v| "validates_length_of :#{k}, " + (v.is_a?(Range) ? ":within => #{v}" : ":maximum => #{v}") } ],
-      [:format, lambda { |k, v| "validates_format_of :#{k}, :with => #{v.inspect}" }]
-    ]
-
-    # defines the inferred validations given a property definition.
-    def auto_validations!
-      AUTO_VALIDATIONS.each do |v|
-        keys, value = v[0], v[1]
-        keys = [keys].flatten
-
-        keys.each do |key|
-          next unless @options.has_key?(key)
-          validation = value.call(name, @options[key])
-          next if validation.empty?
-          @target.class_eval <<-EOS
-          begin
-            #{validation}
-          rescue ArgumentError => e
-            throw e unless e.message =~ /specify a unique key/
-          end
-          EOS
-        end
-      end
-    end
-    
+  
     def primitive
       @type.ancestors.include?(DataMapper::Type) ? @type.primitive : @type
     end
@@ -338,5 +313,9 @@ module DataMapper
     def serial?
       @serial
     end
+    
+    def options
+      @options
+    end    
   end
 end
