@@ -3,7 +3,7 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 require __DIR__.parent.parent + 'lib/data_mapper'
 
-DataMapper.setup(:sqlite3, "sqlite3://#{Dir.getwd}/integration_test.db")
+DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
 
 describe DataMapper::Adapters::DataObjectsAdapter do
   
@@ -85,7 +85,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should be able to update a record' do
-      pending("The DataObjects::Result isn't consistently returning the number of affected rows.")
       name = 'Resistance: Fall of Mon'
       id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
       
@@ -119,7 +118,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
     
     after do
-      @adapter.execute('DROP TABLE "video_games"')
+      #@adapter.execute('DROP TABLE "video_games"')
     end
   end
   
@@ -159,7 +158,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should be able to update a record' do
-      pending("The DataObjects::Result isn't consistently returning the number of affected rows.")
       bank, account_number, name = 'Wells Fargo', '00101001', 'Spider Pig'
       @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
       
