@@ -7,7 +7,8 @@ module DataMapper
     attr_reader :resource, *OPTIONS
 
     def initialize(resource, options = {})
-      # TODO: assert resource is the expected object type
+      raise ArgumentError, "resource must be a Class, but is #{resource.class}" unless resource.kind_of?(Class)
+      raise ArgumentError, 'resource must include DataMapper::Resource' unless resource.included_modules.include?(DataMapper::Resource)
 
       if options.has_key?(:reload) && options[:reload] != true && options[:reload] != false
         raise ArgumentError, ":reload must be true or false, but was #{options[:reload].inspect}"
@@ -15,28 +16,25 @@ module DataMapper
 
       ([ :offset, :limit ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Integer, but was #{value.inspect}" unless value.kind_of?(Integer)
+        raise ArgumentError, ":#{attribute} must be an Integer, but was #{value.class}" unless value.kind_of?(Integer)
         raise ArgumentError, ":#{attribute} must be greater than or equal to 0" unless value >= 0
       end
 
-      # TODO: document what each of the Array-options can contain
-
       ([ :order, :fields, :link, :include, :conditions ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Array, but was #{value.inspect}" unless value.kind_of?(Array)
+        raise ArgumentError, ":#{attribute} must be an Array, but was #{value.class}" unless value.kind_of?(Array)
         raise ArgumentError, ":#{attribute} cannot be an empty Array" unless value.any?
       end
 
-      @resource = resource
-
-      @reload     = options.fetch :reload,  false
-      @offset     = options.fetch :offset,  0
-      @limit      = options.fetch :limit,   nil
-      @order      = options.fetch :order,   []
-      @fields     = options.fetch :fields,  []
-      @link       = options.fetch :link,    []
-      @include    = options.fetch :include, []
-      @conditions = []
+      @resource   = resource                       # must be Class that includes DataMapper::Resource
+      @reload     = options.fetch :reload,  false  # must be true or false
+      @offset     = options.fetch :offset,  0      # must be an Integer equal to or greater than 0
+      @limit      = options.fetch :limit,   nil    # must be an Integer equal to or greater than 0
+      @order      = options.fetch :order,   []     # TODO: must be an Array of ??
+      @fields     = options.fetch :fields,  []     # TODO: must be an Array of ??
+      @link       = options.fetch :link,    []     # TODO: must be an Array of ??
+      @include    = options.fetch :include, []     # TODO: must be an Array of ??
+      @conditions = []                             # must be an Array of triplit (or pairs when passing in raw String queries)
 
       (options.keys - OPTIONS).each do |k|
         append_condition!(k, options[k])
@@ -53,7 +51,7 @@ module DataMapper
 
       @resource, @reload = other.resource, other.reload
 
-      @offset = other.offset if other.offset
+      @offset = other.offset if other.offset > 0
       @limit  = other.limit  if other.limit
 
       @order   |= other.order
@@ -76,6 +74,9 @@ module DataMapper
       @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 
+    # XXX: if clause is a Symbol of Symbol::Operator, should we
+    # validate that it is valid for the resource?
+
     def append_condition!(clause, value)
       @conditions << case clause
         when Symbol::Operator : [ clause.type, clause.value, value ]
@@ -97,7 +98,7 @@ module DataMapper
       # avoid nested looping
       conditions_index = Hash.new { |h,k| h[k] = {} }
       @conditions.each do |condition|
-        next unless condition.size == 3
+        next unless condition.size == 3  # only process triplets
         operator, clause = *condition
         conditions_index[clause][operator] = condition
       end
@@ -105,10 +106,12 @@ module DataMapper
       # loop over each of the other's conditions, and overwrite the
       # conditions when in conflict
       other.conditions.each do |other_condition|
-        next unless other_condition.size == 3
+        next unless other_condition.size == 3  # only process triplets
         other_operator, other_clause, other_value = *other_condition
 
         if condition = conditions_index[other_clause][other_operator]
+          # if the other condition matches an existing condition, and
+          # the operators match, then overwrite it
           operator, clause, value = *condition
 
           condition[2] = case operator
@@ -119,6 +122,7 @@ module DataMapper
             else value
           end
         else
+          # otherwise append the other condition
           @conditions << [ other_operator, other_clause, other_value ]
         end
       end
