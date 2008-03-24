@@ -1,5 +1,7 @@
 require 'pp'
 require 'pathname'
+require 'rubygems'
+require 'spec'
 
 # for __DIR__
 require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support/kernel'
