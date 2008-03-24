@@ -33,6 +33,18 @@ module DataMapper
         raise NotImplementedError.new
       end
       
+      def within_transaction?
+        false
+      end
+      
+      def create_connection
+        DataObjects::Connection.new(@uri)
+      end
+      
+      def close_connection(connection)
+        connection.close unless within_transaction?
+      end
+      
       # all of our CRUD
       # Methods dealing with a single instance object
       def create(repository, instance)
@@ -45,7 +57,7 @@ module DataMapper
         values = properties.map { |property| dirty_attributes[property.name] }
         result = command.execute_non_query(*values)
 
-        connection.close
+        close_connection(connection)
         
         if result.to_i == 1
           key = instance.class.key(name)
@@ -73,7 +85,7 @@ module DataMapper
         end
         
         reader.close
-        connection.close
+        close_connection(connection)
         
         set.to_a.first
       end
@@ -88,7 +100,7 @@ module DataMapper
         values = properties.map { |property| dirty_attributes[property.name] }
         affected_rows = command.execute_non_query(*(values + instance.key)).to_i
 
-        connection.close
+        close_connection(connection)
         
         affected_rows == 1
       end
@@ -100,7 +112,7 @@ module DataMapper
         key = instance.class.key(name).map { |property| instance.instance_variable_get(property.instance_variable_name) }
         affected_rows = command.execute_non_query(*key).to_i
 
-        connection.close
+        close_connection(connection)
 
         affected_rows == 1
       end
