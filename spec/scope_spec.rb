@@ -6,6 +6,10 @@ describe DataMapper::Scope do
     class Article
       include DataMapper::Resource
       include DataMapper::Scope
+
+      property :created_at, DateTime
+      property :author,     String
+      property :title,      String
     end
   end
 

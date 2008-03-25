@@ -38,7 +38,7 @@ module DataMapper
       @fields   == other.fields   &&
       @links    == other.links    &&
       @includes == other.includes &&
-      @conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ] } == other.conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ] }
+      @conditions.sort_by { |c| [ c[0].to_s, c[1].object_id, c[2] ] } == other.conditions.sort_by { |c| [ c[0].to_s, c[1].object_id, c[2] ] }
     end
 
     private
