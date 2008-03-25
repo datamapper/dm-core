@@ -96,17 +96,11 @@ module DataMapper
     end
     
     def first(resource, options)
-      raise NotImplementedError.new
       @adapter.read_one(self, Query.new(resource, options))
     end
     
     def all(resource, options)
       @adapter.read_set(self, Query.new(resource, options))      
-    end
-    
-    def first(resource, options)
-      raise NotImplementedError.new
-      @adapter.read_set(self, Query.new(resource, options))
     end
     
     def save(instance)

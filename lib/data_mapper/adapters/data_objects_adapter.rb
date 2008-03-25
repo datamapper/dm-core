@@ -152,21 +152,18 @@ module DataMapper
         set.first
       end
 
-      def delete_one(repository, klass, *keys)
-        raise NotImplementedError.new
-      end
-
       # Methods dealing with finding stuff by some query parameters
-      def read_one(repository, query)
-        properties = resource.properties(repository.name).select { |property| !property.lazy? }
+      def read_set(repository, query)
+        properties = query.fields
         properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
 
-        set = LoadedSet.new(repository, resource, properties_with_indexes)
+        set = LoadedSet.new(repository, query.resource, properties_with_indexes)
         
         connection = create_connection
-        command = connection.create_command(read_statement(resource, key))
+        command = connection.create_command(query_read_statement(query))
         command.set_types(properties.map { |property| property.type })
-        reader = command.execute_reader(*key)
+        reader = command.execute_reader(query.parameters)
+        
         while(reader.next!)
           set.materialize!(reader.values)
         end
@@ -177,7 +174,11 @@ module DataMapper
         set.entries
       end
 
-      def delete_set(repository, klass, query = {})
+      def delete_one(repository, query)
+        raise NotImplementedError.new
+      end
+      
+      def delete_set(repository, query)
         raise NotImplementedError.new
       end
 
@@ -272,6 +273,12 @@ module DataMapper
           EOS
         end
         
+        def query_read_statement(query)
+          <<-EOS.compress_lines
+            SELECT #{query.fields.map { |property| property_to_column_name(property, query.links?) }.join(',')}
+            FROM #{quote_table_name(query.resource.resource_name(name))}
+          EOS
+        end
       end #module SQL
       
       include SQL
@@ -288,6 +295,14 @@ module DataMapper
 
       def quote_column_name(column_name)
         column_name.gsub('"', '""').ensure_wrapped_with('"')
+      end
+      
+      def property_to_column_name(property, qualify)
+        if qualify
+          quote_table_name(property.resource.resource_name(name)) + '.' + quote_column_name(property.field)
+        else
+          quote_column_name(property.field)
+        end
       end
       
     end # class DoAdapter
