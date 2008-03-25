@@ -38,11 +38,16 @@ module DataMapper
       @reload     = options.fetch :reload,  false  # must be true or false
       @offset     = options.fetch :offset,  0      # must be an Integer greater than or equal to 0
       @limit      = options.fetch :limit,   nil    # must be an Integer greater than or equal to 1
-      @order      = options.fetch :order,   []     # TODO: must be an Array of ??
-      @fields     = options.fetch :fields,  []     # TODO: must be an Array of ??
-      @link       = options.fetch :link,    []     # TODO: must be an Array of ??
-      @include    = options.fetch :include, []     # TODO: must be an Array of ??
+      @order      = options.fetch :order,   []     # TODO: must be an Array of Symbol, Enumerable::Direction or Property:
+        # (we normalize to Enumerable::Direction<Property>)
+      @fields     = options.fetch :fields,  []     # TODO: must be an Array of Symbol, String or Property
+        # (we normalize to Property)
+      @link       = options.fetch :link,    []     # TODO: must be an Array of Symbol, String, Property 1-jump-away or Query::Path
+        # (we normalize to Query::Path)
+      @include    = options.fetch :include, []     # TODO: must be an Array of Symbol, String, Property 1-jump-away or Query::Path
+        # (we normalize to Query::Path)
       @conditions = []                             # must be an Array of triplets (or pairs when passing in raw String queries)
+        # (should normalize to Arrays of [operator-Symbol, Property, Property])
 
       (options.keys - OPTIONS).each do |k|
         append_condition!(k, options[k])
@@ -53,7 +58,7 @@ module DataMapper
         append_condition!(clause, conditions_option.any? ? conditions_option.dup : nil)
       end
     end
-
+    
     def update(other)
       # TODO: assert that other must be a DataMapper::Query object or a Hash
 

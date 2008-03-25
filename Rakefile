@@ -63,7 +63,7 @@ DOCUMENTED_FILES = PACKAGE_FILES.reject do |path|
   path.directory? || path =~ /(^spec|\/spec|\/swig\_)/
 end
 
-PROJECT = "datamapper"
+PROJECT = "dm-core"
 
 task :ls do
   puts PACKAGE_FILES
