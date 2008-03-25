@@ -1,7 +1,7 @@
 --- 
 body_id: news
 title: 0.3.0 Gem Released!
-created_at: Tue Mar 18 15:55:50 -0500 2008
+created_at: 2008-03-18T15:55:50-05:00
 summary: DataMapper 0.3.0 has been released.
 release_type: important
 author: Sam

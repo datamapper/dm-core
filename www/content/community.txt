@@ -84,7 +84,7 @@ h3. The People Behind DataMapper
 
   <div class="thumb">
     <img src="/images/people/guy_v.png" title="Guy van den Berg" alt="Guy van den Berg"/>
-    <p>Guy van den Berg</p>
+    <p><a href="http://www.guyvdb.info">Guy van den Berg</a></p>
   </div>
 
   <div class="thumb">
