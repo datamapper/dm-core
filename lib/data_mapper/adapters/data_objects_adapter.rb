@@ -1,4 +1,5 @@
 require __DIR__ + 'abstract_adapter'
+require 'fastthread'
 
 module DataMapper
 
@@ -285,8 +286,16 @@ module DataMapper
           qualify = query.links.any?
           
           sql = "SELECT "
-          sql << query.fields.map { |property| property_to_column_name(property, qualify) }.join(',')
-          sql << " FROM " << quote_table_name(query.resource.resource_name(name))
+          
+          sql << query.fields.map do |property|
+            if qualify
+              quote_table_name(query.resource_name) + '.' + quote_column_name(property.field)
+            else
+              quote_column_name(property.field)
+            end
+          end.join(', ')
+          
+          sql << " FROM " << quote_table_name(query.resource_name)
           
           sql << " LIMIT #{query.limit}" if query.limit
           sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
@@ -309,14 +318,6 @@ module DataMapper
 
       def quote_column_name(column_name)
         column_name.gsub('"', '""').ensure_wrapped_with('"')
-      end
-      
-      def property_to_column_name(property, qualify)
-        if qualify
-          quote_table_name(property.resource.resource_name(name)) + '.' + quote_column_name(property.field)
-        else
-          quote_column_name(property.field)
-        end
       end
       
     end # class DoAdapter

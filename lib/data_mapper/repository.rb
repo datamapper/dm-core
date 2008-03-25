@@ -8,8 +8,20 @@ require __DIR__ + 'naming_conventions'
 # Delegates to DataMapper::repository.
 # Will not overwrite if a method of the same name is pre-defined.
 module Kernel
-  def repository(name = :default, &block)
-    DataMapper::repository(name, &block)
+  def repository(name = :default)
+    unless block_given?
+      begin
+        DataMapper::Repository.context.last || DataMapper::Repository.new(name)
+      #rescue NoMethodError
+       # raise RepositoryNotSetupError.new("#{name.inspect} repository not set up.")
+      end
+    else
+      begin
+        return yield(DataMapper::Repository.context.push(DataMapper::Repository.new(name)))
+      ensure
+        DataMapper::Repository.context.pop
+      end
+    end
   end
 end
 

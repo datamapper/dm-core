@@ -6,7 +6,7 @@ module DataMapper
     
     class Sqlite3Adapter < DataObjectsAdapter
       
-      TYPES.merge({
+      TYPES.merge!({
         :integer => 'INTEGER'.freeze,
         :string  => 'TEXT'.freeze,
         :text    => 'TEXT'.freeze,

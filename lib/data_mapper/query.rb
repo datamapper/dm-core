@@ -50,19 +50,29 @@ module DataMapper
       end
       parameters
     end
+    
+    def resource_name
+      @resource_name
+    end
 
     private
 
     def initialize(resource, options = {})
+      
       validate_resource!(resource)
       validate_options!(options)
+      
+      @repository = resource.repository
+      @repository_name = @repository.name
+      @resource_name = resource.resource_name(@repository_name)
+      @properties = resource.properties(@repository_name)
 
       @resource   = resource                        # must be Class that includes DataMapper::Resource
       @reload     = options.fetch :reload,   false  # must be true or false
       @offset     = options.fetch :offset,   0      # must be an Integer greater than or equal to 0
       @limit      = options.fetch :limit,    nil    # must be an Integer greater than or equal to 1
       @order      = options.fetch :order,    []     # must be an Array of Symbol, Enumerable::Direction or Property
-      @fields     = options.fetch :fields,   resource.properties(resource.repository.name).defaults # must be an Array of Symbol, String or Property
+      @fields     = options.fetch :fields,   @properties.defaults # must be an Array of Symbol, String or Property
       @links      = options.fetch :links,    []     # must be an Array of Symbol, String, Property 1-jump-away or DM::Query::Path
       @includes   = options.fetch :includes, []     # must be an Array of Symbol, String, Property 1-jump-away or DM::Query::Path
       @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
@@ -140,11 +150,11 @@ module DataMapper
       property = case clause
         when Symbol::Operator
           operator = clause.type
-          resource.properties(resource.repository.name)[clause.value]
+          @properties[clause.value]
         when String
-          resource.properties(resource.repository.name)[clause]
+          @properties[clause]
         when Symbol
-          resource.properties(resource.repository.name)[clause]
+          @properties[clause]
         when DataMapper::Property
           clause
         else raise ArgumentError, "Condition type #{clause.inspect} not supported"
