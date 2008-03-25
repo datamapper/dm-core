@@ -27,7 +27,7 @@ end
 
 module DataMapper
   
-  def self.setup(name, uri)
+  def self.setup(name, uri, options = {})
     uri = uri.is_a?(String) ? URI.parse(uri) : uri
     
     raise ArgumentError.new("'name' must be a Symbol") unless name.is_a?(Symbol)
@@ -42,7 +42,7 @@ module DataMapper
     end
     
     adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(name, uri)
-    
+
     Repository.adapters[name] = adapter
   end
   
