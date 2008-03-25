@@ -83,6 +83,21 @@ h3. The People Behind DataMapper
   </div> 
 
   <div class="thumb">
+    <img src="/images/people/guy_v.png" title="Guy van den Berg" alt="Guy van den Berg"/>
+    <p>Guy van den Berg</p>
+  </div>
+
+  <div class="thumb">
+    <img src="/images/people/ior3k.jpg" title="David Leal" alt="David Leal"/>
+    <p>David Leal</p>
+  </div>
+
+  <div class="thumb">
+    <img src="http://www.gravatar.com/avatar/ea627ef000ec92c6cdd5a4c14075e740" title="Daniel Kubb" alt="Daniel Kubb" />
+    <p>Dan Kubb</p>
+  </div>
+
+  <div class="thumb">
     <img src="/images/martini.gif" title="you" alt="you could be here" />
     <p>More to come!</p>
   </div>
