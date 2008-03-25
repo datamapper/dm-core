@@ -1,65 +1,12 @@
 module DataMapper
   class Query
-    # XXX: since :fields and :conditions are plural, shouldn't :link and :include
-    # also be pluralized?  Not sure :order can be pluralized and still make sense tho
     OPTIONS = [
-      :reload, :offset, :limit, :order, :fields, :link, :include, :conditions
+      :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
 
     attr_reader :resource, *OPTIONS
 
-    def initialize(resource, options = {})
-      # validate the resource and options
-      raise ArgumentError, "resource must be a Class, but is #{resource.class}" unless resource.kind_of?(Class)
-      raise ArgumentError, 'resource must include DataMapper::Resource'         unless resource.included_modules.include?(DataMapper::Resource)
-      raise ArgumentError, 'options must be a Hash'                             unless options.kind_of?(Hash)
-
-      # validate the reload option
-      if options.has_key?(:reload) && options[:reload] != true && options[:reload] != false
-        raise ArgumentError, ":reload must be true or false, but was #{options[:reload].inspect}"
-      end
-
-      # validate the offset and limit options
-      ([ :offset, :limit ] & options.keys).each do |attribute|
-        value = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Integer, but was #{value.class}" unless value.kind_of?(Integer)
-      end
-      raise ArgumentError, ':offset must be greater than or equal to 0' if options.has_key?(:offset) && !(options[:offset] >= 0)
-      raise ArgumentError, ':limit must be greater than or equal to 1'  if options.has_key?(:limit)  && !(options[:limit]  >= 1)
-
-      # validate the order, fields, link, include and conditions options
-      ([ :order, :fields, :link, :include, :conditions ] & options.keys).each do |attribute|
-        value = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Array, but was #{value.class}" unless value.kind_of?(Array)
-        raise ArgumentError, ":#{attribute} cannot be an empty Array"                 unless value.any?
-      end
-
-      @resource   = resource                       # must be Class that includes DataMapper::Resource
-      @reload     = options.fetch :reload,  false  # must be true or false
-      @offset     = options.fetch :offset,  0      # must be an Integer greater than or equal to 0
-      @limit      = options.fetch :limit,   nil    # must be an Integer greater than or equal to 1
-      @order      = options.fetch :order,   []     # TODO: must be an Array of ??
-      @fields     = options.fetch :fields,  []     # TODO: must be an Array of ??
-      @link       = options.fetch :link,    []     # TODO: must be an Array of ??
-      @include    = options.fetch :include, []     # TODO: must be an Array of ??
-      @conditions = []                             # must be an Array of triplets (or pairs when passing in raw String queries)
-
-      (options.keys - OPTIONS).each do |k|
-        append_condition!(k, options[k])
-      end
-
-      if conditions_option = options[:conditions]
-        clause = conditions_option.shift
-        append_condition!(clause, conditions_option.any? ? conditions_option.dup : nil)
-      end
-    end
-
     def update(other)
-      # TODO: assert that other must be a DataMapper::Query object or a Hash
-
-      # TODO: ask ssmoot if the other's resource doesn't make self.resource,
-      # should we overwrite the resource or throw an exception?
-
       other = self.class.new(resource, other) if other.kind_of?(Hash)
 
       @resource, @reload = other.resource, other.reload
@@ -67,10 +14,10 @@ module DataMapper
       @offset = other.offset unless other.offset == 0
       @limit  = other.limit  unless other.limit.nil?
 
-      @order   |= other.order
-      @fields  |= other.fields
-      @link    |= other.link
-      @include |= other.include
+      @order    |= other.order
+      @fields   |= other.fields
+      @links    |= other.links
+      @includes |= other.includes
 
       update_conditions!(other)
 
@@ -89,28 +36,113 @@ module DataMapper
       @limit    == other.limit    &&
       @order    == other.order    &&
       @fields   == other.fields   &&
-      @link     == other.link     &&
-      @include  == other.include  &&
-      @conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ]  } == other.conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ]  }
+      @links    == other.links    &&
+      @includes == other.includes &&
+      @conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ] } == other.conditions.sort_by { |c| [ c[0].to_s, c[1].to_s, c[2] ] }
     end
 
     private
+
+    def initialize(resource, options = {})
+      validate_resource!(resource)
+      validate_options!(options)
+
+      @resource   = resource                        # must be Class that includes DataMapper::Resource
+      @reload     = options.fetch :reload,   false  # must be true or false
+      @offset     = options.fetch :offset,   0      # must be an Integer greater than or equal to 0
+      @limit      = options.fetch :limit,    nil    # must be an Integer greater than or equal to 1
+      @order      = options.fetch :order,    []     # must be an Array of Symbol, Enumerable::Direction or Property
+      @fields     = options.fetch :fields,   []     # must be an Array of Symbol, String or Property
+      @links      = options.fetch :links,    []     # must be an Array of Symbol, String, Property 1-jump-away or DM::Query::Path
+      @includes   = options.fetch :includes, []     # must be an Array of Symbol, String, Property 1-jump-away or DM::Query::Path
+      @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
+
+      # TODO: normalize order to DM::Query::Direction.new(DM::Property)
+      # TODO: normalize fields to DM::Property
+      # TODO: normalize links to DM::Query::Path
+      # TODO: normalize includes to DM::Query::Path
+
+      # TODO: loop over fields, and if the resource doesn't match
+      # self.resource, append the property's resource to @links
+      # eg:
+      #if property.resource != self.resource
+      #  @links << discover_path_for_property(property)
+      #end
+
+      # treat all non-options as conditions
+      (options.keys - OPTIONS - OPTIONS.map(&:to_s)).each do |k|
+        append_condition!(k, options[k])
+      end
+
+      # parse raw options[:conditions] differently
+      if conditions_option = options[:conditions]
+        @conditions << if conditions_option.size == 1
+          [ conditions_option[0] ]
+        else
+          [ conditions_option[0], conditions_option[1..-1] ]
+        end
+      end
+    end
 
     def initialize_copy(original)
       # deep-copy the condition tuples when copying the object
       @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 
-    # XXX: if clause is a Symbol of Symbol::Operator, should we
-    # validate that it is valid for the resource?
+    def validate_resource!(resource)
+      # validate the resource
+      raise ArgumentError, "resource must be a Class, but is #{resource.class}" unless resource.kind_of?(Class)
+      raise ArgumentError, 'resource must include DataMapper::Resource'         unless resource.included_modules.include?(DataMapper::Resource)
+    end
+
+    def validate_options!(options)
+      raise ArgumentError, 'options must be a Hash' unless options.kind_of?(Hash)
+
+      # validate the reload option
+      if options.has_key?(:reload) && options[:reload] != true && options[:reload] != false
+        raise ArgumentError, ":reload must be true or false, but was #{options[:reload].inspect}"
+      end
+
+      # validate the offset and limit options
+      ([ :offset, :limit ] & options.keys).each do |attribute|
+        value = options[attribute]
+        raise ArgumentError, ":#{attribute} must be an Integer, but was #{value.class}" unless value.kind_of?(Integer)
+      end
+      raise ArgumentError, ':offset must be greater than or equal to 0' if options.has_key?(:offset) && !(options[:offset] >= 0)
+      raise ArgumentError, ':limit must be greater than or equal to 1'  if options.has_key?(:limit)  && !(options[:limit]  >= 1)
+
+      # validate the order, fields, links, includes and conditions options
+      ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
+        value = options[attribute]
+        raise ArgumentError, ":#{attribute} must be an Array, but was #{value.class}" unless value.kind_of?(Array)
+        raise ArgumentError, ":#{attribute} cannot be an empty Array"                 unless value.any?
+      end
+    end
+
+    # TODO: spec this
+    def validate_other!(other)
+      raise ArgumentError, "other must be a #{self.class} or Hash object" unless other.kind_of?(self.class) || other.kind_of?(Hash)
+    end
 
     def append_condition!(clause, value)
-      @conditions.push case clause
-        when Symbol::Operator : [ clause.type, clause.value, value ]
-        when Symbol           : [ :eql,        clause,       value ]
-        when String           : value.nil? ? [ clause ] : [ clause, Array(value) ]  # when passed in a raw Query
+      operator = :eql
+
+      property = case clause
+        when Symbol::Operator
+          operator = clause.type
+          resource_property_by_name(clause.value)
+        when String
+          resource_property_by_name(clause.to_sym)
+        when Symbol
+          resource_property_by_name(clause)
+        when DataMapper::Property
+          clause
         else raise ArgumentError, "Condition type #{clause.inspect} not supported"
       end
+
+      # XXX: should an exception be thrown if property is nil?
+
+      @conditions << [ operator, property, value ]
     end
 
     # TODO: check for other mutually exclusive operator + clause
@@ -142,10 +174,9 @@ module DataMapper
           other_operator, other_clause, other_value = *other_condition
 
           if condition = conditions_index[other_clause][other_operator]
-            # if the other condition matches an existing condition, and
-            # the operators match, then overwrite it
             operator, clause, value = *condition
 
+            # overwrite the value in the existing condition
             condition[2] = case operator
               when :eql, :like : other_value
               when :gt,  :gte  : [ value, other_value ].min
@@ -159,6 +190,15 @@ module DataMapper
 
         # otherwise append the other condition
         @conditions << other_condition.dup
+      end
+    end
+
+    # helper method to lookup the resource property by its name
+    def resource_property_by_name(name)
+      # XXX: isn't this a sign that resource should have a method to lookup
+      # by a property name easily?
+      resource.properties(resource.repository.name).detect do |property|
+        property.name == name
       end
     end
   end # class Query
