@@ -24,7 +24,7 @@ describe "DataMapper::LoadedSet" do
     set.materialize!(['Bob', 10])
     set.materialize!(['Nancy', 11])
     
-    results = set.to_a
+    results = set.entries
     results.should have(2).entries
     
     bob, nancy = results[0], results[1]
@@ -36,5 +36,7 @@ describe "DataMapper::LoadedSet" do
     nancy.name.should eql('Nancy')
     nancy.age.should eql(11)
     nancy.should_not be_a_new_record
+    
+    results.first.should == bob
   end
 end
