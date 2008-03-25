@@ -40,6 +40,16 @@ module DataMapper
       @includes == other.includes &&
       @conditions.sort_by { |c| [ c[0].to_s, c[1].object_id, c[2] ] } == other.conditions.sort_by { |c| [ c[0].to_s, c[1].object_id, c[2] ] }
     end
+    
+    def parameters
+      parameters = []
+      conditions.each do |tuple|
+        if value = tuple[2]
+          parameters << value
+        end
+      end
+      parameters
+    end
 
     private
 
@@ -52,7 +62,7 @@ module DataMapper
       @offset     = options.fetch :offset,   0      # must be an Integer greater than or equal to 0
       @limit      = options.fetch :limit,    nil    # must be an Integer greater than or equal to 1
       @order      = options.fetch :order,    []     # must be an Array of Symbol, Enumerable::Direction or Property
-      @fields     = options.fetch :fields,   []     # must be an Array of Symbol, String or Property
+      @fields     = options.fetch :fields,   resource.properties(resource.repository.name).defaults # must be an Array of Symbol, String or Property
       @links      = options.fetch :links,    []     # must be an Array of Symbol, String, Property 1-jump-away or DM::Query::Path
       @includes   = options.fetch :includes, []     # must be an Array of Symbol, String, Property 1-jump-away or DM::Query::Path
       @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
@@ -130,11 +140,11 @@ module DataMapper
       property = case clause
         when Symbol::Operator
           operator = clause.type
-          resource_property_by_name(clause.value)
+          resource.properties(resource.repository.name)[clause.value]
         when String
-          resource_property_by_name(clause.to_sym)
+          resource.properties(resource.repository.name)[clause]
         when Symbol
-          resource_property_by_name(clause)
+          resource.properties(resource.repository.name)[clause]
         when DataMapper::Property
           clause
         else raise ArgumentError, "Condition type #{clause.inspect} not supported"
@@ -190,15 +200,6 @@ module DataMapper
 
         # otherwise append the other condition
         @conditions << other_condition.dup
-      end
-    end
-
-    # helper method to lookup the resource property by its name
-    def resource_property_by_name(name)
-      # XXX: isn't this a sign that resource should have a method to lookup
-      # by a property name easily?
-      resource.properties(resource.repository.name).detect do |property|
-        property.name == name
       end
     end
   end # class Query

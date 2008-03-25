@@ -215,6 +215,9 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         )
       EOS
       
+      # Why do we keep testing with Repository instead of the models directly?
+      # Just because we're trying to target the code we're actualling testing
+      # as much as possible.
       setup_repository = repository(:sqlite3)
       100.times do
         setup_repository.save(SerialFinderSpec.new(:sample => rand.to_s))
@@ -222,8 +225,10 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
     
     it "should return all available rows" do
-      pending
-      repository(:sqlite3).all(SerialFinderSpec).should have(100).entries
+      repository(:sqlite3).all(SerialFinderSpec, {}).should have(100).entries
+      repository(:sqlite3).all(SerialFinderSpec, {}).each do |sfs|
+        p sfs.attributes
+      end
     end
     
     after do
