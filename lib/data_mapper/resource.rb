@@ -151,19 +151,14 @@ module DataMapper
     
     # Mass-assign mapped fields.
     def attributes=(values_hash)
-      success = true
       values_hash.each_pair do |k,v|
         setter = k.to_s.sub(/\?$/, '').ensure_ends_with('=')
         # We check #public_methods and not Class#public_method_defined? to
         # account for singleton methods.
         if public_methods.include?(setter)
           send(setter, v)
-        else
-          success = false
         end
       end
-      
-      success
     end
     
     private
@@ -179,18 +174,12 @@ module DataMapper
     end
     
     def private_attributes=(values_hash)
-      success = true
-      
       values_hash.each_pair do |k,v|
         setter = k.to_s.sub(/\?$/, '').ensure_ends_with('=')
         if respond_to?(setter) || private_methods.include?(setter)
           send(setter, v)
-        else
-          success = false
         end
       end
-      
-      success
     end
 
     public

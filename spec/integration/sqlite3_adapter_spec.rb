@@ -226,11 +226,15 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     
     it "should return all available rows" do
       repository(:sqlite3).all(SerialFinderSpec, {}).should have(100).entries
-      repository(:sqlite3).all(SerialFinderSpec, {}).each do |sfs|
-        p sfs.attributes
-      end
     end
     
+    it "should allow limit and offset" do
+      repository(:sqlite3).all(SerialFinderSpec, { :limit => 50 }).should have(50).entries
+      
+      repository(:sqlite3).all(SerialFinderSpec, { :limit => 20, :offset => 40 }).map(&:id).should ==
+        repository(:sqlite3).all(SerialFinderSpec, {})[40...60].map(&:id)
+    end
+        
     after do
       @adapter.execute('DROP TABLE "serial_finder_specs"')
     end
