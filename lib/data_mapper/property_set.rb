@@ -4,8 +4,12 @@ module DataMapper
     def initialize
       super
       @cache_by_names = Hash.new do |h,k|
-        if match = detect { |property| property.name.to_s == k.to_s }
-          h[k.to_s] = h[k.to_sym] = match
+        detect do |property|
+          if property.name == k
+            h[k.to_s] = h[k] = property
+          elsif property.name.to_s == k
+            h[k] = h[k.to_sym] = property
+          end
         end
       end
     end
@@ -30,6 +34,14 @@ module DataMapper
     
     def defaults
       reject { |property| property.lazy? }
+    end
+    
+    def key
+      @key = select { |property| property.key? }
+      def key
+        @key
+      end
+      key
     end
   end
   

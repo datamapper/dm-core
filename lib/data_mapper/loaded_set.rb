@@ -44,8 +44,10 @@ module DataMapper
  
         if instance.nil?
           instance = type.allocate
-          @key_properties.zip(key_values).each do |p,v|
-            instance.instance_variable_set(p.instance_variable_name, v)
+          i = 0
+          @key_properties.each do |p|
+            instance.instance_variable_set(p.instance_variable_name, key_values[i])
+            i += 1
           end
           @entries << instance
           instance.loaded_set = self

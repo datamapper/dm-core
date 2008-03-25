@@ -221,7 +221,7 @@ module DataMapper
       end
       
       def key(repository_name)
-        @properties[repository_name].select { |property| property.key? }
+        @properties[repository_name].key
       end
       
       def inheritance_property(repository_name)

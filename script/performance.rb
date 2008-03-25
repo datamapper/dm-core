@@ -57,11 +57,11 @@ Benchmark::send(ENV['BM'] || :bmbm, 40) do |x|
     N.times { Exhibit.get(1) }
   end
   
-  x.report('ActiveRecord:all limit(1000)') do
+  x.report('ActiveRecord:all limit(100)') do
     N.times { ARExhibit.find(:all, :limit => 100) }
   end
   
-  x.report('DataMapper:all limit(1000)') do
+  x.report('DataMapper:all limit(100)') do
     N.times { Exhibit.all(:limit => 100) }
   end
     
