@@ -282,10 +282,16 @@ module DataMapper
         end
         
         def query_read_statement(query)
-          <<-EOS.compress_lines
-            SELECT #{query.fields.map { |property| property_to_column_name(property, query.links?) }.join(',')}
-            FROM #{quote_table_name(query.resource.resource_name(name))}
-          EOS
+          qualify = query.links.any?
+          
+          sql = "SELECT "
+          sql << query.fields.map { |property| property_to_column_name(property, qualify) }.join(',')
+          sql << " FROM " << quote_table_name(query.resource.resource_name(name))
+          
+          sql << " LIMIT #{query.limit}" if query.limit
+          sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
+          
+          sql
         end
       end #module SQL
       

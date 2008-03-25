@@ -50,12 +50,19 @@ N = (ENV['N'] || 1000).to_i
 Benchmark::send(ENV['BM'] || :bmbm, 40) do |x|
   
   x.report('ActiveRecord:id') do
-    # Force AR to type-cast a few attributes.
-    N.times { e = ARExhibit.find(267); e.id; e.name; e.created_on; e.updated_at; }
+    N.times { e = ARExhibit.find(1); e.id; e.name; e.created_on; e.updated_at; }
   end
     
   x.report('DataMapper:id') do
-    N.times { Exhibit.get(267) }
+    N.times { Exhibit.get(1) }
+  end
+  
+  x.report('ActiveRecord:all limit(1000)') do
+    N.times { ARExhibit.find(:all, :limit => 1000) }
+  end
+  
+  x.report('DataMapper:all limit(1000)') do
+    N.times { Exhibit.all(:limit => 1000) }
   end
     
 end
