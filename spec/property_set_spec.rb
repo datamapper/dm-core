@@ -9,8 +9,8 @@ describe DataMapper::PropertySet do
       
       property :id, Fixnum, :serial => true
       property :name, String
-      property :width, Fixnum
-      property :height, Fixnum
+      property :width, Fixnum, :lazy => true
+      property :height, Fixnum, :lazy => true
     end
     
     @properties = Icon.properties(:default)
@@ -24,6 +24,11 @@ describe DataMapper::PropertySet do
   it "should find properties by index and name (Symbol or String)" do
     @properties[0].should == @properties[:id]
     @properties[1].should == @properties['name']
+  end
+  
+  it "should provide defaults" do
+    @properties.defaults.should have(2).entries
+    @properties.should have(4).entries
   end
   
 end
