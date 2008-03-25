@@ -193,41 +193,6 @@ module DataMapper
       success
     end
 
-#     def attribute_get(property_name)
-#       property = self.class.properties(repository.name)[property_name.to_sym]
-#       if property.lazy? && !property.loaded?
-#         lazy_load!(property_name)
-#       end
-#       property.instance_variable_get(:@value)
-#     end
-# 
-#     def attribute_set(property_name, value)
-#       property = self.class.properties(repository.name).name(property_name.to_sym)
-# 
-# =begin
-#       We've got three options here to handle dirty tracking
-# 
-#       1) Simply as soon as the property is loaded then any change results in the property being dirty
-#       property.dirty = property.loaded?
-#       
-#       2) We can store the original value of the field as soon as make a change after it is loaded
-#       if !property.dirty? && property.loaded?
-#         property.instance_variable_set(:@original_value, property.instance_variable_get(:@value))
-#         property.dirty = true
-#       end
-# 
-#       3) We can do full tracking where the value is tracked and if changed and then reverted the dirty flag is cleared
-#       if property.loaded?
-#         property.instance_variable_set(:original_value, property.instance_variable_get(:value)) unless property.original_value_set?
-#         property.dirty = !(property.instance_variable_get(:@original_value) == value)
-#       end
-# =end
-#       
-#       property.dirty = property.loaded?
-#       property.instance_variable_set(:@value, value)
-#       property.loaded = true
-#     end
-
     public
     
     module ClassMethods

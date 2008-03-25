@@ -130,11 +130,11 @@ module DataMapper
       property = case clause
         when Symbol::Operator
           operator = clause.type
-          resource_property_by_name(clause.value)
+          resource.properties(resource.repository.name)[clause.value]
         when String
-          resource_property_by_name(clause.to_sym)
+          resource.properties(resource.repository.name)[clause]
         when Symbol
-          resource_property_by_name(clause)
+          resource.properties(resource.repository.name)[clause]
         when DataMapper::Property
           clause
         else raise ArgumentError, "Condition type #{clause.inspect} not supported"
@@ -190,15 +190,6 @@ module DataMapper
 
         # otherwise append the other condition
         @conditions << other_condition.dup
-      end
-    end
-
-    # helper method to lookup the resource property by its name
-    def resource_property_by_name(name)
-      # XXX: isn't this a sign that resource should have a method to lookup
-      # by a property name easily?
-      resource.properties(resource.repository.name).detect do |property|
-        property.name == name
       end
     end
   end # class Query
