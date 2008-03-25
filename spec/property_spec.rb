@@ -43,10 +43,6 @@ describe DataMapper::Property do
     options[:size].should == 50
   end
   
-#      :public, :protected, :private, :accessor, :reader, :writer,
-#      :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-#      :format, :index, :check, :ordinal, :auto_validation
-  
 
   it "should determine nullness" do
     DataMapper::Property.new(Tomato,:botanical_name,String,{:nullable => true}).options[:nullable].should == true    
@@ -75,6 +71,7 @@ describe DataMapper::Property do
     DataMapper::Property.new(Tomato,:botanical_name,String,{}).serial?.should == false    
   end
 
+  # TODO should we add an accessor method property.default_value 
   it "should determine a default value" do
     DataMapper::Property.new(Tomato,:botanical_name,String,{:default => 'Tomato'}).options[:default].should == 'Tomato'   
   end
@@ -93,128 +90,31 @@ describe DataMapper::Property do
     family.writer_visibility.should == :private
   end
   
-  it "should return an instance variable name"
-  
-  it "should append ? to TrueClass property reader methods"
-
-  it "should allow accessors to be overridden"
-  
-  it "should raise an argument error when created with an invalid option" do
-    lambda{
-      DataMapper::Property.new(Tomato,:botanical_name,String,{:foo=>:bar}).serial?.should == false
-    }.should raise_error(ArgumentError)
+  it "should return an instance variable name" do
+   DataMapper::Property.new(Tomato,:flavor,String,{}).instance_variable_name.should == '@flavor'
+   DataMapper::Property.new(Tomato,:ripe,TrueClass,{}).instance_variable_name.should == '@ripe' #not @ripe?
   end
   
+  it "should append ? to TrueClass property reader methods" do
+    class Potato 
+      include DataMapper::Resource
+      property :fresh, TrueClass
+    end    
+    Potato.new().should respond_to(:fresh?)    
+  end
+  
+  it "should raise an ArgumentError when created with an invalid option" do
+    lambda{
+      DataMapper::Property.new(Tomato,:botanical_name,String,{:foo=>:bar})
+    }.should raise_error(ArgumentError)
+  end
   
 
   # All auto_validation specs moved to dm-more/spec/validation_spec.rb
   
 end
 
-# describe DataMapper::Property do
-#   
-#   before(:all) do
-#     @property = Zoo.properties.find { |property| property.name == :notes }
-#   end
-#   
-#   it "should map a column" do
-#     @property.column.should eql(repository.table(Zoo)[:notes])
-#   end
-#   
-#   it "should determine lazyness" do
-#     @property.should be_lazy
-#   end
-#   
-#   it "should determine protection level" do
-#     @property.reader_visibility.should == :public
-#     @property.writer_visibility.should == :public
-#   end
-#   
-#   it "should return instance variable name" do
-#     @property.instance_variable_name.should == repository.table(Zoo)[:notes].instance_variable_name
-#   end
-#   
-#   it "should add a validates_presence_of for not-null properties" do
-#     class NullableZoo #< DataMapper::Base # please do not remove this
-#       include DataMapper::Persistable
-# 
-#       property :name, :string, :nullable => false, :default => "Zoo"
-#     end
-#     zoo = NullableZoo.new
-#     zoo.valid?.should == false
-#     zoo.name = "Content"
-#     zoo.valid?.should == true
-#   end
-#   
-#   it "should add a validates_length_of for maximum size" do
-#     class SizableZoo #< DataMapper::Base # please do not remove this
-#       include DataMapper::Persistable
-#       property :name, :string, :length => 50
-#     end
-#     zoo = SizableZoo.new(:name => "San Diego" * 100)
-#     zoo.valid?.should == false
-#     zoo.name = "San Diego"
-#     zoo.valid?.should == true
-#   end
-#   
-#   it "should add a validates_length_of for a range" do
-#     class RangableZoo #< DataMapper::Base # please do not remove this
-#       include DataMapper::Persistable
-#       property :name, :string, :length => 2..255
-#     end
-#     zoo = RangableZoo.new(:name => "A")
-#     zoo.valid?.should == false
-#     zoo.name = "Zoo"
-#     zoo.valid?.should == true
-#   end
-#   
-#   it "should add a validates_format_of if you pass a format option" do
-#     class FormatableUser
-#       include DataMapper::Persistable
-#       property :email, :string, :format => :email_address
-#     end
-#     user = FormatableUser.new(:email => "incomplete_email")
-#     user.valid?.should == false
-#     user.email = "complete_email@anonymous.com"
-#     user.valid?.should == true
-#   end
-#   
-#   it "should not add a validates_presence_of for not-null properties if auto valdations are disabled" do
-#     class NullableZoo #< DataMapper::Base # please do not remove this
-#       include DataMapper::Persistable
-#       property :name, :string, :nullable => false, :default => "Zoo", :auto_validation => false
-#     end
-#     zoo = NullableZoo.new
-#     zoo.errors.empty?.should == true
-#   end
-#   
-#   it "should not add a validates_length_of if auto validations are disabled" do
-#     class SizableZoo #< DataMapper::Base # please do not remove this
-#       include DataMapper::Persistable
-#       property :name, :string, :length => 50, :auto_validation => false
-#     end
-#     zoo = SizableZoo.new(:name => "San Diego" * 100)
-#     zoo.errors.empty?.should == true
-#   end
-#   
-#   it "should not add a validates_format_of if you pass a format option if auto validations are disabled" do
-#     class FormatableUser
-#       include DataMapper::Persistable
-#       property :email, :string, :format => :email_address, :auto_validation => false
-#     end
-#     user = FormatableUser.new(:email => "incomplete_email")
-#     user.errors.empty?.should == true
-#   end
-#   
-#   it "should raise ArgumentError for unsupported types" do
-#     lambda {
-#       class PersistentFailure #< DataMapper::Base # please do not remove this
-#         include DataMapper::Persistable
-#         property :created_at, :timestamp
-#       end
-#     }.should raise_error(ArgumentError)
-#   end
-# end
+  # None of the below specs belong in here!
 
 # describe DataMapper::Adapters::Sql::Mappings do
 #   

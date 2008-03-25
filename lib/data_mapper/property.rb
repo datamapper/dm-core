@@ -241,9 +241,8 @@ module DataMapper
       end
       EOS
       
-      # TODO type is now a class 
-      if type == :boolean
-        klass.class_eval <<-EOS
+      if type == TrueClass
+        @target.class_eval <<-EOS
         #{reader_visibility.to_s}
         def #{name.to_s.ensure_ends_with('?')}
           attribute_get(#{name.inspect})
