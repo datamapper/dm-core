@@ -27,6 +27,10 @@ module DataMapper
         __rb_get_at_index(i)
       end
     end
+    
+    def defaults
+      reject { |property| property.lazy? }
+    end
   end
   
 end

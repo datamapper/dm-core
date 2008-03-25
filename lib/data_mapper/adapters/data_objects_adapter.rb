@@ -159,17 +159,25 @@ module DataMapper
 
         set = LoadedSet.new(repository, query.resource, properties_with_indexes)
         
-        connection = create_connection
-        command = connection.create_command(query_read_statement(query))
-        command.set_types(properties.map { |property| property.type })
-        reader = command.execute_reader(query.parameters)
+        sql = query_read_statement(query)
         
-        while(reader.next!)
-          set.materialize!(reader.values)
+        begin
+          connection = create_connection
+          command = connection.create_command(sql)
+          command.set_types(properties.map { |property| property.type })
+          reader = command.execute_reader(query.parameters)
+        
+          while(reader.next!)
+            set.materialize!(reader.values)
+          end
+        
+          reader.close
+        rescue StandardError => se
+          p se, sql
+          raise se
+        ensure
+          close_connection(connection)
         end
-        
-        reader.close
-        close_connection(connection)
         
         set.entries
       end
