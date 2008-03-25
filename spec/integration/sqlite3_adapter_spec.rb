@@ -195,4 +195,42 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
   end
   
+  describe "finders" do
+    
+    before do
+      
+      class SerialFinderSpec
+        include DataMapper::Resource
+        
+        property :id, Fixnum, :serial => true
+        property :sample, String
+      end
+      
+      @adapter = repository(:sqlite3).adapter
+      
+      @adapter.execute(<<-EOS.compress_lines) rescue nil
+        CREATE TABLE "serial_finder_specs" (
+          "id" INTEGER PRIMARY KEY,
+          "sample" VARCHAR(50)
+        )
+      EOS
+      
+      setup_repository = repository(:sqlite3)
+      100.times do
+        setup_repository.save(SerialFinderSpec.new(:sample => rand.to_s))
+      end
+    end
+    
+    it "should return all available rows" do
+      pending
+      repository(:sqlite3).all(SerialFinderSpec).should have(100).entries
+    end
+    
+    after do
+      @adapter.execute('DROP TABLE "serial_finder_specs"')
+    end
+    
+  end
+  
+  
 end

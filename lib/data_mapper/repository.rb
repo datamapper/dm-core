@@ -101,7 +101,6 @@ module DataMapper
     end
     
     def all(resource, options)
-      raise NotImplementedError.new
       @adapter.read_set(self, Query.new(resource, options))      
     end
     

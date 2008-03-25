@@ -1,3 +1,5 @@
+require 'set'
+
 module DataMapper
  
   class LoadedSet
@@ -68,8 +70,13 @@ module DataMapper
  
       instance
     end
- 
-    def to_a
+    
+    def first
+      @entries.first
+    end
+    
+    def entries
+      @entries.uniq!
       @entries.dup
     end
   end
