@@ -240,6 +240,10 @@ module DataMapper
         repository.all(self, options)
       end
       
+      def fake_it
+        repository.fake_it(self)
+      end
+      
       def first(options)
         repository.first(self, options)
       end

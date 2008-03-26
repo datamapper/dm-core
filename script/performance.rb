@@ -61,8 +61,12 @@ Benchmark::send(ENV['BM'] || :bmbm, 40) do |x|
     N.times { ARExhibit.find(:all, :limit => 100) }
   end
   
-  x.report('DataMapper:all limit(100)') do
-    N.times { Exhibit.all(:limit => 100) }
+  # x.report('DataMapper:all limit(100)') do
+  #   N.times { Exhibit.all(:limit => 100) }
+  # end
+  
+  x.report('DataMapper:fake_it limit(100)') do
+    N.times { Exhibit.fake_it }
   end
     
 end

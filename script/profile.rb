@@ -5,13 +5,11 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support
 
 require __DIR__.parent + 'lib/data_mapper'
 
-socket_file = Pathname.glob([ 
-  "/opt/local/var/run/mysql5/mysqld.sock",
-  "tmp/mysqld.sock",
-  "tmp/mysql.sock"
-]).find { |path| path.socket? }
-
-@adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
+if false
+  DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=/opt/local/var/run/mysql5/mysqld.sock")
+else
+  DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1")
+end
 
 class Exhibit
   include DataMapper::Resource
@@ -39,7 +37,7 @@ end
 
 profile do
   1000.times do
-    Exhibit.all(:limit => 100)
+    Exhibit.fake_it
   end
 end
 

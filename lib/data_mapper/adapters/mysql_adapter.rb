@@ -16,7 +16,6 @@ module DataMapper
         column_name.ensure_wrapped_with('`')
       end
 
-
       def rewrite_uri(uri, options)
         new_uri = uri.dup
         new_uri.host = options[:host] || uri.host

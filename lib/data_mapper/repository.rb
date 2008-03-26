@@ -115,6 +115,10 @@ module DataMapper
       @adapter.read_set(self, Query.new(resource, options))      
     end
     
+    def fake_it(resource)
+      @adapter.fake_it(self, resource)
+    end
+    
     def save(instance)
       if instance.new_record?
         if @adapter.create(self, instance)

@@ -182,6 +182,42 @@ module DataMapper
         
         set.entries
       end
+      
+      def fake_it(repository, resource)
+        properties = resource.properties(name).defaults
+        properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
+
+        set = LoadedSet.new(repository, resource, properties_with_indexes)
+        
+        # sql = query_read_statement(query)
+        
+        
+        sql = <<-EOS.compress_lines
+          SELECT id, name, zoo_id, created_on, updated_at
+          FROM exhibits
+          LIMIT 100
+        EOS
+        
+        begin
+          connection = create_connection
+          command = connection.create_command(sql)
+          command.set_types(properties.map { |property| property.type })
+          reader = command.execute_reader()
+        
+          while(reader.next!)
+            set.materialize!(reader.values)
+          end
+        
+          reader.close
+        rescue StandardError => se
+          p se, sql
+          raise se
+        ensure
+          close_connection(connection)
+        end
+        
+        set.entries
+      end
 
       def delete_one(repository, query)
         raise NotImplementedError.new
@@ -203,10 +239,10 @@ module DataMapper
         db.close if db
       end
 
-      def query(*args)
+      def query(sql, *args)
         db = create_connection
 
-        command = db.create_command(args.shift)
+        command = db.create_command(sql)
 
         reader = command.execute_reader(*args)
         results = []
