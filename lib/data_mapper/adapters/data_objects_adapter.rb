@@ -259,7 +259,7 @@ module DataMapper
         end
         
         def read_statement(resource, key)
-          properties = resource.properties(name).select { |property| !property.lazy? }
+          properties = resource.properties(name).defaults
           <<-EOS.compress_lines
             SELECT #{properties.map { |property| quote_column_name(property.field) }.join(', ')} 
             FROM #{quote_table_name(resource.resource_name(name))} 

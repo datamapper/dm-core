@@ -39,7 +39,7 @@ end
 
 profile do
   1000.times do
-    Exhibit.all(:limit => 1000)
+    Exhibit.all(:limit => 100)
   end
 end
 
