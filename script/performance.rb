@@ -31,7 +31,7 @@ end
 
 require __DIR__.parent + 'lib/data_mapper'
 
-@adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
+DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 class Exhibit
   include DataMapper::Resource
@@ -45,28 +45,22 @@ class Exhibit
   
 end
 
-N = (ENV['N'] || 1000).to_i
-
-Benchmark::send(ENV['BM'] || :bmbm, 40) do |x|
+Benchmark::bmbm(40) do |x|
   
   x.report('ActiveRecord:id') do
-    N.times { e = ARExhibit.find(1); e.id; e.name; e.created_on; e.updated_at; }
+    1000.times { e = ARExhibit.find(1); e.id; e.name; e.created_on; e.updated_at; }
   end
     
-  x.report('DataMapper:id') do    
-    N.times { Exhibit.get(1) }
+  x.report('DataMapper:id') do
+    1000.times { Exhibit.get(1) }
   end
   
   x.report('ActiveRecord:all limit(100)') do
-    N.times { ARExhibit.find(:all, :limit => 100) }
+    100.times { ARExhibit.find(:all, :limit => 100).map { |e| e.id; e.name; e.created_on; e.updated_at; } }
   end
   
-  # x.report('DataMapper:all limit(100)') do
-  #   N.times { Exhibit.all(:limit => 100) }
-  # end
-  
-  x.report('DataMapper:fake_it limit(100)') do
-    N.times { Exhibit.fake_it }
+  x.report('DataMapper:all limit(100)') do
+    100.times { Exhibit.all(:limit => 100) }
   end
     
 end

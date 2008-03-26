@@ -5,11 +5,13 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support
 
 require __DIR__.parent + 'lib/data_mapper'
 
-if false
-  DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=/opt/local/var/run/mysql5/mysqld.sock")
-else
-  DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1")
-end
+socket_file = Pathname.glob([ 
+  "/opt/local/var/run/mysql5/mysqld.sock",
+  "tmp/mysqld.sock",
+  "tmp/mysql.sock"
+]).find { |path| path.socket? }
+
+DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 class Exhibit
   include DataMapper::Resource
@@ -29,15 +31,15 @@ require 'ruby-prof'
 def profile(&b)
   result = RubyProf.profile &b
 
-  printer = RubyProf::GraphHtmlPrinter.new(result)
+  printer = RubyProf::FlatPrinter.new(result)
   Pathname('profile_results.html').open('w+') do |file|
     printer.print(file, 0)
   end
 end
 
 profile do
-  1000.times do
-    Exhibit.fake_it
+  10.times do
+    Exhibit.all(:limit => 1000)
   end
 end
 
