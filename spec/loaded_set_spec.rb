@@ -20,6 +20,7 @@ describe "DataMapper::LoadedSet" do
 
     properties = Hash[*cow.properties(:default).zip([0, 1]).flatten]    
     set = DataMapper::LoadedSet.new(DataMapper::repository(:default), cow, properties)
+    set.should respond_to(:reload!)
     
     set.materialize!(['Bob', 10])
     set.materialize!(['Nancy', 11])
@@ -39,4 +40,5 @@ describe "DataMapper::LoadedSet" do
     
     results.first.should == bob
   end
+  
 end

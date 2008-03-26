@@ -86,9 +86,13 @@ module DataMapper
     def parameters
       parameters = []
       conditions.each do |tuple|
-        parameters << value if tuple.size == 3
+        parameters << tuple[2] if tuple.size == 3
       end
       parameters
+    end
+    
+    def reload?
+      @reload
     end
 
     private

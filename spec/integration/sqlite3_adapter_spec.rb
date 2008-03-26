@@ -238,7 +238,9 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     it "should lazy-load missing attributes" do
       sfs = repository(:sqlite3).all(SerialFinderSpec, { :fields => [:id], :limit => 1 }).first
       sfs.should be_a_kind_of(SerialFinderSpec)
-      sfs.instance_variable_get('@sample').should be_nil
+      sfs.should_not be_a_new_record
+      
+      sfs.instance_variables.should_not include('@sample')
       sfs.sample.should_not be_nil
     end
         

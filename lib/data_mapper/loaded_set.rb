@@ -29,6 +29,26 @@ module DataMapper
       @entries = []
     end
  
+    def keys
+      # TODO: This is a really dirty way to implement this. My brain's just fried :p
+      keys = {}
+      entry_keys = @entries.map { |instance| instance.key }
+      
+      i = 0
+      @key_properties.each do |property|
+        keys[property] = entry_keys.map { |key| key[i] }
+        i += 1
+      end
+      
+      keys
+    end
+    
+    def reload!(options = {})      
+      query = Query.new(@type, keys.merge(:fields => @key_properties))
+      query.update(options.merge(:reload => true))
+      @repository.adapter.read_set(@repository, query)
+    end
+    
     def materialize!(values, reload = false)
       type = if @inheritance_property_index
         values[@inheritance_property_index]

@@ -166,46 +166,10 @@ module DataMapper
           connection = create_connection
           command = connection.create_command(sql)
           command.set_types(properties.map { |property| property.type })
-          reader = command.execute_reader(query.parameters)
-        
-          while(reader.next!)
-            set.materialize!(reader.values)
-          end
-        
-          reader.close
-        rescue StandardError => se
-          p se, sql
-          raise se
-        ensure
-          close_connection(connection)
-        end
-        
-        set.entries
-      end
-      
-      def fake_it(repository, resource)
-        properties = resource.properties(name).defaults
-        properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
+          reader = command.execute_reader(*query.parameters)
 
-        set = LoadedSet.new(repository, resource, properties_with_indexes)
-        
-        # sql = query_read_statement(query)
-        
-        
-        sql = <<-EOS.compress_lines
-          SELECT id, name, zoo_id, created_on, updated_at
-          FROM exhibits
-          LIMIT 100
-        EOS
-        
-        begin
-          connection = create_connection
-          command = connection.create_command(sql)
-          command.set_types(properties.map { |property| property.type })
-          reader = command.execute_reader()
-        
           while(reader.next!)
-            set.materialize!(reader.values)
+            set.materialize!(reader.values, query.reload?)
           end
         
           reader.close
@@ -324,19 +288,56 @@ module DataMapper
           sql = "SELECT "
           
           sql << query.fields.map do |property|
-            if qualify
-              quote_table_name(query.resource_name) + '.' + quote_column_name(property.field)
-            else
-              quote_column_name(property.field)
-            end
+            property_to_column_name(query.resource_name, property, qualify)
           end.join(', ')
           
           sql << " FROM " << quote_table_name(query.resource_name)
+          
+          unless query.conditions.empty?
+            sql << " WHERE "
+            
+            sql << "(" << query.conditions.map do |operator, property, value|
+              case operator
+              when :eql, :in then equality_operator(query.resource_name, property, qualify, value)
+              when :not then inequality_operator(query.resource_name, property, qualify, value)
+              when :like then "#{property_to_column_name(query.resource_name, property, qualify)} LIKE ?"
+              when :gt then "#{property_to_column_name(query.resource_name, property, qualify)} > ?"
+              when :gte then "#{property_to_column_name(query.resource_name, property, qualify)} >= ?"
+              when :lt then "#{property_to_column_name(query.resource_name, property, qualify)} < ?"
+              when :lte then "#{property_to_column_name(query.resource_name, property, qualify)} <= ?"
+              else raise "CAN HAS CRASH?"
+              end
+            end.join(') AND (') << ")"
+          end
           
           sql << " LIMIT #{query.limit}" if query.limit
           sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
           
           sql
+        end
+        
+        def equality_operator(resource_name, property, qualify, value)
+          case value
+          when Array then "#{property_to_column_name(resource_name, property, qualify)} IN (?)"
+          when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NULL"
+          else "#{property_to_column_name(resource_name, property, qualify)} = ?"
+          end
+        end
+        
+        def inequality_operator(resource_name, property, qualify, value)
+          case value
+          when Array then "#{property_to_column_name(resource_name, property, qualify)} NOT IN (?)"
+          when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NO NULL"
+          else "#{property_to_column_name(resource_name, property, qualify)} <> ?"
+          end
+        end
+        
+        def property_to_column_name(resource_name, property, qualify)
+          if qualify
+            quote_table_name(query.resource_name) + '.' + quote_column_name(property.field)
+          else
+            quote_column_name(property.field)
+          end
         end
       end #module SQL
       

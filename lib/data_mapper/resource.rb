@@ -86,11 +86,11 @@ module DataMapper
     end
     
     def attribute_get(name)
-      if attribute_loaded?(name)
-        instance_variable_get(name.to_s.ensure_starts_with('@'))
-      else
+      unless attribute_loaded?(name)
         lazy_load!(name)
       end
+      
+      instance_variable_get(name.to_s.ensure_starts_with('@'))
     end
     
     def attribute_set(name, value)
@@ -98,7 +98,11 @@ module DataMapper
     end
     
     def lazy_load!(*names)
-      instance_variable_set(names.first.to_s.ensure_starts_with('@'), nil)
+      unless new_record? || @loaded_set.nil?
+        @loaded_set.reload!(:fields => names)
+      else
+        names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
+      end
     end
     
     def initialize(details = nil) # :nodoc:
