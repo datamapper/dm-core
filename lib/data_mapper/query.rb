@@ -97,10 +97,10 @@ module DataMapper
       validate_resource!(resource)
       validate_options!(options)
 
-      @repository      = resource.repository
-      @repository_name = @repository.name
-      @resource_name   = resource.resource_name(@repository_name)
-      @properties      = resource.properties(@repository_name)
+      @repository     = resource.repository
+      repository_name = @repository.name
+      @resource_name  = resource.resource_name(repository_name)
+      @properties     = resource.properties(repository_name)
 
       @resource   = resource                        # must be Class that includes DM::Resource
       @reload     = options.fetch :reload,   false  # must be true or false
