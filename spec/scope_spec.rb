@@ -2,17 +2,6 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
 describe DataMapper::Scope do
-  before :all do
-    class Article
-      include DataMapper::Resource
-      include DataMapper::Scope
-
-      property :created_at, DateTime
-      property :author,     String
-      property :title,      String
-    end
-  end
-
   after do
     Article.publicize_methods do
       Article.scope_stack.clear  # reset the stack before each spec

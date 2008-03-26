@@ -10,6 +10,32 @@ ENV['LOG_NAME'] = 'spec'
 require __DIR__.parent + 'environment'
 require __DIR__ + 'mock_adapter'
 
+class Article
+  include DataMapper::Resource
+  include DataMapper::Scope
+
+  property :blog_id,    Fixnum
+  property :created_at, DateTime
+  property :author,     String
+  property :title,      String
+
+  class << self
+    def property_by_name(name)
+      properties(repository.name).detect do |property|
+        property.name == name
+      end
+    end
+  end
+end
+
+class Comment
+  include DataMapper::Resource
+end
+
+class NormalClass
+  # should not include DataMapper::Resource
+end
+
 class Class
   def publicize_methods
     klass = class << self; self; end

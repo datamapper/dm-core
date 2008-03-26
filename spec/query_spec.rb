@@ -1,6 +1,8 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
+
+
 describe DataMapper::Query do
   GOOD_OPTIONS = [
     [ :reload,   false     ],
@@ -9,7 +11,7 @@ describe DataMapper::Query do
     [ :offset,   1         ],
     [ :limit,    1         ],
     [ :limit,    2         ],
-    [ :order,    [ :stub ] ], # TODO: fill in allowed default value
+    [ :order,    [ DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc) ] ],
     [ :fields,   [ :stub ] ], # TODO: fill in allowed default value
     [ :links,    [ :stub ] ], # TODO: fill in allowed default value
     [ :includes, [ :stub ] ], # TODO: fill in allowed default value
@@ -30,32 +32,6 @@ describe DataMapper::Query do
   # default value, when defined, is always listed first in GOOD_OPTIONS
   UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
     options.update attribute => value
-  end
-
-  before :all do
-    class Article
-      include DataMapper::Resource
-
-      property :created_at, DateTime
-      property :author,     String
-      property :title,      String
-
-      class << self
-        def property_by_name(name)
-          properties(repository.name).detect do |property|
-            property.name == name
-          end
-        end
-      end
-    end
-
-    class Comment
-      include DataMapper::Resource
-    end
-
-    class NormalClass
-      # should not include DataMapper::Resource
-    end
   end
 
   describe '.new' do
@@ -214,7 +190,18 @@ describe DataMapper::Query do
     end
 
     describe 'should append the attribute' do
-      [ :order, :fields, :links, :includes ].each do |attribute|
+      it "#order with other order unique values" do
+        order = [
+          DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc),
+          DataMapper::Query::Direction.new(Article.property_by_name(:author),     :desc),
+          DataMapper::Query::Direction.new(Article.property_by_name(:title),      :desc),
+        ]
+
+        other = DataMapper::Query.new(Article, :order => order)
+        @query.update(other).order.should == order
+      end
+
+      [ :fields, :links, :includes ].each do |attribute|
         it "##{attribute} with other #{attribute} unique values" do
           other = DataMapper::Query.new(Article, attribute => [ :other, :stub, :new ])
           @query.update(other).send(attribute).should == [ :stub, :other, :new ]
