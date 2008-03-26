@@ -21,7 +21,7 @@ module DataMapper
         new_uri.host = options[:host] || uri.host
         new_uri.user = options[:user] || uri.user
         new_uri.password = options[:password] || uri.password
-        new_uri.path = options[:database] || uri.path
+        new_uri.path = (options[:database] && "/" << options[:database]) || uri.path
         new_uri.port = options[:port] || uri.port
         new_uri.query = (options[:socket] && "socket=#{options[:socket]}") || uri.query
 
