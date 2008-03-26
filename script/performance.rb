@@ -4,13 +4,14 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support/kernel'
 
 require 'benchmark'
+require 'rubygems'
 require 'active_record'
 
-socket_file = Pathname.glob([ 
-  "/opt/local/var/run/mysql5/mysqld.sock",
-  "tmp/mysqld.sock",
-  "tmp/mysql.sock"
-]).find { |path| path.socket? }
+socket_file = Pathname.glob(%w[
+  /opt/local/var/run/mysql5/mysqld.sock
+  tmp/mysqld.sock
+  tmp/mysql.sock
+]).find(&:socket?)
 
 configuration_options = {
   :adapter => 'mysql',
@@ -50,9 +51,9 @@ Benchmark::bmbm(40) do |x|
   x.report('ActiveRecord:id') do
     1000.times { e = ARExhibit.find(1); e.id; e.name; e.created_on; e.updated_at; }
   end
-    
+  
   x.report('DataMapper:id') do
-    1000.times { Exhibit.get(1) }
+    1000.times { e = Exhibit.get(1); e.id; e.name; e.created_on; e.updated_at; }
   end
   
   x.report('ActiveRecord:all limit(100)') do
@@ -60,7 +61,7 @@ Benchmark::bmbm(40) do |x|
   end
   
   x.report('DataMapper:all limit(100)') do
-    100.times { Exhibit.all(:limit => 100) }
+    100.times { Exhibit.all(:limit => 100).map { |e| e.id; e.name; e.created_on; e.updated_at; } }
   end
     
 end
