@@ -67,7 +67,9 @@ module DataMapper
         properties = instance.class.properties(name).select { |property| dirty_attributes.key?(property.name) }
         
         connection = create_connection
-        command = connection.create_command(create_statement(instance.class, properties))
+        sql = create_statement(instance.class, properties)
+        DataMapper.logger.debug { sql }
+        command = connection.create_command(sql)
         
         values = properties.map { |property| dirty_attributes[property.name] }
         result = command.execute_non_query(*values)
@@ -92,7 +94,9 @@ module DataMapper
         set = LoadedSet.new(repository, resource, properties_with_indexes)
         
         connection = create_connection
-        command = connection.create_command(read_statement(resource, key))
+        sql = read_statement(resource, key)
+        DataMapper.logger.debug { sql }
+        command = connection.create_command(sql)
         command.set_types(properties.map { |property| property.type })
         reader = command.execute_reader(*key)
         while(reader.next!)
@@ -161,6 +165,7 @@ module DataMapper
         set = LoadedSet.new(repository, query.resource, properties_with_indexes)
         
         sql = query_read_statement(query)
+        DataMapper.logger.debug { sql }
         
         begin
           connection = create_connection
