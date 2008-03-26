@@ -90,10 +90,8 @@ module DataMapper
       end
       parameters
     end
-    
-    def reload?
-      @reload
-    end
+
+    alias reload? reload
 
     private
 
@@ -119,6 +117,12 @@ module DataMapper
       # normalize order and fields
       normalize_order!
       normalize_fields!
+
+      # XXX: should I validate that each property in @order corresponds
+      # to something in @fields?  Many DB engines require they match,
+      # and I can think of no valid queries where a field would be so
+      # important that you sort on it, but not important enough to
+      # return.
 
       # normalize links and includes.
       # NOTE: this must be done after order and fields
@@ -199,9 +203,17 @@ module DataMapper
       @order = @order.map do |order_by|
         case order_by
           when Direction
+            # NOTE: The property is available via order_by.property
+            # TODO: if the Property's resource doesn't match
+            # self.resource, append the property's resource to @links
+            # eg:
+            #if property.resource != self.resource
+            #  @links << discover_path_for_property(property)
+            #end
+
             order_by
           when Property
-            # TODO: if the property's resource doesn't match
+            # TODO: if the Property's resource doesn't match
             # self.resource, append the property's resource to @links
             # eg:
             #if property.resource != self.resource
@@ -219,19 +231,20 @@ module DataMapper
 
     # normalize fields to DM::Property
     def normalize_fields!
-      # TODO: normalize Array of Symbol, String or DM::Property
-
-      # TODO: loop over fields, and if the resource doesn't match
-      # self.resource, append the property's resource to @links
-      # eg:
-      #if property.resource != self.resource
-      #  @links << discover_path_for_property(property)
-      #end
       @fields = @fields.map do |field|
-        if field.is_a?(Property)
-          field
-        else
-          @properties.detect(field)
+        case field
+          when Property
+            # TODO: if the Property's resource doesn't match
+            # self.resource, append the property's resource to @links
+            # eg:
+            #if property.resource != self.resource
+            #  @links << discover_path_for_property(property)
+            #end
+            field
+          when Symbol, String
+            @properties.detect(field)
+          else
+            raise ArgumentError, "Field type #{field.inspect} not supported"
         end
       end.compact
     end
@@ -246,27 +259,27 @@ module DataMapper
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
     end
 
-    def append_condition!(clause, value)
+    def append_condition!(property, value)
       operator = :eql
 
-      property = case clause
+      property = case property
         when DataMapper::Property
-          clause
+          property
         when Operator
-          operator = clause.type
-          @properties.detect(clause.to_sym)
+          operator = property.type
+          @properties.detect(property.to_sym)
         when Symbol, String
-          @properties.detect(clause)
+          @properties.detect(property)
         else
-          raise ArgumentError, "Condition type #{clause.inspect} not supported"
+          raise ArgumentError, "Condition type #{property.inspect} not supported"
       end
 
-      raise ArgumentError, "Clause #{clause.inspect} does not map to a DataMapper::Property" if property.nil?
+      raise ArgumentError, "Clause #{property.inspect} does not map to a DataMapper::Property" if property.nil?
 
       @conditions << [ operator, property, value ]
     end
 
-    # TODO: check for other mutually exclusive operator + clause
+    # TODO: check for other mutually exclusive operator + property
     # combinations.  For example if self's conditions were
     # [ :gt, :amount, 5 ] and the other's condition is [ :lt, :amount, 2 ]
     # there is a conflict.  When in conflict the other's conditions
@@ -274,28 +287,27 @@ module DataMapper
 
     # TODO: Another condition is when the other condition operator is
     # eql, this should over-write all the like,range and list operators
-    # for the same clause, since we are now looking for an exact match.
+    # for the same property, since we are now looking for an exact match.
     # Vice versa, passing in eql should overwrite all of those operators.
 
     def update_conditions!(other)
-
-      # build an index of conditions by the clause and operator to
+      # build an index of conditions by the property and operator to
       # avoid nested looping
       conditions_index = Hash.new { |h,k| h[k] = {} }
       @conditions.each do |condition|
         next unless condition.size == 3  # only process triplets
-        operator, clause = *condition
-        conditions_index[clause][operator] = condition
+        operator, property = *condition
+        conditions_index[property][operator] = condition
       end
 
       # loop over each of the other's conditions, and overwrite the
       # conditions when in conflict
       other.conditions.each do |other_condition|
         if other_condition.size == 3 # only process triplets
-          other_operator, other_clause, other_value = *other_condition
+          other_operator, other_property, other_value = *other_condition
 
-          if condition = conditions_index[other_clause][other_operator]
-            operator, clause, value = *condition
+          if condition = conditions_index[other_property][other_operator]
+            operator, property, value = *condition
 
             # TODO: do not overwrite the value.  Instead splice the
             # condition from @conditions, and then push onto conditions.
