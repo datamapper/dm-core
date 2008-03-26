@@ -5,36 +5,35 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support
 
 require __DIR__.parent + 'lib/data_mapper'
 
-socket_file = Pathname.glob([ 
-  "/opt/local/var/run/mysql5/mysqld.sock",
-  "tmp/mysqld.sock",
-  "tmp/mysql.sock"
-]).find { |path| path.socket? }
+OUTPUT = __DIR__.parent + 'profile_results.txt'
 
-DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
+SOCKET_FILE = Pathname.glob(%w[
+  /opt/local/var/run/mysql5/mysqld.sock
+  tmp/mysqld.sock
+  tmp/mysql.sock
+]).find(&:socket?)
+
+DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{SOCKET_FILE}")
 
 class Exhibit
   include DataMapper::Resource
-  
+
   property :id, Fixnum, :serial => true
   property :name, String
   property :zoo_id, Fixnum
   property :notes, String, :lazy => true
   property :created_on, Date
   property :updated_at, DateTime
-  
+
 end
 
 require 'ruby-prof'
 
 # RubyProf, making profiling Ruby pretty since 1899!
 def profile(&b)
-  result = RubyProf.profile &b
-
+  result  = RubyProf.profile &b
   printer = RubyProf::FlatPrinter.new(result)
-  Pathname('profile_results.html').open('w+') do |file|
-    printer.print(file, 0)
-  end
+  printer.print(OUTPUT.open('w+'))
 end
 
 profile do
