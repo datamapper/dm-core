@@ -17,13 +17,13 @@ describe DataMapper::PropertySet do
   end
   
   it "should find properties with #select" do
-    @properties.select(:name, 'width', :height, 0).compact.should have(4).entries
+    @properties.select(:name, 'width', :height).compact.should have(3).entries
     @properties.select { |property| property.type == Fixnum }.should have(3).entries
   end
   
   it "should find properties by index and name (Symbol or String)" do
-    @properties[0].should == @properties[:id]
-    @properties[1].should == @properties['name']
+    @properties[0].should == @properties.detect(:id)
+    @properties[1].should == @properties.detect('name')
   end
   
   it "should provide defaults" do

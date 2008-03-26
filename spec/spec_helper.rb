@@ -14,6 +14,7 @@ class Article
   include DataMapper::Resource
   include DataMapper::Scope
 
+  property :id,         Fixnum, :serial => true
   property :blog_id,    Fixnum
   property :created_at, DateTime
   property :author,     String

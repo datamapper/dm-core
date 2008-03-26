@@ -9,13 +9,15 @@ describe DataMapper::Adapters::MysqlAdapter do
   end
 
   it 'should override the path when the option is passed' do
+    
     options = {
       :host => 'davidleal.com',
       :user => 'me',
       :password => 'mypass',
       :port => 5000,
-      :database => 'you_can_call_me_al'
+      :database => 'you_can_call_me_all'
     }
+    
     adapter = DataMapper::Adapters::MysqlAdapter.new(:mock, @uri, options)
     adapter.instance_variable_get("@uri").should == URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_all")
   end

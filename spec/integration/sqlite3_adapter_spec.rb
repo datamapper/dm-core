@@ -234,6 +234,13 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       repository(:sqlite3).all(SerialFinderSpec, { :limit => 20, :offset => 40 }).map(&:id).should ==
         repository(:sqlite3).all(SerialFinderSpec, {})[40...60].map(&:id)
     end
+    
+    it "should lazy-load missing attributes" do
+      sfs = repository(:sqlite3).all(SerialFinderSpec, { :fields => [:id], :limit => 1 }).first
+      sfs.should be_a_kind_of(SerialFinderSpec)
+      sfs.instance_variable_get('@sample').should be_nil
+      sfs.sample.should_not be_nil
+    end
         
     after do
       @adapter.execute('DROP TABLE "serial_finder_specs"')

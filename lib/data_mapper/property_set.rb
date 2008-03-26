@@ -16,26 +16,19 @@ module DataMapper
       end
     end
     
-    alias __rb_select select
     def select(*args, &b)
       if block_given?
         super
       else
-        args.map { |arg| self[arg] }.compact
+        args.map { |arg| @cache_by_names[arg] }.compact
       end
     end
     
-    alias __rb_get_at_index []
-    def [](i)
-      if property = @cache_by_names[i]
-        property
+    def detect(name = nil, &b)
+      if block_given?
+        super
       else
-        begin
-          __rb_get_at_index(i)
-        rescue RuntimeError => re
-          puts "Expected index but got #{i.inspect}"
-          raise re
-        end
+        @cache_by_names[name]
       end
     end
     

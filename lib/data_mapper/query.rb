@@ -223,6 +223,13 @@ module DataMapper
       #if property.resource != self.resource
       #  @links << discover_path_for_property(property)
       #end
+      @fields = @fields.map do |field|
+        if field.is_a?(Property)
+          field
+        else
+          @properties.detect(field)
+        end
+      end.compact
     end
 
     # normalize links to DM::Query::Path
@@ -243,9 +250,9 @@ module DataMapper
           clause
         when Operator
           operator = clause.type
-          @properties[clause.to_sym]
+          @properties.detect(clause.to_sym)
         when Symbol, String
-          @properties[clause]
+          @properties.detect(clause)
         else
           raise ArgumentError, "Condition type #{clause.inspect} not supported"
       end

@@ -315,6 +315,10 @@ module DataMapper
     
     def options
       @options
-    end    
+    end
+    
+    def inspect
+      "#<Property #{@target}:#{@name}>"
+    end 
   end
 end

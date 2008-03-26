@@ -12,7 +12,7 @@ describe DataMapper::Query do
     [ :limit,    1         ],
     [ :limit,    2         ],
     [ :order,    [ DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc) ] ],
-    [ :fields,   [ :stub ] ], # TODO: fill in allowed default value
+    [ :fields,   Article.properties(:default).defaults ], # TODO: fill in allowed default value
     [ :links,    [ :stub ] ], # TODO: fill in allowed default value
     [ :includes, [ :stub ] ], # TODO: fill in allowed default value
   ]
@@ -33,6 +33,8 @@ describe DataMapper::Query do
   UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
     options.update attribute => value
   end
+  
+  UPDATED_OPTIONS.merge!({ :fields => [ :id, :author ]})
 
   describe '.new' do
     describe 'should set the attribute' do
@@ -110,6 +112,12 @@ describe DataMapper::Query do
         lambda {
           DataMapper::Query.new(Article, nil => nil)
         }.should raise_error(ArgumentError)
+      end
+    end
+    
+    describe 'should normalize' do
+      it '#fields' do
+        DataMapper::Query.new(Article, :fields => [:id]).fields.should == Article.properties(:default).select(:id)
       end
     end
   end
@@ -201,11 +209,16 @@ describe DataMapper::Query do
         @query.update(other).order.should == order
       end
 
-      [ :fields, :links, :includes ].each do |attribute|
+      [ :links, :includes ].each do |attribute|
         it "##{attribute} with other #{attribute} unique values" do
-          other = DataMapper::Query.new(Article, attribute => [ :other, :stub, :new ])
+          other = DataMapper::Query.new(Article, attribute => [ :stub, :other, :new ])
           @query.update(other).send(attribute).should == [ :stub, :other, :new ]
         end
+      end
+      
+      it "#fields with other fields unique values" do
+        other = DataMapper::Query.new(Article, :fields => [ :blog_id ]) 
+        @query.update(other).fields.should == Article.properties(:default).select(:id, :author, :blog_id)
       end
 
       it '#conditions with other conditions when they are unique' do
@@ -349,5 +362,6 @@ describe DataMapper::Query do
         @query.should_not == DataMapper::Query.new(Article, :author => 'dkubb')
       end
     end
+
   end
 end
