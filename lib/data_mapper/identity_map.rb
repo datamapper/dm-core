@@ -15,8 +15,8 @@ module DataMapper
 
     # Pass a Class and a key, and to retrieve an instance.
     # If the instance isn't found, nil is returned.
-    def get(klass, key)
-      @cache[mapped_class(klass)][key]
+    def get(resource, key)
+      @cache[resource][key]
     end
 
     # Pass an instance to add it to the IdentityMap.
@@ -28,26 +28,18 @@ module DataMapper
       key = instance.key
            
       raise ArgumentError.new("+key+ must be an Array, and can not be empty") if key.empty?       
-      @cache[mapped_class(instance.class)][key] = instance      
+      @cache[instance.class][key] = instance      
     end
     
     # Remove an instance from the IdentityMap.
     def delete(resource, key)
-      @cache[mapped_class(resource)].delete(key)
+      @cache[resource].delete(key)
     end
     
     # Clears a particular set of classes from the IdentityMap.
-    def clear!(klass)
-      @cache.delete(klass)
+    def clear!(resource)
+      @cache.delete(resource)
     end
     
-    private
-    def mapped_class(klass)
-      unless klass.superclass.respond_to?(:persistent?)
-        klass
-      else
-        mapped_class(klass.superclass)
-      end
-    end
   end
 end
