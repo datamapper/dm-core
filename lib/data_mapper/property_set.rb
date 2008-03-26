@@ -40,7 +40,15 @@ module DataMapper
     end
     
     def defaults
-      reject { |property| property.lazy? }
+      @defaults = reject { |property| property.lazy? }
+      
+      class << self
+        def defaults
+          @defaults
+        end
+      end
+      
+      defaults
     end
     
     def key
