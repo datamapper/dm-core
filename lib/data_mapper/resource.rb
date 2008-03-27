@@ -4,6 +4,11 @@ require __DIR__ + 'property_set'
 require __DIR__ + 'property'
 require __DIR__ + 'repository'
 require __DIR__ + 'hook'
+require __DIR__ + 'associations/relationship'
+require __DIR__ + 'associations/belongs_to'
+require __DIR__ + 'associations/has_one'
+require __DIR__ + 'associations/has_many'
+require __DIR__ + 'associations/has_and_belongs_to_many'
 
 module DataMapper
   
@@ -18,6 +23,12 @@ module DataMapper
       target.send(:include, DataMapper::Hook)
       target.instance_variable_set("@resource_names", Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(target.name) })
       target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
+      
+      # Associations:
+      target.send(:extend, DataMapper::Associations::BelongsTo)
+      target.send(:extend, DataMapper::Associations::HasOne)
+      target.send(:extend, DataMapper::Associations::HasMany)
+      target.send(:extend, DataMapper::Associations::HasAndBelongsToMany)
     end
     
     def self.dependencies
@@ -207,7 +218,8 @@ module DataMapper
       end
       
       def property(name, type, options = {})
-        property = properties(repository.name) << Property.new(self, name, type, options)
+        property = Property.new(self, name, type, options)
+        properties(repository.name) << property
         
         # Add property to the other mappings as well if this is for the default repository.
         if repository.name == default_repository_name
