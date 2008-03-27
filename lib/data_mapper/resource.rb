@@ -233,7 +233,7 @@ module DataMapper
       end
       
       def get(key)
-        repository.get(self, key)
+        repository.get(self, key.is_a?(Array) ? key : [key])
       end
       
       def [](key)

@@ -247,6 +247,10 @@ module DataMapper
             raise ArgumentError, "Field type #{field.inspect} not supported"
         end
       end.compact
+      # XXX: if an unknown property name is passed in as a String or Symbol
+      # it will return nil.  That is likely the purpose of the compact
+      # statement above.  I think that is wrong.  If a property is unknown
+      # then it should return an exception
     end
 
     # normalize links to DM::Query::Path

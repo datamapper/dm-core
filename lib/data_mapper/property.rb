@@ -237,16 +237,22 @@ module DataMapper
       @target.class_eval <<-EOS
       #{reader_visibility.to_s}
       def #{name}
-        attribute_get(#{name.inspect})
+        unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
+          unless new_record? || @loaded_set.nil?
+            @loaded_set.reload!(:fields => [ #{name.inspect} ])
+          else
+            #{normalized_name} = nil
+          end
+        end
+
+        #{normalized_name}
       end
       EOS
       
       if type == TrueClass
         @target.class_eval <<-EOS
         #{reader_visibility.to_s}
-        def #{name.to_s.ensure_ends_with('?')}
-          attribute_get(#{name.inspect})
-        end
+        alias #{name.to_s.ensure_ends_with('?')} #{name}
         EOS
       end
     rescue SyntaxError
@@ -258,7 +264,7 @@ module DataMapper
       @target.class_eval <<-EOS
       #{writer_visibility.to_s}
       def #{name}=(value)
-        attribute_set(#{name.inspect}, value)
+        dirty_attributes[:#{name}] = @#{name} = value
       end
       EOS
     rescue SyntaxError
