@@ -56,5 +56,12 @@ describe DataMapper::Associations::Relationship do
     has_many.source.should == Vehicle.properties(:relationship_spec).select(:manufacturer_id)
     has_many.target.should == Manufacturer.properties(:relationship_spec).key
   end
+  
+  it "should generate source properties with a safe subset of the target options" do
+    pending
+    # For example, :size would be an option you'd want a generated source Property to copy,
+    # but :serial or :key obviously not. So need to take a good look at Property::OPTIONS to
+    # see what applies and what doesn't.
+  end
 
 end
