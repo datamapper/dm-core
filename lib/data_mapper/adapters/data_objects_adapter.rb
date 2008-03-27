@@ -68,10 +68,11 @@ module DataMapper
         
         connection = create_connection
         sql = create_statement(instance.class, properties)
-        DataMapper.logger.debug { sql }
+        values = properties.map { |property| dirty_attributes[property.name] }
+        
+        DataMapper.logger.debug { "CREATE: #{sql}  PARAMETERS: #{values.inspect}" }
         command = connection.create_command(sql)
         
-        values = properties.map { |property| dirty_attributes[property.name] }
         result = command.execute_non_query(*values)
 
         close_connection(connection)
@@ -165,13 +166,15 @@ module DataMapper
         set = LoadedSet.new(repository, query.resource, properties_with_indexes)
         
         sql = query_read_statement(query)
-        DataMapper.logger.debug { sql }
+        parameters = query.parameters
+        
+        DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
         
         begin
           connection = create_connection
           command = connection.create_command(sql)
           command.set_types(properties.map { |property| property.type })
-          reader = command.execute_reader(*query.parameters)
+          reader = command.execute_reader(*parameters)
 
           while(reader.next!)
             set.materialize!(reader.values, query.reload?)
@@ -197,9 +200,12 @@ module DataMapper
       end
 
       # Database-specific method
-      def execute(*args)
+      def execute(sql, *args)
         db = create_connection
-        command = db.create_command(args.shift)
+        
+        DataMapper.logger.debug { "EXECUTE: #{sql}  PARAMETERS: #{args.inspect}" }
+        
+        command = db.create_command(sql)
         return command.execute_non_query(*args)
       rescue => e
         DataMapper.logger.error { e } if DataMapper.logger
@@ -211,6 +217,8 @@ module DataMapper
       def query(sql, *args)
         db = create_connection
 
+        DataMapper.logger.debug { "QUERY: #{sql}  PARAMETERS: #{args.inspect}" }
+        
         command = db.create_command(sql)
 
         reader = command.execute_reader(*args)
