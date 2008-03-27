@@ -165,13 +165,14 @@ module DataMapper
         set = LoadedSet.new(repository, query.resource, properties_with_indexes)
         
         sql = query_read_statement(query)
-        DataMapper.logger.debug { sql }
+        parameters = query.parameters
+        DataMapper.logger.debug { "QUERY: '#{sql}' PARAMETERS: #{parameters.inspect}" }
         
         begin
           connection = create_connection
           command = connection.create_command(sql)
           command.set_types(properties.map { |property| property.type })
-          reader = command.execute_reader(*query.parameters)
+          reader = command.execute_reader(*parameters)
 
           while(reader.next!)
             set.materialize!(reader.values, query.reload?)

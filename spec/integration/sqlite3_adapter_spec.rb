@@ -213,8 +213,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   
   describe "query" do
 
-
-
     before do
 
       @adapter = repository(:sqlite3).adapter      
@@ -222,7 +220,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         CREATE TABLE "sail_boats" (
           "id" INTEGER PRIMARY KEY,
           "name" VARCHAR(50),
-          "port" VARCHAR(50)
+          "port" VARCHAR(50),
+          "notes" VARCHAR(50)
         )
       EOS
 
@@ -231,13 +230,15 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :serial => true
         property :name, String        
         property :port, String
+        property :notes, String, :lazy => true
+        
         class << self
           def property_by_name(name)
             properties(repository.name).detect do |property|
               property.name == name
             end
           end
-        end        
+        end
       end
             
       repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
@@ -266,17 +267,20 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       result = repository(:sqlite3).all(SailBoat,{:order => [
           SailBoat.property_by_name(:name),
           DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
-      ]})              
+      ]})
       result[0].id.should == 1
-    end 
-    
+    end
+
+    it "should lazy load" do
+      result = repository(:sqlite3).all(SailBoat,{})
+      result[0].id.should == 1
+      puts result[0].id
+      puts result[0].notes
+    end
 
     after do
      @adapter.execute('DROP TABLE "sail_boats"')
     end  
-          
-      
-      
     
   end
   
@@ -328,7 +332,15 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       sfs.instance_variables.should_not include('@sample')
       sfs.sample.should_not be_nil
     end
-        
+    
+    it "should translate an Array to an IN clause" do
+      ids = repository(:sqlite3).all(SerialFinderSpec, { :limit => 100 }).map(&:id)
+      results = repository(:sqlite3).all(SerialFinderSpec, { :id => ids })
+      
+      results.size.should == 100
+      results.map(&:ids).should == ids
+    end
+    
     after do
       @adapter.execute('DROP TABLE "serial_finder_specs"')
     end

@@ -1,4 +1,5 @@
 *.log
+log/*
 doc
 cov
 pkg
