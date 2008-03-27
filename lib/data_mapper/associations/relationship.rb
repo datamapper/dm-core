@@ -32,7 +32,7 @@ module DataMapper
             # Default t the target key we're binding to prefixed with the
             # association name.
             target.map do |property|
-              property_name = "#{default_prefix}_#{property.name}"
+              property_name = "#{@name}_#{property.name}"
               resource_property_set.detect(property_name) || resource.property(property_name, property.type)
             end
           else
