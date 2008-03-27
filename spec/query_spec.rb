@@ -1,18 +1,20 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
+
+
 describe DataMapper::Query do
   GOOD_OPTIONS = [
-    [ :reload,  false     ],
-    [ :reload,  true      ],
-    [ :offset,  0         ],
-    [ :offset,  1         ],
-    [ :limit,   1         ],
-    [ :limit,   2         ],
-    [ :order,   [ :stub ] ], # TODO: fill in allowed default value
-    [ :fields,  [ :stub ] ], # TODO: fill in allowed default value
-    [ :link,    [ :stub ] ], # TODO: fill in allowed default value
-    [ :include, [ :stub ] ], # TODO: fill in allowed default value
+    [ :reload,   false     ],
+    [ :reload,   true      ],
+    [ :offset,   0         ],
+    [ :offset,   1         ],
+    [ :limit,    1         ],
+    [ :limit,    2         ],
+    [ :order,    [ DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc) ] ],
+    [ :fields,   Article.properties(:default).defaults ], # TODO: fill in allowed default value
+    [ :links,    [ :stub ] ], # TODO: fill in allowed default value
+    [ :includes, [ :stub ] ], # TODO: fill in allowed default value
   ]
 
   BAD_OPTIONS = {
@@ -21,8 +23,8 @@ describe DataMapper::Query do
     :limit      => 0,
     :order      => [],
     :fields     => [],
-    :link       => [],
-    :include    => [],
+    :links      => [],
+    :includes   => [],
     :conditions => [],
   }
 
@@ -31,20 +33,8 @@ describe DataMapper::Query do
   UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
     options.update attribute => value
   end
-
-  before :all do
-    class Article
-      include DataMapper::Resource
-    end
-
-    class Comment
-      include DataMapper::Resource
-    end
-
-    class NormalClass
-      # should not include DataMapper::Resource
-    end
-  end
+  
+  UPDATED_OPTIONS.merge!({ :fields => [ :id, :author ]})
 
   describe '.new' do
     describe 'should set the attribute' do
@@ -75,12 +65,12 @@ describe DataMapper::Query do
       describe ' #conditions with unknown options' do
         it 'when a Symbol object is a key' do
           query = DataMapper::Query.new(Article, :author => 'dkubb')
-          query.conditions.should == [ [ :eql, :author, 'dkubb' ] ]
+          query.conditions.should == [ [ :eql, Article.property_by_name(:author), 'dkubb' ] ]
         end
 
         it 'when a Symbol::Operator object is a key' do
           query = DataMapper::Query.new(Article, :author.like => /\Ad(?:an\.)kubb\z/)
-          query.conditions.should == [ [ :like, :author, /\Ad(?:an\.)kubb\z/ ] ]
+          query.conditions.should == [ [ :like, Article.property_by_name(:author), /\Ad(?:an\.)kubb\z/ ] ]
         end
       end
     end
@@ -124,6 +114,12 @@ describe DataMapper::Query do
         }.should raise_error(ArgumentError)
       end
     end
+    
+    describe 'should normalize' do
+      it '#fields' do
+        DataMapper::Query.new(Article, :fields => [:id]).fields.should == Article.properties(:default).select(:id)
+      end
+    end
   end
 
   describe '#update' do
@@ -153,17 +149,17 @@ describe DataMapper::Query do
       end
 
       it '#reload with other reload' do
-        other = DataMapper::Query.new(Comment, :reload => true)
+        other = DataMapper::Query.new(Article, :reload => true)
         @query.update(other).reload.should == true
       end
 
       it '#offset with other offset when it is not equal to 0' do
-        other = DataMapper::Query.new(Comment, :offset => 1)
+        other = DataMapper::Query.new(Article, :offset => 1)
         @query.update(other).offset.should == 1
       end
 
       it '#limit with other limit when it is not nil' do
-        other = DataMapper::Query.new(Comment, :limit => 1)
+        other = DataMapper::Query.new(Article, :limit => 1)
         @query.update(other).limit.should == 1
       end
 
@@ -173,8 +169,8 @@ describe DataMapper::Query do
           @query.update(:author.send(operator) => 'ssmoot')
 
           # update the conditions, and overwrite with the new value
-          other = DataMapper::Query.new(Comment, :author.send(operator) => 'dkubb')
-          @query.update(other).conditions.should == [ [ operator, :author, 'dkubb' ] ]
+          other = DataMapper::Query.new(Article, :author.send(operator) => 'dkubb')
+          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:author), 'dkubb' ] ]
         end
       end
 
@@ -184,8 +180,8 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => Time.at(1))
 
           # update the conditions, and overwrite with the new value is less
-          other = DataMapper::Query.new(Comment, :created_at.send(operator) => Time.at(0))
-          @query.update(other).conditions.should == [ [ operator, :created_at, Time.at(0) ] ]
+          other = DataMapper::Query.new(Article, :created_at.send(operator) => Time.at(0))
+          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(0) ] ]
         end
       end
 
@@ -195,18 +191,34 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => Time.at(0))
 
           # update the conditions, and overwrite with the new value is more
-          other = DataMapper::Query.new(Comment, :created_at.send(operator) => Time.at(1))
-          @query.update(other).conditions.should == [ [ operator, :created_at, Time.at(1) ] ]
+          other = DataMapper::Query.new(Article, :created_at.send(operator) => Time.at(1))
+          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(1) ] ]
         end
       end
     end
 
     describe 'should append the attribute' do
-      [ :order, :fields, :link, :include ].each do |attribute|
+      it "#order with other order unique values" do
+        order = [
+          DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc),
+          DataMapper::Query::Direction.new(Article.property_by_name(:author),     :desc),
+          DataMapper::Query::Direction.new(Article.property_by_name(:title),      :desc),
+        ]
+
+        other = DataMapper::Query.new(Article, :order => order)
+        @query.update(other).order.should == order
+      end
+
+      [ :links, :includes ].each do |attribute|
         it "##{attribute} with other #{attribute} unique values" do
-          other = DataMapper::Query.new(Comment, attribute => [ :other, :stub, :new ])
+          other = DataMapper::Query.new(Article, attribute => [ :stub, :other, :new ])
           @query.update(other).send(attribute).should == [ :stub, :other, :new ]
         end
+      end
+      
+      it "#fields with other fields unique values" do
+        other = DataMapper::Query.new(Article, :fields => [ :blog_id ]) 
+        @query.update(other).fields.should == Article.properties(:default).select(:id, :author, :blog_id)
       end
 
       it '#conditions with other conditions when they are unique' do
@@ -214,8 +226,8 @@ describe DataMapper::Query do
         @query.update(:title => 'On DataMapper')
 
         # update the conditions, but merge the conditions together
-        other = DataMapper::Query.new(Comment, :author => 'dkubb')
-        @query.update(other).conditions.should == [ [ :eql, :title, 'On DataMapper' ], [ :eql, :author, 'dkubb' ] ]
+        other = DataMapper::Query.new(Article, :author => 'dkubb')
+        @query.update(other).conditions.should == [ [ :eql, Article.property_by_name(:title), 'On DataMapper' ], [ :eql, Article.property_by_name(:author), 'dkubb' ] ]
       end
 
       [ :not, :in ].each do |operator|
@@ -224,8 +236,8 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => [ Time.at(0) ])
 
           # update the conditions, and overwrite with the new value is more
-          other = DataMapper::Query.new(Comment, :created_at.send(operator) => [ Time.at(1) ])
-          @query.update(other).conditions.should == [ [ operator, :created_at, [ Time.at(0), Time.at(1) ] ] ]
+          other = DataMapper::Query.new(Article, :created_at.send(operator) => [ Time.at(1) ])
+          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), [ Time.at(0), Time.at(1) ] ] ]
         end
       end
 
@@ -234,8 +246,8 @@ describe DataMapper::Query do
         @query.update(:title => 'On DataMapper')
 
         # update the conditions, but merge the conditions together
-        other = DataMapper::Query.new(Comment, :conditions => [ 'author = "dkubb"' ])
-        @query.update(other).conditions.should == [ [ :eql, :title, 'On DataMapper' ], [ 'author = "dkubb"' ] ]
+        other = DataMapper::Query.new(Article, :conditions => [ 'author = "dkubb"' ])
+        @query.update(other).conditions.should == [ [ :eql, Article.property_by_name(:title), 'On DataMapper' ], [ 'author = "dkubb"' ] ]
       end
 
       it '#conditions with other conditions when they have a two or more element condition' do
@@ -243,20 +255,20 @@ describe DataMapper::Query do
         @query.update(:title => 'On DataMapper')
 
         # update the conditions, but merge the conditions together
-        other = DataMapper::Query.new(Comment, :conditions => [ 'author = ?', 'dkubb' ])
-        @query.update(other).conditions.should == [ [ :eql, :title, 'On DataMapper' ], [ 'author = ?', [ 'dkubb' ] ] ]
+        other = DataMapper::Query.new(Article, :conditions => [ 'author = ?', 'dkubb' ])
+        @query.update(other).conditions.should == [ [ :eql, Article.property_by_name(:title), 'On DataMapper' ], [ 'author = ?', [ 'dkubb' ] ] ]
       end
     end
 
     describe 'should not update the attribute' do
       it '#offset when other offset is equal to 0' do
-        other = DataMapper::Query.new(Comment, :offset => 0)
+        other = DataMapper::Query.new(Article, :offset => 0)
         other.offset.should == 0
         @query.update(other).offset.should == 1
       end
 
       it '#limit when other limit is nil' do
-        other = DataMapper::Query.new(Comment)
+        other = DataMapper::Query.new(Article)
         other.limit.should be_nil
         @query.update(other).offset.should == 1
       end
@@ -267,8 +279,8 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => Time.at(0))
 
           # do not overwrite with the new value if it is more
-          other = DataMapper::Query.new(Comment, :created_at.send(operator) => Time.at(1))
-          @query.update(other).conditions.should == [ [ operator, :created_at, Time.at(0) ] ]
+          other = DataMapper::Query.new(Article, :created_at.send(operator) => Time.at(1))
+          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(0) ] ]
         end
       end
 
@@ -278,8 +290,8 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => Time.at(1))
 
           # do not overwrite with the new value if it is less
-          other = DataMapper::Query.new(Comment, :created_at.send(operator) => Time.at(0))
-          @query.update(other).conditions.should == [ [ operator, :created_at, Time.at(1) ] ]
+          other = DataMapper::Query.new(Article, :created_at.send(operator) => Time.at(0))
+          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(1) ] ]
         end
       end
     end
@@ -328,8 +340,8 @@ describe DataMapper::Query do
         other.update(:author => 'dkubb')
 
         # query conditions are in different order
-        @query.conditions.should == [ [ :eql, :author, 'dkubb' ],        [ :eql, :title, 'On DataMapper' ] ]
-        other.conditions.should  == [ [ :eql, :title, 'On DataMapper' ], [ :eql, :author, 'dkubb' ]        ]
+        @query.conditions.should == [ [ :eql, Article.property_by_name(:author), 'dkubb'         ], [ :eql, Article.property_by_name(:title),  'On DataMapper' ] ]
+        other.conditions.should  == [ [ :eql, Article.property_by_name(:title),  'On DataMapper' ], [ :eql, Article.property_by_name(:author), 'dkubb'         ] ]
 
         @query.should == other
       end
@@ -350,5 +362,6 @@ describe DataMapper::Query do
         @query.should_not == DataMapper::Query.new(Article, :author => 'dkubb')
       end
     end
+
   end
 end

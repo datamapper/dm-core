@@ -132,11 +132,24 @@ describe "DataMapper::Resource" do
   end
 
   it 'should add hook functionality to including class' do
-    klass = Class.new do
-      include DataMapper::Resource
+    Planet.should respond_to(:before)
+    Planet.should respond_to(:after)
+  end
+
+  describe 'when retrieving by key' do
+    it 'should return the corresponding object' do
+      m = mock("planet")
+      Planet.should_receive(:get).with(1).and_return(m)
+
+      Planet[1].should == m
     end
 
-    klass.should respond_to(:before)
-    klass.should respond_to(:after)
+    it 'should raise an error if not found' do
+      Planet.should_receive(:get).and_return(nil)
+
+      lambda do
+        Planet[1]
+      end.should raise_error(DataMapper::ObjectNotFoundError)
+    end
   end
 end

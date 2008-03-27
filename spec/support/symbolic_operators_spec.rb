@@ -1,7 +1,7 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
-describe Symbol::Operator do
+describe Symbol do
   
   it 'should use greater_than_or_equal_to to limit results' do
     pending('burn')

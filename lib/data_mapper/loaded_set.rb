@@ -1,3 +1,5 @@
+require 'set'
+
 module DataMapper
  
   class LoadedSet
@@ -27,6 +29,26 @@ module DataMapper
       @entries = []
     end
  
+    def keys
+      # TODO: This is a really dirty way to implement this. My brain's just fried :p
+      keys = {}
+      entry_keys = @entries.map { |instance| instance.key }
+      
+      i = 0
+      @key_properties.each do |property|
+        keys[property] = entry_keys.map { |key| key[i] }
+        i += 1
+      end
+      
+      keys
+    end
+    
+    def reload!(options = {})      
+      query = Query.new(@type, keys.merge(:fields => @key_properties))
+      query.update(options.merge(:reload => true))
+      @repository.adapter.read_set(@repository, query)
+    end
+    
     def materialize!(values, reload = false)
       type = if @inheritance_property_index
         values[@inheritance_property_index]
@@ -42,8 +64,10 @@ module DataMapper
  
         if instance.nil?
           instance = type.allocate
-          @key_properties.zip(key_values).each do |p,v|
-            instance.instance_variable_set(p.instance_variable_name, v)
+          i = 0
+          @key_properties.each do |p|
+            instance.instance_variable_set(p.instance_variable_name, key_values[i])
+            i += 1
           end
           @entries << instance
           instance.loaded_set = self
@@ -68,8 +92,13 @@ module DataMapper
  
       instance
     end
- 
-    def to_a
+    
+    def first
+      @entries.first
+    end
+    
+    def entries
+      @entries.uniq!
       @entries.dup
     end
   end

@@ -8,14 +8,26 @@ require __DIR__ + 'naming_conventions'
 # Delegates to DataMapper::repository.
 # Will not overwrite if a method of the same name is pre-defined.
 module Kernel
-  def repository(name = :default, &block)
-    DataMapper::repository(name, &block)
+  def repository(name = :default)
+    unless block_given?
+      begin
+        DataMapper::Repository.context.last || DataMapper::Repository.new(name)
+      #rescue NoMethodError
+       # raise RepositoryNotSetupError.new("#{name.inspect} repository not set up.")
+      end
+    else
+      begin
+        return yield(DataMapper::Repository.context.push(DataMapper::Repository.new(name)))
+      ensure
+        DataMapper::Repository.context.pop
+      end
+    end
   end
 end
 
 module DataMapper
   
-  def self.setup(name, uri)
+  def self.setup(name, uri, options = {})
     uri = uri.is_a?(String) ? URI.parse(uri) : uri
     
     raise ArgumentError.new("'name' must be a Symbol") unless name.is_a?(Symbol)
@@ -30,7 +42,7 @@ module DataMapper
     end
     
     adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(name, uri)
-    
+
     Repository.adapters[name] = adapter
   end
   
@@ -96,18 +108,15 @@ module DataMapper
     end
     
     def first(resource, options)
-      raise NotImplementedError.new
       @adapter.read_one(self, Query.new(resource, options))
     end
     
     def all(resource, options)
-      raise NotImplementedError.new
       @adapter.read_set(self, Query.new(resource, options))      
     end
     
-    def first(resource, options)
-      raise NotImplementedError.new
-      @adapter.read_set(self, Query.new(resource, options))
+    def fake_it(resource)
+      @adapter.fake_it(self, resource)
     end
     
     def save(instance)

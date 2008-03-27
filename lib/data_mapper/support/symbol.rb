@@ -1,52 +1,36 @@
 module DataMapper
   module Support
-    
-    # Extends 
     module Symbol
-      
-      class Operator
-      
-        attr_reader :value, :type, :options
-      
-        def initialize(value, type, options = nil)
-          @value, @type, @options = value, type, options
-        end
-    
-        def to_sym
-          @value
-        end
-      end
-    
       def gt
-        Operator.new(self, :gt)
+        DataMapper::Query::Operator.new(self, :gt)
       end
   
       def gte
-        Operator.new(self, :gte)
+        DataMapper::Query::Operator.new(self, :gte)
       end
   
       def lt
-        Operator.new(self, :lt)
+        DataMapper::Query::Operator.new(self, :lt)
       end
   
       def lte
-        Operator.new(self, :lte)
+        DataMapper::Query::Operator.new(self, :lte)
       end
   
       def not
-        Operator.new(self, :not)
+        DataMapper::Query::Operator.new(self, :not)
       end
   
       def eql
-        Operator.new(self, :eql)
+        DataMapper::Query::Operator.new(self, :eql)
       end
   
       def like
-        Operator.new(self, :like)
+        DataMapper::Query::Operator.new(self, :like)
       end
   
       def in
-        Operator.new(self, :in)
+        DataMapper::Query::Operator.new(self, :in)
       end
 
       def to_proc
@@ -56,21 +40,21 @@ module DataMapper
       # Calculations:
   
       def count
-        Operator.new(self, :count)
+        DataMapper::Query::Operator.new(self, :count)
       end
   
       def max
-        Operator.new(self, :max)
+        DataMapper::Query::Operator.new(self, :max)
       end
   
       def avg
-        Operator.new(self, :avg)
+        DataMapper::Query::Operator.new(self, :avg)
       end
       
       alias average avg
   
       def min
-        Operator.new(self, :min)
+        DataMapper::Query::Operator.new(self, :min)
       end
       
     end # module Symbol

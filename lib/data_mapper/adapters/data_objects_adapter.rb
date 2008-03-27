@@ -1,4 +1,5 @@
 require __DIR__ + 'abstract_adapter'
+require 'fastthread'
 
 module DataMapper
 
@@ -66,7 +67,9 @@ module DataMapper
         properties = instance.class.properties(name).select { |property| dirty_attributes.key?(property.name) }
         
         connection = create_connection
-        command = connection.create_command(create_statement(instance.class, properties))
+        sql = create_statement(instance.class, properties)
+        DataMapper.logger.debug { sql }
+        command = connection.create_command(sql)
         
         values = properties.map { |property| dirty_attributes[property.name] }
         result = command.execute_non_query(*values)
@@ -91,7 +94,9 @@ module DataMapper
         set = LoadedSet.new(repository, resource, properties_with_indexes)
         
         connection = create_connection
-        command = connection.create_command(read_statement(resource, key))
+        sql = read_statement(resource, key)
+        DataMapper.logger.debug { sql }
+        command = connection.create_command(sql)
         command.set_types(properties.map { |property| property.type })
         reader = command.execute_reader(*key)
         while(reader.next!)
@@ -101,7 +106,7 @@ module DataMapper
         reader.close
         close_connection(connection)
         
-        set.to_a.first
+        set.first
       end
       
       def update(repository, instance)
@@ -132,20 +137,62 @@ module DataMapper
       end
 
       # Methods dealing with locating a single object, by keys
-      def read_one(repository, klass, *keys)
-        raise NotImplementedError.new
-      end
+      def read_one(repository, query)
+        properties = resource.properties(repository.name).select { |property| !property.lazy? }
+        properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
 
-      def delete_one(repository, klass, *keys)
-        raise NotImplementedError.new
+        set = LoadedSet.new(repository, resource, properties_with_indexes)
+        
+        connection = create_connection
+        command = connection.create_command(read_statement(resource, key))
+        command.set_types(properties.map { |property| property.type })
+        reader = command.execute_reader(*key)
+        while(reader.next!)
+          set.materialize!(reader.values)
+        end
+        
+        reader.close
+        close_connection(connection)
+        
+        set.first
       end
 
       # Methods dealing with finding stuff by some query parameters
-      def read_set(repository, klass, query = {})
-        raise NotImplementedError.new
+      def read_set(repository, query)
+        properties = query.fields
+        properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
+
+        set = LoadedSet.new(repository, query.resource, properties_with_indexes)
+        
+        sql = query_read_statement(query)
+        DataMapper.logger.debug { sql }
+        
+        begin
+          connection = create_connection
+          command = connection.create_command(sql)
+          command.set_types(properties.map { |property| property.type })
+          reader = command.execute_reader(*query.parameters)
+
+          while(reader.next!)
+            set.materialize!(reader.values, query.reload?)
+          end
+        
+          reader.close
+        rescue StandardError => se
+          p se, sql
+          raise se
+        ensure
+          close_connection(connection)
+        end
+        
+        set.entries
       end
 
-      def delete_set(repository, klass, query = {})
+      def delete_one(repository, query)
+        raise NotImplementedError.new
+      end
+      
+      def delete_set(repository, query)
         raise NotImplementedError.new
       end
 
@@ -161,10 +208,10 @@ module DataMapper
         db.close if db
       end
 
-      def query(*args)
+      def query(sql, *args)
         db = create_connection
 
-        command = db.create_command(args.shift)
+        command = db.create_command(sql)
 
         reader = command.execute_reader(*args)
         results = []
@@ -217,7 +264,7 @@ module DataMapper
         end
         
         def read_statement(resource, key)
-          properties = resource.properties(name).select { |property| !property.lazy? }
+          properties = resource.properties(name).defaults
           <<-EOS.compress_lines
             SELECT #{properties.map { |property| quote_column_name(property.field) }.join(', ')} 
             FROM #{quote_table_name(resource.resource_name(name))} 
@@ -240,6 +287,63 @@ module DataMapper
           EOS
         end
         
+        def query_read_statement(query)
+          qualify = query.links.any?
+          
+          sql = "SELECT "
+          
+          sql << query.fields.map do |property|
+            property_to_column_name(query.resource_name, property, qualify)
+          end.join(', ')
+          
+          sql << " FROM " << quote_table_name(query.resource_name)
+          
+          unless query.conditions.empty?
+            sql << " WHERE "
+            
+            sql << "(" << query.conditions.map do |operator, property, value|
+              case operator
+              when :eql, :in then equality_operator(query.resource_name, property, qualify, value)
+              when :not then inequality_operator(query.resource_name, property, qualify, value)
+              when :like then "#{property_to_column_name(query.resource_name, property, qualify)} LIKE ?"
+              when :gt then "#{property_to_column_name(query.resource_name, property, qualify)} > ?"
+              when :gte then "#{property_to_column_name(query.resource_name, property, qualify)} >= ?"
+              when :lt then "#{property_to_column_name(query.resource_name, property, qualify)} < ?"
+              when :lte then "#{property_to_column_name(query.resource_name, property, qualify)} <= ?"
+              else raise "CAN HAS CRASH?"
+              end
+            end.join(') AND (') << ")"
+          end
+          
+          sql << " LIMIT #{query.limit}" if query.limit
+          sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
+          
+          sql
+        end
+        
+        def equality_operator(resource_name, property, qualify, value)
+          case value
+          when Array then "#{property_to_column_name(resource_name, property, qualify)} IN (?)"
+          when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NULL"
+          else "#{property_to_column_name(resource_name, property, qualify)} = ?"
+          end
+        end
+        
+        def inequality_operator(resource_name, property, qualify, value)
+          case value
+          when Array then "#{property_to_column_name(resource_name, property, qualify)} NOT IN (?)"
+          when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NO NULL"
+          else "#{property_to_column_name(resource_name, property, qualify)} <> ?"
+          end
+        end
+        
+        def property_to_column_name(resource_name, property, qualify)
+          if qualify
+            quote_table_name(query.resource_name) + '.' + quote_column_name(property.field)
+          else
+            quote_column_name(property.field)
+          end
+        end
       end #module SQL
       
       include SQL

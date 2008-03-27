@@ -86,11 +86,11 @@ module DataMapper
     end
     
     def attribute_get(name)
-      if attribute_loaded?(name)
-        instance_variable_get(name.to_s.ensure_starts_with('@'))
-      else
+      unless attribute_loaded?(name)
         lazy_load!(name)
       end
+      
+      instance_variable_get(name.to_s.ensure_starts_with('@'))
     end
     
     def attribute_set(name, value)
@@ -98,7 +98,11 @@ module DataMapper
     end
     
     def lazy_load!(*names)
-      instance_variable_set(names.first.to_s.ensure_starts_with('@'), nil)
+      unless new_record? || @loaded_set.nil?
+        @loaded_set.reload!(:fields => names)
+      else
+        names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
+      end
     end
     
     def initialize(details = nil) # :nodoc:
@@ -151,19 +155,14 @@ module DataMapper
     
     # Mass-assign mapped fields.
     def attributes=(values_hash)
-      success = true
       values_hash.each_pair do |k,v|
         setter = k.to_s.sub(/\?$/, '').ensure_ends_with('=')
         # We check #public_methods and not Class#public_method_defined? to
         # account for singleton methods.
         if public_methods.include?(setter)
           send(setter, v)
-        else
-          success = false
         end
       end
-      
-      success
     end
     
     private
@@ -179,54 +178,13 @@ module DataMapper
     end
     
     def private_attributes=(values_hash)
-      success = true
-      
       values_hash.each_pair do |k,v|
         setter = k.to_s.sub(/\?$/, '').ensure_ends_with('=')
         if respond_to?(setter) || private_methods.include?(setter)
           send(setter, v)
-        else
-          success = false
         end
       end
-      
-      success
     end
-
-#     def attribute_get(property_name)
-#       property = self.class.properties(repository.name)[property_name.to_sym]
-#       if property.lazy? && !property.loaded?
-#         lazy_load!(property_name)
-#       end
-#       property.instance_variable_get(:@value)
-#     end
-# 
-#     def attribute_set(property_name, value)
-#       property = self.class.properties(repository.name).name(property_name.to_sym)
-# 
-# =begin
-#       We've got three options here to handle dirty tracking
-# 
-#       1) Simply as soon as the property is loaded then any change results in the property being dirty
-#       property.dirty = property.loaded?
-#       
-#       2) We can store the original value of the field as soon as make a change after it is loaded
-#       if !property.dirty? && property.loaded?
-#         property.instance_variable_set(:@original_value, property.instance_variable_get(:@value))
-#         property.dirty = true
-#       end
-# 
-#       3) We can do full tracking where the value is tracked and if changed and then reverted the dirty flag is cleared
-#       if property.loaded?
-#         property.instance_variable_set(:original_value, property.instance_variable_get(:value)) unless property.original_value_set?
-#         property.dirty = !(property.instance_variable_get(:@original_value) == value)
-#       end
-# =end
-#       
-#       property.dirty = property.loaded?
-#       property.instance_variable_set(:@value, value)
-#       property.loaded = true
-#     end
 
     public
     
@@ -267,7 +225,7 @@ module DataMapper
       end
       
       def key(repository_name)
-        @properties[repository_name].select { |property| property.key? }
+        @properties[repository_name].key
       end
       
       def inheritance_property(repository_name)
@@ -275,18 +233,19 @@ module DataMapper
       end
       
       def get(key)
-        repository.get(self, key)
+        repository.get(self, key.is_a?(Array) ? key : [key])
       end
       
       def [](key)
-        instance = get(key)
-        raise ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}"
-        
-        instance
+        get(key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}")
       end
       
       def all(options)
         repository.all(self, options)
+      end
+      
+      def fake_it
+        repository.fake_it(self)
       end
       
       def first(options)
