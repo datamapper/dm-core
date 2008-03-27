@@ -165,14 +165,13 @@ module DataMapper
         set = LoadedSet.new(repository, query.resource, properties_with_indexes)
         
         sql = query_read_statement(query)
-        parameters = query.parameters
-        DataMapper.logger.debug { "QUERY: '#{sql}' PARAMETERS: #{parameters.inspect}" }
+        DataMapper.logger.debug { sql }
         
         begin
           connection = create_connection
           command = connection.create_command(sql)
           command.set_types(properties.map { |property| property.type })
-          reader = command.execute_reader(*parameters)
+          reader = command.execute_reader(*query.parameters)
 
           while(reader.next!)
             set.materialize!(reader.values, query.reload?)
@@ -333,7 +332,7 @@ module DataMapper
         
         def equality_operator(resource_name, property, qualify, value)
           case value
-          when Array then "#{property_to_column_name(resource_name, property, qualify)} IN (?)"
+          when Array then "#{property_to_column_name(resource_name, property, qualify)} IN ?"
           when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NULL"
           else "#{property_to_column_name(resource_name, property, qualify)} = ?"
           end
@@ -341,7 +340,7 @@ module DataMapper
         
         def inequality_operator(resource_name, property, qualify, value)
           case value
-          when Array then "#{property_to_column_name(resource_name, property, qualify)} NOT IN (?)"
+          when Array then "#{property_to_column_name(resource_name, property, qualify)} NOT IN ?"
           when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NO NULL"
           else "#{property_to_column_name(resource_name, property, qualify)} <> ?"
           end

@@ -7,5 +7,6 @@ pkg
 www/output
 coverage/*
 *.db
+spec/integration/*.db*
 nbproject
 profile_results.*

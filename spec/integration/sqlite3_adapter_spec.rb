@@ -297,7 +297,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       
       @adapter = repository(:sqlite3).adapter
       
-      @adapter.execute(<<-EOS.compress_lines) rescue nil
+      @adapter.execute(<<-EOS.compress_lines)
         CREATE TABLE "serial_finder_specs" (
           "id" INTEGER PRIMARY KEY,
           "sample" VARCHAR(50)
@@ -334,10 +334,10 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
     
     it "should translate an Array to an IN clause" do
-      ids = repository(:sqlite3).all(SerialFinderSpec, { :limit => 100 }).map(&:id)
+      ids = repository(:sqlite3).all(SerialFinderSpec, { :limit => 10 }).map(&:id)
       results = repository(:sqlite3).all(SerialFinderSpec, { :id => ids })
       
-      results.size.should == 100
+      results.size.should == 10
       results.map(&:ids).should == ids
     end
     
