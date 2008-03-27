@@ -315,9 +315,18 @@ module DataMapper
             end.join(') AND (') << ")"
           end
           
+          unless query.order.empty?
+            parts = []
+            query.order.map do |item|
+              parts << item.name if item.is_a?(DataMapper::Property)
+              parts << "#{item.property.name} #{item.direction}" if item.is_a?(DataMapper::Query::Direction)
+            end
+            sql << " ORDER BY #{parts.join(', ')}"
+          end
+          
           sql << " LIMIT #{query.limit}" if query.limit
           sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
-          
+
           sql
         end
         

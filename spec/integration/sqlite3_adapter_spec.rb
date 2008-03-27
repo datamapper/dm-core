@@ -195,6 +195,75 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
   end
   
+  describe "query" do
+
+
+
+    before do
+
+      @adapter = repository(:sqlite3).adapter      
+      @adapter.execute(<<-EOS.compress_lines) rescue nil
+        CREATE TABLE "sail_boats" (
+          "id" INTEGER PRIMARY KEY,
+          "name" VARCHAR(50),
+          "port" VARCHAR(50)
+        )
+      EOS
+
+      class SailBoat 
+        include DataMapper::Resource
+        property :id, Fixnum, :serial => true
+        property :name, String        
+        property :port, String
+        class << self
+          def property_by_name(name)
+            properties(repository.name).detect do |property|
+              property.name == name
+            end
+          end
+        end        
+      end
+            
+      repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
+      repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
+      repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "C", :port => "A"))            
+    end
+    
+    it "should order results" do
+      result = repository(:sqlite3).all(SailBoat,{:order => [
+          DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
+      ]})       
+      result[0].id.should == 1
+       
+      result = repository(:sqlite3).all(SailBoat,{:order => [
+          DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+      ]})              
+      result[0].id.should == 3
+      
+      result = repository(:sqlite3).all(SailBoat,{:order => [
+          DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc),
+          DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+      ]})              
+      result[0].id.should == 1
+
+
+      result = repository(:sqlite3).all(SailBoat,{:order => [
+          SailBoat.property_by_name(:name),
+          DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+      ]})              
+      result[0].id.should == 1
+    end 
+    
+
+    after do
+     @adapter.execute('DROP TABLE "sail_boats"')
+    end  
+          
+      
+      
+    
+  end
+  
   describe "finders" do
     
     before do
