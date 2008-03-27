@@ -8,19 +8,19 @@ module DataMapper
   # Provides means of writing custom types for properties. Each type is based
   # on a ruby primitive and handles its own serialization and materialization,
   # and therefore is responsible for providing those methods.
-  # 
+  #
   # To see complete list of supported types, see documentation for
   # DataMapper::Property::TYPES
   #
   # == Defining new Types
   # To define a new type, subclass DataMapper::Type, pick ruby primitive, and
   # set the options for this type.
-  # 
+  #
   #   class MyType < DataMapper::Type
   #     primitive String
   #     size 10
   #   end
-  # 
+  #
   # Following this, you will be able to use MyType as a type for any given
   # property. If special materialization and serialization is required,
   # override the class methods
@@ -43,14 +43,30 @@ module DataMapper
     PROPERTY_OPTIONS = [ :public, :protected, :private, :accessor, :reader,
       :writer, :lazy, :default, :nullable, :key, :serial, :field, :size,
       :format, :index, :check, :ordinal, :auto_validation ]
-      
+
     PROPERTY_OPTION_ALIASES = {
       :size => [ :length ]
     }
-      
+
     class << self
+
+      def configure(primitive_type, options)
+        @_primitive_type = primitive_type
+        @_options = options
+
+        def self.inherited(klass)
+          klass.primitive @_primitive_type
+
+          @_options.each do |k, v|
+            klass.send(k, v)
+          end
+        end
+
+        self
+      end
+
       #attr_accessor :primitive #map to Ruby type
-      
+
       # The Ruby primitive type to use as basis for this type. See
       # DataMapper::Property::TYPES for list of types.
       #
@@ -65,7 +81,7 @@ module DataMapper
       # @public
       def primitive(primitive = nil)
         return @primitive if primitive.nil?
-        
+
         @primitive = primitive
       end
 
@@ -74,12 +90,12 @@ module DataMapper
         self.class_eval <<-EOS
         def #{property_option}(arg = nil)
           return @#{property_option} if arg.nil?
-          
+
           @#{property_option} = arg
         end
         EOS
       end
-      
+
       #create property aliases
       PROPERTY_OPTION_ALIASES.each do |property_option, aliases|
         aliases.each do |ali|
@@ -90,7 +106,7 @@ module DataMapper
           EOS
         end
       end
-      
+
       # Gives all the options set on this type
       #
       # ==== Returns
@@ -104,7 +120,7 @@ module DataMapper
         end
       end
     end
-    
+
     # Stub instance method for materialization
     #
     # ==== Parameters
@@ -119,7 +135,7 @@ module DataMapper
     def self.materialize(value)
       raise NotImplementedError
     end
-    
+
     # Stub instance method for serialization
     #
     # ==== Parameters
@@ -134,6 +150,11 @@ module DataMapper
     def self.serialize(value)
       raise NotImplementedError
     end
-    
+
   end #class Type
+
+  def self.Type(primitive_type, options = {})
+    Class.new(Type).configure(primitive_type, options)
+  end
+
 end #module DataMapper

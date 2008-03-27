@@ -264,6 +264,11 @@ module DataMapper
         repository.first(self, options)
       end
 
+      def create(values)
+        instance = new(values)
+
+        [instance, instance.save]
+      end
     end
   end
 end

@@ -1,4 +1,4 @@
-require __DIR__ + 'spec_helper'
+require File.join(File.dirname(__FILE__), 'spec_helper')
 require __DIR__.parent + 'lib/data_mapper/property'
 
 describe DataMapper::Type do
@@ -62,4 +62,17 @@ describe DataMapper::Type do
     TestType2.materialize("test").should == "test"
   end
 
+  describe "using def Type" do
+    before do
+      @class = Class.new(DataMapper::Type(String, :size => 20))
+    end
+
+    it "should be of the specified type" do
+      @class.primitive.should == String
+    end
+
+    it "should have the right options set" do
+      @class.size.should == 20
+    end
+  end
 end
