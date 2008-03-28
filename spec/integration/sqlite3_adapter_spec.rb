@@ -274,8 +274,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     it "should lazy load" do
       result = repository(:sqlite3).all(SailBoat,{})
       result[0].id.should == 1
-      puts result[0].id
-      puts result[0].notes
     end
 
     after do
@@ -338,7 +336,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       results = repository(:sqlite3).all(SerialFinderSpec, { :id => ids })
       
       results.size.should == 10
-      results.map(&:ids).should == ids
+      results.map(&:id).should == ids
     end
     
     after do
