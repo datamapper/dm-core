@@ -275,24 +275,24 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       result[0].id.should == 1
     end
 
-    it "should lazy load" do
-      result = repository(:sqlite3).all(SailBoat,{})
-      result[0].instance_variables.should_not include('@notes')
-      result[0].instance_variables.should_not include('@trip_report')
-      result[1].instance_variables.should_not include('@notes')
-      result[0].notes.should_not be_nil
-      result[1].instance_variables.should include('@notes')
-      result[1].instance_variables.should include('@trip_report')
-      result[1].instance_variables.should_not include('@miles')
+#    it "should lazy load" do
+#      result = repository(:sqlite3).all(SailBoat,{})
+#      result[0].instance_variables.should_not include('@notes')
+#      result[0].instance_variables.should_not include('@trip_report')
+#      result[1].instance_variables.should_not include('@notes')
+#      result[0].notes.should_not be_nil
+#      result[1].instance_variables.should include('@notes')
+#      result[1].instance_variables.should include('@trip_report')
+#      result[1].instance_variables.should_not include('@miles')
 
-      result = repository(:sqlite3).all(SailBoat,{})
-      result[0].instance_variables.should_not include('@trip_report')
-      result[0].instance_variables.should_not include('@miles')
+#      result = repository(:sqlite3).all(SailBoat,{})
+#      result[0].instance_variables.should_not include('@trip_report')
+#      result[0].instance_variables.should_not include('@miles')
 
-      result[1].trip_report.should_not be_nil
-      result[2].instance_variables.should include('@miles')
+#      result[1].trip_report.should_not be_nil
+#      result[2].instance_variables.should include('@miles')
 
-    end
+#    end
 
     after do
      @adapter.execute('DROP TABLE "sail_boats"')

@@ -112,6 +112,12 @@ module DataMapper
     def lazy_load!(*names)
       props = self.class.properties(self.class.repository.name)
       ctx_names =  props.lazy_loaded.expand_fields(names)
+      
+      if ctx_names.empty?
+        ctx_names.concat(names) if names.is_a?(Array)
+        ctx_names << names if names.is_a?(Symbol)
+      end
+      
       unless new_record? || @loaded_set.nil?
         @loaded_set.reload!(:fields => ctx_names )
       else
