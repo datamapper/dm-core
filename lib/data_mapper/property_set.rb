@@ -91,9 +91,8 @@ module DataMapper
       def expand_fields(name)
         result =  []     
         
-       # puts "expand_fields(name) = #{name.class}"
         raise ArgumentError("+name+ must be an Array of Symbols of a Symbol") unless name.is_a?(Array) || name.is_a?(Symbol)
-        rais ArgumentError("+name+ cannot be an empty array") if name.is_a?(Array) && name.empty?
+        raise ArgumentError("+name+ cannot be an empty array") if name.is_a?(Array) && name.empty?
            
         if name.is_a?(Symbol)
           field_contexts(name).each do |ctx|

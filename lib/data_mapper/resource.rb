@@ -108,15 +108,7 @@ module DataMapper
     def attribute_set(name, value)
       dirty_attributes[name] = instance_variable_set(name.to_s.ensure_starts_with('@'), value)
     end
-    
-#    def lazy_load!(*names)
-#      unless new_record? || @loaded_set.nil?
-#        @loaded_set.reload!(:fields => names)
-#      else
-#        names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
-#      end
-#    end
-    
+        
     def lazy_load!(*names)
       props = self.class.properties(self.class.repository.name)
       ctx_names =  props.lazy_loaded.expand_fields(names)    
@@ -126,9 +118,7 @@ module DataMapper
         ctx_names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
       end    
     end
-    
-    
-    
+        
     def initialize(details = nil) # :nodoc:
       validate_resource!
       

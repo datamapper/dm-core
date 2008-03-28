@@ -206,7 +206,6 @@ module DataMapper
       # when type is text a context should have been created and a :lazy entry made..
       # double check - @lazy = @options.has_key?(:lazy) ? true : false 
       @lazy = @options.has_key?(:lazy) ? true : @type == Text
-      #@lazy = @options.has_key?(:lazy) ? @options[:lazy] : @type == Text
       
       @key = (@options[:key] || @options[:serial]) == true
       @serial = @options.fetch(:serial, false)
