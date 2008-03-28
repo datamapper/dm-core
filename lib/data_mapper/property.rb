@@ -201,7 +201,12 @@ module DataMapper
       
       @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
       
-      @lazy = @options.has_key?(:lazy) ? @options[:lazy] : @type == Text
+      
+      # if it has a lazy key it is lazy. :lazy is now an array of contexts not bool
+      # when type is text a context should have been created and a :lazy entry made..
+      # double check - @lazy = @options.has_key?(:lazy) ? true : false 
+      @lazy = @options.has_key?(:lazy) ? true : @type == Text
+      #@lazy = @options.has_key?(:lazy) ? @options[:lazy] : @type == Text
       
       @key = (@options[:key] || @options[:serial]) == true
       @serial = @options.fetch(:serial, false)
@@ -237,9 +242,11 @@ module DataMapper
       @target.class_eval <<-EOS
       #{reader_visibility.to_s}
       def #{name}
+        fields = self.class.properties(self.class.repository.name).lazy_loaded.expand_fields([#{name.inspect}.to_sym])
+        fields << #{name.inspect}.to_sym if fields.empty?
         unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
-          unless new_record? || @loaded_set.nil?
-            @loaded_set.reload!(:fields => [ #{name.inspect} ])
+          unless new_record? || @loaded_set.nil?                  
+            @loaded_set.reload!(:fields => fields)              
           else
             #{normalized_name} = nil
           end

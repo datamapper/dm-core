@@ -43,7 +43,7 @@ module DataMapper
       keys
     end
     
-    def reload!(options = {})      
+    def reload!(options = {})   
       query = Query.new(@type, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
       @repository.adapter.read_set(@repository, query)

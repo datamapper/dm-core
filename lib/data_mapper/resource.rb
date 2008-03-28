@@ -109,13 +109,25 @@ module DataMapper
       dirty_attributes[name] = instance_variable_set(name.to_s.ensure_starts_with('@'), value)
     end
     
+#    def lazy_load!(*names)
+#      unless new_record? || @loaded_set.nil?
+#        @loaded_set.reload!(:fields => names)
+#      else
+#        names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
+#      end
+#    end
+    
     def lazy_load!(*names)
+      props = self.class.properties(self.class.repository.name)
+      ctx_names =  props.lazy_loaded.expand_fields(names)    
       unless new_record? || @loaded_set.nil?
-        @loaded_set.reload!(:fields => names)
+        @loaded_set.reload!(:fields => ctx_names )
       else
-        names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
-      end
+        ctx_names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
+      end    
     end
+    
+    
     
     def initialize(details = nil) # :nodoc:
       validate_resource!
@@ -229,6 +241,19 @@ module DataMapper
             properties << property
           end          
         end
+        
+        #Add the property to the lazy_loads set for this resources repository only
+        # TODO Is this right or should we add the lazy contexts to all repositories?    
+        if type == Text || options.has_key?(:lazy)        
+          ctx = options.has_key?(:lazy) ? options[:lazy] : :default
+          ctx = :default if ctx.is_a?(TrueClass)             
+          @properties[repository.name].lazy_loaded.context(ctx) << name if ctx.is_a?(Symbol)
+          if ctx.is_a?(Array)
+            ctx.each do |item|
+              @properties[repository.name].lazy_loaded.context(item) << name 
+            end
+          end          
+        end           
         
         property
       end
