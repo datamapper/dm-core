@@ -10,3 +10,5 @@ coverage/*
 spec/integration/*.db*
 nbproject
 profile_results.*
+\#*
+TAGS
