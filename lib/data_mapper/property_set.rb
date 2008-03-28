@@ -95,8 +95,10 @@ module DataMapper
         raise ArgumentError("+name+ cannot be an empty array") if name.is_a?(Array) && name.empty?
 
         if name.is_a?(Symbol)
-          field_contexts(name).each do |ctx|
-            context(ctx).each do |field|
+          ctx = field_contexts(name)
+          result << name if ctx.blank?  # not lazy 
+          ctx.each do |c|
+            context(c).each do |field|
               result << field unless result.include?(field)
             end
           end
@@ -104,8 +106,10 @@ module DataMapper
 
         if name.is_a?(Array)
           name.each do |n|
-            field_contexts(n).each do |ctx|
-              context(ctx).each do |field|
+            ctx = field_contexts(n)
+            result << n if ctx.blank?  # not lazy
+            ctx.each do |c|
+              context(c).each do |field|
                 result << field unless result.include?(field)
               end
             end
