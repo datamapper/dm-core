@@ -16,11 +16,10 @@ module DataMapper
         self.relationships[name] = Relationship.
             new(name, self.repository.name, [Inflector.demodulize(self.name), nil], [target, nil]) do |relationship, instance|
 
-          keys = relationship.target.map { |p| p.name }
           values = relationship.source.map { |p| p.value(instance) }
 
           # everything inside all() should be the return value of a method in relationship, say #target_query or something
-          instance.repository.all(relationship.target_resource, Hash[*keys.zip(values).flatten])
+          instance.repository.all(relationship.target_resource, Hash[*relationship.target.zip(values).flatten])
         end
 
         class_eval <<-EOS
