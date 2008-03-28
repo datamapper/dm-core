@@ -8,16 +8,16 @@ module DataMapper
       def has_many(name, options = {})
         self.send(:extend, Associations)
 
-        target = (options[:class_name] || Inflector.classify(name))
-
+        source = (options[:class_name] || Inflector.classify(name))
+        self_name = Inflector.demodulize(self.name)
         self.relationships[name] = Relationship.
-            new(name, self.repository.name, [target, nil], [Inflector.demodulize(self.name), nil]) do |relationship, instance|
+            new(name, self.repository.name, [source, [Inflector.foreign_key(self_name).to_sym]], [self_name, nil]) do |relationship, instance|
 
-          keys = relationship.target.map { |p| p.name }
-          values = relationship.source.map { |p| p.value(instance) }
+          keys = relationship.source.map { |p| p.name }
+          values = relationship.target.map { |p| p.value(instance) }
 
           # everything inside all() should be the return value of a method in relationship, say #target_query or something
-          instance.repository.all(relationship.target_resource, Hash[*keys.zip(values).flatten])
+          instance.repository.all(relationship.source_resource, Hash[*keys.zip(values).flatten])
         end
 
         class_eval <<-EOS

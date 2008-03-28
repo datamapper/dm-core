@@ -19,11 +19,6 @@ module DataMapper
           keys = relationship.target.map { |p| p.name }
           values = relationship.source.map { |p| p.value(instance) }
 
-          require 'pp'
-          pp keys
-          pp values
-          pp Hash[*keys.zip(values).flatten]
-
           # everything inside all() should be the return value of a method in relationship, say #target_query or something
           instance.repository.all(relationship.target_resource, Hash[*keys.zip(values).flatten])
         end

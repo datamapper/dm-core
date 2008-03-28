@@ -70,6 +70,10 @@ module DataMapper
       def target_resource
         @target.first.to_class
       end
+
+      def source_resource
+        @source.first.to_class
+      end
     end # class Relationship
   end # module Associations
 end # module DataMapper
