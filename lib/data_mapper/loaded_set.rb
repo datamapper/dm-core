@@ -102,5 +102,31 @@ module DataMapper
       @entries.dup
     end
   end
+  
+  class LazyLoadedSet < LoadedSet
+    
+    def initialize(*args, &block)
+      raise "LazyLoadedSets require a materialization block. Use a LoadedSet instead." unless block_given?
+      super(*args)
+      @loader = block
+    end
+    
+    def each(&block)
+      entries.each { |entry| yield entry }
+    end
+    
+    def entries
+      @loader[self]
+      
+      class << self
+        def entries
+          super
+        end
+      end
+      
+      super
+    end
+    
+  end
  
 end
