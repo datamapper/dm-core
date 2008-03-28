@@ -202,8 +202,8 @@ module DataMapper
     
     module ClassMethods
       
-      def repository
-        DataMapper::repository(default_repository_name)
+      def repository(name = default_repository_name)
+        DataMapper::repository(name)
       end
       
       def default_repository_name
@@ -253,16 +253,12 @@ module DataMapper
         get(key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}")
       end
       
-      def all(options)
-        repository.all(self, options)
+      def all(options = {})
+        repository(options[:repository] || default_repository_name).all(self, options)
       end
       
-      def fake_it
-        repository.fake_it(self)
-      end
-      
-      def first(options)
-        repository.first(self, options)
+      def first(options = {})
+        repository(options[:repository] || default_repository_name).first(self, options)
       end
 
       def create(values)
