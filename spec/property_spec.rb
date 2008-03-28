@@ -108,7 +108,22 @@ describe DataMapper::Property do
       DataMapper::Property.new(Tomato,:botanical_name,String,{:foo=>:bar})
     }.should raise_error(ArgumentError)
   end
-  
+
+  it 'should return the attribute value from a given instance' do
+    class Tomahto
+      include DataMapper::Resource
+      property :id, Fixnum, :key => true
+    end
+
+    tomato = Tomahto.new(:id => 1)
+    tomato.class.properties(:default).detect(:id).value(tomato).should == 1
+  end
+
+  it 'should set the attribute value in a given instance' do
+    tomato = Tomahto.new
+    tomato.class.properties(:default).detect(:id).set(2, tomato)
+    tomato.id.should == 2
+  end
 
   # All auto_validation specs moved to dm-more/spec/validation_spec.rb
   

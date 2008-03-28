@@ -322,6 +322,14 @@ module DataMapper
     def options
       @options
     end
+
+    def value(instance)
+      instance.attribute_get(@name)
+    end
+
+    def set(value, instance)
+      instance.attribute_set(@name, value)
+    end
     
     def inspect
       "#<Property #{@target}:#{@name}>"
