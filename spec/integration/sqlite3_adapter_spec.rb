@@ -345,5 +345,34 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     
   end
   
+  describe "associations" do
+    
+    before do
+      class Engine
+        include DataMapper::Resource
+        
+        property :id, Fixnum, :serial => true
+        property :name, String
+      end
+      
+      class Yard
+        include DataMapper::Resource
+        
+        property :id, Fixnum, :serial => true
+        property :name, String
+      end
+    end
+    
+    it "#belongs_to" do
+      class Yard
+        belongs_to :engine
+      end
+      
+      yard = Yard.new
+      yard.should respond_to :engine
+      yard.should respond_to :engine=
+    end
+    
+  end
   
 end

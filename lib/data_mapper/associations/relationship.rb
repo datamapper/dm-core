@@ -7,7 +7,7 @@ module DataMapper
       # +source+ is the FK, +target+ is the PK. Please refer to:
       # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
       # I wash my hands of it!
-      def initialize(name, repository_name, source, target)
+      def initialize(name, repository_name, source, target, &loader)
         
         unless source.is_a?(Array) && source.size == 2          
           raise ArgumentError.new("source should be an Array of [resource_name, property_name] but was #{source.inspect}")
@@ -21,6 +21,7 @@ module DataMapper
         @repository_name    = repository_name
         @source             = source
         @target             = target
+        @loader             = loader
       end
       
       def source

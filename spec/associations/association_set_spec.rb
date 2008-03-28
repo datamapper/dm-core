@@ -16,33 +16,35 @@ describe "DataMapper::Associations::AssociationSet" do
     )
   end
   
-  it "should require a block" do
-    lambda { DA::AssociationSet.new(@relationship) }.should raise_error
-  end
-  
-  it "should lazy load the provided block" do
-    set = DA::AssociationSet.new(@relationship) do |set|
-      [1, 2]
-    end
-    set.send(:instance_variable_get, "@entries").should be_nil
-    set.entries.should == [1, 2]
-    set.send(:instance_variable_get, "@entries").should == [1, 2]
-  end
-  
-  it "should lazy load on #first" do
-    set = DA::AssociationSet.new(@relationship) do |set|
-      [1, 2]
-    end
-    set.first.should == 1
-  end
-  
-  it "should lazy load on #each" do
-    set = DA::AssociationSet.new(@relationship) do |set|
-      [1, 2]
-    end
-    set.each do |x|
-      x.should be_a_kind_of(Integer)
-    end
-  end
+  # We're going to give the Relationship the blocks. AMAZING!!!!
+  # SCARY!!! NEVER!! BEFORE! SEEN.
+  # it "should require a block" do
+  #   lambda { DA::AssociationSet.new(@relationship, nil) }.should raise_error
+  # end
+  # 
+  # it "should lazy load the provided block" do
+  #   set = DA::AssociationSet.new(@relationship, nil) do |set|
+  #     [1, 2]
+  #   end
+  #   set.send(:instance_variable_get, "@entries").should be_nil
+  #   set.entries.should == [1, 2]
+  #   set.send(:instance_variable_get, "@entries").should == [1, 2]
+  # end
+  # 
+  # it "should lazy load on #first" do
+  #   set = DA::AssociationSet.new(@relationship, nil) do |set|
+  #     [1, 2]
+  #   end
+  #   set.first.should == 1
+  # end
+  # 
+  # it "should lazy load on #each" do
+  #   set = DA::AssociationSet.new(@relationship, nil) do |set|
+  #     [1, 2]
+  #   end
+  #   set.each do |x|
+  #     x.should be_a_kind_of(Integer)
+  #   end
+  # end
   
 end
