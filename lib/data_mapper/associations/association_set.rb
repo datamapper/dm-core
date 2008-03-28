@@ -2,7 +2,6 @@ module DataMapper
   module Associations
     class AssociationSet
       def initialize(relationship, instance)
-        raise "The code to load the association must be supplied in a block" unless block_given?
         @relationship = relationship
         @instance = instance
       end
@@ -12,17 +11,16 @@ module DataMapper
       end
       
       def first
-        @entries.first
-      end
-      
-      def each
-        @entries.each { |entry| yield entry }
+        entries.first
       end
       
       def entries
-        @entries
+        @entries ||= @relationship.to_set(@instance)
       end
-      
+
+      def set(target)
+        @relationship.source.each_with_index { |p, i| p.set(@relationship.target[i].value(target), @instance) }
+      end
     end
   end
 end

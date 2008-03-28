@@ -1,33 +1,28 @@
+#require __DIR__.parent + 'support/class'
+require __DIR__.parent + 'associations'
 require __DIR__ + 'relationship'
 
 module DataMapper
   module Associations
-    module BelongsTo
     
-      def belongs_to(name, options = {})
+    module BelongsTo
+      extend Associations
 
-        # This is like the missing piece of the puzzle...
-        # a re-usable Proc assigned to the Relationship that
-        # allows it to load up any AssociationSet it's passed.
-        #
-        # relationship = Relationship.new bla blah blah...
-        # 
-        # loader = lambda do |set|
-        #   set.append relationship.source_resource.all(relationship.target.keys => self.loaded_set.keys)
-        # end
-        # 
-        # relationship.loader = loader
-        
-        # Or maybe this syntax...
-        #
-        # Relationship.new(...) do |set|
-        #   stuff to load
-        # end
-        #
-        # association_set = relationship.to_set(instance)
-        #
-        # BAM! That's noice...        
-        
+      def belongs_to(name, options = {})
+        self.send(:extend, Associations)
+
+        target = (options[:class_name] || Inflector.camelize(name)).to_class
+
+        self.relationships[name] = Relationship.
+            new(name, self.repository.name, [self, nil], [target, nil]) do |relationship, instance|
+
+          keys = relationship.target.map { |p| p.name }
+          values = relationship.source.map { |p| p.value(instance) }
+
+          # everything inside all() should be the return value of a method in relationship, say #target_query or something
+          instance.repository.all(relationship.target_resource, Hash[*keys.zip(values).flatten])
+        end
+
         class_eval <<-EOS
           def #{name}
             #{name}_association.first
@@ -39,11 +34,10 @@ module DataMapper
           
           private
           def #{name}_association
-            @#{name}_association || @#{name}_association = AssociationSet.new(relationship, instance)
+            @#{name}_association || @#{name}_association = AssociationSet.new(self.class.relationships[:#{name}], self)
           end
         EOS
       end
-    
     end # module BelongsTo
   end # module Associations
 end # module DataMapper
