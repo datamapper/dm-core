@@ -197,7 +197,9 @@ module DataMapper
 
       @instance_variable_name = "@#{@name}"
 
-      @field = @options.fetch(:field, name.to_s.sub(/\?$/, ''))
+      # @field = @options.fetch(:field, name.to_s.sub(/\?$/, ''))
+      @field = repository.adapter.field_naming_convention.call(@options.fetch(:field, name))
+      
 
       @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
 
