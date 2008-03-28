@@ -41,19 +41,19 @@ describe DataMapper::Associations::Relationship do
   
   it "should infer properties when options aren't passed" do
     has_many = DataMapper::Associations::Relationship.new(
-      :manufacturer,
+      :models,
       :relationship_spec,
       ['Vehicle', nil],
       ['Manufacturer', nil]
       )
     
-    has_many.name.should == :manufacturer
+    has_many.name.should == :models
     has_many.repository_name.should == :relationship_spec
     
     has_many.source.should be_a_kind_of(Array)
     has_many.target.should be_a_kind_of(Array)
 
-    has_many.source.should == Vehicle.properties(:relationship_spec).select(:manufacturer_id)
+    has_many.source.should == Vehicle.properties(:relationship_spec).select(:models_id)
     has_many.target.should == Manufacturer.properties(:relationship_spec).key
   end
   
