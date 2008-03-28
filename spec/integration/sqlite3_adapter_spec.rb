@@ -221,7 +221,9 @@ describe DataMapper::Adapters::DataObjectsAdapter do
           "id" INTEGER PRIMARY KEY,
           "name" VARCHAR(50),
           "port" VARCHAR(50),
-          "notes" VARCHAR(50)
+          "notes" VARCHAR(50),
+          "trip_report" VARCHAR(50),
+          "miles" INTEGER
         )
       EOS
 
@@ -230,7 +232,9 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :serial => true
         property :name, String
         property :port, String
-        property :notes, String, :lazy => true
+        property :notes, String, :lazy => [:notes]
+        property :trip_report, String, :lazy => [:notes,:trip]
+        property :miles, Fixnum, :lazy => [:trip]
 
         class << self
           def property_by_name(name)
@@ -241,9 +245,9 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         end
       end
 
-      repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
-      repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
-      repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "C", :port => "A"))
+      repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "A", :port => "C",:notes=>'Note',:trip_report=>'Report',:miles=>23))
+      repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "B", :port => "B",:notes=>'Note',:trip_report=>'Report',:miles=>23))
+      repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "C", :port => "A",:notes=>'Note',:trip_report=>'Report',:miles=>23))
     end
 
     it "should order results" do
@@ -273,7 +277,21 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     it "should lazy load" do
       result = repository(:sqlite3).all(SailBoat,{})
-      result[0].id.should == 1
+      result[0].instance_variables.should_not include('@notes')
+      result[0].instance_variables.should_not include('@trip_report')
+      result[1].instance_variables.should_not include('@notes')
+      result[0].notes.should_not be_nil
+      result[1].instance_variables.should include('@notes')
+      result[1].instance_variables.should include('@trip_report')
+      result[1].instance_variables.should_not include('@miles')
+
+      result = repository(:sqlite3).all(SailBoat,{})
+      result[0].instance_variables.should_not include('@trip_report')
+      result[0].instance_variables.should_not include('@miles')
+
+      result[1].trip_report.should_not be_nil
+      result[2].instance_variables.should include('@miles')
+
     end
 
     after do
