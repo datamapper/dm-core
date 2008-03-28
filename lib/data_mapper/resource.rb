@@ -266,6 +266,15 @@ module DataMapper
 
         [instance, instance.save]
       end
+      
+      # TODO SPEC
+      def copy(source, destination, options = {})
+        repository(destination) do
+          repository(source).all(self, options).each do |instance|
+            self.create(instance)
+          end
+        end
+      end
     end
   end
 end
