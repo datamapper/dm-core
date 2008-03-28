@@ -33,7 +33,7 @@ module DataMapper
             # association name.
             target.map do |property|
               property_name = "#{@name}_#{property.name}"
-              resource_property_set.detect(property_name) || resource.property(property_name, property.type)
+              resource_property_set.detect(property_name) || resource.property(property_name.to_sym, property.type)
             end
           else
             i = 0
