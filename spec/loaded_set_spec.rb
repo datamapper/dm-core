@@ -7,19 +7,21 @@ require __DIR__.parent + 'lib/data_mapper/loaded_set'
 
 describe "DataMapper::LoadedSet" do
   
-  it "should be able to materialize arbitrary objects" do
-    
+  before :all do
     DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
-    
-    cow = Class.new do
+
+    @cow = Class.new do
       include DataMapper::Resource
-      
+
       property :name, String, :key => true
       property :age, Fixnum
     end
+  end
+  
+  it "should be able to materialize arbitrary objects" do
 
-    properties = Hash[*cow.properties(:default).zip([0, 1]).flatten]    
-    set = DataMapper::LoadedSet.new(DataMapper::repository(:default), cow, properties)
+    properties = Hash[*@cow.properties(:default).zip([0, 1]).flatten]    
+    set = DataMapper::LoadedSet.new(DataMapper::repository(:default), @cow, properties)
     set.should respond_to(:reload!)
     
     set.materialize!(['Bob', 10])
@@ -41,4 +43,46 @@ describe "DataMapper::LoadedSet" do
     results.first.should == bob
   end
   
+end
+
+describe "DataMapper::LazyLoadedSet" do
+
+  before :all do
+    DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
+
+    @cow = Class.new do
+      include DataMapper::Resource
+
+      property :name, String, :key => true
+      property :age, Fixnum
+    end
+    
+    @properties = Hash[*@cow.properties(:default).zip([0, 1]).flatten]
+  end
+  
+  it "should raise an error if no block is provided" do
+    lambda { set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties) }.should raise_error
+  end
+  
+  it "should make a materialization block" do
+    set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties) do |lls|
+      lls.materialize!(['Bob', 10])
+      lls.materialize!(['Nancy', 11])
+    end
+    
+    set.instance_variable_get("@entries").should be_empty
+    results = set.entries
+    results.size.should == 2
+  end
+  
+  it "should be eachable" do
+    set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties) do |lls|
+      lls.materialize!(['Bob', 10])
+      lls.materialize!(['Nancy', 11])
+    end
+    
+    set.each do |x|
+      x.name.should be_a_kind_of(String)
+    end
+  end
 end
