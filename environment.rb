@@ -16,7 +16,12 @@ unless defined?(INITIAL_CLASSES)
   
   # Determine log path.
   ENV['_'] =~ /(\w+)/
-  DataMapper::Logger.new(__DIR__ + "log/#{$1}.log", 0)
+  log_path = __DIR__ + "log/#{$1 == 'opt' ? 'spec' : $1}.log"
+  
+  FileUtils::mkdir_p(File.dirname(log_path))
+  FileUtils::rm(log_path) if File.exists?(log_path)
+  
+  DataMapper::Logger.new(log_path, 0)
   at_exit { DataMapper.logger.close }
 
   Pathname.glob(__DIR__ + 'spec/models/*.rb').sort.each { |path| load path }

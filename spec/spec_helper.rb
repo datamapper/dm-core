@@ -37,6 +37,29 @@ class NormalClass
   # should not include DataMapper::Resource
 end
 
+# ==========================
+# Used for Association specs
+class Vehicle
+  include DataMapper::Resource
+  
+  property :id, Fixnum, :serial => true
+  property :name, String
+end
+
+class Manufacturer
+  include DataMapper::Resource
+  
+  property :id, Fixnum, :serial => true
+  property :name, String
+end
+
+class Supplier
+  include DataMapper::Resource
+  
+  property :id, Fixnum, :serial => true
+  property :name, String
+end
+
 class Class
   def publicize_methods
     klass = class << self; self; end

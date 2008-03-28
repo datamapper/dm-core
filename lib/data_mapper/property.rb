@@ -237,15 +237,15 @@ module DataMapper
       @target.class_eval <<-EOS
       #{reader_visibility.to_s}
       def #{name}
-        unless defined?(#{name.to_s.ensure_starts_with('@')})
+        unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
           unless new_record? || @loaded_set.nil?
             @loaded_set.reload!(:fields => [ #{name.inspect} ])
           else
-            #{name.to_s.ensure_starts_with('@')} = nil
+            #{normalized_name} = nil
           end
         end
 
-        #{name.to_s.ensure_starts_with('@')}
+        #{normalized_name}
       end
       EOS
       
