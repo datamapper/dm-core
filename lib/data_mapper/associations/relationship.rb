@@ -29,7 +29,7 @@ module DataMapper
 
       def source
         @source_key || @source_key = begin
-          resource = @source.first
+          resource = @source.first.to_class
           resource_property_set = resource.properties(@repository_name)
 
           if @source[1].nil?
@@ -52,7 +52,7 @@ module DataMapper
 
       def target
         @target_key || @target_key = begin
-          resource = @target.first
+          resource = @target.first.to_class
           resource_property_set = resource.properties(@repository_name)
 
           if @target[1].nil?
@@ -68,7 +68,7 @@ module DataMapper
       end
 
       def target_resource
-        @target.first
+        @target.first.to_class
       end
     end # class Relationship
   end # module Associations

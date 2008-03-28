@@ -4,20 +4,25 @@ require __DIR__ + 'relationship'
 
 module DataMapper
   module Associations
-    
+
     module BelongsTo
       extend Associations
 
       def belongs_to(name, options = {})
         self.send(:extend, Associations)
 
-        target = (options[:class_name] || Inflector.camelize(name)).to_class
+        target = (options[:class_name] || Inflector.camelize(name))
 
         self.relationships[name] = Relationship.
-            new(name, self.repository.name, [self, nil], [target, nil]) do |relationship, instance|
+            new(name, self.repository.name, [Inflector.demodulize(self.name), nil], [target, nil]) do |relationship, instance|
 
           keys = relationship.target.map { |p| p.name }
           values = relationship.source.map { |p| p.value(instance) }
+
+          require 'pp'
+          pp keys
+          pp values
+          pp Hash[*keys.zip(values).flatten]
 
           # everything inside all() should be the return value of a method in relationship, say #target_query or something
           instance.repository.all(relationship.target_resource, Hash[*keys.zip(values).flatten])
@@ -27,11 +32,11 @@ module DataMapper
           def #{name}
             #{name}_association.first
           end
-          
+
           def #{name}=(value)
             #{name}_association.set(value)
           end
-          
+
           private
           def #{name}_association
             @#{name}_association || @#{name}_association = AssociationSet.new(self.class.relationships[:#{name}], self)
