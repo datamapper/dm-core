@@ -34,4 +34,4 @@ require __DIR__ + 'data_mapper/cli'
 require __DIR__ + 'data_mapper/scope'
 require __DIR__ + 'data_mapper/query'
 
-
+require __DIR__ + 'data_mapper/types/enum'
