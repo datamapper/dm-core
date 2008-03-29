@@ -195,11 +195,7 @@ module DataMapper
       @target, @name, @type = target, name.to_s.sub(/\?$/, '').to_sym, type
       @options = type.ancestors.include?(DataMapper::Type) ? type.options.merge(options) : options
 
-      @instance_variable_name = "@#{@name}"
-
-      # @field = @options.fetch(:field, name.to_s.sub(/\?$/, ''))
-      @field = repository.adapter.field_naming_convention.call(@options.fetch(:field, name))
-      
+      @instance_variable_name = "@#{@name}"      
 
       @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
 
@@ -287,7 +283,7 @@ module DataMapper
     end
 
     def field
-      @field
+      @field || @field = repository.adapter.field_naming_convention.call(@options.fetch(:field, name))
     end
 
     def name
