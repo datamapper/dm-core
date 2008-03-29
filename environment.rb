@@ -19,7 +19,7 @@ unless defined?(INITIAL_CLASSES)
   log_path = __DIR__ + "log/#{$1 == 'opt' ? 'spec' : $1}.log"
   
   FileUtils::mkdir_p(File.dirname(log_path))
-  FileUtils::rm(log_path) if File.exists?(log_path)
+  # FileUtils::rm(log_path) if File.exists?(log_path)
   
   DataMapper::Logger.new(log_path, 0)
   at_exit { DataMapper.logger.close }

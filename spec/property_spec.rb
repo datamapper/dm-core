@@ -30,7 +30,7 @@ describe DataMapper::Property do
     end
     
     property = DataMapper::Property.new(Zoo, :name, Name, {})
-    
+
     property.primitive.should == String
     property.type.should == Name
     property.primitive.should == property.type.primitive
@@ -108,7 +108,27 @@ describe DataMapper::Property do
       DataMapper::Property.new(Tomato,:botanical_name,String,{:foo=>:bar})
     }.should raise_error(ArgumentError)
   end
+
+  it 'should return the attribute value from a given instance' do
+    class Tomahto
+      include DataMapper::Resource
+      property :id, Fixnum, :key => true
+    end
+
+    tomato = Tomahto.new(:id => 1)
+    tomato.class.properties(:default).detect(:id).value(tomato).should == 1
+  end
+
+  it 'should set the attribute value in a given instance' do
+    tomato = Tomahto.new
+    tomato.class.properties(:default).detect(:id).set(2, tomato)
+    tomato.id.should == 2
+  end
   
+  it "should set the field to the correct field_naming_convention" do
+    DataMapper::Property.new(Zoo, :species, String, {}).field.should == 'species'
+    DataMapper::Property.new(Tomato, :genetic_history, Text, {}).field.should == "genetic_history"
+  end
 
   # All auto_validation specs moved to dm-more/spec/validation_spec.rb
   

@@ -68,10 +68,11 @@ module DataMapper
         
         connection = create_connection
         sql = create_statement(instance.class, properties)
-        DataMapper.logger.debug { sql }
+        values = properties.map { |property| dirty_attributes[property.name] }
+        
+        DataMapper.logger.debug { "CREATE: #{sql}  PARAMETERS: #{values.inspect}" }
         command = connection.create_command(sql)
         
-        values = properties.map { |property| dirty_attributes[property.name] }
         result = command.execute_non_query(*values)
 
         close_connection(connection)
@@ -166,7 +167,8 @@ module DataMapper
         
         sql = query_read_statement(query)
         parameters = query.parameters
-        DataMapper.logger.debug { "QUERY: '#{sql}' PARAMETERS: #{parameters.inspect}" }
+        
+        DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
         
         begin
           connection = create_connection
@@ -198,9 +200,12 @@ module DataMapper
       end
 
       # Database-specific method
-      def execute(*args)
+      def execute(sql, *args)
         db = create_connection
-        command = db.create_command(args.shift)
+        
+        DataMapper.logger.debug { "EXECUTE: #{sql}  PARAMETERS: #{args.inspect}" }
+        
+        command = db.create_command(sql)
         return command.execute_non_query(*args)
       rescue => e
         DataMapper.logger.error { e } if DataMapper.logger
@@ -212,6 +217,8 @@ module DataMapper
       def query(sql, *args)
         db = create_connection
 
+        DataMapper.logger.debug { "QUERY: #{sql}  PARAMETERS: #{args.inspect}" }
+        
         command = db.create_command(sql)
 
         reader = command.execute_reader(*args)
@@ -333,7 +340,7 @@ module DataMapper
         
         def equality_operator(resource_name, property, qualify, value)
           case value
-          when Array then "#{property_to_column_name(resource_name, property, qualify)} IN (?)"
+          when Array then "#{property_to_column_name(resource_name, property, qualify)} IN ?"
           when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NULL"
           else "#{property_to_column_name(resource_name, property, qualify)} = ?"
           end
@@ -341,7 +348,7 @@ module DataMapper
         
         def inequality_operator(resource_name, property, qualify, value)
           case value
-          when Array then "#{property_to_column_name(resource_name, property, qualify)} NOT IN (?)"
+          when Array then "#{property_to_column_name(resource_name, property, qualify)} NOT IN ?"
           when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NO NULL"
           else "#{property_to_column_name(resource_name, property, qualify)} <> ?"
           end

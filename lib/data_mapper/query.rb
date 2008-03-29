@@ -34,7 +34,7 @@ module DataMapper
     end
 
     OPTIONS = [
-      :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
+      :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions, :repository
     ]
 
     attr_reader :resource, :resource_name, *OPTIONS

@@ -62,7 +62,10 @@ module DataMapper
       def t(*values)
         self.class::translate(self) % values
       end
-      
+
+      def to_class
+        ::Object::recursive_const_get(self)
+      end
     end # module String
   end # module Support
 end # module DataMapper
