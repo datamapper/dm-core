@@ -24,7 +24,7 @@ require __DIR__ + 'data_mapper/support/object'
 require __DIR__ + 'data_mapper/support/blank'
 require __DIR__ + 'data_mapper/support/enumerable'
 require __DIR__ + 'data_mapper/support/symbol'
-require __DIR__ + 'data_mapper/support/inflector'
+require __DIR__ + 'data_mapper/support/inflection'
 require __DIR__ + 'data_mapper/support/struct'
 
 require __DIR__ + 'data_mapper/dependency_queue'

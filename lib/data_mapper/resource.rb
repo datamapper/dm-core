@@ -1,4 +1,3 @@
-require __DIR__ + 'support/inflector'
 require __DIR__ + 'support/string'
 require __DIR__ + 'property_set'
 require __DIR__ + 'property'

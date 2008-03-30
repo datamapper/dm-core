@@ -8,10 +8,10 @@ module DataMapper
       def has_many(name, options = {})
         self.send(:extend, Associations)
 
-        source = (options[:class_name] || Inflector.classify(name))
-        self_name = Inflector.demodulize(self.name)
+        source = (options[:class_name] || DataMapper::Inflection.classify(name))
+        self_name = DataMapper::Inflection.demodulize(self.name)
         self.relationships[name] = Relationship.
-            new(Inflector.underscore(self_name).to_sym, self.repository.name, [source, nil], [self_name, nil]) do |relationship, instance|
+            new(DataMapper::Inflection.underscore(self_name).to_sym, self.repository.name, [source, nil], [self_name, nil]) do |relationship, instance|
 
           values = relationship.target.map { |p| p.value(instance) }
 
