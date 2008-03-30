@@ -1,4 +1,3 @@
-require __DIR__ + 'support/inflector'
 require __DIR__ + 'support/string'
 require __DIR__ + 'property_set'
 require __DIR__ + 'property'
@@ -98,20 +97,47 @@ module DataMapper
     end
 
     def attribute_get(name)
-      unless attribute_loaded?(name)
+      ivar_name = name.to_s.ensure_starts_with('@')
+      unless instance_variables.include?(ivar_name)
         lazy_load!(name)
       end
 
-      instance_variable_get(name.to_s.ensure_starts_with('@'))
+      instance_variable_get(ivar_name)
     end
-
+    
+    # wycats: what if we set properties that came out of the DB as @prop_clean
+    # wycats: and save does @prop || @prop_clean
+    # wycats: where the existence of @prop == dirty
+    
+    # def #{name}
+    #   fields = self.class.properties(self.class.repository.name).lazy_loaded.expand_fields([#{name.inspect}.to_sym])
+    #   unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
+    #     unless new_record? || @loaded_set.nil?
+    #       @loaded_set.reload!(:fields => fields)
+    #     else
+    #       #{normalized_name} = nil
+    #     end
+    #   end
+    # 
+    #   #{normalized_name}
+    # end
+    
     def attribute_set(name, value)
-      dirty_attributes[name] = instance_variable_set(name.to_s.ensure_starts_with('@'), value)
+      ivar_name = name.to_s.ensure_starts_with('@')
+      property = self.class.properties(repository.name).detect(name)
+      if property && property.lock?
+        instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
+      end
+      dirty_attributes[name] = instance_variable_set(ivar_name, value)
+    end
+    
+    def shadow_attribute_get(name)
+      instance_variable_get(name.to_s.ensure_starts_with('@shadow_'))
     end
 
     def lazy_load!(*names)
       props = self.class.properties(self.class.repository.name)
-      ctx_names =  props.lazy_loaded.expand_fields(names)
+      ctx_names =  props.lazy_load_context(names)
       unless new_record? || @loaded_set.nil?
         @loaded_set.reload!(:fields => ctx_names )
       else
@@ -237,10 +263,10 @@ module DataMapper
         if type == Text || options.has_key?(:lazy)
           ctx = options.has_key?(:lazy) ? options[:lazy] : :default
           ctx = :default if ctx.is_a?(TrueClass)
-          @properties[repository.name].lazy_loaded.context(ctx) << name if ctx.is_a?(Symbol)
+          @properties[repository.name].lazy_context(ctx) << name if ctx.is_a?(Symbol)
           if ctx.is_a?(Array)
             ctx.each do |item|
-              @properties[repository.name].lazy_loaded.context(item) << name
+              @properties[repository.name].lazy_context(item) << name
             end
           end
         end
@@ -260,8 +286,8 @@ module DataMapper
         @properties[repository_name].detect { |property| property.type == Class }
       end
 
-      def get(key)
-        repository.get(self, key.is_a?(Array) ? key : [key])
+      def get(*key)
+        repository.get(self, key)
       end
 
       def [](key)

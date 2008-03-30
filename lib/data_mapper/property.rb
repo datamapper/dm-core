@@ -168,7 +168,8 @@ module DataMapper
     PROPERTY_OPTIONS = [
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-      :format, :index, :check, :ordinal, :auto_validation, :validation_context
+      :format, :index, :check, :ordinal, :auto_validation, :validation_context,
+      :lock
     ]
 
     TYPES = [
@@ -203,10 +204,14 @@ module DataMapper
       # if it has a lazy key it is lazy. :lazy is now an array of contexts not bool
       # when type is text a context should have been created and a :lazy entry made..
       # double check - @lazy = @options.has_key?(:lazy) ? true : false
+      #
+      # TODO: This default should move to a DataMapper::Types::Text Custom-Type
+      # and out of Property.
       @lazy = @options.has_key?(:lazy) ? true : @type == Text
 
       @key = (@options[:key] || @options[:serial]) == true
       @serial = @options.fetch(:serial, false)
+      @lock = @options.fetch(:lock, false)
 
       validate_options!
       determine_visibility!
@@ -239,7 +244,7 @@ module DataMapper
       @target.class_eval <<-EOS
       #{reader_visibility.to_s}
       def #{name}
-        fields = self.class.properties(self.class.repository.name).lazy_loaded.expand_fields([#{name.inspect}.to_sym])
+        fields = self.class.properties(self.class.repository.name).lazy_load_context([#{name.inspect}.to_sym])            
         unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
           unless new_record? || @loaded_set.nil?
             @loaded_set.reload!(:fields => fields)
@@ -320,6 +325,10 @@ module DataMapper
 
     def serial?
       @serial
+    end
+    
+    def lock?
+      @lock
     end
 
     def options

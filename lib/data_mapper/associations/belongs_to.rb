@@ -11,10 +11,10 @@ module DataMapper
       def belongs_to(name, options = {})
         self.send(:extend, Associations)
 
-        target = (options[:class_name] || Inflector.camelize(name))
+        target = (options[:class_name] || DataMapper::Inflection.camelize(name))
 
         self.relationships[name] = Relationship.
-            new(name, self.repository.name, [Inflector.demodulize(self.name), nil], [target, nil]) do |relationship, instance|
+            new(name, self.repository.name, [DataMapper::Inflection.demodulize(self.name), nil], [target, nil]) do |relationship, instance|
 
           values = relationship.source.map { |p| p.value(instance) }
 

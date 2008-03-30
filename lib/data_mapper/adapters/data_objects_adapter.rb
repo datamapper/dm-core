@@ -191,10 +191,6 @@ module DataMapper
         set.entries
       end
 
-      def delete_one(repository, query)
-        raise NotImplementedError.new
-      end
-      
       def delete_set(repository, query)
         raise NotImplementedError.new
       end
@@ -225,7 +221,7 @@ module DataMapper
         results = []
 
         if (fields = reader.fields).size > 1
-          fields = fields.map { |field| Inflector.underscore(field).to_sym }
+          fields = fields.map { |field| DataMapper::Inflection.underscore(field).to_sym }
           struct = Struct.new(*fields)
 
           while(reader.next!) do

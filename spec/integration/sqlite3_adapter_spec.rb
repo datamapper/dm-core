@@ -132,6 +132,18 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       game.should be_a_new_record
       game.should be_dirty
     end
+    
+    it 'should respond to Resource#get' do
+      name = 'Contra'
+      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
+      
+      contra = repository(:sqlite3) { VideoGame.get(id) }
+      
+      contra.should_not be_nil
+      contra.should_not be_dirty
+      contra.should_not be_a_new_record
+      contra.id.should == id      
+    end
 
     after do
       @adapter.execute('DROP TABLE "video_games"')
@@ -204,6 +216,19 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       repository(:sqlite3).destroy(customer).should be_true
       customer.should be_a_new_record
       customer.should be_dirty
+    end
+    
+    it 'should respond to Resource#get' do
+      bank, account_number, name = 'Conchords', '1100101', 'Robo Boogie'
+      @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
+      
+      robots = repository(:sqlite3) { BankCustomer.get(bank, account_number) }
+      
+      robots.should_not be_nil
+      robots.should_not be_dirty
+      robots.should_not be_a_new_record
+      robots.bank.should == bank
+      robots.account_number.should == account_number
     end
 
     after do

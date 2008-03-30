@@ -70,10 +70,15 @@ describe DataMapper::Property do
     DataMapper::Property.new(Tomato,:id,Fixnum,{:serial => true}).serial?.should == true
     DataMapper::Property.new(Tomato,:botanical_name,String,{}).serial?.should == false    
   end
+  
+  it "should determine lockability" do
+    DataMapper::Property.new(Tomato, :id, Fixnum, { :lock => true }).lock?.should == true
+    DataMapper::Property.new(Tomato, :botanical_name, String, {}).lock?.should == false
+  end
 
   # TODO should we add an accessor method property.default_value 
   it "should determine a default value" do
-    DataMapper::Property.new(Tomato,:botanical_name,String,{:default => 'Tomato'}).options[:default].should == 'Tomato'   
+    DataMapper::Property.new(Tomato,:botanical_name,String,{:default => 'Tomato'}).options[:default].should == 'Tomato'
   end
   
   it "should determine visibility of readers and writers" do

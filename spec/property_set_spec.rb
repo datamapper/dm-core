@@ -44,18 +44,17 @@ describe DataMapper::PropertySet do
     @properties.should have(4).entries
   end
 
-
   it "should have a hash of lazy loaded properties in contexts" do
-    Boat.properties(:default).should respond_to(:lazy_loaded)
+    Boat.properties(:default).should respond_to(:lazy_contexts)
   end
 
   it 'should add a property for lazy loading  to the :default context if a context is not supplied' do
-    Boat.properties(:default).lazy_loaded.context(:default).length.should == 2 # text & notes
+    Boat.properties(:default).lazy_context(:default).length.should == 2 # text & notes
   end
 
   it 'should return a list of contexts that a given field is in' do
     props =  Boat.properties(:default)
-    set = props.lazy_loaded.field_contexts(:a1)
+    set = props.property_contexts(:a1)
     set.include?(:ctx_a).should == true
     set.include?(:ctx_c).should == true
     set.include?(:ctx_b).should == false
@@ -63,13 +62,9 @@ describe DataMapper::PropertySet do
 
   it 'should return a list of expanded fields that should be loaded with a given field' do
     props =  Boat.properties(:default)
-    set = props.lazy_loaded.expand_fields(:a2)
+    set = props.lazy_load_context(:a2)
     expect = [:a1,:a2,:a3,:b1,:b2,:b3]
-    expect.each {|item| set.include?(item).should == true}
-    set.include?(:text).should == false
-
-    set = props.lazy_loaded.expand_fields([:a3,:b1])  # with an array of field name symbols
-    expect.each {|item| set.include?(item).should == true}
+    expect.should == set.sort! {|a,b| a.to_s <=> b.to_s}
   end
 
 end
