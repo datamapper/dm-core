@@ -138,7 +138,7 @@ module DataMapper
 
     def lazy_load!(*names)
       props = self.class.properties(self.class.repository.name)
-      ctx_names =  props.lazy_loaded.expand_fields(names)
+      ctx_names =  props.lazy_load_context(names)
       unless new_record? || @loaded_set.nil?
         @loaded_set.reload!(:fields => ctx_names )
       else
@@ -264,10 +264,10 @@ module DataMapper
         if type == Text || options.has_key?(:lazy)
           ctx = options.has_key?(:lazy) ? options[:lazy] : :default
           ctx = :default if ctx.is_a?(TrueClass)
-          @properties[repository.name].lazy_loaded.context(ctx) << name if ctx.is_a?(Symbol)
+          @properties[repository.name].lazy_context(ctx) << name if ctx.is_a?(Symbol)
           if ctx.is_a?(Array)
             ctx.each do |item|
-              @properties[repository.name].lazy_loaded.context(item) << name
+              @properties[repository.name].lazy_context(item) << name
             end
           end
         end

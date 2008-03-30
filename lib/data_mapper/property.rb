@@ -244,7 +244,7 @@ module DataMapper
       @target.class_eval <<-EOS
       #{reader_visibility.to_s}
       def #{name}
-        fields = self.class.properties(self.class.repository.name).lazy_loaded.expand_fields([#{name.inspect}.to_sym])
+        fields = self.class.properties(self.class.repository.name).lazy_load_context([#{name.inspect}.to_sym])            
         unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
           unless new_record? || @loaded_set.nil?
             @loaded_set.reload!(:fields => fields)
