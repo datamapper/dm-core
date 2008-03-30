@@ -168,6 +168,10 @@ p#download a {
   height:31px;
   display:block;
 }
+p.attribution {
+  font-size:0.8em;
+  margin-top:-2em;
+}
 /* DOCUMENTATION */
 dl {
   margin-top:1em;
