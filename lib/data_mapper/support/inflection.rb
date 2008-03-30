@@ -2,7 +2,9 @@
 # part of the Ruby On Rails web-framework (http://rubyonrails.org)
 #
 # Methods have been modified or removed. English inflection is now provided via
-# the english gem (http://english.rubyforge.org)
+# the english gem (http://english.rubyforge.org) 
+#
+# sudo gem install english
 #
 require 'english/inflect'
 module DataMapper
