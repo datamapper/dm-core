@@ -44,10 +44,6 @@ module DataMapper
         raise NotImplementedError.new
       end
 
-      def delete_one(repository, query)
-        raise NotImplementedError.new
-      end
-
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
         raise NotImplementedError.new

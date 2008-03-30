@@ -191,10 +191,6 @@ module DataMapper
         set.entries
       end
 
-      def delete_one(repository, query)
-        raise NotImplementedError.new
-      end
-      
       def delete_set(repository, query)
         raise NotImplementedError.new
       end
