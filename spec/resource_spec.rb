@@ -22,7 +22,7 @@ describe "DataMapper::Resource" do
       
       resource_names[:legacy] = "dying_planets"
       
-      property :name, String
+      property :name, String, :lock => true
       property :age, Fixnum
       property :core, String, :private => true
       
@@ -120,6 +120,7 @@ describe "DataMapper::Resource" do
     # Obviously. :-)
     mars.attribute_dirty?(:age).should be_true
     
+    mars.should respond_to(:shadow_attribute_get)
   end
 
   it 'should return the dirty attributes' do
@@ -131,6 +132,17 @@ describe "DataMapper::Resource" do
     Planet.new.should respond_to(:key)
   end
 
+  it 'should temporarily store original values for locked attributes' do
+    mars = Planet.new
+    mars.instance_variable_set('@name', 'Mars')
+    mars.instance_variable_set('@new_record', false)
+    
+    mars.attribute_set(:name, 'God of War')
+    mars.attribute_get(:name).should == 'God of War'
+    mars.name.should == 'God of War'
+    mars.shadow_attribute_get(:name).should == 'Mars'
+  end
+  
   it 'should add hook functionality to including class' do
     Planet.should respond_to(:before)
     Planet.should respond_to(:after)
