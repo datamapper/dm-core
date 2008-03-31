@@ -388,7 +388,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
   end
 
-  describe "belongs_to associations" do
+  describe "many_to_one associations" do
     before do
       class Engine
         include DataMapper::Resource
@@ -415,7 +415,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :serial => true
         property :name, String
 
-        belongs_to :engine, :repository_name => :sqlite3
+        many_to_one :engine, :repository_name => :sqlite3
       end
 
       @adapter.execute(<<-EOS.compress_lines)
@@ -442,7 +442,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       y.attribute_get(:engine_id).should == 2
     end
 
-    it "#belongs_to" do
+    it "#many_to_one" do
       yard = Yard.new
       yard.should respond_to(:engine)
       yard.should respond_to(:engine=)
@@ -477,7 +477,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
   end
 
-  describe "has_many associations" do
+  describe "one_to_many associations" do
     before do
       class Host
         include DataMapper::Resource
@@ -485,7 +485,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :serial => true
         property :name, String
 
-        has_many :slices, :repository_name => :sqlite3
+        one_to_many :slices, :repository_name => :sqlite3
       end
 
       @adapter = repository(:sqlite3).adapter
@@ -506,7 +506,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :serial => true
         property :name, String
 
-        belongs_to :host, :repository_name => :sqlite3
+        many_to_one :host, :repository_name => :sqlite3
       end
 
       @adapter.execute(<<-EOS.compress_lines)
@@ -521,7 +521,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)
     end
 
-    it "#has_many" do
+    it "#one_to_many" do
       h = Host.new
       h.should respond_to(:slices)
     end

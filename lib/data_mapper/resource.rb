@@ -3,11 +3,7 @@ require __DIR__ + 'property_set'
 require __DIR__ + 'property'
 require __DIR__ + 'repository'
 require __DIR__ + 'hook'
-require __DIR__ + 'associations/relationship'
-require __DIR__ + 'associations/belongs_to'
-require __DIR__ + 'associations/has_one'
-require __DIR__ + 'associations/has_many'
-require __DIR__ + 'associations/has_and_belongs_to_many'
+require __DIR__ + 'associations'
 
 module DataMapper
 
@@ -24,10 +20,7 @@ module DataMapper
       target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
 
       # Associations:
-      target.send(:extend, DataMapper::Associations::BelongsTo)
-      target.send(:extend, DataMapper::Associations::HasOne)
-      target.send(:extend, DataMapper::Associations::HasMany)
-      target.send(:extend, DataMapper::Associations::HasAndBelongsToMany)
+      target.send(:extend, DataMapper::Associations)
     end
 
     def self.dependencies
