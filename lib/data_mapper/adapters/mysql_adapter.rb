@@ -1,5 +1,7 @@
 require __DIR__ + 'data_objects_adapter'
-require 'rbmysql'
+# Broke?
+# gem 'do_mysql', '>= 0.9.0'
+require 'do_mysql'
 
 module DataMapper
   module Adapters

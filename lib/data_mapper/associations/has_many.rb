@@ -9,10 +9,10 @@ module DataMapper
       def has_many(name, options = {})
         self.send(:extend, Associations)
 
-        source = (options[:class_name] || Inflector.classify(name))
-        self_name = Inflector.demodulize(self.name)
+        source = (options[:class_name] || DataMapper::Inflection.classify(name))
+        self_name = DataMapper::Inflection.demodulize(self.name)
         self.relationships[name] = Relationship.
-            new(Inflector.underscore(self_name).to_sym, options[:repository_name] || self.repository.name, [source, nil], [self_name, nil])
+          new(DataMapper::Inflection.underscore(self_name).to_sym, options[:repository_name] || self.repository.name, [source, nil], [self_name, nil])
 
         class_eval <<-EOS
           def #{name}
@@ -28,7 +28,7 @@ module DataMapper
                   repository.all(child_res, child_rel.to_hash(parent_rel.value(parent)))
               end
 
-              as_parent_associations << association
+              parent_associations << association
 
               association
             end

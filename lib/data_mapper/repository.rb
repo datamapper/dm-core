@@ -33,15 +33,15 @@ module DataMapper
     raise ArgumentError.new("'name' must be a Symbol") unless name.is_a?(Symbol)
     raise ArgumentError.new("'uri' must be a URI or String") unless uri.is_a?(URI)
     
-    unless Adapters::const_defined?(Inflector.classify(uri.scheme) + "Adapter")
+    unless Adapters::const_defined?(DataMapper::Inflection.classify(uri.scheme) + "Adapter")
       begin
-        require __DIR__ + "adapters/#{Inflector.underscore(uri.scheme)}_adapter"
+        require __DIR__ + "adapters/#{DataMapper::Inflection.underscore(uri.scheme)}_adapter"
       rescue LoadError
-        require "#{Inflector.underscore(uri.scheme)}_adapter"
+        require "#{DataMapper::Inflection.underscore(uri.scheme)}_adapter"
       end
     end
     
-    adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(name, uri)
+    adapter = Adapters::const_get(DataMapper::Inflection.classify(uri.scheme) + "Adapter").new(name, uri)
 
     Repository.adapters[name] = adapter
   end
@@ -120,7 +120,7 @@ module DataMapper
     end
     
     def save(instance)
-      instance.as_child_associations.each { |a| a.save }
+      instance.child_associations.each { |a| a.save }
 
       if instance.new_record?
         if @adapter.create(self, instance)
@@ -140,7 +140,7 @@ module DataMapper
         end
       end
 
-      instance.as_parent_associations.each { |a| a.save }
+      instance.parent_associations.each { |a| a.save }
     end
 
     def destroy(instance)

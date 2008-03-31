@@ -168,7 +168,8 @@ module DataMapper
     PROPERTY_OPTIONS = [
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-      :format, :index, :check, :ordinal, :auto_validation, :validation_context
+      :format, :index, :check, :ordinal, :auto_validation, :validation_context,
+      :lock
     ]
 
     TYPES = [
@@ -197,18 +198,20 @@ module DataMapper
 
       @instance_variable_name = "@#{@name}"
 
-      @field = @options.fetch(:field, name.to_s.sub(/\?$/, ''))
-
       @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
 
 
       # if it has a lazy key it is lazy. :lazy is now an array of contexts not bool
       # when type is text a context should have been created and a :lazy entry made..
       # double check - @lazy = @options.has_key?(:lazy) ? true : false
+      #
+      # TODO: This default should move to a DataMapper::Types::Text Custom-Type
+      # and out of Property.
       @lazy = @options.has_key?(:lazy) ? true : @type == Text
 
       @key = (@options[:key] || @options[:serial]) == true
       @serial = @options.fetch(:serial, false)
+      @lock = @options.fetch(:lock, false)
 
       validate_options!
       determine_visibility!
@@ -238,19 +241,20 @@ module DataMapper
 
     # defines the getter for the property
     def create_getter!
+      # def attribute_get(name)
+      #   ivar_name = loaded_attributes[name]
+      #
+      #   unless attribute_loaded?(name)
+      #     lazy_load!(name)
+      #   end
+      #
+      #   instance_variable_get(ivar_name)
+      # end
+
       @target.class_eval <<-EOS
       #{reader_visibility.to_s}
       def #{name}
-        fields = self.class.properties(self.class.repository.name).lazy_loaded.expand_fields([#{name.inspect}.to_sym])
-        unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
-          unless new_record? || @loaded_set.nil?
-            @loaded_set.reload!(:fields => fields)
-          else
-            #{normalized_name} = nil
-          end
-        end
-
-        #{normalized_name}
+        attribute_get(#{name.inspect})
       end
       EOS
 
@@ -269,7 +273,7 @@ module DataMapper
       @target.class_eval <<-EOS
       #{writer_visibility.to_s}
       def #{name}=(value)
-        dirty_attributes[:#{name}] = @#{name} = value
+        attribute_set(#{name.inspect}, value)
       end
       EOS
     rescue SyntaxError
@@ -285,7 +289,7 @@ module DataMapper
     end
 
     def field
-      @field
+      @field || @field = repository.adapter.field_naming_convention.call(@options.fetch(:field, name))
     end
 
     def name
@@ -322,6 +326,10 @@ module DataMapper
 
     def serial?
       @serial
+    end
+
+    def lock?
+      @lock
     end
 
     def options

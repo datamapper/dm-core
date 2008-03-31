@@ -1,4 +1,3 @@
-require __DIR__ + 'support/inflector'
 require __DIR__ + 'support/string'
 require __DIR__ + 'property_set'
 require __DIR__ + 'property'
@@ -46,12 +45,12 @@ module DataMapper
       @loaded_set ? @loaded_set.repository : self.class.repository
     end
 
-    def as_child_associations
-      @as_child_associations ||= []
+    def child_associations
+      @child_associations ||= []
     end
 
-    def as_parent_associations
-      @as_parent_associations ||= []
+    def parent_associations
+      @parent_associations ||= []
     end
 
     def key
@@ -87,8 +86,14 @@ module DataMapper
       repository.destroy(self)
     end
 
+    def loaded_attributes
+      # We don't assign a default to the Hash on purpose!!!
+      @loaded_attributes || @loaded_attributes = Hash.new { |h,k| k.to_s.ensure_starts_with('@') }
+    end
+
     def attribute_loaded?(name)
-      instance_variables.include?(name.to_s.ensure_starts_with('@'))
+      raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
+      loaded_attributes.key?(name)
     end
 
     def dirty_attributes
@@ -105,24 +110,38 @@ module DataMapper
     end
 
     def attribute_get(name)
+      ivar_name = loaded_attributes[name]
+
       unless attribute_loaded?(name)
         lazy_load!(name)
       end
 
-      instance_variable_get(name.to_s.ensure_starts_with('@'))
+      instance_variable_get(ivar_name)
     end
 
     def attribute_set(name, value)
-      dirty_attributes[name] = instance_variable_set(name.to_s.ensure_starts_with('@'), value)
+      ivar_name = name.to_s.ensure_starts_with('@')
+      property = self.class.properties(repository.name).detect(name)
+
+      if property && property.lock?
+        instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
+      end
+
+      loaded_attributes[name] = ivar_name
+      dirty_attributes[name] = instance_variable_set(ivar_name, value)
+    end
+
+    def shadow_attribute_get(name)
+      instance_variable_get(name.to_s.ensure_starts_with('@shadow_'))
     end
 
     def lazy_load!(*names)
-      props = self.class.properties(self.class.repository.name)
-      ctx_names =  props.lazy_loaded.expand_fields(names)
+      fields = self.class.properties(self.class.repository.name).lazy_load_context(names)
+
       unless new_record? || @loaded_set.nil?
-        @loaded_set.reload!(:fields => ctx_names )
+        @loaded_set.reload!(:fields => fields)
       else
-        ctx_names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
+        fields.each { |name| attribute_set(name, nil) }
       end
     end
 
@@ -244,10 +263,10 @@ module DataMapper
         if type == Text || options.has_key?(:lazy)
           ctx = options.has_key?(:lazy) ? options[:lazy] : :default
           ctx = :default if ctx.is_a?(TrueClass)
-          @properties[repository.name].lazy_loaded.context(ctx) << name if ctx.is_a?(Symbol)
+          @properties[repository.name].lazy_context(ctx) << name if ctx.is_a?(Symbol)
           if ctx.is_a?(Array)
             ctx.each do |item|
-              @properties[repository.name].lazy_loaded.context(item) << name
+              @properties[repository.name].lazy_context(item) << name
             end
           end
         end
@@ -267,8 +286,8 @@ module DataMapper
         @properties[repository_name].detect { |property| property.type == Class }
       end
 
-      def get(key)
-        repository.get(self, key.is_a?(Array) ? key : [key])
+      def get(*key)
+        repository.get(self, key)
       end
 
       def [](key)

@@ -1,5 +1,6 @@
 require __DIR__ + 'abstract_adapter'
 require 'fastthread'
+require 'data_objects'
 
 module DataMapper
 
@@ -172,8 +173,8 @@ module DataMapper
 
         DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
 
+        connection = create_connection
         begin
-          connection = create_connection
           command = connection.create_command(sql)
           command.set_types(properties.map { |property| property.type })
           reader = command.execute_reader(*parameters)
@@ -191,10 +192,6 @@ module DataMapper
         end
 
         set.entries
-      end
-
-      def delete_one(repository, query)
-        raise NotImplementedError.new
       end
 
       def delete_set(repository, query)
@@ -227,7 +224,7 @@ module DataMapper
         results = []
 
         if (fields = reader.fields).size > 1
-          fields = fields.map { |field| Inflector.underscore(field).to_sym }
+          fields = fields.map { |field| DataMapper::Inflection.underscore(field).to_sym }
           struct = Struct.new(*fields)
 
           while(reader.next!) do

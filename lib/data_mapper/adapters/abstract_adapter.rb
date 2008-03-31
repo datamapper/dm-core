@@ -11,6 +11,7 @@ module DataMapper
         @uri = rewrite_uri(uri, options)
 
         @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
+        @field_naming_convention    = NamingConventions::Underscored
       end
 
       def batch_insertable?
@@ -19,6 +20,7 @@ module DataMapper
 
       attr_reader :name
       attr_accessor :resource_naming_convention
+      attr_accessor :field_naming_convention
 
       # Methods dealing with a single instance object
       def create(repository, instance)
@@ -39,10 +41,6 @@ module DataMapper
 
       # Methods dealing with locating a single object, by keys
       def read_one(repository, query)
-        raise NotImplementedError.new
-      end
-
-      def delete_one(repository, query)
         raise NotImplementedError.new
       end
 

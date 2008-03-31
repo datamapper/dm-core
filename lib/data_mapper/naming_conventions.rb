@@ -1,5 +1,3 @@
-require __DIR__ + 'support/inflector'
-
 module DataMapper
   
   # Use these modules to set naming conventions.
@@ -26,19 +24,19 @@ module DataMapper
   
     module UnderscoredAndPluralized
       def self.call(value)
-        Inflector.pluralize(Inflector.underscore(value))
+        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value))
       end
     end
   
     module Underscored
       def self.call(value)
-        Inflector.underscore(value)
+        DataMapper::Inflection.underscore(value)
       end
     end
     
     module Yaml
       def self.call(value)
-        Inflector.pluralize(Inflector.underscore(value)) + ".yaml"
+        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value)) + ".yaml"
       end
     end
     

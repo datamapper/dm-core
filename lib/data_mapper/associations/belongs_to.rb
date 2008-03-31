@@ -9,10 +9,10 @@ module DataMapper
       def belongs_to(name, options = {})
         self.send(:extend, DataMapper::Associations)
 
-        target = (options[:class_name] || Inflector.camelize(name))
+        target = (options[:class_name] || DataMapper::Inflection.camelize(name))
 
         self.relationships[name] = Relationship.
-          new(name, options[:repository_name] || self.repository.name, [Inflector.demodulize(self.name), nil], [target, nil])
+          new(name, options[:repository_name] || self.repository.name, [DataMapper::Inflection.demodulize(self.name), nil], [target, nil])
 
         class_eval <<-EOS
           def #{name}
@@ -29,10 +29,10 @@ module DataMapper
             @#{name}_association || @#{name}_association = begin
               association = self.class.relationships[:#{name}].
                   with_child(self, ChildToParentAssociation) do |repository, child_rel, parent_rel, parent_res, child|
-                    repository.first(parent_res, parent_rel.to_hash(child_rel.value(child)))
+                    repository.all(parent_res, parent_rel.to_hash(child_rel.value(child))).first
               end
 
-              as_child_associations << association
+              child_associations << association
 
               association
             end
