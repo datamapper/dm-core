@@ -40,6 +40,18 @@ module DataMapper
       @key || @key = select { |property| property.key? }
     end
 
+    def value(instance)
+      map { |p| p.value(instance) }
+    end
+
+    def set(value, instance)
+      each_with_index { |p, i| p.set(value && value[i], instance) }
+    end
+
+    def to_hash(values)
+      Hash[*zip(values).flatten]
+    end
+
     def dup
       clone = PropertySet.new
       each { |property| clone << property }

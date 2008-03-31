@@ -5,7 +5,6 @@ require __DIR__ + 'property'
 require __DIR__ + 'repository'
 require __DIR__ + 'hook'
 require __DIR__ + 'associations/relationship'
-require __DIR__ + 'associations/association_set'
 require __DIR__ + 'associations/belongs_to'
 require __DIR__ + 'associations/has_one'
 require __DIR__ + 'associations/has_many'
@@ -45,6 +44,14 @@ module DataMapper
 
     def repository
       @loaded_set ? @loaded_set.repository : self.class.repository
+    end
+
+    def as_child_associations
+      @as_child_associations ||= []
+    end
+
+    def as_parent_associations
+      @as_parent_associations ||= []
     end
 
     def key

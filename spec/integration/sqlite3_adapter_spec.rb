@@ -390,7 +390,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :key => true
         property :name, String
 
-        belongs_to :engine
+        belongs_to :engine, :repository_name => :sqlite3
       end
 
       @adapter.execute(<<-EOS.compress_lines)
@@ -405,6 +405,17 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it "should materialize without the parent"
+
+    it 'should allow substituting the parent' do
+      y = repository(:sqlite3).all(Yard, :id => 1).first
+      e = repository(:sqlite3).all(Engine, :id => 2).first
+
+      y.engine = e
+      repository(:sqlite3).save(y)
+
+      y = repository(:sqlite3).all(Yard, :id => 1).first
+      y.attribute_get(:engine_id).should == 2
+    end
 
     it "#belongs_to" do
       yard = Yard.new
@@ -423,7 +434,16 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       e = repository(:sqlite3).all(Engine, :id => 2).first
       repository(:sqlite3).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
 
-      repository(:sqlite3).all(Yard, :id => 2).first.engine.id.should == 2
+      repository(:sqlite3).all(Yard, :id => 2).first.attribute_get(:engine_id).should == 2
+    end
+
+    it 'should save the parent upon saving of child' do
+      e = Engine.new(:id => 10, :name => "engine10")
+      y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
+      repository(:sqlite3).save(y)
+
+      y.attribute_get(:engine_id).should == 10
+      repository(:sqlite3).all(Engine, :id => 10).first.should_not be_nil
     end
 
     after do
@@ -440,7 +460,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :key => true
         property :name, String
 
-        has_many :slices
+        has_many :slices, :repository_name => :sqlite3
       end
 
       @adapter = repository(:sqlite3).adapter
@@ -460,6 +480,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
         property :id, Fixnum, :key => true
         property :name, String
+
+        belongs_to :host, :repository_name => :sqlite3
       end
 
       @adapter.execute(<<-EOS.compress_lines)
@@ -479,12 +501,50 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       h.should respond_to(:slices)
     end
 
+    it "should allow removal of a child through a loaded association" do
+      h = repository(:sqlite3).all(Host, :id => 1).first
+      s = h.slices.first
+
+      h.slices.delete(s)
+      h.slices.size.should == 1
+
+      s = repository(:sqlite3).first(Slice, :id => s.id)
+      s.host.should be_nil
+      s.attribute_get(:host_id).should be_nil
+    end
+
     it "should load the associated instances" do
       h = repository(:sqlite3).all(Host, :id => 1).first
       h.slices.should_not be_nil
       h.slices.size.should == 2
       h.slices.first.id.should == 1
       h.slices.last.id.should == 2
+    end
+
+    it "should add and save the associated instance" do
+      h = repository(:sqlite3).all(Host, :id => 1).first
+      h.slices << Slice.new(:id => 3, :name => 'slice3')
+
+      s = repository(:sqlite3).all(Slice, :id => 3).first
+      s.host.id.should == 1
+    end
+
+    it "should not save the associated instance if the parent is not saved" do
+      h = Host.new(:id => 10, :name => "host10")
+      h.slices << Slice.new(:id => 10, :name => 'slice10')
+
+      repository(:sqlite3).all(Slice, :id => 10).first.should be_nil
+    end
+
+    it "should save the associated instance upon saving of parent" do
+      h = Host.new(:id => 10, :name => "host10")
+      h.slices << Slice.new(:id => 10, :name => 'slice10')
+      repository(:sqlite3).save(h)
+
+      s = repository(:sqlite3).all(Slice, :id => 10).first
+      s.should_not be_nil
+      s.host.should_not be_nil
+      s.host.id.should == 10
     end
 
     after do

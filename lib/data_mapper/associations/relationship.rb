@@ -4,75 +4,91 @@ module DataMapper
 
       attr_reader :name, :repository_name
 
-      # +source+ is the FK, +target+ is the PK. Please refer to:
+      # +child+ is the FK, +parent+ is the PK. Please refer to:
       # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
       # I wash my hands of it!
       #
       # TODO: should repository_name be removed? it would allow relationships across multiple
       # repositories (if query supports it)
-      def initialize(name, repository_name, source, target, &loader)
+      def initialize(name, repository_name, child, parent, &loader)
 
-        unless source.is_a?(Array) && source.size == 2
-          raise ArgumentError.new("source should be an Array of [resource_name, property_name] but was #{source.inspect}")
+        unless child.is_a?(Array) && child.size == 2
+          raise ArgumentError.new("child should be an Array of [resource_name, property_name] but was #{child.inspect}")
         end
 
-        unless target.is_a?(Array) && target.size == 2
-          raise ArgumentError.new("target should be an Array of [resource_name, property_name] but was #{target.inspect}")
+        unless parent.is_a?(Array) && parent.size == 2
+          raise ArgumentError.new("parent should be an Array of [resource_name, property_name] but was #{parent.inspect}")
         end
 
         @name               = name
         @repository_name    = repository_name
-        @source             = source
-        @target             = target
+        @child              = child
+        @parent             = parent
         @loader             = loader
       end
 
-      def source
-        @source_key || @source_key = begin
-          resource = @source.first.to_class
+      def child
+        @child_key || @child_key = begin
+          resource = @child.first.to_class
           resource_property_set = resource.properties(@repository_name)
 
-          if @source[1].nil?
-            # Default t the target key we're binding to prefixed with the
+          if @child[1].nil?
+            # Default t the parent key we're binding to prefixed with the
             # association name.
-            target.map do |property|
+            PropertySet.new.concat(parent.map do |property|
               property_name = "#{@name}_#{property.name}"
               resource_property_set.detect(property_name) || resource.property(property_name.to_sym, property.type)
-            end
+            end)
           else
             i = 0
-            @source[1].map do |property_name|
-              target_property = target[i]
+            PropertySet.new.concat(@child[1].map do |property_name|
+              parent_property = parent[i]
               i += 1
-              resource_property_set.detect(property_name) || resource.property(property_name, target_property.type)
-            end
+              resource_property_set.detect(property_name) || resource.property(property_name, parent_property.type)
+            end)
           end
         end
       end
 
-      def target
-        @target_key || @target_key = begin
-          resource = @target.first.to_class
+      def parent
+        @parent_key || @parent_key = begin
+          resource = @parent.first.to_class
           resource_property_set = resource.properties(@repository_name)
 
-          if @target[1].nil?
-            resource_property_set.key
+          if @parent[1].nil?
+            PropertySet.new.concat(resource_property_set.key)
           else
-            resource_property_set.select(*@target[1])
+            PropertySet.new.concat(resource_property_set.select(*@parent[1]))
           end
         end
       end
 
-      def to_set(instance)
-        @association_set ||= @loader.call(self, instance)
+      def with_child(child_inst, association, &loader)
+        association.new(self, child_inst, lambda {
+          loader.call(repository(@repository_name), child, parent, parent_resource, child_inst)
+        })
       end
 
-      def target_resource
-        @target.first.to_class
+      def with_parent(parent_inst, association, &loader)
+        association.new(self, parent_inst, lambda {
+          loader.call(repository(@repository_name), child, parent, child_resource, parent_inst)
+        })
       end
 
-      def source_resource
-        @source.first.to_class
+      def attach_parent(child, parent)
+        self.child.set(parent && self.parent.value(parent), child)
+      end
+
+      def parent_resource
+        @parent.first.to_class
+      end
+
+      def child_resource
+        @child.first.to_class
+      end
+
+      def repository_name
+        @repository_name
       end
     end # class Relationship
   end # module Associations
