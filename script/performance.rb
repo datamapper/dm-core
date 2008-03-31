@@ -5,6 +5,8 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support
 
 require 'benchmark'
 require 'rubygems'
+
+require 'faker'
 require 'active_record'
 
 socket_file = Pathname.glob(%w[
@@ -22,6 +24,37 @@ configuration_options = {
 
 configuration_options[:socket] = socket_file unless socket_file.nil?
 
+# connection = adapter.create_connection
+# command = connection.create_command <<-EOS.compress_lines
+#   CREATE TABLE `exhibits` (
+#     `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
+#     `name` VARCHAR(50),
+#     `zoo_id` INTEGER(11),
+#     `notes` TEXT,
+#     `created_on` DATE,
+#     `updated_at` TIMESTAMP NOT NULL,
+#     PRIMARY KEY(`id`)
+#   )
+# EOS
+# 
+# command.execute_non_query rescue nil
+
+# command = connection.create_command <<-EOS.compress_lines
+#   INSERT INTO `exhibits` (`name`, `zoo_id`, `notes`, `created_on`, `updated_at`) VALUES (?, ?, ?, ?, ?)
+# EOS
+# 
+# 1000.times do
+#   command.execute_non_query(
+#     Faker::Company.name,
+#     rand(10).ceil,
+#     Faker::Lorem.paragraphs.join($/),
+#     Date::today,
+#     Time::now
+#   )
+# end
+# 
+# connection.close
+
 ActiveRecord::Base.logger = Logger.new(__DIR__.parent + 'log/ar.log')
 ActiveRecord::Base.logger.level = 0
 
@@ -34,10 +67,8 @@ end
 ARExhibit.find_by_sql('SELECT 1')
 
 require __DIR__.parent + 'lib/data_mapper'
-
 DataMapper::Logger.new(__DIR__.parent + 'log/dm.log', :debug)
-
-DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
+adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 class Exhibit
   include DataMapper::Resource
@@ -151,6 +182,11 @@ Benchmark::bmbm(60) do |x|
   end
     
 end
+
+# connection = adapter.create_connection
+# command = connection.create_command("DROP TABLE exhibits")
+# command.execute_non_query rescue nil
+# connection.close
 
 __END__
 
