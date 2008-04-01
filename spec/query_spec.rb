@@ -33,7 +33,7 @@ describe DataMapper::Query do
   UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
     options.update attribute => value
   end
-  
+
   UPDATED_OPTIONS.merge!({ :fields => [ :id, :author ]})
 
   describe '.new' do
@@ -60,22 +60,22 @@ describe DataMapper::Query do
           query = DataMapper::Query.new(Article, :conditions => [ 'name = ?', 'dkubb' ])
           query.conditions.should == [ [ 'name = ?', [ 'dkubb' ] ] ]
         end
-        
-        
+
+
         it 'when they have another DM:Query as the value of sub-select' do
           class Acl
             include DataMapper::Resource
             property :id, Fixnum
             property :resource_id, Fixnum
           end
-          
+
           acl_query = DataMapper::Query.new(Acl, :fields=>[:resource_id]) #this would normally have conditions
           query = DataMapper::Query.new(Article, :id.in => acl_query)
           query.conditions.map do |operator, property, value|
             operator.should == :in
             property.name.should == :id
             value.should == acl_query
-          end          
+          end
         end
       end
 
@@ -131,7 +131,7 @@ describe DataMapper::Query do
         }.should raise_error(ArgumentError)
       end
     end
-    
+
     describe 'should normalize' do
       it '#fields' do
         DataMapper::Query.new(Article, :fields => [:id]).fields.should == Article.properties(:default).select(:id)
@@ -232,9 +232,9 @@ describe DataMapper::Query do
           @query.update(other).send(attribute).should == [ :stub, :other, :new ]
         end
       end
-      
+
       it "#fields with other fields unique values" do
-        other = DataMapper::Query.new(Article, :fields => [ :blog_id ]) 
+        other = DataMapper::Query.new(Article, :fields => [ :blog_id ])
         @query.update(other).fields.should == Article.properties(:default).select(:id, :author, :blog_id)
       end
 

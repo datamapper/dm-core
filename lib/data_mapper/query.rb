@@ -34,7 +34,7 @@ module DataMapper
     end
 
     OPTIONS = [
-      :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions, :repository
+      :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
 
     attr_reader :resource, :resource_name, *OPTIONS
@@ -90,9 +90,9 @@ module DataMapper
       end
       parameters
     end
-    
+
     # find the point in self.conditions where the sub select tuple is
-    # located. Delete the tuple and add value.conditions. value must be a  
+    # located. Delete the tuple and add value.conditions. value must be a
     # <DM::Query>
     #
     def merge_sub_select_parameters(operator, property, value)
@@ -108,7 +108,7 @@ module DataMapper
         end
       end
       @conditions = new_conditions
-    end    
+    end
 
     alias reload? reload
 
@@ -148,10 +148,6 @@ module DataMapper
       normalize_links!
       normalize_includes!
 
-      # TODO: think about freezing @order, @fields, @links and @includes
-      #   - before doing this, should we dup the passed in option, so
-      #     we don't modify it accidentally?
-
       # treat all non-options as conditions
       (options.keys - OPTIONS - OPTIONS.map(&:to_s)).each do |k|
         append_condition!(k, options[k])
@@ -165,10 +161,6 @@ module DataMapper
           [ conditions_option[0], conditions_option[1..-1] ]
         end
       end
-
-      # TODO: think about freezing @conditions
-      #   - keep in mind that update_conditions!
-      #     will need to take this into account
     end
 
     def initialize_copy(original)
@@ -241,7 +233,9 @@ module DataMapper
 
             Direction.new(order_by)
           when Symbol, String
-            Direction.new(@properties[order_by])
+            property = @properties[order_by]
+            raise ArgumentError, "Order field #{order_by.inspect} does not map to a DataMapper::Property" if property.nil?
+            Direction.new(property)
           else
             raise ArgumentError, "Order #{order_by.inspect} not supported"
         end
@@ -261,15 +255,13 @@ module DataMapper
             #end
             field
           when Symbol, String
-            @properties.detect(field)
+            property = @properties.detect(field)
+            raise ArgumentError, "Field #{field.inspect} does not map to a DataMapper::Property" if property.nil?
+            property
           else
             raise ArgumentError, "Field type #{field.inspect} not supported"
         end
-      end.compact
-      # XXX: if an unknown property name is passed in as a String or Symbol
-      # it will return nil.  That is likely the purpose of the compact
-      # statement above.  I think that is wrong.  If a property is unknown
-      # then it should return an exception
+      end
     end
 
     # normalize links to DM::Query::Path
@@ -331,10 +323,6 @@ module DataMapper
 
           if condition = conditions_index[other_property][other_operator]
             operator, property, value = *condition
-
-            # TODO: do not overwrite the value.  Instead splice the
-            # condition from @conditions, and then push onto conditions.
-            # that way each condition can become a real immutable Tuple
 
             # overwrite the value in the existing condition
             condition[2] = case operator
