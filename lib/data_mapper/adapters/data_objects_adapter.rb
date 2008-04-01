@@ -21,7 +21,7 @@ module DataMapper
       TYPES = {
         Fixnum  => 'int'.freeze,
         String   => 'varchar'.freeze,
-        Text     => 'text'.freeze,
+        DataMapper::Types::Text     => 'text'.freeze,
         Class    => 'varchar'.freeze,
         BigDecimal  => 'decimal'.freeze,
         Float    => 'float'.freeze,
@@ -69,7 +69,7 @@ module DataMapper
       # Methods dealing with a single instance object
       def create(repository, instance)
         dirty_attributes = instance.dirty_attributes
-        properties = instance.class.properties(name).select { |property| dirty_attributes.key?(property.name) }
+        properties = instance.class.properties(name).select(*dirty_attributes.keys)
 
         connection = create_connection
         sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, instance.class, properties)
@@ -95,7 +95,7 @@ module DataMapper
       end
 
       def read(repository, resource, key)
-        properties = resource.properties(repository.name).select { |property| !property.lazy? }
+        properties = resource.properties(repository.name).defaults
         properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
 
         set = LoadedSet.new(repository, resource, properties_with_indexes)
@@ -104,7 +104,7 @@ module DataMapper
         sql = read_statement(resource, key)
         DataMapper.logger.debug { sql }
         command = connection.create_command(sql)
-        command.set_types(properties.map { |property| property.type })
+        command.set_types(properties.map { |property| property.primitive })
         reader = command.execute_reader(*key)
         while(reader.next!)
           set.materialize!(reader.values)
@@ -118,7 +118,7 @@ module DataMapper
 
       def update(repository, instance)
         dirty_attributes = instance.dirty_attributes
-        properties = instance.class.properties(name).select { |property| dirty_attributes.key?(property.name) }
+        properties = instance.class.properties(name).select(*dirty_attributes.keys)
 
         connection = create_connection
         command = connection.create_command(update_statement(instance.class, properties))
@@ -183,7 +183,7 @@ module DataMapper
         connection = create_connection
         begin
           command = connection.create_command(sql)
-          command.set_types(properties.map { |property| property.type })
+          command.set_types(properties.map { |property| property.primitive })
           reader = command.execute_reader(*parameters)
 
           while(reader.next!)

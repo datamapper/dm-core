@@ -255,7 +255,7 @@ module DataMapper
 
         #Add the property to the lazy_loads set for this resources repository only
         # TODO Is this right or should we add the lazy contexts to all repositories?
-        if type == Text || options.has_key?(:lazy)
+        if property.lazy?
           ctx = options.has_key?(:lazy) ? options[:lazy] : :default
           ctx = :default if ctx.is_a?(TrueClass)
           @properties[repository.name].lazy_context(ctx) << name if ctx.is_a?(Symbol)

@@ -1,11 +1,10 @@
 require __DIR__ + 'property_set'
 require __DIR__ + 'type'
+Dir[__DIR__ + 'types/*.rb'].each { |path| require path }
 
 require 'date'
 require 'time'
 require 'bigdecimal'
-
-class Text; end; warn('Text should not be declared inline.')
 
 module DataMapper
 
@@ -175,7 +174,7 @@ module DataMapper
     TYPES = [
       TrueClass,
       String,
-      Text,
+      DataMapper::Types::Text,
       Float,
       Fixnum,
       BigDecimal,
@@ -207,8 +206,9 @@ module DataMapper
       #
       # TODO: This default should move to a DataMapper::Types::Text Custom-Type
       # and out of Property.
-      @lazy = @options.has_key?(:lazy) ? true : @type == Text
-
+      @lazy = @options.fetch(:lazy, @type.respond_to?(:lazy) ? @type.lazy : false)
+      @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
+      
       @key = (@options[:key] || @options[:serial]) == true
       @serial = @options.fetch(:serial, false)
       @lock = @options.fetch(:lock, false)
@@ -281,7 +281,7 @@ module DataMapper
     end
 
     def primitive
-      @type.ancestors.include?(DataMapper::Type) ? @type.primitive : @type
+      @primitive
     end
 
     def target

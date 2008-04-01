@@ -24,9 +24,8 @@ describe DataMapper::Type do
   end
   
   it "should have the same PROPERTY_OPTIONS aray as DataMapper::Property" do
-    pending("currently there is no way to read PROPERTY_OPTIONS and aliases from DataMapper::Property. Also, some properties need to be defined as aliases instead of being listed in the PROPERTY_OPTIONS array") do
-      DataMapper::Type::PROPERTY_OPTIONS.should == DataMapper::Property::PROPERTY_OPTIONS
-    end
+    # pending("currently there is no way to read PROPERTY_OPTIONS and aliases from DataMapper::Property. Also, some properties need to be defined as aliases instead of being listed in the PROPERTY_OPTIONS array")
+    DataMapper::Type::PROPERTY_OPTIONS.should == DataMapper::Property::PROPERTY_OPTIONS
   end
   
   it "should create a new type based on String primitive" do
@@ -39,7 +38,7 @@ describe DataMapper::Type do
   
   it "should have options hash exactly equal to options specified in custom type" do
     #ie. it should not include null elements
-    TestType.options.should == { :size => 10 }
+    TestType.options.should == { :size => 10, :length => 10 }
   end
   
   it "should have length aliased to size" do

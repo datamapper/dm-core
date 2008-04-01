@@ -1,5 +1,3 @@
-#require __DIR__ + 'property'
-
 module DataMapper
 
   # :include:/QUICKLINKS
@@ -38,11 +36,12 @@ module DataMapper
   #     end
   #   end
   class Type
-    #TODO: figure out a way to read this from DataMapper::Property without cyclic require(s)
-    #This should ALWAYS mirror DataMapper::Property::PROPERTY_OPTIONS, with the exception of aliases
-    PROPERTY_OPTIONS = [ :public, :protected, :private, :accessor, :reader,
-      :writer, :lazy, :default, :nullable, :key, :serial, :field, :size,
-      :format, :index, :check, :ordinal, :auto_validation ]
+    PROPERTY_OPTIONS = [
+      :public, :protected, :private, :accessor, :reader, :writer,
+      :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
+      :format, :index, :check, :ordinal, :auto_validation, :validation_context,
+      :lock
+    ]
 
     PROPERTY_OPTION_ALIASES = {
       :size => [ :length ]

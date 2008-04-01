@@ -33,5 +33,3 @@ require __DIR__ + 'data_mapper/adapters/abstract_adapter'
 require __DIR__ + 'data_mapper/cli'
 require __DIR__ + 'data_mapper/scope'
 require __DIR__ + 'data_mapper/query'
-
-

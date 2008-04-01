@@ -58,7 +58,7 @@ describe DataMapper::Property do
   end
 
   it "should automatically set lazyness to true on text fields?" do
-    DataMapper::Property.new(Tomato,:botanical_name,Text,{}).lazy?.should == true
+    DataMapper::Property.new(Tomato,:botanical_name,DataMapper::Types::Text,{}).lazy?.should == true
   end
 
   it "should determine keyness" do
@@ -132,7 +132,12 @@ describe DataMapper::Property do
 
   it "should set the field to the correct field_naming_convention" do
     DataMapper::Property.new(Zoo, :species, String, {}).field.should == 'species'
-    DataMapper::Property.new(Tomato, :genetic_history, Text, {}).field.should == "genetic_history"
+    DataMapper::Property.new(Tomato, :genetic_history, DataMapper::Types::Text, {}).field.should == "genetic_history"
+  end
+  
+  it "should provide the primitive mapping" do
+    DataMapper::Property.new(Zoo, :poverty, String, {}).primitive.should == String
+    DataMapper::Property.new(Zoo, :fortune, DataMapper::Types::Text, {}).primitive.should == String
   end
 
   # All auto_validation specs moved to dm-more/spec/validation_spec.rb

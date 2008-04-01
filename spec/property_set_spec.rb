@@ -16,7 +16,7 @@ describe DataMapper::PropertySet do
     class Boat
       include DataMapper::Resource
       property :name, String  #not lazy
-      property :text, Text    #Lazy by default
+      property :text, DataMapper::Types::Text    #Lazy by default
       property :notes, String, :lazy => true
       property :a1, String, :lazy => [:ctx_a,:ctx_c]
       property :a2, String, :lazy => [:ctx_a,:ctx_b]
