@@ -60,6 +60,23 @@ describe DataMapper::Query do
           query = DataMapper::Query.new(Article, :conditions => [ 'name = ?', 'dkubb' ])
           query.conditions.should == [ [ 'name = ?', [ 'dkubb' ] ] ]
         end
+        
+        
+        it 'when they have another DM:Query as the value of sub-select' do
+          class Acl
+            include DataMapper::Resource
+            property :id, Fixnum
+            property :resource_id, Fixnum
+          end
+          
+          acl_query = DataMapper::Query.new(Acl, :fields=>[:resource_id]) #this would normally have conditions
+          query = DataMapper::Query.new(Article, :id.in => acl_query)
+          query.conditions.map do |operator, property, value|
+            operator.should == :in
+            property.name.should == :id
+            value.should == acl_query
+          end          
+        end
       end
 
       describe ' #conditions with unknown options' do

@@ -175,9 +175,11 @@ module DataMapper
 
         sql = query_read_statement(query)
         parameters = query.parameters
+        
+      
 
         DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
-
+        
         connection = create_connection
         begin
           command = connection.create_command(sql)
@@ -307,16 +309,15 @@ module DataMapper
           sql << query.fields.map do |property|
             property_to_column_name(query.resource_name, property, qualify)
           end.join(', ')
-
+          
           sql << " FROM " << quote_table_name(query.resource_name)
-
+          
           unless query.conditions.empty?
             sql << " WHERE "
-
             sql << "(" << query.conditions.map do |operator, property, value|
               case operator
-              when :eql, :in then equality_operator(query.resource_name, property, qualify, value)
-              when :not then inequality_operator(query.resource_name, property, qualify, value)
+              when :eql, :in then equality_operator(query,operator, query.resource_name, property, qualify, value)
+              when :not then inequality_operator(query,operator,query.resource_name, property, qualify, value)
               when :like then "#{property_to_column_name(query.resource_name, property, qualify)} LIKE ?"
               when :gt then "#{property_to_column_name(query.resource_name, property, qualify)} > ?"
               when :gte then "#{property_to_column_name(query.resource_name, property, qualify)} >= ?"
@@ -342,18 +343,24 @@ module DataMapper
           sql
         end
 
-        def equality_operator(resource_name, property, qualify, value)
+        def equality_operator(query, operator, resource_name, property, qualify, value)
           case value
           when Array then "#{property_to_column_name(resource_name, property, qualify)} IN ?"
           when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NULL"
+          when DataMapper::Query then 
+                query.merge_sub_select_parameters(operator, property, value)
+              "#{property_to_column_name(resource_name, property, qualify)} IN (#{query_read_statement(value)})"            
           else "#{property_to_column_name(resource_name, property, qualify)} = ?"
           end
         end
 
-        def inequality_operator(resource_name, property, qualify, value)
+        def inequality_operator(query, operator, resource_name, property, qualify, value)
           case value
           when Array then "#{property_to_column_name(resource_name, property, qualify)} NOT IN ?"
           when NilClass then "#{property_to_column_name(resource_name, property, qualify)} IS NO NULL"
+          when DataMapper::Query then 
+                query.merge_sub_select_parameters(operator, property, value)
+              "#{property_to_column_name(resource_name, property, qualify)} NOT IN (#{query_read_statement(value)})"             
           else "#{property_to_column_name(resource_name, property, qualify)} <> ?"
           end
         end

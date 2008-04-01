@@ -90,6 +90,25 @@ module DataMapper
       end
       parameters
     end
+    
+    # find the point in self.conditions where the sub select tuple is
+    # located. Delete the tuple and add value.conditions. value must be a  
+    # <DM::Query>
+    #
+    def merge_sub_select_parameters(operator, property, value)
+      raise ArgumentError.new('+value+ is not a DataMapper::Query') unless value.is_a?(DataMapper::Query)
+      new_conditions = []
+      conditions.each do |tuple|
+        if tuple.length == 3 && tuple[0].to_s == operator.to_s && tuple[1] == property && tuple[2] == value
+          value.conditions.each do |sub_select_tuple|
+            new_conditions << sub_select_tuple
+          end
+        else
+          new_conditions << tuple
+        end
+      end
+      @conditions = new_conditions
+    end    
 
     alias reload? reload
 
