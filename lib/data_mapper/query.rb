@@ -57,7 +57,7 @@ module DataMapper
       @links    |= other.links
       @includes |= other.includes
 
-      update_conditions!(other)
+      update_conditions(other)
 
       self
     end
@@ -115,8 +115,8 @@ module DataMapper
     private
 
     def initialize(resource, options = {})
-      validate_resource!(resource)
-      validate_options!(options)
+      validate_resource(resource)
+      validate_options(options)
 
       @repository     = resource.repository
       repository_name = @repository.name
@@ -134,8 +134,8 @@ module DataMapper
       @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
 
       # normalize order and fields
-      normalize_order!
-      normalize_fields!
+      normalize_order
+      normalize_fields
 
       # XXX: should I validate that each property in @order corresponds
       # to something in @fields?  Many DB engines require they match,
@@ -145,12 +145,12 @@ module DataMapper
 
       # normalize links and includes.
       # NOTE: this must be done after order and fields
-      normalize_links!
-      normalize_includes!
+      normalize_links
+      normalize_includes
 
       # treat all non-options as conditions
       (options.keys - OPTIONS - OPTIONS.map(&:to_s)).each do |k|
-        append_condition!(k, options[k])
+        append_condition(k, options[k])
       end
 
       # parse raw options[:conditions] differently
@@ -169,13 +169,13 @@ module DataMapper
     end
 
     # validate the resource
-    def validate_resource!(resource)
+    def validate_resource(resource)
       raise ArgumentError, "resource must be a Class, but is #{resource.class}" unless resource.kind_of?(Class)
       raise ArgumentError, 'resource must include DataMapper::Resource'         unless resource.included_modules.include?(DataMapper::Resource)
     end
 
     # validate the options
-    def validate_options!(options)
+    def validate_options(options)
       raise ArgumentError, 'options must be a Hash' unless options.kind_of?(Hash)
 
       # validate the reload option
@@ -201,7 +201,7 @@ module DataMapper
 
     # TODO: spec this
     # validate other DM::Query or Hash object
-    def validate_other!(other)
+    def validate_other(other)
       if other.kind_of?(self.class)
         raise ArgumentError, "other #{self.class} must belong to the same repository" unless other.resource.repository == @resource.repository
       elsif !other.kind_of?(Hash)
@@ -210,7 +210,7 @@ module DataMapper
     end
 
     # normalize order elements to DM::Query::Direction
-    def normalize_order!
+    def normalize_order
       @order = @order.map do |order_by|
         case order_by
           when Direction
@@ -243,7 +243,7 @@ module DataMapper
     end
 
     # normalize fields to DM::Property
-    def normalize_fields!
+    def normalize_fields
       @fields = @fields.map do |field|
         case field
           when Property
@@ -265,16 +265,16 @@ module DataMapper
     end
 
     # normalize links to DM::Query::Path
-    def normalize_links!
+    def normalize_links
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
     end
 
     # normalize includes to DM::Query::Path
-    def normalize_includes!
+    def normalize_includes
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
     end
 
-    def append_condition!(property, value)
+    def append_condition(property, value)
       operator = :eql
 
       property = case property
@@ -305,7 +305,7 @@ module DataMapper
     # for the same property, since we are now looking for an exact match.
     # Vice versa, passing in eql should overwrite all of those operators.
 
-    def update_conditions!(other)
+    def update_conditions(other)
       # build an index of conditions by the property and operator to
       # avoid nested looping
       conditions_index = Hash.new { |h,k| h[k] = {} }
