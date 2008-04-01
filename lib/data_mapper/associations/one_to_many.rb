@@ -7,8 +7,6 @@ module DataMapper
   module Associations
     module OneToMany
       def one_to_many(name, options = {})
-        self.send(:extend, Associations)
-
         source = (options[:class_name] || DataMapper::Inflection.classify(name))
         self_name = DataMapper::Inflection.demodulize(self.name)
         self.relationships[name] = Relationship.

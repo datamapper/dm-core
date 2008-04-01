@@ -388,7 +388,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
   end
 
-  describe "many_to_one associations" do
+  describe "many to one associations" do
     before do
       class Engine
         include DataMapper::Resource
@@ -477,7 +477,97 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
   end
 
-  describe "one_to_many associations" do
+  describe "one to one associations" do
+    before do
+      class Sky
+        include DataMapper::Resource
+
+        property :id, Fixnum, :serial => true
+        property :name, String
+
+        one_to_one :pie, :repository_name => :sqlite3
+      end
+
+      @adapter = repository(:sqlite3).adapter
+
+      @adapter.execute(<<-EOS.compress_lines)
+        CREATE TABLE "skies" (
+          "id" INTEGER PRIMARY KEY,
+          "name" VARCHAR(50)
+        )
+      EOS
+
+      @adapter.execute('INSERT INTO "skies" ("id", "name") values (?, ?)', 1, 'sky1')
+
+      class Pie
+        include DataMapper::Resource
+
+        property :id, Fixnum, :serial => true
+        property :name, String
+      end
+
+      @adapter.execute(<<-EOS.compress_lines)
+        CREATE TABLE "pies" (
+          "id" INTEGER PRIMARY KEY,
+          "name" VARCHAR(50),
+          "sky_id" INTEGER
+        )
+      EOS
+
+
+      @adapter.execute('INSERT INTO "pies" ("id", "name", "sky_id") values (?, ?, ?)', 1, 'pie1', 1)
+      @adapter.execute('INSERT INTO "pies" ("id", "name") values (?, ?)', 2, 'pie2')
+    end
+
+    it 'should allow substituting the child' do
+      s = repository(:sqlite3).all(Sky, :id => 1).first
+      p = repository(:sqlite3).all(Pie, :id => 2).first
+
+      s.pie = p
+
+      p1 = repository(:sqlite3).first(Pie, :id => 1)
+      p1.attribute_get(:sky_id).should be_nil
+
+      p2 = repository(:sqlite3).first(Pie, :id => 2)
+      p2.attribute_get(:sky_id).should == 1
+    end
+
+    it "#one_to_one" do
+      s = Sky.new
+      s.should respond_to(:pie)
+      s.should respond_to(:pie=)
+    end
+
+    it "should load the associated instance" do
+      s = repository(:sqlite3).first(Sky, :id => 1)
+      s.pie.should_not be_nil
+      s.pie.id.should == 1
+      s.pie.name.should == "pie1"
+    end
+
+    it 'should save the association key in the child' do
+      p = repository(:sqlite3).first(Pie, :id => 2)
+      repository(:sqlite3).save(Sky.new(:id => 2, :name => 'sky2', :pie => p))
+
+      repository(:sqlite3).first(Pie, :id => 2).attribute_get(:sky_id).should == 2
+    end
+
+    it 'should save the children upon saving of parent' do
+      p = Pie.new(:id => 10, :name => "pie10")
+      s = Sky.new(:id => 10, :name => "sky10", :pie => p)
+      repository(:sqlite3).save(s)
+
+      p.attribute_get(:sky_id).should == 10
+      repository(:sqlite3).first(Pie, :id => 10).should_not be_nil
+    end
+
+    after do
+      @adapter.execute('DROP TABLE "pies"')
+      @adapter.execute('DROP TABLE "skies"')
+    end
+  end
+
+  describe "one to many associations" do
     before do
       class Host
         include DataMapper::Resource

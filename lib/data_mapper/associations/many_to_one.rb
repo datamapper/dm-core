@@ -6,8 +6,6 @@ module DataMapper
   module Associations
     module ManyToOne
       def many_to_one(name, options = {})
-        self.send(:extend, DataMapper::Associations)
-
         target = (options[:class_name] || DataMapper::Inflection.camelize(name))
 
         self.relationships[name] = Relationship.
