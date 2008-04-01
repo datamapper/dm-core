@@ -81,6 +81,7 @@ module DataMapper
         if result.to_i == 1
           key = instance.class.key(name)
           if key.size == 1 && key.first.serial?
+            instance.loaded_attributes[key.first.name] = key.first.instance_variable_name
             instance.instance_variable_set(key.first.instance_variable_name, result.insert_id)
           end
           true

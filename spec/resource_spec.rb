@@ -115,7 +115,7 @@ describe "DataMapper::Resource" do
     mars.attribute_get(:age).should be_nil
 
     # Unless you call #attribute_set it's not dirty.
-    p mars.dirty_attributes
+    mars.dirty_attributes
     mars.attribute_dirty?(:age).should be_false
 
     mars.attribute_set(:age, 30)
