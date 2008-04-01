@@ -67,6 +67,7 @@ module DataMapper
           i = 0
           @key_properties.each do |p|
             instance.instance_variable_set(p.instance_variable_name, key_values[i])
+            instance.loaded_attributes[p.name] = p.instance_variable_name
             i += 1
           end
           @entries << instance
@@ -85,9 +86,11 @@ module DataMapper
         @entries << instance
         instance.loaded_set = self
       end
-
+      
+      loaded_attributes = instance.loaded_attributes
       @properties.each_pair do |property, i|
         instance.instance_variable_set(property.instance_variable_name, values[i])
+        loaded_attributes[property.name] = property.instance_variable_name
       end
 
       instance
