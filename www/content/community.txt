@@ -98,7 +98,13 @@ h3. The People Behind DataMapper
   </div>
 
   <div class="thumb">
+    <img src="https://secure.gravatar.com/avatar/37872f2e08a213f07e49cf5eabfedc61?s=80" title="Luke Matthew Sutton" />
+    <p><a href="http://www.mr-eel.com">Luke Matthew Sutton</a></p>
+  </div>
+
+  <div class="thumb">
     <img src="/images/martini.gif" title="you" alt="you could be here" />
     <p>More to come!</p>
   </div>
+  
 </div>

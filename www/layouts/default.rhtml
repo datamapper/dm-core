@@ -24,7 +24,6 @@ filter:    erb
           <li><a href="/why.html">Why DataMapper?</a></li>
           <li><a href="/community.html">Community</a></li>
           <li><a href="/docs">Docs &amp; Dev</a></li>
-          <!-- <li><a href="/docs">Documentation</a></li> -->
           <li><a href="http://wm.lighthouseapp.com/projects/4819-datamapper/overview">Tickets</a></li>
           <li><a href="http://wiki.datamapper.org/doku.php">Wiki</a></li>
           <li><a href="/getting_started.html" id="getDataMapper">Get DataMapper</a></li>
@@ -39,11 +38,14 @@ filter:    erb
       </div>
     </div>
 
-    <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
     </script>
     <script type="text/javascript">
-    _uacct = "UA-569671-2";
-    urchinTracker();
+    var pageTracker = _gat._getTracker("UA-569671-2");
+    pageTracker._initData();
+    pageTracker._trackPageview();
     </script>
 
   </body>
