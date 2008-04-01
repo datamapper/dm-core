@@ -95,7 +95,7 @@ module DataMapper
     # located. Delete the tuple and add value.conditions. value must be a
     # <DM::Query>
     #
-    def merge_sub_select_parameters(operator, property, value)
+    def merge_sub_select_conditions(operator, property, value)
       raise ArgumentError.new('+value+ is not a DataMapper::Query') unless value.is_a?(DataMapper::Query)
       new_conditions = []
       conditions.each do |tuple|
