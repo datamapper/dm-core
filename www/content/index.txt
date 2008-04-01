@@ -13,10 +13,29 @@ To learn a little more about this project and why you should be interested, read
 <% update = @pages.find(1, :in_directory => "articles", :sort_by => "created_at", :reverse => true, :release_type => 'important')
 %>
 
-h2(newRelease). <%= update.title %>
+h2(latestRelease). <%= update.title %>
+  
+p(latestRelease). <%= update.summary %> <a href="<%= update.url %>" class="read_more">Read More</a>
+  
+<div id="help">
 
-p(newRelease). <%= update.summary %> <a href="<%= update.url %>" class="read_more">Read More</a>
+h2. Help!
 
+If you're having trouble, don't forget to check the documentation, which has both references and step by step tutorials.
+
+"Read documentation":/docs
+
+</div>
+
+<div id="bugs">
+
+h2. Report Bugs
+
+Imperfect creature that it is, DataMapper will unfortunately contain a few bugs, but with your help, we'll sort ‘em out!
+
+"Log a ticket":http://wm.lighthouseapp.com/projects/4819-datamapper/overview
+
+</div>
 
 h1. Examples using 0.3.0
 

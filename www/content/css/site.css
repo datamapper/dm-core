@@ -12,8 +12,8 @@ body {
   margin:29px 0;
 }
 #content {
-  background:center top repeat-y url(../images/content_bkg.gif);
-  width:780px;
+  background:left top repeat-y url(../images/content_bkg.gif);
+  width:870px;
   margin:0 auto;
 }
 #header {
@@ -36,7 +36,7 @@ body {
 }
 #header ul {
   border-bottom:1px solid #152C4C;
-  width:761px;
+  width:851px;
   padding:0 0 0 19px;
   margin:0 !important;
   position:absolute;
@@ -51,7 +51,7 @@ body {
   color:#B7BAC0 !important;
   text-decoration:none !important;
   font-weight:bold;
-  padding:0.9em 10px 0.8em 10px;
+  padding:1em 10px 0.7em 10px;
   float:left;
 }
 #getDataMapper {
@@ -81,10 +81,11 @@ h2,
 h3,
 p,
 .CodeRay,
+.puff,
 ul,
 dl,
 ol {
-  margin:0 30px 0 29px;
+  margin:0 29px 0 30px;
 }
 h1 {
   font-size:2em;
@@ -135,8 +136,76 @@ ol {
 #home h2,
 #home h3,
 #home p,
-#home .CodeRay {
-  margin-right:260px;
+#home .CodeRay,
+#home .puff {
+  margin-right:240px;
+}
+#help,
+#bugs {
+  background:#11233D left 0.5em no-repeat;
+  padding:1em 20px 1em 60px;
+  margin-bottom:1.5em;
+  height:10em;
+  display:block;
+  text-decoration:none !important;
+  color:#ffffff !important;
+}
+#help h2,
+#bugs h2 {
+  margin-right:0 !important;
+}
+#help p,
+#bugs p {
+  font-size:0.85em;
+  margin-right:auto;
+}
+#help a,
+#bugs a {
+  font-size:1.2em;
+}
+#help {
+  background-image:url(/images/waiter.gif);
+  margin-left:30px;
+  width:220px;
+  float:left;
+}
+#bugs {
+  background-image:url(/images/bug.gif);
+  margin-right:240px;
+  width:219px;
+  float:right;
+}
+#home h1 {
+  clear:both;
+}
+/* PUFFS */
+div.puff,
+h2.latestRelease {
+  background:no-repeat url(/images/puff_bkg.gif);
+}
+div.puff,
+.latestRelease {
+  background-color:#11233D !important;
+}
+div.puff {
+  margin-bottom:1.5em;
+}
+div.puff h2 {
+  color:#ffffff;
+}
+/* LATEST RELEASE */
+h2.latestRelease,
+p.latestRelease {
+  padding-left:30px;
+  padding-right:30px;
+}
+h2.latestRelease {
+  color:#ffffff;
+  padding-top:20px;
+}
+p.latestRelease {
+  padding-bottom:20px;
+  margin-bottom:1px;
 }
 /* NEW RELEASE */
 h2.newRelease,
@@ -190,7 +259,7 @@ dt {
   clear:left;
 }
 dd {
-  width:480px;
+  width:570px;
   float:left;
   clear:right;
 }
