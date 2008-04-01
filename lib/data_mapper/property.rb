@@ -196,7 +196,7 @@ module DataMapper
       @target, @name, @type = target, name.to_s.sub(/\?$/, '').to_sym, type
       @options = type.ancestors.include?(DataMapper::Type) ? type.options.merge(options) : options
 
-      @instance_variable_name = "@#{@name}"      
+      @instance_variable_name = "@#{@name}"
 
       @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
 
@@ -241,19 +241,20 @@ module DataMapper
 
     # defines the getter for the property
     def create_getter!
+      # def attribute_get(name)
+      #   ivar_name = loaded_attributes[name]
+      #
+      #   unless attribute_loaded?(name)
+      #     lazy_load!(name)
+      #   end
+      #
+      #   instance_variable_get(ivar_name)
+      # end
+
       @target.class_eval <<-EOS
       #{reader_visibility.to_s}
       def #{name}
-        fields = self.class.properties(self.class.repository.name).lazy_load_context([#{name.inspect}.to_sym])            
-        unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
-          unless new_record? || @loaded_set.nil?
-            @loaded_set.reload!(:fields => fields)
-          else
-            #{normalized_name} = nil
-          end
-        end
-
-        #{normalized_name}
+        attribute_get(#{name.inspect})
       end
       EOS
 
@@ -272,7 +273,7 @@ module DataMapper
       @target.class_eval <<-EOS
       #{writer_visibility.to_s}
       def #{name}=(value)
-        dirty_attributes[:#{name}] = @#{name} = value
+        attribute_set(#{name.inspect}, value)
       end
       EOS
     rescue SyntaxError
@@ -326,7 +327,7 @@ module DataMapper
     def serial?
       @serial
     end
-    
+
     def lock?
       @lock
     end

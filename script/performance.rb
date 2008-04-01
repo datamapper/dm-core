@@ -5,6 +5,8 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support
 
 require 'benchmark'
 require 'rubygems'
+
+require 'faker'
 require 'active_record'
 
 socket_file = Pathname.glob(%w[
@@ -22,6 +24,37 @@ configuration_options = {
 
 configuration_options[:socket] = socket_file unless socket_file.nil?
 
+# connection = adapter.create_connection
+# command = connection.create_command <<-EOS.compress_lines
+#   CREATE TABLE `exhibits` (
+#     `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
+#     `name` VARCHAR(50),
+#     `zoo_id` INTEGER(11),
+#     `notes` TEXT,
+#     `created_on` DATE,
+#     `updated_at` TIMESTAMP NOT NULL,
+#     PRIMARY KEY(`id`)
+#   )
+# EOS
+#
+# command.execute_non_query rescue nil
+
+# command = connection.create_command <<-EOS.compress_lines
+#   INSERT INTO `exhibits` (`name`, `zoo_id`, `notes`, `created_on`, `updated_at`) VALUES (?, ?, ?, ?, ?)
+# EOS
+#
+# 1000.times do
+#   command.execute_non_query(
+#     Faker::Company.name,
+#     rand(10).ceil,
+#     Faker::Lorem.paragraphs.join($/),
+#     Date::today,
+#     Time::now
+#   )
+# end
+#
+# connection.close
+
 ActiveRecord::Base.logger = Logger.new(__DIR__.parent + 'log/ar.log')
 ActiveRecord::Base.logger.level = 0
 
@@ -34,21 +67,19 @@ end
 ARExhibit.find_by_sql('SELECT 1')
 
 require __DIR__.parent + 'lib/data_mapper'
-
 DataMapper::Logger.new(__DIR__.parent + 'log/dm.log', :debug)
-
-DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
+adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 class Exhibit
   include DataMapper::Resource
-  
+
   property :id, Fixnum, :serial => true
   property :name, String
   property :zoo_id, Fixnum
   property :notes, String, :lazy => true
   property :created_on, Date
   property :updated_at, DateTime
-  
+
 end
 
 touch_attributes = lambda do |exhibits|
@@ -71,7 +102,7 @@ end
 #     end
 #   end
 # end
-# 
+#
 # report_for_data_mapper = lambda do |runner, message, iterations, block|
 #   [:uncached, :cache].each do |variant|
 #     if variant == :cache
@@ -83,7 +114,7 @@ end
 # end
 
 Benchmark::bmbm(60) do |x|
-  
+
   x.report('ActiveRecord:id x10_000') do
     ActiveRecord::Base::uncached do
       10_000.times { touch_attributes[ARExhibit.find(1)] }
@@ -127,7 +158,7 @@ Benchmark::bmbm(60) do |x|
       1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
     end
   end
-  
+
   x.report('ActiveRecord:all limit(10,000) x10') do
     ActiveRecord::Base::uncached do
       10.times { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
@@ -149,8 +180,13 @@ Benchmark::bmbm(60) do |x|
       10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
     end
   end
-    
+
 end
+
+# connection = adapter.create_connection
+# command = connection.create_command("DROP TABLE exhibits")
+# command.execute_non_query rescue nil
+# connection.close
 
 __END__
 
@@ -158,7 +194,7 @@ On an iMac Core2Duo 2.16Ghz:
 
 I don't think AR is actually caching.
 
-~/src/dm-core > script/performance.rb 
+~/src/dm-core > script/performance.rb
 Text should not be declared inline.
 Rehearsal -----------------------------------------------------------------------------------------------
 ActiveRecord:id x10_000                                       3.530000   0.320000   3.850000 (  4.939399)

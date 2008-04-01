@@ -120,7 +120,9 @@ module DataMapper
     end
     
     def save(instance)
-      if instance.new_record?
+      instance.child_associations.each { |a| a.save }
+
+      success = if instance.new_record?
         if @adapter.create(self, instance)
           @identity_map.set(instance)
           instance.instance_variable_set('@new_record', false)
@@ -137,6 +139,9 @@ module DataMapper
           false
         end
       end
+
+      instance.parent_associations.each { |a| a.save }
+      success
     end
 
     def destroy(instance)

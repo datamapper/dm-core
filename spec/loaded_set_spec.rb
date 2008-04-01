@@ -30,6 +30,11 @@ describe "DataMapper::LoadedSet" do
     results = set.entries
     results.should have(2).entries
     
+    results.each do |cow|
+      cow.loaded_attributes.should have_key(:name)
+      cow.loaded_attributes.should have_key(:age)
+    end
+    
     bob, nancy = results[0], results[1]
 
     bob.name.should eql('Bob')

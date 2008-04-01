@@ -2,10 +2,9 @@ require __DIR__ + 'relationship'
 
 module DataMapper
   module Associations
-    module HasAndBelongsToMany
+    module ManyToMany
     
-      def has_and_belongs_to_many(name, options = {})
-      
+      def many_to_many(name, options = {})
       end
     
     end # module HasAndBelongsToMany

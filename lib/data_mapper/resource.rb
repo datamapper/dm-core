@@ -3,12 +3,7 @@ require __DIR__ + 'property_set'
 require __DIR__ + 'property'
 require __DIR__ + 'repository'
 require __DIR__ + 'hook'
-require __DIR__ + 'associations/relationship'
-require __DIR__ + 'associations/association_set'
-require __DIR__ + 'associations/belongs_to'
-require __DIR__ + 'associations/has_one'
-require __DIR__ + 'associations/has_many'
-require __DIR__ + 'associations/has_and_belongs_to_many'
+require __DIR__ + 'associations'
 
 module DataMapper
 
@@ -25,10 +20,7 @@ module DataMapper
       target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
 
       # Associations:
-      target.send(:extend, DataMapper::Associations::BelongsTo)
-      target.send(:extend, DataMapper::Associations::HasOne)
-      target.send(:extend, DataMapper::Associations::HasMany)
-      target.send(:extend, DataMapper::Associations::HasAndBelongsToMany)
+      target.send(:extend, DataMapper::Associations)
     end
 
     def self.dependencies
@@ -44,6 +36,14 @@ module DataMapper
 
     def repository
       @loaded_set ? @loaded_set.repository : self.class.repository
+    end
+
+    def child_associations
+      @child_associations ||= []
+    end
+
+    def parent_associations
+      @parent_associations ||= []
     end
 
     def key
@@ -79,8 +79,14 @@ module DataMapper
       repository.destroy(self)
     end
 
+    def loaded_attributes
+      # We don't assign a default to the Hash on purpose!!!
+      @loaded_attributes || @loaded_attributes = Hash.new { |h,k| k.to_s.ensure_starts_with('@') }
+    end
+
     def attribute_loaded?(name)
-      instance_variables.include?(name.to_s.ensure_starts_with('@'))
+      raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
+      loaded_attributes.key?(name)
     end
 
     def dirty_attributes
@@ -93,55 +99,44 @@ module DataMapper
 
     def attribute_dirty?(name)
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
-      dirty_attributes.include?(name)
+      dirty_attributes.key?(name)
     end
 
     def attribute_get(name)
-      ivar_name = name.to_s.ensure_starts_with('@')
-      unless instance_variables.include?(ivar_name)
+      ivar_name = loaded_attributes[name]
+
+      unless new_record? || attribute_loaded?(name)
         lazy_load!(name)
+      else
+        loaded_attributes[name] = ivar_name
       end
 
       instance_variable_get(ivar_name)
     end
-    
-    # wycats: what if we set properties that came out of the DB as @prop_clean
-    # wycats: and save does @prop || @prop_clean
-    # wycats: where the existence of @prop == dirty
-    
-    # def #{name}
-    #   fields = self.class.properties(self.class.repository.name).lazy_loaded.expand_fields([#{name.inspect}.to_sym])
-    #   unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
-    #     unless new_record? || @loaded_set.nil?
-    #       @loaded_set.reload!(:fields => fields)
-    #     else
-    #       #{normalized_name} = nil
-    #     end
-    #   end
-    # 
-    #   #{normalized_name}
-    # end
-    
+
     def attribute_set(name, value)
       ivar_name = name.to_s.ensure_starts_with('@')
       property = self.class.properties(repository.name).detect(name)
+
       if property && property.lock?
         instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
       end
+
+      loaded_attributes[name] = ivar_name
       dirty_attributes[name] = instance_variable_set(ivar_name, value)
     end
-    
+
     def shadow_attribute_get(name)
       instance_variable_get(name.to_s.ensure_starts_with('@shadow_'))
     end
 
     def lazy_load!(*names)
-      props = self.class.properties(self.class.repository.name)
-      ctx_names =  props.lazy_load_context(names)
+      fields = self.class.properties(self.class.repository.name).lazy_load_context(names)
+
       unless new_record? || @loaded_set.nil?
-        @loaded_set.reload!(:fields => ctx_names )
+        @loaded_set.reload!(:fields => fields)
       else
-        ctx_names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
+        fields.each { |name| attribute_set(name, nil) }
       end
     end
 

@@ -40,6 +40,18 @@ module DataMapper
       @key || @key = select { |property| property.key? }
     end
 
+    def value(instance)
+      map { |p| p.value(instance) }
+    end
+
+    def set(value, instance)
+      each_with_index { |p, i| p.set(value && value[i], instance) }
+    end
+
+    def to_hash(values)
+      Hash[*zip(values).flatten]
+    end
+
     def dup
       clone = PropertySet.new
       each { |property| clone << property }
@@ -49,10 +61,10 @@ module DataMapper
     def lazy_contexts
       @lazy_context || @lazy_context = {}
     end
-  
+
     def lazy_context(name)
       lazy_contexts[name] = [] unless lazy_contexts.has_key?(name)
-      lazy_contexts[name]    
+      lazy_contexts[name]
     end
 
     def property_contexts(name)
@@ -61,8 +73,8 @@ module DataMapper
         result << key if value.include?(name)
       end
       result
-    end  
-    
+    end
+
     def lazy_load_context(names)
       result =  []
 
@@ -71,7 +83,7 @@ module DataMapper
 
       if names.is_a?(Symbol)
         ctx = property_contexts(names)
-        result << names if ctx.blank?  # not lazy 
+        result << names if ctx.blank?  # not lazy
         ctx.each do |c|
           lazy_context(c).each do |field|
             result << field unless result.include?(field)
@@ -92,9 +104,6 @@ module DataMapper
       end
 
       result
-    end   
-
-
+    end
   end
-
 end

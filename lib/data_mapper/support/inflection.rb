@@ -1,14 +1,17 @@
-# The original of this file was copied for the ActiveSupport project which is 
+# The original of this file was copied for the ActiveSupport project which is
 # part of the Ruby On Rails web-framework (http://rubyonrails.org)
 #
 # Methods have been modified or removed. English inflection is now provided via
-# the english gem (http://english.rubyforge.org) 
+# the english gem (http://english.rubyforge.org)
 #
 # sudo gem install english
 #
 require 'english/inflect'
+
+English::Inflect.word 'postgres'
+
 module DataMapper
-  module Inflection    
+  module Inflection
     class << self
       # Take an underscored name and make it into a camelized name
       #
@@ -19,7 +22,7 @@ module DataMapper
       def classify(name)
         camelize(singularize(name.to_s.sub(/.*\./, '')))
       end
-      
+
       # By default, camelize converts strings to UpperCamelCase.
       #
       # camelize will also convert '/' to '::' which is useful for converting paths to namespaces
@@ -30,9 +33,9 @@ module DataMapper
       #
       def camelize(lower_case_and_underscored_word, *args)
         lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
-      end      
-      
-      
+      end
+
+
       # The reverse of +camelize+. Makes an underscored form from the expression in the string.
       #
       # Changes '::' to '/' to convert namespaces to paths.
@@ -47,8 +50,8 @@ module DataMapper
           gsub(/([a-z\d])([A-Z])/,'\1_\2').
           tr("-", "_").
           downcase
-      end    
-            
+      end
+
       # Capitalizes the first word and turns underscores into spaces and strips _id.
       # Like titleize, this is meant for creating pretty output.
       #
@@ -58,8 +61,8 @@ module DataMapper
       #
       def humanize(lower_case_and_underscored_word)
         lower_case_and_underscored_word.to_s.gsub(/_id$/, "").gsub(/_/, " ").capitalize
-      end   
-      
+      end
+
       # Removes the module part from the expression in the string
       #
       # Examples
@@ -67,8 +70,8 @@ module DataMapper
       #   "Inflections".demodulize #=> "Inflections"
       def demodulize(class_name_in_module)
         class_name_in_module.to_s.gsub(/^.*::/, '')
-      end      
-             
+      end
+
       # Create the name of a table like Rails does for models to table names. This method
       # uses the pluralize method on the last word in the string.
       #
@@ -78,8 +81,8 @@ module DataMapper
       #   "fancyCategory".tableize #=> "fancy_categories"
       def tableize(class_name)
         pluralize(underscore(class_name))
-      end                   
-      
+      end
+
       # Creates a foreign key name from a class name.
       #
       # Examples
@@ -87,8 +90,8 @@ module DataMapper
       #   "Admin::Post".foreign_key #=> "post_id"
       def foreign_key(class_name, key = "id")
         underscore(demodulize(class_name.to_s)) << "_" << key.to_s
-      end      
-      
+      end
+
       # Constantize tries to find a declared constant with the name specified
       # in the string. It raises a NameError when the name is not in CamelCase
       # or is not initialized.
@@ -102,8 +105,8 @@ module DataMapper
         end
 
         Object.module_eval("::#{$1}", __FILE__, __LINE__)
-      end       
-      
+      end
+
       # The reverse of pluralize, returns the singular form of a word in a string.
       # Wraps the English gem
       # Examples
@@ -116,8 +119,8 @@ module DataMapper
       #
       def singularize(word)
         word.singular
-      end     
-      
+      end
+
       # Returns the plural form of the word in the string.
       #
       # Examples
@@ -128,9 +131,9 @@ module DataMapper
       #   "the blue mailman".pluralize #=> "the blue mailmen"
       #   "CamelOctopus".pluralize #=> "CamelOctopi"
       #
-      def pluralize(word)     
+      def pluralize(word)
         word.plural
-      end  
+      end
 
     end
   end

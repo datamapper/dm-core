@@ -2,10 +2,9 @@ require __DIR__ + 'relationship'
 
 module DataMapper
   module Associations
-    module HasOne
+    module OneToOne
     
-      def has_one(name, options = {})
-      
+      def one_to_one(name, options = {})
       end
     
     end # module HasOne
