@@ -60,7 +60,11 @@ module DataMapper
       def close_connection(connection)
         connection.close unless within_transaction?
       end
-
+      
+      def create_with_returning?
+        false
+      end
+      
       # all of our CRUD
       # Methods dealing with a single instance object
       def create(repository, instance)
@@ -68,7 +72,7 @@ module DataMapper
         properties = instance.class.properties(name).select { |property| dirty_attributes.key?(property.name) }
 
         connection = create_connection
-        sql = create_statement(instance.class, properties)
+        sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, instance.class, properties)
         values = properties.map { |property| dirty_attributes[property.name] }
 
         DataMapper.logger.debug { "CREATE: #{sql}  PARAMETERS: #{values.inspect}" }
