@@ -7,6 +7,9 @@
 # sudo gem install english
 #
 require 'english/inflect'
+
+English::Inflect.word 'postgres'
+
 module DataMapper
   module Inflection
     class << self

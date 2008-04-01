@@ -105,6 +105,7 @@ describe "DataMapper::Resource" do
     mars.attribute_loaded?(:name).should be_true
     mars.attribute_dirty?(:name).should be_true
     mars.attribute_loaded?(:age).should be_false
+
     mars.age.should be_nil
 
     # So accessing a value should ensure it's loaded.
@@ -114,6 +115,7 @@ describe "DataMapper::Resource" do
     mars.attribute_get(:age).should be_nil
 
     # Unless you call #attribute_set it's not dirty.
+    mars.dirty_attributes
     mars.attribute_dirty?(:age).should be_false
 
     mars.attribute_set(:age, 30)

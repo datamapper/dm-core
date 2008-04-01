@@ -3,20 +3,21 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 require __DIR__.parent.parent + 'lib/data_mapper'
 
-DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
+DataMapper.setup(:postgres, "postgres://postgres@localhost/dm_core_test")
 
-describe DataMapper::Adapters::Sqlite3Adapter do
+describe DataMapper::Adapters::PostgresAdapter do
   before do
-    @uri = URI.parse("sqlite3:///test.db")
+    @uri = URI.parse("postgres://postgres@localhost/dm_core_test")
   end
 
   it 'should override the path when the option is passed' do
-    adapter = DataMapper::Adapters::Sqlite3Adapter.new(:mock, @uri, { :path => '/test2.db' })
-    adapter.instance_variable_get("@uri").should == URI.parse("sqlite3:///test2.db")
+    pending
+    adapter = DataMapper::Adapters::PostgresAdapter.new(:mock, @uri, { :path => '/dm_core_test2' })
+    adapter.instance_variable_get("@uri").should == URI.parse("postgres://postgres@localhost/dm_core_test2")
   end
 
   it 'should accept the uri when no overrides exist' do
-    adapter = DataMapper::Adapters::Sqlite3Adapter.new(:mock, @uri)
+    adapter = DataMapper::Adapters::PostgresAdapter.new(:mock, @uri)
     adapter.instance_variable_get("@uri").should == @uri
   end
 end
@@ -26,8 +27,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   describe "reading & writing a database" do
 
     before do
-      @adapter = repository(:sqlite3).adapter
-      @adapter.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)")
+      @adapter = repository(:postgres).adapter
+      @adapter.execute("CREATE TABLE users (id SERIAL NOT NULL, name TEXT)")
       @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
     end
 
@@ -73,26 +74,26 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :name, String
       end
 
-      @adapter = repository(:sqlite3).adapter
-      @adapter.execute('CREATE TABLE "video_games" ("id" INTEGER PRIMARY KEY, "name" VARCHAR(50))') rescue nil
+      @adapter = repository(:postgres).adapter
+      @adapter.execute('CREATE TABLE "video_games" ("id" SERIAL NOT NULL, "name" VARCHAR(50))') rescue nil
     end
 
     it 'should be able to create a record' do
       game = VideoGame.new(:name => 'System Shock')
-      repository(:sqlite3).save(game)
+      repository(:postgres).save(game)
 
       game.should_not be_a_new_record
       game.should_not be_dirty
 
       @adapter.query('SELECT "id" FROM "video_games" WHERE "name" = ?', game.name).first.should == game.id
-      @adapter.execute('DELETE FROM "video_games" WHERE "id" = ?', game.id).to_i.should == 1
+      @adapter.execute('DELETE FROM "video_games" WHERE "id" = ? RETURNING id', game.id).to_i.should == 1
     end
 
     it 'should be able to read a record' do
       name = 'Wing Commander: Privateer'
-      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
+      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?) RETURNING id', name).insert_id
 
-      game = repository(:sqlite3).get(VideoGame, [id])
+      game = repository(:postgres).get(VideoGame, [id])
       game.name.should == name
       game.should_not be_dirty
       game.should_not be_a_new_record
@@ -102,19 +103,19 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     it 'should be able to update a record' do
       name = 'Resistance: Fall of Mon'
-      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
+      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?) RETURNING id', name).insert_id
 
-      game = repository(:sqlite3).get(VideoGame, [id])
+      game = repository(:postgres).get(VideoGame, [id])
       game.name = game.name.sub(/Mon/, 'Man')
 
       game.should_not be_a_new_record
       game.should be_dirty
 
-      repository(:sqlite3).save(game)
+      repository(:postgres).save(game)
 
       game.should_not be_dirty
 
-      clone = repository(:sqlite3).get(VideoGame, [id])
+      clone = repository(:postgres).get(VideoGame, [id])
 
       clone.name.should == game.name
 
@@ -123,21 +124,26 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     it 'should be able to delete a record' do
       name = 'Zelda'
-      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
+      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?) RETURNING id', name).insert_id
 
-      game = repository(:sqlite3).get(VideoGame, [id])
+      game = repository(:postgres).get(VideoGame, [id])
       game.name.should == name
 
-      repository(:sqlite3).destroy(game).should be_true
+      repository(:postgres).destroy(game).should be_true
       game.should be_a_new_record
       game.should be_dirty
     end
 
     it 'should respond to Resource#get' do
+      
       name = 'Contra'
-      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
+      id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?) RETURNING id', name).insert_id
+      
+      puts id.inspect
 
-      contra = repository(:sqlite3) { VideoGame.get(id) }
+      contra = repository(:postgres) { VideoGame.get(id) }
+      
+      puts contra.id.inspect
 
       contra.should_not be_nil
       contra.should_not be_dirty
@@ -160,13 +166,13 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :name, String
       end
 
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(:postgres).adapter
       @adapter.execute('CREATE TABLE "bank_customers" ("bank" VARCHAR(50), "account_number" VARCHAR(50), "name" VARCHAR(50))') rescue nil
     end
 
     it 'should be able to create a record' do
       customer = BankCustomer.new(:bank => 'Community Bank', :acount_number => '123456', :name => 'David Hasselhoff')
-      repository(:sqlite3).save(customer)
+      repository(:postgres).save(customer)
 
       customer.should_not be_a_new_record
       customer.should_not be_dirty
@@ -180,7 +186,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       bank, account_number, name = 'Chase', '4321', 'Super Wonderful'
       @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-      repository(:sqlite3).get(BankCustomer, [bank, account_number]).name.should == name
+      repository(:postgres).get(BankCustomer, [bank, account_number]).name.should == name
 
       @adapter.execute('DELETE FROM "bank_customers" WHERE "bank" = ? AND "account_number" = ?', bank, account_number)
     end
@@ -189,17 +195,17 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       bank, account_number, name = 'Wells Fargo', '00101001', 'Spider Pig'
       @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-      customer = repository(:sqlite3).get(BankCustomer, [bank, account_number])
+      customer = repository(:postgres).get(BankCustomer, [bank, account_number])
       customer.name = 'Bat-Pig'
 
       customer.should_not be_a_new_record
       customer.should be_dirty
 
-      repository(:sqlite3).save(customer)
+      repository(:postgres).save(customer)
 
       customer.should_not be_dirty
 
-      clone = repository(:sqlite3).get(BankCustomer, [bank, account_number])
+      clone = repository(:postgres).get(BankCustomer, [bank, account_number])
 
       clone.name.should == customer.name
 
@@ -210,10 +216,10 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       bank, account_number, name = 'Megacorp', 'ABC', 'Flash Gordon'
       @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-      customer = repository(:sqlite3).get(BankCustomer, [bank, account_number])
+      customer = repository(:postgres).get(BankCustomer, [bank, account_number])
       customer.name.should == name
 
-      repository(:sqlite3).destroy(customer).should be_true
+      repository(:postgres).destroy(customer).should be_true
       customer.should be_a_new_record
       customer.should be_dirty
     end
@@ -222,7 +228,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       bank, account_number, name = 'Conchords', '1100101', 'Robo Boogie'
       @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-      robots = repository(:sqlite3) { BankCustomer.get(bank, account_number) }
+      robots = repository(:postgres) { BankCustomer.get(bank, account_number) }
 
       robots.should_not be_nil
       robots.should_not be_dirty
@@ -239,10 +245,10 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   describe "Ordering a Query" do
     before do
 
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(:postgres).adapter
       @adapter.execute(<<-EOS.compress_lines) rescue nil
         CREATE TABLE "sail_boats" (
-          "id" INTEGER PRIMARY KEY,
+          "id" SERIAL NOT NULL,
           "name" VARCHAR(50),
           "port" VARCHAR(50)
         )
@@ -263,30 +269,30 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         end
       end
 
-      repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
-      repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
-      repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "C", :port => "A"))
+      repository(:postgres).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
+      repository(:postgres).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
+      repository(:postgres).save(SailBoat.new(:id => 3, :name => "C", :port => "A"))
     end  
     
     it "should order results" do
-      result = repository(:sqlite3).all(SailBoat,{:order => [
+      result = repository(:postgres).all(SailBoat,{:order => [
           DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
       ]})
       result[0].id.should == 1
 
-      result = repository(:sqlite3).all(SailBoat,{:order => [
+      result = repository(:postgres).all(SailBoat,{:order => [
           DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
       ]})
       result[0].id.should == 3
 
-      result = repository(:sqlite3).all(SailBoat,{:order => [
+      result = repository(:postgres).all(SailBoat,{:order => [
           DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc),
           DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
       ]})
       result[0].id.should == 1
 
 
-      result = repository(:sqlite3).all(SailBoat,{:order => [
+      result = repository(:postgres).all(SailBoat,{:order => [
           SailBoat.property_by_name(:name),
           DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
       ]})
@@ -303,10 +309,10 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   
     before do
 
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(:postgres).adapter
       @adapter.execute(<<-EOS.compress_lines) rescue nil
         CREATE TABLE "sail_boats" (
-          "id" INTEGER PRIMARY KEY,
+          "id" SERIAL NOT NULL,
           "notes" VARCHAR(50),
           "trip_report" VARCHAR(50),
           "miles" INTEGER
@@ -329,14 +335,14 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         end
       end
 
-      repository(:sqlite3).save(SailBoat.new(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23))
-      repository(:sqlite3).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
-      repository(:sqlite3).save(SailBoat.new(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23))
+      repository(:postgres).save(SailBoat.new(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23))
+      repository(:postgres).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
+      repository(:postgres).save(SailBoat.new(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23))
     end
     
 
     it "should lazy load" do
-      result = repository(:sqlite3).all(SailBoat,{})
+      result = repository(:postgres).all(SailBoat,{})
       result[0].instance_variables.should_not include('@notes')
       result[0].instance_variables.should_not include('@trip_report')
       result[1].instance_variables.should_not include('@notes')
@@ -345,7 +351,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       result[1].instance_variables.should include('@trip_report')
       result[1].instance_variables.should_not include('@miles')
 
-      result = repository(:sqlite3).all(SailBoat,{})
+      result = repository(:postgres).all(SailBoat,{})
       result[0].instance_variables.should_not include('@trip_report')
       result[0].instance_variables.should_not include('@miles')
 
@@ -370,11 +376,11 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :sample, String
       end
 
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(:postgres).adapter
 
       @adapter.execute(<<-EOS.compress_lines)
         CREATE TABLE "serial_finder_specs" (
-          "id" INTEGER PRIMARY KEY,
+          "id" SERIAL NOT NULL,
           "sample" VARCHAR(50)
         )
       EOS
@@ -382,25 +388,25 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       # Why do we keep testing with Repository instead of the models directly?
       # Just because we're trying to target the code we're actualling testing
       # as much as possible.
-      setup_repository = repository(:sqlite3)
+      setup_repository = repository(:postgres)
       100.times do
         setup_repository.save(SerialFinderSpec.new(:sample => rand.to_s))
       end
     end
 
     it "should return all available rows" do
-      repository(:sqlite3).all(SerialFinderSpec, {}).should have(100).entries
+      repository(:postgres).all(SerialFinderSpec, {}).should have(100).entries
     end
 
     it "should allow limit and offset" do
-      repository(:sqlite3).all(SerialFinderSpec, { :limit => 50 }).should have(50).entries
+      repository(:postgres).all(SerialFinderSpec, { :limit => 50 }).should have(50).entries
 
-      repository(:sqlite3).all(SerialFinderSpec, { :limit => 20, :offset => 40 }).map(&:id).should ==
-        repository(:sqlite3).all(SerialFinderSpec, {})[40...60].map(&:id)
+      repository(:postgres).all(SerialFinderSpec, { :limit => 20, :offset => 40 }).map(&:id).should ==
+        repository(:postgres).all(SerialFinderSpec, {})[40...60].map(&:id)
     end
 
     it "should lazy-load missing attributes" do
-      sfs = repository(:sqlite3).all(SerialFinderSpec, { :fields => [:id], :limit => 1 }).first
+      sfs = repository(:postgres).all(SerialFinderSpec, { :fields => [:id], :limit => 1 }).first
       sfs.should be_a_kind_of(SerialFinderSpec)
       sfs.should_not be_a_new_record
 
@@ -409,8 +415,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it "should translate an Array to an IN clause" do
-      ids = repository(:sqlite3).all(SerialFinderSpec, { :limit => 10 }).map(&:id)
-      results = repository(:sqlite3).all(SerialFinderSpec, { :id => ids })
+      ids = repository(:postgres).all(SerialFinderSpec, { :limit => 10 }).map(&:id)
+      results = repository(:postgres).all(SerialFinderSpec, { :id => ids })
 
       results.size.should == 10
       results.map(&:id).should == ids
@@ -422,7 +428,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
   end
 
-  describe "many to one associations" do
+  describe "many_to_one associations" do
     before do
       class Engine
         include DataMapper::Resource
@@ -431,11 +437,11 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :name, String
       end
 
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(:postgres).adapter
 
       @adapter.execute(<<-EOS.compress_lines)
         CREATE TABLE "engines" (
-          "id" INTEGER PRIMARY KEY,
+          "id" SERIAL NOT NULL,
           "name" VARCHAR(50)
         )
       EOS
@@ -449,12 +455,12 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :serial => true
         property :name, String
 
-        many_to_one :engine, :repository_name => :sqlite3
+        many_to_one :engine, :repository_name => :postgres
       end
 
       @adapter.execute(<<-EOS.compress_lines)
         CREATE TABLE "yards" (
-          "id" INTEGER PRIMARY KEY,
+          "id" SERIAL NOT NULL,
           "name" VARCHAR(50),
           "engine_id" INTEGER
         )
@@ -466,13 +472,13 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     it "should materialize without the parent"
 
     it 'should allow substituting the parent' do
-      y = repository(:sqlite3).all(Yard, :id => 1).first
-      e = repository(:sqlite3).all(Engine, :id => 2).first
+      y = repository(:postgres).all(Yard, :id => 1).first
+      e = repository(:postgres).all(Engine, :id => 2).first
 
       y.engine = e
-      repository(:sqlite3).save(y)
+      repository(:postgres).save(y)
 
-      y = repository(:sqlite3).all(Yard, :id => 1).first
+      y = repository(:postgres).all(Yard, :id => 1).first
       y.attribute_get(:engine_id).should == 2
     end
 
@@ -483,26 +489,26 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it "should load the associated instance" do
-      y = repository(:sqlite3).all(Yard, :id => 1).first
+      y = repository(:postgres).all(Yard, :id => 1).first
       y.engine.should_not be_nil
       y.engine.id.should == 1
       y.engine.name.should == "engine1"
     end
 
     it 'should save the association key in the child' do
-      e = repository(:sqlite3).all(Engine, :id => 2).first
-      repository(:sqlite3).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
+      e = repository(:postgres).all(Engine, :id => 2).first
+      repository(:postgres).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
 
-      repository(:sqlite3).all(Yard, :id => 2).first.attribute_get(:engine_id).should == 2
+      repository(:postgres).all(Yard, :id => 2).first.attribute_get(:engine_id).should == 2
     end
 
     it 'should save the parent upon saving of child' do
       e = Engine.new(:id => 10, :name => "engine10")
       y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
-      repository(:sqlite3).save(y)
+      repository(:postgres).save(y)
 
       y.attribute_get(:engine_id).should == 10
-      repository(:sqlite3).all(Engine, :id => 10).first.should_not be_nil
+      repository(:postgres).all(Engine, :id => 10).first.should_not be_nil
     end
 
     after do
@@ -511,97 +517,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
   end
 
-  describe "one to one associations" do
-    before do
-      class Sky
-        include DataMapper::Resource
-
-        property :id, Fixnum, :serial => true
-        property :name, String
-
-        one_to_one :pie, :repository_name => :sqlite3
-      end
-
-      @adapter = repository(:sqlite3).adapter
-
-      @adapter.execute(<<-EOS.compress_lines)
-        CREATE TABLE "skies" (
-          "id" INTEGER PRIMARY KEY,
-          "name" VARCHAR(50)
-        )
-      EOS
-
-      @adapter.execute('INSERT INTO "skies" ("id", "name") values (?, ?)', 1, 'sky1')
-
-      class Pie
-        include DataMapper::Resource
-
-        property :id, Fixnum, :serial => true
-        property :name, String
-      end
-
-      @adapter.execute(<<-EOS.compress_lines)
-        CREATE TABLE "pies" (
-          "id" INTEGER PRIMARY KEY,
-          "name" VARCHAR(50),
-          "sky_id" INTEGER
-        )
-      EOS
-
-
-      @adapter.execute('INSERT INTO "pies" ("id", "name", "sky_id") values (?, ?, ?)', 1, 'pie1', 1)
-      @adapter.execute('INSERT INTO "pies" ("id", "name") values (?, ?)', 2, 'pie2')
-    end
-
-    it 'should allow substituting the child' do
-      s = repository(:sqlite3).all(Sky, :id => 1).first
-      p = repository(:sqlite3).all(Pie, :id => 2).first
-
-      s.pie = p
-
-      p1 = repository(:sqlite3).first(Pie, :id => 1)
-      p1.attribute_get(:sky_id).should be_nil
-
-      p2 = repository(:sqlite3).first(Pie, :id => 2)
-      p2.attribute_get(:sky_id).should == 1
-    end
-
-    it "#one_to_one" do
-      s = Sky.new
-      s.should respond_to(:pie)
-      s.should respond_to(:pie=)
-    end
-
-    it "should load the associated instance" do
-      s = repository(:sqlite3).first(Sky, :id => 1)
-      s.pie.should_not be_nil
-      s.pie.id.should == 1
-      s.pie.name.should == "pie1"
-    end
-
-    it 'should save the association key in the child' do
-      p = repository(:sqlite3).first(Pie, :id => 2)
-      repository(:sqlite3).save(Sky.new(:id => 2, :name => 'sky2', :pie => p))
-
-      repository(:sqlite3).first(Pie, :id => 2).attribute_get(:sky_id).should == 2
-    end
-
-    it 'should save the children upon saving of parent' do
-      p = Pie.new(:id => 10, :name => "pie10")
-      s = Sky.new(:id => 10, :name => "sky10", :pie => p)
-      repository(:sqlite3).save(s)
-
-      p.attribute_get(:sky_id).should == 10
-      repository(:sqlite3).first(Pie, :id => 10).should_not be_nil
-    end
-
-    after do
-      @adapter.execute('DROP TABLE "pies"')
-      @adapter.execute('DROP TABLE "skies"')
-    end
-  end
-
-  describe "one to many associations" do
+  describe "one_to_many associations" do
     before do
       class Host
         include DataMapper::Resource
@@ -609,14 +525,14 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :serial => true
         property :name, String
 
-        one_to_many :slices, :repository_name => :sqlite3
+        one_to_many :slices, :repository_name => :postgres
       end
 
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(:postgres).adapter
 
       @adapter.execute(<<-EOS.compress_lines)
         CREATE TABLE "hosts" (
-          "id" INTEGER PRIMARY KEY,
+          "id" SERIAL NOT NULL,
           "name" VARCHAR(50)
         )
       EOS
@@ -630,12 +546,12 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         property :id, Fixnum, :serial => true
         property :name, String
 
-        many_to_one :host, :repository_name => :sqlite3
+        many_to_one :host, :repository_name => :postgres
       end
 
       @adapter.execute(<<-EOS.compress_lines)
         CREATE TABLE "slices" (
-          "id" INTEGER PRIMARY KEY,
+          "id" SERIAL NOT NULL,
           "name" VARCHAR(50),
           "host_id" INTEGER
         )
@@ -651,19 +567,19 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it "should allow removal of a child through a loaded association" do
-      h = repository(:sqlite3).all(Host, :id => 1).first
+      h = repository(:postgres).all(Host, :id => 1).first
       s = h.slices.first
 
       h.slices.delete(s)
       h.slices.size.should == 1
 
-      s = repository(:sqlite3).first(Slice, :id => s.id)
+      s = repository(:postgres).first(Slice, :id => s.id)
       s.host.should be_nil
       s.attribute_get(:host_id).should be_nil
     end
 
     it "should load the associated instances" do
-      h = repository(:sqlite3).all(Host, :id => 1).first
+      h = repository(:postgres).all(Host, :id => 1).first
       h.slices.should_not be_nil
       h.slices.size.should == 2
       h.slices.first.id.should == 1
@@ -671,10 +587,10 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it "should add and save the associated instance" do
-      h = repository(:sqlite3).all(Host, :id => 1).first
+      h = repository(:postgres).all(Host, :id => 1).first
       h.slices << Slice.new(:id => 3, :name => 'slice3')
 
-      s = repository(:sqlite3).all(Slice, :id => 3).first
+      s = repository(:postgres).all(Slice, :id => 3).first
       s.host.id.should == 1
     end
 
@@ -682,15 +598,15 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       h = Host.new(:id => 10, :name => "host10")
       h.slices << Slice.new(:id => 10, :name => 'slice10')
 
-      repository(:sqlite3).all(Slice, :id => 10).first.should be_nil
+      repository(:postgres).all(Slice, :id => 10).first.should be_nil
     end
 
     it "should save the associated instance upon saving of parent" do
       h = Host.new(:id => 10, :name => "host10")
       h.slices << Slice.new(:id => 10, :name => 'slice10')
-      repository(:sqlite3).save(h)
+      repository(:postgres).save(h)
 
-      s = repository(:sqlite3).all(Slice, :id => 10).first
+      s = repository(:postgres).all(Slice, :id => 10).first
       s.should_not be_nil
       s.host.should_not be_nil
       s.host.id.should == 10

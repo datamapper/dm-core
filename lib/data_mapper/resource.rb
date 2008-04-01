@@ -99,14 +99,16 @@ module DataMapper
 
     def attribute_dirty?(name)
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
-      dirty_attributes.include?(name)
+      dirty_attributes.key?(name)
     end
 
     def attribute_get(name)
       ivar_name = loaded_attributes[name]
 
-      unless attribute_loaded?(name)
+      unless new_record? || attribute_loaded?(name)
         lazy_load!(name)
+      else
+        loaded_attributes[name] = ivar_name
       end
 
       instance_variable_get(ivar_name)
