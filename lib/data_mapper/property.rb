@@ -208,6 +208,7 @@ module DataMapper
       # and out of Property.
       @lazy = @options.fetch(:lazy, @type.respond_to?(:lazy) ? @type.lazy : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
+      @custom = @type.ancestors.include?(DataMapper::Type)
       
       @key = (@options[:key] || @options[:serial]) == true
       @serial = @options.fetch(:serial, false)
@@ -331,6 +332,10 @@ module DataMapper
     def lock?
       @lock
     end
+    
+    def custom?
+      @custom
+    end
 
     def options
       @options
@@ -343,7 +348,7 @@ module DataMapper
     def set(value, instance)
       instance.attribute_set(@name, value)
     end
-
+    
     def inspect
       "#<Property #{@target}:#{@name}>"
     end

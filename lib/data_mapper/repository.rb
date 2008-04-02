@@ -19,6 +19,8 @@ module Kernel
       begin
         return yield(DataMapper::Repository.context.push(DataMapper::Repository.new(name)))
       ensure
+        # current = DataMapper::Repository.context.last
+        # current.flush! if current.adapter.auto_flush?
         DataMapper::Repository.context.pop
       end
     end
@@ -74,7 +76,7 @@ module DataMapper
       end
     end
   end
-  
+    
   class Repository
     
     @adapters = {}

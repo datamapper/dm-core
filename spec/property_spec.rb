@@ -129,6 +129,11 @@ describe DataMapper::Property do
     tomato.class.properties(:default).detect(:id).set(2, tomato)
     tomato.id.should == 2
   end
+  
+  it 'should respond to custom?' do
+    DataMapper::Property.new(Zoo, :name, Name, { :size => 50 }).should be_custom
+    DataMapper::Property.new(Zoo, :state, String, { :size => 2 }).should_not be_custom
+  end
 
   it "should set the field to the correct field_naming_convention" do
     DataMapper::Property.new(Zoo, :species, String, {}).field.should == 'species'

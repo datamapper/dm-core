@@ -111,7 +111,10 @@ module DataMapper
         loaded_attributes[name] = ivar_name
       end
 
-      instance_variable_get(ivar_name)
+      property = self.class.properties(repository.name).detect(name)
+      
+      value = instance_variable_get(ivar_name)
+      (property.custom? && property.type.respond_to?(:load) ? property.type.load(value) : value)
     end
 
     def attribute_set(name, value)
@@ -121,9 +124,12 @@ module DataMapper
       if property && property.lock?
         instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
       end
-
+      
       loaded_attributes[name] = ivar_name
-      dirty_attributes[name] = instance_variable_set(ivar_name, value)
+      
+      dirty_attributes[name] = instance_variable_set(ivar_name,
+        (property.custom? && property.type.respond_to?(:dump) ? property.type.dump(value) : value)
+      )
     end
 
     def shadow_attribute_get(name)
@@ -138,6 +144,10 @@ module DataMapper
       else
         fields.each { |name| attribute_set(name, nil) }
       end
+    end
+    
+    def reload!
+      @loaded_set.reload!(:fields => loaded_attributes.keys)
     end
 
     def initialize(details = nil) # :nodoc:

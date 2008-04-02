@@ -119,12 +119,17 @@ module DataMapper
       def update(repository, instance)
         dirty_attributes = instance.dirty_attributes
         properties = instance.class.properties(name).select(*dirty_attributes.keys)
-
-        connection = create_connection
-        command = connection.create_command(update_statement(instance.class, properties))
-
         values = properties.map { |property| dirty_attributes[property.name] }
-        affected_rows = command.execute_non_query(*(values + instance.key)).to_i
+        
+        sql = update_statement(instance.class, properties)
+        parameters = (values + instance.key)
+        
+        DataMapper.logger.debug { "UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}" }
+        
+        connection = create_connection
+        command = connection.create_command(sql)
+
+        affected_rows = command.execute_non_query(*parameters).to_i
 
         close_connection(connection)
 
@@ -176,8 +181,6 @@ module DataMapper
         sql = query_read_statement(query)
         parameters = query.parameters
         
-      
-
         DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
         
         connection = create_connection
