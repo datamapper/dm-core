@@ -79,57 +79,47 @@ module DataMapper
       repository.destroy(self)
     end
 
-    def loaded_attributes
-      # We don't assign a default to the Hash on purpose!!!
-      @loaded_attributes || @loaded_attributes = Hash.new { |h,k| k.to_s.ensure_starts_with('@') }
-    end
-
     def attribute_loaded?(name)
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
-      loaded_attributes.key?(name)
+      instance_variable_defined?(name.to_s.ensure_starts_with('@'))
     end
 
     def dirty_attributes
-      @dirty_attributes || @dirty_attributes = Hash.new
+      @dirty_attributes ||= []
     end
 
     def dirty?
-      !@dirty_attributes.blank?
+      dirty_attributes.any?
     end
 
     def attribute_dirty?(name)
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
-      dirty_attributes.key?(name)
+      dirty_attributes.include?(name)
     end
 
     def attribute_get(name)
-      ivar_name = loaded_attributes[name]
+      ivar_name = name.to_s.ensure_starts_with('@')
 
       unless new_record? || attribute_loaded?(name)
         lazy_load!(name)
-      else
-        loaded_attributes[name] = ivar_name
       end
 
       property = self.class.properties(repository.name).detect(name)
-      
+
       value = instance_variable_get(ivar_name)
       (property.custom? && property.type.respond_to?(:load) ? property.type.load(value) : value)
     end
 
     def attribute_set(name, value)
       ivar_name = name.to_s.ensure_starts_with('@')
-      property = self.class.properties(repository.name).detect(name)
+      property  = self.class.properties(repository.name).detect(name)
 
       if property && property.lock?
         instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
       end
-      
-      loaded_attributes[name] = ivar_name
-      
-      dirty_attributes[name] = instance_variable_set(ivar_name,
-        (property.custom? && property.type.respond_to?(:dump) ? property.type.dump(value) : value)
-      )
+
+      dirty_attributes << name
+      instance_variable_set(ivar_name, (property.custom? && property.type.respond_to?(:dump) ? property.type.dump(value) : value))
     end
 
     def shadow_attribute_get(name)
@@ -145,7 +135,7 @@ module DataMapper
         fields.each { |name| attribute_set(name, nil) }
       end
     end
-    
+
     def reload!
       @loaded_set.reload!(:fields => loaded_attributes.keys)
     end

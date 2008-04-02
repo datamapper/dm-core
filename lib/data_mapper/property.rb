@@ -209,7 +209,7 @@ module DataMapper
       @lazy = @options.fetch(:lazy, @type.respond_to?(:lazy) ? @type.lazy : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
       @custom = @type.ancestors.include?(DataMapper::Type)
-      
+
       @key = (@options[:key] || @options[:serial]) == true
       @serial = @options.fetch(:serial, false)
       @lock = @options.fetch(:lock, false)
@@ -242,16 +242,6 @@ module DataMapper
 
     # defines the getter for the property
     def create_getter!
-      # def attribute_get(name)
-      #   ivar_name = loaded_attributes[name]
-      #
-      #   unless attribute_loaded?(name)
-      #     lazy_load!(name)
-      #   end
-      #
-      #   instance_variable_get(ivar_name)
-      # end
-
       @target.class_eval <<-EOS
       #{reader_visibility.to_s}
       def #{name}
@@ -332,7 +322,7 @@ module DataMapper
     def lock?
       @lock
     end
-    
+
     def custom?
       @custom
     end
@@ -348,7 +338,7 @@ module DataMapper
     def set(value, instance)
       instance.attribute_set(@name, value)
     end
-    
+
     def inspect
       "#<Property #{@target}:#{@name}>"
     end

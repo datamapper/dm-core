@@ -60,20 +60,19 @@ module DataMapper
       def close_connection(connection)
         connection.close unless within_transaction?
       end
-      
+
       def create_with_returning?
         false
       end
-      
+
       # all of our CRUD
       # Methods dealing with a single instance object
       def create(repository, instance)
-        dirty_attributes = instance.dirty_attributes
-        properties = instance.class.properties(name).select(*dirty_attributes.keys)
+        properties = instance.class.properties(name).select(*instance.dirty_attributes)
 
         connection = create_connection
         sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, instance.class, properties)
-        values = properties.map { |property| dirty_attributes[property.name] }
+        values = properties.map { |property| instance.instance_variable_get(property.name.to_s.ensure_starts_with('@')) }
 
         DataMapper.logger.debug { "CREATE: #{sql}  PARAMETERS: #{values.inspect}" }
         command = connection.create_command(sql)
@@ -85,7 +84,6 @@ module DataMapper
         if result.to_i == 1
           key = instance.class.key(name)
           if key.size == 1 && key.first.serial?
-            instance.loaded_attributes[key.first.name] = key.first.instance_variable_name
             instance.instance_variable_set(key.first.instance_variable_name, result.insert_id)
           end
           true
@@ -117,15 +115,14 @@ module DataMapper
       end
 
       def update(repository, instance)
-        dirty_attributes = instance.dirty_attributes
-        properties = instance.class.properties(name).select(*dirty_attributes.keys)
-        values = properties.map { |property| dirty_attributes[property.name] }
-        
+        properties = instance.class.properties(name).select(*instance.dirty_attributes)
+        values = properties.map { |property| instance.instance_variable_get(property.name.to_s.ensure_starts_with('@')) }
+
         sql = update_statement(instance.class, properties)
         parameters = (values + instance.key)
-        
+
         DataMapper.logger.debug { "UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}" }
-        
+
         connection = create_connection
         command = connection.create_command(sql)
 
@@ -140,7 +137,7 @@ module DataMapper
         connection = create_connection
         command = connection.create_command(delete_statement(instance.class))
 
-        key = instance.class.key(name).map { |property| instance.instance_variable_get(property.instance_variable_name) }
+        key = instance.class.key(name).map { |property| instance.instance_variable_get(property.name.to_s.ensure_starts_with('@')) }
         affected_rows = command.execute_non_query(*key).to_i
 
         close_connection(connection)
@@ -180,9 +177,9 @@ module DataMapper
 
         sql = query_read_statement(query)
         parameters = query.parameters
-        
+
         DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
-        
+
         connection = create_connection
         begin
           command = connection.create_command(sql)
@@ -312,9 +309,9 @@ module DataMapper
           sql << query.fields.map do |property|
             property_to_column_name(query.resource_name, property, qualify)
           end.join(', ')
-          
+
           sql << " FROM " << quote_table_name(query.resource_name)
-          
+
           unless query.conditions.empty?
             sql << " WHERE "
             sql << "(" << query.conditions.map do |operator, property, value|
@@ -350,9 +347,9 @@ module DataMapper
           case value
           when Array then "#{property_to_column_name(query.resource_name, property, qualify)} IN ?"
           when NilClass then "#{property_to_column_name(query.resource_name, property, qualify)} IS NULL"
-          when DataMapper::Query then 
+          when DataMapper::Query then
                 query.merge_sub_select_conditions(operator, property, value)
-              "#{property_to_column_name(query.resource_name, property, qualify)} IN (#{query_read_statement(value)})"            
+              "#{property_to_column_name(query.resource_name, property, qualify)} IN (#{query_read_statement(value)})"
           else "#{property_to_column_name(query.resource_name, property, qualify)} = ?"
           end
         end
@@ -361,9 +358,9 @@ module DataMapper
           case value
           when Array then "#{property_to_column_name(query.resource_name, property, qualify)} NOT IN ?"
           when NilClass then "#{property_to_column_name(query.resource_name, property, qualify)} IS NO NULL"
-          when DataMapper::Query then 
+          when DataMapper::Query then
                 query.merge_sub_select_conditions(operator, property, value)
-              "#{property_to_column_name(query.resource_name, property, qualify)} NOT IN (#{query_read_statement(value)})"             
+              "#{property_to_column_name(query.resource_name, property, qualify)} NOT IN (#{query_read_statement(value)})"
           else "#{property_to_column_name(query.resource_name, property, qualify)} <> ?"
           end
         end
