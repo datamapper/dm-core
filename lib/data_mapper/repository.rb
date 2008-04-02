@@ -152,7 +152,7 @@ module DataMapper
         instance.instance_variable_set('@new_record', true)
         instance.dirty_attributes.clear
         instance.class.properties(name).map do |property|
-          instance.dirty_attributes << property.name if instance.attribute_loaded?(property.name)
+          instance.dirty_attributes << property if instance.attribute_loaded?(property.name)
         end
         true
       else

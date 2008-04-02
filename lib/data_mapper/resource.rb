@@ -94,7 +94,8 @@ module DataMapper
 
     def attribute_dirty?(name)
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
-      dirty_attributes.include?(name)
+      property = self.class.properties(repository.name).detect(name)
+      dirty_attributes.include?(property)
     end
 
     def attribute_get(name)
@@ -118,7 +119,7 @@ module DataMapper
         instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
       end
 
-      dirty_attributes << name
+      dirty_attributes << property
       instance_variable_set(ivar_name, (property.custom? && property.type.respond_to?(:dump) ? property.type.dump(value) : value))
     end
 
