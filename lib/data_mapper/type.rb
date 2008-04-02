@@ -40,7 +40,7 @@ module DataMapper
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :check, :ordinal, :auto_validation, :validation_context,
-      :lock
+      :lock, :track
     ]
 
     PROPERTY_OPTION_ALIASES = {

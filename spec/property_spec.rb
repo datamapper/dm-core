@@ -145,53 +145,37 @@ describe DataMapper::Property do
     DataMapper::Property.new(Zoo, :fortune, DataMapper::Types::Text, {}).primitive.should == String
   end
 
-  # All auto_validation specs moved to dm-more/spec/validation_spec.rb
+  describe "tracking strategies" do
+    
+    before do
+      class Actor
+        include DataMapper::Resource
+        
+        property :id, Fixnum, :serial => true
+        property :name, String, :lock => true
+        property :notes, DataMapper::Types::Text, :track => false
+        property :age, Fixnum, :track => :set
+        property :rating, Fixnum # :track default should be false for immutable types
+        property :location, String # :track default should be :get for mutable types
+        property :lead, TrueClass, :track => :load
+        property :agent, String, :track => :hash # :track only Object#hash value on :load.
+          # Potentially faster, but less safe, so use judiciously, when the odds of a hash-collision are low.
+      end
+    end
+    
+    it "false" do
+      pending("Implementation...")
+      DataMapper::Resource::DIRTY.should_not be_nil
+    end
+    
+    it ":load"
+    
+    it ":hash"
+    
+    it ":get"
+    
+    it ":set"
+    
+  end
 
 end
-
-  # None of the below specs belong in here!
-
-# describe DataMapper::Adapters::Sql::Mappings do
-#
-#   it "should return the same Table instance for two objects mapped to the same database table" do
-#     # Refers to the same Table instance
-#     repository.table(Person) == repository.table(SalesPerson)
-#   end
-#
-#   it "should have one super-set of total mapped columns" do
-#     # Refers to the mapped columns
-#     repository.table(Person).columns == repository.table(SalesPerson).columns
-#   end
-#
-#   it "should have one set of columns that represents the actual database" do
-#     # Refers to the actual columns in the database, which may/are-likely-to-be different
-#     # than the mapped columns, sometimes just because your models are dealing with
-#     # a legacy database where not every column is mapped to the new model, so this
-#     # is expected.
-#     repository.table(Person).send(:database_columns) == repository.table(SalesPerson).send(:database_columns)
-#   end
-#
-#   it "should have two different sets of mapped properties that point to subsets of the Table columns" do
-#     # pending("This one still needs some love to pass.")
-#     table = repository.table(Person)
-#
-#     # Every property's column should be represented in the Table's column mappings.
-#     Person.properties.each do |property|
-#       table.columns.should include(property.column)
-#     end
-#
-#     # For both models in the STI setup...
-#     SalesPerson.properties.each do |property|
-#       repository.table(SalesPerson).columns.should include(property.column)
-#     end
-#
-#     # Even though Person's properties are fewer than a SalesPerson's
-#     Person.properties.size.should_not eql(SalesPerson.properties.size)
-#
-#     # And Person's properties should be a subset of a SalesPerson's
-#     Person.properties.each do |property|
-#       SalesPerson.properties.map(&:column).should include(property.column)
-#     end
-#   end
-#
-# end
