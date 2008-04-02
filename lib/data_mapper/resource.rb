@@ -34,6 +34,30 @@ module DataMapper
     # +---------------
     # Instance methods
 
+    def [](name)
+      ivar_name = name.to_s.ensure_starts_with('@')
+      property  = self.class.properties(repository.name).detect(name)
+
+      unless new_record? || attribute_loaded?(name)
+        lazy_load!(name)
+      end
+
+      value = instance_variable_get(ivar_name)
+      (property.custom? && property.type.respond_to?(:load) ? property.type.load(value) : value)
+    end
+
+    def []=(name, value)
+      ivar_name = name.to_s.ensure_starts_with('@')
+      property  = self.class.properties(repository.name).detect(name)
+
+      if property && property.lock?
+        instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
+      end
+
+      dirty_attributes << property
+      instance_variable_set(ivar_name, (property.custom? && property.type.respond_to?(:dump) ? property.type.dump(value) : value))
+    end
+
     def repository
       @loaded_set ? @loaded_set.repository : self.class.repository
     end
@@ -98,31 +122,6 @@ module DataMapper
       dirty_attributes.include?(property)
     end
 
-    def attribute_get(name)
-      ivar_name = name.to_s.ensure_starts_with('@')
-
-      unless new_record? || attribute_loaded?(name)
-        lazy_load!(name)
-      end
-
-      property = self.class.properties(repository.name).detect(name)
-
-      value = instance_variable_get(ivar_name)
-      (property.custom? && property.type.respond_to?(:load) ? property.type.load(value) : value)
-    end
-
-    def attribute_set(name, value)
-      ivar_name = name.to_s.ensure_starts_with('@')
-      property  = self.class.properties(repository.name).detect(name)
-
-      if property && property.lock?
-        instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
-      end
-
-      dirty_attributes << property
-      instance_variable_set(ivar_name, (property.custom? && property.type.respond_to?(:dump) ? property.type.dump(value) : value))
-    end
-
     def shadow_attribute_get(name)
       instance_variable_get(name.to_s.ensure_starts_with('@shadow_'))
     end
@@ -133,7 +132,7 @@ module DataMapper
       unless new_record? || @loaded_set.nil?
         @loaded_set.reload!(:fields => fields)
       else
-        fields.each { |name| attribute_set(name, nil) }
+        fields.each { |name| self[name] = nil }
       end
     end
 

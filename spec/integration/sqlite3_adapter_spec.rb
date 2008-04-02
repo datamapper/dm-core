@@ -5,7 +5,7 @@ require __DIR__.parent.parent + 'lib/data_mapper'
 
 begin
   require 'do_sqlite3'
-  
+
   DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
 
   describe DataMapper::Adapters::Sqlite3Adapter do
@@ -256,7 +256,7 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
           property :port, String
-        
+
           class << self
             def property_by_name(name)
               properties(repository.name).detect do |property|
@@ -269,8 +269,8 @@ begin
         repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
         repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
         repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "C", :port => "A"))
-      end  
-    
+      end
+
       it "should order results" do
         result = repository(:sqlite3).all(SailBoat,{:order => [
             DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
@@ -294,16 +294,16 @@ begin
             DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
         ]})
         result[0].id.should == 1
-      end    
-    
+      end
+
       after do
        @adapter.execute('DROP TABLE "sail_boats"')
-      end        
-    
+      end
+
     end
 
     describe "Lazy Loaded Properties" do
-  
+
       before do
 
         @adapter = repository(:sqlite3).adapter
@@ -336,7 +336,7 @@ begin
         repository(:sqlite3).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
         repository(:sqlite3).save(SailBoat.new(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23))
       end
-    
+
 
       it "should lazy load" do
         result = repository(:sqlite3).all(SailBoat,{})
@@ -367,7 +367,7 @@ begin
 
       before() do
         @adapter = repository(:sqlite3).adapter
-      
+
         @adapter.execute(<<-EOS.compress_lines) rescue nil
           CREATE TABLE "sail_boats" (
             "id" INTEGER PRIMARY KEY,
@@ -385,13 +385,13 @@ begin
             "token" VARCHAR(50)
           )
         EOS
-      
+
         class Permission
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
           property :user_id, Fixnum
           property :resource_id, Fixnum
-          property :resource_type, String      
+          property :resource_type, String
           property :token, String
         end
 
@@ -407,53 +407,53 @@ begin
         repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "Fantasy I", :port => "Cape Town", :captain => 'Joe'))
         repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "Royal Flush II", :port => "Cape Town", :captain => 'James'))
         repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "Infringer III", :port => "Cape Town", :captain => 'Jason'))
-      
-      
+
+
         #User 1 permission -- read boat 1 & 2
         repository(:sqlite3).save(Permission.new(:id => 1, :user_id => 1, :resource_id => 1, :resource_type => 'SailBoat', :token => 'READ'))
-        repository(:sqlite3).save(Permission.new(:id => 2, :user_id => 1, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ'))    
-      
+        repository(:sqlite3).save(Permission.new(:id => 2, :user_id => 1, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ'))
+
         #User 2 permission  -- read boat 2 & 3
         repository(:sqlite3).save(Permission.new(:id => 3, :user_id => 2, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ'))
-        repository(:sqlite3).save(Permission.new(:id => 4, :user_id => 2, :resource_id => 3, :resource_type => 'SailBoat', :token => 'READ'))    
+        repository(:sqlite3).save(Permission.new(:id => 4, :user_id => 2, :resource_id => 3, :resource_type => 'SailBoat', :token => 'READ'))
 
       end
 
-     
+
       it 'when value is IN another query' do
         # User 1
         acl = DataMapper::Query.new(Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
         query = DataMapper::Query.new(SailBoat, :port => 'Cape Town',:id => acl,:captain.like => 'J%')
-        boats = @adapter.read_set(repository(:sqlite3),query)    
+        boats = @adapter.read_set(repository(:sqlite3),query)
         boats.length.should == 2
         boats[0].id.should == 1
         boats[1].id.should == 2
-      
+
         # User 2
         acl = DataMapper::Query.new(Permission, :user_id => 2, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
         query = DataMapper::Query.new(SailBoat, :port => 'Cape Town',:id => acl,:captain.like => 'J%')
-        boats = @adapter.read_set(repository(:sqlite3),query)    
+        boats = @adapter.read_set(repository(:sqlite3),query)
         boats.length.should == 2
         boats[0].id.should == 2
-        boats[1].id.should == 3        
+        boats[1].id.should == 3
       end
-    
-    
+
+
       it 'when value is NOT IN another query' do
         # Boats that User 1 Cannot see
         acl = DataMapper::Query.new(Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
         query = DataMapper::Query.new(SailBoat, :port => 'Cape Town',:id.not => acl,:captain.like => 'J%')
-        boats = @adapter.read_set(repository(:sqlite3),query)    
-        boats.length.should == 1 
+        boats = @adapter.read_set(repository(:sqlite3),query)
+        boats.length.should == 1
         boats[0].id.should == 3
       end
-    
+
       after() do
-        @adapter.execute('DROP TABLE "sail_boats"')  
+        @adapter.execute('DROP TABLE "sail_boats"')
         @adapter.execute('DROP TABLE "permissions"')
       end
 
-    end  
+    end
 
 
 
@@ -572,7 +572,7 @@ begin
         repository(:sqlite3).save(y)
 
         y = repository(:sqlite3).all(Yard, :id => 1).first
-        y.attribute_get(:engine_id).should == 2
+        y[:engine_id].should == 2
       end
 
       it "#many_to_one" do
@@ -592,7 +592,7 @@ begin
         e = repository(:sqlite3).all(Engine, :id => 2).first
         repository(:sqlite3).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
 
-        repository(:sqlite3).all(Yard, :id => 2).first.attribute_get(:engine_id).should == 2
+        repository(:sqlite3).all(Yard, :id => 2).first[:engine_id].should == 2
       end
 
       it 'should save the parent upon saving of child' do
@@ -600,7 +600,7 @@ begin
         y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
         repository(:sqlite3).save(y)
 
-        y.attribute_get(:engine_id).should == 10
+        y[:engine_id].should == 10
         repository(:sqlite3).all(Engine, :id => 10).first.should_not be_nil
       end
 
@@ -659,10 +659,10 @@ begin
         s.pie = p
 
         p1 = repository(:sqlite3).first(Pie, :id => 1)
-        p1.attribute_get(:sky_id).should be_nil
+        p1[:sky_id].should be_nil
 
         p2 = repository(:sqlite3).first(Pie, :id => 2)
-        p2.attribute_get(:sky_id).should == 1
+        p2[:sky_id].should == 1
       end
 
       it "#one_to_one" do
@@ -682,7 +682,7 @@ begin
         p = repository(:sqlite3).first(Pie, :id => 2)
         repository(:sqlite3).save(Sky.new(:id => 2, :name => 'sky2', :pie => p))
 
-        repository(:sqlite3).first(Pie, :id => 2).attribute_get(:sky_id).should == 2
+        repository(:sqlite3).first(Pie, :id => 2)[:sky_id].should == 2
       end
 
       it 'should save the children upon saving of parent' do
@@ -690,7 +690,7 @@ begin
         s = Sky.new(:id => 10, :name => "sky10", :pie => p)
         repository(:sqlite3).save(s)
 
-        p.attribute_get(:sky_id).should == 10
+        p[:sky_id].should == 10
         repository(:sqlite3).first(Pie, :id => 10).should_not be_nil
       end
 
@@ -758,7 +758,7 @@ begin
 
         s = repository(:sqlite3).first(Slice, :id => s.id)
         s.host.should be_nil
-        s.attribute_get(:host_id).should be_nil
+        s[:host_id].should be_nil
       end
 
       it "should load the associated instances" do

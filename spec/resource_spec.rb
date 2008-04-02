@@ -115,12 +115,12 @@ describe "DataMapper::Resource" do
 #    mars.attribute_loaded?(:age).should be_true
 
     # A value should be able to be both loaded and nil.
-    mars.attribute_get(:age).should be_nil
+    mars[:age].should be_nil
 
-    # Unless you call #attribute_set it's not dirty.
+    # Unless you call #[]= it's not dirty.
     mars.attribute_dirty?(:age).should be_false
 
-    mars.attribute_set(:age, 30)
+    mars[:age] = 30
     # Obviously. :-)
     mars.attribute_dirty?(:age).should be_true
 
@@ -142,8 +142,8 @@ describe "DataMapper::Resource" do
     mars.instance_variable_set('@name', 'Mars')
     mars.instance_variable_set('@new_record', false)
 
-    mars.attribute_set(:name, 'God of War')
-    mars.attribute_get(:name).should == 'God of War'
+    mars[:name] = 'God of War'
+    mars[:name].should == 'God of War'
     mars.name.should == 'God of War'
     mars.shadow_attribute_get(:name).should == 'Mars'
   end

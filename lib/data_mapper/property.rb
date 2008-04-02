@@ -245,7 +245,7 @@ module DataMapper
       @target.class_eval <<-EOS
       #{reader_visibility.to_s}
       def #{name}
-        attribute_get(#{name.inspect})
+        self[#{name.inspect}]
       end
       EOS
 
@@ -264,7 +264,7 @@ module DataMapper
       @target.class_eval <<-EOS
       #{writer_visibility.to_s}
       def #{name}=(value)
-        attribute_set(#{name.inspect}, value)
+        self[#{name.inspect}] = value
       end
       EOS
     rescue SyntaxError
@@ -332,11 +332,11 @@ module DataMapper
     end
 
     def value(instance)
-      instance.attribute_get(@name)
+      instance[@name]
     end
 
     def set(value, instance)
-      instance.attribute_set(@name, value)
+      instance[@name] = value
     end
 
     def inspect

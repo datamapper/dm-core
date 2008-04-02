@@ -5,7 +5,7 @@ require __DIR__.parent.parent + 'lib/data_mapper'
 
 begin
   require 'do_postgres'
-  
+
   DataMapper.setup(:postgres, "postgres://postgres@localhost/dm_core_test")
 
   describe DataMapper::Adapters::PostgresAdapter do
@@ -138,14 +138,14 @@ begin
       end
 
       it 'should respond to Resource#get' do
-      
+
         name = 'Contra'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?) RETURNING id', name).insert_id
-      
+
         puts id.inspect
 
         contra = repository(:postgres) { VideoGame.get(id) }
-      
+
         puts contra.id.inspect
 
         contra.should_not be_nil
@@ -262,7 +262,7 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
           property :port, String
-        
+
           class << self
             def property_by_name(name)
               properties(repository.name).detect do |property|
@@ -275,8 +275,8 @@ begin
         repository(:postgres).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
         repository(:postgres).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
         repository(:postgres).save(SailBoat.new(:id => 3, :name => "C", :port => "A"))
-      end  
-    
+      end
+
       it "should order results" do
         result = repository(:postgres).all(SailBoat,{:order => [
             DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
@@ -300,16 +300,16 @@ begin
             DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
         ]})
         result[0].id.should == 1
-      end    
-    
+      end
+
       after do
        @adapter.execute('DROP TABLE "sail_boats"')
-      end        
-    
+      end
+
     end
 
     describe "Lazy Loaded Properties" do
-  
+
       before do
 
         @adapter = repository(:postgres).adapter
@@ -342,7 +342,7 @@ begin
         repository(:postgres).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
         repository(:postgres).save(SailBoat.new(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23))
       end
-    
+
 
       it "should lazy load" do
         result = repository(:postgres).all(SailBoat,{})
@@ -482,7 +482,7 @@ begin
         repository(:postgres).save(y)
 
         y = repository(:postgres).all(Yard, :id => 1).first
-        y.attribute_get(:engine_id).should == 2
+        y[:engine_id].should == 2
       end
 
       it "#many_to_one" do
@@ -502,7 +502,7 @@ begin
         e = repository(:postgres).all(Engine, :id => 2).first
         repository(:postgres).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
 
-        repository(:postgres).all(Yard, :id => 2).first.attribute_get(:engine_id).should == 2
+        repository(:postgres).all(Yard, :id => 2).first[:engine_id].should == 2
       end
 
       it 'should save the parent upon saving of child' do
@@ -510,7 +510,7 @@ begin
         y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
         repository(:postgres).save(y)
 
-        y.attribute_get(:engine_id).should == 10
+        y[:engine_id].should == 10
         repository(:postgres).all(Engine, :id => 10).first.should_not be_nil
       end
 
@@ -578,7 +578,7 @@ begin
 
         s = repository(:postgres).first(Slice, :id => s.id)
         s.host.should be_nil
-        s.attribute_get(:host_id).should be_nil
+        s[:host_id].should be_nil
       end
 
       it "should load the associated instances" do
