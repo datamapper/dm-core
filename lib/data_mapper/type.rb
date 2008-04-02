@@ -131,7 +131,7 @@ module DataMapper
     #
     #
     # @public
-    def self.materialize(value)
+    def self.dump(value)
       raise NotImplementedError
     end
 
@@ -146,7 +146,7 @@ module DataMapper
     #
     #
     # @public
-    def self.serialize(value)
+    def self.load(value)
       raise NotImplementedError
     end
 

@@ -13,12 +13,12 @@ describe DataMapper::Type do
       primitive String
       size 10
       
-      def self.materialize(value)
-        value
+      def self.load(value)
+        value.reverse
       end
       
-      def self.serialize(value)
-        value
+      def self.dump(value)
+        value.reverse
       end
     end
   end
@@ -45,20 +45,20 @@ describe DataMapper::Type do
     TestType.length.should == TestType.size
   end
   
-  it "should raise NotImplmenetedException if serialize wasn't overriden" do
-    lambda { TestType.serialize("test") }.should raise_error(NotImplementedError)
+  it "should raise NotImplmenetedException if load wasn't overriden" do
+    lambda { TestType.load("test") }.should raise_error(NotImplementedError)
   end
   
-  it "should raise NotImplmenetedException if materialize wasn't overriden" do
-    lambda { TestType.materialize("test") }.should raise_error(NotImplementedError)
+  it "should raise NotImplmenetedException if dump wasn't overriden" do
+    lambda { TestType.dump("test") }.should raise_error(NotImplementedError)
   end
 
-  it "should not raise NotImplmenetedException if serialize was overriden" do
-    TestType2.serialize("test").should == "test"
+  it "should not raise NotImplmenetedException if load was overriden" do
+    TestType2.dump("helo").should == "oleh"
   end
   
-  it "should not raise NotImplmenetedException if materialize was overriden" do
-    TestType2.materialize("test").should == "test"
+  it "should not raise NotImplmenetedException if dump was overriden" do
+    TestType2.load("oleh").should == "helo"
   end
 
   describe "using def Type" do
