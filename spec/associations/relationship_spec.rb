@@ -17,8 +17,8 @@ describe DataMapper::Associations::Relationship do
     
     belongs_to.should respond_to(:name)
     belongs_to.should respond_to(:repository_name)
-    belongs_to.should respond_to(:child)
-    belongs_to.should respond_to(:parent)
+    belongs_to.should respond_to(:child_key)
+    belongs_to.should respond_to(:parent_key)
   end
   
   it "should map properties explicitly when an association method passes them in its options" do
@@ -32,11 +32,11 @@ describe DataMapper::Associations::Relationship do
     belongs_to.name.should == :manufacturer
     belongs_to.repository_name.should == :relationship_spec
     
-    belongs_to.child.should be_a_kind_of(Array)
-    belongs_to.parent.should be_a_kind_of(Array)
+    belongs_to.child_key.should be_a_kind_of(Array)
+    belongs_to.parent_key.should be_a_kind_of(Array)
 
-    belongs_to.child.should == Vehicle.properties(:relationship_spec).select(:manufacturer_id)
-    belongs_to.parent.should == Manufacturer.properties(:relationship_spec).key
+    belongs_to.child_key.should == Vehicle.properties(:relationship_spec).select(:manufacturer_id)
+    belongs_to.parent_key.should == Manufacturer.properties(:relationship_spec).key
   end
   
   it "should infer properties when options aren't passed" do
@@ -50,11 +50,11 @@ describe DataMapper::Associations::Relationship do
     has_many.name.should == :models
     has_many.repository_name.should == :relationship_spec
     
-    has_many.child.should be_a_kind_of(Array)
-    has_many.parent.should be_a_kind_of(Array)
+    has_many.child_key.should be_a_kind_of(Array)
+    has_many.parent_key.should be_a_kind_of(Array)
 
-    has_many.child.should == Vehicle.properties(:relationship_spec).select(:models_id)
-    has_many.parent.should == Manufacturer.properties(:relationship_spec).key
+    has_many.child_key.should == Vehicle.properties(:relationship_spec).select(:models_id)
+    has_many.parent_key.should == Manufacturer.properties(:relationship_spec).key
   end
   
   it "should generate child properties with a safe subset of the parent options" do
