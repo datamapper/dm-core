@@ -173,8 +173,7 @@ begin
       after() do
         @adapter.execute('DROP TABLE "regions"')
         @adapter.execute('DROP TABLE "factories"')
-        @adapter.execute('DROP TABLE "vehicles"')
-        
+        @adapter.execute('DROP TABLE "vehicles"')            
       end
     
       before do
@@ -199,13 +198,12 @@ begin
             "name" VARCHAR(50)
           )
         EOS
-        
         class Region
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
           property :name, String        
         end
-        
+                
         class Factory
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
@@ -214,7 +212,7 @@ begin
           
           many_to_one :region
         end
-        
+                
         class Vehicle 
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
@@ -226,49 +224,72 @@ begin
         
         repository(:sqlite3) do
           Region.new(:id=>1,:name=>'North West').save
-          Factory.new(:id=>1,:region_id=>1,:name=>'North West Plant').save
-          Vehicle.new(:id=>1,:factory_id=>1,:name=>'10 ton delivery truck').save
+          Factory.new(:id=>2000,:region_id=>1,:name=>'North West Plant').save      
+          Vehicle.new(:id=>1,:factory_id=>2000,:name=>'10 ton delivery truck').save
+          
+          #Teacher.new(:id_a => 1, :id_b => 2, :name => 'Math Prof').save
+          #Student.new(:id => 1, :parent_id_a => 1, :parent_id_b => 2,:name => 'Joey').save
         end
         
+        
       end
     
-    
-     # it 'should accept symbols'     
-     # it 'should accept strings' 
-      
-      it 'should accept a single/array of DM::Assoc::Relationship' do
-        
-        vf_rel = DataMapper::Associations::Relationship.new( :factory,
+     it 'should accept a DM::Assoc::Relationship as a link' do         
+        factory = DataMapper::Associations::Relationship.new( :factory,
                                                         repository(:sqlite3),
                                                         ['Vehicle',[:factory_id]],
-                                                        ['Factory',[:id]])
-                                                        
-                                                        
-        fr_rel = DataMapper::Associations::Relationship.new( :region,
+                                                        ['Factory',[:id]])      
+          query = DataMapper::Query.new(Vehicle,:links => [factory])
+          results = @adapter.read_set(repository(:sqlite3),query)
+          results.length.should == 1
+      end
+      
+      
+      it 'should accept a symbol of an association name as a link' do
+          query = DataMapper::Query.new(Vehicle,:links => [:factory])
+          results = @adapter.read_set(repository(:sqlite3),query)
+          results.length.should == 1
+      end
+      
+      it 'should accept a string of an association name as a link' do
+          query = DataMapper::Query.new(Vehicle,:links => ['factory'])
+          results = @adapter.read_set(repository(:sqlite3),query)
+          results.length.should == 1        
+      end
+      
+      it 'should accept a mixture of items as a set of links' do
+        region = DataMapper::Associations::Relationship.new(:region,
                                                         repository(:sqlite3),
                                                         ['Factory',[:region_id]],
-                                                        ['Region',[:id]])                                                        
-                                                        
-                  
-          # We want factory ID
-          fields = []
-          fields <<  Factory.properties(:sqlite3).detect(:id)                             
-          
-          Vehicle.properties(:sqlite3).map do | property|
-            fields << property
-          end
-      
-          query = DataMapper::Query.new(Vehicle,:links => [vf_rel,fr_rel], :fields => fields)
+                                                        ['Region',[:id]])    
+                                                            
+          query = DataMapper::Query.new(Vehicle,:links => ['factory',region])
           results = @adapter.read_set(repository(:sqlite3),query)
-        
+          results.length.should == 1                                    
       end
+      
+      it 'should only accept a DM::Assoc::Relationship, String & Symbol as a link' do
+        lambda{
+          DataMapper::Query.new(Vehicle,:links => [1])
+        }.should raise_error(ArgumentError)
+      end
+      
+      it 'should have a association by the name of the Symbol or String' do
+        lambda{
+          DataMapper::Query.new(Vehicle,:links=>['Sailing'])
+        }.should raise_error(ArgumentError)
 
+        lambda{
+          DataMapper::Query.new(Vehicle,:links=>[:sailing])
+        }.should raise_error(ArgumentError) 
+      end
+      
+      it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'       
+      it 'should create links with composite keys'
+      
+      
+      
     end   # describe links       
-     
-    
-    
-    
-  
   end # DM::Query
   
 rescue LoadError

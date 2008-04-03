@@ -308,6 +308,8 @@ module DataMapper
           sql = "SELECT "    
           
           sql << query.fields.map do |property|
+            # deriving the resource name from the property and not the query
+            # allows for "foreign" properties to be qualified correctly
             resource_name = property.target.resource_name(property.target.repository.name)
             property_to_column_name(resource_name, property, qualify)
           end.join(', ')
@@ -323,6 +325,7 @@ module DataMapper
               child_resource_name = child_resource.resource_name(child_resource.repository.name)
               parent_resource_name = parent_resource.resource_name(parent_resource.repository.name)
               
+              # We only do LEFT OUTER JOIN for now
               s = 'LEFT OUTER JOIN '              
               s << parent_resource_name << ' ON '
               i = 0

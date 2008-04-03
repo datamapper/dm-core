@@ -134,11 +134,7 @@ module DataMapper
       @limit      = options.fetch :limit,    nil    # must be an Integer greater than or equal to 1
       @order      = options.fetch :order,    []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @fields     = options.fetch :fields,   @properties.defaults  # must be an Array of Symbol, String or DM::Property
-      
-      
       @links      = options.fetch :links,    []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
-      
-      
       @includes   = options.fetch :includes, []     # must be an Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
       @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
 
@@ -273,9 +269,20 @@ module DataMapper
       end
     end
 
-    # normalize links to DM::Query::Path
+    # normalize links to DM::Associations::Relationship
     def normalize_links
-      # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
+      @links = @links.map do |link|
+        case link
+          when DataMapper::Associations::Relationship
+            link
+          when Symbol, String
+            link = link.to_sym if link.is_a?(String)
+            raise ArgumentError.new("Link #{link}. No such relationship") unless resource.relationships.has_key?(link)
+            resource.relationships[link]
+          else
+            raise ArgumentError.new("Link type #{link.inspect} not supported")
+        end
+      end
     end
 
     # normalize includes to DM::Query::Path

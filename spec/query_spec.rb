@@ -13,7 +13,7 @@ describe DataMapper::Query do
     [ :limit,    2         ],
     [ :order,    [ DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc) ] ],
     [ :fields,   Article.properties(:default).defaults ], # TODO: fill in allowed default value
-    [ :links,    [ :stub ] ], # TODO: fill in allowed default value
+    #[ :links,    [ :stub ] ], # TODO: fill in allowed default value
     [ :includes, [ :stub ] ], # TODO: fill in allowed default value
   ]
 
@@ -226,6 +226,12 @@ describe DataMapper::Query do
         @query.update(other).order.should == order
       end
 
+      # dkubb: I am not sure i understand the intent here. link now needs to be 
+      #       a DM::Assoc::Relationship or the name (Symbol or String) of an
+      #       association on the Resource -- thx guyvdb
+      #
+      # NOTE: I have commented out :links in the GOOD_OPTIONS above
+      #
       [ :links, :includes ].each do |attribute|
         it "##{attribute} with other #{attribute} unique values" do
           other = DataMapper::Query.new(Article, attribute => [ :stub, :other, :new ])
@@ -381,4 +387,5 @@ describe DataMapper::Query do
     end
 
   end
+    
 end
