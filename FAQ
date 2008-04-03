@@ -9,7 +9,7 @@ If you're working with a table that doesn't have a <tt>:id</tt> column, you
 can declare your properties as you usually do, and declare one of them as a
 natural key.
 
-   property :name, :string, :key => true
+   property :name, String, :key => true
 
 You should now be able to do <tt>Class['name_string']</tt> as well. Remember:
 this column should be unique, so treat it that way. This is the equivalent to
@@ -18,7 +18,7 @@ using <tt>set_primary_key</tt> in ActiveRecord.
 
 === How do I make a model paranoid?
 
-  property :deleted_at, :datetime
+  property :deleted_at, DateTime
 
 If you've got deleted_at, your model is paranoid auto-magically. All of your
 calls to <tt>##all()</tt>, <tt>##first()</tt>, and <tt>##count()</tt> will be
@@ -33,8 +33,9 @@ Write me!
 
 Sure does.  Here's an example implementation:
 
-  class Task < DataMapper::Base
-    has_and_belongs_to_many :tasks,
+  class Task
+    include DataMapper::Resource
+    many_to_many :tasks,
       :join_table => "task_relationships", :left_foreign_key => "parent_id",
       :right_foreign_key => "child_id"
   end
@@ -47,8 +48,9 @@ You'll notice that instead of <tt>foreign_key</tt> and
 
 Oh yes, and particularly well too.
 
-  class Person < Datamapper::Base
-    property :type, :class ## other shared properties here
+  class Person
+    include DataMapper::Resource
+    property :type, Class ## other shared properties here
   end
 
   class Salesperson < Person; end
@@ -89,7 +91,7 @@ find, instantiate an object for EVERY result, THEN apply your transformations
 to each object in turn. Doesn't sound too horrible unless you have a TON of
 records; you WILL grind your system to a screeching and bloody halt.
 
-Datamapper's <tt>#each</tt> works in sets of 500 so the amount of objects
+DataMapper's <tt>#each</tt> works in sets of 500 so the amount of objects
 instantiated at a time won't make your computer think it's a victim in a Saw
 movie. Once it's done executing your block on the first set of 500, it moves
 on to the next.
@@ -118,7 +120,7 @@ messages (and higher) sent to the logger. For more information on how to work
 with Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc/], hit up
 http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc/.
 
-Incidentally, if you'd like to send a message into the Datamapper logger, do:
+Incidentally, if you'd like to send a message into the DataMapper logger, do:
 
   repository.adapter.logger.info "your message here"
 

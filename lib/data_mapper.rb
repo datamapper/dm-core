@@ -5,7 +5,7 @@
 # * Sets the applications root and environment for compatibility with rails or merb
 # * Checks for the database.yml and loads it if it exists
 # * Sets up the database using the config from the yaml file or from the environment
-# *
+# 
 
 # Require the basics...
 require 'pathname'

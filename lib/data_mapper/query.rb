@@ -19,7 +19,7 @@ module DataMapper
       def initialize(property, direction = :asc)
         @property, @direction = property, direction
       end
-    end
+    end # class Direction
 
     class Operator
       attr_reader :value, :type, :options
@@ -31,7 +31,7 @@ module DataMapper
       def to_sym
         @value
       end
-    end
+    end # class Operator
 
     OPTIONS = [
       :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
@@ -335,10 +335,10 @@ module DataMapper
 
             # overwrite the value in the existing condition
             condition[2] = case operator
-              when :eql, :like : other_value
-              when :gt,  :gte  : [ value, other_value ].min
-              when :lt,  :lte  : [ value, other_value ].max
-              when :not, :in   : Array(value) | Array(other_value)
+              when :eql, :like then other_value
+              when :gt,  :gte  then [ value, other_value ].min
+              when :lt,  :lte  then [ value, other_value ].max
+              when :not, :in   then Array(value) | Array(other_value)
             end
 
             next  # process the next other condition

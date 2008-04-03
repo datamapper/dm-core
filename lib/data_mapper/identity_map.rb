@@ -41,5 +41,5 @@ module DataMapper
       @cache.delete(resource)
     end
     
-  end
-end
+  end # class IdentityMap
+end # module DataMapper

@@ -105,5 +105,5 @@ module DataMapper
 
       result
     end
-  end
-end
+  end # class PropertySet
+end # module DataMapper

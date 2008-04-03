@@ -64,5 +64,5 @@ module DataMapper
         end
       end
     end
-  end
-end
+  end # module Hook
+end # module DataMapper

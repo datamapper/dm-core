@@ -26,19 +26,19 @@ module DataMapper
       def self.call(value)
         DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value))
       end
-    end
+    end # module UnderscoredAndPluralized
   
     module Underscored
       def self.call(value)
         DataMapper::Inflection.underscore(value)
       end
-    end
+    end # module Underscored
     
     module Yaml
       def self.call(value)
         DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value)) + ".yaml"
       end
-    end
+    end # module Yaml
     
   end # module NamingConventions
 end # module DataMapper

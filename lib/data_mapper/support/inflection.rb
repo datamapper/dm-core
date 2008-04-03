@@ -136,5 +136,5 @@ module DataMapper
       end
 
     end
-  end
-end
+  end # module Inflection
+end # module DataMapper

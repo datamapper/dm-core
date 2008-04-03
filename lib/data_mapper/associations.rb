@@ -35,5 +35,5 @@ module DataMapper
         when Fixnum then one_to_one(name, options)
       end
     end
-  end
-end
+  end # module Associations
+end # module DataMapper

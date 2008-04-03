@@ -27,11 +27,11 @@ module DataMapper
   #     primitive String
   #     size 10
   #
-  #     def self.materialize(value)
+  #     def self.dump(value)
   #       <work some magic>
   #     end
   #
-  #     def self.serialize(value)
+  #     def self.load(value)
   #       <work some magic>
   #     end
   #   end
@@ -150,10 +150,10 @@ module DataMapper
       value
     end
 
-  end #class Type
+  end # class Type
 
   def self.Type(primitive_type, options = {})
     Class.new(Type).configure(primitive_type, options)
   end
 
-end #module DataMapper
+end # module DataMapper

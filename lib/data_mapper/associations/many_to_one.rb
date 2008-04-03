@@ -65,7 +65,7 @@ module DataMapper
             @relationship.attach_parent(@child, @parent)
           end
         end
-      end
-    end # module BelongsTo
+      end # class Instance
+    end # module ManyToOne
   end # module Associations
 end # module DataMapper

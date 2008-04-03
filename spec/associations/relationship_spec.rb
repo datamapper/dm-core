@@ -7,7 +7,7 @@ describe DataMapper::Associations::Relationship do
     @adapter = DataMapper::Repository.adapters[:relationship_spec] || DataMapper.setup(:relationship_spec, 'mock://localhost')
   end
   
-  it "should describe an asociation" do
+  it "should describe an association" do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
       :relationship_spec,
@@ -21,7 +21,7 @@ describe DataMapper::Associations::Relationship do
     belongs_to.should respond_to(:parent)
   end
   
-  it "should map properties explicitly when an association method passes them in it's options" do
+  it "should map properties explicitly when an association method passes them in its options" do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
       :relationship_spec,

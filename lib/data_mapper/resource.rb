@@ -311,6 +311,6 @@ module DataMapper
           end
         end
       end
-    end
-  end
-end
+    end # module ClassMethods
+  end # module Resource
+end # module DataMapper

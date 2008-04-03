@@ -101,7 +101,7 @@ module DataMapper
       @entries.uniq!
       @entries.dup
     end
-  end
+  end # class LoadedSet
 
   class LazyLoadedSet < LoadedSet
 
@@ -127,6 +127,5 @@ module DataMapper
       super
     end
 
-  end
-
-end
+  end # class LazyLoadedSet
+end # module DataMapper

@@ -20,10 +20,10 @@ module DataMapper
         def recursive_const_get(nested_name)
           @nested_constants[nested_name]
         end
-      end
-    end
-  end
-end
+      end # module ClassMethods
+    end # module Object
+  end # module Support
+end # module DataMapper
 
 class Object #:nodoc:
   include DataMapper::Support::Object
