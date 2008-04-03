@@ -145,37 +145,4 @@ describe DataMapper::Property do
     DataMapper::Property.new(Zoo, :fortune, DataMapper::Types::Text, {}).primitive.should == String
   end
 
-  describe "tracking strategies" do
-    
-    before do
-      class Actor
-        include DataMapper::Resource
-        
-        property :id, Fixnum, :serial => true
-        property :name, String, :lock => true
-        property :notes, DataMapper::Types::Text, :track => false
-        property :age, Fixnum, :track => :set
-        property :rating, Fixnum # :track default should be false for immutable types
-        property :location, String # :track default should be :get for mutable types
-        property :lead, TrueClass, :track => :load
-        property :agent, String, :track => :hash # :track only Object#hash value on :load.
-          # Potentially faster, but less safe, so use judiciously, when the odds of a hash-collision are low.
-      end
-    end
-    
-    it "false" do
-      pending("Implementation...")
-      DataMapper::Resource::DIRTY.should_not be_nil
-    end
-    
-    it ":load"
-    
-    it ":hash"
-    
-    it ":get"
-    
-    it ":set"
-    
-  end
-
 end

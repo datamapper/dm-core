@@ -45,12 +45,12 @@ describe DataMapper::Type do
     TestType.length.should == TestType.size
   end
   
-  it "should raise NotImplmenetedException if load wasn't overriden" do
-    lambda { TestType.load("test") }.should raise_error(NotImplementedError)
+  it "should pass through the value if load wasn't overriden" do
+    TestType.load("test").should == "test"
   end
   
-  it "should raise NotImplmenetedException if dump wasn't overriden" do
-    lambda { TestType.dump("test") }.should raise_error(NotImplementedError)
+  it "should pass through the value if dump wasn't overriden" do
+    TestType.dump("test").should == "test"
   end
 
   it "should not raise NotImplmenetedException if load was overriden" do

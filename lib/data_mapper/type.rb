@@ -132,7 +132,7 @@ module DataMapper
     #
     # @public
     def self.dump(value)
-      raise NotImplementedError
+      value
     end
 
     # Stub instance method for serialization
@@ -147,7 +147,7 @@ module DataMapper
     #
     # @public
     def self.load(value)
-      raise NotImplementedError
+      value
     end
 
   end #class Type
