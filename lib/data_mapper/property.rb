@@ -280,7 +280,7 @@ module DataMapper
     end
 
     def field
-      @field || @field = repository.adapter.field_naming_convention.call(@options.fetch(:field, name))
+      @field ||= repository.adapter.field_naming_convention.call(@options.fetch(:field, name))
     end
 
     def name

@@ -14,7 +14,7 @@ module DataMapper
         end
         
         def translations
-          @translations || @translations = {}
+          @translations ||= {}
         end
       end
       

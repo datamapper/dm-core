@@ -23,7 +23,7 @@ module DataMapper
           private
 
           def #{name}_association
-            @#{name}_association || @#{name}_association = begin
+            @#{name}_association ||= begin
               association = self.class.relationships[:#{name}].
                   with_child(self, Instance) do |repository, child_rel, parent_rel, parent_res, child|
                     repository.all(parent_res, parent_rel.to_hash(child_rel.value(child))).first

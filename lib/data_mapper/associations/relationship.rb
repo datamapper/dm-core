@@ -28,7 +28,7 @@ module DataMapper
       end
 
       def child_key      
-        @child_key || @child_key = begin
+        @child_key ||= begin
           resource = @child.first.to_class
           resource_property_set = resource.properties(@repository_name)
 
@@ -51,7 +51,7 @@ module DataMapper
       end
 
       def parent_key
-        @parent_key || @parent_key = begin
+        @parent_key ||= begin
           resource = @parent.first.to_class
           resource_property_set = resource.properties(@repository_name)
 
