@@ -1,8 +1,6 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
-
-
 describe DataMapper::Query do
   GOOD_OPTIONS = [
     [ :reload,   false     ],
@@ -60,7 +58,6 @@ describe DataMapper::Query do
           query = DataMapper::Query.new(Article, :conditions => [ 'name = ?', 'dkubb' ])
           query.conditions.should == [ [ 'name = ?', [ 'dkubb' ] ] ]
         end
-
 
         it 'when they have another DM:Query as the value of sub-select' do
           class Acl
@@ -226,7 +223,7 @@ describe DataMapper::Query do
         @query.update(other).order.should == order
       end
 
-      # dkubb: I am not sure i understand the intent here. link now needs to be 
+      # dkubb: I am not sure i understand the intent here. link now needs to be
       #       a DM::Assoc::Relationship or the name (Symbol or String) of an
       #       association on the Resource -- thx guyvdb
       #
@@ -234,6 +231,7 @@ describe DataMapper::Query do
       #
       [ :links, :includes ].each do |attribute|
         it "##{attribute} with other #{attribute} unique values" do
+          pending 'DataMapper::Query::Path not ready'
           other = DataMapper::Query.new(Article, attribute => [ :stub, :other, :new ])
           @query.update(other).send(attribute).should == [ :stub, :other, :new ]
         end
@@ -385,7 +383,5 @@ describe DataMapper::Query do
         @query.should_not == DataMapper::Query.new(Article, :author => 'dkubb')
       end
     end
-
   end
-    
 end

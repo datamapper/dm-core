@@ -4,16 +4,13 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 require __DIR__.parent.parent + 'lib/data_mapper'
 
 begin
-
   require 'do_sqlite3'
 
   DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
 
-  describe DataMapper::Query do 
-
-    describe "when ordering" do
+  describe DataMapper::Query do
+    describe 'when ordering' do
       before do
-
         @adapter = repository(:sqlite3).adapter
         @adapter.execute(<<-EOS.compress_lines) rescue nil
           CREATE TABLE "sail_boats" (
@@ -31,9 +28,7 @@ begin
 
           class << self
             def property_by_name(name)
-              properties(repository.name).detect do |property|
-                property.name == name
-              end
+              properties(repository.name).detect(name)
             end
           end
         end
@@ -45,21 +40,20 @@ begin
 
       it "should order results" do
         result = repository(:sqlite3).all(SailBoat,{:order => [
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
+          DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
         ]})
         result[0].id.should == 1
 
         result = repository(:sqlite3).all(SailBoat,{:order => [
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+          DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
         ]})
         result[0].id.should == 3
 
         result = repository(:sqlite3).all(SailBoat,{:order => [
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc),
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+          DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc),
+          DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
         ]})
         result[0].id.should == 1
-
 
         result = repository(:sqlite3).all(SailBoat,{:order => [
             SailBoat.property_by_name(:name),
@@ -71,12 +65,10 @@ begin
       after do
        @adapter.execute('DROP TABLE "sail_boats"')
       end
-
     end
-    
-    describe "when sub-selecting" do
 
-      before() do
+    describe 'when sub-selecting' do
+      before do
         @adapter = repository(:sqlite3).adapter
 
         @adapter.execute(<<-EOS.compress_lines) rescue nil
@@ -114,11 +106,9 @@ begin
           property :captain, String
         end
 
-
         repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "Fantasy I", :port => "Cape Town", :captain => 'Joe'))
         repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "Royal Flush II", :port => "Cape Town", :captain => 'James'))
         repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "Infringer III", :port => "Cape Town", :captain => 'Jason'))
-
 
         #User 1 permission -- read boat 1 & 2
         repository(:sqlite3).save(Permission.new(:id => 1, :user_id => 1, :resource_id => 1, :resource_type => 'SailBoat', :token => 'READ'))
@@ -127,9 +117,7 @@ begin
         #User 2 permission  -- read boat 2 & 3
         repository(:sqlite3).save(Permission.new(:id => 3, :user_id => 2, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ'))
         repository(:sqlite3).save(Permission.new(:id => 4, :user_id => 2, :resource_id => 3, :resource_type => 'SailBoat', :token => 'READ'))
-
       end
-
 
       it 'should accept a DM::Query as a value of a condition' do
         # User 1
@@ -149,7 +137,6 @@ begin
         boats[1].id.should == 3
       end
 
-
       it 'when value is NOT IN another query' do
         # Boats that User 1 Cannot see
         acl = DataMapper::Query.new(Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
@@ -159,23 +146,13 @@ begin
         boats[0].id.should == 3
       end
 
-      after() do
+      after do
         @adapter.execute('DROP TABLE "sail_boats"')
         @adapter.execute('DROP TABLE "permissions"')
       end
-
     end  # describe sub-selecting
-    
-    
-    
+
     describe 'when having links' do
-    
-      after() do
-        @adapter.execute('DROP TABLE "regions"')
-        @adapter.execute('DROP TABLE "factories"')
-        @adapter.execute('DROP TABLE "vehicles"')            
-      end
-    
       before do
         @adapter = repository(:sqlite3).adapter
         @adapter.execute(<<-EOS.compress_lines) rescue nil
@@ -201,79 +178,75 @@ begin
         class Region
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
-          property :name, String        
+          property :name, String
         end
-                
+
         class Factory
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
           property :region_id, Fixnum
           property :name, String
-          
+
           many_to_one :region
         end
-                
-        class Vehicle 
+
+        class Vehicle
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
           property :factory_id, Fixnum
           property :name, String
-          
+
           many_to_one :factory
         end
-        
+
         repository(:sqlite3) do
           Region.new(:id=>1,:name=>'North West').save
-          Factory.new(:id=>2000,:region_id=>1,:name=>'North West Plant').save      
+          Factory.new(:id=>2000,:region_id=>1,:name=>'North West Plant').save
           Vehicle.new(:id=>1,:factory_id=>2000,:name=>'10 ton delivery truck').save
-          
+
           #Teacher.new(:id_a => 1, :id_b => 2, :name => 'Math Prof').save
           #Student.new(:id => 1, :parent_id_a => 1, :parent_id_b => 2,:name => 'Joey').save
         end
-        
-        
       end
-    
-     it 'should accept a DM::Assoc::Relationship as a link' do         
+
+      it 'should accept a DM::Assoc::Relationship as a link' do
         factory = DataMapper::Associations::Relationship.new( :factory,
                                                         repository(:sqlite3),
                                                         ['Vehicle',[:factory_id]],
-                                                        ['Factory',[:id]])      
-          query = DataMapper::Query.new(Vehicle,:links => [factory])
-          results = @adapter.read_set(repository(:sqlite3),query)
-          results.length.should == 1
+                                                        ['Factory',[:id]])
+        query = DataMapper::Query.new(Vehicle,:links => [factory])
+        results = @adapter.read_set(repository(:sqlite3),query)
+        results.length.should == 1
       end
-      
-      
+
       it 'should accept a symbol of an association name as a link' do
-          query = DataMapper::Query.new(Vehicle,:links => [:factory])
-          results = @adapter.read_set(repository(:sqlite3),query)
-          results.length.should == 1
+        query = DataMapper::Query.new(Vehicle,:links => [:factory])
+        results = @adapter.read_set(repository(:sqlite3),query)
+        results.length.should == 1
       end
-      
+
       it 'should accept a string of an association name as a link' do
-          query = DataMapper::Query.new(Vehicle,:links => ['factory'])
-          results = @adapter.read_set(repository(:sqlite3),query)
-          results.length.should == 1        
+        query = DataMapper::Query.new(Vehicle,:links => ['factory'])
+        results = @adapter.read_set(repository(:sqlite3),query)
+        results.length.should == 1
       end
-      
+
       it 'should accept a mixture of items as a set of links' do
         region = DataMapper::Associations::Relationship.new(:region,
                                                         repository(:sqlite3),
                                                         ['Factory',[:region_id]],
-                                                        ['Region',[:id]])    
-                                                            
-          query = DataMapper::Query.new(Vehicle,:links => ['factory',region])
-          results = @adapter.read_set(repository(:sqlite3),query)
-          results.length.should == 1                                    
+                                                        ['Region',[:id]])
+        query = DataMapper::Query.new(Vehicle,:links => ['factory',region])
+        results = @adapter.read_set(repository(:sqlite3),query)
+        results.length.should == 1
       end
-      
+
       it 'should only accept a DM::Assoc::Relationship, String & Symbol as a link' do
         lambda{
           DataMapper::Query.new(Vehicle,:links => [1])
         }.should raise_error(ArgumentError)
       end
-      
+
       it 'should have a association by the name of the Symbol or String' do
         lambda{
           DataMapper::Query.new(Vehicle,:links=>['Sailing'])
@@ -281,17 +254,20 @@ begin
 
         lambda{
           DataMapper::Query.new(Vehicle,:links=>[:sailing])
-        }.should raise_error(ArgumentError) 
+        }.should raise_error(ArgumentError)
       end
-      
-      it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'       
+
+      it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'
+
       it 'should create links with composite keys'
-      
-      
-      
-    end   # describe links       
+
+      after do
+        @adapter.execute('DROP TABLE "regions"')
+        @adapter.execute('DROP TABLE "factories"')
+        @adapter.execute('DROP TABLE "vehicles"')
+      end
+    end   # describe links
   end # DM::Query
-  
 rescue LoadError
   warn "integration/query_spec not run! Could not load do_sqlite3."
 end
