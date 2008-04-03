@@ -110,11 +110,6 @@ module DataMapper
       @conditions = new_conditions
     end
 
-    def debug
-      puts "#{@link.inspect}"
-    end
-
-
     alias reload? reload
 
     private
@@ -269,8 +264,12 @@ module DataMapper
       end
     end
 
-    # normalize links to DM::Associations::Relationship
+    # normalize links to DM::Query::Path
     def normalize_links
+      # XXX: this should normalize to DM::Query::Path, not DM::Association::Relationship
+      # because a link may be more than one-hop-away from the source.  A DM::Query::Path
+      # should include an Array of Relationship objects that trace the "path" between
+      # the source and the target.
       @links = @links.map do |link|
         case link
           when DataMapper::Associations::Relationship

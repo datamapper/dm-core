@@ -4,23 +4,63 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 require __DIR__.parent.parent + 'lib/data_mapper'
 
 begin
-
   require 'do_sqlite3'
 
   DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
 
+  class Engine
+    include DataMapper::Resource
+
+    property :id, Fixnum, :serial => true
+    property :name, String
+  end
+
+  class Yard
+    include DataMapper::Resource
+
+    property :id, Fixnum, :serial => true
+    property :name, String
+
+    many_to_one :engine, :repository_name => :sqlite3
+  end
+
+  class Pie
+    include DataMapper::Resource
+
+    property :id, Fixnum, :serial => true
+    property :name, String
+  end
+
+  class Sky
+    include DataMapper::Resource
+
+    property :id, Fixnum, :serial => true
+    property :name, String
+
+    one_to_one :pie, :repository_name => :sqlite3
+  end
+
+  class Host
+    include DataMapper::Resource
+
+    property :id, Fixnum, :serial => true
+    property :name, String
+
+    one_to_many :slices, :repository_name => :sqlite3
+  end
+
+  class Slice
+    include DataMapper::Resource
+
+    property :id, Fixnum, :serial => true
+    property :name, String
+
+    many_to_one :host, :repository_name => :sqlite3
+  end
 
   describe DataMapper::Associations do
-
     describe "many to one associations" do
       before do
-        class Engine
-          include DataMapper::Resource
-
-          property :id, Fixnum, :serial => true
-          property :name, String
-        end
-
         @adapter = repository(:sqlite3).adapter
 
         @adapter.execute(<<-EOS.compress_lines)
@@ -33,15 +73,6 @@ begin
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 1, 'engine1')
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 2, 'engine2')
 
-        class Yard
-          include DataMapper::Resource
-
-          property :id, Fixnum, :serial => true
-          property :name, String
-
-          many_to_one :engine, :repository_name => :sqlite3
-        end
-
         @adapter.execute(<<-EOS.compress_lines)
           CREATE TABLE "yards" (
             "id" INTEGER PRIMARY KEY,
@@ -52,7 +83,6 @@ begin
 
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, ?)', 1, 'yard1', 1)
       end
-
 
       it "should materialize without the parent"
 
@@ -104,15 +134,6 @@ begin
 
     describe "one to one associations" do
       before do
-        class Sky
-          include DataMapper::Resource
-
-          property :id, Fixnum, :serial => true
-          property :name, String
-
-          one_to_one :pie, :repository_name => :sqlite3
-        end
-
         @adapter = repository(:sqlite3).adapter
 
         @adapter.execute(<<-EOS.compress_lines)
@@ -124,13 +145,6 @@ begin
 
         @adapter.execute('INSERT INTO "skies" ("id", "name") values (?, ?)', 1, 'sky1')
 
-        class Pie
-          include DataMapper::Resource
-
-          property :id, Fixnum, :serial => true
-          property :name, String
-        end
-
         @adapter.execute(<<-EOS.compress_lines)
           CREATE TABLE "pies" (
             "id" INTEGER PRIMARY KEY,
@@ -138,7 +152,6 @@ begin
             "sky_id" INTEGER
           )
         EOS
-
 
         @adapter.execute('INSERT INTO "pies" ("id", "name", "sky_id") values (?, ?, ?)', 1, 'pie1', 1)
         @adapter.execute('INSERT INTO "pies" ("id", "name") values (?, ?)', 2, 'pie2')
@@ -194,15 +207,6 @@ begin
 
     describe "one to many associations" do
       before do
-        class Host
-          include DataMapper::Resource
-
-          property :id, Fixnum, :serial => true
-          property :name, String
-
-          one_to_many :slices, :repository_name => :sqlite3
-        end
-
         @adapter = repository(:sqlite3).adapter
 
         @adapter.execute(<<-EOS.compress_lines)
@@ -214,15 +218,6 @@ begin
 
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 2, 'host2')
-
-        class Slice
-          include DataMapper::Resource
-
-          property :id, Fixnum, :serial => true
-          property :name, String
-
-          many_to_one :host, :repository_name => :sqlite3
-        end
 
         @adapter.execute(<<-EOS.compress_lines)
           CREATE TABLE "slices" (
@@ -293,9 +288,6 @@ begin
       end
     end
   end
-  
 rescue LoadError
   warn "integration/association_spec not run! Could not load do_sqlite3."
-end  
-  
-  
+end
