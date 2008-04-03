@@ -26,18 +26,6 @@ module DataMapper
         @parent             = parent
         @loader             = loader
       end
-      
-#      def child_resource
-#        @child
-#      end
-#      
-#      def parent_resource
-#        @parent
-#      end      
-
-     
-
-
 
       def child_key      
         @child_key || @child_key = begin
