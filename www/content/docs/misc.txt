@@ -88,7 +88,7 @@ h2. Chained Associations
 
 Say you want to find all of the animals in a zoo, but Animal belongs to Exhibit which belongs to Zoo.  Other ORMs solve this problem by providing a means to describe the double JOINs into the retrieval call for Animals. ActiveRecord specifically will let you specify JOINs in a hash-of-hashes syntax which will make most developers throw up a little in their mouths.
 
-Datamapper's solution is to let you chain association calls:
+DataMapper's solution is to let you chain association calls:
 
 <% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 zoo = Zoo.first

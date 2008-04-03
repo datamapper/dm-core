@@ -63,7 +63,7 @@ Next, we mixed and matched the keys' types.  @:id@ is a Fixnum, but @:slug@ is a
 
 Lastly, when retrieving rows via @get@ and @[]@ with a CPK(Composite Primary Keys), we supplied the keys in the order they were defined within our model.  For example, we defined @:id@ first, then @:slug@ second; later, we retrieved Porky by specifying his @:id@ and @:slug@ in the same order.  Additionally, when we asked Wilbur for his keys, he handed us an array in the order the keys were defined.
 
-We didn't need to mix in an external library to get support for CPK(Composite Primary Keys)s, nor did we need to call a @set_primary_key@ method and then supply more than one key to it. Datamapper supports Composite Primary Keys intuitively and without compromise!
+We didn't need to mix in an external library to get support for CPK(Composite Primary Keys)s, nor did we need to call a @set_primary_key@ method and then supply more than one key to it. DataMapper supports Composite Primary Keys intuitively and without compromise!
 
 In later "Spotlight On..." articles, we'll examine and demonstrate other DataMapper features or persistence concepts as well as compare similar features with other ORMs or libraries.
 

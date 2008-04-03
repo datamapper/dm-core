@@ -63,7 +63,7 @@ post.comments.create(:name => 'Anansi', :body => 'I would lose a leg before I le
 
 h2. Has Many Through
 
-Has Many Through is a special kind of Has Many relationship which, rather than using an 'automatic' @table_table@ join table, uses another model's table.  Though at present Datamapper does no have a special syntax for defining an HMT relationship, it's very easily done manually with the following:
+Has Many Through is a special kind of Has Many relationship which, rather than using an 'automatic' @table_table@ join table, uses another model's table.  Though at present DataMapper does no have a special syntax for defining an HMT relationship, it's very easily done manually with the following:
 
 <% coderay(:lang => "ruby", :line_numbers => "inline") do -%>
 class Post < DataMapper::Base
