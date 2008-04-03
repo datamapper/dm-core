@@ -164,7 +164,7 @@ module DataMapper
       # Hash:: alias map or empty hash
       #
       def aliasing_hash_aliases
-        return @aliases ||= {}
+        @aliases ||= {}
       end
     end # module AliasingHash
     

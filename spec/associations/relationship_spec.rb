@@ -130,8 +130,7 @@ class Vehicle
   private
   # This is all class-evaled code defined by belongs_to:
   def manufacturer_association_set
-    @manufacturer_association_set || 
-      @manufacturer_association_set = AssociationSet.new(
+    @manufacturer_association_set ||= AssociationSet.new(
         self.class.associations(repository.name).detect(:manufacturer)
       ) do |set|
         # This block is the part that will change between different associations.

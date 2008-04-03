@@ -33,11 +33,11 @@ module DataMapper
     end
 
     def defaults
-      @defaults || @defaults = reject { |property| property.lazy? }
+      @defaults ||= reject { |property| property.lazy? }
     end
 
     def key
-      @key || @key = select { |property| property.key? }
+      @key ||= select { |property| property.key? }
     end
 
     def value(instance)
@@ -59,7 +59,7 @@ module DataMapper
     end
 
     def lazy_contexts
-      @lazy_context || @lazy_context = {}
+      @lazy_context ||= {}
     end
 
     def lazy_context(name)
