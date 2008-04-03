@@ -108,6 +108,11 @@ h3. The People Behind DataMapper
   </div>
 
   <div class="thumb">
+    <img src="http://en.gravatar.com/avatar/949106533af33ece50adda643c34bc08?s=80" title="Robert Evans" />
+    <p><a href="http://robertrevans.com/">Robert Evans</a></p>
+  </div>
+
+  <div class="thumb">
     <img src="/images/martini.gif" title="you" alt="you could be here" />
     <p>More to come!</p>
   </div>
