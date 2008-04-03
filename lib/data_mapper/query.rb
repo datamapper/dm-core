@@ -110,6 +110,11 @@ module DataMapper
       @conditions = new_conditions
     end
 
+    def debug
+      puts "#{@link.inspect}"
+    end
+
+
     alias reload? reload
 
     private
@@ -129,7 +134,11 @@ module DataMapper
       @limit      = options.fetch :limit,    nil    # must be an Integer greater than or equal to 1
       @order      = options.fetch :order,    []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @fields     = options.fetch :fields,   @properties.defaults  # must be an Array of Symbol, String or DM::Property
-      @links      = options.fetch :links,    []     # must be an Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
+      
+      
+      @links      = options.fetch :links,    []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
+      
+      
       @includes   = options.fetch :includes, []     # must be an Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
       @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
 

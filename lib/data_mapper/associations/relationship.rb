@@ -26,8 +26,20 @@ module DataMapper
         @parent             = parent
         @loader             = loader
       end
+      
+#      def child_resource
+#        @child
+#      end
+#      
+#      def parent_resource
+#        @parent
+#      end      
 
-      def child
+     
+
+
+
+      def child_key      
         @child_key || @child_key = begin
           resource = @child.first.to_class
           resource_property_set = resource.properties(@repository_name)
@@ -35,14 +47,14 @@ module DataMapper
           if @child[1].nil?
             # Default t the parent key we're binding to prefixed with the
             # association name.
-            PropertySet.new.concat(parent.map do |property|
+            PropertySet.new.concat(parent_key.map do |property|
               property_name = "#{@name}_#{property.name}"
               resource_property_set.detect(property_name) || resource.property(property_name.to_sym, property.type)
             end)
           else
             i = 0
             PropertySet.new.concat(@child[1].map do |property_name|
-              parent_property = parent[i]
+              parent_property = parent_key[i]
               i += 1
               resource_property_set.detect(property_name) || resource.property(property_name, parent_property.type)
             end)
@@ -50,7 +62,7 @@ module DataMapper
         end
       end
 
-      def parent
+      def parent_key
         @parent_key || @parent_key = begin
           resource = @parent.first.to_class
           resource_property_set = resource.properties(@repository_name)
@@ -65,18 +77,18 @@ module DataMapper
 
       def with_child(child_inst, association, &loader)
         association.new(self, child_inst, lambda {
-          loader.call(repository(@repository_name), child, parent, parent_resource, child_inst)
+          loader.call(repository(@repository_name), child_key, parent_key, parent_resource, child_inst)
         })
       end
 
       def with_parent(parent_inst, association, &loader)
         association.new(self, parent_inst, lambda {
-          loader.call(repository(@repository_name), child, parent, child_resource, parent_inst)
+          loader.call(repository(@repository_name), child_key, parent_key, child_resource, parent_inst)
         })
       end
 
       def attach_parent(child, parent)
-        self.child.set(parent && self.parent.value(parent), child)
+        self.child_key.set(parent && self.parent_key.value(parent), child)
       end
 
       def parent_resource
