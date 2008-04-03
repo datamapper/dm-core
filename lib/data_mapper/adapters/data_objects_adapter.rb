@@ -305,13 +305,43 @@ module DataMapper
         def query_read_statement(query)
           qualify = query.links.any?
 
-          sql = "SELECT "
-
+          sql = "SELECT "    
+          
           sql << query.fields.map do |property|
-            property_to_column_name(query.resource_name, property, qualify)
+            resource_name = property.target.resource_name(property.target.repository.name)
+            property_to_column_name(resource_name, property, qualify)
           end.join(', ')
 
           sql << " FROM " << quote_table_name(query.resource_name)
+                
+          unless query.links.empty?
+            joins = []
+            query.links.map do |relationship|
+            
+              child_resource = relationship.child_resource
+              parent_resource = relationship.parent_resource       
+              child_resource_name = child_resource.resource_name(child_resource.repository.name)
+              parent_resource_name = parent_resource.resource_name(parent_resource.repository.name)
+              
+              s = 'LEFT OUTER JOIN '              
+              s << parent_resource_name << ' ON '
+              i = 0
+              parts = []
+              relationship.parent_key.map do |parent_key| 
+                part = ' ('
+                part <<  property_to_column_name(parent_resource_name, parent_key, true) 
+                part << ' = ' 
+                part <<  property_to_column_name(child_resource_name,relationship.child_key[i], true) 
+                part << ')'
+                i += 1
+                parts << part
+              end
+              s << parts.join(' AND ')
+              joins << s
+            end
+            sql << joins.join(' ')
+          end
+
 
           unless query.conditions.empty?
             sql << " WHERE "
@@ -340,7 +370,7 @@ module DataMapper
 
           sql << " LIMIT #{query.limit}" if query.limit
           sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
-
+          
           sql
         end
 
@@ -368,10 +398,10 @@ module DataMapper
 
         def property_to_column_name(resource_name, property, qualify)
           if qualify
-            quote_table_name(query.resource_name) + '.' + quote_column_name(property.field)
+            quote_table_name(resource_name) + '.' + quote_column_name(property.field)
           else
             quote_column_name(property.field)
-          end
+          end    
         end
       end #module SQL
 

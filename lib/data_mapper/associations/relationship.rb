@@ -54,7 +54,7 @@ module DataMapper
           else
             i = 0
             PropertySet.new.concat(@child[1].map do |property_name|
-              parent_property = parent[i]
+              parent_property = parent_key[i]
               i += 1
               resource_property_set.detect(property_name) || resource.property(property_name, parent_property.type)
             end)

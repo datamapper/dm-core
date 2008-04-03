@@ -164,9 +164,112 @@ begin
         @adapter.execute('DROP TABLE "permissions"')
       end
 
-    end  
+    end  # describe sub-selecting
+    
+    
+    
+    describe 'when having links' do
+    
+      after() do
+        @adapter.execute('DROP TABLE "regions"')
+        @adapter.execute('DROP TABLE "factories"')
+        @adapter.execute('DROP TABLE "vehicles"')
+        
+      end
+    
+      before do
+        @adapter = repository(:sqlite3).adapter
+        @adapter.execute(<<-EOS.compress_lines) rescue nil
+          CREATE TABLE "regions" (
+            "id" INTEGER PRIMARY KEY,
+            "name" VARCHAR(50)
+          )
+        EOS
+        @adapter.execute(<<-EOS.compress_lines) rescue nil
+          CREATE TABLE "factories" (
+            "id" INTEGER PRIMARY KEY,
+            "region_id" INTEGER,
+            "name" VARCHAR(50)
+          )
+        EOS
+        @adapter.execute(<<-EOS.compress_lines) rescue nil
+          CREATE TABLE "vehicles" (
+            "id" INTEGER PRIMARY KEY,
+            "factory_id" INTEGER,
+            "name" VARCHAR(50)
+          )
+        EOS
+        
+        class Region
+          include DataMapper::Resource
+          property :id, Fixnum, :serial => true
+          property :name, String        
+        end
+        
+        class Factory
+          include DataMapper::Resource
+          property :id, Fixnum, :serial => true
+          property :region_id, Fixnum
+          property :name, String
+          
+          many_to_one :region
+        end
+        
+        class Vehicle 
+          include DataMapper::Resource
+          property :id, Fixnum, :serial => true
+          property :factory_id, Fixnum
+          property :name, String
+          
+          many_to_one :factory
+        end
+        
+        repository(:sqlite3) do
+          Region.new(:id=>1,:name=>'North West').save
+          Factory.new(:id=>1,:region_id=>1,:name=>'North West Plant').save
+          Vehicle.new(:id=>1,:factory_id=>1,:name=>'10 ton delivery truck').save
+        end
+        
+      end
+    
+    
+     # it 'should accept symbols'     
+     # it 'should accept strings' 
+      
+      it 'should accept a single/array of DM::Assoc::Relationship' do
+        
+        vf_rel = DataMapper::Associations::Relationship.new( :factory,
+                                                        repository(:sqlite3),
+                                                        ['Vehicle',[:factory_id]],
+                                                        ['Factory',[:id]])
+                                                        
+                                                        
+        fr_rel = DataMapper::Associations::Relationship.new( :region,
+                                                        repository(:sqlite3),
+                                                        ['Factory',[:region_id]],
+                                                        ['Region',[:id]])                                                        
+                                                        
+                  
+          # We want factory ID
+          fields = []
+          fields <<  Factory.properties(:sqlite3).detect(:id)                             
+          
+          Vehicle.properties(:sqlite3).map do | property|
+            fields << property
+          end
+      
+          query = DataMapper::Query.new(Vehicle,:links => [vf_rel,fr_rel], :fields => fields)
+          results = @adapter.read_set(repository(:sqlite3),query)
+        
+      end
+
+    end   # describe links       
+     
+    
+    
+    
   
-  end
+  end # DM::Query
   
 rescue LoadError
   warn "integration/query_spec not run! Could not load do_sqlite3."
