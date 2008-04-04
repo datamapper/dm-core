@@ -9,11 +9,11 @@ module DataMapper
   class RepositoryNotSetupError < StandardError; end
   
   class IncompleteResourceError < StandardError; end
-end
+end # module DataMapper
 
 class StandardError
   
   def display
     "#{message}\n\t#{backtrace.join("\n\t")}"
   end
-end
+end # class StandardError

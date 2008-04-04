@@ -25,7 +25,7 @@ module Kernel
       end
     end
   end
-end
+end # module Kernel
 
 module DataMapper
 
@@ -160,6 +160,5 @@ module DataMapper
       end
     end
 
-  end
-
-end
+  end # class Repository
+end # module DataMapper

@@ -48,6 +48,6 @@ module DataMapper
           raise
         end
       end
-    end
-  end
-end
+    end # class ParentToChildAssociation
+  end # module Associations
+end # module DataMapper

@@ -80,7 +80,7 @@ module DataMapper
             raise
           end
         end
-      end
-    end
+      end # class Instance
+    end # module OneToMany
   end # module Associations
 end # module DataMapper

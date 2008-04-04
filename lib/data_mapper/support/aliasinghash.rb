@@ -166,11 +166,11 @@ module DataMapper
       def aliasing_hash_aliases
         @aliases ||= {}
       end
-    end
+    end # module AliasingHash
     
-  end
-end
+  end # module Support
+end # module DataMapper
 
-class AliasingHash < Hash
+class AliasingHash < Hash #:nodoc:
   include DataMapper::Support::AliasingHash
 end

@@ -8,7 +8,7 @@ module DataMapper
       
       def create_with_returning?; true; end
       
-    end # class PostgresqlAdapter
+    end # class PostgresAdapter
     
   end # module Adapters
 end # module DataMapper

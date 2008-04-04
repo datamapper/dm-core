@@ -4,6 +4,6 @@ module DataMapper
       primitive String
       size 65535
       lazy true
-    end
+    end # class Text
   end # module Types  
 end # module DataMapper

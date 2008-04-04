@@ -32,5 +32,5 @@ module DataMapper
     def modify_table(table, columns)
       raise NotImplementedError.new
     end
-  end
-end
+  end # module AutoMigrations
+end # module DataMapper

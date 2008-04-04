@@ -198,6 +198,6 @@ module DataMapper
       LEVELMETHODS
     end
 
-  end
+  end # class Logger
   
-end
+end # module DataMapper
