@@ -47,14 +47,14 @@ def profile(&b)
 end
 
 profile do
-#  10_000.times { touch_attributes[Exhibit.get(1)] }
-#
+  10_000.times { touch_attributes[Exhibit.get(1)] }
+
 #  repository(:default) do
 #    10_000.times { touch_attributes[Exhibit.get(1)] }
 #  end
-
-  1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
-
+#
+#  1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
+#
 #  repository(:default) do
 #    1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
 #  end

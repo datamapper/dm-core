@@ -11,11 +11,11 @@ module DataMapper
     class MysqlAdapter < DataObjectsAdapter
 
       def quote_table_name(table_name)
-        table_name.ensure_wrapped_with('`')
+        "`#{table_name}`"
       end
 
       def quote_column_name(column_name)
-        column_name.ensure_wrapped_with('`')
+        "`#{column_name}`"
       end
 
       def rewrite_uri(uri, options)
