@@ -268,17 +268,17 @@ module DataMapper
 
     # defines the getter for the property
     def create_getter!
-      @target.class_eval <<-EOS
-      #{reader_visibility.to_s}
-      def #{name}
-        self[#{name.inspect}]
-      end
+      @target.class_eval <<-EOS, __FILE__, __LINE__
+        #{reader_visibility}
+        def #{name}
+          self[#{name.inspect}]
+        end
       EOS
 
       if type == TrueClass
-        @target.class_eval <<-EOS
-        #{reader_visibility.to_s}
-        alias #{name.to_s.ensure_ends_with('?')} #{name}
+        @target.class_eval <<-EOS, __FILE__, __LINE__
+          #{reader_visibility}
+          alias #{name.to_s.ensure_ends_with('?')} #{name}
         EOS
       end
     rescue SyntaxError
@@ -287,11 +287,11 @@ module DataMapper
 
     # defines the setter for the property
     def create_setter!
-      @target.class_eval <<-EOS
-      #{writer_visibility.to_s}
-      def #{name}=(value)
-        self[#{name.inspect}] = value
-      end
+      @target.class_eval <<-EOS, __FILE__, __LINE__
+        #{writer_visibility}
+        def #{name}=(value)
+          self[#{name.inspect}] = value
+        end
       EOS
     rescue SyntaxError
       raise SyntaxError.new(column)
@@ -357,7 +357,7 @@ module DataMapper
       @options
     end
 
-    def value(instance)
+    def get(instance)
       instance[@name]
     end
 
@@ -366,7 +366,7 @@ module DataMapper
     end
 
     def inspect
-      "#<Property #{@target}:#{@name}>"
+      "#<Property:#{@target}:#{@name}>"
     end
   end # class Property
 end # module DataMapper

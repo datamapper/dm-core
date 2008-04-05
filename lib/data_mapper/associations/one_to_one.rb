@@ -3,18 +3,18 @@ require __DIR__ + 'relationship'
 module DataMapper
   module Associations
     module OneToOne
-
       def one_to_one(name, options = {})
-        child = (options[:class_name] || DataMapper::Inflection.classify(name))
+        child     = options[:class_name] || DataMapper::Inflection.classify(name)
         self_name = DataMapper::Inflection.demodulize(self.name)
 
-        self.relationships[name] = Relationship.new(
+        relationships[name] = Relationship.new(
           DataMapper::Inflection.underscore(self_name).to_sym,
-          options[:repository_name] || self.repository.name,
-          [child, nil],
-          [self_name, nil])
+          options[:repository_name] || repository.name,
+          [ child,     nil ],
+          [ self_name, nil ]
+        )
 
-        class_eval <<-EOS
+        class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
             #{name}_association.first
           end
@@ -32,7 +32,7 @@ module DataMapper
             @#{name}_association ||= begin
               association = self.class.relationships[:#{name}].
                 with_parent(self, Associations::OneToMany::Instance) do |repository, child_rel, parent_rel, child_res, parent|
-                  repository.all(child_res, child_rel.to_hash(parent_rel.value(parent)))
+                  repository.all(child_res, child_rel.to_query(parent_rel.get(parent)))
                 end
 
               parent_associations << association

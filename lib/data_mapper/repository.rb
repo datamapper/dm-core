@@ -151,7 +151,7 @@ module DataMapper
         @identity_map.delete(instance.class, instance.key)
         instance.instance_variable_set('@new_record', true)
         instance.dirty_attributes.clear
-        instance.class.properties(name).map do |property|
+        instance.class.properties(name).each do |property|
           instance.dirty_attributes << property if instance.attribute_loaded?(property.name)
         end
         true

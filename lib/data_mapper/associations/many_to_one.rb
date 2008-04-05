@@ -6,12 +6,17 @@ module DataMapper
   module Associations
     module ManyToOne
       def many_to_one(name, options = {})
-        target = (options[:class_name] || DataMapper::Inflection.camelize(name))
+        target    = options[:class_name] || DataMapper::Inflection.camelize(name)
+        self_name = DataMapper::Inflection.demodulize(self.name)
 
-        self.relationships[name] = Relationship.
-          new(name, options[:repository_name] || self.repository.name, [DataMapper::Inflection.demodulize(self.name), nil], [target, nil])
+        relationships[name] = Relationship.new(
+          name,
+          options[:repository_name] || repository.name,
+          [ self_name, nil ],
+          [ target,    nil ]
+        )
 
-        class_eval <<-EOS
+        class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
             #{name}_association.parent
           end
@@ -26,7 +31,7 @@ module DataMapper
             @#{name}_association ||= begin
               association = self.class.relationships[:#{name}].
                   with_child(self, Instance) do |repository, child_rel, parent_rel, parent_res, child|
-                    repository.all(parent_res, parent_rel.to_hash(child_rel.value(child))).first
+                  repository.all(parent_res, parent_rel.to_query(child_rel.get(child))).first
               end
 
               child_associations << association

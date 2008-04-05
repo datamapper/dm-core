@@ -86,7 +86,7 @@ module DataMapper
 
       #load DataMapper::Property options
       PROPERTY_OPTIONS.each do |property_option|
-        self.class_eval <<-EOS
+        self.class_eval <<-EOS, __FILE__, __LINE__
         def #{property_option}(arg = nil)
           return @#{property_option} if arg.nil?
 
@@ -98,7 +98,7 @@ module DataMapper
       #create property aliases
       PROPERTY_OPTION_ALIASES.each do |property_option, aliases|
         aliases.each do |ali|
-          self.class_eval <<-EOS
+          self.class_eval <<-EOS, __FILE__, __LINE__
           def #{ali}(arg = nil)
             #{property_option}(arg)
           end

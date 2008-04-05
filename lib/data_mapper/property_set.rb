@@ -1,35 +1,33 @@
 module DataMapper
+  class PropertySet
+    include Enumerable
 
-  class PropertySet < Array
-    def initialize
-      super
-      @cache_by_names = Hash.new do |h,k|
-        detect do |property|
-          if property.name == k
-            h[k.to_s] = h[k] = property
-          elsif property.name.to_s == k
-            h[k] = h[k.to_sym] = property
-          else
-            nil
-          end
-        end
-      end
+    def [](name)
+      @property_for[name]
     end
 
-    def select(*args, &b)
-      if block_given?
-        super
-      else
-        args.map { |arg| @cache_by_names[arg] }.compact
-      end
+    def slice(*names)
+      @property_for.values_at(*names)
     end
 
-    def detect(name = nil, &b)
-      if block_given?
-        super
-      else
-        @cache_by_names[name]
-      end
+    def add(*properties)
+      @properties.push(*properties)
+      self
+    end
+
+    alias << add
+
+    def length
+      @properties.length
+    end
+
+    def empty?
+      @properties.empty?
+    end
+
+    def each(&block)
+      @properties.each { |property| yield property }
+      self
     end
 
     def defaults
@@ -40,69 +38,87 @@ module DataMapper
       @key ||= select { |property| property.key? }
     end
 
-    def value(instance)
-      map { |p| p.value(instance) }
+    def get(resource)
+      map { |property| property.get(resource) }
     end
 
-    def set(value, instance)
-      each_with_index { |p, i| p.set(value && value[i], instance) }
-    end
-
-    def to_hash(values)
-      Hash[*zip(values).flatten]
-    end
-
-    def dup
-      clone = PropertySet.new
-      each { |property| clone << property }
-      clone
-    end
-
-    def lazy_contexts
-      @lazy_context ||= {}
+    def set(values, resource)
+      if values.kind_of?(Array)
+        raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller if values.length != length
+      elsif !values.nil?
+        raise ArgumentError, "+values+ must be nil or an Array, but was a #{values.class}", caller
+      end
+      each_with_index { |property,i| property.set(values.nil? ? nil : values[i], resource) }
     end
 
     def lazy_context(name)
-      lazy_contexts[name] = [] unless lazy_contexts.has_key?(name)
       lazy_contexts[name]
     end
 
-    def property_contexts(name)
-      result = []
-      lazy_contexts.map do |key,value|
-        result << key if value.include?(name)
-      end
-      result
-    end
-
     def lazy_load_context(names)
+      if names.kind_of?(Array)
+        raise ArgumentError, "+names+ cannot be an empty Array", caller if names.empty?
+      elsif !names.kind_of?(Symbol)
+        raise ArgumentError, "+names+ must be a Symbol or an Array of Symbols, but was a #{names.class}", caller
+      end
+
       result =  []
 
-      raise ArgumentError("+name+ must be an Array of Symbols of a Symbol") unless names.is_a?(Array) || names.is_a?(Symbol)
-      raise ArgumentError("+name+ cannot be an empty array") if names.is_a?(Array) && names.empty?
+      names = [ names ] if names.kind_of?(Symbol)
 
-      if names.is_a?(Symbol)
-        ctx = property_contexts(names)
-        result << names if ctx.blank?  # not lazy
-        ctx.each do |c|
-          lazy_context(c).each do |field|
-            result << field unless result.include?(field)
-          end
-        end
-      end
-
-      if names.is_a?(Array)
-        names.each do |n|
-          ctx = property_contexts(n)
-          result << n if ctx.blank?  # not lazy
-          ctx.each do |c|
-            lazy_context(c).each do |field|
+      names.each do |name|
+        contexts = property_contexts(name)
+        if contexts.empty?
+          result << name  # not lazy
+        else
+          contexts.each do |context|
+            lazy_context(context).each do |field|
               result << field unless result.include?(field)
             end
           end
         end
       end
 
+      result
+    end
+
+    def to_query(values)
+      Hash[ *zip(values).flatten ]
+    end
+
+    def inspect
+      '#<PropertySet:{' + map { |property| property.inspect }.join(',') + '}>'
+    end
+
+    private
+
+    def initialize(*properties, &block)
+      @properties   = properties
+      @property_for = Hash.new do |h,k|
+        case k
+          when Symbol
+            if property = detect { |property| property.name == k }
+              h[k.to_s] = h[k] = property
+            end
+          when String
+            if property = detect { |property| property.name.to_s == k }
+              h[k] = h[k.to_sym] = property
+            end
+          else
+            raise "Key must be a Symbol or String, but was #{k.class}"
+        end
+      end
+    end
+
+    def lazy_contexts
+      @lazy_contexts ||= Hash.new { |h,k| h[k] = [] }
+    end
+
+    def property_contexts(name)
+      result = []
+      lazy_contexts.each do |key,value|
+        result << key if value.include?(name)
+      end
       result
     end
   end # class PropertySet

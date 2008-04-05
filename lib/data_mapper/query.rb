@@ -205,7 +205,7 @@ module DataMapper
       if other.kind_of?(self.class)
         raise ArgumentError, "other #{self.class} must belong to the same repository" unless other.resource.repository == @resource.repository
       elsif !other.kind_of?(Hash)
-        raise ArgumentError, "other must be a #{self.class} or Hash object"
+        raise ArgumentError, "other must be a #{self.class} or Hash, but was a #{other.class}"
       end
     end
 
@@ -255,7 +255,7 @@ module DataMapper
             #end
             field
           when Symbol, String
-            property = @properties.detect(field)
+            property = @properties[field]
             raise ArgumentError, "Field #{field.inspect} does not map to a DataMapper::Property" if property.nil?
             property
           else
@@ -297,9 +297,9 @@ module DataMapper
           property
         when Operator
           operator = property.type
-          @properties.detect(property.to_sym)
+          @properties[property.to_sym]
         when Symbol, String
-          @properties.detect(property)
+          @properties[property]
         else
           raise ArgumentError, "Condition type #{property.inspect} not supported"
       end

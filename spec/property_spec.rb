@@ -121,12 +121,12 @@ describe DataMapper::Property do
     end
 
     tomato = Tomahto.new(:id => 1)
-    tomato.class.properties(:default).detect(:id).value(tomato).should == 1
+    tomato.class.properties(:default)[:id].get(tomato).should == 1
   end
 
   it 'should set the attribute value in a given instance' do
     tomato = Tomahto.new
-    tomato.class.properties(:default).detect(:id).set(2, tomato)
+    tomato.class.properties(:default)[:id].set(2, tomato)
     tomato.id.should == 2
   end
   

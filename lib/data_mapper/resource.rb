@@ -36,7 +36,7 @@ module DataMapper
 
     def [](name)
       ivar_name = name.to_s.ensure_starts_with('@')
-      property  = self.class.properties(repository.name).detect(name)
+      property  = self.class.properties(repository.name)[name]
 
       unless new_record? || attribute_loaded?(name)
         lazy_load!(name)
@@ -48,7 +48,7 @@ module DataMapper
 
     def []=(name, value)
       ivar_name = name.to_s.ensure_starts_with('@')
-      property  = self.class.properties(repository.name).detect(name)
+      property  = self.class.properties(repository.name)[name]
 
       if property && property.lock?
         instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
@@ -72,7 +72,7 @@ module DataMapper
 
     def key
       key = []
-      self.class.key(repository.name).map do |property|
+      self.class.key(repository.name).each do |property|
         value = instance_variable_get(property.instance_variable_name)
         key << value if !value.nil?
       end
@@ -118,7 +118,7 @@ module DataMapper
 
     def attribute_dirty?(name)
       raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
-      property = self.class.properties(repository.name).detect(name)
+      property = self.class.properties(repository.name)[name]
       dirty_attributes.include?(property)
     end
 

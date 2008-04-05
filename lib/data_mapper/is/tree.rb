@@ -69,14 +69,14 @@ module DataMapper
 
           include DataMapper::Is::Tree::InstanceMethods
 
-          class_eval <<-CLASS
-						def self.roots
-							self.all :#{configuration[:foreign_key]} => nil, :order => #{configuration[:order].inspect}
-						end
+          class_eval <<-CLASS, __FILE__, __LINE__
+            def self.roots
+              all :#{configuration[:foreign_key]} => nil, :order => #{configuration[:order].inspect}
+            end
 
-						def self.first_root
-							self.first :#{configuration[:foreign_key]} => nil, :order => #{configuration[:order].inspect}
-						end
+            def self.first_root
+              first :#{configuration[:foreign_key]} => nil, :order => #{configuration[:order].inspect}
+            end
           CLASS
 
           class << self
@@ -99,7 +99,7 @@ module DataMapper
 
         # Returns the root node of the current node’s tree.
         #
-        #		grandchild1.root # => root
+        #   grandchild1.root # => root
         def root
           node = self
           node = node.parent while node.parent

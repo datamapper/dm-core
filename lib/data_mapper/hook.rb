@@ -25,7 +25,7 @@ module DataMapper
           method_def << "  run_hook :#{name} #{hook_call}\n" if type == :after
           method_def << "end"
 
-          class_eval method_def
+          class_eval method_def, __FILE__, __LINE__
         end
       end
       

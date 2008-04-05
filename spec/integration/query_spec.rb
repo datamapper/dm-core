@@ -28,7 +28,7 @@ begin
 
           class << self
             def property_by_name(name)
-              properties(repository.name).detect(name)
+              properties(repository.name)[name]
             end
           end
         end

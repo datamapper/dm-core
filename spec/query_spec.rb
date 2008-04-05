@@ -10,7 +10,7 @@ describe DataMapper::Query do
     [ :limit,    1         ],
     [ :limit,    2         ],
     [ :order,    [ DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc) ] ],
-    [ :fields,   Article.properties(:default).defaults ], # TODO: fill in allowed default value
+    [ :fields,   Article.properties(:default).defaults.to_a ], # TODO: fill in allowed default value
     #[ :links,    [ :stub ] ], # TODO: fill in allowed default value
     [ :includes, [ :stub ] ], # TODO: fill in allowed default value
   ]
@@ -68,7 +68,7 @@ describe DataMapper::Query do
 
           acl_query = DataMapper::Query.new(Acl, :fields=>[:resource_id]) #this would normally have conditions
           query = DataMapper::Query.new(Article, :id.in => acl_query)
-          query.conditions.map do |operator, property, value|
+          query.conditions.each do |operator, property, value|
             operator.should == :in
             property.name.should == :id
             value.should == acl_query
@@ -131,7 +131,7 @@ describe DataMapper::Query do
 
     describe 'should normalize' do
       it '#fields' do
-        DataMapper::Query.new(Article, :fields => [:id]).fields.should == Article.properties(:default).select(:id)
+        DataMapper::Query.new(Article, :fields => [:id]).fields.should == Article.properties(:default).slice(:id).to_a
       end
     end
   end
@@ -239,7 +239,7 @@ describe DataMapper::Query do
 
       it "#fields with other fields unique values" do
         other = DataMapper::Query.new(Article, :fields => [ :blog_id ])
-        @query.update(other).fields.should == Article.properties(:default).select(:id, :author, :blog_id)
+        @query.update(other).fields.should == Article.properties(:default).slice(:id, :author, :blog_id).to_a
       end
 
       it '#conditions with other conditions when they are unique' do

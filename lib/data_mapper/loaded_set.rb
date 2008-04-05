@@ -13,9 +13,8 @@ module DataMapper
       @type = type
       @properties = properties
 
-      @inheritance_property_index = if @inheritance_property = @type.inheritance_property(@repository.name) &&
-        @properties.key?(@inheritance_property)
-        @properties.values_at(@inheritance_property)
+      @inheritance_property_index = if inheritance_property = @type.inheritance_property(@repository.name) && @properties.include?(inheritance_property)
+        @properties[inheritance_property]
       else
         nil
       end

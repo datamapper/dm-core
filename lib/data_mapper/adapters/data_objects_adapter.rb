@@ -318,23 +318,23 @@ module DataMapper
                 
           unless query.links.empty?
             joins = []
-            query.links.map do |relationship|
-            
+            query.links.each do |relationship|
               child_resource = relationship.child_resource
               parent_resource = relationship.parent_resource       
               child_resource_name = child_resource.resource_name(child_resource.repository.name)
               parent_resource_name = parent_resource.resource_name(parent_resource.repository.name)
+              child_keys           = relationship.child_key.to_a
               
               # We only do LEFT OUTER JOIN for now
               s = 'LEFT OUTER JOIN '              
               s << parent_resource_name << ' ON '
               i = 0
               parts = []
-              relationship.parent_key.map do |parent_key| 
+              relationship.parent_key.each do |parent_key|
                 part = ' ('
                 part <<  property_to_column_name(parent_resource_name, parent_key, true) 
                 part << ' = ' 
-                part <<  property_to_column_name(child_resource_name,relationship.child_key[i], true) 
+                part <<  property_to_column_name(child_resource_name, child_keys[i], true)
                 part << ')'
                 i += 1
                 parts << part
@@ -364,7 +364,7 @@ module DataMapper
 
           unless query.order.empty?
             parts = []
-            query.order.map do |item|
+            query.order.each do |item|
               parts << item.name if item.is_a?(DataMapper::Property)
               parts << "#{item.property.name} #{item.direction}" if item.is_a?(DataMapper::Query::Direction)
             end

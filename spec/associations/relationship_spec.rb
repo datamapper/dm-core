@@ -12,7 +12,7 @@ describe DataMapper::Associations::Relationship do
       :manufacturer,
       :relationship_spec,
       ['Vehicle', [:manufacturer_id]],
-      ['Manufacturer', nil]
+      ['Manufacturer', nil ]
       )
     
     belongs_to.should respond_to(:name)
@@ -32,11 +32,11 @@ describe DataMapper::Associations::Relationship do
     belongs_to.name.should == :manufacturer
     belongs_to.repository_name.should == :relationship_spec
     
-    belongs_to.child_key.should be_a_kind_of(Array)
-    belongs_to.parent_key.should be_a_kind_of(Array)
+    belongs_to.child_key.should be_a_kind_of(DataMapper::PropertySet)
+    belongs_to.parent_key.should be_a_kind_of(DataMapper::PropertySet)
 
-    belongs_to.child_key.should == Vehicle.properties(:relationship_spec).select(:manufacturer_id)
-    belongs_to.parent_key.should == Manufacturer.properties(:relationship_spec).key
+    belongs_to.child_key.to_a.should == Vehicle.properties(:relationship_spec).slice(:manufacturer_id)
+    belongs_to.parent_key.to_a.should == Manufacturer.properties(:relationship_spec).key
   end
   
   it "should infer properties when options aren't passed" do
@@ -50,11 +50,11 @@ describe DataMapper::Associations::Relationship do
     has_many.name.should == :models
     has_many.repository_name.should == :relationship_spec
     
-    has_many.child_key.should be_a_kind_of(Array)
-    has_many.parent_key.should be_a_kind_of(Array)
+    has_many.child_key.should be_a_kind_of(DataMapper::PropertySet)
+    has_many.parent_key.should be_a_kind_of(DataMapper::PropertySet)
 
-    has_many.child_key.should == Vehicle.properties(:relationship_spec).select(:models_id)
-    has_many.parent_key.should == Manufacturer.properties(:relationship_spec).key
+    has_many.child_key.to_a.should == Vehicle.properties(:relationship_spec).slice(:models_id)
+    has_many.parent_key.to_a.should == Manufacturer.properties(:relationship_spec).key
   end
   
   it "should generate child properties with a safe subset of the parent options" do
@@ -131,7 +131,7 @@ class Vehicle
   # This is all class-evaled code defined by belongs_to:
   def manufacturer_association_set
     @manufacturer_association_set ||= AssociationSet.new(
-        self.class.associations(repository.name).detect(:manufacturer)
+        self.class.associations(repository.name)[:manufacturer]
       ) do |set|
         # This block is the part that will change between different associations.
 

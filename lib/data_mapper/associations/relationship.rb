@@ -10,6 +10,10 @@ module DataMapper
       #
       # TODO: should repository_name be removed? it would allow relationships across multiple
       # repositories (if query supports it)
+
+      # XXX: why not break up child and parent arguments so the method definition becomes:
+      #   initialize(name, repository_name, child_resource, child_key, parent_resource, parent_key, &loader)
+      # The *_key arguments could be Arrays of symbols or a PropertySet object
       def initialize(name, repository_name, child, parent, &loader)
 
         unless child.is_a?(Array) && child.size == 2
@@ -29,37 +33,42 @@ module DataMapper
 
       def child_key      
         @child_key ||= begin
-          resource = @child.first.to_class
-          resource_property_set = resource.properties(@repository_name)
+          child_key           = PropertySet.new
+          resource_properties = child_resource.properties(@repository_name)
+          parent_keys         = parent_key.to_a
 
-          if @child[1].nil?
-            # Default t the parent key we're binding to prefixed with the
-            # association name.
-            PropertySet.new.concat(parent_key.map do |property|
-              property_name = "#{@name}_#{property.name}"
-              resource_property_set.detect(property_name) || resource.property(property_name.to_sym, property.type)
-            end)
+          if child_property_names
+            child_property_names.each_with_index do |property_name,i|
+              parent_property = parent_keys[i]
+              child_key << (resource_properties[property_name] || child_resource.property(property_name, parent_property.type))
+            end
           else
-            i = 0
-            PropertySet.new.concat(@child[1].map do |property_name|
-              parent_property = parent_key[i]
-              i += 1
-              resource_property_set.detect(property_name) || resource.property(property_name, parent_property.type)
-            end)
+            # Default to the parent key we're binding to prefixed with the
+            # association name.
+            parent_key.each do |property|
+              property_name = "#{@name}_#{property.name}"
+              child_key << (resource_properties[property_name] || child_resource.property(property_name.to_sym, property.type))
+            end
           end
+
+          child_key
         end
       end
 
       def parent_key
         @parent_key ||= begin
-          resource = @parent.first.to_class
-          resource_property_set = resource.properties(@repository_name)
+          parent_key          = PropertySet.new
+          resource_properties = parent_resource.properties(@repository_name)
 
-          if @parent[1].nil?
-            PropertySet.new.concat(resource_property_set.key)
+          keys = if parent_property_names
+            resource_properties.slice(*parent_property_names)
           else
-            PropertySet.new.concat(resource_property_set.select(*@parent[1]))
+            resource_properties.key
           end
+
+          keys.each { |property| parent_key << property }
+
+          parent_key
         end
       end
 
@@ -76,19 +85,25 @@ module DataMapper
       end
 
       def attach_parent(child, parent)
-        self.child_key.set(parent && self.parent_key.value(parent), child)
+        child_key.set(parent && parent_key.get(parent), child)
       end
 
       def parent_resource
-        @parent.first.to_class
+        @parent[0].to_class
       end
 
       def child_resource
-        @child.first.to_class
+        @child[0].to_class
       end
 
-      def repository_name
-        @repository_name
+      private
+
+      def child_property_names
+        @child[1]
+      end
+
+      def parent_property_names
+        @parent[1]
       end
     end # class Relationship
   end # module Associations
