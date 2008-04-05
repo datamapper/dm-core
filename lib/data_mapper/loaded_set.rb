@@ -10,33 +10,26 @@ module DataMapper
     #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
     def initialize(repository, type, properties)
       @repository = repository
-      @type = type
+      @type       = type
       @properties = properties
+      @entries    = []
 
       @inheritance_property_index = if inheritance_property = @type.inheritance_property(@repository.name) && @properties.include?(inheritance_property)
         @properties[inheritance_property]
-      else
-        nil
       end
 
       @key_property_indexes = if (@key_properties = @type.key(@repository.name)).all? { |key| @properties.key?(key) }
         @properties.values_at(*@key_properties)
-      else
-        nil
       end
-
-      @entries = []
     end
 
     def keys
       # TODO: This is a really dirty way to implement this. My brain's just fried :p
       keys = {}
-      entry_keys = @entries.map { |instance| instance.key }
+      entry_keys = @entries.map { |resource| resource.key }
 
-      i = 0
-      @key_properties.each do |property|
+      @key_properties.each_with_index do |property,i|
         keys[property] = entry_keys.map { |key| key[i] }
-        i += 1
       end
 
       keys
@@ -55,41 +48,38 @@ module DataMapper
         @type
       end
 
-      instance = nil
+      resource = nil
 
       if @key_property_indexes
         key_values = @key_property_indexes.map { |i| values[i] }
-        instance = @repository.identity_map_get(type, key_values)
 
-        if instance.nil?
-          instance = type.allocate
-          i = 0
-          @key_properties.each do |p|
-            instance.instance_variable_set(p.instance_variable_name, key_values[i])
-            i += 1
-          end
-          @entries << instance
-          instance.loaded_set = self
-          instance.instance_variable_set("@new_record", false)
-          @repository.identity_map_set(instance)
+        if resource = @repository.identity_map_get(type, key_values)
+          @entries << resource
+          resource.loaded_set = self
+          return resource unless reload
         else
-          @entries << instance
-          instance.loaded_set = self
-          return instance unless reload
+          resource = type.allocate
+          @entries << resource
+          @key_properties.each_with_index do |p,i|
+            resource.instance_variable_set(p.instance_variable_name, key_values[i])
+          end
+          resource.loaded_set = self
+          resource.instance_variable_set("@new_record", false)
+          @repository.identity_map_set(resource)
         end
       else
-        instance = type.allocate
-        instance.readonly!
-        instance.instance_variable_set("@new_record", false)
-        @entries << instance
-        instance.loaded_set = self
+        resource = type.allocate
+        @entries << resource
+        resource.readonly!
+        resource.instance_variable_set("@new_record", false)
+        resource.loaded_set = self
       end
 
       @properties.each_pair do |property, i|
-        instance.instance_variable_set(property.instance_variable_name, values[i])
+        resource.instance_variable_set(property.instance_variable_name, values[i])
       end
 
-      instance
+      resource
     end
 
     def first

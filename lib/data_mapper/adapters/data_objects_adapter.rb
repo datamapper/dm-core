@@ -328,15 +328,13 @@ module DataMapper
               # We only do LEFT OUTER JOIN for now
               s = 'LEFT OUTER JOIN '              
               s << parent_resource_name << ' ON '
-              i = 0
               parts = []
-              relationship.parent_key.each do |parent_key|
+              relationship.parent_key.each_with_index do |parent_key,i|
                 part = ' ('
                 part <<  property_to_column_name(parent_resource_name, parent_key, true) 
                 part << ' = ' 
                 part <<  property_to_column_name(child_resource_name, child_keys[i], true)
                 part << ')'
-                i += 1
                 parts << part
               end
               s << parts.join(' AND ')

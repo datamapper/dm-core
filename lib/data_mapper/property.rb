@@ -212,6 +212,8 @@ module DataMapper
 
     VISIBILITY_OPTIONS = [:public, :protected, :private]
 
+    attr_reader :primitive, :target, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options
+
     def initialize(target, name, type, options)
 
       raise ArgumentError.new("#{target.inspect} should be a type of Resource") unless Resource === target
@@ -297,44 +299,12 @@ module DataMapper
       raise SyntaxError.new(column)
     end
 
-    def primitive
-      @primitive
-    end
-
-    def target
-      @target
-    end
-
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
 
-    def name
-      @name
-    end
-
-    def instance_variable_name # :nodoc:
-      @instance_variable_name
-    end
-
-    def type
-      @type
-    end
-
-    def reader_visibility # :nodoc:
-      @reader_visibility
-    end
-
-    def writer_visibility # :nodoc:
-      @writer_visibility
-    end
-
     def lazy?
       @lazy
-    end
-
-    def getter
-      @getter
     end
 
     def key?
@@ -351,10 +321,6 @@ module DataMapper
 
     def custom?
       @custom
-    end
-
-    def options
-      @options
     end
 
     def get(instance)

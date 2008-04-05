@@ -34,24 +34,26 @@ module DataMapper
     # +---------------
     # Instance methods
 
+    attr_accessor :loaded_set
+
     def [](name)
-      ivar_name = name.to_s.ensure_starts_with('@')
+      ivar_name = "@#{name}"
       property  = self.class.properties(repository.name)[name]
 
       unless new_record? || attribute_loaded?(name)
-        lazy_load!(name)
+        lazy_load(name)
       end
 
       value = instance_variable_get(ivar_name)
-      (property.custom? && property.type.respond_to?(:load) ? property.type.load(value) : value)
+      property.custom? && property.type.respond_to?(:load) ? property.type.load(value) : value
     end
 
     def []=(name, value)
-      ivar_name = name.to_s.ensure_starts_with('@')
+      ivar_name = "@#{name}"
       property  = self.class.properties(repository.name)[name]
 
       if property && property.lock?
-        instance_variable_set(name.to_s.ensure_starts_with('@shadow_'), instance_variable_get(ivar_name))
+        instance_variable_set("@shadow_#{name}", instance_variable_get(ivar_name))
       end
 
       dirty_attributes << property
@@ -79,14 +81,6 @@ module DataMapper
       key
     end
 
-    def loaded_set
-      @loaded_set
-    end
-
-    def loaded_set=(value)
-      @loaded_set = value
-    end
-
     def readonly!
       @readonly = true
     end
@@ -104,8 +98,7 @@ module DataMapper
     end
 
     def attribute_loaded?(name)
-      raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
-      instance_variable_defined?(name.to_s.ensure_starts_with('@'))
+      instance_variable_defined?("@#{name}")
     end
 
     def dirty_attributes
@@ -117,23 +110,12 @@ module DataMapper
     end
 
     def attribute_dirty?(name)
-      raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
       property = self.class.properties(repository.name)[name]
       dirty_attributes.include?(property)
     end
 
     def shadow_attribute_get(name)
-      instance_variable_get(name.to_s.ensure_starts_with('@shadow_'))
-    end
-
-    def lazy_load!(*names)
-      fields = self.class.properties(self.class.repository.name).lazy_load_context(names)
-
-      unless new_record? || @loaded_set.nil?
-        @loaded_set.reload!(:fields => fields)
-      else
-        fields.each { |name| self[name] = nil }
-      end
+      instance_variable_get("@shadow_#{name}")
     end
 
     def reload!
@@ -141,7 +123,7 @@ module DataMapper
     end
 
     def initialize(details = nil) # :nodoc:
-      validate_resource!
+      validate_resource
 
       def initialize(details = nil)
         if details
@@ -157,12 +139,6 @@ module DataMapper
       when Hash then self.attributes = details
       when Resource, Struct then self.private_attributes = details.attributes
       # else raise ArgumentError.new("details should be a Hash, Resource or Struct\n\t#{details.inspect}")
-      end
-    end
-
-    def validate_resource! # :nodoc:
-      if self.class.properties(self.class.default_repository_name).empty?
-        raise IncompleteResourceError.new("Resources must have at least one property to be initialized.")
       end
     end
 
@@ -202,6 +178,17 @@ module DataMapper
 
     private
 
+    def validate_resource # :nodoc:
+      if self.class.properties(self.class.default_repository_name).empty?
+        raise IncompleteResourceError.new("Resources must have at least one property to be initialized.")
+      end
+    end
+
+    def lazy_load(name)
+      return unless @loaded_set
+      @loaded_set.reload!(:fields => self.class.properties(self.class.repository.name).lazy_load_context(name))
+    end
+
     def private_attributes
       pairs = {}
 
@@ -220,8 +207,6 @@ module DataMapper
         end
       end
     end
-
-    public
 
     module ClassMethods
 

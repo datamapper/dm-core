@@ -3,6 +3,8 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support/kernel'
 
+require __DIR__.parent + 'lib/data_mapper'
+
 require 'benchmark'
 require 'rubygems'
 
@@ -66,7 +68,6 @@ end
 
 ARExhibit.find_by_sql('SELECT 1')
 
-require __DIR__.parent + 'lib/data_mapper'
 DataMapper::Logger.new(__DIR__.parent + 'log/dm.log', :debug)
 adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
