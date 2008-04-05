@@ -389,7 +389,7 @@ module DataMapper
         def inequality_operator(query, operator, property, qualify, value)
           case value
           when Array then "#{property_to_column_name(query.resource_name, property, qualify)} NOT IN ?"
-          when NilClass then "#{property_to_column_name(query.resource_name, property, qualify)} IS NO NULL"
+          when NilClass then "#{property_to_column_name(query.resource_name, property, qualify)} IS NOT NULL"
           when DataMapper::Query then
                 query.merge_sub_select_conditions(operator, property, value)
               "#{property_to_column_name(query.resource_name, property, qualify)} NOT IN (#{query_read_statement(value)})"
