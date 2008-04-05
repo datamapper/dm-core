@@ -116,67 +116,67 @@ end
 
 Benchmark::bmbm(60) do |x|
 
-  x.report('ActiveRecord:id x10_000') do
+  x.report('AR.id                 x10,000') do
     ActiveRecord::Base::uncached do
       10_000.times { touch_attributes[ARExhibit.find(1)] }
     end
   end
 
-  x.report('ActiveRecord:id(cached) x10_000') do
+  x.report('DM.id                 x10,000') do
+    10_000.times { touch_attributes[Exhibit.get(1)] }
+  end
+
+  x.report('AR.id                 x10,000 (cached)') do
     ActiveRecord::Base::cache do
       10_000.times { touch_attributes[ARExhibit.find(1)] }
     end
   end
 
-  x.report('DataMapper:id x10_000') do
-    10_000.times { touch_attributes[Exhibit.get(1)] }
-  end
-
-  x.report('DataMapper:id(cached) x10_000') do
+  x.report('DM.id                 x10,000 (cached)') do
     repository(:default) do
       10_000.times { touch_attributes[Exhibit.get(1)] }
     end
   end
 
-  x.report('ActiveRecord:all limit(100) x1000') do
+  x.report('AR.all limit(100)     x1,000') do
     ActiveRecord::Base::uncached do
       1000.times { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
     end
   end
 
-  x.report('ActiveRecord:all limit(100) (cached) x1000') do
+  x.report('DM.all limit(100)     x1,000') do
+    1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
+  end
+
+  x.report('AR.all limit(100)     x1,000 (cached)') do
     ActiveRecord::Base::cache do
       1000.times { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
     end
   end
 
-  x.report('DataMapper:all limit(100) x1000') do
-    1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
-  end
-
-  x.report('DataMapper:all limit(100) (cached) x1000') do
+  x.report('DM.all limit(100)     x1,000 (cached)') do
     repository(:default) do
       1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
     end
   end
 
-  x.report('ActiveRecord:all limit(10,000) x10') do
+  x.report('AR.all limit(10,000)  x10') do
     ActiveRecord::Base::uncached do
       10.times { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
     end
   end
 
-  x.report('ActiveRecord:all limit(10,000) (cached) x10') do
+  x.report('DM.all limit(10,000)  x10') do
+    10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
+  end
+
+  x.report('AR.all limit(10,000)  x10 (cached)') do
     ActiveRecord::Base::cache do
       10.times { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
     end
   end
 
-  x.report('DataMapper:all limit(10,000) x10') do
-    10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
-  end
-
-  x.report('DataMapper:all limit(10,000) (cached) x10') do
+  x.report('DM.all limit(10,000)  x10 (cached)') do
     repository(:default) do
       10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
     end
@@ -225,4 +225,3 @@ ActiveRecord:all limit(10,000) x10                           12.170000   0.04000
 ActiveRecord:all limit(10,000) (cached) x10                  12.180000   0.040000  12.220000 ( 12.371510)
 DataMapper:all limit(10,000) x10                              5.450000   0.020000   5.470000 (  5.480993)
 DataMapper:all limit(10,000) (cached) x10                     3.130000   0.020000   3.150000 (  3.160792)
-
