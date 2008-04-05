@@ -225,7 +225,7 @@ module DataMapper
 
       @instance_variable_name = "@#{@name}"
 
-      @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
+      @getter = @type.is_a?(TrueClass) ? "#{@name}?".to_sym : @name
 
 
       # if it has a lazy key it is lazy. :lazy is now an array of contexts not bool
@@ -280,7 +280,7 @@ module DataMapper
       if type == TrueClass
         @target.class_eval <<-EOS, __FILE__, __LINE__
           #{reader_visibility}
-          alias #{name.to_s.ensure_ends_with('?')} #{name}
+          alias #{name}? #{name}
         EOS
       end
     rescue SyntaxError

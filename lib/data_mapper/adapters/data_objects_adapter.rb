@@ -69,7 +69,7 @@ module DataMapper
       # Methods dealing with a single instance object
       def create(repository, instance)
         properties = instance.dirty_attributes
-        values = properties.map { |property| instance.instance_variable_get(property.name.to_s.ensure_starts_with('@')) }
+        values = properties.map { |property| instance.instance_variable_get(property.instance_variable_name) }
 
         sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, instance.class, properties)
 
@@ -117,7 +117,7 @@ module DataMapper
 
       def update(repository, instance)
         properties = instance.dirty_attributes
-        values = properties.map { |property| instance.instance_variable_get(property.name.to_s.ensure_starts_with('@')) }
+        values = properties.map { |property| instance.instance_variable_get(property.instance_variable_name) }
 
         sql = update_statement(instance.class, properties)
         parameters = (values + instance.key)
@@ -138,7 +138,7 @@ module DataMapper
         connection = create_connection
         command = connection.create_command(delete_statement(instance.class))
 
-        key = instance.class.key(name).map { |property| instance.instance_variable_get(property.name.to_s.ensure_starts_with('@')) }
+        key = instance.class.key(name).map { |property| instance.instance_variable_get(property.instance_variable_name) }
         affected_rows = command.execute_non_query(*key).to_i
 
         close_connection(connection)

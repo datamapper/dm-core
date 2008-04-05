@@ -37,10 +37,10 @@ module DataMapper
     attr_accessor :loaded_set
 
     def [](name)
-      ivar_name = "@#{name}"
       property  = self.class.properties(repository.name)[name]
+      ivar_name = property.instance_variable_name
 
-      unless new_record? || attribute_loaded?(name)
+      unless new_record? || instance_variable_defined?(ivar_name)
         lazy_load(name)
       end
 
@@ -49,8 +49,8 @@ module DataMapper
     end
 
     def []=(name, value)
-      ivar_name = "@#{name}"
       property  = self.class.properties(repository.name)[name]
+      ivar_name = property.instance_variable_name
 
       if property && property.lock?
         instance_variable_set("@shadow_#{name}", instance_variable_get(ivar_name))
@@ -98,7 +98,8 @@ module DataMapper
     end
 
     def attribute_loaded?(name)
-      instance_variable_defined?("@#{name}")
+      property = self.class.properties(repository.name)[name]
+      instance_variable_defined?(property.instance_variable_name)
     end
 
     def dirty_attributes

@@ -100,7 +100,7 @@ describe "DataMapper::Resource" do
     # This means #attribute_loaded?'s implementation could be very
     # similar (if not identical) to:
     #   def attribute_loaded?(name)
-    #     instance_variables.include?(name.to_s.ensure_starts_with('@'))
+    #     instance_variable_defined?("@#{name}")
     #   end
     mars.attribute_loaded?(:name).should be_true
     mars.attribute_dirty?(:name).should be_true
