@@ -15,7 +15,10 @@ require 'time'
 require 'rubygems'
 require 'yaml'
 require 'set'
-require 'fastthread'
+begin
+  require 'fastthread'
+rescue LoadError
+end
 
 # for __DIR__
 require Pathname(__FILE__).dirname.expand_path + 'data_mapper/support/kernel'
