@@ -66,12 +66,12 @@ module DataMapper
       end
 
       # all of our CRUD
-      # Methods dealing with a single instance object
-      def create(repository, instance)
-        properties = instance.dirty_attributes
-        values = properties.map { |property| instance.instance_variable_get(property.instance_variable_name) }
+      # Methods dealing with a single resource object
+      def create(repository, resource)
+        properties = resource.dirty_attributes
+        values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
 
-        sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, instance.class, properties)
+        sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, resource.class, properties)
 
         DataMapper.logger.debug { "CREATE: #{sql}  PARAMETERS: #{values.inspect}" }
 
@@ -83,9 +83,9 @@ module DataMapper
         close_connection(connection)
 
         if result.to_i == 1
-          key = instance.class.key(name)
+          key = resource.class.key(name)
           if key.size == 1 && key.first.serial?
-            instance.instance_variable_set(key.first.instance_variable_name, result.insert_id)
+            resource.instance_variable_set(key.first.instance_variable_name, result.insert_id)
           end
           true
         else
@@ -95,9 +95,8 @@ module DataMapper
 
       def read(repository, resource, key)
         properties = resource.properties(repository.name).defaults
-        properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
 
-        set = LoadedSet.new(repository, resource, properties_with_indexes)
+        set = LoadedSet.new(repository, resource, properties)
 
         connection = create_connection
         sql = read_statement(resource, key)
@@ -106,7 +105,7 @@ module DataMapper
         command.set_types(properties.map { |property| property.primitive })
         reader = command.execute_reader(*key)
         while(reader.next!)
-          set.materialize!(reader.values)
+          set.add(reader.values)
         end
 
         reader.close
@@ -115,12 +114,12 @@ module DataMapper
         set.first
       end
 
-      def update(repository, instance)
-        properties = instance.dirty_attributes
-        values = properties.map { |property| instance.instance_variable_get(property.instance_variable_name) }
+      def update(repository, resource)
+        properties = resource.dirty_attributes
+        values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
 
-        sql = update_statement(instance.class, properties)
-        parameters = (values + instance.key)
+        sql = update_statement(resource.class, properties)
+        parameters = (values + resource.key)
 
         DataMapper.logger.debug { "UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}" }
 
@@ -134,11 +133,11 @@ module DataMapper
         affected_rows == 1
       end
 
-      def delete(repository, instance)
+      def delete(repository, resource)
         connection = create_connection
-        command = connection.create_command(delete_statement(instance.class))
+        command = connection.create_command(delete_statement(resource.class))
 
-        key = instance.class.key(name).map { |property| instance.instance_variable_get(property.instance_variable_name) }
+        key = resource.class.key(name).map { |property| resource.instance_variable_get(property.instance_variable_name) }
         affected_rows = command.execute_non_query(*key).to_i
 
         close_connection(connection)
@@ -149,9 +148,8 @@ module DataMapper
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
         properties = query.fields
-        properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
 
-        set = LoadedSet.new(repository, query.resource, properties_with_indexes)
+        set = LoadedSet.new(repository, query.model, properties)
 
         sql = query_read_statement(query)
         parameters = query.parameters
@@ -165,7 +163,7 @@ module DataMapper
           reader = command.execute_reader(*parameters)
 
           while(reader.next!)
-            set.materialize!(reader.values, query.reload?)
+            set.add(reader.values, query.reload?)
           end
 
           reader.close
@@ -217,7 +215,7 @@ module DataMapper
           end
         else
           while(reader.next!) do
-            results << reader.values[0]
+            results << reader.values.at(0)
           end
         end
 
@@ -236,46 +234,46 @@ module DataMapper
 
       # This model is just for organization. The methods are included into the Adapter below.
       module SQL
-        def create_statement(resource, properties)
+        def create_statement(model, properties)
           <<-EOS.compress_lines
-            INSERT INTO #{quote_table_name(resource.resource_name(name))}
+            INSERT INTO #{quote_table_name(model.resource_name(name))}
             (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
             VALUES
             (#{(['?'] * properties.size).join(', ')})
           EOS
         end
 
-        def create_statement_with_returning(resource, properties)
+        def create_statement_with_returning(model, properties)
           <<-EOS.compress_lines
-            INSERT INTO #{quote_table_name(resource.resource_name(name))}
+            INSERT INTO #{quote_table_name(model.resource_name(name))}
             (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
             VALUES
             (#{(['?'] * properties.size).join(', ')})
-            RETURNING #{quote_column_name(resource.key(name).first.field)}
+            RETURNING #{quote_column_name(model.key(name).first.field)}
           EOS
         end
 
-        def read_statement(resource, key)
-          properties = resource.properties(name).defaults
+        def read_statement(model, key)
+          properties = model.properties(name).defaults
           <<-EOS.compress_lines
             SELECT #{properties.map { |property| quote_column_name(property.field) }.join(', ')}
-            FROM #{quote_table_name(resource.resource_name(name))}
-            WHERE #{resource.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
+            FROM #{quote_table_name(model.resource_name(name))}
+            WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
 
-        def update_statement(resource, properties)
+        def update_statement(model, properties)
           <<-EOS.compress_lines
-            UPDATE #{quote_table_name(resource.resource_name(name))}
+            UPDATE #{quote_table_name(model.resource_name(name))}
             SET #{properties.map {|attribute| "#{quote_column_name(attribute.field)} = ?" }.join(', ')}
-            WHERE #{resource.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
+            WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
 
-        def delete_statement(resource)
+        def delete_statement(model)
           <<-EOS.compress_lines
-            DELETE FROM #{quote_table_name(resource.resource_name(name))}
-            WHERE #{resource.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
+            DELETE FROM #{quote_table_name(model.resource_name(name))}
+            WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
 
@@ -285,32 +283,32 @@ module DataMapper
           sql = "SELECT "    
           
           sql << query.fields.map do |property|
-            # deriving the resource name from the property and not the query
+            # deriving the model name from the property and not the query
             # allows for "foreign" properties to be qualified correctly
-            resource_name = property.target.resource_name(property.target.repository.name)
-            property_to_column_name(resource_name, property, qualify)
+            model_name = property.target.resource_name(property.target.repository.name)
+            property_to_column_name(model_name, property, qualify)
           end.join(', ')
 
-          sql << " FROM " << quote_table_name(query.resource_name)
+          sql << " FROM " << quote_table_name(query.model_name)
                 
           unless query.links.empty?
             joins = []
             query.links.each do |relationship|
-              child_resource = relationship.child_resource
-              parent_resource = relationship.parent_resource       
-              child_resource_name = child_resource.resource_name(child_resource.repository.name)
-              parent_resource_name = parent_resource.resource_name(parent_resource.repository.name)
-              child_keys           = relationship.child_key.to_a
+              child_model       = relationship.child_model
+              parent_model      = relationship.parent_model
+              child_model_name  = child_model.resource_name(child_model.repository.name)
+              parent_model_name = parent_model.resource_name(parent_model.repository.name)
+              child_keys        = relationship.child_key.to_a
               
               # We only do LEFT OUTER JOIN for now
               s = 'LEFT OUTER JOIN '              
-              s << parent_resource_name << ' ON '
+              s << parent_model_name << ' ON '
               parts = []
-              relationship.parent_key.each_with_index do |parent_key,i|
+              relationship.parent_key.zip(child_keys) do |parent_key,child_key|
                 part = ' ('
-                part <<  property_to_column_name(parent_resource_name, parent_key, true) 
+                part <<  property_to_column_name(parent_model_name, parent_key, true) 
                 part << ' = ' 
-                part <<  property_to_column_name(child_resource_name, child_keys[i], true)
+                part <<  property_to_column_name(child_model_name, child_key, true)
                 part << ')'
                 parts << part
               end
@@ -326,12 +324,12 @@ module DataMapper
             sql << "(" << query.conditions.map do |operator, property, value|
               case operator
               when :eql, :in then equality_operator(query,operator, property, qualify, value)
-              when :not then inequality_operator(query,operator, property, qualify, value)
-              when :like then "#{property_to_column_name(query.resource_name, property, qualify)} LIKE ?"
-              when :gt then "#{property_to_column_name(query.resource_name, property, qualify)} > ?"
-              when :gte then "#{property_to_column_name(query.resource_name, property, qualify)} >= ?"
-              when :lt then "#{property_to_column_name(query.resource_name, property, qualify)} < ?"
-              when :lte then "#{property_to_column_name(query.resource_name, property, qualify)} <= ?"
+              when :not      then inequality_operator(query,operator, property, qualify, value)
+              when :like     then "#{property_to_column_name(query.model_name, property, qualify)} LIKE ?"
+              when :gt       then "#{property_to_column_name(query.model_name, property, qualify)} > ?"
+              when :gte      then "#{property_to_column_name(query.model_name, property, qualify)} >= ?"
+              when :lt       then "#{property_to_column_name(query.model_name, property, qualify)} < ?"
+              when :lte      then "#{property_to_column_name(query.model_name, property, qualify)} <= ?"
               else raise "CAN HAS CRASH?"
               end
             end.join(') AND (') << ")"
@@ -354,29 +352,29 @@ module DataMapper
 
         def equality_operator(query, operator, property, qualify, value)
           case value
-          when Array then "#{property_to_column_name(query.resource_name, property, qualify)} IN ?"
-          when NilClass then "#{property_to_column_name(query.resource_name, property, qualify)} IS NULL"
+          when Array then "#{property_to_column_name(query.model_name, property, qualify)} IN ?"
+          when NilClass then "#{property_to_column_name(query.model_name, property, qualify)} IS NULL"
           when DataMapper::Query then
                 query.merge_sub_select_conditions(operator, property, value)
-              "#{property_to_column_name(query.resource_name, property, qualify)} IN (#{query_read_statement(value)})"
-          else "#{property_to_column_name(query.resource_name, property, qualify)} = ?"
+              "#{property_to_column_name(query.model_name, property, qualify)} IN (#{query_read_statement(value)})"
+          else "#{property_to_column_name(query.model_name, property, qualify)} = ?"
           end
         end
 
         def inequality_operator(query, operator, property, qualify, value)
           case value
-          when Array then "#{property_to_column_name(query.resource_name, property, qualify)} NOT IN ?"
-          when NilClass then "#{property_to_column_name(query.resource_name, property, qualify)} IS NOT NULL"
+          when Array then "#{property_to_column_name(query.model_name, property, qualify)} NOT IN ?"
+          when NilClass then "#{property_to_column_name(query.model_name, property, qualify)} IS NOT NULL"
           when DataMapper::Query then
                 query.merge_sub_select_conditions(operator, property, value)
-              "#{property_to_column_name(query.resource_name, property, qualify)} NOT IN (#{query_read_statement(value)})"
-          else "#{property_to_column_name(query.resource_name, property, qualify)} <> ?"
+              "#{property_to_column_name(query.model_name, property, qualify)} NOT IN (#{query_read_statement(value)})"
+          else "#{property_to_column_name(query.model_name, property, qualify)} <> ?"
           end
         end
 
-        def property_to_column_name(resource_name, property, qualify)
+        def property_to_column_name(model_name, property, qualify)
           if qualify
-            quote_table_name(resource_name) + '.' + quote_column_name(property.field)
+            quote_table_name(model_name) + '.' + quote_column_name(property.field)
           else
             quote_column_name(property.field)
           end    

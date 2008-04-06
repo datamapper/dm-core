@@ -4,14 +4,14 @@ module DataMapper
   module Associations
     module OneToOne
       def one_to_one(name, options = {})
-        child     = options[:class_name] || DataMapper::Inflection.classify(name)
-        self_name = DataMapper::Inflection.demodulize(self.name)
+        child      = options[:class_name] || DataMapper::Inflection.classify(name)
+        model_name = DataMapper::Inflection.demodulize(self.name)
 
         relationships[name] = Relationship.new(
-          DataMapper::Inflection.underscore(self_name).to_sym,
+          DataMapper::Inflection.underscore(model_name).to_sym,
           options[:repository_name] || repository.name,
-          [ child,     nil ],
-          [ self_name, nil ]
+          [ child,      nil ],
+          [ model_name, nil ]
         )
 
         class_eval <<-EOS, __FILE__, __LINE__
@@ -20,10 +20,10 @@ module DataMapper
           end
 
           def #{name}=(value)
-            if #{name}_association.first != value
-              #{name}_association.delete(#{name}_association.first)
-              #{name}_association << value
+            if (original = #{name}_association.first) && original != value
+              #{name}_association.delete(original)
             end
+            #{name}_association << value
           end
 
           private

@@ -12,7 +12,7 @@ module DataMapper
           h[k] = klass
         end
         
-        base.instance_variable_set("@nested_constants", nested_constants)
+        base.instance_variable_set(:@nested_constants, nested_constants)
         base.send(:include, ClassMethods)
       end
       

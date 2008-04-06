@@ -37,21 +37,21 @@ module DataMapper
       :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
 
-    attr_reader :resource, :resource_name, *OPTIONS
+    attr_reader :model, :model_name, *OPTIONS
 
     def update(other)
-      other = self.class.new(resource, other) if other.kind_of?(Hash)
+      other = self.class.new(model, other) if other.kind_of?(Hash)
 
-      @resource, @reload = other.resource, other.reload
+      @model, @reload = other.model, other.reload
 
       @offset = other.offset unless other.offset == 0
       @limit  = other.limit  unless other.limit.nil?
 
-      # if self resource and other resource are the same, then
+      # if self model and other model are the same, then
       # overwrite @order with other order.  If they are different
       # then set @order to the union of other order and @order,
       # with the other order taking precedence
-      @order = @resource == other.resource ? other.order : other.order | @order
+      @order = @model == other.model ? other.order : other.order | @order
 
       @fields   |= other.fields
       @links    |= other.links
@@ -70,7 +70,7 @@ module DataMapper
       return true if super
       # TODO: add a #hash method, and then use it in the comparison, eg:
       #   return hash == other.hash
-      @resource == other.resource &&
+      @model    == other.model    &&
       @reload   == other.reload   &&
       @offset   == other.offset   &&
       @limit    == other.limit    &&
@@ -78,7 +78,7 @@ module DataMapper
       @fields   == other.fields   &&  # TODO: sort this so even if the order is different, it is equal
       @links    == other.links    &&  # TODO: sort this so even if the order is different, it is equal
       @includes == other.includes &&  # TODO: sort this so even if the order is different, it is equal
-      @conditions.sort_by { |c| c[0].hash + c[1].hash + c[2].hash } == other.conditions.sort_by { |c| c[0].hash + c[1].hash + c[2].hash }
+      @conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash } == other.conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash }
     end
 
     alias eql? ==
@@ -86,7 +86,7 @@ module DataMapper
     def parameters
       parameters = []
       conditions.each do |tuple|
-        parameters << tuple[2] if tuple.size == 3
+        parameters << tuple.at(2) if tuple.size == 3
       end
       parameters
     end
@@ -99,7 +99,7 @@ module DataMapper
       raise ArgumentError.new('+value+ is not a DataMapper::Query') unless value.is_a?(DataMapper::Query)
       new_conditions = []
       conditions.each do |tuple|
-        if tuple.length == 3 && tuple[0].to_s == operator.to_s && tuple[1] == property && tuple[2] == value
+        if tuple.length == 3 && tuple.at(0).to_s == operator.to_s && tuple.at(1) == property && tuple.at(2) == value
           value.conditions.each do |sub_select_tuple|
             new_conditions << sub_select_tuple
           end
@@ -114,16 +114,16 @@ module DataMapper
 
     private
 
-    def initialize(resource, options = {})
-      validate_resource(resource)
+    def initialize(model, options = {})
+      validate_model(model)
       validate_options(options)
 
-      @repository     = resource.repository
+      @repository     = model.repository
       repository_name = @repository.name
-      @resource_name  = resource.resource_name(repository_name)
-      @properties     = resource.properties(repository_name)
+      @model_name     = model.resource_name(repository_name)
+      @properties     = model.properties(repository_name)
 
-      @resource   = resource                        # must be Class that includes DM::Resource
+      @model      = model                           # must be Class that includes DM::Resource
       @reload     = options.fetch :reload,   false  # must be true or false
       @offset     = options.fetch :offset,   0      # must be an Integer greater than or equal to 0
       @limit      = options.fetch :limit,    nil    # must be an Integer greater than or equal to 1
@@ -156,9 +156,9 @@ module DataMapper
       # parse raw options[:conditions] differently
       if conditions_option = options[:conditions]
         @conditions << if conditions_option.size == 1
-          [ conditions_option[0] ]
+          [ conditions_option.at(0) ]
         else
-          [ conditions_option[0], conditions_option[1..-1] ]
+          [ conditions_option.at(0), conditions_option[1..-1] ]
         end
       end
     end
@@ -168,10 +168,10 @@ module DataMapper
       @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 
-    # validate the resource
-    def validate_resource(resource)
-      raise ArgumentError, "resource must be a Class, but is #{resource.class}" unless resource.kind_of?(Class)
-      raise ArgumentError, 'resource must include DataMapper::Resource'         unless resource.included_modules.include?(DataMapper::Resource)
+    # validate the model
+    def validate_model(model)
+      raise ArgumentError, "model must be a Class, but is #{model.class}" unless model.kind_of?(Class)
+      raise ArgumentError, 'model must include DataMapper::Resource'      unless model.included_modules.include?(DataMapper::Resource)
     end
 
     # validate the options
@@ -203,7 +203,7 @@ module DataMapper
     # validate other DM::Query or Hash object
     def validate_other(other)
       if other.kind_of?(self.class)
-        raise ArgumentError, "other #{self.class} must belong to the same repository" unless other.resource.repository == @resource.repository
+        raise ArgumentError, "other #{self.class} must belong to the same repository" unless other.model.repository == @model.repository
       elsif !other.kind_of?(Hash)
         raise ArgumentError, "other must be a #{self.class} or Hash, but was a #{other.class}"
       end
@@ -215,19 +215,19 @@ module DataMapper
         case order_by
           when Direction
             # NOTE: The property is available via order_by.property
-            # TODO: if the Property's resource doesn't match
-            # self.resource, append the property's resource to @links
+            # TODO: if the Property's model doesn't match
+            # self.model, append the property's model to @links
             # eg:
-            #if property.resource != self.resource
+            #if property.model != self.model
             #  @links << discover_path_for_property(property)
             #end
 
             order_by
           when Property
-            # TODO: if the Property's resource doesn't match
-            # self.resource, append the property's resource to @links
+            # TODO: if the Property's model doesn't match
+            # self.model, append the property's model to @links
             # eg:
-            #if property.resource != self.resource
+            #if property.model != self.model
             #  @links << discover_path_for_property(property)
             #end
 
@@ -247,10 +247,10 @@ module DataMapper
       @fields = @fields.map do |field|
         case field
           when Property
-            # TODO: if the Property's resource doesn't match
-            # self.resource, append the property's resource to @links
+            # TODO: if the Property's model doesn't match
+            # self.model, append the property's model to @links
             # eg:
-            #if property.resource != self.resource
+            #if property.model != self.model
             #  @links << discover_path_for_property(property)
             #end
             field
@@ -276,8 +276,8 @@ module DataMapper
             link
           when Symbol, String
             link = link.to_sym if link.is_a?(String)
-            raise ArgumentError.new("Link #{link}. No such relationship") unless resource.relationships.has_key?(link)
-            resource.relationships[link]
+            raise ArgumentError.new("Link #{link}. No such relationship") unless model.relationships.has_key?(link)
+            model.relationships[link]
           else
             raise ArgumentError.new("Link type #{link.inspect} not supported")
         end

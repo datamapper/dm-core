@@ -36,9 +36,9 @@ describe DataMapper::Query do
 
   describe '.new' do
     describe 'should set the attribute' do
-      it '#resource with resource' do
+      it '#model with model' do
         query = DataMapper::Query.new(Article)
-        query.resource.should == Article
+        query.model.should == Article
       end
 
       GOOD_OPTIONS.each do |(attribute,value)|
@@ -90,13 +90,13 @@ describe DataMapper::Query do
     end
 
     describe 'should raise an ArgumentError' do
-      it 'when resource is nil' do
+      it 'when model is nil' do
         lambda {
           DataMapper::Query.new(nil)
         }.should raise_error(ArgumentError)
       end
 
-      it 'when resource is a Class that does not include DataMapper::Resource' do
+      it 'when model is a Class that does not include DataMapper::Resource' do
         lambda {
           DataMapper::Query.new(NormalClass)
         }.should raise_error(ArgumentError)
@@ -146,7 +146,7 @@ describe DataMapper::Query do
 
       mock_query_class = mock('DataMapper::Query class')
       @query.should_receive(:class).with(no_args).ordered.and_return(mock_query_class)
-      mock_query_class.should_receive(:new).with(@query.resource, other).ordered.and_return(@query)
+      mock_query_class.should_receive(:new).with(@query.model, other).ordered.and_return(@query)
 
       @query.update(other)
     end
@@ -157,9 +157,9 @@ describe DataMapper::Query do
     end
 
     describe 'should overwrite the attribute' do
-      it '#resource with other resource' do
+      it '#model with other model' do
         other = DataMapper::Query.new(Comment)
-        @query.update(other).resource.should == Comment
+        @query.update(other).model.should == Comment
       end
 
       it '#reload with other reload' do
@@ -369,7 +369,7 @@ describe DataMapper::Query do
     end
 
     describe 'should be different' do
-      it 'when other resource is different than self.resource' do
+      it 'when other model is different than self.model' do
         @query.should_not == DataMapper::Query.new(Comment)
       end
 

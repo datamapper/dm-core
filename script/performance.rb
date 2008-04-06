@@ -61,127 +61,137 @@ touch_attributes = lambda do |exhibits|
   end
 end
 
-def fake_exhibit
-  [ Faker::Company.name, rand(10).ceil, Faker::Lorem.paragraphs.join($/), Date::today, Time::now ]
+exhibits = []
+
+10_000.times do
+  exhibits << [
+#    'INSERT INTO `exhibits` (`name`, `zoo_id`, `notes`, `created_on`, `updated_at`) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO `exhibits` (`name`, `zoo_id`, `notes`, `created_on`) VALUES (?, ?, ?, ?)',
+    Faker::Company.name,
+    rand(10).ceil,
+    Faker::Lorem.paragraphs.join($/),
+    Date.today,
+  ]
 end
 
-def reset_exhibits!(insert_rows = 0)
-  adapter = repository.adapter
-  adapter.execute "DROP TABLE `exhibits`"
-  adapter.execute <<-EOS.compress_lines
-     CREATE TABLE `exhibits` (
-       `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
-       `name` VARCHAR(50),
-       `zoo_id` INTEGER(11),
-       `notes` TEXT,
-       `created_on` DATE,
-       `updated_at` TIMESTAMP NOT NULL,
-       PRIMARY KEY(`id`)
-     )
-  EOS
-  
-  insert_rows.times do
-    adapter.execute("INSERT INTO `exhibits` (`name`, `zoo_id`, `notes`, `created_on`, `updated_at`) VALUES (?, ?, ?, ?, ?)", *fake_exhibit)
+Benchmark.bmbm(60) do |x|
+  # reset the exhibits
+  x.report do
+    adapter.execute "DROP TABLE `exhibits`"
+    adapter.execute <<-EOS.compress_lines
+       CREATE TABLE `exhibits` (
+         `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
+         `name` VARCHAR(50),
+         `zoo_id` INTEGER(11),
+         `notes` TEXT,
+         `created_on` DATE,
+         `updated_at` TIMESTAMP NOT NULL,
+         PRIMARY KEY(`id`)
+       )
+    EOS
   end
-end
 
-Benchmark::bmbm(60) do |x|
+  x.report('DO.execute insert     x10,000') do
+    10_000.times { |i| adapter.execute(*exhibits.at(i)) }
+  end
 
-  reset_exhibits! 10_000
-  
   x.report('AR.id                 x10,000') do
     ActiveRecord::Base::uncached do
       10_000.times { touch_attributes[ARExhibit.find(1)] }
     end
   end
-  
+
   x.report('DM.id                 x10,000') do
     10_000.times { touch_attributes[Exhibit.get(1)] }
   end
-  
+
   x.report('AR.id                 x10,000 (cached)') do
     ActiveRecord::Base::cache do
       10_000.times { touch_attributes[ARExhibit.find(1)] }
     end
   end
-  
+
   x.report('DM.id                 x10,000 (cached)') do
     repository(:default) do
       10_000.times { touch_attributes[Exhibit.get(1)] }
     end
   end
-  
+
   x.report('AR.all limit(100)     x1,000') do
     ActiveRecord::Base::uncached do
       1000.times { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
     end
   end
-  
+
   x.report('DM.all limit(100)     x1,000') do
     1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
   end
-  
+
   x.report('AR.all limit(100)     x1,000 (cached)') do
     ActiveRecord::Base::cache do
       1000.times { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
     end
   end
-  
+
   x.report('DM.all limit(100)     x1,000 (cached)') do
     repository(:default) do
       1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
     end
   end
-  
+
   x.report('AR.all limit(10,000)  x10') do
     ActiveRecord::Base::uncached do
       10.times { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
     end
   end
-  
+
   x.report('DM.all limit(10,000)  x10') do
     10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
   end
-  
+
   x.report('AR.all limit(10,000)  x10 (cached)') do
     ActiveRecord::Base::cache do
       10.times { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
     end
   end
-  
+
   x.report('DM.all limit(10,000)  x10 (cached)') do
     repository(:default) do
       10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
     end
   end
-  
+
   # Static, just so AR and DM are on equal footing.
   create_exhibit = {
-    :name => Faker::Company.name,
-    :zoo_id => rand(10).ceil,
-    :notes => Faker::Lorem.paragraphs.join($/),
-    :created_on => Date::today,
-    :updated_at => Time::now
+    :name       => Faker::Company.name,
+    :zoo_id     => rand(10).ceil,
+    :notes      => Faker::Lorem.paragraphs.join($/),
+    :created_on => Date.today,
+#    :updated_at => Time.now,
   }
-  
-  reset_exhibits!
+
   x.report('AR.create             x10,000') do
     10_000.times { ARExhibit.create(create_exhibit) }
   end
 
-  reset_exhibits!
   x.report('DM.create             x10,000') do
     10_000.times { Exhibit.create(create_exhibit) }
   end
-  
-  reset_exhibits! 10
-  x.report('AR.update             x10,000') do
+
+  x.report('AR#update             x10,000') do
     10_000.times { e = ARExhibit.find(1); e.name = 'bob'; e.save }
   end
 
-  reset_exhibits! 10
-  x.report('DM.update             x10,000') do
+  x.report('DM#update             x10,000') do
     10_000.times { e = Exhibit[1]; e.name = 'bob'; e.save }
+  end
+
+  x.report('AR#destroy            x10,000') do
+    10_000.times { e = ARExhibit.find(:first); e.destroy }
+  end
+
+  x.report('DM#destroy            x10,000') do
+    10_000.times { e = Exhibit.first; e.destroy }
   end
 end
 
@@ -229,7 +239,7 @@ DataMapper:all limit(10,000) (cached) x10                     3.130000   0.02000
 
 On a MacBook Air Core2Duo 1.6GHz (many performance optimizations since the run above)
 
-~/src/dm-core > script/performance.rb 
+~/src/dm-core > script/performance.rb
 Rehearsal -----------------------------------------------------------------------------------------------
 AR.id                 x10,000                                11.290000   0.420000  11.710000 ( 14.845046)
 DM.id                 x10,000                                 5.010000   0.480000   5.490000 (  8.738212)

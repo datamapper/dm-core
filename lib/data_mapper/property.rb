@@ -323,12 +323,12 @@ module DataMapper
       @custom
     end
 
-    def get(instance)
-      instance[@name]
+    def get(resource)
+      resource[@name]
     end
 
-    def set(value, instance)
-      instance[@name] = value
+    def set(value, resource)
+      resource[@name] = value
     end
 
     def inspect

@@ -18,14 +18,14 @@ describe "DataMapper::LoadedSet" do
     end
   end
 
-  it "should be able to materialize arbitrary objects" do
+  it "should be able to add arbitrary objects" do
 
-    properties = Hash[*@cow.properties(:default).zip([0, 1]).flatten]
+    properties = @cow.properties(:default)
     set = DataMapper::LoadedSet.new(DataMapper::repository(:default), @cow, properties)
     set.should respond_to(:reload!)
 
-    set.materialize!(['Bob', 10])
-    set.materialize!(['Nancy', 11])
+    set.add(['Bob', 10])
+    set.add(['Nancy', 11])
 
     results = set.entries
     results.should have(2).entries
@@ -62,7 +62,7 @@ describe "DataMapper::LazyLoadedSet" do
       property :age, Fixnum
     end
 
-    @properties = Hash[*@cow.properties(:default).zip([0, 1]).flatten]
+    @properties = @cow.properties(:default)
   end
 
   it "should raise an error if no block is provided" do
@@ -71,8 +71,8 @@ describe "DataMapper::LazyLoadedSet" do
 
   it "should make a materialization block" do
     set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties) do |lls|
-      lls.materialize!(['Bob', 10])
-      lls.materialize!(['Nancy', 11])
+      lls.add(['Bob', 10])
+      lls.add(['Nancy', 11])
     end
 
     set.instance_variable_get("@entries").should be_empty
@@ -82,8 +82,8 @@ describe "DataMapper::LazyLoadedSet" do
 
   it "should be eachable" do
     set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties) do |lls|
-      lls.materialize!(['Bob', 10])
-      lls.materialize!(['Nancy', 11])
+      lls.add(['Bob', 10])
+      lls.add(['Nancy', 11])
     end
 
     set.each do |x|

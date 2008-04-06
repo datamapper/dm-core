@@ -38,6 +38,10 @@ module DataMapper
       @key ||= select { |property| property.key? }
     end
 
+    def inheritance_property
+      @inheritance_property ||= detect { |property| property.type == Class }
+    end
+
     def get(resource)
       map { |property| property.get(resource) }
     end

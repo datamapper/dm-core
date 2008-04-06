@@ -120,14 +120,14 @@ module DataMapper
       end
     end
 
-    # Stub instance method for materialization
+    # Stub instance method for dumping
     #
     # ==== Parameters
     # value<Object, nil>::
-    #   The value to materialize
+    #   The value to dump
     #
     # ==== Returns
-    # Object:: Materialized object
+    # Object:: Dumped object
     #
     #
     # @public
@@ -135,7 +135,7 @@ module DataMapper
       value
     end
 
-    # Stub instance method for serialization
+    # Stub instance method for loading
     #
     # ==== Parameters
     # value<Object, nil>::

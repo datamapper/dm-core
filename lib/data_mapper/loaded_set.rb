@@ -6,81 +6,79 @@ module DataMapper
 
     attr_reader :repository
 
-    # +properties+ is a Hash of Property and values Array index pairs.
-    #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
-    def initialize(repository, type, properties)
+    def initialize(repository, model, properties)
       @repository = repository
-      @type       = type
-      @properties = properties
+      @model      = model
+      @properties = Hash[*properties.zip((0...properties.length).to_a).flatten]
       @entries    = []
 
-      @inheritance_property_index = if inheritance_property = @type.inheritance_property(@repository.name) && @properties.include?(inheritance_property)
-        @properties[inheritance_property]
+      if inheritance_property = @model.inheritance_property(@repository.name)
+        @inheritance_property_index = @properties[inheritance_property]
       end
 
-      @key_property_indexes = if (@key_properties = @type.key(@repository.name)).all? { |key| @properties.key?(key) }
-        @properties.values_at(*@key_properties)
+      if (@key_properties = @model.key(@repository.name)).all? { |key| @properties.include?(key) }
+        @key_property_indexes = @properties.values_at(*@key_properties)
       end
     end
 
     def keys
-      # TODO: This is a really dirty way to implement this. My brain's just fried :p
-      keys = {}
       entry_keys = @entries.map { |resource| resource.key }
 
-      @key_properties.each_with_index do |property,i|
-        keys[property] = entry_keys.map { |key| key[i] }
+      keys = {}
+      @key_properties.zip(entry_keys.transpose).each do |property,values|
+        keys[property] = values
       end
-
       keys
     end
 
     def reload!(options = {})
-      query = Query.new(@type, keys.merge(:fields => @key_properties))
+      query = Query.new(@model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
       @repository.adapter.read_set(@repository, query)
     end
 
-    def materialize!(values, reload = false)
-      type = if @inheritance_property_index
-        values[@inheritance_property_index]
+    def add(values, reload = false)
+      model = if @inheritance_property_index
+        values.at(@inheritance_property_index)
       else
-        @type
+        @model
       end
 
       resource = nil
 
       if @key_property_indexes
-        key_values = @key_property_indexes.map { |i| values[i] }
+        key_values = values.values_at(*@key_property_indexes)
 
-        if resource = @repository.identity_map_get(type, key_values)
+        if resource = @repository.identity_map_get(model, key_values)
           @entries << resource
           resource.loaded_set = self
           return resource unless reload
         else
-          resource = type.allocate
+          resource = model.allocate
           @entries << resource
-          @key_properties.each_with_index do |p,i|
-            resource.instance_variable_set(p.instance_variable_name, key_values[i])
-          end
           resource.loaded_set = self
-          resource.instance_variable_set("@new_record", false)
+          @key_properties.zip(key_values).each do |property,key_value|
+            resource.instance_variable_set(property.instance_variable_name, key_value)
+          end
+          resource.instance_variable_set(:@new_record, false)
           @repository.identity_map_set(resource)
         end
       else
-        resource = type.allocate
+        resource = model.allocate
         @entries << resource
-        resource.readonly!
-        resource.instance_variable_set("@new_record", false)
         resource.loaded_set = self
+        resource.instance_variable_set(:@new_record, false)
+        resource.readonly!
       end
 
       @properties.each_pair do |property, i|
-        resource.instance_variable_set(property.instance_variable_name, values[i])
+        resource.instance_variable_set(property.instance_variable_name, values.at(i))
       end
 
-      resource
+      self
     end
+
+    alias << add
 
     def first
       @entries.first

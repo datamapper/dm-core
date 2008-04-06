@@ -101,8 +101,8 @@ module DataMapper
       @identity_map.get(resource, key)
     end
 
-    def identity_map_set(instance)
-      @identity_map.set(instance)
+    def identity_map_set(resource)
+      @identity_map.set(resource)
     end
 
     def get(resource, key)
@@ -117,38 +117,38 @@ module DataMapper
       @adapter.read_set(self, Query.new(resource, options)).entries
     end
 
-    def save(instance)
-      instance.child_associations.each { |a| a.save }
+    def save(resource)
+      resource.child_associations.each { |a| a.save }
 
-      success = if instance.new_record?
-        if @adapter.create(self, instance)
-          @identity_map.set(instance)
-          instance.instance_variable_set('@new_record', false)
-          instance.dirty_attributes.clear
+      success = if resource.new_record?
+        if @adapter.create(self, resource)
+          @identity_map.set(resource)
+          resource.instance_variable_set(:@new_record, false)
+          resource.dirty_attributes.clear
           true
         else
           false
         end
       else
-        if @adapter.update(self, instance)
-          instance.dirty_attributes.clear
+        if @adapter.update(self, resource)
+          resource.dirty_attributes.clear
           true
         else
           false
         end
       end
 
-      instance.parent_associations.each { |a| a.save }
+      resource.parent_associations.each { |a| a.save }
       success
     end
 
-    def destroy(instance)
-      if @adapter.delete(self, instance)
-        @identity_map.delete(instance.class, instance.key)
-        instance.instance_variable_set('@new_record', true)
-        instance.dirty_attributes.clear
-        instance.class.properties(name).each do |property|
-          instance.dirty_attributes << property if instance.attribute_loaded?(property.name)
+    def destroy(resource)
+      if @adapter.delete(self, resource)
+        @identity_map.delete(resource.class, resource.key)
+        resource.instance_variable_set(:@new_record, true)
+        resource.dirty_attributes.clear
+        resource.class.properties(name).each do |property|
+          resource.dirty_attributes << property if resource.attribute_loaded?(property.name)
         end
         true
       else

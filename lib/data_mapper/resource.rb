@@ -12,15 +12,15 @@ module DataMapper
     # +----------------------
     # Resource module methods
 
-    def self.included(target)
-      target.send(:extend, ClassMethods)
-      target.send(:extend, DataMapper::Hook::ClassMethods)
-      target.send(:include, DataMapper::Hook)
-      target.instance_variable_set("@resource_names", Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(target.name) })
-      target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
+    def self.included(base)
+      base.send(:extend, ClassMethods)
+      base.send(:extend, DataMapper::Hook::ClassMethods)
+      base.send(:include, DataMapper::Hook)
+      base.instance_variable_set(:@resource_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
+      base.instance_variable_set(:@properties,     Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
 
       # Associations:
-      target.send(:extend, DataMapper::Associations)
+      base.send(:extend, DataMapper::Associations)
     end
 
     def self.dependencies
@@ -219,6 +219,9 @@ module DataMapper
         :default
       end
 
+      # FIXME: should this be renamed container_name, since it
+      # effectively returns the name of the container in the repository
+      # that we store the data in
       def resource_name(repository_name)
         @resource_names[repository_name]
       end
@@ -264,7 +267,7 @@ module DataMapper
       end
 
       def inheritance_property(repository_name)
-        @properties[repository_name].detect { |property| property.type == Class }
+        @properties[repository_name].inheritance_property
       end
 
       def get(*key)
@@ -283,17 +286,19 @@ module DataMapper
         repository(options[:repository] || default_repository_name).first(self, options)
       end
 
+      # FIXME: should this use allocate, assign the values using
+      # Resource#attribtues= and add to the IdentityMap if the save
+      # was successful?
       def create(values)
-        instance = new(values)
-
-        [instance, instance.save]
+        resource = new(values)
+        [ resource, resource.save ]
       end
 
       # TODO SPEC
       def copy(source, destination, options = {})
         repository(destination) do
-          repository(source).all(self, options).each do |instance|
-            self.create(instance)
+          repository(source).all(self, options).each do |resource|
+            self.create(resource)
           end
         end
       end

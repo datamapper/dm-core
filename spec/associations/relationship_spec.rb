@@ -94,7 +94,7 @@ set = LazyLoadedSet.new(repository, Zoo, { Property<:id> => 1, Property<:name> =
   reader = command.execute_reader
   
   while(reader.next!)
-    lls.materialize!(reader.values)
+    lls.load(reader.values)
   end
 
   reader.close  

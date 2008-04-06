@@ -12,16 +12,16 @@ module DataMapper
       # repositories (if query supports it)
 
       # XXX: why not break up child and parent arguments so the method definition becomes:
-      #   initialize(name, repository_name, child_resource, child_key, parent_resource, parent_key, &loader)
+      #   initialize(name, repository_name, child_model, child_key, parent_model, parent_key, &loader)
       # The *_key arguments could be Arrays of symbols or a PropertySet object
       def initialize(name, repository_name, child, parent, &loader)
 
         unless child.is_a?(Array) && child.size == 2
-          raise ArgumentError.new("child should be an Array of [resource_name, property_name] but was #{child.inspect}")
+          raise ArgumentError.new("child should be an Array of [model_name, property_name] but was #{child.inspect}")
         end
 
         unless parent.is_a?(Array) && parent.size == 2
-          raise ArgumentError.new("parent should be an Array of [resource_name, property_name] but was #{parent.inspect}")
+          raise ArgumentError.new("parent should be an Array of [model_name, property_name] but was #{parent.inspect}")
         end
 
         @name               = name
@@ -33,21 +33,20 @@ module DataMapper
 
       def child_key      
         @child_key ||= begin
-          child_key           = PropertySet.new
-          resource_properties = child_resource.properties(@repository_name)
-          parent_keys         = parent_key.to_a
+          child_key        = PropertySet.new
+          model_properties = child_model.properties(@repository_name)
+          parent_keys      = parent_key.to_a
 
           if child_property_names
-            child_property_names.each_with_index do |property_name,i|
-              parent_property = parent_keys[i]
-              child_key << (resource_properties[property_name] || child_resource.property(property_name, parent_property.type))
+            child_property_names.zip(parent_keys).each do |property_name,parent_property|
+              child_key << (model_properties[property_name] || child_model.property(property_name, parent_property.type))
             end
           else
             # Default to the parent key we're binding to prefixed with the
             # association name.
             parent_key.each do |property|
               property_name = "#{@name}_#{property.name}"
-              child_key << (resource_properties[property_name] || child_resource.property(property_name.to_sym, property.type))
+              child_key << (model_properties[property_name] || child_model.property(property_name.to_sym, property.type))
             end
           end
 
@@ -57,30 +56,28 @@ module DataMapper
 
       def parent_key
         @parent_key ||= begin
-          parent_key          = PropertySet.new
-          resource_properties = parent_resource.properties(@repository_name)
+          parent_key       = PropertySet.new
+          model_properties = parent_model.properties(@repository_name)
 
           keys = if parent_property_names
-            resource_properties.slice(*parent_property_names)
+            model_properties.slice(*parent_property_names)
           else
-            resource_properties.key
+            model_properties.key
           end
 
-          keys.each { |property| parent_key << property }
-
-          parent_key
+          parent_key.add(*keys)
         end
       end
 
       def with_child(child_inst, association, &loader)
         association.new(self, child_inst, lambda {
-          loader.call(repository(@repository_name), child_key, parent_key, parent_resource, child_inst)
+          loader.call(repository(@repository_name), child_key, parent_key, parent_model, child_inst)
         })
       end
 
       def with_parent(parent_inst, association, &loader)
         association.new(self, parent_inst, lambda {
-          loader.call(repository(@repository_name), child_key, parent_key, child_resource, parent_inst)
+          loader.call(repository(@repository_name), child_key, parent_key, child_model, parent_inst)
         })
       end
 
@@ -88,22 +85,22 @@ module DataMapper
         child_key.set(parent && parent_key.get(parent), child)
       end
 
-      def parent_resource
-        @parent[0].to_class
+      def parent_model
+        @parent.at(0).to_class
       end
 
-      def child_resource
-        @child[0].to_class
+      def child_model
+        @child.at(0).to_class
       end
 
       private
 
       def child_property_names
-        @child[1]
+        @child.at(1)
       end
 
       def parent_property_names
-        @parent[1]
+        @parent.at(1)
       end
     end # class Relationship
   end # module Associations

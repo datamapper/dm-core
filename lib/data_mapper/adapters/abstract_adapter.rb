@@ -22,8 +22,8 @@ module DataMapper
       attr_accessor :resource_naming_convention
       attr_accessor :field_naming_convention
 
-      # Methods dealing with a single instance object
-      def create(repository, instance)
+      # Methods dealing with a single resource object
+      def create(repository, resource)
         raise NotImplementedError.new
       end
 
@@ -31,11 +31,11 @@ module DataMapper
         raise NotImplementedError.new
       end
 
-      def update(repository, instance)
+      def update(repository, resource)
         raise NotImplementedError.new
       end
 
-      def delete(repository, instance)
+      def delete(repository, resource)
         raise NotImplementedError.new
       end
 

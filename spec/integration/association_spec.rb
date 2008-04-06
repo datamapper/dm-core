@@ -84,7 +84,7 @@ begin
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, ?)', 1, 'yard1', 1)
       end
 
-      it "should materialize without the parent"
+      it "should load without the parent"
 
       it 'should allow substituting the parent' do
         y = repository(:sqlite3).all(Yard, :id => 1).first
