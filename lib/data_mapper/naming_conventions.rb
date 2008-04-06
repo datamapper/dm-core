@@ -27,6 +27,12 @@ module DataMapper
         DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value))
       end
     end # module UnderscoredAndPluralized
+    
+    module UnderscoredAndPluralizedWithoutModule
+      def self.call(value)
+        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(DataMapper::Inflection.demodulize(value)))      
+      end
+    end # module UnderscoredAndPluralizedWithoutModule
   
     module Underscored
       def self.call(value)
