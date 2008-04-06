@@ -99,6 +99,7 @@ gem_spec = Gem::Specification.new do |s|
   s.add_dependency("json")
   s.add_dependency("rspec")
   s.add_dependency("data_objects", ">=0.9.0")
+  s.add_dependency("english")
 
   s.has_rdoc = true 
   s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
