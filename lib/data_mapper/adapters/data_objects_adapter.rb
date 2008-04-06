@@ -146,29 +146,6 @@ module DataMapper
         affected_rows == 1
       end
 
-      # Methods dealing with locating a single object, by keys
-      def read_one(repository, query)
-        read_set(repository, query).first
-
-#        properties = query.resource.properties(repository.name).select { |property| !property.lazy? }
-#        properties_with_indexes = Hash[*properties.zip((0...properties.size).to_a).flatten]
-#
-#        set = LoadedSet.new(repository, resource, properties_with_indexes)
-#
-#        connection = create_connection
-#        command = connection.create_command(read_statement(resource, key))
-#        command.set_types(properties.map { |property| property.type })
-#        reader = command.execute_reader(*key)
-#        while(reader.next!)
-#          set.materialize!(reader.values)
-#        end
-#
-#        reader.close
-#        close_connection(connection)
-#
-#        set.first
-      end
-
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
         properties = query.fields
@@ -199,7 +176,7 @@ module DataMapper
           close_connection(connection)
         end
 
-        set.entries
+        set
       end
 
       def delete_set(repository, query)

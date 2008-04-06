@@ -124,17 +124,17 @@ begin
         acl = DataMapper::Query.new(Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
         query = DataMapper::Query.new(SailBoat, :port => 'Cape Town',:id => acl,:captain.like => 'J%')
         boats = @adapter.read_set(repository(:sqlite3),query)
-        boats.length.should == 2
-        boats[0].id.should == 1
-        boats[1].id.should == 2
+        boats.should have(2).entries
+        boats.entries[0].id.should == 1
+        boats.entries[1].id.should == 2
 
         # User 2
         acl = DataMapper::Query.new(Permission, :user_id => 2, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
         query = DataMapper::Query.new(SailBoat, :port => 'Cape Town',:id => acl,:captain.like => 'J%')
         boats = @adapter.read_set(repository(:sqlite3),query)
-        boats.length.should == 2
-        boats[0].id.should == 2
-        boats[1].id.should == 3
+        boats.should have(2).entries
+        boats.entries[0].id.should == 2
+        boats.entries[1].id.should == 3
       end
 
       it 'when value is NOT IN another query' do
@@ -142,8 +142,8 @@ begin
         acl = DataMapper::Query.new(Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
         query = DataMapper::Query.new(SailBoat, :port => 'Cape Town',:id.not => acl,:captain.like => 'J%')
         boats = @adapter.read_set(repository(:sqlite3),query)
-        boats.length.should == 1
-        boats[0].id.should == 3
+        boats.should have(1).entries
+        boats.entries[0].id.should == 3
       end
 
       after do
@@ -216,19 +216,19 @@ begin
                                                         ['Factory',[:id]])
         query = DataMapper::Query.new(Vehicle,:links => [factory])
         results = @adapter.read_set(repository(:sqlite3),query)
-        results.length.should == 1
+        results.should have(1).entries
       end
 
       it 'should accept a symbol of an association name as a link' do
         query = DataMapper::Query.new(Vehicle,:links => [:factory])
         results = @adapter.read_set(repository(:sqlite3),query)
-        results.length.should == 1
+        results.should have(1).entries
       end
 
       it 'should accept a string of an association name as a link' do
         query = DataMapper::Query.new(Vehicle,:links => ['factory'])
         results = @adapter.read_set(repository(:sqlite3),query)
-        results.length.should == 1
+        results.should have(1).entries
       end
 
       it 'should accept a mixture of items as a set of links' do
@@ -238,7 +238,7 @@ begin
                                                         ['Region',[:id]])
         query = DataMapper::Query.new(Vehicle,:links => ['factory',region])
         results = @adapter.read_set(repository(:sqlite3),query)
-        results.length.should == 1
+        results.should have(1).entries
       end
 
       it 'should only accept a DM::Assoc::Relationship, String & Symbol as a link' do

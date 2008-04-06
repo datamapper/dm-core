@@ -110,15 +110,11 @@ module DataMapper
     end
 
     def first(resource, options)
-      @adapter.read_one(self, Query.new(resource, options))
+      @adapter.read_set(self, Query.new(resource, options.merge(:limit => 1))).first
     end
 
     def all(resource, options)
-      @adapter.read_set(self, Query.new(resource, options))
-    end
-
-    def fake_it(resource)
-      @adapter.fake_it(self, resource)
+      @adapter.read_set(self, Query.new(resource, options)).entries
     end
 
     def save(instance)
