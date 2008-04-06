@@ -1,0 +1,22 @@
+--- 
+body_id: news
+title: Spotlight on... Topic Here
+created_at: <%= Time.now.iso8601 %>
+summary: Summary Goes Here
+release_type: blog
+author: <%= ENV['USER'] %>
+filter:
+  - erb
+  - textile
+---
+
+h1. <%%= @page.title %>
+
+
+
+h2(newRelease). Contribute a "Spotlight On..." Article
+
+p(newRelease).  Got something important to say?  Want something explained a little<br>
+better or demonstrated? Contribute or request a "Spotlight On..." <br> article! 
+Email the "DataMapper Mailing List":http://groups.google.com/group/datamapper with the request or <br>
+contribution and we'll post it here.

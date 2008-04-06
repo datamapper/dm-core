@@ -16,9 +16,9 @@
 
 load 'tasks/setup.rb'
 
-task :default => :build
+task :default => :rebuild
 
 desc 'deploy the site to the webserver'
-task :deploy => [:build, 'deploy:rsync']
+task :deploy => [:rebuild, 'deploy:rsync']
 
 # EOF
