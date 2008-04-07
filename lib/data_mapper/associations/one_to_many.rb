@@ -13,8 +13,10 @@ module DataMapper
         relationships[name] = Relationship.new(
           DataMapper::Inflection.underscore(model_name).to_sym,
           options[:repository_name] || repository.name,
-          [ source,     nil ],
-          [ model_name, nil ]
+          source,
+          nil,
+          model_name,
+          nil
         )
 
         class_eval <<-EOS, __FILE__, __LINE__
@@ -77,7 +79,6 @@ module DataMapper
 
         def delete(child)
           deleted = children.delete(child)
-          raise "Deleted is nil: #{children.inspect} #{child.inspect}" if deleted.nil?
           begin
             @relationship.attach_parent(deleted, nil)
             repository(@relationship.repository_name).save(deleted)

@@ -1,5 +1,8 @@
 require __DIR__ + 'abstract_adapter'
-require 'fastthread'
+begin
+  require 'fastthread'
+rescue LoadError
+end
 require 'data_objects'
 
 module DataMapper
@@ -19,16 +22,16 @@ module DataMapper
       end
 
       TYPES = {
-        Fixnum  => 'int'.freeze,
-        String   => 'varchar'.freeze,
-        DataMapper::Types::Text     => 'text'.freeze,
-        Class    => 'varchar'.freeze,
-        BigDecimal  => 'decimal'.freeze,
-        Float    => 'float'.freeze,
-        DateTime => 'datetime'.freeze,
-        Date     => 'date'.freeze,
-        TrueClass  => 'boolean'.freeze,
-        Object   => 'text'.freeze
+        Fixnum                  => 'int'.freeze,
+        String                  => 'varchar'.freeze,
+        DataMapper::Types::Text => 'text'.freeze,
+        Class                   => 'varchar'.freeze,
+        BigDecimal              => 'decimal'.freeze,
+        Float                   => 'float'.freeze,
+        DateTime                => 'datetime'.freeze,
+        Date                    => 'date'.freeze,
+        TrueClass               => 'boolean'.freeze,
+        Object                  => 'text'.freeze
       }
 
       def begin_transaction
@@ -94,9 +97,10 @@ module DataMapper
       end
 
       def read(repository, resource, key)
-        properties = resource.properties(repository.name).defaults
+        properties              = resource.properties(repository.name).defaults
+        properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
 
-        set = LoadedSet.new(repository, resource, properties)
+        set = LoadedSet.new(repository, resource, properties_with_indexes)
 
         connection = create_connection
         sql = read_statement(resource, key)
@@ -147,9 +151,10 @@ module DataMapper
 
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
-        properties = query.fields
+        properties              = query.fields
+        properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
 
-        set = LoadedSet.new(repository, query.model, properties)
+        set = LoadedSet.new(repository, query.model, properties_with_indexes)
 
         sql = query_read_statement(query)
         parameters = query.parameters
@@ -355,8 +360,8 @@ module DataMapper
           when Array then "#{property_to_column_name(query.model_name, property, qualify)} IN ?"
           when NilClass then "#{property_to_column_name(query.model_name, property, qualify)} IS NULL"
           when DataMapper::Query then
-                query.merge_sub_select_conditions(operator, property, value)
-              "#{property_to_column_name(query.model_name, property, qualify)} IN (#{query_read_statement(value)})"
+            query.merge_sub_select_conditions(operator, property, value)
+            "#{property_to_column_name(query.model_name, property, qualify)} IN (#{query_read_statement(value)})"
           else "#{property_to_column_name(query.model_name, property, qualify)} = ?"
           end
         end
@@ -366,8 +371,8 @@ module DataMapper
           when Array then "#{property_to_column_name(query.model_name, property, qualify)} NOT IN ?"
           when NilClass then "#{property_to_column_name(query.model_name, property, qualify)} IS NOT NULL"
           when DataMapper::Query then
-                query.merge_sub_select_conditions(operator, property, value)
-              "#{property_to_column_name(query.model_name, property, qualify)} NOT IN (#{query_read_statement(value)})"
+            query.merge_sub_select_conditions(operator, property, value)
+            "#{property_to_column_name(query.model_name, property, qualify)} NOT IN (#{query_read_statement(value)})"
           else "#{property_to_column_name(query.model_name, property, qualify)} <> ?"
           end
         end

@@ -11,8 +11,10 @@ module DataMapper
         relationships[name] = Relationship.new(
           name,
           options[:repository_name] || repository.name,
-          [ DataMapper::Inflection.demodulize(self.name), nil ],
-          [ target,                                       nil ]
+          DataMapper::Inflection.demodulize(self.name),
+          nil,
+          target,
+          nil
         )
 
         class_eval <<-EOS, __FILE__, __LINE__
