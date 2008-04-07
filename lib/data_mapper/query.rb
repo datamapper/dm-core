@@ -116,7 +116,7 @@ module DataMapper
 
     def initialize(model, options = {})
       validate_model(model)
-      validate_options(options)
+      validate_options(options)    
 
       @repository     = model.repository
       repository_name = @repository.name
@@ -289,9 +289,37 @@ module DataMapper
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
     end
 
+    def normalize_property_chain(property)
+      # DM::Query.new(Zoo, 'Zoo.displays.name' => 'foo')
+      
+      relationships = []
+      model = @model
+      result = nil
+      property.to_s.split('.').map do |part|
+        next if DataMapper::Inflection.classify(part) == model.to_s
+              
+        if model.properties(model.repository.name)[part] != nil
+          result = model.properties(model.repository.name)[part]
+        elsif model.relationships.has_key?(part.to_sym)
+          relationship = model.relationships[part.to_sym]
+          model = relationship.child_model == model ? relationship.parent_model : relationship.child_model            
+          relationships << relationship
+        else
+          raise ArgumentError, "Could not normalize property chain for #{property.inspect}"
+        end
+      end
+
+      # Add joins if not already joined
+      relationships.map do |relationship|
+        @links << relationship  if !@links.include?(relationship) && !@includes.include?(relationship)  
+      end
+      
+      result      
+    end
+
     def append_condition(property, value)
       operator = :eql
-
+      
       property = case property
         when DataMapper::Property
           property
@@ -299,7 +327,9 @@ module DataMapper
           operator = property.type
           @properties[property.to_sym]
         when Symbol, String
-          @properties[property]
+          prop = @properties[property]          
+          prop = normalize_property_chain(property) unless prop
+          prop          
         else
           raise ArgumentError, "Condition type #{property.inspect} not supported"
       end

@@ -306,7 +306,7 @@ module DataMapper
               child_keys        = relationship.child_key.to_a
               
               # We only do LEFT OUTER JOIN for now
-              s = 'LEFT OUTER JOIN '              
+              s = ' LEFT OUTER JOIN '              
               s << parent_model_name << ' ON '
               parts = []
               relationship.parent_key.zip(child_keys) do |parent_key,child_key|
@@ -326,15 +326,18 @@ module DataMapper
 
           unless query.conditions.empty?
             sql << " WHERE "
-            sql << "(" << query.conditions.map do |operator, property, value|
+            sql << "(" << query.conditions.map do |operator, property, value|            
+              # deriving the model name from the property and not the query
+              # allows for "foreign" properties to be qualified correctly            
+              model_name = property.target.resource_name(property.target.repository.name)              
               case operator
-              when :eql, :in then equality_operator(query,operator, property, qualify, value)
-              when :not      then inequality_operator(query,operator, property, qualify, value)
-              when :like     then "#{property_to_column_name(query.model_name, property, qualify)} LIKE ?"
-              when :gt       then "#{property_to_column_name(query.model_name, property, qualify)} > ?"
-              when :gte      then "#{property_to_column_name(query.model_name, property, qualify)} >= ?"
-              when :lt       then "#{property_to_column_name(query.model_name, property, qualify)} < ?"
-              when :lte      then "#{property_to_column_name(query.model_name, property, qualify)} <= ?"
+              when :eql, :in then equality_operator(query,model_name,operator, property, qualify, value)
+              when :not      then inequality_operator(query,model_name,operator, property, qualify, value)
+              when :like     then "#{property_to_column_name(model_name, property, qualify)} LIKE ?"
+              when :gt       then "#{property_to_column_name(model_name, property, qualify)} > ?"
+              when :gte      then "#{property_to_column_name(model_name, property, qualify)} >= ?"
+              when :lt       then "#{property_to_column_name(model_name, property, qualify)} < ?"
+              when :lte      then "#{property_to_column_name(model_name, property, qualify)} <= ?"
               else raise "CAN HAS CRASH?"
               end
             end.join(') AND (') << ")"
@@ -351,29 +354,29 @@ module DataMapper
 
           sql << " LIMIT #{query.limit}" if query.limit
           sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
-          
+                    
           sql
         end
 
-        def equality_operator(query, operator, property, qualify, value)
+        def equality_operator(query, model_name, operator, property, qualify, value)
           case value
-          when Array then "#{property_to_column_name(query.model_name, property, qualify)} IN ?"
-          when NilClass then "#{property_to_column_name(query.model_name, property, qualify)} IS NULL"
+          when Array then "#{property_to_column_name(model_name, property, qualify)} IN ?"
+          when NilClass then "#{property_to_column_name(model_name, property, qualify)} IS NULL"
           when DataMapper::Query then
             query.merge_sub_select_conditions(operator, property, value)
-            "#{property_to_column_name(query.model_name, property, qualify)} IN (#{query_read_statement(value)})"
-          else "#{property_to_column_name(query.model_name, property, qualify)} = ?"
+            "#{property_to_column_name(model_name, property, qualify)} IN (#{query_read_statement(value)})"
+          else "#{property_to_column_name(model_name, property, qualify)} = ?"
           end
         end
 
-        def inequality_operator(query, operator, property, qualify, value)
+        def inequality_operator(query, model_name, operator, property, qualify, value)
           case value
-          when Array then "#{property_to_column_name(query.model_name, property, qualify)} NOT IN ?"
-          when NilClass then "#{property_to_column_name(query.model_name, property, qualify)} IS NOT NULL"
+          when Array then "#{property_to_column_name(model_name, property, qualify)} NOT IN ?"
+          when NilClass then "#{property_to_column_name(model_name, property, qualify)} IS NOT NULL"
           when DataMapper::Query then
             query.merge_sub_select_conditions(operator, property, value)
-            "#{property_to_column_name(query.model_name, property, qualify)} NOT IN (#{query_read_statement(value)})"
-          else "#{property_to_column_name(query.model_name, property, qualify)} <> ?"
+            "#{property_to_column_name(model_name, property, qualify)} NOT IN (#{query_read_statement(value)})"
+          else "#{property_to_column_name(model_name, property, qualify)} <> ?"
           end
         end
 

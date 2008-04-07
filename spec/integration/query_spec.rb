@@ -203,9 +203,6 @@ begin
           Region.new(:id=>1,:name=>'North West').save
           Factory.new(:id=>2000,:region_id=>1,:name=>'North West Plant').save
           Vehicle.new(:id=>1,:factory_id=>2000,:name=>'10 ton delivery truck').save
-
-          #Teacher.new(:id_a => 1, :id_b => 2, :name => 'Math Prof').save
-          #Student.new(:id => 1, :parent_id_a => 1, :parent_id_b => 2,:name => 'Joey').save
         end
       end
 
@@ -264,8 +261,20 @@ begin
           DataMapper::Query.new(Vehicle,:links=>[:sailing])
         }.should raise_error(ArgumentError)
       end
-
+  
+      it 'should accept a property chain as the key to a condition' do    
+          repository(:sqlite3) do
+            vehicle = Vehicle.first('Vehicle.factory.region.name' => 'North West')
+            vehicle.name.should == '10 ton delivery truck'
+          end
+      
+      end
+    
       it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'
+      
+#      it 'should take properties of associations in the conditions clause' do
+#        query = DataMapper::Query.new(Vehicle, 'Vehicle.factory.region.name' => 'foo')
+#      end
 
       it 'should create links with composite keys'
 
