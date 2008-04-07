@@ -13,8 +13,10 @@ module DataMapper
         relationships[name] = Relationship.new(
           DataMapper::Inflection.underscore(model_name).to_sym,
           options[:repository_name] || repository.name,
-          [ source,     nil ],
-          [ model_name, nil ]
+          source,
+          nil,
+          model_name,
+          nil
         )
 
         class_eval <<-EOS, __FILE__, __LINE__

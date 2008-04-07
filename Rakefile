@@ -60,7 +60,7 @@ PACKAGE_FILES = Pathname.glob([
 ]).reject { |path| path =~ /(\/db|Makefile|\.bundle|\.log|\.o)\z/ }
 
 DOCUMENTED_FILES = PACKAGE_FILES.reject do |path|
-  path.directory? || path =~ /(^spec|\/spec|\/swig\_)/
+  path.directory? || path.to_s.match(/(?:^spec|\/spec|\/swig\_)/)
 end
 
 PROJECT = "dm-core"
@@ -74,7 +74,7 @@ rd = Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
   rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
-  rdoc.rdoc_files.include(*DOCUMENTED_FILES)
+  rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
 end
 
 gem_spec = Gem::Specification.new do |s|

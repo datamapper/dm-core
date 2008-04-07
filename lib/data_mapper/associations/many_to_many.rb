@@ -10,8 +10,10 @@ module DataMapper
         relationships[name] = Relationship.new(
           name,
           options[:repository_name] || self.repository.name,
-          [ DataMapper::Inflection.demodulize(self.name), nil ],
-          [ target,                                       nil ]
+          DataMapper::Inflection.demodulize(self.name),
+          nil,
+          target,
+          nil
         )
       end
 

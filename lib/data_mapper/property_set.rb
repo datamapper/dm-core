@@ -96,7 +96,7 @@ module DataMapper
 
     private
 
-    def initialize(*properties, &block)
+    def initialize(properties = [], &block)
       @entries      = properties
       @property_for = Hash.new do |h,k|
         case k
