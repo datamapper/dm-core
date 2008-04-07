@@ -1,7 +1,7 @@
 module DataMapper
   module Hook
-    def self.included(klass)
-      klass.extend(ClassMethods)
+    def self.included(base)
+      base.extend(ClassMethods)
     end
     
     module ClassMethods

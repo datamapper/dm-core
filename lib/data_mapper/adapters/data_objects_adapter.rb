@@ -17,8 +17,8 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
 
-      def self.inherited(target)
-        target.const_set('TYPES', TYPES.dup)
+      def self.inherited(base)
+        base.const_set('TYPES', TYPES.dup)
       end
 
       TYPES = {
@@ -285,17 +285,17 @@ module DataMapper
         def query_read_statement(query)
           qualify = query.links.any?
 
-          sql = "SELECT "    
-          
+          sql = "SELECT "
+
           sql << query.fields.map do |property|
             # deriving the model name from the property and not the query
             # allows for "foreign" properties to be qualified correctly
-            model_name = property.target.resource_name(property.target.repository.name)
+            model_name = property.model.resource_name(property.model.repository.name)
             property_to_column_name(model_name, property, qualify)
           end.join(', ')
 
           sql << " FROM " << quote_table_name(query.model_name)
-                
+
           unless query.links.empty?
             joins = []
             query.links.each do |relationship|
@@ -304,15 +304,15 @@ module DataMapper
               child_model_name  = child_model.resource_name(child_model.repository.name)
               parent_model_name = parent_model.resource_name(parent_model.repository.name)
               child_keys        = relationship.child_key.to_a
-              
+
               # We only do LEFT OUTER JOIN for now
-              s = ' LEFT OUTER JOIN '              
+              s = ' LEFT OUTER JOIN '
               s << parent_model_name << ' ON '
               parts = []
               relationship.parent_key.zip(child_keys) do |parent_key,child_key|
                 part = ' ('
-                part <<  property_to_column_name(parent_model_name, parent_key, true) 
-                part << ' = ' 
+                part <<  property_to_column_name(parent_model_name, parent_key, true)
+                part << ' = '
                 part <<  property_to_column_name(child_model_name, child_key, true)
                 part << ')'
                 parts << part
@@ -326,10 +326,10 @@ module DataMapper
 
           unless query.conditions.empty?
             sql << " WHERE "
-            sql << "(" << query.conditions.map do |operator, property, value|            
+            sql << "(" << query.conditions.map do |operator, property, value|
               # deriving the model name from the property and not the query
-              # allows for "foreign" properties to be qualified correctly            
-              model_name = property.target.resource_name(property.target.repository.name)              
+              # allows for "foreign" properties to be qualified correctly
+              model_name = property.model.resource_name(property.model.repository.name)
               case operator
               when :eql, :in then equality_operator(query,model_name,operator, property, qualify, value)
               when :not      then inequality_operator(query,model_name,operator, property, qualify, value)
@@ -354,7 +354,7 @@ module DataMapper
 
           sql << " LIMIT #{query.limit}" if query.limit
           sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
-                    
+
           sql
         end
 
@@ -385,7 +385,7 @@ module DataMapper
             quote_table_name(model_name) + '.' + quote_column_name(property.field)
           else
             quote_column_name(property.field)
-          end    
+          end
         end
       end #module SQL
 

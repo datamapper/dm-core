@@ -171,7 +171,7 @@ module DataMapper
     # validate the model
     def validate_model(model)
       raise ArgumentError, "model must be a Class, but is #{model.class}" unless model.kind_of?(Class)
-      raise ArgumentError, 'model must include DataMapper::Resource'      unless model.included_modules.include?(DataMapper::Resource)
+      raise ArgumentError, 'model must include DataMapper::Resource'      unless DataMapper::Resource === model
     end
 
     # validate the options

@@ -9,11 +9,11 @@ module DataMapper
       @relationships ||= {}
     end
 
-    def self.extended(klass)
-      klass.send(:extend, ManyToOne)
-      klass.send(:extend, OneToMany)
-      klass.send(:extend, ManyToMany)
-      klass.send(:extend, OneToOne)
+    def self.extended(base)
+      base.send(:extend, ManyToOne)
+      base.send(:extend, OneToMany)
+      base.send(:extend, ManyToMany)
+      base.send(:extend, OneToOne)
     end
 
     def n

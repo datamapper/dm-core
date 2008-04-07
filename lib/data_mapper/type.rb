@@ -53,11 +53,11 @@ module DataMapper
         @_primitive_type = primitive_type
         @_options = options
 
-        def self.inherited(klass)
-          klass.primitive @_primitive_type
+        def self.inherited(base)
+          base.primitive @_primitive_type
 
           @_options.each do |k, v|
-            klass.send(k, v)
+            base.send(k, v)
           end
         end
 
