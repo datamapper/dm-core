@@ -77,7 +77,6 @@ module DataMapper
 
         def delete(child)
           deleted = children.delete(child)
-          raise "Deleted is nil: #{children.inspect} #{child.inspect}" if deleted.nil?
           begin
             @relationship.attach_parent(deleted, nil)
             repository(@relationship.repository_name).save(deleted)

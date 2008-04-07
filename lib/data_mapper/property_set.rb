@@ -11,22 +11,22 @@ module DataMapper
     end
 
     def add(*properties)
-      @properties.push(*properties)
+      @entries.push(*properties)
       self
     end
 
     alias << add
 
     def length
-      @properties.length
+      @entries.length
     end
 
     def empty?
-      @properties.empty?
+      @entries.empty?
     end
 
     def each(&block)
-      @properties.each { |property| yield property }
+      @entries.each { |property| yield property }
       self
     end
 
@@ -97,7 +97,7 @@ module DataMapper
     private
 
     def initialize(*properties, &block)
-      @properties   = properties
+      @entries      = properties
       @property_for = Hash.new do |h,k|
         case k
           when Symbol

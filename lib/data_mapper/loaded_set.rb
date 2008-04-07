@@ -9,7 +9,7 @@ module DataMapper
     def initialize(repository, model, properties)
       @repository = repository
       @model      = model
-      @properties = Hash[*properties.zip((0...properties.length).to_a).flatten]
+      @properties = properties
       @entries    = []
 
       if inheritance_property = @model.inheritance_property(@repository.name)
@@ -84,6 +84,9 @@ module DataMapper
       @entries.first
     end
 
+    # FIXME: Array#uniq! is really expensive.  Is there any way we can
+    # avoid doing this, or at least minimize how often this method is
+    # called?
     def entries
       @entries.uniq!
       @entries.dup

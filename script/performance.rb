@@ -117,6 +117,14 @@ Benchmark.bmbm(60) do |x|
     end
   end
 
+  x.report('AR.first              x10,000') do
+    10_000.times { touch_attributes[ARExhibit.find(:first)] }
+  end
+
+  x.report('DM.first              x10,000') do
+    10_000.times { touch_attributes[Exhibit.first] }
+  end
+
   x.report('AR.all limit(100)     x1,000') do
     ActiveRecord::Base::uncached do
       1000.times { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
@@ -183,15 +191,17 @@ Benchmark.bmbm(60) do |x|
   end
 
   x.report('DM#update             x10,000') do
-    10_000.times { e = Exhibit[1]; e.name = 'bob'; e.save }
+    10_000.times { e = Exhibit.get(1); e.name = 'bob'; e.save }
   end
 
   x.report('AR#destroy            x10,000') do
-    10_000.times { e = ARExhibit.find(:first); e.destroy }
+    # destroy records 1 to 10,000
+    (1..10_000).each { |id| ARExhibit.find(id).destroy }
   end
 
   x.report('DM#destroy            x10,000') do
-    10_000.times { e = Exhibit.first; e.destroy }
+    # destroy records 10,001 to 20,000
+    (10_001..20_000).each { |id| Exhibit.get(id).destroy }
   end
 end
 
