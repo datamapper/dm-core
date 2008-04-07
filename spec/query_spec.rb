@@ -1,8 +1,6 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
 
-
-
 describe DataMapper::Query do
   GOOD_OPTIONS = [
     [ :reload,   false     ],
@@ -12,8 +10,8 @@ describe DataMapper::Query do
     [ :limit,    1         ],
     [ :limit,    2         ],
     [ :order,    [ DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc) ] ],
-    [ :fields,   Article.properties(:default).defaults ], # TODO: fill in allowed default value
-    [ :links,    [ :stub ] ], # TODO: fill in allowed default value
+    [ :fields,   Article.properties(:default).defaults.to_a ], # TODO: fill in allowed default value
+    #[ :links,    [ :stub ] ], # TODO: fill in allowed default value
     [ :includes, [ :stub ] ], # TODO: fill in allowed default value
   ]
 
@@ -33,14 +31,14 @@ describe DataMapper::Query do
   UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
     options.update attribute => value
   end
-  
+
   UPDATED_OPTIONS.merge!({ :fields => [ :id, :author ]})
 
   describe '.new' do
     describe 'should set the attribute' do
-      it '#resource with resource' do
+      it '#model with model' do
         query = DataMapper::Query.new(Article)
-        query.resource.should == Article
+        query.model.should == Article
       end
 
       GOOD_OPTIONS.each do |(attribute,value)|
@@ -60,6 +58,22 @@ describe DataMapper::Query do
           query = DataMapper::Query.new(Article, :conditions => [ 'name = ?', 'dkubb' ])
           query.conditions.should == [ [ 'name = ?', [ 'dkubb' ] ] ]
         end
+
+        it 'when they have another DM:Query as the value of sub-select' do
+          class Acl
+            include DataMapper::Resource
+            property :id, Fixnum
+            property :resource_id, Fixnum
+          end
+
+          acl_query = DataMapper::Query.new(Acl, :fields=>[:resource_id]) #this would normally have conditions
+          query = DataMapper::Query.new(Article, :id.in => acl_query)
+          query.conditions.each do |operator, property, value|
+            operator.should == :in
+            property.name.should == :id
+            value.should == acl_query
+          end
+        end
       end
 
       describe ' #conditions with unknown options' do
@@ -76,13 +90,13 @@ describe DataMapper::Query do
     end
 
     describe 'should raise an ArgumentError' do
-      it 'when resource is nil' do
+      it 'when model is nil' do
         lambda {
           DataMapper::Query.new(nil)
         }.should raise_error(ArgumentError)
       end
 
-      it 'when resource is a Class that does not include DataMapper::Resource' do
+      it 'when model is a Class that does not include DataMapper::Resource' do
         lambda {
           DataMapper::Query.new(NormalClass)
         }.should raise_error(ArgumentError)
@@ -114,10 +128,10 @@ describe DataMapper::Query do
         }.should raise_error(ArgumentError)
       end
     end
-    
+
     describe 'should normalize' do
       it '#fields' do
-        DataMapper::Query.new(Article, :fields => [:id]).fields.should == Article.properties(:default).select(:id)
+        DataMapper::Query.new(Article, :fields => [:id]).fields.should == Article.properties(:default).slice(:id).to_a
       end
     end
   end
@@ -132,7 +146,7 @@ describe DataMapper::Query do
 
       mock_query_class = mock('DataMapper::Query class')
       @query.should_receive(:class).with(no_args).ordered.and_return(mock_query_class)
-      mock_query_class.should_receive(:new).with(@query.resource, other).ordered.and_return(@query)
+      mock_query_class.should_receive(:new).with(@query.model, other).ordered.and_return(@query)
 
       @query.update(other)
     end
@@ -143,9 +157,9 @@ describe DataMapper::Query do
     end
 
     describe 'should overwrite the attribute' do
-      it '#resource with other resource' do
+      it '#model with other model' do
         other = DataMapper::Query.new(Comment)
-        @query.update(other).resource.should == Comment
+        @query.update(other).model.should == Comment
       end
 
       it '#reload with other reload' do
@@ -209,16 +223,23 @@ describe DataMapper::Query do
         @query.update(other).order.should == order
       end
 
+      # dkubb: I am not sure i understand the intent here. link now needs to be
+      #       a DM::Assoc::Relationship or the name (Symbol or String) of an
+      #       association on the Resource -- thx guyvdb
+      #
+      # NOTE: I have commented out :links in the GOOD_OPTIONS above
+      #
       [ :links, :includes ].each do |attribute|
         it "##{attribute} with other #{attribute} unique values" do
+          pending 'DataMapper::Query::Path not ready'
           other = DataMapper::Query.new(Article, attribute => [ :stub, :other, :new ])
           @query.update(other).send(attribute).should == [ :stub, :other, :new ]
         end
       end
-      
+
       it "#fields with other fields unique values" do
-        other = DataMapper::Query.new(Article, :fields => [ :blog_id ]) 
-        @query.update(other).fields.should == Article.properties(:default).select(:id, :author, :blog_id)
+        other = DataMapper::Query.new(Article, :fields => [ :blog_id ])
+        @query.update(other).fields.should == Article.properties(:default).slice(:id, :author, :blog_id).to_a
       end
 
       it '#conditions with other conditions when they are unique' do
@@ -348,7 +369,7 @@ describe DataMapper::Query do
     end
 
     describe 'should be different' do
-      it 'when other resource is different than self.resource' do
+      it 'when other model is different than self.model' do
         @query.should_not == DataMapper::Query.new(Comment)
       end
 
@@ -362,6 +383,5 @@ describe DataMapper::Query do
         @query.should_not == DataMapper::Query.new(Article, :author => 'dkubb')
       end
     end
-
   end
 end

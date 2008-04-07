@@ -17,6 +17,10 @@ describe DataMapper::CLI do
     # Entire configuration structure, useful for testing scenarios.
     describe "-c or --config" do
       it "should " do
+        pending
+#        arg = ["c"]
+#        cli = DataMapper::CLI.new
+#        cli.parse_args(arg)
         
       end
     end

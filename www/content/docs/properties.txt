@@ -15,7 +15,7 @@ This has a few advantages. First it means that a model's properties are document
 
 Second, it lets you limit access to properties using Ruby's access semantics. Properties can be declared public, private or protected. They are public by default.
 
-Finally, since Datamapper only cares about properties explicitly defined in your models, Datamappers plays well with legacy databases and shares databases easily with other applications.
+Finally, since DataMapper only cares about properties explicitly defined in your models, DataMapper plays well with legacy databases and shares databases easily with other applications.
 
 h2. Declaring Properties
 

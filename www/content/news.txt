@@ -9,15 +9,16 @@ filter:
 h1. <%= @page.title %>
 
 <dl>
-<%
-  articles = @pages.find(:limit => :all, :in_directory => "articles", :sort_by => :created_at)
-  paginate(articles, 20) do |page|
+<% 
+  articles = @pages.find(:limit => :all, :in_directory => 'articles') {|a| a.release_type != 'draft'}.sort{|a, b| b.created_at <=> a.created_at}
+  
+   paginate(articles, 20) do |page|
 %>
 
   <dt>
     <a href="<%= page.url %>"> <%= page.title %></a>
     <br>
-    <small><%= Time.parse(page.created_at).strftime(" Posted On %m/%d/%Y") %> by <%= page.author %></small>
+    <small><%= page.created_at.strftime(" Posted On %m/%d/%Y") %> by <%= page.author %></small>
   </dt>
   <dd><%= page.summary %></dd>
 

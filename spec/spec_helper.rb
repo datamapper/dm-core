@@ -22,9 +22,7 @@ class Article
 
   class << self
     def property_by_name(name)
-      properties(repository.name).detect do |property|
-        property.name == name
-      end
+      properties(repository.name)[name]
     end
   end
 end

@@ -1,15 +1,9 @@
-require __DIR__ + 'support/inflector'
 require __DIR__ + 'support/string'
 require __DIR__ + 'property_set'
 require __DIR__ + 'property'
 require __DIR__ + 'repository'
 require __DIR__ + 'hook'
-require __DIR__ + 'associations/relationship'
-require __DIR__ + 'associations/association_set'
-require __DIR__ + 'associations/belongs_to'
-require __DIR__ + 'associations/has_one'
-require __DIR__ + 'associations/has_many'
-require __DIR__ + 'associations/has_and_belongs_to_many'
+require __DIR__ + 'associations'
 
 module DataMapper
 
@@ -18,18 +12,15 @@ module DataMapper
     # +----------------------
     # Resource module methods
 
-    def self.included(target)
-      target.send(:extend, ClassMethods)
-      target.send(:extend, DataMapper::Hook::ClassMethods)
-      target.send(:include, DataMapper::Hook)
-      target.instance_variable_set("@resource_names", Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(target.name) })
-      target.instance_variable_set("@properties", Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
+    def self.included(base)
+      base.send(:extend, ClassMethods)
+      base.send(:extend, DataMapper::Hook::ClassMethods)
+      base.send(:include, DataMapper::Hook)
+      base.instance_variable_set(:@resource_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
+      base.instance_variable_set(:@properties,     Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
 
       # Associations:
-      target.send(:extend, DataMapper::Associations::BelongsTo)
-      target.send(:extend, DataMapper::Associations::HasOne)
-      target.send(:extend, DataMapper::Associations::HasMany)
-      target.send(:extend, DataMapper::Associations::HasAndBelongsToMany)
+      base.send(:extend, DataMapper::Associations)
     end
 
     def self.dependencies
@@ -43,25 +34,51 @@ module DataMapper
     # +---------------
     # Instance methods
 
+    attr_accessor :loaded_set
+
+    def [](name)
+      property  = self.class.properties(repository.name)[name]
+      ivar_name = property.instance_variable_name
+
+      unless new_record? || instance_variable_defined?(ivar_name)
+        lazy_load(name)
+      end
+
+      value = instance_variable_get(ivar_name)
+      property.custom? && property.type.respond_to?(:load) ? property.type.load(value) : value
+    end
+
+    def []=(name, value)
+      property  = self.class.properties(repository.name)[name]
+      ivar_name = property.instance_variable_name
+
+      if property && property.lock?
+        instance_variable_set("@shadow_#{name}", instance_variable_get(ivar_name))
+      end
+
+      dirty_attributes << property
+      instance_variable_set(ivar_name, (property.custom? && property.type.respond_to?(:dump) ? property.type.dump(value) : value))
+    end
+
     def repository
       @loaded_set ? @loaded_set.repository : self.class.repository
     end
 
+    def child_associations
+      @child_associations ||= []
+    end
+
+    def parent_associations
+      @parent_associations ||= []
+    end
+
     def key
       key = []
-      self.class.key(repository.name).map do |property|
+      self.class.key(repository.name).each do |property|
         value = instance_variable_get(property.instance_variable_name)
         key << value if !value.nil?
       end
       key
-    end
-
-    def loaded_set
-      @loaded_set
-    end
-
-    def loaded_set=(value)
-      @loaded_set = value
     end
 
     def readonly!
@@ -81,46 +98,33 @@ module DataMapper
     end
 
     def attribute_loaded?(name)
-      instance_variables.include?(name.to_s.ensure_starts_with('@'))
+      property = self.class.properties(repository.name)[name]
+      instance_variable_defined?(property.instance_variable_name)
     end
 
     def dirty_attributes
-      @dirty_attributes || @dirty_attributes = Hash.new
+      @dirty_attributes ||= []
     end
 
     def dirty?
-      !@dirty_attributes.blank?
+      dirty_attributes.any?
     end
 
     def attribute_dirty?(name)
-      raise ArgumentError.new("#{name.inspect} should be a Symbol") unless name.is_a?(Symbol)
-      dirty_attributes.include?(name)
+      property = self.class.properties(repository.name)[name]
+      dirty_attributes.include?(property)
     end
 
-    def attribute_get(name)
-      unless attribute_loaded?(name)
-        lazy_load!(name)
-      end
-
-      instance_variable_get(name.to_s.ensure_starts_with('@'))
+    def shadow_attribute_get(name)
+      instance_variable_get("@shadow_#{name}")
     end
 
-    def attribute_set(name, value)
-      dirty_attributes[name] = instance_variable_set(name.to_s.ensure_starts_with('@'), value)
-    end
-
-    def lazy_load!(*names)
-      props = self.class.properties(self.class.repository.name)
-      ctx_names =  props.lazy_loaded.expand_fields(names)
-      unless new_record? || @loaded_set.nil?
-        @loaded_set.reload!(:fields => ctx_names )
-      else
-        ctx_names.each { |name| instance_variable_set(name.to_s.ensure_starts_with('@'), nil) }
-      end
+    def reload!
+      @loaded_set.reload!(:fields => loaded_attributes.keys)
     end
 
     def initialize(details = nil) # :nodoc:
-      validate_resource!
+      validate_resource
 
       def initialize(details = nil)
         if details
@@ -136,12 +140,6 @@ module DataMapper
       when Hash then self.attributes = details
       when Resource, Struct then self.private_attributes = details.attributes
       # else raise ArgumentError.new("details should be a Hash, Resource or Struct\n\t#{details.inspect}")
-      end
-    end
-
-    def validate_resource! # :nodoc:
-      if self.class.properties(self.class.default_repository_name).empty?
-        raise IncompleteResourceError.new("Resources must have at least one property to be initialized.")
       end
     end
 
@@ -170,7 +168,7 @@ module DataMapper
     # Mass-assign mapped fields.
     def attributes=(values_hash)
       values_hash.each_pair do |k,v|
-        setter = k.to_s.sub(/\?$/, '').ensure_ends_with('=')
+        setter = "#{k.to_s.sub(/\?\z/, '')}="
         # We check #public_methods and not Class#public_method_defined? to
         # account for singleton methods.
         if public_methods.include?(setter)
@@ -180,6 +178,17 @@ module DataMapper
     end
 
     private
+
+    def validate_resource # :nodoc:
+      if self.class.properties(self.class.default_repository_name).empty?
+        raise IncompleteResourceError.new("Resources must have at least one property to be initialized.")
+      end
+    end
+
+    def lazy_load(name)
+      return unless @loaded_set
+      @loaded_set.reload!(:fields => self.class.properties(self.class.repository.name).lazy_load_context(name))
+    end
 
     def private_attributes
       pairs = {}
@@ -193,14 +202,12 @@ module DataMapper
 
     def private_attributes=(values_hash)
       values_hash.each_pair do |k,v|
-        setter = k.to_s.sub(/\?$/, '').ensure_ends_with('=')
+        setter = "#{k.to_s.sub(/\?\z/, '')}="
         if respond_to?(setter) || private_methods.include?(setter)
           send(setter, v)
         end
       end
     end
-
-    public
 
     module ClassMethods
 
@@ -212,6 +219,9 @@ module DataMapper
         :default
       end
 
+      # FIXME: should this be renamed container_name, since it
+      # effectively returns the name of the container in the repository
+      # that we store the data in
       def resource_name(repository_name)
         @resource_names[repository_name]
       end
@@ -234,13 +244,13 @@ module DataMapper
 
         #Add the property to the lazy_loads set for this resources repository only
         # TODO Is this right or should we add the lazy contexts to all repositories?
-        if type == Text || options.has_key?(:lazy)
+        if property.lazy?
           ctx = options.has_key?(:lazy) ? options[:lazy] : :default
           ctx = :default if ctx.is_a?(TrueClass)
-          @properties[repository.name].lazy_loaded.context(ctx) << name if ctx.is_a?(Symbol)
+          @properties[repository.name].lazy_context(ctx) << name if ctx.is_a?(Symbol)
           if ctx.is_a?(Array)
             ctx.each do |item|
-              @properties[repository.name].lazy_loaded.context(item) << name
+              @properties[repository.name].lazy_context(item) << name
             end
           end
         end
@@ -257,11 +267,11 @@ module DataMapper
       end
 
       def inheritance_property(repository_name)
-        @properties[repository_name].detect { |property| property.type == Class }
+        @properties[repository_name].inheritance_property
       end
 
-      def get(key)
-        repository.get(self, key.is_a?(Array) ? key : [key])
+      def get(*key)
+        repository.get(self, key)
       end
 
       def [](key)
@@ -276,20 +286,22 @@ module DataMapper
         repository(options[:repository] || default_repository_name).first(self, options)
       end
 
+      # FIXME: should this use allocate, assign the values using
+      # Resource#attribtues= and add to the IdentityMap if the save
+      # was successful?
       def create(values)
-        instance = new(values)
-
-        [instance, instance.save]
+        resource = new(values)
+        [ resource, resource.save ]
       end
 
       # TODO SPEC
       def copy(source, destination, options = {})
         repository(destination) do
-          repository(source).all(self, options).each do |instance|
-            self.create(instance)
+          repository(source).all(self, options).each do |resource|
+            self.create(resource)
           end
         end
       end
-    end
-  end
-end
+    end # module ClassMethods
+  end # module Resource
+end # module DataMapper

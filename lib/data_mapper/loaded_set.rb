@@ -6,92 +6,79 @@ module DataMapper
 
     attr_reader :repository
 
-    # +properties+ is a Hash of Property and values Array index pairs.
-    #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
-    def initialize(repository, type, properties)
+    def initialize(repository, model, properties)
       @repository = repository
-      @type = type
-      @properties = properties
+      @model      = model
+      @properties = Hash[*properties.zip((0...properties.length).to_a).flatten]
+      @entries    = []
 
-      @inheritance_property_index = if @inheritance_property = @type.inheritance_property(@repository.name) &&
-        @properties.key?(@inheritance_property)
-        @properties.values_at(@inheritance_property)
-      else
-        nil
+      if inheritance_property = @model.inheritance_property(@repository.name)
+        @inheritance_property_index = @properties[inheritance_property]
       end
 
-      @key_property_indexes = if (@key_properties = @type.key(@repository.name)).all? { |key| @properties.key?(key) }
-        @properties.values_at(*@key_properties)
-      else
-        nil
+      if (@key_properties = @model.key(@repository.name)).all? { |key| @properties.include?(key) }
+        @key_property_indexes = @properties.values_at(*@key_properties)
       end
-
-      @entries = []
     end
 
     def keys
-      # TODO: This is a really dirty way to implement this. My brain's just fried :p
+      entry_keys = @entries.map { |resource| resource.key }
+
       keys = {}
-      entry_keys = @entries.map { |instance| instance.key }
-
-      i = 0
-      @key_properties.each do |property|
-        keys[property] = entry_keys.map { |key| key[i] }
-        i += 1
+      @key_properties.zip(entry_keys.transpose).each do |property,values|
+        keys[property] = values
       end
-
       keys
     end
 
     def reload!(options = {})
-      query = Query.new(@type, keys.merge(:fields => @key_properties))
+      query = Query.new(@model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
       @repository.adapter.read_set(@repository, query)
     end
 
-    def materialize!(values, reload = false)
-      type = if @inheritance_property_index
-        values[@inheritance_property_index]
+    def add(values, reload = false)
+      model = if @inheritance_property_index
+        values.at(@inheritance_property_index)
       else
-        @type
+        @model
       end
 
-      instance = nil
+      resource = nil
 
       if @key_property_indexes
-        key_values = @key_property_indexes.map { |i| values[i] }
-        instance = @repository.identity_map_get(type, key_values)
+        key_values = values.values_at(*@key_property_indexes)
 
-        if instance.nil?
-          instance = type.allocate
-          i = 0
-          @key_properties.each do |p|
-            instance.instance_variable_set(p.instance_variable_name, key_values[i])
-            i += 1
-          end
-          @entries << instance
-          instance.loaded_set = self
-          instance.instance_variable_set("@new_record", false)
-          @repository.identity_map_set(instance)
+        if resource = @repository.identity_map_get(model, key_values)
+          @entries << resource
+          resource.loaded_set = self
+          return resource unless reload
         else
-          @entries << instance
-          instance.loaded_set = self
-          return instance unless reload
+          resource = model.allocate
+          @entries << resource
+          resource.loaded_set = self
+          @key_properties.zip(key_values).each do |property,key_value|
+            resource.instance_variable_set(property.instance_variable_name, key_value)
+          end
+          resource.instance_variable_set(:@new_record, false)
+          @repository.identity_map_set(resource)
         end
       else
-        instance = type.allocate
-        instance.readonly!
-        instance.instance_variable_set("@new_record", false)
-        @entries << instance
-        instance.loaded_set = self
+        resource = model.allocate
+        @entries << resource
+        resource.loaded_set = self
+        resource.instance_variable_set(:@new_record, false)
+        resource.readonly!
       end
 
       @properties.each_pair do |property, i|
-        instance.instance_variable_set(property.instance_variable_name, values[i])
+        resource.instance_variable_set(property.instance_variable_name, values.at(i))
       end
 
-      instance
+      self
     end
+
+    alias << add
 
     def first
       @entries.first
@@ -101,7 +88,7 @@ module DataMapper
       @entries.uniq!
       @entries.dup
     end
-  end
+  end # class LoadedSet
 
   class LazyLoadedSet < LoadedSet
 
@@ -127,6 +114,5 @@ module DataMapper
       super
     end
 
-  end
-
-end
+  end # class LazyLoadedSet
+end # module DataMapper

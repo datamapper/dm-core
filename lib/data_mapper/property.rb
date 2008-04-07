@@ -1,52 +1,58 @@
 require __DIR__ + 'property_set'
 require __DIR__ + 'type'
+Dir[__DIR__ + 'types/*.rb'].each { |path| require path }
 
 require 'date'
 require 'time'
 require 'bigdecimal'
-
-class Text; end; warn('Text should not be declared inline.')
 
 module DataMapper
 
 # :include:/QUICKLINKS
 #
 # = Properties
-# A model's properties are not derived from database structure.
-# Instead, properties are declared inside it's model's class definition,
-# which map to (or generate) fields in a database.
-#
-# Defining properties explicitly in a model has several advantages.
-# It centralizes information about the model
-# in a single location, rather than having to dig out migrations, xml,
-# or other config files.  It also provides the ability to use Ruby's
-# access control functions.  Finally, since Datamapper only cares about
-# properties explicitly defined in your models, Datamappers plays well
-# with legacy databases and shares databases easily with other
-# applications.
+# Properties for a model are not derived from a database structure, but instead
+# explicitly declared inside your model class definitions. These properties then
+# map (or, if using automigrate, generate) fields in your repository/database.
+# 
+# If you are coming to DataMapper from another ORM framework, such as 
+# ActiveRecord, this is a fundamental difference in thinking. However, there are
+# several advantages to defining your properties in your models:
+#  * information about your model is centralized in one place: rather than
+#  having to dig out migrations, xml or other configuration files.
+#  * having information centralized in your models, encourages you and the 
+#  developers on your team to take a model-centric view of development.
+#  * it provides the ability to use Ruby's access control functions.
+#  * and, because DataMapper only cares about properties explicitly defined
+#  in your models, DataMapper plays well with legacy databases, and shares
+#  databases easily with other applications.
 #
 # == Declaring Properties
 # Inside your class, you call the property method for each property you want to add.
 # The only two required arguments are the name and type, everything else is optional.
 #
-#   class Post < DataMapper::Base
-#     property :title,   :string, :nullable => false # Cannot be null
-#     property :publish, :boolen, :default  => false # Default value for new records
+#   class Post
+#     include DataMapper::Resource
+#     
+#     property :title,   String, :nullable => false   # Cannot be null
+#     property :publish, TrueClass, :default => false # Default value for new records
 #                                                      is false
 #   end
 #
 # == Declaring Multiple Properties
-# You can declare multiple properties with the same type and options with one call to
-# the property method. There is no limit to the amount of properties that can be created,
-# and the only required arguments are the property names and type. Everything else is optional.
+# You can declare multiple properties with the same type and options with one 
+# call to the property method. There is no limit to the number of properties 
+# that can be created, and the only required arguments are the property names 
+# and type. Everything else is optional.
 #
-#   class Cellphone < DataMapper::Base
+#   class Cellphone
+#     include DataMapper::Resource
 #     # You can pass the property names in a simple list, like below.
-#     property :name, :model, :make, :text, :nullable => false
+#     property :name, :model, :make, DataMapper::Types::Text, :nullable => false
 #
 #     # Alternatively, you can pass an array of property names as the first argument.
-#     property [:black, :white], :boolean, :default => true
-#     property [:red, :blue, :green, :orange, :pink], :boolean, :default => false
+#     property [:black, :white], TrueClass, :default => true
+#     property [:red, :blue, :green, :orange, :pink], TrueClass, :default => false
 #   end
 #
 # == Limiting Access
@@ -54,25 +60,29 @@ module DataMapper
 # public by default, but can also be declared private or protected as needed
 # (via the :accessor option).
 #
-#  class Post < DataMapper::Base
-#    property :title,  :string, :accessor => :private   # Both reader and writer are private
-#    property :body,   :text,   :accessor => :protected # Both reader and writer are protected
+#  class Post
+#   include DataMapper::Resource
+#    property :title,  String, :accessor => :private   # Both reader and writer are private
+#    property :body,   DataMapper::Types::Text, :accessor => :protected # Both reader and writer are protected
 #  end
 #
 # Access control is also analogous to Ruby getters, setters, and accessors, and can
 # be declared using :reader and :writer, in addition to :accessor.
 #
-#  class Post < DataMapper::Base
-#    property :title, :string, :writer => :private    # Only writer is private
-#    property :tags,  :string, :reader => :protected  # Only reader is protected
+#  class Post 
+#    include DataMapper::Resource
+#    property :title, String, :writer => :private    # Only writer is private
+#    property :tags,  String, :reader => :protected  # Only reader is protected
 #  end
 #
 # == Overriding Accessors
-# The accessor for any property can be overridden in the same manner that Ruby class accessors
-# can be.  After the property is defined, just add your custom accessor:
+# The accessor for any property can be overridden in the same manner that Ruby 
+# class accessors can be.  After the property is defined, just add your custom 
+# accessor:
 #
-#  class Post < DataMapper::Base
-#    property :title,  :string
+#  class Post
+#    include DataMapper::Resource
+#    property :title,  String
 #
 #    def title=(new_title)
 #      raise ArgumentError if new_title != 'Luke is Awesome'
@@ -81,29 +91,32 @@ module DataMapper
 #  end
 #
 # == Lazy Loading
-# By default, some properties are not loaded when an object is fetched in Datamapper.
-# These lazily loaded properties are fetched on demand when their accessor is called
-# for the first time (as it is often unnecessary to instantiate -every- property
-# -every- time an object is loaded).  For instance, text fields are lazy loading by
-# default, although you can over-ride this behavior if you wish:
+# By default, some properties are not loaded when an object is fetched in 
+# DataMapper. These lazily loaded properties are fetched on demand when their 
+# accessor is called for the first time (as it is often unnecessary to 
+# instantiate -every- property -every- time an object is loaded).  For instance, 
+# DataMapper::Types::Text fields are lazy loading by default, although you can 
+# over-ride this behavior if you wish:
 #
 # Example:
 #
-#  class Post < DataMapper::Base
-#    property :title,  :string   # Loads normally
-#    property :body,   :text     # Is lazily loaded by default
+#  class Post
+#    include DataMapper::Resource
+#    property :title,  String                    # Loads normally
+#    property :body,   DataMapper::Types::Text   # Is lazily loaded by default
 #  end
 #
 # If you want to over-ride the lazy loading on any field you can set it to true or
 # false with the :lazy option.
 #
-#  class Post < DataMapper::Base
-#    property :title,  :string               # Loads normally
-#    property :body,   :text, :lazy => false # The default is now over-ridden
+#  class Post
+#    include DataMapper::Resource
+#    property :title,  String                                  # Loads normally
+#    property :body,   DataMapper::Types::Text, :lazy => false # The default is now over-ridden
 #  end
 #
 # Delaying the request for lazy-loaded attributes even applies to objects accessed through
-# associations. In a sense, Datamapper anticipates that you will likely be iterating
+# associations. In a sense, DataMapper anticipates that you will likely be iterating
 # over objects in associations and rolls all of the load commands for lazy-loaded
 # properties into one request from the database.
 #
@@ -114,14 +127,17 @@ module DataMapper
 #                                             association, rather than just this one.
 #
 # == Keys
-# Properties can be declared as primary or natural keys on a table.  By default,
-# Datamapper will assume <tt>:id</tt> and create it if you don't have it.
-# You can, however, declare a property as the primary key of the table:
+# Properties can be declared as primary or natural keys on a table.
+# You should a property as the primary key of the table:
 #
-#  property :legacy_pk, :string, :key => true
+#  property :id, Fixnum, :serial => true
+#  
+# or
+#  
+#  property :legacy_pk, String, key => true
 #
-# This is roughly equivalent to Activerecord's <tt>set_primary_key</tt>, though
-# non-integer data types may be used, thus Datamapper supports natural keys.
+# This is roughly equivalent to ActiveRecord's <tt>set_primary_key</tt>, though
+# non-integer data types may be used, thus DataMapper supports natural keys.
 # When a property is declared as a natural key, accessing the object using the
 # indexer syntax <tt>Class[key]</tt> remains valid.
 #
@@ -129,23 +145,32 @@ module DataMapper
 #   User['bill'] when :name is the primary (natural) key on the users table
 #
 # == Inferred Validations
-# When properties are declared with specific column restrictions, Datamapper
-# will infer a few validation rules for values assigned to that property.
+# If you include the DataMapper::Validate mixin in your model class, you'll 
+# benefit from auto-validations: validation rules that are inferred when
+# properties are declated with specific column restrictions.
+# 
+#   class Post
+#     include DataMapper::Resource
+#     include DataMapper::Validate
+#   end
 #
-#  property :title, :string, :length => 250
+#  property :title, String, :length => 250
 #  # => infers 'validates_length_of :title, :minimum => 0, :maximum => 250'
 #
-#  property :title, :string, :nullable => false
+#  property :title, String, :nullable => false
 #  # => infers 'validates_presence_of :title
 #
-#  property :email, :string, :format => :email_address
+#  property :email, String, :format => :email_address
 #  # => infers 'validates_format_of :email, :with => :email_address
 #
-#  property :title, :string, :length => 255, :nullable => false
+#  property :title, String, :length => 255, :nullable => false
 #  # => infers both 'validates_length_of' as well as 'validates_presence_of'
-#  #    better: property :title, :string, :length => 1..255
+#  #    better: property :title, String, :length => 1..255
 #
-# For more information about validations, visit the Validatable documentation.
+# The DataMapper::Validate mixin is available with the dm-validations gem, part
+# of the dm-more bundle. For more information about validations, check the 
+# documentation for dm-validations.
+# 
 # == Embedded Values
 # As an alternative to extraneous has_one relationships, consider using an
 # EmbeddedValue.
@@ -153,12 +178,12 @@ module DataMapper
 # == Misc. Notes
 # * Properties declared as strings will default to a length of 50, rather than 255
 #   (typical max varchar column size).  To overload the default, pass
-#   <tt>:length => 255</tt> or <tt>:length => 0..255</tt>.  Since Datamapper does
+#   <tt>:length => 255</tt> or <tt>:length => 0..255</tt>.  Since DataMapper does
 #   not introspect for properties, this means that legacy database tables may need
-#   their <tt>:string</tt> columns defined with a <tt>:length</tt> so that DM does
+#   their <tt>String</tt> columns defined with a <tt>:length</tt> so that DM does
 #   not inadvertantly truncate data.
-# * You may declare a Property with the data-type of <tt>:class</tt>.
-#   see SingleTableInheritance for more on how to use <tt>:class</tt> columns.
+# * You may declare a Property with the data-type of <tt>Class</tt>.
+#   see SingleTableInheritance for more on how to use <tt>Class</tt> columns.
   class Property
 
     # NOTE: check is only for psql, so maybe the postgres adapter should define
@@ -168,13 +193,14 @@ module DataMapper
     PROPERTY_OPTIONS = [
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-      :format, :index, :check, :ordinal, :auto_validation, :validation_context
+      :format, :index, :check, :ordinal, :auto_validation, :validation_context,
+      :lock, :track
     ]
 
     TYPES = [
       TrueClass,
       String,
-      Text,
+      DataMapper::Types::Text,
       Float,
       Fixnum,
       BigDecimal,
@@ -185,6 +211,8 @@ module DataMapper
     ]
 
     VISIBILITY_OPTIONS = [:public, :protected, :private]
+
+    attr_reader :primitive, :target, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options
 
     def initialize(target, name, type, options)
 
@@ -197,18 +225,22 @@ module DataMapper
 
       @instance_variable_name = "@#{@name}"
 
-      @field = @options.fetch(:field, name.to_s.sub(/\?$/, ''))
-
-      @getter = @type.is_a?(TrueClass) ? @name.to_s.ensure_ends_with('?').to_sym : @name
+      @getter = @type.is_a?(TrueClass) ? "#{@name}?".to_sym : @name
 
 
       # if it has a lazy key it is lazy. :lazy is now an array of contexts not bool
       # when type is text a context should have been created and a :lazy entry made..
       # double check - @lazy = @options.has_key?(:lazy) ? true : false
-      @lazy = @options.has_key?(:lazy) ? true : @type == Text
+      #
+      # TODO: This default should move to a DataMapper::Types::Text Custom-Type
+      # and out of Property.
+      @lazy = @options.fetch(:lazy, @type.respond_to?(:lazy) ? @type.lazy : false)
+      @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
+      @custom = @type.ancestors.include?(DataMapper::Type)
 
       @key = (@options[:key] || @options[:serial]) == true
       @serial = @options.fetch(:serial, false)
+      @lock = @options.fetch(:lock, false)
 
       validate_options!
       determine_visibility!
@@ -238,26 +270,17 @@ module DataMapper
 
     # defines the getter for the property
     def create_getter!
-      @target.class_eval <<-EOS
-      #{reader_visibility.to_s}
-      def #{name}
-        fields = self.class.properties(self.class.repository.name).lazy_loaded.expand_fields([#{name.inspect}.to_sym])
-        unless defined?(#{normalized_name = name.to_s.ensure_starts_with('@')})
-          unless new_record? || @loaded_set.nil?
-            @loaded_set.reload!(:fields => fields)
-          else
-            #{normalized_name} = nil
-          end
+      @target.class_eval <<-EOS, __FILE__, __LINE__
+        #{reader_visibility}
+        def #{name}
+          self[#{name.inspect}]
         end
-
-        #{normalized_name}
-      end
       EOS
 
       if type == TrueClass
-        @target.class_eval <<-EOS
-        #{reader_visibility.to_s}
-        alias #{name.to_s.ensure_ends_with('?')} #{name}
+        @target.class_eval <<-EOS, __FILE__, __LINE__
+          #{reader_visibility}
+          alias #{name}? #{name}
         EOS
       end
     rescue SyntaxError
@@ -266,54 +289,22 @@ module DataMapper
 
     # defines the setter for the property
     def create_setter!
-      @target.class_eval <<-EOS
-      #{writer_visibility.to_s}
-      def #{name}=(value)
-        dirty_attributes[:#{name}] = @#{name} = value
-      end
+      @target.class_eval <<-EOS, __FILE__, __LINE__
+        #{writer_visibility}
+        def #{name}=(value)
+          self[#{name.inspect}] = value
+        end
       EOS
     rescue SyntaxError
       raise SyntaxError.new(column)
     end
 
-    def primitive
-      @type.ancestors.include?(DataMapper::Type) ? @type.primitive : @type
-    end
-
-    def target
-      @target
-    end
-
     def field
-      @field
-    end
-
-    def name
-      @name
-    end
-
-    def instance_variable_name # :nodoc:
-      @instance_variable_name
-    end
-
-    def type
-      @type
-    end
-
-    def reader_visibility # :nodoc:
-      @reader_visibility
-    end
-
-    def writer_visibility # :nodoc:
-      @writer_visibility
+      @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
 
     def lazy?
       @lazy
-    end
-
-    def getter
-      @getter
     end
 
     def key?
@@ -324,20 +315,24 @@ module DataMapper
       @serial
     end
 
-    def options
-      @options
+    def lock?
+      @lock
     end
 
-    def value(instance)
-      instance.attribute_get(@name)
+    def custom?
+      @custom
     end
 
-    def set(value, instance)
-      instance.attribute_set(@name, value)
+    def get(resource)
+      resource[@name]
+    end
+
+    def set(value, resource)
+      resource[@name] = value
     end
 
     def inspect
-      "#<Property #{@target}:#{@name}>"
+      "#<Property:#{@target}:#{@name}>"
     end
-  end
-end
+  end # class Property
+end # module DataMapper

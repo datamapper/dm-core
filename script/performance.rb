@@ -3,8 +3,12 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support/kernel'
 
+require __DIR__.parent + 'lib/data_mapper'
+
 require 'benchmark'
 require 'rubygems'
+
+require 'faker'
 require 'active_record'
 
 socket_file = Pathname.glob(%w[
@@ -33,22 +37,19 @@ end
 
 ARExhibit.find_by_sql('SELECT 1')
 
-require __DIR__.parent + 'lib/data_mapper'
-
 DataMapper::Logger.new(__DIR__.parent + 'log/dm.log', :debug)
-
-DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
+adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 class Exhibit
   include DataMapper::Resource
-  
+
   property :id, Fixnum, :serial => true
   property :name, String
   property :zoo_id, Fixnum
   property :notes, String, :lazy => true
   property :created_on, Date
   property :updated_at, DateTime
-  
+
 end
 
 touch_attributes = lambda do |exhibits|
@@ -60,105 +61,152 @@ touch_attributes = lambda do |exhibits|
   end
 end
 
-# report_for_active_record = lambda do |runner, message, iterations, block|
-#   [:uncached, :cache].each do |variant|
-#     ActiveRecord::Base.send(variant) do
-#       runner.report(message + " #{(variant)}") do
-#         iterations.times do
-#           touch_attributes[block.call]
-#         end
-#       end
-#     end
-#   end
-# end
-# 
-# report_for_data_mapper = lambda do |runner, message, iterations, block|
-#   [:uncached, :cache].each do |variant|
-#     if variant == :cache
-#       repository(:default) { runner.report(message + " #{(variant)}", &block) }
-#     else
-#       runner.report(message + " #{(variant)}", &block)
-#     end
-#   end
-# end
+exhibits = []
 
-Benchmark::bmbm(60) do |x|
-  
-  x.report('ActiveRecord:id x10_000') do
+10_000.times do
+  exhibits << [
+#    'INSERT INTO `exhibits` (`name`, `zoo_id`, `notes`, `created_on`, `updated_at`) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO `exhibits` (`name`, `zoo_id`, `notes`, `created_on`) VALUES (?, ?, ?, ?)',
+    Faker::Company.name,
+    rand(10).ceil,
+    Faker::Lorem.paragraphs.join($/),
+    Date.today,
+  ]
+end
+
+Benchmark.bmbm(60) do |x|
+  # reset the exhibits
+  x.report do
+    adapter.execute "DROP TABLE `exhibits`"
+    adapter.execute <<-EOS.compress_lines
+       CREATE TABLE `exhibits` (
+         `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
+         `name` VARCHAR(50),
+         `zoo_id` INTEGER(11),
+         `notes` TEXT,
+         `created_on` DATE,
+         `updated_at` TIMESTAMP NOT NULL,
+         PRIMARY KEY(`id`)
+       )
+    EOS
+  end
+
+  x.report('DO.execute insert     x10,000') do
+    10_000.times { |i| adapter.execute(*exhibits.at(i)) }
+  end
+
+  x.report('AR.id                 x10,000') do
     ActiveRecord::Base::uncached do
       10_000.times { touch_attributes[ARExhibit.find(1)] }
     end
   end
 
-  x.report('ActiveRecord:id(cached) x10_000') do
+  x.report('DM.id                 x10,000') do
+    10_000.times { touch_attributes[Exhibit.get(1)] }
+  end
+
+  x.report('AR.id                 x10,000 (cached)') do
     ActiveRecord::Base::cache do
       10_000.times { touch_attributes[ARExhibit.find(1)] }
     end
   end
 
-  x.report('DataMapper:id x10_000') do
-    10_000.times { touch_attributes[Exhibit.get(1)] }
-  end
-
-  x.report('DataMapper:id(cached) x10_000') do
+  x.report('DM.id                 x10,000 (cached)') do
     repository(:default) do
       10_000.times { touch_attributes[Exhibit.get(1)] }
     end
   end
 
-  x.report('ActiveRecord:all limit(100) x1000') do
+  x.report('AR.all limit(100)     x1,000') do
     ActiveRecord::Base::uncached do
       1000.times { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
     end
   end
 
-  x.report('ActiveRecord:all limit(100) (cached) x1000') do
+  x.report('DM.all limit(100)     x1,000') do
+    1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
+  end
+
+  x.report('AR.all limit(100)     x1,000 (cached)') do
     ActiveRecord::Base::cache do
       1000.times { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
     end
   end
 
-  x.report('DataMapper:all limit(100) x1000') do
-    1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
-  end
-
-  x.report('DataMapper:all limit(100) (cached) x1000') do
+  x.report('DM.all limit(100)     x1,000 (cached)') do
     repository(:default) do
       1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
     end
   end
-  
-  x.report('ActiveRecord:all limit(10,000) x10') do
+
+  x.report('AR.all limit(10,000)  x10') do
     ActiveRecord::Base::uncached do
       10.times { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
     end
   end
 
-  x.report('ActiveRecord:all limit(10,000) (cached) x10') do
+  x.report('DM.all limit(10,000)  x10') do
+    10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
+  end
+
+  x.report('AR.all limit(10,000)  x10 (cached)') do
     ActiveRecord::Base::cache do
       10.times { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
     end
   end
 
-  x.report('DataMapper:all limit(10,000) x10') do
-    10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
-  end
-
-  x.report('DataMapper:all limit(10,000) (cached) x10') do
+  x.report('DM.all limit(10,000)  x10 (cached)') do
     repository(:default) do
       10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
     end
   end
-    
+
+  # Static, just so AR and DM are on equal footing.
+  create_exhibit = {
+    :name       => Faker::Company.name,
+    :zoo_id     => rand(10).ceil,
+    :notes      => Faker::Lorem.paragraphs.join($/),
+    :created_on => Date.today,
+#    :updated_at => Time.now,
+  }
+
+  x.report('AR.create             x10,000') do
+    10_000.times { ARExhibit.create(create_exhibit) }
+  end
+
+  x.report('DM.create             x10,000') do
+    10_000.times { Exhibit.create(create_exhibit) }
+  end
+
+  x.report('AR#update             x10,000') do
+    10_000.times { e = ARExhibit.find(1); e.name = 'bob'; e.save }
+  end
+
+  x.report('DM#update             x10,000') do
+    10_000.times { e = Exhibit[1]; e.name = 'bob'; e.save }
+  end
+
+  x.report('AR#destroy            x10,000') do
+    10_000.times { e = ARExhibit.find(:first); e.destroy }
+  end
+
+  x.report('DM#destroy            x10,000') do
+    10_000.times { e = Exhibit.first; e.destroy }
+  end
 end
+
+# connection = adapter.create_connection
+# command = connection.create_command("DROP TABLE exhibits")
+# command.execute_non_query rescue nil
+# connection.close
 
 __END__
 
-On an iMac Core2Duo 2.16Ghz:
+On an iMac Core2Duo 2.16GHz:
 
 I don't think AR is actually caching.
 
-~/src/dm-core > script/performance.rb 
+~/src/dm-core > script/performance.rb
 Text should not be declared inline.
 Rehearsal -----------------------------------------------------------------------------------------------
 ActiveRecord:id x10_000                                       3.530000   0.320000   3.850000 (  4.939399)
@@ -189,3 +237,42 @@ ActiveRecord:all limit(10,000) (cached) x10                  12.180000   0.04000
 DataMapper:all limit(10,000) x10                              5.450000   0.020000   5.470000 (  5.480993)
 DataMapper:all limit(10,000) (cached) x10                     3.130000   0.020000   3.150000 (  3.160792)
 
+On a MacBook Air Core2Duo 1.6GHz (many performance optimizations since the run above)
+
+~/src/dm-core > script/performance.rb
+Rehearsal -----------------------------------------------------------------------------------------------
+AR.id                 x10,000                                11.290000   0.420000  11.710000 ( 14.845046)
+DM.id                 x10,000                                 5.010000   0.480000   5.490000 (  8.738212)
+AR.id                 x10,000 (cached)                       12.300000   0.520000  12.820000 ( 16.585108)
+DM.id                 x10,000 (cached)                        0.450000   0.000000   0.450000 (  0.474010)
+AR.all limit(100)     x1,000                                  3.340000   0.080000   3.420000 (  4.554041)
+DM.all limit(100)     x1,000                                  1.420000   0.050000   1.470000 (  1.743724)
+AR.all limit(100)     x1,000 (cached)                         3.450000   0.070000   3.520000 (  3.937980)
+DM.all limit(100)     x1,000 (cached)                         1.070000   0.050000   1.120000 (  1.390889)
+AR.all limit(10,000)  x10                                     0.020000   0.000000   0.020000 (  0.031253)
+DM.all limit(10,000)  x10                                     0.020000   0.000000   0.020000 (  0.017896)
+AR.all limit(10,000)  x10 (cached)                            0.030000   0.000000   0.030000 (  0.032688)
+DM.all limit(10,000)  x10 (cached)                            0.010000   0.000000   0.010000 (  0.013167)
+AR.create             x10,000                                21.390000   1.290000  22.680000 ( 28.519556)
+DM.create             x10,000                                20.090000   0.630000  20.720000 ( 28.822219)
+AR.update             x10,000                                25.450000   1.660000  27.110000 ( 33.040779)
+DM.update             x10,000                                 6.550000   0.780000   7.330000 ( 10.467941)
+------------------------------------------------------------------------------------ total: 117.920000sec
+
+                                                                  user     system      total        real
+AR.id                 x10,000                                11.320000   0.420000  11.740000 ( 13.907577)
+DM.id                 x10,000                                 4.510000   0.410000   4.920000 (  6.611278)
+AR.id                 x10,000 (cached)                       11.680000   0.440000  12.120000 ( 14.792082)
+DM.id                 x10,000 (cached)                        0.380000   0.010000   0.390000 (  0.384611)
+AR.all limit(100)     x1,000                                 25.010000   0.200000  25.210000 ( 25.954076)
+DM.all limit(100)     x1,000                                 10.370000   0.090000  10.460000 ( 11.558341)
+AR.all limit(100)     x1,000 (cached)                        28.390000   0.350000  28.740000 ( 30.870503)
+DM.all limit(100)     x1,000 (cached)                         7.760000   0.110000   7.870000 (  9.211700)
+AR.all limit(10,000)  x10                                    27.850000   0.240000  28.090000 ( 28.510220)
+DM.all limit(10,000)  x10                                    10.970000   0.040000  11.010000 ( 11.042093)
+AR.all limit(10,000)  x10 (cached)                           29.230000   0.170000  29.400000 ( 29.816547)
+DM.all limit(10,000)  x10 (cached)                            7.470000   0.030000   7.500000 (  7.520561)
+AR.create             x10,000                                21.700000   1.400000  23.100000 ( 27.188424)
+DM.create             x10,000                                24.380000   0.550000  24.930000 ( 29.439910)
+AR.update             x10,000                                30.670000   1.910000  32.580000 ( 39.227956)
+DM.update             x10,000                                 8.290000   0.950000   9.240000 ( 12.912708)

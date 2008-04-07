@@ -13,33 +13,32 @@ module DataMapper
       end
     end
 
-    # Pass a Class and a key, and to retrieve an instance.
-    # If the instance isn't found, nil is returned.
-    def get(resource, key)
-      @cache[resource][key]
+    # Pass a Class and a key, and to retrieve a resource.
+    # If the resource isn't found, nil is returned.
+    def get(model, key)
+      @cache[model][key]
     end
 
-    # Pass an instance to add it to the IdentityMap.
-    # The instance must have an assigned key.
-    def set(instance)
+    # Pass a resource to add it to the IdentityMap.
+    # The resource must have an assigned key.
+    def set(resource)
       # TODO could we not cause a nasty bug by dropping nil value keys when the 
       # user is using composite keys? Should we not rather raise an error if
       # the value is nil?
-      key = instance.key
-           
-      raise ArgumentError.new("+key+ must be an Array, and can not be empty") if key.empty?       
-      @cache[instance.class][key] = instance      
+      key = resource.key
+      raise ArgumentError.new("+key+ must be an Array, and can not be empty") if key.empty?
+      @cache[resource.class][key] = resource
     end
-    
-    # Remove an instance from the IdentityMap.
-    def delete(resource, key)
-      @cache[resource].delete(key)
+
+    # Remove a resource from the IdentityMap.
+    def delete(model, key)
+      @cache[model].delete(key)
     end
     
     # Clears a particular set of classes from the IdentityMap.
-    def clear!(resource)
-      @cache.delete(resource)
+    def clear!(model)
+      @cache.delete(model)
     end
     
-  end
-end
+  end # class IdentityMap
+end # module DataMapper

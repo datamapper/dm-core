@@ -35,7 +35,7 @@ module DataMapper
       #
       # @public
       def key_aliases(key)
-        aliasing_hash_aliases.inject([]) { |i, obj| (obj[1] == key) ? i << obj[0] : i  }
+        aliasing_hash_aliases.inject([]) { |i, obj| (obj.at(1) == key) ? i << obj.at(0) : i  }
       end
       
       # Access value using a key or alias
@@ -112,7 +112,7 @@ module DataMapper
       # @public
       def fetch(*args)
         #if the key is an alias, lookup the real key
-        args[0] = aliasing_hash_aliases[args[0]] if aliasing_hash_aliases.include?(args[0])
+        args[0] = aliasing_hash_aliases[args.at(0)] if aliasing_hash_aliases.include?(args.at(0))
         
         super(*args)
       end
@@ -164,13 +164,13 @@ module DataMapper
       # Hash:: alias map or empty hash
       #
       def aliasing_hash_aliases
-        return @aliases ||= {}
+        @aliases ||= {}
       end
-    end
+    end # module AliasingHash
     
-  end
-end
+  end # module Support
+end # module DataMapper
 
-class AliasingHash < Hash
+class AliasingHash < Hash #:nodoc:
   include DataMapper::Support::AliasingHash
 end

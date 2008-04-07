@@ -25,7 +25,7 @@ module DataMapper
         end
       end
   
-    end # module Enumerable
+    end # module EnumerableExtensions
   end # module Support
 end # module DataMapper
 

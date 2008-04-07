@@ -19,35 +19,37 @@ module Kernel
       begin
         return yield(DataMapper::Repository.context.push(DataMapper::Repository.new(name)))
       ensure
+        # current = DataMapper::Repository.context.last
+        # current.flush! if current.adapter.auto_flush?
         DataMapper::Repository.context.pop
       end
     end
   end
-end
+end # module Kernel
 
 module DataMapper
-  
+
   def self.setup(name, uri, options = {})
     uri = uri.is_a?(String) ? URI.parse(uri) : uri
-    
+
     raise ArgumentError.new("'name' must be a Symbol") unless name.is_a?(Symbol)
     raise ArgumentError.new("'uri' must be a URI or String") unless uri.is_a?(URI)
-    
-    unless Adapters::const_defined?(Inflector.classify(uri.scheme) + "Adapter")
+
+    unless Adapters::const_defined?(DataMapper::Inflection.classify(uri.scheme) + "Adapter")
       begin
-        require __DIR__ + "adapters/#{Inflector.underscore(uri.scheme)}_adapter"
+        require __DIR__ + "adapters/#{DataMapper::Inflection.underscore(uri.scheme)}_adapter"
       rescue LoadError
-        require "#{Inflector.underscore(uri.scheme)}_adapter"
+        require "#{DataMapper::Inflection.underscore(uri.scheme)}_adapter"
       end
     end
-    
-    adapter = Adapters::const_get(Inflector.classify(uri.scheme) + "Adapter").new(name, uri)
+
+    adapter = Adapters::const_get(DataMapper::Inflection.classify(uri.scheme) + "Adapter").new(name, uri)
 
     Repository.adapters[name] = adapter
   end
-  
+
   # ===Block Syntax:
-  # Pushes the named repository onto the context-stack, 
+  # Pushes the named repository onto the context-stack,
   # yields a new session, and pops the context-stack.
   #
   #   results = DataMapper.repository(:second_database) do |current_context|
@@ -74,21 +76,21 @@ module DataMapper
       end
     end
   end
-  
+
   class Repository
-    
+
     @adapters = {}
-    
+
     def self.adapters
       @adapters
     end
-    
+
     def self.context
-      Thread::current[:repository_contexts] || Thread::current[:repository_contexts] = []
+      Thread::current[:repository_contexts] ||= []
     end
-    
+
     attr_reader :name, :adapter
-        
+
     def initialize(name)
       @name = name
       @adapter = self.class.adapters[name]
@@ -98,62 +100,61 @@ module DataMapper
     def identity_map_get(resource, key)
       @identity_map.get(resource, key)
     end
-    
-    def identity_map_set(instance)
-      @identity_map.set(instance)
+
+    def identity_map_set(resource)
+      @identity_map.set(resource)
     end
-    
+
     def get(resource, key)
       @identity_map.get(resource, key) || @adapter.read(self, resource, key)
     end
-    
+
     def first(resource, options)
-      @adapter.read_one(self, Query.new(resource, options))
+      @adapter.read_set(self, Query.new(resource, options.merge(:limit => 1))).first
     end
-    
+
     def all(resource, options)
-      @adapter.read_set(self, Query.new(resource, options))      
+      @adapter.read_set(self, Query.new(resource, options)).entries
     end
-    
-    def fake_it(resource)
-      @adapter.fake_it(self, resource)
-    end
-    
-    def save(instance)
-      if instance.new_record?
-        if @adapter.create(self, instance)
-          @identity_map.set(instance)
-          instance.instance_variable_set('@new_record', false)
-          instance.dirty_attributes.clear
+
+    def save(resource)
+      resource.child_associations.each { |a| a.save }
+
+      success = if resource.new_record?
+        if @adapter.create(self, resource)
+          @identity_map.set(resource)
+          resource.instance_variable_set(:@new_record, false)
+          resource.dirty_attributes.clear
           true
         else
           false
         end
       else
-        if @adapter.update(self, instance)
-          instance.dirty_attributes.clear
+        if @adapter.update(self, resource)
+          resource.dirty_attributes.clear
           true
         else
           false
         end
       end
+
+      resource.parent_associations.each { |a| a.save }
+      success
     end
 
-    def destroy(instance)
-      if @adapter.delete(self, instance)
-        @identity_map.delete(instance.class, instance.key)
-        instance.instance_variable_set('@new_record', true)
-        instance.class.properties(name).map do |property|
-          if instance.attribute_loaded?(property.name)
-            instance.dirty_attributes[property.name] = instance.instance_variable_get(property.instance_variable_name)
-          end
+    def destroy(resource)
+      if @adapter.delete(self, resource)
+        @identity_map.delete(resource.class, resource.key)
+        resource.instance_variable_set(:@new_record, true)
+        resource.dirty_attributes.clear
+        resource.class.properties(name).each do |property|
+          resource.dirty_attributes << property if resource.attribute_loaded?(property.name)
         end
         true
       else
         false
       end
     end
-    
-  end
-  
-end
+
+  end # class Repository
+end # module DataMapper

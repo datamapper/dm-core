@@ -83,7 +83,38 @@ h3. The People Behind DataMapper
   </div> 
 
   <div class="thumb">
+    <img src="/images/people/guy_v.png" title="Guy van den Berg" alt="Guy van den Berg"/>
+    <p><a href="http://www.guyvdb.info">Guy van den Berg</a></p>
+  </div>
+
+  <div class="thumb">
+    <img src="/images/people/ior3k.jpg" title="David Leal" alt="David Leal"/>
+    <p>David Leal</p>
+  </div>
+
+  <div class="thumb">
+    <img src="http://www.gravatar.com/avatar/ea627ef000ec92c6cdd5a4c14075e740" title="Daniel Kubb" alt="Daniel Kubb" />
+    <p>Dan Kubb</p>
+  </div>
+
+  <div class="thumb">
+    <img src="https://secure.gravatar.com/avatar/37872f2e08a213f07e49cf5eabfedc61?s=80" title="Luke Matthew Sutton" />
+    <p><a href="http://www.mr-eel.com">Luke Matthew Sutton</a></p>
+  </div>
+
+  <div class="thumb">
+    <img src="http://en.gravatar.com/avatar/8e3cc061dec070b2f4d1c78c13ade6ec?s=80&r=any" title="Mayo Jordanov" />
+    <p><a href="http://oyam.ca/">Mayo Jordanov</a></p>
+  </div>
+
+  <div class="thumb">
+    <img src="http://en.gravatar.com/avatar/949106533af33ece50adda643c34bc08?s=80" title="Robert Evans" />
+    <p><a href="http://robertrevans.com/">Robert Evans</a></p>
+  </div>
+
+  <div class="thumb">
     <img src="/images/martini.gif" title="you" alt="you could be here" />
     <p>More to come!</p>
   </div>
+  
 </div>

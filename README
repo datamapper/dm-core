@@ -5,7 +5,7 @@
 
 == Open Development
 
-Datamapper sports a very accessible code-base and a welcoming community.
+DataMapper sports a very accessible code-base and a welcoming community.
 Outside contributions and feedback are welcome and encouraged, especially
 constructive criticism. Make your voice heard! Submit a
 ticket[http://wm.lighthouseapp.com/projects/4819-datamapper/overview] or
@@ -72,9 +72,10 @@ control you can enable or disable this feature for any column (not just
 text-fields) by passing a @lazy@ option to your column mapping with a value of
 <tt>true</tt> or <tt>false</tt>.
 
-  class Animal < DataMapper::Base
-    property :name, :string
-    property :notes, :text, :lazy => false
+  class Animal
+    include DataMapper::Resource
+    property :name, String
+    property :notes, DataMapper::Types::Text, :lazy => false
   end
 
 Plus, lazy-loading of text fields happens automatically and intelligently when
@@ -100,9 +101,10 @@ like seeing a method called <tt>col2Name</tt> on your model just because
 that's what it's called in an old database you can't afford to change right
 now? In DataMapper you control the mappings:
 
-  class Fruit < DataMapper::Base
+  class Fruit
+    include DataMapper::Resource
     set_table_name 'frt'
-    property :name, :string, :column => 'col2Name'
+    property :name, String, :column => 'col2Name'
   end
 
 == All Ruby, All The Time

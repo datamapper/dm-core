@@ -13,20 +13,19 @@ describe DataMapper::Type do
       primitive String
       size 10
       
-      def self.materialize(value)
-        value
+      def self.load(value)
+        value.reverse
       end
       
-      def self.serialize(value)
-        value
+      def self.dump(value)
+        value.reverse
       end
     end
   end
   
   it "should have the same PROPERTY_OPTIONS aray as DataMapper::Property" do
-    pending("currently there is no way to read PROPERTY_OPTIONS and aliases from DataMapper::Property. Also, some properties need to be defined as aliases instead of being listed in the PROPERTY_OPTIONS array") do
-      DataMapper::Type::PROPERTY_OPTIONS.should == DataMapper::Property::PROPERTY_OPTIONS
-    end
+    # pending("currently there is no way to read PROPERTY_OPTIONS and aliases from DataMapper::Property. Also, some properties need to be defined as aliases instead of being listed in the PROPERTY_OPTIONS array")
+    DataMapper::Type::PROPERTY_OPTIONS.should == DataMapper::Property::PROPERTY_OPTIONS
   end
   
   it "should create a new type based on String primitive" do
@@ -39,27 +38,27 @@ describe DataMapper::Type do
   
   it "should have options hash exactly equal to options specified in custom type" do
     #ie. it should not include null elements
-    TestType.options.should == { :size => 10 }
+    TestType.options.should == { :size => 10, :length => 10 }
   end
   
   it "should have length aliased to size" do
     TestType.length.should == TestType.size
   end
   
-  it "should raise NotImplmenetedException if serialize wasn't overriden" do
-    lambda { TestType.serialize("test") }.should raise_error(NotImplementedError)
+  it "should pass through the value if load wasn't overriden" do
+    TestType.load("test").should == "test"
   end
   
-  it "should raise NotImplmenetedException if materialize wasn't overriden" do
-    lambda { TestType.materialize("test") }.should raise_error(NotImplementedError)
+  it "should pass through the value if dump wasn't overriden" do
+    TestType.dump("test").should == "test"
   end
 
-  it "should not raise NotImplmenetedException if serialize was overriden" do
-    TestType2.serialize("test").should == "test"
+  it "should not raise NotImplmenetedException if load was overriden" do
+    TestType2.dump("helo").should == "oleh"
   end
   
-  it "should not raise NotImplmenetedException if materialize was overriden" do
-    TestType2.materialize("test").should == "test"
+  it "should not raise NotImplmenetedException if dump was overriden" do
+    TestType2.load("oleh").should == "helo"
   end
 
   describe "using def Type" do

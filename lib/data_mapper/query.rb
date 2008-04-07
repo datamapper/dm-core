@@ -19,7 +19,7 @@ module DataMapper
       def initialize(property, direction = :asc)
         @property, @direction = property, direction
       end
-    end
+    end # class Direction
 
     class Operator
       attr_reader :value, :type, :options
@@ -31,33 +31,33 @@ module DataMapper
       def to_sym
         @value
       end
-    end
+    end # class Operator
 
     OPTIONS = [
-      :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions, :repository
+      :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
 
-    attr_reader :resource, :resource_name, *OPTIONS
+    attr_reader :model, :model_name, *OPTIONS
 
     def update(other)
-      other = self.class.new(resource, other) if other.kind_of?(Hash)
+      other = self.class.new(model, other) if other.kind_of?(Hash)
 
-      @resource, @reload = other.resource, other.reload
+      @model, @reload = other.model, other.reload
 
       @offset = other.offset unless other.offset == 0
       @limit  = other.limit  unless other.limit.nil?
 
-      # if self resource and other resource are the same, then
+      # if self model and other model are the same, then
       # overwrite @order with other order.  If they are different
       # then set @order to the union of other order and @order,
       # with the other order taking precedence
-      @order = @resource == other.resource ? other.order : other.order | @order
+      @order = @model == other.model ? other.order : other.order | @order
 
       @fields   |= other.fields
       @links    |= other.links
       @includes |= other.includes
 
-      update_conditions!(other)
+      update_conditions(other)
 
       self
     end
@@ -70,7 +70,7 @@ module DataMapper
       return true if super
       # TODO: add a #hash method, and then use it in the comparison, eg:
       #   return hash == other.hash
-      @resource == other.resource &&
+      @model    == other.model    &&
       @reload   == other.reload   &&
       @offset   == other.offset   &&
       @limit    == other.limit    &&
@@ -78,7 +78,7 @@ module DataMapper
       @fields   == other.fields   &&  # TODO: sort this so even if the order is different, it is equal
       @links    == other.links    &&  # TODO: sort this so even if the order is different, it is equal
       @includes == other.includes &&  # TODO: sort this so even if the order is different, it is equal
-      @conditions.sort_by { |c| c[0].hash + c[1].hash + c[2].hash } == other.conditions.sort_by { |c| c[0].hash + c[1].hash + c[2].hash }
+      @conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash } == other.conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash }
     end
 
     alias eql? ==
@@ -86,37 +86,56 @@ module DataMapper
     def parameters
       parameters = []
       conditions.each do |tuple|
-        parameters << tuple[2] if tuple.size == 3
+        parameters << tuple.at(2) if tuple.size == 3
       end
       parameters
+    end
+
+    # find the point in self.conditions where the sub select tuple is
+    # located. Delete the tuple and add value.conditions. value must be a
+    # <DM::Query>
+    #
+    def merge_sub_select_conditions(operator, property, value)
+      raise ArgumentError.new('+value+ is not a DataMapper::Query') unless value.is_a?(DataMapper::Query)
+      new_conditions = []
+      conditions.each do |tuple|
+        if tuple.length == 3 && tuple.at(0).to_s == operator.to_s && tuple.at(1) == property && tuple.at(2) == value
+          value.conditions.each do |sub_select_tuple|
+            new_conditions << sub_select_tuple
+          end
+        else
+          new_conditions << tuple
+        end
+      end
+      @conditions = new_conditions
     end
 
     alias reload? reload
 
     private
 
-    def initialize(resource, options = {})
-      validate_resource!(resource)
-      validate_options!(options)
+    def initialize(model, options = {})
+      validate_model(model)
+      validate_options(options)
 
-      @repository     = resource.repository
+      @repository     = model.repository
       repository_name = @repository.name
-      @resource_name  = resource.resource_name(repository_name)
-      @properties     = resource.properties(repository_name)
+      @model_name     = model.resource_name(repository_name)
+      @properties     = model.properties(repository_name)
 
-      @resource   = resource                        # must be Class that includes DM::Resource
+      @model      = model                           # must be Class that includes DM::Resource
       @reload     = options.fetch :reload,   false  # must be true or false
       @offset     = options.fetch :offset,   0      # must be an Integer greater than or equal to 0
       @limit      = options.fetch :limit,    nil    # must be an Integer greater than or equal to 1
       @order      = options.fetch :order,    []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @fields     = options.fetch :fields,   @properties.defaults  # must be an Array of Symbol, String or DM::Property
-      @links      = options.fetch :links,    []     # must be an Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
+      @links      = options.fetch :links,    []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
       @includes   = options.fetch :includes, []     # must be an Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
       @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
 
       # normalize order and fields
-      normalize_order!
-      normalize_fields!
+      normalize_order
+      normalize_fields
 
       # XXX: should I validate that each property in @order corresponds
       # to something in @fields?  Many DB engines require they match,
@@ -126,30 +145,22 @@ module DataMapper
 
       # normalize links and includes.
       # NOTE: this must be done after order and fields
-      normalize_links!
-      normalize_includes!
-
-      # TODO: think about freezing @order, @fields, @links and @includes
-      #   - before doing this, should we dup the passed in option, so
-      #     we don't modify it accidentally?
+      normalize_links
+      normalize_includes
 
       # treat all non-options as conditions
       (options.keys - OPTIONS - OPTIONS.map(&:to_s)).each do |k|
-        append_condition!(k, options[k])
+        append_condition(k, options[k])
       end
 
       # parse raw options[:conditions] differently
       if conditions_option = options[:conditions]
         @conditions << if conditions_option.size == 1
-          [ conditions_option[0] ]
+          [ conditions_option.at(0) ]
         else
-          [ conditions_option[0], conditions_option[1..-1] ]
+          [ conditions_option.at(0), conditions_option[1..-1] ]
         end
       end
-
-      # TODO: think about freezing @conditions
-      #   - keep in mind that update_conditions!
-      #     will need to take this into account
     end
 
     def initialize_copy(original)
@@ -157,14 +168,14 @@ module DataMapper
       @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 
-    # validate the resource
-    def validate_resource!(resource)
-      raise ArgumentError, "resource must be a Class, but is #{resource.class}" unless resource.kind_of?(Class)
-      raise ArgumentError, 'resource must include DataMapper::Resource'         unless resource.included_modules.include?(DataMapper::Resource)
+    # validate the model
+    def validate_model(model)
+      raise ArgumentError, "model must be a Class, but is #{model.class}" unless model.kind_of?(Class)
+      raise ArgumentError, 'model must include DataMapper::Resource'      unless model.included_modules.include?(DataMapper::Resource)
     end
 
     # validate the options
-    def validate_options!(options)
+    def validate_options(options)
       raise ArgumentError, 'options must be a Hash' unless options.kind_of?(Hash)
 
       # validate the reload option
@@ -190,39 +201,41 @@ module DataMapper
 
     # TODO: spec this
     # validate other DM::Query or Hash object
-    def validate_other!(other)
+    def validate_other(other)
       if other.kind_of?(self.class)
-        raise ArgumentError, "other #{self.class} must belong to the same repository" unless other.resource.repository == @resource.repository
+        raise ArgumentError, "other #{self.class} must belong to the same repository" unless other.model.repository == @model.repository
       elsif !other.kind_of?(Hash)
-        raise ArgumentError, "other must be a #{self.class} or Hash object"
+        raise ArgumentError, "other must be a #{self.class} or Hash, but was a #{other.class}"
       end
     end
 
     # normalize order elements to DM::Query::Direction
-    def normalize_order!
+    def normalize_order
       @order = @order.map do |order_by|
         case order_by
           when Direction
             # NOTE: The property is available via order_by.property
-            # TODO: if the Property's resource doesn't match
-            # self.resource, append the property's resource to @links
+            # TODO: if the Property's model doesn't match
+            # self.model, append the property's model to @links
             # eg:
-            #if property.resource != self.resource
+            #if property.model != self.model
             #  @links << discover_path_for_property(property)
             #end
 
             order_by
           when Property
-            # TODO: if the Property's resource doesn't match
-            # self.resource, append the property's resource to @links
+            # TODO: if the Property's model doesn't match
+            # self.model, append the property's model to @links
             # eg:
-            #if property.resource != self.resource
+            #if property.model != self.model
             #  @links << discover_path_for_property(property)
             #end
 
             Direction.new(order_by)
           when Symbol, String
-            Direction.new(@properties[order_by])
+            property = @properties[order_by]
+            raise ArgumentError, "Order field #{order_by.inspect} does not map to a DataMapper::Property" if property.nil?
+            Direction.new(property)
           else
             raise ArgumentError, "Order #{order_by.inspect} not supported"
         end
@@ -230,40 +243,53 @@ module DataMapper
     end
 
     # normalize fields to DM::Property
-    def normalize_fields!
+    def normalize_fields
       @fields = @fields.map do |field|
         case field
           when Property
-            # TODO: if the Property's resource doesn't match
-            # self.resource, append the property's resource to @links
+            # TODO: if the Property's model doesn't match
+            # self.model, append the property's model to @links
             # eg:
-            #if property.resource != self.resource
+            #if property.model != self.model
             #  @links << discover_path_for_property(property)
             #end
             field
           when Symbol, String
-            @properties.detect(field)
+            property = @properties[field]
+            raise ArgumentError, "Field #{field.inspect} does not map to a DataMapper::Property" if property.nil?
+            property
           else
             raise ArgumentError, "Field type #{field.inspect} not supported"
         end
-      end.compact
-      # XXX: if an unknown property name is passed in as a String or Symbol
-      # it will return nil.  That is likely the purpose of the compact
-      # statement above.  I think that is wrong.  If a property is unknown
-      # then it should return an exception
+      end
     end
 
     # normalize links to DM::Query::Path
-    def normalize_links!
-      # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
+    def normalize_links
+      # XXX: this should normalize to DM::Query::Path, not DM::Association::Relationship
+      # because a link may be more than one-hop-away from the source.  A DM::Query::Path
+      # should include an Array of Relationship objects that trace the "path" between
+      # the source and the target.
+      @links = @links.map do |link|
+        case link
+          when DataMapper::Associations::Relationship
+            link
+          when Symbol, String
+            link = link.to_sym if link.is_a?(String)
+            raise ArgumentError.new("Link #{link}. No such relationship") unless model.relationships.has_key?(link)
+            model.relationships[link]
+          else
+            raise ArgumentError.new("Link type #{link.inspect} not supported")
+        end
+      end
     end
 
     # normalize includes to DM::Query::Path
-    def normalize_includes!
+    def normalize_includes
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
     end
 
-    def append_condition!(property, value)
+    def append_condition(property, value)
       operator = :eql
 
       property = case property
@@ -271,9 +297,9 @@ module DataMapper
           property
         when Operator
           operator = property.type
-          @properties.detect(property.to_sym)
+          @properties[property.to_sym]
         when Symbol, String
-          @properties.detect(property)
+          @properties[property]
         else
           raise ArgumentError, "Condition type #{property.inspect} not supported"
       end
@@ -294,7 +320,7 @@ module DataMapper
     # for the same property, since we are now looking for an exact match.
     # Vice versa, passing in eql should overwrite all of those operators.
 
-    def update_conditions!(other)
+    def update_conditions(other)
       # build an index of conditions by the property and operator to
       # avoid nested looping
       conditions_index = Hash.new { |h,k| h[k] = {} }
@@ -313,16 +339,12 @@ module DataMapper
           if condition = conditions_index[other_property][other_operator]
             operator, property, value = *condition
 
-            # TODO: do not overwrite the value.  Instead splice the
-            # condition from @conditions, and then push onto conditions.
-            # that way each condition can become a real immutable Tuple
-
             # overwrite the value in the existing condition
             condition[2] = case operator
-              when :eql, :like : other_value
-              when :gt,  :gte  : [ value, other_value ].min
-              when :lt,  :lte  : [ value, other_value ].max
-              when :not, :in   : Array(value) | Array(other_value)
+              when :eql, :like then other_value
+              when :gt,  :gte  then [ value, other_value ].min
+              when :lt,  :lte  then [ value, other_value ].max
+              when :not, :in   then Array(value) | Array(other_value)
             end
 
             next  # process the next other condition

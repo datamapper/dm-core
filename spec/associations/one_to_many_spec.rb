@@ -1,7 +1,7 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
-describe "DataMapper::Associations::HasMany" do
+describe "DataMapper::Associations::OneToMany" do
 
   before do
     @adapter = DataMapper::Repository.adapters[:relationship_spec] || DataMapper.setup(:relationship_spec, 'mock://localhost')
@@ -11,7 +11,7 @@ describe "DataMapper::Associations::HasMany" do
     
     lambda do
       class Manufacturer
-        has_many :vehicles
+        one_to_many :vehicles
       end
     end.should_not raise_error
   end

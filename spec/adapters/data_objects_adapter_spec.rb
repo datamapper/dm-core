@@ -3,7 +3,7 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 require __DIR__.parent.parent + 'lib/data_mapper'
 require __DIR__.parent.parent + 'lib/data_mapper/adapters/data_objects_adapter'
-require __DIR__.parent + 'adapter_sharedspec'
+require __DIR__.parent + 'adapter_shared_spec'
 
 describe DataMapper::Adapters::DataObjectsAdapter do
   before do
@@ -160,17 +160,17 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   
   describe "#create_statement" do
     it 'should generate a SQL statement for all fields' do      
-      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).select(:name, :color)).should == <<-EOS.compress_lines
+      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).slice(:name, :color)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name", "color") VALUES (?, ?)
       EOS
     end
     
     it "should generate a SQL statement for only dirty fields" do
-      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).select(:name)).should == <<-EOS.compress_lines
+      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).slice(:name)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name") VALUES (?)
       EOS
 
-      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).select(:color)).should == <<-EOS.compress_lines
+      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).slice(:color)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("color") VALUES (?)
       EOS
     end
@@ -179,17 +179,17 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   describe "#create_statement_with_returning" do
     
     it 'should generate a SQL statement for all fields' do      
-      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).select(:name, :color)).should == <<-EOS.compress_lines
+      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).slice(:name, :color)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name", "color") VALUES (?, ?) RETURNING "id"
       EOS
     end
     
     it "should generate a SQL statement for only dirty fields" do      
-      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).select(:name)).should == <<-EOS.compress_lines
+      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).slice(:name)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("name") VALUES (?) RETURNING "id"
       EOS
       
-      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).select(:color)).should == <<-EOS.compress_lines
+      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).slice(:color)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("color") VALUES (?) RETURNING "id"
       EOS
     end
@@ -199,7 +199,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   describe "#update_statement" do
     
     it 'should generate a SQL statement for all fields' do      
-      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).select(:name, :color)).should == <<-EOS.compress_lines
+      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:name, :color)).should == <<-EOS.compress_lines
         UPDATE "cheeses" SET
         "name" = ?,
         "color" = ?
@@ -208,21 +208,21 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     end
     
     it "should generate a SQL statement for only dirty fields" do      
-      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).select(:name)).should == <<-EOS.compress_lines
+      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:name)).should == <<-EOS.compress_lines
         UPDATE "cheeses" SET "name" = ? WHERE "id" = ?
       EOS
 
-      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).select(:color)).should == <<-EOS.compress_lines
+      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:color)).should == <<-EOS.compress_lines
         UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
       EOS
     end
     
     it "should generate a SQL statement that includes a Composite Key" do
-      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).select(:hillside)).should == <<-EOS.compress_lines
+      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).slice(:hillside)).should == <<-EOS.compress_lines
         UPDATE "little_boxes" SET "hillside" = ? WHERE "street" = ? AND "color" = ?
       EOS
       
-      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).select(:color, :hillside)).should == <<-EOS.compress_lines
+      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).slice(:color, :hillside)).should == <<-EOS.compress_lines
         UPDATE "little_boxes" SET "color" = ?, "hillside" = ? WHERE "street" = ? AND "color" = ?
       EOS
     end

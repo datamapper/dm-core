@@ -185,7 +185,6 @@ module DataMapper
     #  :fatal, :error, :warn, :info, :debug 
     LEVELS.each_pair do |name, number|
       class_eval <<-LEVELMETHODS, __FILE__, __LINE__
-
       # DOC
       def #{name}(message = nil, &block)
         self.<<(message, &block) if #{name}?
@@ -198,6 +197,6 @@ module DataMapper
       LEVELMETHODS
     end
 
-  end
+  end # class Logger
   
-end
+end # module DataMapper

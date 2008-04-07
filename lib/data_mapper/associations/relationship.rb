@@ -4,75 +4,103 @@ module DataMapper
 
       attr_reader :name, :repository_name
 
-      # +source+ is the FK, +target+ is the PK. Please refer to:
+      # +child+ is the FK, +parent+ is the PK. Please refer to:
       # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
       # I wash my hands of it!
       #
       # TODO: should repository_name be removed? it would allow relationships across multiple
       # repositories (if query supports it)
-      def initialize(name, repository_name, source, target, &loader)
 
-        unless source.is_a?(Array) && source.size == 2
-          raise ArgumentError.new("source should be an Array of [resource_name, property_name] but was #{source.inspect}")
+      # XXX: why not break up child and parent arguments so the method definition becomes:
+      #   initialize(name, repository_name, child_model, child_key, parent_model, parent_key, &loader)
+      # The *_key arguments could be Arrays of symbols or a PropertySet object
+      def initialize(name, repository_name, child, parent, &loader)
+
+        unless child.is_a?(Array) && child.size == 2
+          raise ArgumentError.new("child should be an Array of [model_name, property_name] but was #{child.inspect}")
         end
 
-        unless target.is_a?(Array) && target.size == 2
-          raise ArgumentError.new("target should be an Array of [resource_name, property_name] but was #{target.inspect}")
+        unless parent.is_a?(Array) && parent.size == 2
+          raise ArgumentError.new("parent should be an Array of [model_name, property_name] but was #{parent.inspect}")
         end
 
         @name               = name
         @repository_name    = repository_name
-        @source             = source
-        @target             = target
+        @child              = child
+        @parent             = parent
         @loader             = loader
       end
 
-      def source
-        @source_key || @source_key = begin
-          resource = @source.first.to_class
-          resource_property_set = resource.properties(@repository_name)
+      def child_key      
+        @child_key ||= begin
+          child_key        = PropertySet.new
+          model_properties = child_model.properties(@repository_name)
+          parent_keys      = parent_key.to_a
 
-          if @source[1].nil?
-            # Default t the target key we're binding to prefixed with the
+          if child_property_names
+            child_property_names.zip(parent_keys).each do |property_name,parent_property|
+              child_key << (model_properties[property_name] || child_model.property(property_name, parent_property.type))
+            end
+          else
+            # Default to the parent key we're binding to prefixed with the
             # association name.
-            target.map do |property|
+            parent_key.each do |property|
               property_name = "#{@name}_#{property.name}"
-              resource_property_set.detect(property_name) || resource.property(property_name.to_sym, property.type)
-            end
-          else
-            i = 0
-            @source[1].map do |property_name|
-              target_property = target[i]
-              i += 1
-              resource_property_set.detect(property_name) || resource.property(property_name, target_property.type)
+              child_key << (model_properties[property_name] || child_model.property(property_name.to_sym, property.type))
             end
           end
+
+          child_key
         end
       end
 
-      def target
-        @target_key || @target_key = begin
-          resource = @target.first.to_class
-          resource_property_set = resource.properties(@repository_name)
+      def parent_key
+        @parent_key ||= begin
+          parent_key       = PropertySet.new
+          model_properties = parent_model.properties(@repository_name)
 
-          if @target[1].nil?
-            resource_property_set.key
+          keys = if parent_property_names
+            model_properties.slice(*parent_property_names)
           else
-            resource_property_set.select(*@target[1])
+            model_properties.key
           end
+
+          parent_key.add(*keys)
         end
       end
 
-      def to_set(instance)
-        @association_set ||= @loader.call(self, instance)
+      def with_child(child_inst, association, &loader)
+        association.new(self, child_inst, lambda {
+          loader.call(repository(@repository_name), child_key, parent_key, parent_model, child_inst)
+        })
       end
 
-      def target_resource
-        @target.first.to_class
+      def with_parent(parent_inst, association, &loader)
+        association.new(self, parent_inst, lambda {
+          loader.call(repository(@repository_name), child_key, parent_key, child_model, parent_inst)
+        })
       end
 
-      def source_resource
-        @source.first.to_class
+      def attach_parent(child, parent)
+        child_key.set(parent && parent_key.get(parent), child)
+      end
+
+      def parent_model
+        @parent.at(0).to_class
+      end
+
+      def child_model
+        @child.at(0).to_class
+      end
+
+      private
+
+      def child_property_names
+        @child.at(1)
+      end
+
+      def parent_property_names
+        @parent.at(1)
       end
     end # class Relationship
   end # module Associations

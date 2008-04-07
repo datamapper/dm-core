@@ -112,4 +112,4 @@ The DataMapper also supports a lot of old-fashioned ActiveRecord syntax. We want
 
 h2. Open Development
 
-Datamapper sports a very accessible code-base and a welcoming community. Outside contributions and feedback are welcome and encouraged, especially constructive criticism. Make your voice heard! "Submit a ticket or patch":http://wm.lighthouseapp.com/projects/4819-datamapper/overview, speak up on our "mailing-list":http://groups.google.com/group/datamapper/, chat with us on "irc":irc://irc.freenode.net/#datamapper, write a spec, get it reviewed, ask for commit rights. It's as easy as that to become a contributor.
+DataMapper sports a very accessible code-base and a welcoming community. Outside contributions and feedback are welcome and encouraged, especially constructive criticism. Make your voice heard! "Submit a ticket or patch":http://wm.lighthouseapp.com/projects/4819-datamapper/overview, speak up on our "mailing-list":http://groups.google.com/group/datamapper/, chat with us on "irc":irc://irc.freenode.net/#datamapper, write a spec, get it reviewed, ask for commit rights. It's as easy as that to become a contributor.

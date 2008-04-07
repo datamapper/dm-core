@@ -8,11 +8,14 @@ filter:    erb
 
   <head>
      <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
-     <title>Datamapper - <%= @page.title %></title>
+     <title>DataMapper - <%= @page.title %></title>
      <link rel="stylesheet" href="/css/site.css" type="text/css" media="screen, projection" />
      <link rel="stylesheet" href="/css/coderay.css" type="text/css" media="screen, projection" />
      <!--[if lt IE 7]> <link rel="stylesheet" href="css/ie_hacks.css" type="text/css" media="screen, projection" /> <![endif]-->
      <script src="/js/jquery-1.2.3.pack.js" type="text/javascript" charset="utf-8"></script>
+     <link rel="alternate" type="application/rss+xml"
+              title="News and Notes feed"
+              href="/news.rss" />
   </head>
   
   <body id="<%= @page.body_id %>">
@@ -23,8 +26,7 @@ filter:    erb
         <ul>
           <li><a href="/why.html">Why DataMapper?</a></li>
           <li><a href="/community.html">Community</a></li>
-          <li><a href="/docs">Development</a></li>
-          <!-- <li><a href="/docs">Documentation</a></li> -->
+          <li><a href="/docs">Docs &amp; Dev</a></li>
           <li><a href="http://wm.lighthouseapp.com/projects/4819-datamapper/overview">Tickets</a></li>
           <li><a href="http://wiki.datamapper.org/doku.php">Wiki</a></li>
           <li><a href="/getting_started.html" id="getDataMapper">Get DataMapper</a></li>
@@ -34,10 +36,20 @@ filter:    erb
       <%= @content %>
       
       <div id="footer">
-        <p>Copyright Sam Smoot 2007</p>
+        <p>Copyright Sam Smoot <%= Time.now.year %></p>
         <p>Web Design by <a href="http://www.mr-eel.com/">Luke Matthew Sutton</a> - Community Maintained</p>
       </div>
     </div>
+
+    <script type="text/javascript">
+    var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+    document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+    var pageTracker = _gat._getTracker("UA-569671-2");
+    pageTracker._initData();
+    pageTracker._trackPageview();
+    </script>
 
   </body>
 </html>

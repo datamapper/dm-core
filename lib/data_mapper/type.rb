@@ -1,5 +1,3 @@
-#require __DIR__ + 'property'
-
 module DataMapper
 
   # :include:/QUICKLINKS
@@ -29,20 +27,21 @@ module DataMapper
   #     primitive String
   #     size 10
   #
-  #     def self.materialize(value)
+  #     def self.dump(value)
   #       <work some magic>
   #     end
   #
-  #     def self.serialize(value)
+  #     def self.load(value)
   #       <work some magic>
   #     end
   #   end
   class Type
-    #TODO: figure out a way to read this from DataMapper::Property without cyclic require(s)
-    #This should ALWAYS mirror DataMapper::Property::PROPERTY_OPTIONS, with the exception of aliases
-    PROPERTY_OPTIONS = [ :public, :protected, :private, :accessor, :reader,
-      :writer, :lazy, :default, :nullable, :key, :serial, :field, :size,
-      :format, :index, :check, :ordinal, :auto_validation ]
+    PROPERTY_OPTIONS = [
+      :public, :protected, :private, :accessor, :reader, :writer,
+      :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
+      :format, :index, :check, :ordinal, :auto_validation, :validation_context,
+      :lock, :track
+    ]
 
     PROPERTY_OPTION_ALIASES = {
       :size => [ :length ]
@@ -87,7 +86,7 @@ module DataMapper
 
       #load DataMapper::Property options
       PROPERTY_OPTIONS.each do |property_option|
-        self.class_eval <<-EOS
+        self.class_eval <<-EOS, __FILE__, __LINE__
         def #{property_option}(arg = nil)
           return @#{property_option} if arg.nil?
 
@@ -99,7 +98,7 @@ module DataMapper
       #create property aliases
       PROPERTY_OPTION_ALIASES.each do |property_option, aliases|
         aliases.each do |ali|
-          self.class_eval <<-EOS
+          self.class_eval <<-EOS, __FILE__, __LINE__
           def #{ali}(arg = nil)
             #{property_option}(arg)
           end
@@ -121,22 +120,22 @@ module DataMapper
       end
     end
 
-    # Stub instance method for materialization
+    # Stub instance method for dumping
     #
     # ==== Parameters
     # value<Object, nil>::
-    #   The value to materialize
+    #   The value to dump
     #
     # ==== Returns
-    # Object:: Materialized object
+    # Object:: Dumped object
     #
     #
     # @public
-    def self.materialize(value)
-      raise NotImplementedError
+    def self.dump(value)
+      value
     end
 
-    # Stub instance method for serialization
+    # Stub instance method for loading
     #
     # ==== Parameters
     # value<Object, nil>::
@@ -147,14 +146,14 @@ module DataMapper
     #
     #
     # @public
-    def self.serialize(value)
-      raise NotImplementedError
+    def self.load(value)
+      value
     end
 
-  end #class Type
+  end # class Type
 
   def self.Type(primitive_type, options = {})
     Class.new(Type).configure(primitive_type, options)
   end
 
-end #module DataMapper
+end # module DataMapper

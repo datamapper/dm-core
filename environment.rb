@@ -3,6 +3,7 @@ unless defined?(INITIAL_CLASSES)
   require 'pathname'
   require Pathname(__FILE__).dirname.expand_path + 'lib/data_mapper'
   require __DIR__ + 'spec/mock_adapter'
+  require 'fileutils'
 
   adapter = ENV["ADAPTER"] || "sqlite3"
   
