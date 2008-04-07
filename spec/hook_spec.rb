@@ -27,44 +27,55 @@ describe "DataMapper::Hook" do
   end
   
   it 'should install the block under the appropriate hook' do
-    @class.install_hook :before, :a_hook, :a_method, &c = lambda { 1 }
+    @class.class_eval do
+      def a_hook
+      end
+    end
+    @class.before :a_hook, &c = lambda { 1 }
 
     @class.hooks.should have_key(:a_hook)
-    @class.hooks[:a_hook].last.should == c
-    @class.hooks[:a_hook].should have(1).item
+    @class.hooks[:a_hook][:before].should have(1).item
   end
   
   it 'should run an advice block' do
-    @class.install_hook :before, :hook, :a_method do |inst|
-      inst.hi_mom!
+    @class.class_eval do
+      def hook        
+      end
+      
+      before :hook do
+        hi_mom!
+      end
     end
     
     inst = @class.new
     inst.should_receive(:hi_mom!)
     
-    inst.run_hook :hook
+    inst.hook
   end
 
   it 'should run an advice method' do
     @class.class_eval do
+      def hook
+      end
+      
       def before_method()
         hi_mom!
       end
 
-      install_hook :before, :hook, :a_method, :before_method
+      before :hook, :before_method
     end
     
     inst = @class.new
     inst.should_receive(:hi_mom!)
     
-    inst.run_hook :hook
+    inst.hook
   end
   
   describe "using before hook" do
     it "should install the advice block under the appropriate hook" do
       c = lambda { 1 }
       
-      @class.should_receive(:install_hook).with(:before, :before_a_method, :a_method, nil, &c)
+      @class.should_receive(:install_hook).with(:before, :a_method, nil, &c)
       
       @class.class_eval do
         before :a_method, &c
@@ -77,7 +88,7 @@ describe "DataMapper::Hook" do
         end
       end
 
-      @class.should_receive(:install_hook).with(:before, :before_a_method, :a_method, :a_hook)
+      @class.should_receive(:install_hook).with(:before, :a_method, :a_hook)
 
       @class.before :a_method, :a_hook
     end
@@ -118,7 +129,7 @@ describe "DataMapper::Hook" do
   describe 'using after hook' do
     it "should install the advice block under the appropriate hook" do
       c = lambda { 1 }
-      @class.should_receive(:install_hook).with(:after, :after_a_method, :a_method, nil, &c)
+      @class.should_receive(:install_hook).with(:after, :a_method, nil, &c)
       
       @class.class_eval do
         after :a_method, &c
@@ -131,7 +142,7 @@ describe "DataMapper::Hook" do
         end
       end
 
-      @class.should_receive(:install_hook).with(:after, :after_a_method, :a_method, :a_hook)
+      @class.should_receive(:install_hook).with(:after, :a_method, :a_hook)
 
       @class.after :a_method, :a_hook
     end

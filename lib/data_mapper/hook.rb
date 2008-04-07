@@ -6,27 +6,60 @@ module DataMapper
     
     module ClassMethods
       def before(target_method, method_sym = nil, &block)
-        install_hook :before, "before_#{target_method}".to_sym, target_method, method_sym, &block 
+        install_hook :before, target_method, method_sym, &block 
       end
       
-      def install_hook(type, name, to_method, method_sym = nil, &block)
-        hooks[name] << (block || instance_method(method_sym))
-
-        unless (old_methods[name])
-          target = instance_method(to_method)
-          old_methods[name] ||= target
-
-          args = args_for(target)
-          hook_call = args == "" ? args : ", " << args
-
-          method_def =  "def #{to_method}(#{args})\n"
-          method_def << "  run_hook :#{name} #{hook_call}\n" if type == :before
-          method_def << "  self.class.old_methods[:#{name}].bind(self).call #{args}\n"
-          method_def << "  run_hook :#{name} #{hook_call}\n" if type == :after
-          method_def << "end"
-
-          class_eval method_def, __FILE__, __LINE__
+      def install_hook(type, name, method_sym = nil, &block)
+        (hooks[name][type] ||= []) << if block
+          new_meth_name = "__hooks_#{type}_#{name}_#{hooks[name][type].length}".to_sym
+          define_method new_meth_name, block
+          new_meth_name
+        else
+          method_sym
         end
+        
+        class_eval define_advised_method(name), __FILE__, __LINE__
+      end
+      
+      def define_advised_method(name)
+        args = args_for(hooks[name][:old_method] ||= instance_method(name))
+
+        <<-EOD 
+          def #{name}(#{args})
+            #{inline_hooks(name, :before, args)}
+            #{inline_call(name, args)}
+            #{inline_hooks(name, :after, args)}
+          end
+        EOD
+      end
+      
+      def inline_call(name, args)
+        if self.superclass.method_defined?(name)
+          "  super(#{args})\n"
+        else
+          <<-EOF  
+            (@__hooks_#{name}_old_method || @__hooks_#{name}_old_method = 
+              self.class.hooks[:#{name}][:old_method].bind(self)).call(#{args})
+          EOF
+        end
+      end
+      
+      def inline_hooks(name, type, args)
+        return '' unless hooks[name][type]
+        
+        method_def = ""
+        hooks[name][type].each_with_index do |e, i|
+          case e
+          when Symbol
+            method_def << "  #{e}(#{args})\n"
+          else
+            method_def << "(@__hooks_#{name}_#{i} || "
+            method_def << "  @__hooks_#{name}_#{i} = self.class.hooks[:#{name}][:#{type}][#{i}])"
+            method_def << ".call #{args}\n"
+          end
+        end
+        
+        method_def
       end
       
       def args_for(method)
@@ -41,27 +74,12 @@ module DataMapper
         end
       end
       
-      def old_methods
-        @old_methods ||= {}
-      end
-      
       def hooks
-        @hooks ||= Hash.new { |h, k| h[k] = [] }
+        @hooks ||= Hash.new { |h, k| h[k] = {} }
       end
 
       def after(target_method, method_sym = nil, &block)
-        install_hook :after, "after_#{target_method}".to_sym, target_method, method_sym, &block 
-      end
-    end
-
-    def run_hook(name, *args)
-      self.class.hooks[name].each do |c| 
-        case c
-          when UnboundMethod
-          c.bind(self).call(*args)
-          else
-          c.call self, *args
-        end
+        install_hook :after, target_method, method_sym, &block 
       end
     end
   end # module Hook
