@@ -32,6 +32,10 @@ begin
       adapter.instance_variable_get("@uri").should == @uri
     end
   end
-rescue LoadError
-  warn "MySQL specs not run! Could not load do_mysql."
+rescue LoadError => e
+  describe 'do_mysql' do
+    it 'should be required' do
+      fail "MySQL integration specs not run! Could not load do_mysql: #{e}"
+    end
+  end
 end

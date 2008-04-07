@@ -239,6 +239,10 @@ begin
       end
     end  
   end
-rescue LoadError
-  warn "integration/sqllite3_adapter_spec not run! Could not load do_sqlite3."
+rescue LoadError => e
+  describe 'do_sqlite3' do
+    it 'should be required' do
+      fail "SQLite3 integration specs not run! Could not load do_sqlite3: #{e}"
+    end
+  end
 end

@@ -617,6 +617,10 @@ begin
       end
     end
   end
-rescue LoadError
-  warn "PostgreSQL specs not run! Could not load do_postgres."
+rescue LoadError => e
+  describe 'do_postgres' do
+    it 'should be required' do
+      fail "PostgreSQL integration specs not run! Could not load do_postgres: #{e}"
+    end
+  end
 end
