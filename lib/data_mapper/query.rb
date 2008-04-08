@@ -33,6 +33,42 @@ module DataMapper
       end
     end # class Operator
 
+    class Path
+
+      attr_reader :relationships, :model, :property
+
+      def initialize(relationships, model_name ,property_name=nil)
+        @relationships = relationships
+        @model         = DataMapper::Inflection.classify(model_name.to_s).to_class
+        @property      = @model.properties(@model.repository.name)[model_name] if property_name
+      end
+
+      alias_method :_method_missing, :method_missing  
+
+      def method_missing(method, *args)
+       if @model.relationships.has_key?(method)
+         relations = []
+         relations.concat(@relationships)
+         relations << @model.relationships[method]
+         return DataMapper::Query::Path.new(relations,method)
+       end
+       
+       if @model.properties(@model.repository.name)[method]
+         @property = @model.properties(@model.repository.name)[method]
+         return self
+       end
+       
+       _method_missing(method,args)
+      end  
+
+      # duck type the DM::Query::Path to act like a DM::Property      
+      def field
+       @property ? @property.field : nil
+      end
+       
+    end # class Path
+
+
     OPTIONS = [
       :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
@@ -130,7 +166,7 @@ module DataMapper
       @order      = options.fetch :order,    []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @fields     = options.fetch :fields,   @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links      = options.fetch :links,    []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
-      @includes   = options.fetch :includes, []     # must be an Array of DM::QueryPath
+      @includes   = options.fetch :includes, []     # must be an Array of DM::Query::Path
       @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
 
       # normalize order and fields
@@ -287,11 +323,11 @@ module DataMapper
     # normalize includes to DM::Query::Path
     def normalize_includes
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
-      # NOTE: :includes can only be and array of DM::QueryPath objects now. This method
+      # NOTE: :includes can only be and array of DM::Query::Path objects now. This method
       #       can go away after review of what has been done.
     end
 
-    # validate that all the links or includes are present for the given DM::QueryPath
+    # validate that all the links or includes are present for the given DM::Query::Path
     #
     def validate_query_path_links(path)
       path.relationships.map do |relationship| 
@@ -305,7 +341,7 @@ module DataMapper
       property = case property
         when DataMapper::Property
           property
-        when DataMapper::QueryPath
+        when DataMapper::Query::Path
           validate_query_path_links(property)        
           property
         when Operator

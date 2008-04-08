@@ -214,7 +214,7 @@ module DataMapper
      alias_method :_method_missing, :method_missing  
      def method_missing(method, *args)
         if relationships.has_key?(method)
-          return DataMapper::QueryPath.new([relationships[method]],method)
+          return DataMapper::Query::Path.new([relationships[method]],method)
         end
         result = properties(repository.name)[method]
         return result if result
