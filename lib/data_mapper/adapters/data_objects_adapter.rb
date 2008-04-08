@@ -35,15 +35,15 @@ module DataMapper
       }
 
       def begin_transaction
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       def commit_transaction
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       def rollback_transaction
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       def within_transaction?
@@ -183,7 +183,7 @@ module DataMapper
       end
 
       def delete_set(repository, query)
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       # Database-specific method

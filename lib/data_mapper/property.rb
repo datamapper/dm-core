@@ -217,14 +217,19 @@ module DataMapper
     attr_reader :primitive, :model, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options
 
     def initialize(model, name, type, options)
-      raise ArgumentError, "+model+ should be a type of Resource"                                     unless Resource === model
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"               unless Resource === model
       raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                         unless name.is_a?(Symbol)
       raise ArgumentError, "+type+ was #{type.class}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
+
+      if (unknown_keys = options.keys - PROPERTY_OPTIONS).any?
+        raise ArgumentError, "options contained unknown keys: #{unknown_keys * ', '}"
+      end
 
       @model                  = model
       @name                   = name.to_s.sub(/\?$/, '').to_sym
       @type                   = type
-      @options                = type.ancestors.include?(DataMapper::Type) ? type.options.merge(options) : options
+      @custom                 = @type.ancestors.include?(DataMapper::Type)
+      @options                = @custom ? @type.options.merge(options) : options
       @instance_variable_name = "@#{@name}"
       @getter                 = @type.is_a?(TrueClass) ? "#{@name}?".to_sym : @name
 
@@ -236,11 +241,10 @@ module DataMapper
       # and out of Property.
       @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
-      @custom    = @type.ancestors.include?(DataMapper::Type)
 
-      @key    = (@options[:key] || @options[:serial]) == true
-      @serial = @options.fetch(:serial, false)
       @lock   = @options.fetch(:lock,   false)
+      @serial = @options.fetch(:serial, false)
+      @key    = (@options[:key] || @serial) == true
 
       validate_options!
       determine_visibility!

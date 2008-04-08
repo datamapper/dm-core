@@ -276,10 +276,10 @@ module DataMapper
             link
           when Symbol, String
             link = link.to_sym if link.is_a?(String)
-            raise ArgumentError.new("Link #{link}. No such relationship") unless model.relationships.has_key?(link)
+            raise ArgumentError, "Link #{link}. No such relationship" unless model.relationships.has_key?(link)
             model.relationships[link]
           else
-            raise ArgumentError.new("Link type #{link.inspect} not supported")
+            raise ArgumentError, "Link type #{link.inspect} not supported"
         end
       end
     end

@@ -139,7 +139,7 @@ module DataMapper
       case details
       when Hash then self.attributes = details
       when Resource, Struct then self.private_attributes = details.attributes
-      # else raise ArgumentError.new("details should be a Hash, Resource or Struct\n\t#{details.inspect}")
+      # else raise ArgumentError, "details should be a Hash, Resource or Struct\n\t#{details.inspect}"
       end
     end
 
@@ -181,7 +181,7 @@ module DataMapper
 
     def validate_resource # :nodoc:
       if self.class.properties(self.class.default_repository_name).empty?
-        raise IncompleteResourceError.new("Resources must have at least one property to be initialized.")
+        raise IncompleteResourceError, 'Resources must have at least one property to be initialized.'
       end
     end
 
@@ -222,7 +222,7 @@ module DataMapper
       # FIXME: should this be renamed container_name, since it
       # effectively returns the name of the container in the repository
       # that we store the data in
-      def resource_name(repository_name)
+      def resource_name(repository_name = default_repository_name)
         @resource_names[repository_name]
       end
 
@@ -258,15 +258,15 @@ module DataMapper
         property
       end
 
-      def properties(repository_name)
+      def properties(repository_name = default_repository_name)
         @properties[repository_name]
       end
 
-      def key(repository_name)
+      def key(repository_name = default_repository_name)
         @properties[repository_name].key
       end
 
-      def inheritance_property(repository_name)
+      def inheritance_property(repository_name = default_repository_name)
         @properties[repository_name].inheritance_property
       end
 

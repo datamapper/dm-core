@@ -13,7 +13,7 @@ module Kernel
       begin
         DataMapper::Repository.context.last || DataMapper::Repository.new(name)
       #rescue NoMethodError
-       # raise RepositoryNotSetupError.new("#{name.inspect} repository not set up.")
+       # raise RepositoryNotSetupError, "#{name.inspect} repository not set up."
       end
     else
       begin
@@ -32,8 +32,8 @@ module DataMapper
   def self.setup(name, uri, options = {})
     uri = uri.is_a?(String) ? URI.parse(uri) : uri
 
-    raise ArgumentError.new("'name' must be a Symbol") unless name.is_a?(Symbol)
-    raise ArgumentError.new("'uri' must be a URI or String") unless uri.is_a?(URI)
+    raise ArgumentError, "'name' must be a Symbol"       unless name.is_a?(Symbol)
+    raise ArgumentError, "'uri' must be a URI or String" unless uri.is_a?(URI)
 
     unless Adapters::const_defined?(DataMapper::Inflection.classify(uri.scheme) + "Adapter")
       begin
@@ -66,7 +66,7 @@ module DataMapper
       begin
         Repository.context.last || Repository.new(name)
       #rescue NoMethodError
-       # raise RepositoryNotSetupError.new("#{name.inspect} repository not set up.")
+       # raise RepositoryNotSetupError, "#{name.inspect} repository not set up."
       end
     else
       begin

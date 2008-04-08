@@ -24,46 +24,46 @@ module DataMapper
 
       # Methods dealing with a single resource object
       def create(repository, resource)
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       def read(repository, resource, key)
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       def update(repository, resource)
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       def delete(repository, resource)
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       # Methods dealing with locating a single object, by keys
       def read_one(repository, query)
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       def delete_set(repository, query)
-        raise NotImplementedError.new
+        raise NotImplementedError
       end
 
       # # Shortcuts
       # Deprecated in favor of read_one
       # def first(repository, resource, query = {})
-      #   raise ArgumentError.new("You cannot pass in a :limit option to #first") if query.key?(:limit)
+      #   raise ArgumentError, "You cannot pass in a :limit option to #first" if query.key?(:limit)
       #   read_set(repository, resource, query.merge(:limit => 1)).first
       # end
 
       # Future Enumerable/convenience finders. Please leave in place. :-)
       # def each(repository, klass, query)
-      #   raise NotImplementedError.new
-      #   raise ArgumentError.new unless block_given?
+      #   raise NotImplementedError
+      #   raise ArgumentError unless block_given?
       # end
 
 

@@ -26,8 +26,10 @@ module DataMapper
       # user is using composite keys? Should we not rather raise an error if
       # the value is nil?
       key = resource.key
-      raise ArgumentError.new("+key+ must be an Array, and can not be empty") if key.empty?
+      raise ArgumentError, "+key+ must be an Array, and can not be empty" if key.empty?
       @cache[resource.class][key] = resource
+
+      # TODO: this should probably update the second level cache (if any) too
     end
 
     # Remove a resource from the IdentityMap.

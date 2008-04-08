@@ -26,11 +26,11 @@ module DataMapper
     
     private
     def create_table(table)
-      raise NotImplementedError.new
+      raise NotImplementedError
     end
     
     def modify_table(table, columns)
-      raise NotImplementedError.new
+      raise NotImplementedError
     end
   end # module AutoMigrations
 end # module DataMapper

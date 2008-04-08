@@ -21,7 +21,7 @@ module DataMapper
         def initialize() end
 
         def save
-          raise NotImplementedError.new
+          raise NotImplementedError
         end
 
       end # class Instance    
