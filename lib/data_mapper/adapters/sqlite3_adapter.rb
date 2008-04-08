@@ -15,9 +15,13 @@ module DataMapper
       })
 
       def create_connection
-        connnection = DataObjects::Sqlite3::Connection.new(@uri)
-        # connnection.logger = DataMapper.logger
-        return connnection
+        if within_transaction?
+          Thread::current["doa_#{@uri.scheme}_transaction"]
+        else
+          # DataObjects::Connection.new(uri) will give you back the right
+          # driver based on the Uri#scheme.
+          DataObjects::Sqlite3::Connection.new(@uri)
+        end
       end
 
       def rewrite_uri(uri, options)
@@ -27,6 +31,30 @@ module DataMapper
         new_uri
       end
       
+      def begin_transaction
+        connection = create_connection
+        Thread::current["doa_#{@uri.scheme}_transaction"] = connection
+        DataMapper.logger.debug("BEGIN TRANSACTION")
+        command = connection.create_command("BEGIN")
+        command.execute_non_query
+      end
+
+      def commit_transaction
+        connection = create_connection
+        Thread::current["doa_#{@uri.scheme}_transaction"] = nil
+        DataMapper.logger.debug("COMMIT TRANSACTION")
+        command = connection.create_command("COMMIT")
+        command.execute_non_query
+      end
+
+      def rollback_transaction
+        connection = create_connection
+        Thread::current["doa_#{@uri.scheme}_transaction"] = nil
+        DataMapper.logger.debug("ROLLBACK TRANSACTION")
+        command = connection.create_command("ROLLBACK")
+        command.execute_non_query
+      end
+
     end # class Sqlite3Adapter
     
   end # module Adapters
