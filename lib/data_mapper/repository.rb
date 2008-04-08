@@ -43,7 +43,8 @@ module DataMapper
       end
     end
 
-    adapter = Adapters::const_get(DataMapper::Inflection.classify(uri.scheme) + "Adapter").new(name, uri)
+    adapter = Adapters::const_get(DataMapper::Inflection.classify(uri.scheme) + "Adapter").
+      new(name, uri, options)
 
     Repository.adapters[name] = adapter
   end

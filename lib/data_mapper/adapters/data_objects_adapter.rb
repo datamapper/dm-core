@@ -405,6 +405,23 @@ module DataMapper
         "\"#{column_name.gsub('"', '""')}\""
       end
 
+      def rewrite_uri(uri, options)
+        new_uri = uri.dup
+        
+        new_uri.host = options.delete(:host) || uri.host
+        new_uri.user = options.delete(:user) || uri.user
+        new_uri.password = options.delete(:password) || uri.password
+        new_uri.path = (options[:database] && "/" << options.delete(:database)) || uri.path
+        new_uri.port = options.delete(:port) || uri.port
+        
+        stropt = options.inject({}) { |h, (k, v)| h[k.to_s] = v; h }
+        all_options =  Hash[ *(uri.query ? uri.query.split(/[&=]/) : []) ].merge!(stropt)
+        query = all_options.to_a.map { |pair| pair.join('=') }.join('&')
+        
+        new_uri.query = query unless query.empty?
+
+        new_uri
+      end
     end # class DoAdapter
 
   end # module Adapters
