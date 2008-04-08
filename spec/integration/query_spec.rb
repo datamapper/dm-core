@@ -152,7 +152,7 @@ begin
       end
     end  # describe sub-selecting
 
-    describe 'when having links' do
+    describe 'when linking associated objects' do
       before do
         @adapter = repository(:sqlite3).adapter
         @adapter.execute(<<-EOS.compress_lines) rescue nil
@@ -262,17 +262,28 @@ begin
         }.should raise_error(ArgumentError)
       end
   
-      it 'should accept a property chain as the key to a condition' do    
-          repository(:sqlite3) do
-            vehicle = Vehicle.first(Vehicle.factory.region.name => 'North West')
-            vehicle.name.should == '10 ton delivery truck'
-          end
-      
+      it 'should create an n-level query path' do
+        Vehicle.factory.region.model.should == Region
+        Vehicle.factory.region.name.property.should == Region.properties(Region.repository.name)[:name]
+      end
+  
+      it 'should accept a DM::QueryPath as the key to a condition' do    
+        repository(:sqlite3) do
+          vehicle = Vehicle.first(Vehicle.factory.region.name => 'North West')
+          vehicle.name.should == '10 ton delivery truck'
+        end      
       end
     
-      it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'
-      
+    
+      it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'      
       it 'should create links with composite keys'
+      
+      
+      it 'should eager load associations' do
+        repository(:sqlite3) do
+          vehicle = Vehicle.first(:includes => [Vehicle.factory]) 
+        end    
+      end 
 
       after do
         @adapter.execute('DROP TABLE "regions"')
