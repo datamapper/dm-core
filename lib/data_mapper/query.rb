@@ -130,7 +130,7 @@ module DataMapper
       @order      = options.fetch :order,    []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @fields     = options.fetch :fields,   @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links      = options.fetch :links,    []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
-      @includes   = options.fetch :includes, []     # must be an Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
+      @includes   = options.fetch :includes, []     # must be an Array of DM::QueryPath
       @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
 
       # normalize order and fields
@@ -196,7 +196,7 @@ module DataMapper
         value = options[attribute]
         raise ArgumentError, ":#{attribute} must be an Array, but was #{value.class}" unless value.kind_of?(Array)
         raise ArgumentError, ":#{attribute} cannot be an empty Array"                 unless value.any?
-      end
+      end        
     end
 
     # TODO: spec this
@@ -287,35 +287,9 @@ module DataMapper
     # normalize includes to DM::Query::Path
     def normalize_includes
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
+      # NOTE: :includes can only be and array of DM::QueryPath objects now. This method
+      #       can go away after review of what has been done.
     end
-
-    #def normalize_property_chain(property)
-      # DM::Query.new(Zoo, 'Zoo.displays.name' => 'foo')
-      
-      #relationships = []
-      #model = @model
-      #result = nil
-      #property.to_s.split('.').map do |part|
-      #  next if DataMapper::Inflection.classify(part) == model.to_s
-      #        
-      #  if model.properties(model.repository.name)[part] != nil
-      #    result = model.properties(model.repository.name)[part]
-      #  elsif model.relationships.has_key?(part.to_sym)
-      #    relationship = model.relationships[part.to_sym]
-      #    model = relationship.child_model == model ? relationship.parent_model : relationship.child_model            
-      #    relationships << relationship
-      #  else
-      #    raise ArgumentError, "Could not normalize property chain for #{property.inspect}"
-      #  end
-      #end
-
-      # Add joins if not already joined
-      #relationships.map do |relationship|
-      #  @links << relationship  if !@links.include?(relationship) && !@includes.include?(relationship)  
-      #end
-      
-      #result      
-    #end
 
     # validate that all the links or includes are present for the given DM::QueryPath
     #
