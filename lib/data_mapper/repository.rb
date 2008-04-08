@@ -12,8 +12,8 @@ module Kernel
     unless block_given?
       begin
         DataMapper::Repository.context.last || DataMapper::Repository.new(name)
-      #rescue NoMethodError
-       # raise RepositoryNotSetupError, "#{name.inspect} repository not set up."
+        #rescue NoMethodError
+        # raise RepositoryNotSetupError, "#{name.inspect} repository not set up."
       end
     else
       begin
@@ -29,24 +29,28 @@ end # module Kernel
 
 module DataMapper
 
-  def self.setup(name, uri, options = {})
-    uri = uri.is_a?(String) ? URI.parse(uri) : uri
+  def self.setup(name, uri_or_options)
+    case uri_or_options 
+    when Hash
+      adapter_name = uri_or_options[:adapter]
+    else
+      uri_or_options = uri_or_options.is_a?(String) ? URI.parse(uri_or_options) : uri_or_options    
+      raise ArgumentError, "'uri' must be a URI or String" unless uri_or_options.is_a?(URI)
+      adapter_name = uri_or_options.scheme
+    end
 
-    raise ArgumentError, "'name' must be a Symbol"       unless name.is_a?(Symbol)
-    raise ArgumentError, "'uri' must be a URI or String" unless uri.is_a?(URI)
-
-    unless Adapters::const_defined?(DataMapper::Inflection.classify(uri.scheme) + "Adapter")
+    unless Adapters::const_defined?(DataMapper::Inflection.classify(adapter_name) + "Adapter")
       begin
-        require __DIR__ + "adapters/#{DataMapper::Inflection.underscore(uri.scheme)}_adapter"
+        require __DIR__ + "adapters/#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
       rescue LoadError
-        require "#{DataMapper::Inflection.underscore(uri.scheme)}_adapter"
+        require "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
       end
     end
 
-    adapter = Adapters::const_get(DataMapper::Inflection.classify(uri.scheme) + "Adapter").
-      new(name, uri, options)
+    raise ArgumentError, "'name' must be a Symbol" unless name.is_a?(Symbol)
 
-    Repository.adapters[name] = adapter
+    Repository.adapters[name] = Adapters::
+      const_get(DataMapper::Inflection.classify(adapter_name) + "Adapter").new(name, uri_or_options)
   end
 
   # ===Block Syntax:
@@ -66,8 +70,8 @@ module DataMapper
     unless block_given?
       begin
         Repository.context.last || Repository.new(name)
-      #rescue NoMethodError
-       # raise RepositoryNotSetupError, "#{name.inspect} repository not set up."
+        #rescue NoMethodError
+        # raise RepositoryNotSetupError, "#{name.inspect} repository not set up."
       end
     else
       begin

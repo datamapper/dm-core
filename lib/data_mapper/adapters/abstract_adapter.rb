@@ -6,9 +6,9 @@ module DataMapper
 
       # Instantiate an Adapter by passing it a DataMapper::Repository
       # connection string for configuration.
-      def initialize(name, uri, options = {})
+      def initialize(name, uri_or_options)
         @name = name
-        @uri = rewrite_uri(uri, options)
+        @uri = uri(uri_or_options)
 
         @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Underscored
@@ -67,8 +67,8 @@ module DataMapper
       # end
 
 
-      def rewrite_uri(uri, options)
-        uri
+      def uri(uri_or_options)
+        uri_or_options
       end
 
     end # class AbstractAdapter
