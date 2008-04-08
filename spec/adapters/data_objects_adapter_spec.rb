@@ -258,9 +258,10 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       EOS
     end
   end
+end
 
   describe '#uri options' do
-    it 'should transform an option hash into a URI' do    
+    it 'should transform a fully specified option hash into a URI' do    
       options = {
         :adapter => 'mysql',
         :host => 'davidleal.com',
@@ -275,11 +276,19 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       adapter.uri(options).should == 
         URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
     end
+    
+    it 'should transform a minimal options hash into a URI' do
+      options = {
+        :adapter => 'mysql',
+        :database => 'you_can_call_me_al'
+      }
+    
+      adapter = DataMapper::Adapters::DataObjectsAdapter.allocate
+      adapter.uri(options).should == URI.parse("mysql:///you_can_call_me_al")
+    end
 
     it 'should accept the uri when no overrides exist' do
       uri = URI.parse("protocol:///")
       DataMapper::Adapters::DataObjectsAdapter.allocate.uri(uri).should == uri
     end
   end
-end
-

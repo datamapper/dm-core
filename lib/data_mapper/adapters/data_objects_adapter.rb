@@ -408,14 +408,24 @@ module DataMapper
       def uri(uri_or_options)
         return uri_or_options if uri_or_options.is_a?(URI)
         
-        uri_str = "#{uri_or_options.delete(:adapter)}://"
-        uri_str << "#{uri_or_options.delete(:user)}:#{uri_or_options.delete(:password)}"
-        uri_str << "@#{uri_or_options.delete(:host)}"
-        uri_str << ":#{uri_or_options.delete(:port)}" if uri_or_options[:port]
-        uri_str << "/#{uri_or_options.delete(:database)}"
-        uri_str << "?#{uri_or_options.to_a.map { |pair| pair.join('=') }.join('&')}" unless uri_or_options.empty?
-
-        URI.parse(uri_str)
+        adapter = uri_or_options.delete(:adapter)
+        user = uri_or_options.delete(:user)
+        
+        password = uri_or_options.delete(:password)
+        password = ":" << password.to_s if user && password
+        
+        host = uri_or_options.delete(:host)
+        host = "@" << host.to_s if user && host
+        
+        port = uri_or_options.delete(:port)
+        port = ":" << port.to_s if host && port
+        
+        database = "/#{uri_or_options.delete(:database)}"
+        
+        query = uri_or_options.to_a.map { |pair| pair.join('=') }.join('&')
+        query = "?" << query unless query.empty?
+        
+        URI.parse("#{adapter}://#{user}#{password}#{host}#{port}#{database}#{query}")
       end
     end # class DoAdapter
 
