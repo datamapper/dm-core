@@ -233,10 +233,6 @@ module DataMapper
       @instance_variable_name = "@#{@name}"
       @getter                 = @type.is_a?(TrueClass) ? "#{@name}?".to_sym : @name
 
-      # if it has a lazy key it is lazy. :lazy is now an array of contexts not bool
-      # when type is text a context should have been created and a :lazy entry made..
-      # double check - @lazy = @options.has_key?(:lazy) ? true : false
-      #
       # TODO: This default should move to a DataMapper::Types::Text Custom-Type
       # and out of Property.
       @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
@@ -252,10 +248,7 @@ module DataMapper
       create_getter!
       create_setter!
 
-      # Auto validation has moved to dm-more
-      # auto_generate_validations_for_property is mixed in from
-      # DataMapper::Validate::AutoValidate in dm-more
-      @model.auto_generate_validations_for_property(self) if @model.respond_to?(:auto_generate_validations_for_property)
+      @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
     end
 
     def validate_options! # :nodoc:
