@@ -210,6 +210,17 @@ module DataMapper
     end
 
     module ClassMethods
+        
+     alias_method :_method_missing, :method_missing  
+     def method_missing(method, *args)
+        if relationships.has_key?(method)
+          return DataMapper::QueryPath.new([relationships[method]],method)
+        end
+        result = properties(repository.name)[method]
+        return result if result
+       _method_missing(method,args)
+     end    
+      
 
       def repository(name = default_repository_name)
         DataMapper::repository(name)

@@ -251,6 +251,7 @@ module DataMapper
 
       create_getter!
       create_setter!
+      #create_class_shadow_getter!
 
       # Auto validation has moved to dm-more
       # auto_generate_validations_for_property is mixed in from
