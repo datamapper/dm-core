@@ -405,22 +405,17 @@ module DataMapper
         "\"#{column_name.gsub('"', '""')}\""
       end
 
-      def rewrite_uri(uri, options)
-        new_uri = uri.dup
+      def uri(uri_or_options)
+        return uri_or_options if uri_or_options.is_a?(URI)
         
-        new_uri.host = options.delete(:host) || uri.host
-        new_uri.user = options.delete(:user) || uri.user
-        new_uri.password = options.delete(:password) || uri.password
-        new_uri.path = (options[:database] && "/" << options.delete(:database)) || uri.path
-        new_uri.port = options.delete(:port) || uri.port
-        
-        stropt = options.inject({}) { |h, (k, v)| h[k.to_s] = v; h }
-        all_options =  Hash[ *(uri.query ? uri.query.split(/[&=]/) : []) ].merge!(stropt)
-        query = all_options.to_a.map { |pair| pair.join('=') }.join('&')
-        
-        new_uri.query = query unless query.empty?
+        uri_str = "#{uri_or_options.delete(:adapter)}://"
+        uri_str << "#{uri_or_options.delete(:user)}:#{uri_or_options.delete(:password)}"
+        uri_str << "@#{uri_or_options.delete(:host)}"
+        uri_str << ":#{uri_or_options.delete(:port)}" if uri_or_options[:port]
+        uri_str << "/#{uri_or_options.delete(:database)}"
+        uri_str << "?#{uri_or_options.to_a.map { |pair| pair.join('=') }.join('&')}" unless uri_or_options.empty?
 
-        new_uri
+        URI.parse(uri_str)
       end
     end # class DoAdapter
 

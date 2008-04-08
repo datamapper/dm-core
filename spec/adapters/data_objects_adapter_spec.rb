@@ -259,31 +259,26 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     end
   end
 
-  describe 'URI Rewriting' do
-    before do
-      @uri = URI.parse("mysql://localhost/over_nine_thousand?socket=/tmp/da.sock")
-    end
-
-    it 'should override the path when the option is passed' do    
+  describe '#uri options' do
+    it 'should transform an option hash into a URI' do    
       options = {
+        :adapter => 'mysql',
         :host => 'davidleal.com',
         :user => 'me',
         :password => 'mypass',
         :port => 5000,
         :database => 'you_can_call_me_al',
-        :socket => 'nosock',
-        :opt => 'whoa'
+        :socket => 'nosock'
       }
     
       adapter = DataMapper::Adapters::DataObjectsAdapter.allocate
-      adapter.rewrite_uri(@uri, options).should == 
-        URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock&opt=whoa")
+      adapter.uri(options).should == 
+        URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
     end
 
     it 'should accept the uri when no overrides exist' do
-      adapter = DataMapper::Adapters::DataObjectsAdapter.allocate
-      uri = @uri.dup
-      adapter.rewrite_uri(uri, {}).should == @uri
+      uri = URI.parse("protocol:///")
+      DataMapper::Adapters::DataObjectsAdapter.allocate.uri(uri).should == uri
     end
   end
 end
