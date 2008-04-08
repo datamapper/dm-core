@@ -264,7 +264,7 @@ begin
   
       it 'should accept a property chain as the key to a condition' do    
           repository(:sqlite3) do
-            vehicle = Vehicle.first('Vehicle.factory.region.name' => 'North West')
+            vehicle = Vehicle.first(Vehicle.factory.region.name => 'North West')
             vehicle.name.should == '10 ton delivery truck'
           end
       
@@ -272,10 +272,6 @@ begin
     
       it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'
       
-#      it 'should take properties of associations in the conditions clause' do
-#        query = DataMapper::Query.new(Vehicle, 'Vehicle.factory.region.name' => 'foo')
-#      end
-
       it 'should create links with composite keys'
 
       after do
