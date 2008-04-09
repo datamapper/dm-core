@@ -298,12 +298,11 @@ module DataMapper
         repository(options[:repository] || default_repository_name).first(self, options)
       end
 
-      # FIXME: should this use allocate, assign the values using
-      # Resource#attribtues= and add to the IdentityMap if the save
-      # was successful?
       def create(values)
-        resource = new(values)
-        [ resource, resource.save ]
+        resource = allocate
+        resource.initialize_with_attributes(values)
+        resource.save
+        resource
       end
 
       # TODO SPEC
