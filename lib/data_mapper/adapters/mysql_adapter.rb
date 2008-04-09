@@ -9,6 +9,19 @@ module DataMapper
     # Options:
     # host, user, password, database (path), socket(uri query string), port
     class MysqlAdapter < DataObjectsAdapter
+      def rewrite_uri(uri, options)
+        new_uri          = uri.dup
+        new_uri.user     = options[:user]     || uri.user
+        new_uri.password = options[:password] || uri.password
+        new_uri.host     = options[:host]     || uri.host
+        new_uri.port     = options[:port]     || uri.port
+        new_uri.path     = options[:database] ? "/" << options[:database]    : uri.path
+        new_uri.query    = options[:socket]   ? "socket=#{options[:socket]}" : uri.query
+
+        new_uri
+      end
+
+      private
 
       def quote_table_name(table_name)
         "`#{table_name}`"
@@ -18,6 +31,5 @@ module DataMapper
         "`#{column_name}`"
       end
     end # class MysqlAdapter
-
   end # module Adapters
 end # module DataMapper

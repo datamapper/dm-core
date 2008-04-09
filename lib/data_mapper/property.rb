@@ -66,7 +66,7 @@ module DataMapper
 #    property :body,   DataMapper::Types::Text, :accessor => :protected # Both reader and writer are protected
 #  end
 #
-# Access control is also analogous to Ruby getters, setters, and accessors, and can
+# Access control is also analogous to Ruby accessors and mutators, and can
 # be declared using :reader and :writer, in addition to :accessor.
 #
 #  class Post
@@ -216,86 +216,6 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options
 
-    def initialize(model, name, type, options)
-      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"               unless Resource === model
-      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                         unless name.is_a?(Symbol)
-      raise ArgumentError, "+type+ was #{type.class}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
-
-      if (unknown_keys = options.keys - PROPERTY_OPTIONS).any?
-        raise ArgumentError, "options contained unknown keys: #{unknown_keys * ', '}"
-      end
-
-      @model                  = model
-      @name                   = name.to_s.sub(/\?$/, '').to_sym
-      @type                   = type
-      @custom                 = @type.ancestors.include?(DataMapper::Type)
-      @options                = @custom ? @type.options.merge(options) : options
-      @instance_variable_name = "@#{@name}"
-      @getter                 = @type.is_a?(TrueClass) ? "#{@name}?".to_sym : @name
-
-      # TODO: This default should move to a DataMapper::Types::Text Custom-Type
-      # and out of Property.
-      @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
-      @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
-
-      @lock   = @options.fetch(:lock,   false)
-      @serial = @options.fetch(:serial, false)
-      @key    = (@options[:key] || @serial) == true
-
-      validate_options!
-      determine_visibility!
-
-      create_getter!
-      create_setter!
-
-      @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
-    end
-
-    def validate_options! # :nodoc:
-      @options.each_pair do |k,v|
-        raise ArgumentError, "#{k.inspect} is not a supported option in DataMapper::Property::PROPERTY_OPTIONS" unless PROPERTY_OPTIONS.include?(k)
-      end
-    end
-
-    def determine_visibility! # :nodoc:
-      @reader_visibility = @options[:reader] || @options[:accessor] || :public
-      @writer_visibility = @options[:writer] || @options[:accessor] || :public
-      @writer_visibility = :protected if @options[:protected]
-      @writer_visibility = :private   if @options[:private]
-      raise ArgumentError, "property visibility must be :public, :protected, or :private" unless VISIBILITY_OPTIONS.include?(@reader_visibility) && VISIBILITY_OPTIONS.include?(@writer_visibility)
-    end
-
-    # defines the getter for the property
-    def create_getter!
-      @model.class_eval <<-EOS, __FILE__, __LINE__
-        #{reader_visibility}
-        def #{name}
-          self[#{name.inspect}]
-        end
-      EOS
-
-      if type == TrueClass
-        @model.class_eval <<-EOS, __FILE__, __LINE__
-          #{reader_visibility}
-          alias #{name}? #{name}
-        EOS
-      end
-    rescue SyntaxError
-      raise SyntaxError, name
-    end
-
-    # defines the setter for the property
-    def create_setter!
-      @model.class_eval <<-EOS, __FILE__, __LINE__
-        #{writer_visibility}
-        def #{name}=(value)
-          self[#{name.inspect}] = value
-        end
-      EOS
-    rescue SyntaxError
-      raise SyntaxError, name
-    end
-
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
@@ -330,6 +250,88 @@ module DataMapper
 
     def inspect
       "#<Property:#{@model}:#{@name}>"
+    end
+
+    private
+
+    def initialize(model, name, type, options)
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"               unless Resource === model
+      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                         unless Symbol   === name
+      raise ArgumentError, "+type+ was #{type.class}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
+
+      if (unknown_keys = options.keys - PROPERTY_OPTIONS).any?
+        raise ArgumentError, "options contained unknown keys: #{unknown_keys * ', '}"
+      end
+
+      @model                  = model
+      @name                   = name.to_s.sub(/\?$/, '').to_sym
+      @type                   = type
+      @custom                 = @type.ancestors.include?(DataMapper::Type)
+      @options                = @custom ? @type.options.merge(options) : options
+      @instance_variable_name = "@#{@name}"
+      @getter                 = TrueClass == @type ? "#{@name}?".to_sym : @name
+
+      # TODO: This default should move to a DataMapper::Types::Text Custom-Type
+      # and out of Property.
+      @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
+      @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
+
+      @lock   = @options.fetch(:lock,   false)
+      @serial = @options.fetch(:serial, false)
+      @key    = (@options[:key] || @serial) == true
+
+      validate_options
+      determine_visibility
+
+      create_getter
+      create_setter
+
+      @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
+    end
+
+    def validate_options # :nodoc:
+      @options.each_pair do |k,v|
+        raise ArgumentError, "#{k.inspect} is not a supported option in DataMapper::Property::PROPERTY_OPTIONS" unless PROPERTY_OPTIONS.include?(k)
+      end
+    end
+
+    def determine_visibility # :nodoc:
+      @reader_visibility = @options[:reader] || @options[:accessor] || :public
+      @writer_visibility = @options[:writer] || @options[:accessor] || :public
+      @writer_visibility = :protected if @options[:protected]
+      @writer_visibility = :private   if @options[:private]
+      raise ArgumentError, "property visibility must be :public, :protected, or :private" unless VISIBILITY_OPTIONS.include?(@reader_visibility) && VISIBILITY_OPTIONS.include?(@writer_visibility)
+    end
+
+    # defines the getter for the property
+    def create_getter
+      @model.class_eval <<-EOS, __FILE__, __LINE__
+        #{reader_visibility}
+        def #{@getter}
+          unless @new_record || defined?(#{@instance_variable_name})
+            if @loaded_set
+              @loaded_set.reload!(:fields => self.class.properties(self.class.repository.name).lazy_load_context(#{name.inspect}))
+            end
+          end
+          #{custom? ? "#{@type.inspect}.load(#{@instance_variable_name})" : @instance_variable_name}
+        end
+      EOS
+    rescue SyntaxError
+      raise SyntaxError, name
+    end
+
+    # defines the setter for the property
+    def create_setter
+      @model.class_eval <<-EOS, __FILE__, __LINE__
+        #{writer_visibility}
+        def #{name}=(value)
+          #{lock? ? "@shadow_#{name} = #{@instance_variable_name}" : ''}
+          dirty_attributes << self.class.properties(repository.name)[#{name.inspect}]
+          #{@instance_variable_name} = #{custom? ? "#{@type.inspect}.dump(value)" : 'value'}
+        end
+      EOS
+    rescue SyntaxError
+      raise SyntaxError, name
     end
   end # class Property
 end # module DataMapper

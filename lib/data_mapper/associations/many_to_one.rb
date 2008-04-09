@@ -31,8 +31,8 @@ module DataMapper
           def #{name}_association
             @#{name}_association ||= begin
               association = self.class.relationships[:#{name}].
-                  with_child(self, Instance) do |repository, child_rel, parent_rel, parent_res, child|
-                  repository.all(parent_res, parent_rel.to_query(child_rel.get(child))).first
+                with_child(self, Instance) do |repository, child_key, parent_key, parent_model, child_resource|
+                repository.all(parent_model, parent_key.to_query(child_key.get(child_resource))).first
               end
 
               child_associations << association
@@ -44,8 +44,9 @@ module DataMapper
       end
 
       class Instance
-        def initialize(relationship, child, parent_loader)
-          @relationship, @child = relationship, child
+        def initialize(relationship, child, &parent_loader)
+          @relationship  = relationship
+          @child         = child
           @parent_loader = parent_loader
         end
 
@@ -65,9 +66,7 @@ module DataMapper
 
         def save
           if @parent.new_record?
-            repo = repository(@relationship.repository_name)
-            repo.save(@parent)
-
+            repository(@relationship.repository_name).save(@parent)
             @relationship.attach_parent(@child, @parent)
           end
         end

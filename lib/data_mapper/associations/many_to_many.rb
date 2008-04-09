@@ -9,7 +9,7 @@ module DataMapper
 
         relationships[name] = Relationship.new(
           name,
-          options[:repository_name] || self.repository.name,
+          options[:repository_name] || repository.name,
           DataMapper::Inflection.demodulize(self.name),
           nil,
           target,
@@ -24,7 +24,7 @@ module DataMapper
           raise NotImplementedError
         end
 
-      end # class Instance    
+      end # class Instance
     end # module ManyToMany
   end # module Associations
 end # module DataMapper

@@ -9,6 +9,9 @@ module DataMapper
     # +properties_with_indexes+ is a Hash of Property and values Array index pairs.
     #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
     def initialize(repository, model, properties_with_indexes)
+      raise ArgumentError, "+repository+ must be a DataMapper::Repository, but was #{repository.class}", caller unless Repository === repository
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource", caller                 unless Resource   === model
+
       @repository              = repository
       @model                   = model
       @properties_with_indexes = properties_with_indexes
@@ -86,9 +89,6 @@ module DataMapper
       @entries.first
     end
 
-    # FIXME: Array#uniq! is really expensive.  Is there any way we can
-    # avoid doing this, or at least minimize how often this method is
-    # called?
     def entries
       @entries.uniq!
       @entries.dup

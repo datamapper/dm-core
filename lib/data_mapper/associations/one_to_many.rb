@@ -46,15 +46,15 @@ module DataMapper
 
         def_delegators :children, :[], :size, :length, :first, :last
 
-        def initialize(relationship, parent, loader)
-          @relationship = relationship
-          @loader = loader
-          @parent = parent
-          @dirty_children = []
+        def initialize(relationship, parent, &children_loader)
+          @relationship    = relationship
+          @parent          = parent
+          @children_loader = children_loader
+          @dirty_children  = []
         end
 
         def children
-          @children ||= @loader.call
+          @children ||= @children_loader.call
         end
 
         def save

@@ -33,9 +33,9 @@ module DataMapper
           def #{name}_association
             @#{name}_association ||= begin
               association = self.class.relationships[:#{name}].
-                with_parent(self, Associations::OneToMany::Instance) do |repository, child_rel, parent_rel, child_res, parent|
-                  repository.all(child_res, child_rel.to_query(parent_rel.get(parent)))
-                end
+                with_parent(self, Associations::OneToMany::Instance) do |repository, child_key, parent_key, child_model, parent_resource|
+                repository.all(child_model, child_key.to_query(parent_key.get(parent_resource)))
+              end
 
               parent_associations << association
 

@@ -1,3 +1,5 @@
+# FIXME: although useful, this should probably be moved into dm-more
+
 module DataMapper
   module Is
     module Tree
@@ -62,7 +64,7 @@ module DataMapper
         # * <tt>counter_cache</tt> - keeps a count in a +children_count+ column if set to +true+ (default: +false+).
         def is_a_tree(options = {})
           configuration = { :foreign_key => "parent_id" }
-          configuration.update(options) if options.is_a?(Hash)
+          configuration.update(options) if Hash === options
 
           belongs_to :parent, :class_name => name, :foreign_key => configuration[:foreign_key], :counter_cache => configuration[:counter_cache]
           has_many :children, :class_name => name, :foreign_key => configuration[:foreign_key], :order => configuration[:order]
