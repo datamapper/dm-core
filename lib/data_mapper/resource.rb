@@ -1,8 +1,8 @@
 require __DIR__ + 'support/string'
 require __DIR__ + 'property_set'
 require __DIR__ + 'property'
-require __DIR__ + 'repository'
 require __DIR__ + 'hook'
+require __DIR__ + 'scope'
 require __DIR__ + 'associations'
 
 module DataMapper
@@ -16,6 +16,7 @@ module DataMapper
       base.send(:extend, ClassMethods)
       base.send(:extend, DataMapper::Hook::ClassMethods)
       base.send(:include, DataMapper::Hook)
+      base.send(:extend, DataMapper::Scope::ClassMethods)
       base.instance_variable_set(:@resource_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
       base.instance_variable_set(:@properties,     Hash.new { |h,k| h[k] = (k == :default ? PropertySet.new : h[:default].dup) })
 
@@ -29,6 +30,10 @@ module DataMapper
         @dependencies
       end
       @dependencies
+    end
+
+    def self.===(other)
+      Module === other && other.ancestors.include?(Resource)
     end
 
     # +---------------
@@ -45,7 +50,7 @@ module DataMapper
       end
 
       value = instance_variable_get(ivar_name)
-      property.custom? && property.type.respond_to?(:load) ? property.type.load(value) : value
+      property.custom? ? property.type.load(value) : value
     end
 
     def []=(name, value)
@@ -57,7 +62,7 @@ module DataMapper
       end
 
       dirty_attributes << property
-      instance_variable_set(ivar_name, (property.custom? && property.type.respond_to?(:dump) ? property.type.dump(value) : value))
+      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value) : value)
     end
 
     def repository
@@ -123,30 +128,6 @@ module DataMapper
       @loaded_set.reload!(:fields => loaded_attributes.keys)
     end
 
-    def initialize(details = nil) # :nodoc:
-      validate_resource
-
-      def initialize(details = nil)
-        if details
-          initialize_with_attributes(details)
-        end
-      end
-
-      initialize(details)
-    end
-
-    def initialize_with_attributes(details) # :nodoc:
-      case details
-      when Hash then self.attributes = details
-      when Resource, Struct then self.private_attributes = details.attributes
-      # else raise ArgumentError.new("details should be a Hash, Resource or Struct\n\t#{details.inspect}")
-      end
-    end
-
-    def self.===(other)
-      other.is_a?(Module) && other.ancestors.include?(Resource)
-    end
-
     # Returns <tt>true</tt> if this model hasn't been saved to the
     # database, <tt>false</tt> otherwise.
     def new_record?
@@ -179,9 +160,29 @@ module DataMapper
 
     private
 
+    def initialize(details = nil) # :nodoc:
+      validate_resource
+
+      def initialize(details = nil)
+        if details
+          initialize_with_attributes(details)
+        end
+      end
+
+      initialize(details)
+    end
+
+    def initialize_with_attributes(details) # :nodoc:
+      case details
+        when Hash             then self.attributes = details
+        when Resource, Struct then self.private_attributes = details.attributes
+        # else raise ArgumentError, "details should be a Hash, Resource or Struct\n\t#{details.inspect}"
+      end
+    end
+
     def validate_resource # :nodoc:
       if self.class.properties(self.class.default_repository_name).empty?
-        raise IncompleteResourceError.new("Resources must have at least one property to be initialized.")
+        raise IncompleteResourceError, 'Resources must have at least one property to be initialized.'
       end
     end
 
@@ -211,8 +212,19 @@ module DataMapper
 
     module ClassMethods
 
+      alias_method :_method_missing, :method_missing
+
+      def method_missing(method, *args)
+        if relationships.has_key?(method)
+          return DataMapper::Query::Path.new([relationships[method]],method)
+        end
+        result = properties(repository.name)[method]
+        return result if result
+        _method_missing(method,args)
+      end
+
       def repository(name = default_repository_name)
-        DataMapper::repository(name)
+        DataMapper.repository(name)
       end
 
       def default_repository_name
@@ -232,7 +244,7 @@ module DataMapper
 
       def property(name, type, options = {})
         property = Property.new(self, name, type, options)
-        properties(repository.name) << property
+        @properties[repository.name] << property
 
         # Add property to the other mappings as well if this is for the default repository.
         if repository.name == default_repository_name
@@ -246,9 +258,9 @@ module DataMapper
         # TODO Is this right or should we add the lazy contexts to all repositories?
         if property.lazy?
           ctx = options.has_key?(:lazy) ? options[:lazy] : :default
-          ctx = :default if ctx.is_a?(TrueClass)
-          @properties[repository.name].lazy_context(ctx) << name if ctx.is_a?(Symbol)
-          if ctx.is_a?(Array)
+          ctx = :default if TrueClass === ctx
+          @properties[repository.name].lazy_context(ctx) << name if Symbol === ctx
+          if Array === ctx
             ctx.each do |item|
               @properties[repository.name].lazy_context(item) << name
             end
@@ -286,12 +298,11 @@ module DataMapper
         repository(options[:repository] || default_repository_name).first(self, options)
       end
 
-      # FIXME: should this use allocate, assign the values using
-      # Resource#attribtues= and add to the IdentityMap if the save
-      # was successful?
       def create(values)
-        resource = new(values)
-        [ resource, resource.save ]
+        resource = allocate
+        resource.send(:initialize_with_attributes, values)
+        resource.save
+        resource
       end
 
       # TODO SPEC

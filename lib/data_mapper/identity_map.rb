@@ -1,9 +1,9 @@
 module DataMapper
-  
+
   # Tracks objects to help ensure that each object gets loaded only once.
   # See: http://www.martinfowler.com/eaaCatalog/identityMap.html
   class IdentityMap
-    
+
     def initialize(second_level_cache = nil)
       @second_level_cache = second_level_cache
       @cache = if second_level_cache.nil?
@@ -22,23 +22,25 @@ module DataMapper
     # Pass a resource to add it to the IdentityMap.
     # The resource must have an assigned key.
     def set(resource)
-      # TODO could we not cause a nasty bug by dropping nil value keys when the 
+      # TODO could we not cause a nasty bug by dropping nil value keys when the
       # user is using composite keys? Should we not rather raise an error if
       # the value is nil?
       key = resource.key
-      raise ArgumentError.new("+key+ must be an Array, and can not be empty") if key.empty?
+      raise ArgumentError, "+key+ must be an Array, and can not be empty" if key.empty?
       @cache[resource.class][key] = resource
+
+      # TODO: this should probably update the second level cache (if any) too
     end
 
     # Remove a resource from the IdentityMap.
     def delete(model, key)
       @cache[model].delete(key)
     end
-    
+
     # Clears a particular set of classes from the IdentityMap.
     def clear!(model)
       @cache.delete(model)
     end
-    
+
   end # class IdentityMap
 end # module DataMapper

@@ -1,4 +1,3 @@
-#require __DIR__.parent + 'support/class'
 require __DIR__.parent + 'associations'
 require __DIR__ + 'relationship'
 
@@ -6,6 +5,9 @@ module DataMapper
   module Associations
     module ManyToOne
       def many_to_one(name, options = {})
+        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
+
         target = options[:class_name] || DataMapper::Inflection.camelize(name)
 
         relationships[name] = Relationship.new(
@@ -31,8 +33,8 @@ module DataMapper
           def #{name}_association
             @#{name}_association ||= begin
               association = self.class.relationships[:#{name}].
-                  with_child(self, Instance) do |repository, child_rel, parent_rel, parent_res, child|
-                  repository.all(parent_res, parent_rel.to_query(child_rel.get(child))).first
+                with_child(self, Instance) do |repository, child_key, parent_key, parent_model, child_resource|
+                repository.all(parent_model, parent_key.to_query(child_key.get(child_resource))).first
               end
 
               child_associations << association
@@ -41,35 +43,41 @@ module DataMapper
             end
           end
         EOS
+
+        relationships[name]
       end
 
       class Instance
-        def initialize(relationship, child, parent_loader)
-          @relationship, @child = relationship, child
-          @parent_loader = parent_loader
-        end
-
         def parent
-          @parent ||= @parent_loader.call
+          @parent_resource ||= @parent_loader.call
         end
 
-        def parent=(parent)
-          @parent = parent
+        def parent=(parent_resource)
+          @parent_resource = parent_resource
 
-          @relationship.attach_parent(@child, @parent) if @parent.nil? || ! @parent.new_record?
+          @relationship.attach_parent(@child_resource, @parent_resource) if @parent_resource.nil? || !@parent_resource.new_record?
         end
 
         def loaded?
-          ! @parent.nil?
+          !defined?(@parent_resource)
         end
 
         def save
-          if @parent.new_record?
-            repo = repository(@relationship.repository_name)
-            repo.save(@parent)
-
-            @relationship.attach_parent(@child, @parent)
+          if parent.new_record?
+            repository(@relationship.repository_name).save(parent)
+            @relationship.attach_parent(@child_resource, parent)
           end
+        end
+
+        private
+
+        def initialize(relationship, child_resource, &parent_loader)
+#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
+#          raise ArgumentError, "+child_resource+ should be a DataMapper::Resource, but was #{child_resource.class}", caller              unless Resource     === child_resource
+
+          @relationship   = relationship
+          @child_resource = child_resource
+          @parent_loader  = parent_loader
         end
       end # class Instance
     end # module ManyToOne

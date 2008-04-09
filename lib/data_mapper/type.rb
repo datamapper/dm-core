@@ -53,18 +53,16 @@ module DataMapper
         @_primitive_type = primitive_type
         @_options = options
 
-        def self.inherited(klass)
-          klass.primitive @_primitive_type
+        def self.inherited(base)
+          base.primitive @_primitive_type
 
           @_options.each do |k, v|
-            klass.send(k, v)
+            base.send(k, v)
           end
         end
 
         self
       end
-
-      #attr_accessor :primitive #map to Ruby type
 
       # The Ruby primitive type to use as basis for this type. See
       # DataMapper::Property::TYPES for list of types.
@@ -99,9 +97,7 @@ module DataMapper
       PROPERTY_OPTION_ALIASES.each do |property_option, aliases|
         aliases.each do |ali|
           self.class_eval <<-EOS, __FILE__, __LINE__
-          def #{ali}(arg = nil)
-            #{property_option}(arg)
-          end
+            alias #{ali} #{property_option}
           EOS
         end
       end
@@ -113,10 +109,12 @@ module DataMapper
       #
       # @public
       def options
-        PROPERTY_OPTIONS.inject({}) do |options, method|
-          value = send(method)
-          options[method.to_sym] = value unless value.nil?; options
+        options = {}
+        PROPERTY_OPTIONS.each do |method|
+          next if (value = send(method)).nil?
+          options[method] = value
         end
+        options
       end
     end
 

@@ -152,7 +152,7 @@ begin
       end
     end  # describe sub-selecting
 
-    describe 'when having links' do
+    describe 'when linking associated objects' do
       before do
         @adapter = repository(:sqlite3).adapter
         @adapter.execute(<<-EOS.compress_lines) rescue nil
@@ -209,14 +209,14 @@ begin
       it 'should accept a DM::Assoc::Relationship as a link' do
         factory = DataMapper::Associations::Relationship.new(
           :factory,
-          repository(:sqlite3),
+          :sqlite3,
           'Vehicle',
           [ :factory_id ],
           'Factory',
           [ :id ]
         )
         query = DataMapper::Query.new(Vehicle,:links => [factory])
-        results = @adapter.read_set(repository(:sqlite3),query)
+        results = @adapter.read_set(repository(:sqlite3), query)
         results.should have(1).entries
       end
 
@@ -235,14 +235,14 @@ begin
       it 'should accept a mixture of items as a set of links' do
         region = DataMapper::Associations::Relationship.new(
           :region,
-          repository(:sqlite3),
+          :sqlite3,
           'Factory',
           [ :region_id ],
           'Region',
           [ :id ]
         )
         query = DataMapper::Query.new(Vehicle,:links => ['factory',region])
-        results = @adapter.read_set(repository(:sqlite3),query)
+        results = @adapter.read_set(repository(:sqlite3), query)
         results.should have(1).entries
       end
 
@@ -262,21 +262,28 @@ begin
         }.should raise_error(ArgumentError)
       end
   
-      it 'should accept a property chain as the key to a condition' do    
-          repository(:sqlite3) do
-            vehicle = Vehicle.first('Vehicle.factory.region.name' => 'North West')
-            vehicle.name.should == '10 ton delivery truck'
-          end
-      
+      it 'should create an n-level query path' do
+        Vehicle.factory.region.model.should == Region
+        Vehicle.factory.region.name.property.should == Region.properties(Region.repository.name)[:name]
+      end
+  
+      it 'should accept a DM::QueryPath as the key to a condition' do    
+        repository(:sqlite3) do
+          vehicle = Vehicle.first(Vehicle.factory.region.name => 'North West')
+          vehicle.name.should == '10 ton delivery truck'
+        end      
       end
     
-      it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'
-      
-#      it 'should take properties of associations in the conditions clause' do
-#        query = DataMapper::Query.new(Vehicle, 'Vehicle.factory.region.name' => 'foo')
-#      end
-
+    
+      it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'      
       it 'should create links with composite keys'
+      
+      
+      it 'should eager load associations' do
+        repository(:sqlite3) do
+          vehicle = Vehicle.first(:includes => [Vehicle.factory]) 
+        end    
+      end 
 
       after do
         @adapter.execute('DROP TABLE "regions"')
