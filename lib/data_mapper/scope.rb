@@ -1,11 +1,5 @@
 module DataMapper
   module Scope
-    class << self
-      def included(base)
-        base.extend ClassMethods
-      end
-    end
-
     module ClassMethods
       protected
 
@@ -15,7 +9,7 @@ module DataMapper
       end
 
       def with_exclusive_scope(query, &block)
-        query = DataMapper::Query.new(self, query) if query.kind_of?(Hash)
+        query = DataMapper::Query.new(self, query) if Hash === query
 
         scope_stack << query
 

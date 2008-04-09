@@ -22,7 +22,7 @@ namespace :dm do
   task :environment do
     require 'environment'
   end
-  
+
   desc "Run specifications"
   Spec::Rake::SpecTask.new('spec') do |t|
     t.spec_opts = ["--format", "specdoc", "--colour"]
@@ -32,7 +32,7 @@ namespace :dm do
       t.rcov_opts = ['--exclude', 'spec,environment.rb']
     end
   end
-  
+
   desc "Run comparison with ActiveRecord"
   task :perf do
     load __DIR__ + 'script/performance.rb'
@@ -46,7 +46,7 @@ end
 
 PACKAGE_VERSION = '0.9.0'
 
-PACKAGE_FILES = Pathname.glob([
+PACKAGE_FILES = [
   'README',
   'FAQ',
   'QUICKLINKS',
@@ -57,10 +57,10 @@ PACKAGE_FILES = Pathname.glob([
   'spec/**/*.{rb,yaml}',
   'tasks/**/*',
   'plugins/**/*'
-]).reject { |path| path =~ /(\/db|Makefile|\.bundle|\.log|\.o)\z/ }
+].collect { |pattern| Pathname.glob(pattern) }.flatten.reject { |path| path.to_s =~ /(\/db|Makefile|\.bundle|\.log|\.o)\z/ }
 
 DOCUMENTED_FILES = PACKAGE_FILES.reject do |path|
-  path.directory? || path =~ /(^spec|\/spec|\/swig\_)/
+  path.directory? || path.to_s.match(/(?:^spec|\/spec|\/swig\_)/)
 end
 
 PROJECT = "dm-core"
@@ -74,33 +74,35 @@ rd = Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
   rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
-  rdoc.rdoc_files.include(*DOCUMENTED_FILES)
+  rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
 end
 
 gem_spec = Gem::Specification.new do |s|
-  s.platform = Gem::Platform::RUBY 
-  s.name = PROJECT 
+  s.platform = Gem::Platform::RUBY
+  s.name = PROJECT
   s.summary = "An Object/Relational Mapper for Ruby"
   s.description = "Faster, Better, Simpler."
-  s.version = PACKAGE_VERSION 
- 
+  s.version = PACKAGE_VERSION
+
   s.authors = "Sam Smoot"
   s.email = "ssmoot@gmail.com"
-  s.rubyforge_project = PROJECT 
-  s.homepage = "http://datamapper.org" 
- 
+  s.rubyforge_project = PROJECT
+  s.homepage = "http://datamapper.org"
+
   s.files = PACKAGE_FILES.map { |f| f.to_s }
- 
+
   s.require_path = "lib"
   s.requirements << "none"
   s.executables = ["dm"]
   s.bindir = "bin"
+  s.add_dependency("english")
   s.add_dependency("fastthread")
   s.add_dependency("json")
   s.add_dependency("rspec")
   s.add_dependency("data_objects", ">=0.9.0")
+  s.add_dependency("english")
 
-  s.has_rdoc = true 
+  s.has_rdoc = true
   s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
   s.extra_rdoc_files = DOCUMENTED_FILES.map { |f| f.to_s }
 end

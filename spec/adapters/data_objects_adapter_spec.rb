@@ -7,7 +7,7 @@ require __DIR__.parent + 'adapter_shared_spec'
 
 describe DataMapper::Adapters::DataObjectsAdapter do
   before do
-    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, 'mock::/localhost')
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, URI.parse('mock://localhost'))
   end
 
   it_should_behave_like 'a DataMapper Adapter'
@@ -55,8 +55,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   describe '#query' do
     before do
       @mock_reader = mock('Reader', :fields => ['id', 'UserName', 'AGE'], 
-                                    :values => [1, 'rando', 27],
-                                    :close => true)
+        :values => [1, 'rando', 27],
+        :close => true)
       @mock_command = mock('Command', :execute_reader => @mock_reader)
       @mock_db = mock('DB Connection', :create_command => @mock_command, :close => true)
 
@@ -139,7 +139,7 @@ end
 
 describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, updating, deleting statements" do
   before do
-    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, 'mock::/localhost')
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, URI.parse('mock://localhost'))
     
     class Cheese
       include DataMapper::Resource
@@ -246,7 +246,6 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   end
   
   describe "#read_statement (without lazy attributes)" do
-    
     it 'should generate a SQL statement for a serial Key' do      
       @adapter.read_statement(Cheese, [1]).should == <<-EOS.compress_lines
         SELECT "id", "name", "color" FROM "cheeses" WHERE "id" = ?
@@ -260,3 +259,36 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     end
   end
 end
+
+  describe '#uri options' do
+    it 'should transform a fully specified option hash into a URI' do    
+      options = {
+        :adapter => 'mysql',
+        :host => 'davidleal.com',
+        :user => 'me',
+        :password => 'mypass',
+        :port => 5000,
+        :database => 'you_can_call_me_al',
+        :socket => 'nosock'
+      }
+    
+      adapter = DataMapper::Adapters::DataObjectsAdapter.allocate
+      adapter.uri(options).should == 
+        URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
+    end
+    
+    it 'should transform a minimal options hash into a URI' do
+      options = {
+        :adapter => 'mysql',
+        :database => 'you_can_call_me_al'
+      }
+    
+      adapter = DataMapper::Adapters::DataObjectsAdapter.allocate
+      adapter.uri(options).should == URI.parse("mysql:///you_can_call_me_al")
+    end
+
+    it 'should accept the uri when no overrides exist' do
+      uri = URI.parse("protocol:///")
+      DataMapper::Adapters::DataObjectsAdapter.allocate.uri(uri).should == uri
+    end
+  end

@@ -46,8 +46,7 @@ Ready for something amazing? The following example executes only two queries.
 
   zoos = Zoo.all
   first = zoos.first
-  first.exhibits
-  # Loads the exhibits for all the Zoo objects in the zoos variable.
+  first.exhibits  # Loads the exhibits for all the Zoo objects in the zoos variable.
 
 Pretty impressive huh? The idea is that you aren't going to load a set of
 objects and use only an association in just one of them. This should hold up
@@ -125,7 +124,8 @@ need other comparisons though? Try these:
 
   Zoo.first(:name => 'Galveston')
 
-  # 'gt' means greater-than. We also do 'lt'.  Person.all(:age.gt => 30)
+  # 'gt' means greater-than. We also do 'lt'.
+  Person.all(:age.gt => 30)
 
   # 'gte' means greather-than-or-equal-to. We also do 'lte'.
   Person.all(:age.gte => 30)
@@ -135,7 +135,8 @@ need other comparisons though? Try these:
   # If the value of a pair is an Array, we do an IN-clause for you.
   Person.all(:name.like => 'S%', :id => [1, 2, 3, 4, 5])
 
-  # An alias for Zoo.find(11) Zoo[11]
+  # An alias for Zoo.find(11)
+  Zoo[11]
 
   # Does a NOT IN () clause for you.
   Person.all(:name.not => ['bob','rick','steve'])

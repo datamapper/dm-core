@@ -24,14 +24,52 @@ module DataMapper
     class Operator
       attr_reader :value, :type, :options
 
-      def initialize(value, type, options = nil)
-        @value, @type, @options = value, type, options
-      end
-
       def to_sym
         @value
       end
+
+      private
+
+      def initialize(value, type, options = nil)
+        @value, @type, @options = value, type, options
+      end
     end # class Operator
+
+    class Path
+
+      attr_reader :relationships, :model, :property
+
+      def initialize(relationships, model_name ,property_name=nil)
+        @relationships = relationships
+        @model         = DataMapper::Inflection.classify(model_name.to_s).to_class
+        @property      = @model.properties(@model.repository.name)[model_name] if property_name
+      end
+
+      alias_method :_method_missing, :method_missing
+
+      def method_missing(method, *args)
+       if @model.relationships.has_key?(method)
+         relations = []
+         relations.concat(@relationships)
+         relations << @model.relationships[method]
+         return DataMapper::Query::Path.new(relations,method)
+       end
+
+       if @model.properties(@model.repository.name)[method]
+         @property = @model.properties(@model.repository.name)[method]
+         return self
+       end
+
+       _method_missing(method,args)
+      end
+
+      # duck type the DM::Query::Path to act like a DM::Property
+      def field
+       @property ? @property.field : nil
+      end
+
+    end # class Path
+
 
     OPTIONS = [
       :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
@@ -40,7 +78,7 @@ module DataMapper
     attr_reader :model, :model_name, *OPTIONS
 
     def update(other)
-      other = self.class.new(model, other) if other.kind_of?(Hash)
+      other = self.class.new(model, other) if Hash === other
 
       @model, @reload = other.model, other.reload
 
@@ -96,7 +134,7 @@ module DataMapper
     # <DM::Query>
     #
     def merge_sub_select_conditions(operator, property, value)
-      raise ArgumentError.new('+value+ is not a DataMapper::Query') unless value.is_a?(DataMapper::Query)
+      raise ArgumentError.new('+value+ is not a DataMapper::Query') unless DataMapper::Query === value
       new_conditions = []
       conditions.each do |tuple|
         if tuple.length == 3 && tuple.at(0).to_s == operator.to_s && tuple.at(1) == property && tuple.at(2) == value
@@ -130,7 +168,7 @@ module DataMapper
       @order      = options.fetch :order,    []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @fields     = options.fetch :fields,   @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links      = options.fetch :links,    []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
-      @includes   = options.fetch :includes, []     # must be an Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
+      @includes   = options.fetch :includes, []     # must be an Array of DM::Query::Path
       @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
 
       # normalize order and fields
@@ -170,13 +208,13 @@ module DataMapper
 
     # validate the model
     def validate_model(model)
-      raise ArgumentError, "model must be a Class, but is #{model.class}" unless model.kind_of?(Class)
-      raise ArgumentError, 'model must include DataMapper::Resource'      unless model.included_modules.include?(DataMapper::Resource)
+      raise ArgumentError, "model must be a Class, but is #{model.class}" unless Class                === Class
+      raise ArgumentError, 'model must include DataMapper::Resource'      unless DataMapper::Resource === model
     end
 
     # validate the options
     def validate_options(options)
-      raise ArgumentError, 'options must be a Hash' unless options.kind_of?(Hash)
+      raise ArgumentError, 'options must be a Hash' unless Hash === options
 
       # validate the reload option
       if options.has_key?(:reload) && options[:reload] != true && options[:reload] != false
@@ -186,7 +224,7 @@ module DataMapper
       # validate the offset and limit options
       ([ :offset, :limit ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Integer, but was #{value.class}" unless value.kind_of?(Integer)
+        raise ArgumentError, ":#{attribute} must be an Integer, but was #{value.class}" unless Integer === value
       end
       raise ArgumentError, ':offset must be greater than or equal to 0' if options.has_key?(:offset) && !(options[:offset] >= 0)
       raise ArgumentError, ':limit must be greater than or equal to 1'  if options.has_key?(:limit)  && !(options[:limit]  >= 1)
@@ -194,7 +232,7 @@ module DataMapper
       # validate the order, fields, links, includes and conditions options
       ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Array, but was #{value.class}" unless value.kind_of?(Array)
+        raise ArgumentError, ":#{attribute} must be an Array, but was #{value.class}" unless Array === value
         raise ArgumentError, ":#{attribute} cannot be an empty Array"                 unless value.any?
       end
     end
@@ -202,9 +240,9 @@ module DataMapper
     # TODO: spec this
     # validate other DM::Query or Hash object
     def validate_other(other)
-      if other.kind_of?(self.class)
+      if self.class === other
         raise ArgumentError, "other #{self.class} must belong to the same repository" unless other.model.repository == @model.repository
-      elsif !other.kind_of?(Hash)
+      elsif !(Hash === other)
         raise ArgumentError, "other must be a #{self.class} or Hash, but was a #{other.class}"
       end
     end
@@ -275,11 +313,11 @@ module DataMapper
           when DataMapper::Associations::Relationship
             link
           when Symbol, String
-            link = link.to_sym if link.is_a?(String)
-            raise ArgumentError.new("Link #{link}. No such relationship") unless model.relationships.has_key?(link)
+            link = link.to_sym if String === link
+            raise ArgumentError, "Link #{link}. No such relationship" unless model.relationships.has_key?(link)
             model.relationships[link]
           else
-            raise ArgumentError.new("Link type #{link.inspect} not supported")
+            raise ArgumentError, "Link type #{link.inspect} not supported"
         end
       end
     end
@@ -287,6 +325,16 @@ module DataMapper
     # normalize includes to DM::Query::Path
     def normalize_includes
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
+      # NOTE: :includes can only be and array of DM::Query::Path objects now. This method
+      #       can go away after review of what has been done.
+    end
+
+    # validate that all the links or includes are present for the given DM::Query::Path
+    #
+    def validate_query_path_links(path)
+      path.relationships.map do |relationship|
+        @links << relationship unless (@links.include?(relationship) || @includes.include?(relationship))
+      end
     end
 
     def append_condition(property, value)
@@ -294,6 +342,9 @@ module DataMapper
 
       property = case property
         when DataMapper::Property
+          property
+        when DataMapper::Query::Path
+          validate_query_path_links(property)
           property
         when Operator
           operator = property.type

@@ -1,77 +1,74 @@
-require __DIR__.parent + 'loaded_set'
+require __DIR__.parent + 'naming_conventions'
+
 module DataMapper
   module Adapters
-
     class AbstractAdapter
+      attr_reader :name
+      attr_accessor :resource_naming_convention, :field_naming_convention
 
-      # Instantiate an Adapter by passing it a DataMapper::Repository
-      # connection string for configuration.
-      def initialize(name, uri, options = {})
-        @name = name
-        @uri = rewrite_uri(uri, options)
+      # Methods dealing with a single resource object
+      def create(repository, resource)
+        raise NotImplementedError
+      end
 
-        @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
-        @field_naming_convention    = NamingConventions::Underscored
+      def read(repository, resource, key)
+        raise NotImplementedError
+      end
+
+      def update(repository, resource)
+        raise NotImplementedError
+      end
+
+      def delete(repository, resource)
+        raise NotImplementedError
+      end
+
+      # Methods dealing with locating a single object, by keys
+      def read_one(repository, query)
+        raise NotImplementedError
+      end
+
+      # Methods dealing with finding stuff by some query parameters
+      def read_set(repository, query)
+        raise NotImplementedError
+      end
+
+      def delete_set(repository, query)
+        raise NotImplementedError
+      end
+
+      # # Shortcuts
+      # Deprecated in favor of read_one
+      # def first(repository, resource, query = {})
+      #   raise ArgumentError, "You cannot pass in a :limit option to #first" if query.key?(:limit)
+      #   read_set(repository, resource, query.merge(:limit => 1)).first
+      # end
+
+      # Future Enumerable/convenience finders. Please leave in place. :-)
+      # def each(repository, klass, query)
+      #   raise NotImplementedError
+      #   raise ArgumentError unless block_given?
+      # end
+
+      def uri(uri_or_options)
+        uri_or_options
       end
 
       def batch_insertable?
         false
       end
 
-      attr_reader :name
-      attr_accessor :resource_naming_convention
-      attr_accessor :field_naming_convention
+      private
 
-      # Methods dealing with a single resource object
-      def create(repository, resource)
-        raise NotImplementedError.new
+      # Instantiate an Adapter by passing it a DataMapper::Repository
+      # connection string for configuration.
+      def initialize(name, uri_or_options)
+        @name = name
+        @uri = uri(uri_or_options)
+
+        @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
+        @field_naming_convention    = NamingConventions::Underscored
       end
-
-      def read(repository, resource, key)
-        raise NotImplementedError.new
-      end
-
-      def update(repository, resource)
-        raise NotImplementedError.new
-      end
-
-      def delete(repository, resource)
-        raise NotImplementedError.new
-      end
-
-      # Methods dealing with locating a single object, by keys
-      def read_one(repository, query)
-        raise NotImplementedError.new
-      end
-
-      # Methods dealing with finding stuff by some query parameters
-      def read_set(repository, query)
-        raise NotImplementedError.new
-      end
-
-      def delete_set(repository, query)
-        raise NotImplementedError.new
-      end
-
-      # # Shortcuts
-      # Deprecated in favor of read_one
-      # def first(repository, resource, query = {})
-      #   raise ArgumentError.new("You cannot pass in a :limit option to #first") if query.key?(:limit)
-      #   read_set(repository, resource, query.merge(:limit => 1)).first
-      # end
-
-      # Future Enumerable/convenience finders. Please leave in place. :-)
-      # def each(repository, klass, query)
-      #   raise NotImplementedError.new
-      #   raise ArgumentError.new unless block_given?
-      # end
-
-
-      def rewrite_uri(uri, options)
-        uri
-      end
-
     end # class AbstractAdapter
-
   end # module Adapters
 end # module DataMapper
