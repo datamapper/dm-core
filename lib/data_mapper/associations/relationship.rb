@@ -65,13 +65,13 @@ module DataMapper
 
       def with_child(child_resource, association, &loader)
         association.new(self, child_resource) do
-          loader.call(repository(@repository_name), child_key, parent_key, parent_model, child_resource)
+          yield repository(@repository_name), child_key, parent_key, parent_model, child_resource
         end
       end
 
       def with_parent(parent_resource, association, &loader)
         association.new(self, parent_resource) do
-          loader.call(repository(@repository_name), child_key, parent_key, child_model, parent_resource)
+          yield repository(@repository_name), child_key, parent_key, child_model, parent_resource
         end
       end
 

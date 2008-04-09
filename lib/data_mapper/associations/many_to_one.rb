@@ -1,4 +1,3 @@
-#require __DIR__.parent + 'support/class'
 require __DIR__.parent + 'associations'
 require __DIR__ + 'relationship'
 
