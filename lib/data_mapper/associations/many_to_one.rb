@@ -8,14 +8,15 @@ module DataMapper
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        target = options[:class_name] || DataMapper::Inflection.camelize(name)
+        child_model_name  = DataMapper::Inflection.demodulize(self.name)
+        parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
         relationships[name] = Relationship.new(
           name,
           options[:repository_name] || repository.name,
-          DataMapper::Inflection.demodulize(self.name),
+          child_model_name,
           nil,
-          target,
+          parent_model_name,
           nil
         )
 
@@ -32,8 +33,9 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              association = self.class.relationships[:#{name}].
-                with_child(self, Instance) do |repository, child_key, parent_key, parent_model, child_resource|
+              relationship = self.class.relationships[:#{name}]
+
+              association = relationship.with_child(self, Instance) do |repository, child_key, parent_key, parent_model, child_resource|
                 repository.all(parent_model, parent_key.to_query(child_key.get(child_resource))).first
               end
 

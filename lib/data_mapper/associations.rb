@@ -37,6 +37,8 @@ module DataMapper
           end
         when 1
           one_to_one(name, options)
+        when Fixnum, Bignum, n
+          one_to_many(name, options.merge(:min => cardinality, :max => cardinality))
       end || raise(ArgumentError, "Cardinality #{cardinality.inspect} (#{cardinality.class}) not handled")
     end
   end # module Associations
