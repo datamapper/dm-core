@@ -300,7 +300,7 @@ module DataMapper
 
       def create(values)
         resource = allocate
-        resource.initialize_with_attributes(values)
+        resource.send(:initialize_with_attributes, values)
         resource.save
         resource
       end

@@ -21,7 +21,8 @@ describe "DataMapper::Resource" do
       include DataMapper::Resource
 
       resource_names[:legacy] = "dying_planets"
-
+      
+      property :id, Fixnum, :key => true
       property :name, String, :lock => true
       property :age, Fixnum
       property :core, String, :private => true
@@ -34,6 +35,10 @@ describe "DataMapper::Resource" do
     end
   end
 
+  it "should return an instance of the created object" do
+    Planet.create(:name => 'Venus', :age => 1_000_000, :core => nil, :id => 42).should be_a_kind_of(Planet)
+  end
+  
   it "should provide persistance methods" do
     Planet.should respond_to(:get)
     Planet.should respond_to(:first)
@@ -54,21 +59,21 @@ describe "DataMapper::Resource" do
   end
 
   it "should provide properties" do
-    Planet.properties(:default).should have(3).entries
+    Planet.properties(:default).should have(4).entries
   end
 
   it "should provide mapping defaults" do
-    Planet.properties(:yet_another_repository).should have(3).entries
+    Planet.properties(:yet_another_repository).should have(4).entries
   end
 
   it "should have attributes" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42 }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
   end
 
   it "should be able to set attributes (including private attributes)" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42 }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
     jupiter.attributes = attributes.merge({ :core => 'Magma' })
