@@ -7,16 +7,6 @@ module DataMapper
 
       def_delegators :children, :[], :size, :length, :first, :last
 
-      def initialize(relationship, parent_resource, &children_loader)
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller                         unless Relationsip === relationship
-        raise ArgumentError, "+parent_resource+ should be a Resource, but was #{parent_resource.class}", caller unless Resource    === parent_resource
-
-        @relationship    = relationship
-        @parent_resource = parent_resource
-        @children_loader = children_loader
-        @dirty_children  = []
-      end
-
       def children
         @children_resources ||= @children_loader.call
       end
@@ -50,6 +40,18 @@ module DataMapper
           children << child_resource
           raise
         end
+      end
+
+      private
+
+      def initialize(relationship, parent_resource, &children_loader)
+        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller                         unless Relationsip === relationship
+        raise ArgumentError, "+parent_resource+ should be a Resource, but was #{parent_resource.class}", caller unless Resource    === parent_resource
+
+        @relationship    = relationship
+        @parent_resource = parent_resource
+        @children_loader = children_loader
+        @dirty_children  = []
       end
     end # class ParentToChildAssociation
   end # module Associations

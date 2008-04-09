@@ -42,22 +42,14 @@ module DataMapper
             end
           end
         EOS
+
+        relationships[name]
       end
 
       class Instance
         extend Forwardable
 
         def_delegators :children, :[], :size, :length, :first, :last
-
-        def initialize(relationship, parent_resource, &children_loader)
-#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
-#          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
-
-          @relationship    = relationship
-          @parent_resource = parent_resource
-          @children_loader = children_loader
-          @dirty_children  = []
-        end
 
         def children
           @children_resources ||= @children_loader.call
@@ -92,6 +84,18 @@ module DataMapper
             children << child_resource
             raise
           end
+        end
+
+        private
+
+        def initialize(relationship, parent_resource, &children_loader)
+#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
+#          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
+
+          @relationship    = relationship
+          @parent_resource = parent_resource
+          @children_loader = children_loader
+          @dirty_children  = []
         end
       end # class Instance
     end # module OneToMany

@@ -17,21 +17,29 @@ module DataMapper
       private
 
       def initialize(property, direction = :asc)
-        @property, @direction = property, direction
+        raise ArgumentError, "+property+ is not a DataMapper::Property, but was #{property.class}", caller unless DataMapper::Property === property
+        raise ArgumentError, "+direction+ is not a Symbol, but was #{direction.class}", caller              unless Symbol              === direction
+
+        @property  = property
+        @direction = direction
       end
     end # class Direction
 
     class Operator
-      attr_reader :value, :type, :options
+      attr_reader :property_name, :type
 
       def to_sym
-        @value
+        @property_name
       end
 
       private
 
-      def initialize(value, type, options = nil)
-        @value, @type, @options = value, type, options
+      def initialize(property_name, type)
+        raise ArgumentError, "+property_name+ is not a Symbol, but was #{property_name.class}", caller unless Symbol === property_name
+        raise ArgumentError, "+type+ is not a Symbol, but was #{type.class}", caller                   unless Symbol === type
+
+        @property_name = property_name
+        @type          = type
       end
     end # class Operator
 
@@ -39,33 +47,37 @@ module DataMapper
 
       attr_reader :relationships, :model, :property
 
-      def initialize(relationships, model_name ,property_name=nil)
+      def initialize(relationships, model_name, property_name = nil)
+        raise ArgumentError, "+relationships+ is not an Array, but was #{relationships.class}", caller unless Array  === relationships
+        raise ArgumentError, "+model_name+ is not a Symbol, but was #{model_name.class}", caller       unless Symbol === model_name
+        raise ArgumentError, "+property_name+ is not a Symbol, but was #{property_name.class}", caller unless Symbol === property_name || property_name.nil?
+
         @relationships = relationships
         @model         = DataMapper::Inflection.classify(model_name.to_s).to_class
-        @property      = @model.properties(@model.repository.name)[model_name] if property_name
+        @property      = @model.properties(@model.repository.name)[property_name] if property_name
       end
 
       alias_method :_method_missing, :method_missing
 
       def method_missing(method, *args)
-       if @model.relationships.has_key?(method)
-         relations = []
-         relations.concat(@relationships)
-         relations << @model.relationships[method]
-         return DataMapper::Query::Path.new(relations,method)
-       end
+        if @model.relationships.has_key?(method)
+          relations = []
+          relations.concat(@relationships)
+          relations << @model.relationships[method]
+          return DataMapper::Query::Path.new(relations,method)
+        end
 
-       if @model.properties(@model.repository.name)[method]
-         @property = @model.properties(@model.repository.name)[method]
-         return self
-       end
+        if @model.properties(@model.repository.name)[method]
+          @property = @model.properties(@model.repository.name)[method]
+          return self
+        end
 
-       _method_missing(method,args)
+        _method_missing(method,args)
       end
 
       # duck type the DM::Query::Path to act like a DM::Property
       def field
-       @property ? @property.field : nil
+        @property ? @property.field : nil
       end
 
     end # class Path
@@ -134,7 +146,8 @@ module DataMapper
     # <DM::Query>
     #
     def merge_sub_select_conditions(operator, property, value)
-      raise ArgumentError.new('+value+ is not a DataMapper::Query') unless DataMapper::Query === value
+      raise ArgumentError, "+value+ is not a DataMapper::Query, but was #{value.class}", caller unless DataMapper::Query === value
+
       new_conditions = []
       conditions.each do |tuple|
         if tuple.length == 3 && tuple.at(0).to_s == operator.to_s && tuple.at(1) == property && tuple.at(2) == value

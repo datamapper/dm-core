@@ -46,6 +46,8 @@ module DataMapper
             end
           end
         EOS
+
+        relationships[name]
       end
 
     end # module HasOne

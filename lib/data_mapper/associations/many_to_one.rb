@@ -43,18 +43,11 @@ module DataMapper
             end
           end
         EOS
+
+        relationships[name]
       end
 
       class Instance
-        def initialize(relationship, child_resource, &parent_loader)
-#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
-#          raise ArgumentError, "+child_resource+ should be a DataMapper::Resource, but was #{child_resource.class}", caller              unless Resource     === child_resource
-
-          @relationship   = relationship
-          @child_resource = child_resource
-          @parent_loader  = parent_loader
-        end
-
         def parent
           @parent_resource ||= @parent_loader.call
         end
@@ -74,6 +67,17 @@ module DataMapper
             repository(@relationship.repository_name).save(parent)
             @relationship.attach_parent(@child_resource, parent)
           end
+        end
+
+        private
+
+        def initialize(relationship, child_resource, &parent_loader)
+#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
+#          raise ArgumentError, "+child_resource+ should be a DataMapper::Resource, but was #{child_resource.class}", caller              unless Resource     === child_resource
+
+          @relationship   = relationship
+          @child_resource = child_resource
+          @parent_loader  = parent_loader
         end
       end # class Instance
     end # module ManyToOne

@@ -97,6 +97,8 @@ module DataMapper
     private
 
     def initialize(properties = [], &block)
+      raise ArgumentError, "+properties+ should be an Array, but was #{properties.class}", caller unless Array === properties
+
       @entries      = properties
       @property_for = Hash.new do |h,k|
         case k

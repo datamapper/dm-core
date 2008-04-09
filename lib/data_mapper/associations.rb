@@ -22,18 +22,22 @@ module DataMapper
 
     def has(name, cardinality, options = {})
       case cardinality
-        when Range then
-          if cardinality.first == 0
-            if cardinality.last == (1.0/0)
-              one_to_many(name, options)
-            else
-              one_to_many(name, options.merge(:max => cardinality.last))
-            end
-          elsif cardinality.first == (1.0/0)
-            many_to_many(name, options)
+        when Range
+          min, max = cardinality.first, cardinality.last
+          case min
+            when 0, 1                   # 0..n, 1..n
+              one_to_many(name, options.merge(:min => min, :max => max))
+            when Fixnum, Bignum, n
+              case max
+                when 0, 1               # n..0, n..1
+                  many_to_one(name, options.merge(:min => min, :max => max))
+                when Fixnum, Bignum, n  # n..2, n..n
+                  many_to_many(name, options.merge(:min => min, :max => max))
+              end
           end
-        when Fixnum then one_to_one(name, options)
-      end
+        when 1
+          one_to_one(name, options)
+      end || raise(ArgumentError, "Cardinality #{cardinality.inspect} (#{cardinality.class}) not handled")
     end
   end # module Associations
 end # module DataMapper
