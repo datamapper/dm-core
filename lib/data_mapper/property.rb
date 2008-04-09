@@ -259,8 +259,8 @@ module DataMapper
       raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                         unless Symbol   === name
       raise ArgumentError, "+type+ was #{type.class}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
 
-      if (unknown_keys = options.keys - PROPERTY_OPTIONS).any?
-        raise ArgumentError, "options contained unknown keys: #{unknown_keys * ', '}"
+      if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
+        raise ArgumentError, "options contained unknown keys: #{unknown_options * ', '}"
       end
 
       @model                  = model
@@ -280,19 +280,12 @@ module DataMapper
       @serial = @options.fetch(:serial, false)
       @key    = (@options[:key] || @serial) == true
 
-      validate_options
       determine_visibility
 
       create_getter
       create_setter
 
       @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
-    end
-
-    def validate_options # :nodoc:
-      @options.each_pair do |k,v|
-        raise ArgumentError, "#{k.inspect} is not a supported option in DataMapper::Property::PROPERTY_OPTIONS" unless PROPERTY_OPTIONS.include?(k)
-      end
     end
 
     def determine_visibility # :nodoc:

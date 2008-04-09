@@ -1,4 +1,4 @@
-# FIXME: although useful, this should probably be moved into dm-more
+# TODO: move into dm-more
 
 module DataMapper
   module Is

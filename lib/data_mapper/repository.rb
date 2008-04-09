@@ -88,6 +88,8 @@ module DataMapper
     private
 
     def initialize(name)
+      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller unless Symbol === name
+
       @name         = name
       @adapter      = self.class.adapters[name]
       @identity_map = IdentityMap.new
