@@ -18,18 +18,22 @@ module DataMapper
         end
       end
 
-      def <<(child_resource)
-        children << child_resource
+      def push(*child_resources)
+        child_resources.each do |child_resource|
+          children << child_resource
 
-        if @parent_resource.new_record?
-          @dirty_children << child_resource
-        else
-          @relationship.attach_parent(child_resource, @parent_resource)
-          repository(@relationship.repository_name).save(child_resource)
+          if @parent_resource.new_record?
+            @dirty_children << child_resource
+          else
+            @relationship.attach_parent(child_resource, @parent_resource)
+            repository(@relationship.repository_name).save(child_resource)
+          end
         end
 
         self
       end
+
+      alias << push
 
       def delete(child_resource)
         deleted_resource = children.delete(child_resource)
