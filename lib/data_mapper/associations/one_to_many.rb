@@ -7,6 +7,9 @@ module DataMapper
   module Associations
     module OneToMany
       def one_to_many(name, options = {})
+        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
+
         source     = options[:class_name] || DataMapper::Inflection.classify(name)
         model_name = DataMapper::Inflection.demodulize(self.name)
 
@@ -46,44 +49,47 @@ module DataMapper
 
         def_delegators :children, :[], :size, :length, :first, :last
 
-        def initialize(relationship, parent, &children_loader)
+        def initialize(relationship, parent_resource, &children_loader)
+#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
+#          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
+
           @relationship    = relationship
-          @parent          = parent
+          @parent_resource = parent_resource
           @children_loader = children_loader
           @dirty_children  = []
         end
 
         def children
-          @children ||= @children_loader.call
+          @children_resources ||= @children_loader.call
         end
 
         def save
-          @dirty_children.each do |c|
-            @relationship.attach_parent(c, @parent)
-            repository(@relationship.repository_name).save(c)
+          @dirty_children.each do |child_resource|
+            @relationship.attach_parent(child_resource, @parent_resource)
+            repository(@relationship.repository_name).save(child_resource)
           end
         end
 
-        def <<(child)
-          (@children ||= []) << child
+        def <<(child_resource)
+          children << child_resource
 
-          if @parent.new_record?
-            @dirty_children << child
+          if @parent_resource.new_record?
+            @dirty_children << child_resource
           else
-            @relationship.attach_parent(child, @parent)
-            repository(@relationship.repository_name).save(child)
+            @relationship.attach_parent(child_resource, @parent_resource)
+            repository(@relationship.repository_name).save(child_resource)
           end
 
           self
         end
 
-        def delete(child)
-          deleted = children.delete(child)
+        def delete(child_resource)
+          deleted_resource = children.delete(child_resource)
           begin
-            @relationship.attach_parent(deleted, nil)
-            repository(@relationship.repository_name).save(deleted)
+            @relationship.attach_parent(deleted_resource, nil)
+            repository(@relationship.repository_name).save(deleted_resource)
           rescue
-            children.push(child)
+            children << child_resource
             raise
           end
         end

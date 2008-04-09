@@ -25,8 +25,6 @@ describe "DataMapper::Associations::ManyToOne" do
         @relationship.should_receive(:attach_parent).with(@child, @parent)
 
         @association.parent = @parent
-
-        @association.instance_variable_get("@parent").should == @parent
       end
     end
   end

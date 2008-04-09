@@ -5,6 +5,9 @@ module DataMapper
   module Associations
     module ManyToOne
       def many_to_one(name, options = {})
+        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
+
         target = options[:class_name] || DataMapper::Inflection.camelize(name)
 
         relationships[name] = Relationship.new(
@@ -43,30 +46,33 @@ module DataMapper
       end
 
       class Instance
-        def initialize(relationship, child, &parent_loader)
-          @relationship  = relationship
-          @child         = child
-          @parent_loader = parent_loader
+        def initialize(relationship, child_resource, &parent_loader)
+#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
+#          raise ArgumentError, "+child_resource+ should be a DataMapper::Resource, but was #{child_resource.class}", caller              unless Resource     === child_resource
+
+          @relationship   = relationship
+          @child_resource = child_resource
+          @parent_loader  = parent_loader
         end
 
         def parent
-          @parent ||= @parent_loader.call
+          @parent_resource ||= @parent_loader.call
         end
 
-        def parent=(parent)
-          @parent = parent
+        def parent=(parent_resource)
+          @parent_resource = parent_resource
 
-          @relationship.attach_parent(@child, @parent) if @parent.nil? || ! @parent.new_record?
+          @relationship.attach_parent(@child_resource, @parent_resource) if @parent_resource.nil? || !@parent_resource.new_record?
         end
 
         def loaded?
-          ! @parent.nil?
+          !defined?(@parent_resource)
         end
 
         def save
-          if @parent.new_record?
-            repository(@relationship.repository_name).save(@parent)
-            @relationship.attach_parent(@child, @parent)
+          if parent.new_record?
+            repository(@relationship.repository_name).save(parent)
+            @relationship.attach_parent(@child_resource, parent)
           end
         end
       end # class Instance
