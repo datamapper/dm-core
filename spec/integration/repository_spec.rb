@@ -1,7 +1,7 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
-require __DIR__.parent.parent + 'lib/data_mapper'
+require ROOT_DIR + 'lib/data_mapper'
 
 
 begin
@@ -73,4 +73,4 @@ begin
   end
 rescue LoadError
   warn "integration/repository_spec not run! Could not load do_sqlite3."
-end  
+end

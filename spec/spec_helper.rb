@@ -6,11 +6,11 @@ require 'spec'
 # for __DIR__
 require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support/kernel'
 
-ENV['LOG_NAME'] = 'spec'
-require __DIR__.parent + 'environment'
-require __DIR__ + 'mock_adapter'
-
 ROOT_DIR = __DIR__.parent
+
+ENV['LOG_NAME'] = 'spec'
+require ROOT_DIR + 'environment'
+require __DIR__ + 'lib/mock_adapter'
 
 class Article
   include DataMapper::Resource
@@ -40,21 +40,21 @@ end
 # Used for Association specs
 class Vehicle
   include DataMapper::Resource
-  
+
   property :id, Fixnum, :serial => true
   property :name, String
 end
 
 class Manufacturer
   include DataMapper::Resource
-  
+
   property :id, Fixnum, :serial => true
   property :name, String
 end
 
 class Supplier
   include DataMapper::Resource
-  
+
   property :id, Fixnum, :serial => true
   property :name, String
 end
