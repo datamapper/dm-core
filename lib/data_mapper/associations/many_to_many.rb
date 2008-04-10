@@ -5,13 +5,19 @@ module DataMapper
   module Associations
     module ManyToMany
       def many_to_many(name, options = {})
-        target = options[:class_name] || DataMapper::Inflection.camelize(name)
+        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
+
+        child_model_name  = DataMapper::Inflection.demodulize(self.name)
+        parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
         relationships[name] = Relationship.new(
           name,
-          options[:repository_name] || self.repository.name,
-          [ DataMapper::Inflection.demodulize(self.name), nil ],
-          [ target,                                       nil ]
+          options[:repository_name] || repository.name,
+          child_model_name,
+          nil,
+          parent_model_name,
+          nil
         )
       end
 
@@ -19,10 +25,10 @@ module DataMapper
         def initialize() end
 
         def save
-          raise NotImplementedError.new
+          raise NotImplementedError
         end
 
-      end # class Instance    
+      end # class Instance
     end # module ManyToMany
   end # module Associations
 end # module DataMapper

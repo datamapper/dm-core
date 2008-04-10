@@ -4,81 +4,44 @@ module DataMapper
 
       attr_reader :name, :repository_name
 
-      # +child+ is the FK, +parent+ is the PK. Please refer to:
-      # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
-      # I wash my hands of it!
-      #
-      # TODO: should repository_name be removed? it would allow relationships across multiple
-      # repositories (if query supports it)
-
-      # XXX: why not break up child and parent arguments so the method definition becomes:
-      #   initialize(name, repository_name, child_model, child_key, parent_model, parent_key, &loader)
-      # The *_key arguments could be Arrays of symbols or a PropertySet object
-      def initialize(name, repository_name, child, parent, &loader)
-
-        unless child.is_a?(Array) && child.size == 2
-          raise ArgumentError.new("child should be an Array of [model_name, property_name] but was #{child.inspect}")
-        end
-
-        unless parent.is_a?(Array) && parent.size == 2
-          raise ArgumentError.new("parent should be an Array of [model_name, property_name] but was #{parent.inspect}")
-        end
-
-        @name               = name
-        @repository_name    = repository_name
-        @child              = child
-        @parent             = parent
-        @loader             = loader
-      end
-
-      def child_key      
+      def child_key
         @child_key ||= begin
-          child_key        = PropertySet.new
           model_properties = child_model.properties(@repository_name)
-          parent_keys      = parent_key.to_a
 
-          if child_property_names
-            child_property_names.zip(parent_keys).each do |property_name,parent_property|
-              child_key << (model_properties[property_name] || child_model.property(property_name, parent_property.type))
-            end
-          else
-            # Default to the parent key we're binding to prefixed with the
-            # association name.
-            parent_key.each do |property|
-              property_name = "#{@name}_#{property.name}"
-              child_key << (model_properties[property_name] || child_model.property(property_name.to_sym, property.type))
-            end
+          child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
+            # TODO: use something similar to DM::NamingConventions to determine the property name
+            property_name ||= "#{@name}_#{parent_property.name}".to_sym
+            model_properties[property_name] || child_model.property(property_name, parent_property.type)
           end
 
-          child_key
+          PropertySet.new(child_key)
         end
       end
 
       def parent_key
         @parent_key ||= begin
-          parent_key       = PropertySet.new
           model_properties = parent_model.properties(@repository_name)
 
-          keys = if parent_property_names
-            model_properties.slice(*parent_property_names)
+          parent_key = if @parent_properties
+            model_properties.slice(*@parent_properties)
           else
             model_properties.key
           end
 
-          parent_key.add(*keys)
+          PropertySet.new(parent_key)
         end
       end
 
-      def with_child(child_inst, association, &loader)
-        association.new(self, child_inst, lambda {
-          loader.call(repository(@repository_name), child_key, parent_key, parent_model, child_inst)
-        })
+      def with_child(child_resource, association, &loader)
+        association.new(self, child_resource) do
+          yield repository(@repository_name), child_key, parent_key, parent_model, child_resource
+        end
       end
 
-      def with_parent(parent_inst, association, &loader)
-        association.new(self, parent_inst, lambda {
-          loader.call(repository(@repository_name), child_key, parent_key, child_model, parent_inst)
-        })
+      def with_parent(parent_resource, association, &loader)
+        association.new(self, parent_resource) do
+          yield repository(@repository_name), child_key, parent_key, child_model, parent_resource
+        end
       end
 
       def attach_parent(child, parent)
@@ -86,21 +49,44 @@ module DataMapper
       end
 
       def parent_model
-        @parent.at(0).to_class
+        @parent_model_name.to_class
       end
 
       def child_model
-        @child.at(0).to_class
+        @child_model_name.to_class
       end
 
       private
 
-      def child_property_names
-        @child.at(1)
-      end
+      # +child_model_name and child_properties refers to the FK, parent_model_name
+      # and parent_properties refer to the PK.  For more information:
+      # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
+      # I wash my hands of it!
 
-      def parent_property_names
-        @parent.at(1)
+      # FIXME: should we replace child_* and parent_* arguments with two
+      # Arrays of Property objects?  This would allow syntax like:
+      #
+      #   belongs_to = DataMapper::Associations::Relationship.new(
+      #     :manufacturer,
+      #     :relationship_spec,
+      #     Vehicle.properties.slice(:manufacturer_id)
+      #     Manufacturer.properties.slice(:id)
+      #   )
+      def initialize(name, repository_name, child_model_name, child_properties, parent_model_name, parent_properties, &loader)
+        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller                                unless Symbol === name
+        raise ArgumentError, "+repository_name+ must be a Symbol, but was #{repository_name.class}", caller            unless Symbol === repository_name
+        raise ArgumentError, "+child_model_name+ must be a String, but was #{child_model_name.class}", caller          unless String === child_model_name
+        raise ArgumentError, "+child_properties+ must be an Array or nil, but was #{child_properties.class}", caller   unless Array  === child_properties || child_properties.nil?
+        raise ArgumentError, "+parent_model_name+ must be a String, but was #{parent_model_name.class}", caller        unless String === parent_model_name
+        raise ArgumentError, "+parent_properties+ must be an Array or nil, but was #{parent_properties.class}", caller unless Array  === parent_properties || parent_properties.nil?
+
+        @name              = name
+        @repository_name   = repository_name
+        @child_model_name  = child_model_name
+        @child_properties  = child_properties   # may be nil
+        @parent_model_name = parent_model_name
+        @parent_properties = parent_properties  # may be nil
+        @loader            = loader
       end
     end # class Relationship
   end # module Associations

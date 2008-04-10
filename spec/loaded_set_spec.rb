@@ -19,9 +19,10 @@ describe "DataMapper::LoadedSet" do
   end
 
   it "should be able to add arbitrary objects" do
+    properties              = @cow.properties(:default)
+    properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
 
-    properties = @cow.properties(:default)
-    set = DataMapper::LoadedSet.new(DataMapper::repository(:default), @cow, properties)
+    set = DataMapper::LoadedSet.new(DataMapper::repository(:default), @cow, properties_with_indexes)
     set.should respond_to(:reload!)
 
     set.add(['Bob', 10])
@@ -62,15 +63,16 @@ describe "DataMapper::LazyLoadedSet" do
       property :age, Fixnum
     end
 
-    @properties = @cow.properties(:default)
+    properties               = @cow.properties(:default)
+    @properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
   end
 
   it "should raise an error if no block is provided" do
-    lambda { set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties) }.should raise_error
+    lambda { set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties_with_indexes) }.should raise_error
   end
 
   it "should make a materialization block" do
-    set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties) do |lls|
+    set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties_with_indexes) do |lls|
       lls.add(['Bob', 10])
       lls.add(['Nancy', 11])
     end
@@ -81,7 +83,7 @@ describe "DataMapper::LazyLoadedSet" do
   end
 
   it "should be eachable" do
-    set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties) do |lls|
+    set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties_with_indexes) do |lls|
       lls.add(['Bob', 10])
       lls.add(['Nancy', 11])
     end

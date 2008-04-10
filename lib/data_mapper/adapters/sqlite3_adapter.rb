@@ -20,13 +20,6 @@ module DataMapper
         return connnection
       end
 
-      def rewrite_uri(uri, options)
-        new_uri = uri.dup
-        new_uri.path = options[:path] || uri.path
-
-        new_uri
-      end
-      
     end # class Sqlite3Adapter
     
   end # module Adapters

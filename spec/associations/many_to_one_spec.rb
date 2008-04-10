@@ -16,7 +16,7 @@ describe "DataMapper::Associations::ManyToOne" do
       @child = mock("child")
       @parent = mock("parent")
       @relationship = mock("relationship")
-      @association = DataMapper::Associations::ManyToOne::Instance.new(@relationship, @child, nil)
+      @association = DataMapper::Associations::ManyToOne::Instance.new(@relationship, @child)
     end
 
     describe "when the parent exists" do
@@ -25,8 +25,6 @@ describe "DataMapper::Associations::ManyToOne" do
         @relationship.should_receive(:attach_parent).with(@child, @parent)
 
         @association.parent = @parent
-
-        @association.instance_variable_get("@parent").should == @parent
       end
     end
   end

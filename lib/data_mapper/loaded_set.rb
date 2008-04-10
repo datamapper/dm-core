@@ -1,25 +1,6 @@
-require 'set'
-
 module DataMapper
-
   class LoadedSet
-
     attr_reader :repository
-
-    def initialize(repository, model, properties)
-      @repository = repository
-      @model      = model
-      @properties = Hash[*properties.zip((0...properties.length).to_a).flatten]
-      @entries    = []
-
-      if inheritance_property = @model.inheritance_property(@repository.name)
-        @inheritance_property_index = @properties[inheritance_property]
-      end
-
-      if (@key_properties = @model.key(@repository.name)).all? { |key| @properties.include?(key) }
-        @key_property_indexes = @properties.values_at(*@key_properties)
-      end
-    end
 
     def keys
       entry_keys = @entries.map { |resource| resource.key }
@@ -71,7 +52,7 @@ module DataMapper
         resource.readonly!
       end
 
-      @properties.each_pair do |property, i|
+      @properties_with_indexes.each_pair do |property, i|
         resource.instance_variable_set(property.instance_variable_name, values.at(i))
       end
 
@@ -88,16 +69,31 @@ module DataMapper
       @entries.uniq!
       @entries.dup
     end
+
+    private
+
+    # +properties_with_indexes+ is a Hash of Property and values Array index pairs.
+    #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
+    def initialize(repository, model, properties_with_indexes)
+      raise ArgumentError, "+repository+ must be a DataMapper::Repository, but was #{repository.class}", caller unless Repository === repository
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource", caller                 unless Resource   === model
+
+      @repository              = repository
+      @model                   = model
+      @properties_with_indexes = properties_with_indexes
+      @entries                 = []
+
+      if inheritance_property = @model.inheritance_property(@repository.name)
+        @inheritance_property_index = @properties_with_indexes[inheritance_property]
+      end
+
+      if (@key_properties = @model.key(@repository.name)).all? { |key| @properties_with_indexes.include?(key) }
+        @key_property_indexes = @properties_with_indexes.values_at(*@key_properties)
+      end
+    end
   end # class LoadedSet
 
   class LazyLoadedSet < LoadedSet
-
-    def initialize(*args, &block)
-      raise "LazyLoadedSets require a materialization block. Use a LoadedSet instead." unless block_given?
-      super(*args)
-      @loader = block
-    end
-
     def each(&block)
       entries.each { |entry| yield entry }
     end
@@ -114,5 +110,12 @@ module DataMapper
       super
     end
 
+    private
+
+    def initialize(*args, &block)
+      raise "LazyLoadedSets require a materialization block. Use a LoadedSet instead." unless block_given?
+      super(*args)
+      @loader = block
+    end
   end # class LazyLoadedSet
 end # module DataMapper

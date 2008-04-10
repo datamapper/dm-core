@@ -167,7 +167,7 @@ module DataMapper
     #   The string message to be logged
     # block<&block>
     #   An optional block that will be evaluated and added to the logging message after the string message.
-    def <<(string = nil)
+    def push(string = nil)
       message = Time.now.httpdate
       message << delimiter
       message << string if string
@@ -179,7 +179,7 @@ module DataMapper
       @buffer << message
       flush # Force a flush for now until we figure out where we want to use the buffering.
     end
-    alias :push :<<
+    alias << push
 
     # Generate the following logging methods for DataMapper.logger as described in the api:
     #  :fatal, :error, :warn, :info, :debug 

@@ -12,7 +12,6 @@ require __DIR__ + 'mock_adapter'
 
 class Article
   include DataMapper::Resource
-  include DataMapper::Scope
 
   property :id,         Fixnum, :serial => true
   property :blog_id,    Fixnum

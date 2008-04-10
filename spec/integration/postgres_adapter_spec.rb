@@ -26,12 +26,25 @@ begin
   end
 
   describe DataMapper::Adapters::DataObjectsAdapter do
+    before do
+      @adapter = repository(:postgres).adapter
+    end
 
     describe "reading & writing a database" do
+      before do
+        @adapter.execute('DROP TABLE IF EXISTS "users"')
+        @adapter.execute('DROP SEQUENCE IF EXISTS "users_id_seq"')
+      end
 
       before do
-        @adapter = repository(:postgres).adapter
-        @adapter.execute("CREATE TABLE users (id SERIAL NOT NULL, name TEXT)")
+        @adapter.execute('CREATE SEQUENCE "users_id_seq"')
+        @adapter.execute(<<-EOS.compress_lines)
+          CREATE TABLE "users" (
+            "id" INT4 DEFAULT nextval('users_id_seq') NOT NULL,
+            "name" TEXT
+          )
+        EOS
+
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
       end
 
@@ -62,13 +75,14 @@ begin
         result.should be_kind_of(Array)
         result.size.should == 0
       end
-
-      after do
-        @adapter.execute('DROP TABLE "users"')
-      end
     end
 
     describe "CRUD for serial Key" do
+      before do
+        @adapter.execute('DROP TABLE IF EXISTS "video_games"')
+        @adapter.execute('DROP SEQUENCE IF EXISTS "video_games_id_seq"')
+      end
+
       before do
         class VideoGame
           include DataMapper::Resource
@@ -77,8 +91,13 @@ begin
           property :name, String
         end
 
-        @adapter = repository(:postgres).adapter
-        @adapter.execute('CREATE TABLE "video_games" ("id" SERIAL NOT NULL, "name" VARCHAR(50))') rescue nil
+        @adapter.execute('CREATE SEQUENCE "video_games_id_seq"')
+        @adapter.execute(<<-EOS.compress_lines)
+          CREATE TABLE "video_games" (
+            "id" INT4 DEFAULT nextval('video_games_id_seq') NOT NULL,
+            "name" VARCHAR(50)
+          )
+        EOS
       end
 
       it 'should be able to create a record' do
@@ -138,28 +157,23 @@ begin
       end
 
       it 'should respond to Resource#get' do
-
         name = 'Contra'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?) RETURNING id', name).insert_id
 
-        puts id.inspect
-
         contra = repository(:postgres) { VideoGame.get(id) }
-
-        puts contra.id.inspect
 
         contra.should_not be_nil
         contra.should_not be_dirty
         contra.should_not be_a_new_record
         contra.id.should == id
       end
-
-      after do
-        @adapter.execute('DROP TABLE "video_games"')
-      end
     end
 
     describe "CRUD for Composite Key" do
+      before do
+        @adapter.execute('DROP TABLE IF EXISTS "bank_customers"')
+      end
+
       before do
         class BankCustomer
           include DataMapper::Resource
@@ -169,8 +183,13 @@ begin
           property :name, String
         end
 
-        @adapter = repository(:postgres).adapter
-        @adapter.execute('CREATE TABLE "bank_customers" ("bank" VARCHAR(50), "account_number" VARCHAR(50), "name" VARCHAR(50))') rescue nil
+        @adapter.execute(<<-EOS.compress_lines)
+          CREATE TABLE "bank_customers" (
+            "bank" VARCHAR(50),
+            "account_number" VARCHAR(50),
+            "name" VARCHAR(50)
+          )
+        EOS
       end
 
       it 'should be able to create a record' do
@@ -239,24 +258,15 @@ begin
         robots.bank.should == bank
         robots.account_number.should == account_number
       end
-
-      after do
-        @adapter.execute('DROP TABLE "bank_customers"')
-      end
     end
 
     describe "Ordering a Query" do
       before do
+        @adapter.execute('DROP TABLE IF EXISTS "sail_boats"')
+        @adapter.execute('DROP SEQUENCE IF EXISTS "sail_boats_id_seq"')
+      end
 
-        @adapter = repository(:postgres).adapter
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "sail_boats" (
-            "id" SERIAL NOT NULL,
-            "name" VARCHAR(50),
-            "port" VARCHAR(50)
-          )
-        EOS
-
+      before do
         class SailBoat
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
@@ -269,6 +279,15 @@ begin
             end
           end
         end
+
+        @adapter.execute('CREATE SEQUENCE "sail_boats_id_seq"')
+        @adapter.execute(<<-EOS.compress_lines)
+          CREATE TABLE "sail_boats" (
+            "id" INT4 DEFAULT nextval('sail_boats_id_seq') NOT NULL,
+            "name" VARCHAR(50),
+            "port" VARCHAR(50)
+          )
+        EOS
 
         repository(:postgres).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
         repository(:postgres).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
@@ -299,27 +318,15 @@ begin
         ]})
         result[0].id.should == 1
       end
-
-      after do
-       @adapter.execute('DROP TABLE "sail_boats"')
-      end
-
     end
 
     describe "Lazy Loaded Properties" do
+      before do
+        @adapter.execute('DROP TABLE IF EXISTS "sail_boats"')
+        @adapter.execute('DROP SEQUENCE IF EXISTS "sail_boats_id_seq"')
+      end
 
       before do
-
-        @adapter = repository(:postgres).adapter
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "sail_boats" (
-            "id" SERIAL NOT NULL,
-            "notes" VARCHAR(50),
-            "trip_report" VARCHAR(50),
-            "miles" INTEGER
-          )
-        EOS
-
         class SailBoat
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
@@ -334,11 +341,20 @@ begin
           end
         end
 
+        @adapter.execute('CREATE SEQUENCE "sail_boats_id_seq"')
+        @adapter.execute(<<-EOS.compress_lines)
+          CREATE TABLE "sail_boats" (
+            "id" INT4 DEFAULT nextval('sail_boats_id_seq') NOT NULL,
+            "notes" VARCHAR(50),
+            "trip_report" VARCHAR(50),
+            "miles" INTEGER
+          )
+        EOS
+
         repository(:postgres).save(SailBoat.new(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23))
         repository(:postgres).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
         repository(:postgres).save(SailBoat.new(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23))
       end
-
 
       it "should lazy load" do
         result = repository(:postgres).all(SailBoat,{})
@@ -357,17 +373,15 @@ begin
         result[1].trip_report.should_not be_nil
         result[2].instance_variables.should include('@miles')
       end
-
-      after do
-       @adapter.execute('DROP TABLE "sail_boats"')
-      end
-
     end
 
     describe "finders" do
+      before do
+        @adapter.execute('DROP TABLE IF EXISTS "serial_finder_specs"')
+        @adapter.execute('DROP SEQUENCE IF EXISTS "serial_finder_specs_id_seq"')
+      end
 
       before do
-
         class SerialFinderSpec
           include DataMapper::Resource
 
@@ -375,11 +389,10 @@ begin
           property :sample, String
         end
 
-        @adapter = repository(:postgres).adapter
-
+        @adapter.execute('CREATE SEQUENCE "serial_finder_specs_id_seq"')
         @adapter.execute(<<-EOS.compress_lines)
           CREATE TABLE "serial_finder_specs" (
-            "id" SERIAL NOT NULL,
+            "id" INT4 DEFAULT nextval('serial_finder_specs_id_seq') NOT NULL,
             "sample" VARCHAR(50)
           )
         EOS
@@ -420,14 +433,17 @@ begin
         results.size.should == 10
         results.map(&:id).should == ids
       end
-
-      after do
-        @adapter.execute('DROP TABLE "serial_finder_specs"')
-      end
-
     end
 
     describe "many_to_one associations" do
+      before do
+        @adapter.execute('DROP TABLE IF EXISTS "engines"')
+        @adapter.execute('DROP SEQUENCE IF EXISTS "engines_id_seq"')
+
+        @adapter.execute('DROP TABLE IF EXISTS "yards"')
+        @adapter.execute('DROP SEQUENCE IF EXISTS "yards_id_seq"')
+      end
+
       before do
         class Engine
           include DataMapper::Resource
@@ -436,11 +452,10 @@ begin
           property :name, String
         end
 
-        @adapter = repository(:postgres).adapter
-
+        @adapter.execute('CREATE SEQUENCE "engines_id_seq"')
         @adapter.execute(<<-EOS.compress_lines)
           CREATE TABLE "engines" (
-            "id" SERIAL NOT NULL,
+            "id" INT4 DEFAULT nextval('engines_id_seq') NOT NULL,
             "name" VARCHAR(50)
           )
         EOS
@@ -457,9 +472,10 @@ begin
           many_to_one :engine, :repository_name => :postgres
         end
 
+        @adapter.execute('CREATE SEQUENCE "yards_id_seq"')
         @adapter.execute(<<-EOS.compress_lines)
           CREATE TABLE "yards" (
-            "id" SERIAL NOT NULL,
+            "id" INT4 DEFAULT nextval('yards_id_seq') NOT NULL,
             "name" VARCHAR(50),
             "engine_id" INTEGER
           )
@@ -509,14 +525,17 @@ begin
         y[:engine_id].should == 10
         repository(:postgres).all(Engine, :id => 10).first.should_not be_nil
       end
-
-      after do
-        @adapter.execute('DROP TABLE "yards"')
-        @adapter.execute('DROP TABLE "engines"')
-      end
     end
 
     describe "one_to_many associations" do
+      before do
+        @adapter.execute('DROP TABLE IF EXISTS "hosts"')
+        @adapter.execute('DROP SEQUENCE IF EXISTS "hosts_id_seq"')
+
+        @adapter.execute('DROP TABLE IF EXISTS "slices"')
+        @adapter.execute('DROP SEQUENCE IF EXISTS "slices_id_seq"')
+      end
+
       before do
         class Host
           include DataMapper::Resource
@@ -527,11 +546,10 @@ begin
           one_to_many :slices, :repository_name => :postgres
         end
 
-        @adapter = repository(:postgres).adapter
-
+        @adapter.execute('CREATE SEQUENCE "hosts_id_seq"')
         @adapter.execute(<<-EOS.compress_lines)
           CREATE TABLE "hosts" (
-            "id" SERIAL NOT NULL,
+            "id" INT4 DEFAULT nextval('hosts_id_seq') NOT NULL,
             "name" VARCHAR(50)
           )
         EOS
@@ -548,9 +566,10 @@ begin
           many_to_one :host, :repository_name => :postgres
         end
 
+        @adapter.execute('CREATE SEQUENCE "slices_id_seq"')
         @adapter.execute(<<-EOS.compress_lines)
           CREATE TABLE "slices" (
-            "id" SERIAL NOT NULL,
+            "id" INT4 DEFAULT nextval('slices_id_seq') NOT NULL,
             "name" VARCHAR(50),
             "host_id" INTEGER
           )
@@ -610,13 +629,12 @@ begin
         s.host.should_not be_nil
         s.host.id.should == 10
       end
-
-      after do
-        @adapter.execute('DROP TABLE "slices"')
-        @adapter.execute('DROP TABLE "hosts"')
-      end
     end
   end
-rescue LoadError
-  warn "PostgreSQL specs not run! Could not load do_postgres."
+rescue LoadError => e
+  describe 'do_postgres' do
+    it 'should be required' do
+      fail "PostgreSQL integration specs not run! Could not load do_postgres: #{e}"
+    end
+  end
 end

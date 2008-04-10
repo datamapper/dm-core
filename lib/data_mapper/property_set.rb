@@ -11,22 +11,22 @@ module DataMapper
     end
 
     def add(*properties)
-      @properties.push(*properties)
+      @entries.push(*properties)
       self
     end
 
     alias << add
 
     def length
-      @properties.length
+      @entries.length
     end
 
     def empty?
-      @properties.empty?
+      @entries.empty?
     end
 
     def each(&block)
-      @properties.each { |property| yield property }
+      @entries.each { |property| yield property }
       self
     end
 
@@ -47,7 +47,7 @@ module DataMapper
     end
 
     def set(values, resource)
-      if values.kind_of?(Array)
+      if Array === values
         raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller if values.length != length
       elsif !values.nil?
         raise ArgumentError, "+values+ must be nil or an Array, but was a #{values.class}", caller
@@ -60,15 +60,15 @@ module DataMapper
     end
 
     def lazy_load_context(names)
-      if names.kind_of?(Array)
+      if Array === names
         raise ArgumentError, "+names+ cannot be an empty Array", caller if names.empty?
-      elsif !names.kind_of?(Symbol)
+      elsif !(Symbol === names)
         raise ArgumentError, "+names+ must be a Symbol or an Array of Symbols, but was a #{names.class}", caller
       end
 
       result =  []
 
-      names = [ names ] if names.kind_of?(Symbol)
+      names = [ names ] if Symbol === names
 
       names.each do |name|
         contexts = property_contexts(name)
@@ -96,8 +96,10 @@ module DataMapper
 
     private
 
-    def initialize(*properties, &block)
-      @properties   = properties
+    def initialize(properties = [], &block)
+      raise ArgumentError, "+properties+ should be an Array, but was #{properties.class}", caller unless Array === properties
+
+      @entries      = properties
       @property_for = Hash.new do |h,k|
         case k
           when Symbol

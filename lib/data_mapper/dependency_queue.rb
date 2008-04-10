@@ -12,15 +12,14 @@ module DataMapper
     
     def resolve!
       @dependencies.each_pair do |class_name, callbacks|
-        if Object.const_defined?(class_name)
-          klass = Object.const_get(class_name)
+        next unless Object.const_defined?(class_name)
+        klass = Object.const_get(class_name)
 
-          callbacks.each do |b|
-            b.call(klass)
-          end
-          
-          callbacks.clear
+        callbacks.each do |b|
+          b.call(klass)
         end
+
+        callbacks.clear
       end
     end
     
