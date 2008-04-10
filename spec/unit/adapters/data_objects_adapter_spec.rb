@@ -265,7 +265,7 @@ end
       options = {
         :adapter => 'mysql',
         :host => 'davidleal.com',
-        :user => 'me',
+        :username => 'me',
         :password => 'mypass',
         :port => 5000,
         :database => 'you_can_call_me_al',

@@ -391,7 +391,7 @@ module DataMapper
         return uri_or_options                      if URI    === uri_or_options
 
         adapter = uri_or_options.delete(:adapter)
-        user = uri_or_options.delete(:user)
+        user = uri_or_options.delete(:username)
 
         password = uri_or_options.delete(:password)
         password = ":" << password.to_s if user && password
