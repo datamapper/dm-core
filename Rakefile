@@ -96,8 +96,7 @@ gem_spec = Gem::Specification.new do |s|
   s.executables = ["dm"]
   s.bindir = "bin"
   s.add_dependency("english")
-  s.add_dependency("fastthread")
-  s.add_dependency("json")
+  s.add_dependency("json_pure")
   s.add_dependency("rspec")
   s.add_dependency("data_objects", ">=0.9.0")
   s.add_dependency("english")
