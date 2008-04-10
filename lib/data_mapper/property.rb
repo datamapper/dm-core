@@ -2,6 +2,10 @@ require __DIR__ + 'property_set'
 require __DIR__ + 'type'
 Dir[__DIR__ + 'types/*.rb'].each { |path| require path }
 
+unless defined?(DM)
+  DM = DataMapper::Types
+end
+
 require 'date'
 require 'time'
 require 'bigdecimal'
@@ -257,7 +261,7 @@ module DataMapper
     def initialize(model, name, type, options)
       raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"               unless Resource === model
       raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                         unless Symbol   === name
-      raise ArgumentError, "+type+ was #{type.class}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
+      raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
 
       if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
         raise ArgumentError, "options contained unknown keys: #{unknown_options * ', '}"
