@@ -13,34 +13,9 @@ begin
     before do
       
       @adapter = repository(:sqlite3).adapter
-      @adapter.execute("CREATE TABLE coconuts (id INTEGER PRIMARY KEY, faked TEXT, document TEXT)")
+      @adapter.execute("CREATE TABLE coconuts (id INTEGER PRIMARY KEY, faked TEXT, document TEXT, stuff TEXT)")
       
-      module TypeTests
-        class Csv < DataMapper::Type
-          primitive String
-          size 65535
-          lazy true
-        
-          def self.load(value)
-            case value
-            when String then FasterCSV.parse(value)
-            when Array then value
-            else nil
-            end
-          end
-          
-          def self.dump(value)
-            case value
-            when Array then
-              FasterCSV.generate do |csv|
-                value.each { |row| csv << row }
-              end
-            when String then value
-            else nil
-            end  
-          end
-        end
-        
+      module TypeTests        
         class Impostor < DataMapper::Type
           primitive String
         end
@@ -52,7 +27,8 @@ begin
           
           property :id, Fixnum, :serial => true
           property :faked, Impostor
-          property :document, Csv
+          property :document, DM::Csv
+          property :stuff, DM::Yaml
         end
       end
       
@@ -65,23 +41,30 @@ begin
         Fuzi Yao's, 5, 1
         Blue Goose, 5, 1 
       EOS
+      
+      @stuff = <<-EOS.margin
+        Happy Cow!: true,
+        Sad Cow!:   false
+      EOS
     end
     
     it "should instantiate an object with custom types" do
-      coconut = TypeTests::Coconut.new(:faked => 'bob', :document => @document)
+      coconut = TypeTests::Coconut.new(:faked => 'bob', :document => @document, :stuff => @stuff)
       coconut.faked.should == 'bob'
       coconut.document.should be_a_kind_of(Array)
+      coconut.stuff.should be_a_kind_of(Hash)
     end
     
     it "should CRUD an object with custom types" do
       repository(:sqlite3) do
-        coconut = TypeTests::Coconut.new(:faked => 'bob', :document => @document)
+        coconut = TypeTests::Coconut.new(:faked => 'bob', :document => @document, :stuff => @stuff)
         coconut.save.should be_true
         coconut.id.should_not be_nil
       
         fred = TypeTests::Coconut[coconut.id]
         fred.faked.should == 'bob'
         fred.document.should be_a_kind_of(Array)
+        fred.stuff.should be_a_kind_of(Hash)
 
         texadelphia = ["Texadelphia", "5", "3"]
         
@@ -90,11 +73,16 @@ begin
         document << texadelphia
         fred.document = document
         
+        stuff = fred.stuff.dup
+        stuff['Manic Cow!'] = :maybe
+        fred.stuff = stuff
+        
         fred.save.should be_true
         
         # Can't call coconut.reload! since coconut.loaded_set isn't setup.
         mac = TypeTests::Coconut[fred.id]
         mac.document.last.should == texadelphia
+        mac.stuff['Manic Cow!'].should == :maybe
       end
     end
     
