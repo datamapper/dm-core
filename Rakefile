@@ -22,17 +22,20 @@ namespace :dm do
   task :environment do
     require 'environment'
   end
-  
+
   desc "Run specifications"
   Spec::Rake::SpecTask.new('spec') do |t|
     t.spec_opts = ["--format", "specdoc", "--colour"]
     t.spec_files = Pathname.glob(ENV['FILES'] || __DIR__ + 'spec/**/*_spec.rb')
     unless ENV['NO_RCOV']
       t.rcov = true
-      t.rcov_opts = ['--exclude', 'spec,environment.rb']
+      t.rcov_opts << '--exclude' << 'spec,environment.rb'
+      t.rcov_opts << '--text-summary'
+      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+      t.rcov_opts << '--only-uncovered'
     end
   end
-  
+
   desc "Run comparison with ActiveRecord"
   task :perf do
     load __DIR__ + 'script/performance.rb'
@@ -46,7 +49,7 @@ end
 
 PACKAGE_VERSION = '0.9.0'
 
-PACKAGE_FILES = Pathname.glob([
+PACKAGE_FILES = [
   'README',
   'FAQ',
   'QUICKLINKS',
@@ -57,7 +60,7 @@ PACKAGE_FILES = Pathname.glob([
   'spec/**/*.{rb,yaml}',
   'tasks/**/*',
   'plugins/**/*'
-]).reject { |path| path =~ /(\/db|Makefile|\.bundle|\.log|\.o)\z/ }
+].collect { |pattern| Pathname.glob(pattern) }.flatten.reject { |path| path.to_s =~ /(\/db|Makefile|\.bundle|\.log|\.o)\z/ }
 
 DOCUMENTED_FILES = PACKAGE_FILES.reject do |path|
   path.directory? || path.to_s.match(/(?:^spec|\/spec|\/swig\_)/)
@@ -78,19 +81,19 @@ rd = Rake::RDocTask.new do |rdoc|
 end
 
 gem_spec = Gem::Specification.new do |s|
-  s.platform = Gem::Platform::RUBY 
-  s.name = PROJECT 
+  s.platform = Gem::Platform::RUBY
+  s.name = PROJECT
   s.summary = "An Object/Relational Mapper for Ruby"
   s.description = "Faster, Better, Simpler."
-  s.version = PACKAGE_VERSION 
- 
+  s.version = PACKAGE_VERSION
+
   s.authors = "Sam Smoot"
   s.email = "ssmoot@gmail.com"
-  s.rubyforge_project = PROJECT 
-  s.homepage = "http://datamapper.org" 
- 
+  s.rubyforge_project = PROJECT
+  s.homepage = "http://datamapper.org"
+
   s.files = PACKAGE_FILES.map { |f| f.to_s }
- 
+
   s.require_path = "lib"
   s.requirements << "none"
   s.executables = ["dm"]
@@ -101,7 +104,7 @@ gem_spec = Gem::Specification.new do |s|
   s.add_dependency("data_objects", ">=0.9.0")
   s.add_dependency("english")
 
-  s.has_rdoc = true 
+  s.has_rdoc = true
   s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
   s.extra_rdoc_files = DOCUMENTED_FILES.map { |f| f.to_s }
 end

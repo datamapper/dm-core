@@ -4,7 +4,7 @@ module DataMapper
       if self::subclasses.empty?
         table = repository.table(self)
         table.activate_associations!
-        
+
         table.create!(true)
       else
         schema = repository.schema
@@ -17,18 +17,19 @@ module DataMapper
         columns.each do |column|
           table.add_column(column.name, column.type, column.options)
         end
-        
+
         table.activate_associations!
-        
+
         return table.create!(true)
       end
     end
-    
+
     private
+
     def create_table(table)
       raise NotImplementedError
     end
-    
+
     def modify_table(table, columns)
       raise NotImplementedError
     end

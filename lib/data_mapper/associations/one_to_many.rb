@@ -7,15 +7,18 @@ module DataMapper
   module Associations
     module OneToMany
       def one_to_many(name, options = {})
-        source     = options[:class_name] || DataMapper::Inflection.classify(name)
-        model_name = DataMapper::Inflection.demodulize(self.name)
+        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
+
+        child_model_name  = options[:class_name] || DataMapper::Inflection.classify(name)
+        parent_model_name = DataMapper::Inflection.demodulize(self.name)
 
         relationships[name] = Relationship.new(
-          DataMapper::Inflection.underscore(model_name).to_sym,
+          DataMapper::Inflection.underscore(parent_model_name).to_sym,
           options[:repository_name] || repository.name,
-          source,
+          child_model_name,
           nil,
-          model_name,
+          parent_model_name,
           nil
         )
 
@@ -28,10 +31,11 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              association = self.class.relationships[:#{name}].
-                with_parent(self, Instance) do |repository, child_rel, parent_rel, child_res, parent|
-                  repository.all(child_res, child_rel.to_query(parent_rel.get(parent)))
-                end
+              relationship = self.class.relationships[:#{name}]
+
+              association = relationship.with_parent(self, Instance) do |repository, child_key, parent_key, child_model, parent_resource|
+                repository.all(child_model, child_key.to_query(parent_key.get(parent_resource)))
+              end
 
               parent_associations << association
 
@@ -39,6 +43,8 @@ module DataMapper
             end
           end
         EOS
+
+        relationships[name]
       end
 
       class Instance
@@ -46,46 +52,55 @@ module DataMapper
 
         def_delegators :children, :[], :size, :length, :first, :last
 
-        def initialize(relationship, parent, loader)
-          @relationship = relationship
-          @loader = loader
-          @parent = parent
-          @dirty_children = []
-        end
-
         def children
-          @children ||= @loader.call
+          @children_resources ||= @children_loader.call
         end
 
         def save
-          @dirty_children.each do |c|
-            @relationship.attach_parent(c, @parent)
-            repository(@relationship.repository_name).save(c)
+          @dirty_children.each do |child_resource|
+            @relationship.attach_parent(child_resource, @parent_resource)
+            repository(@relationship.repository_name).save(child_resource)
           end
         end
 
-        def <<(child)
-          (@children ||= []) << child
+        def push(*child_resources)
+          child_resources.each do |child_resource|
+            children << child_resource
 
-          if @parent.new_record?
-            @dirty_children << child
-          else
-            @relationship.attach_parent(child, @parent)
-            repository(@relationship.repository_name).save(child)
+            if @parent_resource.new_record?
+              @dirty_children << child_resource
+            else
+              @relationship.attach_parent(child_resource, @parent_resource)
+              repository(@relationship.repository_name).save(child_resource)
+            end
           end
 
           self
         end
 
-        def delete(child)
-          deleted = children.delete(child)
+        alias << push
+
+        def delete(child_resource)
+          deleted_resource = children.delete(child_resource)
           begin
-            @relationship.attach_parent(deleted, nil)
-            repository(@relationship.repository_name).save(deleted)
+            @relationship.attach_parent(deleted_resource, nil)
+            repository(@relationship.repository_name).save(deleted_resource)
           rescue
-            children.push(child)
+            children << child_resource
             raise
           end
+        end
+
+        private
+
+        def initialize(relationship, parent_resource, &children_loader)
+#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
+#          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
+
+          @relationship    = relationship
+          @parent_resource = parent_resource
+          @children_loader = children_loader
+          @dirty_children  = []
         end
       end # class Instance
     end # module OneToMany

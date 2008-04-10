@@ -9,6 +9,7 @@ module DataMapper
     # Options:
     # host, user, password, database (path), socket(uri query string), port
     class MysqlAdapter < DataObjectsAdapter
+      private
 
       def quote_table_name(table_name)
         "`#{table_name}`"
@@ -18,6 +19,5 @@ module DataMapper
         "`#{column_name}`"
       end
     end # class MysqlAdapter
-
   end # module Adapters
 end # module DataMapper
