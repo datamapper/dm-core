@@ -27,7 +27,7 @@ module DataMapper
   #     primitive String
   #     size 10
   #
-  #     def self.dump(value)
+  #     def self.dump(value, property)
   #       <work some magic>
   #     end
   #
@@ -129,7 +129,7 @@ module DataMapper
     #
     #
     # @public
-    def self.dump(value)
+    def self.dump(value, property)
       value
     end
 
@@ -144,7 +144,7 @@ module DataMapper
     #
     #
     # @public
-    def self.load(value)
+    def self.load(value, property)
       value
     end
 

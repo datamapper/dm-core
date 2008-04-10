@@ -310,7 +310,7 @@ module DataMapper
               @loaded_set.reload!(:fields => self.class.properties(self.class.repository.name).lazy_load_context(#{name.inspect}))
             end
           end
-          #{custom? ? "#{@type.inspect}.load(#{@instance_variable_name})" : @instance_variable_name}
+          #{custom? ? "#{@type.inspect}.load(#{@instance_variable_name}, self.class.properties(self.class.repository.name)[#{name.inspect}])" : @instance_variable_name}
         end
       EOS
     rescue SyntaxError
@@ -324,7 +324,7 @@ module DataMapper
         def #{name}=(value)
           #{lock? ? "@shadow_#{name} = #{@instance_variable_name}" : ''}
           dirty_attributes << self.class.properties(repository.name)[#{name.inspect}]
-          #{@instance_variable_name} = #{custom? ? "#{@type.inspect}.dump(value)" : 'value'}
+          #{@instance_variable_name} = #{custom? ? "#{@type.inspect}.dump(value, self.class.properties(self.class.repository.name)[#{name.inspect}])" : 'value'}
         end
       EOS
     rescue SyntaxError

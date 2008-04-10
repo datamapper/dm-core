@@ -50,7 +50,7 @@ module DataMapper
       end
 
       value = instance_variable_get(ivar_name)
-      property.custom? ? property.type.load(value) : value
+      property.custom? ? property.type.load(value, property) : value
     end
 
     def []=(name, value)
@@ -62,7 +62,7 @@ module DataMapper
       end
 
       dirty_attributes << property
-      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value) : value)
+      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value, property) : value)
     end
 
     def repository
