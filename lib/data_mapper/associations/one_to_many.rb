@@ -51,7 +51,13 @@ module DataMapper
         extend Forwardable
 
         def_delegators :children, :[], :size, :length, :first, :last
-
+        
+        include Enumerable
+        
+        def each
+          children.each { |child| yield(child) }
+        end
+        
         def children
           @children_resources ||= @children_loader.call
         end
