@@ -10,6 +10,8 @@ ENV['LOG_NAME'] = 'spec'
 require __DIR__.parent + 'environment'
 require __DIR__ + 'mock_adapter'
 
+ROOT_DIR = __DIR__.parent
+
 class Article
   include DataMapper::Resource
 

@@ -49,7 +49,6 @@ begin
       coconut = TypeTests::Coconut.new(:faked => 'bob', :document => @document, :stuff => @stuff)
       coconut.faked.should == 'bob'
       coconut.document.should be_a_kind_of(Array)
-      p coconut.stuff
       coconut.stuff.should be_a_kind_of(Hash)
     end
     

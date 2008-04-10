@@ -1,5 +1,5 @@
 require 'pathname'
-require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
+require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 describe DataMapper::Property do
 
@@ -129,7 +129,7 @@ describe DataMapper::Property do
     tomato.class.properties(:default)[:id].set(2, tomato)
     tomato.id.should == 2
   end
-  
+
   it 'should respond to custom?' do
     DataMapper::Property.new(Zoo, :name, Name, { :size => 50 }).should be_custom
     DataMapper::Property.new(Zoo, :state, String, { :size => 2 }).should_not be_custom
@@ -139,7 +139,7 @@ describe DataMapper::Property do
     DataMapper::Property.new(Zoo, :species, String, {}).field.should == 'species'
     DataMapper::Property.new(Tomato, :genetic_history, DataMapper::Types::Text, {}).field.should == "genetic_history"
   end
-  
+
   it "should provide the primitive mapping" do
     DataMapper::Property.new(Zoo, :poverty, String, {}).primitive.should == String
     DataMapper::Property.new(Zoo, :fortune, DataMapper::Types::Text, {}).primitive.should == String

@@ -1,5 +1,5 @@
 require 'pathname'
-require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
+require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 describe DataMapper::Query do
   GOOD_OPTIONS = [

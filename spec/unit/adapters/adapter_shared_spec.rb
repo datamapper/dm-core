@@ -13,4 +13,3 @@ describe "a DataMapper Adapter", :shared => true do
   end
 
 end
-

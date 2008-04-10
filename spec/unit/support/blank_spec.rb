@@ -1,5 +1,5 @@
 require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+require Pathname(__FILE__).dirname.expand_path.parent.parent + 'spec_helper'
 
 describe DataMapper::Support do
   it "should mark empty objects as blank" do

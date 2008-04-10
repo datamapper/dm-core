@@ -1,5 +1,5 @@
 require 'pathname'
-require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
+require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.
@@ -21,7 +21,7 @@ describe "DataMapper::Resource" do
       include DataMapper::Resource
 
       resource_names[:legacy] = "dying_planets"
-      
+
       property :id, Fixnum, :key => true
       property :name, String, :lock => true
       property :age, Fixnum
@@ -38,7 +38,7 @@ describe "DataMapper::Resource" do
   it "should return an instance of the created object" do
     Planet.create(:name => 'Venus', :age => 1_000_000, :core => nil, :id => 42).should be_a_kind_of(Planet)
   end
-  
+
   it "should provide persistance methods" do
     Planet.should respond_to(:get)
     Planet.should respond_to(:first)

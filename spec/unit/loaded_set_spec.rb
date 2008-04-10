@@ -1,9 +1,9 @@
 require 'pathname'
-require Pathname(__FILE__).dirname.expand_path + 'spec_helper'
+require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
-require __DIR__.parent + 'lib/data_mapper/repository'
-require __DIR__.parent + 'lib/data_mapper/resource'
-require __DIR__.parent + 'lib/data_mapper/loaded_set'
+require ROOT_DIR + 'lib/data_mapper/repository'
+require ROOT_DIR + 'lib/data_mapper/resource'
+require ROOT_DIR + 'lib/data_mapper/loaded_set'
 
 describe "DataMapper::LoadedSet" do
 
