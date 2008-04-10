@@ -2,6 +2,10 @@ require __DIR__ + 'property_set'
 require __DIR__ + 'type'
 Dir[__DIR__ + 'types/*.rb'].each { |path| require path }
 
+unless defined?(DM)
+  DM = DataMapper::Types
+end
+
 require 'date'
 require 'time'
 require 'bigdecimal'

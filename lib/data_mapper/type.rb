@@ -1,7 +1,3 @@
-unless defined?(DM)
-  DM = DataMapper::Types
-end
-
 module DataMapper
 
   # :include:/QUICKLINKS
