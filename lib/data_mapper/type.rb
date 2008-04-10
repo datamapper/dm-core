@@ -123,6 +123,8 @@ module DataMapper
     # ==== Parameters
     # value<Object, nil>::
     #   The value to dump
+    # property<Property, nil>::
+    #   The property the type is being used by
     #
     # ==== Returns
     # Object:: Dumped object
@@ -130,7 +132,7 @@ module DataMapper
     #
     # @public
     def self.dump(value, property)
-      value
+        value
     end
 
     # Stub instance method for loading
@@ -138,6 +140,8 @@ module DataMapper
     # ==== Parameters
     # value<Object, nil>::
     #   The value to serialize
+    # property<Property, nil>::
+    #   The property the type is being used by
     #
     # ==== Returns
     # Object:: Serialized object. Must be the same type as the ruby primitive
