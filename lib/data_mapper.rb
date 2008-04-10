@@ -39,23 +39,29 @@ require __DIR__ + 'data_mapper/adapters/abstract_adapter'
 require __DIR__ + 'data_mapper/cli'
 
 module DataMapper
-  def self.setup(name, uri, options = {})
-    uri = String === uri ? URI.parse(uri) : uri
+  def self.setup(name, uri_or_options)
+    raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller unless Symbol === name
 
-    raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller      unless Symbol === name
-    raise ArgumentError, "+uri+ must be a URI or String, but was #{uri.class}", caller unless URI    === uri
+    case uri_or_options
+      when Hash
+        adapter_name = uri_or_options[:adapter]
+      when String, URI
+        uri_or_options = URI.parse(uri_or_options) if String === uri_or_options
+        adapter_name = uri_or_options.scheme
+      else
+        raise ArgumentError, "+uri_or_options+ must be a Hash, URI or String, but was #{uri_or_options.class}", caller
+    end
 
-    unless Adapters::const_defined?(DataMapper::Inflection.classify(uri.scheme) + 'Adapter')
+    unless Adapters::const_defined?(DataMapper::Inflection.classify(adapter_name) + 'Adapter')
       begin
-        require __DIR__ + "data_mapper/adapters/#{DataMapper::Inflection.underscore(uri.scheme)}_adapter"
+        require __DIR__ + "data_mapper/adapters/#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
       rescue LoadError
-        require "#{DataMapper::Inflection.underscore(uri.scheme)}_adapter"
+        require "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
       end
     end
 
-    adapter = Adapters::const_get(DataMapper::Inflection.classify(uri.scheme) + 'Adapter').new(name, uri)
-
-    Repository.adapters[name] = adapter
+    Repository.adapters[name] = Adapters::
+      const_get(DataMapper::Inflection.classify(adapter_name) + 'Adapter').new(name, uri_or_options)
   end
 
   # ===Block Syntax:
