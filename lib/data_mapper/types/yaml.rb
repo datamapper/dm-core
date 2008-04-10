@@ -11,7 +11,7 @@ module DataMapper
         if value.nil?
           nil
         elsif value.is_a?(String)
-          YAML.parse(value)
+          ::YAML.load(value)
         else
           raise ArgumentError.new("+value+ must be nil or a String")
         end
@@ -20,8 +20,10 @@ module DataMapper
       def self.dump(value)
         if value.nil?
           nil
+        elsif value.is_a?(String) && value =~ /^---/
+          value
         else
-          YAML.dump(value)
+          ::YAML.dump(value)
         end
       end
     end # class Yaml

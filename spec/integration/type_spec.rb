@@ -42,16 +42,14 @@ begin
         Blue Goose, 5, 1 
       EOS
       
-      @stuff = <<-EOS.margin
-        Happy Cow!: true,
-        Sad Cow!:   false
-      EOS
+      @stuff = YAML::dump({ 'Happy Cow!' => true, 'Sad Cow!' => false })
     end
     
     it "should instantiate an object with custom types" do
       coconut = TypeTests::Coconut.new(:faked => 'bob', :document => @document, :stuff => @stuff)
       coconut.faked.should == 'bob'
       coconut.document.should be_a_kind_of(Array)
+      p coconut.stuff
       coconut.stuff.should be_a_kind_of(Hash)
     end
     
