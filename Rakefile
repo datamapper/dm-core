@@ -29,7 +29,10 @@ namespace :dm do
     t.spec_files = Pathname.glob(ENV['FILES'] || __DIR__ + 'spec/**/*_spec.rb')
     unless ENV['NO_RCOV']
       t.rcov = true
-      t.rcov_opts = ['--exclude', 'spec,environment.rb']
+      t.rcov_opts << '--exclude' << 'spec,environment.rb'
+      t.rcov_opts << '--text-summary'
+      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+      t.rcov_opts << '--only-uncovered'
     end
   end
 
