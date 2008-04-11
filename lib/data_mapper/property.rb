@@ -110,13 +110,17 @@ module DataMapper
 #    property :body,   DataMapper::Types::Text   # Is lazily loaded by default
 #  end
 #
-# If you want to over-ride the lazy loading on any field you can set it to true or
-# false with the :lazy option.
+# If you want to over-ride the lazy loading on any field you can set it to a 
+# context or false to disable it with the :lazy option. Contexts allow multipule
+# lazy properties to be loaded at one time. If you set :lazy to true, it is placed
+# in the :default context
 #
 #  class Post
 #    include DataMapper::Resource
-#    property :title,  String                                  # Loads normally
-#    property :body,   DataMapper::Types::Text, :lazy => false # The default is now over-ridden
+#    property :title,    String                                  # Loads normally
+#    property :body,     DataMapper::Types::Text, :lazy => false # The default is now over-ridden
+#    property :comment,  String, lazy => [:detailed]             # Loads in the :detailed context
+#    property :author,   String, lazy => [:summary,:detailed]    # Loads in :summary & :detailed context
 #  end
 #
 # Delaying the request for lazy-loaded attributes even applies to objects accessed through
@@ -129,6 +133,8 @@ module DataMapper
 #   Widget[1].components                    # loads when the post object is pulled from database, by default
 #   Widget[1].components.first.body         # loads the values for the body property on all objects in the
 #                                             association, rather than just this one.
+#   Widget[1].components.first.comment      # loads both comment and author for all objects in the association
+#                                           # since they are both in the :detailed context
 #
 # == Keys
 # Properties can be declared as primary or natural keys on a table.
