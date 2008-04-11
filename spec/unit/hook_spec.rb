@@ -209,4 +209,66 @@ describe "DataMapper::Hook" do
 
     @class.new.a_method
   end
+
+  it "should allow advising methods ending in ? or !" do
+    tester = mock("tester")
+    tester.should_receive(:before).ordered.once
+    tester.should_receive(:method!).ordered.once
+    tester.should_receive(:method?).ordered.once
+    tester.should_receive(:after).ordered.once
+
+    @class.class_eval do
+      define_method :a_method! do
+        tester.method!
+      end
+
+      define_method :a_method? do
+	tester.method?
+      end
+
+      before :a_method! do
+        tester.before
+      end
+
+      after :a_method? do
+        tester.after
+      end
+    end
+
+    @class.new.a_method!
+    @class.new.a_method?
+  end
+
+  it "should allow advising methods ending in ? or ! when passing methods as advices" do
+    tester = mock("tester")
+    tester.should_receive(:before).ordered.once
+    tester.should_receive(:method!).ordered.once
+    tester.should_receive(:method?).ordered.once
+    tester.should_receive(:after).ordered.once
+
+    @class.class_eval do
+      define_method :a_method! do
+        tester.method!
+      end
+
+      define_method :a_method? do
+	tester.method?
+      end
+
+      define_method :before_a_method_bang do
+        tester.before
+      end
+
+      before :a_method!, :before_a_method_bang
+
+      define_method :after_a_method_question do
+        tester.after
+      end
+
+      after :a_method?, :after_a_method_question
+    end
+
+    @class.new.a_method!
+    @class.new.a_method?
+  end
 end
