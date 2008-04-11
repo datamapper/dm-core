@@ -49,12 +49,12 @@ module DataMapper
       end
 
       def within_transaction?
-        !Thread.current["doa_#{@uri.scheme}_transaction"].nil?
+        !Thread.current["dm_doa_#{@uri.scheme}_transaction"].nil?
       end
 
       def create_connection
         if within_transaction?
-          Thread.current["doa_#{@uri.scheme}_transaction"]
+          Thread.current["dm_doa_#{@uri.scheme}_transaction"]
         else
           # DataObjects::Connection.new(uri) will give you back the right
           # driver based on the Uri#scheme.
