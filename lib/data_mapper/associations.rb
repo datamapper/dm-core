@@ -6,10 +6,10 @@ require __DIR__ + 'associations/one_to_one'
 module DataMapper
   module Associations
     def self.extended(base)
-      base.send(:extend, ManyToOne)
-      base.send(:extend, OneToMany)
-      base.send(:extend, ManyToMany)
-      base.send(:extend, OneToOne)
+      base.extend ManyToOne
+      base.extend OneToMany
+      base.extend ManyToMany
+      base.extend OneToOne
     end
 
     def relationships
