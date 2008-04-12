@@ -1,37 +1,39 @@
 module DataMapper
   module AutoMigrations
-    def auto_migrate!
-      if self::subclasses.empty?
-        table = repository.table(self)
-        table.activate_associations!
-
-        table.create!(true)
-      else
-        schema = repository.schema
-        columns = self::subclasses.inject(schema[self].columns) do |span, subclass|
-          span + schema[subclass].columns
-        end
-
-        table_name = schema[self].name.to_s
-        table = schema[table_name]
-        columns.each do |column|
-          table.add_column(column.name, column.type, column.options)
-        end
-
-        table.activate_associations!
-
-        return table.create!(true)
+    
+    def self.klasses
+      @klasses ||= []
+    end
+    
+    def self.included(klass)
+      klass.extend(ClassMethods)
+      #klass.send(:include, InstanceMethods)
+      
+      klasses << klass
+    end
+    
+    def self.auto_migrate!
+      klasses.each do |klass|
+        klass.auto_migrate!
       end
     end
-
+    
+    module ClassMethods
+      
+      def auto_migrate!
+        drop_object_store!
+        create_object_store!
+      end
+      
     private
-
-    def create_table(table)
-      raise NotImplementedError
-    end
-
-    def modify_table(table, columns)
-      raise NotImplementedError
+      
+      def drop_object_store!
+        raise NotImplementedError
+      end
+      
+      def create_object_store!
+        raise NotImplementedError
+      end
     end
   end # module AutoMigrations
 end # module DataMapper
