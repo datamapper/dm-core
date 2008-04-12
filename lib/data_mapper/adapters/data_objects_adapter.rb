@@ -276,6 +276,12 @@ module DataMapper
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
+        
+        def create_store_statement(model)
+          <<-EOS.compress_lines
+            CREATE TABLE #{quote_table_name(model.storage_name(name)))}
+          EOS
+        end
 
         def query_read_statement(query)
           qualify = query.links.any?
