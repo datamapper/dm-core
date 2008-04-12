@@ -6,11 +6,14 @@ require 'spec'
 # for __DIR__
 require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support/kernel'
 
-ROOT_DIR = __DIR__.parent
+ROOT_DIR            = __DIR__.parent
+INTEGRATION_DB_PATH = __DIR__ + 'integration/integration_test.db'
+FileUtils.touch INTEGRATION_DB_PATH
 
 ENV['LOG_NAME'] = 'spec'
 require ROOT_DIR + 'environment'
 require __DIR__ + 'lib/mock_adapter'
+
 
 class Article
   include DataMapper::Resource

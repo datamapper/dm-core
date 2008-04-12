@@ -14,6 +14,10 @@ module DataMapper
       Thread.current[:dm_repository_contexts] ||= []
     end
 
+    def self.default_name
+      :default
+    end
+
     attr_reader :name, :adapter
 
     def identity_map_get(model, key)

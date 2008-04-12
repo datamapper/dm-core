@@ -42,4 +42,11 @@ describe DataMapper::Repository do
     repository.save(instance)
   end
 
+  it 'should provide default_name' do
+    DataMapper::Repository.should respond_to(:default_name)
+  end
+
+  it 'should return :default for default_name' do
+    DataMapper::Repository.default_name.should == :default
+  end
 end

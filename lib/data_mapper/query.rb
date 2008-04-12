@@ -171,7 +171,7 @@ module DataMapper
 
       @repository     = model.repository
       repository_name = @repository.name
-      @model_name     = model.resource_name(repository_name)
+      @model_name     = model.storage_name(repository_name)
       @properties     = model.properties(repository_name)
 
       @model      = model                           # must be Class that includes DM::Resource

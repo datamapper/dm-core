@@ -236,7 +236,7 @@ module DataMapper
       module SQL
         def create_statement(model, properties)
           <<-EOS.compress_lines
-            INSERT INTO #{quote_table_name(model.resource_name(name))}
+            INSERT INTO #{quote_table_name(model.storage_name(name))}
             (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
             VALUES
             (#{(['?'] * properties.size).join(', ')})
@@ -245,7 +245,7 @@ module DataMapper
 
         def create_statement_with_returning(model, properties)
           <<-EOS.compress_lines
-            INSERT INTO #{quote_table_name(model.resource_name(name))}
+            INSERT INTO #{quote_table_name(model.storage_name(name))}
             (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
             VALUES
             (#{(['?'] * properties.size).join(', ')})
@@ -257,14 +257,14 @@ module DataMapper
           properties = model.properties(name).defaults
           <<-EOS.compress_lines
             SELECT #{properties.map { |property| quote_column_name(property.field) }.join(', ')}
-            FROM #{quote_table_name(model.resource_name(name))}
+            FROM #{quote_table_name(model.storage_name(name))}
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
 
         def update_statement(model, properties)
           <<-EOS.compress_lines
-            UPDATE #{quote_table_name(model.resource_name(name))}
+            UPDATE #{quote_table_name(model.storage_name(name))}
             SET #{properties.map {|attribute| "#{quote_column_name(attribute.field)} = ?" }.join(', ')}
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
@@ -272,7 +272,7 @@ module DataMapper
 
         def delete_statement(model)
           <<-EOS.compress_lines
-            DELETE FROM #{quote_table_name(model.resource_name(name))}
+            DELETE FROM #{quote_table_name(model.storage_name(name))}
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
@@ -285,7 +285,7 @@ module DataMapper
           sql << query.fields.map do |property|
             # deriving the model name from the property and not the query
             # allows for "foreign" properties to be qualified correctly
-            model_name = property.model.resource_name(property.model.repository.name)
+            model_name = property.model.storage_name(property.model.repository.name)
             property_to_column_name(model_name, property, qualify)
           end.join(', ')
 
@@ -296,8 +296,8 @@ module DataMapper
             query.links.each do |relationship|
               child_model       = relationship.child_model
               parent_model      = relationship.parent_model
-              child_model_name  = child_model.resource_name(child_model.repository.name)
-              parent_model_name = parent_model.resource_name(parent_model.repository.name)
+              child_model_name  = child_model.storage_name(child_model.repository.name)
+              parent_model_name = parent_model.storage_name(parent_model.repository.name)
               child_keys        = relationship.child_key.to_a
 
               # We only do LEFT OUTER JOIN for now
@@ -324,7 +324,7 @@ module DataMapper
             sql << "(" << query.conditions.map do |operator, property, value|
               # deriving the model name from the property and not the query
               # allows for "foreign" properties to be qualified correctly
-              model_name = property.model.resource_name(property.model.repository.name)
+              model_name = property.model.storage_name(property.model.repository.name)
               case operator
                 when :eql, :in then equality_operator(query,model_name,operator, property, qualify, value)
                 when :not      then inequality_operator(query,model_name,operator, property, qualify, value)

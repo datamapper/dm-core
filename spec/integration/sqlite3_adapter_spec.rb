@@ -3,14 +3,10 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 require ROOT_DIR + 'lib/data_mapper'
 
-DB_PATH = __DIR__ + 'integration_test.db'
-
 begin
   require 'do_sqlite3'
 
-  FileUtils.touch DB_PATH
-
-  DataMapper.setup(:sqlite3, "sqlite3://#{DB_PATH}")
+  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
 
   describe DataMapper::Adapters::DataObjectsAdapter do
 

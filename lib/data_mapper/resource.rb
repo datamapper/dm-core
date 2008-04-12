@@ -207,27 +207,24 @@ module DataMapper
 
     module ClassMethods
       def self.extended(base)
-        base.instance_variable_set(:@resource_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
-        base.instance_variable_set(:@properties,     Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
-      end
-
-      def repository(name = default_repository_name)
-        DataMapper.repository(name)
+        base.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
+        base.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
 
       def default_repository_name
-        :default
+        Repository.default_name
       end
 
-      # FIXME: should this be renamed, since it returns the name of
-      # physical storage location, and resource_name is a confusing
-      # name when there is already a resource object.
-      def resource_name(repository_name)
-        @resource_names[repository_name]
+      def repository(repository_name = default_repository_name)
+        DataMapper.repository(repository_name)
       end
 
-      def resource_names
-        @resource_names
+      def storage_name(repository_name = default_repository_name)
+        @storage_names[repository_name]
+      end
+
+      def storage_names
+        @storage_names
       end
 
       def property(name, type, options = {})
@@ -258,15 +255,15 @@ module DataMapper
         property
       end
 
-      def properties(repository_name)
+      def properties(repository_name = default_repository_name)
         @properties[repository_name]
       end
 
-      def key(repository_name)
+      def key(repository_name = default_repository_name)
         @properties[repository_name].key
       end
 
-      def inheritance_property(repository_name)
+      def inheritance_property(repository_name = default_repository_name)
         @properties[repository_name].inheritance_property
       end
 

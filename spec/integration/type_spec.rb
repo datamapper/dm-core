@@ -5,7 +5,7 @@ require 'faster_csv'
 begin
   require 'do_sqlite3'
 
-  DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db") unless DataMapper::Repository.adapters[:sqlite3]
+  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
 
   describe DataMapper::Type do
 
@@ -22,7 +22,7 @@ begin
         class Coconut
           include DataMapper::Resource
 
-          resource_names[:sqlite3] = 'coconuts'
+          storage_names[:sqlite3] = 'coconuts'
 
           property :id, Fixnum, :serial => true
           property :faked, Impostor

@@ -6,7 +6,7 @@ require ROOT_DIR + 'lib/data_mapper'
 begin
   require 'do_sqlite3'
 
-  DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
+  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
 
   describe DataMapper::Query do
     describe 'when ordering' do

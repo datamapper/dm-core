@@ -6,7 +6,7 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 # DO NOT CHANGE THIS!
 describe "DataMapper::Resource" do
 
-  before(:all) do
+  before :all do
 
     DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
     DataMapper.setup(:legacy, "mock://localhost/mock") unless DataMapper::Repository.adapters[:legacy]
@@ -20,12 +20,13 @@ describe "DataMapper::Resource" do
 
       include DataMapper::Resource
 
-      resource_names[:legacy] = "dying_planets"
+      storage_names[:legacy] = "dying_planets"
 
       property :id, Fixnum, :key => true
       property :name, String, :lock => true
       property :age, Fixnum
       property :core, String, :private => true
+      property :type, Class
 
       # An example of how to scope a property to a specific repository.
       # Un-specced currently.
@@ -39,51 +40,27 @@ describe "DataMapper::Resource" do
     Planet.create(:name => 'Venus', :age => 1_000_000, :core => nil, :id => 42).should be_a_kind_of(Planet)
   end
 
-  it "should provide persistance methods" do
-    Planet.should respond_to(:get)
-    Planet.should respond_to(:first)
-    Planet.should respond_to(:all)
-    Planet.should respond_to(:[])
-
+  it 'should provide persistance methods' do
     planet = Planet.new
     planet.should respond_to(:new_record?)
     planet.should respond_to(:save)
     planet.should respond_to(:destroy)
   end
 
-  it "should provide a resource_name" do
-    Planet.should respond_to(:resource_name)
-    Planet.resource_name(:default).should == 'planets'
-    Planet.resource_name(:legacy).should == 'dying_planets'
-    Planet.resource_name(:yet_another_repository).should == 'planet'
-  end
-
-  it "should provide properties" do
-    Planet.properties(:default).should have(4).entries
-  end
-
-  it "should provide mapping defaults" do
-    Planet.properties(:yet_another_repository).should have(4).entries
-  end
-
   it "should have attributes" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42 }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
   end
 
   it "should be able to set attributes (including private attributes)" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42 }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
     jupiter.attributes = attributes.merge({ :core => 'Magma' })
     jupiter.attributes.should == attributes
     jupiter.send(:private_attributes=, attributes.merge({ :core => 'Magma' }))
     jupiter.attributes.should == attributes.merge({ :core => 'Magma' })
-  end
-
-  it "should provide a repository" do
-    Planet.repository.name.should == :default
   end
 
   it "should track attributes" do
@@ -153,9 +130,105 @@ describe "DataMapper::Resource" do
     mars.shadow_attribute_get(:name).should == 'Mars'
   end
 
-  it 'should add hook functionality to including class' do
-    Planet.should respond_to(:before)
-    Planet.should respond_to(:after)
+  describe 'ClassMethods' do
+    it 'should add hook functionality to including class' do
+      Planet.should respond_to(:before)
+      Planet.should respond_to(:after)
+    end
+
+    it 'should provide default_repository_name' do
+      Planet.should respond_to(:default_repository_name)
+    end
+
+    it '.default_repository_name should delegate to DataMapper::Repository.default_name' do
+      DataMapper::Repository.should_receive(:default_name).with(no_args).once.and_return(:default)
+      Planet.default_repository_name.should == :default
+    end
+
+    it 'should provide a repository' do
+      Planet.should respond_to(:repository)
+    end
+
+    it '.repository should delegate to DataMapper.repository' do
+      repository = mock('repository')
+      DataMapper.should_receive(:repository).with(:legacy).once.and_return(repository)
+      Planet.repository(:legacy).should == repository
+    end
+
+    it '.repository should use default repository when not passed any arguments' do
+      Planet.repository.name.should == Planet.repository(:default).name
+    end
+
+    it 'should provide storage_name' do
+      Planet.should respond_to(:storage_name)
+    end
+
+    it '.storage_name should map a repository to the storage location' do
+      Planet.storage_name(:legacy).should == 'dying_planets'
+    end
+
+    it '.storage_name should use default repository when not passed any arguments' do
+      Planet.storage_name.should == Planet.storage_name(:default)
+    end
+
+    it 'should provide storage_names' do
+      Planet.should respond_to(:storage_names)
+    end
+
+    it '.storage_names should return a Hash mapping each repository to a storage location' do
+      Planet.storage_names.should be_kind_of(Hash)
+      Planet.storage_names.should == { :default => 'planets', :legacy => 'dying_planets' }
+    end
+
+    it 'should provide property' do
+      Planet.should respond_to(:property)
+    end
+
+    it 'should specify property'
+
+    it 'should provide properties' do
+      Planet.should respond_to(:properties)
+    end
+
+    it '.properties should return an PropertySet' do
+      Planet.properties(:legacy).should be_kind_of(DataMapper::PropertySet)
+      Planet.properties(:legacy).should have(5).entries
+    end
+
+    it 'should provide key' do
+      Planet.should respond_to(:key)
+    end
+
+    it '.key should return an Array of Property objects' do
+      Planet.key(:legacy).should be_kind_of(Array)
+      Planet.key(:legacy).should have(1).entries
+      Planet.key(:legacy).first.should be_kind_of(DataMapper::Property)
+    end
+
+    it '.key should use default repository when not passed any arguments' do
+      Planet.key.should == Planet.key(:default)
+    end
+
+    it 'should provide inheritance_property' do
+      Planet.should respond_to(:inheritance_property)
+    end
+
+    it '.inheritance_property should return a Property object' do
+      Planet.inheritance_property(:legacy).should be_kind_of(DataMapper::Property)
+      Planet.inheritance_property(:legacy).name.should == :type
+      Planet.inheritance_property(:legacy).type.should == Class
+    end
+
+    it '.inheritance_property should use default repository when not passed any arguments' do
+      Planet.inheritance_property.should == Planet.inheritance_property(:default)
+    end
+
+    it 'should provide finder methods' do
+      Planet.should respond_to(:get)
+      Planet.should respond_to(:first)
+      Planet.should respond_to(:all)
+      Planet.should respond_to(:[])
+    end
   end
 
   describe 'when retrieving by key' do

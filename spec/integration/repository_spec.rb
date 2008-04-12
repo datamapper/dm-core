@@ -3,11 +3,10 @@ require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 require ROOT_DIR + 'lib/data_mapper'
 
-
 begin
   require 'do_sqlite3'
 
-  DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
+  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
 
   describe DataMapper::Repository do
     describe "finders" do

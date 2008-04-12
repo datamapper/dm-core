@@ -5,10 +5,14 @@ require 'faster_csv'
 begin
   require 'do_sqlite3'
 
+  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
 
   describe DataMapper::Property do
-    describe" tracking strategies" do
+    before do
+      @adapter = repository(:sqlite3).adapter
+    end
 
+    describe" tracking strategies" do
       before do
         class Actor
           include DataMapper::Resource
@@ -24,7 +28,6 @@ begin
             # Potentially faster, but less safe, so use judiciously, when the odds of a hash-collision are low.
         end
 
-        @adapter = DataMapper::Repository.adapters[:sqlite3] || DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
         @adapter.execute <<-EOS.compress_lines
           CREATE TABLE actors (
             id INTEGER PRIMARY KEY,
@@ -86,7 +89,6 @@ begin
 
     describe "lazy loading" do
       before do
-        @adapter = DataMapper::Repository.adapters[:sqlite3] || DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
         @adapter.execute(<<-EOS.compress_lines) rescue nil
           CREATE TABLE "sail_boats" (
             "id" INTEGER PRIMARY KEY,
