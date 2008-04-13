@@ -3,7 +3,7 @@ require __DIR__.parent + 'naming_conventions'
 module DataMapper
   module Adapters
     class AbstractAdapter
-      attr_reader :name, :uri
+      attr_reader :name
       attr_accessor :resource_naming_convention, :field_naming_convention
 
       # Methods dealing with a single resource object
