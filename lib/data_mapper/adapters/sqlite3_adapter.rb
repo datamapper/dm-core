@@ -20,10 +20,10 @@ module DataMapper
         return connnection
       end
 
-      def uri(uri_or_options)
-	uri = super(uri_or_options)
-	uri.path = File.join(Dir.pwd, File.dirname(uri.path), File.basename(uri.path)) unless File.exists?(uri.path)
-	uri
+      def normilize_uri(uri_or_options)
+	      uri = super(uri_or_options)
+	      uri.path = File.join(Dir.pwd, File.dirname(uri.path), File.basename(uri.path)) unless File.exists?(uri.path)
+	      uri
       end
     end # class Sqlite3Adapter
     

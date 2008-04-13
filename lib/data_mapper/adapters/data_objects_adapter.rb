@@ -386,7 +386,7 @@ module DataMapper
 
       include SQL
 
-      def uri(uri_or_options)
+      def normilize_uri(uri_or_options)
         uri_or_options = URI.parse(uri_or_options) if String === uri_or_options
         return uri_or_options                      if URI    === uri_or_options
 

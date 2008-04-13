@@ -3,7 +3,7 @@ require __DIR__.parent + 'naming_conventions'
 module DataMapper
   module Adapters
     class AbstractAdapter
-      attr_reader :name
+      attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention
 
       # Methods dealing with a single resource object
@@ -49,8 +49,9 @@ module DataMapper
       #   raise NotImplementedError
       #   raise ArgumentError unless block_given?
       # end
-
-      def uri(uri_or_options)
+      
+      
+      def normilize_uri(uri_or_options)
         uri_or_options
       end
 
@@ -67,7 +68,7 @@ module DataMapper
         raise ArgumentError, "+uri_or_options+ should be a Hash, a URI or a String but was #{uri_or_options.class}", caller unless [ Hash, URI, String ].any? { |k| k === uri_or_options }
 
         @name = name
-        @uri  = uri(uri_or_options)
+        @uri  = normilize_uri(uri_or_options)
 
         @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Underscored

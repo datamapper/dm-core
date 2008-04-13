@@ -273,7 +273,7 @@ end
       }
 
       adapter = DataMapper::Adapters::DataObjectsAdapter.allocate
-      adapter.uri(options).should ==
+      adapter.normilize_uri(options).should ==
         URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
     end
 
@@ -284,11 +284,11 @@ end
       }
 
       adapter = DataMapper::Adapters::DataObjectsAdapter.allocate
-      adapter.uri(options).should == URI.parse("mysql:///you_can_call_me_al")
+      adapter.normilize_uri(options).should == URI.parse("mysql:///you_can_call_me_al")
     end
 
     it 'should accept the uri when no overrides exist' do
       uri = URI.parse("protocol:///")
-      DataMapper::Adapters::DataObjectsAdapter.allocate.uri(uri).should == uri
+      DataMapper::Adapters::DataObjectsAdapter.allocate.normilize_uri(uri).should == uri
     end
   end
