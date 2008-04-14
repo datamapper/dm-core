@@ -49,14 +49,15 @@ module DataMapper
       #   raise NotImplementedError
       #   raise ArgumentError unless block_given?
       # end
-      
-      
-      def normilize_uri(uri_or_options)
-        uri_or_options
-      end
 
       def batch_insertable?
         false
+      end
+
+      protected
+
+      def normalize_uri(uri_or_options)
+        uri_or_options
       end
 
       private
@@ -68,7 +69,7 @@ module DataMapper
         raise ArgumentError, "+uri_or_options+ should be a Hash, a URI or a String but was #{uri_or_options.class}", caller unless [ Hash, URI, String ].any? { |k| k === uri_or_options }
 
         @name = name
-        @uri  = normilize_uri(uri_or_options)
+        @uri  = normalize_uri(uri_or_options)
 
         @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Underscored
