@@ -7,12 +7,12 @@ module DataMapper
     class Sqlite3Adapter < DataObjectsAdapter
       
       TYPES.merge!({
-	  :integer => 'INTEGER'.freeze,
-	  :string  => 'TEXT'.freeze,
-	  :text    => 'TEXT'.freeze,
-	  :class   => 'TEXT'.freeze,
-	  :boolean => 'INTEGER'.freeze
-	})
+        Fixnum                  => 'INTEGER'.freeze,
+        String                  => 'TEXT'.freeze,
+        DataMapper::Types::Text => 'TEXT'.freeze,
+        Class                   => 'TEXT'.freeze,
+        TrueClass               => 'INTEGER'.freeze
+      })
 
       def create_connection
         connnection = DataObjects::Sqlite3::Connection.new(@uri)

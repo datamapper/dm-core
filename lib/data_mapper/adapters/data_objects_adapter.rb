@@ -280,12 +280,18 @@ module DataMapper
         def create_table_statement(model)
           <<-EOS.compress_lines
             CREATE TABLE #{quote_table_name(model.storage_name(name))} (
-              #{column_schema(model)}
+              #{column_schema_statement(model)}
             )
           EOS
         end
         
-        def column_schema(model)
+        def drop_table_statement(model)
+          <<-EOS.compress_lines
+            DROP TABLE #{quote_table_name(model.storage_name(name))}
+          EOS
+        end
+        
+        def column_schema_statement(model)
           model.properties.map {|p| "#{quote_column_name(p.field)} #{TYPES[p.type]}"}.join(', ')
         end
 

@@ -276,12 +276,31 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
         )
       EOS
     end
+    
+    it "should generate a SQL statement with both the table and column info" do
+      @adapter.create_table_statement(Cheese).should == <<-EOS.compress_lines
+        CREATE TABLE "cheeses" (
+          "id" int,
+          "name" varchar,
+          "color" varchar,
+          "notes" varchar
+        )
+      EOS
+    end
+  end
+
+  describe "#drop_table_statement" do
+    it "should generate a SQL statement with the drop command" do
+      @adapter.drop_table_statement(LittleBox).should == <<-EOS.compress_lines
+        DROP TABLE "little_boxes"
+      EOS
+    end
   end
   
-  describe "#column_schema" do
+  describe "#column_schema_statement" do
     it "should generate a SQL statement with the column names quoted" do
       LittleBox.properties.each do |property|
-        @adapter.column_schema(LittleBox).should include("\"#{property.field}\"")
+        @adapter.column_schema_statement(LittleBox).should include("\"#{property.field}\"")
       end
     end
   end
