@@ -2,6 +2,10 @@ require __DIR__ + 'property_set'
 require __DIR__ + 'type'
 Dir[__DIR__ + 'types/*.rb'].each { |path| require path }
 
+unless defined?(DM)
+  DM = DataMapper::Types
+end
+
 require 'date'
 require 'time'
 require 'bigdecimal'
@@ -106,13 +110,17 @@ module DataMapper
 #    property :body,   DataMapper::Types::Text   # Is lazily loaded by default
 #  end
 #
-# If you want to over-ride the lazy loading on any field you can set it to true or
-# false with the :lazy option.
+# If you want to over-ride the lazy loading on any field you can set it to a 
+# context or false to disable it with the :lazy option. Contexts allow multipule
+# lazy properties to be loaded at one time. If you set :lazy to true, it is placed
+# in the :default context
 #
 #  class Post
 #    include DataMapper::Resource
-#    property :title,  String                                  # Loads normally
-#    property :body,   DataMapper::Types::Text, :lazy => false # The default is now over-ridden
+#    property :title,    String                                  # Loads normally
+#    property :body,     DataMapper::Types::Text, :lazy => false # The default is now over-ridden
+#    property :comment,  String, lazy => [:detailed]             # Loads in the :detailed context
+#    property :author,   String, lazy => [:summary,:detailed]    # Loads in :summary & :detailed context
 #  end
 #
 # Delaying the request for lazy-loaded attributes even applies to objects accessed through
@@ -125,6 +133,8 @@ module DataMapper
 #   Widget[1].components                    # loads when the post object is pulled from database, by default
 #   Widget[1].components.first.body         # loads the values for the body property on all objects in the
 #                                             association, rather than just this one.
+#   Widget[1].components.first.comment      # loads both comment and author for all objects in the association
+#                                           # since they are both in the :detailed context
 #
 # == Keys
 # Properties can be declared as primary or natural keys on a table.
@@ -193,7 +203,7 @@ module DataMapper
     PROPERTY_OPTIONS = [
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-      :format, :index, :check, :ordinal, :auto_validation, :validation_context,
+      :format, :index, :check, :ordinal, :auto_validation, :validates, :unique,
       :lock, :track
     ]
 
@@ -257,10 +267,10 @@ module DataMapper
     def initialize(model, name, type, options)
       raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"               unless Resource === model
       raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                         unless Symbol   === name
-      raise ArgumentError, "+type+ was #{type.class}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
+      raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
 
-      if (unknown_keys = options.keys - PROPERTY_OPTIONS).any?
-        raise ArgumentError, "options contained unknown keys: #{unknown_keys * ', '}"
+      if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
+        raise ArgumentError, "options contained unknown keys: #{unknown_options * ', '}"
       end
 
       @model                  = model
@@ -280,19 +290,12 @@ module DataMapper
       @serial = @options.fetch(:serial, false)
       @key    = (@options[:key] || @serial) == true
 
-      validate_options
       determine_visibility
 
       create_getter
       create_setter
 
       @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
-    end
-
-    def validate_options # :nodoc:
-      @options.each_pair do |k,v|
-        raise ArgumentError, "#{k.inspect} is not a supported option in DataMapper::Property::PROPERTY_OPTIONS" unless PROPERTY_OPTIONS.include?(k)
-      end
     end
 
     def determine_visibility # :nodoc:

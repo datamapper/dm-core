@@ -29,7 +29,10 @@ namespace :dm do
     t.spec_files = Pathname.glob(ENV['FILES'] || __DIR__ + 'spec/**/*_spec.rb')
     unless ENV['NO_RCOV']
       t.rcov = true
-      t.rcov_opts = ['--exclude', 'spec,environment.rb']
+      t.rcov_opts << '--exclude' << 'spec,environment.rb'
+      t.rcov_opts << '--text-summary'
+      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+      t.rcov_opts << '--only-uncovered'
     end
   end
 
@@ -96,8 +99,7 @@ gem_spec = Gem::Specification.new do |s|
   s.executables = ["dm"]
   s.bindir = "bin"
   s.add_dependency("english")
-  s.add_dependency("fastthread")
-  s.add_dependency("json")
+  s.add_dependency("json_pure")
   s.add_dependency("rspec")
   s.add_dependency("data_objects", ">=0.9.0")
   s.add_dependency("english")

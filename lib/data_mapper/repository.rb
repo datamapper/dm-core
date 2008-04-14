@@ -11,7 +11,11 @@ module DataMapper
     end
 
     def self.context
-      Thread.current[:repository_contexts] ||= []
+      Thread.current[:dm_repository_contexts] ||= []
+    end
+
+    def self.default_name
+      :default
     end
 
     attr_reader :name, :adapter

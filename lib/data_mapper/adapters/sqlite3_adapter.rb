@@ -7,12 +7,12 @@ module DataMapper
     class Sqlite3Adapter < DataObjectsAdapter
       
       TYPES.merge!({
-        :integer => 'INTEGER'.freeze,
-        :string  => 'TEXT'.freeze,
-        :text    => 'TEXT'.freeze,
-        :class   => 'TEXT'.freeze,
-        :boolean => 'INTEGER'.freeze
-      })
+	  :integer => 'INTEGER'.freeze,
+	  :string  => 'TEXT'.freeze,
+	  :text    => 'TEXT'.freeze,
+	  :class   => 'TEXT'.freeze,
+	  :boolean => 'INTEGER'.freeze
+	})
 
       def create_connection
         if within_transaction?
@@ -55,7 +55,14 @@ module DataMapper
         command.execute_non_query
       end
 
+      protected
+
+      def normalize_uri(uri_or_options)
+        uri = super(uri_or_options)
+        uri.path = File.join(Dir.pwd, File.dirname(uri.path), File.basename(uri.path)) unless File.exists?(uri.path)
+        uri
+      end
     end # class Sqlite3Adapter
-    
+
   end # module Adapters
 end # module DataMapper

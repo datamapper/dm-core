@@ -3,16 +3,6 @@ module DataMapper
   # Tracks objects to help ensure that each object gets loaded only once.
   # See: http://www.martinfowler.com/eaaCatalog/identityMap.html
   class IdentityMap
-
-    def initialize(second_level_cache = nil)
-      @second_level_cache = second_level_cache
-      @cache = if second_level_cache.nil?
-        Hash.new { |h,k| h[k] = Hash.new }
-      else
-        Hash.new { |h,k| h[k] = Hash.new { |h2,k2| h2[k2] = @second_level_cache.get(k, k2) } }
-      end
-    end
-
     # Pass a Class and a key, and to retrieve a resource.
     # If the resource isn't found, nil is returned.
     def get(model, key)
@@ -42,5 +32,15 @@ module DataMapper
       @cache.delete(model)
     end
 
+    private
+
+    def initialize(second_level_cache = nil)
+      @second_level_cache = second_level_cache
+      @cache = if second_level_cache.nil?
+        Hash.new { |h,k| h[k] = Hash.new }
+      else
+        Hash.new { |h,k| h[k] = Hash.new { |h2,k2| h2[k2] = @second_level_cache.get(k, k2) } }
+      end
+    end
   end # class IdentityMap
 end # module DataMapper

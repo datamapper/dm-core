@@ -11,7 +11,7 @@ module DataMapper
       
       def install_hook(type, name, method_sym = nil, &block)
         (hooks[name][type] ||= []) << if block
-          new_meth_name = "__hooks_#{type}_#{name}_#{hooks[name][type].length}".to_sym
+          new_meth_name = "__hooks_#{type}_#{quote_method(name)}_#{hooks[name][type].length}".to_sym
           define_method new_meth_name, block
           new_meth_name
         else
@@ -38,7 +38,7 @@ module DataMapper
           "  super(#{args})\n"
         else
           <<-EOF  
-            (@__hooks_#{name}_old_method || @__hooks_#{name}_old_method = 
+            (@__hooks_#{quote_method(name)}_old_method || @__hooks_#{quote_method(name)}_old_method = 
               self.class.hooks[:#{name}][:old_method].bind(self)).call(#{args})
           EOF
         end
@@ -53,8 +53,9 @@ module DataMapper
           when Symbol
             method_def << "  #{e}(#{args})\n"
           else
-            method_def << "(@__hooks_#{name}_#{i} || "
-            method_def << "  @__hooks_#{name}_#{i} = self.class.hooks[:#{name}][:#{type}][#{i}])"
+	    # TODO: Test this. Testing order should be before, after and after, before
+            method_def << "(@__hooks_#{quote_method(name)}_#{type}_#{i} || "
+            method_def << "  @__hooks_#{quote_method(name)}_#{type}_#{i} = self.class.hooks[:#{name}][:#{type}][#{i}])"
             method_def << ".call #{args}\n"
           end
         end
@@ -76,6 +77,10 @@ module DataMapper
       
       def hooks
         @hooks ||= Hash.new { |h, k| h[k] = {} }
+      end
+
+      def quote_method(name)
+	name.to_s.gsub(/\?$/, '_q_').gsub(/!$/, '_b_')
       end
 
       def after(target_method, method_sym = nil, &block)

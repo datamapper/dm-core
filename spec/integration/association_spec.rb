@@ -1,12 +1,12 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
-require __DIR__.parent.parent + 'lib/data_mapper'
+require ROOT_DIR + 'lib/data_mapper'
 
 begin
   require 'do_sqlite3'
 
-  DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
+  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
 
   class Engine
     include DataMapper::Resource

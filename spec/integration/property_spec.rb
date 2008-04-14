@@ -5,14 +5,18 @@ require 'faster_csv'
 begin
   require 'do_sqlite3'
 
+  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
 
   describe DataMapper::Property do
+    before do
+      @adapter = repository(:sqlite3).adapter
+    end
+
     describe" tracking strategies" do
-    
       before do
         class Actor
           include DataMapper::Resource
-        
+
           property :id, Fixnum, :serial => true
           property :name, String, :lock => true
           property :notes, DataMapper::Types::Text, :track => false
@@ -23,8 +27,7 @@ begin
           property :agent, String, :track => :hash # :track only Object#hash value on :load.
             # Potentially faster, but less safe, so use judiciously, when the odds of a hash-collision are low.
         end
-      
-        @adapter = DataMapper::Repository.adapters[:sqlite3] || DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
+
         @adapter.execute <<-EOS.compress_lines
           CREATE TABLE actors (
             id INTEGER PRIMARY KEY,
@@ -38,7 +41,7 @@ begin
           )
         EOS
       end
-    
+
       it "false" do
         pending("Implementation...")
         DataMapper::Resource::DIRTY.should_not be_nil
@@ -46,7 +49,7 @@ begin
         bob.original_attributes.should have_key(:name)
         bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
       end
-    
+
       it ":load" do
         pending("Implementation...")
         DataMapper::Resource::DIRTY.should_not be_nil
@@ -54,7 +57,7 @@ begin
         bob.original_attributes.should have_key(:name)
         bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
       end
-    
+
       it ":hash" do
         pending("Implementation...")
         DataMapper::Resource::DIRTY.should_not be_nil
@@ -62,7 +65,7 @@ begin
         bob.original_attributes.should have_key(:name)
         bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
       end
-    
+
       it ":get" do
         pending("Implementation...")
         DataMapper::Resource::DIRTY.should_not be_nil
@@ -70,7 +73,7 @@ begin
         bob.original_attributes.should have_key(:name)
         bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
       end
-    
+
       it ":set" do
         pending("Implementation...")
         DataMapper::Resource::DIRTY.should_not be_nil
@@ -78,15 +81,14 @@ begin
         bob.original_attributes.should have_key(:name)
         bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
       end
-      
+
       after do
         @adapter.execute("DROP TABLE actors")
       end
     end
-    
+
     describe "lazy loading" do
       before do
-        @adapter = DataMapper::Repository.adapters[:sqlite3] || DataMapper.setup(:sqlite3, "sqlite3://#{__DIR__}/integration_test.db")
         @adapter.execute(<<-EOS.compress_lines) rescue nil
           CREATE TABLE "sail_boats" (
             "id" INTEGER PRIMARY KEY,
@@ -137,10 +139,10 @@ begin
        @adapter.execute('DROP TABLE "sail_boats"')
       end
 
-    end  
+    end
 
   end
-  
+
 rescue LoadError
   warn "integration/property_spec not run! Could not load do_sqlite3."
 end
