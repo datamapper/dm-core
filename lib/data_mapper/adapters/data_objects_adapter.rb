@@ -277,10 +277,16 @@ module DataMapper
           EOS
         end
         
-        def create_store_statement(model)
+        def create_table_statement(model)
           <<-EOS.compress_lines
-            CREATE TABLE #{quote_table_name(model.storage_name(name)))}
+            CREATE TABLE #{quote_table_name(model.storage_name(name))} (
+              #{column_schema(model)}
+            )
           EOS
+        end
+        
+        def column_schema(model)
+          model.properties.map {|p| "#{quote_column_name(p.field)} #{TYPES[p.type]}"}.join(', ')
         end
 
         def query_read_statement(query)

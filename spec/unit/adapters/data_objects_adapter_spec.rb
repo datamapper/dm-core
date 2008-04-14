@@ -258,6 +258,33 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       EOS
     end
   end
+  
+  describe "#create_table_statement" do
+    it "should generate a SQL statement starting with the table info" do
+      @adapter.create_table_statement(Cheese).should =~ /^#{<<-EOS.compress_lines}/
+        CREATE TABLE "cheeses"
+      EOS
+    end
+    
+    it "should generate a SQL statement with the column info" do
+      @adapter.create_table_statement(Cheese).should include(<<-EOS.compress_lines)
+        (
+          "id" int,
+          "name" varchar,
+          "color" varchar,
+          "notes" varchar
+        )
+      EOS
+    end
+  end
+  
+  describe "#column_schema" do
+    it "should generate a SQL statement with the column names quoted" do
+      LittleBox.properties.each do |property|
+        @adapter.column_schema(LittleBox).should include("\"#{property.field}\"")
+      end
+    end
+  end
 end
 
   describe '#uri options' do

@@ -30,6 +30,10 @@ module DataMapper
       def drop_store(repository, resource)
         raise NotImplementedError
       end
+      
+      def alter_store(repository, resource)
+        raise NotImplemetedError
+      end
 
       # Methods dealing with locating a single object, by keys
       def read_one(repository, query)
