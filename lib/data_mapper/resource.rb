@@ -57,7 +57,7 @@ module DataMapper
       end
 
       dirty_attributes << property
-      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value) : value)
+      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value) : property.typecast(value))
     end
 
     def repository
@@ -144,11 +144,12 @@ module DataMapper
     # Mass-assign mapped fields.
     def attributes=(values_hash)
       values_hash.each_pair do |k,v|
-        setter = "#{k.to_s.sub(/\?\z/, '')}="
+        setter = k.to_s.sub(/\?\z/, '')
         # We check #public_methods and not Class#public_method_defined? to
         # account for singleton methods.
         if public_methods.include?(setter)
-          send(setter, v)
+          self[setter] = v
+          # send(setter, v)
         end
       end
     end

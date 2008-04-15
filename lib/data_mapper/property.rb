@@ -261,6 +261,24 @@ module DataMapper
     def inspect
       "#<Property:#{@model}:#{@name}>"
     end
+    
+    def typecast(value)
+      if type == TrueClass
+        value == true || value == "true"
+      elsif type == String
+        value.to_s
+      elsif [Float, Fixnum, BigDecimal].include?(type)
+        value.to_f
+      elsif type == DateTime
+        Time.parse(value)
+      elsif type == Date
+        Date.parse(value)
+      elsif type == Class
+        Object.recursive_const_get(value)
+      else
+        value
+      end
+    end
 
     private
 
