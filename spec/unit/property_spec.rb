@@ -43,7 +43,6 @@ describe DataMapper::Property do
     options[:size].should == 50
   end
 
-
   it "should determine nullness" do
     DataMapper::Property.new(Tomato,:botanical_name,String,{:nullable => true}).options[:nullable].should == true
   end
@@ -145,4 +144,81 @@ describe DataMapper::Property do
     DataMapper::Property.new(Zoo, :fortune, DataMapper::Types::Text, {}).primitive.should == String
   end
 
+  it 'should provide typecast' do
+    DataMapper::Property.new(Zoo, :name, String).should respond_to(:typecast)
+  end
+
+  it 'should pass through the value if it is the same type when typecasting' do
+    value = 'San Diego'
+    property = DataMapper::Property.new(Zoo, :name, String)
+    property.typecast(value).object_id.should == value.object_id
+  end
+
+  it 'should pass through the value nil when typecasting' do
+    property = DataMapper::Property.new(Zoo, :string, String)
+    property.typecast(nil).should == nil
+  end
+
+  it 'should typecast value (true) for a TrueClass property' do
+    property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
+    property.typecast(true).should == true
+  end
+
+  it 'should typecast value ("true") for a TrueClass property' do
+    property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
+    property.typecast('true').should == true
+  end
+
+  it 'should typecast value for a String property' do
+    property = DataMapper::Property.new(Zoo, :string, String)
+    property.typecast(0).should == '0'
+  end
+
+  it 'should typecast value for a Float property' do
+    property = DataMapper::Property.new(Zoo, :float, Float)
+    property.typecast('0.0').should == 0.0
+  end
+
+  it 'should typecast value for a Fixnum property' do
+    property = DataMapper::Property.new(Zoo, :fixnum, Fixnum)
+    property.typecast('0').should == 0
+  end
+
+  it 'should typecast value for a BigDecimal property' do
+    property = DataMapper::Property.new(Zoo, :big_decimal, BigDecimal)
+    property.typecast(0.0).should == BigDecimal.new('0.0')
+  end
+
+  it 'should typecast value for a DateTime property' do
+    property = DataMapper::Property.new(Zoo, :date_time, DateTime)
+    property.typecast('2000-01-01 00:00:00').should == DateTime.new(2000, 1, 1, 0, 0, 0)
+  end
+
+  it 'should typecast value for a Date property' do
+    property = DataMapper::Property.new(Zoo, :date, Date)
+    property.typecast('2000-01-01').should == Date.new(2000, 1, 1)
+  end
+
+  it 'should typecast value for a Class property' do
+    property = DataMapper::Property.new(Zoo, :class, Class)
+    property.typecast('Zoo').should == Zoo
+  end
+
+  it 'should pass through the value for an Object property' do
+    value = 'a ruby object'
+    property = DataMapper::Property.new(Zoo, :object, Object)
+    property.typecast(value).object_id.should == value.object_id
+  end
+
+  it 'should provide inspect' do
+    DataMapper::Property.new(Zoo, :name, String).should respond_to(:inspect)
+  end
+
+  it 'should return an abbreviated representation of the property when inspected' do
+    DataMapper::Property.new(Zoo, :name, String).inspect.should == '#<Property:Zoo:name>'
+  end
+
+  it 'should raise a SyntaxError when the name contains invalid characters' do
+    lambda { DataMapper::Property.new(Zoo, :"with space", TrueClass) }.should raise_error(SyntaxError)
+  end
 end

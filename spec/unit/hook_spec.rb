@@ -185,7 +185,22 @@ describe "DataMapper::Hook" do
       end
 
       @class.new.a_method
-    end  end
+    end  
+
+    it "the advised method should still return its normal value" do
+      @class.class_eval do
+	def returner
+	  1
+        end
+
+	after :returner do
+	  2
+        end
+      end
+
+      @class.new.returner.should == 1
+    end
+  end
 
   it 'should allow the use of before and after together' do
     tester = mock("tester")
@@ -239,10 +254,12 @@ describe "DataMapper::Hook" do
     @class.new.a_method?
   end
 
-  it "should allow advising methods ending in ? or ! when passing methods as advices" do
+  it "should allow advising methods ending in ?, ! or = when passing methods as advices" do
     tester = mock("tester")
-    tester.should_receive(:before).ordered.once
+    tester.should_receive(:before_bang).ordered.once
     tester.should_receive(:method!).ordered.once
+    tester.should_receive(:before_eq).ordered.once
+    tester.should_receive(:method_eq).ordered.once
     tester.should_receive(:method?).ordered.once
     tester.should_receive(:after).ordered.once
 
@@ -255,11 +272,21 @@ describe "DataMapper::Hook" do
 	tester.method?
       end
 
+      define_method :a_method= do |value|
+	tester.method_eq
+      end
+
       define_method :before_a_method_bang do
-        tester.before
+        tester.before_bang
       end
 
       before :a_method!, :before_a_method_bang
+
+      define_method :before_a_method_eq do
+        tester.before_eq
+      end
+
+      before :a_method=, :before_a_method_eq
 
       define_method :after_a_method_question do
         tester.after
@@ -269,6 +296,32 @@ describe "DataMapper::Hook" do
     end
 
     @class.new.a_method!
+    @class.new.a_method = 1
     @class.new.a_method?
+  end
+
+  it "should complain when only one argument is passed" do
+    lambda do
+      @class.class_eval do
+	before :a_method
+	after :a_method
+      end
+    end.should raise_error(ArgumentError)
+  end
+
+  it "should complain when target_method is not a symbol" do
+    lambda do
+      @class.class_eval do
+	before "target", :something
+      end
+    end.should raise_error(ArgumentError)
+  end
+
+  it "should complain when method_sym is not a symbol" do
+    lambda do
+      @class.class_eval do
+	before :target, "something"
+      end
+    end.should raise_error(ArgumentError)
   end
 end
