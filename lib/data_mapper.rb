@@ -38,6 +38,7 @@ require __DIR__ + 'data_mapper/query'
 require __DIR__ + 'data_mapper/adapters/abstract_adapter'
 require __DIR__ + 'data_mapper/cli'
 require __DIR__ + 'data_mapper/migrator'
+require __DIR__ + 'data_mapper/auto_migrations'
 
 module DataMapper
   def self.setup(name, uri_or_options)

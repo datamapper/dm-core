@@ -88,6 +88,14 @@ module DataMapper
         false
       end
     end
+    
+    def migrate!
+      Migrator.migrate(self)
+    end
+    
+    def auto_migrate!
+      AutoMigrator.auto_migrate(self)
+    end
 
     private
 
