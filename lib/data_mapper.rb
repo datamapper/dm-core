@@ -95,11 +95,11 @@ module DataMapper
     end
   end
   
-  def migrate!(name = :default)
-    self.repository(name).migrate!
+  def self.migrate!(name = :default)
+    repository(name).migrate!
   end
   
-  def auto_migrate!(name = :default)
-    self.repository(name).auto_migrate!
+  def self.auto_migrate!(name = :default)
+    repository(name).auto_migrate!
   end
 end

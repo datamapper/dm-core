@@ -155,9 +155,9 @@ module DataMapper
         DataMapper.logger.debug { "CREATE TABLE: #{model.storage_name(name)}  COLUMNS: #{model.properties.map {|p| p.field}.join(', ')}" }
 
         connection = create_connection
-        command = connection.create_object_store(model)
+        command = connection.create_command(create_table_statement(model))
 
-        result = command.execute_non_query(*values)
+        result = command.execute_non_query
 
         close_connection(connection)
 

@@ -69,8 +69,8 @@ describe DataMapper::AutoMigrations do
       
       models.each do |model|
         DataMapper::AutoMigrator.models << model
-        @adapter.should_receive(:destroy_store).with(model)
-        @adapter.should_receive(:create_store).with(model)
+        @adapter.should_receive(:destroy_store).with(@repository, model)
+        @adapter.should_receive(:create_store).with(@repository, model)
       end
       
       DataMapper::AutoMigrator.auto_migrate(@repository)
