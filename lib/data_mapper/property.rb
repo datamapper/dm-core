@@ -263,11 +263,15 @@ module DataMapper
     end
     
     def typecast(value)
+      return value if type === value
+      
       if type == TrueClass
         value == true || value == "true"
       elsif type == String
         value.to_s
-      elsif [Float, Fixnum, BigDecimal].include?(type)
+      elsif Fixnum
+        value.to_i
+      elsif [Float, BigDecimal].include?(type)
         value.to_f
       elsif type == DateTime
         Time.parse(value)
