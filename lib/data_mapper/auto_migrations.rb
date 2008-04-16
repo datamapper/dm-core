@@ -1,39 +1,23 @@
+require __DIR__ + 'migrator'
+
 module DataMapper
   module AutoMigrations
+    def self.included(model)
+      DataMapper::AutoMigrator.models << model
+    end
+  end
+  
+  class AutoMigrator
     
-    def self.klasses
-      @klasses ||= []
+    def self.models
+      @@models ||= []
     end
     
-    def self.included(klass)
-      klass.extend(ClassMethods)
-      #klass.send(:include, InstanceMethods)
-      
-      klasses << klass
-    end
-    
-    def self.auto_migrate!
-      klasses.each do |klass|
-        klass.auto_migrate!
+    def self.auto_migrate(repository)
+      models.each do |model|
+        repository.adapter.destroy_object_store(model)
+        repository.adapter.create_object_store(model)
       end
     end
-    
-    module ClassMethods
-      
-      def auto_migrate!
-        drop_object_store!
-        create_object_store!
-      end
-      
-    private
-      
-      def drop_object_store!
-        raise NotImplementedError
-      end
-      
-      def create_object_store!
-        raise NotImplementedError
-      end
-    end
-  end # module AutoMigrations
+  end
 end # module DataMapper

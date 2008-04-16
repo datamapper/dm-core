@@ -2,6 +2,14 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 describe DataMapper::Migrator do
+  before(:each) do
+    DataMapper::Migrator.subclasses.clear
+  end
+  
+  after(:each) do
+    DataMapper::Migrator.subclasses.clear
+  end
+  
   it "should keep track of subclasses" do
     lambda { Class.new(DataMapper::Migrator) }.should change{ DataMapper::Migrator.subclasses.size }.by(1)
   end
