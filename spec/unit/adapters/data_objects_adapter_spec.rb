@@ -318,8 +318,8 @@ end
         :socket => 'nosock'
       }
 
-      adapter = DataMapper::Adapters::DataObjectsAdapter.allocate
-      adapter.uri(options).should ==
+      adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
+      adapter.uri.should ==
         URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
     end
 
@@ -329,12 +329,12 @@ end
         :database => 'you_can_call_me_al'
       }
 
-      adapter = DataMapper::Adapters::DataObjectsAdapter.allocate
-      adapter.uri(options).should == URI.parse("mysql:///you_can_call_me_al")
+      adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
+      adapter.uri.should == URI.parse("mysql:///you_can_call_me_al")
     end
 
     it 'should accept the uri when no overrides exist' do
       uri = URI.parse("protocol:///")
-      DataMapper::Adapters::DataObjectsAdapter.allocate.uri(uri).should == uri
+      DataMapper::Adapters::DataObjectsAdapter.new(:spec, uri).uri.should == uri
     end
   end
