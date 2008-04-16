@@ -37,6 +37,7 @@ require __DIR__ + 'data_mapper/resource'
 require __DIR__ + 'data_mapper/query'
 require __DIR__ + 'data_mapper/adapters/abstract_adapter'
 require __DIR__ + 'data_mapper/cli'
+require __DIR__ + 'data_mapper/migrator'
 
 module DataMapper
   def self.setup(name, uri_or_options)
@@ -91,5 +92,13 @@ module DataMapper
         Repository.context.pop
       end
     end
+  end
+  
+  def migrate!(name = :default)
+    self.repository(name).migrate!
+  end
+  
+  def auto_migrate!(name = :default)
+    self.repository(name).auto_migrate!
   end
 end
