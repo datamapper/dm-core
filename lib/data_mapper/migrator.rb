@@ -4,6 +4,10 @@ module DataMapper
       @@subclasses ||= []
     end
     
+    def self.subclasses=(obj)
+      @@subclasses = obj
+    end
+    
     def self.inherited(klass)
       subclasses << klass
       
@@ -15,13 +19,9 @@ module DataMapper
     end
     
     def self.migrate(repository)
-      subklasses = subclasses.dup
-      until subclasses.empty?
-        migrator = subclasses.shift
-        #DataMapper.logger.debug!("Loading: #{migrator}") if ENV['DEBUG']
-        Object.const_get(migrator).migrate(repository)
-      end
-      self.subclasses = subklasses
+      subclasses.collect do |migrator|
+        migrator.migrate(repository)
+      end.flatten
     end
   end
 end
