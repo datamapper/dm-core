@@ -8,8 +8,16 @@ module DataMapper
       def before(target_method, method_sym = nil, &block)
         install_hook :before, target_method, method_sym, &block 
       end
+
+      def after(target_method, method_sym = nil, &block)
+        install_hook :after, target_method, method_sym, &block 
+      end
       
       def install_hook(type, name, method_sym = nil, &block)
+	raise ArgumentError.new("You need to pass 2 arguments to \"#{type}\".") if ! block_given? and method_sym.nil?
+	raise ArgumentError.new("target_method should be a symbol") unless name.is_a?(Symbol)
+	raise ArgumentError.new("method_sym should be a symbol") if method_sym && ! method_sym.is_a?(Symbol)
+
         (hooks[name][type] ||= []) << if block
           new_meth_name = "__hooks_#{type}_#{quote_method(name)}_#{hooks[name][type].length}".to_sym
           define_method new_meth_name, block
@@ -21,14 +29,16 @@ module DataMapper
         class_eval define_advised_method(name), __FILE__, __LINE__
       end
       
+      # FIXME Return the method value
       def define_advised_method(name)
         args = args_for(hooks[name][:old_method] ||= instance_method(name))
 
         <<-EOD 
           def #{name}(#{args})
             #{inline_hooks(name, :before, args)}
-            #{inline_call(name, args)}
+            retval = #{inline_call(name, args)}
             #{inline_hooks(name, :after, args)}
+	    retval
           end
         EOD
       end
@@ -80,11 +90,7 @@ module DataMapper
       end
 
       def quote_method(name)
-	name.to_s.gsub(/\?$/, '_q_').gsub(/!$/, '_b_')
-      end
-
-      def after(target_method, method_sym = nil, &block)
-        install_hook :after, target_method, method_sym, &block 
+	name.to_s.gsub(/\?$/, '_q_').gsub(/!$/, '_b_').gsub(/=$/, '_eq_')
       end
     end
   end # module Hook
