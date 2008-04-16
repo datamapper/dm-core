@@ -9,7 +9,6 @@ describe DataMapper::AutoMigrations do
 
   before :all do
     DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
-    DataMapper::AutoMigrator.models.clear
     
     @cow = Class.new do
       include DataMapper::Resource
@@ -18,6 +17,14 @@ describe DataMapper::AutoMigrations do
       property :name, String, :key => true
       property :age, Fixnum
     end
+  end
+  
+  before(:each) do
+    DataMapper::AutoMigrator.models.clear
+  end
+  
+  after(:each) do
+    DataMapper::AutoMigrator.models.clear
   end
   
   it "should add the resource class to AutoMigrator's models on a mixin" do
@@ -49,5 +56,25 @@ describe DataMapper::AutoMigrations do
     
     DataMapper::AutoMigrator.models.should include(model_class)
     migrator_class.models.should include(model_class)
+  end
+  
+  describe "#auto_migrate" do
+    before(:each) do
+      @repository = mock(:repository)
+      @adapter = mock(:adapter)
+      @repository.stub!(:adapter).and_return(@adapter)
+    end
+    
+    it "should call the repository's adapter's #destroy_object_store and #create_object_store method with each model" do
+      models = [:cat, :dog, :fish, :cow]
+      
+      models.each do |model|
+        DataMapper::AutoMigrator.models << model
+        @adapter.should_receive(:destroy_object_store).with(model)
+        @adapter.should_receive(:create_object_store).with(model)
+      end
+      
+      DataMapper::AutoMigrator.auto_migrate(@repository)
+    end
   end
 end
