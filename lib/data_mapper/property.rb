@@ -261,26 +261,21 @@ module DataMapper
     def inspect
       "#<Property:#{@model}:#{@name}>"
     end
-    
+
     def typecast(value)
-      return value if type === value
-      
-      if type == TrueClass
-        value == true || value == "true"
-      elsif type == String
-        value.to_s
-      elsif Fixnum
-        value.to_i
-      elsif [Float, BigDecimal].include?(type)
-        value.to_f
-      elsif type == DateTime
-        Time.parse(value)
-      elsif type == Date
-        Date.parse(value)
-      elsif type == Class
-        Object.recursive_const_get(value)
-      else
-        value
+      return value if type === value || value.nil?
+
+      case type
+        when TrueClass  then value == true || value == 'true'
+        when String     then value.to_s
+        when Float      then value.to_f
+        when Fixnum     then value.to_i
+        when BigDecimal then BigDecimal.new(value.to_s)
+        when DateTime   then DateTime.parse(value)
+        when Date       then Date.parse(value)
+        when Class      then Object.recursive_const_get(value)
+        else
+          value
       end
     end
 
@@ -333,12 +328,7 @@ module DataMapper
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{reader_visibility}
         def #{@getter}
-          unless @new_record || defined?(#{@instance_variable_name})
-            if @loaded_set
-              @loaded_set.reload!(:fields => self.class.properties(self.class.repository.name).lazy_load_context(#{name.inspect}))
-            end
-          end
-          #{custom? ? "#{@type.inspect}.load(#{@instance_variable_name})" : @instance_variable_name}
+          self[#{name.inspect}]
         end
       EOS
     rescue SyntaxError
@@ -350,9 +340,7 @@ module DataMapper
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{writer_visibility}
         def #{name}=(value)
-          #{lock? ? "@shadow_#{name} = #{@instance_variable_name}" : ''}
-          dirty_attributes << self.class.properties(repository.name)[#{name.inspect}]
-          #{@instance_variable_name} = #{custom? ? "#{@type.inspect}.dump(value)" : 'value'}
+          self[#{name.inspect}] = value
         end
       EOS
     rescue SyntaxError
