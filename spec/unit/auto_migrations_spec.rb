@@ -36,7 +36,7 @@ describe DataMapper::AutoMigrations do
     DataMapper::AutoMigrator.models.should include(@class)
   end
   
-  it "should not conflict with Migrator's models on a mixin" do
+  it "should not conflict with other Migrators on a mixin" do
     migrator_class = Class.new(DataMapper::Migrator)
     
     included_proc = lambda { |model| migrator_class.models << model }
@@ -47,7 +47,6 @@ describe DataMapper::AutoMigrations do
     
     model_class = Class.new do
       include DataMapper::Resource
-      include DataMapper::AutoMigrations
       include migrator_mixin
       
       property :name, String

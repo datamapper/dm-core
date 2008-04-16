@@ -17,6 +17,7 @@ module DataMapper
       base.extend DataMapper::Associations
       base.send(:include, DataMapper::Hook)
       base.send(:include, DataMapper::Scope)
+      base.send(:include, DataMapper::AutoMigrations)
     end
 
     def self.dependencies
