@@ -43,7 +43,11 @@ describe DataMapper::Adapters::AbstractAdapter do
     lambda { @adapter.create_store(:repository, :resource) }.should raise_error(NotImplementedError)
   end
   
-  it "should raise NotImplementedError when #drop_store is called" do
-    lambda { @adapter.create_store(:repository, :resource) }.should raise_error(NotImplementedError)
+  it "should raise NotImplementedError when #destroy_store is called" do
+    lambda { @adapter.destroy_store(:repository, :resource) }.should raise_error(NotImplementedError)
+  end
+  
+  it "should raise NotImplementedError when #alter_store is called" do
+    lambda { @adapter.alter_store(:repository, :resource) }.should raise_error(NotImplementedError)
   end
 end

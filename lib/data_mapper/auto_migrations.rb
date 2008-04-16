@@ -15,8 +15,8 @@ module DataMapper
     
     def self.auto_migrate(repository)
       models.each do |model|
-        repository.adapter.destroy_object_store(model)
-        repository.adapter.create_object_store(model)
+        repository.adapter.destroy_store(model)
+        repository.adapter.create_store(model)
       end
     end
   end

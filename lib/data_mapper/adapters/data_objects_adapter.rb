@@ -150,6 +150,19 @@ module DataMapper
 
         affected_rows == 1
       end
+      
+      def create_store(repository, model)
+        DataMapper.logger.debug { "CREATE TABLE: #{model.storage_name(name)}  COLUMNS: #{model.properties.map {|p| p.field}.join(', ')}" }
+
+        connection = create_connection
+        command = connection.create_object_store(model)
+
+        result = command.execute_non_query(*values)
+
+        close_connection(connection)
+
+        result.to_i == 1
+      end
 
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)

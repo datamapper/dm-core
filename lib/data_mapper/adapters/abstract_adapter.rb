@@ -23,16 +23,16 @@ module DataMapper
         raise NotImplementedError
       end
       
-      def create_store(repository, resource)
+      def create_store(repository, model)
         raise NotImplementedError
       end
       
-      def drop_store(repository, resource)
+      def destroy_store(repository, model)
         raise NotImplementedError
       end
       
-      def alter_store(repository, resource)
-        raise NotImplemetedError
+      def alter_store(repository, model)
+        raise NotImplementedError
       end
 
       # Methods dealing with locating a single object, by keys
