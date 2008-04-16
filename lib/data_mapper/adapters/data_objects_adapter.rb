@@ -163,6 +163,19 @@ module DataMapper
 
         result.to_i == 1
       end
+      
+      def destroy_store(repository, model)
+        DataMapper.logger.debug { "DROP TABLE: #{model.storage_name(name)}"}
+        
+        connection = create_connection
+        command = connection.create_command(drop_table_statement(model))
+
+        result = command.execute_non_query
+
+        close_connection(connection)
+
+        result.to_i == 1
+      end
 
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
