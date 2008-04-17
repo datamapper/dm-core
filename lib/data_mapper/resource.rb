@@ -1,3 +1,4 @@
+require 'set'
 require __DIR__ + 'support/string'
 require __DIR__ + 'property_set'
 require __DIR__ + 'property'
@@ -103,7 +104,7 @@ module DataMapper
     end
 
     def dirty_attributes
-      @dirty_attributes ||= []
+      @dirty_attributes ||= Set.new
     end
 
     def dirty?
