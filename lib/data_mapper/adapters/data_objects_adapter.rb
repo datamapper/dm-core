@@ -18,12 +18,16 @@ module DataMapper
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
-
-      def self.inherited(base)
-        base.const_set('TYPES', TYPES.dup)
+      
+      def self.type_map=(value)
+        @type_map = value
       end
-
-      TYPES = {
+      
+      def self.type_map
+        @type_map ||= {}
+      end
+      
+      self.type_map = {
         Fixnum                  => 'int'.freeze,
         String                  => 'varchar'.freeze,
         DataMapper::Types::Text => 'text'.freeze,
@@ -35,6 +39,10 @@ module DataMapper
         TrueClass               => 'boolean'.freeze,
         Object                  => 'text'.freeze
       }
+      
+      def type_map
+        self.class.type_map
+      end
 
       def begin_transaction
         raise NotImplementedError
@@ -322,7 +330,7 @@ module DataMapper
         end
         
         def column_schema_statement(model)
-          model.properties.map {|p| "#{quote_column_name(p.field)} #{TYPES[p.type]}"}.join(', ')
+          model.properties.map {|p| "#{quote_column_name(p.field)} #{type_map[p.type]}"}.join(', ')
         end
 
         def query_read_statement(query)

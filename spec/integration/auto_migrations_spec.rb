@@ -19,41 +19,9 @@ class Book
 end
 
 describe "common type map", :shared => true do
-  it "should create the id column as an int" do
-    @table_set.any? {|c| c[@col_identifier] == "id" && c.type == "int"}.should be_true
-  end
-  
-  it "should create the isbn column as a varchar" do
-    p @table_set
-    @table_set.any? {|c| c[@col_identifier] == "isbn" && c.type == "varchar"}.should be_true
-  end
   
   it "should create the published column as a datetime" do
     @table_set.any? {|c| c[@col_identifier] == "published" && c.type == "date"}.should be_true
-  end
-  
-  it "should create the available column as a boolean" do
-    @table_set.any? {|c| c[@col_identifier] == "available" && c.type == "boolean"}.should be_true
-  end
-  
-  it "should create the description column as text" do
-    @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "text"}.should be_true
-  end
-  
-  it "should create the classification column as a varchar" do
-    @table_set.any? {|c| c[@col_identifier] == "classification" && c.type == "varchar"}.should be_true
-  end
-  
-  it "should create the price column as a decimal" do
-    @table_set.any? {|c| c[@col_identifier] == "price" && c.type == "decimal"}.should be_true
-  end
-  
-  it "should create the in_print column as a float " do
-    @table_set.any? {|c| c[@col_identifier] == "in_print" && c.type == "float"}.should be_true
-  end
-  
-  it "should create the inventoried column as a datetime" do
-    @table_set.any? {|c| c[@col_identifier] == "inventoried" && c.type == "datetime"}.should be_true
   end
   
   it "should create the pdf column as text" do
@@ -86,7 +54,37 @@ begin
         @col_identifier = "name"
       end
       
+      it "should create the id column as an int" do
+        @table_set.any? {|c| c[@col_identifier] == "id" && c.type == "int"}.should be_true
+      end
       
+      it "should create the isbn column as a varchar" do
+        @table_set.any? {|c| c[@col_identifier] == "isbn" && c.type == "varchar"}.should be_true
+      end
+      
+      it "should create the available column as a boolean" do
+        @table_set.any? {|c| c[@col_identifier] == "available" && c.type == "boolean"}.should be_true
+      end
+      
+      it "should create the description column as text" do
+        @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "text"}.should be_true
+      end
+      
+      it "should create the classification column as a varchar" do
+        @table_set.any? {|c| c[@col_identifier] == "classification" && c.type == "varchar"}.should be_true
+      end
+      
+      it "should create the price column as a decimal" do
+        @table_set.any? {|c| c[@col_identifier] == "price" && c.type == "decimal"}.should be_true
+      end
+      
+      it "should create the in_print column as a float " do
+        @table_set.any? {|c| c[@col_identifier] == "in_print" && c.type == "float"}.should be_true
+      end
+      
+      it "should create the inventoried column as a datetime" do
+        @table_set.any? {|c| c[@col_identifier] == "inventoried" && c.type == "datetime"}.should be_true
+      end
     end
   end
 rescue LoadError => e
@@ -120,6 +118,38 @@ begin
         Book.auto_migrate!(:mysql)
         @table_set = @adapter.query("describe `books`;")
         @col_identifier = "field"
+      end
+      
+      it "should create the id column as an int(11)" do
+        @table_set.any? {|c| c[@col_identifier] == "id" && c.type == "int(11)"}.should be_true
+      end
+      
+      it "should create the isbn column as a varchar(100)" do
+        @table_set.any? {|c| c[@col_identifier] == "isbn" && c.type == "varchar(100)"}.should be_true
+      end
+      
+      it "should create the available column as a tinyint(1)" do
+        @table_set.any? {|c| c[@col_identifier] == "available" && c.type == "tinyint(1)"}.should be_true
+      end
+      
+      it "should create the description column as varchar(100)" do
+        @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "varchar(100)"}.should be_true
+      end
+      
+      it "should create the classification column as a varchar(100)" do
+        @table_set.any? {|c| c[@col_identifier] == "classification" && c.type == "varchar(100)"}.should be_true
+      end
+      
+      it "should create the price column as a decimal(10,0)" do
+        @table_set.any? {|c| c[@col_identifier] == "price" && c.type == "decimal(10,0)"}.should be_true
+      end
+      
+      it "should create the in_print column as a float " do
+        @table_set.any? {|c| c[@col_identifier] == "in_print" && c.type == "float"}.should be_true
+      end
+      
+      it "should create the inventoried column as a datetime" do
+        @table_set.any? {|c| c[@col_identifier] == "inventoried" && c.type == "datetime"}.should be_true
       end
     end
   end
@@ -158,10 +188,7 @@ begin
             pg_attribute.attname AS "Field",
             -- Type
             CASE pg_type.typname
-              WHEN 'int2' THEN 'smallint'
-              WHEN 'int4' THEN 'int'
-              WHEN 'int8' THEN 'bigint'
-              WHEN 'varchar' THEN 'varchar(' || pg_attribute.atttypmod-4 || ')'
+              WHEN 'varchar' THEN 'varchar'
               ELSE pg_type.typname
             END AS "Type",
             -- Null
@@ -184,6 +211,38 @@ begin
           ORDER BY pg_attribute.attnum;
         }
         @col_identifier = "field"
+      end
+      
+      it "should create the isbn column as a varchar" do
+        @table_set.any? {|c| c[@col_identifier] == "isbn" && c.type == "varchar"}.should be_true
+      end
+      
+      it "should create the id column as an int4" do
+        @table_set.any? {|c| c[@col_identifier] == "id" && c.type == "int4"}.should be_true
+      end
+      
+      it "should create the available column as a bool" do
+        @table_set.any? {|c| c[@col_identifier] == "available" && c.type == "bool"}.should be_true
+      end
+      
+      it "should create the description column as text" do
+        @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "text"}.should be_true
+      end
+      
+      it "should create the classification column as a varchar" do
+        @table_set.any? {|c| c[@col_identifier] == "classification" && c.type == "varchar"}.should be_true
+      end
+      
+      it "should create the price column as a numeric" do
+        @table_set.any? {|c| c[@col_identifier] == "price" && c.type == "numeric"}.should be_true
+      end
+      
+      it "should create the in_print column as a float8" do
+        @table_set.any? {|c| c[@col_identifier] == "in_print" && c.type == "float8"}.should be_true
+      end
+      
+      it "should create the inventoried column as a timestamp" do
+        @table_set.any? {|c| c[@col_identifier] == "inventoried" && c.type == "timestamp"}.should be_true
       end
     end
   end

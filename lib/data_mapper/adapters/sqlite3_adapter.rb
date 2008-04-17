@@ -6,13 +6,23 @@ module DataMapper
     
     class Sqlite3Adapter < DataObjectsAdapter
       
-      TYPES.merge!({
-        Fixnum                  => 'INTEGER'.freeze,
-        String                  => 'TEXT'.freeze,
-        DataMapper::Types::Text => 'TEXT'.freeze,
-        Class                   => 'TEXT'.freeze,
-        TrueClass               => 'INTEGER'.freeze
-      })
+      def self.type_map=(value)
+        @type_map = value
+      end
+      
+      def self.type_map
+        @type_map ||= {}
+      end
+      
+      self.type_map = DataObjectsAdapter.type_map
+      
+      #map_types({
+      #  Fixnum                  => 'INTEGER'.freeze,
+      #  String                  => 'TEXT'.freeze,
+      #  DataMapper::Types::Text => 'TEXT'.freeze,
+      #  Class                   => 'TEXT'.freeze,
+      #  TrueClass               => 'INTEGER'.freeze
+      #})
 
       def create_connection
         connnection = DataObjects::Sqlite3::Connection.new(@uri)
