@@ -18,6 +18,16 @@ describe DataMapper::Property do
     end
   end
 
+  it "should evaluate two similar properties as equal" do
+    p1 = DataMapper::Property.new(Zoo, :name, String, { :size => 30 })
+    p2 = DataMapper::Property.new(Zoo, :name, String, { :size => 30 })
+    p3 = DataMapper::Property.new(Zoo, :title, String, { :size => 30 })
+    p1.eql?(p2).should == true
+    p1.hash.should == p2.hash
+    p1.eql?(p3).should == false
+    p1.hash.should_not == p3.hash
+  end
+
   it "should create a String property" do
     property = DataMapper::Property.new(Zoo, :name, String, { :size => 30 })
 

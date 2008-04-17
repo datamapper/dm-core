@@ -115,6 +115,17 @@ describe "DataMapper::Resource" do
     pluto.attribute_dirty?(:age).should be_true
   end
 
+  it 'should overwite old dirty attributes with new ones' do
+    pluto = Planet.new(:name => 'Pluto', :age => 500_000)
+    pluto.dirty_attributes.size.should == 2
+    pluto.attribute_dirty?(:name).should be_true
+    pluto.attribute_dirty?(:age).should be_true
+    pluto.name = "pluto"
+    pluto.dirty_attributes.size.should == 2
+    pluto.attribute_dirty?(:name).should be_true
+    pluto.attribute_dirty?(:age).should be_true
+  end
+
   it 'should provide a key' do
     Planet.new.should respond_to(:key)
   end

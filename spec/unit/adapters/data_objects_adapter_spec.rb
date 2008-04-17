@@ -176,6 +176,15 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     end
   end
 
+  describe "#update" do
+    it 'should not try to update if there are no dirty attributes' do
+      repository = mock("repository")
+      resource = mock("resource")
+      resource.stub!(:dirty_attributes).and_return({})
+      @adapter.update(repository, resource).should == false
+    end
+  end
+
   describe "#create_statement_with_returning" do
 
     it 'should generate a SQL statement for all fields' do
