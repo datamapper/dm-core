@@ -313,7 +313,7 @@ module DataMapper
         
         def drop_table_statement(model)
           <<-EOS.compress_lines
-            DROP TABLE #{quote_table_name(model.storage_name(name))}
+            DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}
           EOS
         end
         

@@ -292,7 +292,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   describe "#drop_table_statement" do
     it "should generate a SQL statement with the drop command" do
       @adapter.drop_table_statement(LittleBox).should == <<-EOS.compress_lines
-        DROP TABLE "little_boxes"
+        DROP TABLE IF EXISTS "little_boxes"
       EOS
     end
   end
