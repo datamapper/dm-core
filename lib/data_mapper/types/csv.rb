@@ -5,7 +5,7 @@ module DataMapper
       size 65535
       lazy true
 
-      def self.load(value)
+      def self.load(value, property)
         case value
         when String then FasterCSV.parse(value)
         when Array then value
@@ -13,7 +13,7 @@ module DataMapper
         end
       end
 
-      def self.dump(value)
+      def self.dump(value, property)
         case value
         when Array then
           FasterCSV.generate do |csv|
