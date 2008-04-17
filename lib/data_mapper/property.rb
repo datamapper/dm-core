@@ -110,7 +110,7 @@ module DataMapper
 #    property :body,   DataMapper::Types::Text   # Is lazily loaded by default
 #  end
 #
-# If you want to over-ride the lazy loading on any field you can set it to a 
+# If you want to over-ride the lazy loading on any field you can set it to a
 # context or false to disable it with the :lazy option. Contexts allow multipule
 # lazy properties to be loaded at one time. If you set :lazy to true, it is placed
 # in the :default context
@@ -258,32 +258,29 @@ module DataMapper
       resource[@name] = value
     end
 
+    def typecast(value)
+      return value if type === value || value.nil?
+
+      if    type == TrueClass  then true == value || 'true' == value
+      elsif type == String     then value.to_s
+      elsif type == Float      then value.to_f
+      elsif type == Fixnum     then value.to_i
+      elsif type == BigDecimal then BigDecimal.new(value.to_s)
+      elsif type == DateTime   then DateTime.parse(value.to_s)
+      elsif type == Date       then Date.parse(value.to_s)
+      elsif type == Class      then Object.recursive_const_get(value)
+      end
+    end
+
     def inspect
       "#<Property:#{@model}:#{@name}>"
     end
 
-    def typecast(value)
-      return value if type === value || value.nil?
-
-      case type
-        when TrueClass  then value == true || value == 'true'
-        when String     then value.to_s
-        when Float      then value.to_f
-        when Fixnum     then value.to_i
-        when BigDecimal then BigDecimal.new(value.to_s)
-        when DateTime   then DateTime.parse(value)
-        when Date       then Date.parse(value)
-        when Class      then Object.recursive_const_get(value)
-        else
-          value
-      end
-    end
-
     private
 
-    def initialize(model, name, type, options)
-      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"               unless Resource === model
-      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                         unless Symbol   === name
+    def initialize(model, name, type, options = {})
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"                 unless Resource === model
+      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                           unless Symbol   === name
       raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
 
       if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
@@ -331,8 +328,6 @@ module DataMapper
           self[#{name.inspect}]
         end
       EOS
-    rescue SyntaxError
-      raise SyntaxError, name
     end
 
     # defines the setter for the property
@@ -343,8 +338,6 @@ module DataMapper
           self[#{name.inspect}] = value
         end
       EOS
-    rescue SyntaxError
-      raise SyntaxError, name
     end
   end # class Property
 end # module DataMapper
