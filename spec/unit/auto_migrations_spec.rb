@@ -36,6 +36,20 @@ describe DataMapper::AutoMigrations do
     DataMapper::AutoMigrator.models.should include(@class)
   end
   
+  it "should add the #auto_migrate! method on a mixin" do
+    @cat = Class.new do
+      include DataMapper::Resource
+      include DataMapper::AutoMigrations
+
+      property :name, String, :key => true
+      property :age, Fixnum
+    end
+    
+    p @cat.methods
+    
+    @cat.should respond_to(:auto_migrate!)
+  end
+  
   it "should not conflict with other Migrators on a mixin" do
     migrator_class = Class.new(DataMapper::Migrator)
     
