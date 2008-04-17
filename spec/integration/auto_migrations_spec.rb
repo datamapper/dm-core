@@ -7,11 +7,11 @@ class Book
   include DataMapper::Resource
   
   property :id,             Fixnum
-  #property :isbn,           String
+  property :isbn,           String
   property :published,      Date
   property :available,      TrueClass
   property :description,    DataMapper::Types::Text
-  #property :classification, Class
+  property :classification, Class
   property :price,          BigDecimal
   property :in_print,       Float
   property :inventoried,    DateTime
@@ -24,6 +24,7 @@ describe "common type map", :shared => true do
   end
   
   it "should create the isbn column as a varchar" do
+    p @table_set
     @table_set.any? {|c| c[@col_identifier] == "isbn" && c.type == "varchar"}.should be_true
   end
   
@@ -99,7 +100,7 @@ end
 begin
   require 'do_mysql'
 
-  DataMapper.setup(:mysql, "mysql://ben@localhost/dm_integration_test")
+  DataMapper.setup(:mysql, "mysql://localhost/dm_integration_test")
   
   describe DataMapper::AutoMigrations, :mysql do
     before(:each) do
