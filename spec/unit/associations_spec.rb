@@ -13,7 +13,7 @@ describe "DataMapper::Associations" do
     it "should allow a declaration" do
       lambda do
         class Manufacturer
-          has :halo_car, 1
+          has 1, :halo_car
         end
       end.should_not raise_error
     end
@@ -24,7 +24,7 @@ describe "DataMapper::Associations" do
           with(:halo_car,{}).
           and_return(@relationship)
         class Manufacturer
-          has :halo_car, 1
+          has 1, :halo_car
         end
       end
 
@@ -33,7 +33,7 @@ describe "DataMapper::Associations" do
           with(:halo_car, {:class_name => 'Car', :repository_name => 'other'}).
           and_return(@relationship)
         class Manufacturer
-          has :halo_car, 1, 
+          has 1, :halo_car, 
             :class_name => 'Car',
             :repository_name => 'other'
         end
@@ -43,28 +43,32 @@ describe "DataMapper::Associations" do
     describe "one-to-many syntax" do
       it "should create a basic one-to-many association with no constraints" do
         Manufacturer.should_receive(:one_to_many).
-          with(:vehicles,{:min=>0, :max=>@n}).
+          with(:vehicles,{}).
           and_return(@relationship)
         class Manufacturer
-          has :vehicles, 0..n
+          has 1..n, :vehicles
         end
       end
       
-      it "should create a one-to-many association with constraints" do
+      it "should create a one-to-many association with fixed constraint" do
         Manufacturer.should_receive(:one_to_many).
-          with(:vehicles,{:min=>2, :max=>4}).
+          with(:vehicles,{:min=>4, :max=>4}).
           and_return(@relationship)
         class Manufacturer
-          has :vehicles, 2..4
+          has 1..4, :vehicles
         end
+      end
+      
+      it "should create a one-to-many association with min/max constraints" do
+        pending
       end
 
       it "should create a one-to-many association with options" do
         Manufacturer.should_receive(:one_to_many).
-          with(:vehicles,{:min=>1, :max=>@n, :class_name => 'Car'}).
+          with(:vehicles,{:class_name => 'Car'}).
           and_return(@relationship)
         class Manufacturer
-          has :vehicles, 1..n,
+          has 1..n, :vehicles,
             :class_name => 'Car'
         end
       end
@@ -73,28 +77,66 @@ describe "DataMapper::Associations" do
     describe "many-to-one syntax" do
       it "should create a basic many-to-one association with no constraints" do
         Manufacturer.should_receive(:many_to_one).
-          with(:vehicles,{:min=>0, :max=>@n}).
+          with(:vehicles,{}).
           and_return(@relationship)
         class Manufacturer
-          has :vehicles, n..0
+          has n..1, :vehicles
         end
       end
       
-      it "should create a many-to-one association with constraints" do
+      it "should create a many-to-one association with fixed constraint" do
         Manufacturer.should_receive(:many_to_one).
-          with(:vehicles,{:min=>2, :max=>4}).
+          with(:vehicles,{:min=>4, :max=>4}).
           and_return(@relationship)
         class Manufacturer
-          has :vehicles, 4..2
+          has 4..1, :vehicles
         end
+      end
+
+      it "should create a many-to-one association with min/max constraints" do
+        pending
       end
 
       it "should create a many-to-one association with options" do
         Manufacturer.should_receive(:many_to_one).
-          with(:vehicles,{:min=>1, :max=>@n, :class_name => 'Car'}).
+          with(:vehicles,{:class_name => 'Car'}).
           and_return(@relationship)
         class Manufacturer
-          has :vehicles, n..1,
+          has n..1, :vehicles,
+            :class_name => 'Car'
+        end
+      end
+    end
+    
+    describe "many-to-many syntax" do
+      it "should create a basic many-to-one association with no constraints" do
+        Manufacturer.should_receive(:many_to_many).
+          with(:vehicles,{}).
+          and_return(@relationship)
+        class Manufacturer
+          has n..n, :vehicles
+        end
+      end
+      
+      it "should create a many-to-many association with fixed constraints" do
+        Manufacturer.should_receive(:many_to_many).
+          with(:vehicles, :left=>{:min=>4, :max=>4}, :right=>{:min=>4, :max=>4}).
+          and_return(@relationship)
+        class Manufacturer
+          has 4..4, :vehicles
+        end
+      end
+
+      it "should create a many-to-many association with min/max constraints" do
+        pending
+      end
+
+      it "should create a many-to-many association with options" do
+        Manufacturer.should_receive(:many_to_many).
+          with(:vehicles,{:class_name => 'Car'}).
+          and_return(@relationship)
+        class Manufacturer
+          has n..n, :vehicles, 
             :class_name => 'Car'
         end
       end
