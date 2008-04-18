@@ -9,6 +9,70 @@ require 'data_objects'
 
 module DataMapper
 
+  module Resource
+    
+    module ClassMethods
+      #
+      # Find instances by manually providing SQL
+      #
+      # ==== Parameters
+      # <String>:: An SQL query to execute
+      # <Array>:: An Array containing a String (being the SQL query to execute) and the parameters to the query.
+      #   example: ["SELECT name FROM users WHERE id = ?", id]
+      # <DataMapper::Query>:: A prepared Query to execute.
+      # <Hash>:: An options hash.
+      #
+      # ==== Options (the options hash)
+      # :repository<Symbol>:: The name of the repository to execute the query in.
+      # :reload<Boolean>:: Whether to reload any instances found that allready exist in the identity map.
+      #
+      # ==== Returns
+      # LoadedSet:: The instance matched by the query.
+      #
+      # -
+      # @public
+      def find_by_sql(*args)
+        sql = nil
+        query = nil
+        params = []
+        properties = nil
+        do_reload = false
+        repository_name = default_repository_name
+        args.each do |arg|
+          if arg.is_a?(String)
+            sql = arg
+          elsif arg.is_a?(Array)
+            sql = arg.first
+            params = arg[1..-1]
+          elsif arg.is_a?(DataMapper::Query)
+            query = arg
+          elsif arg.is_a?(Hash)
+            repository_name = arg.delete(:repository) if arg.include?(:repository)
+            do_reload = arg.delete(:reload) if arg.include?(:reload)
+            raise "unknown options to #find_by_sql: #{arg.inspect}" unless arg.empty?
+          end
+        end
+
+        the_repository = repository(repository_name)
+        raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless the_repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
+
+        if query
+          sql = the_repository.adapter.query_read_statement(query)
+          params = query.fields
+        end
+
+        raise "#find_by_sql requires a query of some kind to work" unless sql
+
+        properties ||= self.properties
+
+        DataMapper.logger.debug { "FIND_BY_SQL: #{sql}  PARAMETERS: #{params.inspect}" }
+
+        repository.adapter.read_set_with_sql(repository, self, properties, sql, params, do_reload)
+      end
+    end
+
+  end
+
   module Adapters
 
     # You must inherit from the DoAdapter, and implement the
@@ -155,15 +219,24 @@ module DataMapper
         affected_rows == 1
       end
 
-      # Methods dealing with finding stuff by some query parameters
-      def read_set(repository, query)
-        properties = query.fields
-
+      #
+      # used by find_by_sql and read_set
+      #
+      # ==== Parameters
+      # repository<DataMapper::Repository>:: The repository to read from.
+      # model<Object>:: The class of the instances to read.
+      # properties<Array>:: The properties to read. Must contain Symbols, Strings or DM::Properties.
+      # sql<String>:: The query to execute.
+      # parameters<Array>:: The conditions to the query.
+      # do_reload<Boolean>:: Whether to reload objects already found in the identity map.
+      #
+      # ==== Returns
+      # LoadedSet:: A set of the found instances.
+      #
+      def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-        set = LoadedSet.new(repository, query.model, properties_with_indexes)
+        set = LoadedSet.new(repository, model, properties_with_indexes)
 
-        sql = query_read_statement(query)
-        parameters = query.parameters
         DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
 
         connection = create_connection
@@ -173,7 +246,7 @@ module DataMapper
           reader = command.execute_reader(*parameters)
 
           while(reader.next!)
-            set.add(reader.values, query.reload?)
+            set.add(reader.values, do_reload)
           end
 
           reader.close
@@ -185,6 +258,16 @@ module DataMapper
         end
 
         set
+      end
+
+      # Methods dealing with finding stuff by some query parameters
+      def read_set(repository, query)
+        read_set_with_sql(repository, 
+                          query.model, 
+                          query.fields, 
+                          query_read_statement(query), 
+                          query.parameters, 
+                          query.reload?)
       end
 
       def delete_set(repository, query)
