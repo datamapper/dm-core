@@ -23,6 +23,13 @@ module DataMapper
       @@including_classes << base
     end
 
+    # Return all classes that include the DataMapper::Resource module
+    #
+    # ==== Returns
+    # Set:: A Set containing the including classes
+    #
+    # -
+    # @public
     def self.including_classes
       @@including_classes
     end
