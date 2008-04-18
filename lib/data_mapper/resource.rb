@@ -1,3 +1,4 @@
+require 'set'
 require __DIR__ + 'support/string'
 require __DIR__ + 'property_set'
 require __DIR__ + 'property'
@@ -45,7 +46,7 @@ module DataMapper
       end
 
       value = instance_variable_get(ivar_name)
-      property.custom? ? property.type.load(value) : value
+      property.custom? ? property.type.load(value, property) : value
     end
 
     def []=(name, value)
@@ -57,7 +58,8 @@ module DataMapper
       end
 
       dirty_attributes << property
-      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value) : property.typecast(value))
+      
+      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value, property) : property.typecast(value))
     end
 
     def repository
@@ -103,7 +105,7 @@ module DataMapper
     end
 
     def dirty_attributes
-      @dirty_attributes ||= []
+      @dirty_attributes ||= Set.new
     end
 
     def dirty?

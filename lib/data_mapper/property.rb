@@ -230,6 +230,18 @@ module DataMapper
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
 
+    def hash
+      return @model.hash + @name.hash
+    end
+
+    def eql?(o)
+      if o.is_a?(Property)
+        return o.model == @model && o.name == @name
+      else
+        return false
+      end
+    end
+
     def lazy?
       @lazy
     end

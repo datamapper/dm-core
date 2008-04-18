@@ -7,7 +7,7 @@ module DataMapper
       size 65535
       lazy true
 
-      def self.load(value)
+      def self.load(value, property)
         if value.nil?
           nil
         elsif value.is_a?(String)
@@ -17,7 +17,7 @@ module DataMapper
         end
       end
 
-      def self.dump(value)
+      def self.dump(value, property)
         if value.nil?
           nil
         elsif value.is_a?(String) && value =~ /^---/

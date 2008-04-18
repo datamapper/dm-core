@@ -122,20 +122,24 @@ module DataMapper
 
       def update(repository, resource)
         properties = resource.dirty_attributes
-
-        sql = update_statement(resource.class, properties)
-        values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-        parameters = (values + resource.key)
-        DataMapper.logger.debug { "UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}" }
-
-        connection = create_connection
-        command = connection.create_command(sql)
-
-        affected_rows = command.execute_non_query(*parameters).to_i
-
-        close_connection(connection)
-
-        affected_rows == 1
+        
+        if properties.empty?
+          return false
+        else
+          sql = update_statement(resource.class, properties)
+          values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
+          parameters = (values + resource.key)
+          DataMapper.logger.debug { "UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}" }
+          
+          connection = create_connection
+          command = connection.create_command(sql)
+          
+          affected_rows = command.execute_non_query(*parameters).to_i
+          
+          close_connection(connection)
+          
+          affected_rows == 1
+        end
       end
 
       def delete(repository, resource)
