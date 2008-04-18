@@ -43,10 +43,9 @@ describe "DataMapper::Resource" do
   end
 
   it "should track the classes that include it" do
-    DataMapper::Resource.including_classes.should == Set.new([Vehicle, Article, Manufacturer, Planet, Supplier, Comment])
+    DataMapper::Resource.including_classes.clear
     Moon.class_eval do include(DataMapper::Resource) end
-    DataMapper::Resource.including_classes.size.should == 7
-    DataMapper::Resource.including_classes.should == Set.new([Vehicle, Article, Manufacturer, Planet, Supplier, Comment, Moon])
+    DataMapper::Resource.including_classes.should == Set.new([Moon])
   end
 
   it "should return an instance of the created object" do
