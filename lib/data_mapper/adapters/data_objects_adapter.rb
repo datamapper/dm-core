@@ -22,12 +22,18 @@ module DataMapper
       # <DataMapper::Query>:: A prepared Query to execute.
       # <Hash>:: An options hash.
       #
+      # A String, Array or Query is required.
+      #
       # ==== Options (the options hash)
-      # :repository<Symbol>:: The name of the repository to execute the query in.
-      # :reload<Boolean>:: Whether to reload any instances found that allready exist in the identity map.
+      # :repository<Symbol>:: The name of the repository to execute the query in. Defaults to self.default_repository_name.
+      # :reload<Boolean>:: Whether to reload any instances found that allready exist in the identity map. Defaults to false.
+      # :properties<Array>:: The Properties of the instance that the query loads. Must contain DataMapper::Properties. Defaults to self.properties.
       #
       # ==== Returns
       # LoadedSet:: The instance matched by the query.
+      #
+      # ==== Example
+      # MyClass.find_by_sql(["SELECT id FROM my_classes WHERE county = ?", selected_county], :properties => MyClass.property[:id], :repository => :county_repo)
       #
       # -
       # @public
@@ -48,6 +54,7 @@ module DataMapper
             query = arg
           elsif arg.is_a?(Hash)
             repository_name = arg.delete(:repository) if arg.include?(:repository)
+            properties = Array(arg.delete(:properties)) if arg.include?(:properties)
             do_reload = arg.delete(:reload) if arg.include?(:reload)
             raise "unknown options to #find_by_sql: #{arg.inspect}" unless arg.empty?
           end
