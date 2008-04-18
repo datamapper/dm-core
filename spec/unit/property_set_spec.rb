@@ -66,4 +66,19 @@ describe DataMapper::PropertySet do
     expect = [:a1,:a2,:a3,:b1,:b2,:b3]
     expect.should == set.sort! {|a,b| a.to_s <=> b.to_s}
   end
+
+  describe 'when dup\'ed' do
+    it 'should duplicate the @entries ivar' do
+      @properties.dup.entries.should_not equal(@properties.entries)
+    end
+
+    it 'should reinitialize @properties_for' do
+      # force @properties_for to hold a property
+      Icon.properties(:default)[:name].should_not be_nil
+      @properties = Icon.properties(:default)
+
+      @properties.instance_variable_get("@property_for").should_not be_empty
+      @properties.dup.instance_variable_get("@property_for").should be_empty
+    end
+  end
 end

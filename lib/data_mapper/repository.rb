@@ -89,6 +89,10 @@ module DataMapper
       end
     end
 
+    def to_s
+      "#<DataMapper::Repository:#{@name}>"
+    end
+
     private
 
     def initialize(name)

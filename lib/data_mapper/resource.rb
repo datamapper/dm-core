@@ -224,8 +224,8 @@ module DataMapper
         Repository.default_name
       end
 
-      def repository(repository_name = default_repository_name)
-        DataMapper.repository(repository_name)
+      def repository(repository_name = default_repository_name, &block)
+        DataMapper.repository(repository_name, &block)
       end
 
       def storage_name(repository_name = default_repository_name)
