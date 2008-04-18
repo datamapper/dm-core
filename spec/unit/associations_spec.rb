@@ -10,12 +10,22 @@ describe "DataMapper::Associations" do
   end
 
   describe ".has" do
+    
     it "should allow a declaration" do
       lambda do
         class Manufacturer
           has 1, :halo_car
         end
       end.should_not raise_error
+    end
+    
+    it "should allow overwriting of the auto assigned min/max values with keys" do
+      Manufacturer.should_receive(:one_to_many).
+        with(:vehicles, {:min=>2, :max=>10}).
+        and_return(@relationship)
+      class Manufacturer
+        has 1..2, :vehicles, :max=>10
+      end
     end
 
     describe "one-to-one syntax" do
@@ -141,6 +151,7 @@ describe "DataMapper::Associations" do
         end
       end
     end
+    
   end
 end
 

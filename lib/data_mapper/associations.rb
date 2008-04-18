@@ -26,16 +26,16 @@ module DataMapper
           left, right = cardinality.first, cardinality.last
           case 1
             when left                       #1..n or 1..2
-              one_to_many(name, options.merge(extract_min_max(right)))
+              one_to_many(name, extract_min_max(right).merge(options))
             when right                      # n..1 or 2..1
-              many_to_one(name, options.merge(extract_min_max(left)))
+              many_to_one(name, extract_min_max(left).merge(options))
             else                            # n..n or 2..2
-              many_to_many(name, options.merge(extract_min_max(cardinality)))
+              many_to_many(name, extract_min_max(cardinality).merge(options))
           end
         when 1
           one_to_one(name, options)
         when Fixnum, Bignum, n              # n or 2 - shorthand form of 1..n or 1..2
-          one_to_many(name, options.merge(extract_min_max(cardinality)))
+          one_to_many(name, extract_min_max(cardinality).merge(options))
       end || raise(ArgumentError, "Cardinality #{cardinality.inspect} (#{cardinality.class}) not handled")
     end
     
