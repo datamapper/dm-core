@@ -10,6 +10,8 @@ module DataMapper
 
   module Resource
 
+    @@including_classes = Set.new
+
     # +----------------------
     # Resource module methods
 
@@ -18,6 +20,11 @@ module DataMapper
       base.extend DataMapper::Associations
       base.send(:include, DataMapper::Hook)
       base.send(:include, DataMapper::Scope)
+      @@including_classes << base
+    end
+
+    def self.including_classes
+      @@including_classes
     end
 
     def self.dependencies
