@@ -15,12 +15,33 @@ describe DataMapper::Type do
       primitive String
       size 10
 
-      def self.load(value)
+      def self.load(value, property)
         value.reverse
       end
 
-      def self.dump(value)
+      def self.dump(value, property)
         value.reverse
+      end
+    end
+    
+    class TestResource
+      include DataMapper::Resource
+    end
+    
+    class TestType3 < DataMapper::Type
+      primitive String
+      size 10
+      attr_accessor :property, :value
+
+      def self.load(value, property)
+        type = self.new
+        type.property = property
+        type.value    = value
+        type
+      end
+
+      def self.dump(value, property)
+        value.value
       end
     end
   end
@@ -48,19 +69,42 @@ describe DataMapper::Type do
   end
 
   it "should pass through the value if load wasn't overriden" do
-    TestType.load("test").should == "test"
+    TestType.load("test", nil).should == "test"
   end
 
   it "should pass through the value if dump wasn't overriden" do
-    TestType.dump("test").should == "test"
+    TestType.dump("test", nil).should == "test"
   end
 
   it "should not raise NotImplmenetedException if load was overriden" do
-    TestType2.dump("helo").should == "oleh"
+    TestType2.dump("helo", nil).should == "oleh"
   end
 
   it "should not raise NotImplmenetedException if dump was overriden" do
-    TestType2.load("oleh").should == "helo"
+    TestType2.load("oleh", nil).should == "helo"
+  end
+
+  describe "using a custom type" do
+    before do
+      @property = DataMapper::Property.new TestResource, :name, TestType3, {}
+    end
+    
+    it "should return a object of the same type" do
+      TestType3.load("helo", @property).class.should == TestType3
+    end
+    
+    it "should contain the property" do
+      TestType3.load("helo", @property).property.should == @property
+    end
+    
+    it "should contain the value" do
+      TestType3.load("helo", @property).value.should == "helo"
+    end
+    
+    it "should return the value" do
+      obj = TestType3.load("helo", @property)
+      TestType3.dump(obj, @property).should == "helo"
+    end
   end
 
   describe "using def Type" do

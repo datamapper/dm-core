@@ -9,6 +9,77 @@ require 'data_objects'
 
 module DataMapper
 
+  module Resource
+    
+    module ClassMethods
+      #
+      # Find instances by manually providing SQL
+      #
+      # ==== Parameters
+      # <String>:: An SQL query to execute
+      # <Array>:: An Array containing a String (being the SQL query to execute) and the parameters to the query.
+      #   example: ["SELECT name FROM users WHERE id = ?", id]
+      # <DataMapper::Query>:: A prepared Query to execute.
+      # <Hash>:: An options hash.
+      #
+      # A String, Array or Query is required.
+      #
+      # ==== Options (the options hash)
+      # :repository<Symbol>:: The name of the repository to execute the query in. Defaults to self.default_repository_name.
+      # :reload<Boolean>:: Whether to reload any instances found that allready exist in the identity map. Defaults to false.
+      # :properties<Array>:: The Properties of the instance that the query loads. Must contain DataMapper::Properties. Defaults to self.properties.
+      #
+      # ==== Returns
+      # LoadedSet:: The instance matched by the query.
+      #
+      # ==== Example
+      # MyClass.find_by_sql(["SELECT id FROM my_classes WHERE county = ?", selected_county], :properties => MyClass.property[:id], :repository => :county_repo)
+      #
+      # -
+      # @public
+      def find_by_sql(*args)
+        sql = nil
+        query = nil
+        params = []
+        properties = nil
+        do_reload = false
+        repository_name = default_repository_name
+        args.each do |arg|
+          if arg.is_a?(String)
+            sql = arg
+          elsif arg.is_a?(Array)
+            sql = arg.first
+            params = arg[1..-1]
+          elsif arg.is_a?(DataMapper::Query)
+            query = arg
+          elsif arg.is_a?(Hash)
+            repository_name = arg.delete(:repository) if arg.include?(:repository)
+            properties = Array(arg.delete(:properties)) if arg.include?(:properties)
+            do_reload = arg.delete(:reload) if arg.include?(:reload)
+            raise "unknown options to #find_by_sql: #{arg.inspect}" unless arg.empty?
+          end
+        end
+
+        the_repository = repository(repository_name)
+        raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless the_repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
+
+        if query
+          sql = the_repository.adapter.query_read_statement(query)
+          params = query.fields
+        end
+
+        raise "#find_by_sql requires a query of some kind to work" unless sql
+
+        properties ||= self.properties
+
+        DataMapper.logger.debug("FIND_BY_SQL: #{sql}  PARAMETERS: #{params.inspect}")
+
+        repository.adapter.read_set_with_sql(repository, self, properties, sql, params, do_reload)
+      end
+    end
+
+  end
+
   module Adapters
 
     # You must inherit from the DoAdapter, and implement the
@@ -85,7 +156,7 @@ module DataMapper
 
         sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, resource.class, properties)
         values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-        DataMapper.logger.debug { "CREATE: #{sql}  PARAMETERS: #{values.inspect}" }
+        DataMapper.logger.debug("CREATE: #{sql}  PARAMETERS: #{values.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -112,7 +183,7 @@ module DataMapper
         set = LoadedSet.new(repository, resource, properties_with_indexes)
 
         sql = read_statement(resource, key)
-        DataMapper.logger.debug { sql }
+        DataMapper.logger.debug("READ: #{sql}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -137,7 +208,7 @@ module DataMapper
           sql = update_statement(resource.class, properties)
           values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
           parameters = (values + resource.key)
-          DataMapper.logger.debug { "UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}" }
+          DataMapper.logger.debug("UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}")
           
           connection = create_connection
           command = connection.create_command(sql)
@@ -164,7 +235,7 @@ module DataMapper
       end
       
       def create_store(repository, model)
-        DataMapper.logger.debug { "CREATE TABLE: #{model.storage_name(name)}  COLUMNS: #{model.properties.map {|p| p.field}.join(', ')}" }
+        DataMapper.logger.debug "CREATE TABLE: #{model.storage_name(name)}  COLUMNS: #{model.properties.map {|p| p.field}.join(', ')}"
 
         connection = create_connection
         command = connection.create_command(create_table_statement(model))
@@ -177,7 +248,7 @@ module DataMapper
       end
       
       def destroy_store(repository, model)
-        DataMapper.logger.debug { "DROP TABLE: #{model.storage_name(name)}"}
+        DataMapper.logger.debug "DROP TABLE: #{model.storage_name(name)}"
         
         connection = create_connection
         command = connection.create_command(drop_table_statement(model))
@@ -189,16 +260,25 @@ module DataMapper
         result.to_i == 1
       end
 
-      # Methods dealing with finding stuff by some query parameters
-      def read_set(repository, query)
-        properties = query.fields
-
+      #
+      # used by find_by_sql and read_set
+      #
+      # ==== Parameters
+      # repository<DataMapper::Repository>:: The repository to read from.
+      # model<Object>:: The class of the instances to read.
+      # properties<Array>:: The properties to read. Must contain Symbols, Strings or DM::Properties.
+      # sql<String>:: The query to execute.
+      # parameters<Array>:: The conditions to the query.
+      # do_reload<Boolean>:: Whether to reload objects already found in the identity map.
+      #
+      # ==== Returns
+      # LoadedSet:: A set of the found instances.
+      #
+      def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-        set = LoadedSet.new(repository, query.model, properties_with_indexes)
+        set = LoadedSet.new(repository, model, properties_with_indexes)
 
-        sql = query_read_statement(query)
-        parameters = query.parameters
-        DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
+        DataMapper.logger.debug("READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}")
 
         connection = create_connection
         begin
@@ -207,7 +287,7 @@ module DataMapper
           reader = command.execute_reader(*parameters)
 
           while(reader.next!)
-            set.add(reader.values, query.reload?)
+            set.add(reader.values, do_reload)
           end
 
           reader.close
@@ -221,26 +301,36 @@ module DataMapper
         set
       end
 
+      # Methods dealing with finding stuff by some query parameters
+      def read_set(repository, query)
+        read_set_with_sql(repository, 
+                          query.model, 
+                          query.fields, 
+                          query_read_statement(query), 
+                          query.parameters, 
+                          query.reload?)
+      end
+
       def delete_set(repository, query)
         raise NotImplementedError
       end
 
       # Database-specific method
       def execute(sql, *args)
-        DataMapper.logger.debug { "EXECUTE: #{sql}  PARAMETERS: #{args.inspect}" }
+        DataMapper.logger.debug("EXECUTE: #{sql}  PARAMETERS: #{args.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
         return command.execute_non_query(*args)
       rescue => e
-        DataMapper.logger.error { e } if DataMapper.logger
+        DataMapper.logger.error(e) if DataMapper.logger
         raise e
       ensure
         connection.close if connection
       end
 
       def query(sql, *args)
-        DataMapper.logger.debug { "QUERY: #{sql}  PARAMETERS: #{args.inspect}" }
+        DataMapper.logger.debug("QUERY: #{sql}  PARAMETERS: #{args.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -263,7 +353,7 @@ module DataMapper
 
         return results
       rescue => e
-        DataMapper.logger.error { e } if DataMapper.logger
+        DataMapper.logger.error(e) if DataMapper.logger
         raise e
       ensure
         reader.close if reader

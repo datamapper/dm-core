@@ -27,7 +27,7 @@ module DataMapper
   #     primitive String
   #     size 10
   #
-  #     def self.dump(value)
+  #     def self.dump(value, property)
   #       <work some magic>
   #     end
   #
@@ -123,14 +123,16 @@ module DataMapper
     # ==== Parameters
     # value<Object, nil>::
     #   The value to dump
+    # property<Property, nil>::
+    #   The property the type is being used by
     #
     # ==== Returns
     # Object:: Dumped object
     #
     #
     # @public
-    def self.dump(value)
-      value
+    def self.dump(value, property)
+        value
     end
 
     # Stub instance method for loading
@@ -138,13 +140,15 @@ module DataMapper
     # ==== Parameters
     # value<Object, nil>::
     #   The value to serialize
+    # property<Property, nil>::
+    #   The property the type is being used by
     #
     # ==== Returns
     # Object:: Serialized object. Must be the same type as the ruby primitive
     #
     #
     # @public
-    def self.load(value)
+    def self.load(value, property)
       value
     end
 

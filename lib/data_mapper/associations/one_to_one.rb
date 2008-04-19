@@ -12,7 +12,7 @@ module DataMapper
 
         relationships[name] = Relationship.new(
           DataMapper::Inflection.underscore(parent_model_name).to_sym,
-          options[:repository_name] || repository.name,
+          repository.name,
           child_model_name,
           nil,
           parent_model_name,
@@ -24,11 +24,9 @@ module DataMapper
             #{name}_association.first
           end
 
-          def #{name}=(value)
-            if (original = #{name}_association.first) && original != value
-              #{name}_association.delete(original)
-            end
-            #{name}_association << value
+          def #{name}=(child_resource)
+            #{name}_association.clear
+            #{name}_association << child_resource unless child_resource.nil?
           end
 
           private

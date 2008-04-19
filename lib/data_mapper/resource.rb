@@ -10,6 +10,8 @@ module DataMapper
 
   module Resource
 
+    @@including_classes = Set.new
+
     # +----------------------
     # Resource module methods
 
@@ -19,6 +21,18 @@ module DataMapper
       base.send(:include, DataMapper::Hook)
       base.send(:include, DataMapper::Scope)
       base.send(:include, DataMapper::AutoMigrations)
+      @@including_classes << base
+    end
+
+    # Return all classes that include the DataMapper::Resource module
+    #
+    # ==== Returns
+    # Set:: A Set containing the including classes
+    #
+    # -
+    # @public
+    def self.including_classes
+      @@including_classes
     end
 
     def self.dependencies
@@ -47,7 +61,7 @@ module DataMapper
       end
 
       value = instance_variable_get(ivar_name)
-      property.custom? ? property.type.load(value) : value
+      property.custom? ? property.type.load(value, property) : value
     end
 
     def []=(name, value)
@@ -59,7 +73,8 @@ module DataMapper
       end
 
       dirty_attributes << property
-      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value) : property.typecast(value))
+      
+      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value, property) : property.typecast(value))
     end
 
     def repository
@@ -128,7 +143,7 @@ module DataMapper
     # Returns <tt>true</tt> if this model hasn't been saved to the
     # database, <tt>false</tt> otherwise.
     def new_record?
-      @new_record.nil? || @new_record
+      !defined?(@new_record) || @new_record
     end
 
     def attributes
@@ -217,8 +232,8 @@ module DataMapper
         Repository.default_name
       end
 
-      def repository(repository_name = default_repository_name)
-        DataMapper.repository(repository_name)
+      def repository(repository_name = default_repository_name, &block)
+        DataMapper.repository(repository_name, &block)
       end
 
       def storage_name(repository_name = default_repository_name)
