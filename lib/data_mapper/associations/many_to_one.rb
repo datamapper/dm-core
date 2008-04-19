@@ -25,8 +25,8 @@ module DataMapper
             #{name}_association.parent
           end
 
-          def #{name}=(value)
-            #{name}_association.parent = value
+          def #{name}=(parent_resource)
+            #{name}_association.parent = parent_resource
           end
 
           private

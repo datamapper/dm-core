@@ -170,6 +170,12 @@ describe DataMapper::Property do
     property.typecast(nil).should == nil
   end
 
+  it 'should pass through the value for an Object property' do
+    value = 'a ruby object'
+    property = DataMapper::Property.new(Zoo, :object, Object)
+    property.typecast(value).object_id.should == value.object_id
+  end
+
   it 'should typecast value (true) for a TrueClass property' do
     property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
     property.typecast(true).should == true
@@ -213,12 +219,6 @@ describe DataMapper::Property do
   it 'should typecast value for a Class property' do
     property = DataMapper::Property.new(Zoo, :class, Class)
     property.typecast('Zoo').should == Zoo
-  end
-
-  it 'should pass through the value for an Object property' do
-    value = 'a ruby object'
-    property = DataMapper::Property.new(Zoo, :object, Object)
-    property.typecast(value).object_id.should == value.object_id
   end
 
   it 'should provide inspect' do

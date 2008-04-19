@@ -221,32 +221,32 @@ module DataMapper
 
     # validate the model
     def validate_model(model)
-      raise ArgumentError, "model must be a Class, but is #{model.class}" unless Class                === Class
-      raise ArgumentError, 'model must include DataMapper::Resource'      unless DataMapper::Resource === model
+      raise ArgumentError, "+model+ must be a Class, but is #{model.class}" unless Class                === model.class
+      raise ArgumentError, '+model+ must include DataMapper::Resource'      unless DataMapper::Resource === model
     end
 
     # validate the options
     def validate_options(options)
-      raise ArgumentError, 'options must be a Hash' unless Hash === options
+      raise ArgumentError, "+options+ must be a Hash, but was #{options.class}" unless Hash === options
 
       # validate the reload option
       if options.has_key?(:reload) && options[:reload] != true && options[:reload] != false
-        raise ArgumentError, ":reload must be true or false, but was #{options[:reload].inspect}"
+        raise ArgumentError, "+options[:reload]+ must be true or false, but was #{options[:reload].inspect}"
       end
 
       # validate the offset and limit options
       ([ :offset, :limit ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Integer, but was #{value.class}" unless Integer === value
+        raise ArgumentError, "+options[:#{attribute}]+ must be an Integer, but was #{value.class}" unless Integer === value
       end
-      raise ArgumentError, ':offset must be greater than or equal to 0' if options.has_key?(:offset) && !(options[:offset] >= 0)
-      raise ArgumentError, ':limit must be greater than or equal to 1'  if options.has_key?(:limit)  && !(options[:limit]  >= 1)
+      raise ArgumentError, '+options[:offset]+ must be greater than or equal to 0' if options.has_key?(:offset) && !(options[:offset] >= 0)
+      raise ArgumentError, '+options[:limit]+ must be greater than or equal to 1'  if options.has_key?(:limit)  && !(options[:limit]  >= 1)
 
       # validate the order, fields, links, includes and conditions options
       ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, ":#{attribute} must be an Array, but was #{value.class}" unless Array === value
-        raise ArgumentError, ":#{attribute} cannot be an empty Array"                 unless value.any?
+        raise ArgumentError, "+options[:#{attribute}]+ must be an Array, but was #{value.class}" unless Array === value
+        raise ArgumentError, "+options[:#{attribute}]+ cannot be an empty Array"                 unless value.any?
       end
     end
 
@@ -254,9 +254,9 @@ module DataMapper
     # validate other DM::Query or Hash object
     def validate_other(other)
       if self.class === other
-        raise ArgumentError, "other #{self.class} must belong to the same repository" unless other.model.repository == @model.repository
+        raise ArgumentError, "+other+ #{self.class} must belong to the same repository" unless other.model.repository == @model.repository
       elsif !(Hash === other)
-        raise ArgumentError, "other must be a #{self.class} or Hash, but was a #{other.class}"
+        raise ArgumentError, "+other+ must be a #{self.class} or Hash, but was a #{other.class}"
       end
     end
 
@@ -285,10 +285,10 @@ module DataMapper
             Direction.new(order_by)
           when Symbol, String
             property = @properties[order_by]
-            raise ArgumentError, "Order field #{order_by.inspect} does not map to a DataMapper::Property" if property.nil?
+            raise ArgumentError, "+options[:order]+ entry #{order_by} does not map to a DataMapper::Property" if property.nil?
             Direction.new(property)
           else
-            raise ArgumentError, "Order #{order_by.inspect} not supported"
+            raise ArgumentError, "+options[:order]+ entry #{order_by.inspect} not supported"
         end
       end
     end
@@ -307,10 +307,10 @@ module DataMapper
             field
           when Symbol, String
             property = @properties[field]
-            raise ArgumentError, "Field #{field.inspect} does not map to a DataMapper::Property" if property.nil?
+            raise ArgumentError, "+options[:fields]+ entry #{field} does not map to a DataMapper::Property" if property.nil?
             property
           else
-            raise ArgumentError, "Field type #{field.inspect} not supported"
+            raise ArgumentError, "+options[:fields]+ entry #{field.inspect} not supported"
         end
       end
     end
@@ -327,10 +327,10 @@ module DataMapper
             link
           when Symbol, String
             link = link.to_sym if String === link
-            raise ArgumentError, "Link #{link}. No such relationship" unless model.relationships.has_key?(link)
+            raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship" unless model.relationships.has_key?(link)
             model.relationships[link]
           else
-            raise ArgumentError, "Link type #{link.inspect} not supported"
+            raise ArgumentError, "+options[:links]+ entry #{link.inspect} not supported"
         end
       end
     end
@@ -350,25 +350,25 @@ module DataMapper
       end
     end
 
-    def append_condition(property, value)
+    def append_condition(clause, value)
       operator = :eql
 
-      property = case property
+      property = case clause
         when DataMapper::Property
-          property
+          clause
         when DataMapper::Query::Path
-          validate_query_path_links(property)
-          property
+          validate_query_path_links(clause)
+          clause
         when Operator
-          operator = property.type
-          @properties[property.to_sym]
+          operator = clause.type
+          @properties[clause.to_sym]
         when Symbol, String
-          @properties[property]
+          @properties[clause]
         else
-          raise ArgumentError, "Condition type #{property.inspect} not supported"
+          raise ArgumentError, "Condition type #{clause.inspect} not supported"
       end
 
-      raise ArgumentError, "Clause #{property.inspect} does not map to a DataMapper::Property" if property.nil?
+      raise ArgumentError, "Clause #{clause.inspect} does not map to a DataMapper::Property" if property.nil?
 
       @conditions << [ operator, property, value ]
     end

@@ -142,7 +142,7 @@ module DataMapper
     # Returns <tt>true</tt> if this model hasn't been saved to the
     # database, <tt>false</tt> otherwise.
     def new_record?
-      @new_record.nil? || @new_record
+      !defined?(@new_record) || @new_record
     end
 
     def attributes
