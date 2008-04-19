@@ -37,6 +37,11 @@ require __DIR__ + 'data_mapper/resource'
 require __DIR__ + 'data_mapper/query'
 require __DIR__ + 'data_mapper/adapters/abstract_adapter'
 require __DIR__ + 'data_mapper/cli'
+require __DIR__ + 'data_mapper/scope'
+require __DIR__ + 'data_mapper/query'
+
+require __DIR__ + 'data_mapper/types/enum'
+require __DIR__ + 'data_mapper/types/flag'
 
 module DataMapper
   def self.setup(name, uri_or_options)
