@@ -110,7 +110,7 @@ module DataMapper
 #    property :body,   DataMapper::Types::Text   # Is lazily loaded by default
 #  end
 #
-# If you want to over-ride the lazy loading on any field you can set it to a 
+# If you want to over-ride the lazy loading on any field you can set it to a
 # context or false to disable it with the :lazy option. Contexts allow multipule
 # lazy properties to be loaded at one time. If you set :lazy to true, it is placed
 # in the :default context
@@ -230,6 +230,18 @@ module DataMapper
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
 
+    def hash
+      return @model.hash + @name.hash
+    end
+
+    def eql?(o)
+      if o.is_a?(Property)
+        return o.model == @model && o.name == @name
+      else
+        return false
+      end
+    end
+
     def lazy?
       @lazy
     end
@@ -258,33 +270,29 @@ module DataMapper
       resource[@name] = value
     end
 
+    def typecast(value)
+      return value if type === value || value.nil?
+
+      if    type == TrueClass  then true == value || 'true' == value
+      elsif type == String     then value.to_s
+      elsif type == Float      then value.to_f
+      elsif type == Fixnum     then value.to_i
+      elsif type == BigDecimal then BigDecimal.new(value.to_s)
+      elsif type == DateTime   then DateTime.parse(value.to_s)
+      elsif type == Date       then Date.parse(value.to_s)
+      elsif type == Class      then Object.recursive_const_get(value)
+      end
+    end
+
     def inspect
       "#<Property:#{@model}:#{@name}>"
-    end
-    
-    def typecast(value)
-      if type == TrueClass
-        value == true || value == "true"
-      elsif type == String
-        value.to_s
-      elsif [Float, Fixnum, BigDecimal].include?(type)
-        value.to_f
-      elsif type == DateTime
-        Time.parse(value)
-      elsif type == Date
-        Date.parse(value)
-      elsif type == Class
-        Object.recursive_const_get(value)
-      else
-        value
-      end
     end
 
     private
 
-    def initialize(model, name, type, options)
-      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"               unless Resource === model
-      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                         unless Symbol   === name
+    def initialize(model, name, type, options = {})
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"                 unless Resource === model
+      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                           unless Symbol   === name
       raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
 
       if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
@@ -329,16 +337,9 @@ module DataMapper
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{reader_visibility}
         def #{@getter}
-          unless @new_record || defined?(#{@instance_variable_name})
-            if @loaded_set
-              @loaded_set.reload!(:fields => self.class.properties(self.class.repository.name).lazy_load_context(#{name.inspect}))
-            end
-          end
-          #{custom? ? "#{@type.inspect}.load(#{@instance_variable_name})" : @instance_variable_name}
+          self[#{name.inspect}]
         end
       EOS
-    rescue SyntaxError
-      raise SyntaxError, name
     end
 
     # defines the setter for the property
@@ -346,13 +347,9 @@ module DataMapper
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{writer_visibility}
         def #{name}=(value)
-          #{lock? ? "@shadow_#{name} = #{@instance_variable_name}" : ''}
-          dirty_attributes << self.class.properties(repository.name)[#{name.inspect}]
-          #{@instance_variable_name} = #{custom? ? "#{@type.inspect}.dump(value)" : 'value'}
+          self[#{name.inspect}] = value
         end
       EOS
-    rescue SyntaxError
-      raise SyntaxError, name
     end
   end # class Property
 end # module DataMapper

@@ -12,6 +12,88 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
   it_should_behave_like 'a DataMapper Adapter'
 
+  describe "#find_by_sql" do
+
+    before do
+      class Plupp
+        include DataMapper::Resource
+        property :id, Fixnum, :key => true
+        property :name, String
+      end
+    end
+
+    it "should be added to DataMapper::Resource::ClassMethods" do
+      DataMapper::Resource::ClassMethods.instance_methods.include?("find_by_sql").should == true
+      Plupp.methods.include?("find_by_sql").should == true
+    end
+
+    describe "when called" do
+
+      before do
+        @reader = mock("reader")
+        @reader.stub!(:next!).and_return(false)
+        @reader.stub!(:close)
+        @connection = mock("connection")
+        @connection.stub!(:close)
+        @command = mock("command")
+        @adapter = Plupp.repository.adapter
+        @repository = Plupp.repository
+        @repository.stub!(:adapter).and_return(@adapter)
+        @adapter.stub!(:create_connection).and_return(@connection)
+        @adapter.should_receive(:is_a?).any_number_of_times.with(DataMapper::Adapters::DataObjectsAdapter).and_return(true)
+      end
+
+      it "should accept a single String argument with or without options hash" do
+        @connection.should_receive(:create_command).twice.with("SELECT * FROM plupps").and_return(@command)
+        @command.should_receive(:set_types).twice.with([Fixnum, String])
+        @command.should_receive(:execute_reader).twice.and_return(@reader)
+        Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
+        Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
+        Plupp.find_by_sql("SELECT * FROM plupps")
+        Plupp.find_by_sql("SELECT * FROM plupps", :repository => :plupp_repo)
+      end
+      
+      it "should accept an Array argument with or without options hash" do
+        @connection.should_receive(:create_command).twice.with("SELECT * FROM plupps WHERE plur = ?").and_return(@command)
+        @command.should_receive(:set_types).twice.with([Fixnum, String])
+        @command.should_receive(:execute_reader).twice.with("my pretty plur").and_return(@reader)
+        Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
+        Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
+        Plupp.find_by_sql(["SELECT * FROM plupps WHERE plur = ?", "my pretty plur"])
+        Plupp.find_by_sql(["SELECT * FROM plupps WHERE plur = ?", "my pretty plur"], :repository => :plupp_repo)
+      end
+      
+      it "should accept a Query argument with or without options hash" do
+        @connection.should_receive(:create_command).twice.with("SELECT \"name\" FROM \"plupps\" WHERE (\"name\" = ?)").and_return(@command)
+        @command.should_receive(:set_types).twice.with([Fixnum, String])
+        @command.should_receive(:execute_reader).twice.with(Plupp.properties[:name]).and_return(@reader)
+        Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
+        Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
+        Plupp.find_by_sql(DataMapper::Query.new(Plupp, "name" => "my pretty plur", :fields => ["name"]))
+        Plupp.find_by_sql(DataMapper::Query.new(Plupp, "name" => "my pretty plur", :fields => ["name"]), :repository => :plupp_repo)
+      end
+      
+      it "requires a Repository that is a DataObjectsRepository to work" do
+        non_do_adapter = mock("non do adapter")
+        non_do_repo = mock("non do repo")
+        non_do_repo.stub!(:adapter).and_return(non_do_adapter)
+        Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(non_do_repo)
+        Proc.new do
+          Plupp.find_by_sql(:repository => :plupp_repo)
+        end.should raise_error(Exception, /DataObjectsAdapter/)
+      end
+
+      it "requires some kind of query to work at all" do
+        Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
+        Proc.new do
+          Plupp.find_by_sql(:repository => :plupp_repo)
+        end.should raise_error(Exception, /requires a query/)
+      end
+
+    end
+
+  end
+
   describe '#execute' do
     before do
       @mock_command = mock('Command', :execute_non_query => nil)
@@ -173,6 +255,15 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).slice(:color)).should == <<-EOS.compress_lines
         INSERT INTO "cheeses" ("color") VALUES (?)
       EOS
+    end
+  end
+
+  describe "#update" do
+    it 'should not try to update if there are no dirty attributes' do
+      repository = mock("repository")
+      resource = mock("resource")
+      resource.stub!(:dirty_attributes).and_return({})
+      @adapter.update(repository, resource).should == false
     end
   end
 
