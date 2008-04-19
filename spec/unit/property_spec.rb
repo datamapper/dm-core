@@ -115,6 +115,7 @@ describe DataMapper::Property do
       property :fresh, TrueClass
     end
     Potato.new().should respond_to(:fresh?)
+    Potato.new(:fresh => true).should be_fresh
   end
 
   it "should raise an ArgumentError when created with an invalid option" do

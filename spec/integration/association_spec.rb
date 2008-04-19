@@ -21,7 +21,9 @@ begin
     property :id, Fixnum, :serial => true
     property :name, String
 
-    many_to_one :engine, :repository_name => :sqlite3
+    repository(:sqlite3) do
+      many_to_one :engine
+    end
   end
 
   class Pie
@@ -37,7 +39,9 @@ begin
     property :id, Fixnum, :serial => true
     property :name, String
 
-    one_to_one :pie, :repository_name => :sqlite3
+    repository(:sqlite3) do
+      one_to_one :pie
+    end
   end
 
   class Host
@@ -46,7 +50,9 @@ begin
     property :id, Fixnum, :serial => true
     property :name, String
 
-    one_to_many :slices, :repository_name => :sqlite3
+    repository(:sqlite3) do
+      one_to_many :slices
+    end
   end
 
   class Slice
@@ -55,7 +61,9 @@ begin
     property :id, Fixnum, :serial => true
     property :name, String
 
-    many_to_one :host, :repository_name => :sqlite3
+    repository(:sqlite3) do
+      many_to_one :host, :repository_name => :sqlite3
+    end
   end
 
   describe DataMapper::Associations do
@@ -281,6 +289,31 @@ begin
         s.host.should_not be_nil
         s.host.id.should == 10
       end
+
+      #      describe '#through' do
+      #        before(:all) do
+      #          class Cake
+      #            property :id, Fixnum, :serial => true
+      #            property :name, String
+      #            has :slices, 1..n
+      #          end
+      #
+      #          @adapter.execute(<<-EOS.compress_lines)
+      #          CREATE TABLE "cakes" (
+      #            "id" INTEGER PRIMARY KEY,
+      #            "name" VARCHAR(50)
+      #          )
+      #          EOS
+      #
+      #          @adapter.execute('INSERT INTO "cakes" ("id", "name") values (?, ?)', 1, 'cake1', 1)
+      #          @adapter.execute('INSERT INTO "cakes" ("id", "name") values (?, ?)', 2, 'cake2', 1)
+      #
+      #          class Slice
+      #            has :cake, n..1
+      #          end
+      #        end
+      #        
+      #      end
 
       after do
         @adapter.execute('DROP TABLE "slices"')

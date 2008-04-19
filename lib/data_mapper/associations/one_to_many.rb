@@ -15,7 +15,7 @@ module DataMapper
 
         relationships[name] = Relationship.new(
           DataMapper::Inflection.underscore(parent_model_name).to_sym,
-          options[:repository_name] || repository.name,
+          repository.name,
           child_model_name,
           nil,
           parent_model_name,

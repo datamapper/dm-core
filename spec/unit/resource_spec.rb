@@ -28,12 +28,24 @@ describe "DataMapper::Resource" do
       property :core, String, :private => true
       property :type, Class
 
-      # An example of how to scope a property to a specific repository.
-      # Un-specced currently.
-      # repository(:legacy) do
-      #   property :name, String
-      # end
+      repository(:legacy) do
+        property :cowabunga, String
+      end
     end
+
+    class Moon
+    end
+  end
+
+  it "should hold repository-specific properties" do
+    Planet.properties(:legacy).should have_property(:cowabunga)
+    Planet.properties.should_not have_property(:cowabunga)
+  end
+
+  it "should track the classes that include it" do
+    DataMapper::Resource.including_classes.clear
+    Moon.class_eval do include(DataMapper::Resource) end
+    DataMapper::Resource.including_classes.should == Set.new([Moon])
   end
 
   it "should return an instance of the created object" do
@@ -203,7 +215,7 @@ describe "DataMapper::Resource" do
 
     it '.properties should return an PropertySet' do
       Planet.properties(:legacy).should be_kind_of(DataMapper::PropertySet)
-      Planet.properties(:legacy).should have(5).entries
+      Planet.properties(:legacy).should have(6).entries
     end
 
     it 'should provide key' do

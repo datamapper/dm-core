@@ -10,6 +10,8 @@ module DataMapper
 
   module Resource
 
+    @@including_classes = Set.new
+
     # +----------------------
     # Resource module methods
 
@@ -18,6 +20,18 @@ module DataMapper
       base.extend DataMapper::Associations
       base.send(:include, DataMapper::Hook)
       base.send(:include, DataMapper::Scope)
+      @@including_classes << base
+    end
+
+    # Return all classes that include the DataMapper::Resource module
+    #
+    # ==== Returns
+    # Set:: A Set containing the including classes
+    #
+    # -
+    # @public
+    def self.including_classes
+      @@including_classes
     end
 
     def self.dependencies
@@ -217,8 +231,8 @@ module DataMapper
         Repository.default_name
       end
 
-      def repository(repository_name = default_repository_name)
-        DataMapper.repository(repository_name)
+      def repository(repository_name = default_repository_name, &block)
+        DataMapper.repository(repository_name, &block)
       end
 
       def storage_name(repository_name = default_repository_name)
