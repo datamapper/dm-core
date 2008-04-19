@@ -87,41 +87,19 @@ describe "DataMapper::Associations" do
             :class_name => 'Car'
         end
       end
+      
+      it "should create a many-to-many relationship if references are circular" do
+        Manufacturer.should_receive(:many_to_many).
+          with(:vehicles,{}).
+          and_return(@relationship)
+        class Manufacturer
+          has n, :vehicles
+        end
+        class Vehicle
+          has n, :manufacturers
+        end
+      end
     end
-    
-    # describe "many-to-many syntax" do
-    #   it "should create a basic many-to-one association with no constraints" do
-    #     Manufacturer.should_receive(:many_to_many).
-    #       with(:vehicles,{}).
-    #       and_return(@relationship)
-    #     class Manufacturer
-    #       has n..n, :vehicles
-    #     end
-    #   end
-    #   
-    #   it "should create a many-to-many association with fixed constraints" do
-    #     Manufacturer.should_receive(:many_to_many).
-    #       with(:vehicles, :left=>{:min=>4, :max=>4}, :right=>{:min=>4, :max=>4}).
-    #       and_return(@relationship)
-    #     class Manufacturer
-    #       has 4..4, :vehicles
-    #     end
-    #   end
-    # 
-    #   it "should create a many-to-many association with min/max constraints" do
-    #     pending
-    #   end
-    # 
-    #   it "should create a many-to-many association with options" do
-    #     Manufacturer.should_receive(:many_to_many).
-    #       with(:vehicles,{:class_name => 'Car'}).
-    #       and_return(@relationship)
-    #     class Manufacturer
-    #       has n..n, :vehicles, 
-    #         :class_name => 'Car'
-    #     end
-    #   end
-    # end
   end
   
   describe ".belongs_to" do
