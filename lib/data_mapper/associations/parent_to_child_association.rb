@@ -6,10 +6,10 @@ module DataMapper
       extend Forwardable
       include Enumerable
 
-      def_delegators :children, :[], :size, :length, :first, :last
+      def_instance_delegators :entries, :[], :size, :length, :first, :last
 
-      def each
-        children.each { |child| yield(child) }
+      def loaded?
+        !defined?(@children_resources)
       end
 
       def children
@@ -48,6 +48,15 @@ module DataMapper
           children << child_resource
           raise
         end
+      end
+
+      def clear
+        each { |child_resource| delete(child_resource) }
+      end
+
+      def each(&block)
+        children.each { |child_resource| yield child_resource }
+        self
       end
 
       private

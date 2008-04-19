@@ -77,7 +77,6 @@ describe "DataMapper::LazyLoadedSet" do
       lls.add(['Nancy', 11])
     end
 
-    set.instance_variable_get("@entries").should be_empty
     results = set.entries
     results.size.should == 2
   end

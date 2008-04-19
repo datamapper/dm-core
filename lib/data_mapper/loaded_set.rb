@@ -1,16 +1,11 @@
+require 'forwardable'
+
 module DataMapper
   class LoadedSet
-    attr_reader :repository
+    extend Forwardable
+    include Enumerable
 
-    def keys
-      entry_keys = @entries.map { |resource| resource.key }
-
-      keys = {}
-      @key_properties.zip(entry_keys.transpose).each do |property,values|
-        keys[property] = values
-      end
-      keys
-    end
+    def_instance_delegators :entries, :[], :size, :length, :first, :last
 
     def reload!(options = {})
       query = Query.new(@model, keys.merge(:fields => @key_properties))
@@ -31,13 +26,11 @@ module DataMapper
         key_values = values.values_at(*@key_property_indexes)
 
         if resource = @repository.identity_map_get(model, key_values)
-          @entries << resource
-          resource.loaded_set = self
+          self << resource
           return resource unless reload
         else
           resource = model.allocate
-          @entries << resource
-          resource.loaded_set = self
+          self << resource
           @key_properties.zip(key_values).each do |property,key_value|
             resource.instance_variable_set(property.instance_variable_name, key_value)
           end
@@ -46,8 +39,7 @@ module DataMapper
         end
       else
         resource = model.allocate
-        @entries << resource
-        resource.loaded_set = self
+        self << resource
         resource.instance_variable_set(:@new_record, false)
         resource.readonly!
       end
@@ -59,15 +51,27 @@ module DataMapper
       self
     end
 
-    alias << add
+    def push(*resources)
+      resources.each do |resource|
+        @resources << resource
+        resource.loaded_set = self
+      end
+      self
+    end
 
-    def first
-      @entries.first
+    alias << push
+
+    def delete(resource)
+      @resources.delete(resource)
     end
 
     def entries
-      @entries.uniq!
-      @entries.dup
+      @resources.dup
+    end
+
+    def each(&block)
+      entries.each { |entry| yield entry }
+      self
     end
 
     private
@@ -81,7 +85,7 @@ module DataMapper
       @repository              = repository
       @model                   = model
       @properties_with_indexes = properties_with_indexes
-      @entries                 = []
+      @resources               = []
 
       if inheritance_property = @model.inheritance_property(@repository.name)
         @inheritance_property_index = @properties_with_indexes[inheritance_property]
@@ -91,13 +95,19 @@ module DataMapper
         @key_property_indexes = @properties_with_indexes.values_at(*@key_properties)
       end
     end
+
+    def keys
+      entry_keys = @resources.map { |resource| resource.key }
+
+      keys = {}
+      @key_properties.zip(entry_keys.transpose).each do |property,values|
+        keys[property] = values
+      end
+      keys
+    end
   end # class LoadedSet
 
   class LazyLoadedSet < LoadedSet
-    def each(&block)
-      entries.each { |entry| yield entry }
-    end
-
     def entries
       @loader[self]
 

@@ -191,7 +191,7 @@ describe "DataMapper::Resource" do
     end
 
     it '.storage_name should use default repository when not passed any arguments' do
-      Planet.storage_name.should == Planet.storage_name(:default)
+      Planet.storage_name.object_id.should == Planet.storage_name(:default).object_id
     end
 
     it 'should provide storage_names' do
@@ -218,6 +218,10 @@ describe "DataMapper::Resource" do
       Planet.properties(:legacy).should have(6).entries
     end
 
+    it '.properties should use default repository when not passed any arguments' do
+      Planet.properties.object_id.should == Planet.properties(:default).object_id
+    end
+
     it 'should provide key' do
       Planet.should respond_to(:key)
     end
@@ -229,7 +233,7 @@ describe "DataMapper::Resource" do
     end
 
     it '.key should use default repository when not passed any arguments' do
-      Planet.key.should == Planet.key(:default)
+      Planet.key.object_id.should == Planet.key(:default).object_id
     end
 
     it 'should provide inheritance_property' do
@@ -243,7 +247,7 @@ describe "DataMapper::Resource" do
     end
 
     it '.inheritance_property should use default repository when not passed any arguments' do
-      Planet.inheritance_property.should == Planet.inheritance_property(:default)
+      Planet.inheritance_property.object_id.should == Planet.inheritance_property(:default).object_id
     end
 
     it 'should provide finder methods' do
