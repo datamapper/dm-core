@@ -15,9 +15,7 @@ module DataMapper
       )
 
       def create_connection
-        connnection = DataObjects::Sqlite3::Connection.new(@uri)
-        # connnection.logger = DataMapper.logger
-        return connnection
+        DataObjects::Sqlite3::Connection.new(@uri)
       end
 
       protected
