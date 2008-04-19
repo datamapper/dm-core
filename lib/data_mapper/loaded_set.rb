@@ -114,7 +114,7 @@ module DataMapper
 
     def initialize(*args, &block)
       raise "LazyLoadedSets require a materialization block. Use a LoadedSet instead." unless block_given?
-      super(*args)
+      super
       @loader = block
     end
   end # class LazyLoadedSet

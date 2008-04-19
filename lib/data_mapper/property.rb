@@ -43,22 +43,6 @@ module DataMapper
 #                                                      is false
 #   end
 #
-# == Declaring Multiple Properties
-# You can declare multiple properties with the same type and options with one
-# call to the property method. There is no limit to the number of properties
-# that can be created, and the only required arguments are the property names
-# and type. Everything else is optional.
-#
-#   class Cellphone
-#     include DataMapper::Resource
-#     # You can pass the property names in a simple list, like below.
-#     property :name, :model, :make, DataMapper::Types::Text, :nullable => false
-#
-#     # Alternatively, you can pass an array of property names as the first argument.
-#     property [:black, :white], TrueClass, :default => true
-#     property [:red, :blue, :green, :orange, :pink], TrueClass, :default => false
-#   end
-#
 # == Limiting Access
 # Property access control is uses the same terminology Ruby does. Properties are
 # public by default, but can also be declared private or protected as needed
@@ -296,7 +280,7 @@ module DataMapper
       raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
 
       if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
-        raise ArgumentError, "options contained unknown keys: #{unknown_options * ', '}"
+        raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
       end
 
       @model                  = model

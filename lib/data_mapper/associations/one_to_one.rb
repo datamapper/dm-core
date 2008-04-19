@@ -24,11 +24,9 @@ module DataMapper
             #{name}_association.first
           end
 
-          def #{name}=(value)
-            if (original = #{name}_association.first) && original != value
-              #{name}_association.delete(original)
-            end
-            #{name}_association << value
+          def #{name}=(child_resource)
+            #{name}_association.clear
+            #{name}_association << child_resource unless child_resource.nil?
           end
 
           private

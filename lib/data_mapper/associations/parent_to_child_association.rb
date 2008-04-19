@@ -34,7 +34,6 @@ module DataMapper
             repository(@relationship.repository_name).save(child_resource)
           end
         end
-
         self
       end
 

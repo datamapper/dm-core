@@ -175,7 +175,7 @@ module DataMapper
         set = LoadedSet.new(repository, resource, properties_with_indexes)
 
         sql = read_statement(resource, key)
-        DataMapper.logger.debug { sql }
+        DataMapper.logger.debug { "READ: #{sql}" }
 
         connection = create_connection
         command = connection.create_command(sql)
