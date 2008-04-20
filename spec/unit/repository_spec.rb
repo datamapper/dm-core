@@ -69,4 +69,13 @@ describe DataMapper::Repository do
       repository.auto_migrate!
     end
   end
+  
+  describe "#map" do
+    it "should call @type_map.map with the arguments" do
+      repository = repository(:repository_spec)
+      repository.type_map.should_receive(:map).with(:type, :arg)
+      
+      repository.map(:type, :arg)
+    end
+  end
 end

@@ -111,4 +111,8 @@ module DataMapper
   def self.auto_migrate!(name = :default)
     repository(name).auto_migrate!
   end
+  
+  def self.prepare(name = nil, &blk)
+    yield repository(name)
+  end
 end

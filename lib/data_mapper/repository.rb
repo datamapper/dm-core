@@ -18,7 +18,7 @@ module DataMapper
       :default
     end
 
-    attr_reader :name, :adapter
+    attr_reader :name, :adapter, :type_map
 
     def identity_map_get(model, key)
       @identity_map.get(model, key)
@@ -101,6 +101,10 @@ module DataMapper
     def to_s
       "#<DataMapper::Repository:#{@name}>"
     end
+    
+    def map(*args)
+      @type_map.map(*args)
+    end
 
     private
 
@@ -110,6 +114,7 @@ module DataMapper
       @name         = name
       @adapter      = self.class.adapters[name]
       @identity_map = IdentityMap.new
+      @type_map     = TypeMap.new(@adapter.type_map)
     end
 
   end # class Repository
