@@ -1,4 +1,6 @@
 unless defined?(INITIAL_CLASSES)
+  ROOT_DIR = __DIR__ unless defined?(ROOT_DIR)
+
   # Require the DataMapper, and a Mock Adapter.
   require 'pathname'
   require Pathname(__FILE__).dirname.expand_path + 'lib/data_mapper'
