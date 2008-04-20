@@ -40,6 +40,11 @@ require __DIR__ + 'data_mapper/cli'
 require __DIR__ + 'data_mapper/migrator'
 require __DIR__ + 'data_mapper/auto_migrations'
 require __DIR__ + 'data_mapper/migrations/destructive_migrations'
+require __DIR__ + 'data_mapper/scope'
+require __DIR__ + 'data_mapper/query'
+
+require __DIR__ + 'data_mapper/types/enum'
+require __DIR__ + 'data_mapper/types/flag'
 
 module DataMapper
   def self.setup(name, uri_or_options)
@@ -80,19 +85,21 @@ module DataMapper
   # a new Session.
   #
   #   current_repository = DataMapper.repository
-  def self.repository(name = :default) # :yields: current_context
-    unless block_given?
-      begin
-        Repository.context.last || Repository.new(name)
-      #rescue NoMethodError
-       # raise RepositoryNotSetupError, "#{name.inspect} repository not set up."
-      end
+  def self.repository(name = nil) # :yields: current_context
+    current_repository = if name
+      Repository.new(name)
     else
-      begin
-        return yield(Repository.context.push(Repository.new(name)))
-      ensure
-        Repository.context.pop
-      end
+      Repository.context.last || Repository.new(Repository.default_name)
+    end
+
+    return current_repository unless block_given?
+
+    Repository.context << current_repository
+
+    begin
+      return yield(current_repository)
+    ensure
+      Repository.context.pop
     end
   end
   
