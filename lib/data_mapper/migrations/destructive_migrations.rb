@@ -8,8 +8,7 @@ module DataMapper
   class DestructiveMigrator < Migrator
     def self.migrate(repository)
       models.each do |model|
-        repository.adapter.destroy_store(repository, model)
-        repository.adapter.create_store(repository, model)
+        model.auto_migrate!
       end
     end
   end
