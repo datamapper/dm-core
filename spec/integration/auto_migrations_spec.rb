@@ -10,7 +10,7 @@ class Book
   property :isbn,           String
   property :published,      Date
   property :available,      TrueClass
-  property :description,    DataMapper::Types::Text
+  property :description,    DM::Text
   property :classification, Class
   property :price,          BigDecimal
   property :in_print,       Float
@@ -67,8 +67,8 @@ begin
         @table_set.any? {|c| c[@col_identifier] == "available" && c.type == "boolean"}.should be_true
       end
       
-      it "should create the description column as text" do
-        @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "text"}.should be_true
+      it "should create the description column as varchar(65535)" do
+        @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "varchar(65535)"}.should be_true
       end
       
       it "should create the classification column as a varchar" do
@@ -234,8 +234,8 @@ begin
         @table_set.any? {|c| c[@col_identifier] == "available" && c.type == "bool"}.should be_true
       end
       
-      it "should create the description column as text" do
-        @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "text"}.should be_true
+      it "should create the description column as varchar" do
+        @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "varchar"}.should be_true
       end
       
       it "should create the classification column as a varchar" do

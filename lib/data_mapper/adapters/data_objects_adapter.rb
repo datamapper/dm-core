@@ -94,7 +94,6 @@ module DataMapper
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(Fixnum).to(:int)
           tm.map(String).to(:varchar)
-          tm.map(DataMapper::Types::Text).to(:text)
           tm.map(Class).to(:varchar)
           tm.map(BigDecimal).to(:decimal)
           tm.map(Float).to(:float)

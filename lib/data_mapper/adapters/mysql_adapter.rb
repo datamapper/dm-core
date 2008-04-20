@@ -13,6 +13,7 @@ module DataMapper
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(String).with(:size => 100)
+          tm.map(DM::Text).to(:text)
           tm.map(Class).with(:size => 100)
         end
       end
