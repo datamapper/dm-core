@@ -43,7 +43,7 @@ namespace :dm do
 
   desc "Profile DataMapper"
   task :profile do
-    load __DIR__ + 'script/profile_data_mapper.rb'
+    load __DIR__ + 'script/profile.rb'
   end
 end
 
