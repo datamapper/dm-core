@@ -13,9 +13,12 @@ require Pathname(__FILE__).dirname.expand_path + 'lib/data_mapper/support/kernel
 
 Pathname.glob(__DIR__ + 'tasks/**/*.rb') { |t| require t }
 
-task :default => 'dm:spec'
-
+task :default     => 'dm:spec'
+task :spec        => 'dm:spec'
 task :environment => 'dm:environment'
+
+desc 'Remove all package, rdocs and spec products'
+task :clobber_all => %w[ clobber_package clobber_rdoc dm:clobber_spec ]
 
 namespace :dm do
   desc "Setup Environment"
@@ -68,6 +71,7 @@ end
 
 PROJECT = "dm-core"
 
+desc 'List all package files'
 task :ls do
   puts PACKAGE_FILES
 end
@@ -120,13 +124,16 @@ task :rubyforge => [ :rdoc, :gem ] do
   Rake::SshDirPublisher.new("#{ENV['RUBYFORGE_USER']}@rubyforge.org", "/var/www/gforge-projects/#{PROJECT}", 'doc').upload
 end
 
+desc "Install #{PROJECT}"
 task :install => :package do
   sh %{sudo gem install pkg/#{PROJECT}-#{PACKAGE_VERSION}}
 end
 
-namespace :dev do
-  desc "Install for development (for windows)"
-  task :winstall => :gem do
-    system %{gem install --no-rdoc --no-ri -l pkg/#{PROJECT}-#{PACKAGE_VERSION}.gem}
+if RUBY_PLATFORM.match(/mswin32|cygwin|mingw|bccwin/)
+  namespace :dev do
+    desc 'Install for development (for windows)'
+    task :winstall => :gem do
+      system %{gem install --no-rdoc --no-ri -l pkg/#{PROJECT}-#{PACKAGE_VERSION}.gem}
+    end
   end
 end
