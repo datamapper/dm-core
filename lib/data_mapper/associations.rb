@@ -29,7 +29,7 @@ module DataMapper
     # * has 1..3, :friends                      # one_to_many :friends, :min => 1, :max => 3
     # * has 3, :friends                         # one_to_many :friends, :min => 3, :max => 3
     # * has 1, :friend, :class_name=>'User'     # one_to_one :friend, :class_name => 'User'
-    # * has 3, :friends, :through=>:friendships # ????
+    # * has 3, :friends, :through=>:friendships # one_to_many :friends, :through => :friendships
     #
     # ==== Parameters
     # cardinality<Fixnum, Bignum, Infinity, Range>:: Defines the association type & constraints 
