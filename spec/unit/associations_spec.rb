@@ -10,7 +10,7 @@ describe "DataMapper::Associations" do
   end
 
   describe ".has" do
-    
+
     it "should allow a declaration" do
       lambda do
         class Manufacturer
@@ -18,38 +18,62 @@ describe "DataMapper::Associations" do
         end
       end.should_not raise_error
     end
-    
-    it "should allow overwriting of the auto assigned min/max values with keys" do
+
+    it "should not allow a constraint that is not a Range, Fixnum, Bignum or Infinity" do
+      lambda do
+        class Manufacturer
+          has '1', :halo_car
+        end
+      end.should raise_error(ArgumentError)
+    end
+
+    it "should not allow a constraint where the min is larger than the max" do
+      lambda do
+        class Manufacturer
+          has 1..0, :halo_car
+        end
+      end.should raise_error(ArgumentError)
+    end
+
+    it "should not allow overwriting of the auto assigned min/max values with keys" do
       Manufacturer.should_receive(:one_to_many).
-        with(:vehicles, {:min=>1, :max=>10}).
+        with(:vehicles, {:min=>1, :max=>2}).
         and_return(@relationship)
       class Manufacturer
-        has 1..2, :vehicles, :max=>10
+        has 1..2, :vehicles, :min=>5, :max=>10
       end
     end
 
     describe "one-to-one syntax" do
-      it "should create a basic one-to-one association" do
+      it "should create a basic one-to-one association with fixed constraint" do
         Manufacturer.should_receive(:one_to_one).
-          with(:halo_car,{}).
+          with(:halo_car, { :min => 1, :max => 1 }).
           and_return(@relationship)
         class Manufacturer
           has 1, :halo_car
         end
       end
 
-      it "should create a one-to-one association with options" do
+      it "should create a basic one-to-one association with min/max constraints" do
         Manufacturer.should_receive(:one_to_one).
-          with(:halo_car, {:class_name => 'Car', :repository_name => 'other'}).
+          with(:halo_car, { :min => 0, :max => 1 }).
           and_return(@relationship)
         class Manufacturer
-          has 1, :halo_car, 
-            :class_name => 'Car',
-            :repository_name => 'other'
+          has 0..1, :halo_car
+        end
+      end
+
+      it "should create a one-to-one association with options" do
+        Manufacturer.should_receive(:one_to_one).
+          with(:halo_car, {:class_name => 'Car', :min => 1, :max => 1 }).
+          and_return(@relationship)
+        class Manufacturer
+          has 1, :halo_car,
+            :class_name => 'Car'
         end
       end
     end
-    
+
     describe "one-to-many syntax" do
       it "should create a basic one-to-many association with no constraints" do
         Manufacturer.should_receive(:one_to_many).
@@ -59,7 +83,7 @@ describe "DataMapper::Associations" do
           has n, :vehicles
         end
       end
-      
+
       it "should create a one-to-many association with fixed constraint" do
         Manufacturer.should_receive(:one_to_many).
           with(:vehicles,{:min=>4, :max=>4}).
@@ -68,7 +92,7 @@ describe "DataMapper::Associations" do
           has 4, :vehicles
         end
       end
-      
+
       it "should create a one-to-many association with min/max constraints" do
         Manufacturer.should_receive(:one_to_many).
           with(:vehicles,{:min=>2, :max=>4}).
@@ -87,13 +111,13 @@ describe "DataMapper::Associations" do
             :class_name => 'Car'
         end
       end
-      
+
       it "should create a many-to-many relationship if references are circular" do
         # ================
           pending
         # ================
       end
-      
+
       it "should create one-to-many association and pass the :through option if specified" do
         Vehicle.should_receive(:one_to_many).
           with(:suppliers,{:through => :manufacturers}).
@@ -104,7 +128,7 @@ describe "DataMapper::Associations" do
       end
     end
   end
-  
+
   describe ".belongs_to" do
     it "should create a basic many-to-one association" do
       Manufacturer.should_receive(:many_to_one).
@@ -126,4 +150,3 @@ describe "DataMapper::Associations" do
     end
   end
 end
-
