@@ -41,8 +41,7 @@ module DataMapper
     # :class_name<String>:: The name of the class to associate with, if ommitted then the association name is assumed to match the class name
     #
     # ==== Returns
-    # DataMapper::Association:: One of - OneToOne, OneToMany, ManyToMany 
-    #    The association created should not be accessed directly
+    # DataMapper::Association::Relationship:: The relationship that was created to reflect either a one-to-one, one-to-many or many-to-many relationship
     #
     # ==== Raises
     # ArgumentError:: if the cardinality was not understood - should be Fixnum, Bignum, Infinity(n) or Range

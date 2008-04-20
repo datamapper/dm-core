@@ -92,21 +92,12 @@ describe "DataMapper::Associations" do
         # ================
           pending
         # ================
-        Manufacturer.should_receive(:many_to_many).
-          with(:vehicles,{}).
-          and_return(@relationship)
-        class Manufacturer
-          has n, :vehicles
-        end
-        class Vehicle
-          has n, :manufacturers
-        end
       end
       
-      it "should create many-to-many associations through a join model when a :through option is specified" do
-        # ================
-          pending
-        # ================
+      it "should create one-to-many association and pass the :through option if specified" do
+        Vehicle.should_receive(:one_to_many).
+          with(:suppliers,{:through => :manufacturers}).
+          and_return(@relationship)
         class Vehicle
           has n, :suppliers, :through => :manufacturers
         end
