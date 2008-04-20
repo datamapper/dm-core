@@ -30,7 +30,7 @@ module DataMapper
     # * has 1..3, :friends                      # one_to_many :friends, :min => 1, :max => 3
     # * has 3, :friends                         # one_to_many :friends, :min => 3, :max => 3
     # * has 1, :friend, :class_name=>'User'     # one_to_one :friend, :class_name => 'User'
-    # * has 3, :friends, :through=>:friendships # one_to_one :friend, :class_name => 'User'
+    # * has 3, :friends, :through=>:friendships # ????
     #
     # * <tt>cardinality</tt> - can be defined as either a fixed number, Infinity or a range
     # * <tt>name</tt> - name of the resource to associate with
