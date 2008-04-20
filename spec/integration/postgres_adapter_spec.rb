@@ -469,7 +469,9 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
 
-          many_to_one :engine, :repository_name => :postgres
+          repository(:postgres) do
+            many_to_one :engine
+          end
         end
 
         @adapter.execute('CREATE SEQUENCE "yards_id_seq"')
@@ -543,7 +545,9 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
 
-          one_to_many :slices, :repository_name => :postgres
+          repository(:postgres) do |context|
+            one_to_many :slices, :test => context
+          end
         end
 
         @adapter.execute('CREATE SEQUENCE "hosts_id_seq"')
@@ -563,7 +567,9 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
 
-          many_to_one :host, :repository_name => :postgres
+          repository(:postgres) do
+            many_to_one :host
+          end
         end
 
         @adapter.execute('CREATE SEQUENCE "slices_id_seq"')

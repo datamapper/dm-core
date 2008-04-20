@@ -72,7 +72,7 @@ module DataMapper
       end
 
       dirty_attributes << property
-      
+
       instance_variable_set(ivar_name, property.custom? ? property.type.dump(value, property) : property.typecast(value))
     end
 
@@ -231,8 +231,8 @@ module DataMapper
         Repository.default_name
       end
 
-      def repository(repository_name = default_repository_name, &block)
-        DataMapper.repository(repository_name, &block)
+      def repository(*args, &block)
+        DataMapper.repository(*args, &block)
       end
 
       def storage_name(repository_name = default_repository_name)
@@ -292,11 +292,11 @@ module DataMapper
       end
 
       def all(options = {})
-        repository(options[:repository] || default_repository_name).all(self, options)
+        repository(options[:repository]).all(self, options)
       end
 
       def first(options = {})
-        repository(options[:repository] || default_repository_name).first(self, options)
+        repository(options[:repository]).first(self, options)
       end
 
       def create(values)
