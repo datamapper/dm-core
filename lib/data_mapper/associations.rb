@@ -22,9 +22,8 @@ module DataMapper
     
     #
     # A shorthand, clear syntax for defining one-to-one, one-to-many and many-to-many resource relationships.
-    # 
-    # Usage Examples...
     #
+    # ==== Usage Examples...
     # * has 1, :friend                          # one_to_one, :friend
     # * has n, :friends                         # one_to_many :friends
     # * has 1..3, :friends                      # one_to_many :friends, :min => 1, :max => 3
@@ -32,10 +31,23 @@ module DataMapper
     # * has 1, :friend, :class_name=>'User'     # one_to_one :friend, :class_name => 'User'
     # * has 3, :friends, :through=>:friendships # ????
     #
-    # * <tt>cardinality</tt> - can be defined as either a fixed number, Infinity or a range
-    # * <tt>name</tt> - name of the resource to associate with
-    # * <tt>options</tt> - A hash of additional options
+    # ==== Parameters
+    # cardinality<Fixnum, Bignum, Infinity, Range>:: Defines the association type & constraints 
+    # name<Symbol>:: The name that the association will be referenced by
+    # opts<Hash>:: An options hash (see below)
     #
+    # ==== Options (opts)
+    # :through<Symbol>:: A association that this join should go through to form a many-to-many association
+    # :class_name<String>:: The name of the class to associate with, if ommitted then the association name is assumed to match the class name
+    #
+    # ==== Returns
+    # DataMapper::Association:: One of - OneToOne, OneToMany, ManyToMany 
+    #    The association created should not be accessed directly
+    #
+    # ==== Raises
+    # ArgumentError:: if the cardinality was not understood - should be Fixnum, Bignum, Infinity(n) or Range
+    #
+    # @public
     def has(cardinality, name, options = {})
       case cardinality
         when Range
@@ -52,14 +64,21 @@ module DataMapper
     #
     # A shorthand, clear syntax for defining many-to-one resource relationships.
     # 
-    # Usage Examples...
-    #
+    # ==== Usage Examples...
     # * belongs_to :user                          # many_to_one, :friend
-    # * belongs_to :friend, :classname => 'User'  # one_to_many :friends
+    # * belongs_to :friend, :classname => 'User'  # many_to_one :friends
     #
-    # * <tt>name</tt> - name of the resource to associate with
-    # * <tt>options</tt> - A hash of additional options
+    # ==== Parameters
+    # name<Symbol>:: The name that the association will be referenced by
+    # opts<Hash>:: An options hash (see below)
     #
+    # ==== Options (opts)
+    # (See has() for options)
+    #
+    # ==== Returns
+    # DataMapper::Association::ManyToOne:: The association created should not be accessed directly
+    #
+    # @public
     def belongs_to(name, options={})
       many_to_one(name, options)
     end
@@ -69,7 +88,7 @@ module DataMapper
   
     # A support method form converting Fixnum, Range or Infinity values into a {:min=>x, :max=>y} hash.
     #
-    # * <tt>contraints</tt> - constraints can be defined as either a fixed number, Infinity or a range
+    # @private
     def extract_min_max(contraints)
       case contraints
         when Range
