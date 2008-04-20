@@ -35,6 +35,15 @@ describe "DataMapper::Associations" do
       end.should raise_error(ArgumentError)
     end
 
+    it "should not allow overwriting of the auto assigned min/max values with keys" do
+      Manufacturer.should_receive(:one_to_many).
+        with(:vehicles, {:min=>1, :max=>2}).
+        and_return(@relationship)
+      class Manufacturer
+        has 1..2, :vehicles, :min=>5, :max=>10
+      end
+    end
+
     describe "one-to-one syntax" do
       it "should create a basic one-to-one association with fixed constraint" do
         Manufacturer.should_receive(:one_to_one).
