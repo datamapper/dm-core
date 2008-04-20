@@ -5,16 +5,12 @@ module DataMapper
   module Adapters
 
     class PostgresAdapter < DataObjectsAdapter
-      
-      def self.type_map=(value)
-        @type_map = value
-      end
-      
+
       def self.type_map
-        @type_map ||= {}
+        @type_map ||= TypeMap.new(super) do |tm|
+          tm.map(DateTime).to(:timestamp)
+        end
       end
-      
-      self.type_map = DataObjectsAdapter.type_map.merge(DateTime => 'timestamp'.freeze)
 
       def create_with_returning?; true; end
 

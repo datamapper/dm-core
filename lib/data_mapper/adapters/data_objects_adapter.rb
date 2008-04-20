@@ -90,29 +90,19 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
       
-      def self.type_map=(value)
-        @type_map = value
-      end
-      
       def self.type_map
-        @type_map ||= {}
-      end
-      
-      self.type_map = {
-        Fixnum                  => 'int'.freeze,
-        String                  => 'varchar'.freeze,
-        DataMapper::Types::Text => 'text'.freeze,
-        Class                   => 'varchar'.freeze,
-        BigDecimal              => 'decimal'.freeze,
-        Float                   => 'float'.freeze,
-        DateTime                => 'datetime'.freeze,
-        Date                    => 'date'.freeze,
-        TrueClass               => 'boolean'.freeze,
-        Object                  => 'text'.freeze
-      }
-      
-      def type_map
-        self.class.type_map
+        @type_map ||= TypeMap.new(super) do |tm|
+          tm.map(Fixnum).to(:int)
+          tm.map(String).to(:varchar)
+          tm.map(DataMapper::Types::Text).to(:text)
+          tm.map(Class).to(:varchar)
+          tm.map(BigDecimal).to(:decimal)
+          tm.map(Float).to(:float)
+          tm.map(DateTime).to(:datetime)
+          tm.map(Date).to(:date)
+          tm.map(TrueClass).to(:boolean)
+          tm.map(Object).to(:text)
+        end
       end
 
       def begin_transaction
@@ -420,7 +410,8 @@ module DataMapper
         end
         
         def column_schema_statement(model)
-          model.properties.map {|p| "#{quote_column_name(p.field)} #{type_map[p.type]}"}.join(', ')
+          
+          model.properties.map {|p| "#{quote_column_name(p.field)} #{type_map[p.type][:primitive]}" << ((type_map[p.type][:size].nil?) ? '' : "(#{type_map[p.type][:size]})")}.join(', ')
         end
 
         def query_read_statement(query)

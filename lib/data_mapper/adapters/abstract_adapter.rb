@@ -3,8 +3,17 @@ require __DIR__.parent + 'naming_conventions'
 module DataMapper
   module Adapters
     class AbstractAdapter
+      
+      def self.type_map
+        @type_map ||= TypeMap.new
+      end
+      
       attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention
+      
+      def type_map
+        self.class.type_map
+      end
 
       # Methods dealing with a single resource object
       def create(repository, resource)

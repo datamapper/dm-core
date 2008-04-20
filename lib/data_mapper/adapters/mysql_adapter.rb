@@ -10,17 +10,12 @@ module DataMapper
     # host, user, password, database (path), socket(uri query string), port
     class MysqlAdapter < DataObjectsAdapter
       
-      def self.type_map=(value)
-        @type_map = value
-      end
-      
       def self.type_map
-        @type_map ||= {}
+        @type_map ||= TypeMap.new(super) do |tm|
+          tm.map(String).with(:size => 100)
+          tm.map(Class).with(:size => 100)
+        end
       end
-      
-      self.type_map = DataObjectsAdapter.type_map.merge(String => 'varchar(100)'.freeze,
-                      DataMapper::Types::Text => 'varchar(100)'.freeze,
-                      Class => 'varchar(100)'.freeze)
       
       private
 
