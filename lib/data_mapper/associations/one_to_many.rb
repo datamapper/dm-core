@@ -6,6 +6,7 @@ require __DIR__ + 'parent_to_child_association'
 module DataMapper
   module Associations
     module OneToMany
+      private
       def one_to_many(name, options = {})
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
