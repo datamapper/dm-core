@@ -192,7 +192,7 @@ module DataMapper
     end
 
     def validate_resource # :nodoc:
-      if self.class.properties(self.class.default_repository_name).empty?
+      if self.class.properties.empty?
         raise IncompleteResourceError, 'Resources must have at least one property to be initialized.'
       end
     end
@@ -225,10 +225,6 @@ module DataMapper
       def self.extended(base)
         base.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
         base.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
-      end
-
-      def default_repository_name
-        Repository.default_name
       end
 
       def repository(*args, &block)
@@ -316,6 +312,10 @@ module DataMapper
       end
 
       private
+
+      def default_repository_name
+        Repository.default_name
+      end
 
       def method_missing(method, *args, &block)
         if relationship = relationships[method]
