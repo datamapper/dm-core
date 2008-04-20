@@ -48,7 +48,7 @@ module DataMapper
     #
     # @public
     def has(cardinality, name, options = {})
-      options = extract_min_max(cardinality).merge(options)
+      options = options.merge(extract_min_max(cardinality))
 
       if options[:max] == 1
         one_to_one(name, options)
