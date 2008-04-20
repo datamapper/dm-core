@@ -89,6 +89,9 @@ describe "DataMapper::Associations" do
       end
       
       it "should create a many-to-many relationship if references are circular" do
+        # ================
+          pending
+        # ================
         Manufacturer.should_receive(:many_to_many).
           with(:vehicles,{}).
           and_return(@relationship)
@@ -97,6 +100,15 @@ describe "DataMapper::Associations" do
         end
         class Vehicle
           has n, :manufacturers
+        end
+      end
+      
+      it "should create many-to-many associations through a join model when a :through option is specified" do
+        # ================
+          pending
+        # ================
+        class Vehicle
+          has n, :suppliers, :through => :manufacturers
         end
       end
     end
