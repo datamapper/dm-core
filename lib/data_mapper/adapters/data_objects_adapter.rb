@@ -234,7 +234,7 @@ module DataMapper
         affected_rows == 1
       end
       
-      def create_store(repository, model)
+      def create_model_storage(repository, model)
         DataMapper.logger.debug "CREATE TABLE: #{model.storage_name(name)}  COLUMNS: #{model.properties.map {|p| p.field}.join(', ')}"
 
         connection = create_connection
@@ -247,7 +247,7 @@ module DataMapper
         result.to_i == 1
       end
       
-      def destroy_store(repository, model)
+      def destroy_model_storage(repository, model)
         DataMapper.logger.debug "DROP TABLE: #{model.storage_name(name)}"
         
         connection = create_connection

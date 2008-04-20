@@ -45,8 +45,6 @@ describe DataMapper::AutoMigrations do
       property :age, Fixnum
     end
     
-    p @cat.methods
-    
     @cat.should respond_to(:auto_migrate!)
   end
   
@@ -78,13 +76,12 @@ describe DataMapper::AutoMigrations do
       @repository.stub!(:adapter).and_return(@adapter)
     end
     
-    it "should call the repository's adapter's #destroy_object_store and #create_object_store method with each model" do
-      models = [:cat, :dog, :fish, :cow]
+    it "should call each model's auto_migrate! method" do
+      models = [:cat, :dog, :fish, :cow].map {|m| mock(m)}
       
       models.each do |model|
         DataMapper::AutoMigrator.models << model
-        @adapter.should_receive(:destroy_store).with(@repository, model)
-        @adapter.should_receive(:create_store).with(@repository, model)
+        model.should_receive(:auto_migrate!)
       end
       
       DataMapper::AutoMigrator.auto_migrate(@repository)

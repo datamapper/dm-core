@@ -23,15 +23,27 @@ module DataMapper
         raise NotImplementedError
       end
       
-      def create_store(repository, model)
+      def create_model_storage(repository, model)
         raise NotImplementedError
       end
       
-      def destroy_store(repository, model)
+      def destroy_model_storage(repository, model)
         raise NotImplementedError
       end
       
-      def alter_store(repository, model)
+      def alter_model_storage(repository, *args)
+        raise NotImplementedError
+      end
+      
+      def create_property_storage(repository, property)
+        raise NotImplementedError
+      end
+      
+      def destroy_property_storage(repository, property)
+        raise NotImplementedError
+      end
+      
+      def alter_property_storage(repository, *args)
         raise NotImplementedError
       end
 

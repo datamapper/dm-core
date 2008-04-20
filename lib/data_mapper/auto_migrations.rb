@@ -9,8 +9,8 @@ module DataMapper
     
     module ClassMethods
       def auto_migrate!(repository_name = default_repository_name)
-        repository(repository_name).adapter.destroy_store(repository, self)
-        repository(repository_name).adapter.create_store(repository, self)
+        repository(repository_name).adapter.destroy_model_storage(repository, self)
+        repository(repository_name).adapter.create_model_storage(repository, self)
       end
     end
   end
@@ -23,8 +23,7 @@ module DataMapper
     
     def self.auto_migrate(repository)
       models.each do |model|
-        repository.adapter.destroy_store(repository, model)
-        repository.adapter.create_store(repository, model)
+        model.auto_migrate!
       end
     end
   end
