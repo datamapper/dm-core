@@ -19,7 +19,7 @@ module DataMapper
     def n
       1.0/0
     end
-    
+
     #
     # A shorthand, clear syntax for defining one-to-one, one-to-many and many-to-many resource relationships.
     #
@@ -32,7 +32,7 @@ module DataMapper
     # * has 3, :friends, :through=>:friendships # one_to_many :friends, :through => :friendships
     #
     # ==== Parameters
-    # cardinality<Fixnum, Bignum, Infinity, Range>:: Defines the association type & constraints 
+    # cardinality<Fixnum, Bignum, Infinity, Range>:: Defines the association type & constraints
     # name<Symbol>:: The name that the association will be referenced by
     # opts<Hash>:: An options hash (see below)
     #
@@ -48,21 +48,18 @@ module DataMapper
     #
     # @public
     def has(cardinality, name, options = {})
-      case cardinality
-        when Range
-          min, max = cardinality.first, cardinality.last
-          # 1..n or 3..5
-          one_to_many(name, extract_min_max(cardinality).merge(options))
-        when 1
-          one_to_one(name, options)
-        when Fixnum, Bignum, n              # n or 2 - shorthand form of n..n or 2..2
-          one_to_many(name, extract_min_max(cardinality).merge(options))
-      end || raise(ArgumentError, "Cardinality #{cardinality.inspect} (#{cardinality.class}) not handled")
+      options = extract_min_max(cardinality).merge(options)
+
+      if options[:max] == 1
+        one_to_one(name, options)
+      else
+        one_to_many(name, options)
+      end
     end
-    
+
     #
     # A shorthand, clear syntax for defining many-to-one resource relationships.
-    # 
+    #
     # ==== Usage Examples...
     # * belongs_to :user                          # many_to_one, :friend
     # * belongs_to :friend, :classname => 'User'  # many_to_one :friends
@@ -81,22 +78,25 @@ module DataMapper
     def belongs_to(name, options={})
       many_to_one(name, options)
     end
-    
-    
-  private 
-  
+
+
+  private
+
     # A support method form converting Fixnum, Range or Infinity values into a {:min=>x, :max=>y} hash.
     #
     # @private
-    def extract_min_max(contraints)
-      case contraints
+    def extract_min_max(constraints)
+      case constraints
         when Range
-          {:min=>contraints.first, :max=>contraints.last}
+          raise ArgumentError, "Constraint min (#{constraints.first}) cannot be larger than the max (#{constraints.last})" if constraints.first > constraints.last
+          { :min => constraints.first, :max => constraints.last }
         when Fixnum, Bignum
-          {:min=>contraints, :max=>contraints}
+          { :min => constraints, :max => constraints }
         when n
           {}
-      end || raise(ArgumentError, "Contraint #{contraints.inspect} (#{contraints.class}) not handled must be one of Range, Fixnum, Bignum, Infinity(n)")
+        else
+          raise ArgumentError, "Constraint #{constraints.inspect} (#{constraints.class}) not handled must be one of Range, Fixnum, Bignum, Infinity(n)"
+      end
     end
   end # module Associations
 end # module DataMapper
