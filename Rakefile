@@ -23,17 +23,29 @@ namespace :dm do
     require 'environment'
   end
 
-  desc "Run specifications"
-  Spec::Rake::SpecTask.new('spec') do |t|
-    t.spec_opts = ["--format", "specdoc", "--colour"]
-    t.spec_files = Pathname.glob(ENV['FILES'] || __DIR__ + 'spec/**/*_spec.rb')
-    unless ENV['NO_RCOV']
-      t.rcov = true
-      t.rcov_opts << '--exclude' << 'spec,environment.rb'
-      t.rcov_opts << '--text-summary'
-      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-      t.rcov_opts << '--only-uncovered'
+  def run_spec(name, files)
+    Spec::Rake::SpecTask.new(name) do |t|
+      t.spec_opts = ["--format", "specdoc", "--colour"]
+      t.spec_files = Pathname.glob(ENV['FILES'] || files)
+      unless ENV['NO_RCOV']
+        t.rcov = true
+        t.rcov_opts << '--exclude' << 'spec,environment.rb'
+        t.rcov_opts << '--text-summary'
+        t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+        t.rcov_opts << '--only-uncovered'
+      end
     end
+  end
+
+  desc "Run all specifications"
+  task :spec => ['dm:spec:unit', 'dm:spec:integration']
+
+  namespace :spec do
+    desc "Run unit specifications"
+    run_spec('unit', __DIR__ + 'spec/unit/**/*_spec.rb')
+
+    desc "Run integration specifications"
+    run_spec('integration', __DIR__ + 'spec/integration/**/*_spec.rb')
   end
 
   desc "Run comparison with ActiveRecord"
