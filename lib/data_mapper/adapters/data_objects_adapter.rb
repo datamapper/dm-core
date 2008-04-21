@@ -72,7 +72,7 @@ module DataMapper
 
         properties ||= self.properties
 
-        DataMapper.logger.debug { "FIND_BY_SQL: #{sql}  PARAMETERS: #{params.inspect}" }
+        DataMapper.logger.debug("FIND_BY_SQL: #{sql}  PARAMETERS: #{params.inspect}")
 
         repository.adapter.read_set_with_sql(repository, self, properties, sql, params, do_reload)
       end
@@ -148,7 +148,7 @@ module DataMapper
 
         sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, resource.class, properties)
         values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-        DataMapper.logger.debug { "CREATE: #{sql}  PARAMETERS: #{values.inspect}" }
+        DataMapper.logger.debug("CREATE: #{sql}  PARAMETERS: #{values.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -175,7 +175,7 @@ module DataMapper
         set = LoadedSet.new(repository, resource, properties_with_indexes)
 
         sql = read_statement(resource, key)
-        DataMapper.logger.debug { "READ: #{sql}" }
+        DataMapper.logger.debug("READ: #{sql}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -200,7 +200,7 @@ module DataMapper
           sql = update_statement(resource.class, properties)
           values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
           parameters = (values + resource.key)
-          DataMapper.logger.debug { "UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}" }
+          DataMapper.logger.debug("UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}")
           
           connection = create_connection
           command = connection.create_command(sql)
@@ -244,7 +244,7 @@ module DataMapper
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
         set = LoadedSet.new(repository, model, properties_with_indexes)
 
-        DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
+        DataMapper.logger.debug("READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}")
 
         connection = create_connection
         begin
@@ -283,20 +283,20 @@ module DataMapper
 
       # Database-specific method
       def execute(sql, *args)
-        DataMapper.logger.debug { "EXECUTE: #{sql}  PARAMETERS: #{args.inspect}" }
+        DataMapper.logger.debug("EXECUTE: #{sql}  PARAMETERS: #{args.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
         return command.execute_non_query(*args)
       rescue => e
-        DataMapper.logger.error { e } if DataMapper.logger
+        DataMapper.logger.error(e) if DataMapper.logger
         raise e
       ensure
         connection.close if connection
       end
 
       def query(sql, *args)
-        DataMapper.logger.debug { "QUERY: #{sql}  PARAMETERS: #{args.inspect}" }
+        DataMapper.logger.debug("QUERY: #{sql}  PARAMETERS: #{args.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -319,7 +319,7 @@ module DataMapper
 
         return results
       rescue => e
-        DataMapper.logger.error { e } if DataMapper.logger
+        DataMapper.logger.error(e) if DataMapper.logger
         raise e
       ensure
         reader.close if reader

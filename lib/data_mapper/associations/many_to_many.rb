@@ -4,9 +4,12 @@ require __DIR__ + 'relationship'
 module DataMapper
   module Associations
     module ManyToMany
+      private
       def many_to_many(name, options = {})
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
+
+        # TOOD: raise an exception if unknown options are passed in
 
         child_model_name  = DataMapper::Inflection.demodulize(self.name)
         parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)

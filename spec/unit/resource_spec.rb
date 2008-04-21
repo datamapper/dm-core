@@ -159,15 +159,6 @@ describe "DataMapper::Resource" do
       Planet.should respond_to(:after)
     end
 
-    it 'should provide default_repository_name' do
-      Planet.should respond_to(:default_repository_name)
-    end
-
-    it '.default_repository_name should delegate to DataMapper::Repository.default_name' do
-      DataMapper::Repository.should_receive(:default_name).with(no_args).once.and_return(:default)
-      Planet.default_repository_name.should == :default
-    end
-
     it 'should provide a repository' do
       Planet.should respond_to(:repository)
     end
