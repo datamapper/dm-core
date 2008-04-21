@@ -38,8 +38,8 @@ module DataMapper
             @#{name}_association ||= begin
               relationship = self.class.relationships[:#{name}]
 
-              association = relationship.with_parent(self, Associations::ParentToChildAssociation) do |repository, child_key, parent_key, child_model, parent_resource|
-                repository.all(child_model, child_key.to_query(parent_key.get(parent_resource)))
+              association = Associations::OneToMany::Proxy.new(relationship, self) do |repository, relationship|
+                repository.all(*relationship.to_child_query(self))
               end
 
               parent_associations << association

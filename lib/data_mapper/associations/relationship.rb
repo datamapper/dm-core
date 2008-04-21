@@ -32,6 +32,11 @@ module DataMapper
         end
       end
 
+
+      def to_child_query(parent)
+        [child_model, child_key.to_query(parent_key.get(parent))]
+      end
+
       def with_child(child_resource, association, &loader)
         association.new(self, child_resource) do
           yield repository(@repository_name), child_key, parent_key, parent_model, child_resource
