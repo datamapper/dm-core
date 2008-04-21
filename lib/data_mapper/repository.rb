@@ -28,6 +28,7 @@ module DataMapper
       @identity_map.set(resource)
     end
 
+    # TODO: this should use current_scope too
     def get(model, key)
       @identity_map.get(model, key) || @adapter.read(self, model, key)
     end

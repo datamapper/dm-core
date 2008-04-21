@@ -10,11 +10,11 @@ require "time" # httpdate
 #   DataMapper::Logger::{ Fatal, Error, Warn, Info, Debug }
 #
 # Logging via:
-#   DataMapper.logger.fatal(message<String>,&block)
-#   DataMapper.logger.error(message<String>,&block)
-#   DataMapper.logger.warn(message<String>,&block)
-#   DataMapper.logger.info(message<String>,&block)
-#   DataMapper.logger.debug(message<String>,&block)
+#   DataMapper.logger.fatal(message<String>)
+#   DataMapper.logger.error(message<String>)
+#   DataMapper.logger.warn(message<String>)
+#   DataMapper.logger.info(message<String>)
+#   DataMapper.logger.debug(message<String>)
 #
 # Flush the buffer to 
 #   DataMapper.logger.flush
@@ -165,16 +165,10 @@ module DataMapper
     #   The logging level as an integer
     # string<String>
     #   The string message to be logged
-    # block<&block>
-    #   An optional block that will be evaluated and added to the logging message after the string message.
-    def push(string = nil)
+    def push(string)
       message = Time.now.httpdate
       message << delimiter
-      message << string if string
-      if block_given?
-        message << delimiter
-        message << yield
-      end
+      message << string
       message << "\n" unless message[-1] == ?\n
       @buffer << message
       flush # Force a flush for now until we figure out where we want to use the buffering.
@@ -186,8 +180,8 @@ module DataMapper
     LEVELS.each_pair do |name, number|
       class_eval <<-LEVELMETHODS, __FILE__, __LINE__
       # DOC
-      def #{name}(message = nil, &block)
-        self.<<(message, &block) if #{name}?
+      def #{name}(message)
+        self.<<(message) if #{name}?
       end
 
       # DOC
