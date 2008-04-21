@@ -6,24 +6,7 @@ require ROOT_DIR + 'lib/data_mapper'
 begin
   require 'do_postgres'
 
-  DataMapper.setup(:postgres, "postgres://postgres@localhost/dm_core_test")
-
-  describe DataMapper::Adapters::PostgresAdapter do
-    before do
-      @uri = URI.parse("postgres://postgres@localhost/dm_core_test")
-    end
-
-    it 'should override the path when the option is passed' do
-      pending
-      adapter = DataMapper::Adapters::PostgresAdapter.new(:mock, @uri, { :path => '/dm_core_test2' })
-      adapter.instance_variable_get("@uri").should == URI.parse("postgres://postgres@localhost/dm_core_test2")
-    end
-
-    it 'should accept the uri when no overrides exist' do
-      adapter = DataMapper::Adapters::PostgresAdapter.new(:mock, @uri)
-      adapter.instance_variable_get("@uri").should == @uri
-    end
-  end
+  DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://postgres@localhost/dm_core_test")
 
   describe DataMapper::Adapters::DataObjectsAdapter do
     before do

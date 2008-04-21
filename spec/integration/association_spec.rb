@@ -62,7 +62,7 @@ begin
     property :name, String
 
     repository(:sqlite3) do
-      many_to_one :host, :repository_name => :sqlite3
+      many_to_one :host
     end
   end
 
