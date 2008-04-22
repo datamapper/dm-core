@@ -379,20 +379,33 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       EOS
     end
   end
+  
+  describe "#column_schema_hash" do
+    before(:each) do
+      @model = Class.new do
+        include DataMapper::Resource
+        
+        property :id, Fixnum, :key => true
+        property :serial, Fixnum, :serial => true, :key => false
+      end
+      @id_property =  @model.properties.to_a[0]
+      @serial_property = @model.properties.to_a[1]
+    end
+    
+    it "should map :name to the property's field value" do
+      @adapter.column_schema_hash(@id_property)[:name].should == "id"
+    end
+    
+    it "should set :key? if the property is a key" do
+      @adapter.column_schema_hash(@id_property)[:key?].should == true
+    end
+  end
 
   describe "#drop_table_statement" do
     it "should generate a SQL statement with the drop command" do
       @adapter.drop_table_statement(LittleBox).should == <<-EOS.compress_lines
         DROP TABLE IF EXISTS "little_boxes"
       EOS
-    end
-  end
-  
-  describe "#column_schema_statement" do
-    it "should generate a SQL statement with the column names quoted" do
-      LittleBox.properties.each do |property|
-        @adapter.column_schema_statement(LittleBox).should include("\"#{property.field}\"")
-      end
     end
   end
 end

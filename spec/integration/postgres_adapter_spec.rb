@@ -61,10 +61,6 @@ begin
     end
 
     describe "CRUD for serial Key" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "video_games"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "video_games_id_seq"')
-      end
 
       before do
         class VideoGame
@@ -73,14 +69,8 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
         end
-
-        @adapter.execute('CREATE SEQUENCE "video_games_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "video_games" (
-            "id" INT4 DEFAULT nextval('video_games_id_seq') NOT NULL,
-            "name" VARCHAR(50)
-          )
-        EOS
+        
+        VideoGame.auto_migrate!(:postgres)
       end
 
       it 'should be able to create a record' do
@@ -153,9 +143,6 @@ begin
     end
 
     describe "CRUD for Composite Key" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "bank_customers"')
-      end
 
       before do
         class BankCustomer
@@ -166,13 +153,7 @@ begin
           property :name, String
         end
 
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "bank_customers" (
-            "bank" VARCHAR(50),
-            "account_number" VARCHAR(50),
-            "name" VARCHAR(50)
-          )
-        EOS
+        BankCustomer.auto_migrate!(:postgres)
       end
 
       it 'should be able to create a record' do
@@ -244,10 +225,6 @@ begin
     end
 
     describe "Ordering a Query" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "sail_boats"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "sail_boats_id_seq"')
-      end
 
       before do
         class SailBoat
@@ -263,14 +240,7 @@ begin
           end
         end
 
-        @adapter.execute('CREATE SEQUENCE "sail_boats_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "sail_boats" (
-            "id" INT4 DEFAULT nextval('sail_boats_id_seq') NOT NULL,
-            "name" VARCHAR(50),
-            "port" VARCHAR(50)
-          )
-        EOS
+        SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
         repository(:postgres).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
@@ -304,10 +274,6 @@ begin
     end
 
     describe "Lazy Loaded Properties" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "sail_boats"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "sail_boats_id_seq"')
-      end
 
       before do
         class SailBoat
@@ -324,15 +290,7 @@ begin
           end
         end
 
-        @adapter.execute('CREATE SEQUENCE "sail_boats_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "sail_boats" (
-            "id" INT4 DEFAULT nextval('sail_boats_id_seq') NOT NULL,
-            "notes" VARCHAR(50),
-            "trip_report" VARCHAR(50),
-            "miles" INTEGER
-          )
-        EOS
+        SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres).save(SailBoat.new(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23))
         repository(:postgres).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
@@ -359,10 +317,6 @@ begin
     end
 
     describe "finders" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "serial_finder_specs"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "serial_finder_specs_id_seq"')
-      end
 
       before do
         class SerialFinderSpec
@@ -372,13 +326,7 @@ begin
           property :sample, String
         end
 
-        @adapter.execute('CREATE SEQUENCE "serial_finder_specs_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "serial_finder_specs" (
-            "id" INT4 DEFAULT nextval('serial_finder_specs_id_seq') NOT NULL,
-            "sample" VARCHAR(50)
-          )
-        EOS
+        SerialFinderSpec.auto_migrate!(:postgres)
 
         # Why do we keep testing with Repository instead of the models directly?
         # Just because we're trying to target the code we're actualling testing
