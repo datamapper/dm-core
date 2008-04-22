@@ -103,7 +103,11 @@ module DataMapper
     end
     
     def map(*args)
-      @type_map.map(*args)
+      type_map.map(*args)
+    end
+
+    def type_map
+      @type_map ||= TypeMap.new(@adapter.type_map)
     end
 
     private
@@ -114,7 +118,6 @@ module DataMapper
       @name         = name
       @adapter      = self.class.adapters[name]
       @identity_map = IdentityMap.new
-      @type_map     = TypeMap.new(@adapter.type_map)
     end
 
   end # class Repository
