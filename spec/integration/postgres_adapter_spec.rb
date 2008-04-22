@@ -6,7 +6,7 @@ require ROOT_DIR + 'lib/data_mapper'
 begin
   require 'do_postgres'
 
-  DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://postgres@localhost/dm_core_test")
+  DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://127.0.0.1/dm_core_test")
 
   describe DataMapper::Adapters::DataObjectsAdapter do
     before do
