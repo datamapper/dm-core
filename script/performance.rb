@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support/kernel'
-
-require __DIR__.parent + 'lib/data_mapper'
+require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper')
 
 require 'benchmark'
 require 'rubygems'
@@ -26,7 +23,7 @@ configuration_options = {
 
 configuration_options[:socket] = socket_file unless socket_file.nil?
 
-ActiveRecord::Base.logger = Logger.new(__DIR__.parent + 'log/ar.log')
+ActiveRecord::Base.logger = Logger.new(DataMapper.root + 'log/ar.log')
 ActiveRecord::Base.logger.level = 0
 
 ActiveRecord::Base.establish_connection(configuration_options)
@@ -37,7 +34,7 @@ end
 
 ARExhibit.find_by_sql('SELECT 1')
 
-DataMapper::Logger.new(__DIR__.parent + 'log/dm.log', :debug)
+DataMapper::Logger.new(DataMapper.root + 'log/dm.log', :debug)
 adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 class Exhibit

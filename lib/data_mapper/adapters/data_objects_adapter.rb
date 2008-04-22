@@ -1,6 +1,3 @@
-require __DIR__ + 'abstract_adapter'
-require __DIR__.parent + 'loaded_set'
-
 begin
   require 'fastthread'
 rescue LoadError

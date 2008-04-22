@@ -1,6 +1,7 @@
 require "yaml"
 require "irb"
 require Pathname('irb/completion')
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_mapper'))
 
 # TODO: error handling for:
 #   missing adapter, host or database
@@ -178,7 +179,7 @@ module DataMapper
           load_models if config[:models]
 
           puts "DataMapper has been loaded using the '#{options[:adapter] || options["adapter"]}' database '#{options[:database] || options["database"]}' on '#{options[:host] || options["host"]}' as '#{options[:username] || options["username"]}'"
-          ENV["IRBRC"] = __DIR__.parent.parent + 'bin/.irbrc'
+          ENV["IRBRC"] = DataMapper.root / 'bin' / '.irbrc'
           IRB.start
 
         rescue => error

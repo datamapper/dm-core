@@ -1,4 +1,3 @@
-require __DIR__ + 'data_objects_adapter'
 require 'do_sqlite3'
 
 module DataMapper

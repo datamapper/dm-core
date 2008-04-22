@@ -20,30 +20,37 @@ begin
 rescue LoadError
 end
 
-# for __DIR__
-require Pathname(__FILE__).dirname.expand_path + 'data_mapper/support/kernel'
+# for Pathname /
+require File.join(File.dirname(__FILE__), 'data_mapper', 'core_ext', 'pathname')
 
-require __DIR__ + 'data_mapper/support/object'
-require __DIR__ + 'data_mapper/support/blank'
-require __DIR__ + 'data_mapper/support/enumerable'
-require __DIR__ + 'data_mapper/support/symbol'
-require __DIR__ + 'data_mapper/support/inflection'
-require __DIR__ + 'data_mapper/support/struct'
+dir = Pathname(__FILE__).dirname.expand_path / 'data_mapper'
 
-require __DIR__ + 'data_mapper/logger'
-require __DIR__ + 'data_mapper/dependency_queue'
-require __DIR__ + 'data_mapper/repository'
-require __DIR__ + 'data_mapper/resource'
-require __DIR__ + 'data_mapper/query'
-require __DIR__ + 'data_mapper/adapters/abstract_adapter'
-require __DIR__ + 'data_mapper/cli'
-require __DIR__ + 'data_mapper/scope'
-require __DIR__ + 'data_mapper/query'
-
-require __DIR__ + 'data_mapper/types/enum'
-require __DIR__ + 'data_mapper/types/flag'
+require dir / 'associations'
+require dir / 'auto_migrations'
+require dir / 'cli'
+require dir / 'dependency_queue'
+require dir / 'hook'
+require dir / 'identity_map'
+require dir / 'is'
+require dir / 'loaded_set'
+require dir / 'logger'
+require dir / 'naming_conventions'
+require dir / 'property_set'
+require dir / 'query'
+require dir / 'repository'
+require dir / 'resource'
+require dir / 'scope'
+require dir / 'support'
+require dir / 'type'
+require dir / 'types'
+require dir / 'property'
+require dir / 'adapters'
 
 module DataMapper
+  def self.root
+    @root ||= Pathname(__FILE__).dirname.parent.expand_path
+  end
+  
   def self.setup(name, uri_or_options)
     raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller unless Symbol === name
 
@@ -59,7 +66,7 @@ module DataMapper
 
     unless Adapters::const_defined?(DataMapper::Inflection.classify(adapter_name) + 'Adapter')
       begin
-        require __DIR__ + "data_mapper/adapters/#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
+        require root / 'data_mapper' / 'adapters' / "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
       rescue LoadError
         require "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
       end

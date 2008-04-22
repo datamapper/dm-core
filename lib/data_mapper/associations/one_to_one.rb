@@ -1,5 +1,3 @@
-require __DIR__ + 'relationship'
-
 module DataMapper
   module Associations
     module OneToOne

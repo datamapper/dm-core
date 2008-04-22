@@ -1,6 +1,4 @@
 require 'forwardable'
-require __DIR__.parent + 'associations'
-require __DIR__ + 'relationship'
 
 module DataMapper
   module Associations

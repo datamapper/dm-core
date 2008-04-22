@@ -1,5 +1,3 @@
-require __DIR__.parent + 'naming_conventions'
-
 module DataMapper
   module Adapters
     class AbstractAdapter

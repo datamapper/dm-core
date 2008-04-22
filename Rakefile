@@ -8,10 +8,9 @@ require Pathname('rake/rdoctask')
 require Pathname('rake/gempackagetask')
 require Pathname('rake/contrib/rubyforgepublisher')
 
-# for __DIR__
-require Pathname(__FILE__).dirname.expand_path + 'lib/data_mapper/support/kernel'
+ROOT = Pathname(__FILE__).dirname.expand_path
 
-Pathname.glob(__DIR__ + 'tasks/**/*.rb') { |t| require t }
+Pathname.glob(ROOT + 'tasks/**/*.rb') { |t| require t }
 
 task :default     => 'dm:spec'
 task :spec        => 'dm:spec'
@@ -45,20 +44,20 @@ namespace :dm do
 
   namespace :spec do
     desc "Run unit specifications"
-    run_spec('unit', __DIR__ + 'spec/unit/**/*_spec.rb')
+    run_spec('unit', Pathname.glob(ROOT + 'spec/unit/**/*_spec.rb'))
 
     desc "Run integration specifications"
-    run_spec('integration', __DIR__ + 'spec/integration/**/*_spec.rb')
+    run_spec('integration', Pathname.glob(ROOT + 'spec/integration/**/*_spec.rb'))
   end
 
   desc "Run comparison with ActiveRecord"
   task :perf do
-    load __DIR__ + 'script/performance.rb'
+    load Pathname.glob(ROOT + 'script/performance.rb')
   end
 
   desc "Profile DataMapper"
   task :profile do
-    load __DIR__ + 'script/profile.rb'
+    load Pathname.glob(ROOT + 'script/profile.rb')
   end
 end
 
