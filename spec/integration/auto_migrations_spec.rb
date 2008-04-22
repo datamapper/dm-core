@@ -6,7 +6,7 @@ require ROOT_DIR + 'lib/data_mapper'
 class Book
   include DataMapper::Resource
   
-  property :id,             Fixnum
+  property :id,             Fixnum, :key => true
   property :isbn,           String
   property :published,      Date
   property :available,      TrueClass

@@ -281,7 +281,7 @@ module DataMapper
 
           reader.close
         rescue StandardError => se
-          p se, sql
+
           raise se
         ensure
           close_connection(connection)
@@ -393,24 +393,35 @@ module DataMapper
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
-        
+
         def create_table_statement(model)
           <<-EOS.compress_lines
             CREATE TABLE #{quote_table_name(model.storage_name(name))} (
-              #{column_schema_statement(model)}
+              #{model.properties.collect {|p| column_schema_statement(column_schema_hash(p)) } * ', '}
             )
           EOS
         end
-        
+
         def drop_table_statement(model)
           <<-EOS.compress_lines
             DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}
           EOS
         end
-        
-        def column_schema_statement(model)
-          
-          model.properties.map {|p| "#{quote_column_name(p.field)} #{type_map[p.type][:primitive]}" << ((type_map[p.type][:size].nil?) ? '' : "(#{type_map[p.type][:size]})")}.join(', ')
+
+        def column_schema_hash(property)
+          schema = type_map[property.type].merge(:name => property.field)
+          schema[:key?]     = property.key?
+          schema[:serial?]  = property.serial? unless property.key?
+          schema
+        end
+
+        def column_schema_statement(schema)
+          statement = quote_column_name(schema[:name])
+          statement << " #{schema[:primitive]}"
+          statement << "(#{schema[:size]})" if schema[:size]
+          statement << " PRIMARY KEY" if schema[:primary_key?]
+          statement << " AUTO_INCREMENT" if schema[:serial?]
+          statement
         end
 
         def query_read_statement(query)
