@@ -209,6 +209,7 @@ begin
       it 'should accept a DM::Assoc::Relationship as a link' do
         factory = DataMapper::Associations::Relationship.new(
           :factory,
+          {},
           :sqlite3,
           'Vehicle',
           [ :factory_id ],
@@ -235,6 +236,7 @@ begin
       it 'should accept a mixture of items as a set of links' do
         region = DataMapper::Associations::Relationship.new(
           :region,
+          {},
           :sqlite3,
           'Factory',
           [ :region_id ],

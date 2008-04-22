@@ -24,7 +24,7 @@ module DataMapper
   
     module UnderscoredAndPluralized
       def self.call(value)
-        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value))
+        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value)).gsub('/','_')
       end
     end # module UnderscoredAndPluralized
     
