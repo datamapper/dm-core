@@ -7,6 +7,8 @@ module DataMapper
 
     def_instance_delegators :entries, :[], :size, :length, :first, :last
 
+    attr_reader :repository
+
     def reload!(options = {})
       query = Query.new(@model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
