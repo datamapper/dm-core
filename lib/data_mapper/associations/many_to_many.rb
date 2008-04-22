@@ -16,12 +16,14 @@ module DataMapper
 
         relationships[name] = Relationship.new(
           name,
+          options,
           options[:repository_name] || repository.name,
           child_model_name,
           nil,
           parent_model_name,
           nil
-        )
+        )        
+        relationships[name]
       end
 
       class Instance

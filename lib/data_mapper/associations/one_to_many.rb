@@ -16,6 +16,7 @@ module DataMapper
 
         relationships[name] = Relationship.new(
           DataMapper::Inflection.underscore(self.name).to_sym,
+          options,
           repository.name,
           child_model_name,
           nil,
@@ -44,7 +45,6 @@ module DataMapper
             end
           end
         EOS
-
         relationships[name]
       end
 

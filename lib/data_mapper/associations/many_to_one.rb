@@ -15,6 +15,7 @@ module DataMapper
 
         relationships[name] = Relationship.new(
           name,
+          options,
           repository.name,
           child_model_name,
           nil,
@@ -47,7 +48,6 @@ module DataMapper
             end
           end
         EOS
-
         relationships[name]
       end
 
