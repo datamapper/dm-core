@@ -370,16 +370,23 @@ module DataMapper
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
+        
+        
 
         def query_read_statement(query)
           qualify = query.links.any?
 
           sql = "SELECT "
 
-          sql << query.fields.map do |property|
-            # deriving the model name from the property and not the query
-            # allows for "foreign" properties to be qualified correctly
-            model_name = property.model.storage_name(property.model.repository.name)
+          sql << query.fields.map do |property|                      
+            # TODO Should we raise an error if there is no such property in the 
+            #      repository of the query?
+            # 
+            #if property.model.properties(query.repository.name)[property.name].nil?
+            #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
+            #end            
+            #
+            model_name = property.model.storage_name(query.repository.name)
             property_to_column_name(model_name, property, qualify)
           end.join(', ')
 
@@ -416,9 +423,14 @@ module DataMapper
           unless query.conditions.empty?
             sql << " WHERE "
             sql << "(" << query.conditions.map do |operator, property, value|
-              # deriving the model name from the property and not the query
-              # allows for "foreign" properties to be qualified correctly
-              model_name = property.model.storage_name(property.model.repository.name)
+              # TODO Should we raise an error if there is no such property in the 
+              #      repository of the query?
+              # 
+              #if property.model.properties(query.repository.name)[property.name].nil?
+              #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
+              #end            
+              #
+              model_name = property.model.storage_name(query.repository.name)            
               case operator
                 when :eql, :in then equality_operator(query,model_name,operator, property, qualify, value)
                 when :not      then inequality_operator(query,model_name,operator, property, qualify, value)
