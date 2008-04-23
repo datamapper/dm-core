@@ -1,7 +1,3 @@
-require __DIR__ + 'support/errors'
-require __DIR__ + 'identity_map'
-require __DIR__ + 'scope'
-
 module DataMapper
   class Repository
     @adapters = {}

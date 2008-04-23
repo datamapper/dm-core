@@ -1,10 +1,4 @@
 require 'set'
-require __DIR__ + 'support/string'
-require __DIR__ + 'property_set'
-require __DIR__ + 'property'
-require __DIR__ + 'hook'
-require __DIR__ + 'scope'
-require __DIR__ + 'associations'
 
 module DataMapper
 

@@ -1,7 +1,10 @@
-require __DIR__ + 'associations/many_to_one'
-require __DIR__ + 'associations/one_to_many'
-require __DIR__ + 'associations/many_to_many'
-require __DIR__ + 'associations/one_to_one'
+dir = Pathname(__FILE__).dirname.expand_path / 'associations'
+
+require dir / 'relationship'
+require dir / 'many_to_many'
+require dir / 'many_to_one'
+require dir / 'one_to_many'
+require dir / 'one_to_one'
 
 module DataMapper
   module Associations

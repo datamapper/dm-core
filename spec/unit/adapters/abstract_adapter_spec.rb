@@ -1,8 +1,5 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent.parent + 'spec_helper'
-
-require ROOT_DIR + 'lib/data_mapper/adapters/abstract_adapter'
-require __DIR__ + 'adapter_shared_spec'
+require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
+require DataMapper.root / 'spec' / 'unit' / 'adapters' / 'adapter_shared_spec'
 
 describe DataMapper::Adapters::AbstractAdapter do
   before do

@@ -1,10 +1,10 @@
+require File.join(File.dirname(__FILE__), 'lib', 'data_mapper')
+
 unless defined?(INITIAL_CLASSES)
-  ROOT_DIR = __DIR__ unless defined?(ROOT_DIR)
+  ROOT_DIR = DataMapper.root unless defined?(ROOT_DIR)
 
   # Require the DataMapper, and a Mock Adapter.
-  require 'pathname'
-  require Pathname(__FILE__).dirname.expand_path + 'lib/data_mapper'
-  require __DIR__ + 'spec/lib/mock_adapter'
+  require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
   require 'fileutils'
 
   adapter = ENV["ADAPTER"] || "sqlite3"
@@ -19,7 +19,7 @@ unless defined?(INITIAL_CLASSES)
 
   # Determine log path.
   ENV['_'] =~ /(\w+)/
-  log_path = __DIR__ + "log/#{$1 == 'opt' ? 'spec' : $1}.log"
+  log_path = DataMapper.root / 'log' / "#{$1 == 'opt' ? 'spec' : $1}.log"
 
   FileUtils::mkdir_p(File.dirname(log_path))
   # FileUtils::rm(log_path) if File.exists?(log_path)
@@ -27,6 +27,6 @@ unless defined?(INITIAL_CLASSES)
   DataMapper::Logger.new(log_path, 0)
   at_exit { DataMapper.logger.close }
 
-  Pathname.glob(__DIR__ + 'spec/models/*.rb').sort.each { |path| load path }
+  Pathname.glob(DataMapper.root / 'spec' / 'models' / '*.rb').sort.each { |path| load path }
 
 end
