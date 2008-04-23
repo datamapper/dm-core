@@ -12,13 +12,6 @@ begin
     describe 'when ordering' do
       before do
         @adapter = repository(:sqlite3).adapter
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "sail_boats" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50),
-            "port" VARCHAR(50)
-          )
-        EOS
 
         class SailBoat
           include DataMapper::Resource
@@ -32,6 +25,8 @@ begin
             end
           end
         end
+        
+        SailBoat.auto_migrate!(:sqlite3)
 
         repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
         repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))

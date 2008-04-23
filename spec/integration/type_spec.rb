@@ -12,8 +12,7 @@ begin
     before do
 
       @adapter = repository(:sqlite3).adapter
-      @adapter.execute("CREATE TABLE coconuts (id INTEGER PRIMARY KEY, faked TEXT, document TEXT, stuff TEXT)")
-
+      
       module TypeTests
         class Impostor < DataMapper::Type
           primitive String
@@ -30,6 +29,8 @@ begin
           property :stuff, DM::Yaml
         end
       end
+      
+      TypeTests::Coconut.auto_migrate!(:sqlite3)
 
       @document = <<-EOS.margin
         NAME, RATING, CONVENIENCE
