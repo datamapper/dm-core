@@ -489,6 +489,14 @@ module DataMapper
 
       include SQL
 
+      def quote_table_name(table_name)
+        "\"#{table_name.gsub('"', '""')}\""
+      end
+
+      def quote_column_name(column_name)
+        "\"#{column_name.gsub('"', '""')}\""
+      end
+
       protected
 
       def normalize_uri(uri_or_options)
@@ -527,13 +535,6 @@ module DataMapper
         false
       end
 
-      def quote_table_name(table_name)
-        "\"#{table_name.gsub('"', '""')}\""
-      end
-
-      def quote_column_name(column_name)
-        "\"#{column_name.gsub('"', '""')}\""
-      end
     end # class DoAdapter
   end # module Adapters
 end # module DataMapper
