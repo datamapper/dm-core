@@ -1,4 +1,3 @@
-require __DIR__ + 'data_objects_adapter'
 # Broke?
 # gem 'do_mysql', '>= 0.9.0'
 require 'do_mysql'

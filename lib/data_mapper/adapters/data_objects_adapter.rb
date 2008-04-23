@@ -1,6 +1,3 @@
-require __DIR__ + 'abstract_adapter'
-require __DIR__.parent + 'loaded_set'
-
 begin
   require 'fastthread'
 rescue LoadError
@@ -8,6 +5,77 @@ end
 require 'data_objects'
 
 module DataMapper
+
+  module Resource
+    
+    module ClassMethods
+      #
+      # Find instances by manually providing SQL
+      #
+      # ==== Parameters
+      # <String>:: An SQL query to execute
+      # <Array>:: An Array containing a String (being the SQL query to execute) and the parameters to the query.
+      #   example: ["SELECT name FROM users WHERE id = ?", id]
+      # <DataMapper::Query>:: A prepared Query to execute.
+      # <Hash>:: An options hash.
+      #
+      # A String, Array or Query is required.
+      #
+      # ==== Options (the options hash)
+      # :repository<Symbol>:: The name of the repository to execute the query in. Defaults to self.default_repository_name.
+      # :reload<Boolean>:: Whether to reload any instances found that allready exist in the identity map. Defaults to false.
+      # :properties<Array>:: The Properties of the instance that the query loads. Must contain DataMapper::Properties. Defaults to self.properties.
+      #
+      # ==== Returns
+      # LoadedSet:: The instance matched by the query.
+      #
+      # ==== Example
+      # MyClass.find_by_sql(["SELECT id FROM my_classes WHERE county = ?", selected_county], :properties => MyClass.property[:id], :repository => :county_repo)
+      #
+      # -
+      # @public
+      def find_by_sql(*args)
+        sql = nil
+        query = nil
+        params = []
+        properties = nil
+        do_reload = false
+        repository_name = default_repository_name
+        args.each do |arg|
+          if arg.is_a?(String)
+            sql = arg
+          elsif arg.is_a?(Array)
+            sql = arg.first
+            params = arg[1..-1]
+          elsif arg.is_a?(DataMapper::Query)
+            query = arg
+          elsif arg.is_a?(Hash)
+            repository_name = arg.delete(:repository) if arg.include?(:repository)
+            properties = Array(arg.delete(:properties)) if arg.include?(:properties)
+            do_reload = arg.delete(:reload) if arg.include?(:reload)
+            raise "unknown options to #find_by_sql: #{arg.inspect}" unless arg.empty?
+          end
+        end
+
+        the_repository = repository(repository_name)
+        raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless the_repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
+
+        if query
+          sql = the_repository.adapter.query_read_statement(query)
+          params = query.fields
+        end
+
+        raise "#find_by_sql requires a query of some kind to work" unless sql
+
+        properties ||= self.properties
+
+        DataMapper.logger.debug("FIND_BY_SQL: #{sql}  PARAMETERS: #{params.inspect}")
+
+        repository.adapter.read_set_with_sql(repository, self, properties, sql, params, do_reload)
+      end
+    end
+
+  end
 
   module Adapters
 
@@ -77,7 +145,7 @@ module DataMapper
 
         sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, resource.class, properties)
         values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-        DataMapper.logger.debug { "CREATE: #{sql}  PARAMETERS: #{values.inspect}" }
+        DataMapper.logger.debug("CREATE: #{sql}  PARAMETERS: #{values.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -104,7 +172,7 @@ module DataMapper
         set = LoadedSet.new(repository, resource, properties_with_indexes)
 
         sql = read_statement(resource, key)
-        DataMapper.logger.debug { sql }
+        DataMapper.logger.debug("READ: #{sql}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -122,20 +190,24 @@ module DataMapper
 
       def update(repository, resource)
         properties = resource.dirty_attributes
-
-        sql = update_statement(resource.class, properties)
-        values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-        parameters = (values + resource.key)
-        DataMapper.logger.debug { "UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}" }
-
-        connection = create_connection
-        command = connection.create_command(sql)
-
-        affected_rows = command.execute_non_query(*parameters).to_i
-
-        close_connection(connection)
-
-        affected_rows == 1
+        
+        if properties.empty?
+          return false
+        else
+          sql = update_statement(resource.class, properties)
+          values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
+          parameters = (values + resource.key)
+          DataMapper.logger.debug("UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}")
+          
+          connection = create_connection
+          command = connection.create_command(sql)
+          
+          affected_rows = command.execute_non_query(*parameters).to_i
+          
+          close_connection(connection)
+          
+          affected_rows == 1
+        end
       end
 
       def delete(repository, resource)
@@ -151,16 +223,25 @@ module DataMapper
         affected_rows == 1
       end
 
-      # Methods dealing with finding stuff by some query parameters
-      def read_set(repository, query)
-        properties = query.fields
-
+      #
+      # used by find_by_sql and read_set
+      #
+      # ==== Parameters
+      # repository<DataMapper::Repository>:: The repository to read from.
+      # model<Object>:: The class of the instances to read.
+      # properties<Array>:: The properties to read. Must contain Symbols, Strings or DM::Properties.
+      # sql<String>:: The query to execute.
+      # parameters<Array>:: The conditions to the query.
+      # do_reload<Boolean>:: Whether to reload objects already found in the identity map.
+      #
+      # ==== Returns
+      # LoadedSet:: A set of the found instances.
+      #
+      def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-        set = LoadedSet.new(repository, query.model, properties_with_indexes)
+        set = LoadedSet.new(repository, model, properties_with_indexes)
 
-        sql = query_read_statement(query)
-        parameters = query.parameters
-        DataMapper.logger.debug { "READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}" }
+        DataMapper.logger.debug("READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}")
 
         connection = create_connection
         begin
@@ -169,7 +250,7 @@ module DataMapper
           reader = command.execute_reader(*parameters)
 
           while(reader.next!)
-            set.add(reader.values, query.reload?)
+            set.add(reader.values, do_reload)
           end
 
           reader.close
@@ -183,26 +264,36 @@ module DataMapper
         set
       end
 
+      # Methods dealing with finding stuff by some query parameters
+      def read_set(repository, query)
+        read_set_with_sql(repository, 
+                          query.model, 
+                          query.fields, 
+                          query_read_statement(query), 
+                          query.parameters, 
+                          query.reload?)
+      end
+
       def delete_set(repository, query)
         raise NotImplementedError
       end
 
       # Database-specific method
       def execute(sql, *args)
-        DataMapper.logger.debug { "EXECUTE: #{sql}  PARAMETERS: #{args.inspect}" }
+        DataMapper.logger.debug("EXECUTE: #{sql}  PARAMETERS: #{args.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
         return command.execute_non_query(*args)
       rescue => e
-        DataMapper.logger.error { e } if DataMapper.logger
+        DataMapper.logger.error(e) if DataMapper.logger
         raise e
       ensure
         connection.close if connection
       end
 
       def query(sql, *args)
-        DataMapper.logger.debug { "QUERY: #{sql}  PARAMETERS: #{args.inspect}" }
+        DataMapper.logger.debug("QUERY: #{sql}  PARAMETERS: #{args.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -225,7 +316,7 @@ module DataMapper
 
         return results
       rescue => e
-        DataMapper.logger.error { e } if DataMapper.logger
+        DataMapper.logger.error(e) if DataMapper.logger
         raise e
       ensure
         reader.close if reader
@@ -276,16 +367,23 @@ module DataMapper
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
+        
+        
 
         def query_read_statement(query)
           qualify = query.links.any?
 
           sql = "SELECT "
 
-          sql << query.fields.map do |property|
-            # deriving the model name from the property and not the query
-            # allows for "foreign" properties to be qualified correctly
-            model_name = property.model.storage_name(property.model.repository.name)
+          sql << query.fields.map do |property|                      
+            # TODO Should we raise an error if there is no such property in the 
+            #      repository of the query?
+            # 
+            #if property.model.properties(query.repository.name)[property.name].nil?
+            #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
+            #end            
+            #
+            model_name = property.model.storage_name(query.repository.name)
             property_to_column_name(model_name, property, qualify)
           end.join(', ')
 
@@ -322,9 +420,14 @@ module DataMapper
           unless query.conditions.empty?
             sql << " WHERE "
             sql << "(" << query.conditions.map do |operator, property, value|
-              # deriving the model name from the property and not the query
-              # allows for "foreign" properties to be qualified correctly
-              model_name = property.model.storage_name(property.model.repository.name)
+              # TODO Should we raise an error if there is no such property in the 
+              #      repository of the query?
+              # 
+              #if property.model.properties(query.repository.name)[property.name].nil?
+              #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
+              #end            
+              #
+              model_name = property.model.storage_name(query.repository.name)            
               case operator
                 when :eql, :in then equality_operator(query,model_name,operator, property, qualify, value)
                 when :not      then inequality_operator(query,model_name,operator, property, qualify, value)

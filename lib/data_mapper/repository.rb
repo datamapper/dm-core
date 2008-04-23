@@ -1,7 +1,3 @@
-require __DIR__ + 'support/errors'
-require __DIR__ + 'identity_map'
-require __DIR__ + 'scope'
-
 module DataMapper
   class Repository
     @adapters = {}
@@ -28,6 +24,7 @@ module DataMapper
       @identity_map.set(resource)
     end
 
+    # TODO: this should use current_scope too
     def get(model, key)
       @identity_map.get(model, key) || @adapter.read(self, model, key)
     end
@@ -87,6 +84,10 @@ module DataMapper
       else
         false
       end
+    end
+
+    def to_s
+      "#<DataMapper::Repository:#{@name}>"
     end
 
     private

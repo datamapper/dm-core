@@ -1,13 +1,10 @@
 #!/usr/bin/env ruby
 
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support/kernel'
-
-require __DIR__.parent + 'lib/data_mapper'
+require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper')
 
 require 'ruby-prof'
 
-OUTPUT = __DIR__.parent + 'profile_results.txt'
+OUTPUT = DataMapper.root / 'profile_results.txt'
 
 SOCKET_FILE = Pathname.glob(%w[
   /opt/local/var/run/mysql5/mysqld.sock
@@ -15,7 +12,7 @@ SOCKET_FILE = Pathname.glob(%w[
   tmp/mysql.sock
 ]).find(&:socket?)
 
-DataMapper::Logger.new(__DIR__.parent + 'log/dm.log', :debug)
+DataMapper::Logger.new(DataMapper.root / 'log' / 'dm.log', :debug)
 DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{SOCKET_FILE}")
 
 class Exhibit

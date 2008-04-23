@@ -9,6 +9,7 @@ describe "DataMapper::LoadedSet" do
 
   before :all do
     DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
+    DataMapper.setup(:other, "mock://localhost/mock") unless DataMapper::Repository.adapters[:other]
 
     @cow = Class.new do
       include DataMapper::Resource
@@ -16,6 +17,14 @@ describe "DataMapper::LoadedSet" do
       property :name, String, :key => true
       property :age, Fixnum
     end
+  end
+
+  it "should return the right repository" do
+    klass = Class.new do
+      include DataMapper::Resource
+    end
+
+    DataMapper::LoadedSet.new(repository(:other), klass, []).repository.name.should == :other
   end
 
   it "should be able to add arbitrary objects" do
@@ -77,7 +86,6 @@ describe "DataMapper::LazyLoadedSet" do
       lls.add(['Nancy', 11])
     end
 
-    set.instance_variable_get("@entries").should be_empty
     results = set.entries
     results.size.should == 2
   end

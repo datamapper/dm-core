@@ -7,6 +7,7 @@ begin
   require 'do_sqlite3'
 
   DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
+  DataMapper.setup(:mock, "mock:///mock.db")
 
   describe DataMapper::Query do
     describe 'when ordering' do
@@ -187,6 +188,11 @@ begin
           property :region_id, Fixnum
           property :name, String
 
+          repository(:mock) do
+            property :land, String
+          end
+
+
           many_to_one :region
         end
 
@@ -206,9 +212,32 @@ begin
         end
       end
 
+      it 'should require that all properties in :fields and all :links come from the same repository' 
+#      do
+#        land = Factory.properties(:mock)[:land]
+#        fields = []
+#        Vehicle.properties(:sqlite3).map do |property|
+#          fields << property
+#        end
+#        fields << land       
+#        
+#        lambda{
+#          begin
+#            repository(:sqlite3) do
+#              query = DataMapper::Query.new(Vehicle,:links => [:factory], :fields => fields)
+#              results = @adapter.read_set(repository(:sqlite3), query)
+#            end
+#          rescue RuntimeError
+#            $!.message.should == 'Property Factory.land not available in repository sqlite3.'
+#            raise $!
+#          end                
+#        }.should raise_error(RuntimeError)
+#      end
+
       it 'should accept a DM::Assoc::Relationship as a link' do
         factory = DataMapper::Associations::Relationship.new(
           :factory,
+          {},
           :sqlite3,
           'Vehicle',
           [ :factory_id ],
@@ -235,6 +264,7 @@ begin
       it 'should accept a mixture of items as a set of links' do
         region = DataMapper::Associations::Relationship.new(
           :region,
+          {},
           :sqlite3,
           'Factory',
           [ :region_id ],

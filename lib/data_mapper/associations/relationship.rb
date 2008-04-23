@@ -2,7 +2,7 @@ module DataMapper
   module Associations
     class Relationship
 
-      attr_reader :name, :repository_name
+      attr_reader :name, :repository_name, :options
 
       def child_key
         @child_key ||= begin
@@ -30,6 +30,11 @@ module DataMapper
 
           PropertySet.new(parent_key)
         end
+      end
+
+
+      def to_child_query(parent)
+        [child_model, child_key.to_query(parent_key.get(parent))]
       end
 
       def with_child(child_resource, association, &loader)
@@ -72,7 +77,7 @@ module DataMapper
       #     Vehicle.properties.slice(:manufacturer_id)
       #     Manufacturer.properties.slice(:id)
       #   )
-      def initialize(name, repository_name, child_model_name, child_properties, parent_model_name, parent_properties, &loader)
+      def initialize(name,options, repository_name, child_model_name, child_properties, parent_model_name, parent_properties, &loader)
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller                                unless Symbol === name
         raise ArgumentError, "+repository_name+ must be a Symbol, but was #{repository_name.class}", caller            unless Symbol === repository_name
         raise ArgumentError, "+child_model_name+ must be a String, but was #{child_model_name.class}", caller          unless String === child_model_name
@@ -80,7 +85,8 @@ module DataMapper
         raise ArgumentError, "+parent_model_name+ must be a String, but was #{parent_model_name.class}", caller        unless String === parent_model_name
         raise ArgumentError, "+parent_properties+ must be an Array or nil, but was #{parent_properties.class}", caller unless Array  === parent_properties || parent_properties.nil?
 
-        @name              = name
+        @name              = name        
+        @options           = options
         @repository_name   = repository_name
         @child_model_name  = child_model_name
         @child_properties  = child_properties   # may be nil

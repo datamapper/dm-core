@@ -1,13 +1,10 @@
-require __DIR__ + 'support/string'
-require __DIR__ + 'property_set'
-require __DIR__ + 'property'
-require __DIR__ + 'hook'
-require __DIR__ + 'scope'
-require __DIR__ + 'associations'
+require 'set'
 
 module DataMapper
 
   module Resource
+
+    @@including_classes = Set.new
 
     # +----------------------
     # Resource module methods
@@ -17,6 +14,18 @@ module DataMapper
       base.extend DataMapper::Associations
       base.send(:include, DataMapper::Hook)
       base.send(:include, DataMapper::Scope)
+      @@including_classes << base
+    end
+
+    # Return all classes that include the DataMapper::Resource module
+    #
+    # ==== Returns
+    # Set:: A Set containing the including classes
+    #
+    # -
+    # @public
+    def self.including_classes
+      @@including_classes
     end
 
     def self.dependencies
@@ -45,7 +54,7 @@ module DataMapper
       end
 
       value = instance_variable_get(ivar_name)
-      property.custom? ? property.type.load(value) : value
+      property.custom? ? property.type.load(value, property) : value
     end
 
     def []=(name, value)
@@ -57,7 +66,8 @@ module DataMapper
       end
 
       dirty_attributes << property
-      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value) : value)
+
+      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value, property) : property.typecast(value))
     end
 
     def repository
@@ -103,7 +113,7 @@ module DataMapper
     end
 
     def dirty_attributes
-      @dirty_attributes ||= []
+      @dirty_attributes ||= Set.new
     end
 
     def dirty?
@@ -126,7 +136,7 @@ module DataMapper
     # Returns <tt>true</tt> if this model hasn't been saved to the
     # database, <tt>false</tt> otherwise.
     def new_record?
-      @new_record.nil? || @new_record
+      !defined?(@new_record) || @new_record
     end
 
     def attributes
@@ -176,7 +186,7 @@ module DataMapper
     end
 
     def validate_resource # :nodoc:
-      if self.class.properties(self.class.default_repository_name).empty?
+      if self.class.properties.empty?
         raise IncompleteResourceError, 'Resources must have at least one property to be initialized.'
       end
     end
@@ -211,12 +221,29 @@ module DataMapper
         base.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
 
-      def default_repository_name
-        Repository.default_name
-      end
-
-      def repository(repository_name = default_repository_name)
-        DataMapper.repository(repository_name)
+      #
+      # Get the repository with a given name, or the default one for the current context, or the default one for this class.
+      #
+      # ==== Parameters
+      # name<Symbol>:: The name of the repository wanted.
+      # block<Block>:: Block to execute with the fetched repository as parameter.
+      #
+      # ==== Returns
+      # if given a block
+      # Object:: Whatever the block returns.
+      # else
+      # DataMapper::Repository:: The asked for Repository.
+      #
+      #-
+      # @public
+      def repository(name = nil, &block)
+        if name
+          DataMapper.repository(name, &block)
+        elsif Repository.context.last
+          DataMapper.repository(nil, &block)
+        else
+          DataMapper.repository(default_repository_name, &block)
+        end
       end
 
       def storage_name(repository_name = default_repository_name)
@@ -276,11 +303,11 @@ module DataMapper
       end
 
       def all(options = {})
-        repository(options[:repository] || default_repository_name).all(self, options)
+        repository(options[:repository]).all(self, options)
       end
 
       def first(options = {})
-        repository(options[:repository] || default_repository_name).first(self, options)
+        repository(options[:repository]).first(self, options)
       end
 
       def create(values)
@@ -300,6 +327,10 @@ module DataMapper
       end
 
       private
+
+      def default_repository_name
+        Repository.default_name
+      end
 
       def method_missing(method, *args, &block)
         if relationship = relationships[method]

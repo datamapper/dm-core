@@ -6,6 +6,8 @@ module DataMapper
       @property_for[name]
     end
 
+    alias has_property? []
+
     def slice(*names)
       @property_for.values_at(*names)
     end
@@ -25,7 +27,7 @@ module DataMapper
       @entries.empty?
     end
 
-    def each(&block)
+    def each
       @entries.each { |property| yield property }
       self
     end
@@ -96,22 +98,25 @@ module DataMapper
 
     private
 
-    def initialize(properties = [], &block)
+    def initialize(properties = [])
       raise ArgumentError, "+properties+ should be an Array, but was #{properties.class}", caller unless Array === properties
 
-      @entries      = properties
-      @property_for = Hash.new do |h,k|
-        case k
-          when Symbol
-            if property = detect { |property| property.name == k }
-              h[k.to_s] = h[k] = property
-            end
-          when String
-            if property = detect { |property| property.name.to_s == k }
-              h[k] = h[k.to_sym] = property
-            end
-          else
-            raise "Key must be a Symbol or String, but was #{k.class}"
+      @entries = properties
+      @property_for = hash_for_property_for
+    end
+
+    def initialize_copy(orig)
+      @entries = orig.entries.dup
+      @property_for = hash_for_property_for
+    end
+
+    def hash_for_property_for
+      Hash.new do |h,k|
+        raise "Key must be a Symbol or String, but was #{k.class}" unless [String, Symbol].include?(k.class)
+
+        ksym = k.to_sym
+        if property = detect { |property| property.name == ksym }
+          h[ksym] = h[k.to_s] = property 
         end
       end
     end

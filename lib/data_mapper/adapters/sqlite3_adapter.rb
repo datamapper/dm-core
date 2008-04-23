@@ -1,18 +1,17 @@
-require __DIR__ + 'data_objects_adapter'
 require 'do_sqlite3'
 
 module DataMapper
   module Adapters
-    
+
     class Sqlite3Adapter < DataObjectsAdapter
-      
-      TYPES.merge!({
-	  :integer => 'INTEGER'.freeze,
-	  :string  => 'TEXT'.freeze,
-	  :text    => 'TEXT'.freeze,
-	  :class   => 'TEXT'.freeze,
-	  :boolean => 'INTEGER'.freeze
-	})
+
+      TYPES.merge!(
+        :integer => 'INTEGER'.freeze,
+        :string  => 'TEXT'.freeze,
+        :text    => 'TEXT'.freeze,
+        :class   => 'TEXT'.freeze,
+        :boolean => 'INTEGER'.freeze
+      )
 
       def create_connection
         if within_transaction?
@@ -58,7 +57,7 @@ module DataMapper
       protected
 
       def normalize_uri(uri_or_options)
-        uri = super(uri_or_options)
+        uri = super
         uri.path = File.join(Dir.pwd, File.dirname(uri.path), File.basename(uri.path)) unless File.exists?(uri.path)
         uri
       end

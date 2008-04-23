@@ -2,18 +2,16 @@ require 'pp'
 require 'pathname'
 require 'rubygems'
 require 'spec'
+require 'fileutils'
 
-# for __DIR__
-require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper/support/kernel'
+require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper')
 
-ROOT_DIR            = __DIR__.parent
-INTEGRATION_DB_PATH = __DIR__ + 'integration/integration_test.db'
-FileUtils.touch INTEGRATION_DB_PATH
+INTEGRATION_DB_PATH = DataMapper.root / 'spec' / 'integration' / 'integration_test.db'
+#FileUtils.touch INTEGRATION_DB_PATH
 
 ENV['LOG_NAME'] = 'spec'
-require ROOT_DIR + 'environment'
-require __DIR__ + 'lib/mock_adapter'
-
+require DataMapper.root / 'environment'
+require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
 
 class Article
   include DataMapper::Resource

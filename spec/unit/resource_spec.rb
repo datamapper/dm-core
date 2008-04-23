@@ -28,12 +28,31 @@ describe "DataMapper::Resource" do
       property :core, String, :private => true
       property :type, Class
 
-      # An example of how to scope a property to a specific repository.
-      # Un-specced currently.
-      # repository(:legacy) do
-      #   property :name, String
-      # end
+      repository(:legacy) do
+        property :cowabunga, String
+      end
     end
+
+    class Moon
+    end
+
+    class LegacyStar
+      include DataMapper::Resource
+      def self.default_repository_name
+        :legacy
+      end
+    end
+  end
+
+  it "should hold repository-specific properties" do
+    Planet.properties(:legacy).should have_property(:cowabunga)
+    Planet.properties.should_not have_property(:cowabunga)
+  end
+
+  it "should track the classes that include it" do
+    DataMapper::Resource.including_classes.clear
+    Moon.class_eval do include(DataMapper::Resource) end
+    DataMapper::Resource.including_classes.should == Set.new([Moon])
   end
 
   it "should return an instance of the created object" do
@@ -115,6 +134,17 @@ describe "DataMapper::Resource" do
     pluto.attribute_dirty?(:age).should be_true
   end
 
+  it 'should overwite old dirty attributes with new ones' do
+    pluto = Planet.new(:name => 'Pluto', :age => 500_000)
+    pluto.dirty_attributes.size.should == 2
+    pluto.attribute_dirty?(:name).should be_true
+    pluto.attribute_dirty?(:age).should be_true
+    pluto.name = "pluto"
+    pluto.dirty_attributes.size.should == 2
+    pluto.attribute_dirty?(:name).should be_true
+    pluto.attribute_dirty?(:age).should be_true
+  end
+
   it 'should provide a key' do
     Planet.new.should respond_to(:key)
   end
@@ -136,15 +166,6 @@ describe "DataMapper::Resource" do
       Planet.should respond_to(:after)
     end
 
-    it 'should provide default_repository_name' do
-      Planet.should respond_to(:default_repository_name)
-    end
-
-    it '.default_repository_name should delegate to DataMapper::Repository.default_name' do
-      DataMapper::Repository.should_receive(:default_name).with(no_args).once.and_return(:default)
-      Planet.default_repository_name.should == :default
-    end
-
     it 'should provide a repository' do
       Planet.should respond_to(:repository)
     end
@@ -157,6 +178,7 @@ describe "DataMapper::Resource" do
 
     it '.repository should use default repository when not passed any arguments' do
       Planet.repository.name.should == Planet.repository(:default).name
+      LegacyStar.repository.name.should == LegacyStar.repository(:legacy).name
     end
 
     it 'should provide storage_name' do
@@ -168,7 +190,7 @@ describe "DataMapper::Resource" do
     end
 
     it '.storage_name should use default repository when not passed any arguments' do
-      Planet.storage_name.should == Planet.storage_name(:default)
+      Planet.storage_name.object_id.should == Planet.storage_name(:default).object_id
     end
 
     it 'should provide storage_names' do
@@ -192,7 +214,11 @@ describe "DataMapper::Resource" do
 
     it '.properties should return an PropertySet' do
       Planet.properties(:legacy).should be_kind_of(DataMapper::PropertySet)
-      Planet.properties(:legacy).should have(5).entries
+      Planet.properties(:legacy).should have(6).entries
+    end
+
+    it '.properties should use default repository when not passed any arguments' do
+      Planet.properties.object_id.should == Planet.properties(:default).object_id
     end
 
     it 'should provide key' do
@@ -206,7 +232,7 @@ describe "DataMapper::Resource" do
     end
 
     it '.key should use default repository when not passed any arguments' do
-      Planet.key.should == Planet.key(:default)
+      Planet.key.object_id.should == Planet.key(:default).object_id
     end
 
     it 'should provide inheritance_property' do
@@ -220,7 +246,7 @@ describe "DataMapper::Resource" do
     end
 
     it '.inheritance_property should use default repository when not passed any arguments' do
-      Planet.inheritance_property.should == Planet.inheritance_property(:default)
+      Planet.inheritance_property.object_id.should == Planet.inheritance_property(:default).object_id
     end
 
     it 'should provide finder methods' do

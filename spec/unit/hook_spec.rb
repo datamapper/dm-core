@@ -10,6 +10,9 @@ describe "DataMapper::Hook" do
 
       def a_method
       end
+
+      def self.a_class_method
+      end
     end
   end
 
@@ -40,20 +43,25 @@ describe "DataMapper::Hook" do
     @class.hooks[:a_hook][:before].should have(1).item
   end
 
-  it 'should run an advice block' do
-    @class.class_eval do
-      def hook
-      end
+  it 'should run an advice block for class methods' do
+    @class.before_class_method :a_class_method do
+      hi_dad!
+    end
+    
+    @class.should_receive(:hi_dad!)
+    
+    @class.a_class_method
+  end
 
-      before :hook do
-        hi_mom!
-      end
+  it 'should run an advice block' do
+    @class.before :a_method do
+      hi_mom!
     end
 
     inst = @class.new
     inst.should_receive(:hi_mom!)
 
-    inst.hook
+    inst.a_method
   end
 
   it 'should run an advice method' do
@@ -78,7 +86,7 @@ describe "DataMapper::Hook" do
     it "should install the advice block under the appropriate hook" do
       c = lambda { 1 }
 
-      @class.should_receive(:install_hook).with(:before, :a_method, nil, &c)
+      @class.should_receive(:install_hook).with(:before, :a_method, nil, :instance, &c)
 
       @class.class_eval do
         before :a_method, &c
@@ -91,9 +99,29 @@ describe "DataMapper::Hook" do
         end
       end
 
-      @class.should_receive(:install_hook).with(:before, :a_method, :a_hook)
+      @class.should_receive(:install_hook).with(:before, :a_method, :a_hook, :instance)
 
       @class.before :a_method, :a_hook
+    end
+
+    it 'should run the advice before the advised class method' do
+      tester = mock("tester")
+      tester.should_receive(:one).ordered
+      tester.should_receive(:two).ordered
+
+      class << @class
+        self
+      end.instance_eval do
+        define_method :hook do
+          tester.two
+        end
+        define_method :one do
+          tester.one
+        end
+      end
+      @class.before_class_method :hook, :one
+
+      @class.hook
     end
 
     it 'should run the advice before the advised method' do
@@ -110,6 +138,24 @@ describe "DataMapper::Hook" do
       end
 
       @class.new.a_method
+    end
+
+    it 'should execute all class method advices once' do
+      tester = mock("tester")
+      tester.should_receive(:before1).once
+      tester.should_receive(:before2).once
+      @class.class_eval do
+        def self.hook
+        end
+      end
+      @class.before_class_method :hook do
+        tester.before1
+      end
+      @class.before_class_method :hook do
+        tester.before2
+      end
+
+      @class.hook
     end
 
     it 'should execute all advices once' do
@@ -132,7 +178,7 @@ describe "DataMapper::Hook" do
   describe 'using after hook' do
     it "should install the advice block under the appropriate hook" do
       c = lambda { 1 }
-      @class.should_receive(:install_hook).with(:after, :a_method, nil, &c)
+      @class.should_receive(:install_hook).with(:after, :a_method, nil, :instance, &c)
 
       @class.class_eval do
         after :a_method, &c
@@ -145,9 +191,28 @@ describe "DataMapper::Hook" do
         end
       end
 
-      @class.should_receive(:install_hook).with(:after, :a_method, :a_hook)
+      @class.should_receive(:install_hook).with(:after, :a_method, :a_hook, :instance)
 
       @class.after :a_method, :a_hook
+    end
+
+    it 'should run the advice after the advised class method' do
+      tester = mock("tester")
+      tester.should_receive(:one).ordered
+      tester.should_receive(:two).ordered
+      tester.should_receive(:three).ordered
+
+      @class.after_class_method :a_class_method do
+        tester.one
+      end
+      @class.after_class_method :a_class_method do
+        tester.two
+      end
+      @class.after_class_method :a_class_method do
+        tester.three
+      end
+
+      @class.a_class_method
     end
 
     it 'should run the advice after the advised method' do
@@ -171,6 +236,20 @@ describe "DataMapper::Hook" do
       @class.new.a_method
     end
 
+    it 'should execute all class method advices once' do
+      tester = mock("tester")
+      tester.should_receive(:after1).once
+      tester.should_receive(:after2).once
+
+      @class.after_class_method :a_class_method do
+        tester.after1
+      end
+      @class.after_class_method :a_class_method do
+        tester.after2
+      end
+      @class.a_class_method
+    end
+
     it 'should execute all advices once' do
       tester = mock("tester")
       tester.should_receive(:after1).once
@@ -185,7 +264,47 @@ describe "DataMapper::Hook" do
       end
 
       @class.new.a_method
-    end  end
+    end  
+
+    it "the advised method should still return its normal value" do
+      @class.class_eval do
+	def returner
+	  1
+        end
+
+	after :returner do
+	  2
+        end
+      end
+
+      @class.new.returner.should == 1
+    end
+  end
+
+  it 'should allow the use of before and after together on class methods' do
+    tester = mock("tester")
+    tester.should_receive(:before).ordered.once
+    tester.should_receive(:method).ordered.once
+    tester.should_receive(:after).ordered.once
+
+    class << @class
+        self
+    end.instance_eval do
+      define_method :hook do
+        tester.method
+      end
+    end
+
+    @class.before_class_method :hook do
+      tester.before
+    end
+
+    @class.after_class_method :hook do
+      tester.after
+    end
+
+    @class.hook
+  end
 
   it 'should allow the use of before and after together' do
     tester = mock("tester")
@@ -239,10 +358,12 @@ describe "DataMapper::Hook" do
     @class.new.a_method?
   end
 
-  it "should allow advising methods ending in ? or ! when passing methods as advices" do
+  it "should allow advising methods ending in ?, ! or = when passing methods as advices" do
     tester = mock("tester")
-    tester.should_receive(:before).ordered.once
+    tester.should_receive(:before_bang).ordered.once
     tester.should_receive(:method!).ordered.once
+    tester.should_receive(:before_eq).ordered.once
+    tester.should_receive(:method_eq).ordered.once
     tester.should_receive(:method?).ordered.once
     tester.should_receive(:after).ordered.once
 
@@ -255,11 +376,21 @@ describe "DataMapper::Hook" do
 	tester.method?
       end
 
+      define_method :a_method= do |value|
+	tester.method_eq
+      end
+
       define_method :before_a_method_bang do
-        tester.before
+        tester.before_bang
       end
 
       before :a_method!, :before_a_method_bang
+
+      define_method :before_a_method_eq do
+        tester.before_eq
+      end
+
+      before :a_method=, :before_a_method_eq
 
       define_method :after_a_method_question do
         tester.after
@@ -269,6 +400,50 @@ describe "DataMapper::Hook" do
     end
 
     @class.new.a_method!
+    @class.new.a_method = 1
     @class.new.a_method?
+  end
+
+  it "should complain when only one argument is passed for class methods" do
+    lambda do
+      @class.before_class_method :plur
+    end.should raise_error(ArgumentError)
+  end
+
+  it "should complain when target_method is not a symbol for class methods" do
+    lambda do
+      @class.before_class_method "hepp", :plur
+    end.should raise_error(ArgumentError)
+  end
+
+  it "should complain when method_sym is not a symbol" do
+    lambda do
+      @class.before_class_method :hepp, "plur"
+    end.should raise_error(ArgumentError)
+  end
+
+  it "should complain when only one argument is passed" do
+    lambda do
+      @class.class_eval do
+	before :a_method
+	after :a_method
+      end
+    end.should raise_error(ArgumentError)
+  end
+
+  it "should complain when target_method is not a symbol" do
+    lambda do
+      @class.class_eval do
+	before "target", :something
+      end
+    end.should raise_error(ArgumentError)
+  end
+
+  it "should complain when method_sym is not a symbol" do
+    lambda do
+      @class.class_eval do
+	before :target, "something"
+      end
+    end.should raise_error(ArgumentError)
   end
 end
