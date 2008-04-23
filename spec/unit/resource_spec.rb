@@ -35,6 +35,13 @@ describe "DataMapper::Resource" do
 
     class Moon
     end
+
+    class LegacyStar
+      include DataMapper::Resource
+      def self.default_repository_name
+        :legacy
+      end
+    end
   end
 
   it "should hold repository-specific properties" do
@@ -171,6 +178,7 @@ describe "DataMapper::Resource" do
 
     it '.repository should use default repository when not passed any arguments' do
       Planet.repository.name.should == Planet.repository(:default).name
+      LegacyStar.repository.name.should == LegacyStar.repository(:legacy).name
     end
 
     it 'should provide storage_name' do

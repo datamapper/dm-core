@@ -221,8 +221,29 @@ module DataMapper
         base.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
 
-      def repository(*args, &block)
-        DataMapper.repository(*args, &block)
+      #
+      # Get the repository with a given name, or the default one for the current context, or the default one for this class.
+      #
+      # ==== Parameters
+      # name<Symbol>:: The name of the repository wanted.
+      # block<Block>:: Block to execute with the fetched repository as parameter.
+      #
+      # ==== Returns
+      # if given a block
+      # Object:: Whatever the block returns.
+      # else
+      # DataMapper::Repository:: The asked for Repository.
+      #
+      #-
+      # @public
+      def repository(name = nil, &block)
+        if name
+          DataMapper.repository(name, &block)
+        elsif Repository.context.last
+          DataMapper.repository(nil, &block)
+        else
+          DataMapper.repository(default_repository_name, &block)
+        end
       end
 
       def storage_name(repository_name = default_repository_name)
