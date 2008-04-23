@@ -27,7 +27,6 @@ dir = Pathname(__FILE__).dirname.expand_path / 'data_mapper'
 
 require dir / 'associations'
 require dir / 'auto_migrations'
-require dir / 'cli'
 require dir / 'dependency_queue'
 require dir / 'hook'
 require dir / 'identity_map'
