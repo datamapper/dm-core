@@ -360,7 +360,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     it "should generate a SQL statement with the column info" do
       @adapter.create_table_statement(Cheese).should include(<<-EOS.compress_lines)
         (
-          "id" int,
+          "id" int PRIMARY KEY,
           "name" varchar,
           "color" varchar,
           "notes" varchar
@@ -371,7 +371,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     it "should generate a SQL statement with both the table and column info" do
       @adapter.create_table_statement(Cheese).should == <<-EOS.compress_lines
         CREATE TABLE "cheeses" (
-          "id" int,
+          "id" int PRIMARY KEY,
           "name" varchar,
           "color" varchar,
           "notes" varchar

@@ -410,8 +410,8 @@ module DataMapper
 
         def column_schema_hash(property)
           schema = type_map[property.type].merge(:name => property.field)
-          schema[:key?]     = property.key?
-          schema[:serial?]  = property.serial? unless property.key?
+          schema[:primary_key?] = property.serial?
+          schema[:key?] = property.key? unless property.serial?
           schema
         end
 
@@ -420,7 +420,6 @@ module DataMapper
           statement << " #{schema[:primitive]}"
           statement << "(#{schema[:size]})" if schema[:size]
           statement << " PRIMARY KEY" if schema[:primary_key?]
-          statement << " AUTO_INCREMENT" if schema[:serial?]
           statement
         end
 

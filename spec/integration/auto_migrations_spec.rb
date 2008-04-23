@@ -55,24 +55,24 @@ begin
         @col_identifier = "name"
       end
       
-      it "should create the id column as an int" do
-        @table_set.any? {|c| c[@col_identifier] == "id" && c.type == "int"}.should be_true
+      it "should create the id column as an INTEGER" do
+        @table_set.any? {|c| c[@col_identifier] == "id" && c.type == "INTEGER"}.should be_true
       end
       
-      it "should create the isbn column as a varchar" do
-        @table_set.any? {|c| c[@col_identifier] == "isbn" && c.type == "varchar"}.should be_true
+      it "should create the isbn column as a VARCHAR(50)" do
+        @table_set.any? {|c| c[@col_identifier] == "isbn" && c.type == "VARCHAR(50)"}.should be_true
       end
       
       it "should create the available column as a boolean" do
         @table_set.any? {|c| c[@col_identifier] == "available" && c.type == "boolean"}.should be_true
       end
       
-      it "should create the description column as varchar(65535)" do
-        @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "varchar(65535)"}.should be_true
+      it "should create the description column as VARCHAR(65535)" do
+        @table_set.any? {|c| c[@col_identifier] == "description" && c.type == "VARCHAR(65535)"}.should be_true
       end
       
-      it "should create the classification column as a varchar" do
-        @table_set.any? {|c| c[@col_identifier] == "classification" && c.type == "varchar"}.should be_true
+      it "should create the classification column as a VARCHAR(50)" do
+        @table_set.any? {|c| c[@col_identifier] == "classification" && c.type == "VARCHAR(50)"}.should be_true
       end
       
       it "should create the price column as a decimal" do
@@ -87,8 +87,8 @@ begin
         @table_set.any? {|c| c[@col_identifier] == "inventoried" && c.type == "datetime"}.should be_true
       end
       
-      it "should create the status column as an int" do
-        @table_set.any? {|c| c[@col_identifier] == "status" && c.type == "int"}.should be_true
+      it "should create the status column as an INTEGER" do
+        @table_set.any? {|c| c[@col_identifier] == "status" && c.type == "INTEGER"}.should be_true
       end
     end
   end

@@ -9,11 +9,13 @@ begin
   DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
 
   describe DataMapper::Adapters::DataObjectsAdapter do
+    before(:all) do
+      @adapter = repository(:sqlite3).adapter
+    end
 
     describe "reading & writing a database" do
 
       before do
-        @adapter = repository(:sqlite3).adapter
         @adapter.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)")
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
       end
@@ -59,9 +61,8 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
         end
-
-        @adapter = repository(:sqlite3).adapter
-        @adapter.execute('CREATE TABLE "video_games" ("id" INTEGER PRIMARY KEY, "name" VARCHAR(50))') rescue nil
+        
+        VideoGame.auto_migrate!(:sqlite3)
       end
 
       it 'should be able to create a record' do
@@ -146,9 +147,10 @@ begin
           property :account_number, String, :key => true
           property :name, String
         end
+        
+        BankCustomer.auto_migrate!(:sqlite3)
 
         @adapter = repository(:sqlite3).adapter
-        @adapter.execute('CREATE TABLE "bank_customers" ("bank" VARCHAR(50), "account_number" VARCHAR(50), "name" VARCHAR(50))') rescue nil
       end
 
       it 'should be able to create a record' do

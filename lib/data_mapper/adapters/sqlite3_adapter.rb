@@ -6,6 +6,13 @@ module DataMapper
 
     class Sqlite3Adapter < DataObjectsAdapter
 
+      def self.type_map
+        @type_map ||= TypeMap.new(super) do |tm|
+          tm.map(String).to(:VARCHAR).with(:size => 50)
+          tm.map(Fixnum).to(:INTEGER)
+          tm.map(Class).to(:VARCHAR).with(:size => 50)
+        end
+      end
 
       def create_connection
         DataObjects::Sqlite3::Connection.new(@uri)

@@ -70,7 +70,9 @@ module DataMapper
             property_statement << "'#{model.storage_name(name)}_#{property.field}_seq'"  #not sure why this has to be single qoutes
             property_statement << ") NOT NULL"
           else
-            property_statement = column_schema_statement(column_schema_hash(property))
+            property_statement = quote_column_name(schema[:name])
+            property_statement << " #{schema[:primitive]}"
+            property_statement << "(#{schema[:size]})" if schema[:size]
           end
 
           property_statement
