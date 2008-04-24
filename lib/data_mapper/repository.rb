@@ -33,7 +33,7 @@ module DataMapper
       query = if current_scope = model.send(:current_scope)
         current_scope.merge(options.merge(:limit => 1))
       else
-        Query.new(model, options.merge(:limit => 1))
+        Query.new(self, model, options.merge(:limit => 1))
       end
       @adapter.read_set(self, query).first
     end
@@ -42,7 +42,7 @@ module DataMapper
       query = if current_scope = model.send(:current_scope)
         current_scope.merge(options)
       else
-        Query.new(model, options)
+        Query.new(self, model, options)
       end
       @adapter.read_set(self, query).entries
     end

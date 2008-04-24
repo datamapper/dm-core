@@ -1,12 +1,13 @@
 require 'rubygems'
 gem 'rspec', '>=1.1.3'
-
 require 'pathname'
 require 'spec'
 require 'fileutils'
 
 require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper'
 require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
+
+gem 'rspec', '>=1.1.3'
 
 INTEGRATION_DB_PATH = DataMapper.root / 'spec' / 'integration' / 'integration_test.db'
 

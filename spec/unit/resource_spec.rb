@@ -1,5 +1,4 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.
@@ -110,10 +109,10 @@ describe "DataMapper::Resource" do
     mars.age.should be_nil
 
     # So accessing a value should ensure it's loaded.
-# XXX: why?  if the @ivar isn't set, which it wouldn't be in this
-# case because mars is a new_record?, then perhaps it should return
-# false
-#    mars.attribute_loaded?(:age).should be_true
+    # XXX: why?  if the @ivar isn't set, which it wouldn't be in this
+    # case because mars is a new_record?, then perhaps it should return
+    # false
+    #    mars.attribute_loaded?(:age).should be_true
 
     # A value should be able to be both loaded and nil.
     mars[:age].should be_nil

@@ -1,6 +1,8 @@
 require 'pathname'
 require 'monitor'
 require Pathname(__FILE__).dirname.expand_path.parent.parent + 'spec_helper'
+require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
+
 require DataMapper.root / 'spec' / 'unit' / 'adapters' / 'adapter_shared_spec'
 
 describe DataMapper::Adapters::DataObjectsAdapter do
@@ -103,8 +105,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @command.should_receive(:execute_reader).twice.with(Plupp.properties[:name]).and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
-        Plupp.find_by_sql(DataMapper::Query.new(Plupp, "name" => "my pretty plur", :fields => ["name"]))
-        Plupp.find_by_sql(DataMapper::Query.new(Plupp, "name" => "my pretty plur", :fields => ["name"]), :repository => :plupp_repo)
+        Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"]))
+        Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"]), :repository => :plupp_repo)
       end
       
       it "requires a Repository that is a DataObjectsRepository to work" do

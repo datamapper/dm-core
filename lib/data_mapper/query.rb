@@ -47,28 +47,30 @@ module DataMapper
 
       attr_reader :relationships, :model, :property
 
-      def initialize(relationships, model_name, property_name = nil)
+      def initialize(repository, relationships, model_name, property_name = nil)
+        raise ArgumentError, "+repository+ is not a Repository, but was #{repository.class}", caller unless Repository  === repository
         raise ArgumentError, "+relationships+ is not an Array, but was #{relationships.class}", caller unless Array  === relationships
         raise ArgumentError, "+model_name+ is not a Symbol, but was #{model_name.class}", caller       unless Symbol === model_name
         raise ArgumentError, "+property_name+ is not a Symbol, but was #{property_name.class}", caller unless Symbol === property_name || property_name.nil?
 
+        @repository    = repository
         @relationships = relationships
         @model         = Inflection.classify(model_name.to_s).to_class
-        @property      = @model.properties(@model.repository.name)[property_name] if property_name
+        @property      = @model.properties(@repository.name)[property_name] if property_name
       end
 
       alias_method :_method_missing, :method_missing
 
       def method_missing(method, *args)
-        if @model.relationships.has_key?(method)
+        if @model.relationships(@repository.name).has_key?(method)
           relations = []
           relations.concat(@relationships)
-          relations << @model.relationships[method]
-          return Query::Path.new(relations,method)
+          relations << @model.relationships(@repository.name)[method]
+          return DataMapper::Query::Path.new(@repository, relations,method)
         end
 
-        if @model.properties(@model.repository.name)[method]
-          @property = @model.properties(@model.repository.name)[method]
+        if @model.properties(@repository.name)[method]
+          @property = @model.properties(@repository.name)[method]
           return self
         end
 
@@ -87,10 +89,10 @@ module DataMapper
       :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
 
-    attr_reader :model, :model_name, *OPTIONS
+    attr_reader :model, :model_name, :repository, *OPTIONS
 
     def update(other)
-      other = self.class.new(model, other) if Hash === other
+      other = self.class.new(@repository, model, other) if Hash === other
 
       @model, @reload = other.model, other.reload
 
@@ -165,14 +167,14 @@ module DataMapper
 
     private
 
-    def initialize(model, options = {})
+    def initialize(repository, model, options = {})
+      raise TypeError, "+repository+ must be a Repository, but is #{repository.class}" unless Repository === repository
       validate_model(model)
       validate_options(options)
 
-      @repository     = model.repository
-      repository_name = @repository.name
-      @model_name     = model.storage_name(repository_name)
-      @properties     = model.properties(repository_name)
+      @repository = repository
+      @model_name = model.storage_name(@repository.name)
+      @properties = model.properties(@repository.name)
 
       @model      = model                           # must be Class that includes DM::Resource
       @reload     = options.fetch :reload,   false  # must be true or false
@@ -254,7 +256,7 @@ module DataMapper
     # validate other DM::Query or Hash object
     def validate_other(other)
       if self.class === other
-        raise ArgumentError, "+other+ #{self.class} must belong to the same repository" unless other.model.repository == @model.repository
+        raise ArgumentError, "+other+ #{self.class} must belong to the same repository" unless other.repository == @repository
       elsif !(Hash === other)
         raise ArgumentError, "+other+ must be a #{self.class} or Hash, but was a #{other.class}"
       end
@@ -327,8 +329,8 @@ module DataMapper
             link
           when Symbol, String
             link = link.to_sym if String === link
-            raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship" unless model.relationships.has_key?(link)
-            model.relationships[link]
+            raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship" unless model.relationships(@repository.name).has_key?(link)
+            model.relationships(@repository.name)[link]
           else
             raise ArgumentError, "+options[:links]+ entry #{link.inspect} not supported"
         end
