@@ -1,4 +1,5 @@
 require 'pathname'
+require 'monitor'
 require Pathname(__FILE__).dirname.expand_path.parent.parent + 'spec_helper'
 require DataMapper.root / 'spec' / 'unit' / 'adapters' / 'adapter_shared_spec'
 
@@ -8,6 +9,42 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   end
 
   it_should_behave_like 'a DataMapper Adapter'
+
+  describe DataMapper::Adapters::StandardSqlTransactions do
+    before :each do
+      class SqlAdapter < DataMapper::Adapters::DataObjectsAdapter
+        include DataMapper::Adapters::StandardSqlTransactions
+      end
+      @adapter = SqlAdapter.new(:mock, URI.parse("mock://plur"))
+      @connection = mock("connection")
+      @transaction = DataMapper::Adapters::Transaction.new(@adapter)
+      @command = mock("command")
+    end
+    it "should execute BEGIN on #begin_transaction" do
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      @connection.should_receive(:create_command).once.with("BEGIN").and_return(@command)
+      @command.should_receive(:execute_non_query).once
+      @transaction.begin
+    end
+    it "should execute ROLLBACK on #rollback_transaction" do
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      @connection.should_receive(:create_command).once.with("BEGIN").and_return(@command)
+      @command.should_receive(:execute_non_query).twice
+      @transaction.begin
+      @connection.should_receive(:create_command).once.with("ROLLBACK").and_return(@command)
+      @connection.should_receive(:close).once
+      @transaction.rollback
+    end
+    it "should execute COMMIT on #rollback_transaction" do
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      @connection.should_receive(:create_command).once.with("BEGIN").and_return(@command)
+      @command.should_receive(:execute_non_query).twice
+      @transaction.begin
+      @connection.should_receive(:create_command).once.with("COMMIT").and_return(@command)
+      @connection.should_receive(:close).once
+      @transaction.commit
+    end
+  end
 
   describe "#find_by_sql" do
 
