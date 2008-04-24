@@ -1,10 +1,6 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
-require ROOT_DIR + 'lib/data_mapper/repository'
-require ROOT_DIR + 'lib/data_mapper/resource'
-require ROOT_DIR + 'lib/data_mapper/loaded_set'
-
 describe "DataMapper::LoadedSet" do
 
   before :all do
@@ -32,10 +28,10 @@ describe "DataMapper::LoadedSet" do
     properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
 
     set = DataMapper::LoadedSet.new(DataMapper::repository(:default), @cow, properties_with_indexes)
-    set.should respond_to(:reload!)
+    set.should respond_to(:reload)
 
-    set.add(['Bob', 10])
-    set.add(['Nancy', 11])
+    set.load(['Bob', 10])
+    set.load(['Nancy', 11])
 
     results = set.entries
     results.should have(2).entries
@@ -82,8 +78,8 @@ describe "DataMapper::LazyLoadedSet" do
 
   it "should make a materialization block" do
     set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties_with_indexes) do |lls|
-      lls.add(['Bob', 10])
-      lls.add(['Nancy', 11])
+      lls.load(['Bob', 10])
+      lls.load(['Nancy', 11])
     end
 
     results = set.entries
@@ -92,8 +88,8 @@ describe "DataMapper::LazyLoadedSet" do
 
   it "should be eachable" do
     set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties_with_indexes) do |lls|
-      lls.add(['Bob', 10])
-      lls.add(['Nancy', 11])
+      lls.load(['Bob', 10])
+      lls.load(['Nancy', 11])
     end
 
     set.each do |x|

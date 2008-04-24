@@ -101,13 +101,13 @@ module DataMapper
             raise
           end
         end
-        
+
         private
-        
+
         def initialize(relationship, parent_resource, &children_loader)
-          #        raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
-          #        raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
-          
+#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
+#          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
+
           @relationship    = relationship
           @parent_resource = parent_resource
           @children_loader = children_loader

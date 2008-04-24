@@ -136,7 +136,7 @@ describe DataMapper::Property do
 
   it 'should set the attribute value in a given instance' do
     tomato = Tomahto.new
-    tomato.class.properties(:default)[:id].set(2, tomato)
+    tomato.class.properties(:default)[:id].set(tomato, 2)
     tomato.id.should == 2
   end
 

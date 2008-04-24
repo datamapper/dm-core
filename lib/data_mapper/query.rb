@@ -17,8 +17,8 @@ module DataMapper
       private
 
       def initialize(property, direction = :asc)
-        raise ArgumentError, "+property+ is not a DataMapper::Property, but was #{property.class}", caller unless DataMapper::Property === property
-        raise ArgumentError, "+direction+ is not a Symbol, but was #{direction.class}", caller              unless Symbol              === direction
+        raise ArgumentError, "+property+ is not a DataMapper::Property, but was #{property.class}", caller unless Property === property
+        raise ArgumentError, "+direction+ is not a Symbol, but was #{direction.class}", caller             unless Symbol   === direction
 
         @property  = property
         @direction = direction
@@ -53,7 +53,7 @@ module DataMapper
         raise ArgumentError, "+property_name+ is not a Symbol, but was #{property_name.class}", caller unless Symbol === property_name || property_name.nil?
 
         @relationships = relationships
-        @model         = DataMapper::Inflection.classify(model_name.to_s).to_class
+        @model         = Inflection.classify(model_name.to_s).to_class
         @property      = @model.properties(@model.repository.name)[property_name] if property_name
       end
 
@@ -64,7 +64,7 @@ module DataMapper
           relations = []
           relations.concat(@relationships)
           relations << @model.relationships[method]
-          return DataMapper::Query::Path.new(relations,method)
+          return Query::Path.new(relations,method)
         end
 
         if @model.properties(@model.repository.name)[method]
@@ -146,7 +146,7 @@ module DataMapper
     # <DM::Query>
     #
     def merge_sub_select_conditions(operator, property, value)
-      raise ArgumentError, "+value+ is not a DataMapper::Query, but was #{value.class}", caller unless DataMapper::Query === value
+      raise ArgumentError, "+value+ is not a #{self.class}, but was #{value.class}", caller unless self.class === value
 
       new_conditions = []
       conditions.each do |tuple|
@@ -221,8 +221,8 @@ module DataMapper
 
     # validate the model
     def validate_model(model)
-      raise ArgumentError, "+model+ must be a Class, but is #{model.class}" unless Class                === model.class
-      raise ArgumentError, '+model+ must include DataMapper::Resource'      unless DataMapper::Resource === model
+      raise ArgumentError, "+model+ must be a Class, but is #{model.class}" unless Class === model.class
+      raise ArgumentError, '+model+ must include DataMapper::Resource'      unless Resource > model
     end
 
     # validate the options
@@ -246,7 +246,7 @@ module DataMapper
       ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
         value = options[attribute]
         raise ArgumentError, "+options[:#{attribute}]+ must be an Array, but was #{value.class}" unless Array === value
-        raise ArgumentError, "+options[:#{attribute}]+ cannot be an empty Array"                 unless value.any?
+        raise ArgumentError, "+options[:#{attribute}]+ cannot be empty"                          unless value.any?
       end
     end
 
@@ -323,7 +323,7 @@ module DataMapper
       # the source and the target.
       @links = @links.map do |link|
         case link
-          when DataMapper::Associations::Relationship
+          when Associations::Relationship
             link
           when Symbol, String
             link = link.to_sym if String === link
@@ -354,9 +354,9 @@ module DataMapper
       operator = :eql
 
       property = case clause
-        when DataMapper::Property
+        when Property
           clause
-        when DataMapper::Query::Path
+        when Query::Path
           validate_query_path_links(clause)
           clause
         when Operator

@@ -49,7 +49,7 @@ module DataMapper
   def self.root
     @root ||= Pathname(__FILE__).dirname.parent.expand_path
   end
-  
+
   def self.setup(name, uri_or_options)
     raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller unless Symbol === name
 

@@ -28,7 +28,7 @@ module DataMapper
     end
 
     # Clears a particular set of classes from the IdentityMap.
-    def clear!(model)
+    def clear(model)
       @cache.delete(model)
     end
 

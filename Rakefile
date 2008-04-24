@@ -20,34 +20,27 @@ desc 'Remove all package, rdocs and spec products'
 task :clobber_all => %w[ clobber_package clobber_rdoc dm:clobber_spec ]
 
 namespace :dm do
-  desc "Setup Environment"
-  task :environment do
-    require 'environment'
-  end
-
-  def run_spec(name, files)
+  def run_spec(name, files, rcov = true)
     Spec::Rake::SpecTask.new(name) do |t|
-      t.spec_opts = ["--format", "specdoc", "--colour"]
+      t.spec_opts << '--format' << 'specdoc' << '--colour'
       t.spec_files = Pathname.glob(ENV['FILES'] || files)
-      unless ENV['NO_RCOV']
-        t.rcov = true
-        t.rcov_opts << '--exclude' << 'spec,environment.rb'
-        t.rcov_opts << '--text-summary'
-        t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-        t.rcov_opts << '--only-uncovered'
-      end
+      t.rcov = ENV.has_key?('NO_RCOV') ? ENV['NO_RCOV'] != 'true' : rcov
+      t.rcov_opts << '--exclude' << 'spec,environment.rb'
+      t.rcov_opts << '--text-summary'
+      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+      t.rcov_opts << '--only-uncovered'
     end
   end
 
   desc "Run all specifications"
-  task :spec => ['dm:spec:unit', 'dm:spec:integration']
+  run_spec('spec', Pathname.glob(ROOT + 'spec/**/*_spec.rb'))
 
   namespace :spec do
     desc "Run unit specifications"
-    run_spec('unit', Pathname.glob(ROOT + 'spec/unit/**/*_spec.rb'))
+    run_spec('unit', Pathname.glob(ROOT + 'spec/unit/**/*_spec.rb'), false)
 
     desc "Run integration specifications"
-    run_spec('integration', Pathname.glob(ROOT + 'spec/integration/**/*_spec.rb'))
+    run_spec('integration', Pathname.glob(ROOT + 'spec/integration/**/*_spec.rb'), false)
   end
 
   desc "Run comparison with ActiveRecord"

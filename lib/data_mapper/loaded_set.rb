@@ -9,13 +9,15 @@ module DataMapper
 
     attr_reader :repository
 
-    def reload!(options = {})
+    # TODO: this rename is going to break some stuff, fix them
+    def reload(options = {})
       query = Query.new(@model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
       @repository.adapter.read_set(@repository, query)
     end
 
-    def add(values, reload = false)
+    # TODO: this rename is going to break some stuff, fix them
+    def load(values, reload = false)
       model = if @inheritance_property_index
         values.at(@inheritance_property_index)
       else
@@ -53,17 +55,21 @@ module DataMapper
       self
     end
 
-    def push(*resources)
-      resources.each do |resource|
-        @resources << resource
-        resource.loaded_set = self
-      end
+    def add(resource)
+      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
+      @resources << resource
+      resource.loaded_set = self
+    end
+
+    alias << add
+
+    def merge(*resources)
+      resources.each { |resource| add(resource) }
       self
     end
 
-    alias << push
-
     def delete(resource)
+      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
       @resources.delete(resource)
     end
 
@@ -82,7 +88,7 @@ module DataMapper
     #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
     def initialize(repository, model, properties_with_indexes)
       raise ArgumentError, "+repository+ must be a DataMapper::Repository, but was #{repository.class}", caller unless Repository === repository
-      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource", caller                 unless Resource   === model
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource", caller                 unless Resource > model
 
       @repository              = repository
       @model                   = model

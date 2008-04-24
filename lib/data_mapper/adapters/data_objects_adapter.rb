@@ -179,7 +179,7 @@ module DataMapper
         command.set_types(properties.map { |property| property.primitive })
         reader = command.execute_reader(*key)
         while(reader.next!)
-          set.add(reader.values)
+          set.load(reader.values)
         end
 
         reader.close
@@ -250,7 +250,7 @@ module DataMapper
           reader = command.execute_reader(*parameters)
 
           while(reader.next!)
-            set.add(reader.values, do_reload)
+            set.load(reader.values, do_reload)
           end
 
           reader.close

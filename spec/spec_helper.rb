@@ -4,14 +4,22 @@ require 'rubygems'
 require 'spec'
 require 'fileutils'
 
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper')
+require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper'
+require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
 
 INTEGRATION_DB_PATH = DataMapper.root / 'spec' / 'integration' / 'integration_test.db'
-#FileUtils.touch INTEGRATION_DB_PATH
 
-ENV['LOG_NAME'] = 'spec'
-require DataMapper.root / 'environment'
-require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
+FileUtils.touch INTEGRATION_DB_PATH unless INTEGRATION_DB_PATH.exist?
+
+DataMapper.setup(:default, 'mock://localhost')
+
+# Determine log path.
+ENV['_'] =~ /(\w+)/
+log_path = DataMapper.root / 'log' / "#{$1 == 'opt' ? 'spec' : $1}.log"
+log_path.dirname.mkpath
+
+DataMapper::Logger.new(log_path, 0)
+at_exit { DataMapper.logger.close }
 
 class Article
   include DataMapper::Resource

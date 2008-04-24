@@ -1,8 +1,6 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
-require ROOT_DIR + 'lib/data_mapper/hook'
-
 describe "DataMapper::Hook" do
   before(:each) do
     @class = Class.new do

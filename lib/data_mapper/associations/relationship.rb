@@ -50,7 +50,7 @@ module DataMapper
       end
 
       def attach_parent(child, parent)
-        child_key.set(parent && parent_key.get(parent), child)
+        child_key.set(child, parent && parent_key.get(parent))
       end
 
       def parent_model

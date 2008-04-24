@@ -36,10 +36,6 @@ module DataMapper
       @dependencies
     end
 
-    def self.===(other)
-      Module === other && other.ancestors.include?(Resource)
-    end
-
     # +---------------
     # Instance methods
 
@@ -61,7 +57,7 @@ module DataMapper
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
-      if property && property.lock?
+      if property.lock?
         instance_variable_set("@shadow_#{name}", instance_variable_get(ivar_name))
       end
 
@@ -129,8 +125,8 @@ module DataMapper
       instance_variable_get("@shadow_#{name}")
     end
 
-    def reload!
-      @loaded_set.reload!(:fields => loaded_attributes.keys)
+    def reload
+      @loaded_set.reload(:fields => loaded_attributes.keys)
     end
 
     # Returns <tt>true</tt> if this model hasn't been saved to the
@@ -193,7 +189,7 @@ module DataMapper
 
     def lazy_load(name)
       return unless @loaded_set
-      @loaded_set.reload!(:fields => self.class.properties(self.class.repository.name).lazy_load_context(name))
+      @loaded_set.reload(:fields => self.class.properties(self.class.repository.name).lazy_load_context(name))
     end
 
     def private_attributes
@@ -269,13 +265,11 @@ module DataMapper
         #Add the property to the lazy_loads set for this resources repository only
         # TODO Is this right or should we add the lazy contexts to all repositories?
         if property.lazy?
-          ctx = options.has_key?(:lazy) ? options[:lazy] : :default
-          ctx = :default if TrueClass === ctx
-          @properties[repository.name].lazy_context(ctx) << name if Symbol === ctx
-          if Array === ctx
-            ctx.each do |item|
-              @properties[repository.name].lazy_context(item) << name
-            end
+          context = options.fetch(:lazy, :default)
+          context = :default if context == true
+
+          Array(context).each do |item|
+            @properties[repository.name].lazy_context(item) << name
           end
         end
 

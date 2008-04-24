@@ -75,7 +75,7 @@ describe "DataMapper::IdentityMap" do
     map.get(Cow,[23]).nil?.should == true
   end
 
-  it "should remove all instances of a given class on #clear!" do
+  it "should remove all instances of a given class on #clear" do
     betsy = Cow.new({:id=>23,:name=>'Betsy'})
     bert = Cow.new({:id=>24,:name=>'Bert'})
     piggy = Pig.new({:id=>1,:composite=>2,:name=>'Piggy'})
@@ -84,7 +84,7 @@ describe "DataMapper::IdentityMap" do
     map.set(betsy)
     map.set(bert)
     map.set(piggy)
-    map.clear!(Cow)
+    map.clear(Cow)
     map.get(Cow,[23]).nil?.should == true
     map.get(Cow,[24]).nil?.should == true
     map.get(Pig,[1,2]).should == piggy
@@ -132,7 +132,7 @@ describe "Second Level Caching" do
       #
       # +type+ if an optional type argument is passed, then
       # only the storage for that type should be cleared.
-      def clear!(type = nil); nil end
+      def clear(type = nil); nil end
 
       # Allows you to remove a specific instance from the cache.
       #
@@ -142,7 +142,7 @@ describe "Second Level Caching" do
 
     cache.should respond_to(:get)
     cache.should respond_to(:set)
-    cache.should respond_to(:clear!)
+    cache.should respond_to(:clear)
     cache.should respond_to(:delete)
 
   end

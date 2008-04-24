@@ -89,13 +89,15 @@ describe DataMapper::Query do
       end
     end
 
-    describe 'should raise an ArgumentError' do
+    describe 'should raise a TypeError' do
       it 'when model is nil' do
         lambda {
           DataMapper::Query.new(nil)
-        }.should raise_error(ArgumentError)
+        }.should raise_error(TypeError)
       end
+    end
 
+    describe 'should raise an ArgumentError' do
       it 'when model is a Class that does not include DataMapper::Resource' do
         lambda {
           DataMapper::Query.new(NormalClass)
