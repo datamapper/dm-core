@@ -111,8 +111,6 @@ gem_spec = Gem::Specification.new do |s|
 
   s.require_path = "lib"
   s.requirements << "none"
-  s.executables = ["dm"]
-  s.bindir = "bin"
   s.add_dependency("english")
   s.add_dependency("json_pure")
   s.add_dependency("rspec")
