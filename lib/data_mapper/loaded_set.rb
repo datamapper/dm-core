@@ -9,14 +9,12 @@ module DataMapper
 
     attr_reader :repository
 
-    # TODO: this rename is going to break some stuff, fix them
     def reload(options = {})
       query = Query.new(@model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
       @repository.adapter.read_set(@repository, query)
     end
 
-    # TODO: this rename is going to break some stuff, fix them
     def load(values, reload = false)
       model = if @inheritance_property_index
         values.at(@inheritance_property_index)
