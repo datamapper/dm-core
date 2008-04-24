@@ -47,35 +47,38 @@ module DataMapper
 
       attr_reader :relationships, :model, :property
 
-      def initialize(repository, relationships, model_name, property_name = nil)
-        raise ArgumentError, "+repository+ is not a Repository, but was #{repository.class}", caller unless Repository  === repository
-        raise ArgumentError, "+relationships+ is not an Array, but was #{relationships.class}", caller unless Array  === relationships
-        raise ArgumentError, "+model_name+ is not a Symbol, but was #{model_name.class}", caller       unless Symbol === model_name
-        raise ArgumentError, "+property_name+ is not a Symbol, but was #{property_name.class}", caller unless Symbol === property_name || property_name.nil?
 
+      def initialize(repository, relationships, model, property_name = nil)  
+        raise ArgumentError, "+repository+ is not a Repository, but was #{repository.class}", caller unless Repository  === repository              
+        raise ArgumentError, "+relationships+ is not an Array, it is a #{relationships.class}", caller unless Array  === relationships
+        raise ArgumentError, "+model+ is not a DM::Resource, it is a #{model}", caller   unless model.ancestors.include?(DataMapper::Resource)
+        raise ArgumentError, "+property_name+ is not a Symbol, it is a #{property_name.class}", caller unless Symbol === property_name || property_name.nil?
+        
         @repository    = repository
         @relationships = relationships
-        @model         = Inflection.classify(model_name.to_s).to_class
+        @model         = model
         @property      = @model.properties(@repository.name)[property_name] if property_name
       end
 
-      alias_method :_method_missing, :method_missing
-
       def method_missing(method, *args)
-        if @model.relationships(@repository.name).has_key?(method)
+        if relationship = @model.relationships(@repository.name)[method]          
+          clazz = if @model == relationship.child_model
+           relationship.parent_model
+          else
+           relationship.child_model
+          end             
           relations = []
           relations.concat(@relationships)
-          relations << @model.relationships(@repository.name)[method]
-          return DataMapper::Query::Path.new(@repository, relations,method)
-        end
+          relations << relationship #@model.relationships[method]
+          return Query::Path.new(@repository, relations,clazz)               
+        end      
 
-        if @model.properties(@repository.name)[method]
-          @property = @model.properties(@repository.name)[method]
+        if @model.properties(@model.repository.name)[method]
+          @property = @model.properties(@model.repository.name)[method]
           return self
         end
-
-        _method_missing(method,args)
-      end
+        super
+      end      
 
       # duck type the DM::Query::Path to act like a DM::Property
       def field
