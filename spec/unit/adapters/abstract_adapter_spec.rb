@@ -1,5 +1,5 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
-require DataMapper.root / 'spec' / 'unit' / 'adapters' / 'adapter_shared_spec'
+require File.join(File.dirname(__FILE__), '..', 'adapters', 'adapter_shared_spec')
 
 describe DataMapper::Adapters::AbstractAdapter do
 
