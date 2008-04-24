@@ -10,7 +10,7 @@ module DataMapper
     attr_reader :repository
 
     def reload(options = {})
-      query = Query.new(@model, keys.merge(:fields => @key_properties))
+      query = Query.new(@repository, @model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
       @repository.adapter.read_set(@repository, query)
     end

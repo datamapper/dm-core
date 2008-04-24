@@ -343,7 +343,7 @@ begin
         result[0].instance_variables.should_not include('@notes')
         result[0].instance_variables.should_not include('@trip_report')
         result[1].instance_variables.should_not include('@notes')
-        result[0].notes.should_not be_nil
+                result[0].notes.should_not be_nil
         result[1].instance_variables.should include('@notes')
         result[1].instance_variables.should include('@trip_report')
         result[1].instance_variables.should_not include('@miles')
@@ -495,18 +495,23 @@ begin
       end
 
       it 'should save the association key in the child' do
-        e = repository(:postgres).all(Engine, :id => 2).first
-        repository(:postgres).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
+        repository(:postgres) do |r|
+          e = r.all(Engine, :id => 2).first
+          r.save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
+        end
 
         repository(:postgres).all(Yard, :id => 2).first[:engine_id].should == 2
       end
 
       it 'should save the parent upon saving of child' do
-        e = Engine.new(:id => 10, :name => "engine10")
-        y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
-        repository(:postgres).save(y)
+        repository(:postgres) do |r|
+          e = Engine.new(:id => 10, :name => "engine10")
+          y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
+          r.save(y)
+          
+          y[:engine_id].should == 10
+        end
 
-        y[:engine_id].should == 10
         repository(:postgres).all(Engine, :id => 10).first.should_not be_nil
       end
     end
@@ -601,16 +606,20 @@ begin
       end
 
       it "should not save the associated instance if the parent is not saved" do
-        h = Host.new(:id => 10, :name => "host10")
-        h.slices << Slice.new(:id => 10, :name => 'slice10')
+        repository(:postgres) do
+          h = Host.new(:id => 10, :name => "host10")
+          h.slices << Slice.new(:id => 10, :name => 'slice10')
+        end
 
         repository(:postgres).all(Slice, :id => 10).first.should be_nil
       end
 
       it "should save the associated instance upon saving of parent" do
-        h = Host.new(:id => 10, :name => "host10")
-        h.slices << Slice.new(:id => 10, :name => 'slice10')
-        repository(:postgres).save(h)
+        repository(:postgres) do |r|
+          h = Host.new(:id => 10, :name => "host10")
+          h.slices << Slice.new(:id => 10, :name => 'slice10')
+          r.save(h)
+        end
 
         s = repository(:postgres).all(Slice, :id => 10).first
         s.should_not be_nil

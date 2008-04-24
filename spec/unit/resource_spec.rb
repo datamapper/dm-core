@@ -110,10 +110,10 @@ describe "DataMapper::Resource" do
     mars.age.should be_nil
 
     # So accessing a value should ensure it's loaded.
-# XXX: why?  if the @ivar isn't set, which it wouldn't be in this
-# case because mars is a new_record?, then perhaps it should return
-# false
-#    mars.attribute_loaded?(:age).should be_true
+    # XXX: why?  if the @ivar isn't set, which it wouldn't be in this
+    # case because mars is a new_record?, then perhaps it should return
+    # false
+    #    mars.attribute_loaded?(:age).should be_true
 
     # A value should be able to be both loaded and nil.
     mars[:age].should be_nil
