@@ -1,9 +1,7 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
-
-require ROOT_DIR + 'lib/data_mapper'
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 begin
+  gem 'do_sqlite3', '=0.9.0'
   require 'do_sqlite3'
 
   DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
@@ -11,6 +9,37 @@ begin
   describe DataMapper::Adapters::DataObjectsAdapter do
     before(:all) do
       @adapter = repository(:sqlite3).adapter
+    end
+
+    describe "handling transactions" do
+      before :all do
+        @adapter = repository(:sqlite3).adapter
+        @adapter.execute('DROP TABLE IF EXISTS "sputniks"')
+        @adapter.execute('CREATE TABLE "sputniks" (id serial, name text)')
+      end
+
+      before :each do
+        @transaction = mock("transaction")
+        @connection = @adapter.create_connection
+        @transaction.stub!(:connection).and_return(@connection)
+      end
+
+      it "should rollback changes when #rollback_transaction is called" do
+        @adapter.begin_transaction(@transaction)
+        @adapter.with_transaction(@transaction) do
+          @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
+        end
+        @adapter.rollback_transaction(@transaction)
+        @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").empty?.should == true
+      end
+      it "should commit changes when #commit_transaction is called" do
+        @adapter.begin_transaction(@transaction)
+        @adapter.with_transaction(@transaction) do
+          @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
+        end
+        @adapter.commit_transaction(@transaction)
+        @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").size.should == 1
+      end
     end
 
     describe "reading & writing a database" do

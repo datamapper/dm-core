@@ -1,7 +1,3 @@
-require __DIR__ + 'property_set'
-require __DIR__ + 'type'
-Dir[__DIR__ + 'types/*.rb'].each { |path| require path }
-
 unless defined?(DM)
   DM = DataMapper::Types
 end
@@ -238,6 +234,10 @@ module DataMapper
       @serial
     end
 
+    def nullable?
+      @nullable
+    end
+
     def lock?
       @lock
     end
@@ -247,10 +247,12 @@ module DataMapper
     end
 
     def get(resource)
+      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
       resource[@name]
     end
 
-    def set(value, resource)
+    def set(resource, value)
+      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
       resource[@name] = value
     end
 
@@ -275,9 +277,9 @@ module DataMapper
     private
 
     def initialize(model, name, type, options = {})
-      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"                 unless Resource === model
-      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                           unless Symbol   === name
-      raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (type.respond_to?(:ancestors) && type.ancestors.include?(DataMapper::Type) && TYPES.include?(type.primitive))
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"                 unless Resource > model
+      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                           unless Symbol === name
+      raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
 
       if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
         raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
@@ -286,7 +288,7 @@ module DataMapper
       @model                  = model
       @name                   = name.to_s.sub(/\?$/, '').to_sym
       @type                   = type
-      @custom                 = @type.ancestors.include?(DataMapper::Type)
+      @custom                 = DataMapper::Type > @type
       @options                = @custom ? @type.options.merge(options) : options
       @instance_variable_name = "@#{@name}"
       @getter                 = TrueClass == @type ? "#{@name}?".to_sym : @name
@@ -296,9 +298,10 @@ module DataMapper
       @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
 
-      @lock   = @options.fetch(:lock,   false)
-      @serial = @options.fetch(:serial, false)
-      @key    = (@options[:key] || @serial) == true
+      @lock     = @options.fetch(:lock,   false)
+      @serial   = @options.fetch(:serial, false)
+      @key      = (@options[:key] || @serial) == true
+      @nullable = @options[:nullable] || @key
 
       determine_visibility
 

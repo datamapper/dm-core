@@ -1,5 +1,4 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 class Icon
       include DataMapper::Resource
@@ -52,13 +51,13 @@ describe DataMapper::PropertySet do
     Boat.properties(:default).lazy_context(:default).length.should == 2 # text & notes
   end
 
-  #it 'should return a list of contexts that a given field is in' do
-  #  props =  Boat.properties(:default)
-  #  set = props.property_contexts(:a1)
-  #  set.include?(:ctx_a).should == true
-  #  set.include?(:ctx_c).should == true
-  #  set.include?(:ctx_b).should == false
-  #end
+  it 'should return a list of contexts that a given field is in' do
+    props = Boat.properties(:default)
+    set = props.property_contexts(:a1)
+    set.include?(:ctx_a).should == true
+    set.include?(:ctx_c).should == true
+    set.include?(:ctx_b).should == false
+  end
 
   it 'should return a list of expanded fields that should be loaded with a given field' do
     props =  Boat.properties(:default)

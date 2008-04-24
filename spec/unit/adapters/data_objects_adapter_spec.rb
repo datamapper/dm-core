@@ -1,9 +1,8 @@
 require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent.parent + 'spec_helper'
+require 'monitor'
+require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
-require ROOT_DIR + 'lib/data_mapper'
-require ROOT_DIR + 'lib/data_mapper/adapters/data_objects_adapter'
-require __DIR__ + 'adapter_shared_spec'
+require DataMapper.root / 'spec' / 'unit' / 'adapters' / 'adapter_shared_spec'
 
 describe DataMapper::Adapters::DataObjectsAdapter do
   before do
@@ -11,6 +10,42 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   end
 
   it_should_behave_like 'a DataMapper Adapter'
+
+  describe DataMapper::Adapters::StandardSqlTransactions do
+    before :each do
+      class SqlAdapter < DataMapper::Adapters::DataObjectsAdapter
+        include DataMapper::Adapters::StandardSqlTransactions
+      end
+      @adapter = SqlAdapter.new(:mock, URI.parse("mock://plur"))
+      @connection = mock("connection")
+      @transaction = DataMapper::Adapters::Transaction.new(@adapter)
+      @command = mock("command")
+    end
+    it "should execute BEGIN on #begin_transaction" do
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      @connection.should_receive(:create_command).once.with("BEGIN").and_return(@command)
+      @command.should_receive(:execute_non_query).once
+      @transaction.begin
+    end
+    it "should execute ROLLBACK on #rollback_transaction" do
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      @connection.should_receive(:create_command).once.with("BEGIN").and_return(@command)
+      @command.should_receive(:execute_non_query).twice
+      @transaction.begin
+      @connection.should_receive(:create_command).once.with("ROLLBACK").and_return(@command)
+      @connection.should_receive(:close).once
+      @transaction.rollback
+    end
+    it "should execute COMMIT on #rollback_transaction" do
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      @connection.should_receive(:create_command).once.with("BEGIN").and_return(@command)
+      @command.should_receive(:execute_non_query).twice
+      @transaction.begin
+      @connection.should_receive(:create_command).once.with("COMMIT").and_return(@command)
+      @connection.should_receive(:close).once
+      @transaction.commit
+    end
+  end
 
   describe "#find_by_sql" do
 
@@ -69,8 +104,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @command.should_receive(:execute_reader).twice.with(Plupp.properties[:name]).and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
-        Plupp.find_by_sql(DataMapper::Query.new(Plupp, "name" => "my pretty plur", :fields => ["name"]))
-        Plupp.find_by_sql(DataMapper::Query.new(Plupp, "name" => "my pretty plur", :fields => ["name"]), :repository => :plupp_repo)
+        Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"]))
+        Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"]), :repository => :plupp_repo)
       end
       
       it "requires a Repository that is a DataObjectsRepository to work" do

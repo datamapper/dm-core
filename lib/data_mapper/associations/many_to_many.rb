@@ -1,6 +1,3 @@
-require __DIR__.parent + 'associations'
-require __DIR__ + 'relationship'
-
 module DataMapper
   module Associations
     module ManyToMany
@@ -14,14 +11,16 @@ module DataMapper
         child_model_name  = DataMapper::Inflection.demodulize(self.name)
         parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
-        relationships[name] = Relationship.new(
+        relationships(repository.name)[name] = Relationship.new(
           name,
-          options[:repository_name] || repository.name,
+          options,
+          repository.name,
           child_model_name,
           nil,
           parent_model_name,
           nil
-        )
+        )        
+        relationships(repository.name)[name]
       end
 
       class Instance

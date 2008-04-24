@@ -8,57 +8,55 @@ require Pathname('rake/rdoctask')
 require Pathname('rake/gempackagetask')
 require Pathname('rake/contrib/rubyforgepublisher')
 
-# for __DIR__
-require Pathname(__FILE__).dirname.expand_path + 'lib/data_mapper/support/kernel'
+ROOT = Pathname(__FILE__).dirname.expand_path
 
-Pathname.glob(__DIR__ + 'tasks/**/*.rb') { |t| require t }
+Pathname.glob(ROOT + 'tasks/**/*.rb') { |t| require t }
 
-task :default     => 'dm:spec'
-task :spec        => 'dm:spec'
-task :environment => 'dm:environment'
+task :default => 'dm:spec'
+task :spec    => 'dm:spec'
+
+namespace :spec do
+  task :unit        => 'dm:spec:unit'
+  task :integration => 'dm:spec:integration'
+end
 
 desc 'Remove all package, rdocs and spec products'
 task :clobber_all => %w[ clobber_package clobber_rdoc dm:clobber_spec ]
 
-namespace :dm do
-  desc "Setup Environment"
-  task :environment do
-    require 'environment'
-  end
 
-  def run_spec(name, files)
+
+namespace :dm do
+  def run_spec(name, files, rcov = true)
     Spec::Rake::SpecTask.new(name) do |t|
-      t.spec_opts = ["--format", "specdoc", "--colour"]
+      t.spec_opts << '--format' << 'specdoc' << '--colour'
       t.spec_files = Pathname.glob(ENV['FILES'] || files)
-      unless ENV['NO_RCOV']
-        t.rcov = true
-        t.rcov_opts << '--exclude' << 'spec,environment.rb'
-        t.rcov_opts << '--text-summary'
-        t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-        t.rcov_opts << '--only-uncovered'
-      end
+      t.rcov = ENV.has_key?('NO_RCOV') ? ENV['NO_RCOV'] != 'true' : rcov
+      t.rcov_opts << '--exclude' << 'spec,environment.rb'
+      t.rcov_opts << '--text-summary'
+      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+      t.rcov_opts << '--only-uncovered'
     end
   end
 
   desc "Run all specifications"
-  task :spec => ['dm:spec:unit', 'dm:spec:integration']
+  run_spec('spec', Pathname.glob(ROOT + 'spec/**/*_spec.rb'))
 
   namespace :spec do
     desc "Run unit specifications"
-    run_spec('unit', __DIR__ + 'spec/unit/**/*_spec.rb')
+    run_spec('unit', Pathname.glob(ROOT + 'spec/unit/**/*_spec.rb'), false)
 
     desc "Run integration specifications"
-    run_spec('integration', __DIR__ + 'spec/integration/**/*_spec.rb')
+    run_spec('integration', Pathname.glob(ROOT + 'spec/integration/**/*_spec.rb'), false)
   end
 
   desc "Run comparison with ActiveRecord"
   task :perf do
-    load __DIR__ + 'script/performance.rb'
+    load Pathname.glob(ROOT + 'script/performance.rb')
   end
 
   desc "Profile DataMapper"
   task :profile do
-    load __DIR__ + 'script/profile.rb'
+    load Pathname.glob(ROOT + 'script/profile.rb')
   end
 end
 
@@ -112,13 +110,9 @@ gem_spec = Gem::Specification.new do |s|
 
   s.require_path = "lib"
   s.requirements << "none"
-  s.executables = ["dm"]
-  s.bindir = "bin"
-  s.add_dependency("english")
-  s.add_dependency("json_pure")
-  s.add_dependency("rspec")
   s.add_dependency("data_objects", ">=0.9.0")
-  s.add_dependency("english")
+  s.add_dependency("english", ">=0.2.0")
+  s.add_dependency("rspec", ">=1.1.3")
 
   s.has_rdoc = true
   s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"

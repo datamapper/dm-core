@@ -1,11 +1,10 @@
 require 'forwardable'
-require __DIR__.parent + 'associations'
-require __DIR__ + 'relationship'
 
 module DataMapper
   module Associations
     module OneToMany
       private
+
       def one_to_many(name, options = {})
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
@@ -14,8 +13,9 @@ module DataMapper
 
         child_model_name  = options[:class_name] || DataMapper::Inflection.classify(name)
 
-        relationships[name] = Relationship.new(
+        relationships(repository.name)[name] = Relationship.new(
           DataMapper::Inflection.underscore(self.name).to_sym,
+          options,
           repository.name,
           child_model_name,
           nil,
@@ -32,7 +32,7 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = self.class.relationships[:#{name}]
+              relationship = self.class.relationships(repository.name)[:#{name}]
 
               association = Proxy.new(relationship, self) do |repository, relationship|
                 repository.all(*relationship.to_child_query(self))
@@ -45,7 +45,7 @@ module DataMapper
           end
         EOS
 
-        relationships[name]
+        relationships(repository.name)[name]
       end
 
       class Proxy
@@ -103,13 +103,13 @@ module DataMapper
             raise
           end
         end
-        
+
         private
-        
+
         def initialize(relationship, parent_resource, &children_loader)
-          #        raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
-          #        raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
-          
+#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
+#          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
+
           @relationship    = relationship
           @parent_resource = parent_resource
           @children_loader = children_loader

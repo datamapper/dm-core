@@ -1,5 +1,4 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent.parent + 'spec_helper'
+require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
 describe DataMapper::Associations::Relationship do
 
@@ -10,6 +9,7 @@ describe DataMapper::Associations::Relationship do
   it "should describe an association" do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
+      {},
       :relationship_spec,
       'Vehicle',
       [ :manufacturer_id ],
@@ -28,6 +28,7 @@ describe DataMapper::Associations::Relationship do
 
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
+      {},
       repository_name,
       'Vehicle',
       [ :manufacturer_id ],
@@ -50,6 +51,7 @@ describe DataMapper::Associations::Relationship do
 
     has_many = DataMapper::Associations::Relationship.new(
       :models,
+      {},
       repository_name,
       'Vehicle',
       nil,

@@ -1,6 +1,3 @@
-require __DIR__.parent + 'associations'
-require __DIR__ + 'relationship'
-
 module DataMapper
   module Associations
     module ManyToOne
@@ -13,8 +10,9 @@ module DataMapper
         child_model_name  = DataMapper::Inflection.demodulize(self.name)
         parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
-        relationships[name] = Relationship.new(
+        relationships(repository.name)[name] = Relationship.new(
           name,
+          options,
           repository.name,
           child_model_name,
           nil,
@@ -35,7 +33,7 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = self.class.relationships[:#{name}]
+              relationship = self.class.relationships(repository.name)[:#{name}]
 
               association = relationship.with_child(self, Instance) do |repository, child_key, parent_key, parent_model, child_resource|
                 repository.all(parent_model, parent_key.to_query(child_key.get(child_resource))).first
@@ -47,8 +45,7 @@ module DataMapper
             end
           end
         EOS
-
-        relationships[name]
+        relationships(repository.name)[name]
       end
 
       class Instance

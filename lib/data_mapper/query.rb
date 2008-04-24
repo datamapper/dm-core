@@ -17,8 +17,8 @@ module DataMapper
       private
 
       def initialize(property, direction = :asc)
-        raise ArgumentError, "+property+ is not a DataMapper::Property, but was #{property.class}", caller unless DataMapper::Property === property
-        raise ArgumentError, "+direction+ is not a Symbol, but was #{direction.class}", caller              unless Symbol              === direction
+        raise ArgumentError, "+property+ is not a DataMapper::Property, but was #{property.class}", caller unless Property === property
+        raise ArgumentError, "+direction+ is not a Symbol, but was #{direction.class}", caller             unless Symbol   === direction
 
         @property  = property
         @direction = direction
@@ -47,33 +47,38 @@ module DataMapper
 
       attr_reader :relationships, :model, :property
 
-      def initialize(relationships, model_name, property_name = nil)
-        raise ArgumentError, "+relationships+ is not an Array, but was #{relationships.class}", caller unless Array  === relationships
-        raise ArgumentError, "+model_name+ is not a Symbol, but was #{model_name.class}", caller       unless Symbol === model_name
-        raise ArgumentError, "+property_name+ is not a Symbol, but was #{property_name.class}", caller unless Symbol === property_name || property_name.nil?
 
+      def initialize(repository, relationships, model, property_name = nil)  
+        raise ArgumentError, "+repository+ is not a Repository, but was #{repository.class}", caller unless Repository  === repository              
+        raise ArgumentError, "+relationships+ is not an Array, it is a #{relationships.class}", caller unless Array  === relationships
+        raise ArgumentError, "+model+ is not a DM::Resource, it is a #{model}", caller   unless model.ancestors.include?(DataMapper::Resource)
+        raise ArgumentError, "+property_name+ is not a Symbol, it is a #{property_name.class}", caller unless Symbol === property_name || property_name.nil?
+        
+        @repository    = repository
         @relationships = relationships
-        @model         = DataMapper::Inflection.classify(model_name.to_s).to_class
-        @property      = @model.properties(@model.repository.name)[property_name] if property_name
+        @model         = model
+        @property      = @model.properties(@repository.name)[property_name] if property_name
       end
 
-      alias_method :_method_missing, :method_missing
-
       def method_missing(method, *args)
-        if @model.relationships.has_key?(method)
+        if relationship = @model.relationships(@repository.name)[method]          
+          clazz = if @model == relationship.child_model
+           relationship.parent_model
+          else
+           relationship.child_model
+          end             
           relations = []
           relations.concat(@relationships)
-          relations << @model.relationships[method]
-          return DataMapper::Query::Path.new(relations,method)
-        end
+          relations << relationship #@model.relationships[method]
+          return Query::Path.new(@repository, relations,clazz)               
+        end      
 
         if @model.properties(@model.repository.name)[method]
           @property = @model.properties(@model.repository.name)[method]
           return self
         end
-
-        _method_missing(method,args)
-      end
+        super
+      end      
 
       # duck type the DM::Query::Path to act like a DM::Property
       def field
@@ -87,10 +92,10 @@ module DataMapper
       :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
 
-    attr_reader :model, :model_name, *OPTIONS
+    attr_reader :model, :model_name, :repository, *OPTIONS
 
     def update(other)
-      other = self.class.new(model, other) if Hash === other
+      other = self.class.new(@repository, model, other) if Hash === other
 
       @model, @reload = other.model, other.reload
 
@@ -146,7 +151,7 @@ module DataMapper
     # <DM::Query>
     #
     def merge_sub_select_conditions(operator, property, value)
-      raise ArgumentError, "+value+ is not a DataMapper::Query, but was #{value.class}", caller unless DataMapper::Query === value
+      raise ArgumentError, "+value+ is not a #{self.class}, but was #{value.class}", caller unless self.class === value
 
       new_conditions = []
       conditions.each do |tuple|
@@ -165,14 +170,14 @@ module DataMapper
 
     private
 
-    def initialize(model, options = {})
+    def initialize(repository, model, options = {})
+      raise TypeError, "+repository+ must be a Repository, but is #{repository.class}" unless Repository === repository
       validate_model(model)
       validate_options(options)
 
-      @repository     = model.repository
-      repository_name = @repository.name
-      @model_name     = model.storage_name(repository_name)
-      @properties     = model.properties(repository_name)
+      @repository = repository
+      @model_name = model.storage_name(@repository.name)
+      @properties = model.properties(@repository.name)
 
       @model      = model                           # must be Class that includes DM::Resource
       @reload     = options.fetch :reload,   false  # must be true or false
@@ -221,8 +226,8 @@ module DataMapper
 
     # validate the model
     def validate_model(model)
-      raise ArgumentError, "+model+ must be a Class, but is #{model.class}" unless Class                === model.class
-      raise ArgumentError, '+model+ must include DataMapper::Resource'      unless DataMapper::Resource === model
+      raise ArgumentError, "+model+ must be a Class, but is #{model.class}" unless Class === model.class
+      raise ArgumentError, '+model+ must include DataMapper::Resource'      unless Resource > model
     end
 
     # validate the options
@@ -246,7 +251,7 @@ module DataMapper
       ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
         value = options[attribute]
         raise ArgumentError, "+options[:#{attribute}]+ must be an Array, but was #{value.class}" unless Array === value
-        raise ArgumentError, "+options[:#{attribute}]+ cannot be an empty Array"                 unless value.any?
+        raise ArgumentError, "+options[:#{attribute}]+ cannot be empty"                          unless value.any?
       end
     end
 
@@ -254,7 +259,7 @@ module DataMapper
     # validate other DM::Query or Hash object
     def validate_other(other)
       if self.class === other
-        raise ArgumentError, "+other+ #{self.class} must belong to the same repository" unless other.model.repository == @model.repository
+        raise ArgumentError, "+other+ #{self.class} must belong to the same repository" unless other.repository == @repository
       elsif !(Hash === other)
         raise ArgumentError, "+other+ must be a #{self.class} or Hash, but was a #{other.class}"
       end
@@ -323,12 +328,12 @@ module DataMapper
       # the source and the target.
       @links = @links.map do |link|
         case link
-          when DataMapper::Associations::Relationship
+          when Associations::Relationship
             link
           when Symbol, String
             link = link.to_sym if String === link
-            raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship" unless model.relationships.has_key?(link)
-            model.relationships[link]
+            raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship" unless model.relationships(@repository.name).has_key?(link)
+            model.relationships(@repository.name)[link]
           else
             raise ArgumentError, "+options[:links]+ entry #{link.inspect} not supported"
         end
@@ -354,9 +359,9 @@ module DataMapper
       operator = :eql
 
       property = case clause
-        when DataMapper::Property
+        when Property
           clause
-        when DataMapper::Query::Path
+        when Query::Path
           validate_query_path_links(clause)
           clause
         when Operator

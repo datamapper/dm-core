@@ -6,6 +6,7 @@
 #
 # sudo gem install english
 #
+gem 'english', '>=0.2.0'
 require 'english/inflect'
 
 English::Inflect.word 'postgres'

@@ -1,10 +1,9 @@
-require __DIR__ + 'abstract_adapter'
-require __DIR__.parent + 'loaded_set'
-
 begin
   require 'fastthread'
 rescue LoadError
 end
+
+gem 'data_objects', '=0.9.0'
 require 'data_objects'
 
 module DataMapper
@@ -82,6 +81,37 @@ module DataMapper
 
   module Adapters
 
+    module MockTransactions
+      def begin_transaction(transaction)
+        DataMapper.logger.debug("BEGIN TRANSACTION (mock transaction!)")
+      end
+
+      def commit_transaction(transaction)
+        DataMapper.logger.debug("COMMIT TRANSACTION (mock transaction!)")
+      end
+
+      def rollback_transaction(transaction)
+        DataMapper.logger.debug("ROLLBACK TRANSACTION (mock transaction!)")
+      end
+    end
+
+    module StandardSqlTransactions
+      def begin_transaction(transaction)
+        transaction.connection.create_command("BEGIN").execute_non_query
+        DataMapper.logger.debug("BEGIN TRANSACTION")
+      end
+
+      def commit_transaction(transaction)
+        transaction.connection.create_command("COMMIT").execute_non_query
+        DataMapper.logger.debug("COMMIT TRANSACTION")
+      end
+
+      def rollback_transaction(transaction)
+        transaction.connection.create_command("ROLLBACK").execute_non_query
+        DataMapper.logger.debug("COMMIT TRANSACTION")
+      end
+    end
+
     # You must inherit from the DoAdapter, and implement the
     # required methods to adapt a database library for use with the DataMapper.
     #
@@ -122,7 +152,7 @@ module DataMapper
 
       def create_connection
         if within_transaction?
-          Thread.current["dm_doa_#{@uri.scheme}_transaction"]
+          current_transaction.connection
         else
           # DataObjects::Connection.new(uri) will give you back the right
           # driver based on the Uri#scheme.
@@ -131,7 +161,7 @@ module DataMapper
       end
 
       def close_connection(connection)
-        connection.close unless within_transaction?
+        connection.close unless within_transaction? && current_transaction.connection == connection
       end
 
       def create_with_returning?
@@ -179,7 +209,7 @@ module DataMapper
         command.set_types(properties.map { |property| property.primitive })
         reader = command.execute_reader(*key)
         while(reader.next!)
-          set.add(reader.values)
+          set.load(reader.values)
         end
 
         reader.close
@@ -276,7 +306,7 @@ module DataMapper
           reader = command.execute_reader(*parameters)
 
           while(reader.next!)
-            set.add(reader.values, do_reload)
+            set.load(reader.values, do_reload)
           end
 
           reader.close
@@ -393,6 +423,8 @@ module DataMapper
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
+        
+        
 
         def create_table_statement(model)
           <<-EOS.compress_lines
@@ -428,10 +460,15 @@ module DataMapper
 
           sql = "SELECT "
 
-          sql << query.fields.map do |property|
-            # deriving the model name from the property and not the query
-            # allows for "foreign" properties to be qualified correctly
-            model_name = property.model.storage_name(property.model.repository.name)
+          sql << query.fields.map do |property|                      
+            # TODO Should we raise an error if there is no such property in the 
+            #      repository of the query?
+            # 
+            #if property.model.properties(query.repository.name)[property.name].nil?
+            #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
+            #end            
+            #
+            model_name = property.model.storage_name(query.repository.name)
             property_to_column_name(model_name, property, qualify)
           end.join(', ')
 
@@ -468,9 +505,14 @@ module DataMapper
           unless query.conditions.empty?
             sql << " WHERE "
             sql << "(" << query.conditions.map do |operator, property, value|
-              # deriving the model name from the property and not the query
-              # allows for "foreign" properties to be qualified correctly
-              model_name = property.model.storage_name(property.model.repository.name)
+              # TODO Should we raise an error if there is no such property in the 
+              #      repository of the query?
+              # 
+              #if property.model.properties(query.repository.name)[property.name].nil?
+              #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
+              #end            
+              #
+              model_name = property.model.storage_name(query.repository.name)            
               case operator
                 when :eql, :in then equality_operator(query,model_name,operator, property, qualify, value)
                 when :not      then inequality_operator(query,model_name,operator, property, qualify, value)
@@ -532,6 +574,14 @@ module DataMapper
 
       include SQL
 
+      def quote_table_name(table_name)
+        "\"#{table_name.gsub('"', '""')}\""
+      end
+
+      def quote_column_name(column_name)
+        "\"#{column_name.gsub('"', '""')}\""
+      end
+
       protected
 
       def normalize_uri(uri_or_options)
@@ -570,13 +620,6 @@ module DataMapper
         false
       end
 
-      def quote_table_name(table_name)
-        "\"#{table_name.gsub('"', '""')}\""
-      end
-
-      def quote_column_name(column_name)
-        "\"#{column_name.gsub('"', '""')}\""
-      end
     end # class DoAdapter
   end # module Adapters
 end # module DataMapper

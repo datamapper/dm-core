@@ -1,5 +1,4 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 describe "DataMapper::IdentityMap" do
   before(:all) do
@@ -26,33 +25,21 @@ describe "DataMapper::IdentityMap" do
 
   it "should return nil on #get when it does not find the requested instance" do
     map = DataMapper::IdentityMap.new
-    map.get(Cow,[23]).nil?.should == true
+    map.get([23]).should be_nil
   end
 
   it "should return an instance on #get when it finds the requested instance" do
     betsy = Cow.new({:id=>23,:name=>'Betsy'})
     map = DataMapper::IdentityMap.new
-    map.set(betsy)
-    map.get(Cow,[23]).should == betsy
+    map.set(betsy.key, betsy)
+    map.get([23]).should == betsy
   end
 
   it "should store an instance on #set" do
     betsy = Cow.new({:id=>23,:name=>'Betsy'})
     map = DataMapper::IdentityMap.new
-    map.set(betsy)
-    map.get(Cow,[23]).should == betsy
-  end
-
-  it "should raise ArgumentError on #set if there is no key property" do
-    cluck = Chicken.new({:name => 'Cluck'})
-    map = DataMapper::IdentityMap.new
-    lambda{map.set(cluck)}.should raise_error(ArgumentError)
-  end
-
-  it "should raise ArgumentError on #set if the key property is nil" do
-    betsy = Cow.new({:name=>'Betsy'})
-    map = DataMapper::IdentityMap.new
-    lambda{ map.set(betsy)}.should raise_error(ArgumentError)
+    map.set(betsy.key, betsy)
+    map.get([23]).should == betsy
   end
 
   it "should store instances with composite keys on #set" do
@@ -60,91 +47,80 @@ describe "DataMapper::IdentityMap" do
     piggy = Pig.new({:id=>1,:composite=>2,:name=>'Piggy'})
 
     map = DataMapper::IdentityMap.new
-    map.set(pig)
-    map.set(piggy)
+    map.set(pig.key, pig)
+    map.set(piggy.key, piggy)
 
-    map.get(Pig,[1,1]).should == pig
-    map.get(Pig,[1,2]).should == piggy
+    map.get([1,1]).should == pig
+    map.get([1,2]).should == piggy
   end
 
   it "should remove an instance on #delete" do
     betsy = Cow.new({:id=>23,:name=>'Betsy'})
     map = DataMapper::IdentityMap.new
-    map.set(betsy)
-    map.delete(Cow,[23])
-    map.get(Cow,[23]).nil?.should == true
+    map.set(betsy.key, betsy)
+    map.delete([23])
+    map.get([23]).should be_nil
   end
-
-  it "should remove all instances of a given class on #clear!" do
-    betsy = Cow.new({:id=>23,:name=>'Betsy'})
-    bert = Cow.new({:id=>24,:name=>'Bert'})
-    piggy = Pig.new({:id=>1,:composite=>2,:name=>'Piggy'})
-
-    map = DataMapper::IdentityMap.new
-    map.set(betsy)
-    map.set(bert)
-    map.set(piggy)
-    map.clear!(Cow)
-    map.get(Cow,[23]).nil?.should == true
-    map.get(Cow,[24]).nil?.should == true
-    map.get(Pig,[1,2]).should == piggy
-  end
-
-
-
 end
 
 describe "Second Level Caching" do
 
-  it "should expose a standard API" do
-
-    cache = Class.new do
-
-      # Retrieve an instance by it's type and key.
-      #
-      # +klass+ is the type you want to retrieve. Should
-      # map to a mapped class. ie: If you have Salesperson < Person, then
-      # you should be able to pass in Salesperson, but it should map the
-      # lookup to it's set os Person instances.
-      #
-      # +type+ is an order-specific Array of key-values to identify the object.
-      # It's always an Array, even when not using a composite-key. ie:
-      #   property :id, Fixnum, :serial => true # => [12]
-      # Or:
-      #   property :order_id, Fixnum
-      #   property :line_item_number, Fixnum
-      #   # key => [5, 27]
-      #
-      # +return+ nil when a matching instance isn't found,
-      # or the matching instance when present.
-      def get(type, key); nil end
-
-      # Store an instance in the map.
-      #
-      # +instance+ is the instance you want to store. The cache should
-      # identify the type-store by instance.class in a naive implementation,
-      # or if inheritance is allowed, instance.resource_class (not yet implemented).
-      # The instance must also respond to #key, to return it's key. If key returns nil
-      # or an empty Array, then #set should raise an error.
-      def set(instance); instance end
-
-      # Clear should flush the entire cache.
-      #
-      # +type+ if an optional type argument is passed, then
-      # only the storage for that type should be cleared.
-      def clear!(type = nil); nil end
-
-      # Allows you to remove a specific instance from the cache.
-      #
-      # +instance+ should respond to the same +resource_class+ and +key+ methods #set does.
-      def delete(instance); nil end
-    end.new
-
-    cache.should respond_to(:get)
-    cache.should respond_to(:set)
-    cache.should respond_to(:clear!)
-    cache.should respond_to(:delete)
-
+  before :all do
+    @mock_class = Class.new do
+      def get(key);           raise NotImplementedError end
+      def set(key, instance); raise NotImplementedError end
+      def delete(key);        raise NotImplementedError end
+    end
   end
 
+  it 'should expose a standard API' do
+    cache = @mock_class.new
+    cache.should respond_to(:get)
+    cache.should respond_to(:set)
+    cache.should respond_to(:delete)
+  end
+
+  it 'should provide values when the first level cache entry is empty' do
+    cache = @mock_class.new
+    key   = %w[ test ]
+
+    cache.should_receive(:get).with(key).once.and_return('resource')
+
+    map = DataMapper::IdentityMap.new(cache)
+    map.get(key).should == 'resource'
+  end
+
+  it 'should be set when the first level cache entry is set' do
+    cache = @mock_class.new
+    betsy = Cow.new(:id => 23, :name => 'Betsy')
+
+    cache.should_receive(:set).with(betsy.key, betsy).once.and_return(betsy)
+
+    map = DataMapper::IdentityMap.new(cache)
+    map.set(betsy.key, betsy).should == betsy
+  end
+
+  it 'should be deleted when the first level cache entry is deleted' do
+    cache = @mock_class.new
+    betsy = Cow.new(:id => 23, :name => 'Betsy')
+
+    cache.stub!(:set)
+    cache.should_receive(:delete).with(betsy.key).once.and_return(betsy)
+
+    map = DataMapper::IdentityMap.new(cache)
+    map.set(betsy.key, betsy).should == betsy
+    map.delete(betsy.key).should == betsy
+  end
+
+  it 'should not provide values when the first level cache entry is full' do
+    cache = @mock_class.new
+    betsy = Cow.new(:id => 23, :name => 'Betsy')
+
+    cache.stub!(:set)
+    cache.should_not_receive(:get)
+
+    map = DataMapper::IdentityMap.new(cache)
+    map.set(betsy.key, betsy).should == betsy
+    map.get(betsy.key).should == betsy
+  end
 end

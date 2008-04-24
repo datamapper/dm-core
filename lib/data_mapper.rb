@@ -8,46 +8,49 @@
 #
 
 # Require the basics...
-require 'pathname'
-require 'uri'
 require 'date'
-require 'time'
+require 'pathname'
 require 'rubygems'
-require 'yaml'
 require 'set'
+require 'time'
+require 'uri'
+require 'yaml'
+
 begin
   require 'fastthread'
 rescue LoadError
 end
 
-# for __DIR__
-require Pathname(__FILE__).dirname.expand_path + 'data_mapper/support/kernel'
+# for Pathname /
+require File.join(File.dirname(__FILE__), 'data_mapper', 'core_ext', 'pathname')
 
-require __DIR__ + 'data_mapper/support/object'
-require __DIR__ + 'data_mapper/support/blank'
-require __DIR__ + 'data_mapper/support/enumerable'
-require __DIR__ + 'data_mapper/support/symbol'
-require __DIR__ + 'data_mapper/support/inflection'
-require __DIR__ + 'data_mapper/support/struct'
+dir = Pathname(__FILE__).dirname.expand_path / 'data_mapper'
 
-require __DIR__ + 'data_mapper/logger'
-require __DIR__ + 'data_mapper/dependency_queue'
-require __DIR__ + 'data_mapper/repository'
-require __DIR__ + 'data_mapper/resource'
-require __DIR__ + 'data_mapper/query'
-require __DIR__ + 'data_mapper/type_map'
-require __DIR__ + 'data_mapper/adapters/abstract_adapter'
-require __DIR__ + 'data_mapper/cli'
-require __DIR__ + 'data_mapper/migrator'
-require __DIR__ + 'data_mapper/auto_migrations'
-require __DIR__ + 'data_mapper/migrations/destructive_migrations'
-require __DIR__ + 'data_mapper/scope'
-require __DIR__ + 'data_mapper/query'
-
-require __DIR__ + 'data_mapper/types/enum'
-require __DIR__ + 'data_mapper/types/flag'
+require dir / 'associations'
+require dir / 'auto_migrations'
+require dir / 'dependency_queue'
+require dir / 'hook'
+require dir / 'identity_map'
+require dir / 'is'
+require dir / 'loaded_set'
+require dir / 'logger'
+require dir / 'naming_conventions'
+require dir / 'property_set'
+require dir / 'query'
+require dir / 'repository'
+require dir / 'resource'
+require dir / 'scope'
+require dir / 'support'
+require dir / 'type'
+require dir / 'types'
+require dir / 'property'
+require dir / 'adapters'
 
 module DataMapper
+  def self.root
+    @root ||= Pathname(__FILE__).dirname.parent.expand_path
+  end
+
   def self.setup(name, uri_or_options)
     raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller unless Symbol === name
 
@@ -61,16 +64,19 @@ module DataMapper
         raise ArgumentError, "+uri_or_options+ must be a Hash, URI or String, but was #{uri_or_options.class}", caller
     end
 
-    unless Adapters::const_defined?(DataMapper::Inflection.classify(adapter_name) + 'Adapter')
+    # TODO: use autoload to load the adapter on-the-fly when used
+    class_name = DataMapper::Inflection.classify(adapter_name) + 'Adapter'
+
+    unless Adapters::const_defined?(class_name)
+      lib_name = "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
       begin
-        require __DIR__ + "data_mapper/adapters/#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
+        require root / 'lib' / 'data_mapper' / 'adapters' / lib_name
       rescue LoadError
-        require "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
+        require lib_name
       end
     end
 
-    Repository.adapters[name] = Adapters::
-      const_get(DataMapper::Inflection.classify(adapter_name) + 'Adapter').new(name, uri_or_options)
+    Repository.adapters[name] = Adapters::const_get(class_name).new(name, uri_or_options)
   end
 
   # ===Block Syntax:
@@ -87,6 +93,7 @@ module DataMapper
   #
   #   current_repository = DataMapper.repository
   def self.repository(name = nil) # :yields: current_context
+    # TODO return context.last if last.name == name (arg)
     current_repository = if name
       Repository.new(name)
     else

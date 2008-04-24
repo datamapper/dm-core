@@ -1,10 +1,4 @@
 require 'set'
-require __DIR__ + 'support/string'
-require __DIR__ + 'property_set'
-require __DIR__ + 'property'
-require __DIR__ + 'hook'
-require __DIR__ + 'scope'
-require __DIR__ + 'associations'
 
 module DataMapper
 
@@ -43,10 +37,6 @@ module DataMapper
       @dependencies
     end
 
-    def self.===(other)
-      Module === other && other.ancestors.include?(Resource)
-    end
-
     # +---------------
     # Instance methods
 
@@ -68,7 +58,7 @@ module DataMapper
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
-      if property && property.lock?
+      if property.lock?
         instance_variable_set("@shadow_#{name}", instance_variable_get(ivar_name))
       end
 
@@ -136,8 +126,8 @@ module DataMapper
       instance_variable_get("@shadow_#{name}")
     end
 
-    def reload!
-      @loaded_set.reload!(:fields => loaded_attributes.keys)
+    def reload
+      @loaded_set.reload(:fields => loaded_attributes.keys)
     end
 
     # Returns <tt>true</tt> if this model hasn't been saved to the
@@ -186,8 +176,8 @@ module DataMapper
 
     def initialize_with_attributes(details) # :nodoc:
       case details
-        when Hash             then self.attributes = details
-        when Resource, Struct then self.private_attributes = details.attributes
+      when Hash             then self.attributes = details
+      when Resource, Struct then self.private_attributes = details.attributes
         # else raise ArgumentError, "details should be a Hash, Resource or Struct\n\t#{details.inspect}"
       end
     end
@@ -200,7 +190,7 @@ module DataMapper
 
     def lazy_load(name)
       return unless @loaded_set
-      @loaded_set.reload!(:fields => self.class.properties(self.class.repository.name).lazy_load_context(name))
+      @loaded_set.reload(:fields => self.class.properties(repository.name).lazy_load_context(name))
     end
 
     def private_attributes
@@ -228,8 +218,29 @@ module DataMapper
         base.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
 
-      def repository(*args, &block)
-        DataMapper.repository(*args, &block)
+      #
+      # Get the repository with a given name, or the default one for the current context, or the default one for this class.
+      #
+      # ==== Parameters
+      # name<Symbol>:: The name of the repository wanted.
+      # block<Block>:: Block to execute with the fetched repository as parameter.
+      #
+      # ==== Returns
+      # if given a block
+      # Object:: Whatever the block returns.
+      # else
+      # DataMapper::Repository:: The asked for Repository.
+      #
+      #-
+      # @public
+      def repository(name = nil, &block)
+        if name
+          DataMapper.repository(name, &block)
+        elsif Repository.context.last
+          DataMapper.repository(nil, &block)
+        else
+          DataMapper.repository(default_repository_name, &block)
+        end
       end
 
       def storage_name(repository_name = default_repository_name)
@@ -255,13 +266,11 @@ module DataMapper
         #Add the property to the lazy_loads set for this resources repository only
         # TODO Is this right or should we add the lazy contexts to all repositories?
         if property.lazy?
-          ctx = options.has_key?(:lazy) ? options[:lazy] : :default
-          ctx = :default if TrueClass === ctx
-          @properties[repository.name].lazy_context(ctx) << name if Symbol === ctx
-          if Array === ctx
-            ctx.each do |item|
-              @properties[repository.name].lazy_context(item) << name
-            end
+          context = options.fetch(:lazy, :default)
+          context = :default if context == true
+
+          Array(context).each do |item|
+            @properties[repository.name].lazy_context(item) << name
           end
         end
 
@@ -319,14 +328,20 @@ module DataMapper
       end
 
       def method_missing(method, *args, &block)
-        if relationship = relationships[method]
-          return DataMapper::Query::Path.new([ relationship ],method)
+        if relationship = relationships(repository.name)[method]          
+           clazz = if self == relationship.child_model
+             relationship.parent_model
+           else
+             relationship.child_model
+           end                
+           return DataMapper::Query::Path.new(repository, [relationship],clazz)
         end
+        
         if property = properties(repository.name)[method]
           return property
         end
         super
-      end
+      end          
 
     end # module ClassMethods
   end # module Resource

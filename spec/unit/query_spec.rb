@@ -1,5 +1,6 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+
+DataMapper.setup(:mock, "mock:///mock.db")
 
 describe DataMapper::Query do
   GOOD_OPTIONS = [
@@ -37,25 +38,25 @@ describe DataMapper::Query do
   describe '.new' do
     describe 'should set the attribute' do
       it '#model with model' do
-        query = DataMapper::Query.new(Article)
+        query = DataMapper::Query.new(repository(:mock), Article)
         query.model.should == Article
       end
 
       GOOD_OPTIONS.each do |(attribute,value)|
         it "##{attribute} with options[:#{attribute}] if it is #{value.inspect}" do
-          query = DataMapper::Query.new(Article, attribute => value)
+          query = DataMapper::Query.new(repository(:mock), Article, attribute => value)
           query.send(attribute).should == value
         end
       end
 
       describe ' #conditions with options[:conditions]' do
         it 'when they have a one element Array' do
-          query = DataMapper::Query.new(Article, :conditions => [ 'name = "dkubb"' ])
+          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = "dkubb"' ])
           query.conditions.should == [ [ 'name = "dkubb"' ] ]
         end
 
         it 'when they have a two or more element Array' do
-          query = DataMapper::Query.new(Article, :conditions => [ 'name = ?', 'dkubb' ])
+          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ?', 'dkubb' ])
           query.conditions.should == [ [ 'name = ?', [ 'dkubb' ] ] ]
         end
 
@@ -66,8 +67,8 @@ describe DataMapper::Query do
             property :resource_id, Fixnum
           end
 
-          acl_query = DataMapper::Query.new(Acl, :fields=>[:resource_id]) #this would normally have conditions
-          query = DataMapper::Query.new(Article, :id.in => acl_query)
+          acl_query = DataMapper::Query.new(repository(:mock), Acl, :fields=>[:resource_id]) #this would normally have conditions
+          query = DataMapper::Query.new(repository(:mock), Article, :id.in => acl_query)
           query.conditions.each do |operator, property, value|
             operator.should == :in
             property.name.should == :id
@@ -78,67 +79,76 @@ describe DataMapper::Query do
 
       describe ' #conditions with unknown options' do
         it 'when a Symbol object is a key' do
-          query = DataMapper::Query.new(Article, :author => 'dkubb')
+          query = DataMapper::Query.new(repository(:mock), Article, :author => 'dkubb')
           query.conditions.should == [ [ :eql, Article.property_by_name(:author), 'dkubb' ] ]
         end
 
         it 'when a Symbol::Operator object is a key' do
-          query = DataMapper::Query.new(Article, :author.like => /\Ad(?:an\.)kubb\z/)
+          query = DataMapper::Query.new(repository(:mock), Article, :author.like => /\Ad(?:an\.)kubb\z/)
           query.conditions.should == [ [ :like, Article.property_by_name(:author), /\Ad(?:an\.)kubb\z/ ] ]
         end
       end
     end
 
-    describe 'should raise an ArgumentError' do
-      it 'when model is nil' do
+    describe 'should raise a TypeError' do
+      it 'when repository is nil' do
         lambda {
-          DataMapper::Query.new(nil)
-        }.should raise_error(ArgumentError)
+          DataMapper::Query.new(nil, NormalClass)
+        }.should raise_error(TypeError)
       end
 
+      it 'when model is nil' do
+        lambda {
+          DataMapper::Query.new(repository(:mock), nil)
+        }.should raise_error(TypeError)
+      end
+    end
+
+    describe 'should raise an ArgumentError' do
       it 'when model is a Class that does not include DataMapper::Resource' do
         lambda {
-          DataMapper::Query.new(NormalClass)
+          DataMapper::Query.new(repository(:mock), NormalClass)
         }.should raise_error(ArgumentError)
       end
 
       it 'when options is not a Hash' do
         lambda {
-          DataMapper::Query.new(Article, nil)
+          DataMapper::Query.new(repository(:mock), Article, nil)
         }.should raise_error(ArgumentError)
       end
 
       BAD_OPTIONS.each do |attribute,value|
         it "when options[:#{attribute}] is nil" do
           lambda {
-            DataMapper::Query.new(Article, attribute => nil)
+            DataMapper::Query.new(repository(:mock), Article, attribute => nil)
           }.should raise_error(ArgumentError)
         end
 
         it "when options[:#{attribute}] is #{value.kind_of?(Array) && value.empty? ? 'an empty Array' : value.inspect}" do
           lambda {
-            DataMapper::Query.new(Article, attribute => value)
+            DataMapper::Query.new(repository(:mock), Article, attribute => value)
           }.should raise_error(ArgumentError)
         end
       end
 
       it 'when unknown options use something that is not a Symbol::Operator, Symbol or String is a key' do
         lambda {
-          DataMapper::Query.new(Article, nil => nil)
+          DataMapper::Query.new(repository(:mock), Article, nil => nil)
         }.should raise_error(ArgumentError)
       end
     end
 
     describe 'should normalize' do
       it '#fields' do
-        DataMapper::Query.new(Article, :fields => [:id]).fields.should == Article.properties(:default).slice(:id).to_a
+        DataMapper::Query.new(repository(:mock), Article, :fields => [:id]).fields.should == Article.properties(:default).slice(:id).to_a
       end
     end
   end
 
   describe '#update' do
     before do
-      @query = DataMapper::Query.new(Article, UPDATED_OPTIONS)
+      @repository = repository(:mock)
+      @query = DataMapper::Query.new(@repository, Article, UPDATED_OPTIONS)
     end
 
     it 'should instantiate a DataMapper::Query object from other when it is a Hash' do
@@ -146,34 +156,34 @@ describe DataMapper::Query do
 
       mock_query_class = mock('DataMapper::Query class')
       @query.should_receive(:class).with(no_args).ordered.and_return(mock_query_class)
-      mock_query_class.should_receive(:new).with(@query.model, other).ordered.and_return(@query)
+      mock_query_class.should_receive(:new).with(@repository, @query.model, other).ordered.and_return(@query)
 
       @query.update(other)
     end
 
     it 'should return self' do
-      other = DataMapper::Query.new(Article)
+      other = DataMapper::Query.new(repository(:mock), Article)
       @query.update(other).should == @query
     end
 
     describe 'should overwrite the attribute' do
       it '#model with other model' do
-        other = DataMapper::Query.new(Comment)
+        other = DataMapper::Query.new(repository(:mock), Comment)
         @query.update(other).model.should == Comment
       end
 
       it '#reload with other reload' do
-        other = DataMapper::Query.new(Article, :reload => true)
+        other = DataMapper::Query.new(repository(:mock), Article, :reload => true)
         @query.update(other).reload.should == true
       end
 
       it '#offset with other offset when it is not equal to 0' do
-        other = DataMapper::Query.new(Article, :offset => 1)
+        other = DataMapper::Query.new(repository(:mock), Article, :offset => 1)
         @query.update(other).offset.should == 1
       end
 
       it '#limit with other limit when it is not nil' do
-        other = DataMapper::Query.new(Article, :limit => 1)
+        other = DataMapper::Query.new(repository(:mock), Article, :limit => 1)
         @query.update(other).limit.should == 1
       end
 
@@ -183,7 +193,7 @@ describe DataMapper::Query do
           @query.update(:author.send(operator) => 'ssmoot')
 
           # update the conditions, and overwrite with the new value
-          other = DataMapper::Query.new(Article, :author.send(operator) => 'dkubb')
+          other = DataMapper::Query.new(repository(:mock), Article, :author.send(operator) => 'dkubb')
           @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:author), 'dkubb' ] ]
         end
       end
@@ -194,7 +204,7 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => Time.at(1))
 
           # update the conditions, and overwrite with the new value is less
-          other = DataMapper::Query.new(Article, :created_at.send(operator) => Time.at(0))
+          other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => Time.at(0))
           @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(0) ] ]
         end
       end
@@ -205,7 +215,7 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => Time.at(0))
 
           # update the conditions, and overwrite with the new value is more
-          other = DataMapper::Query.new(Article, :created_at.send(operator) => Time.at(1))
+          other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => Time.at(1))
           @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(1) ] ]
         end
       end
@@ -219,7 +229,7 @@ describe DataMapper::Query do
           DataMapper::Query::Direction.new(Article.property_by_name(:title),      :desc),
         ]
 
-        other = DataMapper::Query.new(Article, :order => order)
+        other = DataMapper::Query.new(repository(:mock), Article, :order => order)
         @query.update(other).order.should == order
       end
 
@@ -232,13 +242,13 @@ describe DataMapper::Query do
       [ :links, :includes ].each do |attribute|
         it "##{attribute} with other #{attribute} unique values" do
           pending 'DataMapper::Query::Path not ready'
-          other = DataMapper::Query.new(Article, attribute => [ :stub, :other, :new ])
+          other = DataMapper::Query.new(repository(:mock), Article, attribute => [ :stub, :other, :new ])
           @query.update(other).send(attribute).should == [ :stub, :other, :new ]
         end
       end
 
       it "#fields with other fields unique values" do
-        other = DataMapper::Query.new(Article, :fields => [ :blog_id ])
+        other = DataMapper::Query.new(repository(:mock), Article, :fields => [ :blog_id ])
         @query.update(other).fields.should == Article.properties(:default).slice(:id, :author, :blog_id).to_a
       end
 
@@ -247,7 +257,7 @@ describe DataMapper::Query do
         @query.update(:title => 'On DataMapper')
 
         # update the conditions, but merge the conditions together
-        other = DataMapper::Query.new(Article, :author => 'dkubb')
+        other = DataMapper::Query.new(repository(:mock), Article, :author => 'dkubb')
         @query.update(other).conditions.should == [ [ :eql, Article.property_by_name(:title), 'On DataMapper' ], [ :eql, Article.property_by_name(:author), 'dkubb' ] ]
       end
 
@@ -257,7 +267,7 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => [ Time.at(0) ])
 
           # update the conditions, and overwrite with the new value is more
-          other = DataMapper::Query.new(Article, :created_at.send(operator) => [ Time.at(1) ])
+          other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => [ Time.at(1) ])
           @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), [ Time.at(0), Time.at(1) ] ] ]
         end
       end
@@ -267,7 +277,7 @@ describe DataMapper::Query do
         @query.update(:title => 'On DataMapper')
 
         # update the conditions, but merge the conditions together
-        other = DataMapper::Query.new(Article, :conditions => [ 'author = "dkubb"' ])
+        other = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'author = "dkubb"' ])
         @query.update(other).conditions.should == [ [ :eql, Article.property_by_name(:title), 'On DataMapper' ], [ 'author = "dkubb"' ] ]
       end
 
@@ -276,20 +286,20 @@ describe DataMapper::Query do
         @query.update(:title => 'On DataMapper')
 
         # update the conditions, but merge the conditions together
-        other = DataMapper::Query.new(Article, :conditions => [ 'author = ?', 'dkubb' ])
+        other = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'author = ?', 'dkubb' ])
         @query.update(other).conditions.should == [ [ :eql, Article.property_by_name(:title), 'On DataMapper' ], [ 'author = ?', [ 'dkubb' ] ] ]
       end
     end
 
     describe 'should not update the attribute' do
       it '#offset when other offset is equal to 0' do
-        other = DataMapper::Query.new(Article, :offset => 0)
+        other = DataMapper::Query.new(repository(:mock), Article, :offset => 0)
         other.offset.should == 0
         @query.update(other).offset.should == 1
       end
 
       it '#limit when other limit is nil' do
-        other = DataMapper::Query.new(Article)
+        other = DataMapper::Query.new(repository(:mock), Article)
         other.limit.should be_nil
         @query.update(other).offset.should == 1
       end
@@ -300,7 +310,7 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => Time.at(0))
 
           # do not overwrite with the new value if it is more
-          other = DataMapper::Query.new(Article, :created_at.send(operator) => Time.at(1))
+          other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => Time.at(1))
           @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(0) ] ]
         end
       end
@@ -311,7 +321,7 @@ describe DataMapper::Query do
           @query.update(:created_at.send(operator) => Time.at(1))
 
           # do not overwrite with the new value if it is less
-          other = DataMapper::Query.new(Article, :created_at.send(operator) => Time.at(0))
+          other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => Time.at(0))
           @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(1) ] ]
         end
       end
@@ -320,7 +330,7 @@ describe DataMapper::Query do
 
   describe '#merge' do
     before do
-      @query = DataMapper::Query.new(Article)
+      @query = DataMapper::Query.new(repository(:mock), Article)
     end
 
     it 'should pass arguments as-is to duplicate object\'s #update method' do
@@ -339,7 +349,7 @@ describe DataMapper::Query do
 
   describe '#==' do
     before do
-      @query = DataMapper::Query.new(Article)
+      @query = DataMapper::Query.new(repository(:mock), Article)
     end
 
     describe 'should be equal' do
@@ -348,7 +358,7 @@ describe DataMapper::Query do
       end
 
       it 'when other has the same attributes' do
-        other = DataMapper::Query.new(Article)
+        other = DataMapper::Query.new(repository(:mock), Article)
         @query.object_id.should_not == other.object_id
         @query.should == other
       end
@@ -357,7 +367,7 @@ describe DataMapper::Query do
         @query.update(:author => 'dkubb')
         @query.update(:title  => 'On DataMapper')
 
-        other = DataMapper::Query.new(Article, :title => 'On DataMapper')
+        other = DataMapper::Query.new(repository(:mock), Article, :title => 'On DataMapper')
         other.update(:author => 'dkubb')
 
         # query conditions are in different order
@@ -370,17 +380,17 @@ describe DataMapper::Query do
 
     describe 'should be different' do
       it 'when other model is different than self.model' do
-        @query.should_not == DataMapper::Query.new(Comment)
+        @query.should_not == DataMapper::Query.new(repository(:mock), Comment)
       end
 
       UPDATED_OPTIONS.each do |attribute,value|
         it "when other #{attribute} is different than self.#{attribute}" do
-          @query.should_not == DataMapper::Query.new(Article, attribute => value)
+          @query.should_not == DataMapper::Query.new(repository(:mock), Article, attribute => value)
         end
       end
 
       it 'when other conditions are different than self.conditions' do
-        @query.should_not == DataMapper::Query.new(Article, :author => 'dkubb')
+        @query.should_not == DataMapper::Query.new(repository(:mock), Article, :author => 'dkubb')
       end
     end
   end

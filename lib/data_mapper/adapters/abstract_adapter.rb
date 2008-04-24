@@ -1,18 +1,85 @@
-require __DIR__.parent + 'naming_conventions'
-
 module DataMapper
   module Adapters
+
+    class Transaction
+      attr_reader :state, :connection, :adapter
+      def initialize(adapter)
+        @adapter = adapter
+        @state = :none
+      end
+      def begin
+        raise "Illegal state for begin: #{@state}" unless @state == :none
+        @connection = @adapter.create_connection
+        @adapter.begin_transaction(self)
+        @state = :begin
+      end
+      def commit
+        raise "Illegal state for commit: #{@state}" unless @state == :begin
+        @adapter.commit_transaction(self)
+        @connection.close
+        @state = :commit
+      end
+      def rollback
+        raise "Illegal state for rollback: #{@state}" unless @state == :begin
+        @adapter.rollback_transaction(self)
+        @connection.close
+        @state = :rollback
+      end
+    end
+
     class AbstractAdapter
       
       def self.type_map
         @type_map ||= TypeMap.new
       end
       
-      attr_reader :name, :uri
+      attr_reader :name, :uri, :transactions
       attr_accessor :resource_naming_convention, :field_naming_convention
       
       def type_map
         self.class.type_map
+      end
+
+      def current_transaction
+        @transactions[Thread.current].last
+      end
+
+      def within_transaction?
+        !current_transaction.nil?
+      end
+
+      def with_transaction(transaction, &block)
+        @transactions[Thread.current] << transaction
+        begin
+          return(yield transaction)
+        ensure
+          @transactions[Thread.current].pop
+        end
+      end
+
+      def in_transaction(&block)
+        transaction = Transaction.new(self)
+        begin
+          transaction.begin
+          rval = with_transaction(transaction, &block)
+          transaction.commit if transaction.state == :begin
+          return rval
+        rescue Exception => e
+          transaction.rollback if transaction.state == :begin
+          raise e
+        end
+      end
+
+      def begin_transaction(transaction)
+        raise NotImplementedError
+      end
+
+      def commit_transaction(transaction)
+        raise NotImplementedError
+      end
+
+      def rollback_transaction(transaction)
+        raise NotImplementedError
       end
 
       # Methods dealing with a single resource object
@@ -106,6 +173,8 @@ module DataMapper
 
         @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Underscored
+
+        @transactions = Hash.new do |hash, key| hash[key] = [] end
       end
     end # class AbstractAdapter
   end # module Adapters

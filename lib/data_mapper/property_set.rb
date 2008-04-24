@@ -48,13 +48,23 @@ module DataMapper
       map { |property| property.get(resource) }
     end
 
-    def set(values, resource)
+    def set(resource, values)
+      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
       if Array === values
         raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller if values.length != length
       elsif !values.nil?
         raise ArgumentError, "+values+ must be nil or an Array, but was a #{values.class}", caller
       end
-      each_with_index { |property,i| property.set(values.nil? ? nil : values[i], resource) }
+
+      each_with_index { |property,i| property.set(resource, values.nil? ? nil : values[i]) }
+    end
+
+    def property_contexts(name)
+      contexts = []
+      lazy_contexts.each do |context,property_names|
+        contexts << context if property_names.include?(name)
+      end
+      contexts
     end
 
     def lazy_context(name)
@@ -68,23 +78,16 @@ module DataMapper
         raise ArgumentError, "+names+ must be a Symbol or an Array of Symbols, but was a #{names.class}", caller
       end
 
-      result =  []
+      result = []
 
-      names = [ names ] if Symbol === names
-
-      names.each do |name|
+      Array(names).each do |name|
         contexts = property_contexts(name)
         if contexts.empty?
           result << name  # not lazy
         else
-          contexts.each do |context|
-            lazy_context(context).each do |field|
-              result << field unless result.include?(field)
-            end
-          end
+          result |= lazy_contexts.values_at(*contexts).flatten.uniq
         end
       end
-
       result
     end
 
@@ -116,21 +119,13 @@ module DataMapper
 
         ksym = k.to_sym
         if property = detect { |property| property.name == ksym }
-          h[ksym] = h[k.to_s] = property 
+          h[ksym] = h[k.to_s] = property
         end
       end
     end
 
     def lazy_contexts
-      @lazy_contexts ||= Hash.new { |h,k| h[k] = [] }
-    end
-
-    def property_contexts(name)
-      result = []
-      lazy_contexts.each do |key,value|
-        result << key if value.include?(name)
-      end
-      result
+      @lazy_contexts ||= Hash.new { |h,context| h[context] = [] }
     end
   end # class PropertySet
 end # module DataMapper

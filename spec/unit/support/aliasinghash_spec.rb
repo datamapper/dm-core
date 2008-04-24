@@ -1,7 +1,4 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent.parent + 'spec_helper'
-
-require ROOT_DIR + 'lib/data_mapper/support/aliasinghash.rb'
+require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
 describe DataMapper::Support::AliasingHash do
 

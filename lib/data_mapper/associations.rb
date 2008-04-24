@@ -1,7 +1,10 @@
-require __DIR__ + 'associations/many_to_one'
-require __DIR__ + 'associations/one_to_many'
-require __DIR__ + 'associations/many_to_many'
-require __DIR__ + 'associations/one_to_one'
+dir = Pathname(__FILE__).dirname.expand_path / 'associations'
+
+require dir / 'relationship'
+require dir / 'many_to_many'
+require dir / 'many_to_one'
+require dir / 'one_to_many'
+require dir / 'one_to_one'
 
 module DataMapper
   module Associations
@@ -12,8 +15,8 @@ module DataMapper
       base.extend OneToOne
     end
 
-    def relationships
-      @relationships ||= {}
+    def relationships(repository_name)
+      (@relationships ||= Hash.new { |h, k| h[k] = {} })[repository_name]
     end
 
     def n
@@ -49,12 +52,15 @@ module DataMapper
     # @public
     def has(cardinality, name, options = {})
       options = options.merge(extract_min_max(cardinality))
-
+      relationship = nil
       if options[:max] == 1
-        one_to_one(name, options)
+        relationship = one_to_one(name, options)
       else
-        one_to_many(name, options)
+        relationship = one_to_many(name, options)
       end
+      # Please leave this in - I will release contextual serialization soon which requires this -- guyvdb
+      # TODO convert this to a hook in the plugin once hooks work on class methods
+      self.init_has_relationship_for_serialization(relationship) if self.respond_to?(:init_has_relationship_for_serialization)
     end
 
     #
@@ -76,7 +82,10 @@ module DataMapper
     #
     # @public
     def belongs_to(name, options={})
-      many_to_one(name, options)
+      relationship = many_to_one(name, options)
+      # Please leave this in - I will release contextual serialization soon which requires this -- guyvdb
+      # TODO convert this to a hook in the plugin once hooks work on class methods
+      self.init_belongs_relationship_for_serialization(relationship) if self.respond_to?(:init_belongs_relationship_for_serialization)
     end
 
 

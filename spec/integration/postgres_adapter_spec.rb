@@ -1,16 +1,44 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
-
-require ROOT_DIR + 'lib/data_mapper'
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 begin
+  gem 'do_postgres', '=0.9.0'
   require 'do_postgres'
 
-  DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://postgres@localhost/dm_core_test")
+  DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://127.0.0.1/dm_core_test")
 
   describe DataMapper::Adapters::DataObjectsAdapter do
-    before do
+    before :all do
       @adapter = repository(:postgres).adapter
+    end
+
+    describe "handling transactions" do
+      before :all do
+        @adapter.execute('DROP TABLE IF EXISTS "sputniks"')
+        @adapter.execute('CREATE TABLE "sputniks" (id serial, name text)')
+      end
+
+      before :each do
+        @transaction = mock("transaction")
+        @connection = @adapter.create_connection
+        @transaction.stub!(:connection).and_return(@connection)
+      end
+
+      it "should rollback changes when #rollback_transaction is called" do
+        @adapter.begin_transaction(@transaction)
+        @adapter.with_transaction(@transaction) do
+          @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
+        end
+        @adapter.rollback_transaction(@transaction)
+        @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").empty?.should == true
+      end
+      it "should commit changes when #commit_transaction is called" do
+        @adapter.begin_transaction(@transaction)
+        @adapter.with_transaction(@transaction) do
+          @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
+        end
+        @adapter.commit_transaction(@transaction)
+        @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").size.should == 1
+      end
     end
 
     describe "reading & writing a database" do
@@ -302,7 +330,7 @@ begin
         result[0].instance_variables.should_not include('@notes')
         result[0].instance_variables.should_not include('@trip_report')
         result[1].instance_variables.should_not include('@notes')
-        result[0].notes.should_not be_nil
+                result[0].notes.should_not be_nil
         result[1].instance_variables.should include('@notes')
         result[1].instance_variables.should include('@trip_report')
         result[1].instance_variables.should_not include('@miles')
@@ -444,18 +472,23 @@ begin
       end
 
       it 'should save the association key in the child' do
-        e = repository(:postgres).all(Engine, :id => 2).first
-        repository(:postgres).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
+        repository(:postgres) do |r|
+          e = r.all(Engine, :id => 2).first
+          r.save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
+        end
 
         repository(:postgres).all(Yard, :id => 2).first[:engine_id].should == 2
       end
 
       it 'should save the parent upon saving of child' do
-        e = Engine.new(:id => 10, :name => "engine10")
-        y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
-        repository(:postgres).save(y)
+        repository(:postgres) do |r|
+          e = Engine.new(:id => 10, :name => "engine10")
+          y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
+          r.save(y)
+          
+          y[:engine_id].should == 10
+        end
 
-        y[:engine_id].should == 10
         repository(:postgres).all(Engine, :id => 10).first.should_not be_nil
       end
     end
@@ -550,16 +583,20 @@ begin
       end
 
       it "should not save the associated instance if the parent is not saved" do
-        h = Host.new(:id => 10, :name => "host10")
-        h.slices << Slice.new(:id => 10, :name => 'slice10')
+        repository(:postgres) do
+          h = Host.new(:id => 10, :name => "host10")
+          h.slices << Slice.new(:id => 10, :name => 'slice10')
+        end
 
         repository(:postgres).all(Slice, :id => 10).first.should be_nil
       end
 
       it "should save the associated instance upon saving of parent" do
-        h = Host.new(:id => 10, :name => "host10")
-        h.slices << Slice.new(:id => 10, :name => 'slice10')
-        repository(:postgres).save(h)
+        repository(:postgres) do |r|
+          h = Host.new(:id => 10, :name => "host10")
+          h.slices << Slice.new(:id => 10, :name => 'slice10')
+          r.save(h)
+        end
 
         s = repository(:postgres).all(Slice, :id => 10).first
         s.should_not be_nil

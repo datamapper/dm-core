@@ -1,5 +1,4 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 describe DataMapper::Property do
 
@@ -136,7 +135,7 @@ describe DataMapper::Property do
 
   it 'should set the attribute value in a given instance' do
     tomato = Tomahto.new
-    tomato.class.properties(:default)[:id].set(2, tomato)
+    tomato.class.properties(:default)[:id].set(tomato, 2)
     tomato.id.should == 2
   end
 

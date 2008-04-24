@@ -1,10 +1,12 @@
-require __DIR__ + 'data_objects_adapter'
-require "do_postgres"
+gem 'do_postgres', '=0.9.0'
+require 'do_postgres'
 
 module DataMapper
   module Adapters
 
     class PostgresAdapter < DataObjectsAdapter
+
+      include DataMapper::Adapters::StandardSqlTransactions
 
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
@@ -113,6 +115,8 @@ module DataMapper
         statement
       end
 
+      def create_with_returning?; true; end
+      
     end # class PostgresAdapter
 
   end # module Adapters
