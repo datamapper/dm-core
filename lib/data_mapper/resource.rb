@@ -179,8 +179,8 @@ module DataMapper
 
     def initialize_with_attributes(details) # :nodoc:
       case details
-        when Hash             then self.attributes = details
-        when Resource, Struct then self.private_attributes = details.attributes
+      when Hash             then self.attributes = details
+      when Resource, Struct then self.private_attributes = details.attributes
         # else raise ArgumentError, "details should be a Hash, Resource or Struct\n\t#{details.inspect}"
       end
     end
@@ -193,7 +193,7 @@ module DataMapper
 
     def lazy_load(name)
       return unless @loaded_set
-      @loaded_set.reload!(:fields => self.class.properties(self.class.repository.name).lazy_load_context(name))
+      @loaded_set.reload!(:fields => self.class.properties(repository.name).lazy_load_context(name))
     end
 
     def private_attributes
@@ -333,8 +333,8 @@ module DataMapper
       end
 
       def method_missing(method, *args, &block)
-        if relationship = relationships[method]
-          return DataMapper::Query::Path.new([ relationship ],method)
+        if relationship = relationships[repository.name][method]
+          return DataMapper::Query::Path.new(repository, [ relationship ],method)
         end
         if property = properties(repository.name)[method]
           return property

@@ -1,3 +1,5 @@
+$TESTING = true
+
 require 'pp'
 require 'pathname'
 require 'rubygems'

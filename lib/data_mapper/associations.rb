@@ -16,7 +16,7 @@ module DataMapper
     end
 
     def relationships
-      @relationships ||= {}
+      @relationships ||= Hash.new { |h, k| h[k] = {} }
     end
 
     def n

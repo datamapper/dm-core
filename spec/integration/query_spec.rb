@@ -1,7 +1,4 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
-
-require ROOT_DIR + 'lib/data_mapper'
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
 
 begin
   require 'do_sqlite3'
@@ -41,30 +38,30 @@ begin
 
       it "should order results" do
         result = repository(:sqlite3).all(SailBoat,{:order => [
-          DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
-        ]})
+              DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
+            ]})
         result[0].id.should == 1
 
         result = repository(:sqlite3).all(SailBoat,{:order => [
-          DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
-        ]})
+              DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+            ]})
         result[0].id.should == 3
 
         result = repository(:sqlite3).all(SailBoat,{:order => [
-          DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc),
-          DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
-        ]})
+              DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc),
+              DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+            ]})
         result[0].id.should == 1
 
         result = repository(:sqlite3).all(SailBoat,{:order => [
-            SailBoat.property_by_name(:name),
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
-        ]})
+              SailBoat.property_by_name(:name),
+              DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+            ]})
         result[0].id.should == 1
       end
 
       after do
-       @adapter.execute('DROP TABLE "sail_boats"')
+        @adapter.execute('DROP TABLE "sail_boats"')
       end
     end
 
@@ -122,16 +119,16 @@ begin
 
       it 'should accept a DM::Query as a value of a condition' do
         # User 1
-        acl = DataMapper::Query.new(Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
-        query = DataMapper::Query.new(SailBoat, :port => 'Cape Town',:id => acl,:captain.like => 'J%')
+        acl = DataMapper::Query.new(repository(:sqlite3), Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
+        query = DataMapper::Query.new(repository(:sqlite3), SailBoat, :port => 'Cape Town',:id => acl,:captain.like => 'J%')
         boats = @adapter.read_set(repository(:sqlite3),query)
         boats.should have(2).entries
         boats.entries[0].id.should == 1
         boats.entries[1].id.should == 2
 
         # User 2
-        acl = DataMapper::Query.new(Permission, :user_id => 2, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
-        query = DataMapper::Query.new(SailBoat, :port => 'Cape Town',:id => acl,:captain.like => 'J%')
+        acl = DataMapper::Query.new(repository(:sqlite3), Permission, :user_id => 2, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
+        query = DataMapper::Query.new(repository(:sqlite3), SailBoat, :port => 'Cape Town',:id => acl,:captain.like => 'J%')
         boats = @adapter.read_set(repository(:sqlite3),query)
         boats.should have(2).entries
         boats.entries[0].id.should == 2
@@ -140,8 +137,8 @@ begin
 
       it 'when value is NOT IN another query' do
         # Boats that User 1 Cannot see
-        acl = DataMapper::Query.new(Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
-        query = DataMapper::Query.new(SailBoat, :port => 'Cape Town',:id.not => acl,:captain.like => 'J%')
+        acl = DataMapper::Query.new(repository(:sqlite3), Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
+        query = DataMapper::Query.new(repository(:sqlite3), SailBoat, :port => 'Cape Town',:id.not => acl,:captain.like => 'J%')
         boats = @adapter.read_set(repository(:sqlite3),query)
         boats.should have(1).entries
         boats.entries[0].id.should == 3
@@ -180,6 +177,10 @@ begin
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
           property :name, String
+
+          def self.default_repository_name
+            :sqlite3
+          end
         end
 
         class Factory
@@ -192,8 +193,11 @@ begin
             property :land, String
           end
 
-
           many_to_one :region
+
+          def self.default_repository_name
+            :sqlite3
+          end
         end
 
         class Vehicle
@@ -203,36 +207,38 @@ begin
           property :name, String
 
           many_to_one :factory
+
+          def self.default_repository_name
+            :sqlite3
+          end
         end
 
-        repository(:sqlite3) do
-          Region.new(:id=>1,:name=>'North West').save
-          Factory.new(:id=>2000,:region_id=>1,:name=>'North West Plant').save
-          Vehicle.new(:id=>1,:factory_id=>2000,:name=>'10 ton delivery truck').save
-        end
+        Region.new(:id=>1,:name=>'North West').save
+        Factory.new(:id=>2000,:region_id=>1,:name=>'North West Plant').save
+        Vehicle.new(:id=>1,:factory_id=>2000,:name=>'10 ton delivery truck').save
       end
 
       it 'should require that all properties in :fields and all :links come from the same repository' 
-#      do
-#        land = Factory.properties(:mock)[:land]
-#        fields = []
-#        Vehicle.properties(:sqlite3).map do |property|
-#          fields << property
-#        end
-#        fields << land       
-#        
-#        lambda{
-#          begin
-#            repository(:sqlite3) do
-#              query = DataMapper::Query.new(Vehicle,:links => [:factory], :fields => fields)
-#              results = @adapter.read_set(repository(:sqlite3), query)
-#            end
-#          rescue RuntimeError
-#            $!.message.should == 'Property Factory.land not available in repository sqlite3.'
-#            raise $!
-#          end                
-#        }.should raise_error(RuntimeError)
-#      end
+      #      do
+      #        land = Factory.properties(:mock)[:land]
+      #        fields = []
+      #        Vehicle.properties(:sqlite3).map do |property|
+      #          fields << property
+      #        end
+      #        fields << land       
+      #        
+      #        lambda{
+      #          begin
+      #            repository(:sqlite3) do
+      #              query = DataMapper::Query.new(repository(:sqlite3), Vehicle,:links => [:factory], :fields => fields)
+      #              results = @adapter.read_set(repository(:sqlite3), query)
+      #            end
+      #          rescue RuntimeError
+      #            $!.message.should == 'Property Factory.land not available in repository sqlite3.'
+      #            raise $!
+      #          end                
+      #        }.should raise_error(RuntimeError)
+      #      end
 
       it 'should accept a DM::Assoc::Relationship as a link' do
         factory = DataMapper::Associations::Relationship.new(
@@ -244,19 +250,19 @@ begin
           'Factory',
           [ :id ]
         )
-        query = DataMapper::Query.new(Vehicle,:links => [factory])
+        query = DataMapper::Query.new(repository(:sqlite3), Vehicle,:links => [factory])
         results = @adapter.read_set(repository(:sqlite3), query)
         results.should have(1).entries
       end
 
       it 'should accept a symbol of an association name as a link' do
-        query = DataMapper::Query.new(Vehicle,:links => [:factory])
+        query = DataMapper::Query.new(repository(:sqlite3), Vehicle,:links => [:factory])
         results = @adapter.read_set(repository(:sqlite3),query)
         results.should have(1).entries
       end
 
       it 'should accept a string of an association name as a link' do
-        query = DataMapper::Query.new(Vehicle,:links => ['factory'])
+        query = DataMapper::Query.new(repository(:sqlite3), Vehicle,:links => ['factory'])
         results = @adapter.read_set(repository(:sqlite3),query)
         results.should have(1).entries
       end
@@ -271,24 +277,24 @@ begin
           'Region',
           [ :id ]
         )
-        query = DataMapper::Query.new(Vehicle,:links => ['factory',region])
+        query = DataMapper::Query.new(repository(:sqlite3), Vehicle,:links => ['factory',region])
         results = @adapter.read_set(repository(:sqlite3), query)
         results.should have(1).entries
       end
 
       it 'should only accept a DM::Assoc::Relationship, String & Symbol as a link' do
         lambda{
-          DataMapper::Query.new(Vehicle,:links => [1])
+          DataMapper::Query.new(repository(:sqlite3), Vehicle,:links => [1])
         }.should raise_error(ArgumentError)
       end
 
       it 'should have a association by the name of the Symbol or String' do
         lambda{
-          DataMapper::Query.new(Vehicle,:links=>['Sailing'])
+          DataMapper::Query.new(repository(:sqlite3), Vehicle,:links=>['Sailing'])
         }.should raise_error(ArgumentError)
 
         lambda{
-          DataMapper::Query.new(Vehicle,:links=>[:sailing])
+          DataMapper::Query.new(repository(:sqlite3), Vehicle,:links=>[:sailing])
         }.should raise_error(ArgumentError)
       end
 
@@ -298,10 +304,8 @@ begin
       end
 
       it 'should accept a DM::QueryPath as the key to a condition' do
-        repository(:sqlite3) do
-          vehicle = Vehicle.first(Vehicle.factory.region.name => 'North West')
-          vehicle.name.should == '10 ton delivery truck'
-        end
+        vehicle = Vehicle.first(Vehicle.factory.region.name => 'North West')
+        vehicle.name.should == '10 ton delivery truck'
       end
 
 

@@ -119,16 +119,21 @@ begin
       end
 
       it 'should save the association key in the child' do
-        e = repository(:sqlite3).all(Engine, :id => 2).first
-        repository(:sqlite3).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
+        repository(:sqlite3) do
+          e = repository(:sqlite3).all(Engine, :id => 2).first
+          repository(:sqlite3).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
+        end
 
         repository(:sqlite3).all(Yard, :id => 2).first[:engine_id].should == 2
       end
 
       it 'should save the parent upon saving of child' do
-        e = Engine.new(:id => 10, :name => "engine10")
-        y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
-        repository(:sqlite3).save(y)
+        y = nil
+        repository(:sqlite3) do |r|       
+          e = Engine.new(:id => 10, :name => "engine10")
+          y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
+          r.save(y)
+        end
 
         y[:engine_id].should == 10
         repository(:sqlite3).all(Engine, :id => 10).first.should_not be_nil
@@ -273,16 +278,20 @@ begin
       end
 
       it "should not save the associated instance if the parent is not saved" do
-        h = Host.new(:id => 10, :name => "host10")
-        h.slices << Slice.new(:id => 10, :name => 'slice10')
+        repository(:sqlite3) do
+          h = Host.new(:id => 10, :name => "host10")
+          h.slices << Slice.new(:id => 10, :name => 'slice10')
+        end
 
         repository(:sqlite3).all(Slice, :id => 10).first.should be_nil
       end
 
       it "should save the associated instance upon saving of parent" do
-        h = Host.new(:id => 10, :name => "host10")
-        h.slices << Slice.new(:id => 10, :name => 'slice10')
-        repository(:sqlite3).save(h)
+        repository(:sqlite3) do |r|
+          h = Host.new(:id => 10, :name => "host10")
+          h.slices << Slice.new(:id => 10, :name => 'slice10')
+          r.save(h)
+        end
 
         s = repository(:sqlite3).all(Slice, :id => 10).first
         s.should_not be_nil

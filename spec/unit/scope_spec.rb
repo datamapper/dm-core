@@ -1,5 +1,6 @@
-require 'pathname'
-require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+
+DataMapper.setup(:mock, "mock:///mock.db")
 
 describe DataMapper::Scope do
   after do
@@ -17,14 +18,14 @@ describe DataMapper::Scope do
     it 'should set the current scope for the block when given a Hash' do
       Article.publicize_methods do
         Article.with_scope :blog_id => 1 do
-          Article.current_scope.should == DataMapper::Query.new(Article, :blog_id => 1)
+          Article.current_scope.should == DataMapper::Query.new(repository(:mock), Article, :blog_id => 1)
         end
       end
     end
 
     it 'should set the current scope for the block when given a DataMapper::Query' do
       Article.publicize_methods do
-        Article.with_scope query = DataMapper::Query.new(Article) do
+        Article.with_scope query = DataMapper::Query.new(repository(:mock), Article) do
           Article.current_scope.should == query
         end
       end
@@ -34,7 +35,7 @@ describe DataMapper::Scope do
       Article.publicize_methods do
         Article.with_scope :blog_id => 1 do
           Article.with_scope :author => 'dkubb' do
-            Article.current_scope.should == DataMapper::Query.new(Article, :blog_id => 1, :author => 'dkubb')
+            Article.current_scope.should == DataMapper::Query.new(repository(:mock), Article, :blog_id => 1, :author => 'dkubb')
           end
         end
       end
@@ -61,7 +62,7 @@ describe DataMapper::Scope do
       Article.publicize_methods do
         Article.with_scope :blog_id => 1 do
           Article.with_exclusive_scope :author => 'dkubb' do
-            Article.current_scope.should == DataMapper::Query.new(Article, :author => 'dkubb')
+            Article.current_scope.should == DataMapper::Query.new(repository(:mock), Article, :author => 'dkubb')
           end
         end
       end
@@ -121,7 +122,7 @@ describe DataMapper::Scope do
 
     it 'should return the last element of the scope stack' do
       Article.publicize_methods do
-        query = DataMapper::Query.new(Article)
+        query = DataMapper::Query.new(repository(:mock), Article)
         Article.scope_stack << query
         Article.current_scope.object_id.should == query.object_id
       end
