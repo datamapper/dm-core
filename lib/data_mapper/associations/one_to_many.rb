@@ -13,7 +13,7 @@ module DataMapper
 
         child_model_name  = options[:class_name] || DataMapper::Inflection.classify(name)
 
-        relationships[repository.name][name] = Relationship.new(
+        relationships(repository.name)[name] = Relationship.new(
           DataMapper::Inflection.underscore(self.name).to_sym,
           options,
           repository.name,
@@ -32,7 +32,7 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = self.class.relationships[repository.name][:#{name}]
+              relationship = self.class.relationships(repository.name)[:#{name}]
 
               association = Proxy.new(relationship, self) do |repository, relationship|
                 repository.all(*relationship.to_child_query(self))
@@ -45,7 +45,7 @@ module DataMapper
           end
         EOS
 
-        relationships[repository.name][name]
+        relationships(repository.name)[name]
       end
 
       class Proxy

@@ -327,7 +327,7 @@ module DataMapper
       end
 
       def method_missing(method, *args, &block)
-        if relationship = relationships[repository.name][method]
+        if relationship = relationships(repository.name)[method]
           return DataMapper::Query::Path.new(repository, [ relationship ],method)
         end
         if property = properties(repository.name)[method]

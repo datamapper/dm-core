@@ -62,10 +62,10 @@ module DataMapper
       alias_method :_method_missing, :method_missing
 
       def method_missing(method, *args)
-        if @model.relationships[@repository.name].has_key?(method)
+        if @model.relationships(@repository.name).has_key?(method)
           relations = []
           relations.concat(@relationships)
-          relations << @model.relationships[@repository.name][method]
+          relations << @model.relationships(@repository.name)[method]
           return DataMapper::Query::Path.new(@repository, relations,method)
         end
 
@@ -329,8 +329,8 @@ module DataMapper
             link
           when Symbol, String
             link = link.to_sym if String === link
-            raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship" unless model.relationships[@repository.name].has_key?(link)
-            model.relationships[@repository.name][link]
+            raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship" unless model.relationships(@repository.name).has_key?(link)
+            model.relationships(@repository.name)[link]
           else
             raise ArgumentError, "+options[:links]+ entry #{link.inspect} not supported"
         end

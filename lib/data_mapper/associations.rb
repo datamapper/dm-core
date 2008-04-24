@@ -15,8 +15,8 @@ module DataMapper
       base.extend OneToOne
     end
 
-    def relationships
-      @relationships ||= Hash.new { |h, k| h[k] = {} }
+    def relationships(repository_name)
+      (@relationships ||= Hash.new { |h, k| h[k] = {} })[repository_name]
     end
 
     def n

@@ -196,18 +196,24 @@ begin
       end
 
       it 'should save the association key in the child' do
-        p = repository(:sqlite3).first(Pie, :id => 2)
-        repository(:sqlite3).save(Sky.new(:id => 2, :name => 'sky2', :pie => p))
+        repository(:sqlite3) do |r|
+          p = r.first(Pie, :id => 2)
+          r.save(Sky.new(:id => 2, :name => 'sky2', :pie => p))
+        end
 
         repository(:sqlite3).first(Pie, :id => 2)[:sky_id].should == 2
       end
 
       it 'should save the children upon saving of parent' do
-        p = Pie.new(:id => 10, :name => "pie10")
-        s = Sky.new(:id => 10, :name => "sky10", :pie => p)
-        repository(:sqlite3).save(s)
+        repository(:sqlite3) do |r|
+          p = Pie.new(:id => 10, :name => "pie10")
+          s = Sky.new(:id => 10, :name => "sky10", :pie => p)
 
-        p[:sky_id].should == 10
+          r.save(s)
+
+          p[:sky_id].should == 10
+        end
+
         repository(:sqlite3).first(Pie, :id => 10).should_not be_nil
       end
 

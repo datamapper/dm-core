@@ -11,16 +11,16 @@ module DataMapper
         child_model_name  = DataMapper::Inflection.demodulize(self.name)
         parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
-        relationships[name] = Relationship.new(
+        relationships(repository.name)[name] = Relationship.new(
           name,
           options,
-          options[:repository_name] || repository.name,
+          repository.name,
           child_model_name,
           nil,
           parent_model_name,
           nil
         )        
-        relationships[name]
+        relationships(repository.name)[name]
       end
 
       class Instance
