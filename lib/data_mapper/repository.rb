@@ -17,16 +17,16 @@ module DataMapper
     attr_reader :name, :adapter
 
     def identity_map_get(model, key)
-      @identity_map.get(model, key)
+      @identity_maps[model][key]
     end
 
     def identity_map_set(resource)
-      @identity_map.set(resource)
+      @identity_maps[resource.class][resource.key] = resource
     end
 
     # TODO: this should use current_scope too
     def get(model, key)
-      @identity_map.get(model, key) || @adapter.read(self, model, key)
+      @identity_maps[model][key] || @adapter.read(self, model, key)
     end
 
     def first(model, options)
@@ -52,7 +52,7 @@ module DataMapper
 
       success = if resource.new_record?
         if @adapter.create(self, resource)
-          @identity_map.set(resource)
+          identity_map_set(resource)
           resource.instance_variable_set(:@new_record, false)
           resource.dirty_attributes.clear
           true
@@ -74,7 +74,7 @@ module DataMapper
 
     def destroy(resource)
       if @adapter.delete(self, resource)
-        @identity_map.delete(resource.class, resource.key)
+        @identity_maps[resource.class].delete(resource.key)
         resource.instance_variable_set(:@new_record, true)
         resource.dirty_attributes.clear
         resource.class.properties(name).each do |property|
@@ -143,9 +143,9 @@ module DataMapper
     def initialize(name)
       raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller unless Symbol === name
 
-      @name         = name
-      @adapter      = self.class.adapters[name]
-      @identity_map = IdentityMap.new
+      @name          = name
+      @adapter       = self.class.adapters[name]
+      @identity_maps = Hash.new { |h,model| h[model] = IdentityMap.new }
     end
 
   end # class Repository
