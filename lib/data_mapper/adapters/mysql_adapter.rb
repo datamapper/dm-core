@@ -1,5 +1,4 @@
-# Broke?
-# gem 'do_mysql', '>= 0.9.0'
+gem 'do_mysql', '=0.9.0'
 require 'do_mysql'
 
 module DataMapper

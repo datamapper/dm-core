@@ -12,12 +12,18 @@ ROOT = Pathname(__FILE__).dirname.expand_path
 
 Pathname.glob(ROOT + 'tasks/**/*.rb') { |t| require t }
 
-task :default     => 'dm:spec'
-task :spec        => 'dm:spec'
-task :environment => 'dm:environment'
+task :default => 'dm:spec'
+task :spec    => 'dm:spec'
+
+namespace :spec do
+  task :unit        => 'dm:spec:unit'
+  task :integration => 'dm:spec:integration'
+end
 
 desc 'Remove all package, rdocs and spec products'
 task :clobber_all => %w[ clobber_package clobber_rdoc dm:clobber_spec ]
+
+
 
 namespace :dm do
   def run_spec(name, files, rcov = true)
@@ -104,11 +110,9 @@ gem_spec = Gem::Specification.new do |s|
 
   s.require_path = "lib"
   s.requirements << "none"
-  s.add_dependency("english")
-  s.add_dependency("json_pure")
-  s.add_dependency("rspec")
   s.add_dependency("data_objects", ">=0.9.0")
-  s.add_dependency("english")
+  s.add_dependency("english", ">=0.2.0")
+  s.add_dependency("rspec", ">=1.1.3")
 
   s.has_rdoc = true
   s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"

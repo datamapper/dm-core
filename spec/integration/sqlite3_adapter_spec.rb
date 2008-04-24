@@ -2,6 +2,7 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 begin
+  gem 'do_sqlite3', '=0.9.0'
   require 'do_sqlite3'
 
   DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")

@@ -1,3 +1,4 @@
+gem 'do_sqlite3', '=0.9.0'
 require 'do_sqlite3'
 
 module DataMapper

@@ -2,6 +2,8 @@ begin
   require 'fastthread'
 rescue LoadError
 end
+
+gem 'data_objects', '=0.9.0'
 require 'data_objects'
 
 module DataMapper

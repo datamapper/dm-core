@@ -1,6 +1,6 @@
-require 'pp'
+gem 'rspec', '>=1.1.3'
+
 require 'pathname'
-require 'rubygems'
 require 'spec'
 require 'fileutils'
 

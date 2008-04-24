@@ -8,13 +8,14 @@
 #
 
 # Require the basics...
-require 'pathname'
-require 'uri'
 require 'date'
-require 'time'
+require 'pathname'
 require 'rubygems'
-require 'yaml'
 require 'set'
+require 'time'
+require 'uri'
+require 'yaml'
+
 begin
   require 'fastthread'
 rescue LoadError
@@ -63,16 +64,19 @@ module DataMapper
         raise ArgumentError, "+uri_or_options+ must be a Hash, URI or String, but was #{uri_or_options.class}", caller
     end
 
-    unless Adapters::const_defined?(DataMapper::Inflection.classify(adapter_name) + 'Adapter')
+    # TODO: use autoload to load the adapter on-the-fly when used
+    class_name = DataMapper::Inflection.classify(adapter_name) + 'Adapter'
+
+    unless Adapters::const_defined?(class_name)
+      lib_name = "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
       begin
-        require root / 'data_mapper' / 'adapters' / "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
+        require root / 'lib' / 'data_mapper' / 'adapters' / lib_name
       rescue LoadError
-        require "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
+        require lib_name
       end
     end
 
-    Repository.adapters[name] = Adapters::
-      const_get(DataMapper::Inflection.classify(adapter_name) + 'Adapter').new(name, uri_or_options)
+    Repository.adapters[name] = Adapters::const_get(class_name).new(name, uri_or_options)
   end
 
   # ===Block Syntax:

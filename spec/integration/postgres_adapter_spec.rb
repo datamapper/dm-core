@@ -2,6 +2,7 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
 begin
+  gem 'do_postgres', '=0.9.0'
   require 'do_postgres'
 
   DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://127.0.0.1/dm_core_test")
