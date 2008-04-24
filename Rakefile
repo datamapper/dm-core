@@ -39,14 +39,14 @@ namespace :dm do
   end
 
   desc "Run all specifications"
-  run_spec('spec', Pathname.glob(ROOT + 'spec/**/*_spec.rb'))
+  run_spec('spec', ROOT + 'spec/**/*_spec.rb')
 
   namespace :spec do
     desc "Run unit specifications"
-    run_spec('unit', Pathname.glob(ROOT + 'spec/unit/**/*_spec.rb'), false)
+    run_spec('unit', ROOT + 'spec/unit/**/*_spec.rb', false)
 
     desc "Run integration specifications"
-    run_spec('integration', Pathname.glob(ROOT + 'spec/integration/**/*_spec.rb'), false)
+    run_spec('integration', ROOT + 'spec/integration/**/*_spec.rb', false)
   end
 
   desc "Run comparison with ActiveRecord"
