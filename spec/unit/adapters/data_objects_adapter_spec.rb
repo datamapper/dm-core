@@ -359,28 +359,24 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     
     it "should generate a SQL statement with the column info" do
       @adapter.create_table_statement(Cheese).should include(<<-EOS.compress_lines)
-        (
-          "id" int PRIMARY KEY,
+        ("id" int PRIMARY KEY,
           "name" varchar,
           "color" varchar,
-          "notes" varchar
-        )
+          "notes" varchar)
       EOS
     end
     
     it "should generate a SQL statement with both the table and column info" do
       @adapter.create_table_statement(Cheese).should == <<-EOS.compress_lines
-        CREATE TABLE "cheeses" (
-          "id" int PRIMARY KEY,
+        CREATE TABLE "cheeses" ("id" int PRIMARY KEY,
           "name" varchar,
           "color" varchar,
-          "notes" varchar
-        )
+          "notes" varchar)
       EOS
     end
   end
   
-  describe "#column_schema_hash" do
+  describe "#property_schema_hash" do
     before(:each) do
       @model = Class.new do
         include DataMapper::Resource
@@ -393,11 +389,11 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     end
     
     it "should map :name to the property's field value" do
-      @adapter.column_schema_hash(@id_property)[:name].should == "id"
+      @adapter.property_schema_hash(@id_property)[:name].should == "id"
     end
     
     it "should set :key? if the property is a key" do
-      @adapter.column_schema_hash(@id_property)[:key?].should == true
+      @adapter.property_schema_hash(@id_property)[:key?].should == true
     end
   end
 

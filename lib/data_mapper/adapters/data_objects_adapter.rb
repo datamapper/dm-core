@@ -395,11 +395,12 @@ module DataMapper
         end
 
         def create_table_statement(model)
-          <<-EOS.compress_lines
-            CREATE TABLE #{quote_table_name(model.storage_name(name))} (
-              #{model.properties.collect {|p| column_schema_statement(column_schema_hash(p)) } * ', '}
-            )
-          EOS
+          statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
+          statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p)) } * ', '}"
+          relationships_statement = model.relationships.collect {|r| relationship_schema_statement(relationship_schema_hash(r))} * ', '
+          statement << ", #{relationships_statement}" unless relationships_statement.empty?
+          statement << ")"
+          statement.compress_lines
         end
 
         def drop_table_statement(model)
@@ -408,19 +409,29 @@ module DataMapper
           EOS
         end
 
-        def column_schema_hash(property)
+        def property_schema_hash(property)
           schema = type_map[property.type].merge(:name => property.field)
           schema[:primary_key?] = property.serial?
           schema[:key?] = property.key? unless property.serial?
           schema
         end
 
-        def column_schema_statement(schema)
+        def property_schema_statement(schema)
           statement = quote_column_name(schema[:name])
           statement << " #{schema[:primitive]}"
           statement << "(#{schema[:size]})" if schema[:size]
           statement << " PRIMARY KEY" if schema[:primary_key?]
           statement
+        end
+        
+        def relationship_schema_hash(relationship)
+          identifier, relationship = relationship
+          
+          type_map[Fixnum].merge(:name => "#{identifier}_id") if identifier == relationship.name
+        end
+        
+        def relationship_schema_statement(hash)
+          property_schema_statement(hash) unless hash.nil?
         end
 
         def query_read_statement(query)

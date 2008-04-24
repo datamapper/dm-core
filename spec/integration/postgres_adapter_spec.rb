@@ -367,13 +367,6 @@ begin
     end
 
     describe "many_to_one associations" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "engines"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "engines_id_seq"')
-
-        @adapter.execute('DROP TABLE IF EXISTS "yards"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "yards_id_seq"')
-      end
 
       before do
         class Engine
@@ -383,13 +376,7 @@ begin
           property :name, String
         end
 
-        @adapter.execute('CREATE SEQUENCE "engines_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "engines" (
-            "id" INT4 DEFAULT nextval('engines_id_seq') NOT NULL,
-            "name" VARCHAR(50)
-          )
-        EOS
+        Engine.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 1, 'engine1')
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 2, 'engine2')
@@ -404,15 +391,9 @@ begin
             many_to_one :engine
           end
         end
+        
 
-        @adapter.execute('CREATE SEQUENCE "yards_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "yards" (
-            "id" INT4 DEFAULT nextval('yards_id_seq') NOT NULL,
-            "name" VARCHAR(50),
-            "engine_id" INTEGER
-          )
-        EOS
+        Yard.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, ?)', 1, 'yard1', 1)
       end
@@ -461,13 +442,6 @@ begin
     end
 
     describe "one_to_many associations" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "hosts"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "hosts_id_seq"')
-
-        @adapter.execute('DROP TABLE IF EXISTS "slices"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "slices_id_seq"')
-      end
 
       before do
         class Host
@@ -480,14 +454,8 @@ begin
             one_to_many :slices, :test => context
           end
         end
-
-        @adapter.execute('CREATE SEQUENCE "hosts_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "hosts" (
-            "id" INT4 DEFAULT nextval('hosts_id_seq') NOT NULL,
-            "name" VARCHAR(50)
-          )
-        EOS
+        
+        Host.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 2, 'host2')
@@ -502,15 +470,8 @@ begin
             many_to_one :host
           end
         end
-
-        @adapter.execute('CREATE SEQUENCE "slices_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "slices" (
-            "id" INT4 DEFAULT nextval('slices_id_seq') NOT NULL,
-            "name" VARCHAR(50),
-            "host_id" INTEGER
-          )
-        EOS
+        
+        Slice.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 1, 'slice1', 1)
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)
