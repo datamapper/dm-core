@@ -62,7 +62,7 @@ module DataMapper
         statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
 
         statement << model.properties.collect do |property|
-          schema = column_schema_hash(property)
+          schema = property_schema_hash(property)
 
           if sequenced?(property)
             property_statement = quote_column_name(schema[:name])
@@ -80,6 +80,8 @@ module DataMapper
           property_statement
         end.join(", ")
 
+        relationships_statement = model.relationships.collect {|r| relationship_schema_statement(relationship_schema_hash(r))} * ', '
+        statement << ", #{relationships_statement}" unless relationships_statement.empty?
         statement << ")"
 
         statement
