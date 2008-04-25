@@ -1,9 +1,9 @@
 require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
 
-describe DataMapper::Support::Object do
+describe Object do
 
   it "should be able to get a recursive constant" do
-    Object.recursive_const_get('DataMapper::Support::String').should == DataMapper::Support::String
+    Object.recursive_const_get('DataMapper::Resource').should == DataMapper::Resource
   end
 
   it "should not cache unresolvable class string" do

@@ -22,7 +22,7 @@ rescue LoadError
 end
 
 # for Pathname /
-require File.join(File.dirname(__FILE__), 'data_mapper', 'core_ext', 'pathname')
+require File.expand_path(File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'pathname'))
 
 dir = Pathname(__FILE__).dirname.expand_path / 'data_mapper'
 

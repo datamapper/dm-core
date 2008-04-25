@@ -30,6 +30,6 @@ end # class FalseClass
 
 class String
   def blank?
-    empty? || self =~ /\A\s*\Z/
+    strip.empty?
   end
-end # class String
+end # class String

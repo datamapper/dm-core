@@ -4,4 +4,4 @@ class Struct
     each_pair { |k,v| h[k] = v }
     h
   end
-end # class Struct
+end # class Struct
