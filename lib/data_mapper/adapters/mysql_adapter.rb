@@ -8,7 +8,47 @@ module DataMapper
     # host, user, password, database (path), socket(uri query string), port
     class MysqlAdapter < DataObjectsAdapter
 
-      include DataMapper::Adapters::StandardSqlTransactions
+      def begin_transaction(transaction)
+        cmd = "XA START '#{transaction_id(transaction)}'"
+        transaction.connection_for(self).create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
+
+      def transaction_id(transaction)
+        "#{transaction.id}:#{self.object_id}"
+      end
+
+      def commit_transaction(transaction)
+        cmd = "XA COMMIT '#{transaction_id(transaction)}'"
+        transaction.connection_for(self).create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
+
+      def finalize_transaction(transaction)
+        cmd = "XA END '#{transaction_id(transaction)}'"
+        transaction.connection_for(self).create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
+
+      def prepare_transaction(transaction)
+        finalize_transaction(transaction)
+        cmd = "XA PREPARE '#{transaction_id(transaction)}'"
+        transaction.connection_for(self).create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
+      
+      def rollback_transaction(transaction)
+        finalize_transaction(transaction)
+        cmd = "XA ROLLBACK '#{transaction_id(transaction)}'"
+        transaction.connection_for(self).create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
+
+      def rollback_prepared_transaction(transaction)
+        cmd = "XA ROLLBACK '#{transaction_id(transaction)}'"
+        transaction.connection.create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
 
       private
 

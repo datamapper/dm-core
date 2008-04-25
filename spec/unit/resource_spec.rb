@@ -160,6 +160,13 @@ describe "DataMapper::Resource" do
   end
 
   describe 'ClassMethods' do
+
+    it "should return a new Transaction with itself as argument on #transaction" do
+      transaction = mock("transaction")
+      DataMapper::Adapters::Transaction.should_receive(:new).once.with(Planet).and_return(transaction)
+      Planet.transaction.should == transaction
+    end
+
     it 'should add hook functionality to including class' do
       Planet.should respond_to(:before)
       Planet.should respond_to(:after)
