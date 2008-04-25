@@ -1,3 +1,4 @@
+#Some useful errors types
 module DataMapper
   class ValidationError < StandardError; end
 
@@ -11,6 +12,7 @@ module DataMapper
 end # module DataMapper
 
 class StandardError
+  # Displays the specific error message and the backtrace associated with it.
   def display
     "#{message}\n\t#{backtrace.join("\n\t")}"
   end
