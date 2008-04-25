@@ -1,7 +1,6 @@
 dir = Pathname(__FILE__).dirname.expand_path / 'support'
 
 require dir / 'blank'
-require dir / 'enumerable'
 require dir / 'errors'
 require dir / 'inflection'
 require dir / 'kernel'
