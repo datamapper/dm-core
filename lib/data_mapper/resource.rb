@@ -28,14 +28,6 @@ module DataMapper
       @@including_classes
     end
 
-    def self.dependencies
-      @dependencies = DependencyQueue.new
-      def self.dependencies
-        @dependencies
-      end
-      @dependencies
-    end
-
     # +---------------
     # Instance methods
 
