@@ -27,6 +27,12 @@ end # module DataMapper
 
 class Object #:nodoc:
   include DataMapper::Support::Object
+
+  unless instance_method(:instance_variable_defined?)
+    def instance_variable_defined?(method)
+      instance_variables.include?(method.to_s)
+    end
+  end
 end
 
 # require 'benchmark'
