@@ -1,4 +1,5 @@
-require __DIR__ + 'migrator'
+dir = Pathname(__FILE__).dirname.expand_path
+require dir / 'migrator'
 
 module DataMapper
   module AutoMigrations

@@ -18,25 +18,20 @@ begin
       end
 
       before :each do
-        @transaction = mock("transaction")
-        @connection = @adapter.create_connection
-        @transaction.stub!(:connection).and_return(@connection)
+        @transaction = DataMapper::Adapters::Transaction.new(@adapter)
       end
 
       it "should rollback changes when #rollback_transaction is called" do
-        @adapter.begin_transaction(@transaction)
-        @adapter.with_transaction(@transaction) do
+        @transaction.commit do |trans|
           @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
+          trans.rollback
         end
-        @adapter.rollback_transaction(@transaction)
         @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").empty?.should == true
       end
       it "should commit changes when #commit_transaction is called" do
-        @adapter.begin_transaction(@transaction)
-        @adapter.with_transaction(@transaction) do
+        @transaction.commit do
           @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
         end
-        @adapter.commit_transaction(@transaction)
         @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").size.should == 1
       end
     end
@@ -414,6 +409,7 @@ begin
 
           property :id, Fixnum, :serial => true
           property :name, String
+          property :engine_id, Fixnum
 
           repository(:postgres) do
             many_to_one :engine
@@ -498,6 +494,7 @@ begin
 
           property :id, Fixnum, :serial => true
           property :name, String
+          property :host_id, Fixnum
 
           repository(:postgres) do
             many_to_one :host

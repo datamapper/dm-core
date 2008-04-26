@@ -29,14 +29,6 @@ module DataMapper
       @@including_classes
     end
 
-    def self.dependencies
-      @dependencies = DependencyQueue.new
-      def self.dependencies
-        @dependencies
-      end
-      @dependencies
-    end
-
     # +---------------
     # Instance methods
 
@@ -160,6 +152,19 @@ module DataMapper
       end
     end
 
+    #
+    # Produce a new Transaction for the class of this Resource
+    #
+    # ==== Returns
+    # DataMapper::Adapters::Transaction:: A new DataMapper::Adapters::Transaction with all 
+    # DataMapper::Repositories of the class of this DataMapper::Resource added.
+    #
+    #-
+    # @public
+    def transaction(&block)
+      self.class.transaction(&block)
+    end
+
     private
 
     def initialize(details = nil) # :nodoc:
@@ -211,7 +216,7 @@ module DataMapper
         end
       end
     end
-
+    
     module ClassMethods
       def self.extended(base)
         base.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
@@ -277,6 +282,10 @@ module DataMapper
         property
       end
 
+      def repositories
+        [repository] + @properties.keys.collect do |repository_name| DataMapper.repository(repository_name) end
+      end
+
       def properties(repository_name = default_repository_name)
         @properties[repository_name]
       end
@@ -319,6 +328,19 @@ module DataMapper
             self.create(resource)
           end
         end
+      end
+
+      #
+      # Produce a new Transaction for this Resource class
+      #
+      # ==== Returns
+      # DataMapper::Adapters::Transaction:: A new DataMapper::Adapters::Transaction with all 
+      # DataMapper::Repositories of this DataMapper::Resource added.
+      #
+      #-
+      # @public
+      def transaction(&block)
+        DataMapper::Adapters::Transaction.new(self, &block)
       end
 
       private

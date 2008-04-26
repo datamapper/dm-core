@@ -22,16 +22,14 @@ rescue LoadError
 end
 
 # for Pathname /
-require File.join(File.dirname(__FILE__), 'data_mapper', 'core_ext', 'pathname')
+require File.expand_path(File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'pathname'))
 
 dir = Pathname(__FILE__).dirname.expand_path / 'data_mapper'
 
 require dir / 'associations'
 require dir / 'auto_migrations'
-require dir / 'dependency_queue'
 require dir / 'hook'
 require dir / 'identity_map'
-require dir / 'is'
 require dir / 'loaded_set'
 require dir / 'logger'
 require dir / 'naming_conventions'
@@ -42,6 +40,7 @@ require dir / 'resource'
 require dir / 'scope'
 require dir / 'support'
 require dir / 'type'
+require dir / 'type_map'
 require dir / 'types'
 require dir / 'property'
 require dir / 'adapters'

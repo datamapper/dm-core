@@ -6,7 +6,33 @@ module DataMapper
 
     class Sqlite3Adapter < DataObjectsAdapter
 
-      include DataMapper::Adapters::StandardSqlTransactions
+      def begin_transaction(transaction)
+        cmd = "BEGIN"
+        transaction.connection_for(self).create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
+
+      def commit_transaction(transaction)
+        cmd = "COMMIT"
+        transaction.connection_for(self).create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
+
+      def prepare_transaction(transaction)
+        DataMapper.logger.debug("#{self}: #prepare_transaction called, but I don't know how... I hope the commit comes pretty soon!")
+      end
+      
+      def rollback_transaction(transaction)
+        cmd = "ROLLBACK"
+        transaction.connection_for(self).create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
+
+      def rollback_prepared_transaction(transaction)
+        cmd = "ROLLBACK"
+        transaction.connection.create_command(cmd).execute_non_query
+        DataMapper.logger.debug("#{self}: #{cmd}")
+      end
 
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|

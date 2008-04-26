@@ -81,37 +81,6 @@ module DataMapper
 
   module Adapters
 
-    module MockTransactions
-      def begin_transaction(transaction)
-        DataMapper.logger.debug("BEGIN TRANSACTION (mock transaction!)")
-      end
-
-      def commit_transaction(transaction)
-        DataMapper.logger.debug("COMMIT TRANSACTION (mock transaction!)")
-      end
-
-      def rollback_transaction(transaction)
-        DataMapper.logger.debug("ROLLBACK TRANSACTION (mock transaction!)")
-      end
-    end
-
-    module StandardSqlTransactions
-      def begin_transaction(transaction)
-        transaction.connection.create_command("BEGIN").execute_non_query
-        DataMapper.logger.debug("BEGIN TRANSACTION")
-      end
-
-      def commit_transaction(transaction)
-        transaction.connection.create_command("COMMIT").execute_non_query
-        DataMapper.logger.debug("COMMIT TRANSACTION")
-      end
-
-      def rollback_transaction(transaction)
-        transaction.connection.create_command("ROLLBACK").execute_non_query
-        DataMapper.logger.debug("COMMIT TRANSACTION")
-      end
-    end
-
     # You must inherit from the DoAdapter, and implement the
     # required methods to adapt a database library for use with the DataMapper.
     #
@@ -150,9 +119,13 @@ module DataMapper
         !Thread.current["dm_doa_#{@uri.scheme}_transaction"].nil?
       end
 
+      def create_connection_outside_transaction
+        DataObjects::Connection.new(@uri)
+      end
+
       def create_connection
         if within_transaction?
-          current_transaction.connection
+          current_transaction.connection_for(self)
         else
           # DataObjects::Connection.new(uri) will give you back the right
           # driver based on the Uri#scheme.
@@ -161,7 +134,7 @@ module DataMapper
       end
 
       def close_connection(connection)
-        connection.close unless within_transaction? && current_transaction.connection == connection
+        connection.close unless within_transaction? && current_transaction.connection_for(self) == connection
       end
 
       def create_with_returning?
@@ -429,8 +402,6 @@ module DataMapper
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
           statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p)) } * ', '}"
-          relationships_statement = model.relationships.collect {|r| relationship_schema_statement(relationship_schema_hash(r))} * ', '
-          statement << ", #{relationships_statement}" unless relationships_statement.empty?
           statement << ")"
           statement.compress_lines
         end

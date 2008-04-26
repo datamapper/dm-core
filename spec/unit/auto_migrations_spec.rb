@@ -1,9 +1,9 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
-require ROOT_DIR + 'lib/data_mapper/repository'
-require ROOT_DIR + 'lib/data_mapper/resource'
-require ROOT_DIR + 'lib/data_mapper/auto_migrations'
+require DataMapper.root / 'lib' / 'data_mapper' / 'repository'
+require DataMapper.root / 'lib' / 'data_mapper' / 'resource'
+require DataMapper.root / 'lib' / 'data_mapper' / 'auto_migrations'
 
 describe DataMapper::AutoMigrations do
 

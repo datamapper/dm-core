@@ -15,21 +15,11 @@ describe DataMapper::Repository do
   end
 
   describe "managing transactions" do
-    it "should delegate #in_transaction to its @adapter" do
-      block = lambda do end
-      repository.adapter.should_receive(:in_transaction).once.with(&block)
-      repository.in_transaction(&block)
-    end
-    it "should delegate #with_transaction to its @adapter" do
-      block = lambda do end
+    it "should create a new Transaction with itself as argument when #transaction is called" do
       trans = mock("transaction")
-      repository.adapter.should_receive(:with_transaction).once.with(trans, &block)
-      repository.with_transaction(trans, &block)
-    end
-    it "should create a new Transaction with its adapter as argument when #transaction is called" do
-      trans = mock("transaction")
-      DataMapper::Adapters::Transaction.should_receive(:new).once.with(repository.adapter).and_return(trans)
-      repository.transaction.should == trans
+      repo = repository
+      DataMapper::Adapters::Transaction.should_receive(:new).once.with(repo).and_return(trans)
+      repo.transaction.should == trans
     end
   end
 
