@@ -29,6 +29,7 @@ namespace :dm do
   def run_spec(name, files, rcov = true)
     Spec::Rake::SpecTask.new(name) do |t|
       t.spec_opts << '--format' << 'specdoc' << '--colour'
+      t.spec_opts << '--loadby' << 'random'
       t.spec_files = Pathname.glob(ENV['FILES'] || files)
       t.rcov = ENV.has_key?('NO_RCOV') ? ENV['NO_RCOV'] != 'true' : rcov
       t.rcov_opts << '--exclude' << 'spec,environment.rb'

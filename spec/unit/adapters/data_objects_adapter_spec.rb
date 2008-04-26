@@ -1,6 +1,5 @@
-require 'pathname'
 require 'monitor'
-require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 require DataMapper.root / 'spec' / 'unit' / 'adapters' / 'adapter_shared_spec'
 

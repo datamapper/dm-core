@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.
