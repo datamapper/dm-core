@@ -27,9 +27,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'data_mapper', 'suppo
 dir = Pathname(__FILE__).dirname.expand_path / 'data_mapper'
 
 require dir / 'associations'
+require dir / 'collection'
 require dir / 'hook'
 require dir / 'identity_map'
-require dir / 'loaded_set'
 require dir / 'logger'
 require dir / 'naming_conventions'
 require dir / 'property_set'

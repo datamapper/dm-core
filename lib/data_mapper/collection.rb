@@ -1,7 +1,7 @@
 require 'forwardable'
 
 module DataMapper
-  class LoadedSet
+  class Collection
     extend Forwardable
     include Enumerable
 
@@ -55,7 +55,7 @@ module DataMapper
 
     def add(resource)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      @resources << resource
+      entries << resource
       resource.loaded_set = self
     end
 
@@ -68,11 +68,15 @@ module DataMapper
 
     def delete(resource)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      @resources.delete(resource)
+      entries.delete(resource)
     end
 
     def entries
-      @resources.dup
+      unless @resources
+        @resources = []
+        @loader[self] if @loader
+      end
+      @resources
     end
 
     def each(&block)
@@ -84,14 +88,14 @@ module DataMapper
 
     # +properties_with_indexes+ is a Hash of Property and values Array index pairs.
     #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
-    def initialize(repository, model, properties_with_indexes)
+    def initialize(repository, model, properties_with_indexes, &loader)
       raise ArgumentError, "+repository+ must be a DataMapper::Repository, but was #{repository.class}", caller unless Repository === repository
       raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource", caller                 unless Resource > model
 
       @repository              = repository
       @model                   = model
       @properties_with_indexes = properties_with_indexes
-      @resources               = []
+      @loader                  = loader
 
       if inheritance_property = @model.inheritance_property(@repository.name)
         @inheritance_property_index = @properties_with_indexes[inheritance_property]
@@ -103,7 +107,7 @@ module DataMapper
     end
 
     def keys
-      entry_keys = @resources.map { |resource| resource.key }
+      entry_keys = entries.map { |resource| resource.key }
 
       keys = {}
       @key_properties.zip(entry_keys.transpose).each do |property,values|
@@ -111,27 +115,5 @@ module DataMapper
       end
       keys
     end
-  end # class LoadedSet
-
-  class LazyLoadedSet < LoadedSet
-    def entries
-      @loader[self]
-
-      class << self
-        def entries
-          super
-        end
-      end
-
-      super
-    end
-
-    private
-
-    def initialize(*args, &block)
-      raise "LazyLoadedSets require a materialization block. Use a LoadedSet instead." unless block_given?
-      super
-      @loader = block
-    end
-  end # class LazyLoadedSet
+  end # class Collection
 end # module DataMapper

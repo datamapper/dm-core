@@ -29,7 +29,7 @@ module DataMapper
       # :properties<Array>:: The Properties of the instance that the query loads. Must contain DataMapper::Properties. Defaults to self.properties.
       #
       # ==== Returns
-      # LoadedSet:: The instance matched by the query.
+      # Collection:: The instance matched by the query.
       #
       # ==== Example
       # MyClass.find_by_sql(["SELECT id FROM my_classes WHERE county = ?", selected_county], :properties => MyClass.property[:id], :repository => :county_repo)
@@ -159,7 +159,7 @@ module DataMapper
         properties = resource.properties(repository.name).defaults
 
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-        set = LoadedSet.new(repository, resource, properties_with_indexes)
+        set = Collection.new(repository, resource, properties_with_indexes)
 
         sql = read_statement(resource, key)
         DataMapper.logger.debug("READ: #{sql}")
@@ -225,11 +225,11 @@ module DataMapper
       # do_reload<Boolean>:: Whether to reload objects already found in the identity map.
       #
       # ==== Returns
-      # LoadedSet:: A set of the found instances.
+      # Collection:: A set of the found instances.
       #
       def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-        set = LoadedSet.new(repository, model, properties_with_indexes)
+        set = Collection.new(repository, model, properties_with_indexes)
 
         DataMapper.logger.debug("READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}")
 
