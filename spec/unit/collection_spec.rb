@@ -1,6 +1,6 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-describe "DataMapper::LoadedSet" do
+describe DataMapper::Collection do
 
   before :all do
     DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
@@ -19,14 +19,14 @@ describe "DataMapper::LoadedSet" do
       include DataMapper::Resource
     end
 
-    DataMapper::LoadedSet.new(repository(:other), klass, []).repository.name.should == :other
+    DataMapper::Collection.new(repository(:other), klass, []).repository.name.should == :other
   end
 
   it "should be able to add arbitrary objects" do
     properties              = @cow.properties(:default)
     properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
 
-    set = DataMapper::LoadedSet.new(DataMapper::repository(:default), @cow, properties_with_indexes)
+    set = DataMapper::Collection.new(DataMapper::repository(:default), @cow, properties_with_indexes)
     set.should respond_to(:reload)
 
     set.load(['Bob', 10])
@@ -55,7 +55,7 @@ describe "DataMapper::LoadedSet" do
 
 end
 
-describe "DataMapper::LazyLoadedSet" do
+describe DataMapper::Collection, 'with lazy initialization' do
 
   before :all do
     DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
@@ -71,22 +71,17 @@ describe "DataMapper::LazyLoadedSet" do
     @properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
   end
 
-  it "should raise an error if no block is provided" do
-    lambda { set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties_with_indexes) }.should raise_error
-  end
-
   it "should make a materialization block" do
-    set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties_with_indexes) do |lls|
+    set = DataMapper::Collection.new(DataMapper::repository(:default), @cow, @properties_with_indexes) do |lls|
       lls.load(['Bob', 10])
       lls.load(['Nancy', 11])
     end
 
-    results = set.entries
-    results.size.should == 2
+    set.entries.size.should == 2
   end
 
-  it "should be eachable" do
-    set = DataMapper::LazyLoadedSet.new(DataMapper::repository(:default), @cow, @properties_with_indexes) do |lls|
+  it "should be enumerable" do
+    set = DataMapper::Collection.new(DataMapper::repository(:default), @cow, @properties_with_indexes) do |lls|
       lls.load(['Bob', 10])
       lls.load(['Nancy', 11])
     end

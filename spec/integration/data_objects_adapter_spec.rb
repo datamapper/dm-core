@@ -1,6 +1,6 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
-require File.join(File.dirname(__FILE__), '..', '..', 'lib', 'data_mapper', 'adapters', 'sqlite3_adapter')
-require 'rubygems'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
+
+gem 'do_sqlite3', '=0.9.0'
 require 'do_sqlite3'
 
 describe DataMapper::Adapters::DataObjectsAdapter do

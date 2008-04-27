@@ -259,7 +259,7 @@ module DataMapper
     def typecast(value)
       return value if type === value || value.nil?
 
-      if    type == TrueClass  then true == value || 'true' == value
+      if    type == TrueClass  then true == value || 'true' == value || 1 == value || '1' == value
       elsif type == String     then value.to_s
       elsif type == Float      then value.to_f
       elsif type == Fixnum     then value.to_i

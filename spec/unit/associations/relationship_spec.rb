@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', '..', 'spec_helper')
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe DataMapper::Associations::Relationship do
 
@@ -74,84 +74,6 @@ describe DataMapper::Associations::Relationship do
     # For example, :size would be an option you'd want a generated child Property to copy,
     # but :serial or :key obviously not. So need to take a good look at Property::OPTIONS to
     # see what applies and what doesn't.
-  end
-
-end
-
-__END__
-class LazyLoadedSet < LoadedSet
-
-  def initialize(*args, &b)
-    super(*args)
-    @on_demand_loader = b
-  end
-
-  def each
-    @on_demand_loader[self]
-    class << self
-      def each
-        super
-      end
-    end
-
-    super
-  end
-
-end
-
-set = LazyLoadedSet.new(repository, Zoo, { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }) do |lls|
-  connection = create_connection
-  command = connection.create_command("SELECT id, name, notes FROM zoos")
-  command.set_types([Fixnum, String, String])
-  reader = command.execute_reader
-
-  while(reader.next!)
-    lls.load(reader.values)
-  end
-
-  reader.close
-  connection.close
-end
-
-class AssociationSet
-
-  def initialize(relationship)
-    @relationship = relationship
-  end
-
-  def each
-    # load some stuff
-  end
-
-  def <<(value)
-    # add some stuff and track it.
-  end
-end
-
-class Vehicle
-  belongs_to :manufacturer
-
-  def manufacturer
-    manufacturer_association_set.first
-  end
-
-  def manufacturer=(value)
-    manufacturer_association_set.set(value)
-  end
-
-  private
-  # This is all class-evaled code defined by belongs_to:
-  def manufacturer_association_set
-    @manufacturer_association_set ||= AssociationSet.new(
-        self.class.associations(repository.name)[:manufacturer]
-      ) do |set|
-        # This block is the part that will change between different associations.
-
-        # Parent is the Array of PK properties remember.
-        resource = set.relationship.parent.first.resource
-
-        resource.all(resource.key => self.loaded_set.keys)
-    end
   end
 
 end
