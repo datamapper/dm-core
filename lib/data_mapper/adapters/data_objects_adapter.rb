@@ -115,10 +115,6 @@ module DataMapper
         raise NotImplementedError
       end
 
-      def within_transaction?
-        !Thread.current["dm_doa_#{@uri.scheme}_transaction"].nil?
-      end
-
       def create_connection_outside_transaction
         DataObjects::Connection.new(@uri)
       end
