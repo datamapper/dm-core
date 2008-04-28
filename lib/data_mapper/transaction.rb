@@ -29,7 +29,7 @@ module DataMapper
     #   DataMapper::Repositories will have their @adapters added.
     #   DataMapper::Resource subclasses will have all the repositories of all their properties added.
     #   DataMapper::Resource instances will have all repositories of all their properties added.
-    # block<Block>:: A block (taking the one argument, the Transaction) to execute within this 
+    # block<Block>:: A block (taking one argument, the Transaction) to execute within this 
     #   transaction. The transaction will begin and commit around the block, and rollback if 
     #   an exception is raised.
     #
