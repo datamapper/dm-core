@@ -18,14 +18,11 @@ module DataMapper
 # If you are coming to DataMapper from another ORM framework, such as
 # ActiveRecord, this is a fundamental difference in thinking. However, there are
 # several advantages to defining your properties in your models:
-#  * information about your model is centralized in one place: rather than
-#  having to dig out migrations, xml or other configuration files.
-#  * having information centralized in your models, encourages you and the
-#  developers on your team to take a model-centric view of development.
-#  * it provides the ability to use Ruby's access control functions.
-#  * and, because DataMapper only cares about properties explicitly defined
-#  in your models, DataMapper plays well with legacy databases, and shares
-#  databases easily with other applications.
+#
+# * information about your model is centralized in one place: rather than having to dig out migrations, xml or other configuration files.
+# * having information centralized in your models, encourages you and the developers on your team to take a model-centric view of development.
+# * it provides the ability to use Ruby's access control functions.
+# * and, because DataMapper only cares about properties explicitly defined in your models, DataMapper plays well with legacy databases, and shares databases easily with other applications.
 #
 # == Declaring Properties
 # Inside your class, you call the property method for each property you want to add.
@@ -34,10 +31,11 @@ module DataMapper
 #   class Post
 #     include DataMapper::Resource
 #
-#     property :title,   String, :nullable => false   # Cannot be null
-#     property :publish, TrueClass, :default => false # Default value for new records
-#                                                      is false
+#     property :title,   String,    :nullable => false   # Cannot be null
+#     property :publish, TrueClass, :default => false    # Default value for new records is false
 #   end
+#
+# Valid property types can be found in the TYPES constant below, or in DataMapper::Property::Types
 #
 # == Limiting Access
 # Property access control is uses the same terminology Ruby does. Properties are
@@ -46,8 +44,8 @@ module DataMapper
 #
 #  class Post
 #   include DataMapper::Resource
-#    property :title,  String, :accessor => :private   # Both reader and writer are private
-#    property :body,   DataMapper::Types::Text, :accessor => :protected # Both reader and writer are protected
+#    property :title,  String,                  :accessor => :private     # Both reader and writer are private
+#    property :body,   DataMapper::Types::Text, :accessor => :protected   # Both reader and writer are protected
 #  end
 #
 # Access control is also analogous to Ruby accessors and mutators, and can
@@ -120,42 +118,42 @@ module DataMapper
 # Properties can be declared as primary or natural keys on a table.
 # You should a property as the primary key of the table:
 #
-#  property :id, Fixnum, :serial => true
-#
-# or
-#
-#  property :legacy_pk, String, key => true
+# Examples:
+#  
+#  property :id,        Fixnum, :serial => true  # auto-incrementing key
+#  property :legacy_pk, String, :key => true     # 'natural' key
 #
 # This is roughly equivalent to ActiveRecord's <tt>set_primary_key</tt>, though
 # non-integer data types may be used, thus DataMapper supports natural keys.
 # When a property is declared as a natural key, accessing the object using the
 # indexer syntax <tt>Class[key]</tt> remains valid.
 #
-#   User[1] when :id is the primary key on the users table
-#   User['bill'] when :name is the primary (natural) key on the users table
+#   User[1]        # when :id is the primary key on the users table
+#   User['bill']   # when :name is the primary (natural) key on the users table
 #
 # == Inferred Validations
 # If you include the DataMapper::Validate mixin in your model class, you'll
 # benefit from auto-validations: validation rules that are inferred when
-# properties are declated with specific column restrictions.
+# properties are declared with specific column restrictions.
 #
-#   class Post
-#     include DataMapper::Resource
-#     include DataMapper::Validate
-#   end
-#
-#  property :title, String, :length => 250
-#  # => infers 'validates_length_of :title, :minimum => 0, :maximum => 250'
-#
-#  property :title, String, :nullable => false
-#  # => infers 'validates_presence_of :title
-#
-#  property :email, String, :format => :email_address
-#  # => infers 'validates_format_of :email, :with => :email_address
-#
-#  property :title, String, :length => 255, :nullable => false
-#  # => infers both 'validates_length_of' as well as 'validates_presence_of'
-#  #    better: property :title, String, :length => 1..255
+#  class Post
+#    include DataMapper::Resource
+#    include DataMapper::Validate
+#   
+#    property :title, String, :length => 250
+#      # => infers 'validates_length_of :title, :minimum => 0, :maximum => 250'
+#      
+#    property :title, String, :nullable => false
+#      # => infers 'validates_presence_of :title
+#      
+#    property :email, String, :format => :email_address
+#      # => infers 'validates_format_of :email, :with => :email_address
+#      
+#    property :title, String, :length => 255, :nullable => false
+#      # => infers both 'validates_length_of' as well as 'validates_presence_of'
+#      #    better: property :title, String, :length => 1..255
+#      
+#  end
 #
 # The DataMapper::Validate mixin is available with the dm-validations gem, part
 # of the dm-more bundle. For more information about validations, check the
@@ -171,7 +169,7 @@ module DataMapper
 #   <tt>:length => 255</tt> or <tt>:length => 0..255</tt>.  Since DataMapper does
 #   not introspect for properties, this means that legacy database tables may need
 #   their <tt>String</tt> columns defined with a <tt>:length</tt> so that DM does
-#   not inadvertantly truncate data.
+#   not apply an un-needed length validation, or allow overflow.
 # * You may declare a Property with the data-type of <tt>Class</tt>.
 #   see SingleTableInheritance for more on how to use <tt>Class</tt> columns.
   class Property
@@ -206,6 +204,13 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options
 
+    # Supplies the field in the data-store which the property corresponds to
+    #
+    # ==== Returns
+    # String:: name of field in data-store
+    #
+    # -
+    # @semi-public
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
@@ -222,18 +227,46 @@ module DataMapper
       end
     end
 
+    # Returns whether or not the property is to be lazy-loaded
+    #
+    # ==== Returns
+    # <TrueClass, FalseClass>
+    #
+    # -
+    # @public
     def lazy?
       @lazy
     end
 
+    
+    # Returns whether or not the property is a key or a part of a key
+    #
+    # ==== Returns
+    # <TrueClass, FalseClass>
+    #
+    #-
+    # @public
     def key?
       @key
     end
 
+    # Returns whether or not the property is "serial" (auto-incrementing)
+    #
+    # ==== Returns
+    # <TrueClass, FalseClass>
+    #
+    #-
+    # @public
     def serial?
       @serial
     end
 
+    # Returns whether or not the propert can accept 'nil' as it's value
+    # ==== Returns
+    # <TrueClass, FalseClass> 
+    #
+    #-
+    # @public
     def nullable?
       @nullable
     end
@@ -246,16 +279,36 @@ module DataMapper
       @custom
     end
 
+    # Provides a standardized getter method for the property
+    # ==== Raises
+    # ArgumentError::
+    #   "+resource+ should be a DataMapper::Resource, but was ...."
+    #
+    #-
+    # @private
     def get(resource)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
       resource[@name]
     end
 
+    # Provides a standardized setter method for the property
+    # ==== Raises
+    # ArgumentError::
+    #   "+resource+ should be a DataMapper::Resource, but was ...."
+    #
+    #-
+    # @private
     def set(resource, value)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
       resource[@name] = value
     end
 
+    # typecasts values into a primitive
+    # ==== Returns
+    #  <TrueClass, String, Float, Fixnum, BigDecimal, DateTime, Date, Class>:: the primitive data-type, defaults to TrueClass
+    #
+    #-
+    # @private
     def typecast(value)
       return value if type === value || value.nil?
 
