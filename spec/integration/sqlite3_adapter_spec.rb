@@ -14,17 +14,17 @@ begin
     describe "handling transactions" do
 
       before :each do
-        
+
         class Sputnik
           include DataMapper::Resource
-          
+
           property :id, Fixnum, :serial => true
           property :name, DM::Text
         end
-        
+
         Sputnik.auto_migrate!(:sqlite3)
-        
-        @transaction = DataMapper::Adapters::Transaction.new(@adapter)
+
+        @transaction = DataMapper::Transaction.new(@adapter)
       end
 
       it "should rollback changes when #rollback_transaction is called" do

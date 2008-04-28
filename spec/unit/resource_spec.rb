@@ -163,7 +163,7 @@ describe "DataMapper::Resource" do
 
     it "should return a new Transaction with itself as argument on #transaction" do
       transaction = mock("transaction")
-      DataMapper::Adapters::Transaction.should_receive(:new).once.with(Planet).and_return(transaction)
+      DataMapper::Transaction.should_receive(:new).once.with(Planet).and_return(transaction)
       Planet.transaction.should == transaction
     end
 

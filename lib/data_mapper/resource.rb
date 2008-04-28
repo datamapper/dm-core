@@ -340,7 +340,7 @@ module DataMapper
       #-
       # @public
       def transaction(&block)
-        DataMapper::Adapters::Transaction.new(self, &block)
+        DataMapper::Transaction.new(self, &block)
       end
 
       private
