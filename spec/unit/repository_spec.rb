@@ -18,7 +18,7 @@ describe DataMapper::Repository do
     it "should create a new Transaction with itself as argument when #transaction is called" do
       trans = mock("transaction")
       repo = repository
-      DataMapper::Adapters::Transaction.should_receive(:new).once.with(repo).and_return(trans)
+      DataMapper::Transaction.should_receive(:new).once.with(repo).and_return(trans)
       repo.transaction.should == trans
     end
   end

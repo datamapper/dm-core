@@ -18,7 +18,7 @@ begin
       end
 
       before :each do
-        @transaction = DataMapper::Adapters::Transaction.new(@adapter)
+        @transaction = DataMapper::Transaction.new(@adapter)
       end
 
       it "should rollback changes when #rollback_transaction is called" do

@@ -106,13 +106,13 @@ module DataMapper
         Object                  => 'text'.freeze
       }
 
-      def create_connection_outside_transaction
-        DataObjects::Connection.new(@uri)
+      def transaction_primitive
+        DataObjects::Transaction.create_for_uri(@uri)
       end
 
       def create_connection
         if within_transaction?
-          current_transaction.connection_for(self)
+          current_transaction.primitive_for(self).connection
         else
           # DataObjects::Connection.new(uri) will give you back the right
           # driver based on the Uri#scheme.
@@ -121,7 +121,7 @@ module DataMapper
       end
 
       def close_connection(connection)
-        connection.close unless within_transaction? && current_transaction.connection_for(self) == connection
+        connection.close unless within_transaction? && current_transaction.primitive_for(self).connection == connection
       end
 
       def create_with_returning?

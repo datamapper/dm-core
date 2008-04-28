@@ -94,7 +94,7 @@ module DataMapper
     # code #with_transaction.
     #
     def transaction
-      DataMapper::Adapters::Transaction.new(self)
+      DataMapper::Transaction.new(self)
     end
 
     def to_s
