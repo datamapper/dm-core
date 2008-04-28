@@ -17,6 +17,8 @@ begin
     include DataMapper::Resource
 
     property :id, Fixnum, :serial => true
+    property :engine_id, Fixnum
+
     property :name, String
 
     repository(:sqlite3) do
@@ -28,13 +30,21 @@ begin
     include DataMapper::Resource
 
     property :id, Fixnum, :serial => true
+    property :sky_id, Fixnum
+
     property :name, String
+
+    repository(:sqlite3) do
+      one_to_one :sky
+    end
   end
 
   class Sky
     include DataMapper::Resource
 
     property :id, Fixnum, :serial => true
+    property :pie_id, Fixnum
+
     property :name, String
 
     repository(:sqlite3) do
@@ -57,6 +67,8 @@ begin
     include DataMapper::Resource
 
     property :id, Fixnum, :serial => true
+    property :host_id, Fixnum
+
     property :name, String
 
     repository(:sqlite3) do
@@ -69,23 +81,12 @@ begin
       before do
         @adapter = repository(:sqlite3).adapter
 
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "engines" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50)
-          )
-        EOS
+        Engine.auto_migrate!(:sqlite3)
 
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 1, 'engine1')
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 2, 'engine2')
 
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "yards" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50),
-            "engine_id" INTEGER
-          )
-        EOS
+        Yard.auto_migrate!(:sqlite3)
 
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, ?)', 1, 'yard1', 1)
       end
@@ -147,22 +148,11 @@ begin
       before do
         @adapter = repository(:sqlite3).adapter
 
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "skies" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50)
-          )
-        EOS
+        Sky.auto_migrate!(:sqlite3)
 
         @adapter.execute('INSERT INTO "skies" ("id", "name") values (?, ?)', 1, 'sky1')
 
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "pies" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50),
-            "sky_id" INTEGER
-          )
-        EOS
+        Pie.auto_migrate!(:sqlite3)
 
         @adapter.execute('INSERT INTO "pies" ("id", "name", "sky_id") values (?, ?, ?)', 1, 'pie1', 1)
         @adapter.execute('INSERT INTO "pies" ("id", "name") values (?, ?)', 2, 'pie2')
@@ -226,23 +216,12 @@ begin
       before do
         @adapter = repository(:sqlite3).adapter
 
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "hosts" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50)
-          )
-        EOS
+        Host.auto_migrate!(:sqlite3)
 
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 2, 'host2')
 
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "slices" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50),
-            "host_id" INTEGER
-          )
-        EOS
+        Slice.auto_migrate!(:sqlite3)
 
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 1, 'slice1', 1)
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)

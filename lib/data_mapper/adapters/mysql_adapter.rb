@@ -16,6 +16,13 @@ module DataMapper
         end
       end
 
+      def create_table_statement_with_engine(model)
+        "#{create_table_statement_without_engine(model)} ENGINE = innodb"
+      end
+
+      alias_method :create_table_statement_without_engine, :create_table_statement
+      alias_method :create_table_statement, :create_table_statement_with_engine
+
       private
 
       def quote_table_name(table_name)

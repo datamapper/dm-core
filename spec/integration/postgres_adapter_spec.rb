@@ -13,8 +13,14 @@ begin
 
     describe "handling transactions" do
       before :all do
-        @adapter.execute('DROP TABLE IF EXISTS "sputniks"')
-        @adapter.execute('CREATE TABLE "sputniks" (id serial, name text)')
+        class Sputnik
+          include DataMapper::Resource
+          
+          property :id, Fixnum, :serial => true
+          property :name, DM::Text
+        end
+        
+        Sputnik.auto_migrate!(:postgres)
       end
 
       before :each do
@@ -37,19 +43,16 @@ begin
     end
 
     describe "reading & writing a database" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "users"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "users_id_seq"')
-      end
 
       before do
-        @adapter.execute('CREATE SEQUENCE "users_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "users" (
-            "id" INT4 DEFAULT nextval('users_id_seq') NOT NULL,
-            "name" TEXT
-          )
-        EOS
+        class User
+          include DataMapper::Resource
+          
+          property :id, Fixnum, :serial => true
+          property :name, DM::Text
+        end
+
+        User.auto_migrate!(:postgres)
 
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
       end

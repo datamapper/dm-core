@@ -45,7 +45,15 @@ begin
     describe "reading & writing a database" do
 
       before do
-        @adapter.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)")
+        class User
+          include DataMapper::Resource
+          
+          property :id, Fixnum, :serial => true
+          property :name, DM::Text
+        end
+        
+        User.auto_migrate!(:sqlite3)
+        
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
       end
 
