@@ -15,6 +15,7 @@ module DataMapper
       base.send(:include, DataMapper::Hook)
       base.send(:include, DataMapper::Scope)
       base.send(:include, DataMapper::AutoMigrations)
+      base.send(:include, DataMapper::Types)
       @@including_classes << base
     end
 
@@ -188,8 +189,8 @@ module DataMapper
     end
 
     def validate_resource # :nodoc:
-      if self.class.properties.empty?
-        raise IncompleteResourceError, 'Resources must have at least one property to be initialized.'
+      if self.class.properties.empty? && self.class.relationships.empty?
+        raise IncompleteResourceError, 'Resources must have at least one property or relationship to be initialized.'
       end
     end
 

@@ -6,6 +6,31 @@ describe "DataMapper::Associations" do
     @n = 1.0/0
   end
 
+  describe ".relationships" do
+    class B
+      include DataMapper::Resource
+    end
+
+    class C
+        include DataMapper::Resource
+        
+        repository(:r) do 
+          has 1, :b
+        end
+    end
+
+    it "should assume the default repository when no arguments are passed" do
+      lambda do
+        C.relationships
+      end.should_not raise_error
+    end
+
+    it "should return the right set of relationships given the repository name" do
+      C.relationships.should be_empty
+      C.relationships(:r).should_not be_empty
+    end
+  end
+
   describe ".has" do
 
     it "should allow a declaration" do
