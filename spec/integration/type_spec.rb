@@ -77,7 +77,7 @@ begin
 
         fred.save.should be_true
 
-        # Can't call coconut.reload! since coconut.loaded_set isn't setup.
+        # Can't call coconut.reload! since coconut.collection isn't setup.
         mac = TypeTests::Coconut[fred.id]
         mac.document.last.should == texadelphia
         mac.stuff['Manic Cow!'].should == :maybe

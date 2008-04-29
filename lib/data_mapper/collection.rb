@@ -5,7 +5,9 @@ module DataMapper
     extend Forwardable
     include Enumerable
 
-    def_instance_delegators :entries, :[], :size, :length, :first, :last
+    def_instance_delegators :collection, :at, :empty?, :fetch, :index, :length, :rindex
+
+    alias size length
 
     attr_reader :repository
 
@@ -29,10 +31,12 @@ module DataMapper
 
         if resource = @repository.identity_map_get(model, key_values)
           self << resource
+          resource.collection = self
           return resource unless reload
         else
           resource = model.allocate
           self << resource
+          resource.collection = self
           @key_properties.zip(key_values).each do |property,key_value|
             resource.instance_variable_set(property.instance_variable_name, key_value)
           end
@@ -42,6 +46,7 @@ module DataMapper
       else
         resource = model.allocate
         self << resource
+        resource.collection = self
         resource.instance_variable_set(:@new_record, false)
         resource.readonly!
       end
@@ -53,35 +58,172 @@ module DataMapper
       self
     end
 
-    def add(resource)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      entries << resource
-      resource.loaded_set = self
-    end
-
-    alias << add
-
-    def merge(*resources)
-      resources.each { |resource| add(resource) }
+    def push(*resources)
+      collection.push(*resources)
       self
     end
 
-    def delete(resource)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      entries.delete(resource)
+    alias << push
+
+    def pop
+      if resource = collection.pop
+        remove_resource(resource)
+      end
     end
 
-    def entries
-      unless @resources
-        @resources = []
-        @loader[self] if @loader
+    def shift
+      if resource = collection.shift
+        remove_resource(resource)
       end
-      @resources
+    end
+
+    def unshift(*resources)
+      collection.unshift(*resources)
+      self
+    end
+
+    def clear
+      collection.clear
+      self
+    end
+
+    def delete(resource, &block)
+      if resource = collection.delete(resource, &block)
+        remove_resource(resource)
+      end
+    end
+
+    def delete_at(index)
+      if resource = collection.delete_at(index)
+        remove_resource(resource)
+      end
+    end
+
+    def values_at(*args)
+      copy.push(*collection.values_at(*args))
+    end
+
+    def slice(*args)
+      resources = collection.slice(*args)
+
+      if args.size == 1 && args.first.kind_of?(Integer)
+        resources
+      else
+        copy.push(*resources)
+      end
+    end
+
+    alias [] slice
+
+    def insert(*args)
+      collection.insert(*args)
+      self
+    end
+
+    alias []= insert
+
+    def first(*args)
+      resources = collection.first(*args)
+      args.empty? ? resources : copy.push(*resources)
+    end
+
+    def last(*args)
+      resources = collection.last(*args)
+      args.empty? ? resources : copy.push(*resources)
+    end
+
+    def reverse
+      copy.push(*collection).reverse!
+    end
+
+    def reverse!
+      collection.reverse!
+      self
     end
 
     def each(&block)
-      entries.each { |entry| yield entry }
+      collection.each(&block)
       self
+    end
+
+    def each_index(&block)
+      collection.each_index(&block)
+      self
+    end
+
+    def reverse_each(&block)
+      collection.reverse_each(&block)
+      self
+    end
+
+    def collect!(&block)
+      collection.collect!(&block)
+      self
+    end
+
+    alias map! collect!
+
+    def reject(&block)
+      copy.push(*super)
+    end
+
+    def reject!(&block)
+      rejected = collection.reject!(&block)
+      rejected.nil? ? nil : self
+    end
+
+    alias delete_if reject!
+
+    def select(&block)
+      copy.push(*super)
+    end
+
+    def sort(&block)
+      copy.push(*super)
+    end
+
+    def sort!(&block)
+      collection.sort!(&block)
+      self
+    end
+
+    def concat(other)
+      copy.push(*collection + other.entries)
+    end
+
+    alias + concat
+
+    def difference(other)
+      copy.push(*collection - other.entries)
+    end
+
+    alias - difference
+
+    def union(other)
+      copy.push(*collection | other.entries)
+    end
+
+    alias | union
+
+    def intersection(other)
+      copy.push(*collection & other.entries)
+    end
+
+    alias & intersection
+
+    def eql?(other)
+      return true if super
+      return hash == other.hash
+    end
+
+    alias == eql?
+
+    def hash
+      @repository.hash              +
+      @model.hash                   +
+      @properties_with_indexes.hash +
+      @loader.hash                  +
+      collection.hash
     end
 
     private
@@ -106,8 +248,25 @@ module DataMapper
       end
     end
 
+    def collection
+      unless defined?(@collection)
+        @collection = []
+        @loader[self] if @loader
+      end
+      @collection
+    end
+
+    def copy
+      self.class.new(@repository, @model, @properties_with_indexes, &@loader)
+    end
+
+    def remove_resource(resource)
+      resource.collection = nil if resource.collection == self
+      resource
+    end
+
     def keys
-      entry_keys = entries.map { |resource| resource.key }
+      entry_keys = collection.map { |resource| resource.key }
 
       keys = {}
       @key_properties.zip(entry_keys.transpose).each do |property,values|

@@ -32,7 +32,7 @@ module DataMapper
     # +---------------
     # Instance methods
 
-    attr_accessor :loaded_set
+    attr_accessor :collection
 
     def [](name)
       property  = self.class.properties(repository.name)[name]
@@ -59,8 +59,15 @@ module DataMapper
       instance_variable_set(ivar_name, property.custom? ? property.type.dump(value, property) : property.typecast(value))
     end
 
+    def eql?(other)
+      return true if object_id == other.object_id
+      attributes == other.attributes
+    end
+
+    alias == eql?
+
     def repository
-      @loaded_set ? @loaded_set.repository : self.class.repository
+      @collection ? @collection.repository : self.class.repository
     end
 
     def child_associations
@@ -119,7 +126,7 @@ module DataMapper
     end
 
     def reload
-      @loaded_set.reload(:fields => loaded_attributes.keys)
+      @collection.reload(:fields => loaded_attributes.keys)
     end
 
     # Returns <tt>true</tt> if this model hasn't been saved to the
@@ -194,8 +201,8 @@ module DataMapper
     end
 
     def lazy_load(name)
-      return unless @loaded_set
-      @loaded_set.reload(:fields => self.class.properties(repository.name).lazy_load_context(name))
+      return unless @collection
+      @collection.reload(:fields => self.class.properties(repository.name).lazy_load_context(name))
     end
 
     def private_attributes

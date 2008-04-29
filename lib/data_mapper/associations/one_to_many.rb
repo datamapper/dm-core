@@ -25,12 +25,6 @@ module DataMapper
 
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
-            #{name}_association
-          end
-
-          private
-
-          def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
 
@@ -48,6 +42,8 @@ module DataMapper
         relationships(repository.name)[name]
       end
 
+      # TODO: have this inherit from Collection (or LazyEnumerable) and
+      # simplify the class to contain methods not included in Collection
       class Proxy
         extend Forwardable
         include Enumerable
