@@ -224,6 +224,13 @@ describe DataMapper::Property do
     DataMapper::Property.new(Zoo, :name, String).should respond_to(:inspect)
   end
 
+  it "should use the Repository of its @model" do
+    p = DataMapper::Property.new(Zoo, :name, String)
+    repo = mock("repository")
+    Zoo.should_receive(:repository).once.and_return(repo)
+    p.repository.should == repo
+  end
+
   it 'should return an abbreviated representation of the property when inspected' do
     DataMapper::Property.new(Zoo, :name, String).inspect.should == '#<Property:Zoo:name>'
   end

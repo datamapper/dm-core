@@ -215,6 +215,10 @@ module DataMapper
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
 
+    def repository
+      @model.repository
+    end
+
     def hash
       return @model.hash + @name.hash
     end
