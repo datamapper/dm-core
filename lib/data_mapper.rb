@@ -27,7 +27,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'data_mapper', 'suppo
 dir = Pathname(__FILE__).dirname.expand_path / 'data_mapper'
 
 require dir / 'associations'
-require dir / 'collection'
 require dir / 'hook'
 require dir / 'identity_map'
 require dir / 'logger'
@@ -43,6 +42,7 @@ require dir / 'type'
 require dir / 'types'
 require dir / 'property'
 require dir / 'adapters'
+require dir / 'collection'
 
 module DataMapper
   def self.root

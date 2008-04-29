@@ -1,20 +1,12 @@
 require 'forwardable'
-
 module DataMapper
-  class Collection
-    extend Forwardable
-    include Enumerable
-
-    def_instance_delegators :collection, :at, :empty?, :fetch, :index, :length, :rindex
-
-    alias size length
-
+  class Collection < LazyArray
     attr_reader :repository
 
     def reload(options = {})
       query = Query.new(@repository, @model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
-      @repository.adapter.read_set(@repository, query)
+      replace(@repository.adapter.read_set(@repository, query))
     end
 
     def load(values, reload = false)
@@ -58,172 +50,20 @@ module DataMapper
       self
     end
 
-    def push(*resources)
-      collection.push(*resources)
-      self
-    end
-
-    alias << push
-
     def pop
-      if resource = collection.pop
-        remove_resource(resource)
-      end
+      remove_resource(super)
     end
 
     def shift
-      if resource = collection.shift
-        remove_resource(resource)
-      end
-    end
-
-    def unshift(*resources)
-      collection.unshift(*resources)
-      self
-    end
-
-    def clear
-      collection.clear
-      self
+      remove_resource(super)
     end
 
     def delete(resource, &block)
-      if resource = collection.delete(resource, &block)
-        remove_resource(resource)
-      end
+      remove_resource(super)
     end
 
     def delete_at(index)
-      if resource = collection.delete_at(index)
-        remove_resource(resource)
-      end
-    end
-
-    def values_at(*args)
-      copy.push(*collection.values_at(*args))
-    end
-
-    def slice(*args)
-      resources = collection.slice(*args)
-
-      if args.size == 1 && args.first.kind_of?(Integer)
-        resources
-      else
-        copy.push(*resources)
-      end
-    end
-
-    alias [] slice
-
-    def insert(*args)
-      collection.insert(*args)
-      self
-    end
-
-    alias []= insert
-
-    def first(*args)
-      resources = collection.first(*args)
-      args.empty? ? resources : copy.push(*resources)
-    end
-
-    def last(*args)
-      resources = collection.last(*args)
-      args.empty? ? resources : copy.push(*resources)
-    end
-
-    def reverse
-      copy.push(*collection).reverse!
-    end
-
-    def reverse!
-      collection.reverse!
-      self
-    end
-
-    def each(&block)
-      collection.each(&block)
-      self
-    end
-
-    def each_index(&block)
-      collection.each_index(&block)
-      self
-    end
-
-    def reverse_each(&block)
-      collection.reverse_each(&block)
-      self
-    end
-
-    def collect!(&block)
-      collection.collect!(&block)
-      self
-    end
-
-    alias map! collect!
-
-    def reject(&block)
-      copy.push(*super)
-    end
-
-    def reject!(&block)
-      rejected = collection.reject!(&block)
-      rejected.nil? ? nil : self
-    end
-
-    alias delete_if reject!
-
-    def select(&block)
-      copy.push(*super)
-    end
-
-    def sort(&block)
-      copy.push(*super)
-    end
-
-    def sort!(&block)
-      collection.sort!(&block)
-      self
-    end
-
-    def concat(other)
-      copy.push(*collection + other.entries)
-    end
-
-    alias + concat
-
-    def difference(other)
-      copy.push(*collection - other.entries)
-    end
-
-    alias - difference
-
-    def union(other)
-      copy.push(*collection | other.entries)
-    end
-
-    alias | union
-
-    def intersection(other)
-      copy.push(*collection & other.entries)
-    end
-
-    alias & intersection
-
-    def eql?(other)
-      return true if super
-      return hash == other.hash
-    end
-
-    alias == eql?
-
-    def hash
-      @repository.hash              +
-      @model.hash                   +
-      @properties_with_indexes.hash +
-      @loader.hash                  +
-      collection.hash
+      remove_resource(super)
     end
 
     private
@@ -237,7 +77,9 @@ module DataMapper
       @repository              = repository
       @model                   = model
       @properties_with_indexes = properties_with_indexes
-      @loader                  = loader
+
+      super()
+      load_with(&loader)
 
       if inheritance_property = @model.inheritance_property(@repository.name)
         @inheritance_property_index = @properties_with_indexes[inheritance_property]
@@ -248,25 +90,17 @@ module DataMapper
       end
     end
 
-    def collection
-      unless defined?(@collection)
-        @collection = []
-        @loader[self] if @loader
-      end
-      @collection
-    end
-
-    def copy
-      self.class.new(@repository, @model, @properties_with_indexes, &@loader)
+    def wrap(entries)
+      self.class.new(@repository, @model, @properties_with_indexes).replace(entries)
     end
 
     def remove_resource(resource)
-      resource.collection = nil if resource.collection == self
+      resource.collection = nil if resource && resource.collection == self
       resource
     end
 
     def keys
-      entry_keys = collection.map { |resource| resource.key }
+      entry_keys = @array.map { |resource| resource.key }
 
       keys = {}
       @key_properties.zip(entry_keys.transpose).each do |property,values|

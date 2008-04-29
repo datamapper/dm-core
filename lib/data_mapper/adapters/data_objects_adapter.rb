@@ -229,29 +229,27 @@ module DataMapper
       #
       def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-        set = Collection.new(repository, model, properties_with_indexes)
+        Collection.new(repository, model, properties_with_indexes) do |set|
+          DataMapper.logger.debug("READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}")
 
-        DataMapper.logger.debug("READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}")
+          connection = create_connection
+          begin
+            command = connection.create_command(sql)
+            command.set_types(properties.map { |property| property.primitive })
+            reader = command.execute_reader(*parameters)
 
-        connection = create_connection
-        begin
-          command = connection.create_command(sql)
-          command.set_types(properties.map { |property| property.primitive })
-          reader = command.execute_reader(*parameters)
+            while(reader.next!)
+              set.load(reader.values, do_reload)
+            end
 
-          while(reader.next!)
-            set.load(reader.values, do_reload)
+            reader.close
+          rescue StandardError => se
+            p se, sql
+            raise se
+          ensure
+            close_connection(connection)
           end
-
-          reader.close
-        rescue StandardError => se
-          p se, sql
-          raise se
-        ensure
-          close_connection(connection)
         end
-
-        set
       end
 
       # Methods dealing with finding stuff by some query parameters
