@@ -415,6 +415,15 @@ module DataMapper
 
     # defines the getter for the property
     def create_getter
+      if @primitive == TrueClass && !@model.instance_methods.include?(@name.to_s)
+        @model.class_eval <<-EOS, __FILE__, __LINE__
+          #{reader_visibility}
+          def #{@name}
+            self[#{name.inspect}]
+          end
+        EOS
+      end
+      
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{reader_visibility}
         def #{@getter}

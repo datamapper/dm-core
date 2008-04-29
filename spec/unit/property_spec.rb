@@ -112,9 +112,16 @@ describe DataMapper::Property do
     class Potato
       include DataMapper::Resource
       property :fresh, TrueClass
+      property :public, TrueClass
     end
+    
+    Potato.new().should respond_to(:fresh)
     Potato.new().should respond_to(:fresh?)
+    
     Potato.new(:fresh => true).should be_fresh
+    
+    Potato.new().should respond_to(:public)
+    Potato.new().should respond_to(:public?)
   end
 
   it "should raise an ArgumentError when created with an invalid option" do
