@@ -37,6 +37,12 @@ module DataMapper
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
 
+              # FIXME: why would we even return a Proxy?  Its not like we
+              # can proxy any aggregator methods or anything else in a
+              # one to one relationship (can we???).  If not then use
+              # repository.first below, and return a Resource object
+              # directly instead of a Proxy object.
+              #   - if this change is made, spec it fully
               association = Associations::OneToMany::Proxy.new(relationship, self) do |repository, relationship|
                 repository.all(*relationship.to_child_query(self))
               end

@@ -54,19 +54,21 @@ begin
         fred.faked.should == 'bob'
         fred.active.should be_a_kind_of(TrueClass)
         fred.note.should be_a_kind_of(String)
-
-        fred.note = "Seems like bob is just mockin' around"
+        
+        note = "Seems like bob is just mockin' around"
+        fred.note = note
 
         fred.save.should be_true
         
-        fred.active = false
+        active = false
+        fred.active = active
 
         fred.save.should be_true
         
-        # Can't call coconut.reload! since coconut.loaded_set isn't setup.
+        # Can't call coconut.reload! since coconut.collection isn't setup.
         mac = TypeTests::Coconut[fred.id]
-        mac.active.should == false
-        mac.note.should == "Seems like bob is just mockin' around"
+        mac.active.should == active
+        mac.note.should == note
       end
     end
 

@@ -59,6 +59,12 @@ begin
               DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
             ]})
         result[0].id.should == 1
+
+        result = repository(:sqlite3).all(SailBoat,{:order => [:name]})
+        result[0].id.should == 1
+
+        result = repository(:sqlite3).all(SailBoat,{:order => [:name.desc]})
+        result[0].id.should == 3
       end
 
       after do

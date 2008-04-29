@@ -44,7 +44,7 @@ module DataMapper
       else
         Query.new(self, model, options)
       end
-      @adapter.read_set(self, query).entries
+      @adapter.read_set(self, query)
     end
 
     def save(resource)

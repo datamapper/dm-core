@@ -288,6 +288,9 @@ module DataMapper
             #end
 
             Direction.new(order_by)
+          when Operator
+            property = @properties[order_by.property_name]
+            Direction.new(property, order_by.type)
           when Symbol, String
             property = @properties[order_by]
             raise ArgumentError, "+options[:order]+ entry #{order_by} does not map to a DataMapper::Property" if property.nil?

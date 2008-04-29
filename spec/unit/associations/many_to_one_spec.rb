@@ -10,12 +10,12 @@ describe "DataMapper::Associations::ManyToOne" do
     end.should_not raise_error
   end
 
-  describe DataMapper::Associations::ManyToOne::Instance do
+  describe DataMapper::Associations::ManyToOne::Proxy do
     before do
       @child = mock("child")
       @parent = mock("parent")
       @relationship = mock("relationship")
-      @association = DataMapper::Associations::ManyToOne::Instance.new(@relationship, @child)
+      @association = DataMapper::Associations::ManyToOne::Proxy.new(@relationship, @child)
     end
 
     describe "when the parent exists" do

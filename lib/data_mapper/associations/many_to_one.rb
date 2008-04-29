@@ -35,8 +35,8 @@ module DataMapper
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
 
-              association = relationship.with_child(self, Instance) do |repository, child_key, parent_key, parent_model, child_resource|
-                repository.all(parent_model, parent_key.to_query(child_key.get(child_resource))).first
+              association = relationship.with_child(self, Proxy) do |repository, child_key, parent_key, parent_model, child_resource|
+                repository.first(parent_model, parent_key.to_query(child_key.get(child_resource)))
               end
 
               child_associations << association
@@ -48,7 +48,10 @@ module DataMapper
         relationships(repository.name)[name]
       end
 
-      class Instance
+      # TODO: can we have this inherit from Resource, and make it
+      # so instead of @parent_resource, we return self?  Unsure,
+      # but its worth thinking about
+      class Proxy
         def parent
           @parent_resource ||= @parent_loader.call
         end
@@ -80,7 +83,7 @@ module DataMapper
           @child_resource = child_resource
           @parent_loader  = parent_loader
         end
-      end # class Instance
+      end # class Proxy
     end # module ManyToOne
   end # module Associations
 end # module DataMapper
