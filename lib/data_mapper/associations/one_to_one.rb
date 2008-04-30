@@ -1,24 +1,27 @@
 module DataMapper
   module Associations
     module OneToOne
-    private
+      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
+
+      private
+
       def one_to_one(name, options = {})
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        # TOOD: raise an exception if unknown options are passed in
+        if (unknown_options = options.keys - OPTIONS).any?
+          raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
+        end
 
-        child_model_name  = options[:class_name] || DataMapper::Inflection.classify(name)
+        child_model_name  = options.fetch(:class_name, DataMapper::Inflection.classify(name))
         parent_model_name = DataMapper::Inflection.demodulize(self.name)
 
-        relationships(repository.name)[name] = Relationship.new(
+        relationship = relationships(repository.name)[name] = Relationship.new(
           DataMapper::Inflection.underscore(parent_model_name).to_sym,
-          options,
           repository.name,
           child_model_name,
-          nil,
           parent_model_name,
-          nil
+          options
         )
 
         class_eval <<-EOS, __FILE__, __LINE__
@@ -36,24 +39,14 @@ module DataMapper
           def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
-
-              # FIXME: why would we even return a Proxy?  Its not like we
-              # can proxy any aggregator methods or anything else in a
-              # one to one relationship (can we???).  If not then use
-              # repository.first below, and return a Resource object
-              # directly instead of a Proxy object.
-              #   - if this change is made, spec it fully
-              association = Associations::OneToMany::Proxy.new(relationship, self) do |repository, relationship|
-                repository.all(*relationship.to_child_query(self))
-              end
-
+              association = Associations::OneToMany::Proxy.new(relationship, self, relationship.get_children(repository, self))
               parent_associations << association
-
               association
             end
           end
         EOS
-        relationships(repository.name)[name]
+
+        relationship
       end
 
     end # module HasOne

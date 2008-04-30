@@ -20,18 +20,23 @@ describe DataMapper::Collection do
   end
 
   before do
-    @repository = DataMapper::repository(:default)
+    @repository = DataMapper.repository(:default)
 
-    @nancy  = @cow.new(:name => 'Nancy',  :age => 11)
-    @bessie = @cow.new(:name => 'Bessie', :age => 10)
-    @steve  = @cow.new(:name => 'Steve',  :age => 8)
+    nancy  = @cow.new(:name => 'Nancy',  :age => 11)
+    bessie = @cow.new(:name => 'Bessie', :age => 10)
+    steve  = @cow.new(:name => 'Steve',  :age => 8)
 
     @collection = DataMapper::Collection.new(@repository, @cow, @properties_with_indexes)
-    @collection.load([ @nancy.name,  @nancy.age  ])
-    @collection.load([ @bessie.name, @bessie.age ])
+    @collection.load([ nancy.name,  nancy.age  ])
+    @collection.load([ bessie.name, bessie.age ])
+
+    @nancy  = @collection[0]
+    @bessie = @collection[1]
 
     @other = DataMapper::Collection.new(@repository, @cow, @properties_with_indexes)
-    @other.load([ @steve.name, @steve.age ])
+    @other.load([ steve.name, steve.age ])
+
+    @steve = @other[0]
   end
 
   it "should return the right repository" do
@@ -135,6 +140,13 @@ describe DataMapper::Collection do
       @collection.should respond_to(:clear)
     end
 
+    it 'should reset the resource.collection' do
+      entries = @collection.entries
+      entries.each { |r| r.collection.object_id.should == @collection.object_id }
+      @collection.clear
+      entries.each { |r| r.collection.should be_nil }
+    end
+
     it 'should return self' do
       @collection.clear.object_id.should == @collection.object_id
     end
@@ -165,6 +177,12 @@ describe DataMapper::Collection do
       @collection.should respond_to(:delete)
     end
 
+    it 'should reset the resource.collection' do
+      @nancy.collection.object_id.should == @collection.object_id
+      @collection.delete(@nancy)
+      @nancy.collection.should be_nil
+    end
+
     it 'should return a Resource' do
       @collection.delete(@nancy).should be_kind_of(DataMapper::Resource)
     end
@@ -173,6 +191,12 @@ describe DataMapper::Collection do
   describe '#delete_at' do
     it 'should provide #delete_at' do
       @collection.should respond_to(:delete_at)
+    end
+
+    it 'should reset the resource.collection' do
+      @nancy.collection.object_id.should == @collection.object_id
+      @collection.delete_at(0)
+      @nancy.collection.should be_nil
     end
 
     it 'should return a Resource' do
@@ -291,7 +315,7 @@ describe DataMapper::Collection do
 
   describe '#load' do
     it 'should load resources from the identity map when possible' do
-      @steve.collection.should be_nil
+      @steve.collection = nil
       @repository.should_receive(:identity_map_get).with(@cow, %w[ Steve ]).once.and_return(@steve)
       collection = DataMapper::Collection.new(@repository, @cow, @properties_with_indexes)
       collection.load([ @steve.name, @steve.age ])
@@ -321,6 +345,12 @@ describe DataMapper::Collection do
   describe '#pop' do
     it 'should provide #pop' do
       @collection.should respond_to(:pop)
+    end
+
+    it 'should reset the resource.collection' do
+      @bessie.collection.object_id.should == @collection.object_id
+      @collection.pop
+      @bessie.collection.should be_nil
     end
 
     it 'should return a Resource' do
@@ -465,6 +495,12 @@ describe DataMapper::Collection do
   describe '#shift' do
     it 'should provide #shift' do
       @collection.should respond_to(:shift)
+    end
+
+    it 'should reset the resource.collection' do
+      @nancy.collection.object_id.should == @collection.object_id
+      @collection.shift
+      @nancy.collection.should be_nil
     end
 
     it 'should return a Resource' do

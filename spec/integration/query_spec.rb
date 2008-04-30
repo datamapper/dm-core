@@ -215,12 +215,10 @@ begin
       it 'should accept a DM::Assoc::Relationship as a link' do
         factory = DataMapper::Associations::Relationship.new(
           :factory,
-          {},
           :sqlite3,
           'Vehicle',
-          [ :factory_id ],
           'Factory',
-          [ :id ]
+          { :child_key => [ :factory_id ], :parent_key => [ :id ] }
         )
         query = DataMapper::Query.new(repository(:sqlite3), Vehicle,:links => [factory])
         results = @adapter.read_set(repository(:sqlite3), query)
@@ -242,12 +240,10 @@ begin
       it 'should accept a mixture of items as a set of links' do
         region = DataMapper::Associations::Relationship.new(
           :region,
-          {},
           :sqlite3,
           'Factory',
-          [ :region_id ],
           'Region',
-          [ :id ]
+          { :child_key => [ :region_id ], :parent_key => [ :id ] }
         )
         query = DataMapper::Query.new(repository(:sqlite3), Vehicle,:links => ['factory',region])
         results = @adapter.read_set(repository(:sqlite3), query)

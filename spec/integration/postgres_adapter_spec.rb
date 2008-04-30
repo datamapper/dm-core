@@ -482,8 +482,8 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
 
-          repository(:postgres) do |context|
-            one_to_many :slices, :test => context
+          repository(:postgres) do
+            one_to_many :slices
           end
         end
         

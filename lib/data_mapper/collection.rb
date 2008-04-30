@@ -50,6 +50,11 @@ module DataMapper
       self
     end
 
+    def clear
+      each { |resource| remove_resource(resource) }
+      super
+    end
+
     def pop
       remove_resource(super)
     end

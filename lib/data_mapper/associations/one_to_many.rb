@@ -3,118 +3,129 @@ require 'forwardable'
 module DataMapper
   module Associations
     module OneToMany
+      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
+
       private
 
       def one_to_many(name, options = {})
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        # TOOD: raise an exception if unknown options are passed in
+        if (unknown_options = options.keys - OPTIONS).any?
+          raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
+        end
 
-        child_model_name  = options[:class_name] || DataMapper::Inflection.classify(name)
+        child_model_name = options.fetch(:class_name, DataMapper::Inflection.classify(name))
 
-        relationships(repository.name)[name] = Relationship.new(
+        relationship = relationships(repository.name)[name] = Relationship.new(
           DataMapper::Inflection.underscore(self.name).to_sym,
-          options,
           repository.name,
           child_model_name,
-          nil,
           self.name,
-          nil
+          options
         )
 
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
-
-              association = Proxy.new(relationship, self) do |repository, relationship|
-                repository.all(*relationship.to_child_query(self))
-              end
-
+              association = Proxy.new(relationship, self, relationship.get_children(repository, self))
               parent_associations << association
-
               association
             end
           end
         EOS
 
-        relationships(repository.name)[name]
+        relationship
       end
 
-      # TODO: have this inherit from Collection (or LazyEnumerable) and
-      # simplify the class to contain methods not included in Collection
       class Proxy
-        extend Forwardable
-        include Enumerable
-        
-        def_instance_delegators :entries, :[], :size, :length, :first, :last
+        def push(*resources)
+          append_resource(resources)
+          @children.push(*resources)
+          self
+        end
 
-        def loaded?
-          !defined?(@children_resources)
+        alias << push
+
+        def unshift(*resources)
+          append_resource(resources)
+          @children.unshift(*resources)
+          self
         end
 
         def clear
-          each { |child_resource| delete(child_resource) }
-        end
-
-        def each(&block)
-          children.each(&block)
+          each { |resource| remove_resource(resource) }
+          @children.clear
           self
         end
-        
-        def children
-          @children_resources ||= @children_loader.call(repository(@relationship.repository_name), @relationship)
+
+        def pop
+          remove_resource(@children.pop)
         end
-        
+
+        def shift
+          remove_resource(@children.shift)
+        end
+
+        def delete(resource, &block)
+          remove_resource(@children.delete(resource, &block))
+        end
+
+        def delete_at(index)
+          remove_resource(@children.delete_at(index))
+        end
+
         def save
-          @dirty_children.each do |child_resource|
-            save_child(child_resource)
-          end
-        end
-        
-        def push(*child_resources)
-          child_resources.each do |child_resource|
-            if @parent_resource.new_record?
-              @dirty_children << child_resource
-            else
-              save_child(child_resource)
-            end
-
-            children << child_resource
-          end
-          
-          self
-        end
-        
-        alias << push
-        
-        def delete(child_resource)
-          deleted_resource = children.delete(child_resource)
-          begin
-            @relationship.attach_parent(deleted_resource, nil)
-            repository(@relationship.repository_name).save(deleted_resource)
-          rescue
-            children << child_resource
-            raise
-          end
+          save_resources(@dirty_children)
+          @dirty_children = []
         end
 
         private
 
-        def initialize(relationship, parent_resource, &children_loader)
+        def initialize(relationship, parent_resource, collection)
 #          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
 #          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
+#          raise ArgumentError, "+collection+ should be a DataMapper::Collection, but was #{collection.class}", caller                    unless Collection   === parent_resource
 
           @relationship    = relationship
           @parent_resource = parent_resource
-          @children_loader = children_loader
+          @children        = collection
           @dirty_children  = []
         end
 
-        def save_child(child_resource)
-          @relationship.attach_parent(child_resource, @parent_resource)
-          repository(@relationship.repository_name).save(child_resource)
+        def remove_resource(resource)
+          begin
+            @relationship.attach_parent(resource, nil)
+            repository(@relationship.repository_name).save(resource)
+          rescue
+            @children << resource
+            raise
+          end
+          resource
+        end
+
+        def append_resource(resources = [])
+          if @parent_resource.new_record?
+            @dirty_children.push(*resources)
+          else
+            save_resources(resources)
+          end
+        end
+
+        def save_resources(resources = [])
+          resources.each do |resource|
+            @relationship.attach_parent(resource, @parent_resource)
+            repository(@relationship.repository_name).save(resource)
+          end
+        end
+
+        def method_missing(method, *args, &block)
+          if @children.respond_to?(method)
+            @children.__send__(method, *args, &block)
+          else
+            super
+          end
         end
       end # class Proxy
     end # module OneToMany

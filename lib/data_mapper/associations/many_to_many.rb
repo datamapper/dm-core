@@ -1,29 +1,34 @@
 module DataMapper
   module Associations
     module ManyToMany
+      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
+
       private
+
       def many_to_many(name, options = {})
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        # TOOD: raise an exception if unknown options are passed in
+        if (unknown_options = options.keys - OPTIONS).any?
+          raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
+        end
 
         child_model_name  = DataMapper::Inflection.demodulize(self.name)
-        parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
+        parent_model_name = options.fetch(:class_name, DataMapper::Inflection.classify(name))
 
-        relationships(repository.name)[name] = Relationship.new(
+        relationship = relationships(repository.name)[name] = Relationship.new(
           name,
-          options,
           repository.name,
           child_model_name,
-          nil,
           parent_model_name,
-          nil
-        )        
-        relationships(repository.name)[name]
+          options
+        )
+
+        # TODO: add accessor/mutator to model with class_eval
+
+        relationships
       end
 
-      # TODO: have this inherit from Collection (or LazyEnumerable)
       class Proxy
         def initialize() end
 
