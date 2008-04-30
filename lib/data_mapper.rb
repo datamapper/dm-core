@@ -108,4 +108,7 @@ module DataMapper
       Repository.context.pop
     end
   end
+  
+  # A logger should always be present.
+  Logger.new(nil, 7)
 end
