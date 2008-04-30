@@ -169,4 +169,8 @@ module DataMapper
       Repository.context.pop
     end
   end
+
+  def self.prepare(name = nil, &blk)
+    yield repository(name)
+  end
 end
