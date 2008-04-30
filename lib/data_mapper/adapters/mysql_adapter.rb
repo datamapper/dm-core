@@ -8,6 +8,10 @@ module DataMapper
     # host, user, password, database (path), socket(uri query string), port
     class MysqlAdapter < DataObjectsAdapter
 
+      # TypeMap for MySql databases.
+      #
+      # ==== Returns
+      # DataMapper::TypeMap:: default TypeMap for MySql databases.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(String).with(:size => 100)

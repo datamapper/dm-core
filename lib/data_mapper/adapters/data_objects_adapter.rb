@@ -88,7 +88,11 @@ module DataMapper
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
-      
+
+      # Default TypeMap for all data object based adapters.
+      #
+      # ==== Returns
+      # DataMapper::TypeMap:: default TypeMap for data object adapters.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(Fixnum).to(:int)
@@ -101,18 +105,6 @@ module DataMapper
           tm.map(TrueClass).to(:boolean)
           tm.map(Object).to(:text)
         end
-      end
-
-      def begin_transaction
-        raise NotImplementedError
-      end
-
-      def commit_transaction
-        raise NotImplementedError
-      end
-
-      def rollback_transaction
-        raise NotImplementedError
       end
 
       def transaction_primitive
