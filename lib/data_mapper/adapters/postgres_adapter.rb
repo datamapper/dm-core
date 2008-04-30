@@ -6,6 +6,18 @@ module DataMapper
 
     class PostgresAdapter < DataObjectsAdapter
 
+      # TypeMap for PostgreSQL databases.
+      #
+      # ==== Returns
+      # DataMapper::TypeMap:: default TypeMap for PostgreSQL databases.
+      def self.type_map
+        @type_map ||= TypeMap.new(super) do |tm|
+          tm.map(DateTime).to(:timestamp)
+          tm.map(String).with(:size => 50)
+          tm.map(Fixnum).to(:INT4)
+        end
+      end
+
       def begin_transaction(transaction)
         cmd = "BEGIN"
         transaction.connection_for(self).create_command(cmd).execute_non_query

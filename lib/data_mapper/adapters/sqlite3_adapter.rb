@@ -6,6 +6,18 @@ module DataMapper
 
     class Sqlite3Adapter < DataObjectsAdapter
 
+      # TypeMap for SQLite 3 databases.
+      #
+      # ==== Returns
+      # DataMapper::TypeMap:: default TypeMap for SQLite 3 databases.
+      def self.type_map
+        @type_map ||= TypeMap.new(super) do |tm|
+          tm.map(String).to(:VARCHAR).with(:size => 50)
+          tm.map(Fixnum).to(:INTEGER)
+          tm.map(Class).to(:VARCHAR).with(:size => 50)
+        end
+      end
+
       def begin_transaction(transaction)
         cmd = "BEGIN"
         transaction.connection_for(self).create_command(cmd).execute_non_query
@@ -33,14 +45,6 @@ module DataMapper
         transaction.connection.create_command(cmd).execute_non_query
         DataMapper.logger.debug("#{self}: #{cmd}")
       end
-
-      TYPES.merge!(
-        :integer => 'INTEGER'.freeze,
-        :string  => 'TEXT'.freeze,
-        :text    => 'TEXT'.freeze,
-        :class   => 'TEXT'.freeze,
-        :boolean => 'INTEGER'.freeze
-      )
 
       def rewrite_uri(uri, options)
         new_uri = uri.dup
