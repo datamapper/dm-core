@@ -362,6 +362,16 @@ module DataMapper
       end
     end
 
+    def default(repository)
+      if options[:default].class == Proc
+        value = options[:default].call(repository, self)
+      else
+        value = options[:default]
+      end
+
+      value
+    end
+
     def inspect
       "#<Property:#{@model}:#{@name}>"
     end

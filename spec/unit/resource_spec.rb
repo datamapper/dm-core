@@ -159,6 +159,18 @@ describe "DataMapper::Resource" do
     mars.shadow_attribute_get(:name).should == 'Mars'
   end
 
+  it 'should store and retrieve default values' do
+    Planet.property(:satellite_count, Fixnum, :default => 0)
+    # stupid example but it's realiable and works
+    Planet.property(:orbit_period, Float, :default => lambda { |r,p| p.name.to_s.length })
+    earth = Planet.new(:name => 'Earth')
+    earth.satellite_count.should == 0
+    earth.orbit_period.should == 12
+    earth.satellite_count = 2
+    earth.satellite_count.should == 2
+    earth.orbit_period = 365.26
+    earth.orbit_period.should == 365.26
+  end
   describe 'ClassMethods' do
 
     it "should return a new Transaction with itself as argument on #transaction" do

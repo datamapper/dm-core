@@ -43,6 +43,11 @@ module DataMapper
       end
 
       value = instance_variable_get(ivar_name)
+
+      if value.nil? && new_record? && !property.options[:default].nil?
+        value = property.default(self)
+      end
+
       property.custom? ? property.type.load(value, property) : value
     end
 
