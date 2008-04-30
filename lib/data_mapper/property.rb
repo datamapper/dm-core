@@ -362,9 +362,9 @@ module DataMapper
       end
     end
 
-    def default(repository)
+    def default(resource)
       if options[:default].class == Proc
-        value = options[:default].call(repository, self)
+        value = options[:default].call(resource, self)
       else
         value = options[:default]
       end
