@@ -9,12 +9,10 @@ describe DataMapper::Associations::Relationship do
   it "should describe an association" do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
-      {},
       :relationship_spec,
       'Vehicle',
-      [ :manufacturer_id ],
       'Manufacturer',
-      nil
+      { :child_key => [ :manufacturer_id ] }
     )
 
     belongs_to.should respond_to(:name)
@@ -28,12 +26,10 @@ describe DataMapper::Associations::Relationship do
 
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
-      {},
       repository_name,
       'Vehicle',
-      [ :manufacturer_id ],
       'Manufacturer',
-      [ :id ]
+      { :child_key => [ :manufacturer_id ], :parent_key => [ :id ] }
     )
 
     belongs_to.name.should == :manufacturer
@@ -51,12 +47,9 @@ describe DataMapper::Associations::Relationship do
 
     has_many = DataMapper::Associations::Relationship.new(
       :models,
-      {},
       repository_name,
       'Vehicle',
-      nil,
-      'Manufacturer',
-      nil
+      'Manufacturer'
     )
 
     has_many.name.should == :models

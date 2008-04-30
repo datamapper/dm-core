@@ -1,23 +1,27 @@
 module DataMapper
   module Associations
     module ManyToOne
+      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
+
+      private
+
       def many_to_one(name, options = {})
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        # TOOD: raise an exception if unknown options are passed in
+        if (unknown_options = options.keys - OPTIONS).any?
+          raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
+        end
 
         child_model_name  = DataMapper::Inflection.demodulize(self.name)
         parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
-        relationships(repository.name)[name] = Relationship.new(
+        relationship = relationships(repository.name)[name] = Relationship.new(
           name,
-          options,
           repository.name,
           child_model_name,
-          nil,
           parent_model_name,
-          nil
+          options
         )
 
         class_eval <<-EOS, __FILE__, __LINE__
@@ -35,8 +39,8 @@ module DataMapper
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
 
-              association = relationship.with_child(self, Proxy) do |repository, child_key, parent_key, parent_model, child_resource|
-                repository.first(parent_model, parent_key.to_query(child_key.get(child_resource)))
+              association = Proxy.new(relationship, self) do
+                relationship.get_parent(repository, self)
               end
 
               child_associations << association
@@ -45,12 +49,10 @@ module DataMapper
             end
           end
         EOS
-        relationships(repository.name)[name]
+
+        relationship
       end
 
-      # TODO: can we have this inherit from Resource, and make it
-      # so instead of @parent_resource, we return self?  Unsure,
-      # but its worth thinking about
       class Proxy
         def parent
           @parent_resource ||= @parent_loader.call
@@ -58,12 +60,7 @@ module DataMapper
 
         def parent=(parent_resource)
           @parent_resource = parent_resource
-
           @relationship.attach_parent(@child_resource, @parent_resource) if @parent_resource.nil? || !@parent_resource.new_record?
-        end
-
-        def loaded?
-          !defined?(@parent_resource)
         end
 
         def save

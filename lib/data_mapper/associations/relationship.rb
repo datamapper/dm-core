@@ -32,15 +32,12 @@ module DataMapper
         end
       end
 
-
-      def to_child_query(parent)
-        [child_model, child_key.to_query(parent_key.get(parent))]
+      def get_children(repository, parent)
+        repository.all(child_model, child_key.to_query(parent_key.get(parent)))
       end
 
-      def with_child(child_resource, association, &loader)
-        association.new(self, child_resource) do
-          yield repository(@repository_name), child_key, parent_key, parent_model, child_resource
-        end
+      def get_parent(repository, child)
+        repository.first(parent_model, parent_key.to_query(child_key.get(child)))
       end
 
       def attach_parent(child, parent)
@@ -61,26 +58,21 @@ module DataMapper
       # and parent_properties refer to the PK.  For more information:
       # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
       # I wash my hands of it!
-
-      # FIXME: should we replace child_* and parent_* arguments with two
-      # Arrays of Property objects?  This would allow syntax like:
-      #
-      #   belongs_to = DataMapper::Associations::Relationship.new(
-      #     :manufacturer,
-      #     :relationship_spec,
-      #     Vehicle.properties.slice(:manufacturer_id)
-      #     Manufacturer.properties.slice(:id)
-      #   )
-      def initialize(name,options, repository_name, child_model_name, child_properties, parent_model_name, parent_properties, &loader)
+      def initialize(name, repository_name, child_model_name, parent_model_name, options = {}, &loader)
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller                                unless Symbol === name
         raise ArgumentError, "+repository_name+ must be a Symbol, but was #{repository_name.class}", caller            unless Symbol === repository_name
         raise ArgumentError, "+child_model_name+ must be a String, but was #{child_model_name.class}", caller          unless String === child_model_name
-        raise ArgumentError, "+child_properties+ must be an Array or nil, but was #{child_properties.class}", caller   unless Array  === child_properties || child_properties.nil?
         raise ArgumentError, "+parent_model_name+ must be a String, but was #{parent_model_name.class}", caller        unless String === parent_model_name
-        raise ArgumentError, "+parent_properties+ must be an Array or nil, but was #{parent_properties.class}", caller unless Array  === parent_properties || parent_properties.nil?
+
+        if child_properties = options[:child_key]
+          raise ArgumentError, "+options[:child_key]+ must be an Array or nil, but was #{child_properties.class}", caller unless Array === child_properties
+        end
+
+        if parent_properties = options[:parent_key]
+          raise ArgumentError, "+parent_properties+ must be an Array or nil, but was #{parent_properties.class}", caller unless Array === parent_properties
+        end
 
         @name              = name
-        @options           = options
         @repository_name   = repository_name
         @child_model_name  = child_model_name
         @child_properties  = child_properties   # may be nil
