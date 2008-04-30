@@ -15,11 +15,26 @@ module DataMapper
     
     def lookup(type)
       if type_mapped?(type)
-        return @parent[type].merge((@chains[type].nil?) ? {} : translate(@chains[type])) if @parent.type_mapped?(type) if @parent
-        return translate(@chains[type])
+        lookup_from_map(type)
+      else
+        lookup_by_type(type)
       end
-
-      raise "TypeMap Exception: type #{type} must have a default primitive or type map entry" unless type.respond_to?(:primitive) && !type.primitive.nil? 
+    end
+    
+    def lookup_from_map(type)
+      lookup_from_parent(type).merge(map(type).translate)
+    end
+    
+    def lookup_from_parent(type)
+      if !@parent.nil? && @parent.type_mapped?(type)
+        @parent[type]
+      else
+        {}
+      end
+    end
+    
+    def lookup_by_type(type)
+      raise "TypeMap Exception: type #{type} must have a default primitive or type map entry" unless type.respond_to?(:primitive) && !type.primitive.nil?
 
       lookup(type.primitive).merge(Type::PROPERTY_OPTIONS.inject({}) {|h, k| h[k] = type.send(k); h})
     end
@@ -28,10 +43,6 @@ module DataMapper
     
     def type_mapped?(type)
       @chains.has_key?(type) || (@parent.nil? ? false : @parent.type_mapped?(type))
-    end
-    
-    def translate(chain)
-      chain.attributes.merge((chain.primitive.nil? ? {} : {:primitive => chain.primitive})) unless chain.nil?
     end
     
     class TypeChain
@@ -47,8 +58,13 @@ module DataMapper
       end
       
       def with(attributes)
-        @attributes = attributes
+        raise "method 'with' expects a hash" unless Hash === attributes
+        @attributes.merge!(attributes)
         self
+      end
+      
+      def translate
+        @attributes.merge((@primitive.nil? ? {} : {:primitive => @primitive}))
       end
     end
   end
