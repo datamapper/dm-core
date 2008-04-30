@@ -45,11 +45,71 @@ require dir / 'property'
 require dir / 'adapters'
 require dir / 'collection'
 
+# == Setup and Configuration
+# DataMapper uses URIs or a connection hash to connect to your data-store. 
+# URI connections takes the form of:
+#   DataMapper.setup(:default, 'protocol://username@localhost:password/path/to/repo')
+#
+# Breaking this down, the first argument is the name you wish to give this 
+# connection.  If you do not specify one, it will be assigned :default. If
+# you would like to connect to more than one data-store, simply issue this
+# command again, but with a different name specified.
+#
+# In order to issue ORM commands without specifying the repository context,
+# you must define the :default database. Otherwise, you'll need to wrap
+# your ORM calls in <tt>repository(:name) { }</tt>.
+#
+# Second, the URI breaks down into the access protocol, the username, the 
+# server, the password, and whatever path information is needed to properly 
+# address the data-store on the server.
+# 
+# Here's some examples
+#   DataMapper.setup(:default, "sqlite3://path/to/your/project/db/development.db")
+#   DataMapper.setup(:default, "mysql://localhost/dm_core_test")                        # no auth-info 
+#   DataMapper.setup(:default, "postgres://root@127.0.0.1:supahsekret/dm_core_test")    # with auth-info
+#
+#
+# Alternatively, you can supply a hash as the second parameter, which would 
+# take the form:
+#
+#   DataMapper.setup(:default, {
+#     :adapter  => 'adapter_name_here',
+#     :database => "path/to/repo",
+#     :username => 'username',
+#     :password => 'password',
+#     :host     => 'hostname'
+#   })
+#
+# === Logging
+# To turn on error logging to STDOUT, issue:
+#
+#   DataMapper::Logger.new(STDOUT, 0)
+#
+# You can pass a file location ("/path/to/log/file.log") in place of STDOUT.
+# see DataMapper::Logger for more information.
+#
 module DataMapper
   def self.root
     @root ||= Pathname(__FILE__).dirname.parent.expand_path
   end
 
+  # Setups up a connection to a data-store
+  #
+  # ==== Parameters
+  # name<Symbol>:: a name for the context, defaults to :default
+  # uri_or_options<Hash{Symbol => String}, URI, String>:: connection information
+  #
+  # ==== Returns
+  # Repository:: the resulting setup repository
+  #
+  # ==== Raises
+  # ArgumentError:: "+name+ must be a Symbol, but was..." indicates that an
+  # invalid argument was passed for name<Symbol>
+  # ArgumentError:: "+uri_or_options+ must be a Hash, URI or String, but was..."
+  # indicates that connection information could not be gleaned
+  # from the given uri_or_options<Hash, URI, String>
+  # -
+  # @public
   def self.setup(name, uri_or_options)
     raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller unless Symbol === name
 
