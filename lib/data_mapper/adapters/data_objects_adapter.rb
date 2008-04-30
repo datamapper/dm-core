@@ -89,22 +89,23 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
 
-      def self.inherited(base)
-        base.const_set('TYPES', TYPES.dup)
+      # Default TypeMap for all data object based adapters.
+      #
+      # ==== Returns
+      # DataMapper::TypeMap:: default TypeMap for data object adapters.
+      def self.type_map
+        @type_map ||= TypeMap.new(super) do |tm|
+          tm.map(Fixnum).to(:int)
+          tm.map(String).to(:varchar)
+          tm.map(Class).to(:varchar)
+          tm.map(BigDecimal).to(:decimal)
+          tm.map(Float).to(:float)
+          tm.map(DateTime).to(:datetime)
+          tm.map(Date).to(:date)
+          tm.map(TrueClass).to(:boolean)
+          tm.map(Object).to(:text)
+        end
       end
-
-      TYPES = {
-        Fixnum                  => 'int'.freeze,
-        String                  => 'varchar'.freeze,
-        DataMapper::Types::Text => 'text'.freeze,
-        Class                   => 'varchar'.freeze,
-        BigDecimal              => 'decimal'.freeze,
-        Float                   => 'float'.freeze,
-        DateTime                => 'datetime'.freeze,
-        Date                    => 'date'.freeze,
-        TrueClass               => 'boolean'.freeze,
-        Object                  => 'text'.freeze
-      }
 
       def transaction_primitive
         DataObjects::Transaction.create_for_uri(@uri)

@@ -3,9 +3,27 @@ module DataMapper
   module Adapters
 
     class AbstractAdapter
+
+      # Default TypeMap for all adapters.
+      #
+      # ==== Returns
+      # DataMapper::TypeMap:: default TypeMap.
+      def self.type_map
+        @type_map ||= TypeMap.new
+      end
+
       attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention
       attr_reader :transactions
+
+      # method for accessing the current adapter class' type_map from the
+      # adapter instance.
+      #
+      # ==== Returns
+      # DataMapper::TypeMap:: The type_map of the subclass
+      def type_map
+        self.class.type_map
+      end
 
       # methods dealing with transactions
 
