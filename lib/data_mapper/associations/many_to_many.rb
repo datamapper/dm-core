@@ -23,14 +23,15 @@ module DataMapper
         relationships(repository.name)[name]
       end
 
-      class Instance
+      # TODO: have this inherit from Collection (or LazyEnumerable)
+      class Proxy
         def initialize() end
 
         def save
           raise NotImplementedError
         end
 
-      end # class Instance
+      end # class Proxy
     end # module ManyToMany
   end # module Associations
 end # module DataMapper

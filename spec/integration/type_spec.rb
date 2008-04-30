@@ -14,7 +14,7 @@ begin
     before do
 
       @adapter = repository(:sqlite3).adapter
-      
+
       module TypeTests
         class Impostor < DataMapper::Type
           primitive String
@@ -27,11 +27,11 @@ begin
 
           property :id, Fixnum, :serial => true
           property :faked, Impostor
-          property :document, DM::Csv
-          property :stuff, DM::Yaml
+          property :active, Boolean
+          property :note, Text
         end
       end
-      
+
       TypeTests::Coconut.auto_migrate!(:sqlite3)
 
       @document = <<-EOS.margin
@@ -45,43 +45,43 @@ begin
       EOS
 
       @stuff = YAML::dump({ 'Happy Cow!' => true, 'Sad Cow!' => false })
+
+      @active = true
+      @note = "This is a note on our ol' guy bob"
     end
 
     it "should instantiate an object with custom types" do
-      coconut = TypeTests::Coconut.new(:faked => 'bob', :document => @document, :stuff => @stuff)
+      coconut = TypeTests::Coconut.new(:faked => 'bob', :active => @active, :note => @note)
       coconut.faked.should == 'bob'
-      coconut.document.should be_a_kind_of(Array)
-      coconut.stuff.should be_a_kind_of(Hash)
+      coconut.active.should be_a_kind_of(TrueClass)
+      coconut.note.should be_a_kind_of(String)
     end
 
     it "should CRUD an object with custom types" do
       repository(:sqlite3) do
-        coconut = TypeTests::Coconut.new(:faked => 'bob', :document => @document, :stuff => @stuff)
+        coconut = TypeTests::Coconut.new(:faked => 'bob', :active => @active, :note => @note)
         coconut.save.should be_true
         coconut.id.should_not be_nil
 
         fred = TypeTests::Coconut[coconut.id]
         fred.faked.should == 'bob'
-        fred.document.should be_a_kind_of(Array)
-        fred.stuff.should be_a_kind_of(Hash)
-
-        texadelphia = ["Texadelphia", "5", "3"]
-
-        # Figure out how to track these... possibly proxies? :-p
-        document = fred.document.dup
-        document << texadelphia
-        fred.document = document
-
-        stuff = fred.stuff.dup
-        stuff['Manic Cow!'] = :maybe
-        fred.stuff = stuff
+        fred.active.should be_a_kind_of(TrueClass)
+        fred.note.should be_a_kind_of(String)
+        
+        note = "Seems like bob is just mockin' around"
+        fred.note = note
 
         fred.save.should be_true
+        
+        active = false
+        fred.active = active
 
-        # Can't call coconut.reload! since coconut.loaded_set isn't setup.
+        fred.save.should be_true
+        
+        # Can't call coconut.reload! since coconut.collection isn't setup.
         mac = TypeTests::Coconut[fred.id]
-        mac.document.last.should == texadelphia
-        mac.stuff['Manic Cow!'].should == :maybe
+        mac.active.should == active
+        mac.note.should == note
       end
     end
 

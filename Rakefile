@@ -23,8 +23,6 @@ end
 desc 'Remove all package, rdocs and spec products'
 task :clobber_all => %w[ clobber_package clobber_rdoc dm:clobber_spec ]
 
-
-
 namespace :dm do
   def run_spec(name, files, rcov = true)
     Spec::Rake::SpecTask.new(name) do |t|
@@ -44,7 +42,7 @@ namespace :dm do
 
   namespace :spec do
     desc "Run unit specifications"
-    run_spec('unit', ROOT + 'spec/unit/**/*_spec.rb', false)
+    run_spec('unit', ROOT + 'spec/unit/**/*_spec.rb')
 
     desc "Run integration specifications"
     run_spec('integration', ROOT + 'spec/integration/**/*_spec.rb', false)
@@ -133,7 +131,7 @@ end
 
 desc "Install #{PROJECT}"
 task :install => :package do
-  sh %{sudo gem install pkg/#{PROJECT}-#{PACKAGE_VERSION}}
+  sh %{#{'sudo' unless ENV['SUDOLESS']} gem install pkg/#{PROJECT}-#{PACKAGE_VERSION}}
 end
 
 if RUBY_PLATFORM.match(/mswin32|cygwin|mingw|bccwin/)
@@ -144,3 +142,77 @@ if RUBY_PLATFORM.match(/mswin32|cygwin|mingw|bccwin/)
     end
   end
 end
+
+
+namespace :ci do
+
+  task :prepare do
+    mkdir_p ROOT + "ci"
+    mkdir_p ROOT + "ci/rdoc"
+    mkdir_p ROOT + "ci/cyclomatic"
+    mkdir_p ROOT + "ci/token"
+  end
+
+  task :publish do
+    out = ENV['CC_BUILD_ARTIFACTS'] || "out"
+    mkdir_p out unless File.directory? out
+
+    mv "ci/unit_rspec_report.html", "#{out}/unit_rspec_report.html"
+    mv "ci/unit_coverage", "#{out}/unit_coverage"
+    mv "ci/integration_rspec_report.html", "#{out}/integration_rspec_report.html"
+    mv "ci/integration_coverage", "#{out}/integration_coverage"
+    mv "ci/rdoc", "#{out}/rdoc"
+    mv "ci/cyclomatic", "#{out}/cyclomatic_complexity"
+    mv "ci/token", "#{out}/token_complexity"
+  end
+
+
+  Spec::Rake::SpecTask.new("spec:unit" => :prepare) do |t|
+    t.spec_opts = ["--format", "specdoc", "--format", "html:#{ROOT}/ci/unit_rspec_report.html", "--diff"]
+    t.spec_files = Pathname.glob(ROOT + "spec/unit/**/*_spec.rb")
+    unless ENV['NO_RCOV']
+      t.rcov = true
+      t.rcov_opts << '--exclude' << "spec,gems"
+      t.rcov_opts << '--text-summary'
+      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+      t.rcov_opts << '--only-uncovered'
+    end
+  end
+
+  Spec::Rake::SpecTask.new("spec:integration" => :prepare) do |t|
+    t.spec_opts = ["--format", "specdoc", "--format", "html:#{ROOT}/ci/integration_rspec_report.html", "--diff"]
+    t.spec_files = Pathname.glob(ROOT + "spec/integration/**/*_spec.rb")
+    unless ENV['NO_RCOV']
+      t.rcov = true
+      t.rcov_opts << '--exclude' << "spec,gems"
+      t.rcov_opts << '--text-summary'
+      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+      t.rcov_opts << '--only-uncovered'
+    end
+  end
+
+  task :spec do
+    Rake::Task["ci:spec:unit"].invoke
+    mv ROOT + "coverage", ROOT + "ci/unit_coverage"
+
+    Rake::Task["ci:spec:integration"].invoke
+    mv ROOT + "coverage", ROOT + "ci/integration_coverage"
+  end
+
+  Rake::RDocTask.new do |rdoc|
+    rdoc.rdoc_dir = 'ci/rdoc'
+    rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
+    rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
+    rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
+  end
+
+  task :saikuro => :prepare do
+    system "saikuro -c -i lib -y 0 -w 10 -e 15 -o ci/cyclomatic"
+    mv 'ci/cyclomatic/index_cyclo.html', 'ci/cyclomatic/index.html'
+
+    system "saikuro -t -i lib -y 0 -w 20 -e 30 -o ci/token"
+    mv 'ci/token/index_token.html', 'ci/token/index.html'
+  end
+end
+
+task :ci => ["ci:spec", "ci:rdoc", "ci:saikuro", :install, :publish]

@@ -47,8 +47,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @command.should_receive(:execute_reader).twice.and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
-        Plupp.find_by_sql("SELECT * FROM plupps")
-        Plupp.find_by_sql("SELECT * FROM plupps", :repository => :plupp_repo)
+        Plupp.find_by_sql("SELECT * FROM plupps").to_a
+        Plupp.find_by_sql("SELECT * FROM plupps", :repository => :plupp_repo).to_a
       end
       
       it "should accept an Array argument with or without options hash" do
@@ -57,8 +57,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @command.should_receive(:execute_reader).twice.with("my pretty plur").and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
-        Plupp.find_by_sql(["SELECT * FROM plupps WHERE plur = ?", "my pretty plur"])
-        Plupp.find_by_sql(["SELECT * FROM plupps WHERE plur = ?", "my pretty plur"], :repository => :plupp_repo)
+        Plupp.find_by_sql(["SELECT * FROM plupps WHERE plur = ?", "my pretty plur"]).to_a
+        Plupp.find_by_sql(["SELECT * FROM plupps WHERE plur = ?", "my pretty plur"], :repository => :plupp_repo).to_a
       end
       
       it "should accept a Query argument with or without options hash" do
@@ -67,8 +67,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @command.should_receive(:execute_reader).twice.with(Plupp.properties[:name]).and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
-        Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"]))
-        Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"]), :repository => :plupp_repo)
+        Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"])).to_a
+        Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"]), :repository => :plupp_repo).to_a
       end
       
       it "requires a Repository that is a DataObjectsRepository to work" do

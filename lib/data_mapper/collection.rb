@@ -1,18 +1,12 @@
 require 'forwardable'
-
 module DataMapper
-  class Collection
-    extend Forwardable
-    include Enumerable
-
-    def_instance_delegators :entries, :[], :size, :length, :first, :last
-
+  class Collection < LazyArray
     attr_reader :repository
 
     def reload(options = {})
       query = Query.new(@repository, @model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
-      @repository.adapter.read_set(@repository, query)
+      replace(@repository.adapter.read_set(@repository, query))
     end
 
     def load(values, reload = false)
@@ -29,10 +23,12 @@ module DataMapper
 
         if resource = @repository.identity_map_get(model, key_values)
           self << resource
+          resource.collection = self
           return resource unless reload
         else
           resource = model.allocate
           self << resource
+          resource.collection = self
           @key_properties.zip(key_values).each do |property,key_value|
             resource.instance_variable_set(property.instance_variable_name, key_value)
           end
@@ -42,6 +38,7 @@ module DataMapper
       else
         resource = model.allocate
         self << resource
+        resource.collection = self
         resource.instance_variable_set(:@new_record, false)
         resource.readonly!
       end
@@ -53,35 +50,20 @@ module DataMapper
       self
     end
 
-    def add(resource)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      entries << resource
-      resource.loaded_set = self
+    def pop
+      remove_resource(super)
     end
 
-    alias << add
-
-    def merge(*resources)
-      resources.each { |resource| add(resource) }
-      self
+    def shift
+      remove_resource(super)
     end
 
-    def delete(resource)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      entries.delete(resource)
+    def delete(resource, &block)
+      remove_resource(super)
     end
 
-    def entries
-      unless @resources
-        @resources = []
-        @loader[self] if @loader
-      end
-      @resources
-    end
-
-    def each(&block)
-      entries.each { |entry| yield entry }
-      self
+    def delete_at(index)
+      remove_resource(super)
     end
 
     private
@@ -95,7 +77,9 @@ module DataMapper
       @repository              = repository
       @model                   = model
       @properties_with_indexes = properties_with_indexes
-      @loader                  = loader
+
+      super()
+      load_with(&loader)
 
       if inheritance_property = @model.inheritance_property(@repository.name)
         @inheritance_property_index = @properties_with_indexes[inheritance_property]
@@ -106,8 +90,17 @@ module DataMapper
       end
     end
 
+    def wrap(entries)
+      self.class.new(@repository, @model, @properties_with_indexes).replace(entries)
+    end
+
+    def remove_resource(resource)
+      resource.collection = nil if resource && resource.collection == self
+      resource
+    end
+
     def keys
-      entry_keys = entries.map { |resource| resource.key }
+      entry_keys = @array.map { |resource| resource.key }
 
       keys = {}
       @key_properties.zip(entry_keys.transpose).each do |property,values|

@@ -31,6 +31,14 @@ class Symbol
     DataMapper::Query::Operator.new(self, :in)
   end
 
+  def asc
+    DataMapper::Query::Operator.new(self, :asc)
+  end
+
+  def desc
+    DataMapper::Query::Operator.new(self, :desc)
+  end
+
   def to_proc
     lambda { |value| value.send(self) }
   end

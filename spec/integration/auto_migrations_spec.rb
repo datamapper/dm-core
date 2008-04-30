@@ -14,7 +14,6 @@ class Book
   property :in_print,       Float
   property :inventoried,    DateTime
   property :pdf,            Object
-  property :status,         DM::Enum[:backorder, :out_of_print, :sold_out]
 end
 
 describe "common type map", :shared => true do
@@ -84,10 +83,6 @@ begin
       it "should create the inventoried column as a datetime" do
         @table_set.any? {|c| c[@col_identifier] == "inventoried" && c.type == "datetime"}.should be_true
       end
-      
-      it "should create the status column as an INTEGER" do
-        @table_set.any? {|c| c[@col_identifier] == "status" && c.type == "INTEGER"}.should be_true
-      end
     end
   end
 rescue LoadError => e
@@ -153,10 +148,6 @@ begin
       
       it "should create the inventoried column as a datetime" do
         @table_set.any? {|c| c[@col_identifier] == "inventoried" && c.type == "datetime"}.should be_true
-      end
-      
-      it "should create the status column as an int(11)" do
-        @table_set.any? {|c| c[@col_identifier] == "status" && c.type == "int(11)"}.should be_true
       end
     end
   end
@@ -250,10 +241,6 @@ begin
       
       it "should create the inventoried column as a timestamp" do
         @table_set.any? {|c| c[@col_identifier] == "inventoried" && c.type == "timestamp"}.should be_true
-      end
-      
-      it "should create the status column as an int4" do
-        @table_set.any? {|c| c[@col_identifier] == "status" && c.type == "int4"}.should be_true
       end
     end
   end

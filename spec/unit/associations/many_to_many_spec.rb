@@ -15,12 +15,12 @@ describe "DataMapper::Associations::ManyToMany" do
     end.should_not raise_error
   end
 
-  describe DataMapper::Associations::ManyToMany::Instance do
+  describe DataMapper::Associations::ManyToMany::Proxy do
     before do
       @this = mock("this")
       @that = mock("that")
       @relationship = mock("relationship")
-      @association = DataMapper::Associations::ManyToMany::Instance.new(@relationship, @that, nil)
+      @association = DataMapper::Associations::ManyToMany::Proxy.new(@relationship, @that, nil)
     end
 
   end

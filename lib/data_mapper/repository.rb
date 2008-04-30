@@ -44,13 +44,18 @@ module DataMapper
       else
         Query.new(self, model, options)
       end
-      @adapter.read_set(self, query).entries
+      @adapter.read_set(self, query)
     end
 
     def save(resource)
       resource.child_associations.each { |a| a.save }
 
       success = if resource.new_record?
+        resource.class.properties(self.name).each do |property|
+          if property.options[:default] && !resource.instance_variable_defined?(property.instance_variable_name)
+            resource[property.name] = property.default(resource)
+          end
+        end
         if @adapter.create(self, resource)
           identity_map_set(resource)
           resource.instance_variable_set(:@new_record, false)

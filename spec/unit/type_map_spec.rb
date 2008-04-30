@@ -25,9 +25,9 @@ describe DataMapper::TypeMap do
     end
     
     it "should the primitive's mapping the class has a primitive type" do
-      @tm.map(Fixnum).to(:int)
+      @tm.map(String).to(:varchar)
       
-      lambda { @tm.lookup(DM::Enum) }.should_not raise_error
+      lambda { @tm.lookup(DM::Text) }.should_not raise_error
     end
     
     it "should merge in the parent type map's translated match" do

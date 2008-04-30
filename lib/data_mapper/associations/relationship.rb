@@ -43,12 +43,6 @@ module DataMapper
         end
       end
 
-      def with_parent(parent_resource, association, &loader)
-        association.new(self, parent_resource) do
-          yield repository(@repository_name), child_key, parent_key, child_model, parent_resource
-        end
-      end
-
       def attach_parent(child, parent)
         child_key.set(child, parent && parent_key.get(parent))
       end
@@ -85,7 +79,7 @@ module DataMapper
         raise ArgumentError, "+parent_model_name+ must be a String, but was #{parent_model_name.class}", caller        unless String === parent_model_name
         raise ArgumentError, "+parent_properties+ must be an Array or nil, but was #{parent_properties.class}", caller unless Array  === parent_properties || parent_properties.nil?
 
-        @name              = name        
+        @name              = name
         @options           = options
         @repository_name   = repository_name
         @child_model_name  = child_model_name
