@@ -58,9 +58,11 @@ describe DataMapper::Query do
         it 'when they have a two or more element Array' do
           query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ?', 'dkubb' ])
           query.conditions.should == [ [ 'name = ?', [ 'dkubb' ] ] ]
+          query.parameters.should == [ 'dkubb' ]
           
           query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ? OR age = ?', 'dkubb', 30 ], :limit => 1)
           query.conditions.should == [ [ 'name = ? OR age = ?', [ 'dkubb', 30 ] ] ]
+          query.parameters.should == [ 'dkubb', 30 ]
         end
 
         it 'when they have another DM:Query as the value of sub-select' do

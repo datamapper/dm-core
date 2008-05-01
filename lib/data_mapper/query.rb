@@ -141,7 +141,11 @@ module DataMapper
     def parameters
       parameters = []
       conditions.each do |tuple|
-        parameters << tuple.at(2) if tuple.size == 3
+        if tuple.size == 3
+          parameters << tuple.at(2)
+        elsif tuple.size == 2
+          parameters += tuple.at(1)
+        end
       end
       parameters
     end
