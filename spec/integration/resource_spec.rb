@@ -9,41 +9,58 @@ begin
   describe "DataMapper::Resource" do
     describe "inheritance" do
       before(:all) do
-        class Father
+        class Male
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
           property :name, String
-          
+          property :iq, Fixnum, :default => 100
           property :type, Class, :default => lambda { |r,p| p.model }
         end
         
-        class Son < Father
-          property :favourite, Boolean, :default => false
+        class Bully < Male
+          # property :brutal, Boolean, :default => true 
+          # Automigrate should add fields for all subclasses of an STI-model, but currently it does not.
         end
         
-        Son.auto_migrate!(:sqlite3)
+        class Geek < Male
+          property :awkward, Boolean, :default => true
+        end
+        
+        Geek.auto_migrate!(:sqlite3)
         
         repository(:sqlite3) do
-          Father.create!(:name => 'Bob')
-          Son.create!(:name => 'Fred', :favourite => true)
-          Son.create!(:name => 'Barney')
-          Father.create!(:name => 'Johnson')
+          Male.create!(:name => 'John Dorian')
+          Bully.create!(:name => 'Bob')
+          Geek.create!(:name => 'Steve', :awkward => false, :iq => 132)
+          Geek.create!(:name => 'Bill', :iq => 150)
+          Bully.create!(:name => 'Johnson')
         end
       end
       
       it "should select appropriate types" do
         repository(:sqlite3) do
-          fathers = Father.all
-          fathers.should have(4).entries
+          males = Male.all
+          males.should have(5).entries
           
-          fathers.each do |father|
-            father.class.name.should == father.type.name
+          males.each do |male|
+            male.class.name.should == male.type.name
           end
           
-          Father.first(:name => 'Bob').should be_a_kind_of(Father)
-          Son.first(:name => 'Fred').should be_a_kind_of(Son)
-          Son.first(:name => 'Barney').should be_a_kind_of(Son)
-          Father.first(:name => 'Johnson').should be_a_kind_of(Father)
+          Male.first(:name => 'Steve').should be_a_kind_of(Geek)
+          Bully.first(:name => 'Bob').should be_a_kind_of(Bully)
+          Geek.first(:name => 'Steve').should be_a_kind_of(Geek)
+          Geek.first(:name => 'Bill').should be_a_kind_of(Geek)
+          Bully.first(:name => 'Johnson').should be_a_kind_of(Bully)
+          Male.first(:name => 'John Dorian').should be_a_kind_of(Male) 
+        end
+      end
+      
+      it "should not select parent type" do
+        pending("Bug...")
+        repository(:sqlite3) do
+          Male.first(:name => 'John Dorian').should be_a_kind_of(Male)
+          Geek.first(:name => 'John Dorian').should be_nil
+          Geek.first.iq.should > Bully.first.iq # now its matching Male#1 against Male#1        
         end
       end
     end
