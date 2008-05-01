@@ -63,7 +63,6 @@ module DataMapper
         raise ArgumentError, "+uri_or_options+ must be a Hash, URI or String, but was #{uri_or_options.class}", caller
     end
 
-    # TODO: use autoload to load the adapter on-the-fly when used
     class_name = DataMapper::Inflection.classify(adapter_name) + 'Adapter'
 
     unless Adapters::const_defined?(class_name)
