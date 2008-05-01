@@ -1,7 +1,5 @@
 module DataMapper
 
-  # :include:/QUICKLINKS
-  #
   # = Types
   # Provides means of writing custom types for properties. Each type is based
   # on a ruby primitive and handles its own serialization and materialization,
