@@ -147,6 +147,7 @@ end
 namespace :ci do
 
   task :prepare do
+    rm_rf ROOT + "ci"
     mkdir_p ROOT + "ci"
     mkdir_p ROOT + "ci/rdoc"
     mkdir_p ROOT + "ci/cyclomatic"
