@@ -1,43 +1,21 @@
 class LazyArray  # borrowed partially from StrokeDB
-  instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class clone dup equal? kind_of? instance_of? is_a? inspect object_id respond_to? should should_not ].include?(m) }
 
-  # when these methods return an Array, it will be wrapped in an
-  # instance of the current class using the wrap() method
-  RETURN_WRAPPED = [ :first, :last, :reject, :reverse, :select, :slice,
-    :slice!, :sort, :values_at ]
+  # these methods should return self or nil
+  RETURN_SELF = [ :<<, :clear, :concat, :collect!, :each, :each_index,
+    :each_with_index, :insert, :map!, :push, :reject!, :reverse!,
+    :reverse_each, :replace, :sort!, :unshift ]
 
-  # when these methods return an Array, it will return self, otherwise
-  # the result will be passed as-is to the caller
-  RETURN_SELF = [ :clear, :concat, :collect!, :each, :each_index,
-    :insert, :push, :reject!, :reverse!, :reverse_each, :replace,
-    :sort!, :unshift ]
+  # these methods should return an instance of this class when an Array
+  # would normally be returned
+  RETURN_NEW = [ :&, :|, :+, :-, :[], :delete_if, :find_all, :first,
+    :grep, :last, :reject, :reverse, :select, :slice, :slice!, :sort,
+    :sort_by, :values_at ]
 
-  def initialize(*args, &block)
-    @load_with_proc = proc { |v| v }
-    @array          = Array.new(*args, &block)
-  end
-
-  def load_with(&block)
-    @load_with_proc = block
-    self
-  end
-
-  def loaded?
-    # proc will be nil if the array was loaded
-    @load_with_proc.nil?
-  end
-
-  def eql?(other)
-    return true if equal?(other)
-    entries == other.entries
-  end
-
-  alias == eql?
-
-  def respond_to?(method)
-    return true if super
-    @array.respond_to?(method)
-  end
+  # these methods should return their results as-is to the caller
+  RETURN_PLAIN = [ :[]=, :all?, :any?, :at, :blank?, :collect, :delete,
+    :delete_at, :detect, :empty?, :entries, :fetch, :find, :include?,
+    :inspect, :index, :inject, :length, :map, :member?, :pop, :rindex,
+    :shift, :size, :to_a, :to_ary, :to_s, :to_set, :zip ]
 
   RETURN_SELF.each do |method|
     class_eval <<-EOS, __FILE__, __LINE__
@@ -49,7 +27,7 @@ class LazyArray  # borrowed partially from StrokeDB
     EOS
   end
 
-  RETURN_WRAPPED.each do |method|
+  RETURN_NEW.each do |method|
     class_eval <<-EOS, __FILE__, __LINE__
       def #{method}(*args, &block)
         lazy_load!
@@ -59,7 +37,43 @@ class LazyArray  # borrowed partially from StrokeDB
     EOS
   end
 
+  RETURN_PLAIN.each do |method|
+    class_eval <<-EOS, __FILE__, __LINE__
+      def #{method}(*args, &block)
+        lazy_load!
+        @array.#{method}(*args, &block)
+      end
+    EOS
+  end
+
+  def partition(&block)
+    lazy_load!
+    true_results, false_results = @array.partition(&block)
+    [ wrap(true_results), wrap(false_results) ]
+  end
+
+  def eql?(other)
+    @array.eql?(other.entries)
+  end
+
+  alias == eql?
+
+  def load_with(&block)
+    @load_with_proc = block
+    self
+  end
+
+  def loaded?
+    # proc will be nil if the array was loaded
+    @load_with_proc.nil?
+  end
+
   private
+
+  def initialize(*args, &block)
+    @load_with_proc = proc { |v| v }
+    @array          = Array.new(*args, &block)
+  end
 
   def initialize_copy(original)
     @array = original.entries
@@ -77,15 +91,5 @@ class LazyArray  # borrowed partially from StrokeDB
   # instance of their class
   def wrap(results)
     self.class.new(results)
-  end
-
-  # delegate to @array and return the results to the caller
-  def method_missing(method, *args, &block)
-    if @array.respond_to?(method)
-      lazy_load!
-      @array.__send__(method, *args, &block)
-    else
-      super
-    end
   end
 end

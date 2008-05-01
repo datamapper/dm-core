@@ -83,7 +83,7 @@ describe LazyArray do
     it 'should delete the matching element from the lazy_array' do
       @lazy_array.delete(@nancy).should == @nancy
       @lazy_array.size.should == 1
-      @lazy_array[0].should == @bessie
+      @lazy_array.first.should == @bessie
     end
 
     it 'should use the passed-in block when no element was removed' do
@@ -101,7 +101,7 @@ describe LazyArray do
     it 'should delete the element from the lazy_array with the index' do
       @lazy_array.delete_at(0).should == @nancy
       @lazy_array.size.should == 1
-      @lazy_array[0].should == @bessie
+      @lazy_array.first.should == @bessie
     end
   end
 
@@ -154,6 +154,16 @@ describe LazyArray do
     end
   end
 
+  describe '#entries' do
+    it 'should provide #entries' do
+      @lazy_array.should respond_to(:entries)
+    end
+
+    it 'should return an Array' do
+      @lazy_array.entries.should be_kind_of(Array)
+    end
+  end
+
   describe '#eql?' do
     it 'should provide #eql?' do
       @lazy_array.should respond_to(:eql?)
@@ -161,6 +171,7 @@ describe LazyArray do
 
     it 'should return true if for the same lazy_array' do
       @lazy_array.object_id.should == @lazy_array.object_id
+      @lazy_array.entries.should == @lazy_array.entries
       @lazy_array.should be_eql(@lazy_array)
     end
 
@@ -217,8 +228,8 @@ describe LazyArray do
         lazy_array.should be_kind_of(LazyArray)
         lazy_array.object_id.should_not == @lazy_array.object_id
         lazy_array.length.should == 2
-        lazy_array[0].should == @nancy
-        lazy_array[1].should == @bessie
+        lazy_array.first.should == @nancy
+        lazy_array.last.should == @bessie
       end
     end
   end
@@ -271,8 +282,8 @@ describe LazyArray do
         lazy_array.should be_kind_of(LazyArray)
         lazy_array.object_id.should_not == @lazy_array.object_id
         lazy_array.length.should == 2
-        lazy_array[0].should == @nancy
-        lazy_array[1].should == @bessie
+        lazy_array.first.should == @nancy
+        lazy_array.last.should == @bessie
       end
     end
   end
@@ -307,6 +318,62 @@ describe LazyArray do
     end
   end
 
+  describe '#partition' do
+    it 'should provide #partition' do
+      @lazy_array.should respond_to(:partition)
+    end
+
+    describe 'return value' do
+      before do
+        @array = @lazy_array.partition { |e| e == @nancy }
+      end
+
+      it 'should be an Array' do
+        @array.should be_kind_of(Array)
+      end
+
+      it 'should have two entries' do
+        @array.length.should == 2
+      end
+
+      describe 'first entry' do
+        before do
+          @true_results = @array.first
+        end
+
+        it 'should be a LazyArray' do
+          @true_results.should be_kind_of(LazyArray)
+        end
+
+        it 'should have one entry' do
+          @true_results.length.should == 1
+        end
+
+        it 'should contain the entry the block returned true for' do
+          @true_results.first.should == @nancy
+        end
+      end
+
+      describe 'second entry' do
+        before do
+          @false_results = @array.last
+        end
+
+        it 'should be a LazyArray' do
+          @false_results.should be_kind_of(LazyArray)
+        end
+
+        it 'should have one entry' do
+          @false_results.length.should == 1
+        end
+
+        it 'should contain the entry the block returned true for' do
+          @false_results.first.should == @bessie
+        end
+      end
+    end
+  end
+
   describe '#pop' do
     it 'should provide #pop' do
       @lazy_array.should respond_to(:pop)
@@ -315,7 +382,7 @@ describe LazyArray do
     it 'should remove the last element using #pop' do
       @lazy_array.pop.should == @bessie
       @lazy_array.length.should == 1
-      @lazy_array[0].should == @nancy
+      @lazy_array.first.should == @nancy
     end
   end
 
@@ -347,8 +414,8 @@ describe LazyArray do
       rejected.should be_kind_of(LazyArray)
       rejected.object_id.should_not == @lazy_array.object_id
       rejected.length.should == 2
-      rejected[0].should == @nancy
-      rejected[1].should == @bessie
+      rejected.first.should == @nancy
+      rejected.last.should == @bessie
     end
 
     it 'should return an empty Collection if elements matched the block' do
@@ -380,8 +447,8 @@ describe LazyArray do
     it 'should not remove elements that did not match the block' do
       @lazy_array.reject! { |element| false }
       @lazy_array.length.should == 2
-      @lazy_array[0].should == @nancy
-      @lazy_array[1].should == @bessie
+      @lazy_array.first.should == @nancy
+      @lazy_array.last.should == @bessie
     end
   end
 
@@ -472,7 +539,7 @@ describe LazyArray do
     it 'should remove the first element using #shift' do
       @lazy_array.shift.should == @nancy
       @lazy_array.length.should == 1
-      @lazy_array[0].should == @bessie
+      @lazy_array.first.should == @bessie
     end
   end
 
@@ -494,7 +561,7 @@ describe LazyArray do
         sliced.should be_kind_of(LazyArray)
         sliced.object_id.should_not == @lazy_array.object_id
         sliced.length.should == 1
-        sliced[0].should == @nancy
+        sliced.first.should == @nancy
       end
 
       it 'should not modify the lazy_array' do
@@ -509,8 +576,8 @@ describe LazyArray do
         sliced.should be_kind_of(LazyArray)
         sliced.object_id.should_not == @lazy_array.object_id
         sliced.length.should == 2
-        sliced[0].should == @nancy
-        sliced[1].should == @bessie
+        sliced.first.should == @nancy
+        sliced.last.should == @bessie
       end
 
       it 'should not modify the lazy_array' do
@@ -538,7 +605,7 @@ describe LazyArray do
         sliced.should be_kind_of(LazyArray)
         sliced.object_id.should_not == @lazy_array.object_id
         sliced.length.should == 1
-        sliced[0].should == @nancy
+        sliced.first.should == @nancy
       end
 
       it 'should modify the lazy_array' do
@@ -553,8 +620,8 @@ describe LazyArray do
         sliced.should be_kind_of(LazyArray)
         sliced.object_id.should_not == @lazy_array.object_id
         sliced.length.should == 2
-        sliced[0].should == @nancy
-        sliced[1].should == @bessie
+        sliced.first.should == @nancy
+        sliced.last.should == @bessie
       end
 
       it 'should modify the lazy_array' do
@@ -596,6 +663,26 @@ describe LazyArray do
       @lazy_array.sort! { |a,b| a <=> b }
       @lazy_array.length.should == 2
       @lazy_array.entries.should == original_entries.reverse
+    end
+  end
+
+  describe '#to_a' do
+    it 'should provide #to_a' do
+      @lazy_array.should respond_to(:to_a)
+    end
+
+    it 'should return an Array' do
+      @lazy_array.to_a.should be_kind_of(Array)
+    end
+  end
+
+  describe '#to_ary' do
+    it 'should provide #to_ary' do
+      @lazy_array.should respond_to(:to_ary)
+    end
+
+    it 'should return an Array' do
+      @lazy_array.to_ary.should be_kind_of(Array)
     end
   end
 
