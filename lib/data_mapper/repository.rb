@@ -56,20 +56,29 @@ module DataMapper
             resource[property.name] = property.default(resource)
           end
         end
-        if @adapter.create(self, resource)
-          identity_map_set(resource)
-          resource.instance_variable_set(:@new_record, false)
-          resource.dirty_attributes.clear
-          true
+        
+        if resource.dirty?
+          if  @adapter.create(self, resource)
+            identity_map_set(resource)
+            resource.instance_variable_set(:@new_record, false)
+            resource.dirty_attributes.clear
+            true
+          else
+            false
+          end
         else
-          false
+          true
         end
       else
-        if @adapter.update(self, resource)
-          resource.dirty_attributes.clear
-          true
+        if resource.dirty?
+          if @adapter.update(self, resource)
+            resource.dirty_attributes.clear
+            true
+          else
+            false
+          end
         else
-          false
+          true
         end
       end
 
