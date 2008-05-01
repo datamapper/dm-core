@@ -50,7 +50,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         Plupp.find_by_sql("SELECT * FROM plupps").to_a
         Plupp.find_by_sql("SELECT * FROM plupps", :repository => :plupp_repo).to_a
       end
-      
+
       it "should accept an Array argument with or without options hash" do
         @connection.should_receive(:create_command).twice.with("SELECT * FROM plupps WHERE plur = ?").and_return(@command)
         @command.should_receive(:set_types).twice.with([Fixnum, String])
@@ -60,7 +60,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         Plupp.find_by_sql(["SELECT * FROM plupps WHERE plur = ?", "my pretty plur"]).to_a
         Plupp.find_by_sql(["SELECT * FROM plupps WHERE plur = ?", "my pretty plur"], :repository => :plupp_repo).to_a
       end
-      
+
       it "should accept a Query argument with or without options hash" do
         @connection.should_receive(:create_command).twice.with("SELECT \"name\" FROM \"plupps\" WHERE (\"name\" = ?)").and_return(@command)
         @command.should_receive(:set_types).twice.with([Fixnum, String])
@@ -70,7 +70,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"])).to_a
         Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"]), :repository => :plupp_repo).to_a
       end
-      
+
       it "requires a Repository that is a DataObjectsRepository to work" do
         non_do_adapter = mock("non do adapter")
         non_do_repo = mock("non do repo")
@@ -224,9 +224,9 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     class Cheese
       include DataMapper::Resource
       property :id, Fixnum, :serial => true
-      property :name, String
-      property :color, String
-      property :notes, String, :lazy => true
+      property :name, String, :nullable => false
+      property :color, String, :default => 'yellow'
+      property :notes, String, :length => 100, :lazy => true
     end
 
     class LittleBox
@@ -347,51 +347,54 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       EOS
     end
   end
-  
+
   describe "#create_table_statement" do
     it "should generate a SQL statement starting with the table info" do
       @adapter.create_table_statement(Cheese).should =~ /^#{<<-EOS.compress_lines}/
         CREATE TABLE "cheeses"
       EOS
     end
-    
+
     it "should generate a SQL statement with the column info" do
       @adapter.create_table_statement(Cheese).should include(<<-EOS.compress_lines)
-        ("id" int PRIMARY KEY,
-          "name" varchar,
-          "color" varchar,
-          "notes" varchar)
+        ("id" INT NOT NULL,
+          "name" VARCHAR(50) NOT NULL,
+          "color" VARCHAR(50) DEFAULT "yellow",
+          "notes" VARCHAR(100),
+          PRIMARY KEY(id))
       EOS
     end
-    
+
     it "should generate a SQL statement with both the table and column info" do
       @adapter.create_table_statement(Cheese).should == <<-EOS.compress_lines
-        CREATE TABLE "cheeses" ("id" int PRIMARY KEY,
-          "name" varchar,
-          "color" varchar,
-          "notes" varchar)
+        CREATE TABLE "cheeses"
+        ("id" INT NOT NULL,
+          "name" VARCHAR(50) NOT NULL,
+          "color" VARCHAR(50) DEFAULT "yellow",
+          "notes" VARCHAR(100),
+          PRIMARY KEY(id))
       EOS
     end
   end
-  
+
   describe "#property_schema_hash" do
     before(:each) do
       @model = Class.new do
         include DataMapper::Resource
-        
+
         property :id, Fixnum, :key => true
         property :serial, Fixnum, :serial => true, :key => false
       end
       @id_property =  @model.properties.to_a[0]
       @serial_property = @model.properties.to_a[1]
     end
-    
+
     it "should map :name to the property's field value" do
       @adapter.property_schema_hash(@id_property)[:name].should == "id"
     end
-    
-    it "should set :key? if the property is a key" do
-      @adapter.property_schema_hash(@id_property)[:key?].should == true
+
+    it "should not set :key? if the property is a key" do
+      @adapter.property_schema_hash(@id_property).should_not be_key(:key?)
     end
   end
 

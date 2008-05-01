@@ -169,14 +169,10 @@ begin
         contra.should_not be_a_new_record
         contra.id.should == id
       end
-
-      after do
-        @adapter.execute('DROP TABLE "video_games"')
-      end
     end
 
     describe "CRUD for Composite Key" do
-      before do
+      before :all do
         class BankCustomer
           include DataMapper::Resource
 
@@ -184,14 +180,14 @@ begin
           property :account_number, String, :key => true
           property :name, String
         end
-        
+
         BankCustomer.auto_migrate!(:sqlite3)
 
         @adapter = repository(:sqlite3).adapter
       end
 
       it 'should be able to create a record' do
-        customer = BankCustomer.new(:bank => 'Community Bank', :acount_number => '123456', :name => 'David Hasselhoff')
+        customer = BankCustomer.new(:bank => 'Community Bank', :account_number => '123456', :name => 'David Hasselhoff')
         repository(:sqlite3).save(customer)
 
         customer.should_not be_a_new_record
@@ -255,10 +251,6 @@ begin
         robots.should_not be_a_new_record
         robots.bank.should == bank
         robots.account_number.should == account_number
-      end
-
-      after do
-        @adapter.execute('DROP TABLE "bank_customers"')
       end
     end
   end

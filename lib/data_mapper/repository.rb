@@ -54,7 +54,7 @@ module DataMapper
       success = if resource.new_record?
         resource.class.properties(self.name).each do |property|
           if property.options[:default] && !resource.instance_variable_defined?(property.instance_variable_name)
-            resource.attribute_set(property.name, property.default(resource))
+            resource.attribute_set(property.name, property.default_for(resource))
           end
         end
         

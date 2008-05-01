@@ -12,9 +12,8 @@ module DataMapper
       # DataMapper::TypeMap:: default TypeMap for PostgreSQL databases.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
-          tm.map(DateTime).to(:timestamp)
-          tm.map(String).with(:size => 50)
-          tm.map(Fixnum).to(:INT4)
+          tm.map(DateTime).to('TIMESTAMP')
+          tm.map(Fixnum).to('INT4')
         end
       end
 
@@ -52,26 +51,20 @@ module DataMapper
         DataMapper.logger.debug("#{self}: #{cmd}")
       end
 
-      def self.type_map
-        @type_map ||= TypeMap.new(super) do |tm|
-          tm.map(DateTime).to(:timestamp)
-          tm.map(String).with(:size => 50)
-          tm.map(Fixnum).to(:INT4)
-        end
-      end
-
       def create_with_returning?; true; end
-      
+
       def create_model_storage(repository, model)
-        DataMapper.logger.debug "CREATE TABLE: #{model.storage_name(name)}  COLUMNS: #{model.properties.map {|p| p.field}.join(', ')}"
+        sql = create_table_statement(model)
+
+        DataMapper.logger.debug "CREATE TABLE: #{sql}"
 
         connection = create_connection
-        
+
         model.properties.each do |property|
           create_sequence_column(connection, model, property) if sequenced?(property)
         end
 
-        command = connection.create_command(create_table_statement(model))
+        command = connection.create_command(sql)
 
         result = command.execute_non_query
 
@@ -130,9 +123,11 @@ module DataMapper
       end
 
       def create_sequence_column(connection, model, property)
-        DataMapper.logger.debug "CREATE SEQUENCE: #{model.storage_name(name)}_#{property.field}_seq"
+        sql = create_sequence_statement(model, property)
 
-        command = connection.create_command(create_sequence_statement(model, property))
+        DataMapper.logger.debug "CREATE SEQUENCE: #{sql}"
+
+        command = connection.create_command(sql)
 
         command.execute_non_query
       end
