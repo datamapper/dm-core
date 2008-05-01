@@ -338,6 +338,12 @@ module DataMapper
         resource.save
         resource
       end
+      
+      def create!(values)
+        resource = create(values)
+        raise PersistenceError, "Resource not saved: :new_record => #{resource.new_record?}, :dirty_attributes => #{resource.dirty_attributes.inspect}" if resource.new_record?
+        resource
+      end
 
       # TODO SPEC
       def copy(source, destination, options = {})

@@ -11,7 +11,7 @@ module DataMapper
 
     def load(values, reload = false)
       model = if @inheritance_property_index
-        values.at(@inheritance_property_index)
+        values.at(@inheritance_property_index) || @model
       else
         @model
       end
@@ -26,7 +26,12 @@ module DataMapper
           resource.collection = self
           return resource unless reload
         else
-          resource = model.allocate
+          resource = begin
+            model.allocate
+          rescue NoMethodError
+            DataMapper.logger.error("Model not found for row: #{values.inspect} at index #{@inheritance_property_index}")
+            raise $!
+          end
           self << resource
           resource.collection = self
           @key_properties.zip(key_values).each do |property,key_value|

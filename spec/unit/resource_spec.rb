@@ -338,7 +338,6 @@ describe "DataMapper::Resource" do
     
     it 'should inherit properties' do
       Media.properties.should have(1).entries
-      p NewsPaper.properties
       NewsPaper.properties.should have(2).entries
     end
   end
