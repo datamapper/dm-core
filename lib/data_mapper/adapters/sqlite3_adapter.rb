@@ -12,9 +12,8 @@ module DataMapper
       # DataMapper::TypeMap:: default TypeMap for SQLite 3 databases.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
-          tm.map(String).to(:VARCHAR).with(:size => 50)
-          tm.map(Fixnum).to(:INTEGER)
-          tm.map(Class).to(:VARCHAR).with(:size => 50)
+          tm.map(Fixnum).to('INTEGER')
+          tm.map(Class).to('VARCHAR')
         end
       end
 

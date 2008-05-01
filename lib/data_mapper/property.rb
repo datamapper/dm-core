@@ -236,7 +236,7 @@ module DataMapper
 
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
 
-    attr_reader :primitive, :model, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options
+    attr_reader :primitive, :model, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options, :default
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -248,6 +248,12 @@ module DataMapper
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
+
+    def length
+      @options[:length] || @options[:size]
+    end
+
+    alias size length
 
     def repository
       @model.repository
@@ -362,14 +368,8 @@ module DataMapper
       end
     end
 
-    def default(resource)
-      if options[:default].class == Proc
-        value = options[:default].call(resource, self)
-      else
-        value = options[:default]
-      end
-
-      value
+    def default_for(resource)
+      @default.respond_to?(:call) ? @default.call(resource, self) : @default
     end
 
     def inspect
@@ -401,10 +401,11 @@ module DataMapper
       @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
 
-      @lock     = @options.fetch(:lock,   false)
-      @serial   = @options.fetch(:serial, false)
-      @key      = (@options[:key] || @serial) == true
-      @nullable = @options[:nullable] || @key
+      @lock     = @options.fetch(:lock,     false)
+      @serial   = @options.fetch(:serial,   false)
+      @key      = @options.fetch(:key,      @serial)
+      @nullable = @options.fetch(:nullable, @key == false)
+      @default  = @options.fetch(:default,  nil)
 
       determine_visibility
 
