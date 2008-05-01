@@ -10,14 +10,22 @@ begin
   DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://127.0.0.1/dm_core_test")
   DataMapper.setup(:mysql, ENV["MYSQL_SPEC_URI"] || "mysql://127.0.0.1/dm_core_test")
   
+  class Sputnik
+    include DataMapper::Resource
+
+    property :id, Fixnum, :serial => true
+    property :name, DM::Text
+  end
+
   describe DataMapper::Transaction do
     before :each do
       @adapter1 = repository(:postgres).adapter
-      @adapter1.execute('DROP TABLE IF EXISTS "sputniks"')
-      @adapter1.execute('CREATE TABLE "sputniks" (id serial, name text)')
+      
+      Sputnik.auto_migrate!(:postgres)
+      
       @adapter2 = repository(:mysql).adapter
-      @adapter2.execute('DROP TABLE IF EXISTS sputniks')
-      @adapter2.execute('CREATE TABLE sputniks (id serial, name text) ENGINE = innodb')
+      
+      Sputnik.auto_migrate!(:mysql)
     end
     
     it "should commit changes to all involved adapters on a two phase commit" do

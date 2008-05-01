@@ -15,15 +15,10 @@ begin
           property :id, Fixnum, :serial => true
           property :sample, String
         end
+        
+        SerialFinderSpec.auto_migrate!(:sqlite3)
 
         @adapter = repository(:sqlite3).adapter
-
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "serial_finder_specs" (
-            "id" INTEGER PRIMARY KEY,
-            "sample" VARCHAR(50)
-          )
-        EOS
 
         # Why do we keep testing with Repository instead of the models directly?
         # Just because we're trying to target the code we're actualling testing

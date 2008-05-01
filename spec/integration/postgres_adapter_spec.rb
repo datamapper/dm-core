@@ -13,8 +13,14 @@ begin
 
     describe "handling transactions" do
       before :all do
-        @adapter.execute('DROP TABLE IF EXISTS "sputniks"')
-        @adapter.execute('CREATE TABLE "sputniks" (id serial, name text)')
+        class Sputnik
+          include DataMapper::Resource
+          
+          property :id, Fixnum, :serial => true
+          property :name, DM::Text
+        end
+        
+        Sputnik.auto_migrate!(:postgres)
       end
 
       before :each do
@@ -37,19 +43,16 @@ begin
     end
 
     describe "reading & writing a database" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "users"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "users_id_seq"')
-      end
 
       before do
-        @adapter.execute('CREATE SEQUENCE "users_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "users" (
-            "id" INT4 DEFAULT nextval('users_id_seq') NOT NULL,
-            "name" TEXT
-          )
-        EOS
+        class User
+          include DataMapper::Resource
+          
+          property :id, Fixnum, :serial => true
+          property :name, DM::Text
+        end
+
+        User.auto_migrate!(:postgres)
 
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
       end
@@ -84,10 +87,6 @@ begin
     end
 
     describe "CRUD for serial Key" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "video_games"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "video_games_id_seq"')
-      end
 
       before do
         class VideoGame
@@ -96,14 +95,8 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
         end
-
-        @adapter.execute('CREATE SEQUENCE "video_games_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "video_games" (
-            "id" INT4 DEFAULT nextval('video_games_id_seq') NOT NULL,
-            "name" VARCHAR(50)
-          )
-        EOS
+        
+        VideoGame.auto_migrate!(:postgres)
       end
 
       it 'should be able to create a record' do
@@ -176,9 +169,6 @@ begin
     end
 
     describe "CRUD for Composite Key" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "bank_customers"')
-      end
 
       before do
         class BankCustomer
@@ -189,13 +179,7 @@ begin
           property :name, String
         end
 
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "bank_customers" (
-            "bank" VARCHAR(50),
-            "account_number" VARCHAR(50),
-            "name" VARCHAR(50)
-          )
-        EOS
+        BankCustomer.auto_migrate!(:postgres)
       end
 
       it 'should be able to create a record' do
@@ -267,10 +251,6 @@ begin
     end
 
     describe "Ordering a Query" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "sail_boats"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "sail_boats_id_seq"')
-      end
 
       before do
         class SailBoat
@@ -286,14 +266,7 @@ begin
           end
         end
 
-        @adapter.execute('CREATE SEQUENCE "sail_boats_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "sail_boats" (
-            "id" INT4 DEFAULT nextval('sail_boats_id_seq') NOT NULL,
-            "name" VARCHAR(50),
-            "port" VARCHAR(50)
-          )
-        EOS
+        SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
         repository(:postgres).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
@@ -327,10 +300,6 @@ begin
     end
 
     describe "Lazy Loaded Properties" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "sail_boats"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "sail_boats_id_seq"')
-      end
 
       before do
         class SailBoat
@@ -347,15 +316,7 @@ begin
           end
         end
 
-        @adapter.execute('CREATE SEQUENCE "sail_boats_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "sail_boats" (
-            "id" INT4 DEFAULT nextval('sail_boats_id_seq') NOT NULL,
-            "notes" VARCHAR(50),
-            "trip_report" VARCHAR(50),
-            "miles" INTEGER
-          )
-        EOS
+        SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres).save(SailBoat.new(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23))
         repository(:postgres).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
@@ -382,10 +343,6 @@ begin
     end
 
     describe "finders" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "serial_finder_specs"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "serial_finder_specs_id_seq"')
-      end
 
       before do
         class SerialFinderSpec
@@ -395,13 +352,7 @@ begin
           property :sample, String
         end
 
-        @adapter.execute('CREATE SEQUENCE "serial_finder_specs_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "serial_finder_specs" (
-            "id" INT4 DEFAULT nextval('serial_finder_specs_id_seq') NOT NULL,
-            "sample" VARCHAR(50)
-          )
-        EOS
+        SerialFinderSpec.auto_migrate!(:postgres)
 
         # Why do we keep testing with Repository instead of the models directly?
         # Just because we're trying to target the code we're actualling testing
@@ -442,13 +393,6 @@ begin
     end
 
     describe "many_to_one associations" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "engines"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "engines_id_seq"')
-
-        @adapter.execute('DROP TABLE IF EXISTS "yards"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "yards_id_seq"')
-      end
 
       before do
         class Engine
@@ -458,13 +402,7 @@ begin
           property :name, String
         end
 
-        @adapter.execute('CREATE SEQUENCE "engines_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "engines" (
-            "id" INT4 DEFAULT nextval('engines_id_seq') NOT NULL,
-            "name" VARCHAR(50)
-          )
-        EOS
+        Engine.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 1, 'engine1')
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 2, 'engine2')
@@ -474,20 +412,15 @@ begin
 
           property :id, Fixnum, :serial => true
           property :name, String
+          property :engine_id, Fixnum
 
           repository(:postgres) do
             many_to_one :engine
           end
         end
+        
 
-        @adapter.execute('CREATE SEQUENCE "yards_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "yards" (
-            "id" INT4 DEFAULT nextval('yards_id_seq') NOT NULL,
-            "name" VARCHAR(50),
-            "engine_id" INTEGER
-          )
-        EOS
+        Yard.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, ?)', 1, 'yard1', 1)
       end
@@ -541,13 +474,6 @@ begin
     end
 
     describe "one_to_many associations" do
-      before do
-        @adapter.execute('DROP TABLE IF EXISTS "hosts"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "hosts_id_seq"')
-
-        @adapter.execute('DROP TABLE IF EXISTS "slices"')
-        @adapter.execute('DROP SEQUENCE IF EXISTS "slices_id_seq"')
-      end
 
       before do
         class Host
@@ -560,14 +486,8 @@ begin
             one_to_many :slices
           end
         end
-
-        @adapter.execute('CREATE SEQUENCE "hosts_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "hosts" (
-            "id" INT4 DEFAULT nextval('hosts_id_seq') NOT NULL,
-            "name" VARCHAR(50)
-          )
-        EOS
+        
+        Host.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 2, 'host2')
@@ -577,20 +497,14 @@ begin
 
           property :id, Fixnum, :serial => true
           property :name, String
+          property :host_id, Fixnum
 
           repository(:postgres) do
             many_to_one :host
           end
         end
-
-        @adapter.execute('CREATE SEQUENCE "slices_id_seq"')
-        @adapter.execute(<<-EOS.compress_lines)
-          CREATE TABLE "slices" (
-            "id" INT4 DEFAULT nextval('slices_id_seq') NOT NULL,
-            "name" VARCHAR(50),
-            "host_id" INTEGER
-          )
-        EOS
+        
+        Slice.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 1, 'slice1', 1)
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)

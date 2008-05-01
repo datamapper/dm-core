@@ -11,13 +11,6 @@ begin
     describe 'when ordering' do
       before do
         @adapter = repository(:sqlite3).adapter
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "sail_boats" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50),
-            "port" VARCHAR(50)
-          )
-        EOS
 
         class SailBoat
           include DataMapper::Resource
@@ -31,6 +24,8 @@ begin
             end
           end
         end
+        
+        SailBoat.auto_migrate!(:sqlite3)
 
         repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
         repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
@@ -76,24 +71,6 @@ begin
       before do
         @adapter = repository(:sqlite3).adapter
 
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "sail_boats" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50),
-            "port" VARCHAR(50),
-            "captain" VARCHAR(50)
-          )
-        EOS
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "permissions" (
-            "id" INTEGER PRIMARY KEY,
-            "user_id" INTEGER,
-            "resource_id" INTEGER,
-            "resource_type" VARCHAR(50),
-            "token" VARCHAR(50)
-          )
-        EOS
-
         class Permission
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
@@ -110,6 +87,9 @@ begin
           property :port, String
           property :captain, String
         end
+
+        Permission.auto_migrate!(:sqlite3)
+        SailBoat.auto_migrate!(:sqlite3)
 
         repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "Fantasy I", :port => "Cape Town", :captain => 'Joe'))
         repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "Royal Flush II", :port => "Cape Town", :captain => 'James'))
@@ -160,26 +140,7 @@ begin
     describe 'when linking associated objects' do
       before do
         @adapter = repository(:sqlite3).adapter
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "regions" (
-            "id" INTEGER PRIMARY KEY,
-            "name" VARCHAR(50)
-          )
-        EOS
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "factories" (
-            "id" INTEGER PRIMARY KEY,
-            "region_id" INTEGER,
-            "name" VARCHAR(50)
-          )
-        EOS
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "vehicles" (
-            "id" INTEGER PRIMARY KEY,
-            "factory_id" INTEGER,
-            "name" VARCHAR(50)
-          )
-        EOS
+
         class Region
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
@@ -219,6 +180,10 @@ begin
             :sqlite3
           end
         end
+
+        Region.auto_migrate!
+        Factory.auto_migrate!
+        Vehicle.auto_migrate!
 
         Region.new(:id=>1,:name=>'North West').save
         Factory.new(:id=>2000,:region_id=>1,:name=>'North West Plant').save

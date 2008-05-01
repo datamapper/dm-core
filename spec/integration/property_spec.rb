@@ -30,18 +30,7 @@ begin
             # Potentially faster, but less safe, so use judiciously, when the odds of a hash-collision are low.
         end
 
-        @adapter.execute <<-EOS.compress_lines
-          CREATE TABLE actors (
-            id INTEGER PRIMARY KEY,
-            name TEXT,
-            notes TEXT,
-            age INTEGER,
-            rating INTEGER,
-            location TEXT,
-            lead BOOLEAN,
-            agent TEXT
-          )
-        EOS
+        Actor.auto_migrate!(:sqlite3)
       end
 
       it "false" do
@@ -91,14 +80,6 @@ begin
 
     describe "lazy loading" do
       before do
-        @adapter.execute(<<-EOS.compress_lines) rescue nil
-          CREATE TABLE "sail_boats" (
-            "id" INTEGER PRIMARY KEY,
-            "notes" VARCHAR(50),
-            "trip_report" VARCHAR(50),
-            "miles" INTEGER
-          )
-        EOS
 
         class SailBoat
           include DataMapper::Resource
@@ -113,6 +94,9 @@ begin
             end
           end
         end
+        
+        SailBoat.auto_migrate!(:sqlite3)
+        
         repository(:sqlite3).save(SailBoat.new(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23))
         repository(:sqlite3).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
         repository(:sqlite3).save(SailBoat.new(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23))

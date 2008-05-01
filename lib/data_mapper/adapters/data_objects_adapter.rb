@@ -213,6 +213,32 @@ module DataMapper
 
         affected_rows == 1
       end
+      
+      def create_model_storage(repository, model)
+        DataMapper.logger.debug "CREATE TABLE: #{model.storage_name(name)}  COLUMNS: #{model.properties.map {|p| p.field}.join(', ')}"
+
+        connection = create_connection
+        command = connection.create_command(create_table_statement(model))
+
+        result = command.execute_non_query
+
+        close_connection(connection)
+
+        result.to_i == 1
+      end
+      
+      def destroy_model_storage(repository, model)
+        DataMapper.logger.debug "DROP TABLE: #{model.storage_name(name)}"
+        
+        connection = create_connection
+        command = connection.create_command(drop_table_statement(model))
+
+        result = command.execute_non_query
+
+        close_connection(connection)
+
+        result.to_i == 1
+      end
 
       #
       # used by find_by_sql and read_set
@@ -358,6 +384,44 @@ module DataMapper
         end
         
         
+
+        def create_table_statement(model)
+          statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
+          statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p)) } * ', '}"
+          statement << ")"
+          statement.compress_lines
+        end
+
+        def drop_table_statement(model)
+          <<-EOS.compress_lines
+            DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}
+          EOS
+        end
+
+        def property_schema_hash(property)
+          schema = type_map[property.type].merge(:name => property.field)
+          schema[:primary_key?] = property.serial?
+          schema[:key?] = property.key? unless property.serial?
+          schema
+        end
+
+        def property_schema_statement(schema)
+          statement = quote_column_name(schema[:name])
+          statement << " #{schema[:primitive]}"
+          statement << "(#{schema[:size]})" if schema[:size]
+          statement << " PRIMARY KEY" if schema[:primary_key?]
+          statement
+        end
+        
+        def relationship_schema_hash(relationship)
+          identifier, relationship = relationship
+          
+          type_map[Fixnum].merge(:name => "#{identifier}_id") if identifier == relationship.name
+        end
+        
+        def relationship_schema_statement(hash)
+          property_schema_statement(hash) unless hash.nil?
+        end
 
         def query_read_statement(query)
           qualify = query.links.any?

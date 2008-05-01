@@ -57,4 +57,33 @@ describe DataMapper::Repository do
   it 'should return :default for default_name' do
     DataMapper::Repository.default_name.should == :default
   end
+  
+  describe "#migrate!" do
+    it "should call DataMapper::Migrator.migrate with itself as the repository argument" do
+      repository = repository(:repository_spec)
+      
+      DataMapper::Migrator.should_receive(:migrate).with(repository)
+      
+      repository.migrate!
+    end
+  end
+  
+  describe "#auto_migrate!" do
+    it "should call DataMapper::AutoMigrator.auto_migrate with itself as the repository argument" do
+      repository = repository(:repository_spec)
+      
+      DataMapper::AutoMigrator.should_receive(:auto_migrate).with(repository)
+      
+      repository.auto_migrate!
+    end
+  end
+  
+  describe "#map" do
+    it "should call @type_map.map with the arguments" do
+      repository = repository(:repository_spec)
+      repository.type_map.should_receive(:map).with(:type, :arg)
+      
+      repository.map(:type, :arg)
+    end
+  end
 end

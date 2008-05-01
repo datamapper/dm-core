@@ -14,7 +14,10 @@ module DataMapper
 
       attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention
-      attr_reader :transactions
+      
+      def type_map
+        self.class.type_map
+      end
 
       # method for accessing the current adapter class' type_map from the
       # adapter instance.
@@ -98,6 +101,30 @@ module DataMapper
       end
 
       def delete(repository, resource)
+        raise NotImplementedError
+      end
+      
+      def create_model_storage(repository, model)
+        raise NotImplementedError
+      end
+      
+      def destroy_model_storage(repository, model)
+        raise NotImplementedError
+      end
+      
+      def alter_model_storage(repository, *args)
+        raise NotImplementedError
+      end
+      
+      def create_property_storage(repository, property)
+        raise NotImplementedError
+      end
+      
+      def destroy_property_storage(repository, property)
+        raise NotImplementedError
+      end
+      
+      def alter_property_storage(repository, *args)
         raise NotImplementedError
       end
 

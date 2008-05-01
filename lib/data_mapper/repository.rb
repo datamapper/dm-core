@@ -14,7 +14,7 @@ module DataMapper
       :default
     end
 
-    attr_reader :name, :adapter
+    attr_reader :name, :adapter, :type_map
 
     def identity_map_get(model, key)
       @identity_maps[model][key]
@@ -90,6 +90,14 @@ module DataMapper
         false
       end
     end
+    
+    def migrate!
+      Migrator.migrate(self)
+    end
+    
+    def auto_migrate!
+      AutoMigrator.auto_migrate(self)
+    end
 
     #
     # Produce a new Transaction for this Repository.
@@ -104,6 +112,14 @@ module DataMapper
 
     def to_s
       "#<DataMapper::Repository:#{@name}>"
+    end
+    
+    def map(*args)
+      type_map.map(*args)
+    end
+
+    def type_map
+      @type_map ||= TypeMap.new(@adapter.type_map)
     end
 
     private

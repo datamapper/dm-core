@@ -14,6 +14,7 @@ module DataMapper
       base.extend DataMapper::Associations
       base.send(:include, DataMapper::Hook)
       base.send(:include, DataMapper::Scope)
+      base.send(:include, DataMapper::AutoMigrations)
       base.send(:include, DataMapper::Types)
       @@including_classes << base
     end
