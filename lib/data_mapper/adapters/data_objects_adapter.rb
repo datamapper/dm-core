@@ -508,7 +508,7 @@ module DataMapper
 
           sql
         rescue
-          DataMapper.logger.error { "QUERY INVALID: #{query.inspect}" }
+          DataMapper.logger.error("QUERY INVALID: #{query.inspect}")
           raise $!
         end
 
