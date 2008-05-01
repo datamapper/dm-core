@@ -235,6 +235,11 @@ module DataMapper
         base.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
         base.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
+      
+      def inherited(target)
+        target.instance_variable_set(:@storage_names, @storage_names.dup)
+        target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == :default ? self.properties(:default).dup(target) : h[:default].dup })
+      end
 
       #
       # Get the repository with a given name, or the default one for the current context, or the default one for this class.

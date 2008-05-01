@@ -307,19 +307,39 @@ describe "DataMapper::Resource" do
   end
   
   describe "inheritance" do
-    before do
-      # class Media
-      #   include DataMapper::Resource
-      #   property :name, String, :key => true
-      # end
-      # 
-      # class NewsPaper < Media
-      #   property :rating, Fixnum
-      # end
+    before(:all) do
+      
+      DataMapper.setup(:west_coast, "mock://localhost/mock") unless DataMapper::Repository.adapters[:west_coast]
+      DataMapper.setup(:east_coast, "mock://localhost/mock") unless DataMapper::Repository.adapters[:east_coast]
+      
+      class Media
+        include DataMapper::Resource
+        
+        storage_names[:default] = 'media'
+        storage_names[:west_coast] = 'm3d1a'
+        
+        property :name, String, :key => true
+      end
+      
+      class NewsPaper < Media
+        
+        storage_names[:east_coast] = 'mother'
+        
+        property :rating, Fixnum
+      end
     end
     
     it 'should inherit storage_names' do
-      pending
+      NewsPaper.storage_name(:default).should == 'media'
+      NewsPaper.storage_name(:west_coast).should == 'm3d1a'
+      NewsPaper.storage_name(:east_coast).should == 'mother'
+      Media.storage_name(:east_coast).should == 'medium'
+    end
+    
+    it 'should inherit properties' do
+      Media.properties.should have(1).entries
+      p NewsPaper.properties
+      NewsPaper.properties.should have(2).entries
     end
   end
 end

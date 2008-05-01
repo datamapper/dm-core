@@ -104,8 +104,8 @@ describe DataMapper::Property do
   end
 
   it "should return an instance variable name" do
-   DataMapper::Property.new(Tomato,:flavor,String,{}).instance_variable_name.should == '@flavor'
-   DataMapper::Property.new(Tomato,:ripe,TrueClass,{}).instance_variable_name.should == '@ripe' #not @ripe?
+   DataMapper::Property.new(Tomato, :flavor, String, {}).instance_variable_name.should == '@flavor'
+   DataMapper::Property.new(Tomato, :ripe, TrueClass, {}).instance_variable_name.should == '@ripe' #not @ripe?
   end
 
   it "should append ? to TrueClass property reader methods" do
