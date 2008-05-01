@@ -22,6 +22,14 @@ begin
           # Automigrate should add fields for all subclasses of an STI-model, but currently it does not.
         end
         
+        class Mugger < Bully
+          
+        end
+        
+        class Maniac < Bully
+          
+        end
+        
         class Geek < Male
           property :awkward, Boolean, :default => true
         end
@@ -34,13 +42,15 @@ begin
           Geek.create!(:name => 'Steve', :awkward => false, :iq => 132)
           Geek.create!(:name => 'Bill', :iq => 150)
           Bully.create!(:name => 'Johnson')
+          Mugger.create!(:name => 'Frank')
+          Maniac.create!(:name => 'William')
         end
       end
       
       it "should select appropriate types" do
         repository(:sqlite3) do
           males = Male.all
-          males.should have(5).entries
+          males.should have(7).entries
           
           males.each do |male|
             male.class.name.should == male.type.name
@@ -61,6 +71,16 @@ begin
           Male.first(:name => 'John Dorian').should be_a_kind_of(Male)
           Geek.first(:name => 'John Dorian').should be_nil
           Geek.first.iq.should > Bully.first.iq # now its matching Male#1 against Male#1        
+        end
+      end
+      
+      it "should select objects of all subtypes of type" do
+        pending("Implementation...")
+        repository(:sqlite3) do
+          Male.all.should have(7).entries
+          Bully.all.should have(3).entries
+          Mugger.all.should have(1).entries
+          Maniac.all.should have(1).entries    
         end
       end
     end
