@@ -35,6 +35,7 @@ module DataMapper
       else
         Query.new(self, model, options.merge(:limit => 1))
       end
+
       @adapter.read_set(self, query).first
     end
 

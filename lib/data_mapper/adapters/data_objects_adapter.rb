@@ -383,8 +383,6 @@ module DataMapper
           EOS
         end
         
-        
-
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
           statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p)) } * ', '}"
@@ -480,10 +478,11 @@ module DataMapper
               #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
               #end            
               #
-              model_name = property.model.storage_name(query.repository.name)            
+              model_name = property.model.storage_name(query.repository.name) if property && property.respond_to?(:model)
               case operator
-                when :eql, :in then equality_operator(query,model_name,operator, property, qualify, value)
-                when :not      then inequality_operator(query,model_name,operator, property, qualify, value)
+                when String then operator
+                when :eql, :in then equality_operator(query, model_name,operator, property, qualify, value)
+                when :not      then inequality_operator(query, model_name,operator, property, qualify, value)
                 when :like     then "#{property_to_column_name(model_name, property, qualify)} LIKE ?"
                 when :gt       then "#{property_to_column_name(model_name, property, qualify)} > ?"
                 when :gte      then "#{property_to_column_name(model_name, property, qualify)} >= ?"

@@ -32,6 +32,18 @@ begin
         repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "C", :port => "A"))
       end
 
+      it "should find by conditions" do
+        lambda do
+          repository(:sqlite3).first(SailBoat, :conditions => ['name = ?', 'B'])
+        end.should_not raise_error
+        
+        lambda do
+          repository(:sqlite3) do
+            SailBoat.first(:conditions => ['name = ?', 'A'])
+          end
+        end.should_not raise_error
+      end
+      
       it "should order results" do
         result = repository(:sqlite3).all(SailBoat,{:order => [
               DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
