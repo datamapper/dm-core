@@ -507,6 +507,9 @@ module DataMapper
           sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
 
           sql
+        rescue
+          DataMapper.logger.error { "QUERY INVALID: #{query.inspect}" }
+          raise $!
         end
 
         def equality_operator(query, model_name, operator, property, qualify, value)

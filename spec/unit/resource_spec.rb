@@ -305,4 +305,21 @@ describe "DataMapper::Resource" do
       end.should raise_error(DataMapper::ObjectNotFoundError)
     end
   end
+  
+  describe "inheritance" do
+    before do
+      # class Media
+      #   include DataMapper::Resource
+      #   property :name, String, :key => true
+      # end
+      # 
+      # class NewsPaper < Media
+      #   property :rating, Fixnum
+      # end
+    end
+    
+    it 'should inherit storage_names' do
+      pending
+    end
+  end
 end
