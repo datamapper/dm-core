@@ -435,7 +435,7 @@ begin
         repository(:postgres).save(y)
 
         y = repository(:postgres).all(Yard, :id => 1).first
-        y[:engine_id].should == 2
+        y.engine_id.should == 2
       end
 
       it "#many_to_one" do
@@ -457,7 +457,7 @@ begin
           r.save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
         end
 
-        repository(:postgres).all(Yard, :id => 2).first[:engine_id].should == 2
+        repository(:postgres).all(Yard, :id => 2).first.engine_id.should == 2
       end
 
       it 'should save the parent upon saving of child' do
@@ -466,7 +466,7 @@ begin
           y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
           r.save(y)
           
-          y[:engine_id].should == 10
+          y.engine_id.should == 10
         end
 
         repository(:postgres).all(Engine, :id => 10).first.should_not be_nil
@@ -524,7 +524,7 @@ begin
 
         s = repository(:postgres).first(Slice, :id => s.id)
         s.host.should be_nil
-        s[:host_id].should be_nil
+        s.host_id.should be_nil
       end
 
       it "should load the associated instances" do
