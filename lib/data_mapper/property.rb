@@ -236,7 +236,7 @@ module DataMapper
 
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
 
-    attr_reader :primitive, :model, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options
+    attr_reader :primitive, :model, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options, :default
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -248,6 +248,12 @@ module DataMapper
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
+
+    def length
+      @options[:length] || @options[:size]
+    end
+
+    alias size length
 
     def repository
       @model.repository
@@ -326,7 +332,7 @@ module DataMapper
     # @private
     def get(resource)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      resource[@name]
+      resource.attribute_get(@name)
     end
 
     # Provides a standardized setter method for the property
@@ -338,7 +344,7 @@ module DataMapper
     # @private
     def set(resource, value)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      resource[@name] = value
+      resource.attribute_set(@name, value)
     end
 
     # typecasts values into a primitive
@@ -362,14 +368,8 @@ module DataMapper
       end
     end
 
-    def default(resource)
-      if options[:default].class == Proc
-        value = options[:default].call(resource, self)
-      else
-        value = options[:default]
-      end
-
-      value
+    def default_for(resource)
+      @default.respond_to?(:call) ? @default.call(resource, self) : @default
     end
 
     def inspect
@@ -401,10 +401,11 @@ module DataMapper
       @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
 
-      @lock     = @options.fetch(:lock,   false)
-      @serial   = @options.fetch(:serial, false)
-      @key      = (@options[:key] || @serial) == true
-      @nullable = @options[:nullable] || @key
+      @lock     = @options.fetch(:lock,     false)
+      @serial   = @options.fetch(:serial,   false)
+      @key      = @options.fetch(:key,      @serial)
+      @nullable = @options.fetch(:nullable, @key == false)
+      @default  = @options.fetch(:default,  nil)
 
       determine_visibility
 
@@ -429,7 +430,7 @@ module DataMapper
         @model.class_eval <<-EOS, __FILE__, __LINE__
           #{reader_visibility}
           def #{@name}
-            self[#{name.inspect}]
+            self.attribute_get(#{name.inspect})
           end
         EOS
       end
@@ -437,7 +438,7 @@ module DataMapper
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{reader_visibility}
         def #{@getter}
-          self[#{name.inspect}]
+          self.attribute_get(#{name.inspect})
         end
       EOS
     end
@@ -447,7 +448,7 @@ module DataMapper
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{writer_visibility}
         def #{name}=(value)
-          self[#{name.inspect}] = value
+          self.attribute_set(#{name.inspect}, value)
         end
       EOS
     end

@@ -9,7 +9,7 @@ require 'data_objects'
 module DataMapper
 
   module Resource
-    
+
     module ClassMethods
       #
       # Find instances by manually providing SQL
@@ -95,15 +95,16 @@ module DataMapper
       # DataMapper::TypeMap:: default TypeMap for data object adapters.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
-          tm.map(Fixnum).to(:int)
-          tm.map(String).to(:varchar)
-          tm.map(Class).to(:varchar)
-          tm.map(BigDecimal).to(:decimal)
-          tm.map(Float).to(:float)
-          tm.map(DateTime).to(:datetime)
-          tm.map(Date).to(:date)
-          tm.map(TrueClass).to(:boolean)
-          tm.map(Object).to(:text)
+          tm.map(Fixnum).to('INT')
+          tm.map(String).to('VARCHAR').with(:size => 50)
+          tm.map(Class).to('VARCHAR').with(:size => 50)
+          tm.map(BigDecimal).to('DECIMAL')
+          tm.map(Float).to('FLOAT')
+          tm.map(DateTime).to('DATETIME')
+          tm.map(Date).to('DATE')
+          tm.map(TrueClass).to('BOOLEAN')
+          tm.map(Object).to('TEXT')
+          tm.map(DM::Text).to('TEXT')
         end
       end
 
@@ -181,7 +182,7 @@ module DataMapper
 
       def update(repository, resource)
         properties = resource.dirty_attributes
-        
+
         if properties.empty?
           return false
         else
@@ -189,14 +190,14 @@ module DataMapper
           values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
           parameters = (values + resource.key)
           DataMapper.logger.debug("UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}")
-          
+
           connection = create_connection
           command = connection.create_command(sql)
-          
+
           affected_rows = command.execute_non_query(*parameters).to_i
-          
+
           close_connection(connection)
-          
+
           affected_rows == 1
         end
       end
@@ -213,12 +214,14 @@ module DataMapper
 
         affected_rows == 1
       end
-      
+
       def create_model_storage(repository, model)
-        DataMapper.logger.debug "CREATE TABLE: #{model.storage_name(name)}  COLUMNS: #{model.properties.map {|p| p.field}.join(', ')}"
+        sql = create_table_statement(model)
+
+        DataMapper.logger.debug "CREATE TABLE: #{sql}"
 
         connection = create_connection
-        command = connection.create_command(create_table_statement(model))
+        command = connection.create_command(sql)
 
         result = command.execute_non_query
 
@@ -226,12 +229,14 @@ module DataMapper
 
         result.to_i == 1
       end
-      
+
       def destroy_model_storage(repository, model)
-        DataMapper.logger.debug "DROP TABLE: #{model.storage_name(name)}"
-        
+        sql = drop_table_statement(model)
+
+        DataMapper.logger.debug "DROP TABLE: #{sql}"
+
         connection = create_connection
-        command = connection.create_command(drop_table_statement(model))
+        command = connection.create_command(sql)
 
         result = command.execute_non_query
 
@@ -281,11 +286,11 @@ module DataMapper
 
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
-        read_set_with_sql(repository, 
-                          query.model, 
-                          query.fields, 
-                          query_read_statement(query), 
-                          query.parameters, 
+        read_set_with_sql(repository,
+                          query.model,
+                          query.fields,
+                          query_read_statement(query),
+                          query.parameters,
                           query.reload?)
       end
 
@@ -382,12 +387,15 @@ module DataMapper
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
         end
-        
-        
 
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
           statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p)) } * ', '}"
+
+          if (key = model.properties.key).any?
+            statement << ", PRIMARY KEY(#{ key.collect { |p| p.field } * ', '})"
+          end
+
           statement << ")"
           statement.compress_lines
         end
@@ -400,8 +408,12 @@ module DataMapper
 
         def property_schema_hash(property)
           schema = type_map[property.type].merge(:name => property.field)
-          schema[:primary_key?] = property.serial?
-          schema[:key?] = property.key? unless property.serial?
+          # TODO: figure out a way to remove size parameters, like those for DM::Text
+          # TODO: figure out a way to specify the size not be included, even if a default is defined in the typemap
+          schema[:size]      = property.length if property.length && property.type != DM::Text
+          schema[:nullable?] = property.nullable?
+          schema[:serial?]   = property.serial?
+          schema[:default]   = property.default if property.default && !property.default.respond_to?(:call)
           schema
         end
 
@@ -409,16 +421,17 @@ module DataMapper
           statement = quote_column_name(schema[:name])
           statement << " #{schema[:primitive]}"
           statement << "(#{schema[:size]})" if schema[:size]
-          statement << " PRIMARY KEY" if schema[:primary_key?]
+          statement << " NOT NULL"          unless schema[:nullable?]
+          statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema[:default]
           statement
         end
-        
+
         def relationship_schema_hash(relationship)
           identifier, relationship = relationship
-          
+
           type_map[Fixnum].merge(:name => "#{identifier}_id") if identifier == relationship.name
         end
-        
+
         def relationship_schema_statement(hash)
           property_schema_statement(hash) unless hash.nil?
         end
@@ -428,13 +441,13 @@ module DataMapper
 
           sql = "SELECT "
 
-          sql << query.fields.map do |property|                      
-            # TODO Should we raise an error if there is no such property in the 
+          sql << query.fields.map do |property|
+            # TODO Should we raise an error if there is no such property in the
             #      repository of the query?
-            # 
+            #
             #if property.model.properties(query.repository.name)[property.name].nil?
             #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
-            #end            
+            #end
             #
             model_name = property.model.storage_name(query.repository.name)
             property_to_column_name(model_name, property, qualify)
@@ -473,17 +486,18 @@ module DataMapper
           unless query.conditions.empty?
             sql << " WHERE "
             sql << "(" << query.conditions.map do |operator, property, value|
-              # TODO Should we raise an error if there is no such property in the 
+              # TODO Should we raise an error if there is no such property in the
               #      repository of the query?
-              # 
+              #
               #if property.model.properties(query.repository.name)[property.name].nil?
               #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
-              #end            
+              #end
               #
-              model_name = property.model.storage_name(query.repository.name)            
+              model_name = property.model.storage_name(query.repository.name) if property && property.respond_to?(:model)
               case operator
-                when :eql, :in then equality_operator(query,model_name,operator, property, qualify, value)
-                when :not      then inequality_operator(query,model_name,operator, property, qualify, value)
+                when String then operator
+                when :eql, :in then equality_operator(query, model_name,operator, property, qualify, value)
+                when :not      then inequality_operator(query, model_name,operator, property, qualify, value)
                 when :like     then "#{property_to_column_name(model_name, property, qualify)} LIKE ?"
                 when :gt       then "#{property_to_column_name(model_name, property, qualify)} > ?"
                 when :gte      then "#{property_to_column_name(model_name, property, qualify)} >= ?"
@@ -507,6 +521,9 @@ module DataMapper
           sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
 
           sql
+        rescue
+          DataMapper.logger.error("QUERY INVALID: #{query.inspect}")
+          raise $!
         end
 
         def equality_operator(query, model_name, operator, property, qualify, value)
@@ -548,6 +565,23 @@ module DataMapper
 
       def quote_column_name(column_name)
         "\"#{column_name.gsub('"', '""')}\""
+      end
+
+      def quote_column_value(column_value)
+        case column_value
+          when String
+            if column_value.to_i == column_value || column_value.to_f == column_value
+              column_value
+            else
+              "\"#{column_value.gsub('"', '""')}\""
+            end
+          when BigDecimal
+            column_value.to_s('F')
+          when NilClass
+            'NULL'
+          else
+            column_value
+        end
       end
 
       protected

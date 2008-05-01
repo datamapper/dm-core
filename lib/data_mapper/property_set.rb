@@ -99,8 +99,17 @@ module DataMapper
       '#<PropertySet:{' + map { |property| property.inspect }.join(',') + '}>'
     end
 
+    alias r__dup dup
+    def dup(target = nil)
+      if target
+        self.class.new(map { |property| Property.new(target || property.model, property.name, property.type, property.options) })
+      else
+        r__dup
+      end
+    end
+    
     private
-
+    
     def initialize(properties = [])
       raise ArgumentError, "+properties+ should be an Array, but was #{properties.class}", caller unless Array === properties
 
@@ -127,5 +136,6 @@ module DataMapper
     def lazy_contexts
       @lazy_contexts ||= Hash.new { |h,context| h[context] = [] }
     end
+
   end # class PropertySet
 end # module DataMapper

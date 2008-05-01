@@ -39,6 +39,15 @@ describe DataMapper::Repository do
 
     repository.save(instance)
   end
+  
+  it 'should not #save when not dirty' do
+    repository = repository(:repository_spec)
+    instance = Vegetable.new
+    
+    @adapter.should_not_receive(:create)
+    
+    repository.save(instance).should be_true
+  end
 
   it 'should call #update when #save is called on an existing record' do
     repository = repository(:repository_spec)

@@ -3,13 +3,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 begin
   gem 'do_postgres', '=0.9.0'
   require 'do_postgres'
-  
+
   gem 'do_mysql', '=0.9.0'
   require 'do_mysql'
-  
+
   DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://127.0.0.1/dm_core_test")
   DataMapper.setup(:mysql, ENV["MYSQL_SPEC_URI"] || "mysql://127.0.0.1/dm_core_test")
-  
+
   class Sputnik
     include DataMapper::Resource
 
@@ -20,14 +20,14 @@ begin
   describe DataMapper::Transaction do
     before :each do
       @adapter1 = repository(:postgres).adapter
-      
+
       Sputnik.auto_migrate!(:postgres)
-      
+
       @adapter2 = repository(:mysql).adapter
-      
+
       Sputnik.auto_migrate!(:mysql)
     end
-    
+
     it "should commit changes to all involved adapters on a two phase commit" do
       DataMapper::Transaction.new(@adapter1, @adapter2) do
         @adapter1.execute("INSERT INTO sputniks (name) VALUES ('hepp')")
@@ -38,7 +38,7 @@ begin
     end
 
     it "should not commit any changes if the block raises an exception" do
-      lambda do 
+      lambda do
         DataMapper::Transaction.new(@adapter1, @adapter2) do
           @adapter1.execute("INSERT INTO sputniks (name) VALUES ('hepp')")
           @adapter2.execute("INSERT INTO sputniks (name) VALUES ('hepp')")

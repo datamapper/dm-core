@@ -14,20 +14,23 @@ module DataMapper
       # DataMapper::TypeMap:: default TypeMap for MySql databases.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
-          tm.map(String).with(:size => 100)
-          tm.map(DM::Text).to(:text)
-          tm.map(Class).with(:size => 100)
+          tm.map(Fixnum).to('INT').with(:size => 11)
+          tm.map(TrueClass).to('TINYINT').with(:size => 1)  # TODO: map this to a BIT or CHAR(0) field?
+          tm.map(Object).to('TEXT')
         end
       end
 
-      def create_table_statement_with_engine(model)
-        "#{create_table_statement_without_engine(model)} ENGINE = innodb"
+      def create_table_statement(model)
+        "#{super} ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci"
       end
 
-      alias_method :create_table_statement_without_engine, :create_table_statement
-      alias_method :create_table_statement, :create_table_statement_with_engine
-
       private
+
+      def property_schema_statement(schema)
+        statement = super
+        statement << " AUTO_INCREMENT" if schema[:serial?]
+        statement
+      end
 
       def quote_table_name(table_name)
         "`#{table_name}`"

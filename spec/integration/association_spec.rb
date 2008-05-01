@@ -101,7 +101,7 @@ begin
         repository(:sqlite3).save(y)
 
         y = repository(:sqlite3).all(Yard, :id => 1).first
-        y[:engine_id].should == 2
+        y.engine_id.should == 2
       end
 
       it "#many_to_one" do
@@ -123,7 +123,7 @@ begin
           repository(:sqlite3).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
         end
 
-        repository(:sqlite3).all(Yard, :id => 2).first[:engine_id].should == 2
+        repository(:sqlite3).all(Yard, :id => 2).first.engine_id.should == 2
       end
 
       it 'should save the parent upon saving of child' do
@@ -134,7 +134,7 @@ begin
           r.save(y)
         end
 
-        y[:engine_id].should == 10
+        y.engine_id.should == 10
         repository(:sqlite3).all(Engine, :id => 10).first.should_not be_nil
       end
 
@@ -165,10 +165,10 @@ begin
         s.pie = p
 
         p1 = repository(:sqlite3).first(Pie, :id => 1)
-        p1[:sky_id].should be_nil
+        p1.sky_id.should be_nil
 
         p2 = repository(:sqlite3).first(Pie, :id => 2)
-        p2[:sky_id].should == 1
+        p2.sky_id.should == 1
       end
 
       it "#one_to_one" do
@@ -190,7 +190,7 @@ begin
           r.save(Sky.new(:id => 2, :name => 'sky2', :pie => p))
         end
 
-        repository(:sqlite3).first(Pie, :id => 2)[:sky_id].should == 2
+        repository(:sqlite3).first(Pie, :id => 2).sky_id.should == 2
       end
 
       it 'should save the children upon saving of parent' do
@@ -200,7 +200,7 @@ begin
 
           r.save(s)
 
-          p[:sky_id].should == 10
+          p.sky_id.should == 10
         end
 
         repository(:sqlite3).first(Pie, :id => 10).should_not be_nil
@@ -241,7 +241,7 @@ begin
 
         s = repository(:sqlite3).first(Slice, :id => s.id)
         s.host.should be_nil
-        s[:host_id].should be_nil
+        s.host_id.should be_nil
       end
 
       it "should load the associated instances" do

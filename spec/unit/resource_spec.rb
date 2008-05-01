@@ -41,6 +41,13 @@ describe "DataMapper::Resource" do
         :legacy
       end
     end
+    
+    class Phone
+      include DataMapper::Resource
+      
+      property :name, String, :key => true
+      property :awesomeness, Fixnum
+    end
   end
 
   it "should hold repository-specific properties" do
@@ -103,6 +110,7 @@ describe "DataMapper::Resource" do
     #     instance_variable_defined?("@#{name}")
     #   end
     mars.attribute_loaded?(:name).should be_true
+    mars.attribute_dirty?(:id).should be_false
     mars.attribute_dirty?(:name).should be_true
     mars.attribute_loaded?(:age).should be_false
 
@@ -115,16 +123,22 @@ describe "DataMapper::Resource" do
     #    mars.attribute_loaded?(:age).should be_true
 
     # A value should be able to be both loaded and nil.
-    mars[:age].should be_nil
+    mars.attribute_get(:age).should be_nil
 
     # Unless you call #[]= it's not dirty.
     mars.attribute_dirty?(:age).should be_false
 
-    mars[:age] = 30
+    mars.attribute_set(:age, 30)
     # Obviously. :-)
     mars.attribute_dirty?(:age).should be_true
 
     mars.should respond_to(:shadow_attribute_get)
+  end
+  
+  it "should mark the key as dirty, if it is a natural key and has been set" do
+    phone = Phone.new
+    phone.name = 'iPhone'
+    phone.attribute_dirty?(:name).should be_true
   end
 
   it 'should return the dirty attributes' do
@@ -153,8 +167,8 @@ describe "DataMapper::Resource" do
     mars.instance_variable_set('@name', 'Mars')
     mars.instance_variable_set('@new_record', false)
 
-    mars[:name] = 'God of War'
-    mars[:name].should == 'God of War'
+    mars.attribute_set(:name, 'God of War')
+    mars.attribute_get(:name).should == 'God of War'
     mars.name.should == 'God of War'
     mars.shadow_attribute_get(:name).should == 'Mars'
   end
@@ -289,6 +303,42 @@ describe "DataMapper::Resource" do
       lambda do
         Planet[1]
       end.should raise_error(DataMapper::ObjectNotFoundError)
+    end
+  end
+  
+  describe "inheritance" do
+    before(:all) do
+      
+      DataMapper.setup(:west_coast, "mock://localhost/mock") unless DataMapper::Repository.adapters[:west_coast]
+      DataMapper.setup(:east_coast, "mock://localhost/mock") unless DataMapper::Repository.adapters[:east_coast]
+      
+      class Media
+        include DataMapper::Resource
+        
+        storage_names[:default] = 'media'
+        storage_names[:west_coast] = 'm3d1a'
+        
+        property :name, String, :key => true
+      end
+      
+      class NewsPaper < Media
+        
+        storage_names[:east_coast] = 'mother'
+        
+        property :rating, Fixnum
+      end
+    end
+    
+    it 'should inherit storage_names' do
+      NewsPaper.storage_name(:default).should == 'media'
+      NewsPaper.storage_name(:west_coast).should == 'm3d1a'
+      NewsPaper.storage_name(:east_coast).should == 'mother'
+      Media.storage_name(:east_coast).should == 'medium'
+    end
+    
+    it 'should inherit properties' do
+      Media.properties.should have(1).entries
+      NewsPaper.properties.should have(2).entries
     end
   end
 end

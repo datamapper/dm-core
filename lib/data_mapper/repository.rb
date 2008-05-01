@@ -35,6 +35,7 @@ module DataMapper
       else
         Query.new(self, model, options.merge(:limit => 1))
       end
+
       @adapter.read_set(self, query).first
     end
 
@@ -53,23 +54,32 @@ module DataMapper
       success = if resource.new_record?
         resource.class.properties(self.name).each do |property|
           if property.options[:default] && !resource.instance_variable_defined?(property.instance_variable_name)
-            resource[property.name] = property.default(resource)
+            resource.attribute_set(property.name, property.default_for(resource))
           end
         end
-        if @adapter.create(self, resource)
-          identity_map_set(resource)
-          resource.instance_variable_set(:@new_record, false)
-          resource.dirty_attributes.clear
-          true
+        
+        if resource.dirty?
+          if  @adapter.create(self, resource)
+            identity_map_set(resource)
+            resource.instance_variable_set(:@new_record, false)
+            resource.dirty_attributes.clear
+            true
+          else
+            false
+          end
         else
-          false
+          true
         end
       else
-        if @adapter.update(self, resource)
-          resource.dirty_attributes.clear
-          true
+        if resource.dirty?
+          if @adapter.update(self, resource)
+            resource.dirty_attributes.clear
+            true
+          else
+            false
+          end
         else
-          false
+          true
         end
       end
 

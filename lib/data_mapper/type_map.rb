@@ -39,7 +39,7 @@ module DataMapper
       lookup(type.primitive).merge(Type::PROPERTY_OPTIONS.inject({}) {|h, k| h[k] = type.send(k); h})
     end
     
-    alias_method :[], :lookup
+    alias [] lookup
     
     def type_mapped?(type)
       @chains.has_key?(type) || (@parent.nil? ? false : @parent.type_mapped?(type))

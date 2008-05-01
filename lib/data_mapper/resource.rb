@@ -35,7 +35,7 @@ module DataMapper
 
     attr_accessor :collection
 
-    def [](name)
+    def attribute_get(name)
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
@@ -46,13 +46,13 @@ module DataMapper
       value = instance_variable_get(ivar_name)
 
       if value.nil? && new_record? && !property.options[:default].nil?
-        value = property.default(self)
+        value = property.default_for(self)
       end
 
       property.custom? ? property.type.load(value, property) : value
     end
 
-    def []=(name, value)
+    def attribute_set(name, value)
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
@@ -235,6 +235,11 @@ module DataMapper
         base.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
         base.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
+      
+      def inherited(target)
+        target.instance_variable_set(:@storage_names, @storage_names.dup)
+        target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == :default ? self.properties(:default).dup(target) : h[:default].dup })
+      end
 
       #
       # Get the repository with a given name, or the default one for the current context, or the default one for this class.
@@ -331,6 +336,12 @@ module DataMapper
         resource = allocate
         resource.send(:initialize_with_attributes, values)
         resource.save
+        resource
+      end
+      
+      def create!(values)
+        resource = create(values)
+        raise PersistenceError, "Resource not saved: :new_record => #{resource.new_record?}, :dirty_attributes => #{resource.dirty_attributes.inspect}" if resource.new_record?
         resource
       end
 
