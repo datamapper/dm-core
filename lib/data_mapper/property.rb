@@ -326,7 +326,7 @@ module DataMapper
     # @private
     def get(resource)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      resource[@name]
+      resource.attribute_get(@name)
     end
 
     # Provides a standardized setter method for the property
@@ -338,7 +338,7 @@ module DataMapper
     # @private
     def set(resource, value)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
-      resource[@name] = value
+      resource.attribute_set(@name, value)
     end
 
     # typecasts values into a primitive
@@ -429,7 +429,7 @@ module DataMapper
         @model.class_eval <<-EOS, __FILE__, __LINE__
           #{reader_visibility}
           def #{@name}
-            self[#{name.inspect}]
+            self.attribute_get(#{name.inspect})
           end
         EOS
       end
@@ -437,7 +437,7 @@ module DataMapper
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{reader_visibility}
         def #{@getter}
-          self[#{name.inspect}]
+          self.attribute_get(#{name.inspect})
         end
       EOS
     end
@@ -447,7 +447,7 @@ module DataMapper
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{writer_visibility}
         def #{name}=(value)
-          self[#{name.inspect}] = value
+          self.attribute_set(#{name.inspect}, value)
         end
       EOS
     end
