@@ -88,7 +88,7 @@ module DataMapper
           @property = @model.properties(@model.repository.name)[method]
           return self
         end
-        super
+        raise NoMethodError, "undefined property or association `#{method}' on #{@model}"
       end      
 
       # duck type the DM::Query::Path to act like a DM::Property
@@ -379,6 +379,11 @@ module DataMapper
       property = case clause
         when Property
           clause
+        when String
+          append_condition(clause.split(".").inject(@model) do |s,piece|
+            s.send(piece)
+          end, value)
+          return
         when Query::Path
           validate_query_path_links(clause)
           clause
