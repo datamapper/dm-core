@@ -26,7 +26,7 @@ module DataMapper
     end # class Direction
 
     class Operator
-      attr_reader :property_name, :type
+      attr_reader :target, :operator
 
       def to_sym
         @property_name
@@ -34,12 +34,13 @@ module DataMapper
 
       private
 
-      def initialize(property_name, type)
-        raise ArgumentError, "+property_name+ is not a Symbol, but was #{property_name.class}", caller unless Symbol === property_name
-        raise ArgumentError, "+type+ is not a Symbol, but was #{type.class}", caller                   unless Symbol === type
+      def initialize(target, operator)
+        unless Symbol === operator
+          raise ArgumentError, "+operator+ is not a Symbol, but was #{type.class}", caller
+        end
 
-        @property_name = property_name
-        @type          = type
+        @target     = target
+        @operator   = operator
       end
     end # class Operator
 
@@ -64,8 +65,7 @@ module DataMapper
         
         self.class_eval <<-RUBY
           def #{sym}
-            @operator = :#{sym}
-            self
+            Operator.new(self, :#{sym})
           end
         RUBY
         
@@ -381,11 +381,15 @@ module DataMapper
           clause
         when Query::Path
           validate_query_path_links(clause)
-          operator = clause.operator || :eql
           clause
         when Operator
-          operator = clause.type
-          @properties[clause.to_sym]
+          operator = clause.operator
+          if clause.target.is_a?(Symbol)
+            @properties[clause.target]
+          elsif clause.target.is_a?(Query::Path)
+            validate_query_path_links(clause.target)
+            clause.target
+          end
         when Symbol, String
           @properties[clause]
         else
