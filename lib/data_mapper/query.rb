@@ -45,7 +45,7 @@ module DataMapper
 
     class Path
 
-      attr_reader :relationships, :model, :property
+      attr_reader :relationships, :model, :property, :operator
 
 
       def initialize(repository, relationships, model, property_name = nil)  
@@ -58,6 +58,17 @@ module DataMapper
         @relationships = relationships
         @model         = model
         @property      = @model.properties(@repository.name)[property_name] if property_name
+      end
+
+      [:gt, :gte, :lt, :lte, :not, :eql, :like, :in].each do |sym|
+        
+        self.class_eval <<-RUBY
+          def #{sym}
+            @operator = :#{sym}
+            self
+          end
+        RUBY
+        
       end
 
       def method_missing(method, *args)
@@ -370,6 +381,7 @@ module DataMapper
           clause
         when Query::Path
           validate_query_path_links(clause)
+          operator = clause.operator || :eql
           clause
         when Operator
           operator = clause.type
