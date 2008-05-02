@@ -282,34 +282,52 @@ begin
         s.host.id.should == 10
       end
 
-      #      describe '#through' do
-      #        before(:all) do
-      #          class Cake
-      #            property :id, Fixnum, :serial => true
-      #            property :name, String
-      #            has :slices, 1..n
-      #          end
-      #
-      #          @adapter.execute(<<-EOS.compress_lines)
-      #          CREATE TABLE "cakes" (
-      #            "id" INTEGER PRIMARY KEY,
-      #            "name" VARCHAR(50)
-      #          )
-      #          EOS
-      #
-      #          @adapter.execute('INSERT INTO "cakes" ("id", "name") values (?, ?)', 1, 'cake1', 1)
-      #          @adapter.execute('INSERT INTO "cakes" ("id", "name") values (?, ?)', 2, 'cake2', 1)
-      #
-      #          class Slice
-      #            has :cake, n..1
-      #          end
-      #        end
-      #        
-      #      end
+      describe '#through' do
+        before(:all) do
+          module Sweets
+            class Shop
+              include DataMapper::Resource
+              property :id, Fixnum, :serial => true
+              property :name, String
+              has n, :cakes, :class_name => 'Sweets::Cake'
+              has n, :slices => :cakes
+            end
+            
+            class Cake
+              include DataMapper::Resource
+              property :id, Fixnum, :serial => true
+              property :name, String
+              has n, :slices, :class_name => 'Sweets::Slice'
+            end
+            
+            class Slice
+              include DataMapper::Resource
+              property :id, Fixnum, :serial => true
+              property :size, Fixnum
+              belongs_to :cake, :class_name => 'Sweets::Cake'
+            end
+            
+            # repository(:sqlite3) do
+            #   Shop.auto_migrate!(:sqlite3)
+            #   Cake.auto_migrate!(:sqlite3)
+            #   Slice.auto_migrate!(:sqlite3)
+            # 
+            #   betsys = Shop.new(:name => "Betsy's")
+            #   german_chocolate = betsys.cakes << Cake.new(:name => 'German Chocolate')
+            #   10.times { |i| german_chocolate.slices << Slice.new(:size => i) }
+            # 
+            #   short_cake = betsys.cakes << Cake.new(:name => 'Short Cake')
+            #   5.times { |i| short_cake.slices << Slice.new(:size => i) }
+            # 
+            #   betsys.save!
+            # end
+          end
+        end
 
-      after do
-        @adapter.execute('DROP TABLE "slices"')
-        @adapter.execute('DROP TABLE "hosts"')
+        it "should be amazing" do
+          pending
+          Sweets::Shop.first.cakes.should have(2).entries
+        end
       end
     end
   end

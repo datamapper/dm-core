@@ -363,7 +363,7 @@ module DataMapper
       elsif type == BigDecimal then BigDecimal.new(value.to_s)
       elsif type == DateTime   then DateTime.parse(value.to_s)
       elsif type == Date       then Date.parse(value.to_s)
-      elsif type == Class      then Object.recursive_const_get(value)
+      elsif type == Class      then find_const(value)
       end
     end
 
