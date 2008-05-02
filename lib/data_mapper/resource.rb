@@ -130,6 +130,14 @@ module DataMapper
       property = self.class.properties(repository.name)[name]
       instance_variable_defined?(property.instance_variable_name)
     end
+    
+    def loaded_attributes
+      names = []
+      self.class.properties(repository.name).each do |property|
+        names << property.name if instance_variable_defined?(property.instance_variable_name)
+      end
+      names
+    end
 
     def dirty_attributes
       @dirty_attributes ||= Set.new
@@ -149,8 +157,9 @@ module DataMapper
     end
 
     def reload
-      @collection.reload(:fields => loaded_attributes.keys)
+      @collection.reload(:fields => loaded_attributes)
     end
+    alias reload! reload
 
     # Returns <tt>true</tt> if this model hasn't been saved to the
     # database, <tt>false</tt> otherwise.

@@ -7,6 +7,29 @@ begin
   DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}") unless DataMapper::Repository.adapters[:sqlite3]
 
   describe "DataMapper::Resource" do
+    
+    before(:all) do
+      class Orange
+        include DataMapper::Resource
+        property :name, String, :key => true
+        property :color, String
+      end
+      
+      Orange.auto_migrate!(:sqlite3)
+      orange = Orange.new(:color => 'orange')
+      orange.name = 'Bob' # Keys are protected from mass-assignment by default.
+      repository(:sqlite3) { orange.save }
+    end
+    
+    it "should be able to reload objects" do
+      orange = repository(:sqlite3) { Orange['Bob'] }
+      orange.color.should == 'orange'
+      orange.color = 'blue'
+      orange.color.should == 'blue'
+      orange.reload!
+      orange.color.should == 'orange'        
+    end
+    
     describe "inheritance" do
       before(:all) do
         class Male
