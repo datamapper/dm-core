@@ -72,6 +72,23 @@ module DataMapper
 
     alias == eql?
 
+    def inspect
+      attrs = attributes.inject([]) {|s,(k,v)| s << "#{k}=#{v.inspect}"}
+      "#<#{self.class.name} #{attrs.join(" ")}>"
+    end
+    
+    def pretty_print(pp)
+      attrs = attributes.inject([]) {|s,(k,v)| s << [k,v]}
+      pp.group(1, "#<#{self.class.name}", ">") do
+        pp.breakable
+        pp.seplist(attrs) do |k_v|
+          pp.text k_v[0].to_s
+          pp.text " = "
+          pp.pp k_v[1]
+        end
+      end
+    end
+
     def repository
       @collection ? @collection.repository : self.class.repository
     end
