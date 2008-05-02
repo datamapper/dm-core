@@ -49,7 +49,7 @@ describe "DataMapper::Resource" do
       property :awesomeness, Fixnum
     end
   end
-
+  
   it "should hold repository-specific properties" do
     Planet.properties(:legacy).should have_property(:cowabunga)
     Planet.properties.should_not have_property(:cowabunga)
