@@ -45,11 +45,11 @@ module DataMapper
       end
 
       def parent_model
-        @parent_model_name.to_class
+        find_const(@parent_model_name)
       end
 
       def child_model
-        @child_model_name.to_class
+        find_const(@child_model_name)
       end
 
       private

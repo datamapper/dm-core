@@ -8,7 +8,7 @@ module DataMapper
       private
 
       def one_to_many(name, options = {})
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
+        raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller     unless Symbol === name || Hash === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
         if (unknown_options = options.keys - OPTIONS).any?
@@ -18,7 +18,7 @@ module DataMapper
         child_model_name = options.fetch(:class_name, DataMapper::Inflection.classify(name))
 
         relationship = relationships(repository.name)[name] = Relationship.new(
-          DataMapper::Inflection.underscore(self.name).to_sym,
+          DataMapper::Inflection.underscore(self.name.split('::').last).to_sym,
           repository.name,
           child_model_name,
           self.name,

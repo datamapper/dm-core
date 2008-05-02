@@ -304,8 +304,8 @@ module DataMapper
 
             Direction.new(order_by)
           when Operator
-            property = @properties[order_by.property_name]
-            Direction.new(property, order_by.type)
+            property = @properties[order_by.target]
+            Direction.new(property, order_by.operator)
           when Symbol, String
             property = @properties[order_by]
             raise ArgumentError, "+options[:order]+ entry #{order_by} does not map to a DataMapper::Property" if property.nil?
@@ -379,11 +379,6 @@ module DataMapper
       property = case clause
         when Property
           clause
-        when String
-          append_condition(clause.split(".").inject(@model) do |s,piece|
-            s.send(piece)
-          end, value)
-          return
         when Query::Path
           validate_query_path_links(clause)
           clause
@@ -395,8 +390,16 @@ module DataMapper
             validate_query_path_links(clause.target)
             clause.target
           end
-        when Symbol, String
+        when Symbol
           @properties[clause]
+        when String
+          if clause =~ /\w\.\w/
+            append_condition(clause.split(".").inject(@model) do |s,piece|
+              s.send(piece)
+            end, value)
+          else
+            @properties[clause]
+          end
         else
           raise ArgumentError, "Condition type #{clause.inspect} not supported"
       end
