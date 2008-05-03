@@ -162,7 +162,7 @@ begin
         :date        => [ Date,       'DATE',          false, TODAY.strftime('%Y-%m-%d'),        TODAY,             false ],
         :true_class  => [ TrueClass,  'TINYINT(1)',    false, '1',                               true,              false ],
         :false_class => [ TrueClass,  'TINYINT(1)',    false, '0',                               false,             false ],
-        :text        => [ DM::Text,   'TEXT',          false, '',                                'text',            false ],
+        :text        => [ DM::Text,   'TEXT',          false, nil,                               'text',            false ],
 #        :class       => [ Class,      'VARCHAR(50)',   false, 'Class',                           'Class',           false ],
         :big_decimal => [ BigDecimal, 'DECIMAL(10,0)', false, '1',                               BigDecimal('1.1'), false ],
         :float       => [ Float,      'FLOAT',         false, '1.1',                             1.1,               false ],
