@@ -22,6 +22,11 @@ describe DataMapper::Repository do
       repo.transaction.should == trans
     end
   end
+  
+  it '.storage_exists? should whether or not the repository exists' do
+    repository.should respond_to(:storage_exists?)
+    repository.storage_exists?(:vegetable).should == true
+  end
 
   it "should provide persistance methods" do
     repository.should respond_to(:get)

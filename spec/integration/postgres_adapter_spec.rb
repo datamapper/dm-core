@@ -183,7 +183,7 @@ begin
       end
 
       it 'should be able to create a record' do
-        customer = BankCustomer.new(:bank => 'Community Bank', :acount_number => '123456', :name => 'David Hasselhoff')
+        customer = BankCustomer.new(:bank => 'Community Bank', :account_number => '123456', :name => 'David Hasselhoff')
         repository(:postgres).save(customer)
 
         customer.should_not be_a_new_record

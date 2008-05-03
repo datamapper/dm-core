@@ -359,9 +359,9 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       @adapter.create_table_statement(Cheese).should include(<<-EOS.compress_lines)
         ("id" INT NOT NULL,
           "name" VARCHAR(50) NOT NULL,
-          "color" VARCHAR(50) DEFAULT "yellow",
+          "color" VARCHAR(50) NOT NULL DEFAULT 'yellow',
           "notes" VARCHAR(100),
-          PRIMARY KEY(id))
+          PRIMARY KEY("id"))
       EOS
     end
 
@@ -370,9 +370,9 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
         CREATE TABLE "cheeses"
         ("id" INT NOT NULL,
           "name" VARCHAR(50) NOT NULL,
-          "color" VARCHAR(50) DEFAULT "yellow",
+          "color" VARCHAR(50) NOT NULL DEFAULT 'yellow',
           "notes" VARCHAR(100),
-          PRIMARY KEY(id))
+          PRIMARY KEY("id"))
       EOS
     end
   end
@@ -390,11 +390,11 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     end
 
     it "should map :name to the property's field value" do
-      @adapter.property_schema_hash(@id_property)[:name].should == "id"
+      @adapter.property_schema_hash(@id_property, @model)[:name].should == "id"
     end
 
     it "should not set :key? if the property is a key" do
-      @adapter.property_schema_hash(@id_property).should_not be_key(:key?)
+      @adapter.property_schema_hash(@id_property, @model).should_not be_key(:key?)
     end
   end
 

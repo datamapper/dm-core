@@ -1,30 +1,25 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
+require 'ostruct'
+
+TODAY = Date.today
+NOW   = DateTime.now
 
 class Book
   include DataMapper::Resource
 
-  property :id,             Fixnum, :key => true
-  property :isbn,           String
-  property :published,      Date
-  property :available,      TrueClass
-  property :description,    DM::Text
-  property :classification, Class
-  property :price,          BigDecimal
-  property :in_print,       Float
-  property :inventoried,    DateTime
-  property :pdf,            Object
-end
-
-describe 'common type map', :shared => true do
-
-  it 'should create the published column as a DATE' do
-    @table_set.find { |c| c[@col_identifier] == 'published' }.type.upcase.should == 'DATE'
-  end
-
-  it 'should create the pdf column as TEXT' do
-    @table_set.find { |c| c[@col_identifier] == 'pdf' }.type.upcase.should == 'TEXT'
-  end
+  property :serial,      Fixnum,     :serial => true
+  property :fixnum,      Fixnum,     :nullable => false, :default => 1
+  property :string,      String,     :nullable => false, :default => 'default'
+  property :date,        Date,       :nullable => false, :default => TODAY
+  property :true_class,  TrueClass,  :nullable => false, :default => true
+  property :false_class, TrueClass,  :nullable => false, :default => false
+  property :text,        DM::Text,   :nullable => false, :default => 'text'
+#  property :class,       Class,      :nullable => false, :default => Class  # FIXME: Class types cause infinite recursions in Resource
+  property :big_decimal, BigDecimal, :nullable => false, :default => BigDecimal('1.1')
+  property :float,       Float,      :nullable => false, :default => 1.1
+  property :date_time,   DateTime,   :nullable => false, :default => NOW
+  property :object,      Object,     :nullable => true                       # FIXME: cannot supply a default for Object
 end
 
 begin
@@ -32,56 +27,83 @@ begin
 
   DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
 
-  describe DataMapper::AutoMigrations, :sqlite3 do
+  describe DataMapper::AutoMigrations, '.auto_migrate!' do
     before :all do
       @adapter = repository(:sqlite3).adapter
 
       DataMapper::AutoMigrator.models.clear
+
+      @property_class = Struct.new(:name, :type, :nullable, :default, :serial)
     end
 
     after :all do
       DataMapper::AutoMigrator.models.clear
     end
 
-    describe 'auto_migrate!' do
-      it_should_behave_like 'common type map'
+    describe 'with sqlite3' do
+
 
       before :all do
         Book.auto_migrate!(:sqlite3)
-        @table_set = @adapter.query('PRAGMA table_info("books");')
-        @col_identifier = 'name'
+
+        @table_set = @adapter.query('PRAGMA table_info("books")').inject({}) do |ts,column|
+          default = if 'NULL' == column.dflt_value || column.dflt_value.nil?
+            nil
+          else
+            /^(['"]?)(.*)\1$/.match(column.dflt_value)[2]
+          end
+
+          property = @property_class.new(
+            column.name,
+            column.type.upcase,
+            column.notnull == 0,
+            default,
+            column.pk == 1  # in SQLite3 the serial key is also primary
+          )
+
+          ts.update(property.name => property)
+        end
+
+        repository(:sqlite3) do
+          Book.create!
+          @book = Book.first(:fields => [ :serial, :fixnum, :string, :date, :true_class, :false_class, :text, :big_decimal, :float, :date_time ])
+        end
       end
 
-      it 'should create the id column as an INTEGER' do
-        @table_set.find { |c| c[@col_identifier] == 'id' }.type.upcase.should == 'INTEGER'
-      end
+      types = {
+        :serial      => [ Fixnum,     'INTEGER',     false, nil,                               1,                 true  ],
+        :fixnum      => [ Fixnum,     'INTEGER',     false, '1',                               1,                 false ],
+        :string      => [ String,     'VARCHAR(50)', false, 'default',                         'default',         false ],
+        :date        => [ Date,       'DATE',        false, TODAY.strftime('%Y-%m-%d'),        TODAY,             false ],
+        :true_class  => [ TrueClass,  'BOOLEAN',     false, 't',                               true,              false ],
+        :false_class => [ TrueClass,  'BOOLEAN',     false, 'f',                               false,             false ],
+        :text        => [ DM::Text,   'TEXT',        false, 'text',                            'text',            false ],
+#        :class       => [ Class,      'VARCHAR(50)', false, 'Class',                           'Class',           false ],
+        :big_decimal => [ BigDecimal, 'DECIMAL',     false, BigDecimal('1.1').to_s('F'),       BigDecimal('1.1'), false ],
+        :float       => [ Float,      'FLOAT',       false, '1.1',                             1.1,               false ],
+        :date_time   => [ DateTime,   'DATETIME',    false, NOW.strftime('%Y-%m-%d %H:%M:%S'), NOW,               false ],
+        :object      => [ Object,     'TEXT',        true,  nil,                               nil,                false ],
+      }
 
-      it 'should create the isbn column as a VARCHAR(50)' do
-        @table_set.find { |c| c[@col_identifier] == 'isbn' }.type.upcase.should == 'VARCHAR(50)'
-      end
+      types.each do |name,(klass,type,nullable,default,key)|
+        describe "a #{klass} property" do
+          it "should be created as a #{type}" do
+            @table_set[name.to_s].type.should == type
+          end
 
-      it 'should create the available column as a BOOLEAN' do
-        @table_set.find { |c| c[@col_identifier] == 'available' }.type.upcase.should == 'BOOLEAN'
-      end
+          it "should #{!nullable && 'not'} be nullable".squeeze(' ') do
+            @table_set[name.to_s].nullable.should == nullable
+          end
 
-      it 'should create the description column as TEXT' do
-        @table_set.find { |c| c[@col_identifier] == 'description' }.type.upcase.should == 'TEXT'
-      end
+          it "should have a default value #{default.inspect}" do
+            @table_set[name.to_s].default.should == default
+          end
 
-      it 'should create the classification column as a VARCHAR(50)' do
-        @table_set.find { |c| c[@col_identifier] == 'classification' }.type.upcase.should == 'VARCHAR(50)'
-      end
-
-      it 'should create the price column as a DECIMAL' do
-        @table_set.find { |c| c[@col_identifier] == 'price' }.type.upcase.should == 'DECIMAL'
-      end
-
-      it 'should create the in_print column as a FLOAT ' do
-        @table_set.find { |c| c[@col_identifier] == 'in_print' }.type.upcase.should == 'FLOAT'
-      end
-
-      it 'should create the inventoried column as a DATETIME' do
-        @table_set.find { |c| c[@col_identifier] == 'inventoried' }.type.upcase.should == 'DATETIME'
+          expected_value = types[name][4]
+          it "should have an typecasted value #{expected_value.inspect}" do
+            @book.send(name).should == expected_value
+          end
+        end
       end
     end
   end
@@ -98,56 +120,75 @@ begin
 
   DataMapper.setup(:mysql, 'mysql://localhost/dm_integration_test')
 
-  describe DataMapper::AutoMigrations, :mysql do
+  describe DataMapper::AutoMigrations, '.auto_migrate!' do
     before :all do
       @adapter = repository(:mysql).adapter
 
       DataMapper::AutoMigrator.models.clear
+
+      @property_class = Struct.new(:name, :type, :nullable, :default, :serial)
     end
 
     after :all do
       DataMapper::AutoMigrator.models.clear
     end
 
-    describe 'auto_migrate!' do
-      it_should_behave_like 'common type map'
-
+    describe 'with mysql' do#
       before :all do
         Book.auto_migrate!(:mysql)
-        @table_set = @adapter.query('describe `books`;')
-        @col_identifier = 'field'
+
+        @table_set = @adapter.query('DESCRIBE `books`').inject({}) do |ts,column|
+          property = @property_class.new(
+            column.field,
+            column.type.upcase,
+            column.null == 'YES',
+            column.default,
+            column.extra.split.include?('auto_increment')
+          )
+
+          ts.update(property.name => property)
+        end
+
+        repository(:mysql) do
+          Book.create!
+          @book = Book.first
+        end
       end
 
-      it 'should create the id column as an INT(11)' do
-        @table_set.find { |c| c[@col_identifier] == 'id' }.type.upcase.should == 'INT(11)'
-      end
+      types = {
+        :serial      => [ Fixnum,     'INT(11)',       false, nil,                               1,                 true  ],
+        :fixnum      => [ Fixnum,     'INT(11)',       false, '1',                               1,                 false ],
+        :string      => [ String,     'VARCHAR(50)',   false, 'default',                         'default',         false ],
+        :date        => [ Date,       'DATE',          false, TODAY.strftime('%Y-%m-%d'),        TODAY,             false ],
+        :true_class  => [ TrueClass,  'TINYINT(1)',    false, '1',                               true,              false ],
+        :false_class => [ TrueClass,  'TINYINT(1)',    false, '0',                               false,             false ],
+        :text        => [ DM::Text,   'TEXT',          false, '',                                'text',            false ],
+#        :class       => [ Class,      'VARCHAR(50)',   false, 'Class',                           'Class',           false ],
+        :big_decimal => [ BigDecimal, 'DECIMAL(10,0)', false, '1',                               BigDecimal('1.1'), false ],
+        :float       => [ Float,      'FLOAT',         false, '1.1',                             1.1,               false ],
+        :date_time   => [ DateTime,   'DATETIME',      false, NOW.strftime('%Y-%m-%d %H:%M:%S'), NOW,               false ],
+        :object      => [ Object,     'TEXT',          true,  nil,                               nil,               false ],
+      }
 
-      it 'should create the isbn column as a VARCHAR(50)' do
-        @table_set.find { |c| c[@col_identifier] == 'isbn' }.type.upcase.should == 'VARCHAR(50)'
-      end
+      types.each do |name,(klass,type,nullable,default,key)|
+        describe "a #{klass} property" do
+          it "should be created as a #{type}" do
+            @table_set[name.to_s].type.should == type
+          end
 
-      it 'should create the available column as a TINYINT(1)' do
-        @table_set.find { |c| c[@col_identifier] == 'available' }.type.upcase.should == 'TINYINT(1)'
-      end
+          it "should #{!nullable && 'not'} be nullable".squeeze(' ') do
+            @table_set[name.to_s].nullable.should == nullable
+          end
 
-      it 'should create the description column as TEXT' do
-        @table_set.find { |c| c[@col_identifier] == 'description' }.type.upcase.should == 'TEXT'
-      end
+          it "should have a default value #{default.inspect}" do
+            @table_set[name.to_s].default.should == default
+          end
 
-      it 'should create the classification column as a VARCHAR(50)' do
-        @table_set.find { |c| c[@col_identifier] == 'classification' }.type.upcase.should == 'VARCHAR(50)'
-      end
-
-      it 'should create the price column as a DECIMAL(10,0)' do
-        @table_set.find { |c| c[@col_identifier] == 'price' }.type.upcase.should == 'DECIMAL(10,0)'
-      end
-
-      it 'should create the in_print column as a FLOAT ' do
-        @table_set.find { |c| c[@col_identifier] == 'in_print' }.type.upcase.should == 'FLOAT'
-      end
-
-      it 'should create the inventoried column as a DATETIME' do
-        @table_set.find { |c| c[@col_identifier] == 'inventoried' }.type.upcase.should == 'DATETIME'
+          expected_value = types[name][4]
+          it "should have an typecasted value #{expected_value.inspect}" do
+            @book.send(name).should == expected_value
+          end
+        end
       end
     end
   end
@@ -164,23 +205,24 @@ begin
 
   DataMapper.setup(:postgres, 'postgres://postgres@localhost/dm_core_test')
 
-  describe DataMapper::AutoMigrations, :postgres do
+  describe DataMapper::AutoMigrations, '.auto_migrate!' do
     before :all do
       @adapter = repository(:postgres).adapter
 
       DataMapper::AutoMigrator.models.clear
+
+      @property_class = Struct.new(:name, :type, :nullable, :default, :serial)
     end
 
     after :all do
       DataMapper::AutoMigrator.models.clear
     end
 
-    describe 'auto_migrate!' do
-      it_should_behave_like 'common type map'
-
+    describe 'with postgres' do
       before :all do
         Book.auto_migrate!(:postgres)
-        @table_set = @adapter.query %{
+
+        query = <<-EOS
           SELECT
             -- Field
             pg_attribute.attname AS "Field",
@@ -205,42 +247,70 @@ begin
               ON (pg_attribute.atttypid=pg_type.oid)
             LEFT JOIN pg_attrdef
               ON (pg_class.oid=pg_attrdef.adrelid AND pg_attribute.attnum=pg_attrdef.adnum)
-          WHERE pg_class.relname='books' AND pg_attribute.attnum>=1 AND NOT pg_attribute.attisdropped
-          ORDER BY pg_attribute.attnum;
-        }
-        @col_identifier = "field"
+          WHERE pg_class.relname='books' AND pg_attribute.attnum >=1 AND NOT pg_attribute.attisdropped
+          ORDER BY pg_attribute.attnum
+        EOS
+
+        @table_set = @adapter.query(query).inject({}) do |ts,column|
+          default = column.default
+          serial  = false
+
+          if column.default == "nextval('books_serial_seq'::regclass)"
+            default = nil
+            serial  = true
+          end
+
+          property = @property_class.new(
+            column.field,
+            column.type.upcase,
+            column.null == 'YES',
+            default,
+            serial
+          )
+
+          ts.update(property.name => property)
+        end
+
+        repository(:postgres) do
+          Book.create!
+          @book = Book.first
+        end
       end
 
-      it 'should create the isbn column as a VARCHAR' do
-        @table_set.find { |c| c[@col_identifier] == 'isbn' }.type.upcase.should == 'VARCHAR'
-      end
+      types = {
+        :serial      => [ Fixnum,     'INT4',          false, nil,                                                                   1,                 true  ],
+        :fixnum      => [ Fixnum,     'INT4',          false, '1',                                                                   1,                 false ],
+        :string      => [ String,     'VARCHAR',       false, 'default',                                                             'default',         false ],
+        :date        => [ Date,       'DATE',          false, "'#{TODAY.strftime('%Y-%m-%d')}'::date",                               TODAY,             false ],
+        :true_class  => [ TrueClass,  'BOOL',          false, 'true',                                                                true,              false ],
+        :false_class => [ TrueClass,  'BOOL',          false, 'false',                                                               false,             false ],
+        :text        => [ DM::Text,   'TEXT',          false, "'text'::text",                                                        'text',            false ],
+#        :class       => [ Class,      'VARCHAR(50)',   false, 'Class',                                                               'Class',           false ],
+        :big_decimal => [ BigDecimal, 'NUMERIC',       false, '1.1',                                                                 BigDecimal('1.1'), false ],
+        :float       => [ Float,      'FLOAT8',        false, '1.1',                                                                 1.1,               false ],
+        :date_time   => [ DateTime,   'TIMESTAMP',     false, "'#{NOW.strftime('%Y-%m-%d %H:%M:%S')}'::timestamp without time zone", NOW,               false ],
+        :object      => [ Object,     'TEXT',          true,  nil,                                                                   nil,               false ],
+      }
 
-      it 'should create the id column as an INT4' do
-        @table_set.find { |c| c[@col_identifier] == 'id' }.type.upcase.should == 'INT4'
-      end
+      types.each do |name,(klass,type,nullable,default,key)|
+        describe "a #{klass} property" do
+          it "should be created as a #{type}" do
+            @table_set[name.to_s].type.should == type
+          end
 
-      it 'should create the available column as a BOOL' do
-        @table_set.find { |c| c[@col_identifier] == 'available' }.type.upcase.should == 'BOOL'
-      end
+          it "should #{!nullable && 'not'} be nullable".squeeze(' ') do
+            @table_set[name.to_s].nullable.should == nullable
+          end
 
-      it 'should create the description column as TEXT' do
-        @table_set.find { |c| c[@col_identifier] == 'description' }.type.upcase.should == 'TEXT'
-      end
+          it "should have a default value #{default.inspect}" do
+            @table_set[name.to_s].default.should == default
+          end
 
-      it 'should create the classification column as a VARCHAR' do
-        @table_set.find { |c| c[@col_identifier] == 'classification' }.type.upcase.should == 'VARCHAR'
-      end
-
-      it 'should create the price column as a NUMERIC' do
-        @table_set.find { |c| c[@col_identifier] == 'price' }.type.upcase.should == 'NUMERIC'
-      end
-
-      it 'should create the in_print column as a FLOAT8' do
-        @table_set.find { |c| c[@col_identifier] == 'in_print' }.type.upcase.should == 'FLOAT8'
-      end
-
-      it 'should create the inventoried column as a TIMESTAMP' do
-        @table_set.find { |c| c[@col_identifier] == 'inventoried' }.type.upcase.should == 'TIMESTAMP'
+          expected_value = types[name][4]
+          it "should have an typecasted value #{expected_value.inspect}" do
+            @book.send(name).should == expected_value
+          end
+        end
       end
     end
   end

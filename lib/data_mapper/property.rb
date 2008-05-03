@@ -8,6 +8,8 @@ require 'bigdecimal'
 
 module DataMapper
 
+  # :include:QUICKLINKS
+  #
   # = Properties
   # Properties for a model are not derived from a database structure, but
   # instead explicitly declared inside your model class definitions. These
@@ -40,8 +42,20 @@ module DataMapper
   #        # Default value for new records is false
   #   end
   #
-  # Valid property types can be found in the TYPES constant below, or in
-  # DataMapper::Property::Types
+  # By default, DataMapper supports the following primitive types:
+  #
+  # * TrueClass, Boolean
+  # * String
+  # * Text (limit of 65k characters by default)
+  # * Float
+  # * Fixnum, Integer
+  # * BigDecimal
+  # * DateTime
+  # * Date
+  # * Object (marshalled out during serialization)
+  # * Class (datastore primitive is the same as String. Used for Inheritance)
+  #
+  # For more information about available Types, see DataMapper::Type
   #
   # == Limiting Access
   # Property access control is uses the same terminology Ruby does. Properties
@@ -52,7 +66,7 @@ module DataMapper
   #   include DataMapper::Resource
   #    property :title,  String,                  :accessor => :private
   #      # Both reader and writer are private
-  #    property :body,   DataMapper::Types::Text, :accessor => :protected
+  #    property :body,   Text, :accessor => :protected
   #      # Both reader and writer are protected
   #  end
   #
@@ -403,8 +417,8 @@ module DataMapper
       @lock     = @options.fetch(:lock,     false)
       @serial   = @options.fetch(:serial,   false)
       @key      = @options.fetch(:key,      @serial)
-      @nullable = @options.fetch(:nullable, @key == false)
       @default  = @options.fetch(:default,  nil)
+      @nullable = @options.fetch(:nullable, @key == false && @default.nil?)
 
       determine_visibility
 

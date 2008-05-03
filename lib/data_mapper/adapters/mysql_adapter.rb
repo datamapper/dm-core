@@ -23,13 +23,40 @@ module DataMapper
       def create_table_statement(model)
         "#{super} ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci"
       end
+      
+      def exists?(table_name)
+        query_table(table_name).size > 0
+      end
+
+      def db_name
+        @uri.path.split('/').last
+      end
+
+      def query_table(table_name)
+        query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='#{db_name}' AND TABLE_NAME='#{table_name}'")
+      end
 
       private
+
+      def property_schema_hash(property, model)
+        schema = super
+        schema.delete(:default) if schema[:primitive] == 'TEXT'
+        schema
+      end
 
       def property_schema_statement(schema)
         statement = super
         statement << " AUTO_INCREMENT" if schema[:serial?]
         statement
+      end
+
+      def quote_column_value(column_value)
+        case column_value
+          when TrueClass  then quote_column_value(1)
+          when FalseClass then quote_column_value(0)
+          else
+            super
+        end
       end
 
       def quote_table_name(table_name)

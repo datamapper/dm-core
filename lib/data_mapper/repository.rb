@@ -53,13 +53,13 @@ module DataMapper
 
       success = if resource.new_record?
         resource.class.properties(self.name).each do |property|
-          if property.options[:default] && !resource.instance_variable_defined?(property.instance_variable_name)
+          if property.options.has_key?(:default) && !resource.attribute_loaded?(property.name)
             resource.attribute_set(property.name, property.default_for(resource))
           end
         end
-        
+
         if resource.dirty?
-          if  @adapter.create(self, resource)
+          if @adapter.create(self, resource)
             identity_map_set(resource)
             resource.instance_variable_set(:@new_record, false)
             resource.dirty_attributes.clear
@@ -130,6 +130,10 @@ module DataMapper
 
     def type_map
       @type_map ||= TypeMap.new(@adapter.type_map)
+    end
+    
+    def storage_exists?(storage_name)
+      @adapter.exists?(storage_name)
     end
 
     private
