@@ -76,7 +76,7 @@ module DataMapper
       attrs = attributes.inject([]) {|s,(k,v)| s << "#{k}=#{v.inspect}"}
       "#<#{self.class.name} #{attrs.join(" ")}>"
     end
-    
+
     def pretty_print(pp)
       attrs = attributes.inject([]) {|s,(k,v)| s << [k,v]}
       pp.group(1, "#<#{self.class.name}", ">") do
@@ -99,6 +99,14 @@ module DataMapper
 
     def parent_associations
       @parent_associations ||= []
+    end
+
+    # default id method to return the resource id when there is a
+    # single key, and the model was defined with a primary key named
+    # something other than id
+    def id
+      key = self.key
+      key.first if key.size == 1
     end
 
     def key
@@ -255,7 +263,7 @@ module DataMapper
         end
       end
     end
-    
+
     module ClassMethods
       def self.extended(base)
         base.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
@@ -358,15 +366,15 @@ module DataMapper
         repository(options[:repository]).first(self, options)
       end
 
-      def create(values)
+      def create(attributes = {})
         resource = allocate
-        resource.send(:initialize_with_attributes, values)
+        resource.send(:initialize_with_attributes, attributes)
         resource.save
         resource
       end
-      
-      def create!(values)
-        resource = create(values)
+
+      def create!(attributes = {})
+        resource = create(attributes)
         raise PersistenceError, "Resource not saved: :new_record => #{resource.new_record?}, :dirty_attributes => #{resource.dirty_attributes.inspect}" if resource.new_record?
         resource
       end

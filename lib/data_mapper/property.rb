@@ -417,8 +417,8 @@ module DataMapper
       @lock     = @options.fetch(:lock,     false)
       @serial   = @options.fetch(:serial,   false)
       @key      = @options.fetch(:key,      @serial)
-      @nullable = @options.fetch(:nullable, @key == false)
       @default  = @options.fetch(:default,  nil)
+      @nullable = @options.fetch(:nullable, @key == false && @default.nil?)
 
       determine_visibility
 

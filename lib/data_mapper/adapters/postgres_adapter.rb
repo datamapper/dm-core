@@ -50,7 +50,7 @@ module DataMapper
         transaction.connection_for(self).create_command(cmd).execute_non_query
         DataMapper.logger.debug("#{self}: #{cmd}")
       end
-      
+
       def rollback_transaction(transaction)
         cmd = "ROLLBACK"
         transaction.connection_for(self).create_command(cmd).execute_non_query
@@ -84,7 +84,7 @@ module DataMapper
 
         result.to_i == 1
       end
-      
+
       def destroy_model_storage(repository, model)
         DataMapper.logger.debug "DROP TABLE: #{model.storage_name(name)}"
 
@@ -102,36 +102,9 @@ module DataMapper
 
         result.to_i == 1
       end
-      
+
       def sequenced?(property)
         property.serial?
-      end
-      
-      def create_table_statement(model)
-        statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-
-        statement << model.properties.collect do |property|
-          schema = property_schema_hash(property)
-
-          if sequenced?(property)
-            property_statement = quote_column_name(schema[:name])
-            property_statement << " #{schema[:primitive]}"
-            property_statement << "(#{schema[:size]})" if schema[:size]
-            property_statement << " DEFAULT nextval("
-            property_statement << "'#{model.storage_name(name)}_#{property.field}_seq'"  #not sure why this has to be single qoutes
-            property_statement << ") NOT NULL"
-          else
-            property_statement = quote_column_name(schema[:name])
-            property_statement << " #{schema[:primitive]}"
-            property_statement << "(#{schema[:size]})" if schema[:size]
-          end
-
-          property_statement
-        end.join(", ")
-
-        statement << ")"
-
-        statement
       end
 
       def create_sequence_column(connection, model, property)
@@ -143,15 +116,13 @@ module DataMapper
 
         command.execute_non_query
       end
-      
+
       def create_sequence_statement(model, property)
         statement = "CREATE SEQUENCE "
-        statement << quote_column_name("#{model.storage_name(name)}_#{property.field}_seq")
-        statement
-        
+        statement << quote_column_name(sequence_name(model, property))
         statement
       end
-      
+
       def drop_sequence_column(connection, model, property)
         DataMapper.logger.debug "DROP SEQUENCE: #{model.storage_name(name)}_#{property.field}_seq"
         
@@ -159,15 +130,38 @@ module DataMapper
         
         command.execute_non_query
       end
-      
+
       def drop_sequence_statement(model, property)
         statement = "DROP SEQUENCE IF EXISTS "
-        statement << quote_column_name("#{model.storage_name(name)}_#{property.field}_seq")
+        statement << quote_column_name(sequence_name(model, property))
         statement
       end
 
       def create_with_returning?; true; end
-      
+
+      private
+
+      def sequence_name(model, property)
+        "#{model.storage_name(name)}_#{property.field}_seq"
+      end
+
+      def property_schema_statement(schema)
+        statement = super
+
+        if schema.has_key?(:sequence_name)
+          statement << " DEFAULT nextval("
+          statement << "'#{schema[:sequence_name]}'"  #not sure why this has to be single quotes
+          statement << ") NOT NULL"
+        end
+
+        statement
+      end
+
+      def property_schema_hash(property, model)
+        schema = super
+        schema[:sequence_name] = sequence_name(model, property) if sequenced?(property)
+        schema
+      end
     end # class PostgresAdapter
 
   end # module Adapters

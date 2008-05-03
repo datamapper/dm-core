@@ -148,8 +148,8 @@ module DataMapper
 
         if result.to_i == 1
           key = resource.class.key(name)
-          if key.size == 1 && key.first.serial?
-            resource.instance_variable_set(key.first.instance_variable_name, result.insert_id)
+          if key.size == 1 && (identity_field = key.first).serial?
+            resource.instance_variable_set(identity_field.instance_variable_name, result.insert_id)
           end
           true
         else
@@ -170,16 +170,18 @@ module DataMapper
         sql = read_statement(resource, key)
         DataMapper.logger.debug("READ: #{sql}")
 
-        connection = create_connection
-        command = connection.create_command(sql)
-        command.set_types(properties.map { |property| property.primitive })
-        reader = command.execute_reader(*key)
-        while(reader.next!)
-          set.load(reader.values)
+        begin
+          connection = create_connection
+          command = connection.create_command(sql)
+          command.set_types(properties.map { |property| property.primitive })
+          reader = command.execute_reader(*key)
+          while(reader.next!)
+            set.load(reader.values)
+          end
+        ensure
+          reader.close if reader
+          close_connection(connection)
         end
-
-        reader.close
-        close_connection(connection)
 
         set.first
       end
@@ -278,11 +280,11 @@ module DataMapper
               set.load(reader.values, do_reload)
             end
 
-            reader.close
           rescue StandardError => se
             p se, sql
             raise se
           ensure
+            reader.close if reader
             close_connection(connection)
           end
         end
@@ -394,10 +396,10 @@ module DataMapper
 
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-          statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p)) } * ', '}"
+          statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
 
           if (key = model.properties.key).any?
-            statement << ", PRIMARY KEY(#{ key.collect { |p| p.field } * ', '})"
+            statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
           end
 
           statement << ")"
@@ -410,14 +412,14 @@ module DataMapper
           EOS
         end
 
-        def property_schema_hash(property)
+        def property_schema_hash(property, model)
           schema = type_map[property.type].merge(:name => property.field)
-          # TODO: figure out a way to remove size parameters, like those for DM::Text
           # TODO: figure out a way to specify the size not be included, even if a default is defined in the typemap
-          schema[:size]      = property.length if property.length && property.type != DM::Text
+          #  - use this to make it so all TEXT primitive fields do not have size
+          schema[:size]      = property.length if property.length && schema[:primitive] != 'TEXT'
           schema[:nullable?] = property.nullable?
           schema[:serial?]   = property.serial?
-          schema[:default]   = property.default if property.default && !property.default.respond_to?(:call)
+          schema[:default]   = property.default unless property.default.nil? || property.default.respond_to?(:call)
           schema
         end
 
@@ -426,7 +428,7 @@ module DataMapper
           statement << " #{schema[:primitive]}"
           statement << "(#{schema[:size]})" if schema[:size]
           statement << " NOT NULL"          unless schema[:nullable?]
-          statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema[:default]
+          statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
           statement
         end
 
@@ -574,17 +576,25 @@ module DataMapper
       def quote_column_value(column_value)
         case column_value
           when String
-            if column_value.to_i == column_value || column_value.to_f == column_value
-              column_value
+            if (integer = column_value.to_i).to_s == column_value
+              quote_column_value(integer)
+            elsif (float = column_value.to_f).to_s == column_value
+              quote_column_value(integer)
             else
-              "\"#{column_value.gsub('"', '""')}\""
+              "'#{column_value.gsub("'", "''")}'"
             end
+          when DateTime
+            quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S'))
+          when Date
+            quote_column_value(column_value.strftime('%Y-%m-%d'))
+          when Integer, Float
+            column_value.to_s
           when BigDecimal
             column_value.to_s('F')
           when NilClass
             'NULL'
           else
-            column_value
+            column_value.to_s
         end
       end
 
