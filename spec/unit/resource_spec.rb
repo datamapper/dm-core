@@ -287,6 +287,11 @@ describe "DataMapper::Resource" do
       Planet.should respond_to(:all)
       Planet.should respond_to(:[])
     end
+    
+    it '.exists? should return whether or not the repository exists' do
+      Planet.should respond_to(:exists?)
+      Planet.exists?.should == true
+    end
   end
 
   describe 'when retrieving by key' do

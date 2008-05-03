@@ -131,6 +131,12 @@ module DataMapper
     def type_map
       @type_map ||= TypeMap.new(@adapter.type_map)
     end
+    
+    def storage_exists?(storage_name)
+      puts "storage_name: #{storage_name}"
+      puts "class: #{storage_name.class}"
+      @adapter.exists?(storage_name)
+    end
 
     private
 
