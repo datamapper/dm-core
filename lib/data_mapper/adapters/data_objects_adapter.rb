@@ -3,6 +3,9 @@ begin
 rescue LoadError
 end
 
+gem 'addressable', '>=1.0.4'
+require 'addressable/uri'
+
 gem 'data_objects', '=0.9.0'
 require 'data_objects'
 
@@ -601,27 +604,25 @@ module DataMapper
       protected
 
       def normalize_uri(uri_or_options)
-        uri_or_options = URI.parse(uri_or_options) if String === uri_or_options
-        return uri_or_options                      if URI    === uri_or_options
-
+        if String === uri_or_options
+          uri_or_options = Addressable::URI.parse(uri_or_options)
+        end
+        if Addressable::URI === uri_or_options
+          return uri_or_options.normalize
+        end
+        
         adapter = uri_or_options.delete(:adapter)
         user = uri_or_options.delete(:username)
-
         password = uri_or_options.delete(:password)
-        password = ":" << password.to_s if user && password
-
-        host = uri_or_options.delete(:host)
-        host = "@" << host.to_s if user && host
-
+        host = (uri_or_options.delete(:host) || "")
         port = uri_or_options.delete(:port)
-        port = ":" << port.to_s if host && port
-
-        database = "/#{uri_or_options.delete(:database)}"
-
+        database = uri_or_options.delete(:database)
         query = uri_or_options.to_a.map { |pair| pair.join('=') }.join('&')
-        query = "?" << query unless query.empty?
+        query = nil if query == ""
 
-        URI.parse("#{adapter}://#{user}#{password}#{host}#{port}#{database}#{query}")
+        return Addressable::URI.new(
+          adapter, user, password, host, port, database, query, nil
+        )
       end
 
       private
