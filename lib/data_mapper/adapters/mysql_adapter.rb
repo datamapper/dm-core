@@ -23,6 +23,34 @@ module DataMapper
       def create_table_statement(model)
         "#{super} ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci"
       end
+      
+      def exists?(table_name)
+        query_table(table_name).size > 0
+      end
+
+      def recreate_database
+        drop_database
+        create_database
+      end
+      
+      def drop_database
+        DataMapper.logger.info "Dropping #{db_name}"
+        execute "DROP DATABASE #{db_name}"
+      end
+      
+      def create_database
+        DataMapper.logger.info "Creating #{db_name}"
+        execute "CREATE DATABASE #{db_name}"
+        execute "USE #{db_name}"        
+      end
+
+      def db_name
+        @uri.path.split('/').last
+      end
+
+      def query_table(table_name)
+        query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='#{db_name}' AND TABLE_NAME='#{table_name}'")
+      end
 
       private
 

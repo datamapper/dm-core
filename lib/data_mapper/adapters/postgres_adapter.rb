@@ -16,6 +16,34 @@ module DataMapper
           tm.map(Fixnum).to('INT4')
         end
       end
+      
+      def exists?(table_name)
+        query_table(table_name).size > 0
+      end
+
+      def drop_database
+        DataMapper.logger.info "Dropping #{db_name}"
+        execute "DROP SCHEMA IF EXISTS #{db_name} CASCADE"
+      end
+      
+      def create_database
+        DataMapper.logger.info "Creating #{db_name}"
+        execute "CREATE SCHEMA #{db_name}"
+        execute "SET search_path TO #{db_name}"
+      end
+      
+      def recreate_database
+        drop_database
+        create_database
+      end
+      
+      def db_name
+        @uri.path.split('/').last
+      end
+
+      def query_table(table_name)
+        query("SELECT * FROM information_schema.columns WHERE table_name='#{table_name}' AND table_schema=current_schema()")
+      end
 
       def begin_transaction(transaction)
         cmd = "BEGIN"
