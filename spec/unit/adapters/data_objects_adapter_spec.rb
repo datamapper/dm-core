@@ -5,7 +5,7 @@ require DataMapper.root / 'spec' / 'unit' / 'adapters' / 'adapter_shared_spec'
 
 describe DataMapper::Adapters::DataObjectsAdapter do
   before do
-    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, URI.parse('mock://localhost'))
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, Addressable::URI.parse('mock://localhost'))
   end
 
   it_should_behave_like 'a DataMapper Adapter'
@@ -219,7 +219,7 @@ end
 
 describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, updating, deleting statements" do
   before do
-    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, URI.parse('mock://localhost'))
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, Addressable::URI.parse('mock://localhost'))
 
     class Cheese
       include DataMapper::Resource
@@ -421,7 +421,7 @@ end
 
       adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
       adapter.uri.should ==
-        URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
+        Addressable::URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
     end
 
     it 'should transform a minimal options hash into a URI' do
@@ -431,11 +431,11 @@ end
       }
 
       adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
-      adapter.uri.should == URI.parse("mysql:///you_can_call_me_al")
+      adapter.uri.should == Addressable::URI.parse("mysql:///you_can_call_me_al")
     end
 
     it 'should accept the uri when no overrides exist' do
-      uri = URI.parse("protocol:///")
+      uri = Addressable::URI.parse("protocol:///")
       DataMapper::Adapters::DataObjectsAdapter.new(:spec, uri).uri.should == uri
     end
   end
