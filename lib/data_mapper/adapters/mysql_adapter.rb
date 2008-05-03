@@ -28,22 +28,6 @@ module DataMapper
         query_table(table_name).size > 0
       end
 
-      def recreate_database
-        drop_database
-        create_database
-      end
-      
-      def drop_database
-        DataMapper.logger.info "Dropping #{db_name}"
-        execute "DROP DATABASE #{db_name}"
-      end
-      
-      def create_database
-        DataMapper.logger.info "Creating #{db_name}"
-        execute "CREATE DATABASE #{db_name}"
-        execute "USE #{db_name}"        
-      end
-
       def db_name
         @uri.path.split('/').last
       end

@@ -394,7 +394,6 @@ module DataMapper
       end
       
       def exists?(repo_name = default_repository_name)
-        puts "resource:exists?(#{repo_name})"
         repository(repo_name).storage_exists?(storage_name(repo_name))
       end
 

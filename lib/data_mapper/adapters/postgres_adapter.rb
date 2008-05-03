@@ -21,22 +21,6 @@ module DataMapper
         query_table(table_name).size > 0
       end
 
-      def drop_database
-        DataMapper.logger.info "Dropping #{db_name}"
-        execute "DROP SCHEMA IF EXISTS #{db_name} CASCADE"
-      end
-      
-      def create_database
-        DataMapper.logger.info "Creating #{db_name}"
-        execute "CREATE SCHEMA #{db_name}"
-        execute "SET search_path TO #{db_name}"
-      end
-      
-      def recreate_database
-        drop_database
-        create_database
-      end
-      
       def db_name
         @uri.path.split('/').last
       end
