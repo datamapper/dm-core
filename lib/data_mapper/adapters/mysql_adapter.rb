@@ -23,7 +23,7 @@ module DataMapper
       def create_table_statement(model)
         "#{super} ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci"
       end
-      
+
       def exists?(table_name)
         query_table(table_name).size > 0
       end
@@ -46,7 +46,7 @@ module DataMapper
 
       def property_schema_statement(schema)
         statement = super
-        statement << " AUTO_INCREMENT" if schema[:serial?]
+        statement << ' AUTO_INCREMENT' if schema[:serial?]
         statement
       end
 

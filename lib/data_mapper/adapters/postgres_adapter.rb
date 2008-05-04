@@ -16,7 +16,7 @@ module DataMapper
           tm.map(Fixnum).to('INT4')
         end
       end
-      
+
       def exists?(table_name)
         query_table(table_name).size > 0
       end
@@ -125,9 +125,9 @@ module DataMapper
 
       def drop_sequence_column(connection, model, property)
         DataMapper.logger.debug "DROP SEQUENCE: #{model.storage_name(name)}_#{property.field}_seq"
-        
+
         command = connection.create_command(drop_sequence_statement(model, property))
-        
+
         command.execute_non_query
       end
 
@@ -149,9 +149,9 @@ module DataMapper
         statement = super
 
         if schema.has_key?(:sequence_name)
-          statement << " DEFAULT nextval("
+          statement << ' DEFAULT nextval('
           statement << "'#{schema[:sequence_name]}'"  #not sure why this has to be single quotes
-          statement << ") NOT NULL"
+          statement << ') NOT NULL'
         end
 
         statement

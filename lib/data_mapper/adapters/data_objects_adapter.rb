@@ -159,7 +159,7 @@ module DataMapper
           false
         end
       end
-      
+
       def exists?(storage_name)
         raise NotImplementedError
       end
@@ -430,7 +430,7 @@ module DataMapper
           statement = quote_column_name(schema[:name])
           statement << " #{schema[:primitive]}"
           statement << "(#{schema[:size]})" if schema[:size]
-          statement << " NOT NULL"          unless schema[:nullable?]
+          statement << ' NOT NULL' unless schema[:nullable?]
           statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
           statement
         end
@@ -568,15 +568,23 @@ module DataMapper
 
       include SQL
 
+      # TODO: once the driver's quoting methods become public, have
+      # this method delegate to them instead
       def quote_table_name(table_name)
         "\"#{table_name.gsub('"', '""')}\""
       end
 
+      # TODO: once the driver's quoting methods become public, have
+      # this method delegate to them instead
       def quote_column_name(column_name)
         "\"#{column_name.gsub('"', '""')}\""
       end
 
+      # TODO: once the driver's quoting methods become public, have
+      # this method delegate to them instead
       def quote_column_value(column_value)
+        return 'NULL' if column_value.nil?
+
         case column_value
           when String
             if (integer = column_value.to_i).to_s == column_value
@@ -594,8 +602,6 @@ module DataMapper
             column_value.to_s
           when BigDecimal
             column_value.to_s('F')
-          when NilClass
-            'NULL'
           else
             column_value.to_s
         end
@@ -610,7 +616,7 @@ module DataMapper
         if Addressable::URI === uri_or_options
           return uri_or_options.normalize
         end
-        
+
         adapter = uri_or_options.delete(:adapter)
         user = uri_or_options.delete(:username)
         password = uri_or_options.delete(:password)
