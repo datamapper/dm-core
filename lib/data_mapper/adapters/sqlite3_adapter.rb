@@ -16,7 +16,7 @@ module DataMapper
           tm.map(Class).to('VARCHAR')
         end
       end
-      
+
       def exists?(table_name)
         query_table(table_name).size > 0
       end
@@ -40,7 +40,7 @@ module DataMapper
       def prepare_transaction(transaction)
         DataMapper.logger.debug("#{self}: #prepare_transaction called, but I don't know how... I hope the commit comes pretty soon!")
       end
-      
+
       def rollback_transaction(transaction)
         cmd = "ROLLBACK"
         transaction.connection_for(self).create_command(cmd).execute_non_query

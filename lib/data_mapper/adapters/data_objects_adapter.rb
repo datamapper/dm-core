@@ -99,9 +99,9 @@ module DataMapper
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(Fixnum).to('INT')
-          tm.map(String).to('VARCHAR').with(:size => 50)
-          tm.map(Class).to('VARCHAR').with(:size => 50)
-          tm.map(BigDecimal).to('DECIMAL')
+          tm.map(String).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
+          tm.map(Class).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
+          tm.map(BigDecimal).to('DECIMAL').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE)
           tm.map(Float).to('FLOAT')
           tm.map(DateTime).to('DATETIME')
           tm.map(Date).to('DATE')
@@ -419,17 +419,30 @@ module DataMapper
           schema = type_map[property.type].merge(:name => property.field)
           # TODO: figure out a way to specify the size not be included, even if a default is defined in the typemap
           #  - use this to make it so all TEXT primitive fields do not have size
-          schema[:size]      = property.length if property.length && schema[:primitive] != 'TEXT'
+          if property.primitive == String && schema[:primitive] != 'TEXT'
+            schema[:size] = property.length
+          elsif property.primitive == BigDecimal
+            schema[:precision] = property.precision
+            schema[:scale]     = property.scale
+          end
+
           schema[:nullable?] = property.nullable?
           schema[:serial?]   = property.serial?
           schema[:default]   = property.default unless property.default.nil? || property.default.respond_to?(:call)
+
           schema
         end
 
         def property_schema_statement(schema)
           statement = quote_column_name(schema[:name])
           statement << " #{schema[:primitive]}"
-          statement << "(#{schema[:size]})" if schema[:size]
+
+          if schema[:precision] && schema[:scale]
+            statement << "(#{schema[:precision]},#{schema[:scale]})"
+          elsif schema[:size]
+            statement << "(#{schema[:size]})"
+          end
+
           statement << ' NOT NULL' unless schema[:nullable?]
           statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
           statement

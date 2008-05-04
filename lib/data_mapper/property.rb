@@ -228,7 +228,7 @@ module DataMapper
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :check, :ordinal, :auto_validation, :validates, :unique,
-      :lock, :track
+      :lock, :track, :scale, :precision
     ]
 
     # FIXME: can we pull the keys from
@@ -249,7 +249,15 @@ module DataMapper
 
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
 
-    attr_reader :primitive, :model, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options, :default
+    DEFAULT_LENGTH    = 50
+    DEFAULT_PRECISION = 10
+    DEFAULT_SCALE     = 0
+
+    attr_reader :primitive, :model, :name, :instance_variable_name,
+      :type, :reader_visibility, :writer_visibility, :getter, :options,
+      :default, :length, :precision, :scale
+
+    alias size length
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -261,12 +269,6 @@ module DataMapper
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
-
-    def length
-      @options[:length] || @options[:size]
-    end
-
-    alias size length
 
     def repository
       @model.repository
@@ -409,16 +411,23 @@ module DataMapper
       @getter                 = TrueClass == @type ? "#{@name}?".to_sym : @name
 
       # TODO: This default should move to a DataMapper::Types::Text
-      # Custom-Type
-      # and out of Property.
+      # Custom-Type and out of Property.
       @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
 
       @lock     = @options.fetch(:lock,     false)
       @serial   = @options.fetch(:serial,   false)
-      @key      = @options.fetch(:key,      @serial)
+      @key      = @options.fetch(:key,      @serial || false)
       @default  = @options.fetch(:default,  nil)
       @nullable = @options.fetch(:nullable, @key == false && @default.nil?)
+
+      # assign attributes per-type
+      if @primitive == String || @primitive == Class
+        @length = @options.fetch(:length, @options.fetch(:size, DEFAULT_LENGTH))
+      elsif @primitive == BigDecimal
+        @precision = @options.fetch(:precision, DEFAULT_PRECISION)
+        @scale     = @options.fetch(:scale,     DEFAULT_SCALE)
+      end
 
       determine_visibility
 

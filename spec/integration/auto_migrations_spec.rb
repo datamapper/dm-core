@@ -17,7 +17,7 @@ class Book
   property :false_class, TrueClass,  :nullable => false, :default => false
   property :text,        DM::Text,   :nullable => false, :default => 'text'
 #  property :class,       Class,      :nullable => false, :default => Class  # FIXME: Class types cause infinite recursions in Resource
-  property :big_decimal, BigDecimal, :nullable => false, :default => BigDecimal('1.1')
+  property :big_decimal, BigDecimal, :nullable => false, :default => BigDecimal('1.1'), :precision => 2, :scale => 1
   property :float,       Float,      :nullable => false, :default => 1.1
   property :date_time,   DateTime,   :nullable => false, :default => NOW
   property :object,      Object,     :nullable => true                       # FIXME: cannot supply a default for Object
@@ -42,8 +42,6 @@ begin
     end
 
     describe 'with sqlite3' do
-
-
       before :all do
         Book.auto_migrate!(:sqlite3)
 
@@ -74,19 +72,19 @@ begin
       end
 
       types = {
-        :serial      => [ Fixnum,     'INTEGER',     false, nil,                               1,                 true  ],
-        :fixnum      => [ Fixnum,     'INTEGER',     false, '1',                               1,                 false ],
-        :string      => [ String,     'VARCHAR(50)', false, 'default',                         'default',         false ],
-        :empty       => [ String,     'VARCHAR(50)', false, '',                                ''       ,         false ],
-        :date        => [ Date,       'DATE',        false, TODAY.strftime('%Y-%m-%d'),        TODAY,             false ],
-        :true_class  => [ TrueClass,  'BOOLEAN',     false, 't',                               true,              false ],
-        :false_class => [ TrueClass,  'BOOLEAN',     false, 'f',                               false,             false ],
-        :text        => [ DM::Text,   'TEXT',        false, 'text',                            'text',            false ],
-#        :class       => [ Class,      'VARCHAR(50)', false, 'Class',                           'Class',           false ],
-        :big_decimal => [ BigDecimal, 'DECIMAL',     false, '1.1',                             BigDecimal('1.1'), false ],
-        :float       => [ Float,      'FLOAT',       false, '1.1',                             1.1,               false ],
-        :date_time   => [ DateTime,   'DATETIME',    false, NOW.strftime('%Y-%m-%d %H:%M:%S'), NOW,               false ],
-        :object      => [ Object,     'TEXT',        true,  nil,                               nil,               false ],
+        :serial      => [ Fixnum,     'INTEGER',      false, nil,                               1,                 true  ],
+        :fixnum      => [ Fixnum,     'INTEGER',      false, '1',                               1,                 false ],
+        :string      => [ String,     'VARCHAR(50)',  false, 'default',                         'default',         false ],
+        :empty       => [ String,     'VARCHAR(50)',  false, '',                                ''       ,         false ],
+        :date        => [ Date,       'DATE',         false, TODAY.strftime('%Y-%m-%d'),        TODAY,             false ],
+        :true_class  => [ TrueClass,  'BOOLEAN',      false, 't',                               true,              false ],
+        :false_class => [ TrueClass,  'BOOLEAN',      false, 'f',                               false,             false ],
+        :text        => [ DM::Text,   'TEXT',         false, 'text',                            'text',            false ],
+#        :class       => [ Class,      'VARCHAR(50)',  false, 'Class',                           'Class',           false ],
+        :big_decimal => [ BigDecimal, 'DECIMAL(2,1)', false, '1.1',                             BigDecimal('1.1'), false ],
+        :float       => [ Float,      'FLOAT',        false, '1.1',                             1.1,               false ],
+        :date_time   => [ DateTime,   'DATETIME',     false, NOW.strftime('%Y-%m-%d %H:%M:%S'), NOW,               false ],
+        :object      => [ Object,     'TEXT',         true,  nil,                               nil,               false ],
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
@@ -178,7 +176,7 @@ begin
         :false_class => [ TrueClass,  'TINYINT(1)',    false, '0',                               false,             false ],
         :text        => [ DM::Text,   'TEXT',          false, nil,                               'text',            false ],
 #        :class       => [ Class,      'VARCHAR(50)',   false, 'Class',                           'Class',           false ],
-        :big_decimal => [ BigDecimal, 'DECIMAL(10,0)', false, '1',                               BigDecimal('1'),   false ],  # FIXME: this is truncated because precision and scale were not specified
+        :big_decimal => [ BigDecimal, 'DECIMAL(2,1)',  false, '1.1',                             BigDecimal('1.1'), false ],
         :float       => [ Float,      'FLOAT',         false, '1.1',                             1.1,               false ],
         :date_time   => [ DateTime,   'DATETIME',      false, NOW.strftime('%Y-%m-%d %H:%M:%S'), NOW,               false ],
         :object      => [ Object,     'TEXT',          true,  nil,                               nil,               false ],
