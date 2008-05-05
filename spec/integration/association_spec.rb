@@ -76,6 +76,20 @@ begin
     end
   end
 
+  class Node
+    include DataMapper::Resource
+    
+    property :id, Fixnum, :serial => true
+    property :parent_id, Fixnum
+    
+    property :name, String
+    
+    repository(:sqlite3) do
+      one_to_many :children, :class_name => "Node", :child_key => [ :parent_id ]
+      many_to_one :parent, :class_name => "Node", :child_key => [ :parent_id ]
+    end
+  end
+
   describe DataMapper::Associations do
     describe "many to one associations" do
       before do
@@ -329,6 +343,64 @@ begin
         s.should_not be_nil
         s.host.should_not be_nil
         s.host.id.should == 10
+      end
+
+      describe "many-to-one and one-to-many associations combined" do
+        before do
+          @adapter = repository(:sqlite3).adapter
+
+          Node.auto_migrate!(:sqlite3)
+
+          @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, NULL)', 1, 'r1')
+          @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, NULL)', 2, 'r2')
+          @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, ?)',    3, 'r1c1', 1)
+          @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, ?)',    4, 'r1c2', 1)
+          @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, ?)',    5, 'r1c3', 1)
+          @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, ?)',    6, 'r1c1c1', 3)
+        end
+
+        it "should properly set #parent" do
+          repository :sqlite3 do
+            r1 = Node.get 1
+            r1.parent.should be_nil
+          
+            n3 = Node.get 3
+            n3.parent.should == r1
+            
+            n6 = Node.get 6
+            n6.parent.should == n3
+          end
+        end
+
+        it "should properly set #children" do
+          repository :sqlite3 do
+            r1 = Node.get(1)  
+            off = r1.children
+            off.size.should == 3
+            off.include?(Node.get(3)).should be_true
+            off.include?(Node.get(4)).should be_true
+            off.include?(Node.get(5)).should be_true
+          end
+        end
+
+        it "should allow to create root nodes" do
+          repository :sqlite3 do
+            r = Node.create!(:name => "newroot")
+            r.parent.should be_nil
+            r.children.size.should == 0
+          end
+        end
+
+        it "should properly delete nodes" do
+          repository :sqlite3 do
+            r1 = Node.get 1
+
+            r1.children.size.should == 3
+            r1.children.delete(Node.get(4))
+            Node.get(4).parent.should be_nil
+            r1.children.size.should == 2
+          end
+        end
       end
 
       describe '#through' do
