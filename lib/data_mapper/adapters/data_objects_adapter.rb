@@ -3,6 +3,9 @@ begin
 rescue LoadError
 end
 
+gem 'addressable', '>=1.0.4'
+require 'addressable/uri'
+
 gem 'data_objects', '=0.9.0'
 require 'data_objects'
 
@@ -96,9 +99,9 @@ module DataMapper
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(Fixnum).to('INT')
-          tm.map(String).to('VARCHAR').with(:size => 50)
-          tm.map(Class).to('VARCHAR').with(:size => 50)
-          tm.map(BigDecimal).to('DECIMAL')
+          tm.map(String).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
+          tm.map(Class).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
+          tm.map(BigDecimal).to('DECIMAL').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE)
           tm.map(Float).to('FLOAT')
           tm.map(DateTime).to('DATETIME')
           tm.map(Date).to('DATE')
@@ -156,13 +159,17 @@ module DataMapper
 
         if result.to_i == 1
           key = resource.class.key(name)
-          if key.size == 1 && key.first.serial?
-            resource.instance_variable_set(key.first.instance_variable_name, result.insert_id)
+          if key.size == 1 && (identity_field = key.first).serial?
+            resource.instance_variable_set(identity_field.instance_variable_name, result.insert_id)
           end
           true
         else
           false
         end
+      end
+
+      def exists?(storage_name)
+        raise NotImplementedError
       end
 
       def read(repository, resource, key)
@@ -174,16 +181,18 @@ module DataMapper
         sql = read_statement(resource, key)
         DataMapper.logger.debug("READ: #{sql}")
 
-        connection = create_connection
-        command = connection.create_command(sql)
-        command.set_types(properties.map { |property| property.primitive })
-        reader = command.execute_reader(*key)
-        while(reader.next!)
-          set.load(reader.values)
+        begin
+          connection = create_connection
+          command = connection.create_command(sql)
+          command.set_types(properties.map { |property| property.primitive })
+          reader = command.execute_reader(*key)
+          while(reader.next!)
+            set.load(reader.values)
+          end
+        ensure
+          reader.close if reader
+          close_connection(connection)
         end
-
-        reader.close
-        close_connection(connection)
 
         set.first
       end
@@ -282,11 +291,11 @@ module DataMapper
               set.load(reader.values, do_reload)
             end
 
-            reader.close
           rescue StandardError => se
             p se, sql
             raise se
           ensure
+            reader.close if reader
             close_connection(connection)
           end
         end
@@ -398,10 +407,10 @@ module DataMapper
 
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-          statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p)) } * ', '}"
+          statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
 
           if (key = model.properties.key).any?
-            statement << ", PRIMARY KEY(#{ key.collect { |p| p.field } * ', '})"
+            statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
           end
 
           statement << ")"
@@ -414,23 +423,36 @@ module DataMapper
           EOS
         end
 
-        def property_schema_hash(property)
+        def property_schema_hash(property, model)
           schema = type_map[property.type].merge(:name => property.field)
-          # TODO: figure out a way to remove size parameters, like those for DM::Text
           # TODO: figure out a way to specify the size not be included, even if a default is defined in the typemap
-          schema[:size]      = property.length if property.length && property.type != DM::Text
+          #  - use this to make it so all TEXT primitive fields do not have size
+          if property.primitive == String && schema[:primitive] != 'TEXT'
+            schema[:size] = property.length
+          elsif property.primitive == BigDecimal
+            schema[:precision] = property.precision
+            schema[:scale]     = property.scale
+          end
+
           schema[:nullable?] = property.nullable?
           schema[:serial?]   = property.serial?
-          schema[:default]   = property.default if property.default && !property.default.respond_to?(:call)
+          schema[:default]   = property.default unless property.default.nil? || property.default.respond_to?(:call)
+
           schema
         end
 
         def property_schema_statement(schema)
           statement = quote_column_name(schema[:name])
           statement << " #{schema[:primitive]}"
-          statement << "(#{schema[:size]})" if schema[:size]
-          statement << " NOT NULL"          unless schema[:nullable?]
-          statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema[:default]
+
+          if schema[:precision] && schema[:scale]
+            statement << "(#{schema[:precision]},#{schema[:scale]})"
+          elsif schema[:size]
+            statement << "(#{schema[:size]})"
+          end
+
+          statement << ' NOT NULL' unless schema[:nullable?]
+          statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
           statement
         end
 
@@ -567,55 +589,67 @@ module DataMapper
 
       include SQL
 
+      # TODO: once the driver's quoting methods become public, have
+      # this method delegate to them instead
       def quote_table_name(table_name)
         "\"#{table_name.gsub('"', '""')}\""
       end
 
+      # TODO: once the driver's quoting methods become public, have
+      # this method delegate to them instead
       def quote_column_name(column_name)
         "\"#{column_name.gsub('"', '""')}\""
       end
 
+      # TODO: once the driver's quoting methods become public, have
+      # this method delegate to them instead
       def quote_column_value(column_value)
+        return 'NULL' if column_value.nil?
+
         case column_value
           when String
-            if column_value.to_i == column_value || column_value.to_f == column_value
-              column_value
+            if (integer = column_value.to_i).to_s == column_value
+              quote_column_value(integer)
+            elsif (float = column_value.to_f).to_s == column_value
+              quote_column_value(integer)
             else
-              "\"#{column_value.gsub('"', '""')}\""
+              "'#{column_value.gsub("'", "''")}'"
             end
+          when DateTime
+            quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S'))
+          when Date
+            quote_column_value(column_value.strftime('%Y-%m-%d'))
+          when Integer, Float
+            column_value.to_s
           when BigDecimal
             column_value.to_s('F')
-          when NilClass
-            'NULL'
           else
-            column_value
+            column_value.to_s
         end
       end
 
       protected
 
       def normalize_uri(uri_or_options)
-        uri_or_options = URI.parse(uri_or_options) if String === uri_or_options
-        return uri_or_options                      if URI    === uri_or_options
+        if String === uri_or_options
+          uri_or_options = Addressable::URI.parse(uri_or_options)
+        end
+        if Addressable::URI === uri_or_options
+          return uri_or_options.normalize
+        end
 
         adapter = uri_or_options.delete(:adapter)
         user = uri_or_options.delete(:username)
-
         password = uri_or_options.delete(:password)
-        password = ":" << password.to_s if user && password
-
-        host = uri_or_options.delete(:host)
-        host = "@" << host.to_s if user && host
-
+        host = (uri_or_options.delete(:host) || "")
         port = uri_or_options.delete(:port)
-        port = ":" << port.to_s if host && port
-
-        database = "/#{uri_or_options.delete(:database)}"
-
+        database = uri_or_options.delete(:database)
         query = uri_or_options.to_a.map { |pair| pair.join('=') }.join('&')
-        query = "?" << query unless query.empty?
+        query = nil if query == ""
 
-        URI.parse("#{adapter}://#{user}#{password}#{host}#{port}#{database}#{query}")
+        return Addressable::URI.new(
+          adapter, user, password, host, port, database, query, nil
+        )
       end
 
       private

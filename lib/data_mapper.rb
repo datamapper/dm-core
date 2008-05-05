@@ -13,8 +13,8 @@ require 'pathname'
 require 'rubygems'
 require 'set'
 require 'time'
-require 'uri'
 require 'yaml'
+require 'addressable/uri'
 
 begin
   require 'fastthread'
@@ -98,7 +98,7 @@ module DataMapper
   #
   # ==== Parameters
   # name<Symbol>:: a name for the context, defaults to :default
-  # uri_or_options<Hash{Symbol => String}, URI, String>:: connection information
+  # uri_or_options<Hash{Symbol => String}, Addressable::URI, String>:: connection information
   #
   # ==== Returns
   # Repository:: the resulting setup repository
@@ -108,7 +108,7 @@ module DataMapper
   # invalid argument was passed for name<Symbol>
   # ArgumentError:: "+uri_or_options+ must be a Hash, URI or String, but was..."
   # indicates that connection information could not be gleaned
-  # from the given uri_or_options<Hash, URI, String>
+  # from the given uri_or_options<Hash, Addressable::URI, String>
   # -
   # @public
   def self.setup(name, uri_or_options)
@@ -117,11 +117,11 @@ module DataMapper
     case uri_or_options
       when Hash
         adapter_name = uri_or_options[:adapter]
-      when String, URI
-        uri_or_options = URI.parse(uri_or_options) if String === uri_or_options
+      when String, Addressable::URI
+        uri_or_options = Addressable::URI.parse(uri_or_options) if String === uri_or_options
         adapter_name = uri_or_options.scheme
       else
-        raise ArgumentError, "+uri_or_options+ must be a Hash, URI or String, but was #{uri_or_options.class}", caller
+        raise ArgumentError, "+uri_or_options+ must be a Hash, Addressable::URI or String, but was #{uri_or_options.class}", caller
     end
 
     class_name = DataMapper::Inflection.classify(adapter_name) + 'Adapter'

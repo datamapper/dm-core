@@ -10,7 +10,6 @@ require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
 gem 'rspec', '>=1.1.3'
 
 INTEGRATION_DB_PATH = DataMapper.root / 'spec' / 'integration' / 'integration_test.db'
-
 FileUtils.touch INTEGRATION_DB_PATH unless INTEGRATION_DB_PATH.exist?
 
 # Determine log path.

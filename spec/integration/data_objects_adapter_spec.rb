@@ -9,7 +9,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   describe "when using transactions" do
 
     before :each do
-      @adapter = DataMapper::Adapters::Sqlite3Adapter.new(:sqlite3, URI.parse("sqlite3://#{INTEGRATION_DB_PATH}"))
+      @adapter = DataMapper::Adapters::Sqlite3Adapter.new(:sqlite3, Addressable::URI.parse("sqlite3://#{INTEGRATION_DB_PATH}"))
       @transaction = DataMapper::Transaction.new(@adapter)
       @transaction.begin
     end

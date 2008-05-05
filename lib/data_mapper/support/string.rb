@@ -40,8 +40,4 @@ class String
   def t(*values)
     self.class::translate(self) % values
   end
-
-  def to_class
-    ::Object::recursive_const_get(self)
-  end
 end # class String

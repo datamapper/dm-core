@@ -5,7 +5,7 @@ require DataMapper.root / 'spec' / 'unit' / 'adapters' / 'adapter_shared_spec'
 
 describe DataMapper::Adapters::DataObjectsAdapter do
   before do
-    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, URI.parse('mock://localhost'))
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, Addressable::URI.parse('mock://localhost'))
   end
 
   it_should_behave_like 'a DataMapper Adapter'
@@ -219,7 +219,7 @@ end
 
 describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, updating, deleting statements" do
   before do
-    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, URI.parse('mock://localhost'))
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, Addressable::URI.parse('mock://localhost'))
 
     class Cheese
       include DataMapper::Resource
@@ -359,9 +359,9 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       @adapter.create_table_statement(Cheese).should include(<<-EOS.compress_lines)
         ("id" INT NOT NULL,
           "name" VARCHAR(50) NOT NULL,
-          "color" VARCHAR(50) DEFAULT "yellow",
+          "color" VARCHAR(50) NOT NULL DEFAULT 'yellow',
           "notes" VARCHAR(100),
-          PRIMARY KEY(id))
+          PRIMARY KEY("id"))
       EOS
     end
 
@@ -370,9 +370,9 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
         CREATE TABLE "cheeses"
         ("id" INT NOT NULL,
           "name" VARCHAR(50) NOT NULL,
-          "color" VARCHAR(50) DEFAULT "yellow",
+          "color" VARCHAR(50) NOT NULL DEFAULT 'yellow',
           "notes" VARCHAR(100),
-          PRIMARY KEY(id))
+          PRIMARY KEY("id"))
       EOS
     end
   end
@@ -390,11 +390,11 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     end
 
     it "should map :name to the property's field value" do
-      @adapter.property_schema_hash(@id_property)[:name].should == "id"
+      @adapter.property_schema_hash(@id_property, @model)[:name].should == "id"
     end
 
     it "should not set :key? if the property is a key" do
-      @adapter.property_schema_hash(@id_property).should_not be_key(:key?)
+      @adapter.property_schema_hash(@id_property, @model).should_not be_key(:key?)
     end
   end
 
@@ -421,7 +421,7 @@ end
 
       adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
       adapter.uri.should ==
-        URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
+        Addressable::URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
     end
 
     it 'should transform a minimal options hash into a URI' do
@@ -431,11 +431,11 @@ end
       }
 
       adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
-      adapter.uri.should == URI.parse("mysql:///you_can_call_me_al")
+      adapter.uri.should == Addressable::URI.parse("mysql:///you_can_call_me_al")
     end
 
     it 'should accept the uri when no overrides exist' do
-      uri = URI.parse("protocol:///")
+      uri = Addressable::URI.parse("protocol:///")
       DataMapper::Adapters::DataObjectsAdapter.new(:spec, uri).uri.should == uri
     end
   end

@@ -56,7 +56,11 @@ module DataMapper
       if options[:max] == 1
         relationship = one_to_one(name, options)
       else
-        relationship = one_to_many(name, options)
+        if options[:min] == n && options[:max] == n
+          relationship = many_to_many(name, options)
+        else
+          relationship = one_to_many(name, options)
+        end
       end
       # Please leave this in - I will release contextual serialization soon which requires this -- guyvdb
       # TODO convert this to a hook in the plugin once hooks work on class methods

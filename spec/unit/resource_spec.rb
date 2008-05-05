@@ -49,7 +49,7 @@ describe "DataMapper::Resource" do
       property :awesomeness, Fixnum
     end
   end
-
+  
   it "should hold repository-specific properties" do
     Planet.properties(:legacy).should have_property(:cowabunga)
     Planet.properties.should_not have_property(:cowabunga)
@@ -286,6 +286,11 @@ describe "DataMapper::Resource" do
       Planet.should respond_to(:first)
       Planet.should respond_to(:all)
       Planet.should respond_to(:[])
+    end
+    
+    it '.exists? should return whether or not the repository exists' do
+      Planet.should respond_to(:exists?)
+      Planet.exists?.should == true
     end
   end
 

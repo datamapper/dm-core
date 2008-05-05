@@ -72,6 +72,23 @@ module DataMapper
 
     alias == eql?
 
+    def inspect
+      attrs = attributes.inject([]) {|s,(k,v)| s << "#{k}=#{v.inspect}"}
+      "#<#{self.class.name} #{attrs.join(" ")}>"
+    end
+
+    def pretty_print(pp)
+      attrs = attributes.inject([]) {|s,(k,v)| s << [k,v]}
+      pp.group(1, "#<#{self.class.name}", ">") do
+        pp.breakable
+        pp.seplist(attrs) do |k_v|
+          pp.text k_v[0].to_s
+          pp.text " = "
+          pp.pp k_v[1]
+        end
+      end
+    end
+
     def repository
       @collection ? @collection.repository : self.class.repository
     end
@@ -82,6 +99,14 @@ module DataMapper
 
     def parent_associations
       @parent_associations ||= []
+    end
+
+    # default id method to return the resource id when there is a
+    # single key, and the model was defined with a primary key named
+    # something other than id
+    def id
+      key = self.key
+      key.first if key.size == 1
     end
 
     def key
@@ -113,6 +138,14 @@ module DataMapper
       property = self.class.properties(repository.name)[name]
       instance_variable_defined?(property.instance_variable_name)
     end
+    
+    def loaded_attributes
+      names = []
+      self.class.properties(repository.name).each do |property|
+        names << property.name if instance_variable_defined?(property.instance_variable_name)
+      end
+      names
+    end
 
     def dirty_attributes
       @dirty_attributes ||= Set.new
@@ -132,8 +165,9 @@ module DataMapper
     end
 
     def reload
-      @collection.reload(:fields => loaded_attributes.keys)
+      @collection.reload(:fields => loaded_attributes)
     end
+    alias reload! reload
 
     # Returns <tt>true</tt> if this model hasn't been saved to the
     # database, <tt>false</tt> otherwise.
@@ -229,7 +263,7 @@ module DataMapper
         end
       end
     end
-    
+
     module ClassMethods
       def self.extended(base)
         base.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
@@ -332,15 +366,15 @@ module DataMapper
         repository(options[:repository]).first(self, options)
       end
 
-      def create(values)
+      def create(attributes = {})
         resource = allocate
-        resource.send(:initialize_with_attributes, values)
+        resource.send(:initialize_with_attributes, attributes)
         resource.save
         resource
       end
-      
-      def create!(values)
-        resource = create(values)
+
+      def create!(attributes = {})
+        resource = create(attributes)
         raise PersistenceError, "Resource not saved: :new_record => #{resource.new_record?}, :dirty_attributes => #{resource.dirty_attributes.inspect}" if resource.new_record?
         resource
       end
@@ -365,6 +399,10 @@ module DataMapper
       # @public
       def transaction(&block)
         DataMapper::Transaction.new(self, &block)
+      end
+      
+      def exists?(repo_name = default_repository_name)
+        repository(repo_name).storage_exists?(storage_name(repo_name))
       end
 
       private

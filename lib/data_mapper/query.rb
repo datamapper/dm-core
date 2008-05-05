@@ -26,7 +26,7 @@ module DataMapper
     end # class Direction
 
     class Operator
-      attr_reader :property_name, :type
+      attr_reader :target, :operator
 
       def to_sym
         @property_name
@@ -34,18 +34,19 @@ module DataMapper
 
       private
 
-      def initialize(property_name, type)
-        raise ArgumentError, "+property_name+ is not a Symbol, but was #{property_name.class}", caller unless Symbol === property_name
-        raise ArgumentError, "+type+ is not a Symbol, but was #{type.class}", caller                   unless Symbol === type
+      def initialize(target, operator)
+        unless Symbol === operator
+          raise ArgumentError, "+operator+ is not a Symbol, but was #{type.class}", caller
+        end
 
-        @property_name = property_name
-        @type          = type
+        @target     = target
+        @operator   = operator
       end
     end # class Operator
 
     class Path
 
-      attr_reader :relationships, :model, :property
+      attr_reader :relationships, :model, :property, :operator
 
 
       def initialize(repository, relationships, model, property_name = nil)  
@@ -58,6 +59,16 @@ module DataMapper
         @relationships = relationships
         @model         = model
         @property      = @model.properties(@repository.name)[property_name] if property_name
+      end
+
+      [:gt, :gte, :lt, :lte, :not, :eql, :like, :in].each do |sym|
+        
+        self.class_eval <<-RUBY
+          def #{sym}
+            Operator.new(self, :#{sym})
+          end
+        RUBY
+        
       end
 
       def method_missing(method, *args)
@@ -77,7 +88,7 @@ module DataMapper
           @property = @model.properties(@model.repository.name)[method]
           return self
         end
-        super
+        raise NoMethodError, "undefined property or association `#{method}' on #{@model}"
       end      
 
       # duck type the DM::Query::Path to act like a DM::Property
@@ -293,8 +304,8 @@ module DataMapper
 
             Direction.new(order_by)
           when Operator
-            property = @properties[order_by.property_name]
-            Direction.new(property, order_by.type)
+            property = @properties[order_by.target]
+            Direction.new(property, order_by.operator)
           when Symbol, String
             property = @properties[order_by]
             raise ArgumentError, "+options[:order]+ entry #{order_by} does not map to a DataMapper::Property" if property.nil?
@@ -372,10 +383,23 @@ module DataMapper
           validate_query_path_links(clause)
           clause
         when Operator
-          operator = clause.type
-          @properties[clause.to_sym]
-        when Symbol, String
+          operator = clause.operator
+          if clause.target.is_a?(Symbol)
+            @properties[clause.target]
+          elsif clause.target.is_a?(Query::Path)
+            validate_query_path_links(clause.target)
+            clause.target
+          end
+        when Symbol
           @properties[clause]
+        when String
+          if clause =~ /\w\.\w/
+            append_condition(clause.split(".").inject(@model) do |s,piece|
+              s.send(piece)
+            end, value)
+          else
+            @properties[clause]
+          end
         else
           raise ArgumentError, "Condition type #{clause.inspect} not supported"
       end

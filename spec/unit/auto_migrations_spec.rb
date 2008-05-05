@@ -82,6 +82,7 @@ describe DataMapper::AutoMigrations do
       models.each do |model|
         DataMapper::AutoMigrator.models << model
         model.should_receive(:auto_migrate!)
+        model.should_receive(:relationships).and_return({})
       end
       
       DataMapper::AutoMigrator.auto_migrate(@repository)

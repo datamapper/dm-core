@@ -8,6 +8,8 @@ require 'bigdecimal'
 
 module DataMapper
 
+  # :include:QUICKLINKS
+  #
   # = Properties
   # Properties for a model are not derived from a database structure, but
   # instead explicitly declared inside your model class definitions. These
@@ -40,8 +42,20 @@ module DataMapper
   #        # Default value for new records is false
   #   end
   #
-  # Valid property types can be found in the TYPES constant below, or in
-  # DataMapper::Property::Types
+  # By default, DataMapper supports the following primitive types:
+  #
+  # * TrueClass, Boolean
+  # * String
+  # * Text (limit of 65k characters by default)
+  # * Float
+  # * Fixnum, Integer
+  # * BigDecimal
+  # * DateTime
+  # * Date
+  # * Object (marshalled out during serialization)
+  # * Class (datastore primitive is the same as String. Used for Inheritance)
+  #
+  # For more information about available Types, see DataMapper::Type
   #
   # == Limiting Access
   # Property access control is uses the same terminology Ruby does. Properties
@@ -52,7 +66,7 @@ module DataMapper
   #   include DataMapper::Resource
   #    property :title,  String,                  :accessor => :private
   #      # Both reader and writer are private
-  #    property :body,   DataMapper::Types::Text, :accessor => :protected
+  #    property :body,   Text, :accessor => :protected
   #      # Both reader and writer are protected
   #  end
   #
@@ -214,7 +228,7 @@ module DataMapper
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :check, :ordinal, :auto_validation, :validates, :unique,
-      :lock, :track
+      :lock, :track, :scale, :precision
     ]
 
     # FIXME: can we pull the keys from
@@ -235,7 +249,13 @@ module DataMapper
 
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
 
-    attr_reader :primitive, :model, :name, :instance_variable_name, :type, :reader_visibility, :writer_visibility, :getter, :options, :default
+    DEFAULT_LENGTH    = 50
+    DEFAULT_PRECISION = 10
+    DEFAULT_SCALE     = 0
+
+    attr_reader :primitive, :model, :name, :instance_variable_name,
+      :type, :reader_visibility, :writer_visibility, :getter, :options,
+      :default, :precision, :scale
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -247,12 +267,6 @@ module DataMapper
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
-
-    def length
-      @options[:length] || @options[:size]
-    end
-
-    alias size length
 
     def repository
       @model.repository
@@ -269,7 +283,12 @@ module DataMapper
         return false
       end
     end
-
+    
+    def length
+      @length.is_a?(Range) ? @length.max : @length
+    end
+    alias size length
+    
     # Returns whether or not the property is to be lazy-loaded
     #
     # ==== Returns
@@ -363,7 +382,7 @@ module DataMapper
       elsif type == BigDecimal then BigDecimal.new(value.to_s)
       elsif type == DateTime   then DateTime.parse(value.to_s)
       elsif type == Date       then Date.parse(value.to_s)
-      elsif type == Class      then Object.recursive_const_get(value)
+      elsif type == Class      then find_const(value)
       end
     end
 
@@ -395,16 +414,23 @@ module DataMapper
       @getter                 = TrueClass == @type ? "#{@name}?".to_sym : @name
 
       # TODO: This default should move to a DataMapper::Types::Text
-      # Custom-Type
-      # and out of Property.
+      # Custom-Type and out of Property.
       @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
 
       @lock     = @options.fetch(:lock,     false)
       @serial   = @options.fetch(:serial,   false)
-      @key      = @options.fetch(:key,      @serial)
-      @nullable = @options.fetch(:nullable, @key == false)
+      @key      = @options.fetch(:key,      @serial || false)
       @default  = @options.fetch(:default,  nil)
+      @nullable = @options.fetch(:nullable, @key == false && @default.nil?)
+
+      # assign attributes per-type
+      if @primitive == String || @primitive == Class
+        @length = @options.fetch(:length, @options.fetch(:size, DEFAULT_LENGTH))
+      elsif @primitive == BigDecimal
+        @precision = @options.fetch(:precision, DEFAULT_PRECISION)
+        @scale     = @options.fetch(:scale,     DEFAULT_SCALE)
+      end
 
       determine_visibility
 

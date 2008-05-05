@@ -164,6 +164,13 @@ describe DataMapper::Property do
   it 'should provide typecast' do
     DataMapper::Property.new(Zoo, :name, String).should respond_to(:typecast)
   end
+  
+  it "should provide a size/length" do
+    DataMapper::Property.new(Zoo, :cleanliness, String, { :size => 100 }).size.should == 100
+    DataMapper::Property.new(Zoo, :cleanliness, String, { :length => 200 }).size.should == 200
+    DataMapper::Property.new(Zoo, :cleanliness, String, { :size => (0..100) }).size.should == 100
+    DataMapper::Property.new(Zoo, :cleanliness, String, { :length => (0..200) }).size.should == 200
+  end
 
   it 'should pass through the value if it is the same type when typecasting' do
     value = 'San Diego'

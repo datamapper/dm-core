@@ -5,6 +5,10 @@ module DataMapper
       def create(repository, instance)
         instance
       end
+      
+      def exists?(storage_name)
+        true
+      end
 
     end
   end
