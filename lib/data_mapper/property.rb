@@ -255,9 +255,7 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
-      :default, :length, :precision, :scale
-
-    alias size length
+      :default, :precision, :scale
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -285,7 +283,12 @@ module DataMapper
         return false
       end
     end
-
+    
+    def length
+      @length.is_a?(Range) ? @length.max : @length
+    end
+    alias size length
+    
     # Returns whether or not the property is to be lazy-loaded
     #
     # ==== Returns
