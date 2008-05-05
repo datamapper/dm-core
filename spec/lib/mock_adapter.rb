@@ -9,3 +9,15 @@ module DataMapper
     end
   end
 end
+
+module DataObjects
+  module Mock
+    
+    def self.logger
+    end
+    
+    def self.logger=(value)
+    end
+    
+  end
+end

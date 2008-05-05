@@ -107,6 +107,14 @@ module DataMapper
           tm.map(DM::Text).to('TEXT')
         end
       end
+      
+      def initialize(name, uri_or_options)
+        super
+        
+        # Default the driver-specifc logger to DataMapper's logger
+        driver_module = DataObjects.const_get(@uri.scheme.capitalize) rescue nil
+        driver_module.logger = DataMapper.logger if driver_module && driver_module.respond_to?(:logger)
+      end
 
       def transaction_primitive
         DataObjects::Transaction.create_for_uri(@uri)

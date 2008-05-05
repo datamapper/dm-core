@@ -13,8 +13,6 @@ INTEGRATION_DB_PATH = DataMapper.root / 'spec' / 'integration' / 'integration_te
 
 FileUtils.touch INTEGRATION_DB_PATH unless INTEGRATION_DB_PATH.exist?
 
-DataMapper.setup(:default, 'mock://localhost')
-
 # Determine log path.
 ENV['_'] =~ /(\w+)/
 log_path = DataMapper.root / 'log' / "#{$1 == 'opt' ? 'spec' : $1}.log"
@@ -22,6 +20,8 @@ log_path.dirname.mkpath
 
 DataMapper::Logger.new(log_path, 0)
 at_exit { DataMapper.logger.close }
+
+DataMapper.setup(:default, 'mock://localhost')
 
 class Article
   include DataMapper::Resource
