@@ -89,6 +89,7 @@ begin
         Yard.auto_migrate!(:sqlite3)
 
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, ?)', 1, 'yard1', 1)
+        @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, NULL)', 0, 'yard2')
       end
 
       it "should load without the parent"
@@ -136,6 +137,27 @@ begin
 
         y.engine_id.should == 10
         repository(:sqlite3).all(Engine, :id => 10).first.should_not be_nil
+      end
+
+      it 'should convert NULL parent ids into nils' do
+        y = repository(:sqlite3).all(Yard, :id => 0).first
+        y.engine.should be_nil
+      end
+ 
+      it 'should save nil parents as NULL ids' do
+        y1,y2 = nil, nil
+
+        repository(:sqlite3) do |r|
+          y1 = Yard.new(:id => 20, :name => "Yard20")
+          r.save(y1)
+
+          y2 = Yard.create!(:id => 30, :name => "Yard30", :engine => nil)
+        end
+
+        y1.id.should == 20
+        y1.engine_id.should be_nil
+        y2.id.should == 30
+        y2.engine_id.should be_nil
       end
 
       after do
@@ -206,6 +228,22 @@ begin
         repository(:sqlite3).first(Pie, :id => 10).should_not be_nil
       end
 
+      it 'should save nil parents as NULL ids' do
+        p1,p2 = nil, nil
+
+        repository(:sqlite3) do |r|
+          p1 = Pie.new(:id => 20, :name => "Pie20")
+          r.save(p1)
+
+          p2 = Pie.create!(:id => 30, :name => "Pie30", :sky => nil)
+        end
+
+        p1.id.should == 20
+        p1.sky_id.should be_nil
+        p2.id.should == 30
+        p2.sky_id.should be_nil
+      end
+
       after do
         @adapter.execute('DROP TABLE "pies"')
         @adapter.execute('DROP TABLE "skies"')
@@ -223,6 +261,7 @@ begin
 
         Slice.auto_migrate!(:sqlite3)
 
+        @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, NULL)', 0, 'slice0')
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 1, 'slice1', 1)
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)
       end
@@ -250,6 +289,10 @@ begin
         h.slices.size.should == 2
         h.slices.first.id.should == 1
         h.slices.last.id.should == 2
+
+        s0 = repository(:sqlite3).all(Slice, :id => 0).first
+        s0.host.should be_nil
+        s0.host_id.should be_nil
       end
 
       it "should add and save the associated instance" do
