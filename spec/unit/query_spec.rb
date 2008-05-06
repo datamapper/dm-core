@@ -10,7 +10,7 @@ describe DataMapper::Query do
     [ :offset,   1         ],
     [ :limit,    1         ],
     [ :limit,    2         ],
-    [ :order,    [ DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc) ] ],
+    [ :order,    [ DataMapper::Query::Direction.new(Article.properties[:created_at], :desc) ] ],
     [ :fields,   Article.properties(:default).defaults.to_a ], # TODO: fill in allowed default value
     #[ :links,    [ :stub ] ], # TODO: fill in allowed default value
     [ :includes, [ :stub ] ], # TODO: fill in allowed default value
@@ -85,12 +85,12 @@ describe DataMapper::Query do
       describe ' #conditions with unknown options' do
         it 'when a Symbol object is a key' do
           query = DataMapper::Query.new(repository(:mock), Article, :author => 'dkubb')
-          query.conditions.should == [ [ :eql, Article.property_by_name(:author), 'dkubb' ] ]
+          query.conditions.should == [ [ :eql, Article.properties[:author], 'dkubb' ] ]
         end
 
         it 'when a Symbol::Operator object is a key' do
           query = DataMapper::Query.new(repository(:mock), Article, :author.like => /\Ad(?:an\.)kubb\z/)
-          query.conditions.should == [ [ :like, Article.property_by_name(:author), /\Ad(?:an\.)kubb\z/ ] ]
+          query.conditions.should == [ [ :like, Article.properties[:author], /\Ad(?:an\.)kubb\z/ ] ]
         end
       end
     end
@@ -199,7 +199,7 @@ describe DataMapper::Query do
 
           # update the conditions, and overwrite with the new value
           other = DataMapper::Query.new(repository(:mock), Article, :author.send(operator) => 'dkubb')
-          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:author), 'dkubb' ] ]
+          @query.update(other).conditions.should == [ [ operator, Article.properties[:author], 'dkubb' ] ]
         end
       end
 
@@ -210,7 +210,7 @@ describe DataMapper::Query do
 
           # update the conditions, and overwrite with the new value is less
           other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => Time.at(0))
-          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(0) ] ]
+          @query.update(other).conditions.should == [ [ operator, Article.properties[:created_at], Time.at(0) ] ]
         end
       end
 
@@ -221,7 +221,7 @@ describe DataMapper::Query do
 
           # update the conditions, and overwrite with the new value is more
           other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => Time.at(1))
-          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(1) ] ]
+          @query.update(other).conditions.should == [ [ operator, Article.properties[:created_at], Time.at(1) ] ]
         end
       end
     end
@@ -229,9 +229,9 @@ describe DataMapper::Query do
     describe 'should append the attribute' do
       it "#order with other order unique values" do
         order = [
-          DataMapper::Query::Direction.new(Article.property_by_name(:created_at), :desc),
-          DataMapper::Query::Direction.new(Article.property_by_name(:author),     :desc),
-          DataMapper::Query::Direction.new(Article.property_by_name(:title),      :desc),
+          DataMapper::Query::Direction.new(Article.properties[:created_at], :desc),
+          DataMapper::Query::Direction.new(Article.properties[:author],     :desc),
+          DataMapper::Query::Direction.new(Article.properties[:title],      :desc),
         ]
 
         other = DataMapper::Query.new(repository(:mock), Article, :order => order)
@@ -263,7 +263,7 @@ describe DataMapper::Query do
 
         # update the conditions, but merge the conditions together
         other = DataMapper::Query.new(repository(:mock), Article, :author => 'dkubb')
-        @query.update(other).conditions.should == [ [ :eql, Article.property_by_name(:title), 'On DataMapper' ], [ :eql, Article.property_by_name(:author), 'dkubb' ] ]
+        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ :eql, Article.properties[:author], 'dkubb' ] ]
       end
 
       [ :not, :in ].each do |operator|
@@ -273,7 +273,7 @@ describe DataMapper::Query do
 
           # update the conditions, and overwrite with the new value is more
           other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => [ Time.at(1) ])
-          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), [ Time.at(0), Time.at(1) ] ] ]
+          @query.update(other).conditions.should == [ [ operator, Article.properties[:created_at], [ Time.at(0), Time.at(1) ] ] ]
         end
       end
 
@@ -283,7 +283,7 @@ describe DataMapper::Query do
 
         # update the conditions, but merge the conditions together
         other = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'author = "dkubb"' ])
-        @query.update(other).conditions.should == [ [ :eql, Article.property_by_name(:title), 'On DataMapper' ], [ 'author = "dkubb"' ] ]
+        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ 'author = "dkubb"' ] ]
       end
 
       it '#conditions with other conditions when they have a two or more element condition' do
@@ -292,7 +292,7 @@ describe DataMapper::Query do
 
         # update the conditions, but merge the conditions together
         other = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'author = ?', 'dkubb' ])
-        @query.update(other).conditions.should == [ [ :eql, Article.property_by_name(:title), 'On DataMapper' ], [ 'author = ?', [ 'dkubb' ] ] ]
+        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ 'author = ?', [ 'dkubb' ] ] ]
       end
     end
 
@@ -316,7 +316,7 @@ describe DataMapper::Query do
 
           # do not overwrite with the new value if it is more
           other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => Time.at(1))
-          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(0) ] ]
+          @query.update(other).conditions.should == [ [ operator, Article.properties[:created_at], Time.at(0) ] ]
         end
       end
 
@@ -327,7 +327,7 @@ describe DataMapper::Query do
 
           # do not overwrite with the new value if it is less
           other = DataMapper::Query.new(repository(:mock), Article, :created_at.send(operator) => Time.at(0))
-          @query.update(other).conditions.should == [ [ operator, Article.property_by_name(:created_at), Time.at(1) ] ]
+          @query.update(other).conditions.should == [ [ operator, Article.properties[:created_at], Time.at(1) ] ]
         end
       end
     end
@@ -376,8 +376,8 @@ describe DataMapper::Query do
         other.update(:author => 'dkubb')
 
         # query conditions are in different order
-        @query.conditions.should == [ [ :eql, Article.property_by_name(:author), 'dkubb'         ], [ :eql, Article.property_by_name(:title),  'On DataMapper' ] ]
-        other.conditions.should  == [ [ :eql, Article.property_by_name(:title),  'On DataMapper' ], [ :eql, Article.property_by_name(:author), 'dkubb'         ] ]
+        @query.conditions.should == [ [ :eql, Article.properties[:author], 'dkubb'         ], [ :eql, Article.properties[:title],  'On DataMapper' ] ]
+        other.conditions.should  == [ [ :eql, Article.properties[:title],  'On DataMapper' ], [ :eql, Article.properties[:author], 'dkubb'         ] ]
 
         @query.should == other
       end

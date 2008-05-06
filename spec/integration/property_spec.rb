@@ -87,12 +87,6 @@ begin
           property :notes, String, :lazy => [:notes]
           property :trip_report, String, :lazy => [:notes,:trip]
           property :miles, Fixnum, :lazy => [:trip]
-
-          class << self
-            def property_by_name(name)
-              properties(repository.name)[name]
-            end
-          end
         end
         
         SailBoat.auto_migrate!(:sqlite3)

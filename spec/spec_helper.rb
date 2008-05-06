@@ -30,12 +30,6 @@ class Article
   property :created_at, DateTime
   property :author,     String
   property :title,      String
-
-  class << self
-    def property_by_name(name)
-      properties(repository.name)[name]
-    end
-  end
 end
 
 class Comment

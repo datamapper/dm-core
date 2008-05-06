@@ -258,12 +258,6 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
           property :port, String
-
-          class << self
-            def property_by_name(name)
-              properties(repository.name)[name]
-            end
-          end
         end
 
         SailBoat.auto_migrate!(:postgres)
@@ -275,25 +269,25 @@ begin
 
       it "should order results" do
         result = repository(:postgres).all(SailBoat,{:order => [
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc)
+            DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc)
         ]})
         result[0].id.should == 1
 
         result = repository(:postgres).all(SailBoat,{:order => [
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+            DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
         ]})
         result[0].id.should == 3
 
         result = repository(:postgres).all(SailBoat,{:order => [
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:name), :asc),
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+            DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc),
+            DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
         ]})
         result[0].id.should == 1
 
 
         result = repository(:postgres).all(SailBoat,{:order => [
-            SailBoat.property_by_name(:name),
-            DataMapper::Query::Direction.new(SailBoat.property_by_name(:port), :asc)
+            SailBoat.properties[:name],
+            DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
         ]})
         result[0].id.should == 1
       end
