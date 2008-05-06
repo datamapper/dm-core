@@ -46,17 +46,15 @@ module DataMapper
           self
         end
 
-        alias << push
-
         def unshift(*resources)
           append_resource(resources)
           @children.unshift(*resources)
           self
         end
 
-        def clear
-          each { |resource| remove_resource(resource) }
-          @children.clear
+        def <<(resource)
+          append_resource([ resource ])
+          @children << resource
           self
         end
 
@@ -74,6 +72,12 @@ module DataMapper
 
         def delete_at(index)
           remove_resource(@children.delete_at(index))
+        end
+
+        def clear
+          each { |resource| remove_resource(resource) }
+          @children.clear
+          self
         end
 
         def save

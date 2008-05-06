@@ -124,7 +124,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
         @relationship.should_receive(:attach_parent).with(@resource, @parent).once
         @relationship.should_receive(:repository_name).with(no_args).once.and_return(:a_symbol)
         @association.should_receive(:repository).with(:a_symbol).once.and_return(@repository)
-        @collection.should_receive(:push).with(@resource).once.and_return(@collection)
+        @collection.should_receive(:<<).with(@resource).once.and_return(@collection)
 
         @association << @resource
 
@@ -136,7 +136,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
       it "should not save the resource" do
         @parent.should_receive(:new_record?).and_return(true)
         @association.should_not_receive(:save_resource)
-        @collection.should_receive(:push).with(@resource).once.and_return(@collection)
+        @collection.should_receive(:<<).with(@resource).once.and_return(@collection)
 
         @association << @resource
 
