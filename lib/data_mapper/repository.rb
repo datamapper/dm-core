@@ -102,11 +102,11 @@ module DataMapper
     end
     
     def migrate!
-      Migrator.migrate(self)
+      Migrator.migrate(name)
     end
     
     def auto_migrate!
-      AutoMigrator.auto_migrate(self)
+      AutoMigrator.auto_migrate(name)
     end
 
     #

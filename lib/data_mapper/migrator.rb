@@ -18,9 +18,9 @@ module DataMapper
       end
     end
     
-    def self.migrate(repository)
+    def self.migrate(repository_name)
       subclasses.collect do |migrator|
-        migrator.migrate(repository)
+        migrator.migrate(repository_name)
       end.flatten
     end
   end

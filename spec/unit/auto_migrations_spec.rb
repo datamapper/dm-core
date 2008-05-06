@@ -70,10 +70,8 @@ describe DataMapper::AutoMigrations do
   end
   
   describe "#auto_migrate" do
-    before(:each) do
-      @repository = mock(:repository)
-      @adapter = mock(:adapter)
-      @repository.stub!(:adapter).and_return(@adapter)
+    before do
+      @repository_name = mock('repository name')
     end
     
     it "should call each model's auto_migrate! method" do
@@ -81,11 +79,11 @@ describe DataMapper::AutoMigrations do
       
       models.each do |model|
         DataMapper::AutoMigrator.models << model
-        model.should_receive(:auto_migrate!)
+        model.should_receive(:auto_migrate!).with(@repository_name)
         model.should_receive(:relationships).and_return({})
       end
       
-      DataMapper::AutoMigrator.auto_migrate(@repository)
+      DataMapper::AutoMigrator.auto_migrate(@repository_name)
     end
   end
 end

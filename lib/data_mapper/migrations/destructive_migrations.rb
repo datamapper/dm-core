@@ -6,7 +6,7 @@ module DataMapper
   end
   
   class DestructiveMigrator < Migrator
-    def self.migrate(repository)
+    def self.migrate(repository_name)
       models.each do |model|
         model.auto_migrate!
       end

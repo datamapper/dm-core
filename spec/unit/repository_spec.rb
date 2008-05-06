@@ -76,7 +76,7 @@ describe DataMapper::Repository do
     it "should call DataMapper::Migrator.migrate with itself as the repository argument" do
       repository = repository(:repository_spec)
       
-      DataMapper::Migrator.should_receive(:migrate).with(repository)
+      DataMapper::Migrator.should_receive(:migrate).with(repository.name)
       
       repository.migrate!
     end
@@ -86,7 +86,7 @@ describe DataMapper::Repository do
     it "should call DataMapper::AutoMigrator.auto_migrate with itself as the repository argument" do
       repository = repository(:repository_spec)
       
-      DataMapper::AutoMigrator.should_receive(:auto_migrate).with(repository)
+      DataMapper::AutoMigrator.should_receive(:auto_migrate).with(repository.name)
       
       repository.auto_migrate!
     end
