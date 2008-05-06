@@ -152,20 +152,18 @@ module DataMapper
 
         connection = create_connection
         command = connection.create_command(sql)
-
         result = command.execute_non_query(*values)
 
-        close_connection(connection)
+        return false if result.to_i != 1
 
-        if result.to_i == 1
-          key = resource.class.key(name)
-          if key.size == 1 && (identity_field = key.first).serial?
-            resource.instance_variable_set(identity_field.instance_variable_name, result.insert_id)
-          end
-          true
-        else
-          false
+        key = resource.class.key(name)
+        if key.size == 1 && (identity_field = key.first).serial?
+          resource.instance_variable_set(identity_field.instance_variable_name, result.insert_id)
         end
+
+        true
+      ensure
+        close_connection(connection)
       end
 
       def exists?(storage_name)
@@ -181,42 +179,41 @@ module DataMapper
         sql = read_statement(resource, key)
         DataMapper.logger.debug("READ: #{sql}")
 
-        begin
-          connection = create_connection
-          command = connection.create_command(sql)
-          command.set_types(properties.map { |property| property.primitive })
-          reader = command.execute_reader(*key)
-          while(reader.next!)
-            set.load(reader.values)
-          end
-        ensure
-          reader.close if reader
-          close_connection(connection)
+        connection = create_connection
+        command = connection.create_command(sql)
+        command.set_types(properties.map { |property| property.primitive })
+        reader = command.execute_reader(*key)
+
+        while(reader.next!)
+          set.load(reader.values)
         end
 
         set.first
+      ensure
+        reader.close if reader
+        close_connection(connection)
       end
 
       def update(repository, resource)
         properties = resource.dirty_attributes
 
-        if properties.empty?
-          return false
-        else
-          sql = update_statement(resource.class, properties)
-          values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-          parameters = (values + resource.key)
-          DataMapper.logger.debug("UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}")
+        return false if properties.empty?
 
+        sql = update_statement(resource.class, properties)
+        values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
+        parameters = (values + resource.key)
+        DataMapper.logger.debug("UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}")
+
+        begin
           connection = create_connection
           command = connection.create_command(sql)
 
           affected_rows = command.execute_non_query(*parameters).to_i
-
+        ensure
           close_connection(connection)
-
-          affected_rows == 1
         end
+
+        affected_rows == 1
       end
 
       def delete(repository, resource)
@@ -224,12 +221,11 @@ module DataMapper
 
         connection = create_connection
         command = connection.create_command(delete_statement(resource.class))
-
         affected_rows = command.execute_non_query(*key).to_i
 
-        close_connection(connection)
-
         affected_rows == 1
+      ensure
+        close_connection(connection)
       end
 
       def create_model_storage(repository, model)
@@ -239,12 +235,11 @@ module DataMapper
 
         connection = create_connection
         command = connection.create_command(sql)
-
         result = command.execute_non_query
 
-        close_connection(connection)
-
         result.to_i == 1
+      ensure
+        close_connection(connection)
       end
 
       def destroy_model_storage(repository, model)
@@ -254,12 +249,11 @@ module DataMapper
 
         connection = create_connection
         command = connection.create_command(sql)
-
         result = command.execute_non_query
 
-        close_connection(connection)
-
         result.to_i == 1
+      ensure
+        close_connection(connection)
       end
 
       #
@@ -281,10 +275,11 @@ module DataMapper
         Collection.new(repository, model, properties_with_indexes) do |set|
           DataMapper.logger.debug("READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}")
 
-          connection = create_connection
           begin
+            connection = create_connection
             command = connection.create_command(sql)
             command.set_types(properties.map { |property| property.primitive })
+
             reader = command.execute_reader(*parameters)
 
             while(reader.next!)
