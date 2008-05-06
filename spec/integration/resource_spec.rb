@@ -33,7 +33,7 @@ begin
     describe "anonymity" do
 
       before(:all) do
-        @planet = DataMapper::Resource.new("planets") do
+        @planet = DataMapper::Resource.new("planet") do
           property :name, String, :key => true
           property :distance, Fixnum
         end

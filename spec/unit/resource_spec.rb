@@ -297,11 +297,17 @@ describe "DataMapper::Resource" do
   
   describe "anonymity" do
     
+    before(:all) do
+      DataMapper.setup(:andromeda, 'mock://localhost')
+    end
+    
     it "should require a default storage name and accept a block" do
-      pluto = DataMapper::Resource.new("planets") do
+      pluto = DataMapper::Resource.new("planet") do
         property :name, String, :key => true
       end
       
+      pluto.storage_name(:default).should == 'planets'
+      pluto.storage_name(:andromeda).should == 'planets'
       pluto.properties[:name].should_not be_nil
     end
     

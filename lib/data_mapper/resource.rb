@@ -7,7 +7,7 @@ module DataMapper
     def self.new(default_name, &b)      
       x = Class.new
       x.send(:include, self)
-      x.storage_names[:default] = default_name
+      x.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(default_name) })
       x.instance_eval(&b)
       x
     end
