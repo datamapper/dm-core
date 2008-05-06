@@ -33,14 +33,12 @@ begin
     describe "anonymity" do
 
       before(:all) do
-        repository(:sqlite3) do
-          @planet = DataMapper::Resource.new("planets") do
-            property :name, String, :key => true
-            property :distance, Fixnum
-          end
-        
-          @planet.auto_migrate!
+        @planet = DataMapper::Resource.new("planets") do
+          property :name, String, :key => true
+          property :distance, Fixnum
         end
+      
+        @planet.auto_migrate!(:sqlite3)
       end
       
       it "should be able to persist" do

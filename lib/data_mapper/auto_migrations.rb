@@ -11,8 +11,8 @@ module DataMapper
     module ClassMethods
       def auto_migrate!(repository_name = default_repository_name)
         self.relationships(repository_name).each_pair { |name, relationship| relationship.child_key }
-        repository(repository_name).adapter.destroy_model_storage(repository, self)
-        repository(repository_name).adapter.create_model_storage(repository, self)
+        repository(repository_name).adapter.destroy_model_storage(repository(repository_name), self)
+        repository(repository_name).adapter.create_model_storage(repository(repository_name), self)
       end
     end
   end
@@ -23,16 +23,16 @@ module DataMapper
       @@models ||= []
     end
     
-    def self.auto_migrate(repository)
+    def self.auto_migrate(repository_name)
       # First ensure that association keys are forced to load.
       models.each do |model|
-        model.relationships(repository).each_pair do |name, relationship|
+        model.relationships(repository_name).each_pair do |name, relationship|
           relationship.child_key
         end
       end
       
       models.each do |model|
-        model.auto_migrate!
+        model.auto_migrate!(repository_name)
       end
     end
   end
