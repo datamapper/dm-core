@@ -163,7 +163,7 @@ module DataMapper
 
         true
       ensure
-        close_connection(connection)
+        close_connection(connection) if connection
       end
 
       def exists?(storage_name)
@@ -191,7 +191,7 @@ module DataMapper
         set.first
       ensure
         reader.close if reader
-        close_connection(connection)
+        close_connection(connection) if connection
       end
 
       def update(repository, resource)
@@ -210,7 +210,7 @@ module DataMapper
 
           affected_rows = command.execute_non_query(*parameters).to_i
         ensure
-          close_connection(connection)
+          close_connection(connection) if connection
         end
 
         affected_rows == 1
@@ -225,7 +225,7 @@ module DataMapper
 
         affected_rows == 1
       ensure
-        close_connection(connection)
+        close_connection(connection) if connection
       end
 
       def create_model_storage(repository, model)
@@ -239,7 +239,7 @@ module DataMapper
 
         result.to_i == 1
       ensure
-        close_connection(connection)
+        close_connection(connection) if connection
       end
 
       def destroy_model_storage(repository, model)
@@ -253,7 +253,7 @@ module DataMapper
 
         result.to_i == 1
       ensure
-        close_connection(connection)
+        close_connection(connection) if connection
       end
 
       #
@@ -291,7 +291,7 @@ module DataMapper
             raise se
           ensure
             reader.close if reader
-            close_connection(connection)
+            close_connection(connection) if connection
           end
         end
       end
