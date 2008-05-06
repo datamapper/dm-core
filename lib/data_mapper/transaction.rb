@@ -5,10 +5,10 @@ module DataMapper
     attr_reader :transaction_primitives, :adapters, :state
 
     #
-    # Create a new DataMapper::Adapters::Transaction
+    # Create a new DataMapper::Transaction
     #
     # ==== Parameters
-    # See DataMapper::Adapters::Transaction#link
+    # See DataMapper::Transaction#link
     #
     # In fact, it just calls #link with the given arguments at the end of the constructor.
     #
