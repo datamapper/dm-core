@@ -3,7 +3,15 @@ require 'set'
 module DataMapper
 
   module Resource
-
+    
+    def self.new(default_name, &b)      
+      x = Class.new
+      x.send(:include, self)
+      x.storage_names[:default] = default_name
+      x.instance_eval(&b)
+      x
+    end
+    
     @@including_classes = Set.new
 
     # +----------------------

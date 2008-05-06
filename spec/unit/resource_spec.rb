@@ -292,6 +292,19 @@ describe "DataMapper::Resource" do
       Planet.should respond_to(:exists?)
       Planet.exists?.should == true
     end
+    
+  end
+  
+  describe "anonymity" do
+    
+    it "should require a default storage name and accept a block" do
+      pluto = DataMapper::Resource.new("planets") do
+        property :name, String, :key => true
+      end
+      
+      pluto.properties[:name].should_not be_nil
+    end
+    
   end
 
   describe 'when retrieving by key' do
@@ -346,4 +359,5 @@ describe "DataMapper::Resource" do
       NewsPaper.properties.should have(2).entries
     end
   end
+  
 end

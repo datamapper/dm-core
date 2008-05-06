@@ -30,6 +30,34 @@ begin
       orange.color.should == 'orange'        
     end
     
+    describe "anonymity" do
+
+      before(:all) do
+        repository(:sqlite3) do
+          @planet = DataMapper::Resource.new("planets") do
+            property :name, String, :key => true
+            property :distance, Fixnum
+          end
+        
+          @planet.auto_migrate!
+        end
+      end
+      
+      it "should be able to persist" do
+        repository(:sqlite3) do
+          pluto = @planet.new
+          pluto.name = 'Pluto'
+          pluto.distance = 1_000_000
+          pluto.save
+        
+          clone = @planet['Pluto']
+          clone.name.should == 'Pluto'
+          clone.distance.should == 1_000_000
+        end
+      end
+
+    end
+    
     describe "inheritance" do
       before(:all) do
         class Male
