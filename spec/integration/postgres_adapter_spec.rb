@@ -15,11 +15,11 @@ begin
       before :all do
         class Sputnik
           include DataMapper::Resource
-          
+
           property :id, Fixnum, :serial => true
           property :name, DM::Text
         end
-        
+
         Sputnik.auto_migrate!(:postgres)
       end
 
@@ -47,7 +47,7 @@ begin
       before do
         class User
           include DataMapper::Resource
-          
+
           property :id, Fixnum, :serial => true
           property :name, DM::Text
         end
@@ -95,7 +95,7 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
         end
-        
+
         VideoGame.auto_migrate!(:postgres)
       end
 
@@ -418,7 +418,7 @@ begin
             many_to_one :engine
           end
         end
-        
+
 
         Yard.auto_migrate!(:postgres)
 
@@ -465,7 +465,7 @@ begin
           e = Engine.new(:id => 10, :name => "engine10")
           y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
           r.save(y)
-          
+
           y.engine_id.should == 10
         end
 
@@ -486,7 +486,7 @@ begin
             one_to_many :slices
           end
         end
-        
+
         Host.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
@@ -503,7 +503,7 @@ begin
             many_to_one :host
           end
         end
-        
+
         Slice.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 1, 'slice1', 1)

@@ -24,6 +24,7 @@ class Book
 end
 
 begin
+  gem 'do_sqlite3', '=0.9.0'
   require 'do_sqlite3'
 
   DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
@@ -125,6 +126,7 @@ rescue LoadError => e
 end
 
 begin
+  gem 'do_mysql', '=0.9.0'
   require 'do_mysql'
 
   DataMapper.setup(:mysql, 'mysql://localhost/dm_integration_test')
@@ -211,14 +213,15 @@ begin
     end
   end
 rescue LoadError => e
-  describe 'do_sqlite3' do
+  describe 'do_mysql' do
     it 'should be required' do
-      fail "SQLite3 integration specs not run! Could not load do_sqlite3: #{e}"
+      fail "MySQL integration specs not run! Could not load do_mysql: #{e}"
     end
   end
 end
 
 begin
+  gem 'do_postgres', '=0.9.0'
   require 'do_postgres'
 
   DataMapper.setup(:postgres, 'postgres://postgres@localhost/dm_core_test')
@@ -347,9 +350,9 @@ begin
     end
   end
 rescue LoadError => e
-  describe 'do_sqlite3' do
+  describe 'do_postgres' do
     it 'should be required' do
-      fail "SQLite3 integration specs not run! Could not load do_sqlite3: #{e}"
+      fail "PostgreSQL integration specs not run! Could not load do_postgres: #{e}"
     end
   end
 end
