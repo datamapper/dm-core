@@ -554,6 +554,7 @@ module DataMapper
         def equality_operator(query, model_name, operator, property, qualify, value)
           case value
             when Array             then "#{property_to_column_name(model_name, property, qualify)} IN ?"
+            when Range             then "#{property_to_column_name(model_name, property, qualify)} BETWEEN ?"
             when NilClass          then "#{property_to_column_name(model_name, property, qualify)} IS NULL"
             when DataMapper::Query then
               query.merge_sub_select_conditions(operator, property, value)
@@ -565,6 +566,7 @@ module DataMapper
         def inequality_operator(query, model_name, operator, property, qualify, value)
           case value
             when Array             then "#{property_to_column_name(model_name, property, qualify)} NOT IN ?"
+            when Range             then "#{property_to_column_name(model_name, property, qualify)} NOT BETWEEN ?"
             when NilClass          then "#{property_to_column_name(model_name, property, qualify)} IS NOT NULL"
             when DataMapper::Query then
               query.merge_sub_select_conditions(operator, property, value)
