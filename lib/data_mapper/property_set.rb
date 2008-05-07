@@ -14,6 +14,7 @@ module DataMapper
 
     def add(*properties)
       @entries.push(*properties)
+      properties.each { |property| property.hash }
       self
     end
 
