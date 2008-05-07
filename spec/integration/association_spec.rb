@@ -124,6 +124,21 @@ begin
         yard.should respond_to(:engine)
         yard.should respond_to(:engine=)
       end
+      
+      it "#many_to_one with namespaced models" do
+        module FlightlessBirds
+          class Ostrich
+            include DataMapper::Resource
+            property :id, Fixnum, :serial => true
+            property :name, String
+            many_to_one :sky # there's something sad about this :'(
+          end
+        end
+        
+        FlightlessBirds::Ostrich.properties.slice(:sky_id).should_not be_empty
+        
+      end
+      
 
       it "should load the associated instance" do
         y = repository(:sqlite3).all(Yard, :id => 1).first
