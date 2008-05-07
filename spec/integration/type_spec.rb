@@ -85,7 +85,7 @@ begin
       end
     end
 
-    it "should respect paranoia" do
+    it "should respect paranoia with a datetime" do
 
       class Lime
         include DataMapper::Resource
@@ -109,6 +109,32 @@ begin
         repository(:sqlite3).adapter.execute("DROP TABLE limes")
       end
     end
+
+    it "should respect paranoia with a datetime" do
+
+      class Lime
+        include DataMapper::Resource
+        property :id, Fixnum, :serial => true
+        property :color, String
+        property :deleted_at, DataMapper::Types::ParanoidBoolean
+      end
+
+      Lime.auto_migrate!(:sqlite3)
+      
+      repository(:sqlite3) do
+        lime = Lime.new
+        lime.color = 'green'
+        
+        lime.save
+        lime.destroy
+        # lime.deleted_at.should_not be_nil
+        repository(:sqlite3).adapter.query("SELECT count(*) from limes").first.should_not == 0
+        repository(:sqlite3).adapter.query("SELECT * from limes").should_not be_empty
+        
+        repository(:sqlite3).adapter.execute("DROP TABLE limes")
+      end
+    end
+
 
     after do
       @adapter = repository(:sqlite3).adapter
