@@ -102,7 +102,7 @@ now? In DataMapper you control the mappings:
 
   class Fruit
     include DataMapper::Resource
-    set_table_name 'frt'
+    storage_names[:repo] = 'frt'
     property :name, String, :column => 'col2Name'
   end
 
