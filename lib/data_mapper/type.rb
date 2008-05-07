@@ -149,6 +149,12 @@ module DataMapper
     def self.load(value, property)
       value
     end
+    
+    def self.bind(property)
+      # This method should not modify the state of this type class, and 
+      # should produce no side-effects on the type class. It's just a
+      # hook to allow your custom-type to modify the property it's bound to.
+    end
 
   end # class Type
 

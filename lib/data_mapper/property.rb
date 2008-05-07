@@ -439,6 +439,8 @@ module DataMapper
 
       @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
       @model.property_serialization_setup(self) if @model.respond_to?(:property_serialization_setup)
+      
+      @type.bind(self) if @custom
     end
 
     def determine_visibility # :nodoc:
