@@ -237,6 +237,21 @@ describe DataMapper::Query do
         other = DataMapper::Query.new(repository(:mock), Article, :order => order)
         @query.update(other).order.should == order
       end
+      
+      it "#order with a property that uses :field => something" do
+        class Article
+          property :plank, String, :field => 'real_plank'
+        end
+
+        query = DataMapper::Query.new(repository(:mock), Article, :order => [:plank.desc])
+        
+        query.order.first.property.should == Article.properties[:plank]
+        query.order.first.property.field.should == 'real_plank'
+        query.order.first.direction.should == :desc
+        
+        # this is the real test here, I can't find any other way to make it parse the order into sql than to run the whole query through
+        repository(:mock).adapter.query_read_statement(query).should == %Q{SELECT "id", "blog_id", "created_at", "author", "title" FROM "articles" ORDER BY real_plank desc}
+      end
 
       # dkubb: I am not sure i understand the intent here. link now needs to be
       #       a DM::Assoc::Relationship or the name (Symbol or String) of an
