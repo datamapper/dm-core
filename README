@@ -16,7 +16,7 @@ for commit rights. It's as easy as that to become a contributor.
 
 == Identity Map
 
-One row in the database should equal one object reference. Pretty simple idea.
+One row in the data-store should equal one object reference. Pretty simple idea.
 Pretty profound impact. If you run the following code in ActiveRecord you'll
 see all <tt>false</tt> results. Do the same in DataMapper and it's
 <tt>true</tt> all the way down.
@@ -31,13 +31,13 @@ This makes DataMapper faster and allocate less resources to get things done.
 
 == Don't Do What You Don't Have To
 
-ActiveRecord updates every column in a row during a save whether that column
+ActiveRecord updates every field in a row during a save whether that field
 changed or not. So it performs work it doesn't really need to making it much
 slower, and more likely to eat data during concurrent access if you don't go
 around adding locking support to everything.
 
 DataMapper only does what it needs to. So it plays well with others. You can
-use it in an Integration Database without worrying that your application will
+use it in an Integration data-store without worrying that your application will
 be a bad actor causing trouble for all of your other processes.
 
 == Eager Loading
@@ -58,23 +58,23 @@ your finders.
 
 == Laziness Can Be A Virtue
 
-Text columns are expensive in databases. They're generally stored in a
+Text fields are expensive in data-stores. They're generally stored in a
 different place than the rest of your data. So instead of a fast sequential
-read from your hard-drive, your database server has to hop around all over the
+read from your hard-drive, your data-store server has to hop around all over the
 place to get what it needs. Since ActiveRecord returns everything by default,
-adding a text column to a table slows everything down drastically, across the
+adding a text field to a table slows everything down drastically, across the
 board.
 
 Not so with the DataMapper. Text fields are treated like in-row associations
 by default, meaning they only load when you need them. If you want more
-control you can enable or disable this feature for any column (not just
-text-fields) by passing a @lazy@ option to your column mapping with a value of
+control you can enable or disable this feature for any field (not just
+text-fields) by passing a @lazy@ option to your field mapping with a value of
 <tt>true</tt> or <tt>false</tt>.
 
   class Animal
     include DataMapper::Resource
     property :name, String
-    property :notes, DataMapper::Types::Text, :lazy => false
+    property :notes, Text, :lazy => false
   end
 
 Plus, lazy-loading of text fields happens automatically and intelligently when
@@ -88,22 +88,22 @@ of the notes fields on each animal:
 
 == Plays Well With Others
 
-In ActiveRecord, all your columns are mapped, whether you want them or not.
+In ActiveRecord, all your fields are mapped, whether you want them or not.
 This slows things down. In the DataMapper you define your mappings in your
-model. So instead of an _ALTER TABLE ADD COLUMN_ in your Database, you simply
+model. So instead of an _ALTER TABLE ADD field_ in your data-store, you simply
 add a <tt>property :name, :string</tt> to your model. DRY. No schema.rb. No
 migration files to conflict or die without reverting changes. Your model
-drives the database, not the other way around.
+drives the data-store, not the other way around.
 
-Unless of course you want to map to a legacy database. Raise your hand if you
+Unless of course you want to map to a legacy data-store. Raise your hand if you
 like seeing a method called <tt>col2Name</tt> on your model just because
-that's what it's called in an old database you can't afford to change right
+that's what it's called in an old data-store you can't afford to change right
 now? In DataMapper you control the mappings:
 
   class Fruit
     include DataMapper::Resource
     storage_names[:repo] = 'frt'
-    property :name, String, :column => 'col2Name'
+    property :name, String, :field => 'col2Name'
   end
 
 == All Ruby, All The Time
@@ -111,7 +111,7 @@ now? In DataMapper you control the mappings:
 It's great that ActiveRecord allows you to write SQL when you need to, but
 should we have to so often?
 
-DataMapper supports issuing your own SQL, but it also provides more helpers
+DataMapper supports issuing your own query, but it also provides more helpers
 and a unique hash-based condition syntax to cover more of the use-cases where
 issuing your own SQL would have been the only way to go. For example, any
 finder option that's non-standard is considered a condition. So you can write
@@ -143,10 +143,3 @@ need other comparisons though? Try these:
 
 See? Fewer SQL fragments dirtying your Ruby code. And that's just a few of the
 nice syntax tweaks DataMapper delivers out of the box...
-
-== Better Is Great, But Familiar Is Nice
-
-The DataMapper also supports a lot of old-fashioned ActiveRecord syntax. We
-want to make it easy for you to get started, so aside from mapping your
-columns and changing the base-class your models inherit from, much of AR
-syntax for finders are supported as well, making your transition easy.
