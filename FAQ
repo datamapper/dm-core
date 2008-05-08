@@ -63,7 +63,7 @@ back.  If you want to just execute something against the database, use
 
 Yup, to set this up, do:
 
-  DataMapper.logger = Logger.new("/path/to/your/logger.log", "w+")
+  DataMapper::Logger.new(STDOUT, 0)
 
 Incidentally, if you'd like to send a message into the DataMapper logger, do:
 
