@@ -207,6 +207,12 @@ module DataMapper
         end
       end
     end
+    
+    def update_attributes(hash, *update_only)
+      raise 'Update takes a hash as first parameter' unless hash.is_a?(Hash)
+      loop_thru = update_only.empty? ? hash.keys : update_only
+      loop_thru.each {|attr|  send("#{attr}=", hash[attr])}
+    end
 
     #
     # Produce a new Transaction for the class of this Resource
@@ -246,6 +252,10 @@ module DataMapper
     def validate_resource # :nodoc:
       if self.class.properties.empty? && self.class.relationships.empty?
         raise IncompleteResourceError, 'Resources must have at least one property or relationship to be initialized.'
+      end
+      
+      if self.class.properties.key.empty?
+        raise IncompleteResourceError, 'Resources must have a key.'
       end
     end
 

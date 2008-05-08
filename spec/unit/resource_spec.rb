@@ -50,6 +50,14 @@ describe "DataMapper::Resource" do
     end
   end
   
+  it "should require a key" do
+    lambda do
+      DataMapper::Resource.new("stuff") do
+        property :name, String
+      end.new
+    end.should raise_error(DataMapper::IncompleteResourceError)
+  end
+  
   it "should hold repository-specific properties" do
     Planet.properties(:legacy).should have_property(:cowabunga)
     Planet.properties.should_not have_property(:cowabunga)
@@ -86,6 +94,10 @@ describe "DataMapper::Resource" do
     jupiter.attributes.should == attributes
     jupiter.send(:private_attributes=, attributes.merge({ :core => 'Magma' }))
     jupiter.attributes.should == attributes.merge({ :core => 'Magma' })
+    
+    jupiter.update_attributes({ :core => "Toast", :type => "Bob" }, :core)
+    jupiter.core.should == "Toast"
+    jupiter.type.should_not == "Bob"
   end
 
   it "should track attributes" do
