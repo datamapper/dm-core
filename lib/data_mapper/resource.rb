@@ -387,6 +387,10 @@ module DataMapper
         resource
       end
 
+      def find_or_create(search_attributes, create_attributes = {})
+        first(search_attributes) || create(search_attributes.merge(create_attributes))
+      end
+
       # TODO SPEC
       def copy(source, destination, options = {})
         repository(destination) do
