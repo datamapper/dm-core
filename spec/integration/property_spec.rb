@@ -120,6 +120,60 @@ begin
       end
 
     end
+    
+
+    describe 'defaults' do
+      before(:all) do
+        class Catamaran
+          include DataMapper::Resource
+          property :id, Fixnum, :serial => true
+          property :name, String
+          
+          # Boolean
+          property :could_be_bool0, TrueClass, :default => true
+          property :could_be_bool1, TrueClass, :default => false
+        end
+        
+        repository(:sqlite3){ Catamaran.auto_migrate!(:sqlite3) }
+      end
+      
+      before(:each) do
+        @cat = Catamaran.new
+      end
+      
+      it "should have defaults" do
+        @cat.could_be_bool0.should == true
+        @cat.could_be_bool1.should_not be_nil
+        @cat.could_be_bool1.should == false
+        
+        @cat.name = 'Mary Mayweather'
+        
+        repository(:sqlite3) do
+          @cat.save
+          
+          cat = Catamaran.first
+          cat.could_be_bool0.should == true
+          cat.could_be_bool1.should_not be_nil
+          cat.could_be_bool1.should == false
+          cat.destroy
+        end
+
+      end
+      
+      it "should have defaults even with creates" do
+        repository(:sqlite3) do
+          Catamaran.create(:name => 'Jingle All The Way')
+          cat = Catamaran.first
+          cat.name.should == 'Jingle All The Way'
+          cat.could_be_bool0.should == true
+          cat.could_be_bool1.should_not be_nil
+          cat.could_be_bool1.should == false
+        end
+        
+
+      end  
+      
+    end
 
   end
 
