@@ -286,6 +286,13 @@ describe "DataMapper::Resource" do
       Planet.should respond_to(:first)
       Planet.should respond_to(:all)
       Planet.should respond_to(:[])
+      Planet.should respond_to(:find_or_create)
+    end
+    
+    it 'should create if it cannot find (using find_or_create)' do
+      Planet.should_receive(:first).with({ :age => 1 }).and_return(nil)
+      Planet.should_receive(:create).with({ :age => 1, :name => "Fuzzy" }).and_return(true)
+      Planet.find_or_create({:age => 1}, { :name => "Fuzzy" })
     end
     
     it '.exists? should return whether or not the repository exists' do
