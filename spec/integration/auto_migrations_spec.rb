@@ -104,14 +104,7 @@ begin
 
           expected_value = types[name][4]
           it 'should properly typecast value' do
-
-            # FIXME: no typecasting code for BigDecimal in do_sqlite3
-            pending 'do_sqlite3 does not typecast to BigDecimal' if name == :big_decimal
-
-            # FIXME: value returned by a SELECT is *far* different than value inserted
-            pending 'do_sqlite3 does not typecast to DateTime properly' if name == :date_time
-
-            @book.attribute_get(name).should == expected_value
+            @book.attribute_get(name).should.to_s == expected_value.to_s
           end
         end
       end
@@ -200,13 +193,7 @@ begin
 
           expected_value = types[name][4]
           it 'should properly typecast value' do
-
-            # FIXME: DateTime should probably be converted to a specific
-            # time zone before saving, so that it is still equivalent to
-            # the date that was inserted when retrieved later
-            pending 'do_mysql is returning DateTime in UTC timezone, but if expected DateTime is not in UTC, this will fail' if name == :date_time && expected_value != 0
-
-            @book.attribute_get(name).should == expected_value
+            @book.attribute_get(name).to_s.should == expected_value.to_s
           end
         end
       end
@@ -329,21 +316,7 @@ begin
 
           expected_value = types[name][4]
           it 'should properly typecast value' do
-
-            # FIXME: no typecasting code for BigDecimal in do_postgres
-            pending 'do_postgres does not typecast to BigDecimal' if name == :big_decimal
-
-            # FIXME: In do_postgres should probably use PQgetisnull to
-            # check if the field is NULL before typecasting.  That way
-            # real empty strings will not get transformed into nil values.
-            pending 'do_postgres is casting all empty strings as nil' if name == :empty
-
-            # FIXME: DateTime should probably be converted to a specific
-            # time zone before saving, so that it is still equivalent to
-            # the date that was inserted when retrieved later
-            pending 'do_postgres is returning DateTime in UTC timezone, but if expected DateTime is not in UTC, this will fail' if name == :date_time && expected_value != 0
-
-            @book.attribute_get(name).should == expected_value
+            @book.attribute_get(name).to_s.should == expected_value.to_s
           end
         end
       end
