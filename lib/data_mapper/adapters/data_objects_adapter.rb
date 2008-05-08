@@ -536,8 +536,8 @@ module DataMapper
           unless query.order.empty?
             parts = []
             query.order.each do |item|
-              parts << item.name if DataMapper::Property === item
-              parts << "#{item.property.name} #{item.direction}" if DataMapper::Query::Direction === item
+              parts << item.field if DataMapper::Property === item
+              parts << "#{item.property.field} #{item.direction}" if DataMapper::Query::Direction === item
             end
             sql << " ORDER BY #{parts.join(', ')}"
           end
