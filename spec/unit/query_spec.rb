@@ -148,6 +148,20 @@ describe DataMapper::Query do
         DataMapper::Query.new(repository(:mock), Article, :fields => [:id]).fields.should == Article.properties(:default).slice(:id).to_a
       end
     end
+
+    describe 'should translate custom types' do
+      before(:each) do
+        class Acl
+          include DataMapper::Resource
+          property :id, Fixnum
+          property :is_custom_type, DM::Boolean
+        end
+      end
+      it "should call Boolean#dump for :is_custom_type options" do
+        DM::Boolean.should_receive(:dump).with(:false, Acl.properties[:is_custom_type])
+        DataMapper::Query.new(repository(:mock), Acl, :is_custom_type => :false)
+      end
+    end
   end
 
   describe '#update' do

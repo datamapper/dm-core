@@ -219,6 +219,8 @@ module DataMapper
       normalize_links
       normalize_includes
 
+      translate_custom_types(@properties, options)
+
       # treat all non-options as conditions
       (options.keys - OPTIONS - OPTIONS.map(&:to_s)).each do |k|
         append_condition(k, options[k])
@@ -230,6 +232,15 @@ module DataMapper
           [ conditions_option.at(0) ]
         else
           [ conditions_option.at(0), conditions_option[1..-1] ]
+        end
+      end
+    end
+
+    def translate_custom_types(properties, options)
+      options.each do |key, value|
+        case key
+        when Symbol, String
+          options[key] = properties[key].type.dump(value, properties[key]) if !properties[key].nil? && properties[key].custom?
         end
       end
     end
