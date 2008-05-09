@@ -4,11 +4,34 @@ begin
   gem 'do_sqlite3', '=0.9.0'
   require 'do_sqlite3'
 
+  NEWFILE_DB_NAME = 'newfile.db'
+
   DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
+  DataMapper.setup(:sqlite3newfile, "sqlite3:#{NEWFILE_DB_NAME}")
+  DataMapper.setup(:sqlite3memory, "sqlite3::memory:")
 
   describe DataMapper::Adapters::DataObjectsAdapter do
     before(:all) do
       @adapter = repository(:sqlite3).adapter
+    end
+
+    describe "database file handling" do
+      before :all do
+        @newfile_adapter = repository(:sqlite3newfile).adapter
+        @memory_adapter = repository(:sqlite3memory).adapter
+      end
+      
+      it "should contain a valid file path for file-based databases that exist" do
+        @adapter.uri.path.should == INTEGRATION_DB_PATH.to_s
+      end
+
+      it "should contain a valid file path for file-based databases that DON'T exist" do
+        @newfile_adapter.uri.path.should == File.join(Dir.pwd, File.dirname(NEWFILE_DB_NAME), File.basename(NEWFILE_DB_NAME))
+      end
+      
+      it "should contain have a path of just :memory: when using in memory databases" do
+        @memory_adapter.uri.path.should == ':memory:'
+      end
     end
 
     describe "handling transactions" do
