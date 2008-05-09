@@ -75,7 +75,7 @@ module DataMapper
 
     def eql?(other)
       return true if object_id == other.object_id
-      return false unless other === self.class
+      return false unless self.class === other
       attributes == other.attributes
     end
 

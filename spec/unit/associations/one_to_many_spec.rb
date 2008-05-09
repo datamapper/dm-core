@@ -115,15 +115,15 @@ describe DataMapper::Associations::OneToMany::Proxy do
       @resource = mock("resource", :null_object => true)
       @collection = mock("collection")
       @repository = mock("repository", :save => nil)
+      @relationship = mock("relationship")
       @association = DataMapper::Associations::OneToMany::Proxy.new(@relationship, @parent, @collection)
     end
 
     describe "with a persisted parent" do
       it "should save the resource" do
         @parent.should_receive(:new_record?).with(no_args).once.and_return(false)
-        @relationship.should_receive(:attach_parent).with(@resource, @parent).once
+        @relationship.should_receive(:attach_parent).with(@resource, @parent)
         @relationship.should_receive(:repository_name).with(no_args).once.and_return(:a_symbol)
-        @association.should_receive(:repository).with(:a_symbol).once.and_return(@repository)
         @collection.should_receive(:<<).with(@resource).once.and_return(@collection)
 
         @association << @resource

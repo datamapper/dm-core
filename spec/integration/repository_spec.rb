@@ -15,14 +15,11 @@ begin
           property :id, Fixnum, :serial => true
           property :sample, String
         end
-        
+
         SerialFinderSpec.auto_migrate!(:sqlite3)
 
         @adapter = repository(:sqlite3).adapter
 
-        # Why do we keep testing with Repository instead of the models directly?
-        # Just because we're trying to target the code we're actualling testing
-        # as much as possible.
         setup_repository = repository(:sqlite3)
         100.times do
           setup_repository.save(SerialFinderSpec.new(:sample => rand.to_s))

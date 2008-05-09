@@ -29,7 +29,7 @@ module DataMapper
           def #{name}
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
-              association = Proxy.new(relationship, self, relationship.get_children(repository, self))
+              association = Proxy.new(relationship, self, relationship.get_children(self))
               parent_associations << association
               association
             end
@@ -100,8 +100,10 @@ module DataMapper
 
         def remove_resource(resource)
           begin
-            @relationship.attach_parent(resource, nil)
-            repository(@relationship.repository_name).save(resource)
+            repository(@relationship.repository_name) do
+              @relationship.attach_parent(resource, nil)
+              resource.save
+            end
           rescue
             @children << resource
             raise
@@ -118,9 +120,11 @@ module DataMapper
         end
 
         def save_resources(resources = [])
-          resources.each do |resource|
-            @relationship.attach_parent(resource, @parent_resource)
-            repository(@relationship.repository_name).save(resource)
+          repository(@relationship.repository_name) do
+            resources.each do |resource|
+              @relationship.attach_parent(resource, @parent_resource)
+              resource.save
+            end
           end
         end
 

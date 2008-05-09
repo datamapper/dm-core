@@ -78,12 +78,12 @@ begin
 
   class Node
     include DataMapper::Resource
-    
+
     property :id, Fixnum, :serial => true
     property :parent_id, Fixnum
-    
+
     property :name, String
-    
+
     repository(:sqlite3) do
       one_to_many :children, :class_name => "Node", :child_key => [ :parent_id ]
       many_to_one :parent, :class_name => "Node", :child_key => [ :parent_id ]
@@ -109,13 +109,22 @@ begin
       it "should load without the parent"
 
       it 'should allow substituting the parent' do
-        y = repository(:sqlite3).all(Yard, :id => 1).first
-        e = repository(:sqlite3).all(Engine, :id => 2).first
+        y, e = nil, nil
+
+        repository(:sqlite3) do
+          y = Yard.first(:id => 1)
+          e = Engine.first(:id => 2)
+        end
 
         y.engine = e
-        repository(:sqlite3).save(y)
+        repository(:sqlite3) do
+          y.save
+        end
 
-        y = repository(:sqlite3).all(Yard, :id => 1).first
+        y = repository(:sqlite3) do
+          Yard.first(:id => 1)
+        end
+
         y.engine_id.should == 2
       end
 
@@ -124,7 +133,7 @@ begin
         yard.should respond_to(:engine)
         yard.should respond_to(:engine=)
       end
-      
+
       it "#many_to_one with namespaced models" do
         module FlightlessBirds
           class Ostrich
@@ -134,14 +143,17 @@ begin
             many_to_one :sky # there's something sad about this :'(
           end
         end
-        
+
         FlightlessBirds::Ostrich.properties.slice(:sky_id).should_not be_empty
-        
+
       end
-      
+
 
       it "should load the associated instance" do
-        y = repository(:sqlite3).all(Yard, :id => 1).first
+        y = repository(:sqlite3) do
+          Yard.first(:id => 1)
+        end
+
         y.engine.should_not be_nil
         y.engine.id.should == 1
         y.engine.name.should == "engine1"
@@ -149,40 +161,47 @@ begin
 
       it 'should save the association key in the child' do
         repository(:sqlite3) do
-          e = repository(:sqlite3).all(Engine, :id => 2).first
-          repository(:sqlite3).save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
+          e = Engine.first(:id => 2)
+          Yard.create(:id => 2, :name => 'yard2', :engine => e)
         end
 
-        repository(:sqlite3).all(Yard, :id => 2).first.engine_id.should == 2
+        repository(:sqlite3) do
+          Yard.first(:id => 2).engine_id.should == 2
+        end
       end
 
       it 'should save the parent upon saving of child' do
         y = nil
-        repository(:sqlite3) do |r|       
+        repository(:sqlite3) do
           e = Engine.new(:id => 10, :name => "engine10")
           y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
-          r.save(y)
+          y.save
         end
 
         y.engine_id.should == 10
-        repository(:sqlite3).all(Engine, :id => 10).first.should_not be_nil
+        repository(:sqlite3) do
+          Engine.first(:id => 10).should_not be_nil
+        end
       end
 
       it 'should convert NULL parent ids into nils' do
-        y = repository(:sqlite3).all(Yard, :id => 0).first
+        y = repository(:sqlite3) do
+          Yard.first(:id => 0)
+        end
+
         y.engine.should be_nil
       end
- 
+
       it 'should save nil parents as NULL ids' do
         pending <<-EOS.margin
           Broken. I'm guessing Resource#attributes= doesn't make any concessions for associations
           (probably not what we want to do anyways), and more importantly, that many_to_one accessor=
           methods don't properly handle nils.
         EOS
-        
+
         y1,y2 = nil, nil
 
-        repository(:sqlite3) do |r|
+        repository(:sqlite3) do
           y1 = Yard.new(:id => 20, :name => "Yard20")
           r.save(y1)
 
@@ -216,15 +235,25 @@ begin
       end
 
       it 'should allow substituting the child' do
-        s = repository(:sqlite3).all(Sky, :id => 1).first
-        p = repository(:sqlite3).all(Pie, :id => 2).first
+        s, p = nil, nil
+
+        repository(:sqlite3) do
+          s = Sky.first(:id => 1)
+          p = Pie.first(:id => 2)
+        end
 
         s.pie = p
 
-        p1 = repository(:sqlite3).first(Pie, :id => 1)
+        p1 = repository(:sqlite3) do
+          Pie.first(:id => 1)
+        end
+
         p1.sky_id.should be_nil
 
-        p2 = repository(:sqlite3).first(Pie, :id => 2)
+        p2 = repository(:sqlite3) do
+          Pie.first(:id => 2)
+        end
+
         p2.sky_id.should == 1
       end
 
@@ -235,40 +264,47 @@ begin
       end
 
       it "should load the associated instance" do
-        s = repository(:sqlite3).first(Sky, :id => 1)
+        s = repository(:sqlite3) do
+          Sky.first(:id => 1)
+        end
+
         s.pie.should_not be_nil
         s.pie.id.should == 1
         s.pie.name.should == "pie1"
       end
 
       it 'should save the association key in the child' do
-        repository(:sqlite3) do |r|
-          p = r.first(Pie, :id => 2)
-          r.save(Sky.new(:id => 2, :name => 'sky2', :pie => p))
+        repository(:sqlite3) do
+          p = Pie.first(:id => 2)
+          Sky.create(:id => 2, :name => 'sky2', :pie => p)
         end
 
-        repository(:sqlite3).first(Pie, :id => 2).sky_id.should == 2
+        repository(:sqlite3) do
+          Pie.first(:id => 2).sky_id.should == 2
+        end
       end
 
       it 'should save the children upon saving of parent' do
-        repository(:sqlite3) do |r|
+        repository(:sqlite3) do
           p = Pie.new(:id => 10, :name => "pie10")
           s = Sky.new(:id => 10, :name => "sky10", :pie => p)
 
-          r.save(s)
+          s.save
 
           p.sky_id.should == 10
         end
 
-        repository(:sqlite3).first(Pie, :id => 10).should_not be_nil
+        repository(:sqlite3) do
+          Pie.first(:id => 10).should_not be_nil
+        end
       end
 
       it 'should save nil parents as NULL ids' do
         p1,p2 = nil, nil
 
-        repository(:sqlite3) do |r|
+        repository(:sqlite3) do
           p1 = Pie.new(:id => 20, :name => "Pie20")
-          r.save(p1)
+          p1.save
 
           p2 = Pie.create!(:id => 30, :name => "Pie30", :sky => nil)
         end
@@ -307,34 +343,52 @@ begin
       end
 
       it "should allow removal of a child through a loaded association" do
-        h = repository(:sqlite3).all(Host, :id => 1).first
+        h = repository(:sqlite3) do
+          Host.first(:id => 1)
+        end
+
         s = h.slices.first
 
         h.slices.delete(s)
         h.slices.size.should == 1
 
-        s = repository(:sqlite3).first(Slice, :id => s.id)
+        s = repository(:sqlite3) do
+          Slice.first(:id => s.id)
+        end
+
         s.host.should be_nil
         s.host_id.should be_nil
       end
 
       it "should load the associated instances" do
-        h = repository(:sqlite3).all(Host, :id => 1).first
+        h = repository(:sqlite3) do
+          Host.first(:id => 1)
+        end
+
         h.slices.should_not be_nil
         h.slices.size.should == 2
         h.slices.first.id.should == 1
         h.slices.last.id.should == 2
 
-        s0 = repository(:sqlite3).all(Slice, :id => 0).first
+        s0 = repository(:sqlite3) do
+          Slice.first(:id => 0)
+        end
+
         s0.host.should be_nil
         s0.host_id.should be_nil
       end
 
       it "should add and save the associated instance" do
-        h = repository(:sqlite3).all(Host, :id => 1).first
+        h = repository(:sqlite3) do
+          Host.first(:id => 1)
+        end
+
         h.slices << Slice.new(:id => 3, :name => 'slice3')
 
-        s = repository(:sqlite3).all(Slice, :id => 3).first
+        s = repository(:sqlite3) do
+          Slice.first(:id => 3)
+        end
+
         s.host.id.should == 1
       end
 
@@ -344,17 +398,22 @@ begin
           h.slices << Slice.new(:id => 10, :name => 'slice10')
         end
 
-        repository(:sqlite3).all(Slice, :id => 10).first.should be_nil
+        repository(:sqlite3) do
+          Slice.first(:id => 10).should be_nil
+        end
       end
 
       it "should save the associated instance upon saving of parent" do
-        repository(:sqlite3) do |r|
+        repository(:sqlite3) do
           h = Host.new(:id => 10, :name => "host10")
           h.slices << Slice.new(:id => 10, :name => 'slice10')
-          r.save(h)
+          h.save
         end
 
-        s = repository(:sqlite3).all(Slice, :id => 10).first
+        s = repository(:sqlite3) do
+          Slice.first(:id => 10)
+        end
+
         s.should_not be_nil
         s.host.should_not be_nil
         s.host.id.should == 10
@@ -378,10 +437,10 @@ begin
           repository :sqlite3 do
             r1 = Node.get 1
             r1.parent.should be_nil
-          
+
             n3 = Node.get 3
             n3.parent.should == r1
-            
+
             n6 = Node.get 6
             n6.parent.should == n3
           end
@@ -389,7 +448,7 @@ begin
 
         it "should properly set #children" do
           repository :sqlite3 do
-            r1 = Node.get(1)  
+            r1 = Node.get(1)
             off = r1.children
             off.size.should == 3
             off.include?(Node.get(3)).should be_true
@@ -428,33 +487,33 @@ begin
               has n, :cakes, :class_name => 'Sweets::Cake'
               has n, :slices => :cakes
             end
-            
+
             class Cake
               include DataMapper::Resource
               property :id, Fixnum, :serial => true
               property :name, String
               has n, :slices, :class_name => 'Sweets::Slice'
             end
-            
+
             class Slice
               include DataMapper::Resource
               property :id, Fixnum, :serial => true
               property :size, Fixnum
               belongs_to :cake, :class_name => 'Sweets::Cake'
             end
-            
+
             # repository(:sqlite3) do
             #   Shop.auto_migrate!(:sqlite3)
             #   Cake.auto_migrate!(:sqlite3)
             #   Slice.auto_migrate!(:sqlite3)
-            # 
+            #
             #   betsys = Shop.new(:name => "Betsy's")
             #   german_chocolate = betsys.cakes << Cake.new(:name => 'German Chocolate')
             #   10.times { |i| german_chocolate.slices << Slice.new(:size => i) }
-            # 
+            #
             #   short_cake = betsys.cakes << Cake.new(:name => 'Short Cake')
             #   5.times { |i| short_cake.slices << Slice.new(:size => i) }
-            # 
+            #
             #   betsys.save!
             # end
           end

@@ -18,54 +18,60 @@ begin
           property :name, String
           property :port, String
         end
-        
+
         SailBoat.auto_migrate!(:sqlite3)
 
-        repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
-        repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
-        repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "C", :port => "A"))
+        repository(:sqlite3) do
+          SailBoat.create(:id => 1, :name => "A", :port => "C")
+          SailBoat.create(:id => 2, :name => "B", :port => "B")
+          SailBoat.create(:id => 3, :name => "C", :port => "A")
+        end
       end
 
       it "should find by conditions" do
         lambda do
-          repository(:sqlite3).first(SailBoat, :conditions => ['name = ?', 'B'])
+          repository(:sqlite3) do
+            SailBoat.first(:conditions => ['name = ?', 'B'])
+          end
         end.should_not raise_error
-        
+
         lambda do
           repository(:sqlite3) do
             SailBoat.first(:conditions => ['name = ?', 'A'])
           end
         end.should_not raise_error
       end
-      
+
       it "should order results" do
-        result = repository(:sqlite3).all(SailBoat,{:order => [
-              DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc)
-            ]})
-        result[0].id.should == 1
+        repository(:sqlite3) do
+          result = SailBoat.all(:order => [
+                DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc)
+              ])
+          result[0].id.should == 1
 
-        result = repository(:sqlite3).all(SailBoat,{:order => [
-              DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
-            ]})
-        result[0].id.should == 3
+          result = SailBoat.all(:order => [
+                DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
+              ])
+          result[0].id.should == 3
 
-        result = repository(:sqlite3).all(SailBoat,{:order => [
-              DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc),
-              DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
-            ]})
-        result[0].id.should == 1
+          result = SailBoat.all(:order => [
+                DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc),
+                DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
+              ])
+          result[0].id.should == 1
 
-        result = repository(:sqlite3).all(SailBoat,{:order => [
-              SailBoat.properties[:name],
-              DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
-            ]})
-        result[0].id.should == 1
+          result = SailBoat.all(:order => [
+                SailBoat.properties[:name],
+                DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
+              ])
+          result[0].id.should == 1
 
-        result = repository(:sqlite3).all(SailBoat,{:order => [:name]})
-        result[0].id.should == 1
+          result = SailBoat.all(:order => [:name])
+          result[0].id.should == 1
 
-        result = repository(:sqlite3).all(SailBoat,{:order => [:name.desc]})
-        result[0].id.should == 3
+          result = SailBoat.all(:order => [:name.desc])
+          result[0].id.should == 3
+        end
       end
 
       after do
@@ -97,17 +103,19 @@ begin
         Permission.auto_migrate!(:sqlite3)
         SailBoat.auto_migrate!(:sqlite3)
 
-        repository(:sqlite3).save(SailBoat.new(:id => 1, :name => "Fantasy I", :port => "Cape Town", :captain => 'Joe'))
-        repository(:sqlite3).save(SailBoat.new(:id => 2, :name => "Royal Flush II", :port => "Cape Town", :captain => 'James'))
-        repository(:sqlite3).save(SailBoat.new(:id => 3, :name => "Infringer III", :port => "Cape Town", :captain => 'Jason'))
+        repository(:sqlite3) do
+          SailBoat.create(:id => 1, :name => "Fantasy I",      :port => "Cape Town", :captain => 'Joe')
+          SailBoat.create(:id => 2, :name => "Royal Flush II", :port => "Cape Town", :captain => 'James')
+          SailBoat.create(:id => 3, :name => "Infringer III",  :port => "Cape Town", :captain => 'Jason')
 
-        #User 1 permission -- read boat 1 & 2
-        repository(:sqlite3).save(Permission.new(:id => 1, :user_id => 1, :resource_id => 1, :resource_type => 'SailBoat', :token => 'READ'))
-        repository(:sqlite3).save(Permission.new(:id => 2, :user_id => 1, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ'))
+          #User 1 permission -- read boat 1 & 2
+          Permission.create(:id => 1, :user_id => 1, :resource_id => 1, :resource_type => 'SailBoat', :token => 'READ')
+          Permission.create(:id => 2, :user_id => 1, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
 
-        #User 2 permission  -- read boat 2 & 3
-        repository(:sqlite3).save(Permission.new(:id => 3, :user_id => 2, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ'))
-        repository(:sqlite3).save(Permission.new(:id => 4, :user_id => 2, :resource_id => 3, :resource_type => 'SailBoat', :token => 'READ'))
+          #User 2 permission  -- read boat 2 & 3
+          Permission.create(:id => 3, :user_id => 2, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
+          Permission.create(:id => 4, :user_id => 2, :resource_id => 3, :resource_type => 'SailBoat', :token => 'READ')
+        end
       end
 
       it 'should accept a DM::Query as a value of a condition' do
@@ -196,15 +204,15 @@ begin
         Vehicle.new(:id=>1,:factory_id=>2000,:name=>'10 ton delivery truck').save
       end
 
-      it 'should require that all properties in :fields and all :links come from the same repository' 
+      it 'should require that all properties in :fields and all :links come from the same repository'
       #      do
       #        land = Factory.properties(:mock)[:land]
       #        fields = []
       #        Vehicle.properties(:sqlite3).map do |property|
       #          fields << property
       #        end
-      #        fields << land       
-      #        
+      #        fields << land
+      #
       #        lambda{
       #          begin
       #            repository(:sqlite3) do
@@ -214,7 +222,7 @@ begin
       #          rescue RuntimeError
       #            $!.message.should == 'Property Factory.land not available in repository sqlite3.'
       #            raise $!
-      #          end                
+      #          end
       #        }.should raise_error(RuntimeError)
       #      end
 

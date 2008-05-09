@@ -6,7 +6,7 @@ module DataMapper
 
       def child_key
         @child_key ||= begin
-          model_properties = child_model.properties(@repository_name)
+          model_properties = child_model.properties(repository_name)
 
           child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
             # TODO: use something similar to DM::NamingConventions to determine the property name
@@ -20,7 +20,7 @@ module DataMapper
 
       def parent_key
         @parent_key ||= begin
-          model_properties = parent_model.properties(@repository_name)
+          model_properties = parent_model.properties(repository_name)
 
           parent_key = if @parent_properties
             model_properties.slice(*@parent_properties)
@@ -32,12 +32,20 @@ module DataMapper
         end
       end
 
-      def get_children(repository, parent)
-        repository.all(child_model, child_key.to_query(parent_key.get(parent)))
+      def get_children(parent)
+        query = child_key.to_query(parent_key.get(parent))
+
+        DataMapper.repository(repository_name) do
+          child_model.all(query)
+        end
       end
 
-      def get_parent(repository, child)
-        repository.first(parent_model, parent_key.to_query(child_key.get(child)))
+      def get_parent(child)
+        query = parent_key.to_query(child_key.get(child))
+
+        DataMapper.repository(repository_name) do
+          parent_model.first(query)
+        end
       end
 
       def attach_parent(child, parent)

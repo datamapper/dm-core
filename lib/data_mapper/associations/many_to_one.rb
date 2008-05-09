@@ -40,7 +40,7 @@ module DataMapper
               relationship = self.class.relationships(repository.name)[:#{name}]
 
               association = Proxy.new(relationship, self) do
-                relationship.get_parent(repository, self)
+                relationship.get_parent(self)
               end
 
               child_associations << association
@@ -65,8 +65,10 @@ module DataMapper
 
         def save
           if parent.new_record?
-            repository(@relationship.repository_name).save(parent)
-            @relationship.attach_parent(@child_resource, parent)
+            repository(@relationship.repository_name) do
+              parent.save
+              @relationship.attach_parent(@child_resource, parent)
+            end
           end
         end
 

@@ -39,7 +39,7 @@ module DataMapper
           def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
-              association = Associations::OneToMany::Proxy.new(relationship, self, relationship.get_children(repository, self))
+              association = Associations::OneToMany::Proxy.new(relationship, self, relationship.get_children(self))
               parent_associations << association
               association
             end

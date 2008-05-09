@@ -101,7 +101,9 @@ begin
 
       it 'should be able to create a record' do
         game = VideoGame.new(:name => 'System Shock')
-        repository(:postgres).save(game)
+        repository(:postgres) do
+          game.save
+        end
 
         game.should_not be_a_new_record
         game.should_not be_dirty
@@ -114,7 +116,10 @@ begin
         name = 'Wing Commander: Privateer'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?) RETURNING id', name).insert_id
 
-        game = repository(:postgres).get(VideoGame, [id])
+        game = repository(:postgres) do
+          VideoGame.get(id)
+        end
+
         game.name.should == name
         game.should_not be_dirty
         game.should_not be_a_new_record
@@ -126,17 +131,25 @@ begin
         name = 'Resistance: Fall of Mon'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?) RETURNING id', name).insert_id
 
-        game = repository(:postgres).get(VideoGame, [id])
-        game.name = game.name.sub(/Mon/, 'Man')
+        game = repository(:postgres) do
+          VideoGame.get(id)
+        end
 
         game.should_not be_a_new_record
+
+        game.should_not be_dirty
+        game.name = game.name.sub(/Mon/, 'Man')
         game.should be_dirty
 
-        repository(:postgres).save(game)
+        repository(:postgres) do
+          game.save
+        end
 
         game.should_not be_dirty
 
-        clone = repository(:postgres).get(VideoGame, [id])
+        clone = repository(:postgres) do
+          VideoGame.get(id)
+        end
 
         clone.name.should == game.name
 
@@ -147,10 +160,16 @@ begin
         name = 'Zelda'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?) RETURNING id', name).insert_id
 
-        game = repository(:postgres).get(VideoGame, [id])
+        game = repository(:postgres) do
+          VideoGame.get(id)
+        end
+
         game.name.should == name
 
-        repository(:postgres).destroy(game).should be_true
+        repository(:postgres) do
+          game.destroy.should be_true
+        end
+
         game.should be_a_new_record
         game.should be_dirty
       end
@@ -184,7 +203,9 @@ begin
 
       it 'should be able to create a record' do
         customer = BankCustomer.new(:bank => 'Community Bank', :account_number => '123456', :name => 'David Hasselhoff')
-        repository(:postgres).save(customer)
+        repository(:postgres) do
+          customer.save
+        end
 
         customer.should_not be_a_new_record
         customer.should_not be_dirty
@@ -198,7 +219,9 @@ begin
         bank, account_number, name = 'Chase', '4321', 'Super Wonderful'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        repository(:postgres).get(BankCustomer, [bank, account_number]).name.should == name
+        repository(:postgres) do
+          BankCustomer.get(bank, account_number).name.should == name
+        end
 
         @adapter.execute('DELETE FROM "bank_customers" WHERE "bank" = ? AND "account_number" = ?', bank, account_number)
       end
@@ -207,17 +230,22 @@ begin
         bank, account_number, name = 'Wells Fargo', '00101001', 'Spider Pig'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        customer = repository(:postgres).get(BankCustomer, [bank, account_number])
+        customer = repository(:postgres) do
+          BankCustomer.get(bank, account_number)
+        end
+
         customer.name = 'Bat-Pig'
 
         customer.should_not be_a_new_record
         customer.should be_dirty
 
-        repository(:postgres).save(customer)
+        customer.save
 
         customer.should_not be_dirty
 
-        clone = repository(:postgres).get(BankCustomer, [bank, account_number])
+        clone = repository(:postgres) do
+          BankCustomer.get(bank, account_number)
+        end
 
         clone.name.should == customer.name
 
@@ -228,10 +256,16 @@ begin
         bank, account_number, name = 'Megacorp', 'ABC', 'Flash Gordon'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        customer = repository(:postgres).get(BankCustomer, [bank, account_number])
+        customer = repository(:postgres) do
+          BankCustomer.get(bank, account_number)
+        end
+
         customer.name.should == name
 
-        repository(:postgres).destroy(customer).should be_true
+        repository(:postgres) do
+          customer.destroy.should be_true
+        end
+
         customer.should be_a_new_record
         customer.should be_dirty
       end
@@ -262,34 +296,37 @@ begin
 
         SailBoat.auto_migrate!(:postgres)
 
-        repository(:postgres).save(SailBoat.new(:id => 1, :name => "A", :port => "C"))
-        repository(:postgres).save(SailBoat.new(:id => 2, :name => "B", :port => "B"))
-        repository(:postgres).save(SailBoat.new(:id => 3, :name => "C", :port => "A"))
+        repository(:postgres) do
+          SailBoat.create(:id => 1, :name => "A", :port => "C")
+          SailBoat.create(:id => 2, :name => "B", :port => "B")
+          SailBoat.create(:id => 3, :name => "C", :port => "A")
+        end
       end
 
       it "should order results" do
-        result = repository(:postgres).all(SailBoat,{:order => [
-            DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc)
-        ]})
-        result[0].id.should == 1
+        repository(:postgres) do
+          result = SailBoat.all(:order => [
+              DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc)
+          ])
+          result[0].id.should == 1
 
-        result = repository(:postgres).all(SailBoat,{:order => [
-            DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
-        ]})
-        result[0].id.should == 3
+          result = SailBoat.all(:order => [
+              DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
+          ])
+          result[0].id.should == 3
 
-        result = repository(:postgres).all(SailBoat,{:order => [
-            DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc),
-            DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
-        ]})
-        result[0].id.should == 1
+          result = SailBoat.all(:order => [
+              DataMapper::Query::Direction.new(SailBoat.properties[:name], :asc),
+              DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
+          ])
+          result[0].id.should == 1
 
-
-        result = repository(:postgres).all(SailBoat,{:order => [
-            SailBoat.properties[:name],
-            DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
-        ]})
-        result[0].id.should == 1
+          result = SailBoat.all(:order => [
+              SailBoat.properties[:name],
+              DataMapper::Query::Direction.new(SailBoat.properties[:port], :asc)
+          ])
+          result[0].id.should == 1
+        end
       end
     end
 
@@ -302,32 +339,34 @@ begin
           property :notes, String, :lazy => [:notes]
           property :trip_report, String, :lazy => [:notes,:trip]
           property :miles, Fixnum, :lazy => [:trip]
-
-          class << self
-            def property_by_name(name)
-              properties(repository.name)[name]
-            end
-          end
         end
 
         SailBoat.auto_migrate!(:postgres)
 
-        repository(:postgres).save(SailBoat.new(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23))
-        repository(:postgres).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
-        repository(:postgres).save(SailBoat.new(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23))
+        repository(:postgres) do
+          SailBoat.create(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+        end
       end
 
       it "should lazy load" do
-        result = repository(:postgres).all(SailBoat,{})
+        result = repository(:postgres) do
+          SailBoat.all
+        end
+
         result[0].instance_variables.should_not include('@notes')
         result[0].instance_variables.should_not include('@trip_report')
         result[1].instance_variables.should_not include('@notes')
-                result[0].notes.should_not be_nil
+        result[0].notes.should_not be_nil
         result[1].instance_variables.should include('@notes')
         result[1].instance_variables.should include('@trip_report')
         result[1].instance_variables.should_not include('@miles')
 
-        result = repository(:postgres).all(SailBoat,{})
+        result = repository(:postgres) do
+          SailBoat.all
+        end
+
         result[0].instance_variables.should_not include('@trip_report')
         result[0].instance_variables.should_not include('@miles')
 
@@ -348,28 +387,32 @@ begin
 
         SerialFinderSpec.auto_migrate!(:postgres)
 
-        # Why do we keep testing with Repository instead of the models directly?
-        # Just because we're trying to target the code we're actualling testing
-        # as much as possible.
-        setup_repository = repository(:postgres)
-        100.times do
-          setup_repository.save(SerialFinderSpec.new(:sample => rand.to_s))
+        repository(:postgres) do
+          100.times do
+            SerialFinderSpec.create(:sample => rand.to_s)
+          end
         end
       end
 
       it "should return all available rows" do
-        repository(:postgres).all(SerialFinderSpec, {}).should have(100).entries
+        repository(:postgres) do
+          SerialFinderSpec.all.should have(100).entries
+        end
       end
 
       it "should allow limit and offset" do
-        repository(:postgres).all(SerialFinderSpec, { :limit => 50 }).should have(50).entries
+        repository(:postgres) do
+          SerialFinderSpec.all(:limit => 50).should have(50).entries
 
-        repository(:postgres).all(SerialFinderSpec, { :limit => 20, :offset => 40 }).map(&:id).should ==
-          repository(:postgres).all(SerialFinderSpec, {})[40...60].map(&:id)
+          SerialFinderSpec.all(:limit => 20, :offset => 40).map(&:id).should == SerialFinderSpec.all[40...60].map(&:id)
+        end
       end
 
       it "should lazy-load missing attributes" do
-        sfs = repository(:postgres).all(SerialFinderSpec, { :fields => [:id], :limit => 1 }).first
+        sfs = repository(:postgres) do
+          SerialFinderSpec.first(:fields => [ :id ])
+        end
+
         sfs.should be_a_kind_of(SerialFinderSpec)
         sfs.should_not be_a_new_record
 
@@ -378,8 +421,13 @@ begin
       end
 
       it "should translate an Array to an IN clause" do
-        ids = repository(:postgres).all(SerialFinderSpec, { :limit => 10 }).map(&:id)
-        results = repository(:postgres).all(SerialFinderSpec, { :id => ids })
+        ids = repository(:postgres) do
+          SerialFinderSpec.all(:limit => 10).map(&:id)
+        end
+
+        results = repository(:postgres) do
+          SerialFinderSpec.all(:id => ids)
+        end
 
         results.size.should == 10
         results.map(&:id).should == ids
@@ -422,14 +470,16 @@ begin
       it "should load without the parent"
 
       it 'should allow substituting the parent' do
-        y = repository(:postgres).all(Yard, :id => 1).first
-        e = repository(:postgres).all(Engine, :id => 2).first
+        repository(:postgres) do
+          y = Yard.first(:id => 1)
+          e = Engine.first(:id => 2)
+          y.engine = e
+          y.save
+        end
 
-        y.engine = e
-        repository(:postgres).save(y)
-
-        y = repository(:postgres).all(Yard, :id => 1).first
-        y.engine_id.should == 2
+        repository(:postgres) do
+          Yard.first(:id => 1).engine_id.should == 2
+        end
       end
 
       it "#many_to_one" do
@@ -439,31 +489,37 @@ begin
       end
 
       it "should load the associated instance" do
-        y = repository(:postgres).all(Yard, :id => 1).first
+        y = repository(:postgres) do
+          Yard.first(:id => 1)
+        end
         y.engine.should_not be_nil
         y.engine.id.should == 1
         y.engine.name.should == "engine1"
       end
 
       it 'should save the association key in the child' do
-        repository(:postgres) do |r|
-          e = r.all(Engine, :id => 2).first
-          r.save(Yard.new(:id => 2, :name => 'yard2', :engine => e))
+        repository(:postgres) do
+          e = Engine.first(:id => 2)
+          Yard.create(:id => 2, :name => 'yard2', :engine => e)
         end
 
-        repository(:postgres).all(Yard, :id => 2).first.engine_id.should == 2
+        repository(:postgres) do
+          Yard.first(:id => 2).engine_id.should == 2
+        end
       end
 
       it 'should save the parent upon saving of child' do
-        repository(:postgres) do |r|
+        repository(:postgres) do
           e = Engine.new(:id => 10, :name => "engine10")
           y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
-          r.save(y)
+          y.save
 
           y.engine_id.should == 10
         end
 
-        repository(:postgres).all(Engine, :id => 10).first.should_not be_nil
+        repository(:postgres) do
+          Engine.first(:id => 10).should_not be_nil
+        end
       end
     end
 
@@ -481,11 +537,6 @@ begin
           end
         end
 
-        Host.auto_migrate!(:postgres)
-
-        @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
-        @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 2, 'host2')
-
         class Slice
           include DataMapper::Resource
 
@@ -497,6 +548,11 @@ begin
             many_to_one :host
           end
         end
+
+        Host.auto_migrate!(:postgres)
+
+        @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
+        @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 2, 'host2')
 
         Slice.auto_migrate!(:postgres)
 
@@ -510,19 +566,28 @@ begin
       end
 
       it "should allow removal of a child through a loaded association" do
-        h = repository(:postgres).all(Host, :id => 1).first
+        h = repository(:postgres) do
+          Host.first(:id => 1)
+        end
+
         s = h.slices.first
 
         h.slices.delete(s)
         h.slices.size.should == 1
 
-        s = repository(:postgres).first(Slice, :id => s.id)
+        s = repository(:postgres) do
+          Slice.first(:id => s.id)
+        end
+
         s.host.should be_nil
         s.host_id.should be_nil
       end
 
       it "should load the associated instances" do
-        h = repository(:postgres).all(Host, :id => 1).first
+        h = repository(:postgres) do
+          Host.first(:id => 1)
+        end
+
         h.slices.should_not be_nil
         h.slices.size.should == 2
         h.slices.first.id.should == 1
@@ -530,10 +595,16 @@ begin
       end
 
       it "should add and save the associated instance" do
-        h = repository(:postgres).all(Host, :id => 1).first
+        h = repository(:postgres) do
+          Host.first(:id => 1)
+        end
+
         h.slices << Slice.new(:id => 3, :name => 'slice3')
 
-        s = repository(:postgres).all(Slice, :id => 3).first
+        s = repository(:postgres) do
+          Slice.first(:id => 3)
+        end
+
         s.host.id.should == 1
       end
 
@@ -543,17 +614,22 @@ begin
           h.slices << Slice.new(:id => 10, :name => 'slice10')
         end
 
-        repository(:postgres).all(Slice, :id => 10).first.should be_nil
+        repository(:postgres) do
+          Slice.first(:id => 10).should be_nil
+        end
       end
 
       it "should save the associated instance upon saving of parent" do
-        repository(:postgres) do |r|
+        repository(:postgres) do
           h = Host.new(:id => 10, :name => "host10")
           h.slices << Slice.new(:id => 10, :name => 'slice10')
-          r.save(h)
+          h.save
         end
 
-        s = repository(:postgres).all(Slice, :id => 10).first
+        s = repository(:postgres) do
+          Slice.first(:id => 10)
+        end
+
         s.should_not be_nil
         s.host.should_not be_nil
         s.host.id.should == 10

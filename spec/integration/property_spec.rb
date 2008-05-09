@@ -88,17 +88,21 @@ begin
           property :trip_report, String, :lazy => [:notes,:trip]
           property :miles, Fixnum, :lazy => [:trip]
         end
-        
+
         SailBoat.auto_migrate!(:sqlite3)
-        
-        repository(:sqlite3).save(SailBoat.new(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23))
-        repository(:sqlite3).save(SailBoat.new(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23))
-        repository(:sqlite3).save(SailBoat.new(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23))
+
+        repository(:sqlite3) do
+          SailBoat.create(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+        end
       end
 
-
       it "should lazy load in context" do
-        result = repository(:sqlite3).all(SailBoat,{})
+        result = repository(:sqlite3) do
+          SailBoat.all
+        end
+
         result[0].instance_variables.should_not include('@notes')
         result[0].instance_variables.should_not include('@trip_report')
         result[1].instance_variables.should_not include('@notes')
@@ -107,7 +111,10 @@ begin
         result[1].instance_variables.should include('@trip_report')
         result[1].instance_variables.should_not include('@miles')
 
-        result = repository(:sqlite3).all(SailBoat,{})
+        result = repository(:sqlite3) do
+          SailBoat.all
+        end
+
         result[0].instance_variables.should_not include('@trip_report')
         result[0].instance_variables.should_not include('@miles')
 
@@ -120,7 +127,6 @@ begin
       end
 
     end
-    
 
     describe 'defaults' do
       before(:all) do
@@ -128,29 +134,29 @@ begin
           include DataMapper::Resource
           property :id, Fixnum, :serial => true
           property :name, String
-          
+
           # Boolean
           property :could_be_bool0, TrueClass, :default => true
           property :could_be_bool1, TrueClass, :default => false
         end
-        
+
         repository(:sqlite3){ Catamaran.auto_migrate!(:sqlite3) }
       end
-      
+
       before(:each) do
         @cat = Catamaran.new
       end
-      
+
       it "should have defaults" do
         @cat.could_be_bool0.should == true
         @cat.could_be_bool1.should_not be_nil
         @cat.could_be_bool1.should == false
-        
+
         @cat.name = 'Mary Mayweather'
-        
+
         repository(:sqlite3) do
           @cat.save
-          
+
           cat = Catamaran.first
           cat.could_be_bool0.should == true
           cat.could_be_bool1.should_not be_nil
@@ -159,7 +165,7 @@ begin
         end
 
       end
-      
+
       it "should have defaults even with creates" do
         repository(:sqlite3) do
           Catamaran.create(:name => 'Jingle All The Way')
@@ -169,10 +175,10 @@ begin
           cat.could_be_bool1.should_not be_nil
           cat.could_be_bool1.should == false
         end
-        
 
-      end  
-      
+
+      end
+
     end
 
   end

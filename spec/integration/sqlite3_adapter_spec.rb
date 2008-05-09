@@ -47,13 +47,13 @@ begin
       before do
         class User
           include DataMapper::Resource
-          
+
           property :id, Fixnum, :serial => true
           property :name, DM::Text
         end
-        
+
         User.auto_migrate!(:sqlite3)
-        
+
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
       end
 
@@ -98,13 +98,15 @@ begin
           property :id, Fixnum, :serial => true
           property :name, String
         end
-        
+
         VideoGame.auto_migrate!(:sqlite3)
       end
 
       it 'should be able to create a record' do
         game = VideoGame.new(:name => 'System Shock')
-        repository(:sqlite3).save(game)
+        repository(:sqlite3) do
+          game.save
+        end
 
         game.should_not be_a_new_record
         game.should_not be_dirty
@@ -117,7 +119,10 @@ begin
         name = 'Wing Commander: Privateer'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
 
-        game = repository(:sqlite3).get(VideoGame, [id])
+        game = repository(:sqlite3) do
+          VideoGame.get(id)
+        end
+
         game.name.should == name
         game.should_not be_dirty
         game.should_not be_a_new_record
@@ -129,17 +134,24 @@ begin
         name = 'Resistance: Fall of Mon'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
 
-        game = repository(:sqlite3).get(VideoGame, [id])
+        game = repository(:sqlite3) do
+          VideoGame.get(id)
+        end
+
         game.name = game.name.sub(/Mon/, 'Man')
 
         game.should_not be_a_new_record
         game.should be_dirty
 
-        repository(:sqlite3).save(game)
+        repository(:sqlite3) do
+          game.save
+        end
 
         game.should_not be_dirty
 
-        clone = repository(:sqlite3).get(VideoGame, [id])
+        clone = repository(:sqlite3) do
+          VideoGame.get(id)
+        end
 
         clone.name.should == game.name
 
@@ -150,10 +162,15 @@ begin
         name = 'Zelda'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
 
-        game = repository(:sqlite3).get(VideoGame, [id])
+        game = repository(:sqlite3) do
+          VideoGame.get(id)
+        end
+
         game.name.should == name
 
-        repository(:sqlite3).destroy(game).should be_true
+        repository(:sqlite3) do
+          game.destroy.should be_true
+        end
         game.should be_a_new_record
         game.should be_dirty
       end
@@ -188,7 +205,9 @@ begin
 
       it 'should be able to create a record' do
         customer = BankCustomer.new(:bank => 'Community Bank', :account_number => '123456', :name => 'David Hasselhoff')
-        repository(:sqlite3).save(customer)
+        repository(:sqlite3) do
+          customer.save
+        end
 
         customer.should_not be_a_new_record
         customer.should_not be_dirty
@@ -202,7 +221,9 @@ begin
         bank, account_number, name = 'Chase', '4321', 'Super Wonderful'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        repository(:sqlite3).get(BankCustomer, [bank, account_number]).name.should == name
+        repository(:sqlite3) do
+          BankCustomer.get(bank, account_number).name.should == name
+        end
 
         @adapter.execute('DELETE FROM "bank_customers" WHERE "bank" = ? AND "account_number" = ?', bank, account_number)
       end
@@ -211,17 +232,24 @@ begin
         bank, account_number, name = 'Wells Fargo', '00101001', 'Spider Pig'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        customer = repository(:sqlite3).get(BankCustomer, [bank, account_number])
+        customer = repository(:sqlite3) do
+          BankCustomer.get(bank, account_number)
+        end
+
         customer.name = 'Bat-Pig'
 
         customer.should_not be_a_new_record
         customer.should be_dirty
 
-        repository(:sqlite3).save(customer)
+        repository(:sqlite3) do
+          customer.save
+        end
 
         customer.should_not be_dirty
 
-        clone = repository(:sqlite3).get(BankCustomer, [bank, account_number])
+        clone = repository(:sqlite3) do
+          BankCustomer.get(bank, account_number)
+        end
 
         clone.name.should == customer.name
 
@@ -232,10 +260,16 @@ begin
         bank, account_number, name = 'Megacorp', 'ABC', 'Flash Gordon'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        customer = repository(:sqlite3).get(BankCustomer, [bank, account_number])
+        customer = repository(:sqlite3) do
+          BankCustomer.get(bank, account_number)
+        end
+
         customer.name.should == name
 
-        repository(:sqlite3).destroy(customer).should be_true
+        repository(:sqlite3) do
+          customer.destroy.should be_true
+        end
+
         customer.should be_a_new_record
         customer.should be_dirty
       end
