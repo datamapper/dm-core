@@ -287,7 +287,6 @@ module DataMapper
             end
 
           rescue StandardError => se
-            p se, sql
             raise se
           ensure
             reader.close if reader

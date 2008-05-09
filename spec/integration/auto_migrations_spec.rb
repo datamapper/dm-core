@@ -105,9 +105,6 @@ begin
           expected_value = types[name][4]
           it 'should properly typecast value' do
 
-            # FIXME: invalid typecasting of BigDecimal in do_sqlite3
-            pending 'do_sqlite3 does not typecast to BigDecimal properly' if name == :big_decimal
-
             if DateTime == klass
               @book.attribute_get(name).to_s.should == expected_value.to_s
             else
