@@ -1,13 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-begin
-  gem 'do_sqlite3', '=0.9.0'
-  require 'do_sqlite3'
-
+if HAS_SQLITE3
   describe 'association proxying' do
     
     before(:all) do
-      DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
       
       class Zebra
         include DataMapper::Resource
@@ -71,6 +67,4 @@ begin
     end
   end
   
-rescue LoadError
-  warn "integration/collection_spec not run! Could not load do_sqlite3."
 end
