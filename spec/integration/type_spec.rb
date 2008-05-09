@@ -3,12 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 gem 'fastercsv', '>=1.2.3'
 require 'fastercsv'
 
-begin
-  gem 'do_sqlite3', '=0.9.0'
-  require 'do_sqlite3'
-
-  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
-
+if HAS_SQLITE3
   describe DataMapper::Type do
 
     before do
@@ -67,17 +62,17 @@ begin
         fred.faked.should == 'bob'
         fred.active.should be_a_kind_of(TrueClass)
         fred.note.should be_a_kind_of(String)
-        
+
         note = "Seems like bob is just mockin' around"
         fred.note = note
 
         fred.save.should be_true
-        
+
         active = false
         fred.active = active
 
         fred.save.should be_true
-        
+
         # Can't call coconut.reload! since coconut.collection isn't setup.
         mac = TypeTests::Coconut[fred.id]
         mac.active.should == active
@@ -95,17 +90,17 @@ begin
       end
 
       Lime.auto_migrate!(:sqlite3)
-      
+
       repository(:sqlite3) do
         lime = Lime.new
         lime.color = 'green'
-        
+
         lime.save
         lime.destroy
         # lime.deleted_at.should_not be_nil
         repository(:sqlite3).adapter.query("SELECT count(*) from limes").first.should_not == 0
         repository(:sqlite3).adapter.query("SELECT * from limes").should_not be_empty
-        
+
         repository(:sqlite3).adapter.execute("DROP TABLE limes")
       end
     end
@@ -120,17 +115,17 @@ begin
       end
 
       Lime.auto_migrate!(:sqlite3)
-      
+
       repository(:sqlite3) do
         lime = Lime.new
         lime.color = 'green'
-        
+
         lime.save
         lime.destroy
         # lime.deleted_at.should_not be_nil
         repository(:sqlite3).adapter.query("SELECT count(*) from limes").first.should_not == 0
         repository(:sqlite3).adapter.query("SELECT * from limes").should_not be_empty
-        
+
         repository(:sqlite3).adapter.execute("DROP TABLE limes")
       end
     end
@@ -141,6 +136,4 @@ begin
       @adapter.execute("DROP TABLE coconuts")
     end
   end
-rescue LoadError
-  warn "integration/type_spec not run! Could not load do_sqlite3."
 end

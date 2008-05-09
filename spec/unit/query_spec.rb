@@ -1,7 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-DataMapper.setup(:mock, "mock:///mock.db")
-
 describe DataMapper::Query do
   GOOD_OPTIONS = [
     [ :reload,   false     ],
@@ -59,7 +57,7 @@ describe DataMapper::Query do
           query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ?', 'dkubb' ])
           query.conditions.should == [ [ 'name = ?', [ 'dkubb' ] ] ]
           query.parameters.should == [ 'dkubb' ]
-          
+
           query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ? OR age = ?', 'dkubb', 30 ], :limit => 1)
           query.conditions.should == [ [ 'name = ? OR age = ?', [ 'dkubb', 30 ] ] ]
           query.parameters.should == [ 'dkubb', 30 ]
@@ -251,18 +249,18 @@ describe DataMapper::Query do
         other = DataMapper::Query.new(repository(:mock), Article, :order => order)
         @query.update(other).order.should == order
       end
-      
+
       it "#order with a property that uses :field => something" do
         class Article
           property :plank, String, :field => 'real_plank'
         end
 
         query = DataMapper::Query.new(repository(:mock), Article, :order => [:plank.desc])
-        
+
         query.order.first.property.should == Article.properties[:plank]
         query.order.first.property.field.should == 'real_plank'
         query.order.first.direction.should == :desc
-        
+
         # this is the real test here, I can't find any other way to make it parse the order into sql than to run the whole query through
         repository(:mock).adapter.query_read_statement(query).should == %Q{SELECT "id", "blog_id", "created_at", "author", "title" FROM "articles" ORDER BY real_plank desc}
       end

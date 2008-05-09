@@ -3,13 +3,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 describe DataMapper::Associations::Relationship do
 
   before do
-    @adapter = DataMapper::Repository.adapters[:relationship_spec] || DataMapper.setup(:relationship_spec, 'mock://localhost')
+    @adapter = DataMapper::Repository.adapters[:mock]
   end
 
   it "should describe an association" do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
-      :relationship_spec,
+      :mock,
       'Vehicle',
       'Manufacturer',
       { :child_key => [ :manufacturer_id ] }
@@ -22,7 +22,7 @@ describe DataMapper::Associations::Relationship do
   end
 
   it "should map properties explicitly when an association method passes them in its options" do
-    repository_name = :relationship_spec
+    repository_name = :mock
 
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
@@ -43,7 +43,7 @@ describe DataMapper::Associations::Relationship do
   end
 
   it "should infer properties when options aren't passed" do
-    repository_name = :relationship_spec
+    repository_name = :mock
 
     has_many = DataMapper::Associations::Relationship.new(
       :models,

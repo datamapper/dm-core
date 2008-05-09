@@ -9,7 +9,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   describe "when using transactions" do
 
     before :each do
-      @adapter = DataMapper::Adapters::Sqlite3Adapter.new(:sqlite3, Addressable::URI.parse("sqlite3://#{INTEGRATION_DB_PATH}"))
+      @adapter = DataMapper::Adapters::Sqlite3Adapter.new(:sqlite3, Addressable::URI.parse('sqlite3::memory'))
       @transaction = DataMapper::Transaction.new(@adapter)
       @transaction.begin
     end
@@ -21,7 +21,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
           @adapter.close_connection(@transaction.primitive_for(@adapter).connection)
         end
       end
-      it "should still close connections that are not used for the current transaction" do 
+      it "should still close connections that are not used for the current transaction" do
         conn2 = mock("connection2")
         conn2.should_receive(:close)
         @transaction.within do

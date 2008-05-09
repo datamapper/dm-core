@@ -1,7 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-DataMapper.setup(:mock, "mock:///mock.db")
-
 describe DataMapper::Scope do
   after do
     Article.publicize_methods do

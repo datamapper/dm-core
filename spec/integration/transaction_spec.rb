@@ -1,15 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-begin
-  gem 'do_postgres', '=0.9.0'
-  require 'do_postgres'
-
-  gem 'do_mysql', '=0.9.0'
-  require 'do_mysql'
-
-  DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://127.0.0.1/dm_core_test")
-  DataMapper.setup(:mysql, ENV["MYSQL_SPEC_URI"] || "mysql://127.0.0.1/dm_core_test")
-
+if HAS_MYSQL && HAS_POSTGRES
   class Sputnik
     include DataMapper::Resource
 
@@ -59,13 +50,6 @@ begin
       end.should raise_error(Exception, /I am the famous test exception/)
       @adapter1.query("SELECT * FROM sputniks").should == []
       @adapter2.query("SELECT * FROM sputniks").should == []
-    end
-  end
-
-rescue LoadError => e
-  describe 'do_postgres and do_mysql for transaction specs' do
-    it 'should be required' do
-      fail "PostgreSQL integration specs not run! Could not load the gems: #{e}"
     end
   end
 end

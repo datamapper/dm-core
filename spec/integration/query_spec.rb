@@ -1,12 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-begin
-  gem 'do_sqlite3', '=0.9.0'
-  require 'do_sqlite3'
-
-  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
-  DataMapper.setup(:mock, "mock:///mock.db")
-
+if HAS_SQLITE3
   describe DataMapper::Query do
     describe 'when ordering' do
       before do
@@ -308,6 +302,4 @@ begin
       end
     end   # describe links
   end # DM::Query
-rescue LoadError
-  warn "integration/query_spec not run! Could not load do_sqlite3."
 end

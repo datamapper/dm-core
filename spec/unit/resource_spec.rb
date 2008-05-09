@@ -6,15 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 describe "DataMapper::Resource" do
 
   before :all do
-
-    DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
-    DataMapper.setup(:legacy, "mock://localhost/mock") unless DataMapper::Repository.adapters[:legacy]
-
-    unless DataMapper::Repository.adapters[:yet_another_repository]
-      adapter = DataMapper.setup(:yet_another_repository, "mock://localhost/mock")
-      adapter.resource_naming_convention = DataMapper::NamingConventions::Underscored
-    end
-
     class Planet
 
       include DataMapper::Resource
@@ -41,15 +32,15 @@ describe "DataMapper::Resource" do
         :legacy
       end
     end
-    
+
     class Phone
       include DataMapper::Resource
-      
+
       property :name, String, :key => true
       property :awesomeness, Fixnum
     end
   end
-  
+
   it "should require a key" do
     lambda do
       DataMapper::Resource.new("stuff") do
@@ -57,7 +48,7 @@ describe "DataMapper::Resource" do
       end.new
     end.should raise_error(DataMapper::IncompleteResourceError)
   end
-  
+
   it "should hold repository-specific properties" do
     Planet.properties(:legacy).should have_property(:cowabunga)
     Planet.properties.should_not have_property(:cowabunga)
@@ -94,7 +85,7 @@ describe "DataMapper::Resource" do
     jupiter.attributes.should == attributes
     jupiter.send(:private_attributes=, attributes.merge({ :core => 'Magma' }))
     jupiter.attributes.should == attributes.merge({ :core => 'Magma' })
-    
+
     jupiter.update_attributes({ :core => "Toast", :type => "Bob" }, :core)
     jupiter.core.should == "Toast"
     jupiter.type.should_not == "Bob"
@@ -146,7 +137,7 @@ describe "DataMapper::Resource" do
 
     mars.should respond_to(:shadow_attribute_get)
   end
-  
+
   it "should mark the key as dirty, if it is a natural key and has been set" do
     phone = Phone.new
     phone.name = 'iPhone'
@@ -299,30 +290,25 @@ describe "DataMapper::Resource" do
       Planet.should respond_to(:all)
       Planet.should respond_to(:[])
     end
-    
+
     it '.exists? should return whether or not the repository exists' do
       Planet.should respond_to(:exists?)
       Planet.exists?.should == true
     end
-    
+
   end
-  
+
   describe "anonymity" do
-    
-    before(:all) do
-      DataMapper.setup(:andromeda, 'mock://localhost')
-    end
-    
     it "should require a default storage name and accept a block" do
       pluto = DataMapper::Resource.new("planet") do
         property :name, String, :key => true
       end
-      
+
       pluto.storage_name(:default).should == 'planets'
-      pluto.storage_name(:andromeda).should == 'planets'
+      pluto.storage_name(:legacy).should == 'planets'
       pluto.properties[:name].should_not be_nil
     end
-    
+
   end
 
   describe 'when retrieving by key' do
@@ -341,41 +327,37 @@ describe "DataMapper::Resource" do
       end.should raise_error(DataMapper::ObjectNotFoundError)
     end
   end
-  
+
   describe "inheritance" do
     before(:all) do
-      
-      DataMapper.setup(:west_coast, "mock://localhost/mock") unless DataMapper::Repository.adapters[:west_coast]
-      DataMapper.setup(:east_coast, "mock://localhost/mock") unless DataMapper::Repository.adapters[:east_coast]
-      
       class Media
         include DataMapper::Resource
-        
+
         storage_names[:default] = 'media'
         storage_names[:west_coast] = 'm3d1a'
-        
+
         property :name, String, :key => true
       end
-      
+
       class NewsPaper < Media
-        
+
         storage_names[:east_coast] = 'mother'
-        
+
         property :rating, Fixnum
       end
     end
-    
+
     it 'should inherit storage_names' do
       NewsPaper.storage_name(:default).should == 'media'
       NewsPaper.storage_name(:west_coast).should == 'm3d1a'
       NewsPaper.storage_name(:east_coast).should == 'mother'
       Media.storage_name(:east_coast).should == 'medium'
     end
-    
+
     it 'should inherit properties' do
       Media.properties.should have(1).entries
       NewsPaper.properties.should have(2).entries
     end
   end
-  
+
 end

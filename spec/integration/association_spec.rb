@@ -1,11 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-begin
-  gem 'do_sqlite3', '=0.9.0'
-  require 'do_sqlite3'
-
-  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
-
+if HAS_SQLITE3
   class Engine
     include DataMapper::Resource
 
@@ -540,6 +535,4 @@ begin
       end
     end
   end
-rescue LoadError
-  warn "integration/association_spec not run! Could not load do_sqlite3."
 end
