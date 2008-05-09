@@ -77,8 +77,10 @@ module DataMapper
     end
 
     def method_missing(method_name, *args)
-      if @model.relationships[method_name]
-        map{ |e| e.send(method_name) }
+      if @model.relationships(@repository.name)[method_name]
+        map{ |e| e.send(method_name) }.flatten.compact
+      else
+        super
       end
     end
 

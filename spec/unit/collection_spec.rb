@@ -639,12 +639,6 @@ describe DataMapper::Collection do
     end
   end
 
-  describe 'association proxying' do
-    it "should proxy the relationships of the model" do
-      puts @collection.pigs.entries.first
-    end
-  end
-
   describe 'with lazy loading' do
     before :all do
       @cow = Class.new do

@@ -69,8 +69,6 @@ module DataMapper
 
         properties ||= self.properties
 
-        DataMapper.logger.debug("FIND_BY_SQL: #{sql}  PARAMETERS: #{params.inspect}")
-
         repository.adapter.read_set_with_sql(repository, self, properties, sql, params, do_reload)
       end
     end
@@ -143,7 +141,6 @@ module DataMapper
 
         sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, resource.class, properties)
         values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-        DataMapper.logger.debug("CREATE: #{sql}  PARAMETERS: #{values.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -172,7 +169,6 @@ module DataMapper
         set = Collection.new(repository, resource, properties_with_indexes)
 
         sql = read_statement(resource, key)
-        DataMapper.logger.debug("READ: #{sql}  KEY: #{key.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -197,7 +193,6 @@ module DataMapper
         sql = update_statement(resource.class, properties)
         values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
         parameters = (values + resource.key)
-        DataMapper.logger.debug("UPDATE: #{sql}  PARAMETERS: #{parameters.inspect}")
 
         begin
           connection = create_connection
@@ -226,8 +221,6 @@ module DataMapper
       def create_model_storage(repository, model)
         sql = create_table_statement(model)
 
-        DataMapper.logger.debug "CREATE TABLE: #{sql}"
-
         connection = create_connection
         command = connection.create_command(sql)
         result = command.execute_non_query
@@ -239,8 +232,6 @@ module DataMapper
 
       def destroy_model_storage(repository, model)
         sql = drop_table_statement(model)
-
-        DataMapper.logger.debug "DROP TABLE: #{sql}"
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -268,7 +259,6 @@ module DataMapper
       def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
         Collection.new(repository, model, properties_with_indexes) do |set|
-          DataMapper.logger.debug("READ_SET: #{sql}  PARAMETERS: #{parameters.inspect}")
 
           begin
             connection = create_connection
@@ -306,7 +296,6 @@ module DataMapper
 
       # Database-specific method
       def execute(sql, *args)
-        DataMapper.logger.debug("EXECUTE: #{sql}  PARAMETERS: #{args.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)
@@ -319,7 +308,6 @@ module DataMapper
       end
 
       def query(sql, *args)
-        DataMapper.logger.debug("QUERY: #{sql}  PARAMETERS: #{args.inspect}")
 
         connection = create_connection
         command = connection.create_command(sql)

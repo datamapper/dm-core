@@ -28,7 +28,8 @@ module DataMapper
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
             @#{name}_association ||= begin
-              relationship = self.class.relationships(repository.name)[:#{name}]
+              relationship = self.class.relationships(repository.name)[#{name.inspect}]
+              raise ArgumentError.new("Relationship #{name.inspect} does not exist") unless relationship
               association = Proxy.new(relationship, self)
               parent_associations << association
               association
@@ -136,7 +137,7 @@ module DataMapper
         end
 
         def save_resources(resources = [])
-          repository(@relationship.repository_name) do
+          repository(@parent_resource.repository.name) do
             resources.each do |resource|
               @relationship.attach_parent(resource, @parent_resource)
               resource.save

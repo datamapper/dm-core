@@ -35,7 +35,7 @@ module DataMapper
       def get_children(parent)
         query = child_key.to_query(parent_key.get(parent))
 
-        DataMapper.repository(repository_name) do
+        DataMapper.repository(parent.repository.name) do
           child_model.all(query)
         end
       end

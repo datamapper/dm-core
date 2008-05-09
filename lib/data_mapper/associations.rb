@@ -16,7 +16,7 @@ module DataMapper
     end
 
     def relationships(repository_name = default_repository_name)
-      (@relationships ||= Hash.new { |h, k| h[k] = {} })[repository_name]
+      (@relationships ||= Hash.new { |h,k| h[k] = (k == :default || !h.key?(:default) ? {} : h[:default].dup) })[repository_name]
     end
 
     def n
