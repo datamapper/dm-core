@@ -23,12 +23,7 @@ class Book
   property :object,      Object,     :nullable => true                       # FIXME: cannot supply a default for Object
 end
 
-begin
-  gem 'do_sqlite3', '=0.9.0'
-  require 'do_sqlite3'
-
-  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
-
+if HAS_SQLITE3
   describe DataMapper::AutoMigrations, '.auto_migrate!' do
     before :all do
       @adapter = repository(:sqlite3).adapter
@@ -104,7 +99,6 @@ begin
 
           expected_value = types[name][4]
           it 'should properly typecast value' do
-
             if DateTime == klass
               @book.attribute_get(name).to_s.should == expected_value.to_s
             else
@@ -115,20 +109,9 @@ begin
       end
     end
   end
-rescue LoadError => e
-  describe 'do_sqlite3' do
-    it 'should be required' do
-      fail "SQLite3 integration specs not run! Could not load do_sqlite3: #{e}"
-    end
-  end
 end
 
-begin
-  gem 'do_mysql', '=0.9.0'
-  require 'do_mysql'
-
-  DataMapper.setup(:mysql, 'mysql://localhost/dm_integration_test')
-
+if HAS_MYSQL
   describe DataMapper::AutoMigrations, '.auto_migrate!' do
     before :all do
       @adapter = repository(:mysql).adapter
@@ -208,20 +191,9 @@ begin
       end
     end
   end
-rescue LoadError => e
-  describe 'do_mysql' do
-    it 'should be required' do
-      fail "MySQL integration specs not run! Could not load do_mysql: #{e}"
-    end
-  end
 end
 
-begin
-  gem 'do_postgres', '=0.9.0'
-  require 'do_postgres'
-
-  DataMapper.setup(:postgres, 'postgres://postgres@localhost/dm_core_test')
-
+if HAS_POSTGRES
   describe DataMapper::AutoMigrations, '.auto_migrate!' do
     before :all do
       @adapter = repository(:postgres).adapter
@@ -333,12 +305,6 @@ begin
           end
         end
       end
-    end
-  end
-rescue LoadError => e
-  describe 'do_postgres' do
-    it 'should be required' do
-      fail "PostgreSQL integration specs not run! Could not load do_postgres: #{e}"
     end
   end
 end

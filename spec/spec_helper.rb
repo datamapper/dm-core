@@ -1,16 +1,45 @@
 require 'rubygems'
 gem 'rspec', '>=1.1.3'
-require 'pathname'
 require 'spec'
-require 'fileutils'
+require 'pathname'
 
 require Pathname(__FILE__).dirname.expand_path.parent + 'lib/data_mapper'
 require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
 
-gem 'rspec', '>=1.1.3'
+# setup mock adapters
+[ :default, :mock, :legacy, :west_coast, :east_coast ].each do |repository_name|
+  DataMapper.setup(repository_name, "mock://localhost/#{repository_name}")
+end
 
-INTEGRATION_DB_PATH = DataMapper.root / 'spec' / 'integration' / 'integration_test.db'
-FileUtils.touch INTEGRATION_DB_PATH unless INTEGRATION_DB_PATH.exist?
+HAS_SQLITE3 = begin
+  gem 'do_sqlite3', '=0.9.0'
+  require 'do_sqlite3'
+  DataMapper.setup(:sqlite3, ENV['SQLITE3_SPEC_URI'] || 'sqlite3::memory:')
+  true
+rescue
+  warn "Could not load do_sqlite3: #{$!}"
+  false
+end
+
+HAS_MYSQL = begin
+  gem 'do_mysql', '=0.9.0'
+  require 'do_mysql'
+  DataMapper.setup(:mysql, ENV['MYSQL_SPEC_URI'] || 'mysql://localhost/dm_core_test')
+  true
+rescue
+  warn "Could not load do_mysql: #{$!}"
+  false
+end
+
+HAS_POSTGRES = begin
+  gem 'do_postgres', '=0.9.0'
+  require 'do_postgres'
+  DataMapper.setup(:postgres, ENV['POSTGRES_SPEC_URI'] || 'postgres://postgres@localhost/dm_core_test')
+  true
+rescue
+  warn "Could not load do_postgres: #{$!}"
+  false
+end
 
 # Determine log path.
 ENV['_'] =~ /(\w+)/
@@ -19,8 +48,6 @@ log_path.dirname.mkpath
 
 DataMapper::Logger.new(log_path, 0)
 at_exit { DataMapper.logger.close }
-
-DataMapper.setup(:default, 'mock://localhost')
 
 class Article
   include DataMapper::Resource

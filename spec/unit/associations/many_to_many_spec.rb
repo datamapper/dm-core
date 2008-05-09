@@ -1,11 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe "DataMapper::Associations::ManyToMany" do
-
-  before do
-    @adapter = DataMapper::Repository.adapters[:relationship_spec] || DataMapper.setup(:relationship_spec, 'mock://localhost')
-  end
-
   it "should allow a declaration" do
 
     lambda do

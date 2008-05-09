@@ -1,8 +1,3 @@
-begin
-  require 'fastthread'
-rescue LoadError
-end
-
 gem 'addressable', '>=1.0.4'
 require 'addressable/uri'
 

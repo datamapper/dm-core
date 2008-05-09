@@ -3,12 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 gem 'fastercsv', '>=1.2.3'
 require 'fastercsv'
 
-begin
-  gem 'do_sqlite3', '=0.9.0'
-  require 'do_sqlite3'
-
-  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
-
+if HAS_SQLITE3
   describe DataMapper::Property do
     before do
       @adapter = repository(:sqlite3).adapter
@@ -180,9 +175,5 @@ begin
       end
 
     end
-
   end
-
-rescue LoadError
-  warn "integration/property_spec not run! Could not load do_sqlite3."
 end

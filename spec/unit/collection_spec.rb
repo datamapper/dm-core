@@ -5,9 +5,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 # multiple resources to the caller
 describe DataMapper::Collection do
   before :all do
-    DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
-    DataMapper.setup(:other, "mock://localhost/mock") unless DataMapper::Repository.adapters[:other]
-
     @cow = Class.new do
       include DataMapper::Resource
 
@@ -40,7 +37,7 @@ describe DataMapper::Collection do
   end
 
   it "should return the right repository" do
-    DataMapper::Collection.new(repository(:other), @cow, []).repository.name.should == :other
+    DataMapper::Collection.new(repository(:legacy), @cow, []).repository.name.should == :legacy
   end
 
   it "should be able to add arbitrary objects" do
@@ -626,8 +623,6 @@ describe DataMapper::Collection do
 
   describe 'with lazy loading' do
     before :all do
-      DataMapper.setup(:default, "mock://localhost/mock") unless DataMapper::Repository.adapters[:default]
-
       @cow = Class.new do
         include DataMapper::Resource
 

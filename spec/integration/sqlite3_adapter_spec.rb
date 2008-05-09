@@ -1,36 +1,23 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-begin
-  gem 'do_sqlite3', '=0.9.0'
-  require 'do_sqlite3'
-
-  NEWFILE_DB_NAME = 'newfile.db'
-
-  DataMapper.setup(:sqlite3, "sqlite3://#{INTEGRATION_DB_PATH}")
-  DataMapper.setup(:sqlite3newfile, "sqlite3:#{NEWFILE_DB_NAME}")
-  DataMapper.setup(:sqlite3memory, "sqlite3::memory:")
-
+if HAS_SQLITE3
   describe DataMapper::Adapters::DataObjectsAdapter do
     before(:all) do
       @adapter = repository(:sqlite3).adapter
     end
 
     describe "database file handling" do
-      before :all do
-        @newfile_adapter = repository(:sqlite3newfile).adapter
-        @memory_adapter = repository(:sqlite3memory).adapter
-      end
-      
-      it "should contain a valid file path for file-based databases that exist" do
-        @adapter.uri.path.should == INTEGRATION_DB_PATH.to_s
+      it "should contain a valid file path for file-based databases" do
+        file = '/newfile.db'
+        DataMapper.setup(:sqlite3newfile, "sqlite3://#{file}")
+        adapter = repository(:sqlite3newfile).adapter
+        adapter.uri.path.should == File.join(Dir.pwd, file)
       end
 
-      it "should contain a valid file path for file-based databases that DON'T exist" do
-        @newfile_adapter.uri.path.should == File.join(Dir.pwd, File.dirname(NEWFILE_DB_NAME), File.basename(NEWFILE_DB_NAME))
-      end
-      
       it "should contain have a path of just :memory: when using in memory databases" do
-        @memory_adapter.uri.path.should == ':memory:'
+        DataMapper.setup(:sqlite3memory, "sqlite3::memory:")
+        adapter = repository(:sqlite3memory).adapter
+        adapter.uri.path.should == ':memory:'
       end
     end
 
@@ -222,8 +209,6 @@ begin
         end
 
         BankCustomer.auto_migrate!(:sqlite3)
-
-        @adapter = repository(:sqlite3).adapter
       end
 
       it 'should be able to create a record' do
@@ -309,12 +294,6 @@ begin
         robots.bank.should == bank
         robots.account_number.should == account_number
       end
-    end
-  end
-rescue LoadError => e
-  describe 'do_sqlite3' do
-    it 'should be required' do
-      fail "SQLite3 integration specs not run! Could not load do_sqlite3: #{e}"
     end
   end
 end
