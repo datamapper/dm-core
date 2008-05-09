@@ -119,7 +119,7 @@ module DataMapper
       #   "CamelOctopi".singularize #=> "CamelOctopus"
       #
       def singularize(word)
-        word.singular
+        English::Inflect.singular(word)
       end
 
       # Returns the plural form of the word in the string.
@@ -133,7 +133,7 @@ module DataMapper
       #   "CamelOctopus".pluralize #=> "CamelOctopi"
       #
       def pluralize(word)
-        word.plural
+        English::Inflect.plural(word)
       end
 
     end
