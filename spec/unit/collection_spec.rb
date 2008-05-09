@@ -5,32 +5,50 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 # multiple resources to the caller
 describe DataMapper::Collection do
   before :all do
+
     @cow = Class.new do
       include DataMapper::Resource
 
       property :name, String, :key => true
       property :age, Fixnum
+      has n, :pigs
     end
+    
+    class Pig
+      include DataMapper::Resource
+      
+      property :name, String, :key => true
+      property :age,  Fixnum
+      
+      belongs_to :cow
+    end
+    
 
-    properties               = @cow.properties(:default)
+    properties               = Cow.properties(:default)
     @properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
   end
 
   before do
     @repository = DataMapper.repository(:default)
 
-    nancy  = @cow.new(:name => 'Nancy',  :age => 11)
-    bessie = @cow.new(:name => 'Bessie', :age => 10)
-    steve  = @cow.new(:name => 'Steve',  :age => 8)
+    nancy  = Cow.new(:name => 'Nancy',  :age => 11)
+    bessie = Cow.new(:name => 'Bessie', :age => 10)
+    steve  = Cow.new(:name => 'Steve',  :age => 8)
 
-    @collection = DataMapper::Collection.new(@repository, @cow, @properties_with_indexes)
+    babe      = Pig.new(:name => 'Babe')
+    snowball  = Pig.new(:name => 'Snowball')
+    
+    # nancy.pigs << babe << snowball
+    
+
+    @collection = DataMapper::Collection.new(@repository, Cow, @properties_with_indexes)
     @collection.load([ nancy.name,  nancy.age  ])
     @collection.load([ bessie.name, bessie.age ])
 
     @nancy  = @collection[0]
     @bessie = @collection[1]
 
-    @other = DataMapper::Collection.new(@repository, @cow, @properties_with_indexes)
+    @other = DataMapper::Collection.new(@repository, Cow, @properties_with_indexes)
     @other.load([ steve.name, steve.age ])
 
     @steve = @other[0]
@@ -41,10 +59,10 @@ describe DataMapper::Collection do
   end
 
   it "should be able to add arbitrary objects" do
-    properties              = @cow.properties(:default)
+    properties              = Cow.properties(:default)
     properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
 
-    collection = DataMapper::Collection.new(DataMapper::repository(:default), @cow, properties_with_indexes)
+    collection = DataMapper::Collection.new(DataMapper::repository(:default), Cow, properties_with_indexes)
     collection.should respond_to(:reload)
 
     collection.load(['Bob', 10])
@@ -74,16 +92,16 @@ describe DataMapper::Collection do
   describe '.new' do
     describe 'with non-index keys' do
       it 'should instantiate read-only resources' do
-        properties_with_indexes = { @cow.properties(:default)[:age] => 0 }
+        properties_with_indexes = { Cow.properties(:default)[:age] => 0 }
 
-        @collection = DataMapper::Collection.new(@repository, @cow, properties_with_indexes)
+        @collection = DataMapper::Collection.new(@repository, Cow, properties_with_indexes)
         @collection.load([ 1 ])
 
         @collection.size.should == 1
 
         resource = @collection.entries[0]
 
-        resource.should be_kind_of(@cow)
+        resource.should be_kind_of(Cow)
         resource.collection.object_id.should == @collection.object_id
         resource.should_not be_new_record
         resource.should be_readonly
@@ -274,7 +292,7 @@ describe DataMapper::Collection do
         collection[0].should == @nancy
         collection[1].should == @bessie
       end
-    end
+    end    
   end
 
   describe '#insert' do
@@ -313,8 +331,8 @@ describe DataMapper::Collection do
   describe '#load' do
     it 'should load resources from the identity map when possible' do
       @steve.collection = nil
-      @repository.should_receive(:identity_map_get).with(@cow, %w[ Steve ]).once.and_return(@steve)
-      collection = DataMapper::Collection.new(@repository, @cow, @properties_with_indexes)
+      @repository.should_receive(:identity_map_get).with(Cow, %w[ Steve ]).once.and_return(@steve)
+      collection = DataMapper::Collection.new(@repository, Cow, @properties_with_indexes)
       collection.load([ @steve.name, @steve.age ])
       collection.size.should == 1
       collection[0].object_id.should == @steve.object_id
@@ -332,7 +350,7 @@ describe DataMapper::Collection do
     end
 
     it 'should return false for an uninitialized collection' do
-      uninitialized = DataMapper::Collection.new(@repository, @cow, @properties_with_indexes) do
+      uninitialized = DataMapper::Collection.new(@repository, Cow, @properties_with_indexes) do
         # do nothing
       end
       uninitialized.should_not be_loaded
@@ -424,10 +442,10 @@ describe DataMapper::Collection do
         query.offset.should     == 0
         query.limit.should      be_nil
         query.order.should      == []
-        query.fields.should     == @cow.properties.slice(:name, :age)
+        query.fields.should     == Cow.properties.slice(:name, :age)
         query.links.should      == []
         query.includes.should   == []
-        query.conditions.should == [ [ :eql, @cow.properties[:name], %w[ Nancy Bessie ] ] ]
+        query.conditions.should == [ [ :eql, Cow.properties[:name], %w[ Nancy Bessie ] ] ]
 
         @collection
       end
@@ -621,6 +639,12 @@ describe DataMapper::Collection do
     end
   end
 
+  describe 'association proxying' do
+    it "should proxy the relationships of the model" do
+      puts @collection.pigs.entries.first
+    end
+  end
+
   describe 'with lazy loading' do
     before :all do
       @cow = Class.new do
@@ -630,12 +654,12 @@ describe DataMapper::Collection do
         property :age, Fixnum
       end
 
-      properties               = @cow.properties(:default)
+      properties               = Cow.properties(:default)
       @properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
     end
 
     it "should make a materialization block" do
-      collection = DataMapper::Collection.new(DataMapper::repository(:default), @cow, @properties_with_indexes) do |c|
+      collection = DataMapper::Collection.new(DataMapper::repository(:default), Cow, @properties_with_indexes) do |c|
         c.should be_empty
         c.load(['Bob', 10])
         c.load(['Nancy', 11])
@@ -644,4 +668,5 @@ describe DataMapper::Collection do
       collection.length.should == 2
     end
   end
+  
 end

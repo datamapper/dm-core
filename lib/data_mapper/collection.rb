@@ -76,6 +76,12 @@ module DataMapper
       remove_resource(super)
     end
 
+    def method_missing(method_name, *args)
+      if @model.relationships[method_name]
+        map{ |e| e.send(method_name) }
+      end
+    end
+
     private
 
     # +properties_with_indexes+ is a Hash of Property and values Array index pairs.
