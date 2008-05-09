@@ -38,13 +38,8 @@ module DataMapper
           def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
-
-              association = Proxy.new(relationship, self) do
-                relationship.get_parent(self)
-              end
-
+              association = Proxy.new(relationship, self)
               child_associations << association
-
               association
             end
           end
@@ -55,7 +50,7 @@ module DataMapper
 
       class Proxy
         def parent
-          @parent_resource ||= @parent_loader.call
+          @parent_resource ||= @relationship.get_parent(@child_resource)
         end
 
         def parent=(parent_resource)
@@ -74,13 +69,12 @@ module DataMapper
 
         private
 
-        def initialize(relationship, child_resource, &parent_loader)
+        def initialize(relationship, child_resource)
 #          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
 #          raise ArgumentError, "+child_resource+ should be a DataMapper::Resource, but was #{child_resource.class}", caller              unless Resource     === child_resource
 
           @relationship   = relationship
           @child_resource = child_resource
-          @parent_loader  = parent_loader
         end
       end # class Proxy
     end # module ManyToOne

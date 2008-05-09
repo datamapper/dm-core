@@ -109,21 +109,20 @@ describe DataMapper::Associations::OneToMany do
 end
 
 describe DataMapper::Associations::OneToMany::Proxy do
-  describe "when adding a resource" do
-    before do
-      @parent = mock("parent")
-      @resource = mock("resource", :null_object => true)
-      @collection = mock("collection")
-      @repository = mock("repository", :save => nil)
-      @relationship = mock("relationship")
-      @association = DataMapper::Associations::OneToMany::Proxy.new(@relationship, @parent, @collection)
-    end
+  before do
+    @parent = mock("parent")
+    @resource = mock("resource", :null_object => true)
+    @collection = []
+    @repository = mock("repository", :save => nil)
+    @relationship = mock("relationship", :get_children => @collection, :repository_name => :a_symbol)
+    @association = DataMapper::Associations::OneToMany::Proxy.new(@relationship, @parent)
+  end
 
+  describe "when adding a resource" do
     describe "with a persisted parent" do
       it "should save the resource" do
         @parent.should_receive(:new_record?).with(no_args).once.and_return(false)
-        @relationship.should_receive(:attach_parent).with(@resource, @parent)
-        @relationship.should_receive(:repository_name).with(no_args).once.and_return(:a_symbol)
+        @relationship.should_receive(:attach_parent).with(@resource, @parent).once
         @collection.should_receive(:<<).with(@resource).once.and_return(@collection)
 
         @association << @resource
@@ -152,26 +151,73 @@ describe DataMapper::Associations::OneToMany::Proxy do
   end
 
   describe "when deleting a resource" do
-    it "should delete the resource from the database"
+    before do
+      @collection.stub!(:delete).and_return(@resource)
+      @relationship.stub!(:attach_parent).once
+    end
 
-    it "should delete the resource from the association"
+    it "should delete the resource from the database" do
+      @resource.should_receive(:save).with(no_args).once
 
-    it "should erase the ex-parent's keys from the resource"
+      @association.delete(@resource)
+    end
+
+    it "should delete the resource from the association" do
+      @collection.should_receive(:delete).with(@resource).once.and_return(@resource)
+
+      @association.delete(@resource)
+    end
+
+    it "should erase the ex-parent's keys from the resource" do
+      @relationship.should_receive(:attach_parent).with(@resource, nil).once
+
+      @association.delete(@resource)
+    end
   end
 
   describe "when deleting the parent" do
+    it "should delete all the children without calling destroy if relationship :dependent is :delete_all"
 
+    it "should destroy all the children if relationship :dependent is :destroy"
+
+    it "should set the children's parent key to nil if relationship :dependent is :nullify"
+
+    it "should restrict the parent from being deleted if a child remains if relationship :dependent is restrict"
+
+    it "should be restrict by default if relationship :dependent is not specified"
+  end
+
+  describe "when replacing the children" do
+    before do
+      @children = [
+        mock("child 1"),
+        mock("child 2"),
+      ]
+      @collection << @resource
+      @relationship.stub!(:attach_parent)
+    end
+
+    it "should remove each resource" do
+      @relationship.should_receive(:attach_parent).with(@resource, nil).once
+      @resource.should_receive(:save).with(no_args).once
+
+      @association.children = @children
+    end
+
+    it "should replace the children in the collection" do
+      @children.should_not == @collection
+      @association.children.should == @collection
+
+      @association.children = @children
+
+      @collection.should == @children
+      @association.children.object_id.should == @collection.object_id
+    end
   end
 
   describe "with an unsaved parent" do
     describe "when deleting a resource from an unsaved parent" do
-      it "should remove the resource from the association" do
-
-      end
+      it "should remove the resource from the association"
     end
   end
-end
-
-describe "when changing a resource's parent" do
-
 end

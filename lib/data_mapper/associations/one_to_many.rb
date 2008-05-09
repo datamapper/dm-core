@@ -29,7 +29,7 @@ module DataMapper
           def #{name}
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
-              association = Proxy.new(relationship, self, relationship.get_children(self))
+              association = Proxy.new(relationship, self)
               parent_associations << association
               association
             end
@@ -40,43 +40,52 @@ module DataMapper
       end
 
       class Proxy
+        def children
+          @children ||= @relationship.get_children(@parent_resource)
+        end
+
+        def children=(resources)
+          each { |resource| remove_resource(resource) }
+          replace(resources)
+        end
+
         def push(*resources)
           append_resource(resources)
-          @children.push(*resources)
+          children.push(*resources)
           self
         end
 
         def unshift(*resources)
           append_resource(resources)
-          @children.unshift(*resources)
+          children.unshift(*resources)
           self
         end
 
         def <<(resource)
           append_resource([ resource ])
-          @children << resource
+          children << resource
           self
         end
 
         def pop
-          remove_resource(@children.pop)
+          remove_resource(children.pop)
         end
 
         def shift
-          remove_resource(@children.shift)
+          remove_resource(children.shift)
         end
 
         def delete(resource, &block)
-          remove_resource(@children.delete(resource, &block))
+          remove_resource(children.delete(resource, &block))
         end
 
         def delete_at(index)
-          remove_resource(@children.delete_at(index))
+          remove_resource(children.delete_at(index))
         end
 
         def clear
           each { |resource| remove_resource(resource) }
-          @children.clear
+          children.clear
           self
         end
 
@@ -87,14 +96,12 @@ module DataMapper
 
         private
 
-        def initialize(relationship, parent_resource, collection)
+        def initialize(relationship, parent_resource)
 #          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
 #          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
-#          raise ArgumentError, "+collection+ should be a DataMapper::Collection, but was #{collection.class}", caller                    unless Collection   === parent_resource
 
           @relationship    = relationship
           @parent_resource = parent_resource
-          @children        = collection
           @dirty_children  = []
         end
 
@@ -105,7 +112,7 @@ module DataMapper
               resource.save
             end
           rescue
-            @children << resource
+            children << resource
             raise
           end
           resource
@@ -129,8 +136,8 @@ module DataMapper
         end
 
         def method_missing(method, *args, &block)
-          if @children.respond_to?(method)
-            @children.__send__(method, *args, &block)
+          if children.respond_to?(method)
+            children.__send__(method, *args, &block)
           else
             super
           end
