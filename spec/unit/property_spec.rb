@@ -111,15 +111,16 @@ describe DataMapper::Property do
   it "should append ? to TrueClass property reader methods" do
     class Potato
       include DataMapper::Resource
+      property :id, Fixnum, :key => true
       property :fresh, TrueClass
       property :public, TrueClass
     end
-    
+
     Potato.new().should respond_to(:fresh)
     Potato.new().should respond_to(:fresh?)
-    
+
     Potato.new(:fresh => true).should be_fresh
-    
+
     Potato.new().should respond_to(:public)
     Potato.new().should respond_to(:public?)
   end
@@ -164,7 +165,7 @@ describe DataMapper::Property do
   it 'should provide typecast' do
     DataMapper::Property.new(Zoo, :name, String).should respond_to(:typecast)
   end
-  
+
   it "should provide a size/length" do
     DataMapper::Property.new(Zoo, :cleanliness, String, { :size => 100 }).size.should == 100
     DataMapper::Property.new(Zoo, :cleanliness, String, { :length => 200 }).size.should == 200

@@ -3,15 +3,15 @@ require 'set'
 module DataMapper
 
   module Resource
-    
-    def self.new(default_name, &b)      
+
+    def self.new(default_name, &b)
       x = Class.new
       x.send(:include, self)
       x.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(default_name) })
       x.instance_eval(&b)
       x
     end
-    
+
     @@including_classes = Set.new
 
     # +----------------------
@@ -147,7 +147,7 @@ module DataMapper
       property = self.class.properties(repository.name)[name]
       instance_variable_defined?(property.instance_variable_name)
     end
-    
+
     def loaded_attributes
       names = []
       self.class.properties(repository.name).each do |property|
@@ -207,7 +207,7 @@ module DataMapper
         end
       end
     end
-    
+
     def update_attributes(hash, *update_only)
       raise 'Update takes a hash as first parameter' unless hash.is_a?(Hash)
       loop_thru = update_only.empty? ? hash.keys : update_only
@@ -218,7 +218,7 @@ module DataMapper
     # Produce a new Transaction for the class of this Resource
     #
     # ==== Returns
-    # DataMapper::Adapters::Transaction:: A new DataMapper::Adapters::Transaction with all 
+    # DataMapper::Adapters::Transaction:: A new DataMapper::Adapters::Transaction with all
     # DataMapper::Repositories of the class of this DataMapper::Resource added.
     #
     #-
@@ -229,16 +229,9 @@ module DataMapper
 
     private
 
-    def initialize(details = nil) # :nodoc:
+    def initialize(*args) # :nodoc:
       validate_resource
-
-      def initialize(details = nil)
-        if details
-          initialize_with_attributes(details)
-        end
-      end
-
-      initialize(details)
+      initialize_with_attributes(*args) unless args.empty?
     end
 
     def initialize_with_attributes(details) # :nodoc:
@@ -253,7 +246,7 @@ module DataMapper
       if self.class.properties.empty? && self.class.relationships.empty?
         raise IncompleteResourceError, 'Resources must have at least one property or relationship to be initialized.'
       end
-      
+
       if self.class.properties.key.empty?
         raise IncompleteResourceError, 'Resources must have a key.'
       end
@@ -288,7 +281,7 @@ module DataMapper
         base.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
         base.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
-      
+
       def inherited(target)
         target.instance_variable_set(:@storage_names, @storage_names.dup)
         target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == :default ? self.properties(:default).dup(target) : h[:default].dup })
@@ -411,7 +404,7 @@ module DataMapper
       # Produce a new Transaction for this Resource class
       #
       # ==== Returns
-      # DataMapper::Adapters::Transaction:: A new DataMapper::Adapters::Transaction with all 
+      # DataMapper::Adapters::Transaction:: A new DataMapper::Adapters::Transaction with all
       # DataMapper::Repositories of this DataMapper::Resource added.
       #
       #-
@@ -419,7 +412,7 @@ module DataMapper
       def transaction(&block)
         DataMapper::Transaction.new(self, &block)
       end
-      
+
       def exists?(repo_name = default_repository_name)
         repository(repo_name).storage_exists?(storage_name(repo_name))
       end
@@ -431,20 +424,20 @@ module DataMapper
       end
 
       def method_missing(method, *args, &block)
-        if relationship = relationships(repository.name)[method]          
+        if relationship = relationships(repository.name)[method]
            clazz = if self == relationship.child_model
              relationship.parent_model
            else
              relationship.child_model
-           end                
+           end
            return DataMapper::Query::Path.new(repository, [relationship],clazz)
         end
-        
+
         if property = properties(repository.name)[method]
           return property
         end
         super
-      end          
+      end
 
     end # module ClassMethods
   end # module Resource

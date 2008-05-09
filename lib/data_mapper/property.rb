@@ -277,7 +277,7 @@ module DataMapper
         @type.bind(self)
         @bound = true
       end
-      
+
       return @model.hash + @name.hash
     end
 
@@ -288,12 +288,12 @@ module DataMapper
         return false
       end
     end
-    
+
     def length
       @length.is_a?(Range) ? @length.max : @length
     end
     alias size length
-    
+
     # Returns whether or not the property is to be lazy-loaded
     #
     # ==== Returns
@@ -444,7 +444,7 @@ module DataMapper
 
       @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
       @model.property_serialization_setup(self) if @model.respond_to?(:property_serialization_setup)
-      
+
     end
 
     def determine_visibility # :nodoc:
@@ -457,21 +457,19 @@ module DataMapper
 
     # defines the getter for the property
     def create_getter
-      if @primitive == TrueClass && !@model.instance_methods.include?(@name.to_s)
-        @model.class_eval <<-EOS, __FILE__, __LINE__
-          #{reader_visibility}
-          def #{@name}
-            self.attribute_get(#{name.inspect})
-          end
-        EOS
-      end
-
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{reader_visibility}
         def #{@getter}
-          self.attribute_get(#{name.inspect})
+          attribute_get(#{name.inspect})
         end
       EOS
+
+      if @primitive == TrueClass && !@model.instance_methods.include?(@name.to_s)
+        @model.class_eval <<-EOS, __FILE__, __LINE__
+          #{reader_visibility}
+          alias #{@name} #{@getter}
+        EOS
+      end
     end
 
     # defines the setter for the property
@@ -479,7 +477,7 @@ module DataMapper
       @model.class_eval <<-EOS, __FILE__, __LINE__
         #{writer_visibility}
         def #{name}=(value)
-          self.attribute_set(#{name.inspect}, value)
+          attribute_set(#{name.inspect}, value)
         end
       EOS
     end
