@@ -25,6 +25,10 @@ module DataMapper
         )
 
         class_eval <<-EOS, __FILE__, __LINE__
+          # FIXME: I think this is a subtle bug.  Since we return the resource directly
+          # and not the proxy, then the proxy methods (like save) won't be fired off
+          # as needed.  To fix this we may need a subclass of OneToMany that returns
+          # a proxy object with just a single entry.
           def #{name}
             #{name}_association.first
           end

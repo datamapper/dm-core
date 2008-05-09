@@ -27,22 +27,16 @@ module DataMapper
 
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
-            #{name}_association
-          end
-
-          def #{name}=(children)
-            #{name}_association.replace(children)
-          end
-
-          private
-
-          def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
               association = Proxy.new(relationship, self)
               parent_associations << association
               association
             end
+          end
+
+          def #{name}=(children)
+            #{name}.replace(children)
           end
         EOS
 
