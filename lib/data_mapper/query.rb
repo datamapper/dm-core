@@ -239,6 +239,8 @@ module DataMapper
     def translate_custom_types(properties, options)
       options.each do |key, value|
         case key
+        when DataMapper::Query::Operator
+          options[key] = properties[key.target].type.dump(value, properties[key.target]) if !properties[key.target].nil? && properties[key.target].custom?
         when Symbol, String
           options[key] = properties[key].type.dump(value, properties[key]) if !properties[key].nil? && properties[key].custom?
         end
