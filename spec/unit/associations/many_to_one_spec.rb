@@ -23,7 +23,7 @@ describe "DataMapper::Associations::ManyToOne" do
         @parent.should_receive(:new_record?).and_return(false)
         @relationship.should_receive(:attach_parent).with(@child, @parent)
 
-        @association.parent = @parent
+        @association.replace(@parent)
       end
     end
   end

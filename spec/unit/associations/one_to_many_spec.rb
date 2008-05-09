@@ -110,7 +110,7 @@ end
 
 describe DataMapper::Associations::OneToMany::Proxy do
   before do
-    @parent = mock("parent")
+    @parent = mock("parent", :new_record? => true)
     @resource = mock("resource", :null_object => true)
     @collection = []
     @repository = mock("repository", :save => nil)
@@ -126,8 +126,6 @@ describe DataMapper::Associations::OneToMany::Proxy do
         @collection.should_receive(:<<).with(@resource).once.and_return(@collection)
 
         @association << @resource
-
-        @association.instance_variable_get("@dirty_children").should be_empty
       end
     end
 
@@ -138,13 +136,9 @@ describe DataMapper::Associations::OneToMany::Proxy do
         @collection.should_receive(:<<).with(@resource).once.and_return(@collection)
 
         @association << @resource
-
-        @association.instance_variable_get("@dirty_children").should_not be_empty
       end
 
-      it "should save the resource after the parent is saved" do
-
-      end
+      it "should save the resource after the parent is saved"
 
       it "should add the parent's keys to the resource after the parent is saved"
     end
@@ -201,17 +195,17 @@ describe DataMapper::Associations::OneToMany::Proxy do
       @relationship.should_receive(:attach_parent).with(@resource, nil).once
       @resource.should_receive(:save).with(no_args).once
 
-      @association.children = @children
+      @association.replace(@children)
     end
 
     it "should replace the children in the collection" do
       @children.should_not == @collection
-      @association.children.should == @collection
+      @association.entries.should == @collection
 
-      @association.children = @children
+      @association.replace(@children)
 
-      @collection.should == @children
-      @association.children.object_id.should == @collection.object_id
+      @children.should == @collection  # collection was modified
+      @association.entries.should == @collection
     end
   end
 

@@ -300,7 +300,7 @@ begin
       end
 
       it 'should save nil parents as NULL ids' do
-        p1,p2 = nil, nil
+        p1, p2 = nil, nil
 
         repository(:sqlite3) do
           p1 = Pie.new(:id => 20, :name => "Pie20")
@@ -408,6 +408,20 @@ begin
           h = Host.new(:id => 10, :name => "host10")
           h.slices << Slice.new(:id => 10, :name => 'slice10')
           h.save
+        end
+
+        s = repository(:sqlite3) do
+          Slice.first(:id => 10)
+        end
+
+        s.should_not be_nil
+        s.host.should_not be_nil
+        s.host.id.should == 10
+      end
+
+      it 'should save the associated instances upon saving of parent when mass-assigned' do
+        repository(:sqlite3) do
+          h = Host.create(:id => 10, :name => 'host10', :slices => [ Slice.new(:id => 10, :name => 'slice10') ])
         end
 
         s = repository(:sqlite3) do

@@ -27,6 +27,16 @@ module DataMapper
 
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
+            #{name}_association
+          end
+
+          def #{name}=(children)
+            #{name}_association.replace(children)
+          end
+
+          private
+
+          def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
               association = Proxy.new(relationship, self)
@@ -40,13 +50,13 @@ module DataMapper
       end
 
       class Proxy
-        def children
-          @children ||= @relationship.get_children(@parent_resource)
-        end
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? should should_not ].include?(m) }
 
-        def children=(resources)
+        def replace(resources)
           each { |resource| remove_resource(resource) }
-          replace(resources)
+          append_resource(resources)
+          children.replace(resources)
+          self
         end
 
         def push(*resources)
@@ -92,6 +102,7 @@ module DataMapper
         def save
           save_resources(@dirty_children)
           @dirty_children = []
+          self
         end
 
         private
@@ -103,6 +114,10 @@ module DataMapper
           @relationship    = relationship
           @parent_resource = parent_resource
           @dirty_children  = []
+        end
+
+        def children
+          @children ||= @relationship.get_children(@parent_resource)
         end
 
         def remove_resource(resource)
@@ -136,11 +151,7 @@ module DataMapper
         end
 
         def method_missing(method, *args, &block)
-          if children.respond_to?(method)
-            children.__send__(method, *args, &block)
-          else
-            super
-          end
+          children.__send__(method, *args, &block)
         end
       end # class Proxy
     end # module OneToMany

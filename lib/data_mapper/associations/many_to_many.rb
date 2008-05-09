@@ -30,6 +30,8 @@ module DataMapper
       end
 
       class Proxy
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? should should_not ].include?(m) }
+
         def initialize() end
 
         def save

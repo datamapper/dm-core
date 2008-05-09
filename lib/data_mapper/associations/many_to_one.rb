@@ -26,11 +26,11 @@ module DataMapper
 
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
-            #{name}_association.parent
+            #{name}_association
           end
 
           def #{name}=(parent_resource)
-            #{name}_association.parent = parent_resource
+            #{name}_association.replace(parent_resource)
           end
 
           private
@@ -49,11 +49,9 @@ module DataMapper
       end
 
       class Proxy
-        def parent
-          @parent_resource ||= @relationship.get_parent(@child_resource)
-        end
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? should should_not ].include?(m) }
 
-        def parent=(parent_resource)
+        def replace(parent_resource)
           @parent_resource = parent_resource
           @relationship.attach_parent(@child_resource, @parent_resource) if @parent_resource.nil? || !@parent_resource.new_record?
         end
@@ -75,6 +73,14 @@ module DataMapper
 
           @relationship   = relationship
           @child_resource = child_resource
+        end
+
+        def parent
+          @parent_resource ||= @relationship.get_parent(@child_resource)
+        end
+
+        def method_missing(method, *args, &block)
+          parent.__send__(method, *args, &block)
         end
       end # class Proxy
     end # module ManyToOne

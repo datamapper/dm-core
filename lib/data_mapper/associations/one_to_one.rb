@@ -30,8 +30,7 @@ module DataMapper
           end
 
           def #{name}=(child_resource)
-            #{name}_association.clear
-            #{name}_association << child_resource unless child_resource.nil?
+            #{name}_association.replace(child_resource.nil? ? [] : [ child_resource ])
           end
 
           private
