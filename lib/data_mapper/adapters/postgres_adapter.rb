@@ -14,6 +14,7 @@ module DataMapper
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(DateTime).to('TIMESTAMP')
           tm.map(Fixnum).to('INT4')
+          tm.map(Float).to('FLOAT8')
         end
       end
 
@@ -73,7 +74,7 @@ module DataMapper
         connection = create_connection
 
         model.properties.each do |property|
-          create_sequence_column(connection, model, property) if sequenced?(property)
+          create_sequence_column(connection, model, property) if property.serial?
         end
 
         command = connection.create_command(sql)
@@ -95,16 +96,12 @@ module DataMapper
         result = command.execute_non_query
 
         model.properties.each do |property|
-          drop_sequence_column(connection, model, property) if sequenced?(property)
+          drop_sequence_column(connection, model, property) if property.serial?
         end
 
         close_connection(connection)
 
         result.to_i == 1
-      end
-
-      def sequenced?(property)
-        property.serial?
       end
 
       def create_sequence_column(connection, model, property)
@@ -159,7 +156,18 @@ module DataMapper
 
       def property_schema_hash(property, model)
         schema = super
-        schema[:sequence_name] = sequence_name(model, property) if sequenced?(property)
+        schema[:sequence_name] = sequence_name(model, property) if property.serial?
+
+        # TODO: see if TypeMap can be updated to set specific attributes
+        # to nil for different adapters.  scale/precision are perfect
+        # examples for Postgres floats
+
+        # postgres does not support scale and precision for Float
+        if property.primitive == Float
+          schema.delete(:scale)
+          schema.delete(:precision)
+        end
+
         schema
       end
     end # class PostgresAdapter

@@ -94,8 +94,8 @@ module DataMapper
           tm.map(Fixnum).to('INT')
           tm.map(String).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
           tm.map(Class).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
-          tm.map(BigDecimal).to('DECIMAL').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE)
-          tm.map(Float).to('FLOAT')
+          tm.map(BigDecimal).to('DECIMAL').with(:scale => Property::DEFAULT_SCALE, :precision => Property::DEFAULT_PRECISION)
+          tm.map(Float).to('FLOAT').with(:scale => Property::DEFAULT_SCALE, :precision => Property::DEFAULT_PRECISION)
           tm.map(DateTime).to('DATETIME')
           tm.map(Date).to('DATE')
           tm.map(TrueClass).to('BOOLEAN')
@@ -103,10 +103,10 @@ module DataMapper
           tm.map(DM::Text).to('TEXT')
         end
       end
-      
+
       def initialize(name, uri_or_options)
         super
-        
+
         # Default the driver-specifc logger to DataMapper's logger
         driver_module = DataObjects.const_get(@uri.scheme.capitalize) rescue nil
         driver_module.logger = DataMapper.logger if driver_module && driver_module.respond_to?(:logger)
@@ -406,9 +406,9 @@ module DataMapper
           #  - use this to make it so all TEXT primitive fields do not have size
           if property.primitive == String && schema[:primitive] != 'TEXT'
             schema[:size] = property.length
-          elsif property.primitive == BigDecimal
-            schema[:precision] = property.precision
+          elsif property.primitive == BigDecimal || property.primitive == Float
             schema[:scale]     = property.scale
+            schema[:precision] = property.precision
           end
 
           schema[:nullable?] = property.nullable?
@@ -422,8 +422,8 @@ module DataMapper
           statement = quote_column_name(schema[:name])
           statement << " #{schema[:primitive]}"
 
-          if schema[:precision] && schema[:scale]
-            statement << "(#{schema[:precision]},#{schema[:scale]})"
+          if schema[:scale] && schema[:precision]
+            statement << "(#{schema[:scale]},#{schema[:precision]})"
           elsif schema[:size]
             statement << "(#{schema[:size]})"
           end

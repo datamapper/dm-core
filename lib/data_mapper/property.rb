@@ -250,8 +250,8 @@ module DataMapper
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
 
     DEFAULT_LENGTH    = 50
-    DEFAULT_PRECISION = 10
-    DEFAULT_SCALE     = 0
+    DEFAULT_SCALE     = 10
+    DEFAULT_PRECISION = 0
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
@@ -430,11 +430,11 @@ module DataMapper
       @nullable = @options.fetch(:nullable, @key == false && @default.nil?)
 
       # assign attributes per-type
-      if @primitive == String || @primitive == Class
+      if String == @primitive || Class == @primitive
         @length = @options.fetch(:length, @options.fetch(:size, DEFAULT_LENGTH))
-      elsif @primitive == BigDecimal
-        @precision = @options.fetch(:precision, DEFAULT_PRECISION)
+      elsif BigDecimal == @primitive || Float == @primitive
         @scale     = @options.fetch(:scale,     DEFAULT_SCALE)
+        @precision = @options.fetch(:precision, DEFAULT_PRECISION)
       end
 
       determine_visibility
