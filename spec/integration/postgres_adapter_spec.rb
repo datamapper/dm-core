@@ -1,11 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-begin
-  gem 'do_postgres', '=0.9.0'
-  require 'do_postgres'
-
-  DataMapper.setup(:postgres, ENV["POSTGRES_SPEC_URI"] || "postgres://127.0.0.1/dm_core_test")
-
+if HAS_POSTGRES
   describe DataMapper::Adapters::DataObjectsAdapter do
     before :all do
       @adapter = repository(:postgres).adapter
@@ -634,12 +629,6 @@ begin
         s.host.should_not be_nil
         s.host.id.should == 10
       end
-    end
-  end
-rescue LoadError => e
-  describe 'do_postgres' do
-    it 'should be required' do
-      fail "PostgreSQL integration specs not run! Could not load do_postgres: #{e}"
     end
   end
 end

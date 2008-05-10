@@ -16,7 +16,7 @@ HAS_SQLITE3 = begin
   require 'do_sqlite3'
   DataMapper.setup(:sqlite3, ENV['SQLITE3_SPEC_URI'] || 'sqlite3::memory:')
   true
-rescue
+rescue Gem::LoadError
   warn "Could not load do_sqlite3: #{$!}"
   false
 end
@@ -26,7 +26,7 @@ HAS_MYSQL = begin
   require 'do_mysql'
   DataMapper.setup(:mysql, ENV['MYSQL_SPEC_URI'] || 'mysql://localhost/dm_core_test')
   true
-rescue
+rescue Gem::LoadError
   warn "Could not load do_mysql: #{$!}"
   false
 end
@@ -36,7 +36,7 @@ HAS_POSTGRES = begin
   require 'do_postgres'
   DataMapper.setup(:postgres, ENV['POSTGRES_SPEC_URI'] || 'postgres://postgres@localhost/dm_core_test')
   true
-rescue
+rescue Gem::LoadError
   warn "Could not load do_postgres: #{$!}"
   false
 end

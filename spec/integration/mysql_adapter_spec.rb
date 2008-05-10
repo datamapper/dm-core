@@ -1,11 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-begin
-  gem 'do_mysql', '=0.9.0'
-  require 'do_mysql'
-
-  DataMapper.setup(:mysql, "mysql://localhost/dm_core_test")
-
+if HAS_MYSQL
   describe DataMapper::Adapters::DataObjectsAdapter do
     before :all do
       @adapter = repository(:mysql).adapter
@@ -43,11 +38,5 @@ begin
       end
     end
 
-  end
-rescue LoadError => e
-  describe 'do_mysql' do
-    it 'should be required' do
-      fail "MySQL integration specs not run! Could not load do_mysql: #{e}"
-    end
   end
 end
