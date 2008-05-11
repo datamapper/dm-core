@@ -31,6 +31,7 @@ require dir / 'auto_migrations'
 require dir / 'hook'
 require dir / 'identity_map'
 require dir / 'logger'
+require dir / 'migrator'
 require dir / 'naming_conventions'
 require dir / 'property_set'
 require dir / 'query'
@@ -47,11 +48,11 @@ require dir / 'adapters'
 require dir / 'collection'
 
 # == Setup and Configuration
-# DataMapper uses URIs or a connection hash to connect to your data-store. 
+# DataMapper uses URIs or a connection hash to connect to your data-store.
 # URI connections takes the form of:
 #   DataMapper.setup(:default, 'protocol://username@localhost:password/path/to/repo')
 #
-# Breaking this down, the first argument is the name you wish to give this 
+# Breaking this down, the first argument is the name you wish to give this
 # connection.  If you do not specify one, it will be assigned :default. If
 # you would like to connect to more than one data-store, simply issue this
 # command again, but with a different name specified.
@@ -60,17 +61,17 @@ require dir / 'collection'
 # you must define the :default database. Otherwise, you'll need to wrap
 # your ORM calls in <tt>repository(:name) { }</tt>.
 #
-# Second, the URI breaks down into the access protocol, the username, the 
-# server, the password, and whatever path information is needed to properly 
+# Second, the URI breaks down into the access protocol, the username, the
+# server, the password, and whatever path information is needed to properly
 # address the data-store on the server.
-# 
+#
 # Here's some examples
 #   DataMapper.setup(:default, "sqlite3://path/to/your/project/db/development.db")
-#   DataMapper.setup(:default, "mysql://localhost/dm_core_test")                        # no auth-info 
+#   DataMapper.setup(:default, "mysql://localhost/dm_core_test")                        # no auth-info
 #   DataMapper.setup(:default, "postgres://root@127.0.0.1:supahsekret/dm_core_test")    # with auth-info
 #
 #
-# Alternatively, you can supply a hash as the second parameter, which would 
+# Alternatively, you can supply a hash as the second parameter, which would
 # take the form:
 #
 #   DataMapper.setup(:default, {

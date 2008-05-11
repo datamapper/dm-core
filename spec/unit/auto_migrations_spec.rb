@@ -10,7 +10,6 @@ describe DataMapper::AutoMigrations do
   before :all do
     @cow = Class.new do
       include DataMapper::Resource
-      include DataMapper::AutoMigrations
 
       property :name, String, :key => true
       property :age, Fixnum
@@ -18,26 +17,24 @@ describe DataMapper::AutoMigrations do
   end
 
   before(:each) do
-    DataMapper::AutoMigrator.models.clear
+    DataMapper::Resource.descendents.clear
   end
 
   after(:each) do
-    DataMapper::AutoMigrator.models.clear
+    DataMapper::Resource.descendents.clear
   end
 
   it "should add the resource class to AutoMigrator's models on a mixin" do
     @class = Class.new do
       include DataMapper::Resource
-      include DataMapper::AutoMigrations
     end
 
-    DataMapper::AutoMigrator.models.should include(@class)
+    DataMapper::Resource.descendents.should include(@class)
   end
 
   it "should add the #auto_migrate! method on a mixin" do
     @cat = Class.new do
       include DataMapper::Resource
-      include DataMapper::AutoMigrations
 
       property :name, String, :key => true
       property :age, Fixnum
@@ -63,7 +60,7 @@ describe DataMapper::AutoMigrations do
       property :age, String
     end
 
-    DataMapper::AutoMigrator.models.should include(model_class)
+    DataMapper::Resource.descendents.should include(model_class)
     migrator_class.models.should include(model_class)
   end
 
@@ -76,9 +73,8 @@ describe DataMapper::AutoMigrations do
       models = [:cat, :dog, :fish, :cow].map {|m| mock(m)}
 
       models.each do |model|
-        DataMapper::AutoMigrator.models << model
+        DataMapper::Resource.descendents << model
         model.should_receive(:auto_migrate!).with(@repository_name)
-        model.should_receive(:relationships).and_return({})
       end
 
       DataMapper::AutoMigrator.auto_migrate(@repository_name)

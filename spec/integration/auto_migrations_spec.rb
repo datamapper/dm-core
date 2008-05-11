@@ -28,13 +28,13 @@ if HAS_SQLITE3
     before :all do
       @adapter = repository(:sqlite3).adapter
 
-      DataMapper::AutoMigrator.models.clear
+      DataMapper::Resource.descendents.clear
 
       @property_class = Struct.new(:name, :type, :nullable, :default, :serial)
     end
 
     after :all do
-      DataMapper::AutoMigrator.models.clear
+      DataMapper::Resource.descendents.clear
     end
 
     describe 'with sqlite3' do
@@ -116,13 +116,13 @@ if HAS_MYSQL
     before :all do
       @adapter = repository(:mysql).adapter
 
-      DataMapper::AutoMigrator.models.clear
+      DataMapper::Resource.descendents.clear
 
       @property_class = Struct.new(:name, :type, :nullable, :default, :serial)
     end
 
     after :all do
-      DataMapper::AutoMigrator.models.clear
+      DataMapper::Resource.descendents.clear
     end
 
     describe 'with mysql' do#
@@ -198,13 +198,13 @@ if HAS_POSTGRES
     before :all do
       @adapter = repository(:postgres).adapter
 
-      DataMapper::AutoMigrator.models.clear
+      DataMapper::Resource.descendents.clear
 
       @property_class = Struct.new(:name, :type, :nullable, :default, :serial)
     end
 
     after :all do
-      DataMapper::AutoMigrator.models.clear
+      DataMapper::Resource.descendents.clear
     end
 
     describe 'with postgres' do

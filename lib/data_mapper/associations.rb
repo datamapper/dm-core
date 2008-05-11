@@ -8,12 +8,10 @@ require dir / 'one_to_one'
 
 module DataMapper
   module Associations
-    def self.extended(base)
-      base.extend ManyToOne
-      base.extend OneToMany
-      base.extend ManyToMany
-      base.extend OneToOne
-    end
+    include ManyToOne
+    include OneToMany
+    include ManyToMany
+    include OneToOne
 
     def relationships(repository_name = default_repository_name)
       (@relationships ||= Hash.new { |h,k| h[k] = (k == :default || !h.key?(:default) ? {} : h[:default].dup) })[repository_name]
@@ -112,4 +110,10 @@ module DataMapper
       end
     end
   end # module Associations
+
+  module Resource
+    module ClassMethods
+      include DataMapper::Associations
+    end # module ClassMethods
+  end # module Resource
 end # module DataMapper

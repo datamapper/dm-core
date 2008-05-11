@@ -3,7 +3,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 describe "DataMapper::Hook" do
   before(:each) do
     @class = Class.new do
-      include DataMapper::Hook
+      include DataMapper::Resource
+
+      property :id, Fixnum, :serial => true
 
       def a_method
       end
@@ -44,9 +46,9 @@ describe "DataMapper::Hook" do
     @class.before_class_method :a_class_method do
       hi_dad!
     end
-    
+
     @class.should_receive(:hi_dad!)
-    
+
     @class.a_class_method
   end
 
@@ -261,16 +263,16 @@ describe "DataMapper::Hook" do
       end
 
       @class.new.a_method
-    end  
+    end
 
     it "the advised method should still return its normal value" do
       @class.class_eval do
-	def returner
-	  1
+        def returner
+          1
         end
 
-	after :returner do
-	  2
+        after :returner do
+          2
         end
       end
 
@@ -285,7 +287,7 @@ describe "DataMapper::Hook" do
     tester.should_receive(:after).ordered.once
 
     class << @class
-        self
+      self
     end.instance_eval do
       define_method :hook do
         tester.method
@@ -339,7 +341,7 @@ describe "DataMapper::Hook" do
       end
 
       define_method :a_method? do
-	tester.method?
+        tester.method?
       end
 
       before :a_method! do
@@ -370,11 +372,11 @@ describe "DataMapper::Hook" do
       end
 
       define_method :a_method? do
-	tester.method?
+        tester.method?
       end
 
       define_method :a_method= do |value|
-	tester.method_eq
+        tester.method_eq
       end
 
       define_method :before_a_method_bang do
@@ -422,8 +424,8 @@ describe "DataMapper::Hook" do
   it "should complain when only one argument is passed" do
     lambda do
       @class.class_eval do
-	before :a_method
-	after :a_method
+        before :a_method
+        after :a_method
       end
     end.should raise_error(ArgumentError)
   end
@@ -431,7 +433,7 @@ describe "DataMapper::Hook" do
   it "should complain when target_method is not a symbol" do
     lambda do
       @class.class_eval do
-	before "target", :something
+        before "target", :something
       end
     end.should raise_error(ArgumentError)
   end
@@ -439,7 +441,7 @@ describe "DataMapper::Hook" do
   it "should complain when method_sym is not a symbol" do
     lambda do
       @class.class_eval do
-	before :target, "something"
+        before :target, "something"
       end
     end.should raise_error(ArgumentError)
   end

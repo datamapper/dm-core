@@ -12,19 +12,14 @@ module DataMapper
       x
     end
 
-    @@including_classes = Set.new
+    @@descendents = Set.new
 
     # +----------------------
     # Resource module methods
 
-    def self.included(base)
-      base.extend ClassMethods
-      base.extend DataMapper::Associations
-      base.send(:include, DataMapper::Hook)
-      base.send(:include, DataMapper::Scope)
-      base.send(:include, DataMapper::AutoMigrations)
-      base.send(:include, DataMapper::Types)
-      @@including_classes << base
+    def self.included(model)
+      model.extend ClassMethods
+      @@descendents << model
     end
 
     # Return all classes that include the DataMapper::Resource module
@@ -34,8 +29,8 @@ module DataMapper
     #
     # -
     # @public
-    def self.including_classes
-      @@including_classes
+    def self.descendents
+      @@descendents
     end
 
     # +---------------
@@ -277,9 +272,9 @@ module DataMapper
     end
 
     module ClassMethods
-      def self.extended(base)
-        base.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(base.name) })
-        base.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
+      def self.extended(model)
+        model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.name) })
+        model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
 
       def inherited(target)
