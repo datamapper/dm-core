@@ -51,39 +51,36 @@ module DataMapper
     def save(resource)
       resource.child_associations.each { |a| a.save }
 
-      success = if resource.new_record?
-        resource.class.properties(self.name).each do |property|
-          if property.options.has_key?(:default) && !resource.attribute_loaded?(property.name)
-            resource.attribute_set(property.name, property.default_for(resource))
+      # set defaults for new resource
+      if resource.new_record?
+        resource.class.properties(name).each do |property|
+          unless property.default.nil? || resource.attribute_loaded?(property.name)
+            property.set(resource, property.default_for(resource))
           end
         end
+      end
 
-        if resource.dirty?
+      success = false
+
+      # save the resource if is dirty, or is a new record with a serial key
+      if resource.dirty? || (resource.new_record? && resource.class.key.any? { |p| p.serial? })
+        if resource.new_record?
           if @adapter.create(self, resource)
             identity_map_set(resource)
             resource.instance_variable_set(:@new_record, false)
             resource.dirty_attributes.clear
-            true
-          else
-            false
+            success = true
           end
         else
-          true
-        end
-      else
-        if resource.dirty?
           if @adapter.update(self, resource)
             resource.dirty_attributes.clear
-            true
-          else
-            false
+            success = true
           end
-        else
-          true
         end
       end
 
       resource.parent_associations.each { |a| a.save }
+
       success
     end
 
@@ -100,11 +97,11 @@ module DataMapper
         false
       end
     end
-    
+
     def migrate!
       Migrator.migrate(name)
     end
-    
+
     def auto_migrate!
       AutoMigrator.auto_migrate(name)
     end
@@ -123,7 +120,7 @@ module DataMapper
     def to_s
       "#<DataMapper::Repository:#{@name}>"
     end
-    
+
     def map(*args)
       type_map.map(*args)
     end
@@ -131,7 +128,7 @@ module DataMapper
     def type_map
       @type_map ||= TypeMap.new(@adapter.type_map)
     end
-    
+
     def storage_exists?(storage_name)
       @adapter.exists?(storage_name)
     end

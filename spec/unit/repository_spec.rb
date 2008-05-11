@@ -1,17 +1,30 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
+class Vegetable
+  include DataMapper::Resource
+
+  property :id, Fixnum, :serial => true
+  property :name, String
+end
+
+class Fruit
+  include DataMapper::Resource
+
+  property :id, Fixnum, :key => true
+  property :name, String
+end
+
+class Grain
+  include DataMapper::Resource
+
+  property :id, Fixnum, :key => true
+  property :name, String, :default => 'wheat'
+end
+
 describe DataMapper::Repository do
 
   before do
     @adapter = DataMapper::Repository.adapters[:mock]
-
-    class Vegetable
-      include DataMapper::Resource
-
-      property :id, Fixnum, :serial => true
-      property :name, String
-
-    end
   end
 
   describe "managing transactions" do
@@ -36,32 +49,89 @@ describe DataMapper::Repository do
     repository.should respond_to(:destroy)
   end
 
-  it 'should call #create when #save is called on a new record' do
-    repository = repository(:mock)
-    instance = Vegetable.new({:id => 1, :name => 'Potato'})
+  describe '#save' do
+    describe 'with a new resource' do
+      it 'should create when dirty' do
+        repository = repository(:mock)
+        instance = Vegetable.new({:id => 1, :name => 'Potato'})
 
-    @adapter.should_receive(:create).with(repository, instance).and_return(instance)
+        instance.should be_dirty
+        instance.should be_new_record
 
-    repository.save(instance)
-  end
+        @adapter.should_receive(:create).with(repository, instance).and_return(instance)
 
-  it 'should not #save when not dirty' do
-    repository = repository(:mock)
-    instance = Vegetable.new
+        repository.save(instance)
+      end
 
-    @adapter.should_not_receive(:create)
+      it 'should create when non-dirty, and it has a serial key' do
+        repository = repository(:mock)
+        instance = Vegetable.new
 
-    repository.save(instance).should be_true
-  end
+        instance.should_not be_dirty
+        instance.should be_new_record
+        instance.class.key.any? { |p| p.serial? }.should be_true
 
-  it 'should call #update when #save is called on an existing record' do
-    repository = repository(:mock)
-    instance = Vegetable.new(:name => 'Potato')
-    instance.instance_variable_set('@new_record', false)
+        @adapter.should_receive(:create).with(repository, instance).once.and_return(instance)
 
-    @adapter.should_receive(:update).with(repository, instance).and_return(instance)
+        repository.save(instance).should be_true
+      end
 
-    repository.save(instance)
+      it 'should not create when non-dirty, and is has a non-serial key' do
+        repository = repository(:mock)
+        instance = Fruit.new
+
+        instance.should_not be_dirty
+        instance.should be_new_record
+        instance.class.key.any? { |p| p.serial? }.should_not be_true
+
+        @adapter.should_not_receive(:create)
+
+        repository.save(instance).should be_false
+      end
+
+      it 'should set defaults before create' do
+        repository = repository(:mock)
+        instance = Grain.new
+
+        instance.should_not be_dirty
+        instance.should be_new_record
+        instance.instance_variable_get('@name').should be_nil
+
+        @adapter.should_receive(:create).with(repository, instance).and_return(instance)
+
+        repository.save(instance)
+
+        instance.instance_variable_get('@name').should == 'wheat'
+      end
+    end
+
+    describe 'with an existing resource' do
+      it 'should update when dirty' do
+        repository = repository(:mock)
+        instance = Vegetable.new(:name => 'Potato')
+        instance.instance_variable_set('@new_record', false)
+
+        instance.should be_dirty
+        instance.should_not be_new_record
+
+        @adapter.should_receive(:update).with(repository, instance).and_return(instance)
+
+        repository.save(instance)
+      end
+
+      it 'should not update when non-dirty' do
+        repository = repository(:mock)
+        instance = Vegetable.new
+        instance.instance_variable_set('@new_record', false)
+
+        instance.should_not be_dirty
+        instance.should_not be_new_record
+
+        @adapter.should_not_receive(:update)
+
+        repository.save(instance)
+      end
+    end
   end
 
   it 'should provide default_name' do
