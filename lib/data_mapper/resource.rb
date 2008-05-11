@@ -28,7 +28,7 @@ module DataMapper
     # Set:: A Set containing the including classes
     #
     # -
-    # @public
+    # @semipublic
     def self.descendents
       @@descendents
     end
