@@ -153,9 +153,11 @@ module DataMapper
       parameters = []
       conditions.each do |tuple|
         if tuple.size == 3
-          parameters << tuple.at(2)
-        elsif tuple.size == 2
-          parameters += tuple.at(1)
+          if tuple.at(2).is_a?(Array)
+            tuple.at(2).each {|p| parameters << p}
+          else
+            parameters << tuple.at(2)
+          end
         end
       end
       parameters
@@ -229,9 +231,13 @@ module DataMapper
       # parse raw options[:conditions] differently
       if conditions_option = options[:conditions]
         @conditions << if conditions_option.size == 1
+          # this doesn't work with count
           [ conditions_option.at(0) ]
-        else
-          [ conditions_option.at(0), conditions_option[1..-1] ]
+        elsif conditions_option.size == 2
+          # this doesn't work with count
+          [ :raw, conditions_option.at(0), conditions_option.at(1) ]
+        elsif conditions_option.size == 3
+          conditions_option
         end
       end
     end

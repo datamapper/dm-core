@@ -503,6 +503,7 @@ module DataMapper
               model_name = property.model.storage_name(query.repository.name) if property && property.respond_to?(:model)
               case operator
                 when String then operator
+                when :raw then property
                 when :eql, :in then equality_operator(query, model_name,operator, property, qualify, value)
                 when :not      then inequality_operator(query, model_name,operator, property, qualify, value)
                 when :like     then "#{property_to_column_name(model_name, property, qualify)} LIKE ?"
