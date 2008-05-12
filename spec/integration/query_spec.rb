@@ -34,7 +34,10 @@ if HAS_SQLITE3
             SailBoat.first(:conditions => ['name = ?', 'A'])
           end
         end.should_not raise_error
-        
+      end
+      
+      it "should find by conditions passed in as hash" do
+        pending "see ticket [#275]"
         repository(:sqlite3) do
           SailBoat.create(:name => "couldbe@email.com", :port.not => nil)
           
@@ -46,6 +49,7 @@ if HAS_SQLITE3
           find.port.should_not be_nil
           find.name.should == 'couldbe@email.com'
         end
+        
       end
 
       it "should order results" do
