@@ -265,6 +265,11 @@ module DataMapper
             command = connection.create_command(sql)
             command.set_types(properties.map { |property| property.primitive })
 
+            #Weird looking but necessary - we switch all the nil parameters to IS NULL or IS NOT NULL
+            #so they need to be stripped out of the parameter array that is passed down to the 
+            #command.execute_reader call
+            parameters.delete_if { |parm| parm.nil? }
+
             reader = command.execute_reader(*parameters)
 
             while(reader.next!)

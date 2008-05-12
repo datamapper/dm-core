@@ -37,9 +37,8 @@ if HAS_SQLITE3
       end
       
       it "should find by conditions passed in as hash" do
-        pending "see ticket [#275]"
         repository(:sqlite3) do
-          SailBoat.create(:name => "couldbe@email.com", :port.not => nil)
+          SailBoat.create(:name => "couldbe@email.com", :port => 1)
           
           find = SailBoat.first(:name => 'couldbe@email.com')
           find.name.should == 'couldbe@email.com'
