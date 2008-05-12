@@ -35,20 +35,19 @@ if HAS_SQLITE3
           end
         end.should_not raise_error
       end
-      
+
       it "should find by conditions passed in as hash" do
         repository(:sqlite3) do
           SailBoat.create(:name => "couldbe@email.com", :port => 1)
-          
+
           find = SailBoat.first(:name => 'couldbe@email.com')
           find.name.should == 'couldbe@email.com'
-      
+
           find = SailBoat.first(:name => 'couldbe@email.com', :port.not => nil)
           find.should_not be_nil
           find.port.should_not be_nil
           find.name.should == 'couldbe@email.com'
         end
-        
       end
 
       it "should order results" do
