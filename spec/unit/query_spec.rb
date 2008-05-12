@@ -50,17 +50,25 @@ describe DataMapper::Query do
       describe ' #conditions with options[:conditions]' do
         it 'when they have a one element Array' do
           query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = "dkubb"' ])
-          query.conditions.should == [ [ 'name = "dkubb"' ] ]
+          query.conditions.should == [ [ :raw, 'name = "dkubb"' ] ]
+          query.parameters.should == []
         end
 
         it 'when they have a two or more element Array' do
-          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ?', 'dkubb' ])
-          query.conditions.should == [ [ :raw, 'name = ?', 'dkubb' ] ]
-          query.parameters.should == [ 'dkubb' ]
+          bind_values = %w[ dkubb ]
+          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ?', *bind_values ])
+          query.conditions.should == [ [ :raw, 'name = ?', bind_values ] ]
+          query.parameters.should == bind_values
 
-          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ :raw, 'name = ? OR age = ?', ['dkubb', 30] ], :limit => 1)
-          query.conditions.should == [ [ :raw, 'name = ? OR age = ?', [ 'dkubb', 30 ] ] ]
-          query.parameters.should == [ 'dkubb', 30 ]
+          bind_values = [ 'dkubb', 32 ]
+          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ? OR age = ?', *bind_values ])
+          query.conditions.should == [ [ :raw, 'name = ? OR age = ?', bind_values ] ]
+          query.parameters.should == bind_values
+
+          bind_values = [ %w[ dkubb ssmoot ] ]
+          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name IN ?', *bind_values ])
+          query.conditions.should == [ [ :raw, 'name IN ?', bind_values ] ]
+          query.parameters.should == bind_values
         end
 
         it 'when they have another DM:Query as the value of sub-select' do
@@ -310,7 +318,7 @@ describe DataMapper::Query do
 
         # update the conditions, but merge the conditions together
         other = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'author = "dkubb"' ])
-        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ 'author = "dkubb"' ] ]
+        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ :raw, 'author = "dkubb"' ] ]
       end
 
       it '#conditions with other conditions when they have a two or more element condition' do
@@ -319,7 +327,7 @@ describe DataMapper::Query do
 
         # update the conditions, but merge the conditions together
         other = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'author = ?', 'dkubb' ])
-        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [:raw, 'author = ?', 'dkubb' ] ]
+        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ :raw, 'author = ?', [ 'dkubb' ] ] ]
       end
     end
 

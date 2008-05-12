@@ -6,6 +6,8 @@ module DataMapper
     def reload(options = {})
       query = Query.new(@repository, @model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
+      # TODO: the Collection should not be calling read_set directly, it should
+      # be going through Repository.all() instead
       replace(@repository.adapter.read_set(@repository, query))
     end
 

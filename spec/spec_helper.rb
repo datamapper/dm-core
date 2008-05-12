@@ -41,14 +41,6 @@ rescue Gem::LoadError
   false
 end
 
-# Determine log path.
-ENV['_'] =~ /(\w+)/
-log_path = DataMapper.root / 'log' / "#{$1 == 'opt' ? 'spec' : $1}.log"
-log_path.dirname.mkpath
-
-DataMapper::Logger.new(log_path, 0)
-at_exit { DataMapper.logger.close }
-
 class Article
   include DataMapper::Resource
 

@@ -62,7 +62,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       end
 
       it "should accept a Query argument with or without options hash" do
-        @connection.should_receive(:create_command).twice.with("SELECT \"name\" FROM \"plupps\" WHERE (\"name\" = ?)").and_return(@command)
+        @connection.should_receive(:create_command).twice.with("SELECT \"name\" FROM \"plupps\" WHERE \"name\" = ?").and_return(@command)
         @command.should_receive(:set_types).twice.with([Fixnum, String])
         @command.should_receive(:execute_reader).twice.with(Plupp.properties[:name]).and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
