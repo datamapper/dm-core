@@ -230,14 +230,15 @@ module DataMapper
 
       # parse raw options[:conditions] differently
       if conditions_option = options[:conditions]
-        @conditions << if conditions_option.size == 1
-          # this doesn't work with count
-          [ conditions_option.at(0) ]
-        elsif conditions_option.size == 2
-          # this doesn't work with count
-          [ :raw, conditions_option.at(0), conditions_option.at(1) ]
-        elsif conditions_option.size == 3
-          conditions_option
+        conditions_option.each do |condition|
+          @conditions << if condition.size == 1
+            # this doesn't work with count
+            [ condition.at(0) ]
+          elsif condition.size == 2
+            [ :raw, condition.at(0), condition.at(1) ]
+          elsif condition.size == 3
+            condition
+          end
         end
       end
     end
