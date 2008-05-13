@@ -16,14 +16,14 @@ require "time" # httpdate
 #   DataMapper.logger.info(message<String>)
 #   DataMapper.logger.debug(message<String>)
 #
-# Flush the buffer to 
+# Flush the buffer to
 #   DataMapper.logger.flush
 #
 # Remove the current log object
 #   DataMapper.logger.close
-# 
+#
 # ==== Private DataMapper Logger API
-# 
+#
 # To initialize the logger you create a new object, proxies to set_log.
 #   DataMapper::Logger.new(log{String, IO},level{Symbol, String})
 module DataMapper
@@ -49,10 +49,10 @@ module DataMapper
     #     debug: low-level information for developers
     #
     #   DataMapper::Logger::LEVELS[:fatal, :error, :warn, :info, :debug]
-    LEVELS = 
+    LEVELS =
     {
-      :fatal => 7, 
-      :error => 6, 
+      :fatal => 7,
+      :error => 6,
       :warn  => 4,
       :info  => 3,
       :debug => 0
@@ -115,7 +115,7 @@ module DataMapper
 
     # To replace an existing logger with a new one:
     #  DataMapper::Logger.set_log(log{String, IO},level{Symbol, String})
-    # 
+    #
     # ==== Parameters
     # log<IO,String>
     #   Either an IO object or a name of a logfile.
@@ -156,8 +156,8 @@ module DataMapper
       @log = nil
     end
 
-    # Appends a string and log level to logger's buffer. 
-    # Note that the string is discarded if the string's log level less than the logger's log level. 
+    # Appends a string and log level to logger's buffer.
+    # Note that the string is discarded if the string's log level less than the logger's log level.
     # Note that if the logger is aio capable then the logger will use non-blocking asynchronous writes.
     #
     # ==== Parameters
@@ -176,7 +176,7 @@ module DataMapper
     alias << push
 
     # Generate the following logging methods for DataMapper.logger as described in the api:
-    #  :fatal, :error, :warn, :info, :debug 
+    #  :fatal, :error, :warn, :info, :debug
     LEVELS.each_pair do |name, number|
       class_eval <<-LEVELMETHODS, __FILE__, __LINE__
       # DOC
@@ -192,5 +192,5 @@ module DataMapper
     end
 
   end # class Logger
-  
+
 end # module DataMapper

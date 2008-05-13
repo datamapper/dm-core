@@ -10,15 +10,15 @@ describe "DataMapper::NamingConventions" do
     DataMapper::NamingConventions::UnderscoredAndPluralized.call('User').should == 'users'
     DataMapper::NamingConventions::UnderscoredAndPluralized.call('UserAccountSetting').should == 'user_account_settings'
   end
-  
+
   it "should coerce a string into the UnderscoredAndPluralized convention joining namespace with underscore" do
     DataMapper::NamingConventions::UnderscoredAndPluralized.call('Model::User').should == 'model_users'
-    DataMapper::NamingConventions::UnderscoredAndPluralized.call('Model::UserAccountSetting').should == 'model_user_account_settings'  
+    DataMapper::NamingConventions::UnderscoredAndPluralized.call('Model::UserAccountSetting').should == 'model_user_account_settings'
   end
-  
+
   it "should coerce a string into the  UnderscoredAndPluralizedWithoutModule convention" do
     DataMapper::NamingConventions::UnderscoredAndPluralizedWithoutModule.call('Model::User').should == 'users'
-    DataMapper::NamingConventions::UnderscoredAndPluralizedWithoutModule.call('Model::UserAccountSetting').should == 'user_account_settings'  
+    DataMapper::NamingConventions::UnderscoredAndPluralizedWithoutModule.call('Model::UserAccountSetting').should == 'user_account_settings'
   end
 
   it "should coerce a string into the Yaml convention" do

@@ -3,5 +3,5 @@ module Kernel
   # Will not overwrite if a method of the same name is pre-defined.
   def repository(*args, &block)
     DataMapper.repository(*args, &block)
-  end  
+  end
 end # module Kernel

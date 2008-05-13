@@ -116,9 +116,9 @@ module DataMapper
         r__dup
       end
     end
-    
+
     private
-    
+
     def initialize(properties = [])
       raise ArgumentError, "+properties+ should be an Array, but was #{properties.class}", caller unless Array === properties
 

@@ -20,11 +20,11 @@ describe DataMapper::Type do
         value.reverse
       end
     end
-    
+
     class TestResource
       include DataMapper::Resource
     end
-    
+
     class TestType3 < DataMapper::Type
       primitive String
       size 10
@@ -85,19 +85,19 @@ describe DataMapper::Type do
     before do
       @property = DataMapper::Property.new TestResource, :name, TestType3, {}
     end
-    
+
     it "should return a object of the same type" do
       TestType3.load("helo", @property).class.should == TestType3
     end
-    
+
     it "should contain the property" do
       TestType3.load("helo", @property).property.should == @property
     end
-    
+
     it "should contain the value" do
       TestType3.load("helo", @property).value.should == "helo"
     end
-    
+
     it "should return the value" do
       obj = TestType3.load("helo", @property)
       TestType3.dump(obj, @property).should == "helo"

@@ -14,7 +14,7 @@ module DataMapper
 
       attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention
-      
+
       def type_map
         self.class.type_map
       end
@@ -32,7 +32,7 @@ module DataMapper
 
       #
       # Pushes the given Transaction onto the per thread Transaction stack so that
-      # everything done by this Adapter is done within the context of said 
+      # everything done by this Adapter is done within the context of said
       # Transaction.
       #
       # ==== Parameters
@@ -56,7 +56,7 @@ module DataMapper
 
       #
       # Retrieve the current transaction for this Adapter.
-      # 
+      #
       # Everything done by this Adapter is done within the context of this Transaction.
       #
       # ==== Returns
@@ -103,27 +103,27 @@ module DataMapper
       def delete(repository, resource)
         raise NotImplementedError
       end
-      
+
       def create_model_storage(repository, model)
         raise NotImplementedError
       end
-      
+
       def destroy_model_storage(repository, model)
         raise NotImplementedError
       end
-      
+
       def alter_model_storage(repository, *args)
         raise NotImplementedError
       end
-      
+
       def create_property_storage(repository, property)
         raise NotImplementedError
       end
-      
+
       def destroy_property_storage(repository, property)
         raise NotImplementedError
       end
-      
+
       def alter_property_storage(repository, *args)
         raise NotImplementedError
       end

@@ -1,11 +1,11 @@
 module DataMapper
-  
+
   # Use these modules to set naming conventions.
   # The default is UnderscoredAndPluralized.
   # You assign a naming convention like so:
   #
   #   repository(:default).adapter.resource_naming_convention = NamingConventions::Underscored
-  # 
+  #
   # You can also easily assign a custom convention with a Proc:
   #
   #   repository(:default).adapter.resource_naming_convention = lambda do |value|
@@ -21,30 +21,30 @@ module DataMapper
   #   adapter = DataMapper.setup(:default, "mock://localhost/mock")
   #   adapter.resource_naming_convention = DataMapper::NamingConventions::Underscored
   module NamingConventions
-  
+
     module UnderscoredAndPluralized
       def self.call(value)
         DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value)).gsub('/','_')
       end
     end # module UnderscoredAndPluralized
-    
+
     module UnderscoredAndPluralizedWithoutModule
       def self.call(value)
-        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(DataMapper::Inflection.demodulize(value)))      
+        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(DataMapper::Inflection.demodulize(value)))
       end
     end # module UnderscoredAndPluralizedWithoutModule
-  
+
     module Underscored
       def self.call(value)
         DataMapper::Inflection.underscore(value)
       end
     end # module Underscored
-    
+
     module Yaml
       def self.call(value)
         DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value)) + ".yaml"
       end
     end # module Yaml
-    
+
   end # module NamingConventions
 end # module DataMapper
