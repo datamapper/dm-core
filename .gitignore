@@ -13,3 +13,4 @@ profile_results.*
 \#*
 TAGS
 lib/coverage.html
+*.rbc

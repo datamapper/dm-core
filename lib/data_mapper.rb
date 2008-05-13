@@ -172,7 +172,7 @@ module DataMapper
   end
 
   # A logger should always be present.
-  Logger.new(nil, 7)
+  Logger.new(nil, :fatal)
 
   def self.migrate!(name = :default)
     repository(name).migrate!

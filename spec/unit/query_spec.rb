@@ -1,37 +1,38 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
+GOOD_OPTIONS = [
+  [ :reload,   false     ],
+  [ :reload,   true      ],
+  [ :offset,   0         ],
+  [ :offset,   1         ],
+  [ :limit,    1         ],
+  [ :limit,    2         ],
+  [ :order,    [ DataMapper::Query::Direction.new(Article.properties[:created_at], :desc) ] ],
+  [ :fields,   Article.properties(:default).defaults.to_a ], # TODO: fill in allowed default value
+  #[ :links,    [ :stub ] ], # TODO: fill in allowed default value
+  [ :includes, [ :stub ] ], # TODO: fill in allowed default value
+]
+
+BAD_OPTIONS = {
+  :reload     => 'true',
+  :offset     => -1,
+  :limit      => 0,
+  :order      => [],
+  :fields     => [],
+  :links      => [],
+  :includes   => [],
+  :conditions => [],
+}
+
+# flatten GOOD_OPTIONS into a Hash to remove default values, since
+# default value, when defined, is always listed first in GOOD_OPTIONS
+UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
+  options.update attribute => value
+end
+
+UPDATED_OPTIONS.merge!({ :fields => [ :id, :author ]})
+
 describe DataMapper::Query do
-  GOOD_OPTIONS = [
-    [ :reload,   false     ],
-    [ :reload,   true      ],
-    [ :offset,   0         ],
-    [ :offset,   1         ],
-    [ :limit,    1         ],
-    [ :limit,    2         ],
-    [ :order,    [ DataMapper::Query::Direction.new(Article.properties[:created_at], :desc) ] ],
-    [ :fields,   Article.properties(:default).defaults.to_a ], # TODO: fill in allowed default value
-    #[ :links,    [ :stub ] ], # TODO: fill in allowed default value
-    [ :includes, [ :stub ] ], # TODO: fill in allowed default value
-  ]
-
-  BAD_OPTIONS = {
-    :reload     => 'true',
-    :offset     => -1,
-    :limit      => 0,
-    :order      => [],
-    :fields     => [],
-    :links      => [],
-    :includes   => [],
-    :conditions => [],
-  }
-
-  # flatten GOOD_OPTIONS into a Hash to remove default values, since
-  # default value, when defined, is always listed first in GOOD_OPTIONS
-  UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
-    options.update attribute => value
-  end
-
-  UPDATED_OPTIONS.merge!({ :fields => [ :id, :author ]})
 
   describe '.new' do
     describe 'should set the attribute' do

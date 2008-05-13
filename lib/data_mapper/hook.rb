@@ -93,8 +93,10 @@ module DataMapper
       raise ArgumentError.new("target_method should be a symbol") unless name.is_a?(Symbol)
       raise ArgumentError.new("method_sym should be a symbol") if method_sym && ! method_sym.is_a?(Symbol)
       raise ArgumentError.new("You need to pass :class or :instance as scope") unless [:class, :instance].include?(scope)
+      
+      hooks_with_scope(scope)[name][type] ||= []
 
-      (hooks_with_scope(scope)[name][type] ||= []) << if block
+      hooks_with_scope(scope)[name][type] << if block
         new_meth_name = "__hooks_#{scope}_#{type}_#{quote_method(name)}_#{hooks_with_scope(scope)[name][type].length}".to_sym
         define_instance_or_class_method(new_meth_name, block, scope)
         new_meth_name

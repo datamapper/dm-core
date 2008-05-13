@@ -22,7 +22,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     it "should be added to DataMapper::Resource::ClassMethods" do
       DataMapper::Resource::ClassMethods.instance_methods.include?("find_by_sql").should == true
-      Plupp.methods.include?("find_by_sql").should == true
+      Plupp.should respond_to(:find_by_sql)
     end
 
     describe "when called" do
