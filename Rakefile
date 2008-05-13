@@ -130,9 +130,13 @@ task :rubyforge => [ :rdoc, :gem ] do
   Rake::SshDirPublisher.new("#{ENV['RUBYFORGE_USER']}@rubyforge.org", "/var/www/gforge-projects/#{PROJECT}", 'doc').upload
 end
 
+windows = (PLATFORM =~ /win32|cygwin/) rescue nil
+
+SUDO = windows ? "" : "sudo"
+
 desc "Install #{PROJECT}"
 task :install => :package do
-  sh %{#{'sudo' unless ENV['SUDOLESS']} gem install pkg/#{PROJECT}-#{PACKAGE_VERSION}}
+  sh %{#{SUDO unless ENV['SUDOLESS']} gem install pkg/#{PROJECT}-#{PACKAGE_VERSION}}
 end
 
 if RUBY_PLATFORM.match(/mswin32|cygwin|mingw|bccwin/)
