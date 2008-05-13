@@ -20,19 +20,20 @@ if HAS_POSTGRES
         @result = mock("result")
       end
       it "#upgrade_model should work" do
-        !!@adapter.table_exists?("sputniks").should == false
+        @adapter.destroy_model_storage(nil, Sputnik)
+        @adapter.exists?("sputniks").should == false
         Sputnik.auto_migrate!(:postgres)
-        !!@adapter.table_exists?("sputniks").should == true
-        !!@adapter.column_exists?("sputniks", "new_prop").should == false
+        @adapter.exists?("sputniks").should == true
+        @adapter.column_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer, :serial => true
         @adapter.drop_sequence_column(@adapter.create_connection, Sputnik, Sputnik.new_prop) rescue nil
         Sputnik.auto_upgrade!(:postgres)
-        !!@adapter.column_exists?("sputniks", "new_prop").should == true
+        @adapter.column_exists?("sputniks", "new_prop").should == true
       end
       it "#upgrade_model_storage should create sequences and then call super" do
         @adapter.should_receive(:create_connection).at_least(1).times.and_return(@connection)
         @connection.should_receive(:close).at_least(1).times
-        @adapter.should_receive(:table_exists?).at_least(1).times.with("sputniks").and_return(true)
+        @adapter.should_receive(:exists?).at_least(1).times.with("sputniks").and_return(true)
         @adapter.should_receive(:column_exists?).at_least(1).times.with("sputniks", "id").and_return(false)
         @adapter.should_receive(:column_exists?).at_least(1).times.with("sputniks", "name").and_return(false)
         @adapter.should_receive(:create_sequence_column).at_least(1).times.with(@connection, Sputnik, Sputnik.properties(:default)[:id])
@@ -73,16 +74,16 @@ if HAS_POSTGRES
 
         Sputnik.auto_migrate!(:postgres)
       end
-      it "#table_exists? should return true for tables that exist" do
-        @adapter.table_exists?("sputniks").should == true
+      it "#exists? should return true for tables that exist" do
+        @adapter.exists?("sputniks").should == true
       end
-      it "#table_exists? should return false for tables that don't exist" do
-        @adapter.table_exists?("space turds").should == false
+      it "#exists? should return false for tables that don't exist" do
+        @adapter.exists?("space turds").should == false
       end
       it "#column_exists? should return true for columns that exist" do
         @adapter.column_exists?("sputniks", "name").should == true
       end
-      it "#table_exists? should return false for tables that don't exist" do
+      it "#exists? should return false for tables that don't exist" do
         @adapter.column_exists?("sputniks", "plur").should == false
       end
     end

@@ -27,6 +27,19 @@ module DataMapper
         self.class.type_map
       end
 
+      #
+      # Returns whether the storage_name exists in this adapter.
+      #
+      # ==== Parameters
+      # storage_name<String>:: A String defining the name of a storage, for example a table name.
+      #
+      # ==== Returns
+      # <Boolean>:: true if the storage exists.
+      #
+      def exists?(storage_name)
+        raise NotImplementedError
+      end
+
       # methods dealing with transactions
 
       #

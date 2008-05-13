@@ -28,7 +28,7 @@ module DataMapper
         query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?", db_name, table_name, column_name).size > 0
       end
 
-      def table_exists?(table_name)
+      def exists?(table_name)
         query_table(table_name).size > 0
       end
 

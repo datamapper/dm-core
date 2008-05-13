@@ -17,7 +17,7 @@ module DataMapper
         end
       end
 
-      def table_exists?(table_name)
+      def exists?(table_name)
         query_table(table_name).size > 0
       end
 

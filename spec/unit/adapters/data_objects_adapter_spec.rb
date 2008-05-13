@@ -290,15 +290,15 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
   end
 
   describe "when upgrading tables" do
-    it "should raise NotImplementedError when #table_exists? is called" do
-      lambda { @adapter.table_exists?("cheeses") }.should raise_error(NotImplementedError)
+    it "should raise NotImplementedError when #exists? is called" do
+      lambda { @adapter.exists?("cheeses") }.should raise_error(NotImplementedError)
     end
     it "should raise NotImplementedError when #columns_exists? is called" do
       lambda { @adapter.column_exists?("cheeses", "name") }.should raise_error(NotImplementedError)
     end
     describe "#upgrade_model_storage" do
       it "should call #create_model_storage unless the model storage alread exists" do
-        @adapter.should_receive(:table_exists?).once.with("cheeses").and_return(false)
+        @adapter.should_receive(:exists?).once.with("cheeses").and_return(false)
         @adapter.should_receive(:create_model_storage).once.with(nil, Cheese).and_return(true)
         @adapter.upgrade_model_storage(nil, Cheese).should == Cheese
       end
@@ -307,7 +307,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
         @adapter.should_receive(:column_exists?).once.with("cheeses", "name").and_return(true)
         @adapter.should_receive(:column_exists?).once.with("cheeses", "color").and_return(true)
         @adapter.should_receive(:column_exists?).once.with("cheeses", "notes").and_return(true)
-        @adapter.should_receive(:table_exists?).once.with("cheeses").and_return(true)
+        @adapter.should_receive(:exists?).once.with("cheeses").and_return(true)
         connection = mock("connection")
         connection.should_receive(:close).once
         @adapter.should_receive(:create_connection).once.and_return(connection)
@@ -318,7 +318,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
         @adapter.should_receive(:column_exists?).once.with("cheeses", "name").and_return(true)
         @adapter.should_receive(:column_exists?).once.with("cheeses", "color").and_return(true)
         @adapter.should_receive(:column_exists?).once.with("cheeses", "notes").and_return(false)
-        @adapter.should_receive(:table_exists?).once.with("cheeses").and_return(true)
+        @adapter.should_receive(:exists?).once.with("cheeses").and_return(true)
         connection = mock("connection")
         connection.should_receive(:close).once
         @adapter.should_receive(:create_connection).once.and_return(connection)

@@ -241,7 +241,7 @@ module DataMapper
         close_connection(connection) if connection
       end
 
-      def table_exists?(table_name)
+      def exists?(table_name)
         raise NotImplementedError
       end
 
@@ -251,7 +251,7 @@ module DataMapper
 
       def upgrade_model_storage(repository, model)
         table_name = model.storage_name(name)
-        if table_exists?(model.storage_name(name))
+        if exists?(model.storage_name(name))
           rval = []
           begin
             connection = create_connection

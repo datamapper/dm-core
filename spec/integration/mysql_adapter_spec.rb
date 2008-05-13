@@ -20,13 +20,14 @@ if HAS_MYSQL
         @result = mock("result")
       end
       it "#upgrade_model should work" do
-        !!@adapter.table_exists?("sputniks").should == false
+        @adapter.destroy_model_storage(nil, Sputnik)
+        @adapter.exists?("sputniks").should == false
         Sputnik.auto_migrate!(:mysql)
-        !!@adapter.table_exists?("sputniks").should == true
-        !!@adapter.column_exists?("sputniks", "new_prop").should == false
+        @adapter.exists?("sputniks").should == true
+        @adapter.column_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer
         Sputnik.auto_upgrade!(:mysql)
-        !!@adapter.column_exists?("sputniks", "new_prop").should == true
+        @adapter.column_exists?("sputniks", "new_prop").should == true
       end
     end
 
@@ -41,16 +42,16 @@ if HAS_MYSQL
         
         Sputnik.auto_migrate!(:mysql)
       end
-      it "#table_exists? should return true for tables that exist" do
-        @adapter.table_exists?("sputniks").should == true
+      it "#exists? should return true for tables that exist" do
+        @adapter.exists?("sputniks").should == true
       end
-      it "#table_exists? should return false for tables that don't exist" do
-        @adapter.table_exists?("space turds").should == false
+      it "#exists? should return false for tables that don't exist" do
+        @adapter.exists?("space turds").should == false
       end
       it "#column_exists? should return true for columns that exist" do
         @adapter.column_exists?("sputniks", "name").should == true
       end
-      it "#table_exists? should return false for tables that don't exist" do
+      it "#exists? should return false for tables that don't exist" do
         @adapter.column_exists?("sputniks", "plur").should == false
       end
     end
