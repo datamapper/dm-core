@@ -17,8 +17,14 @@ module DataMapper
         end
       end
 
-      def exists?(table_name)
+      def table_exists?(table_name)
         query_table(table_name).size > 0
+      end
+
+      def column_exists?(table_name, column_name)
+        query("PRAGMA table_info(?)", table_name).any? do |row|
+          row.name == column_name
+        end
       end
 
       def query_table(table_name)

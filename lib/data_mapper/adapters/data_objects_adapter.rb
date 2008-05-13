@@ -180,10 +180,6 @@ module DataMapper
         close_connection(connection) if connection
       end
 
-      def exists?(storage_name)
-        raise NotImplementedError
-      end
-
       def read(repository, resource, key)
         properties = resource.properties(repository.name).defaults
 

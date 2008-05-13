@@ -24,7 +24,11 @@ module DataMapper
         "#{super} ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci"
       end
 
-      def exists?(table_name)
+      def column_exists?(table_name, column_name)
+        query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?", db_name, table_name, column_name)
+      end
+
+      def table_exists?(table_name)
         query_table(table_name).size > 0
       end
 

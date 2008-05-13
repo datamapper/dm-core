@@ -18,7 +18,7 @@ module DataMapper
         end
       end
 
-      def exists?(table_name)
+      def table_exists?(table_name)
         query_table(table_name).size > 0
       end
 
@@ -66,19 +66,11 @@ module DataMapper
 
       def create_with_returning?; true; end
 
-      def table_exists?(table_name)
-        with_reader("SELECT tablename FROM pg_tables WHERE tablename = ?", table_name) do |reader|
-          reader.next!
-        end
-      end
-
       def column_exists?(table_name, column_name)
-        with_reader("SELECT pg_attribute.attname 
-                     FROM pg_class JOIN pg_attribute ON pg_class.oid = pg_attribute.attrelid
-                     WHERE pg_attribute.attname = ? AND 
-                     pg_class.relname = ? AND pg_attribute.attnum >= 0", column_name, table_name) do |reader|
-          reader.next!
-        end
+        query("SELECT pg_attribute.attname 
+               FROM pg_class JOIN pg_attribute ON pg_class.oid = pg_attribute.attrelid
+               WHERE pg_attribute.attname = ? AND 
+               pg_class.relname = ? AND pg_attribute.attnum >= 0", column_name, table_name)
       end
 
       def upgrade_model_storage(repository, model)
