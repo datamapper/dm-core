@@ -5,7 +5,8 @@ module DataMapper
     #
     # ==== Parameters
     # target_method<Symbol>:: The name of the class method to inject before
-    # method_sym<Symbol>:: The name of the method to run before the target_method
+    # method_sym<Symbol>:: The name of the method to run before the
+    #   target_method
     # block<Block>:: The code to run before the target_method
     #
     # Either method_sym or block is required.
@@ -37,7 +38,8 @@ module DataMapper
     #
     # ==== Parameters
     # target_method<Symbol>:: The name of the instance method to inject before
-    # method_sym<Symbol>:: The name of the method to run before the target_method
+    # method_sym<Symbol>:: The name of the method to run before the
+    #   target_method
     # block<Block>:: The code to run before the target_method
     #
     # Either method_sym or block is required.
@@ -53,7 +55,8 @@ module DataMapper
     #
     # ==== Parameters
     # target_method<Symbol>:: The name of the instance method to inject after
-    # method_sym<Symbol>:: The name of the method to run after the target_method
+    # method_sym<Symbol>:: The name of the method to run after the
+    #   target_method
     # block<Block>:: The code to run after the target_method
     #
     # Either method_sym or block is required.
@@ -173,7 +176,8 @@ module DataMapper
         when Symbol
           method_def << "  #{e}(#{args})\n"
         else
-          # TODO: Test this. Testing order should be before, after and after, before
+          # TODO: Test this. Testing order should be before, after and after,
+          # before
           method_def << "(@__hooks_#{scope}_#{quote_method(name)}_#{type}_#{i} || "
           method_def << "  @__hooks_#{scope}_#{quote_method(name)}_#{type}_#{i} = self.class.hooks_with_scope(#{scope.inspect})[:#{name}][:#{type}][#{i}])"
           method_def << ".call #{args}\n"

@@ -13,7 +13,7 @@ module DataMapper
   # = Properties
   # Properties for a model are not derived from a database structure, but
   # instead explicitly declared inside your model class definitions. These
-  # properties then map (or, if using automigrate, generate) fields in your #
+  # properties then map (or, if using automigrate, generate) fields in your
   # repository/database.
   #
   # If you are coming to DataMapper from another ORM framework, such as
@@ -31,7 +31,7 @@ module DataMapper
   #
   # == Declaring Properties
   # Inside your class, you call the property method for each property you want
-  # to add. The only two required arguments are the name and type, everything #
+  # to add. The only two required arguments are the name and type, everything
   # else is optional.
   #
   #   class Post
@@ -162,7 +162,7 @@ module DataMapper
   # Examples:
   #
   #  property :id,        Integer, :serial => true  # auto-incrementing key
-  #  property :legacy_pk, String, :key => true     # 'natural' key
+  #  property :legacy_pk, String, :key => true      # 'natural' key
   #
   # This is roughly equivalent to ActiveRecord's <tt>set_primary_key</tt>,
   # though non-integer data types may be used, thus DataMapper supports natural
@@ -175,34 +175,34 @@ module DataMapper
   #      # when :name is the primary (natural) key on the users table
   #
   # == Inferred Validations
-  # If you include the DataMapper::Validate mixin in your model class, you'll
-  # benefit from auto-validations: validation rules that are inferred when
-  # properties are declared with specific column restrictions.
+  # If you require the dm-validations plugin, auto-validations will
+  # automatically be mixed-in in to your model classes:
+  # validation rules that are inferred when properties are declared with
+  # specific column restrictions.
   #
   #  class Post
   #    include DataMapper::Resource
-  #    include DataMapper::Validate
   #
   #    property :title, String, :length => 250
-  #      # => infers 'validates_length_of :title,
+  #      # => infers 'validates_length :title,
   #             :minimum => 0, :maximum => 250'
   #
   #    property :title, String, :nullable => false
-  #      # => infers 'validates_presence_of :title
+  #      # => infers 'validates_present :title
   #
   #    property :email, String, :format => :email_address
-  #      # => infers 'validates_format_of :email, :with => :email_address
+  #      # => infers 'validates_format :email, :with => :email_address
   #
   #    property :title, String, :length => 255, :nullable => false
-  #      # => infers both 'validates_length_of' as well as
-  #      #    'validates_presence_of'
+  #      # => infers both 'validates_length' as well as
+  #      #    'validates_present'
   #      #    better: property :title, String, :length => 1..255
   #
   #  end
   #
-  # The DataMapper::Validate mixin is available with the dm-validations gem,
-  # part of the dm-more bundle. For more information about validations, check
-  # the documentation for dm-validations.
+  # This functionality is available with the dm-validations gem, part of the
+  # dm-more bundle. For more information about validations, check the
+  # documentation for dm-validations.
   #
   # == Embedded Values
   # As an alternative to extraneous has_one relationships, consider using an

@@ -14,7 +14,8 @@ module DataMapper
       #
       # ==== Parameters
       # <String>:: An SQL query to execute
-      # <Array>:: An Array containing a String (being the SQL query to execute) and the parameters to the query.
+      # <Array>:: An Array containing a String (being the SQL query to execute)
+      #   and the parameters to the query.
       #   example: ["SELECT name FROM users WHERE id = ?", id]
       # <DataMapper::Query>:: A prepared Query to execute.
       # <Hash>:: An options hash.
@@ -22,9 +23,13 @@ module DataMapper
       # A String, Array or Query is required.
       #
       # ==== Options (the options hash)
-      # :repository<Symbol>:: The name of the repository to execute the query in. Defaults to self.default_repository_name.
-      # :reload<Boolean>:: Whether to reload any instances found that allready exist in the identity map. Defaults to false.
-      # :properties<Array>:: The Properties of the instance that the query loads. Must contain DataMapper::Properties. Defaults to self.properties.
+      # :repository<Symbol>:: The name of the repository to execute the query
+      #   in. Defaults to self.default_repository_name.
+      # :reload<Boolean>:: Whether to reload any instances found that already
+      #   exist in the identity map. Defaults to false.
+      # :properties<Array>:: The Properties of the instance that the query
+      #   loads. Must contain DataMapper::Properties.
+      #   Defaults to self.properties.
       #
       # ==== Returns
       # Collection:: The instance matched by the query.
@@ -248,10 +253,12 @@ module DataMapper
       # ==== Parameters
       # repository<DataMapper::Repository>:: The repository to read from.
       # model<Object>:: The class of the instances to read.
-      # properties<Array>:: The properties to read. Must contain Symbols, Strings or DM::Properties.
+      # properties<Array>:: The properties to read. Must contain Symbols,
+      #   Strings or DM::Properties.
       # sql<String>:: The query to execute.
       # parameters<Array>:: The conditions to the query.
-      # do_reload<Boolean>:: Whether to reload objects already found in the identity map.
+      # do_reload<Boolean>:: Whether to reload objects already found in the
+      #   identity map.
       #
       # ==== Returns
       # Collection:: A set of the found instances.
@@ -338,7 +345,8 @@ module DataMapper
         connection.close if connection
       end
 
-      # This model is just for organization. The methods are included into the Adapter below.
+      # This model is just for organization. The methods are included into the
+      # Adapter below.
       module SQL
         def create_statement(model, properties)
           <<-EOS.compress_lines
@@ -403,7 +411,8 @@ module DataMapper
 
         def property_schema_hash(property, model)
           schema = type_map[property.type].merge(:name => property.field)
-          # TODO: figure out a way to specify the size not be included, even if a default is defined in the typemap
+          # TODO: figure out a way to specify the size not be included, even if
+          # a default is defined in the typemap
           #  - use this to make it so all TEXT primitive fields do not have size
           if property.primitive == String && schema[:primitive] != 'TEXT'
             schema[:size] = property.length
@@ -494,8 +503,8 @@ module DataMapper
             statement << ' WHERE '
             statement << '(' if query.conditions.size > 1
             statement << query.conditions.map do |operator, property, bind_value|
-              # TODO Should we raise an error if there is no such property in the
-              #      repository of the query?
+              # TODO Should we raise an error if there is no such property in
+              #      the repository of the query?
               #
               #if property.model.properties(query.repository.name)[property.name].nil?
               #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."

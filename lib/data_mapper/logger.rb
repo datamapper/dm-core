@@ -60,8 +60,8 @@ module DataMapper
 
     private
 
-    # The idea here is that instead of performing an 'if' conditional check
-    # on each logging we do it once when the log object is setup
+    # The idea here is that instead of performing an 'if' conditional check on
+    # each logging we do it once when the log object is setup
     def set_write_method
       @log.instance_eval do
 
@@ -120,7 +120,8 @@ module DataMapper
     # log<IO,String>
     #   Either an IO object or a name of a logfile.
     # log_level<Symbol>
-    #   A symbol representing the log level from {:fatal, :error, :warn, :info, :debug}
+    #   A symbol representing the log level from {:fatal, :error, :warn, :info,
+    #   :debug}
     # delimiter<String>
     #   Delimiter to use between message sections
     def set_log(log, log_level = nil, delimiter = " ~ ")
@@ -157,8 +158,10 @@ module DataMapper
     end
 
     # Appends a string and log level to logger's buffer.
-    # Note that the string is discarded if the string's log level less than the logger's log level.
-    # Note that if the logger is aio capable then the logger will use non-blocking asynchronous writes.
+    # Note that the string is discarded if the string's log level less than the
+    # logger's log level.
+    # Note that if the logger is aio capable then the logger will use
+    # non-blocking asynchronous writes.
     #
     # ==== Parameters
     # level<Fixnum>
@@ -175,7 +178,8 @@ module DataMapper
     end
     alias << push
 
-    # Generate the following logging methods for DataMapper.logger as described in the api:
+    # Generate the following logging methods for DataMapper.logger as described
+    # in the API:
     #  :fatal, :error, :warn, :info, :debug
     LEVELS.each_pair do |name, number|
       class_eval <<-LEVELMETHODS, __FILE__, __LINE__
@@ -192,5 +196,4 @@ module DataMapper
     end
 
   end # class Logger
-
 end # module DataMapper

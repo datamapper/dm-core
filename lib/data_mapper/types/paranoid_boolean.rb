@@ -18,6 +18,6 @@ module DataMapper
         model.send(:scope_stack) << DataMapper::Query.new(repository, model, property.name => nil)
 
       end
-    end
-  end
-end
+    end # class ParanoidBoolean
+  end # module Types
+end # module DataMapper

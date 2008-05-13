@@ -1,4 +1,3 @@
-
 module DataMapper
   module Adapters
 
@@ -31,22 +30,22 @@ module DataMapper
       # methods dealing with transactions
 
       #
-      # Pushes the given Transaction onto the per thread Transaction stack so that
-      # everything done by this Adapter is done within the context of said
+      # Pushes the given Transaction onto the per thread Transaction stack so
+      # that everything done by this Adapter is done within the context of said
       # Transaction.
       #
       # ==== Parameters
-      # transaction<DataMapper::Transaction>:: A Transaction to be the 'current' transaction
-      # until popped.
+      # transaction<DataMapper::Transaction>:: A Transaction to be the
+      #   'current' transaction until popped.
       #
       def push_transaction(transaction)
         @transactions[Thread.current] << transaction
       end
 
       #
-      # Pop the 'current' Transaction from the per thread Transaction stack so that
-      # everything done by this Adapter is no longer necessarily within the context
-      # of said Transaction.
+      # Pop the 'current' Transaction from the per thread Transaction stack so
+      # that everything done by this Adapter is no longer necessarily within the
+      # context of said Transaction.
       #
       # ==== Returns
       # DataMapper::Transaction:: The former 'current' transaction.
@@ -57,7 +56,8 @@ module DataMapper
       #
       # Retrieve the current transaction for this Adapter.
       #
-      # Everything done by this Adapter is done within the context of this Transaction.
+      # Everything done by this Adapter is done within the context of this
+      # Transaction.
       #
       # ==== Returns
       # DataMapper::Transaction:: The 'current' transaction for this Adapter.
@@ -81,7 +81,8 @@ module DataMapper
       # Used by DataMapper::Transaction to perform its various tasks.
       #
       # ==== Returns
-      # Object:: A new Object that responds to :close, :begin, :commit, :rollback, :rollback_prepared and :prepare
+      # Object:: A new Object that responds to :close, :begin, :commit,
+      #   :rollback, :rollback_prepared and :prepare
       #
       def transaction_primitive
         raise NotImplementedError

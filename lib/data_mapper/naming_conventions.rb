@@ -1,6 +1,6 @@
 module DataMapper
 
-  # Use these modules to set naming conventions.
+  # Use these modules to establish naming conventions.
   # The default is UnderscoredAndPluralized.
   # You assign a naming convention like so:
   #
@@ -12,11 +12,13 @@ module DataMapper
   #     'tbl' + value.camelize(true)
   #   end
   #
-  # Or by simply defining your own module in NamingConventions that responds to ::call.
+  # Or by simply defining your own module in NamingConventions that responds to
+  # ::call.
   #
-  # NOTE: It's important to set the convention before accessing your models since the resource_names
-  # are cached after first accessed. DataMapper.setup(name, uri) returns the Adapter for convenience,
-  # so you can use code like this:
+  # NOTE: It's important to set the convention before accessing your models
+  # since the resource_names are cached after first accessed.
+  # DataMapper.setup(name, uri) returns the Adapter for convenience, so you can
+  # use code like this:
   #
   #   adapter = DataMapper.setup(:default, "mock://localhost/mock")
   #   adapter.resource_naming_convention = DataMapper::NamingConventions::Underscored

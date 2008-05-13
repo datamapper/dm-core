@@ -67,5 +67,5 @@ module DataMapper
         @attributes.merge((@primitive.nil? ? {} : {:primitive => @primitive}))
       end
     end
-  end
-end
+  end # class TypeMap
+end # module DataMapper

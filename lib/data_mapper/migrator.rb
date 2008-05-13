@@ -23,5 +23,5 @@ module DataMapper
         migrator.migrate(repository_name)
       end.flatten
     end
-  end
-end
+  end # class Migrator
+end # module DataMapper

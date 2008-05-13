@@ -158,11 +158,11 @@ module DataMapper
         schema = super
         schema[:sequence_name] = sequence_name(model, property) if property.serial?
 
-        # TODO: see if TypeMap can be updated to set specific attributes
-        # to nil for different adapters.  scale/precision are perfect
-        # examples for Postgres floats
+        # TODO: see if TypeMap can be updated to set specific attributes to nil
+        # for different adapters.  scale/precision are perfect examples for
+        # Postgres floats
 
-        # postgres does not support scale and precision for Float
+        # Postgres does not support scale and precision for Float
         if property.primitive == Float
           schema.delete(:scale)
           schema.delete(:precision)
