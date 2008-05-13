@@ -66,42 +66,49 @@ module DataMapper
 
       def create_with_returning?; true; end
 
-      def create_model_storage(repository, model)
-        sql = create_table_statement(model)
-
-        DataMapper.logger.debug "CREATE TABLE: #{sql}"
-
-        connection = create_connection
-
-        model.properties.each do |property|
-          create_sequence_column(connection, model, property) if property.serial?
+      def table_exists?(table_name)
+        with_reader("SELECT tablename FROM pg_tables WHERE tablename = ?", table_name) do |reader|
+          reader.next!
         end
+      end
 
-        command = connection.create_command(sql)
+      def column_exists?(table_name, column_name)
+        with_reader("SELECT pg_attribute.attname 
+                     FROM pg_class JOIN pg_attribute ON pg_class.oid = pg_attribute.attrelid
+                     WHERE pg_attribute.attname = ? AND 
+                     pg_class.relname = ? AND pg_attribute.attnum >= 0", column_name, table_name) do |reader|
+          reader.next!
+        end
+      end
 
-        result = command.execute_non_query
+      def upgrade_model_storage(repository, model)
+        table_name = model.storage_name(name)
+        with_connection do |connection|
+          model.properties.each do |property|
+            schema_hash = property_schema_hash(property, model)
+            create_sequence_column(connection, model, property) if property.serial? && !column_exists?(table_name, schema_hash[:name])
+          end
+        end
+        super
+      end
 
-        close_connection(connection)
-
-        result.to_i == 1
+      def create_model_storage(repository, model)
+        with_connection do |connection|
+          model.properties.each do |property|
+            create_sequence_column(connection, model, property) if property.serial?
+          end
+        end
+        super
       end
 
       def destroy_model_storage(repository, model)
-        DataMapper.logger.debug "DROP TABLE: #{model.storage_name(name)}"
-
-        connection = create_connection
-
-        command = connection.create_command(drop_table_statement(model))
-
-        result = command.execute_non_query
-
-        model.properties.each do |property|
-          drop_sequence_column(connection, model, property) if property.serial?
+        rval = super
+        with_connection do |connection|
+          model.properties.each do |property|
+            drop_sequence_column(connection, model, property) if property.serial?
+          end
         end
-
-        close_connection(connection)
-
-        result.to_i == 1
+        rval
       end
 
       def create_sequence_column(connection, model, property)

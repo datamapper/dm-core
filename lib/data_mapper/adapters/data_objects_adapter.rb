@@ -116,6 +116,28 @@ module DataMapper
         DataObjects::Transaction.create_for_uri(@uri)
       end
 
+      def with_reader(statement, *params, &block)
+        with_connection do |connection|
+          reader = nil
+          begin
+            reader = connection.create_command(statement).execute_reader(*params)
+            yield reader
+          ensure
+            reader.close if reader
+          end
+        end
+      end
+
+      def with_connection(&block) 
+        connection = nil
+        begin
+          connection = create_connection
+          yield connection
+        ensure
+          close_connection(connection) if connection
+        end
+      end
+
       def create_connection
         if within_transaction?
           current_transaction.primitive_for(self).connection
@@ -218,8 +240,42 @@ module DataMapper
         close_connection(connection) if connection
       end
 
+      def table_exists?(table_name)
+        raise NotImplementedError
+      end
+
+      def column_exists?(table_name, column_name)
+        raise NotImplementedError
+      end
+
+      def upgrade_model_storage(repository, model)
+        table_name = model.storage_name(name)
+        if table_exists?(model.storage_name(name))
+          rval = []
+          begin
+            connection = create_connection
+            model.properties.each do |property|
+              schema_hash = property_schema_hash(property, model)
+              unless column_exists?(table_name, schema_hash[:name])
+                statement = alter_table_add_column_statement(table_name, schema_hash)
+                command = connection.create_command(statement)
+                result = command.execute_non_query
+                rval << property if result.to_i == 1
+              end
+            end
+            return rval
+          ensure
+            close_connection(connection)
+          end
+        else
+          return model if create_model_storage(repository, model)
+        end
+      end
+
       def create_model_storage(repository, model)
         statement = create_table_statement(model)
+
+        DataMapper.logger.debug "CREATE TABLE: #{statement}"
 
         connection = create_connection
         command = connection.create_command(statement)
@@ -232,6 +288,8 @@ module DataMapper
 
       def destroy_model_storage(repository, model)
         statement = drop_table_statement(model)
+
+        DataMapper.logger.debug "DROP TABLE: #{statement}"
 
         connection = create_connection
         command = connection.create_command(statement)
@@ -381,6 +439,10 @@ module DataMapper
             DELETE FROM #{quote_table_name(model.storage_name(name))}
             WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
           EOS
+        end
+
+        def alter_table_add_column_statement(table_name, schema_hash)
+          "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
         end
 
         def create_table_statement(model)

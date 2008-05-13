@@ -6,6 +6,77 @@ if HAS_POSTGRES
       @adapter = repository(:postgres).adapter
     end
 
+    describe "auto migrating" do
+      before :each do 
+        class Sputnik
+          include DataMapper::Resource
+
+          property :id, Integer, :serial => true
+          property :name, DM::Text
+        end
+        
+        @connection = mock("connection")
+        @command = mock("command")
+        @result = mock("result")
+      end
+      it "#upgrade_model_storage should create sequences and then call super" do
+        @adapter.should_receive(:create_connection).at_least(1).times.and_return(@connection)
+        @connection.should_receive(:close).at_least(1).times
+        @adapter.should_receive(:table_exists?).at_least(1).times.with("sputniks").and_return(true)
+        @adapter.should_receive(:column_exists?).at_least(1).times.with("sputniks", "id").and_return(false)
+        @adapter.should_receive(:column_exists?).at_least(1).times.with("sputniks", "name").and_return(false)
+        @adapter.should_receive(:create_sequence_column).at_least(1).times.with(@connection, Sputnik, Sputnik.properties(:default)[:id])
+        @command.should_receive(:execute_non_query).any_number_of_times.and_return(@result)
+        @result.should_receive(:to_i).any_number_of_times.and_return(1)
+        @connection.should_receive(:create_command).once.with("ALTER TABLE \"sputniks\" ADD COLUMN \"id\" INT4 NOT NULL DEFAULT nextval('sputniks_id_seq') NOT NULL").and_return(@command)
+        @connection.should_receive(:create_command).once.with("ALTER TABLE \"sputniks\" ADD COLUMN \"name\" TEXT").and_return(@command)
+        @adapter.upgrade_model_storage(nil, Sputnik).should == [Sputnik.properties(:default)[:id], Sputnik.properties(:default)[:name]]
+      end
+      it "#create_model_storage should create sequences and then call super" do
+        @adapter.should_receive(:create_connection).at_least(1).times.and_return(@connection)
+        @connection.should_receive(:close).at_least(1).times
+        @adapter.should_receive(:create_sequence_column).at_least(1).times.with(@connection, Sputnik, Sputnik.properties(:default)[:id])
+        @command.should_receive(:execute_non_query).any_number_of_times.with(any_args()).and_return(@result)
+        @result.should_receive(:to_i).any_number_of_times.and_return(1)
+        @connection.should_receive(:create_command).once.with("CREATE TABLE \"sputniks\" (\"id\" INT4 NOT NULL DEFAULT nextval('sputniks_id_seq') NOT NULL, \"name\" TEXT, PRIMARY KEY(\"id\"))").and_return(@command)
+        @adapter.create_model_storage(nil, Sputnik)
+      end
+      it "#destroy_model_storage should drop sequences and then call super" do
+        @adapter.should_receive(:create_connection).at_least(1).times.and_return(@connection)
+        @connection.should_receive(:close).at_least(1).times
+        @adapter.should_receive(:drop_sequence_column).at_least(1).times.with(@connection, Sputnik, Sputnik.properties(:default)[:id])
+        @command.should_receive(:execute_non_query).any_number_of_times.with(any_args()).and_return(@result)
+        @result.should_receive(:to_i).any_number_of_times.and_return(1)
+        @connection.should_receive(:create_command).once.with("DROP TABLE IF EXISTS \"sputniks\"").and_return(@command)
+        @adapter.destroy_model_storage(nil, Sputnik)
+      end
+    end
+
+    describe "querying metadata" do
+      before :each do 
+        class Sputnik
+          include DataMapper::Resource
+
+          property :id, Integer, :serial => true
+          property :name, DM::Text
+        end
+
+        Sputnik.auto_migrate!(:postgres)
+      end
+      it "#table_exists? should return true for tables that exist" do
+        @adapter.table_exists?("sputniks").should == true
+      end
+      it "#table_exists? should return false for tables that don't exist" do
+        @adapter.table_exists?("space turds").should_not == true
+      end
+      it "#column_exists? should return true for columns that exist" do
+        @adapter.column_exists?("sputniks", "name").should == true
+      end
+      it "#table_exists? should return false for tables that don't exist" do
+        @adapter.column_exists?("sputniks", "plur").should_not == true
+      end
+    end
+
     describe "handling transactions" do
       before :all do
         class Sputnik

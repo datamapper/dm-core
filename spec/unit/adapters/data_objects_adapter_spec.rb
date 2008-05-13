@@ -10,6 +10,57 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
   it_should_behave_like 'a DataMapper Adapter'
 
+  describe "#with_reader" do
+    it "should yield a reader for the given query to the given block" do
+      @reader = mock("reader")
+      @connection = mock("connection")
+      @command = mock("command")
+      @command.should_receive(:execute_reader).once.and_return(@reader)
+      @connection.should_receive(:close).once
+      @reader.should_receive(:close).once
+      @connection.should_receive(:create_command).once.with("SELECT * FROM plurs").and_return(@command)
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      @adapter.with_reader("SELECT * FROM plurs") do |reader|
+        reader.should == @reader
+      end
+    end
+    it "should close the reader even if an exception is raised" do
+      @reader = mock("reader")
+      @connection = mock("connection")
+      @command = mock("command")
+      @command.should_receive(:execute_reader).once.and_return(@reader)
+      @connection.should_receive(:close).once
+      @reader.should_receive(:close).once
+      @connection.should_receive(:create_command).once.with("SELECT * FROM plurs").and_return(@command)
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      Proc.new do @adapter.with_reader("SELECT * FROM plurs") do |reader|
+          raise "plopp"
+        end
+      end.should raise_error(Exception, "plopp")
+    end
+  end
+
+  describe "#with_connection" do
+    before :each do
+      @connection = mock("connection")
+    end
+    it "should yield a newly created connection to the given block" do
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      @connection.should_receive(:close).once
+      @adapter.with_connection do |conn|
+        conn.should == @connection
+      end
+    end
+    it "should close the connection even if an exception is raised" do
+      @adapter.should_receive(:create_connection).once.and_return(@connection)
+      @connection.should_receive(:close).once
+      Proc.new do @adapter.with_connection do |conn|
+          raise "plur"
+        end
+      end.should raise_error(Exception, "plur")
+    end
+  end
+
   describe "#find_by_sql" do
 
     before do
@@ -238,6 +289,58 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     end
   end
 
+  describe "when upgrading tables" do
+    it "should raise NotImplementedError when #table_exists? is called" do
+      lambda { @adapter.table_exists?("cheeses") }.should raise_error(NotImplementedError)
+    end
+    it "should raise NotImplementedError when #columns_exists? is called" do
+      lambda { @adapter.column_exists?("cheeses", "name") }.should raise_error(NotImplementedError)
+    end
+    describe "#upgrade_model_storage" do
+      it "should call #create_model_storage unless the model storage alread exists" do
+        @adapter.should_receive(:table_exists?).once.with("cheeses").and_return(false)
+        @adapter.should_receive(:create_model_storage).once.with(nil, Cheese).and_return(true)
+        @adapter.upgrade_model_storage(nil, Cheese).should == Cheese
+      end
+      it "should check if all properties of the model have columns if the table exists" do
+        @adapter.should_receive(:column_exists?).once.with("cheeses", "id").and_return(true)
+        @adapter.should_receive(:column_exists?).once.with("cheeses", "name").and_return(true)
+        @adapter.should_receive(:column_exists?).once.with("cheeses", "color").and_return(true)
+        @adapter.should_receive(:column_exists?).once.with("cheeses", "notes").and_return(true)
+        @adapter.should_receive(:table_exists?).once.with("cheeses").and_return(true)
+        connection = mock("connection")
+        connection.should_receive(:close).once
+        @adapter.should_receive(:create_connection).once.and_return(connection)
+        @adapter.upgrade_model_storage(nil, Cheese).should == []
+      end
+      it "should create and execute add column statements for columns that dont exist" do
+        @adapter.should_receive(:column_exists?).once.with("cheeses", "id").and_return(true)
+        @adapter.should_receive(:column_exists?).once.with("cheeses", "name").and_return(true)
+        @adapter.should_receive(:column_exists?).once.with("cheeses", "color").and_return(true)
+        @adapter.should_receive(:column_exists?).once.with("cheeses", "notes").and_return(false)
+        @adapter.should_receive(:table_exists?).once.with("cheeses").and_return(true)
+        connection = mock("connection")
+        connection.should_receive(:close).once
+        @adapter.should_receive(:create_connection).once.and_return(connection)
+        statement = mock("statement")
+        command = mock("command")
+        result = mock("result")
+        result.should_receive(:to_i).once.and_return(1)
+        command.should_receive(:execute_non_query).once.and_return(result)
+        connection.should_receive(:create_command).once.with(statement).and_return(command)
+        @adapter.should_receive(:alter_table_add_column_statement).once.with("cheeses", 
+                                                                             {
+                                                                               :nullable? => true, 
+                                                                               :name => "notes", 
+                                                                               :serial? => false, 
+                                                                               :primitive => "VARCHAR", 
+                                                                               :size => 100
+                                                                             }).and_return(statement)
+        @adapter.upgrade_model_storage(nil, Cheese).should == [Cheese.notes]
+      end
+    end
+  end
+
   describe "#create_statement" do
     it 'should generate a SQL statement for all fields' do
       @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).slice(:name, :color)).should == <<-EOS.compress_lines
@@ -344,6 +447,42 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
     it "should generate a SQL statement that includes a Composite Key" do
       @adapter.read_statement(LittleBox, ['Shady Drive', 'Blue']).should == <<-EOS.compress_lines
         SELECT "street", "color", "hillside" FROM "little_boxes" WHERE "street" = ? AND "color" = ?
+      EOS
+    end
+  end
+
+  describe "#alter_table_statement" do
+    it "should generate an SQL statement starting with the table name" do
+      @adapter.alter_table_add_column_statement("cheeses", {
+                                                  :nullable? => true, 
+                                                  :name => "notes", 
+                                                  :serial? => false, 
+                                                  :primitive => "VARCHAR", 
+                                                  :size => 100
+                                                }).should =~ /^#{<<-EOS.compress_lines}/
+        ALTER TABLE "cheeses"
+      EOS
+    end
+    it "should generate an SQL statement with the column info" do
+      @adapter.alter_table_add_column_statement("cheeses", {
+                                                  :nullable? => true, 
+                                                  :name => "notes", 
+                                                  :serial? => false, 
+                                                  :primitive => "VARCHAR", 
+                                                  :size => 100
+                                                }).should include(<<-EOS.compress_lines)
+        "notes" VARCHAR(100)
+      EOS
+    end
+    it "should generate an SQL statement with both the table name and the column info" do
+      @adapter.alter_table_add_column_statement("cheeses", {
+                                                  :nullable? => true, 
+                                                  :name => "notes", 
+                                                  :serial? => false, 
+                                                  :primitive => "VARCHAR", 
+                                                  :size => 100
+                                                }).should == <<-EOS.compress_lines
+        ALTER TABLE "cheeses" ADD COLUMN "notes" VARCHAR(100)
       EOS
     end
   end

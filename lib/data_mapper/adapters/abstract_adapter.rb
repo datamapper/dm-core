@@ -104,6 +104,10 @@ module DataMapper
         raise NotImplementedError
       end
       
+      def upgrade_model_storage(repository, model)
+        raise NotImplementedError
+      end
+
       def create_model_storage(repository, model)
         raise NotImplementedError
       end

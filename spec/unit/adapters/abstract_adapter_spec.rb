@@ -94,6 +94,10 @@ describe DataMapper::Adapters::AbstractAdapter do
     lambda { @adapter.delete_set(:repository, :query) }.should raise_error(NotImplementedError)
   end
   
+  it "should raise NotImplementedError when #upgrade_model_storage is called" do
+    lambda { @adapter.upgrade_model_storage(:repository, :resource) }.should raise_error(NotImplementedError)
+  end
+  
   it "should raise NotImplementedError when #create_model_storage is called" do
     lambda { @adapter.create_model_storage(:repository, :resource) }.should raise_error(NotImplementedError)
   end
