@@ -70,17 +70,17 @@ describe DataMapper::Property do
   end
 
   it "should determine keyness" do
-    DataMapper::Property.new(Tomato,:id,Fixnum,{:key => true}).key?.should == true
+    DataMapper::Property.new(Tomato,:id,Integer,{:key => true}).key?.should == true
     DataMapper::Property.new(Tomato,:botanical_name,String,{}).key?.should == false
   end
 
   it "should determine serialness" do
-    DataMapper::Property.new(Tomato,:id,Fixnum,{:serial => true}).serial?.should == true
+    DataMapper::Property.new(Tomato,:id,Integer,{:serial => true}).serial?.should == true
     DataMapper::Property.new(Tomato,:botanical_name,String,{}).serial?.should == false
   end
 
   it "should determine lockability" do
-    DataMapper::Property.new(Tomato, :id, Fixnum, { :lock => true }).lock?.should == true
+    DataMapper::Property.new(Tomato, :id, Integer, { :lock => true }).lock?.should == true
     DataMapper::Property.new(Tomato, :botanical_name, String, {}).lock?.should == false
   end
 
@@ -111,7 +111,7 @@ describe DataMapper::Property do
   it "should append ? to TrueClass property reader methods" do
     class Potato
       include DataMapper::Resource
-      property :id, Fixnum, :key => true
+      property :id, Integer, :key => true
       property :fresh, TrueClass
       property :public, TrueClass
     end
@@ -134,7 +134,7 @@ describe DataMapper::Property do
   it 'should return the attribute value from a given instance' do
     class Tomahto
       include DataMapper::Resource
-      property :id, Fixnum, :key => true
+      property :id, Integer, :key => true
     end
 
     tomato = Tomahto.new(:id => 1)
@@ -210,8 +210,8 @@ describe DataMapper::Property do
     property.typecast('0.0').should == 0.0
   end
 
-  it 'should typecast value for a Fixnum property' do
-    property = DataMapper::Property.new(Zoo, :fixnum, Fixnum)
+  it 'should typecast value for a Integer property' do
+    property = DataMapper::Property.new(Zoo, :integer, Integer)
     property.typecast('0').should == 0
   end
 

@@ -12,7 +12,7 @@ describe DataMapper::AutoMigrations do
       include DataMapper::Resource
 
       property :name, String, :key => true
-      property :age, Fixnum
+      property :age, Integer
     end
   end
 
@@ -37,7 +37,7 @@ describe DataMapper::AutoMigrations do
       include DataMapper::Resource
 
       property :name, String, :key => true
-      property :age, Fixnum
+      property :age, Integer
     end
 
     @cat.should respond_to(:auto_migrate!)

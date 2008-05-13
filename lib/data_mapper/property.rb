@@ -48,7 +48,8 @@ module DataMapper
   # * String
   # * Text (limit of 65k characters by default)
   # * Float
-  # * Fixnum, Integer
+  # * Fixnum
+  # * Integer
   # * BigDecimal
   # * DateTime
   # * Date
@@ -160,7 +161,7 @@ module DataMapper
   #
   # Examples:
   #
-  #  property :id,        Fixnum, :serial => true  # auto-incrementing key
+  #  property :id,        Integer, :serial => true  # auto-incrementing key
   #  property :legacy_pk, String, :key => true     # 'natural' key
   #
   # This is roughly equivalent to ActiveRecord's <tt>set_primary_key</tt>,
@@ -240,6 +241,7 @@ module DataMapper
       DataMapper::Types::Text,
       Float,
       Fixnum,
+      Integer,
       BigDecimal,
       DateTime,
       Date,
@@ -372,7 +374,7 @@ module DataMapper
 
     # typecasts values into a primitive
     # ==== Returns
-    #  <TrueClass, String, Float, Fixnum, BigDecimal, DateTime, Date, Class>::
+    #  <TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Class>::
     # the primitive data-type, defaults to TrueClass
     #
     #-
@@ -381,10 +383,10 @@ module DataMapper
       return value if type === value || value.nil?
 
       if    type == TrueClass  then true == value || 'true' == value || 1 == value || '1' == value
-      elsif type == String     then value.to_s
-      elsif type == Float      then value.to_f
-      elsif type == Fixnum     then value.to_i
-      elsif type == BigDecimal then BigDecimal.new(value.to_s)
+      elsif type == String     then String(value)
+      elsif type == Float      then Float(value)
+      elsif type == Fixnum     then Integer(value)
+      elsif type == BigDecimal then BigDecimal(value.to_s)
       elsif type == DateTime   then DateTime.parse(value.to_s)
       elsif type == Date       then Date.parse(value.to_s)
       elsif type == Class      then find_const(value)
@@ -408,6 +410,22 @@ module DataMapper
 
       if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
         raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
+      end
+
+      # TODO: change Integer to be used internally once most in-the-wild code
+      # is updated to use Integer for properties instead of Fixnum, or before
+      # DM 1.0, whichever comes first.
+      if Fixnum == type
+        # It was decided that Integer is a more expressively names class to
+        # use instead of Fixnum.  Fixnum only represents smaller numbers,
+        # so there was some confusion over whether or not it would also
+        # work with Bignum too (it will).  Any Integer, which includes
+        # Fixnum and Bignum, can be stored in this property.
+        warn 'Fixnum properties are deprecated.  Please use Integer instead'
+      elsif Integer == type
+        # XXX: ignore this for now :) We still use Fixnum internally
+        # until every DO driver is updated to handle Integer natively.
+        type = Fixnum
       end
 
       @model                  = model

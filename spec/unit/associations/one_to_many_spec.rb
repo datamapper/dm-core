@@ -13,7 +13,7 @@ describe DataMapper::Associations::OneToMany do
         public :one_to_many
       end
 
-      property :user_id, Fixnum, :key => true
+      property :user_id, Integer, :key => true
     end
   end
 

@@ -11,7 +11,9 @@ module DataMapper
           child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
             # TODO: use something similar to DM::NamingConventions to determine the property name
             property_name ||= "#{@name}_#{parent_property.name}".to_sym
-            model_properties[property_name] || child_model.property(property_name, parent_property.type)
+            type = parent_property.type
+            type = Integer if Fixnum == type  # TODO: remove this hack once all in-the-wild code uses Integer instead of Fixnum
+            model_properties[property_name] || child_model.property(property_name, type)
           end
 
           PropertySet.new(child_key)

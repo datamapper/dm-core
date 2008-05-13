@@ -77,6 +77,15 @@ module DataMapper
       def primitive(primitive = nil)
         return @primitive if primitive.nil?
 
+        # TODO: change Integer to be used internally once most in-the-wild code
+        # is updated to use Integer for properties instead of Fixnum, or before
+        # DM 1.0, whichever comes first
+        if Fixnum == @primitive
+          warn 'Fixnum properties are deprecated.  Please use Integer instead'
+        elsif Integer == @primitive
+          @primitive = Fixnum
+        end
+
         @primitive = primitive
       end
 

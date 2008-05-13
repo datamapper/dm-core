@@ -7,7 +7,7 @@ if HAS_SQLITE3
         class SerialFinderSpec
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :sample, String
         end
 

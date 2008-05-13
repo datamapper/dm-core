@@ -103,7 +103,15 @@ module DataMapper
     alias r__dup dup
     def dup(target = nil)
       if target
-        self.class.new(map { |property| Property.new(target || property.model, property.name, property.type, property.options) })
+        properties = map do |property|
+          # TODO: remove this hack once most in-the-wild code has switched
+          # over to using Integer instead of Fixnum for properties
+          type = property.type
+          type = Integer if Fixnum == type
+          Property.new(target || property.model, property.name, type, property.options)
+        end
+
+        self.class.new(properties)
       else
         r__dup
       end

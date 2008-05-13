@@ -30,7 +30,7 @@ if HAS_SQLITE3
       before(:all) do
         @planet = DataMapper::Resource.new("planet") do
           property :name, String, :key => true
-          property :distance, Fixnum
+          property :distance, Integer
         end
 
         @planet.auto_migrate!(:sqlite3)
@@ -55,9 +55,9 @@ if HAS_SQLITE3
       before(:all) do
         class Male
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
-          property :iq, Fixnum, :default => 100
+          property :iq, Integer, :default => 100
           property :type, Class, :default => lambda { |r,p| p.model }
         end
 

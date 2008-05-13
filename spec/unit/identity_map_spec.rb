@@ -4,7 +4,7 @@ describe "DataMapper::IdentityMap" do
   before(:all) do
     class Cow
       include DataMapper::Resource
-      property :id, Fixnum, :key => true
+      property :id, Integer, :key => true
       property :name, String
     end
 
@@ -15,8 +15,8 @@ describe "DataMapper::IdentityMap" do
 
     class Pig
       include DataMapper::Resource
-      property :id, Fixnum, :key => true
-      property :composite, Fixnum, :key => true
+      property :id, Integer, :key => true
+      property :composite, Integer, :key => true
       property :name, String
     end
   end

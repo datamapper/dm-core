@@ -4,15 +4,15 @@ if HAS_SQLITE3
   class Engine
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
+    property :id, Integer, :serial => true
     property :name, String
   end
 
   class Yard
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :engine_id, Fixnum
+    property :id, Integer, :serial => true
+    property :engine_id, Integer
 
     property :name, String
 
@@ -24,8 +24,8 @@ if HAS_SQLITE3
   class Pie
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :sky_id, Fixnum
+    property :id, Integer, :serial => true
+    property :sky_id, Integer
 
     property :name, String
 
@@ -37,8 +37,8 @@ if HAS_SQLITE3
   class Sky
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :pie_id, Fixnum
+    property :id, Integer, :serial => true
+    property :pie_id, Integer
 
     property :name, String
 
@@ -50,7 +50,7 @@ if HAS_SQLITE3
   class Host
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
+    property :id, Integer, :serial => true
     property :name, String
 
     repository(:sqlite3) do
@@ -61,8 +61,8 @@ if HAS_SQLITE3
   class Slice
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :host_id, Fixnum
+    property :id, Integer, :serial => true
+    property :host_id, Integer
 
     property :name, String
 
@@ -74,8 +74,8 @@ if HAS_SQLITE3
   class Node
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :parent_id, Fixnum
+    property :id, Integer, :serial => true
+    property :parent_id, Integer
 
     property :name, String
 
@@ -133,7 +133,7 @@ if HAS_SQLITE3
         module FlightlessBirds
           class Ostrich
             include DataMapper::Resource
-            property :id, Fixnum, :serial => true
+            property :id, Integer, :serial => true
             property :name, String
             many_to_one :sky # there's something sad about this :'(
           end
@@ -491,7 +491,7 @@ if HAS_SQLITE3
           module Sweets
             class Shop
               include DataMapper::Resource
-              property :id, Fixnum, :serial => true
+              property :id, Integer, :serial => true
               property :name, String
               has n, :cakes, :class_name => 'Sweets::Cake'
               has n, :slices => :cakes
@@ -499,15 +499,15 @@ if HAS_SQLITE3
 
             class Cake
               include DataMapper::Resource
-              property :id, Fixnum, :serial => true
+              property :id, Integer, :serial => true
               property :name, String
               has n, :slices, :class_name => 'Sweets::Slice'
             end
 
             class Slice
               include DataMapper::Resource
-              property :id, Fixnum, :serial => true
-              property :size, Fixnum
+              property :id, Integer, :serial => true
+              property :size, Integer
               belongs_to :cake, :class_name => 'Sweets::Cake'
             end
 

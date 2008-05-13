@@ -44,8 +44,8 @@ end
 class Article
   include DataMapper::Resource
 
-  property :id,         Fixnum, :serial => true
-  property :blog_id,    Fixnum
+  property :id,         Integer, :serial => true
+  property :blog_id,    Integer
   property :created_at, DateTime
   property :author,     String
   property :title,      String
@@ -64,21 +64,21 @@ end
 class Vehicle
   include DataMapper::Resource
 
-  property :id, Fixnum, :serial => true
+  property :id, Integer, :serial => true
   property :name, String
 end
 
 class Manufacturer
   include DataMapper::Resource
 
-  property :id, Fixnum, :serial => true
+  property :id, Integer, :serial => true
   property :name, String
 end
 
 class Supplier
   include DataMapper::Resource
 
-  property :id, Fixnum, :serial => true
+  property :id, Integer, :serial => true
   property :name, String
 end
 

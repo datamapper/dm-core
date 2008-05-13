@@ -3,10 +3,10 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 class Icon
       include DataMapper::Resource
 
-      property :id, Fixnum, :serial => true
+      property :id, Integer, :serial => true
       property :name, String
-      property :width, Fixnum, :lazy => true
-      property :height, Fixnum, :lazy => true
+      property :width, Integer, :lazy => true
+      property :height, Integer, :lazy => true
 end
 
 class Boat
@@ -88,7 +88,7 @@ describe DataMapper::PropertySet do
         property.model.should == Boat
       end
       
-      copy << DataMapper::Property.new(Icon, :z_index, Fixnum, {})
+      copy << DataMapper::Property.new(Icon, :z_index, Integer, {})
       copy.should have(5).entries
       Icon.properties.should have(4).entries
     end

@@ -15,7 +15,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     before do
       class Plupp
         include DataMapper::Resource
-        property :id, Fixnum, :key => true
+        property :id, Integer, :key => true
         property :name, String
       end
     end
@@ -223,7 +223,7 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
 
     class Cheese
       include DataMapper::Resource
-      property :id, Fixnum, :serial => true
+      property :id, Integer, :serial => true
       property :name, String, :nullable => false
       property :color, String, :default => 'yellow'
       property :notes, String, :length => 100, :lazy => true
@@ -382,8 +382,8 @@ describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, upda
       @model = Class.new do
         include DataMapper::Resource
 
-        property :id, Fixnum, :key => true
-        property :serial, Fixnum, :serial => true, :key => false
+        property :id, Integer, :key => true
+        property :serial, Integer, :serial => true, :key => false
       end
       @id_property =  @model.properties.to_a[0]
       @serial_property = @model.properties.to_a[1]

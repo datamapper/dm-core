@@ -8,9 +8,9 @@ if HAS_SQLITE3
       class Zebra
         include DataMapper::Resource
 
-        property :id, Fixnum, :serial => true
+        property :id, Integer, :serial => true
         property :name, String
-        property :age, Fixnum
+        property :age, Integer
         has n, :stripes
       
       end
@@ -18,10 +18,10 @@ if HAS_SQLITE3
       class Stripe
         include DataMapper::Resource
         
-        property :id, Fixnum, :serial => true
+        property :id, Integer, :serial => true
         property :name, String
-        property :age,  Fixnum
-        property :zebra_id, Fixnum
+        property :age,  Integer
+        property :zebra_id, Integer
         
         belongs_to :zebra
       

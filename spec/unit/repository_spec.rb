@@ -3,21 +3,21 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 class Vegetable
   include DataMapper::Resource
 
-  property :id, Fixnum, :serial => true
+  property :id, Integer, :serial => true
   property :name, String
 end
 
 class Fruit
   include DataMapper::Resource
 
-  property :id, Fixnum, :key => true
+  property :id, Integer, :key => true
   property :name, String
 end
 
 class Grain
   include DataMapper::Resource
 
-  property :id, Fixnum, :key => true
+  property :id, Integer, :key => true
   property :name, String, :default => 'wheat'
 end
 

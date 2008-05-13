@@ -75,8 +75,8 @@ describe DataMapper::Query do
         it 'when they have another DM:Query as the value of sub-select' do
           class Acl
             include DataMapper::Resource
-            property :id, Fixnum
-            property :resource_id, Fixnum
+            property :id, Integer
+            property :resource_id, Integer
           end
 
           acl_query = DataMapper::Query.new(repository(:mock), Acl, :fields=>[:resource_id]) #this would normally have conditions
@@ -160,7 +160,7 @@ describe DataMapper::Query do
       before(:each) do
         class Acl
           include DataMapper::Resource
-          property :id, Fixnum
+          property :id, Integer
           property :is_custom_type, DM::Boolean
         end
       end

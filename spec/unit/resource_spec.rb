@@ -12,9 +12,9 @@ describe "DataMapper::Resource" do
 
       storage_names[:legacy] = "dying_planets"
 
-      property :id, Fixnum, :key => true
+      property :id, Integer, :key => true
       property :name, String, :lock => true
-      property :age, Fixnum
+      property :age, Integer
       property :core, String, :private => true
       property :type, Class
 
@@ -37,7 +37,7 @@ describe "DataMapper::Resource" do
       include DataMapper::Resource
 
       property :name, String, :key => true
-      property :awesomeness, Fixnum
+      property :awesomeness, Integer
     end
   end
 
@@ -177,7 +177,7 @@ describe "DataMapper::Resource" do
   end
 
   it 'should store and retrieve default values' do
-    Planet.property(:satellite_count, Fixnum, :default => 0)
+    Planet.property(:satellite_count, Integer, :default => 0)
     # stupid example but it's realiable and works
     Planet.property(:orbit_period, Float, :default => lambda { |r,p| p.name.to_s.length })
     earth = Planet.new(:name => 'Earth')
@@ -343,7 +343,7 @@ describe "DataMapper::Resource" do
 
         storage_names[:east_coast] = 'mother'
 
-        property :rating, Fixnum
+        property :rating, Integer
       end
     end
 

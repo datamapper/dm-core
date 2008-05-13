@@ -11,7 +11,7 @@ if HAS_POSTGRES
         class Sputnik
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, DM::Text
         end
 
@@ -43,7 +43,7 @@ if HAS_POSTGRES
         class User
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, DM::Text
         end
 
@@ -87,7 +87,7 @@ if HAS_POSTGRES
         class VideoGame
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
         end
 
@@ -284,7 +284,7 @@ if HAS_POSTGRES
       before do
         class SailBoat
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
           property :port, String
         end
@@ -330,10 +330,10 @@ if HAS_POSTGRES
       before do
         class SailBoat
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :notes, String, :lazy => [:notes]
           property :trip_report, String, :lazy => [:notes,:trip]
-          property :miles, Fixnum, :lazy => [:trip]
+          property :miles, Integer, :lazy => [:trip]
         end
 
         SailBoat.auto_migrate!(:postgres)
@@ -376,7 +376,7 @@ if HAS_POSTGRES
         class SerialFinderSpec
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :sample, String
         end
 
@@ -435,7 +435,7 @@ if HAS_POSTGRES
         class Engine
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
         end
 
@@ -447,9 +447,9 @@ if HAS_POSTGRES
         class Yard
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
-          property :engine_id, Fixnum
+          property :engine_id, Integer
 
           repository(:postgres) do
             many_to_one :engine
@@ -524,7 +524,7 @@ if HAS_POSTGRES
         class Host
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
 
           repository(:postgres) do
@@ -535,9 +535,9 @@ if HAS_POSTGRES
         class Slice
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
-          property :host_id, Fixnum
+          property :host_id, Integer
 
           repository(:postgres) do
             many_to_one :host

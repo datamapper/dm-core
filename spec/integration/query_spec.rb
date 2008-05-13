@@ -8,7 +8,7 @@ if HAS_SQLITE3
 
         class SailBoat
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
           property :port, String
         end
@@ -93,16 +93,16 @@ if HAS_SQLITE3
 
         class Permission
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
-          property :user_id, Fixnum
-          property :resource_id, Fixnum
+          property :id, Integer, :serial => true
+          property :user_id, Integer
+          property :resource_id, Integer
           property :resource_type, String
           property :token, String
         end
 
         class SailBoat
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
           property :port, String
           property :captain, String
@@ -165,7 +165,7 @@ if HAS_SQLITE3
 
         class Region
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
 
           def self.default_repository_name
@@ -175,8 +175,8 @@ if HAS_SQLITE3
 
         class Factory
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
-          property :region_id, Fixnum
+          property :id, Integer, :serial => true
+          property :region_id, Integer
           property :name, String
 
           repository(:mock) do
@@ -192,8 +192,8 @@ if HAS_SQLITE3
 
         class Vehicle
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
-          property :factory_id, Fixnum
+          property :id, Integer, :serial => true
+          property :factory_id, Integer
           property :name, String
 
           many_to_one :factory

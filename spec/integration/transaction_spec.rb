@@ -4,7 +4,7 @@ if HAS_MYSQL && HAS_POSTGRES
   class Sputnik
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
+    property :id, Integer, :serial => true
     property :name, DM::Text
   end
 

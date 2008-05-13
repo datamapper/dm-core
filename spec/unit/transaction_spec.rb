@@ -5,7 +5,7 @@ describe DataMapper::Transaction do
   before :all do
     class Smurf
       include DataMapper::Resource
-      property :id, Fixnum, :key => true
+      property :id, Integer, :key => true
     end
   end
 

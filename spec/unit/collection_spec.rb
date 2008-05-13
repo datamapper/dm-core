@@ -9,7 +9,7 @@ describe DataMapper::Collection do
       include DataMapper::Resource
 
       property :name, String, :key => true
-      property :age, Fixnum
+      property :age, Integer
     end
 
     properties               = @cow.properties(:default)
@@ -624,7 +624,7 @@ describe DataMapper::Collection do
         include DataMapper::Resource
 
         property :name, String, :key => true
-        property :age, Fixnum
+        property :age, Integer
       end
 
       properties               = @cow.properties(:default)

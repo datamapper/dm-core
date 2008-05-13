@@ -5,7 +5,7 @@ describe "DataMapper::Hook" do
     @class = Class.new do
       include DataMapper::Resource
 
-      property :id, Fixnum, :serial => true
+      property :id, Integer, :serial => true
 
       def a_method
       end

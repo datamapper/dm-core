@@ -14,11 +14,11 @@ if HAS_SQLITE3
         class Actor
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String, :lock => true
           property :notes, DataMapper::Types::Text, :track => false
-          property :age, Fixnum, :track => :set
-          property :rating, Fixnum # :track default should be false for immutable types
+          property :age, Integer, :track => :set
+          property :rating, Integer # :track default should be false for immutable types
           property :location, String # :track default should be :get for mutable types
           property :lead, TrueClass, :track => :load
           property :agent, String, :track => :hash # :track only Object#hash value on :load.
@@ -78,10 +78,10 @@ if HAS_SQLITE3
 
         class SailBoat
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :notes, String, :lazy => [:notes]
           property :trip_report, String, :lazy => [:notes,:trip]
-          property :miles, Fixnum, :lazy => [:trip]
+          property :miles, Integer, :lazy => [:trip]
         end
 
         SailBoat.auto_migrate!(:sqlite3)
@@ -127,7 +127,7 @@ if HAS_SQLITE3
       before(:all) do
         class Catamaran
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
 
           # Boolean
