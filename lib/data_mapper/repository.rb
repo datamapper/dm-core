@@ -106,6 +106,10 @@ module DataMapper
       AutoMigrator.auto_migrate(name)
     end
 
+    def auto_upgrade!
+      AutoMigrator.auto_upgrade(name)
+    end
+
     #
     # Produce a new Transaction for this Repository.
     #

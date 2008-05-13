@@ -162,6 +162,16 @@ describe DataMapper::Repository do
     end
   end
 
+  describe "#auto_upgrade!" do
+    it "should call DataMapper::AutoMigrator.auto_upgrade with itself as the repository argument" do
+      repository = repository(:mock)
+
+      DataMapper::AutoMigrator.should_receive(:auto_upgrade).with(repository.name)
+
+      repository.auto_upgrade!
+    end
+  end
+
   describe "#map" do
     it "should call @type_map.map with the arguments" do
       repository = repository(:mock)
