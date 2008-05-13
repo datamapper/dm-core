@@ -70,7 +70,7 @@ module DataMapper
         query("SELECT pg_attribute.attname 
                FROM pg_class JOIN pg_attribute ON pg_class.oid = pg_attribute.attrelid
                WHERE pg_attribute.attname = ? AND 
-               pg_class.relname = ? AND pg_attribute.attnum >= 0", column_name, table_name)
+               pg_class.relname = ? AND pg_attribute.attnum >= 0", column_name, table_name).size > 0
       end
 
       def upgrade_model_storage(repository, model)

@@ -25,6 +25,7 @@ if HAS_POSTGRES
         !!@adapter.table_exists?("sputniks").should == true
         !!@adapter.column_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer, :serial => true
+        @adapter.drop_sequence_column(@adapter.create_connection, Sputnik, Sputnik.new_prop) rescue nil
         Sputnik.auto_upgrade!(:postgres)
         !!@adapter.column_exists?("sputniks", "new_prop").should == true
       end
@@ -73,16 +74,16 @@ if HAS_POSTGRES
         Sputnik.auto_migrate!(:postgres)
       end
       it "#table_exists? should return true for tables that exist" do
-        !!@adapter.table_exists?("sputniks").should == true
+        @adapter.table_exists?("sputniks").should == true
       end
       it "#table_exists? should return false for tables that don't exist" do
-        !!@adapter.table_exists?("space turds").should_not == true
+        @adapter.table_exists?("space turds").should == false
       end
       it "#column_exists? should return true for columns that exist" do
-        !!@adapter.column_exists?("sputniks", "name").should == true
+        @adapter.column_exists?("sputniks", "name").should == true
       end
       it "#table_exists? should return false for tables that don't exist" do
-        !!@adapter.column_exists?("sputniks", "plur").should_not == true
+        @adapter.column_exists?("sputniks", "plur").should == false
       end
     end
 

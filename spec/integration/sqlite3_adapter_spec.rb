@@ -48,16 +48,16 @@ if HAS_SQLITE3
         Sputnik.auto_migrate!(:sqlite3_file)
       end
       it "#table_exists? should return true for tables that exist" do
-        !!@adapter.table_exists?("sputniks").should == true
+        @adapter.table_exists?("sputniks").should == true
       end
       it "#table_exists? should return false for tables that don't exist" do
-        !!@adapter.table_exists?("space turds").should_not == true
+        @adapter.table_exists?("space turds").should == false
       end
       it "#column_exists? should return true for columns that exist" do
-        !!@adapter.column_exists?("sputniks", "name").should == true
+        @adapter.column_exists?("sputniks", "name").should == true
       end
       it "#table_exists? should return false for tables that don't exist" do
-        !!@adapter.column_exists?("sputniks", "plur").should_not == true
+        @adapter.column_exists?("sputniks", "plur").should == false
       end
     end
 
