@@ -1,10 +1,12 @@
 # This file begins the loading sequence.
 #
 # Quick Overview:
-# * Requires set, fastthread, support libs, and base
-# * Sets the applications root and environment for compatibility with rails or merb
-# * Checks for the database.yml and loads it if it exists
-# * Sets up the database using the config from the yaml file or from the environment
+# * Requires set, fastthread, support libs, and base.
+# * Sets the application root and environment for compatibility with frameworks
+#   such as Rails or Merb.
+# * Checks for the database.yml and loads it if it exists.
+# * Sets up the database using the config from the Yaml file or from the
+#   environment.
 #
 
 # Require the basics...
@@ -53,13 +55,13 @@ require dir / 'collection'
 #   DataMapper.setup(:default, 'protocol://username@localhost:password/path/to/repo')
 #
 # Breaking this down, the first argument is the name you wish to give this
-# connection.  If you do not specify one, it will be assigned :default. If
-# you would like to connect to more than one data-store, simply issue this
-# command again, but with a different name specified.
+# connection.  If you do not specify one, it will be assigned :default. If you
+# would like to connect to more than one data-store, simply issue this command
+# again, but with a different name specified.
 #
-# In order to issue ORM commands without specifying the repository context,
-# you must define the :default database. Otherwise, you'll need to wrap
-# your ORM calls in <tt>repository(:name) { }</tt>.
+# In order to issue ORM commands without specifying the repository context, you
+# must define the :default database. Otherwise, you'll need to wrap your ORM
+# calls in <tt>repository(:name) { }</tt>.
 #
 # Second, the URI breaks down into the access protocol, the username, the
 # server, the password, and whatever path information is needed to properly
@@ -67,8 +69,10 @@ require dir / 'collection'
 #
 # Here's some examples
 #   DataMapper.setup(:default, "sqlite3://path/to/your/project/db/development.db")
-#   DataMapper.setup(:default, "mysql://localhost/dm_core_test")                        # no auth-info
-#   DataMapper.setup(:default, "postgres://root@127.0.0.1:supahsekret/dm_core_test")    # with auth-info
+#   DataMapper.setup(:default, "mysql://localhost/dm_core_test")
+#     # no auth-info
+#   DataMapper.setup(:default, "postgres://root@127.0.0.1:supahsekret/dm_core_test")
+#     # with auth-info
 #
 #
 # Alternatively, you can supply a hash as the second parameter, which would
@@ -99,7 +103,8 @@ module DataMapper
   #
   # ==== Parameters
   # name<Symbol>:: a name for the context, defaults to :default
-  # uri_or_options<Hash{Symbol => String}, Addressable::URI, String>:: connection information
+  # uri_or_options<Hash{Symbol => String}, Addressable::URI, String>::
+  #   connection information
   #
   # ==== Returns
   # Repository:: the resulting setup repository

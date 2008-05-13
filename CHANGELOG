@@ -142,4 +142,3 @@
 
 -- 0.3.0
 * HasManyAssociation::Set now has a nil? method, so we can do stuff like cage.animal.nil?
-

@@ -9,7 +9,7 @@ module DataMapper
   class RepositoryNotSetupError < StandardError; end
 
   class IncompleteResourceError < StandardError; end
-  
+
   class PersistenceError < StandardError; end
 end # module DataMapper
 

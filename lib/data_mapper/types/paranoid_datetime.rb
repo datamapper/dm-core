@@ -13,10 +13,10 @@ module DataMapper
             save
           end
         EOS
-      
+
         model.send(:scope_stack) << DataMapper::Query.new(repository, model, property.name => nil)
-        
-      end      
-    end
-  end
-end
+
+      end
+    end # class ParanoidDateTime
+  end # module Types
+end # module DataMapper

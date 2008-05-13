@@ -79,15 +79,15 @@ describe DataMapper::PropertySet do
       @properties.instance_variable_get("@property_for").should_not be_empty
       @properties.dup.instance_variable_get("@property_for").should be_empty
     end
-    
+
     it 'should be able to retarget a new model' do
       copy = Icon.properties.dup(Boat)
       copy.should have(4).entries
-      
+
       copy.each do |property|
         property.model.should == Boat
       end
-      
+
       copy << DataMapper::Property.new(Icon, :z_index, Integer, {})
       copy.should have(5).entries
       Icon.properties.should have(4).entries

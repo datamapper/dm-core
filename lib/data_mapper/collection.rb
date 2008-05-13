@@ -88,7 +88,8 @@ module DataMapper
 
     private
 
-    # +properties_with_indexes+ is a Hash of Property and values Array index pairs.
+    # +properties_with_indexes+ is a Hash of Property and values Array index
+    #   pairs.
     #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
     def initialize(repository, model, properties_with_indexes, &loader)
       raise ArgumentError, "+repository+ must be a DataMapper::Repository, but was #{repository.class}", caller unless Repository === repository

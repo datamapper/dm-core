@@ -97,27 +97,27 @@ describe DataMapper::Adapters::AbstractAdapter do
   it "should raise NotImplementedError when #upgrade_model_storage is called" do
     lambda { @adapter.upgrade_model_storage(:repository, :resource) }.should raise_error(NotImplementedError)
   end
-  
+
   it "should raise NotImplementedError when #create_model_storage is called" do
     lambda { @adapter.create_model_storage(:repository, :resource) }.should raise_error(NotImplementedError)
   end
-  
+
   it "should raise NotImplementedError when #destroy_model_storage is called" do
     lambda { @adapter.destroy_model_storage(:repository, :resource) }.should raise_error(NotImplementedError)
   end
-  
+
   it "should raise NotImplementedError when #alter_model_storage is called" do
     lambda { @adapter.alter_model_storage(:repository, :resource) }.should raise_error(NotImplementedError)
   end
-  
+
   it "should raise NotImplementedError when #create_property_storage is called" do
     lambda { @adapter.create_property_storage(:repository, :property) }
   end
-  
+
   it "should raise NotImplementedError when #destroy_property_storage is called" do
     lambda { @adapter.destroy_property_storage(:repository, :property) }
   end
-  
+
   it "should raise NotImplementedError when #alter_property_storage is called" do
     lambda { @adapter.alter_property_storage(:repository, :property) }
   end

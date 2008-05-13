@@ -1,5 +1,4 @@
 module DataMapper
-  
   class Transaction
 
     attr_reader :transaction_primitives, :adapters, :state
@@ -10,7 +9,8 @@ module DataMapper
     # ==== Parameters
     # See DataMapper::Transaction#link
     #
-    # In fact, it just calls #link with the given arguments at the end of the constructor.
+    # In fact, it just calls #link with the given arguments at the end of the
+    # constructor.
     #
     def initialize(*things, &block)
       @transaction_primitives = {}
@@ -19,19 +19,24 @@ module DataMapper
       link(*things)
       commit(&block) if block_given?
     end
+
     #
     # Associate this Transaction with some things.
     #
     # ==== Parameters
-    # things<any number of Object>:: The things you want this Transaction associated with.
-    #   DataMapper::Adapters::AbstractAdapter subclasses will be added as adapters as is.
+    # things<any number of Object>:: The things you want this Transaction
+    #   associated with.
+    #   DataMapper::Adapters::AbstractAdapter subclasses will be added as
+    #     adapters as is.
     #   Arrays will have their elements added.
     #   DataMapper::Repositories will have their @adapters added.
-    #   DataMapper::Resource subclasses will have all the repositories of all their properties added.
-    #   DataMapper::Resource instances will have all repositories of all their properties added.
-    # block<Block>:: A block (taking one argument, the Transaction) to execute within this 
-    #   transaction. The transaction will begin and commit around the block, and rollback if 
-    #   an exception is raised.
+    #   DataMapper::Resource subclasses will have all the repositories of all
+    #     their properties added.
+    #   DataMapper::Resource instances will have all repositories of all their
+    #     properties added.
+    # block<Block>:: A block (taking one argument, the Transaction) to execute
+    #   within this transaction. The transaction will begin and commit around
+    #   the block, and rollback if an exception is raised.
     #
     def link(*things, &block)
       raise "Illegal state for link: #{@state}" unless @state == :none
@@ -53,6 +58,7 @@ module DataMapper
       return commit(&block) if block_given?
       return self
     end
+
     #
     # Begin the transaction
     #
@@ -64,15 +70,17 @@ module DataMapper
       each_adapter(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
       @state = :begin
     end
+
     #
     # Commit the transaction
     #
     # ==== Parameters
-    # block<Block>:: A block (taking the one argument, the Transaction) to execute within this 
-    #   transaction. The transaction will begin and commit around the block, and rollback if 
-    #   an exception is raised.
+    # block<Block>:: A block (taking the one argument, the Transaction) to
+    #   execute within this transaction. The transaction will begin and commit
+    #   around the block, and roll back if an exception is raised.
     #
-    # If no block is given, it will simply commit any changes made since the Transaction did #begin.
+    # If no block is given, it will simply commit any changes made since the
+    # Transaction did #begin.
     #
     def commit(&block)
       if block_given?
@@ -94,6 +102,7 @@ module DataMapper
         @state = :commit
       end
     end
+
     #
     # Rollback the transaction
     #
@@ -106,15 +115,17 @@ module DataMapper
       each_adapter(:close_adapter_if_open, [:log_fatal_transaction_breakage])
       @state = :rollback
     end
+
     #
     # Execute a block within this Transaction.
     #
     # ==== Parameters
     # block<Block>:: The block of code to execute.
     #
-    # No #begin, #commit or #rollback is performed in #within, but this Transaction
-    # will pushed on the per thread stack of transactions for each adapter it is associated with,
-    # and it will ensures that it will pop the Transaction away again after the block is finished.
+    # No #begin, #commit or #rollback is performed in #within, but this
+    # Transaction will pushed on the per thread stack of transactions for each
+    # adapter it is associated with, and it will ensures that it will pop the
+    # Transaction away again after the block is finished.
     #
     def within(&block)
       raise "No block provided" unless block_given?
@@ -130,6 +141,7 @@ module DataMapper
         end
       end
     end
+
     def method_missing(meth, *args, &block)
       if args.size == 1 && args.first.is_a?(DataMapper::Adapters::AbstractAdapter)
         if (match = meth.to_s.match(/^(.*)_if_(none|begin|prepare|rollback|commit)$/))
@@ -151,6 +163,7 @@ module DataMapper
         super
       end
     end
+
     def primitive_for(adapter)
       raise "Unknown adapter #{adapter}" unless @adapters.include?(adapter)
       raise "No primitive for #{adapter}" unless @transaction_primitives.include?(adapter)
@@ -165,6 +178,7 @@ module DataMapper
       end
       return primitive
     end
+
     def each_adapter(method, on_fail)
       begin
         @adapters.each do |adapter, state|
@@ -183,10 +197,12 @@ module DataMapper
         raise e
       end
     end
+
     def state_for(adapter)
       raise "Unknown adapter #{adapter}" unless @adapters.include?(adapter)
       @adapters[adapter]
     end
+
     def do_adapter(adapter, what, prerequisite)
       raise "No primitive for #{adapter}" unless @transaction_primitives.include?(adapter)
       raise "Illegal state for #{what}: #{state_for(adapter)}" unless state_for(adapter) == prerequisite
@@ -194,47 +210,57 @@ module DataMapper
       @transaction_primitives[adapter].send(what)
       @adapters[adapter] = what
     end
+
     def log_fatal_transaction_breakage(adapter)
       DataMapper.logger.fatal("#{self} experienced a totally broken transaction execution. Presenting member #{adapter.inspect}.")
     end
+
     def connect_adapter(adapter)
       raise "Already a primitive for adapter #{adapter}" unless @transaction_primitives[adapter].nil?
       @transaction_primitives[adapter] = validate_primitive(adapter.transaction_primitive)
     end
+
     def close_adapter_if_open(adapter)
       if @transaction_primitives.include?(adapter)
         close_adapter(adapter)
       end
     end
+
     def close_adapter(adapter)
       raise "No primitive for adapter" unless @transaction_primitives.include?(adapter)
       @transaction_primitives[adapter].close
       @transaction_primitives.delete(adapter)
     end
+
     def begin_adapter(adapter)
       do_adapter(adapter, :begin, :none)
     end
+
     def prepare_adapter(adapter)
       do_adapter(adapter, :prepare, :begin);
     end
+
     def commit_adapter(adapter)
       do_adapter(adapter, :commit, :prepare)
     end
+
     def rollback_adapter(adapter)
       do_adapter(adapter, :rollback, :begin)
     end
+
     def rollback_prepared_adapter(adapter)
       do_adapter(adapter, :rollback_prepared, :prepare)
     end
+
     def rollback_prepared_and_close_adapter(adapter)
       rollback_prepared_adapter(adapter)
       close_adapter(adapter)
     end
+
     def rollback_and_close_adapter(adapter)
       rollback_adapter(adapter)
       close_adapter(adapter)
     end
-  end
 
-end
-
+  end # class Transaction
+end # module DataMapper

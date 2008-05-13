@@ -16,14 +16,14 @@ require "time" # httpdate
 #   DataMapper.logger.info(message<String>)
 #   DataMapper.logger.debug(message<String>)
 #
-# Flush the buffer to 
+# Flush the buffer to
 #   DataMapper.logger.flush
 #
 # Remove the current log object
 #   DataMapper.logger.close
-# 
+#
 # ==== Private DataMapper Logger API
-# 
+#
 # To initialize the logger you create a new object, proxies to set_log.
 #   DataMapper::Logger.new(log{String, IO},level{Symbol, String})
 module DataMapper
@@ -49,10 +49,10 @@ module DataMapper
     #     debug: low-level information for developers
     #
     #   DataMapper::Logger::LEVELS[:fatal, :error, :warn, :info, :debug]
-    LEVELS = 
+    LEVELS =
     {
-      :fatal => 7, 
-      :error => 6, 
+      :fatal => 7,
+      :error => 6,
       :warn  => 4,
       :info  => 3,
       :debug => 0
@@ -60,8 +60,8 @@ module DataMapper
 
     private
 
-    # The idea here is that instead of performing an 'if' conditional check
-    # on each logging we do it once when the log object is setup
+    # The idea here is that instead of performing an 'if' conditional check on
+    # each logging we do it once when the log object is setup
     def set_write_method
       @log.instance_eval do
 
@@ -115,12 +115,13 @@ module DataMapper
 
     # To replace an existing logger with a new one:
     #  DataMapper::Logger.set_log(log{String, IO},level{Symbol, String})
-    # 
+    #
     # ==== Parameters
     # log<IO,String>
     #   Either an IO object or a name of a logfile.
     # log_level<Symbol>
-    #   A symbol representing the log level from {:fatal, :error, :warn, :info, :debug}
+    #   A symbol representing the log level from {:fatal, :error, :warn, :info,
+    #   :debug}
     # delimiter<String>
     #   Delimiter to use between message sections
     def set_log(log, log_level = nil, delimiter = " ~ ")
@@ -156,9 +157,11 @@ module DataMapper
       @log = nil
     end
 
-    # Appends a string and log level to logger's buffer. 
-    # Note that the string is discarded if the string's log level less than the logger's log level. 
-    # Note that if the logger is aio capable then the logger will use non-blocking asynchronous writes.
+    # Appends a string and log level to logger's buffer.
+    # Note that the string is discarded if the string's log level less than the
+    # logger's log level.
+    # Note that if the logger is aio capable then the logger will use
+    # non-blocking asynchronous writes.
     #
     # ==== Parameters
     # level<Fixnum>
@@ -175,8 +178,9 @@ module DataMapper
     end
     alias << push
 
-    # Generate the following logging methods for DataMapper.logger as described in the api:
-    #  :fatal, :error, :warn, :info, :debug 
+    # Generate the following logging methods for DataMapper.logger as described
+    # in the API:
+    #  :fatal, :error, :warn, :info, :debug
     LEVELS.each_pair do |name, number|
       class_eval <<-LEVELMETHODS, __FILE__, __LINE__
       # DOC
@@ -192,5 +196,4 @@ module DataMapper
     end
 
   end # class Logger
-  
 end # module DataMapper
