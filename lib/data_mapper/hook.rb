@@ -200,11 +200,21 @@ module DataMapper
     end
 
     def hooks
-      @hooks ||= Hash.new { |h, k| h[k] = {} }
+      return @hooks if @hooks
+      if self.superclass != Object
+        @hooks = self.superclass.hooks
+      else
+        @hooks = Hash.new { |h, k| h[k] = {} }
+      end
     end
 
     def class_method_hooks
-      @class_method_hooks ||= Hash.new { |h, k| h[k] = {} }
+      return @class_method_hooks if @class_method_hooks
+      if self.superclass != Object
+        @class_method_hooks = self.superclass.class_method_hooks
+      else
+        @class_method_hooks = Hash.new { |h, k| h[k] = {} }
+      end
     end
 
     def quote_method(name)

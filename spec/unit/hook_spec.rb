@@ -52,6 +52,19 @@ describe "DataMapper::Hook" do
     @class.a_class_method
   end
 
+  it 'should run an advice block for class methods when the class is inherited' do
+    @inherited_class = Class.new(@class)
+    
+    @class.before_class_method :a_class_method do
+      hi_dad!
+    end
+
+    @inherited_class.should_receive(:hi_dad!)
+
+    @inherited_class.a_class_method
+  end
+
+
   it 'should run an advice block' do
     @class.before :a_method do
       hi_mom!
@@ -59,6 +72,19 @@ describe "DataMapper::Hook" do
 
     inst = @class.new
     inst.should_receive(:hi_mom!)
+
+    inst.a_method
+  end
+  
+  it 'should run an advice block when the class is inherited' do
+    @inherited_class = Class.new(@class)
+    
+    @class.before :a_method do
+      hi_dad!
+    end
+
+    inst = @inherited_class.new
+    inst.should_receive(:hi_dad!)
 
     inst.a_method
   end
