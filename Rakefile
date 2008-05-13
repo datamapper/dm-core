@@ -136,7 +136,7 @@ SUDO = windows ? "" : "sudo"
 
 desc "Install #{PROJECT}"
 task :install => :package do
-  sh %{#{SUDO unless ENV['SUDOLESS']} gem install pkg/#{PROJECT}-#{PACKAGE_VERSION}}
+  sh %{#{SUDO unless ENV['SUDOLESS']} gem install --local pkg/#{PROJECT}-#{PACKAGE_VERSION} --no-update-sources}
 end
 
 if RUBY_PLATFORM.match(/mswin32|cygwin|mingw|bccwin/)
