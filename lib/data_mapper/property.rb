@@ -269,6 +269,10 @@ module DataMapper
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
+    
+    def unique
+      @unique ||= @options.fetch(:unique, @serial || @key || false)
+    end
 
     def repository
       @model.repository
@@ -434,10 +438,9 @@ module DataMapper
       @custom                 = DataMapper::Type > @type
       @options                = @custom ? @type.options.merge(options) : options
       @instance_variable_name = "@#{@name}"
-
+      
       # TODO: This default should move to a DataMapper::Types::Text
       # Custom-Type and out of Property.
-      @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
       
       @getter   = TrueClass == @primitive ? "#{@name}?".to_sym : @name
@@ -446,6 +449,8 @@ module DataMapper
       @key      = @options.fetch(:key,      @serial || false)
       @default  = @options.fetch(:default,  nil)
       @nullable = @options.fetch(:nullable, @key == false && @default.nil?)
+
+      @lazy     = @options.fetch(:lazy,     @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
 
       # assign attributes per-type
       if String == @primitive || Class == @primitive

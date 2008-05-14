@@ -32,6 +32,11 @@ describe DataMapper::Property do
 
     property.primitive.should == String
   end
+  
+  it "should not have key that is lazy" do
+    property = DataMapper::Property.new(Zoo, :id, DataMapper::Types::Text, { :key => true })
+    property.lazy?.should == false
+  end
 
   it "should use a custom type Name property" do
     class Name < DataMapper::Type
