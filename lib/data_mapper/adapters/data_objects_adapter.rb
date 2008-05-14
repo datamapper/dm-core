@@ -276,8 +276,6 @@ module DataMapper
       def create_model_storage(repository, model)
         statement = create_table_statement(model)
 
-        DataMapper.logger.debug "CREATE TABLE: #{statement}"
-
         connection = create_connection
         command = connection.create_command(statement)
         result = command.execute_non_query
@@ -289,8 +287,6 @@ module DataMapper
 
       def destroy_model_storage(repository, model)
         statement = drop_table_statement(model)
-
-        DataMapper.logger.debug "DROP TABLE: #{statement}"
 
         connection = create_connection
         command = connection.create_command(statement)

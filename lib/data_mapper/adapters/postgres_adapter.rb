@@ -104,9 +104,8 @@ module DataMapper
       end
 
       def create_sequence_column(connection, model, property)
+        return if sequence_exists?(model, property)
         sql = create_sequence_statement(model, property)
-
-        DataMapper.logger.debug "CREATE SEQUENCE: #{sql}"
 
         command = connection.create_command(sql)
 
@@ -120,8 +119,6 @@ module DataMapper
       end
 
       def drop_sequence_column(connection, model, property)
-        DataMapper.logger.debug "DROP SEQUENCE: #{model.storage_name(name)}_#{property.field}_seq"
-
         command = connection.create_command(drop_sequence_statement(model, property))
 
         command.execute_non_query
@@ -137,6 +134,13 @@ module DataMapper
 
       private
 
+      def sequence_exists?(model, property)
+        query("SELECT relname 
+               FROM pg_class 
+               WHERE relkind = 'S' AND
+               relname = ?", sequence_name(model, property)).size > 0
+      end
+      
       def sequence_name(model, property)
         "#{model.storage_name(name)}_#{property.field}_seq"
       end
