@@ -272,7 +272,7 @@ module DataMapper
 
     module ClassMethods
       def self.extended(model)
-        model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.name) })
+        model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval do default_storage_name end) })
         model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
 
@@ -416,6 +416,10 @@ module DataMapper
       end
 
       private
+
+      def default_storage_name
+        self.name
+      end
 
       def default_repository_name
         Repository.default_name

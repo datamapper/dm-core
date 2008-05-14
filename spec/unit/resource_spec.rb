@@ -41,6 +41,28 @@ describe "DataMapper::Resource" do
     end
   end
 
+  describe "storage names" do
+    it "should use its class name by default" do
+      Planet.storage_name.should == "planets"
+    end
+    
+    it "should allow changing using #default_storage_name" do
+      Planet.class_eval <<EOF
+@storage_names.clear
+def self.default_storage_name
+  "Superplanet"
+end
+EOF
+      Planet.storage_name.should == "superplanets"
+      Planet.class_eval <<EOF
+@storage_names.clear
+def self.default_storage_name
+  self.name
+end
+EOF
+    end
+  end
+
   it "should require a key" do
     lambda do
       DataMapper::Resource.new("stuff") do
