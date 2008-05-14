@@ -36,7 +36,8 @@ module DataMapper
 
       def get_children(parent)
         query = child_key.to_query(parent_key.get(parent))
-
+        query.merge!({:order => @child_order}) if @child_order
+        
         DataMapper.repository(parent.repository.name) do
           child_model.all(query)
         end
@@ -81,11 +82,16 @@ module DataMapper
         if parent_properties = options[:parent_key]
           raise ArgumentError, "+parent_properties+ must be an Array or nil, but was #{parent_properties.class}", caller unless Array === parent_properties
         end
+        
+        if child_order = options[:order]
+          raise ArgumentError, "+child_order+ must be an Array or nil, but was #{child_order.class}", caller unless Array === child_order
+        end
 
         @name              = name
         @repository_name   = repository_name
         @child_model_name  = child_model_name
         @child_properties  = child_properties   # may be nil
+        @child_order       = child_order        # may be nil
         @parent_model_name = parent_model_name
         @parent_properties = parent_properties  # may be nil
         @loader            = loader

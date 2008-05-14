@@ -3,7 +3,7 @@ require 'forwardable'
 module DataMapper
   module Associations
     module OneToMany
-      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
+      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max, :order ]
 
       private
 
