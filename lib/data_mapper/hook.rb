@@ -201,7 +201,7 @@ module DataMapper
 
     def hooks
       return @hooks if @hooks
-      if self.superclass != Object
+      if self.superclass.respond_to?(:hooks)
         @hooks = self.superclass.hooks
       else
         @hooks = Hash.new { |h, k| h[k] = {} }
@@ -210,7 +210,7 @@ module DataMapper
 
     def class_method_hooks
       return @class_method_hooks if @class_method_hooks
-      if self.superclass != Object
+      if self.superclass.respond_to?(:class_method_hooks)
         @class_method_hooks = self.superclass.class_method_hooks
       else
         @class_method_hooks = Hash.new { |h, k| h[k] = {} }
