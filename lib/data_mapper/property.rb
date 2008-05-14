@@ -434,13 +434,13 @@ module DataMapper
       @custom                 = DataMapper::Type > @type
       @options                = @custom ? @type.options.merge(options) : options
       @instance_variable_name = "@#{@name}"
-      @getter                 = TrueClass == @type ? "#{@name}?".to_sym : @name
 
       # TODO: This default should move to a DataMapper::Types::Text
       # Custom-Type and out of Property.
       @lazy      = @options.fetch(:lazy,      @type.respond_to?(:lazy)      ? @type.lazy      : false)
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
-
+      
+      @getter   = TrueClass == @primitive ? "#{@name}?".to_sym : @name
       @lock     = @options.fetch(:lock,     false)
       @serial   = @options.fetch(:serial,   false)
       @key      = @options.fetch(:key,      @serial || false)
