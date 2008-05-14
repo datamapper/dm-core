@@ -384,12 +384,12 @@ module DataMapper
     #-
     # @private
     def typecast(value)
-      return value if type === value || value.nil?
+      return value if type === value || (value.nil? && type != TrueClass)
 
-      if    type == TrueClass  then true == value || 'true' == value || 1 == value || '1' == value
-      elsif type == String     then String(value)
-      elsif type == Float      then Float(value)
-      elsif type == Fixnum     then Integer(value)
+      if    type == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
+      elsif type == String     then value.to_s
+      elsif type == Float      then value.to_f
+      elsif type == Fixnum     then value.to_i
       elsif type == BigDecimal then BigDecimal(value.to_s)
       elsif type == DateTime   then DateTime.parse(value.to_s)
       elsif type == Date       then Date.parse(value.to_s)
@@ -442,7 +442,7 @@ module DataMapper
       # TODO: This default should move to a DataMapper::Types::Text
       # Custom-Type and out of Property.
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
-      
+
       @getter   = TrueClass == @primitive ? "#{@name}?".to_sym : @name
       @lock     = @options.fetch(:lock,     false)
       @serial   = @options.fetch(:serial,   false)
