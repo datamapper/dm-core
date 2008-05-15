@@ -24,6 +24,18 @@ if HAS_SQLITE3
       orange.reload!
       orange.color.should == 'orange'
     end
+    
+    it "should be able to reload new objects" do
+      repository(:sqlite3) do
+        orange = Orange.new
+        orange.name = 'Tom'
+        orange.save
+        
+        lambda do
+          orange.reload!
+        end.should_not raise_error
+      end
+    end
 
     describe "anonymity" do
 
