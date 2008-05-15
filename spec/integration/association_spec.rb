@@ -427,6 +427,21 @@ if HAS_SQLITE3
         s.host.should_not be_nil
         s.host.id.should == 10
       end
+      
+      it 'should have finder-functionality' do
+        h = repository(:sqlite3) do
+           Host.first(:id => 1)
+        end
+        
+        h.slices.should have(2).entries
+        
+        s = h.slices.all(:name => 'slice2')
+        
+        s.should have(1).entries
+        s.first.id.should == 2
+        
+        h.slices.first(:name => 'slice2').should == s.first
+      end
 
       describe "many-to-one and one-to-many associations combined" do
         before do
