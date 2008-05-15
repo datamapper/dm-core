@@ -68,13 +68,14 @@ module DataMapper
     end
 
     def define_instance_or_class_method(new_meth_name, block, scope)
-      if scope == :class
+      case scope
+      when :class
         class << self
           self
         end.instance_eval do
           define_method new_meth_name, block
         end
-      elsif scope == :instance
+      when :instance
         define_method new_meth_name, block
       else
         raise ArgumentError.new("You need to pass :class or :instance as scope")
@@ -82,10 +83,9 @@ module DataMapper
     end
 
     def hooks_with_scope(scope)
-      if scope == :class
-        class_method_hooks
-      elsif scope == :instance
-        hooks
+      case scope
+      when :class then class_method_hooks
+      when :instance then hooks
       else
         raise ArgumentError.new("You need to pass :class or :instance as scope")
       end
@@ -111,10 +111,9 @@ module DataMapper
     end
 
     def method_with_scope(name, scope)
-      if scope == :class
-        method(name)
-      elsif scope == :instance
-        instance_method(name)
+      case scope
+      when :class then method(name)
+      when :instance then instance_method(name)
       else
         raise ArgumentError.new("You need to pass :class or :instance as scope")
       end
@@ -206,20 +205,18 @@ module DataMapper
     end
 
     def hooks
-      return @hooks if @hooks
-      if self.superclass.respond_to?(:hooks)
-        @hooks = self.superclass.hooks
+      @hooks ||= if self.superclass.respond_to?(:hooks)
+        self.superclass.hooks
       else
-        @hooks = Hash.new { |h, k| h[k] = {} }
+        Hash.new { |h, k| h[k] = {} }
       end
     end
 
     def class_method_hooks
-      return @class_method_hooks if @class_method_hooks
-      if self.superclass.respond_to?(:class_method_hooks)
-        @class_method_hooks = self.superclass.class_method_hooks
+      @class_method_hooks ||= if self.superclass.respond_to?(:class_method_hooks)
+        self.superclass.class_method_hooks
       else
-        @class_method_hooks = Hash.new { |h, k| h[k] = {} }
+        Hash.new { |h, k| h[k] = {} }
       end
     end
 

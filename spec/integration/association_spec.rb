@@ -54,7 +54,7 @@ if HAS_SQLITE3
     property :name, String
 
     repository(:sqlite3) do
-      one_to_many :slices
+      one_to_many :slices, :order => [:id.desc]
     end
   end
 
@@ -355,15 +355,15 @@ if HAS_SQLITE3
         s.host_id.should be_nil
       end
 
-      it "should load the associated instances" do
+      it "should load the associated instances, in the correct order" do
         h = repository(:sqlite3) do
           Host.first(:id => 1)
         end
 
         h.slices.should_not be_nil
         h.slices.size.should == 2
-        h.slices.first.id.should == 1
-        h.slices.last.id.should == 2
+        h.slices.first.id.should == 2 # ordered by [:id.desc] 
+        h.slices.last.id.should == 1
 
         s0 = repository(:sqlite3) do
           Slice.first(:id => 0)

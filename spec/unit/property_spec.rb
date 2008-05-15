@@ -32,6 +32,11 @@ describe DataMapper::Property do
 
     property.primitive.should == String
   end
+  
+  it "should not have key that is lazy" do
+    property = DataMapper::Property.new(Zoo, :id, DataMapper::Types::Text, { :key => true })
+    property.lazy?.should == false
+  end
 
   it "should use a custom type Name property" do
     class Name < DataMapper::Type
@@ -162,10 +167,6 @@ describe DataMapper::Property do
     DataMapper::Property.new(Zoo, :fortune, DataMapper::Types::Text, {}).primitive.should == String
   end
 
-  it 'should provide typecast' do
-    DataMapper::Property.new(Zoo, :name, String).should respond_to(:typecast)
-  end
-
   it "should provide a size/length" do
     DataMapper::Property.new(Zoo, :cleanliness, String, { :size => 100 }).size.should == 100
     DataMapper::Property.new(Zoo, :cleanliness, String, { :length => 200 }).size.should == 200
@@ -173,69 +174,93 @@ describe DataMapper::Property do
     DataMapper::Property.new(Zoo, :cleanliness, String, { :length => (0..200) }).size.should == 200
   end
 
-  it 'should pass through the value if it is the same type when typecasting' do
-    value = 'San Diego'
-    property = DataMapper::Property.new(Zoo, :name, String)
-    property.typecast(value).object_id.should == value.object_id
+  it 'should provide #typecast' do
+    DataMapper::Property.new(Zoo, :name, String).should respond_to(:typecast)
   end
 
-  it 'should pass through the value nil when typecasting' do
-    property = DataMapper::Property.new(Zoo, :string, String)
-    property.typecast(nil).should == nil
+  describe '#typecast' do
+    def self.format(value)
+      case value
+        when BigDecimal             then "BigDecimal(#{value.to_s('F').inspect})"
+        when Float, Integer, String then "#{value.class}(#{value.inspect})"
+        else value.inspect
+      end
+    end
+
+    it 'should pass through the value if it is the same type when typecasting' do
+      value = 'San Diego'
+      property = DataMapper::Property.new(Zoo, :name, String)
+      property.typecast(value).object_id.should == value.object_id
+    end
+
+    it 'should pass through the value nil when typecasting' do
+      property = DataMapper::Property.new(Zoo, :string, String)
+      property.typecast(nil).should == nil
+    end
+
+    it 'should pass through the value for an Object property' do
+      value = 'a ruby object'
+      property = DataMapper::Property.new(Zoo, :object, Object)
+      property.typecast(value).object_id.should == value.object_id
+    end
+
+    [ true, 'true', 'TRUE', 1, '1', 't', 'T' ].each do |value|
+      it "should typecast #{value.inspect} to true for a TrueClass property" do
+        property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
+        property.typecast(value).should == true
+      end
+    end
+
+    [ false, 'false', 'FALSE', 0, '0', 'f', 'F', nil ].each do |value|
+      it "should typecast #{value.inspect} to false for a Boolean property" do
+        property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
+        property.typecast(value).should == false
+      end
+    end
+
+    it 'should typecast "0" to "0" for a String property' do
+      property = DataMapper::Property.new(Zoo, :string, String)
+      property.typecast(0).should == '0'
+    end
+
+    { '0' => 0.0, '0.0' => 0.0, 0 => 0.0, 0.0 => 0.0, BigDecimal('0.0') => 0.0 }.each do |value,expected|
+      it "should typecast #{format(value)} to #{format(expected)} for a Float property" do
+        property = DataMapper::Property.new(Zoo, :float, Float)
+        property.typecast(value).should == expected
+      end
+    end
+
+    { '0' => 0, '0.0' => 0, 0 => 0, 0.0 => 0, BigDecimal('0.0') => 0 }.each do |value,expected|
+      it "should typecast #{format(value)} to #{format(expected)} for an Integer property" do
+        property = DataMapper::Property.new(Zoo, :integer, Integer)
+        property.typecast(value).should == expected
+      end
+    end
+
+    { '0' => BigDecimal('0'), '0.0' => BigDecimal('0.0'), 0.0 => BigDecimal('0.0'), BigDecimal('0.0') => BigDecimal('0.0') }.each do |value,expected|
+      it "should typecast #{format(value)} to #{format(expected)} for a BigDecimal property" do
+        property = DataMapper::Property.new(Zoo, :big_decimal, BigDecimal)
+        property.typecast(value).should == expected
+      end
+    end
+
+    it 'should typecast value for a DateTime property' do
+      property = DataMapper::Property.new(Zoo, :date_time, DateTime)
+      property.typecast('2000-01-01 00:00:00').should == DateTime.new(2000, 1, 1, 0, 0, 0)
+    end
+
+    it 'should typecast value for a Date property' do
+      property = DataMapper::Property.new(Zoo, :date, Date)
+      property.typecast('2000-01-01').should == Date.new(2000, 1, 1)
+    end
+
+    it 'should typecast value for a Class property' do
+      property = DataMapper::Property.new(Zoo, :class, Class)
+      property.typecast('Zoo').should == Zoo
+    end
   end
 
-  it 'should pass through the value for an Object property' do
-    value = 'a ruby object'
-    property = DataMapper::Property.new(Zoo, :object, Object)
-    property.typecast(value).object_id.should == value.object_id
-  end
-
-  it 'should typecast value (true) for a TrueClass property' do
-    property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
-    property.typecast(true).should == true
-  end
-
-  it 'should typecast value ("true") for a TrueClass property' do
-    property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
-    property.typecast('true').should == true
-  end
-
-  it 'should typecast value for a String property' do
-    property = DataMapper::Property.new(Zoo, :string, String)
-    property.typecast(0).should == '0'
-  end
-
-  it 'should typecast value for a Float property' do
-    property = DataMapper::Property.new(Zoo, :float, Float)
-    property.typecast('0.0').should == 0.0
-  end
-
-  it 'should typecast value for a Integer property' do
-    property = DataMapper::Property.new(Zoo, :integer, Integer)
-    property.typecast('0').should == 0
-  end
-
-  it 'should typecast value for a BigDecimal property' do
-    property = DataMapper::Property.new(Zoo, :big_decimal, BigDecimal)
-    property.typecast(0.0).should == BigDecimal.new('0.0')
-  end
-
-  it 'should typecast value for a DateTime property' do
-    property = DataMapper::Property.new(Zoo, :date_time, DateTime)
-    property.typecast('2000-01-01 00:00:00').should == DateTime.new(2000, 1, 1, 0, 0, 0)
-  end
-
-  it 'should typecast value for a Date property' do
-    property = DataMapper::Property.new(Zoo, :date, Date)
-    property.typecast('2000-01-01').should == Date.new(2000, 1, 1)
-  end
-
-  it 'should typecast value for a Class property' do
-    property = DataMapper::Property.new(Zoo, :class, Class)
-    property.typecast('Zoo').should == Zoo
-  end
-
-  it 'should provide inspect' do
+  it 'should provide #inspect' do
     DataMapper::Property.new(Zoo, :name, String).should respond_to(:inspect)
   end
 

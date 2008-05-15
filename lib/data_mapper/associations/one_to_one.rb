@@ -9,10 +9,6 @@ module DataMapper
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        if (unknown_options = options.keys - OPTIONS).any?
-          raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
-        end
-
         child_model_name  = options.fetch(:class_name, DataMapper::Inflection.classify(name))
         parent_model_name = DataMapper::Inflection.demodulize(self.name)
 
