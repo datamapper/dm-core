@@ -471,4 +471,88 @@ describe "DataMapper::Hook" do
       end
     end.should raise_error(ArgumentError)
   end
+
+
+  describe 'aborting' do
+    class CaptHook
+      include DataMapper::Resource
+      property :id, Integer, :key => true
+      property :eaten, Boolean
+
+      @@ruler_of_all_neverland = false
+      @@clocks_bashed = 0
+      
+      def self.ruler_of_all_neverland?
+        @@ruler_of_all_neverland
+      end
+      
+      def self.conquer_neverland
+        @@ruler_of_all_neverland = true
+      end
+
+      def self.bash_clock
+        @@clocks_bashed += 1
+      end
+      
+      def self.clocks_bashed
+        @@clocks_bashed
+      end
+      
+      def self.walk_the_plank!
+        true
+      end
+
+      def get_eaten_by_croc
+        self.eaten = true
+      end
+
+      def throw_halt
+        throw :halt
+      end
+    end
+
+    
+    it "should catch :halt from a before instance hook and abort the advised method" do
+      CaptHook.before :get_eaten_by_croc, :throw_halt
+      capt_hook = CaptHook.new
+      lambda { 
+        capt_hook.get_eaten_by_croc 
+        capt_hook.should_not be_eaten
+      }.should_not throw_symbol(:halt)
+    end
+    
+    it "should catch :halt from an after instance hook and cease the advice" do
+      CaptHook.after :get_eaten_by_croc, :throw_halt
+      capt_hook = CaptHook.new
+      lambda { 
+        capt_hook.get_eaten_by_croc
+        capt_hook.should be_eaten
+       }.should_not throw_symbol(:halt)
+    end
+    
+    it "should catch :halt from a before class method hook and abort advised method" do
+      CaptHook.before_class_method :conquer_neverland, :throw_halt
+      lambda {
+        CaptHook.conquer_neverland
+        CaptHook.should_not be_ruler_of_all_neverland
+      }.should_not throw_symbol(:halt)
+
+    end
+    
+    it "should catch :halt from an after class method hook and abort the rest of the advice" do
+      CaptHook.after_class_method :bash_clock, :throw_halt
+      lambda {
+        CaptHook.bash_clock
+        CaptHook.clocks_bashed.should == 1
+      }.should_not throw_symbol(:halt)
+      
+    end
+    
+    after do
+      # Thus perished James Hook
+      CaptHook.walk_the_plank!
+    end
+  end
+  
+  
 end

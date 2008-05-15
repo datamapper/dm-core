@@ -135,9 +135,15 @@ module DataMapper
 
       <<-EOD
         def #{prefix}#{name}(#{args})
-          #{inline_hooks(name, scope, types.first, args)}
-          retval = #{inline_call(name, scope, args)}
-          #{inline_hooks(name, scope, types.last, args)}
+          retval = nil
+          catch(:halt) do
+            #{inline_hooks(name, scope, types.first, args)}
+            retval = #{inline_call(name, scope, args)}
+          end
+          
+          catch(:halt) do
+            #{inline_hooks(name, scope, types.last, args)}
+          end
           retval
         end
       EOD
