@@ -34,11 +34,11 @@ module DataMapper
         end
       end
 
-      def get_children(parent)
-        query = child_key.to_query(parent_key.get(parent))
+      def get_children(parent,options = {},finder = :all)
+        query = @query.merge(options).merge(child_key.to_query(parent_key.get(parent)))
         
         DataMapper.repository(parent.repository.name) do
-          child_model.all(query.merge(@query))
+          finder == :first ? child_model.first(query) : child_model.all(query)
         end
       end
 

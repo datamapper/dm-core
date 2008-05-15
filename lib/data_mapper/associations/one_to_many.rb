@@ -95,6 +95,14 @@ module DataMapper
           @dirty_children = []
           self
         end
+        
+        def all(options={})
+          options.empty? ? children : @relationship.get_children(@parent_resource,options,:all)
+        end
+        
+        def first(options={})
+          options.empty? ? children.first : @relationship.get_children(@parent_resource,options,:first)
+        end
 
         private
 
