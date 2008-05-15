@@ -3,17 +3,13 @@ require 'forwardable'
 module DataMapper
   module Associations
     module OneToMany
-      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max, :order ]
+      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
 
       private
 
       def one_to_many(name, options = {})
         raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller     unless Symbol === name || Hash === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
-
-        if (unknown_options = options.keys - OPTIONS).any?
-          raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
-        end
 
         child_model_name = options.fetch(:class_name, DataMapper::Inflection.classify(name))
 
