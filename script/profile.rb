@@ -10,6 +10,7 @@ SOCKET_FILE = Pathname.glob(%w[
   /opt/local/var/run/mysql5/mysqld.sock
   tmp/mysqld.sock
   tmp/mysql.sock
+  /var/mysql/mysql.sock
 ]).find(&:socket?)
 
 DataMapper::Logger.new(DataMapper.root / 'log' / 'dm.log', :debug)
@@ -18,9 +19,9 @@ DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{SOCKET
 class Exhibit
   include DataMapper::Resource
 
-  property :id, Fixnum, :serial => true
+  property :id, Integer, :serial => true
   property :name, String
-  property :zoo_id, Fixnum
+  property :zoo_id, Integer
   property :notes, String, :lazy => true
   property :created_on, Date
   property :updated_at, DateTime

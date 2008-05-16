@@ -6,5 +6,5 @@ module DataMapper
       size 65535
       lazy true
     end # class Text
-  end # module Types  
+  end # module Types
 end # module DataMapper

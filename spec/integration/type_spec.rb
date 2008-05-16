@@ -20,7 +20,7 @@ if HAS_SQLITE3
 
           storage_names[:sqlite3] = 'coconuts'
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :faked, Impostor
           property :active, Boolean
           property :note, Text
@@ -84,7 +84,7 @@ if HAS_SQLITE3
 
       class Lime
         include DataMapper::Resource
-        property :id, Fixnum, :serial => true
+        property :id, Integer, :serial => true
         property :color, String
         property :deleted_at, DataMapper::Types::ParanoidDateTime
       end
@@ -109,7 +109,7 @@ if HAS_SQLITE3
 
       class Lime
         include DataMapper::Resource
-        property :id, Fixnum, :serial => true
+        property :id, Integer, :serial => true
         property :color, String
         property :deleted_at, DataMapper::Types::ParanoidBoolean
       end

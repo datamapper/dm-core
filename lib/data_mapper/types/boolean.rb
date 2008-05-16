@@ -3,5 +3,5 @@ module DataMapper
     class Boolean < DataMapper::Type
       primitive TrueClass
     end # class Boolean
-  end # module Types  
+  end # module Types
 end # module DataMapper

@@ -14,7 +14,8 @@ module DataMapper
       #
       # ==== Parameters
       # <String>:: An SQL query to execute
-      # <Array>:: An Array containing a String (being the SQL query to execute) and the parameters to the query.
+      # <Array>:: An Array containing a String (being the SQL query to execute)
+      #   and the parameters to the query.
       #   example: ["SELECT name FROM users WHERE id = ?", id]
       # <DataMapper::Query>:: A prepared Query to execute.
       # <Hash>:: An options hash.
@@ -22,9 +23,13 @@ module DataMapper
       # A String, Array or Query is required.
       #
       # ==== Options (the options hash)
-      # :repository<Symbol>:: The name of the repository to execute the query in. Defaults to self.default_repository_name.
-      # :reload<Boolean>:: Whether to reload any instances found that allready exist in the identity map. Defaults to false.
-      # :properties<Array>:: The Properties of the instance that the query loads. Must contain DataMapper::Properties. Defaults to self.properties.
+      # :repository<Symbol>:: The name of the repository to execute the query
+      #   in. Defaults to self.default_repository_name.
+      # :reload<Boolean>:: Whether to reload any instances found that already
+      #   exist in the identity map. Defaults to false.
+      # :properties<Array>:: The Properties of the instance that the query
+      #   loads. Must contain DataMapper::Properties.
+      #   Defaults to self.properties.
       #
       # ==== Returns
       # Collection:: The instance matched by the query.
@@ -116,6 +121,28 @@ module DataMapper
         DataObjects::Transaction.create_for_uri(@uri)
       end
 
+      def with_reader(statement, *params, &block)
+        with_connection do |connection|
+          reader = nil
+          begin
+            reader = connection.create_command(statement).execute_reader(*params)
+            yield reader
+          ensure
+            reader.close if reader
+          end
+        end
+      end
+
+      def with_connection(&block) 
+        connection = nil
+        begin
+          connection = create_connection
+          yield connection
+        ensure
+          close_connection(connection) if connection
+        end
+      end
+
       def create_connection
         if within_transaction?
           current_transaction.primitive_for(self).connection
@@ -139,12 +166,12 @@ module DataMapper
       def create(repository, resource)
         properties = resource.dirty_attributes
 
-        sql = send(create_with_returning? ? :create_statement_with_returning : :create_statement, resource.class, properties)
-        values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
+        statement = send(create_with_returning? ? :create_statement_with_returning : :create_statement, resource.class, properties)
+        bind_values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
 
         connection = create_connection
-        command = connection.create_command(sql)
-        result = command.execute_non_query(*values)
+        command = connection.create_command(statement)
+        result = command.execute_non_query(*bind_values)
 
         return false if result.to_i != 1
 
@@ -158,20 +185,16 @@ module DataMapper
         close_connection(connection) if connection
       end
 
-      def exists?(storage_name)
-        raise NotImplementedError
-      end
-
       def read(repository, resource, key)
         properties = resource.properties(repository.name).defaults
 
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
         set = Collection.new(repository, resource, properties_with_indexes)
 
-        sql = read_statement(resource, key)
+        statement = read_statement(resource, key)
 
         connection = create_connection
-        command = connection.create_command(sql)
+        command = connection.create_command(statement)
         command.set_types(properties.map { |property| property.primitive })
         reader = command.execute_reader(*key)
 
@@ -190,13 +213,13 @@ module DataMapper
 
         return false if properties.empty?
 
-        sql = update_statement(resource.class, properties)
-        values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-        parameters = (values + resource.key)
+        statement = update_statement(resource.class, properties)
+        bind_values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
+        parameters = (bind_values + resource.key)
 
         begin
           connection = create_connection
-          command = connection.create_command(sql)
+          command = connection.create_command(statement)
 
           affected_rows = command.execute_non_query(*parameters).to_i
         ensure
@@ -218,11 +241,43 @@ module DataMapper
         close_connection(connection) if connection
       end
 
+      def exists?(table_name)
+        raise NotImplementedError
+      end
+
+      def column_exists?(table_name, column_name)
+        raise NotImplementedError
+      end
+
+      def upgrade_model_storage(repository, model)
+        table_name = model.storage_name(name)
+        if exists?(model.storage_name(name))
+          rval = []
+          begin
+            connection = create_connection
+            model.properties.each do |property|
+              schema_hash = property_schema_hash(property, model)
+              unless column_exists?(table_name, schema_hash[:name])
+                statement = alter_table_add_column_statement(table_name, schema_hash)
+                command = connection.create_command(statement)
+                result = command.execute_non_query
+                rval << property if result.to_i == 1
+              end
+            end
+            return rval
+          ensure
+            close_connection(connection)
+          end
+        else
+          return model if create_model_storage(repository, model)
+        end
+      end
+
       def create_model_storage(repository, model)
-        sql = create_table_statement(model)
+        statement = create_table_statement(model)
 
         connection = create_connection
-        command = connection.create_command(sql)
+        command = connection.create_command(statement)
         result = command.execute_non_query
 
         result.to_i == 1
@@ -231,10 +286,10 @@ module DataMapper
       end
 
       def destroy_model_storage(repository, model)
-        sql = drop_table_statement(model)
+        statement = drop_table_statement(model)
 
         connection = create_connection
-        command = connection.create_command(sql)
+        command = connection.create_command(statement)
         result = command.execute_non_query
 
         result.to_i == 1
@@ -248,10 +303,12 @@ module DataMapper
       # ==== Parameters
       # repository<DataMapper::Repository>:: The repository to read from.
       # model<Object>:: The class of the instances to read.
-      # properties<Array>:: The properties to read. Must contain Symbols, Strings or DM::Properties.
+      # properties<Array>:: The properties to read. Must contain Symbols,
+      #   Strings or DM::Properties.
       # sql<String>:: The query to execute.
       # parameters<Array>:: The conditions to the query.
-      # do_reload<Boolean>:: Whether to reload objects already found in the identity map.
+      # do_reload<Boolean>:: Whether to reload objects already found in the
+      #   identity map.
       #
       # ==== Returns
       # Collection:: A set of the found instances.
@@ -271,8 +328,9 @@ module DataMapper
               set.load(reader.values, do_reload)
             end
 
-          rescue StandardError => se
-            raise se
+          rescue => e
+            DataMapper.logger.error(e)
+            raise e
           ensure
             reader.close if reader
             close_connection(connection) if connection
@@ -295,22 +353,22 @@ module DataMapper
       end
 
       # Database-specific method
-      def execute(sql, *args)
+      def execute(statement, *args)
 
         connection = create_connection
-        command = connection.create_command(sql)
+        command = connection.create_command(statement)
         return command.execute_non_query(*args)
       rescue => e
-        DataMapper.logger.error(e) if DataMapper.logger
+        DataMapper.logger.error(e)
         raise e
       ensure
         connection.close if connection
       end
 
-      def query(sql, *args)
+      def query(statement, *args)
 
         connection = create_connection
-        command = connection.create_command(sql)
+        command = connection.create_command(statement)
 
         reader = command.execute_reader(*args)
         results = []
@@ -330,14 +388,15 @@ module DataMapper
 
         return results
       rescue => e
-        DataMapper.logger.error(e) if DataMapper.logger
+        DataMapper.logger.error(e)
         raise e
       ensure
         reader.close if reader
         connection.close if connection
       end
 
-      # This model is just for organization. The methods are included into the Adapter below.
+      # This model is just for organization. The methods are included into the
+      # Adapter below.
       module SQL
         def create_statement(model, properties)
           <<-EOS.compress_lines
@@ -382,6 +441,10 @@ module DataMapper
           EOS
         end
 
+        def alter_table_add_column_statement(table_name, schema_hash)
+          "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
+        end
+
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
           statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
@@ -402,7 +465,8 @@ module DataMapper
 
         def property_schema_hash(property, model)
           schema = type_map[property.type].merge(:name => property.field)
-          # TODO: figure out a way to specify the size not be included, even if a default is defined in the typemap
+          # TODO: figure out a way to specify the size not be included, even if
+          # a default is defined in the typemap
           #  - use this to make it so all TEXT primitive fields do not have size
           if property.primitive == String && schema[:primitive] != 'TEXT'
             schema[:size] = property.length
@@ -446,9 +510,9 @@ module DataMapper
         def query_read_statement(query)
           qualify = query.links.any?
 
-          sql = "SELECT "
+          statement = 'SELECT '
 
-          sql << query.fields.map do |property|
+          statement << query.fields.map do |property|
             # TODO Should we raise an error if there is no such property in the
             #      repository of the query?
             #
@@ -456,11 +520,11 @@ module DataMapper
             #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
             #end
             #
-            model_name = property.model.storage_name(query.repository.name)
-            property_to_column_name(model_name, property, qualify)
+            storage_name = property.model.storage_name(query.repository.name)
+            property_to_column_name(storage_name, property, qualify)
           end.join(', ')
 
-          sql << " FROM " << quote_table_name(query.model_name)
+          statement << ' FROM ' << quote_table_name(query.model.storage_name(query.repository.name))
 
           unless query.links.empty?
             joins = []
@@ -486,80 +550,85 @@ module DataMapper
               s << parts.join(' AND ')
               joins << s
             end
-            sql << joins.join(' ')
+            statement << joins.join(' ')
           end
 
-
           unless query.conditions.empty?
-            sql << " WHERE "
-            sql << "(" << query.conditions.map do |operator, property, value|
-              # TODO Should we raise an error if there is no such property in the
-              #      repository of the query?
+            statement << ' WHERE '
+            statement << '(' if query.conditions.size > 1
+            statement << query.conditions.map do |operator, property, bind_value|
+              # TODO Should we raise an error if there is no such property in
+              #      the repository of the query?
               #
               #if property.model.properties(query.repository.name)[property.name].nil?
               #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
               #end
               #
-              model_name = property.model.storage_name(query.repository.name) if property && property.respond_to?(:model)
+              storage_name = property.model.storage_name(query.repository.name) if property && property.respond_to?(:model)
               case operator
-                when String then operator
-                when :eql, :in then equality_operator(query, model_name,operator, property, qualify, value)
-                when :not      then inequality_operator(query, model_name,operator, property, qualify, value)
-                when :like     then "#{property_to_column_name(model_name, property, qualify)} LIKE ?"
-                when :gt       then "#{property_to_column_name(model_name, property, qualify)} > ?"
-                when :gte      then "#{property_to_column_name(model_name, property, qualify)} >= ?"
-                when :lt       then "#{property_to_column_name(model_name, property, qualify)} < ?"
-                when :lte      then "#{property_to_column_name(model_name, property, qualify)} <= ?"
-                else raise "CAN HAS CRASH?"
+                when :raw      then property
+                when :eql, :in then equality_operator(query, storage_name, operator, property, qualify, bind_value)
+                when :not      then inequality_operator(query, storage_name,operator, property, qualify, bind_value)
+                when :like     then "#{property_to_column_name(storage_name, property, qualify)} LIKE ?"
+                when :gt       then "#{property_to_column_name(storage_name, property, qualify)} > ?"
+                when :gte      then "#{property_to_column_name(storage_name, property, qualify)} >= ?"
+                when :lt       then "#{property_to_column_name(storage_name, property, qualify)} < ?"
+                when :lte      then "#{property_to_column_name(storage_name, property, qualify)} <= ?"
+                else raise "Invalid query operator: #{operator.inspect}"
               end
-            end.join(') AND (') << ")"
+            end.join(') AND (')
+            statement << ')' if query.conditions.size > 1
           end
 
           unless query.order.empty?
             parts = []
             query.order.each do |item|
-              parts << item.field if DataMapper::Property === item
-              parts << "#{item.property.field} #{item.direction}" if DataMapper::Query::Direction === item
+              case item
+                when DataMapper::Query::Direction then property = item.property
+                when Datamapper::Property         then property = item
+              end
+              storage_name = property.model.storage_name(query.repository.name) if property.respond_to?(:model)
+              parts << property_to_column_name(storage_name,property,qualify) + (item.respond_to?(:direction) ? " #{item.direction}" : "")
             end
-            sql << " ORDER BY #{parts.join(', ')}"
+            statement << " ORDER BY #{parts.join(', ')}"
           end
 
-          sql << " LIMIT #{query.limit}" if query.limit
-          sql << " OFFSET #{query.offset}" if query.offset && query.offset > 0
+          statement << " LIMIT #{query.limit}" if query.limit
+          statement << " OFFSET #{query.offset}" if query.offset && query.offset > 0
 
-          sql
-        rescue
-          DataMapper.logger.error("QUERY INVALID: #{query.inspect}")
-          raise $!
+          statement
+        rescue => e
+          DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
+          raise e
         end
 
-        def equality_operator(query, model_name, operator, property, qualify, value)
-          case value
-            when Array             then "#{property_to_column_name(model_name, property, qualify)} IN ?"
-            when Range             then "#{property_to_column_name(model_name, property, qualify)} BETWEEN ?"
-            when NilClass          then "#{property_to_column_name(model_name, property, qualify)} IS ?"
+        def equality_operator(query, storage_name, operator, property, qualify, bind_value)
+          case bind_value
+            when Array             then "#{property_to_column_name(storage_name, property, qualify)} IN ?"
+            when Range             then "#{property_to_column_name(storage_name, property, qualify)} BETWEEN ?"
+            when NilClass          then "#{property_to_column_name(storage_name, property, qualify)} IS ?"
             when DataMapper::Query then
-              query.merge_sub_select_conditions(operator, property, value)
-              "#{property_to_column_name(model_name, property, qualify)} IN (#{query_read_statement(value)})"
-            else "#{property_to_column_name(model_name, property, qualify)} = ?"
+              query.merge_sub_select_conditions(operator, property, bind_value)
+              "#{property_to_column_name(storage_name, property, qualify)} IN (#{query_read_statement(bind_value)})"
+            else "#{property_to_column_name(storage_name, property, qualify)} = ?"
           end
         end
 
-        def inequality_operator(query, model_name, operator, property, qualify, value)
-          case value
-            when Array             then "#{property_to_column_name(model_name, property, qualify)} NOT IN ?"
-            when Range             then "#{property_to_column_name(model_name, property, qualify)} NOT BETWEEN ?"
-            when NilClass          then "#{property_to_column_name(model_name, property, qualify)} IS NOT ?"
+        def inequality_operator(query, storage_name, operator, property, qualify, bind_value)
+          case bind_value
+            when Array             then "#{property_to_column_name(storage_name, property, qualify)} NOT IN ?"
+            when Range             then "#{property_to_column_name(storage_name, property, qualify)} NOT BETWEEN ?"
+            when NilClass          then "#{property_to_column_name(storage_name, property, qualify)} IS NOT ?"
             when DataMapper::Query then
-              query.merge_sub_select_conditions(operator, property, value)
-              "#{property_to_column_name(model_name, property, qualify)} NOT IN (#{query_read_statement(value)})"
-            else "#{property_to_column_name(model_name, property, qualify)} <> ?"
+              query.merge_sub_select_conditions(operator, property, bind_value)
+              "#{property_to_column_name(storage_name, property, qualify)} NOT IN (#{query_read_statement(bind_value)})"
+            else "#{property_to_column_name(storage_name, property, qualify)} <> ?"
           end
         end
 
-        def property_to_column_name(model_name, property, qualify)
+        def property_to_column_name(storage_name, property, qualify)
           if qualify
-            quote_table_name(model_name) + '.' + quote_column_name(property.field)
+            quote_table_name(storage_name) + '.' + quote_column_name(property.field)
           else
             quote_column_name(property.field)
           end

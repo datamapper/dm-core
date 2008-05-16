@@ -9,7 +9,7 @@ describe DataMapper::Collection do
       include DataMapper::Resource
 
       property :name, String, :key => true
-      property :age, Fixnum
+      property :age, Integer
     end
 
     properties               = @cow.properties(:default)
@@ -93,30 +93,27 @@ describe DataMapper::Collection do
 
     describe 'with inheritance property' do
       before do
-        @party = Class.new do
+        class CollectionSpecParty
           include DataMapper::Resource
-
           property :name, String, :key => true
           property :type, Class
         end
 
-        @user = Class.new(@party) do
-          include DataMapper::Resource
-
+        class CollectionSpecUser < CollectionSpecParty
           property :username, String
           property :password, String
         end
 
-        properties               = @party.properties(:default)
+        properties               = CollectionSpecParty.properties(:default)
         @properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
       end
 
       it 'should instantiate resources using the inheritance property class' do
-        @collection = DataMapper::Collection.new(@repository, @party, @properties_with_indexes)
-        @collection.load([ 'Dan', @user ])
+        @collection = DataMapper::Collection.new(@repository, CollectionSpecParty, @properties_with_indexes)
+        @collection.load([ 'Dan', CollectionSpecUser ])
         @collection.length.should == 1
         resource = @collection[0]
-        resource.class.should == @user
+        resource.class.should == CollectionSpecUser
         resource
       end
     end
@@ -627,7 +624,7 @@ describe DataMapper::Collection do
         include DataMapper::Resource
 
         property :name, String, :key => true
-        property :age, Fixnum
+        property :age, Integer
       end
 
       properties               = @cow.properties(:default)

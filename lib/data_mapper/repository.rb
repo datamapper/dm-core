@@ -69,6 +69,9 @@ module DataMapper
             identity_map_set(resource)
             resource.instance_variable_set(:@new_record, false)
             resource.dirty_attributes.clear
+            properties_with_indexes = Hash[*resource.class.properties.zip((0...resource.class.properties.length).to_a).flatten]
+            resource.collection = DataMapper::Collection.new(self, resource.class, properties_with_indexes)
+            resource.collection << resource
             success = true
           end
         else
@@ -104,6 +107,10 @@ module DataMapper
 
     def auto_migrate!
       AutoMigrator.auto_migrate(name)
+    end
+
+    def auto_upgrade!
+      AutoMigrator.auto_upgrade(name)
     end
 
     #

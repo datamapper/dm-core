@@ -5,7 +5,8 @@ module DataMapper
     #
     # ==== Parameters
     # target_method<Symbol>:: The name of the class method to inject before
-    # method_sym<Symbol>:: The name of the method to run before the target_method
+    # method_sym<Symbol>:: The name of the method to run before the
+    #   target_method
     # block<Block>:: The code to run before the target_method
     #
     # Either method_sym or block is required.
@@ -37,7 +38,8 @@ module DataMapper
     #
     # ==== Parameters
     # target_method<Symbol>:: The name of the instance method to inject before
-    # method_sym<Symbol>:: The name of the method to run before the target_method
+    # method_sym<Symbol>:: The name of the method to run before the
+    #   target_method
     # block<Block>:: The code to run before the target_method
     #
     # Either method_sym or block is required.
@@ -53,7 +55,8 @@ module DataMapper
     #
     # ==== Parameters
     # target_method<Symbol>:: The name of the instance method to inject after
-    # method_sym<Symbol>:: The name of the method to run after the target_method
+    # method_sym<Symbol>:: The name of the method to run after the
+    #   target_method
     # block<Block>:: The code to run after the target_method
     #
     # Either method_sym or block is required.
@@ -65,13 +68,14 @@ module DataMapper
     end
 
     def define_instance_or_class_method(new_meth_name, block, scope)
-      if scope == :class
+      case scope
+      when :class
         class << self
           self
         end.instance_eval do
           define_method new_meth_name, block
         end
-      elsif scope == :instance
+      when :instance
         define_method new_meth_name, block
       else
         raise ArgumentError.new("You need to pass :class or :instance as scope")
@@ -79,10 +83,9 @@ module DataMapper
     end
 
     def hooks_with_scope(scope)
-      if scope == :class
-        class_method_hooks
-      elsif scope == :instance
-        hooks
+      case scope
+      when :class then class_method_hooks
+      when :instance then hooks
       else
         raise ArgumentError.new("You need to pass :class or :instance as scope")
       end
@@ -94,7 +97,9 @@ module DataMapper
       raise ArgumentError.new("method_sym should be a symbol") if method_sym && ! method_sym.is_a?(Symbol)
       raise ArgumentError.new("You need to pass :class or :instance as scope") unless [:class, :instance].include?(scope)
 
-      (hooks_with_scope(scope)[name][type] ||= []) << if block
+      hooks_with_scope(scope)[name][type] ||= []
+
+      hooks_with_scope(scope)[name][type] << if block
         new_meth_name = "__hooks_#{scope}_#{type}_#{quote_method(name)}_#{hooks_with_scope(scope)[name][type].length}".to_sym
         define_instance_or_class_method(new_meth_name, block, scope)
         new_meth_name
@@ -106,10 +111,9 @@ module DataMapper
     end
 
     def method_with_scope(name, scope)
-      if scope == :class
-        method(name)
-      elsif scope == :instance
-        instance_method(name)
+      case scope
+      when :class then method(name)
+      when :instance then instance_method(name)
       else
         raise ArgumentError.new("You need to pass :class or :instance as scope")
       end
@@ -130,9 +134,15 @@ module DataMapper
 
       <<-EOD
         def #{prefix}#{name}(#{args})
-          #{inline_hooks(name, scope, types.first, args)}
-          retval = #{inline_call(name, scope, args)}
-          #{inline_hooks(name, scope, types.last, args)}
+          retval = nil
+          catch(:halt) do
+            #{inline_hooks(name, scope, types.first, args)}
+            retval = #{inline_call(name, scope, args)}
+          end
+          
+          catch(:halt) do
+            #{inline_hooks(name, scope, types.last, args)}
+          end
           retval
         end
       EOD
@@ -171,7 +181,8 @@ module DataMapper
         when Symbol
           method_def << "  #{e}(#{args})\n"
         else
-          # TODO: Test this. Testing order should be before, after and after, before
+          # TODO: Test this. Testing order should be before, after and after,
+          # before
           method_def << "(@__hooks_#{scope}_#{quote_method(name)}_#{type}_#{i} || "
           method_def << "  @__hooks_#{scope}_#{quote_method(name)}_#{type}_#{i} = self.class.hooks_with_scope(#{scope.inspect})[:#{name}][:#{type}][#{i}])"
           method_def << ".call #{args}\n"
@@ -194,11 +205,19 @@ module DataMapper
     end
 
     def hooks
-      @hooks ||= Hash.new { |h, k| h[k] = {} }
+      @hooks ||= if self.superclass.respond_to?(:hooks)
+        self.superclass.hooks
+      else
+        Hash.new { |h, k| h[k] = {} }
+      end
     end
 
     def class_method_hooks
-      @class_method_hooks ||= Hash.new { |h, k| h[k] = {} }
+      @class_method_hooks ||= if self.superclass.respond_to?(:class_method_hooks)
+        self.superclass.class_method_hooks
+      else
+        Hash.new { |h, k| h[k] = {} }
+      end
     end
 
     def quote_method(name)

@@ -6,12 +6,63 @@ if HAS_POSTGRES
       @adapter = repository(:postgres).adapter
     end
 
+    describe "auto migrating" do
+      before :each do 
+        class Sputnik
+          include DataMapper::Resource
+
+          property :id, Integer, :serial => true
+          property :name, DM::Text
+        end
+        
+        @connection = mock("connection")
+        @command = mock("command")
+        @result = mock("result")
+      end
+      it "#upgrade_model should work" do
+        @adapter.destroy_model_storage(nil, Sputnik)
+        @adapter.exists?("sputniks").should == false
+        Sputnik.auto_migrate!(:postgres)
+        @adapter.exists?("sputniks").should == true
+        @adapter.column_exists?("sputniks", "new_prop").should == false
+        Sputnik.property :new_prop, Integer, :serial => true
+        @adapter.drop_sequence_column(@adapter.create_connection, Sputnik, Sputnik.new_prop) rescue nil
+        Sputnik.auto_upgrade!(:postgres)
+        @adapter.column_exists?("sputniks", "new_prop").should == true
+      end
+    end
+
+    describe "querying metadata" do
+      before :each do 
+        class Sputnik
+          include DataMapper::Resource
+
+          property :id, Integer, :serial => true
+          property :name, DM::Text
+        end
+
+        Sputnik.auto_migrate!(:postgres)
+      end
+      it "#exists? should return true for tables that exist" do
+        @adapter.exists?("sputniks").should == true
+      end
+      it "#exists? should return false for tables that don't exist" do
+        @adapter.exists?("space turds").should == false
+      end
+      it "#column_exists? should return true for columns that exist" do
+        @adapter.column_exists?("sputniks", "name").should == true
+      end
+      it "#exists? should return false for tables that don't exist" do
+        @adapter.column_exists?("sputniks", "plur").should == false
+      end
+    end
+
     describe "handling transactions" do
       before :all do
         class Sputnik
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, DM::Text
         end
 
@@ -43,7 +94,7 @@ if HAS_POSTGRES
         class User
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, DM::Text
         end
 
@@ -87,7 +138,7 @@ if HAS_POSTGRES
         class VideoGame
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
         end
 
@@ -284,7 +335,7 @@ if HAS_POSTGRES
       before do
         class SailBoat
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
           property :port, String
         end
@@ -330,10 +381,10 @@ if HAS_POSTGRES
       before do
         class SailBoat
           include DataMapper::Resource
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :notes, String, :lazy => [:notes]
           property :trip_report, String, :lazy => [:notes,:trip]
-          property :miles, Fixnum, :lazy => [:trip]
+          property :miles, Integer, :lazy => [:trip]
         end
 
         SailBoat.auto_migrate!(:postgres)
@@ -376,7 +427,7 @@ if HAS_POSTGRES
         class SerialFinderSpec
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :sample, String
         end
 
@@ -435,7 +486,7 @@ if HAS_POSTGRES
         class Engine
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
         end
 
@@ -447,9 +498,9 @@ if HAS_POSTGRES
         class Yard
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
-          property :engine_id, Fixnum
+          property :engine_id, Integer
 
           repository(:postgres) do
             many_to_one :engine
@@ -524,7 +575,7 @@ if HAS_POSTGRES
         class Host
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
 
           repository(:postgres) do
@@ -535,9 +586,9 @@ if HAS_POSTGRES
         class Slice
           include DataMapper::Resource
 
-          property :id, Fixnum, :serial => true
+          property :id, Integer, :serial => true
           property :name, String
-          property :host_id, Fixnum
+          property :host_id, Integer
 
           repository(:postgres) do
             many_to_one :host

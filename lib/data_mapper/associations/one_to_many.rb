@@ -11,10 +11,6 @@ module DataMapper
         raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller     unless Symbol === name || Hash === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        if (unknown_options = options.keys - OPTIONS).any?
-          raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
-        end
-
         child_model_name = options.fetch(:class_name, DataMapper::Inflection.classify(name))
 
         relationship = relationships(repository.name)[name] = Relationship.new(
@@ -27,6 +23,16 @@ module DataMapper
 
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
+            #{name}_association.nil? ? nil : #{name}_association
+          end
+
+          def #{name}=(children)
+            #{name}_association.replace(children)
+          end
+          
+          private
+          
+          def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[#{name.inspect}]
               raise ArgumentError.new("Relationship #{name.inspect} does not exist") unless relationship
@@ -34,10 +40,6 @@ module DataMapper
               parent_associations << association
               association
             end
-          end
-
-          def #{name}=(children)
-            #{name}.replace(children)
           end
         EOS
 
@@ -98,6 +100,14 @@ module DataMapper
           save_resources(@dirty_children)
           @dirty_children = []
           self
+        end
+        
+        def all(options={})
+          options.empty? ? children : @relationship.get_children(@parent_resource,options,:all)
+        end
+        
+        def first(options={})
+          options.empty? ? children.first : @relationship.get_children(@parent_resource,options,:first)
         end
 
         private

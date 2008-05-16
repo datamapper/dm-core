@@ -1,37 +1,38 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
+GOOD_OPTIONS = [
+  [ :reload,   false     ],
+  [ :reload,   true      ],
+  [ :offset,   0         ],
+  [ :offset,   1         ],
+  [ :limit,    1         ],
+  [ :limit,    2         ],
+  [ :order,    [ DataMapper::Query::Direction.new(Article.properties[:created_at], :desc) ] ],
+  [ :fields,   Article.properties(:default).defaults.to_a ], # TODO: fill in allowed default value
+  #[ :links,    [ :stub ] ], # TODO: fill in allowed default value
+  [ :includes, [ :stub ] ], # TODO: fill in allowed default value
+]
+
+BAD_OPTIONS = {
+  :reload     => 'true',
+  :offset     => -1,
+  :limit      => 0,
+  :order      => [],
+  :fields     => [],
+  :links      => [],
+  :includes   => [],
+  :conditions => [],
+}
+
+# flatten GOOD_OPTIONS into a Hash to remove default values, since
+# default value, when defined, is always listed first in GOOD_OPTIONS
+UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
+  options.update attribute => value
+end
+
+UPDATED_OPTIONS.merge!({ :fields => [ :id, :author ]})
+
 describe DataMapper::Query do
-  GOOD_OPTIONS = [
-    [ :reload,   false     ],
-    [ :reload,   true      ],
-    [ :offset,   0         ],
-    [ :offset,   1         ],
-    [ :limit,    1         ],
-    [ :limit,    2         ],
-    [ :order,    [ DataMapper::Query::Direction.new(Article.properties[:created_at], :desc) ] ],
-    [ :fields,   Article.properties(:default).defaults.to_a ], # TODO: fill in allowed default value
-    #[ :links,    [ :stub ] ], # TODO: fill in allowed default value
-    [ :includes, [ :stub ] ], # TODO: fill in allowed default value
-  ]
-
-  BAD_OPTIONS = {
-    :reload     => 'true',
-    :offset     => -1,
-    :limit      => 0,
-    :order      => [],
-    :fields     => [],
-    :links      => [],
-    :includes   => [],
-    :conditions => [],
-  }
-
-  # flatten GOOD_OPTIONS into a Hash to remove default values, since
-  # default value, when defined, is always listed first in GOOD_OPTIONS
-  UPDATED_OPTIONS = GOOD_OPTIONS.inject({}) do |options,(attribute,value)|
-    options.update attribute => value
-  end
-
-  UPDATED_OPTIONS.merge!({ :fields => [ :id, :author ]})
 
   describe '.new' do
     describe 'should set the attribute' do
@@ -50,24 +51,32 @@ describe DataMapper::Query do
       describe ' #conditions with options[:conditions]' do
         it 'when they have a one element Array' do
           query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = "dkubb"' ])
-          query.conditions.should == [ [ 'name = "dkubb"' ] ]
+          query.conditions.should == [ [ :raw, 'name = "dkubb"' ] ]
+          query.parameters.should == []
         end
 
         it 'when they have a two or more element Array' do
-          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ?', 'dkubb' ])
-          query.conditions.should == [ [ 'name = ?', [ 'dkubb' ] ] ]
-          query.parameters.should == [ 'dkubb' ]
+          bind_values = %w[ dkubb ]
+          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ?', *bind_values ])
+          query.conditions.should == [ [ :raw, 'name = ?', bind_values ] ]
+          query.parameters.should == bind_values
 
-          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ? OR age = ?', 'dkubb', 30 ], :limit => 1)
-          query.conditions.should == [ [ 'name = ? OR age = ?', [ 'dkubb', 30 ] ] ]
-          query.parameters.should == [ 'dkubb', 30 ]
+          bind_values = [ 'dkubb', 32 ]
+          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name = ? OR age = ?', *bind_values ])
+          query.conditions.should == [ [ :raw, 'name = ? OR age = ?', bind_values ] ]
+          query.parameters.should == bind_values
+
+          bind_values = [ %w[ dkubb ssmoot ] ]
+          query = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'name IN ?', *bind_values ])
+          query.conditions.should == [ [ :raw, 'name IN ?', bind_values ] ]
+          query.parameters.should == bind_values
         end
 
         it 'when they have another DM:Query as the value of sub-select' do
           class Acl
             include DataMapper::Resource
-            property :id, Fixnum
-            property :resource_id, Fixnum
+            property :id, Integer
+            property :resource_id, Integer
           end
 
           acl_query = DataMapper::Query.new(repository(:mock), Acl, :fields=>[:resource_id]) #this would normally have conditions
@@ -151,7 +160,7 @@ describe DataMapper::Query do
       before(:each) do
         class Acl
           include DataMapper::Resource
-          property :id, Fixnum
+          property :id, Integer
           property :is_custom_type, DM::Boolean
         end
       end
@@ -262,7 +271,7 @@ describe DataMapper::Query do
         query.order.first.direction.should == :desc
 
         # this is the real test here, I can't find any other way to make it parse the order into sql than to run the whole query through
-        repository(:mock).adapter.query_read_statement(query).should == %Q{SELECT "id", "blog_id", "created_at", "author", "title" FROM "articles" ORDER BY real_plank desc}
+        repository(:mock).adapter.query_read_statement(query).should == %Q{SELECT "id", "blog_id", "created_at", "author", "title" FROM "articles" ORDER BY "real_plank" desc}
       end
 
       # dkubb: I am not sure i understand the intent here. link now needs to be
@@ -310,7 +319,7 @@ describe DataMapper::Query do
 
         # update the conditions, but merge the conditions together
         other = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'author = "dkubb"' ])
-        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ 'author = "dkubb"' ] ]
+        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ :raw, 'author = "dkubb"' ] ]
       end
 
       it '#conditions with other conditions when they have a two or more element condition' do
@@ -319,7 +328,7 @@ describe DataMapper::Query do
 
         # update the conditions, but merge the conditions together
         other = DataMapper::Query.new(repository(:mock), Article, :conditions => [ 'author = ?', 'dkubb' ])
-        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ 'author = ?', [ 'dkubb' ] ] ]
+        @query.update(other).conditions.should == [ [ :eql, Article.properties[:title], 'On DataMapper' ], [ :raw, 'author = ?', [ 'dkubb' ] ] ]
       end
     end
 

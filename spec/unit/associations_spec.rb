@@ -138,7 +138,7 @@ describe "DataMapper::Associations" do
 
       it "should create a many-to-many relationship if references are circular" do
         Manufacturer.should_receive(:many_to_many).with(:subsidiaries, { :max=> @n, :class_name =>"Manufacturer", :min => @n })
-          
+
         class Manufacturer
           has n..n, :subsidiaries, :class_name => 'Manufacturer'
         end

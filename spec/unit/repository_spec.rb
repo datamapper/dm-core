@@ -3,21 +3,21 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 class Vegetable
   include DataMapper::Resource
 
-  property :id, Fixnum, :serial => true
+  property :id, Integer, :serial => true
   property :name, String
 end
 
 class Fruit
   include DataMapper::Resource
 
-  property :id, Fixnum, :key => true
+  property :id, Integer, :key => true
   property :name, String
 end
 
 class Grain
   include DataMapper::Resource
 
-  property :id, Fixnum, :key => true
+  property :id, Integer, :key => true
   property :name, String, :default => 'wheat'
 end
 
@@ -159,6 +159,16 @@ describe DataMapper::Repository do
       DataMapper::AutoMigrator.should_receive(:auto_migrate).with(repository.name)
 
       repository.auto_migrate!
+    end
+  end
+
+  describe "#auto_upgrade!" do
+    it "should call DataMapper::AutoMigrator.auto_upgrade with itself as the repository argument" do
+      repository = repository(:mock)
+
+      DataMapper::AutoMigrator.should_receive(:auto_upgrade).with(repository.name)
+
+      repository.auto_upgrade!
     end
   end
 

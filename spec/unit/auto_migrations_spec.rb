@@ -12,7 +12,7 @@ describe DataMapper::AutoMigrations do
       include DataMapper::Resource
 
       property :name, String, :key => true
-      property :age, Fixnum
+      property :age, Integer
     end
   end
 
@@ -37,10 +37,21 @@ describe DataMapper::AutoMigrations do
       include DataMapper::Resource
 
       property :name, String, :key => true
-      property :age, Fixnum
+      property :age, Integer
     end
 
     @cat.should respond_to(:auto_migrate!)
+  end
+
+  it "should add the #auto_upgrade! method on a mixin" do
+    @cat = Class.new do
+      include DataMapper::Resource
+
+      property :name, String, :key => true
+      property :age, Integer
+    end
+
+    @cat.should respond_to(:auto_upgrade!)
   end
 
   it "should not conflict with other Migrators on a mixin" do
@@ -78,6 +89,22 @@ describe DataMapper::AutoMigrations do
       end
 
       DataMapper::AutoMigrator.auto_migrate(@repository_name)
+    end
+  end
+  describe "#auto_upgrade" do
+    before do
+      @repository_name = mock('repository name')
+    end
+
+    it "should call each model's auto_upgrade! method" do
+      models = [:cat, :dog, :fish, :cow].map {|m| mock(m)}
+
+      models.each do |model|
+        DataMapper::Resource.descendents << model
+        model.should_receive(:auto_upgrade!).with(@repository_name)
+      end
+
+      DataMapper::AutoMigrator.auto_upgrade(@repository_name)
     end
   end
 end

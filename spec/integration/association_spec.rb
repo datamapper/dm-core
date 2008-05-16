@@ -4,15 +4,15 @@ if HAS_SQLITE3
   class Engine
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
+    property :id, Integer, :serial => true
     property :name, String
   end
 
   class Yard
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :engine_id, Fixnum
+    property :id, Integer, :serial => true
+    property :engine_id, Integer
 
     property :name, String
 
@@ -24,8 +24,8 @@ if HAS_SQLITE3
   class Pie
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :sky_id, Fixnum
+    property :id, Integer, :serial => true
+    property :sky_id, Integer
 
     property :name, String
 
@@ -37,8 +37,8 @@ if HAS_SQLITE3
   class Sky
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :pie_id, Fixnum
+    property :id, Integer, :serial => true
+    property :pie_id, Integer
 
     property :name, String
 
@@ -50,19 +50,19 @@ if HAS_SQLITE3
   class Host
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
+    property :id, Integer, :serial => true
     property :name, String
 
     repository(:sqlite3) do
-      one_to_many :slices
+      one_to_many :slices, :order => [:id.desc]
     end
   end
 
   class Slice
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :host_id, Fixnum
+    property :id, Integer, :serial => true
+    property :host_id, Integer
 
     property :name, String
 
@@ -74,8 +74,8 @@ if HAS_SQLITE3
   class Node
     include DataMapper::Resource
 
-    property :id, Fixnum, :serial => true
-    property :parent_id, Fixnum
+    property :id, Integer, :serial => true
+    property :parent_id, Integer
 
     property :name, String
 
@@ -133,7 +133,7 @@ if HAS_SQLITE3
         module FlightlessBirds
           class Ostrich
             include DataMapper::Resource
-            property :id, Fixnum, :serial => true
+            property :id, Integer, :serial => true
             property :name, String
             many_to_one :sky # there's something sad about this :'(
           end
@@ -355,15 +355,15 @@ if HAS_SQLITE3
         s.host_id.should be_nil
       end
 
-      it "should load the associated instances" do
+      it "should load the associated instances, in the correct order" do
         h = repository(:sqlite3) do
           Host.first(:id => 1)
         end
 
         h.slices.should_not be_nil
         h.slices.size.should == 2
-        h.slices.first.id.should == 1
-        h.slices.last.id.should == 2
+        h.slices.first.id.should == 2 # ordered by [:id.desc] 
+        h.slices.last.id.should == 1
 
         s0 = repository(:sqlite3) do
           Slice.first(:id => 0)
@@ -426,6 +426,21 @@ if HAS_SQLITE3
         s.should_not be_nil
         s.host.should_not be_nil
         s.host.id.should == 10
+      end
+      
+      it 'should have finder-functionality' do
+        h = repository(:sqlite3) do
+           Host.first(:id => 1)
+        end
+        
+        h.slices.should have(2).entries
+        
+        s = h.slices.all(:name => 'slice2')
+        
+        s.should have(1).entries
+        s.first.id.should == 2
+        
+        h.slices.first(:name => 'slice2').should == s.first
       end
 
       describe "many-to-one and one-to-many associations combined" do
@@ -491,7 +506,7 @@ if HAS_SQLITE3
           module Sweets
             class Shop
               include DataMapper::Resource
-              property :id, Fixnum, :serial => true
+              property :id, Integer, :serial => true
               property :name, String
               has n, :cakes, :class_name => 'Sweets::Cake'
               has n, :slices => :cakes
@@ -499,15 +514,15 @@ if HAS_SQLITE3
 
             class Cake
               include DataMapper::Resource
-              property :id, Fixnum, :serial => true
+              property :id, Integer, :serial => true
               property :name, String
               has n, :slices, :class_name => 'Sweets::Slice'
             end
 
             class Slice
               include DataMapper::Resource
-              property :id, Fixnum, :serial => true
-              property :size, Fixnum
+              property :id, Integer, :serial => true
+              property :size, Integer
               belongs_to :cake, :class_name => 'Sweets::Cake'
             end
 

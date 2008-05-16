@@ -105,9 +105,8 @@ module DataMapper
       @parent_associations ||= []
     end
 
-    # default id method to return the resource id when there is a
-    # single key, and the model was defined with a primary key named
-    # something other than id
+    # default id method to return the resource id when there is a single key,
+    # and the model was defined with a primary key named something other than id
     def id
       key = self.key
       key.first if key.size == 1
@@ -173,8 +172,8 @@ module DataMapper
     end
     alias reload! reload
 
-    # Returns <tt>true</tt> if this model hasn't been saved to the
-    # database, <tt>false</tt> otherwise.
+    # Returns <tt>true</tt> if this model hasn't been saved to the database,
+    # <tt>false</tt> otherwise.
     def new_record?
       !defined?(@new_record) || @new_record
     end
@@ -273,7 +272,7 @@ module DataMapper
 
     module ClassMethods
       def self.extended(model)
-        model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.name) })
+        model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval do default_storage_name end) })
         model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
       end
 
@@ -283,11 +282,12 @@ module DataMapper
       end
 
       #
-      # Get the repository with a given name, or the default one for the current context, or the default one for this class.
+      # Get the repository with a given name, or the default one for the current
+      # context, or the default one for this class.
       #
       # ==== Parameters
-      # name<Symbol>:: The name of the repository wanted.
-      # block<Block>:: Block to execute with the fetched repository as parameter.
+      # name<Symbol>:: The name of the repository wanted
+      # block<Block>:: Block to execute with the fetched repository as parameter
       #
       # ==== Returns
       # if given a block
@@ -319,7 +319,8 @@ module DataMapper
         property = Property.new(self, name, type, options)
         @properties[repository.name] << property
 
-        # Add property to the other mappings as well if this is for the default repository.
+        # Add property to the other mappings as well if this is for the default
+        # repository.
         if repository.name == default_repository_name
           @properties.each_pair do |repository_name, properties|
             next if repository_name == default_repository_name
@@ -327,8 +328,10 @@ module DataMapper
           end
         end
 
-        #Add the property to the lazy_loads set for this resources repository only
-        # TODO Is this right or should we add the lazy contexts to all repositories?
+        # Add the property to the lazy_loads set for this resources repository
+        # only.
+        # TODO Is this right or should we add the lazy contexts to all
+        # repositories?
         if property.lazy?
           context = options.fetch(:lazy, :default)
           context = :default if context == true
@@ -413,6 +416,10 @@ module DataMapper
       end
 
       private
+
+      def default_storage_name
+        self.name
+      end
 
       def default_repository_name
         Repository.default_name

@@ -9,10 +9,6 @@ module DataMapper
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        if (unknown_options = options.keys - OPTIONS).any?
-          raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
-        end
-
         child_model_name  = DataMapper::Inflection.demodulize(self.name)
         parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
@@ -26,16 +22,22 @@ module DataMapper
 
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
+            #{name}_association.nil? ? nil : #{name}_association
+          end
+
+          def #{name}=(parent_resource)
+            #{name}_association.replace(parent_resource)
+          end
+          
+          private
+          
+          def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]
               association = Proxy.new(relationship, self)
               child_associations << association
               association
             end
-          end
-
-          def #{name}=(parent_resource)
-            #{name}.replace(parent_resource)
           end
         EOS
 

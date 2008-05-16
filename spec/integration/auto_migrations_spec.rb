@@ -8,8 +8,8 @@ NOW   = DateTime.now
 class Book
   include DataMapper::Resource
 
-  property :serial,      Fixnum,     :serial => true
-  property :fixnum,      Fixnum,     :nullable => false, :default => 1
+  property :serial,      Integer,    :serial => true
+  property :fixnum,      Integer,    :nullable => false, :default => 1
   property :string,      String,     :nullable => false, :default => 'default'
   property :empty,       String,     :nullable => false, :default => ''
   property :date,        Date,       :nullable => false, :default => TODAY
@@ -68,8 +68,8 @@ if HAS_SQLITE3
       end
 
       types = {
-        :serial      => [ Fixnum,     'INTEGER',      false, nil,                               1,                 true  ],
-        :fixnum      => [ Fixnum,     'INTEGER',      false, '1',                               1,                 false ],
+        :serial      => [ Integer,    'INTEGER',      false, nil,                               1,                 true  ],
+        :fixnum      => [ Integer,    'INTEGER',      false, '1',                               1,                 false ],
         :string      => [ String,     'VARCHAR(50)',  false, 'default',                         'default',         false ],
         :empty       => [ String,     'VARCHAR(50)',  false, '',                                ''       ,         false ],
         :date        => [ Date,       'DATE',         false, TODAY.strftime('%Y-%m-%d'),        TODAY,             false ],
@@ -150,8 +150,8 @@ if HAS_MYSQL
       end
 
       types = {
-        :serial      => [ Fixnum,     'INT(11)',      false, nil,                               1,                 true  ],
-        :fixnum      => [ Fixnum,     'INT(11)',      false, '1',                               1,                 false ],
+        :serial      => [ Integer,    'INT(11)',      false, nil,                               1,                 true  ],
+        :fixnum      => [ Integer,    'INT(11)',      false, '1',                               1,                 false ],
         :string      => [ String,     'VARCHAR(50)',  false, 'default',                         'default',         false ],
         :empty       => [ String,     'VARCHAR(50)',  false, '',                                '',                false ],
         :date        => [ Date,       'DATE',         false, TODAY.strftime('%Y-%m-%d'),        TODAY,             false ],
@@ -266,8 +266,8 @@ if HAS_POSTGRES
       end
 
       types = {
-        :serial      => [ Fixnum,     'INT4',        false, nil,                                                                   1,                 true  ],
-        :fixnum      => [ Fixnum,     'INT4',        false, '1',                                                                   1,                 false ],
+        :serial      => [ Integer,    'INT4',        false, nil,                                                                   1,                 true  ],
+        :fixnum      => [ Integer,    'INT4',        false, '1',                                                                   1,                 false ],
         :string      => [ String,     'VARCHAR',     false, "'default'::character varying",                                        'default',         false ],
         :empty       => [ String,     'VARCHAR',     false, "''::character varying",                                               '',                false ],
         :date        => [ Date,       'DATE',        false, "'#{TODAY.strftime('%Y-%m-%d')}'::date",                               TODAY,             false ],

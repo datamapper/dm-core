@@ -11,7 +11,9 @@ module DataMapper
           child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
             # TODO: use something similar to DM::NamingConventions to determine the property name
             property_name ||= "#{@name}_#{parent_property.name}".to_sym
-            model_properties[property_name] || child_model.property(property_name, parent_property.type)
+            type = parent_property.type
+            type = Integer if Fixnum == type  # TODO: remove this hack once all in-the-wild code uses Integer instead of Fixnum
+            model_properties[property_name] || child_model.property(property_name, type)
           end
 
           PropertySet.new(child_key)
@@ -32,11 +34,11 @@ module DataMapper
         end
       end
 
-      def get_children(parent)
-        query = child_key.to_query(parent_key.get(parent))
-
+      def get_children(parent,options = {},finder = :all)
+        query = @query.merge(options).merge(child_key.to_query(parent_key.get(parent)))
+        
         DataMapper.repository(parent.repository.name) do
-          child_model.all(query)
+          finder == :first ? child_model.first(query) : child_model.all(query)
         end
       end
 
@@ -44,7 +46,7 @@ module DataMapper
         query = parent_key.to_query(child_key.get(child))
 
         DataMapper.repository(repository_name) do
-          parent_model.first(query)
+          parent_model.first(query.merge(@query))
         end
       end
 
@@ -79,11 +81,14 @@ module DataMapper
         if parent_properties = options[:parent_key]
           raise ArgumentError, "+parent_properties+ must be an Array or nil, but was #{parent_properties.class}", caller unless Array === parent_properties
         end
+        
+        query = options.reject{ |key,val| [:class_name, :child_key, :parent_key, :min, :max].include?(key) }
 
         @name              = name
         @repository_name   = repository_name
         @child_model_name  = child_model_name
         @child_properties  = child_properties   # may be nil
+        @query             = query
         @parent_model_name = parent_model_name
         @parent_properties = parent_properties  # may be nil
         @loader            = loader

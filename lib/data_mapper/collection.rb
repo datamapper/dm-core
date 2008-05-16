@@ -6,6 +6,8 @@ module DataMapper
     def reload(options = {})
       query = Query.new(@repository, @model, keys.merge(:fields => @key_properties))
       query.update(options.merge(:reload => true))
+      # TODO: the Collection should not be calling read_set directly, it should
+      # be going through Repository.all() instead
       replace(@repository.adapter.read_set(@repository, query))
     end
 
@@ -86,7 +88,8 @@ module DataMapper
 
     private
 
-    # +properties_with_indexes+ is a Hash of Property and values Array index pairs.
+    # +properties_with_indexes+ is a Hash of Property and values Array index
+    #   pairs.
     #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
     def initialize(repository, model, properties_with_indexes, &loader)
       raise ArgumentError, "+repository+ must be a DataMapper::Repository, but was #{repository.class}", caller unless Repository === repository

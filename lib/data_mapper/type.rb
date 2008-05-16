@@ -77,6 +77,15 @@ module DataMapper
       def primitive(primitive = nil)
         return @primitive if primitive.nil?
 
+        # TODO: change Integer to be used internally once most in-the-wild code
+        # is updated to use Integer for properties instead of Fixnum, or before
+        # DM 1.0, whichever comes first
+        if Fixnum == @primitive
+          warn 'Fixnum properties are deprecated.  Please use Integer instead'
+        elsif Integer == @primitive
+          @primitive = Fixnum
+        end
+
         @primitive = primitive
       end
 
@@ -149,9 +158,9 @@ module DataMapper
     def self.load(value, property)
       value
     end
-    
+
     def self.bind(property)
-      # This method should not modify the state of this type class, and 
+      # This method should not modify the state of this type class, and
       # should produce no side-effects on the type class. It's just a
       # hook to allow your custom-type to modify the property it's bound to.
     end

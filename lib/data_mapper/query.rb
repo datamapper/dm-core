@@ -49,12 +49,12 @@ module DataMapper
       attr_reader :relationships, :model, :property, :operator
 
 
-      def initialize(repository, relationships, model, property_name = nil)  
-        raise ArgumentError, "+repository+ is not a Repository, but was #{repository.class}", caller unless Repository  === repository              
+      def initialize(repository, relationships, model, property_name = nil)
+        raise ArgumentError, "+repository+ is not a Repository, but was #{repository.class}", caller unless Repository  === repository
         raise ArgumentError, "+relationships+ is not an Array, it is a #{relationships.class}", caller unless Array  === relationships
         raise ArgumentError, "+model+ is not a DM::Resource, it is a #{model}", caller   unless model.ancestors.include?(DataMapper::Resource)
         raise ArgumentError, "+property_name+ is not a Symbol, it is a #{property_name.class}", caller unless Symbol === property_name || property_name.nil?
-        
+
         @repository    = repository
         @relationships = relationships
         @model         = model
@@ -62,34 +62,34 @@ module DataMapper
       end
 
       [:gt, :gte, :lt, :lte, :not, :eql, :like, :in].each do |sym|
-        
+
         self.class_eval <<-RUBY
           def #{sym}
             Operator.new(self, :#{sym})
           end
         RUBY
-        
+
       end
 
       def method_missing(method, *args)
-        if relationship = @model.relationships(@repository.name)[method]          
+        if relationship = @model.relationships(@repository.name)[method]
           clazz = if @model == relationship.child_model
            relationship.parent_model
           else
            relationship.child_model
-          end             
+          end
           relations = []
           relations.concat(@relationships)
           relations << relationship #@model.relationships[method]
-          return Query::Path.new(@repository, relations,clazz)               
-        end      
+          return Query::Path.new(@repository, relations,clazz)
+        end
 
         if @model.properties(@model.repository.name)[method]
           @property = @model.properties(@model.repository.name)[method]
           return self
         end
         raise NoMethodError, "undefined property or association `#{method}' on #{@model}"
-      end      
+      end
 
       # duck type the DM::Query::Path to act like a DM::Property
       def field
@@ -103,7 +103,7 @@ module DataMapper
       :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
 
-    attr_reader :model, :model_name, :repository, *OPTIONS
+    attr_reader :model, :repository, *OPTIONS
 
     def update(other)
       other = self.class.new(@repository, model, other) if Hash === other
@@ -152,10 +152,12 @@ module DataMapper
     def parameters
       parameters = []
       conditions.each do |tuple|
-        if tuple.size == 3
-          parameters << tuple.at(2)
-        elsif tuple.size == 2
-          parameters += tuple.at(1)
+        next unless tuple.size == 3
+        operator, property, bind_value = *tuple
+        if :raw == operator
+          parameters.push(*bind_value)
+        else
+          parameters << bind_value
         end
       end
       parameters
@@ -170,7 +172,7 @@ module DataMapper
 
       new_conditions = []
       conditions.each do |tuple|
-        if tuple.length == 3 && tuple.at(0).to_s == operator.to_s && tuple.at(1) == property && tuple.at(2) == value
+        if tuple.at(0).to_s == operator.to_s && tuple.at(1) == property && tuple.at(2) == value
           value.conditions.each do |sub_select_tuple|
             new_conditions << sub_select_tuple
           end
@@ -183,6 +185,21 @@ module DataMapper
 
     alias reload? reload
 
+    def inspect
+      attrs = [
+        [ :repository, repository.name ],
+        [ :model,      model ],
+        [ :fields,     fields ],
+        [ :links,      links ],
+        [ :conditions, conditions ],
+        [ :order,      order ],
+        [ :limit,      limit ],
+        [ :offset,     offset ],
+      ]
+
+      "#<#{self.class.name} #{attrs.map { |(k,v)| "@#{k}=#{v.inspect}" } * ' '}>"
+    end
+
     private
 
     def initialize(repository, model, options = {})
@@ -191,7 +208,6 @@ module DataMapper
       validate_options(options)
 
       @repository = repository
-      @model_name = model.storage_name(@repository.name)
       @properties = model.properties(@repository.name)
 
       @model      = model                           # must be Class that includes DM::Resource
@@ -227,11 +243,14 @@ module DataMapper
       end
 
       # parse raw options[:conditions] differently
-      if conditions_option = options[:conditions]
-        @conditions << if conditions_option.size == 1
-          [ conditions_option.at(0) ]
-        else
-          [ conditions_option.at(0), conditions_option[1..-1] ]
+      if conditions = options[:conditions]
+        if conditions.kind_of?(Array)
+          raw_query, *bind_values = conditions
+          @conditions << if bind_values.empty?
+            [ :raw, raw_query ]
+          else
+            [ :raw, raw_query, bind_values ]
+          end
         end
       end
     end
@@ -386,7 +405,7 @@ module DataMapper
       end
     end
 
-    def append_condition(clause, value)
+    def append_condition(clause, bind_value)
       operator = :eql
 
       property = case clause
@@ -407,9 +426,7 @@ module DataMapper
           @properties[clause]
         when String
           if clause =~ /\w\.\w/
-            append_condition(clause.split(".").inject(@model) do |s,piece|
-              s.send(piece)
-            end, value)
+            append_condition(clause.split(".").inject(@model) { |s,piece| s.send(piece) }, bind_value)
           else
             @properties[clause]
           end
@@ -419,7 +436,7 @@ module DataMapper
 
       raise ArgumentError, "Clause #{clause.inspect} does not map to a DataMapper::Property" if property.nil?
 
-      @conditions << [ operator, property, value ]
+      @conditions << [ operator, property, bind_value ]
     end
 
     # TODO: check for other mutually exclusive operator + property
@@ -438,26 +455,26 @@ module DataMapper
       # avoid nested looping
       conditions_index = Hash.new { |h,k| h[k] = {} }
       @conditions.each do |condition|
-        next unless condition.size == 3  # only process triplets
         operator, property = *condition
+        next if :raw == operator
         conditions_index[property][operator] = condition
       end
 
       # loop over each of the other's conditions, and overwrite the
       # conditions when in conflict
       other.conditions.each do |other_condition|
-        if other_condition.size == 3 # only process triplets
-          other_operator, other_property, other_value = *other_condition
+        other_operator, other_property, other_bind_value = *other_condition
 
+        unless :raw == other_operator
           if condition = conditions_index[other_property][other_operator]
-            operator, property, value = *condition
+            operator, property, bind_value = *condition
 
-            # overwrite the value in the existing condition
+            # overwrite the bind value in the existing condition
             condition[2] = case operator
-              when :eql, :like then other_value
-              when :gt,  :gte  then [ value, other_value ].min
-              when :lt,  :lte  then [ value, other_value ].max
-              when :not, :in   then Array(value) | Array(other_value)
+              when :eql, :like then other_bind_value
+              when :gt,  :gte  then [ bind_value, other_bind_value ].min
+              when :lt,  :lte  then [ bind_value, other_bind_value ].max
+              when :not, :in   then Array(bind_value) | Array(other_bind_value)
             end
 
             next  # process the next other condition

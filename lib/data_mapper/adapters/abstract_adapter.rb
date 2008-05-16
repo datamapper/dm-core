@@ -1,4 +1,3 @@
-
 module DataMapper
   module Adapters
 
@@ -14,7 +13,7 @@ module DataMapper
 
       attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention
-      
+
       def type_map
         self.class.type_map
       end
@@ -28,25 +27,38 @@ module DataMapper
         self.class.type_map
       end
 
+      #
+      # Returns whether the storage_name exists in this adapter.
+      #
+      # ==== Parameters
+      # storage_name<String>:: A String defining the name of a storage, for example a table name.
+      #
+      # ==== Returns
+      # <Boolean>:: true if the storage exists.
+      #
+      def exists?(storage_name)
+        raise NotImplementedError
+      end
+
       # methods dealing with transactions
 
       #
-      # Pushes the given Transaction onto the per thread Transaction stack so that
-      # everything done by this Adapter is done within the context of said 
+      # Pushes the given Transaction onto the per thread Transaction stack so
+      # that everything done by this Adapter is done within the context of said
       # Transaction.
       #
       # ==== Parameters
-      # transaction<DataMapper::Transaction>:: A Transaction to be the 'current' transaction
-      # until popped.
+      # transaction<DataMapper::Transaction>:: A Transaction to be the
+      #   'current' transaction until popped.
       #
       def push_transaction(transaction)
         @transactions[Thread.current] << transaction
       end
 
       #
-      # Pop the 'current' Transaction from the per thread Transaction stack so that
-      # everything done by this Adapter is no longer necessarily within the context
-      # of said Transaction.
+      # Pop the 'current' Transaction from the per thread Transaction stack so
+      # that everything done by this Adapter is no longer necessarily within the
+      # context of said Transaction.
       #
       # ==== Returns
       # DataMapper::Transaction:: The former 'current' transaction.
@@ -56,8 +68,9 @@ module DataMapper
 
       #
       # Retrieve the current transaction for this Adapter.
-      # 
-      # Everything done by this Adapter is done within the context of this Transaction.
+      #
+      # Everything done by this Adapter is done within the context of this
+      # Transaction.
       #
       # ==== Returns
       # DataMapper::Transaction:: The 'current' transaction for this Adapter.
@@ -81,7 +94,8 @@ module DataMapper
       # Used by DataMapper::Transaction to perform its various tasks.
       #
       # ==== Returns
-      # Object:: A new Object that responds to :close, :begin, :commit, :rollback, :rollback_prepared and :prepare
+      # Object:: A new Object that responds to :close, :begin, :commit,
+      #   :rollback, :rollback_prepared and :prepare
       #
       def transaction_primitive
         raise NotImplementedError
@@ -104,26 +118,30 @@ module DataMapper
         raise NotImplementedError
       end
       
+      def upgrade_model_storage(repository, model)
+        raise NotImplementedError
+      end
+
       def create_model_storage(repository, model)
         raise NotImplementedError
       end
-      
+
       def destroy_model_storage(repository, model)
         raise NotImplementedError
       end
-      
+
       def alter_model_storage(repository, *args)
         raise NotImplementedError
       end
-      
+
       def create_property_storage(repository, property)
         raise NotImplementedError
       end
-      
+
       def destroy_property_storage(repository, property)
         raise NotImplementedError
       end
-      
+
       def alter_property_storage(repository, *args)
         raise NotImplementedError
       end
