@@ -72,7 +72,7 @@ module DataMapper
 
         properties ||= self.properties
 
-        repository.adapter.read_set_with_sql(repository, self, properties, sql, params, do_reload)
+        repository.adapter.send(:read_set_with_sql, repository, self, properties, sql, params, do_reload)
       end
     end
 
@@ -217,39 +217,6 @@ module DataMapper
         execute(statement).to_i == 1
       end
 
-      #
-      # used by find_by_sql and read_set
-      #
-      # @param repository<DataMapper::Repository> the repository to read from.
-      # @param model<Object>  the class of the instances to read.
-      # @param properties<Array>  the properties to read. Must contain Symbols,
-      #   Strings or DM::Properties.
-      # @param sql<String>  the query to execute.
-      # @param parameters<Array>  the conditions to the query.
-      # @param do_reload<Boolean> whether to reload objects already found in the
-      #   identity map.
-      #
-      # @return <Collection> a set of the found instances.
-      def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
-        properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-        Collection.new(repository, model, properties_with_indexes) do |set|
-          with_connection do |connection|
-            begin
-              command = connection.create_command(sql)
-              command.set_types(properties.map { |property| property.primitive })
-
-              reader = command.execute_reader(*parameters)
-
-              while(reader.next!)
-                set.load(reader.values, do_reload)
-              end
-            ensure
-              reader.close if reader
-            end
-          end
-        end
-      end
-
       # Database-specific method
       def execute(statement, *args)
         with_connection do |connection|
@@ -352,6 +319,39 @@ module DataMapper
             return yield(reader)
           ensure
             reader.close if reader
+          end
+        end
+      end
+
+      #
+      # used by find_by_sql and read_set
+      #
+      # @param repository<DataMapper::Repository> the repository to read from.
+      # @param model<Object>  the class of the instances to read.
+      # @param properties<Array>  the properties to read. Must contain Symbols,
+      #   Strings or DM::Properties.
+      # @param sql<String>  the query to execute.
+      # @param parameters<Array>  the conditions to the query.
+      # @param do_reload<Boolean> whether to reload objects already found in the
+      #   identity map.
+      #
+      # @return <Collection> a set of the found instances.
+      def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
+        properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
+        Collection.new(repository, model, properties_with_indexes) do |set|
+          with_connection do |connection|
+            begin
+              command = connection.create_command(sql)
+              command.set_types(properties.map { |property| property.primitive })
+
+              reader = command.execute_reader(*parameters)
+
+              while(reader.next!)
+                set.load(reader.values, do_reload)
+              end
+            ensure
+              reader.close if reader
+            end
           end
         end
       end
