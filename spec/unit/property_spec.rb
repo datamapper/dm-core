@@ -65,26 +65,26 @@ describe DataMapper::Property do
     DataMapper::Property.new(Tomato,:botanical_name,String,{}).name.should == :botanical_name
   end
 
-  it "should determine lazyness" do
+  it "should determine laziness" do
     DataMapper::Property.new(Tomato,:botanical_name,String,{:lazy => true}).lazy?.should == true
     DataMapper::Property.new(Tomato,:seedless,TrueClass,{}).lazy?.should == false
   end
 
-  it "should automatically set lazyness to true on text fields?" do
+  it "should automatically set laziness to true on text fields?" do
     DataMapper::Property.new(Tomato,:botanical_name,DataMapper::Types::Text,{}).lazy?.should == true
   end
 
-  it "should determine keyness" do
+  it "should determine whether it is a key" do
     DataMapper::Property.new(Tomato,:id,Integer,{:key => true}).key?.should == true
     DataMapper::Property.new(Tomato,:botanical_name,String,{}).key?.should == false
   end
 
-  it "should determine serialness" do
+  it "should determine whether it is serial" do
     DataMapper::Property.new(Tomato,:id,Integer,{:serial => true}).serial?.should == true
     DataMapper::Property.new(Tomato,:botanical_name,String,{}).serial?.should == false
   end
 
-  it "should determine lockability" do
+  it "should determine whether it is lockable" do
     DataMapper::Property.new(Tomato, :id, Integer, { :lock => true }).lock?.should == true
     DataMapper::Property.new(Tomato, :botanical_name, String, {}).lock?.should == false
   end
@@ -137,17 +137,17 @@ describe DataMapper::Property do
   end
 
   it 'should return the attribute value from a given instance' do
-    class Tomahto
+    class Tomato
       include DataMapper::Resource
       property :id, Integer, :key => true
     end
 
-    tomato = Tomahto.new(:id => 1)
+    tomato = Tomato.new(:id => 1)
     tomato.class.properties(:default)[:id].get(tomato).should == 1
   end
 
   it 'should set the attribute value in a given instance' do
-    tomato = Tomahto.new
+    tomato = Tomato.new
     tomato.class.properties(:default)[:id].set(tomato, 2)
     tomato.id.should == 2
   end

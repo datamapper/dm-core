@@ -200,12 +200,12 @@ describe LazyArray do
       lambda { @lazy_array.fetch(99) }.should raise_error(IndexError)
     end
 
-    it 'should subsitute the default if the index is outside the array' do
+    it 'should substitute the default if the index is outside the array' do
       element = 'cow'
       @lazy_array.fetch(99, element).object_id.should == element.object_id
     end
 
-    it 'should substitude the value returned by the default block if the index is outside the array' do
+    it 'should substitute the value returned by the default block if the index is outside the array' do
       element = 'cow'
       @lazy_array.fetch(99) { element }.object_id.should == element.object_id
     end

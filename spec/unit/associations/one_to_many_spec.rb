@@ -48,28 +48,28 @@ describe DataMapper::Associations::OneToMany do
         end
       end
 
-      it 'should recieve the child model name when passed in as class_name' do
+      it 'should receive the child model name when passed in as class_name' do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,_,child_model_name,_,_|
           child_model_name.should == 'Company::Order'
         end
         @class.one_to_many(:orders, :class_name => 'Company::Order')
       end
 
-      it 'should recieve the child model name when class_name not passed in' do
+      it 'should receive the child model name when class_name not passed in' do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,_,child_model_name,_,_|
           child_model_name.should == 'Order'
         end
         @class.one_to_many(:orders)
       end
 
-      it 'should recieve the parent model name' do
+      it 'should receive the parent model name' do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,_,_,parent_model_name,_|
           parent_model_name.should == 'User'
         end
         @class.one_to_many(:orders)
       end
 
-      it 'should recieve the parent model name' do
+      it 'should receive the parent model name' do
         options = { :min => 0, :max => 100 }
         DataMapper::Associations::Relationship.should_receive(:new) do |_,_,_,parent_model_name,_|
           options.object_id.should == options.object_id

@@ -43,7 +43,7 @@ describe DataMapper::Type do
     end
   end
 
-  it "should have the same PROPERTY_OPTIONS aray as DataMapper::Property" do
+  it "should have the same PROPERTY_OPTIONS array as DataMapper::Property" do
     # pending("currently there is no way to read PROPERTY_OPTIONS and aliases from DataMapper::Property. Also, some properties need to be defined as aliases instead of being listed in the PROPERTY_OPTIONS array")
     DataMapper::Type::PROPERTY_OPTIONS.should == DataMapper::Property::PROPERTY_OPTIONS
   end
@@ -65,19 +65,19 @@ describe DataMapper::Type do
     TestType.length.should == TestType.size
   end
 
-  it "should pass through the value if load wasn't overriden" do
+  it "should pass through the value if load wasn't overridden" do
     TestType.load("test", nil).should == "test"
   end
 
-  it "should pass through the value if dump wasn't overriden" do
+  it "should pass through the value if dump wasn't overridden" do
     TestType.dump("test", nil).should == "test"
   end
 
-  it "should not raise NotImplmenetedException if load was overriden" do
+  it "should not raise NotImplementedException if load was overridden" do
     TestType2.dump("helo", nil).should == "oleh"
   end
 
-  it "should not raise NotImplmenetedException if dump was overriden" do
+  it "should not raise NotImplementedException if dump was overridden" do
     TestType2.load("oleh", nil).should == "helo"
   end
 
