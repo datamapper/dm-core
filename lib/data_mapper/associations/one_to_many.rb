@@ -23,6 +23,16 @@ module DataMapper
 
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
+            #{name}_association.nil? ? nil : #{name}_association
+          end
+
+          def #{name}=(children)
+            #{name}_association.replace(children)
+          end
+          
+          private
+          
+          def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[#{name.inspect}]
               raise ArgumentError.new("Relationship #{name.inspect} does not exist") unless relationship
@@ -30,10 +40,6 @@ module DataMapper
               parent_associations << association
               association
             end
-          end
-
-          def #{name}=(children)
-            #{name}.replace(children)
           end
         EOS
 
