@@ -21,6 +21,12 @@ if HAS_SQLITE3
         end
       end
 
+      it "should throw an exception if the named repository is unknown" do
+        (lambda do
+          ::DataMapper::Repository.new(:completely_bogus)
+        end).should raise_error(ArgumentError)
+      end
+
       it "should return all available rows" do
         repository(:sqlite3).all(SerialFinderSpec, {}).should have(100).entries
       end

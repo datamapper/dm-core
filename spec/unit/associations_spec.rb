@@ -7,16 +7,18 @@ describe "DataMapper::Associations" do
   end
 
   describe ".relationships" do
+    DataMapper.setup(:r, "sqlite3:///tmp/r.db")
+
     class B
       include DataMapper::Resource
     end
 
     class C
-        include DataMapper::Resource
-        
-        repository(:r) do 
-          has 1, :b
-        end
+      include DataMapper::Resource
+
+      repository(:r) do
+        has 1, :b
+      end
     end
 
     it "should assume the default repository when no arguments are passed" do

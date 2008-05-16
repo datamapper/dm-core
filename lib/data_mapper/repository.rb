@@ -141,6 +141,8 @@ module DataMapper
       @name          = name
       @adapter       = self.class.adapters[name]
       @identity_maps = Hash.new { |h,model| h[model] = IdentityMap.new }
+
+      raise ArgumentError, "Unknown adapter name: #{name}" if @adapter == nil
     end
 
   end # class Repository

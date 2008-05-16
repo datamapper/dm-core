@@ -43,6 +43,7 @@ describe DataMapper::Associations::OneToMany do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,repository_name,_,_,_|
           repository_name.should == :one_to_many_spec
         end
+        DataMapper.setup(:one_to_many_spec, "sqlite3:///tmp/one_to_many.db")
         repository(:one_to_many_spec) do
           @class.one_to_many(:orders)
         end
@@ -110,6 +111,7 @@ end
 
 describe DataMapper::Associations::OneToMany::Proxy do
   before do
+    DataMapper.setup(:a_symbol, "sqlite3:///tmp/a_symbol.db")
     @parent = mock("parent", :new_record? => true)
     @resource = mock("resource", :null_object => true)
     @collection = []
