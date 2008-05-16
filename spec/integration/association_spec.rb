@@ -509,7 +509,33 @@ if HAS_SQLITE3
               property :id, Integer, :serial => true
               property :name, String
               has n, :cakes, :class_name => 'Sweets::Cake'
-              has n, :slices => :cakes
+              has n, :slices => :cakes, :class_name => 'Sweets::Slice'
+              has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'
+              has 1, :shop_owner => :wife, :class_name => 'Sweets::Wife'
+              has n, :shop_owner => :children, :class_name => 'Sweets::Child'
+              has n, :cakes => :recipe, :class_name => 'Sweets::Recipe'
+            end
+
+            class ShopOwner
+              include DataMapper::Resource
+              property :id, Integer, :serial => true
+              property :name, String
+              has 1, :wife, :class_name => 'Sweets::Wife'
+              has n, :children, :class_name => 'Sweets::Child'
+            end
+
+            class Wife
+              include DataMapper::Resource
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
+            end
+
+            class Child
+              include DataMapper::Resource
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
             end
 
             class Cake
@@ -517,6 +543,14 @@ if HAS_SQLITE3
               property :id, Integer, :serial => true
               property :name, String
               has n, :slices, :class_name => 'Sweets::Slice'
+              has 1, :recipe, :class_name => 'Sweets::Recipe'
+            end
+
+            class Recipe
+              include DataMapper::Resource
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :cake, :class_name => 'Sweets::Cake'
             end
 
             class Slice
@@ -525,21 +559,43 @@ if HAS_SQLITE3
               property :size, Integer
               belongs_to :cake, :class_name => 'Sweets::Cake'
             end
+            
+            repository(:sqlite3) do
+              Shop.auto_migrate!(:sqlite3)
+              Cake.auto_migrate!(:sqlite3)
+              Slice.auto_migrate!(:sqlite3)
+              ShopOwner.auto_migrate!(:sqlite3)
+              Wife.auto_migrate!(:sqlite3)
+              Child.auto_migrate!(:sqlite3)
+              Recipe.auto_migrate!(:sqlite3)
+              
+              betsys = Shop.new(:name => "Betsy's")
+              german_chocolate = betsys.cakes << Cake.new(:name => 'German Chocolate')
+              schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
+              german_chocolate.recipe = schwarzwald
+              10.times { |i| german_chocolate.slices << Slice.new(:size => i) }
+              
+              schwarzwald.save!
+              german_chocolate.save!
 
-            # repository(:sqlite3) do
-            #   Shop.auto_migrate!(:sqlite3)
-            #   Cake.auto_migrate!(:sqlite3)
-            #   Slice.auto_migrate!(:sqlite3)
-            #
-            #   betsys = Shop.new(:name => "Betsy's")
-            #   german_chocolate = betsys.cakes << Cake.new(:name => 'German Chocolate')
-            #   10.times { |i| german_chocolate.slices << Slice.new(:size => i) }
-            #
-            #   short_cake = betsys.cakes << Cake.new(:name => 'Short Cake')
-            #   5.times { |i| short_cake.slices << Slice.new(:size => i) }
-            #
-            #   betsys.save!
-            # end
+              short_cake = betsys.cakes << Cake.new(:name => 'Short Cake')
+              shortys_special = Recipe.new(:name => "Shorty's Special")
+              short_cake.recipe = shortys_special
+              5.times { |i| short_cake.slices << Slice.new(:size => i) }
+              
+              shortys_special.save!
+              short_cake.save!
+
+              betsy = ShopOwner.new(:name => 'Betsy')
+              barry = Wife.new(:name => 'Barry')
+              betsy.wife = barry
+
+              5.times { |i| barry.children << Child.new(:name => "Snotling nr #{i}") }
+
+              barry.save!
+              betsy.save!
+              betsys.save!
+            end
           end
         end
 
