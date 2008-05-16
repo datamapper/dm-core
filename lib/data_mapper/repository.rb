@@ -169,7 +169,7 @@ module DataMapper
     end
 
     def type_map
-      @type_map ||= TypeMap.new(@adapter.type_map)
+      @type_map ||= TypeMap.new(@adapter.class.type_map)
     end
 
     ##

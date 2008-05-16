@@ -16,53 +16,15 @@ module DataMapper
         end
       end
 
-      def exists?(table_name)
-        query_table(table_name).size > 0
+      def storage_exists?(storage_name)
+        query_table(storage_name).size > 0
       end
+      alias exists? storage_exists?
 
-      def column_exists?(table_name, column_name)
-        query("PRAGMA table_info(?)", table_name).any? do |row|
+      def field_exists?(storage_name, column_name)
+        query_table(storage_name).any? do |row|
           row.name == column_name
         end
-      end
-
-      def query_table(table_name)
-        query("PRAGMA table_info('#{table_name}')")
-      end
-
-      def begin_transaction(transaction)
-        cmd = "BEGIN"
-        transaction.connection_for(self).create_command(cmd).execute_non_query
-        DataMapper.logger.debug("#{self}: #{cmd}")
-      end
-
-      def commit_transaction(transaction)
-        cmd = "COMMIT"
-        transaction.connection_for(self).create_command(cmd).execute_non_query
-        DataMapper.logger.debug("#{self}: #{cmd}")
-      end
-
-      def prepare_transaction(transaction)
-        DataMapper.logger.debug("#{self}: #prepare_transaction called, but I don't know how... I hope the commit comes pretty soon!")
-      end
-
-      def rollback_transaction(transaction)
-        cmd = "ROLLBACK"
-        transaction.connection_for(self).create_command(cmd).execute_non_query
-        DataMapper.logger.debug("#{self}: #{cmd}")
-      end
-
-      def rollback_prepared_transaction(transaction)
-        cmd = "ROLLBACK"
-        transaction.connection.create_command(cmd).execute_non_query
-        DataMapper.logger.debug("#{self}: #{cmd}")
-      end
-
-      def rewrite_uri(uri, options)
-        new_uri = uri.dup
-        new_uri.path = options[:path] || uri.path
-
-        new_uri
       end
 
       protected
@@ -75,45 +37,53 @@ module DataMapper
 
       private
 
-      def create_table_statement(model)
-        statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-        statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+      def query_table(table_name)
+        query('PRAGMA table_info(?)', table_name)
+      end
 
-        # skip adding the primary key if one of the columns is serial.  In
-        # SQLite the serial column must be the primary key, so it has already
-        # been defined
-        unless model.properties.any? { |p| p.serial? }
-          if (key = model.properties.key).any?
-            statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
+      module SQL
+        def create_table_statement(model)
+          statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
+          statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+
+          # skip adding the primary key if one of the columns is serial.  In
+          # SQLite the serial column must be the primary key, so it has already
+          # been defined
+          unless model.properties.any? { |p| p.serial? }
+            if (key = model.properties.key).any?
+              statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
+            end
+          end
+
+          statement << ")"
+          statement.compress_lines
+        end
+
+        def property_schema_statement(schema)
+          statement = super
+          statement << ' PRIMARY KEY AUTOINCREMENT' if schema[:serial?] && supports_autoincrement?
+          statement
+        end
+
+        def quote_column_value(column_value)
+          case column_value
+            when TrueClass  then quote_column_value('t')
+            when FalseClass then quote_column_value('f')
+            else
+              super
           end
         end
 
-        statement << ")"
-        statement.compress_lines
-      end
+        def supports_autoincrement?
+          sqlite_version >= '3.1.0'
+        end
 
-      def property_schema_statement(schema)
-        statement = super
-        statement << ' PRIMARY KEY AUTOINCREMENT' if schema[:serial?] && supports_autoincrement?
-        statement
-      end
-
-      def quote_column_value(column_value)
-        case column_value
-          when TrueClass  then quote_column_value('t')
-          when FalseClass then quote_column_value('f')
-          else
-            super
+        def sqlite_version
+          @sqlite_version ||= query('SELECT sqlite_version(*)').first
         end
       end
 
-      def supports_autoincrement?
-        sqlite_version >= '3.1.0'
-      end
-
-      def sqlite_version
-        @sqlite_version ||= query('SELECT sqlite_version(*)').first
-      end
+      include SQL
     end # class Sqlite3Adapter
 
   end # module Adapters

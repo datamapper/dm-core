@@ -14,14 +14,14 @@ if HAS_SQLITE3
     end
 
     describe "auto migrating" do
-      before :each do 
+      before :each do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-        
+
         @connection = mock("connection")
         @command = mock("command")
         @result = mock("result")
@@ -31,14 +31,14 @@ if HAS_SQLITE3
         @adapter.exists?("sputniks").should == false
         Sputnik.auto_migrate!(:sqlite3_file)
         @adapter.exists?("sputniks").should == true
-        @adapter.column_exists?("sputniks", "new_prop").should == false
+        @adapter.field_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer
         Sputnik.auto_upgrade!(:sqlite3_file)
-        @adapter.column_exists?("sputniks", "new_prop").should == true
+        @adapter.field_exists?("sputniks", "new_prop").should == true
       end
     end
     describe "querying metadata" do
-      before :each do 
+      before :each do
         class Sputnik
           include DataMapper::Resource
 
@@ -54,11 +54,11 @@ if HAS_SQLITE3
       it "#exists? should return false for tables that don't exist" do
         @adapter.exists?("space turds").should == false
       end
-      it "#column_exists? should return true for columns that exist" do
-        @adapter.column_exists?("sputniks", "name").should == true
+      it "#field_exists? should return true for columns that exist" do
+        @adapter.field_exists?("sputniks", "name").should == true
       end
       it "#exists? should return false for tables that don't exist" do
-        @adapter.column_exists?("sputniks", "plur").should == false
+        @adapter.field_exists?("sputniks", "plur").should == false
       end
     end
 

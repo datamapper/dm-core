@@ -13,26 +13,100 @@ module DataMapper
       attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention
 
-      def type_map
-        self.class.type_map
+      # Methods dealing with a single resource object
+      def create(repository, resource)
+        raise NotImplementedError
       end
 
-      # method for accessing the current adapter class' type_map from the
-      # adapter instance.
-      #
-      # @return <DataMapper::TypeMap> The type_map of the subclass
-      def type_map
-        self.class.type_map
+      def read(repository, resource, key)
+        raise NotImplementedError
+      end
+
+      def update(repository, resource)
+        raise NotImplementedError
+      end
+
+      def delete(repository, resource)
+        raise NotImplementedError
+      end
+
+      # Methods dealing with locating a single object, by keys
+      def read_one(repository, query)
+        raise NotImplementedError
+      end
+
+      # Methods dealing with finding stuff by some query parameters
+      def read_set(repository, query)
+        raise NotImplementedError
+      end
+
+      def delete_set(repository, query)
+        raise NotImplementedError
+      end
+
+      # # Shortcuts
+      # Deprecated in favor of read_one
+      # def first(repository, resource, query = {})
+      #   raise ArgumentError, "You cannot pass in a :limit option to #first" if query.key?(:limit)
+      #   read_set(repository, resource, query.merge(:limit => 1)).first
+      # end
+
+      # Future Enumerable/convenience finders. Please leave in place. :-)
+      # def each(repository, klass, query)
+      #   raise NotImplementedError
+      #   raise ArgumentError unless block_given?
+      # end
+
+      def upgrade_model_storage(repository, model)
+        raise NotImplementedError
+      end
+
+      def create_model_storage(repository, model)
+        raise NotImplementedError
+      end
+
+      def destroy_model_storage(repository, model)
+        raise NotImplementedError
+      end
+
+      def alter_model_storage(repository, *args)
+        raise NotImplementedError
+      end
+
+      def create_property_storage(repository, property)
+        raise NotImplementedError
+      end
+
+      def destroy_property_storage(repository, property)
+        raise NotImplementedError
+      end
+
+      def alter_property_storage(repository, *args)
+        raise NotImplementedError
       end
 
       #
-      # Returns whether the storage_name exists in this adapter.
+      # Returns whether the storage_name exists.
       #
       # @param storage_name<String> a String defining the name of a storage,
       #   for example a table name.
       #
       # @return <Boolean> true if the storage exists
-      def exists?(storage_name)
+      #
+      def storage_exists?(storage_name)
+        raise NotImplementedError
+      end
+      alias exists? storage_exists?
+
+      #
+      # Returns whether the field exists.
+      #
+      # @param storage_name<String> a String defining the name of a storage, for example a table name.
+      # @param field_name<String> a String defining the name of a field, for example a column name.
+      #
+      # @return <Boolean> true if the field exists.
+      #
+      def field_exists?(storage_name, field_name)
         raise NotImplementedError
       end
 
@@ -186,7 +260,7 @@ module DataMapper
         @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Underscored
 
-        @transactions = Hash.new do |hash, key| hash[key] = [] end
+        @transactions = Hash.new { |hash, key| hash[key] = [] }
       end
     end # class AbstractAdapter
   end # module Adapters

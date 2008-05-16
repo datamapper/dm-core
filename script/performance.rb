@@ -5,7 +5,10 @@ require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper')
 require 'benchmark'
 require 'rubygems'
 
+gem 'faker', '>= 0.3.1'
 require 'faker'
+
+gem 'activerecord', '>= 2.0.2'
 require 'active_record'
 
 socket_file = Pathname.glob(%w[
@@ -19,12 +22,18 @@ configuration_options = {
   :adapter => 'mysql',
   :username => 'root',
   :password => '',
-  :database => 'data_mapper_1'
+  :database => 'data_mapper_1',
 }
 
 configuration_options[:socket] = socket_file unless socket_file.nil?
 
-ActiveRecord::Base.logger = Logger.new(DataMapper.root + 'log/ar.log')
+log_dir = DataMapper.root / 'log'
+log_dir.mkdir unless log_dir.directory?
+
+DataMapper::Logger.new(log_dir / 'dm.log', :debug)
+adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
+
+ActiveRecord::Base.logger = Logger.new(log_dir / 'ar.log')
 ActiveRecord::Base.logger.level = 0
 
 ActiveRecord::Base.establish_connection(configuration_options)
@@ -35,19 +44,15 @@ end
 
 ARExhibit.find_by_sql('SELECT 1')
 
-DataMapper::Logger.new(DataMapper.root + 'log/dm.log', :debug)
-adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
-
 class Exhibit
   include DataMapper::Resource
 
-  property :id, Integer, :serial => true
-  property :name, String
-  property :zoo_id, Integer
-  property :notes, String, :lazy => true
+  property :id,         Integer, :serial => true
+  property :name,       String
+  property :zoo_id,     Integer
+  property :notes,      DM::Text, :lazy => true
   property :created_on, Date
-  property :updated_at, DateTime
-
+#  property :updated_at, DateTime
 end
 
 touch_attributes = lambda do |exhibits|
@@ -55,12 +60,15 @@ touch_attributes = lambda do |exhibits|
     exhibit.id
     exhibit.name
     exhibit.created_on
-    exhibit.updated_at
+#    exhibit.updated_at
   end
 end
 
 exhibits = []
 
+# pre-compute the insert statements and fake data compilation,
+# so the benchmarks below show the actual runtime for the execute
+# method, minus the setup steps
 10_000.times do
   exhibits << [
 #    'INSERT INTO `exhibits` (`name`, `zoo_id`, `notes`, `created_on`, `updated_at`) VALUES (?, ?, ?, ?, ?)'
@@ -69,24 +77,14 @@ exhibits = []
     rand(10).ceil,
     Faker::Lorem.paragraphs.join($/),
     Date.today,
+#    Time.now,
   ]
 end
 
 Benchmark.bmbm(60) do |x|
   # reset the exhibits
   x.report do
-    adapter.execute "DROP TABLE `exhibits`"
-    adapter.execute <<-EOS.compress_lines
-       CREATE TABLE `exhibits` (
-         `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
-         `name` VARCHAR(50),
-         `zoo_id` INTEGER(11),
-         `notes` TEXT,
-         `created_on` DATE,
-         `updated_at` TIMESTAMP NOT NULL,
-         PRIMARY KEY(`id`)
-       )
-    EOS
+    Exhibit.auto_migrate!
   end
 
   x.report('DO.execute insert     x10,000') do

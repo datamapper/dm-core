@@ -3,9 +3,13 @@
 require 'pathname'
 require 'rubygems'
 require 'rake'
-require Pathname('spec/rake/spectask')
-require Pathname('rake/gempackagetask')
-require Pathname('rake/contrib/rubyforgepublisher')
+require 'rake/clean'
+require 'rake/rdoctask'
+require 'rake/gempackagetask'
+require 'rake/contrib/rubyforgepublisher'
+require 'spec/rake/spectask'
+
+CLEAN.include '{log,coverage}/'
 
 ROOT = Pathname(__FILE__).dirname.expand_path
 

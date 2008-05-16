@@ -19,68 +19,58 @@ module DataMapper
         end
       end
 
-      def create_table_statement(model)
-        "#{super} ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci"
+      def storage_exists?(storage_name)
+        query("SELECT * FROM `information_schema`.`columns` WHERE `table_schema` = ? AND `table_name` = ?", db_name, storage_name).size > 0
+      end
+      alias exists? storage_exists?
+
+      def field_exists?(storage_name, field_name)
+        # TODO: change this to use COUNT(*)
+        query("SELECT * FROM `information_schema`.`columns` WHERE `table_schema` = ? AND `table_name` = ? AND column_name = ?", db_name, storage_name, field_name).size > 0
       end
 
-      def column_exists?(table_name, column_name)
-        query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND COLUMN_NAME = ?", db_name, table_name, column_name).size > 0
-      end
-
-      def exists?(table_name)
-        query_table(table_name).size > 0
-      end
+      private
 
       def db_name
         @uri.path.split('/').last
       end
 
-      def query_table(table_name)
-        query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='#{db_name}' AND TABLE_NAME='#{table_name}'")
-      end
+      module SQL
+        def create_table_statement(model)
+          "#{super} ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci"
+        end
 
-      private
+        def property_schema_hash(property, model)
+          schema = super
+          schema.delete(:default) if schema[:primitive] == 'TEXT'
+          schema
+        end
 
-      def property_schema_hash(property, model)
-        schema = super
-        schema.delete(:default) if schema[:primitive] == 'TEXT'
-        schema
-      end
+        def property_schema_statement(schema)
+          statement = super
+          statement << ' AUTO_INCREMENT' if schema[:serial?]
+          statement
+        end
 
-      def property_schema_statement(schema)
-        statement = super
-        statement << ' AUTO_INCREMENT' if schema[:serial?]
-        statement
-      end
+        def quote_table_name(name)
+          "`#{name}`"
+        end
 
-      def quote_column_value(column_value)
-        case column_value
-          when TrueClass  then quote_column_value(1)
-          when FalseClass then quote_column_value(0)
-          else
-            super
+        def quote_column_name(name)
+          "`#{name}`"
+        end
+
+        def quote_column_value(value)
+          case value
+            when TrueClass  then quote_column_value(1)
+            when FalseClass then quote_column_value(0)
+            else
+              super
+          end
         end
       end
 
-      def quote_table_name(table_name)
-        "`#{table_name}`"
-      end
-
-      def quote_column_name(column_name)
-        "`#{column_name}`"
-      end
-
-      def rewrite_uri(uri, options)
-        new_uri = uri.dup
-        new_uri.host = options[:host] || uri.host
-        new_uri.user = options[:user] || uri.user
-        new_uri.password = options[:password] || uri.password
-        new_uri.path = (options[:database] && "/" << options[:database]) || uri.path
-        new_uri.port = options[:port] || uri.port
-        new_uri.query = (options[:socket] && "socket=#{options[:socket]}") || uri.query
-
-        new_uri
-      end
+      include SQL
 
     end # class MysqlAdapter
   end # module Adapters

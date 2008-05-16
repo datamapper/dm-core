@@ -2,45 +2,31 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if HAS_SQLITE3
   describe DataMapper::Adapters::DataObjectsAdapter do
-
-    describe "when using transactions" do
-
+    describe 'a connection' do
       before :each do
         @adapter = DataMapper::Adapters::Sqlite3Adapter.new(:sqlite3, Addressable::URI.parse('sqlite3::memory:'))
         @transaction = DataMapper::Transaction.new(@adapter)
-        @transaction.begin
+
+        @command = mock('command', :execute_non_query => nil)
+        @connection = mock('connection', :create_command => @command)
+        DataObjects::Connection.stub!(:new).and_return(@connection)
       end
 
-      describe "#close_connection" do
-        it "should not close connections that are used for the current transaction" do
-          @transaction.primitive_for(@adapter).connection.should_not_receive(:close)
-          @transaction.within do
-            @adapter.close_connection(@transaction.primitive_for(@adapter).connection)
-          end
-        end
-        it "should still close connections that are not used for the current transaction" do
-          conn2 = mock("connection2")
-          conn2.should_receive(:close)
-          @transaction.within do
-            @adapter.close_connection(conn2)
-          end
-        end
+      it 'should close automatically when no longer needed' do
+        @connection.should_receive(:close)
+        @adapter.execute('SELECT 1')
       end
-      it "should return a fresh connection on #create_connection_outside_transaction" do
-        DataObjects::Connection.should_receive(:new).once.with(@adapter.uri)
-        trans = @adapter.transaction_primitive
-      end
-      describe "#create_connection" do
-        it "should return the connection for the transaction if within a transaction" do
-          @transaction.within do
-            @adapter.create_connection.should == @transaction.primitive_for(@adapter).connection
-          end
-        end
-        it "should return new connections if not within a transaction" do
-          @adapter.create_connection.should_not == @transaction.primitive_for(@adapter).connection
+
+      it 'should not close when a current transaction is active' do
+        @connection.should_receive(:create_command).with('SELECT 1').twice.and_return(@command)
+        @connection.should_not_receive(:close)
+
+        @transaction.begin
+        @transaction.within do
+          @adapter.execute('SELECT 1')
+          @adapter.execute('SELECT 1')
         end
       end
     end
-
   end
 end

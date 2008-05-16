@@ -7,14 +7,14 @@ if HAS_POSTGRES
     end
 
     describe "auto migrating" do
-      before :each do 
+      before :each do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-        
+
         @connection = mock("connection")
         @command = mock("command")
         @result = mock("result")
@@ -23,8 +23,8 @@ if HAS_POSTGRES
         @adapter.should_receive(:create_connection).at_least(1).times.and_return(@connection)
         @connection.should_receive(:close).at_least(1).times
         @adapter.should_receive(:exists?).at_least(1).times.with("sputniks").and_return(true)
-        @adapter.should_receive(:column_exists?).at_least(1).times.with("sputniks", "id").and_return(false)
-        @adapter.should_receive(:column_exists?).at_least(1).times.with("sputniks", "name").and_return(false)
+        @adapter.should_receive(:field_exists?).at_least(1).times.with("sputniks", "id").and_return(false)
+        @adapter.should_receive(:field_exists?).at_least(1).times.with("sputniks", "name").and_return(false)
         @adapter.should_receive(:create_sequence_column).at_least(1).times.with(@connection, Sputnik, Sputnik.properties(:default)[:id])
         @command.should_receive(:execute_non_query).any_number_of_times.and_return(@result)
         @result.should_receive(:to_i).any_number_of_times.and_return(1)

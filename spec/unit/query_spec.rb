@@ -266,12 +266,26 @@ describe DataMapper::Query do
 
         query = DataMapper::Query.new(repository(:mock), Article, :order => [:plank.desc])
 
-        query.order.first.property.should == Article.properties[:plank]
-        query.order.first.property.field.should == 'real_plank'
-        query.order.first.direction.should == :desc
+        order = query.order
+        order.size.should == 1
+        order.first.property.should == Article.properties[:plank]
+        order.first.property.field.should == 'real_plank'
+        order.first.direction.should == :desc
 
-        # this is the real test here, I can't find any other way to make it parse the order into sql than to run the whole query through
-        repository(:mock).adapter.query_read_statement(query).should == %Q{SELECT "id", "blog_id", "created_at", "author", "title" FROM "articles" ORDER BY "real_plank" desc}
+        repository = repository(:mock)
+        adapter    = repository.adapter
+        collection = adapter.read_set(repository, query)
+
+        reader     = mock('reader', :next! => false, :close => nil)
+        command    = mock('command', :set_types => nil, :execute_reader => reader)
+        connection = mock('connect')
+        statement  = 'SELECT "id", "blog_id", "created_at", "author", "title" FROM "articles" ORDER BY "real_plank" DESC'
+
+        adapter.should_receive(:with_connection).and_yield(connection).once
+        connection.should_receive(:create_command).with(statement).and_return(command)
+
+        # use the kicker method to execute the query
+        collection.entries
       end
 
       # dkubb: I am not sure i understand the intent here. link now needs to be

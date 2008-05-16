@@ -7,14 +7,14 @@ if HAS_POSTGRES
     end
 
     describe "auto migrating" do
-      before :each do 
+      before :each do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-        
+
         @connection = mock("connection")
         @command = mock("command")
         @result = mock("result")
@@ -24,16 +24,16 @@ if HAS_POSTGRES
         @adapter.exists?("sputniks").should == false
         Sputnik.auto_migrate!(:postgres)
         @adapter.exists?("sputniks").should == true
-        @adapter.column_exists?("sputniks", "new_prop").should == false
+        @adapter.field_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer, :serial => true
         @adapter.drop_sequence_column(@adapter.create_connection, Sputnik, Sputnik.new_prop) rescue nil
         Sputnik.auto_upgrade!(:postgres)
-        @adapter.column_exists?("sputniks", "new_prop").should == true
+        @adapter.field_exists?("sputniks", "new_prop").should == true
       end
     end
 
     describe "querying metadata" do
-      before :each do 
+      before :each do
         class Sputnik
           include DataMapper::Resource
 
@@ -49,11 +49,11 @@ if HAS_POSTGRES
       it "#exists? should return false for tables that don't exist" do
         @adapter.exists?("space turds").should == false
       end
-      it "#column_exists? should return true for columns that exist" do
-        @adapter.column_exists?("sputniks", "name").should == true
+      it "#field_exists? should return true for columns that exist" do
+        @adapter.field_exists?("sputniks", "name").should == true
       end
-      it "#exists? should return false for tables that don't exist" do
-        @adapter.column_exists?("sputniks", "plur").should == false
+      it "#field_exists? should return false for columns that don't exist" do
+        @adapter.field_exists?("sputniks", "plur").should == false
       end
     end
 
