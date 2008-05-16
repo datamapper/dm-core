@@ -583,8 +583,12 @@ module DataMapper
           unless query.order.empty?
             parts = []
             query.order.each do |item|
-              parts << item.field if DataMapper::Property === item
-              parts << "#{item.property.field} #{item.direction}" if DataMapper::Query::Direction === item
+              case item
+                when DataMapper::Query::Direction then property = item.property
+                when Datamapper::Property         then property = item
+              end
+              storage_name = property.model.storage_name(query.repository.name) if property.respond_to?(:model)
+              parts << property_to_column_name(storage_name,property,qualify) + (item.respond_to?(:direction) ? " #{item.direction}" : "")
             end
             statement << " ORDER BY #{parts.join(', ')}"
           end

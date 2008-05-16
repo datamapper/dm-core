@@ -271,7 +271,7 @@ describe DataMapper::Query do
         query.order.first.direction.should == :desc
 
         # this is the real test here, I can't find any other way to make it parse the order into sql than to run the whole query through
-        repository(:mock).adapter.query_read_statement(query).should == %Q{SELECT "id", "blog_id", "created_at", "author", "title" FROM "articles" ORDER BY real_plank desc}
+        repository(:mock).adapter.query_read_statement(query).should == %Q{SELECT "id", "blog_id", "created_at", "author", "title" FROM "articles" ORDER BY "real_plank" desc}
       end
 
       # dkubb: I am not sure i understand the intent here. link now needs to be
