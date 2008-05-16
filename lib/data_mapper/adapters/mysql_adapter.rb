@@ -20,13 +20,24 @@ module DataMapper
       end
 
       def storage_exists?(storage_name)
-        query("SELECT * FROM `information_schema`.`columns` WHERE `table_schema` = ? AND `table_name` = ?", db_name, storage_name).size > 0
+        statement = <<-EOS.compress_lines
+          SELECT COUNT(*)
+          FROM `information_schema`.`columns`
+          WHERE `table_schema` = ? AND `table_name` = ?
+        EOS
+
+        query(statement, db_name, storage_name).first > 0
       end
       alias exists? storage_exists?
 
       def field_exists?(storage_name, field_name)
-        # TODO: change this to use COUNT(*)
-        query("SELECT * FROM `information_schema`.`columns` WHERE `table_schema` = ? AND `table_name` = ? AND column_name = ?", db_name, storage_name, field_name).size > 0
+        statement = <<-EOS.compress_lines
+          SELECT COUNT(*)
+          FROM `information_schema`.`columns`
+          WHERE `table_schema` = ? AND `table_name` = ? AND column_name = ?
+        EOS
+
+        query(statement, db_name, storage_name, field_name).first > 0
       end
 
       private

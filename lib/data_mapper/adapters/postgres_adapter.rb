@@ -48,28 +48,28 @@ module DataMapper
       end
 
       def storage_exists?(storage_name)
-        # TODO: quote the db, table and column names
-        query("SELECT * FROM information_schema.columns WHERE table_name = ? AND table_schema = current_schema()", storage_name).size > 0
+        statement = <<-EOS.compress_lines
+          SELECT COUNT(*)
+          FROM "information_schema"."columns"
+          WHERE "table_name" = ? AND "table_schema" = current_schema()
+        EOS
+
+        query(statement, storage_name).first > 0
       end
       alias exists? storage_exists?
 
       def field_exists?(storage_name, column_name)
-        # TODO: quote the table and column names
         statement = <<-EOS.compress_lines
-          SELECT pg_attribute.attname
-          FROM pg_class
-          JOIN pg_attribute ON pg_class.oid = pg_attribute.attrelid
-          WHERE pg_attribute.attname = ? AND pg_class.relname = ? AND pg_attribute.attnum >= 0
+          SELECT COUNT(*)
+          FROM "pg_class"
+          JOIN "pg_attribute" ON "pg_class"."oid" = "pg_attribute"."attrelid"
+          WHERE "pg_attribute"."attname" = ? AND "pg_class"."relname" = ? AND "pg_attribute"."attnum" >= 0
         EOS
 
-        query(statement, column_name, storage_name).size > 0
+        query(statement, column_name, storage_name).first > 0
       end
 
       private
-
-      def db_name
-        @uri.path.split('/').last
-      end
 
       module SQL
         def create_with_returning?
@@ -104,12 +104,12 @@ module DataMapper
 
         def sequence_exists?(model, property)
           statement = <<-EOS.compress_lines
-            SELECT relname
-            FROM pg_class
-            WHERE relkind = 'S' AND relname = ?
+            SELECT COUNT(*)
+            FROM "pg_class"
+            WHERE "relkind" = 'S' AND "relname" = ?
           EOS
 
-          query(statement, sequence_name(model, property)).size > 0
+          query(statement, sequence_name(model, property)).first > 0
         end
 
         def sequence_name(model, property)

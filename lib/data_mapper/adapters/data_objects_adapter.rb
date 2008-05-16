@@ -429,9 +429,7 @@ module DataMapper
         end
 
         def drop_table_statement(model)
-          <<-EOS.compress_lines
-            DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}
-          EOS
+          "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
         end
 
         def property_schema_hash(property, model)
