@@ -84,8 +84,69 @@ if HAS_SQLITE3
       many_to_one :parent, :class_name => "Node", :child_key => [ :parent_id ]
     end
   end
+  
+  module Models
+    
+    class Project
+      include DataMapper::Resource
+
+      property :title, String, :length => 255, :key => true
+      property :summary, DataMapper::Types::Text
+
+      repository(:sqlite3) do
+        one_to_many :tasks, :class_name => "Models::Task"
+      end
+    end
+
+    class Task
+      include DataMapper::Resource
+
+      property :title, String, :length => 255, :key => true
+      property :description, DataMapper::Types::Text
+      property :project_title, String, :length => 255
+      
+      repository(:sqlite3) do
+        many_to_one :project, :class_name => "Models::Project"
+      end
+    end
+
+  end
 
   describe DataMapper::Associations do
+
+    describe "namespaced associations" do
+      before do
+        @adapter = repository(:sqlite3).adapter
+        Models::Project.auto_migrate!(:sqlite3)
+        Models::Task.auto_migrate!(:sqlite3)
+      end
+
+      it 'should allow namespaced classes in parent and child' do
+        repository(:sqlite3) do
+          m = Models::Project.new(:title => "p1", :summary => "sum1")
+          m.tasks << Models::Task.new(:title => "t1", :description => "desc 1")
+          m.save
+        end
+
+        t = repository(:sqlite3) do
+          Models::Task.first(:title => "t1")
+        end
+        
+        t.project.should_not be_nil
+        t.project.title.should == 'p1'
+        t.project.tasks.size.should == 1
+        
+        p = repository(:sqlite3) do
+          Models::Project.first(:title => 'p1')
+        end
+        
+        p.tasks.size.should == 1
+        p.tasks[0].title.should == "t1"
+      end
+
+      
+    end
+
     describe "many to one associations" do
       before do
         @adapter = repository(:sqlite3).adapter

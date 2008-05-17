@@ -13,7 +13,7 @@ module DataMapper
           raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
         end
 
-        child_model_name  = DataMapper::Inflection.demodulize(self.name)
+        child_model_name  = self.name
         parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
         relationship = relationships(repository.name)[name] = Relationship.new(
