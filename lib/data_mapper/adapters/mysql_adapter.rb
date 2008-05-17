@@ -48,7 +48,9 @@ module DataMapper
 
       module SQL
         def create_table_statement(model)
-          "#{super} ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci"
+          character_set = show_variable('character_set_connection') || 'utf8'
+          collation     = show_variable('collation_connection')     || 'utf8_general_ci'
+          "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
         end
 
         def property_schema_hash(property, model)
@@ -61,6 +63,10 @@ module DataMapper
           statement = super
           statement << ' AUTO_INCREMENT' if schema[:serial?]
           statement
+        end
+
+        def show_variable(name)
+          query('SHOW VARIABLES WHERE `variable_name` = ?', name).first.value rescue nil
         end
 
         def quote_table_name(name)
