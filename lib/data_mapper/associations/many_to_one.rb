@@ -9,7 +9,7 @@ module DataMapper
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        child_model_name  = DataMapper::Inflection.demodulize(self.name)
+        child_model_name  = self.name
         parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
         relationship = relationships(repository.name)[name] = Relationship.new(
