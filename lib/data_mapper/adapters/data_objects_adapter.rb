@@ -485,23 +485,23 @@ module DataMapper
             # TODO Should we raise an error if there is no such property in the
             #      repository of the query?
             #
-            #if property.model.properties(query.repository.name)[property.name].nil?
-            #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
+            #if property.model.properties(name)[property.name].nil?
+            #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{name}."
             #end
             #
-            table_name = property.model.storage_name(query.repository.name)
+            table_name = property.model.storage_name(name)
             property_to_column_name(table_name, property, qualify)
           end.join(', ')
 
-          statement << ' FROM ' << quote_table_name(query.model.storage_name(query.repository.name))
+          statement << ' FROM ' << quote_table_name(query.model.storage_name(name))
 
           unless query.links.empty?
             joins = []
             query.links.each do |relationship|
               child_model       = relationship.child_model
               parent_model      = relationship.parent_model
-              child_model_name  = child_model.storage_name(child_model.repository.name)
-              parent_model_name = parent_model.storage_name(parent_model.repository.name)
+              child_model_name  = child_model.storage_name(name)
+              parent_model_name = parent_model.storage_name(name)
               child_keys        = relationship.child_key.to_a
 
               # We only do LEFT OUTER JOIN for now
@@ -529,11 +529,11 @@ module DataMapper
               # TODO Should we raise an error if there is no such property in
               #      the repository of the query?
               #
-              #if property.model.properties(query.repository.name)[property.name].nil?
-              #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{query.repository.name}."
+              #if property.model.properties(name)[property.name].nil?
+              #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{name}."
               #end
               #
-              table_name = property.model.storage_name(query.repository.name) if property && property.respond_to?(:model)
+              table_name = property.model.storage_name(name) if property && property.respond_to?(:model)
               case operator
                 when :raw      then property
                 when :eql, :in then equality_operator(query, table_name, operator, property, qualify, bind_value)
@@ -562,7 +562,7 @@ module DataMapper
                   direction = item.direction
               end
 
-              table_name = property.model.storage_name(query.repository.name) if property && property.respond_to?(:model)
+              table_name = property.model.storage_name(name) if property && property.respond_to?(:model)
 
               order = property_to_column_name(table_name, property, qualify)
               order << " #{direction.to_s.upcase}" if direction

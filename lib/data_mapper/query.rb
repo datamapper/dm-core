@@ -98,12 +98,11 @@ module DataMapper
 
     end # class Path
 
-
     OPTIONS = [
       :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
 
-    attr_reader :model, :repository, *OPTIONS
+    attr_reader :model, *OPTIONS
 
     def update(other)
       other = self.class.new(@repository, model, other) if Hash === other
@@ -187,7 +186,7 @@ module DataMapper
 
     def inspect
       attrs = [
-        [ :repository, repository.name ],
+        [ :repository, @repository.name ],
         [ :model,      model ],
         [ :fields,     fields ],
         [ :links,      links ],
