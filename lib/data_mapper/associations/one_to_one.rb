@@ -16,7 +16,7 @@ module DataMapper
           DataMapper::Inflection.underscore(parent_model_name).to_sym,
           repository.name,
           child_model_name,
-          parent_model_name,
+          self.name,
           options
         )
 

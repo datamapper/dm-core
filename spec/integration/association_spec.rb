@@ -509,11 +509,11 @@ if HAS_SQLITE3
               property :id, Integer, :serial => true
               property :name, String
               has n, :cakes, :class_name => 'Sweets::Cake'
-              has n, :slices => :cakes, :class_name => 'Sweets::Slice'
-              has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'
-              has 1, :shop_owner => :wife, :class_name => 'Sweets::Wife'
-              has n, :shop_owner => :children, :class_name => 'Sweets::Child'
-              has n, :cakes => :recipe, :class_name => 'Sweets::Recipe'
+              has n, {:cakes => :slices}, :class_name => 'Sweets::Slice'
+#              has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'
+#              has 1, :shop_owner => :wife, :class_name => 'Sweets::Wife'
+#              has n, {:shop_owner => :children}, :class_name => 'Sweets::Child'
+#              has n, {:cakes => :recipe}, :class_name => 'Sweets::Recipe'
             end
 
             class ShopOwner
@@ -543,7 +543,7 @@ if HAS_SQLITE3
               property :id, Integer, :serial => true
               property :name, String
               has n, :slices, :class_name => 'Sweets::Slice'
-              has 1, :recipe, :class_name => 'Sweets::Recipe'
+#              has 1, :recipe, :class_name => 'Sweets::Recipe'
             end
 
             class Recipe
@@ -571,36 +571,35 @@ if HAS_SQLITE3
               
               betsys = Shop.new(:name => "Betsy's")
               german_chocolate = betsys.cakes << Cake.new(:name => 'German Chocolate')
-              schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
-              german_chocolate.recipe = schwarzwald
+#              schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
+#              german_chocolate.recipe = schwarzwald
               10.times { |i| german_chocolate.slices << Slice.new(:size => i) }
               
-              schwarzwald.save!
-              german_chocolate.save!
+#              schwarzwald.save!
+              german_chocolate.save
 
               short_cake = betsys.cakes << Cake.new(:name => 'Short Cake')
-              shortys_special = Recipe.new(:name => "Shorty's Special")
-              short_cake.recipe = shortys_special
+#              shortys_special = Recipe.new(:name => "Shorty's Special")
+#              short_cake.recipe = shortys_special
               5.times { |i| short_cake.slices << Slice.new(:size => i) }
               
-              shortys_special.save!
-              short_cake.save!
+#              shortys_special.save!
+              short_cake.save
 
-              betsy = ShopOwner.new(:name => 'Betsy')
-              barry = Wife.new(:name => 'Barry')
-              betsy.wife = barry
+#              betsy = ShopOwner.new(:name => 'Betsy')
+#              barry = Wife.new(:name => 'Barry')
+#              betsy.wife = barry
 
               5.times { |i| barry.children << Child.new(:name => "Snotling nr #{i}") }
 
-              barry.save!
-              betsy.save!
-              betsys.save!
+              barry.save
+#              betsy.save!
+              betsys.save
             end
           end
         end
 
         it "should be amazing" do
-          pending
           Sweets::Shop.first.cakes.should have(2).entries
         end
       end
