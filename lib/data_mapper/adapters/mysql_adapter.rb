@@ -69,16 +69,16 @@ module DataMapper
           query('SHOW VARIABLES WHERE `variable_name` = ?', name).first.value rescue nil
         end
 
-        def quote_table_name(name)
-          "`#{name}`"
+        def quote_table_name(table_name)
+          "`#{table_name.gsub('`', '``')}`"
         end
 
-        def quote_column_name(name)
-          "`#{name}`"
+        def quote_column_name(column_name)
+          "`#{column_name.gsub('`', '``')}`"
         end
 
-        def quote_column_value(value)
-          case value
+        def quote_column_value(column_value)
+          case column_value
             when TrueClass  then quote_column_value(1)
             when FalseClass then quote_column_value(0)
             else
