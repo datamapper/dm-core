@@ -520,6 +520,7 @@ if HAS_SQLITE3
               include DataMapper::Resource
               property :id, Integer, :serial => true
               property :name, String
+              belongs_to :shop, :class_name => 'Sweets::Shop'
               has 1, :wife, :class_name => 'Sweets::Wife'
               has n, :children, :class_name => 'Sweets::Child'
             end
@@ -542,6 +543,7 @@ if HAS_SQLITE3
               include DataMapper::Resource
               property :id, Integer, :serial => true
               property :name, String
+              belongs_to :shop, :class_name => 'Sweets::Shop'
               has n, :slices, :class_name => 'Sweets::Slice'
 #              has 1, :recipe, :class_name => 'Sweets::Recipe'
             end
@@ -570,6 +572,7 @@ if HAS_SQLITE3
               Recipe.auto_migrate!(:sqlite3)
               
               betsys = Shop.new(:name => "Betsy's")
+              betsys.save
               german_chocolate = betsys.cakes << Cake.new(:name => 'German Chocolate')
 #              schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
 #              german_chocolate.recipe = schwarzwald
@@ -590,17 +593,18 @@ if HAS_SQLITE3
 #              barry = Wife.new(:name => 'Barry')
 #              betsy.wife = barry
 
-              5.times { |i| barry.children << Child.new(:name => "Snotling nr #{i}") }
+#              5.times { |i| barry.children << Child.new(:name => "Snotling nr #{i}") }
 
-              barry.save
+#              barry.save
 #              betsy.save!
-              betsys.save
             end
           end
         end
 
         it "should be amazing" do
-          Sweets::Shop.first.cakes.should have(2).entries
+          DataMapper.repository(:sqlite3) do
+            Sweets::Shop.first.cakes.should have(2).entries
+          end
         end
       end
     end

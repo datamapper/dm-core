@@ -13,7 +13,7 @@ module DataMapper
             property_name ||= "#{foreign_key_name}_#{parent_property.name}".to_sym
             type = parent_property.type
             type = Integer if Fixnum == type  # TODO: remove this hack once all in-the-wild code uses Integer instead of Fixnum
-            model_properties[property_name] || child_model.property(property_name, type)
+            model_properties[property_name] || DataMapper.repository(repository_name) do child_model.property(property_name, type) end
           end
 
           PropertySet.new(child_key)
