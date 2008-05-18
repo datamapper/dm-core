@@ -514,7 +514,7 @@ if HAS_SQLITE3
               has n, :cakes, :class_name => 'Sweets::Cake'
               has n, {:cakes => :slices}, :class_name => 'Sweets::Slice'
               has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'
-#              has 1, :shop_owner => :wife, :class_name => 'Sweets::Wife'
+              has 1, {:shop_owner => :wife}, :class_name => 'Sweets::Wife'
               has n, {:shop_owner => :children}, :class_name => 'Sweets::Child'
               has n, {:cakes => :recipe}, :class_name => 'Sweets::Recipe'
             end
@@ -596,19 +596,20 @@ if HAS_SQLITE3
             german_chocolate = Cake.new(:name => 'German Chocolate')
             betsys.cakes << german_chocolate
             german_chocolate.save
-            #              schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
-            #              german_chocolate.recipe = schwarzwald
+            schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
+            schwarzwald.save
+            german_chocolate.recipe = schwarzwald
+            german_chocolate.save
             10.times do |i| german_chocolate.slices << Slice.new(:size => i) end
-            
-            #              schwarzwald.save!
             
             short_cake = Cake.new(:name => 'Short Cake')
             betsys.cakes << short_cake
             short_cake.save
-            #              shortys_special = Recipe.new(:name => "Shorty's Special")
-            #              short_cake.recipe = shortys_special
+            shortys_special = Recipe.new(:name => "Shorty's Special")
+            shortys_special.save
+            short_cake.recipe = shortys_special
+            short_cake.save
             5.times do |i| short_cake.slices << Slice.new(:size => i) end
-            #              shortys_special.save!
             
             betsy = ShopOwner.new(:name => 'Betsy')
             betsys.shop_owner = betsy
@@ -629,12 +630,12 @@ if HAS_SQLITE3
             end
           end
         end
-#        it "should return the right children for one_to_one => one_to_many relationships" do
-#          Sweets::Shop.first.children.size.should == 5
-#        end
-#        it "should return the right children for one_to_one => one_to_one relationships" do
-#          
-#        end
+        it "should return the right children for one_to_one => one_to_many relationships" do
+          Sweets::Shop.first.children.size.should == 5
+        end
+        it "should return the right children for one_to_one => one_to_one relationships" do
+          Sweets::Shop.first.wife.should == Sweets::Wife.first
+        end
       end
     end
   end
