@@ -69,7 +69,6 @@ module DataMapper
       # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
       # I wash my hands of it!
       def initialize(foreign_key_name, repository_name, child_model_name, parent_model_name, options = {}, &loader)
-        puts caller.join("\n") if child_model_name == "Wife"
         raise ArgumentError, "+foreign_key_name+ should be a Symbol, but was #{foreign_key_name.class}", caller                                unless Symbol === foreign_key_name
         raise ArgumentError, "+repository_name+ must be a Symbol, but was #{repository_name.class}", caller            unless Symbol === repository_name
         raise ArgumentError, "+child_model_name+ must be a String, but was #{child_model_name.class}", caller          unless String === child_model_name

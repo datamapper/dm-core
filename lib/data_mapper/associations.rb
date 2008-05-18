@@ -6,8 +6,6 @@ require dir / 'many_to_many'
 require dir / 'many_to_one'
 require dir / 'one_to_many'
 require dir / 'one_to_one'
-require dir / 'has_one_through'
-require dir / 'has_many_through'
 
 module DataMapper
   module Associations
@@ -15,8 +13,6 @@ module DataMapper
     include OneToMany
     include ManyToMany
     include OneToOne
-    include HasOneThrough
-    include HasManyThrough
 
     def relationships(repository_name = default_repository_name)
       (@relationships ||= Hash.new { |h,k| h[k] = (k == :default || !h.key?(:default) ? {} : h[:default].dup) })[repository_name]
@@ -65,28 +61,21 @@ module DataMapper
     # @public
     def has(cardinality, name, options = {})
       options = options.merge(extract_min_max(cardinality))
+      options = options.merge(extract_throughness(name))
       relationship = nil
-      if Hash === name
-        if options[:max] == 1
-          relationship = has_one_through(name, options)
-        else options[:max] == n && options[:min] == n
-          relationship = has_many_through(name, options)
-        end
+      if options[:max] == 1
+        relationship = one_to_one(options.delete(:name), options)
       else
-        if options[:max] == 1
-          relationship = one_to_one(name, options)
+        if options[:min] == n && options[:max] == n
+          relationship = many_to_many(options.delete(:name), options)
         else
-          if options[:min] == n && options[:max] == n
-            relationship = many_to_many(name, options)
-          else
-            relationship = one_to_many(name, options)
-          end
+          relationship = one_to_many(options.delete(:name), options)
         end
-        # Please leave this in - I will release contextual serialization soon
-        # which requires this -- guyvdb
-        # TODO convert this to a hook in the plugin once hooks work on class
-        # methods
       end
+      # Please leave this in - I will release contextual serialization soon
+      # which requires this -- guyvdb
+      # TODO convert this to a hook in the plugin once hooks work on class
+      # methods
       self.init_has_relationship_for_serialization(relationship) if self.respond_to?(:init_has_relationship_for_serialization)
     end
 
@@ -120,6 +109,17 @@ module DataMapper
 
 
   private
+
+    def extract_throughness(name)
+      case name
+      when Hash
+        {:name => name.values.first, :through => name.keys.first}
+      when Symbol
+        {:name => name}
+      else
+        raise ArgumentError, "Name of association must be Hash or Symbol, not #{name.inspect}"
+      end
+    end
 
     # A support method form converting Fixnum, Range or Infinity values into a
     # {:min=>x, :max=>y} hash.

@@ -11,16 +11,25 @@ module DataMapper
         raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller     unless Symbol === name || Hash === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        child_model_name = options.fetch(:class_name, DataMapper::Inflection.classify(name))
-
-        relationship = relationships(repository.name)[name] = Relationship.new(
-          DataMapper::Inflection.underscore(self.name.split('::').last).to_sym,
-          repository.name,
-          child_model_name,
-          self.name,
-          options
-        )
-
+        relationship = 
+          relationships(repository.name)[name] = 
+          if options.include?(:through)
+            RelationshipChain.new(:child_model_name => options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+                                  :parent_model => self,
+                                  :repository_name => repository.name,
+                                  :near_relationship_name => options[:through],
+                                  :remote_relationship_name => options.fetch(:remote_name, name))
+          else
+            relationships(repository.name)[name] = 
+              Relationship.new(
+                               DataMapper::Inflection.underscore(self.name.split('::').last).to_sym,
+                               repository.name,
+                               options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+                               self.name,
+                               options
+                               )
+          end
+        
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
             #{name}_association.nil? ? nil : #{name}_association

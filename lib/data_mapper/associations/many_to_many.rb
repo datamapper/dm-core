@@ -6,6 +6,7 @@ module DataMapper
       private
 
       def many_to_many(name, options = {})
+        raise NotImplementedError
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
