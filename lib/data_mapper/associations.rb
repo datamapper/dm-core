@@ -9,6 +9,10 @@ require dir / 'one_to_one'
 
 module DataMapper
   module Associations
+
+    class ImmutableAssociationError < RuntimeError
+    end
+
     include ManyToOne
     include OneToMany
     include ManyToMany

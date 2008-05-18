@@ -636,6 +636,11 @@ if HAS_SQLITE3
         it "should return the right children for one_to_one => one_to_one relationships" do
           Sweets::Shop.first.wife.should == Sweets::Wife.first
         end
+        it "should raise exception if you try to change it" do
+          lambda do
+            Sweets::Shop.first.wife = Sweets::Wife.new(:name => 'Larry')
+          end.should raise_error(DataMapper::Associations::ImmutableAssociationError)
+        end
       end
     end
   end

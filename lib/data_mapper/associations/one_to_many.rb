@@ -134,7 +134,12 @@ module DataMapper
           @children ||= @relationship.get_children(@parent_resource)
         end
 
+        def ensure_mutable
+          raise ImmutableAssociationError, "You can not modify this assocation" if RelationshipChain === @relationship
+        end
+
         def remove_resource(resource)
+          ensure_mutable
           begin
             repository(@relationship.repository_name) do
               @relationship.attach_parent(resource, nil)
@@ -148,6 +153,7 @@ module DataMapper
         end
 
         def append_resource(resources = [])
+          ensure_mutable
           if @parent_resource.new_record?
             @dirty_children.push(*resources)
           else
@@ -156,6 +162,7 @@ module DataMapper
         end
 
         def save_resources(resources = [])
+          ensure_mutable
           repository(@parent_resource.repository.name) do
             resources.each do |resource|
               @relationship.attach_parent(resource, @parent_resource)
