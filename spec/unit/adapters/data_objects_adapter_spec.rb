@@ -17,68 +17,11 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   end
 
   before do
-    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, Addressable::URI.parse('mock://localhost'))
+    @uri     = Addressable::URI.parse('mock://localhost')
+    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, @uri)
   end
 
   it_should_behave_like 'a DataMapper Adapter'
-
-  # TODO: turn this into a shared spec and include it
-  # when testing any method that use it
-  #describe "#with_reader" do
-  #  it "should yield a reader for the given query to the given block" do
-  #    @reader = mock("reader")
-  #    @connection = mock("connection")
-  #    @command = mock("command")
-  #    @command.should_receive(:execute_reader).once.and_return(@reader)
-  #    @connection.should_receive(:close).once
-  #    @reader.should_receive(:close).once
-  #    @connection.should_receive(:create_command).once.with("SELECT * FROM plurs").and_return(@command)
-  #    @adapter.should_receive(:create_connection).once.and_return(@connection)
-  #    @adapter.with_reader("SELECT * FROM plurs") do |reader|
-  #      reader.should == @reader
-  #    end
-  #  end
-  #  it "should close the reader even if an exception is raised" do
-  #    @reader = mock("reader")
-  #    @connection = mock("connection")
-  #    @command = mock("command")
-  #    @command.should_receive(:execute_reader).once.and_return(@reader)
-  #    @connection.should_receive(:close).once
-  #    @reader.should_receive(:close).once
-  #    @connection.should_receive(:create_command).once.with("SELECT * FROM plurs").and_return(@command)
-  #    @adapter.should_receive(:create_connection).once.and_return(@connection)
-  #    Proc.new do @adapter.with_reader("SELECT * FROM plurs") do |reader|
-  #        raise "plopp"
-  #      end
-  #    end.should raise_error(Exception, "plopp")
-  #  end
-  #end
-
-  # TODO: turn this into a shared spec and include it
-  # when testing any method that use it
-  #describe "#with_connection" do
-  #
-  #  before :each do
-  #    @connection = mock("connection")
-  #  end
-  #
-  #  it "should yield a newly created connection to the given block" do
-  #    @adapter.should_receive(:create_connection).once.and_return(@connection)
-  #    @connection.should_receive(:close).once
-  #    @adapter.with_connection do |conn|
-  #      conn.should == @connection
-  #    end
-  #  end
-  #
-  #  it "should close the connection even if an exception is raised" do
-  #    @adapter.should_receive(:create_connection).once.and_return(@connection)
-  #    @connection.should_receive(:close).once
-  #    Proc.new do @adapter.with_connection do |conn|
-  #        raise "plur"
-  #      end
-  #    end.should raise_error(Exception, "plur")
-  #  end
-  #end
 
   describe "#find_by_sql" do
 
@@ -160,6 +103,175 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     end
 
+  end
+
+  describe '#uri options' do
+    it 'should transform a fully specified option hash into a URI' do
+      options = {
+        :adapter => 'mysql',
+        :host => 'davidleal.com',
+        :username => 'me',
+        :password => 'mypass',
+        :port => 5000,
+        :database => 'you_can_call_me_al',
+        :socket => 'nosock'
+      }
+
+      adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
+      adapter.uri.should ==
+        Addressable::URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
+    end
+
+    it 'should transform a minimal options hash into a URI' do
+      options = {
+        :adapter => 'mysql',
+        :database => 'you_can_call_me_al'
+      }
+
+      adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
+      adapter.uri.should == Addressable::URI.parse("mysql:///you_can_call_me_al")
+    end
+
+    it 'should accept the uri when no overrides exist' do
+      uri = Addressable::URI.parse("protocol:///")
+      DataMapper::Adapters::DataObjectsAdapter.new(:spec, uri).uri.should == uri
+    end
+  end
+
+  describe '#create' do
+    before do
+      @result = mock('result', :to_i => 1)
+
+      @adapter.stub!(:execute).and_return(@result)
+
+      @property   = mock('property', :field => 'property', :instance_variable_name => '@property', :serial? => false)
+      @repository = mock('repository')
+      @model      = mock('model', :storage_name => 'models', :key => [ @property ])
+      @resource   = mock('resource', :class => @model, :dirty_attributes => [ @property ], :instance_variable_get => 'bind value')
+    end
+
+    it 'should use only dirty properties' do
+      @resource.should_receive(:dirty_attributes).with(no_args).once.and_return([ @property ])
+      @adapter.create(@repository, @resource)
+    end
+
+    it 'should use the properties field accessors' do
+      @property.should_receive(:field).with(no_args).once.and_return('property')
+      @adapter.create(@repository, @resource)
+    end
+
+    it 'should get the bind values' do
+      @property.should_receive(:instance_variable_name).with(no_args).once.and_return('@property')
+      @resource.should_receive(:instance_variable_get).with('@property').once.and_return('bind value')
+      @adapter.create(@repository, @resource)
+    end
+
+    it 'should generate an SQL statement when create_with_returning? is false' do
+      statement = 'INSERT INTO "models" ("property") VALUES (?)'
+      @adapter.should_receive(:create_with_returning?).with(no_args).and_return(false)
+      @adapter.should_receive(:execute).with(statement, 'bind value').once.and_return(@result)
+      @adapter.create(@repository, @resource)
+    end
+
+    it 'should generate an SQL statement when create_with_returning? is true' do
+      statement = 'INSERT INTO "models" ("property") VALUES (?) RETURNING "property"'
+      @adapter.should_receive(:create_with_returning?).with(no_args).and_return(true)
+      @adapter.should_receive(:execute).with(statement, 'bind value').once.and_return(@result)
+      @adapter.create(@repository, @resource)
+    end
+
+    it 'should return false if number of rows created is 0' do
+      @result.should_receive(:to_i).with(no_args).once.and_return(0)
+      @adapter.create(@repository, @resource).should be_false
+    end
+
+    it 'should return true if number of rows created is 1' do
+      @result.should_receive(:to_i).with(no_args).once.and_return(1)
+      @adapter.create(@repository, @resource).should be_true
+    end
+
+    it 'should set the resource primary key if the model key size is 1 and the key is serial' do
+      @model.key.size.should == 1
+      @property.should_receive(:serial?).and_return(true)
+      @result.should_receive(:insert_id).and_return(111)
+      @resource.should_receive(:instance_variable_set).with('@property', 111)
+      @adapter.create(@repository, @resource)
+    end
+  end
+
+  describe '#read' do
+    it 'needs specs'
+  end
+
+  describe '#update' do
+    it 'needs specs'
+
+    it 'should not try to update if there are no dirty attributes' do
+      repository = mock("repository")
+      resource = mock("resource")
+      resource.stub!(:dirty_attributes).and_return({})
+      @adapter.update(repository, resource).should == false
+    end
+  end
+
+  describe '#delete' do
+    it 'needs specs'
+  end
+
+  describe '#read_set' do
+    it 'needs specs'
+  end
+
+  describe "when upgrading tables" do
+    it "should raise NotImplementedError when #exists? is called" do
+      lambda { @adapter.exists?("cheeses") }.should raise_error(NotImplementedError)
+    end
+
+    describe "#upgrade_model_storage" do
+      it "should call #create_model_storage unless the model storage alread exists" do
+        @adapter.should_receive(:exists?).once.with("cheeses").and_return(false)
+        @adapter.should_receive(:create_model_storage).once.with(nil, Cheese).and_return(true)
+        @adapter.upgrade_model_storage(nil, Cheese).should == Cheese
+      end
+
+      it "should check if all properties of the model have columns if the table exists" do
+        @adapter.should_receive(:field_exists?).once.with("cheeses", "id").and_return(true)
+        @adapter.should_receive(:field_exists?).once.with("cheeses", "name").and_return(true)
+        @adapter.should_receive(:field_exists?).once.with("cheeses", "color").and_return(true)
+        @adapter.should_receive(:field_exists?).once.with("cheeses", "notes").and_return(true)
+        @adapter.should_receive(:exists?).once.with("cheeses").and_return(true)
+        connection = mock("connection")
+        connection.should_receive(:close).once
+        @adapter.should_receive(:create_connection).once.and_return(connection)
+        @adapter.upgrade_model_storage(nil, Cheese).should == []
+      end
+
+      it "should create and execute add column statements for columns that dont exist" do
+        @adapter.should_receive(:field_exists?).once.with("cheeses", "id").and_return(true)
+        @adapter.should_receive(:field_exists?).once.with("cheeses", "name").and_return(true)
+        @adapter.should_receive(:field_exists?).once.with("cheeses", "color").and_return(true)
+        @adapter.should_receive(:field_exists?).once.with("cheeses", "notes").and_return(false)
+        @adapter.should_receive(:exists?).once.with("cheeses").and_return(true)
+        connection = mock("connection")
+        connection.should_receive(:close).once
+        @adapter.should_receive(:create_connection).once.and_return(connection)
+        statement = mock("statement")
+        command = mock("command")
+        result = mock("result")
+        result.should_receive(:to_i).once.and_return(1)
+        command.should_receive(:execute_non_query).once.and_return(result)
+        connection.should_receive(:create_command).once.with(statement).and_return(command)
+        @adapter.should_receive(:alter_table_add_column_statement).once.with("cheeses",
+                                                                             {
+                                                                               :nullable? => true,
+                                                                               :name => "notes",
+                                                                               :serial? => false,
+                                                                               :primitive => "VARCHAR",
+                                                                               :size => 100
+                                                                             }).and_return(statement)
+        @adapter.upgrade_model_storage(nil, Cheese).should == [Cheese.notes]
+      end
+    end
   end
 
   describe '#execute' do
@@ -285,116 +397,12 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       lambda { @adapter.execute('SQL STRING') }.should raise_error("Oh Noes!")
     end
   end
-
-  describe "#update" do
-    it 'should not try to update if there are no dirty attributes' do
-      repository = mock("repository")
-      resource = mock("resource")
-      resource.stub!(:dirty_attributes).and_return({})
-      @adapter.update(repository, resource).should == false
-    end
-  end
-
-  describe "when upgrading tables" do
-    it "should raise NotImplementedError when #exists? is called" do
-      lambda { @adapter.exists?("cheeses") }.should raise_error(NotImplementedError)
-    end
-
-    describe "#upgrade_model_storage" do
-      it "should call #create_model_storage unless the model storage alread exists" do
-        @adapter.should_receive(:exists?).once.with("cheeses").and_return(false)
-        @adapter.should_receive(:create_model_storage).once.with(nil, Cheese).and_return(true)
-        @adapter.upgrade_model_storage(nil, Cheese).should == Cheese
-      end
-
-      it "should check if all properties of the model have columns if the table exists" do
-        @adapter.should_receive(:field_exists?).once.with("cheeses", "id").and_return(true)
-        @adapter.should_receive(:field_exists?).once.with("cheeses", "name").and_return(true)
-        @adapter.should_receive(:field_exists?).once.with("cheeses", "color").and_return(true)
-        @adapter.should_receive(:field_exists?).once.with("cheeses", "notes").and_return(true)
-        @adapter.should_receive(:exists?).once.with("cheeses").and_return(true)
-        connection = mock("connection")
-        connection.should_receive(:close).once
-        @adapter.should_receive(:create_connection).once.and_return(connection)
-        @adapter.upgrade_model_storage(nil, Cheese).should == []
-      end
-
-      it "should create and execute add column statements for columns that dont exist" do
-        @adapter.should_receive(:field_exists?).once.with("cheeses", "id").and_return(true)
-        @adapter.should_receive(:field_exists?).once.with("cheeses", "name").and_return(true)
-        @adapter.should_receive(:field_exists?).once.with("cheeses", "color").and_return(true)
-        @adapter.should_receive(:field_exists?).once.with("cheeses", "notes").and_return(false)
-        @adapter.should_receive(:exists?).once.with("cheeses").and_return(true)
-        connection = mock("connection")
-        connection.should_receive(:close).once
-        @adapter.should_receive(:create_connection).once.and_return(connection)
-        statement = mock("statement")
-        command = mock("command")
-        result = mock("result")
-        result.should_receive(:to_i).once.and_return(1)
-        command.should_receive(:execute_non_query).once.and_return(result)
-        connection.should_receive(:create_command).once.with(statement).and_return(command)
-        @adapter.should_receive(:alter_table_add_column_statement).once.with("cheeses",
-                                                                             {
-                                                                               :nullable? => true,
-                                                                               :name => "notes",
-                                                                               :serial? => false,
-                                                                               :primitive => "VARCHAR",
-                                                                               :size => 100
-                                                                             }).and_return(statement)
-        @adapter.upgrade_model_storage(nil, Cheese).should == [Cheese.notes]
-      end
-    end
-  end
-
-  describe '#uri options' do
-    it 'should transform a fully specified option hash into a URI' do
-      options = {
-        :adapter => 'mysql',
-        :host => 'davidleal.com',
-        :username => 'me',
-        :password => 'mypass',
-        :port => 5000,
-        :database => 'you_can_call_me_al',
-        :socket => 'nosock'
-      }
-
-      adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
-      adapter.uri.should ==
-        Addressable::URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
-    end
-
-    it 'should transform a minimal options hash into a URI' do
-      options = {
-        :adapter => 'mysql',
-        :database => 'you_can_call_me_al'
-      }
-
-      adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
-      adapter.uri.should == Addressable::URI.parse("mysql:///you_can_call_me_al")
-    end
-
-    it 'should accept the uri when no overrides exist' do
-      uri = Addressable::URI.parse("protocol:///")
-      DataMapper::Adapters::DataObjectsAdapter.new(:spec, uri).uri.should == uri
-    end
-  end
 end
 
 # TODO: spec out public adapter methods and ensure the queries
 # the driver accepts are the same as those below
 #describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, updating, deleting statements" do
 #  before do
-#    @adapter = DataMapper::Adapters::DataObjectsAdapter.new(:default, Addressable::URI.parse('mock://localhost'))
-#
-#    class Cheese
-#      include DataMapper::Resource
-#      property :id, Integer, :serial => true
-#      property :name, String, :nullable => false
-#      property :color, String, :default => 'yellow'
-#      property :notes, String, :length => 100, :lazy => true
-#    end
-#
 #    class LittleBox
 #      include DataMapper::Resource
 #      property :street, String, :key => true
@@ -402,44 +410,6 @@ end
 #      property :hillside, TrueClass, :default => true
 #      property :notes, String, :lazy => true
 #    end
-#  end
-#
-#  describe "#create_statement" do
-#    it 'should generate a SQL statement for all fields' do
-#      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).slice(:name, :color)).should == <<-EOS.compress_lines
-#        INSERT INTO "cheeses" ("name", "color") VALUES (?, ?)
-#      EOS
-#    end
-#
-#    it "should generate a SQL statement for only dirty fields" do
-#      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).slice(:name)).should == <<-EOS.compress_lines
-#        INSERT INTO "cheeses" ("name") VALUES (?)
-#      EOS
-#
-#      @adapter.create_statement(Cheese, Cheese.properties(@adapter.name).slice(:color)).should == <<-EOS.compress_lines
-#        INSERT INTO "cheeses" ("color") VALUES (?)
-#      EOS
-#    end
-#  end
-#
-#  describe "#create_statement_with_returning" do
-#
-#    it 'should generate a SQL statement for all fields' do
-#      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).slice(:name, :color)).should == <<-EOS.compress_lines
-#        INSERT INTO "cheeses" ("name", "color") VALUES (?, ?) RETURNING "id"
-#      EOS
-#    end
-#
-#    it "should generate a SQL statement for only dirty fields" do
-#      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).slice(:name)).should == <<-EOS.compress_lines
-#        INSERT INTO "cheeses" ("name") VALUES (?) RETURNING "id"
-#      EOS
-#
-#      @adapter.create_statement_with_returning(Cheese, Cheese.properties(@adapter.name).slice(:color)).should == <<-EOS.compress_lines
-#        INSERT INTO "cheeses" ("color") VALUES (?) RETURNING "id"
-#      EOS
-#    end
-#
 #  end
 #
 #  describe "#update_statement" do
