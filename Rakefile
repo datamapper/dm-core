@@ -4,7 +4,6 @@ require 'pathname'
 require 'rubygems'
 require 'rake'
 require Pathname('spec/rake/spectask')
-require Pathname('rake/rdoctask')
 require Pathname('rake/gempackagetask')
 require Pathname('rake/contrib/rubyforgepublisher')
 
@@ -20,8 +19,8 @@ namespace :spec do
   task :integration => 'dm:spec:integration'
 end
 
-desc 'Remove all package, rdocs and spec products'
-task :clobber_all => %w[ clobber_package clobber_rdoc dm:clobber_spec ]
+desc 'Remove all package, docs and spec products'
+task :clobber_all => %w[ clobber_package clobber_doc dm:clobber_spec ]
 
 namespace :dm do
   def run_spec(name, files, rcov = true)
@@ -85,12 +84,19 @@ task :ls do
   puts PACKAGE_FILES
 end
 
-desc "Generate Documentation"
-rd = Rake::RDocTask.new do |rdoc|
-  rdoc.rdoc_dir = 'doc'
-  rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
-  rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
-  rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
+desc "Generate documentation"
+task :doc do
+  begin
+    require 'yard'
+    exec 'yardoc'
+    # TODO: options to port over
+    #  rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
+    #  rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
+    #  rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
+  rescue LoadError
+    puts 'You will need to install the latest version of Yard to generate the
+          documentation for dm-core.'
+  end
 end
 
 gem_spec = Gem::Specification.new do |s|
@@ -114,9 +120,9 @@ gem_spec = Gem::Specification.new do |s|
   s.add_dependency("rspec", ">=1.1.3")
   s.add_dependency("addressable", ">=1.0.4")
 
-  s.has_rdoc = true
-  s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
-  s.extra_rdoc_files = DOCUMENTED_FILES.map { |f| f.to_s }
+  s.has_rdoc    = false
+  #s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
+  #s.extra_rdoc_files = DOCUMENTED_FILES.map { |f| f.to_s }
 end
 
 Rake::GemPackageTask.new(gem_spec) do |p|
@@ -126,7 +132,7 @@ Rake::GemPackageTask.new(gem_spec) do |p|
 end
 
 desc "Publish to RubyForge"
-task :rubyforge => [ :rdoc, :gem ] do
+task :rubyforge => [ :doc, :gem ] do
   Rake::SshDirPublisher.new("#{ENV['RUBYFORGE_USER']}@rubyforge.org", "/var/www/gforge-projects/#{PROJECT}", 'doc').upload
 end
 
@@ -152,7 +158,7 @@ namespace :ci do
   task :prepare do
     rm_rf ROOT + "ci"
     mkdir_p ROOT + "ci"
-    mkdir_p ROOT + "ci/rdoc"
+    mkdir_p ROOT + "ci/doc"
     mkdir_p ROOT + "ci/cyclomatic"
     mkdir_p ROOT + "ci/token"
   end
@@ -165,7 +171,7 @@ namespace :ci do
     mv "ci/unit_coverage", "#{out}/unit_coverage"
     mv "ci/integration_rspec_report.html", "#{out}/integration_rspec_report.html"
     mv "ci/integration_coverage", "#{out}/integration_coverage"
-    mv "ci/rdoc", "#{out}/rdoc"
+    mv "ci/doc", "#{out}/doc"
     mv "ci/cyclomatic", "#{out}/cyclomatic_complexity"
     mv "ci/token", "#{out}/token_complexity"
   end
@@ -203,11 +209,13 @@ namespace :ci do
     mv ROOT + "coverage", ROOT + "ci/integration_coverage"
   end
 
-  Rake::RDocTask.new do |rdoc|
-    rdoc.rdoc_dir = 'ci/rdoc'
-    rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
-    rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
-    rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
+  task :doc do
+    require 'yardoc'
+    sh 'yardoc'
+    #  rdoc.rdoc_dir = 'ci/rdoc'
+    #  rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
+    #  rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
+    #  rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
   end
 
   task :saikuro => :prepare do
@@ -219,4 +227,4 @@ namespace :ci do
   end
 end
 
-task :ci => ["ci:spec", "ci:rdoc", "ci:saikuro", :install, :publish]
+task :ci => ["ci:spec", "ci:doc", "ci:saikuro", :install, :publish]
