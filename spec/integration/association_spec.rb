@@ -514,9 +514,9 @@ if HAS_SQLITE3
               has n, :cakes, :class_name => 'Sweets::Cake'
               has n, {:cakes => :slices}, :class_name => 'Sweets::Slice'
               has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'
-              #              has 1, :shop_owner => :wife, :class_name => 'Sweets::Wife'
+#              has 1, :shop_owner => :wife, :class_name => 'Sweets::Wife'
               has n, {:shop_owner => :children}, :class_name => 'Sweets::Child'
-              #              has n, {:cakes => :recipe}, :class_name => 'Sweets::Recipe'
+              has n, {:cakes => :recipe}, :class_name => 'Sweets::Recipe'
             end
 
             class ShopOwner
@@ -583,61 +583,58 @@ if HAS_SQLITE3
               belongs_to :cake, :class_name => 'Sweets::Cake'
             end
             
-            repository(:sqlite3) do
-              Shop.auto_migrate!(:sqlite3)
-              Cake.auto_migrate!(:sqlite3)
-              Slice.auto_migrate!(:sqlite3)
-              ShopOwner.auto_migrate!(:sqlite3)
-              Wife.auto_migrate!(:sqlite3)
-              Child.auto_migrate!(:sqlite3)
-              Recipe.auto_migrate!(:sqlite3)
-              
-              betsys = Shop.new(:name => "Betsy's")
-              betsys.save
-              german_chocolate = Cake.new(:name => 'German Chocolate')
-              betsys.cakes << german_chocolate
-              german_chocolate.save
-              #              schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
-              #              german_chocolate.recipe = schwarzwald
-              10.times do |i| german_chocolate.slices << Slice.new(:size => i) end
-              
-              #              schwarzwald.save!
-
-              short_cake = Cake.new(:name => 'Short Cake')
-              betsys.cakes << short_cake
-              short_cake.save
-              #              shortys_special = Recipe.new(:name => "Shorty's Special")
-              #              short_cake.recipe = shortys_special
-              5.times do |i| short_cake.slices << Slice.new(:size => i) end
-              #              shortys_special.save!
-
-              betsy = ShopOwner.new(:name => 'Betsy')
-              betsys.shop_owner = betsy
-              betsys.save
-              barry = Wife.new(:name => 'Barry')
-              betsy.wife = barry
-              barry.save
-
-              5.times { |i| betsy.children << Child.new(:name => "Snotling nr #{i}") }
-            end
+            Shop.auto_migrate!(:sqlite3)
+            Cake.auto_migrate!(:sqlite3)
+            Slice.auto_migrate!(:sqlite3)
+            ShopOwner.auto_migrate!(:sqlite3)
+            Wife.auto_migrate!(:sqlite3)
+            Child.auto_migrate!(:sqlite3)
+            Recipe.auto_migrate!(:sqlite3)
+            
+            betsys = Shop.new(:name => "Betsy's")
+            betsys.save
+            german_chocolate = Cake.new(:name => 'German Chocolate')
+            betsys.cakes << german_chocolate
+            german_chocolate.save
+            #              schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
+            #              german_chocolate.recipe = schwarzwald
+            10.times do |i| german_chocolate.slices << Slice.new(:size => i) end
+            
+            #              schwarzwald.save!
+            
+            short_cake = Cake.new(:name => 'Short Cake')
+            betsys.cakes << short_cake
+            short_cake.save
+            #              shortys_special = Recipe.new(:name => "Shorty's Special")
+            #              short_cake.recipe = shortys_special
+            5.times do |i| short_cake.slices << Slice.new(:size => i) end
+            #              shortys_special.save!
+            
+            betsy = ShopOwner.new(:name => 'Betsy')
+            betsys.shop_owner = betsy
+            betsys.save
+            barry = Wife.new(:name => 'Barry')
+            betsy.wife = barry
+            barry.save
+            
+            5.times { |i| betsy.children << Child.new(:name => "Snotling nr #{i}") }
           end
         end
 
         it "should return the right children for one_to_many => one_to_many relationships" do
-          DataMapper.repository(:sqlite3) do
-            Sweets::Shop.first.slices.size.should == 15
-            10.times do |i|
-              Sweets::Shop.first.slices.select do |slice|
-                slice.cake == Sweets::Cake.first("name" => "German Chocolate") && slice.size == i
-              end
+          Sweets::Shop.first.slices.size.should == 15
+          10.times do |i|
+            Sweets::Shop.first.slices.select do |slice|
+              slice.cake == Sweets::Cake.first("name" => "German Chocolate") && slice.size == i
             end
           end
         end
-        it "should return the right children for one_to_one => one_to_many relationships" do
-          DataMapper.repository(:sqlite3) do
-            Sweets::Shop.first.children.size.should == 5
-          end
-        end
+#        it "should return the right children for one_to_one => one_to_many relationships" do
+#          Sweets::Shop.first.children.size.should == 5
+#        end
+#        it "should return the right children for one_to_one => one_to_one relationships" do
+#          
+#        end
       end
     end
   end
