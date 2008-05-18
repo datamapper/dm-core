@@ -99,6 +99,7 @@ module DataMapper
     @root ||= Pathname(__FILE__).dirname.parent.expand_path
   end
 
+  ##
   # Setups up a connection to a data-store
   #
   # @param name<Symbol> a name for the context, defaults to :default
@@ -141,6 +142,8 @@ module DataMapper
     Repository.adapters[name] = Adapters::const_get(class_name).new(name, uri_or_options)
   end
 
+  ##
+  #
   # @details [Block Syntax]
   #   Pushes the named repository onto the context-stack,
   #   yields a new session, and pops the context-stack.
@@ -176,10 +179,18 @@ module DataMapper
   # A logger should always be present.
   Logger.new(nil, :fatal)
 
+  ##
+  # destructively migrates the repository upwards to match model definitions
+  #
+  # @param <Symbol> name repository to act on, :default is the default
   def self.migrate!(name = :default)
     repository(name).migrate!
   end
 
+  ##
+  # drops and recreates the repository upwards to match model definitions
+  #
+  # @param <Symbol> name repository to act on, :default is the default
   def self.auto_migrate!(name = :default)
     repository(name).auto_migrate!
   end

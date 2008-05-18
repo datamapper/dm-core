@@ -22,6 +22,7 @@ module DataMapper
       @@descendents << model
     end
 
+    ##
     # Return all classes that include the DataMapper::Resource module
     #
     # @return <Set> a set containing the including classes
@@ -36,6 +37,11 @@ module DataMapper
 
     attr_accessor :collection
 
+    ##
+    # returns the value of the attribute, invoking defaults if necessary
+    #
+    # @param <Symbol> name attribute to lookup
+    # @return <Types> the value stored at that given attribute, nil if none, and default if necessary
     def attribute_get(name)
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
@@ -53,6 +59,11 @@ module DataMapper
       property.custom? ? property.type.load(value, property) : value
     end
 
+    ##
+    # sets the value of the attribute, marks the attribute as dirty so that it may be saved
+    #
+    # @param <Symbol> name property to set
+    # @param <Type> value value to store at that location
     def attribute_set(name, value)
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
@@ -91,6 +102,9 @@ module DataMapper
       end
     end
 
+    ##
+    #
+    # @return <Repository> the respository this resource belongs to in the context of a collection OR in the class's context
     def repository
       @collection ? @collection.repository : self.class.repository
     end
@@ -103,8 +117,13 @@ module DataMapper
       @parent_associations ||= []
     end
 
-    # default id method to return the resource id when there is a single key,
-    # and the model was defined with a primary key named something other than id
+
+    ##
+    # default id method to return the resource id when there is a
+    # single key, and the model was defined with a primary key named
+    # something other than id
+    #
+    # @return <Array[Key], Key> key object
     def id
       key = self.key
       key.first if key.size == 1
@@ -127,10 +146,19 @@ module DataMapper
       @readonly == true
     end
 
+    ##
+    # save the instance to the data-store
+    #
+    # @return <True, False> results of the save
+    # @see DataMapper::Repository#save
     def save
       repository.save(self)
     end
 
+    ##
+    # destroy the instance, remove it from the repository
+    #
+    # @return <True, False> results of the destruction
     def destroy
       repository.destroy(self)
     end
@@ -170,6 +198,7 @@ module DataMapper
     end
     alias reload! reload
 
+    ##
     # Returns <tt>true</tt> if this model hasn't been saved to the database,
     # <tt>false</tt> otherwise.
     #
@@ -208,7 +237,8 @@ module DataMapper
       loop_thru.each {|attr|  send("#{attr}=", hash[attr])}
     end
 
-    #
+ 
+    ##
     # Produce a new Transaction for the class of this Resource
     #
     # @return <DataMapper::Adapters::Transaction
@@ -280,7 +310,8 @@ module DataMapper
         target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == :default ? self.properties(:default).dup(target) : h[:default].dup })
       end
 
-      #
+
+      ##
       # Get the repository with a given name, or the default one for the current
       # context, or the default one for this class.
       #
@@ -301,14 +332,29 @@ module DataMapper
         end
       end
 
+      ##
+      # the name of the storage recepticle for this resource.  IE. table name, for database stores
+      #
+      # @return <String> the storage name (IE table name, for database stores) associated with this resource in the given repository
       def storage_name(repository_name = default_repository_name)
         @storage_names[repository_name]
       end
 
+      ##
+      # the names of the storage recepticles for this resource across all repositories
+      #
+      # @return <Hash(Symbol => String)> All available names of storage recepticles
       def storage_names
         @storage_names
       end
 
+      ##
+      # defines a property on the resource
+      #
+      # @param <Symbol> name the name for which to call this property
+      # @param <Type> type the type to define this property ass
+      # @param <Hash(Symbol => String)> options a hash of available options
+      # @see DataMapper::Property
       def property(name, type, options = {})
         property = Property.new(self, name, type, options)
         @properties[repository.name] << property
@@ -354,22 +400,39 @@ module DataMapper
         @properties[repository_name].inheritance_property
       end
 
+      ##
+      #
+      # @see Repository#get
       def get(*key)
         repository.get(self, key)
       end
 
+      ##
+      #
+      # @see Resource#get
+      # @raise <ObjectNotFoundError> "could not find .... with key: ...."
       def [](key)
         get(key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}")
       end
 
+      ##
+      #
+      # @see Repository#all
       def all(options = {})
         repository(options[:repository]).all(self, options)
       end
 
+      ##
+      #
+      # @see Repository#first
       def first(options = {})
         repository(options[:repository]).first(self, options)
       end
 
+      ##
+      # Create an instance of Resource with the given attributes
+      #
+      # @param <Hash(Symbol => Object)> attributes hash of attributes to set
       def create(attributes = {})
         resource = allocate
         resource.send(:initialize_with_attributes, attributes)
@@ -377,10 +440,25 @@ module DataMapper
         resource
       end
 
+      ##
+      # Dangerous version of #create.  Raises if there is a failure
+      #
+      # @see DataMapper::Resource#create
+      # @param <Hash(Symbol => Object)> attributes hash of attributes to set
+      # @raise <PersistenceError> The resource could not be saved
       def create!(attributes = {})
         resource = create(attributes)
         raise PersistenceError, "Resource not saved: :new_record => #{resource.new_record?}, :dirty_attributes => #{resource.dirty_attributes.inspect}" if resource.new_record?
         resource
+      end
+
+      ##
+      # Attempts to find an instance matching +search_attributes+, and if doing so returns nil, attempts to create an instance with attributes matching the merge of +search_attributes+ and +create_attributes+
+      #
+      # @param <Hash(Symbol => Object)> search_attributes hash of attributes to search for
+      # @param <Hash(Symbol => Object)> create_attributes hash of attributes to ensure a created instance recieves should a query fail to return an instance
+      def find_or_create(search_attributes, create_attributes = {})
+        first(search_attributes) || create(search_attributes.merge(create_attributes))
       end
 
       # TODO SPEC

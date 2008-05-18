@@ -2,6 +2,9 @@ module DataMapper
   class Repository
     @adapters = {}
 
+    ##
+    #
+    # @return <Adapter> the adapters registered for this repository
     def self.adapters
       @adapters
     end
@@ -24,11 +27,27 @@ module DataMapper
       @identity_maps[resource.class][resource.key] = resource
     end
 
-    # TODO: this should use current_scope too
+    ##
+    # retrieve a specific instance by key
+    #
+    # @param <Class> model the specific resource to retrieve from
+    # @param <Key> key The keys to look for
+    # @return <Class> the instance of the Resource retrieved
+    # @return <NilClass> could not find the instance requested
+    #
+    #- TODO: this should use current_scope too
     def get(model, key)
       @identity_maps[model][key] || @adapter.read(self, model, key)
     end
 
+    ##
+    # retrieve a singular instance by query
+    #
+    # @param <Class> model the specific resource to retrieve from
+    # @param <Hash, Query> options composition of the query to perform
+    # @return <Class> the first retrieved instance which matches the query
+    # @return <NilClass> no object could be found which matches that query
+    # @see DataMapper::Query
     def first(model, options)
       query = if current_scope = model.send(:current_scope)
         current_scope.merge(options.merge(:limit => 1))
@@ -39,6 +58,13 @@ module DataMapper
       @adapter.read_set(self, query).first
     end
 
+    ##
+    # retrieve a collection of results of a query
+    #
+    # @param <Class> model the specific resource to retrieve from
+    # @param <Hash, Query> options composition of the query to perform
+    # @return <Collection> result set of the query
+    # @see DataMapper::Query
     def all(model, options)
       query = if current_scope = model.send(:current_scope)
         current_scope.merge(options)
@@ -48,6 +74,12 @@ module DataMapper
       @adapter.read_set(self, query)
     end
 
+    ##
+    # save the instance into the data-store, updating if it already exists
+    # If the instance has dirty items in it's associations, they also get saved
+    # 
+    # @param <Class> resource the resource to return to the data-store
+    # @return <True, False> results of the save
     def save(resource)
       resource.child_associations.each { |a| a.save }
 
@@ -87,6 +119,11 @@ module DataMapper
       success
     end
 
+    ##
+    # removes the resource from the data-store.  The instance will remain in active-memory, but will now be marked as a new_record and it's keys will be revoked
+    #
+    # @param <Class> resource the resource to be destroyed
+    # @return <True, False> results of the destruction
     def destroy(resource)
       if @adapter.delete(self, resource)
         @identity_maps[resource.class].delete(resource.key)
@@ -113,8 +150,9 @@ module DataMapper
       AutoMigrator.auto_upgrade(name)
     end
 
+    ##
+    # Produce a new Transaction for this Repository
     #
-    # Produce a new Transaction for this Repository.
     #
     # @return <DataMapper::Adapters::Transaction> a new Transaction (in state
     #   :none) that can be used to execute code #with_transaction
@@ -134,6 +172,9 @@ module DataMapper
       @type_map ||= TypeMap.new(@adapter.type_map)
     end
 
+    ##
+    #
+    # @return <True, False> whether or not the data-store exists for this repo
     def storage_exists?(storage_name)
       @adapter.exists?(storage_name)
     end
