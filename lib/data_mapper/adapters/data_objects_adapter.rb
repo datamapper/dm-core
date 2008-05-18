@@ -12,30 +12,28 @@ module DataMapper
       #
       # Find instances by manually providing SQL
       #
-      # ==== Parameters
-      # <String>:: An SQL query to execute
-      # <Array>:: An Array containing a String (being the SQL query to execute)
-      #   and the parameters to the query.
+      # @param sql<String>   an SQL query to execute
+      # @param <Array>    an Array containing a String (being the SQL query to
+      #   execute) and the parameters to the query.
       #   example: ["SELECT name FROM users WHERE id = ?", id]
-      # <DataMapper::Query>:: A prepared Query to execute.
-      # <Hash>:: An options hash.
+      # @param query<DataMapper::Query>  a prepared Query to execute.
+      # @param opts<Hash>     an options hash.
+      #     :repository<Symbol> the name of the repository to execute the query
+      #       in. Defaults to self.default_repository_name.
+      #     :reload<Boolean>   whether to reload any instances found that already
+      #      exist in the identity map. Defaults to false.
+      #     :properties<Array>  the Properties of the instance that the query
+      #       loads. Must contain DataMapper::Properties.
+      #       Defaults to self.properties.
       #
-      # A String, Array or Query is required.
+      # @note
+      #   A String, Array or Query is required.
+      # @return <Collection> the instance matched by the query.
       #
-      # ==== Options (the options hash)
-      # :repository<Symbol>:: The name of the repository to execute the query
-      #   in. Defaults to self.default_repository_name.
-      # :reload<Boolean>:: Whether to reload any instances found that already
-      #   exist in the identity map. Defaults to false.
-      # :properties<Array>:: The Properties of the instance that the query
-      #   loads. Must contain DataMapper::Properties.
-      #   Defaults to self.properties.
-      #
-      # ==== Returns
-      # Collection:: The instance matched by the query.
-      #
-      # ==== Example
-      # MyClass.find_by_sql(["SELECT id FROM my_classes WHERE county = ?", selected_county], :properties => MyClass.property[:id], :repository => :county_repo)
+      # @example
+      #   MyClass.find_by_sql(["SELECT id FROM my_classes WHERE county = ?",
+      #     selected_county], :properties => MyClass.property[:id],
+      #     :repository => :county_repo)
       #
       # -
       # @public
@@ -92,8 +90,7 @@ module DataMapper
 
       # Default TypeMap for all data object based adapters.
       #
-      # ==== Returns
-      # DataMapper::TypeMap:: default TypeMap for data object adapters.
+      # @return <DataMapper::TypeMap> default TypeMap for data objects adapters.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(Fixnum).to('INT')
@@ -133,7 +130,7 @@ module DataMapper
         end
       end
 
-      def with_connection(&block) 
+      def with_connection(&block)
         connection = nil
         begin
           connection = create_connection
@@ -300,19 +297,16 @@ module DataMapper
       #
       # used by find_by_sql and read_set
       #
-      # ==== Parameters
-      # repository<DataMapper::Repository>:: The repository to read from.
-      # model<Object>:: The class of the instances to read.
-      # properties<Array>:: The properties to read. Must contain Symbols,
+      # @param repository<DataMapper::Repository> the repository to read from.
+      # @param model<Object>  the class of the instances to read.
+      # @param properties<Array>  the properties to read. Must contain Symbols,
       #   Strings or DM::Properties.
-      # sql<String>:: The query to execute.
-      # parameters<Array>:: The conditions to the query.
-      # do_reload<Boolean>:: Whether to reload objects already found in the
+      # @param sql<String>  the query to execute.
+      # @param parameters<Array>  the conditions to the query.
+      # @param do_reload<Boolean> whether to reload objects already found in the
       #   identity map.
       #
-      # ==== Returns
-      # Collection:: A set of the found instances.
-      #
+      # @return <Collection> a set of the found instances.
       def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
         Collection.new(repository, model, properties_with_indexes) do |set|

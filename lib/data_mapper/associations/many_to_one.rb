@@ -28,9 +28,9 @@ module DataMapper
           def #{name}=(parent_resource)
             #{name}_association.replace(parent_resource)
           end
-          
+
           private
-          
+
           def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[:#{name}]

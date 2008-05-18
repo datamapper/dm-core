@@ -5,8 +5,7 @@ module DataMapper
 
       # Default TypeMap for all adapters.
       #
-      # ==== Returns
-      # DataMapper::TypeMap:: default TypeMap.
+      # @return <DataMapper::TypeMap> default TypeMap
       def self.type_map
         @type_map ||= TypeMap.new
       end
@@ -21,8 +20,7 @@ module DataMapper
       # method for accessing the current adapter class' type_map from the
       # adapter instance.
       #
-      # ==== Returns
-      # DataMapper::TypeMap:: The type_map of the subclass
+      # @return <DataMapper::TypeMap> The type_map of the subclass
       def type_map
         self.class.type_map
       end
@@ -30,12 +28,10 @@ module DataMapper
       #
       # Returns whether the storage_name exists in this adapter.
       #
-      # ==== Parameters
-      # storage_name<String>:: A String defining the name of a storage, for example a table name.
+      # @param storage_name<String> a String defining the name of a storage,
+      #   for example a table name.
       #
-      # ==== Returns
-      # <Boolean>:: true if the storage exists.
-      #
+      # @return <Boolean> true if the storage exists
       def exists?(storage_name)
         raise NotImplementedError
       end
@@ -47,8 +43,7 @@ module DataMapper
       # that everything done by this Adapter is done within the context of said
       # Transaction.
       #
-      # ==== Parameters
-      # transaction<DataMapper::Transaction>:: A Transaction to be the
+      # @param transaction<DataMapper::Transaction> a Transaction to be the
       #   'current' transaction until popped.
       #
       def push_transaction(transaction)
@@ -60,8 +55,7 @@ module DataMapper
       # that everything done by this Adapter is no longer necessarily within the
       # context of said Transaction.
       #
-      # ==== Returns
-      # DataMapper::Transaction:: The former 'current' transaction.
+      # @return <DataMapper::Transaction> the former 'current' transaction.
       def pop_transaction
         @transactions[Thread.current].pop
       end
@@ -72,8 +66,7 @@ module DataMapper
       # Everything done by this Adapter is done within the context of this
       # Transaction.
       #
-      # ==== Returns
-      # DataMapper::Transaction:: The 'current' transaction for this Adapter.
+      # @return <DataMapper::Transaction> the 'current' transaction for this Adapter.
       def current_transaction
         @transactions[Thread.current].last
       end
@@ -81,9 +74,7 @@ module DataMapper
       #
       # Returns whether we are within a Transaction.
       #
-      # ==== Returns
-      # Boolean:: Whether we are within a Transaction.
-      #
+      # @return <Boolean> whether we are within a Transaction.
       def within_transaction?
         !current_transaction.nil?
       end
@@ -93,10 +84,8 @@ module DataMapper
       #
       # Used by DataMapper::Transaction to perform its various tasks.
       #
-      # ==== Returns
-      # Object:: A new Object that responds to :close, :begin, :commit,
+      # @return <Object> a new Object that responds to :close, :begin, :commit,
       #   :rollback, :rollback_prepared and :prepare
-      #
       def transaction_primitive
         raise NotImplementedError
       end
@@ -117,7 +106,7 @@ module DataMapper
       def delete(repository, resource)
         raise NotImplementedError
       end
-      
+
       def upgrade_model_storage(repository, model)
         raise NotImplementedError
       end

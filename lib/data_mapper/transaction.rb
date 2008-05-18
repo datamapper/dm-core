@@ -6,8 +6,7 @@ module DataMapper
     #
     # Create a new DataMapper::Transaction
     #
-    # ==== Parameters
-    # See DataMapper::Transaction#link
+    # @see DataMapper::Transaction#link
     #
     # In fact, it just calls #link with the given arguments at the end of the
     # constructor.
@@ -23,9 +22,8 @@ module DataMapper
     #
     # Associate this Transaction with some things.
     #
-    # ==== Parameters
-    # things<any number of Object>:: The things you want this Transaction
-    #   associated with.
+    # @param things<any number of Object>  the things you want this Transaction
+    #   associated with:
     #   DataMapper::Adapters::AbstractAdapter subclasses will be added as
     #     adapters as is.
     #   Arrays will have their elements added.
@@ -34,7 +32,7 @@ module DataMapper
     #     their properties added.
     #   DataMapper::Resource instances will have all repositories of all their
     #     properties added.
-    # block<Block>:: A block (taking one argument, the Transaction) to execute
+    # @param block<Block> a block (taking one argument, the Transaction) to execute
     #   within this transaction. The transaction will begin and commit around
     #   the block, and rollback if an exception is raised.
     #
@@ -74,13 +72,13 @@ module DataMapper
     #
     # Commit the transaction
     #
-    # ==== Parameters
-    # block<Block>:: A block (taking the one argument, the Transaction) to
+    # @param block<Block>   a block (taking the one argument, the Transaction) to
     #   execute within this transaction. The transaction will begin and commit
     #   around the block, and roll back if an exception is raised.
     #
-    # If no block is given, it will simply commit any changes made since the
-    # Transaction did #begin.
+    # @note
+    #   If no block is given, it will simply commit any changes made since the
+    #   Transaction did #begin.
     #
     def commit(&block)
       if block_given?
@@ -119,13 +117,13 @@ module DataMapper
     #
     # Execute a block within this Transaction.
     #
-    # ==== Parameters
-    # block<Block>:: The block of code to execute.
+    # @param block<Block> the block of code to execute.
     #
-    # No #begin, #commit or #rollback is performed in #within, but this
-    # Transaction will pushed on the per thread stack of transactions for each
-    # adapter it is associated with, and it will ensures that it will pop the
-    # Transaction away again after the block is finished.
+    # @note
+    #   No #begin, #commit or #rollback is performed in #within, but this
+    #   Transaction will pushed on the per thread stack of transactions for each
+    #   adapter it is associated with, and it will ensures that it will pop the
+    #   Transaction away again after the block is finished.
     #
     def within(&block)
       raise "No block provided" unless block_given?

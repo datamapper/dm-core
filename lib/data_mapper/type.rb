@@ -65,13 +65,11 @@ module DataMapper
       # The Ruby primitive type to use as basis for this type. See
       # DataMapper::Property::TYPES for list of types.
       #
-      # ==== Parameters
-      # primitive<Class, nil>::
+      # @param primitive<Class, nil>
       #   The class for the primitive. If nil is passed in, it returns the
       #   current primitive
       #
-      # ==== Returns
-      # Class:: if the <primitive> param is nil, return the current primitive.
+      # @return <Class> if the <primitive> param is nil, return the current primitive.
       #
       # @public
       def primitive(primitive = nil)
@@ -111,8 +109,7 @@ module DataMapper
 
       # Gives all the options set on this type
       #
-      # ==== Returns
-      # Hash:: with all options and their values set on this type
+      # @return <Hash> with all options and their values set on this type
       #
       # @public
       def options
@@ -127,15 +124,10 @@ module DataMapper
 
     # Stub instance method for dumping
     #
-    # ==== Parameters
-    # value<Object, nil>::
-    #   The value to dump
-    # property<Property, nil>::
-    #   The property the type is being used by
+    # @param value<Object, nil>       the value to dump
+    # @param property<Property, nil>  the property the type is being used by
     #
-    # ==== Returns
-    # Object:: Dumped object
-    #
+    # @return <Object> Dumped object
     #
     # @public
     def self.dump(value, property)
@@ -144,15 +136,10 @@ module DataMapper
 
     # Stub instance method for loading
     #
-    # ==== Parameters
-    # value<Object, nil>::
-    #   The value to serialize
-    # property<Property, nil>::
-    #   The property the type is being used by
+    # @param value<Object, nil>       the value to serialize
+    # @param property<Property, nil>  the property the type is being used by
     #
-    # ==== Returns
-    # Object:: Serialized object. Must be the same type as the ruby primitive
-    #
+    # @return <Object> Serialized object. Must be the same type as the Ruby primitive
     #
     # @public
     def self.load(value, property)

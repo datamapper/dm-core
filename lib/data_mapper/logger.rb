@@ -40,7 +40,7 @@ module DataMapper
     attr_reader   :buffer
     attr_reader   :log
 
-    # Note:
+    # @note
     #   Ruby (standard) logger levels:
     #     fatal: an unhandleable error that results in a program crash
     #     error: a handleable error condition
@@ -102,13 +102,9 @@ module DataMapper
     # To initialize the logger you create a new object, proxies to set_log.
     #   DataMapper::Logger.new(log{String, IO},level{Symbol, String})
     #
-    # ==== Parameters
-    # log<IO,String>
-    #   Either an IO object or a name of a logfile.
-    # log_level<String>
-    #   The string message to be logged
-    # delimiter<String>
-    #   Delimiter to use between message sections
+    # @param log<IO,String>     either an IO object or a name of a logfile.
+    # @param log_level<String>  the message string to be logged
+    # @param delimiter<String>  delimiter to use between message sections
     def initialize(*args)
       set_log(*args)
     end
@@ -116,14 +112,11 @@ module DataMapper
     # To replace an existing logger with a new one:
     #  DataMapper::Logger.set_log(log{String, IO},level{Symbol, String})
     #
-    # ==== Parameters
-    # log<IO,String>
-    #   Either an IO object or a name of a logfile.
-    # log_level<Symbol>
-    #   A symbol representing the log level from {:fatal, :error, :warn, :info,
-    #   :debug}
-    # delimiter<String>
-    #   Delimiter to use between message sections
+    #
+    # @param log<IO,String>     either an IO object or a name of a logfile.
+    # @param log_level<Symbol>  a symbol representing the log level from
+    #   {:fatal, :error, :warn, :info, :debug}
+    # @param delimiter<String>  delimiter to use between message sections
     def set_log(log, log_level = nil, delimiter = " ~ ")
       if log_level && LEVELS[log_level.to_sym]
         @level = LEVELS[log_level.to_sym]
@@ -140,8 +133,7 @@ module DataMapper
 
     # Flush the entire buffer to the log object.
     #   DataMapper.logger.flush
-    # ==== Parameters
-    # none
+    #
     def flush
       return unless @buffer.size > 0
       @log.write_method(@buffer.slice!(0..-1).to_s)
@@ -149,8 +141,7 @@ module DataMapper
 
     # Close and remove the current log object.
     #   DataMapper.logger.close
-    # ==== Parameters
-    # none
+    #
     def close
       flush
       @log.close if @log.respond_to?(:close)
@@ -163,11 +154,8 @@ module DataMapper
     # Note that if the logger is aio capable then the logger will use
     # non-blocking asynchronous writes.
     #
-    # ==== Parameters
-    # level<Fixnum>
-    #   The logging level as an integer
-    # string<String>
-    #   The string message to be logged
+    # @param level<Fixnum>  the logging level as an integer
+    # @param string<String> the message string to be logged
     def push(string)
       message = Time.now.httpdate
       message << delimiter

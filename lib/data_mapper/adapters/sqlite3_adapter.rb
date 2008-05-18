@@ -8,8 +8,7 @@ module DataMapper
 
       # TypeMap for SQLite 3 databases.
       #
-      # ==== Returns
-      # DataMapper::TypeMap:: default TypeMap for SQLite 3 databases.
+      # @return <DataMapper::TypeMap> default TypeMap for SQLite 3 databases.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(Fixnum).to('INTEGER')

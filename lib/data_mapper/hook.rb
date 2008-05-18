@@ -1,16 +1,15 @@
 module DataMapper
   module Hook
 
-    # Inject code that executes before the target_method.
+    # Inject code that executes before the target class method.
     #
-    # ==== Parameters
-    # target_method<Symbol>:: The name of the class method to inject before
-    # method_sym<Symbol>:: The name of the method to run before the
+    # @param target_method<Symbol>  the name of the class method to inject before
+    # @param method_sym<Symbol>     the name of the method to run before the
     #   target_method
-    # block<Block>:: The code to run before the target_method
+    # @param block<Block>           the code to run before the target_method
     #
-    # Either method_sym or block is required.
-    #
+    # @note
+    #   Either method_sym or block is required.
     # -
     # @public
     def before_class_method(target_method, method_sym = nil, &block)
@@ -18,15 +17,14 @@ module DataMapper
     end
 
     #
-    # Inject code that executes after the target_method.
+    # Inject code that executes after the target class method.
     #
-    # ==== Parameters
-    # target_method<Symbol>:: The name of the class method to inject after
-    # method_sym<Symbol>:: The name of the method to run after the target_method
-    # block<Block>:: The code to run after the target_method
+    # @param target_method<Symbol>  the name of the class method to inject after
+    # @param method_sym<Symbol>     the name of the method to run after the target_method
+    # @param block<Block>           the code to run after the target_method
     #
-    # Either method_sym or block is required.
-    #
+    # @note
+    #   Either method_sym or block is required.
     # -
     # @public
     def after_class_method(target_method, method_sym = nil, &block)
@@ -34,16 +32,15 @@ module DataMapper
     end
 
     #
-    # Inject code that executes before the target_method.
+    # Inject code that executes before the target instance method.
     #
-    # ==== Parameters
-    # target_method<Symbol>:: The name of the instance method to inject before
-    # method_sym<Symbol>:: The name of the method to run before the
+    # @param target_method<Symbol>  the name of the instance method to inject before
+    # @param method_sym<Symbol>     the name of the method to run before the
     #   target_method
-    # block<Block>:: The code to run before the target_method
+    # @param block<Block>           the code to run before the target_method
     #
-    # Either method_sym or block is required.
-    #
+    # @note
+    #   Either method_sym or block is required.
     # -
     # @public
     def before(target_method, method_sym = nil, &block)
@@ -51,16 +48,15 @@ module DataMapper
     end
 
     #
-    # Inject code that executes after the target_method.
+    # Inject code that executes after the target instance method.
     #
-    # ==== Parameters
-    # target_method<Symbol>:: The name of the instance method to inject after
-    # method_sym<Symbol>:: The name of the method to run after the
+    # @param target_method<Symbol>  the name of the instance method to inject after
+    # @param method_sym<Symbol>     the name of the method to run after the
     #   target_method
-    # block<Block>:: The code to run after the target_method
+    # @param block<Block>           the code to run after the target_method
     #
-    # Either method_sym or block is required.
-    #
+    # @note
+    #   Either method_sym or block is required.
     # -
     # @public
     def after(target_method, method_sym = nil, &block)
@@ -139,7 +135,7 @@ module DataMapper
             #{inline_hooks(name, scope, types.first, args)}
             retval = #{inline_call(name, scope, args)}
           end
-          
+
           catch(:halt) do
             #{inline_hooks(name, scope, types.last, args)}
           end

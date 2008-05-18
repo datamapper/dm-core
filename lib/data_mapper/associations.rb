@@ -25,37 +25,32 @@ module DataMapper
     # A shorthand, clear syntax for defining one-to-one, one-to-many and
     # many-to-many resource relationships.
     #
-    # ==== Usage Examples...
-    # * has 1, :friend                          # one_to_one, :friend
-    # * has n, :friends                         # one_to_many :friends
-    # * has 1..3, :friends
+    # @example [Usage]
+    #   * has 1, :friend                          # one_to_one, :friend
+    #   * has n, :friends                         # one_to_many :friends
+    #   * has 1..3, :friends
     #                         # one_to_many :friends, :min => 1, :max => 3
-    # * has 3, :friends
+    #   * has 3, :friends
     #                         # one_to_many :friends, :min => 3, :max => 3
-    # * has 1, :friend, :class_name=>'User'
+    #   * has 1, :friend, :class_name=>'User'
     #                         # one_to_one :friend, :class_name => 'User'
-    # * has 3, :friends, :through=>:friendships
+    #   * has 3, :friends, :through=>:friendships
     #                         # one_to_many :friends, :through => :friendships
     #
-    # ==== Parameters
-    # cardinality<Fixnum, Bignum, Infinity, Range>:: Defines the association
-    #   type and constraints
-    # name<Symbol>:: The name that the association will be referenced by
-    # opts<Hash>:: An options hash (see below)
+    # @param cardinality <Fixnum, Bignum, Infinity, Range>
+    #   cardinality that defines the association type and constraints
+    # @param name <Symbol>  the name that the association will be referenced by
+    # @param opts <Hash>    an options hash:
+    #     :through<Symbol>  A association that this join should go through to form
+    #       a many-to-many association
+    #     :class_name<String> The name of the class to associate with, if omitted
+    #       then the association name is assumed to match the class name
     #
-    # ==== Options (opts)
-    # :through<Symbol>:: A association that this join should go through to form
-    #   a many-to-many association
-    # :class_name<String>:: The name of the class to associate with, if omitted
-    #   then the association name is assumed to match the class name
-    #
-    # ==== Returns
-    # DataMapper::Association::Relationship:: The relationship that was created
-    #   to reflect either a one-to-one, one-to-many or many-to-many relationship
-    #
-    # ==== Raises
-    # ArgumentError:: if the cardinality was not understood - should be Fixnum,
-    #   Bignum, Infinity(n) or Range
+    # @return <DataMapper::Association::Relationship> the relationship that was
+    #   created to reflect either a one-to-one, one-to-many or many-to-many
+    #   relationship
+    # @raise <ArgumentError> if the cardinality was not understood. Should be a
+    #   Fixnum, Bignum, Infinity(n) or Range
     #
     # @public
     def has(cardinality, name, options = {})
@@ -80,20 +75,16 @@ module DataMapper
     #
     # A shorthand, clear syntax for defining many-to-one resource relationships.
     #
-    # ==== Usage Examples...
-    # * belongs_to :user                          # many_to_one, :friend
-    # * belongs_to :friend, :classname => 'User'  # many_to_one :friends
+    # @example [Usage]
+    #   * belongs_to :user                          # many_to_one, :friend
+    #   * belongs_to :friend, :classname => 'User'  # many_to_one :friends
     #
-    # ==== Parameters
-    # name<Symbol>:: The name that the association will be referenced by
-    # opts<Hash>:: An options hash (see below)
+    # @param name<Symbol> The name that the association will be referenced by
+    # @param opts<Hash>   An options hash (see below)
+    # @see #has
     #
-    # ==== Options (opts)
-    # (See has() for options)
-    #
-    # ==== Returns
-    # DataMapper::Association::ManyToOne:: The association created should not be
-    #   accessed directly
+    # @return <DataMapper::Association::ManyToOne> The association created
+    #   should not be accessed directly
     #
     # @public
     def belongs_to(name, options={})

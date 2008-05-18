@@ -24,9 +24,7 @@ module DataMapper
 
     # Return all classes that include the DataMapper::Resource module
     #
-    # ==== Returns
-    # Set:: A Set containing the including classes
-    #
+    # @return <Set> a set containing the including classes
     # -
     # @semipublic
     def self.descendents
@@ -174,6 +172,8 @@ module DataMapper
 
     # Returns <tt>true</tt> if this model hasn't been saved to the database,
     # <tt>false</tt> otherwise.
+    #
+    # @return <TrueClass> if this model has been saved to the database
     def new_record?
       !defined?(@new_record) || @new_record
     end
@@ -211,10 +211,9 @@ module DataMapper
     #
     # Produce a new Transaction for the class of this Resource
     #
-    # ==== Returns
-    # DataMapper::Adapters::Transaction:: A new DataMapper::Adapters::Transaction with all
-    # DataMapper::Repositories of the class of this DataMapper::Resource added.
-    #
+    # @return <DataMapper::Adapters::Transaction
+    #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
+    #   of the class of this DataMapper::Resource added.
     #-
     # @public
     def transaction(&block)
@@ -285,16 +284,11 @@ module DataMapper
       # Get the repository with a given name, or the default one for the current
       # context, or the default one for this class.
       #
-      # ==== Parameters
-      # name<Symbol>:: The name of the repository wanted
-      # block<Block>:: Block to execute with the fetched repository as parameter
+      # @param name<Symbol>   the name of the repository wanted
+      # @param block<Block>   block to execute with the fetched repository as parameter
       #
-      # ==== Returns
-      # if given a block
-      # Object:: Whatever the block returns.
-      # else
-      # DataMapper::Repository:: The asked for Repository.
-      #
+      # @return <Object, DataMapper::Respository> whatever the block returns,
+      #   if given a block, otherwise the requested repository.
       #-
       # @public
       def repository(name = nil, &block)
@@ -401,10 +395,9 @@ module DataMapper
       #
       # Produce a new Transaction for this Resource class
       #
-      # ==== Returns
-      # DataMapper::Adapters::Transaction:: A new DataMapper::Adapters::Transaction with all
-      # DataMapper::Repositories of this DataMapper::Resource added.
-      #
+      # @return <DataMapper::Adapters::Transaction
+      #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
+      #   of the class of this DataMapper::Resource added.
       #-
       # @public
       def transaction(&block)

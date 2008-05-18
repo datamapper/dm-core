@@ -29,9 +29,9 @@ module DataMapper
           def #{name}=(children)
             #{name}_association.replace(children)
           end
-          
+
           private
-          
+
           def #{name}_association
             @#{name}_association ||= begin
               relationship = self.class.relationships(repository.name)[#{name.inspect}]
@@ -101,11 +101,11 @@ module DataMapper
           @dirty_children = []
           self
         end
-        
+
         def all(options={})
           options.empty? ? children : @relationship.get_children(@parent_resource,options,:all)
         end
-        
+
         def first(options={})
           options.empty? ? children.first : @relationship.get_children(@parent_resource,options,:first)
         end

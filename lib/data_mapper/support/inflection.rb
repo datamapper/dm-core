@@ -16,7 +16,7 @@ module DataMapper
     class << self
       # Take an underscored name and make it into a camelized name
       #
-      # Examples
+      # @example
       #   "egg_and_hams".classify #=> "EggAndHam"
       #   "post".classify #=> "Post"
       #
@@ -28,7 +28,7 @@ module DataMapper
       #
       # camelize will also convert '/' to '::' which is useful for converting paths to namespaces
       #
-      # Examples
+      # @example
       #   "active_record".camelize #=> "ActiveRecord"
       #   "active_record/errors".camelize #=> "ActiveRecord::Errors"
       #
@@ -41,7 +41,7 @@ module DataMapper
       #
       # Changes '::' to '/' to convert namespaces to paths.
       #
-      # Examples
+      # @example
       #   "ActiveRecord".underscore #=> "active_record"
       #   "ActiveRecord::Errors".underscore #=> active_record/errors
       #
@@ -56,17 +56,16 @@ module DataMapper
       # Capitalizes the first word and turns underscores into spaces and strips _id.
       # Like titleize, this is meant for creating pretty output.
       #
-      # Examples
+      # @example
       #   "employee_salary" #=> "Employee salary"
       #   "author_id" #=> "Author"
-      #
       def humanize(lower_case_and_underscored_word)
         lower_case_and_underscored_word.to_s.gsub(/_id$/, "").gsub(/_/, " ").capitalize
       end
 
       # Removes the module part from the expression in the string
       #
-      # Examples
+      # @example
       #   "ActiveRecord::CoreExtensions::String::Inflections".demodulize #=> "Inflections"
       #   "Inflections".demodulize #=> "Inflections"
       def demodulize(class_name_in_module)
@@ -76,7 +75,7 @@ module DataMapper
       # Create the name of a table like Rails does for models to table names. This method
       # uses the pluralize method on the last word in the string.
       #
-      # Examples
+      # @example
       #   "RawScaledScorer".tableize #=> "raw_scaled_scorers"
       #   "egg_and_ham".tableize #=> "egg_and_hams"
       #   "fancyCategory".tableize #=> "fancy_categories"
@@ -86,7 +85,7 @@ module DataMapper
 
       # Creates a foreign key name from a class name.
       #
-      # Examples
+      # @example
       #   "Message".foreign_key #=> "message_id"
       #   "Admin::Post".foreign_key #=> "post_id"
       def foreign_key(class_name, key = "id")
@@ -97,7 +96,7 @@ module DataMapper
       # in the string. It raises a NameError when the name is not in CamelCase
       # or is not initialized.
       #
-      # Examples
+      # @example
       #   "Module".constantize #=> Module
       #   "Class".constantize #=> Class
       def constantize(camel_cased_word)
@@ -110,7 +109,8 @@ module DataMapper
 
       # The reverse of pluralize, returns the singular form of a word in a string.
       # Wraps the English gem
-      # Examples
+      #
+      # @example
       #   "posts".singularize #=> "post"
       #   "octopi".singularize #=> "octopus"
       #   "sheep".singluarize #=> "sheep"
@@ -124,7 +124,7 @@ module DataMapper
 
       # Returns the plural form of the word in the string.
       #
-      # Examples
+      # @example
       #   "post".pluralize #=> "posts"
       #   "octopus".pluralize #=> "octopi"
       #   "sheep".pluralize #=> "sheep"

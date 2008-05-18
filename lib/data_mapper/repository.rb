@@ -116,10 +116,8 @@ module DataMapper
     #
     # Produce a new Transaction for this Repository.
     #
-    # ==== Returns
-    # DataMapper::Adapters::Transaction:: A new Transaction (in state :none) that can be used to execute
-    # code #with_transaction.
-    #
+    # @return <DataMapper::Adapters::Transaction> a new Transaction (in state
+    #   :none) that can be used to execute code #with_transaction
     def transaction
       DataMapper::Transaction.new(self)
     end

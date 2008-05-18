@@ -101,20 +101,17 @@ module DataMapper
 
   # Setups up a connection to a data-store
   #
-  # ==== Parameters
-  # name<Symbol>:: a name for the context, defaults to :default
-  # uri_or_options<Hash{Symbol => String}, Addressable::URI, String>::
+  # @param name<Symbol> a name for the context, defaults to :default
+  # @param uri_or_options<Hash{Symbol => String}, Addressable::URI, String>
   #   connection information
   #
-  # ==== Returns
-  # Repository:: the resulting setup repository
+  # @return <Repository> the resulting setup repository
   #
-  # ==== Raises
-  # ArgumentError:: "+name+ must be a Symbol, but was..." indicates that an
-  # invalid argument was passed for name<Symbol>
-  # ArgumentError:: "+uri_or_options+ must be a Hash, URI or String, but was..."
-  # indicates that connection information could not be gleaned
-  # from the given uri_or_options<Hash, Addressable::URI, String>
+  # @raise <ArgumentError> "+name+ must be a Symbol, but was..." indicates that
+  #   an invalid argument was passed for name<Symbol>
+  # @raise <ArgumentError> "+uri_or_options+ must be a Hash, URI or String, but was..."
+  #   indicates that connection information could not be gleaned from the given
+  #   uri_or_options<Hash, Addressable::URI, String>
   # -
   # @public
   def self.setup(name, uri_or_options)
@@ -144,19 +141,20 @@ module DataMapper
     Repository.adapters[name] = Adapters::const_get(class_name).new(name, uri_or_options)
   end
 
-  # ===Block Syntax:
-  # Pushes the named repository onto the context-stack,
-  # yields a new session, and pops the context-stack.
+  # @note
+  #   ===Block Syntax:
+  #   Pushes the named repository onto the context-stack,
+  #   yields a new session, and pops the context-stack.
   #
-  #   results = DataMapper.repository(:second_database) do |current_context|
-  #     ...
-  #   end
+  #     results = DataMapper.repository(:second_database) do |current_context|
+  #       ...
+  #     end
   #
-  # ===Non-Block Syntax:
-  # Returns the current session, or if there is none,
-  # a new Session.
+  #   ===Non-Block Syntax:
+  #   Returns the current session, or if there is none,
+  #   a new Session.
   #
-  #   current_repository = DataMapper.repository
+  #     current_repository = DataMapper.repository
   def self.repository(name = nil) # :yields: current_context
     # TODO return context.last if last.name == name (arg)
     current_repository = if name

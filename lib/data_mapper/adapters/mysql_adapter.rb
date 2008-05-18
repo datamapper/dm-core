@@ -10,8 +10,7 @@ module DataMapper
 
       # TypeMap for MySql databases.
       #
-      # ==== Returns
-      # DataMapper::TypeMap:: default TypeMap for MySql databases.
+      # @return <DataMapper::TypeMap> default TypeMap for MySql databases.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(Fixnum).to('INT').with(:size => 11)

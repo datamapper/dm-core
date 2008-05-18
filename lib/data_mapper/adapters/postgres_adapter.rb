@@ -8,8 +8,7 @@ module DataMapper
 
       # TypeMap for PostgreSQL databases.
       #
-      # ==== Returns
-      # DataMapper::TypeMap:: default TypeMap for PostgreSQL databases.
+      # @return <DataMapper::TypeMap> default TypeMap for PostgreSQL databases.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(DateTime).to('TIMESTAMP')
@@ -67,9 +66,9 @@ module DataMapper
       def create_with_returning?; true; end
 
       def column_exists?(table_name, column_name)
-        query("SELECT pg_attribute.attname 
+        query("SELECT pg_attribute.attname
                FROM pg_class JOIN pg_attribute ON pg_class.oid = pg_attribute.attrelid
-               WHERE pg_attribute.attname = ? AND 
+               WHERE pg_attribute.attname = ? AND
                pg_class.relname = ? AND pg_attribute.attnum >= 0", column_name, table_name).size > 0
       end
 
@@ -135,12 +134,12 @@ module DataMapper
       private
 
       def sequence_exists?(model, property)
-        query("SELECT relname 
-               FROM pg_class 
+        query("SELECT relname
+               FROM pg_class
                WHERE relkind = 'S' AND
                relname = ?", sequence_name(model, property)).size > 0
       end
-      
+
       def sequence_name(model, property)
         "#{model.storage_name(name)}_#{property.field}_seq"
       end

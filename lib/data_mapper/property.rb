@@ -261,15 +261,13 @@ module DataMapper
 
     # Supplies the field in the data-store which the property corresponds to
     #
-    # ==== Returns
-    # String:: name of field in data-store
-    #
+    # @return <String> name of field in data-store
     # -
     # @semi-public
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
-    
+
     def unique
       @unique ||= @options.fetch(:unique, @serial || @key || false)
     end
@@ -302,9 +300,8 @@ module DataMapper
 
     # Returns whether or not the property is to be lazy-loaded
     #
-    # ==== Returns
-    # <TrueClass, FalseClass>
-    #
+    # @return <TrueClass, FalseClass> whether or not the property is to be
+    #   lazy-loaded
     # -
     # @public
     def lazy?
@@ -314,9 +311,8 @@ module DataMapper
 
     # Returns whether or not the property is a key or a part of a key
     #
-    # ==== Returns
-    # <TrueClass, FalseClass>
-    #
+    # @return <TrueClass, FalseClass> whether the property is a key or a part of
+    #   a key
     #-
     # @public
     def key?
@@ -325,19 +321,16 @@ module DataMapper
 
     # Returns whether or not the property is "serial" (auto-incrementing)
     #
-    # ==== Returns
-    # <TrueClass, FalseClass>
-    #
+    # @return <TrueClass, FalseClass> whether or not the property is "serial"
     #-
     # @public
     def serial?
       @serial
     end
 
-    # Returns whether or not the propert can accept 'nil' as it's value
-    # ==== Returns
-    # <TrueClass, FalseClass>
+    # Returns whether or not the property can accept 'nil' as it's value
     #
+    # @return <TrueClass, FalseClass> whether or not the property can accept 'nil'
     #-
     # @public
     def nullable?
@@ -353,10 +346,8 @@ module DataMapper
     end
 
     # Provides a standardized getter method for the property
-    # ==== Raises
-    # ArgumentError::
-    #   "+resource+ should be a DataMapper::Resource, but was ...."
     #
+    # @raise <ArgumentError> "+resource+ should be a DataMapper::Resource, but was ...."
     #-
     # @private
     def get(resource)
@@ -365,10 +356,8 @@ module DataMapper
     end
 
     # Provides a standardized setter method for the property
-    # ==== Raises
-    # ArgumentError::
-    #   "+resource+ should be a DataMapper::Resource, but was ...."
     #
+    # @raise <ArgumentError> "+resource+ should be a DataMapper::Resource, but was ...."
     #-
     # @private
     def set(resource, value)
@@ -377,10 +366,9 @@ module DataMapper
     end
 
     # typecasts values into a primitive
-    # ==== Returns
-    #  <TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Class>::
-    # the primitive data-type, defaults to TrueClass
     #
+    # @return <TrueClass, String, Float, Integer, BigDecimal, DateTime, Date,
+    #   Class> the primitive data-type, defaults to TrueClass
     #-
     # @private
     def typecast(value)
@@ -438,7 +426,7 @@ module DataMapper
       @custom                 = DataMapper::Type > @type
       @options                = @custom ? @type.options.merge(options) : options
       @instance_variable_name = "@#{@name}"
-      
+
       # TODO: This default should move to a DataMapper::Types::Text
       # Custom-Type and out of Property.
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
