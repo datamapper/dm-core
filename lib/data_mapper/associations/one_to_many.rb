@@ -23,7 +23,7 @@ module DataMapper
 
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
-            #{name}_association.nil? ? nil : #{name}_association
+            #{name}_association
           end
 
           def #{name}=(children)
