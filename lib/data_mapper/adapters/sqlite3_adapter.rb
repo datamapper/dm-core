@@ -55,7 +55,7 @@ module DataMapper
             end
           end
 
-          statement << ")"
+          statement << ')'
           statement.compress_lines
         end
 
