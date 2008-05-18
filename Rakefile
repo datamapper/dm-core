@@ -9,7 +9,7 @@ require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 require 'spec/rake/spectask'
 
-CLEAN.include '{log,coverage}/'
+CLEAN.include '{coverage,doc,log}/', 'profile_results.txt'
 
 ROOT = Pathname(__FILE__).dirname.expand_path
 

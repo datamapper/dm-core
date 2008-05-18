@@ -2,6 +2,9 @@
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper')
 
+require 'rubygems'
+
+gem 'ruby-prof', '>= 0.6.0'
 require 'ruby-prof'
 
 OUTPUT = DataMapper.root / 'profile_results.txt'
@@ -26,6 +29,8 @@ class Exhibit
   property :created_on, Date
   property :updated_at, DateTime
 
+  auto_migrate!
+  create  # create one row for testing
 end
 
 touch_attributes = lambda do |exhibits|
