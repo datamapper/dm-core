@@ -36,7 +36,7 @@ module DataMapper
       #     :repository => :county_repo)
       #
       # -
-      # @public
+      # @api public
       def find_by_sql(*args)
         sql = nil
         query = nil

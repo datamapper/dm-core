@@ -71,7 +71,7 @@ module DataMapper
       #
       # @return <Class> if the <primitive> param is nil, return the current primitive.
       #
-      # @public
+      # @api public
       def primitive(primitive = nil)
         return @primitive if primitive.nil?
 
@@ -111,7 +111,7 @@ module DataMapper
       #
       # @return <Hash> with all options and their values set on this type
       #
-      # @public
+      # @api public
       def options
         options = {}
         PROPERTY_OPTIONS.each do |method|
@@ -129,7 +129,7 @@ module DataMapper
     #
     # @return <Object> Dumped object
     #
-    # @public
+    # @api public
     def self.dump(value, property)
         value
     end
@@ -141,7 +141,7 @@ module DataMapper
     #
     # @return <Object> Serialized object. Must be the same type as the Ruby primitive
     #
-    # @public
+    # @api public
     def self.load(value, property)
       value
     end

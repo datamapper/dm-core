@@ -52,7 +52,7 @@ module DataMapper
     # @raise <ArgumentError> if the cardinality was not understood. Should be a
     #   Fixnum, Bignum, Infinity(n) or Range
     #
-    # @public
+    # @api public
     def has(cardinality, name, options = {})
       options = options.merge(extract_min_max(cardinality))
       relationship = nil
@@ -86,7 +86,7 @@ module DataMapper
     # @return <DataMapper::Association::ManyToOne> The association created
     #   should not be accessed directly
     #
-    # @public
+    # @api public
     def belongs_to(name, options={})
       relationship = many_to_one(name, options)
       # Please leave this in - I will release contextual serialization soon
@@ -102,7 +102,7 @@ module DataMapper
     # A support method form converting Fixnum, Range or Infinity values into a
     # {:min=>x, :max=>y} hash.
     #
-    # @private
+    # @api private
     def extract_min_max(constraints)
       case constraints
         when Range

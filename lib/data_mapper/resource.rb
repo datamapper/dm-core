@@ -26,7 +26,7 @@ module DataMapper
     #
     # @return <Set> a set containing the including classes
     # -
-    # @semipublic
+    # @api semipublic
     def self.descendents
       @@descendents
     end
@@ -215,7 +215,7 @@ module DataMapper
     #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
     #   of the class of this DataMapper::Resource added.
     #-
-    # @public
+    # @api public
     def transaction(&block)
       self.class.transaction(&block)
     end
@@ -290,7 +290,7 @@ module DataMapper
       # @return <Object, DataMapper::Respository> whatever the block returns,
       #   if given a block, otherwise the requested repository.
       #-
-      # @public
+      # @api public
       def repository(name = nil, &block)
         if name
           DataMapper.repository(name, &block)
@@ -399,7 +399,7 @@ module DataMapper
       #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
       #   of the class of this DataMapper::Resource added.
       #-
-      # @public
+      # @api public
       def transaction(&block)
         DataMapper::Transaction.new(self, &block)
       end

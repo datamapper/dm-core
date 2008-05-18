@@ -113,7 +113,7 @@ module DataMapper
   #   indicates that connection information could not be gleaned from the given
   #   uri_or_options<Hash, Addressable::URI, String>
   # -
-  # @public
+  # @api public
   def self.setup(name, uri_or_options)
     raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller unless Symbol === name
 

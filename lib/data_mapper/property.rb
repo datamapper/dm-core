@@ -263,7 +263,7 @@ module DataMapper
     #
     # @return <String> name of field in data-store
     # -
-    # @semi-public
+    # @api semi-public
     def field
       @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
     end
@@ -303,7 +303,7 @@ module DataMapper
     # @return <TrueClass, FalseClass> whether or not the property is to be
     #   lazy-loaded
     # -
-    # @public
+    # @api public
     def lazy?
       @lazy
     end
@@ -314,7 +314,7 @@ module DataMapper
     # @return <TrueClass, FalseClass> whether the property is a key or a part of
     #   a key
     #-
-    # @public
+    # @api public
     def key?
       @key
     end
@@ -323,7 +323,7 @@ module DataMapper
     #
     # @return <TrueClass, FalseClass> whether or not the property is "serial"
     #-
-    # @public
+    # @api public
     def serial?
       @serial
     end
@@ -332,7 +332,7 @@ module DataMapper
     #
     # @return <TrueClass, FalseClass> whether or not the property can accept 'nil'
     #-
-    # @public
+    # @api public
     def nullable?
       @nullable
     end
@@ -349,7 +349,7 @@ module DataMapper
     #
     # @raise <ArgumentError> "+resource+ should be a DataMapper::Resource, but was ...."
     #-
-    # @private
+    # @api private
     def get(resource)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
       resource.attribute_get(@name)
@@ -359,7 +359,7 @@ module DataMapper
     #
     # @raise <ArgumentError> "+resource+ should be a DataMapper::Resource, but was ...."
     #-
-    # @private
+    # @api private
     def set(resource, value)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
       resource.attribute_set(@name, value)

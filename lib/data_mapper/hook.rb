@@ -11,7 +11,7 @@ module DataMapper
     # @note
     #   Either method_sym or block is required.
     # -
-    # @public
+    # @api public
     def before_class_method(target_method, method_sym = nil, &block)
       install_hook :before_class_method, target_method, method_sym, :class, &block
     end
@@ -26,7 +26,7 @@ module DataMapper
     # @note
     #   Either method_sym or block is required.
     # -
-    # @public
+    # @api public
     def after_class_method(target_method, method_sym = nil, &block)
       install_hook :after_class_method, target_method, method_sym, :class, &block
     end
@@ -42,7 +42,7 @@ module DataMapper
     # @note
     #   Either method_sym or block is required.
     # -
-    # @public
+    # @api public
     def before(target_method, method_sym = nil, &block)
       install_hook :before, target_method, method_sym, :instance, &block
     end
@@ -58,7 +58,7 @@ module DataMapper
     # @note
     #   Either method_sym or block is required.
     # -
-    # @public
+    # @api public
     def after(target_method, method_sym = nil, &block)
       install_hook :after, target_method, method_sym, :instance, &block
     end
