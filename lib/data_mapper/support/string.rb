@@ -9,7 +9,8 @@ class String
   end
 
   # Matches any whitespace (including newline) and replaces with a single space
-  # EXAMPLE:
+  # 
+  # @example
   #   <<QUERY.compress_lines
   #     SELECT name
   #     FROM users
@@ -35,6 +36,7 @@ class String
   # Formats String for easy translation. Replaces an arbitrary number of
   # values using numeric identifier replacement.
   #
+  # @example
   #   "%s %s %s" % %w(one two three) #=> "one two three"
   #   "%3$s %2$s %1$s" % %w(one two three) #=> "three two one"
   def t(*values)

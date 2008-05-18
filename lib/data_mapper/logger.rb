@@ -149,10 +149,13 @@ module DataMapper
     end
 
     # Appends a string and log level to logger's buffer.
-    # Note that the string is discarded if the string's log level less than the
-    # logger's log level.
-    # Note that if the logger is aio capable then the logger will use
-    # non-blocking asynchronous writes.
+    
+    # @note
+    #   Note that the string is discarded if the string's log level less than the
+    #   logger's log level.
+    # @note
+    #   Note that if the logger is aio capable then the logger will use
+    #   non-blocking asynchronous writes.
     #
     # @param level<Fixnum>  the logging level as an integer
     # @param string<String> the message string to be logged

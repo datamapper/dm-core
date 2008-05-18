@@ -40,10 +40,11 @@ module DataMapper
     # @param cardinality <Fixnum, Bignum, Infinity, Range>
     #   cardinality that defines the association type and constraints
     # @param name <Symbol>  the name that the association will be referenced by
-    # @param opts <Hash>    an options hash:
-    #     :through<Symbol>  A association that this join should go through to form
+    # @param opts <Hash>    an options hash
+    #
+    # @option :through<Symbol>  A association that this join should go through to form
     #       a many-to-many association
-    #     :class_name<String> The name of the class to associate with, if omitted
+    # @option :class_name<String> The name of the class to associate with, if omitted
     #       then the association name is assumed to match the class name
     #
     # @return <DataMapper::Association::Relationship> the relationship that was

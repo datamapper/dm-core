@@ -23,7 +23,8 @@ module DataMapper
     # Associate this Transaction with some things.
     #
     # @param things<any number of Object>  the things you want this Transaction
-    #   associated with:
+    #   associated with
+    # @details [things a Transaction may be associatied with]
     #   DataMapper::Adapters::AbstractAdapter subclasses will be added as
     #     adapters as is.
     #   Arrays will have their elements added.

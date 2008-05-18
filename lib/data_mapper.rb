@@ -141,8 +141,7 @@ module DataMapper
     Repository.adapters[name] = Adapters::const_get(class_name).new(name, uri_or_options)
   end
 
-  # @note
-  #   ===Block Syntax:
+  # @details [Block Syntax]
   #   Pushes the named repository onto the context-stack,
   #   yields a new session, and pops the context-stack.
   #
@@ -150,7 +149,7 @@ module DataMapper
   #       ...
   #     end
   #
-  #   ===Non-Block Syntax:
+  # @details [Non-Block Syntax]
   #   Returns the current session, or if there is none,
   #   a new Session.
   #
