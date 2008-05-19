@@ -308,6 +308,7 @@ module DataMapper
       def inherited(target)
         target.instance_variable_set(:@storage_names, @storage_names.dup)
         target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == :default ? self.properties(:default).dup(target) : h[:default].dup })
+        target.instance_variable_set(:@relationships, relationships)
       end
 
 
