@@ -201,6 +201,20 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
   describe '#read' do
     it 'needs specs'
+
+    #  describe "#read_statement (without lazy attributes)" do
+    #    it 'should generate a SQL statement for a serial Key' do
+    #      @adapter.read_statement(Cheese, [1]).should == <<-EOS.compress_lines
+    #        SELECT "id", "name", "color" FROM "cheeses" WHERE "id" = ?
+    #      EOS
+    #    end
+    #
+    #    it "should generate a SQL statement that includes a Composite Key" do
+    #      @adapter.read_statement(LittleBox, ['Shady Drive', 'Blue']).should == <<-EOS.compress_lines
+    #        SELECT "street", "color", "hillside" FROM "little_boxes" WHERE "street" = ? AND "color" = ?
+    #      EOS
+    #    end
+    #  end
   end
 
   describe '#update' do
@@ -212,10 +226,59 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       resource.stub!(:dirty_attributes).and_return({})
       @adapter.update(repository, resource).should == false
     end
+
+    #  describe "#update_statement" do
+    #
+    #    it 'should generate a SQL statement for all fields' do
+    #      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:name, :color)).should == <<-EOS.compress_lines
+    #        UPDATE "cheeses" SET
+    #        "name" = ?,
+    #        "color" = ?
+    #        WHERE "id" = ?
+    #      EOS
+    #    end
+    #
+    #    it "should generate a SQL statement for only dirty fields" do
+    #      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:name)).should == <<-EOS.compress_lines
+    #        UPDATE "cheeses" SET "name" = ? WHERE "id" = ?
+    #      EOS
+    #
+    #      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:color)).should == <<-EOS.compress_lines
+    #        UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
+    #      EOS
+    #    end
+    #
+    #    it "should generate a SQL statement that includes a Composite Key" do
+    #      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).slice(:hillside)).should == <<-EOS.compress_lines
+    #        UPDATE "little_boxes" SET "hillside" = ? WHERE "street" = ? AND "color" = ?
+    #      EOS
+    #
+    #      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).slice(:color, :hillside)).should == <<-EOS.compress_lines
+    #        UPDATE "little_boxes" SET "color" = ?, "hillside" = ? WHERE "street" = ? AND "color" = ?
+    #      EOS
+    #    end
+    #
+    #  end
   end
 
   describe '#delete' do
     it 'needs specs'
+
+    #  describe "#delete_statement" do
+    #
+    #    it 'should generate a SQL statement for a serial Key' do
+    #      @adapter.delete_statement(Cheese).should == <<-EOS.compress_lines
+    #        DELETE FROM "cheeses" WHERE "id" = ?
+    #      EOS
+    #    end
+    #
+    #    it "should generate a SQL statement for a Composite Key" do
+    #      @adapter.delete_statement(LittleBox).should == <<-EOS.compress_lines
+    #        DELETE FROM "little_boxes" WHERE "street" = ? AND "color" = ?
+    #      EOS
+    #    end
+    #
+    #  end
   end
 
   describe '#read_set' do
@@ -398,174 +461,3 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
   end
 end
-
-# TODO: spec out public adapter methods and ensure the queries
-# the driver accepts are the same as those below
-#describe DataMapper::Adapters::DataObjectsAdapter::SQL, "creating, reading, updating, deleting statements" do
-#  before do
-#    class LittleBox
-#      include DataMapper::Resource
-#      property :street, String, :key => true
-#      property :color, String, :key => true
-#      property :hillside, TrueClass, :default => true
-#      property :notes, String, :lazy => true
-#    end
-#  end
-#
-#  describe "#update_statement" do
-#
-#    it 'should generate a SQL statement for all fields' do
-#      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:name, :color)).should == <<-EOS.compress_lines
-#        UPDATE "cheeses" SET
-#        "name" = ?,
-#        "color" = ?
-#        WHERE "id" = ?
-#      EOS
-#    end
-#
-#    it "should generate a SQL statement for only dirty fields" do
-#      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:name)).should == <<-EOS.compress_lines
-#        UPDATE "cheeses" SET "name" = ? WHERE "id" = ?
-#      EOS
-#
-#      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:color)).should == <<-EOS.compress_lines
-#        UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
-#      EOS
-#    end
-#
-#    it "should generate a SQL statement that includes a Composite Key" do
-#      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).slice(:hillside)).should == <<-EOS.compress_lines
-#        UPDATE "little_boxes" SET "hillside" = ? WHERE "street" = ? AND "color" = ?
-#      EOS
-#
-#      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).slice(:color, :hillside)).should == <<-EOS.compress_lines
-#        UPDATE "little_boxes" SET "color" = ?, "hillside" = ? WHERE "street" = ? AND "color" = ?
-#      EOS
-#    end
-#
-#  end
-#
-#  describe "#delete_statement" do
-#
-#    it 'should generate a SQL statement for a serial Key' do
-#      @adapter.delete_statement(Cheese).should == <<-EOS.compress_lines
-#        DELETE FROM "cheeses" WHERE "id" = ?
-#      EOS
-#    end
-#
-#    it "should generate a SQL statement for a Composite Key" do
-#      @adapter.delete_statement(LittleBox).should == <<-EOS.compress_lines
-#        DELETE FROM "little_boxes" WHERE "street" = ? AND "color" = ?
-#      EOS
-#    end
-#
-#  end
-#
-#  describe "#read_statement (without lazy attributes)" do
-#    it 'should generate a SQL statement for a serial Key' do
-#      @adapter.read_statement(Cheese, [1]).should == <<-EOS.compress_lines
-#        SELECT "id", "name", "color" FROM "cheeses" WHERE "id" = ?
-#      EOS
-#    end
-#
-#    it "should generate a SQL statement that includes a Composite Key" do
-#      @adapter.read_statement(LittleBox, ['Shady Drive', 'Blue']).should == <<-EOS.compress_lines
-#        SELECT "street", "color", "hillside" FROM "little_boxes" WHERE "street" = ? AND "color" = ?
-#      EOS
-#    end
-#  end
-#
-#  describe "#alter_table_statement" do
-#    it "should generate an SQL statement starting with the table name" do
-#      @adapter.alter_table_add_column_statement("cheeses", {
-#                                                  :nullable? => true,
-#                                                  :name => "notes",
-#                                                  :serial? => false,
-#                                                  :primitive => "VARCHAR",
-#                                                  :size => 100
-#                                                }).should =~ /^#{<<-EOS.compress_lines}/
-#        ALTER TABLE "cheeses"
-#      EOS
-#    end
-#    it "should generate an SQL statement with the column info" do
-#      @adapter.alter_table_add_column_statement("cheeses", {
-#                                                  :nullable? => true,
-#                                                  :name => "notes",
-#                                                  :serial? => false,
-#                                                  :primitive => "VARCHAR",
-#                                                  :size => 100
-#                                                }).should include(<<-EOS.compress_lines)
-#        "notes" VARCHAR(100)
-#      EOS
-#    end
-#    it "should generate an SQL statement with both the table name and the column info" do
-#      @adapter.alter_table_add_column_statement("cheeses", {
-#                                                  :nullable? => true,
-#                                                  :name => "notes",
-#                                                  :serial? => false,
-#                                                  :primitive => "VARCHAR",
-#                                                  :size => 100
-#                                                }).should == <<-EOS.compress_lines
-#        ALTER TABLE "cheeses" ADD COLUMN "notes" VARCHAR(100)
-#      EOS
-#    end
-#  end
-#
-#  describe "#create_table_statement" do
-#    it "should generate a SQL statement starting with the table info" do
-#      @adapter.create_table_statement(Cheese).should =~ /^#{<<-EOS.compress_lines}/
-#        CREATE TABLE "cheeses"
-#      EOS
-#    end
-#
-#    it "should generate a SQL statement with the column info" do
-#      @adapter.create_table_statement(Cheese).should include(<<-EOS.compress_lines)
-#        ("id" INT NOT NULL,
-#          "name" VARCHAR(50) NOT NULL,
-#          "color" VARCHAR(50) NOT NULL DEFAULT 'yellow',
-#          "notes" VARCHAR(100),
-#          PRIMARY KEY("id"))
-#      EOS
-#    end
-#
-#    it "should generate a SQL statement with both the table and column info" do
-#      @adapter.create_table_statement(Cheese).should == <<-EOS.compress_lines
-#        CREATE TABLE "cheeses"
-#        ("id" INT NOT NULL,
-#          "name" VARCHAR(50) NOT NULL,
-#          "color" VARCHAR(50) NOT NULL DEFAULT 'yellow',
-#          "notes" VARCHAR(100),
-#          PRIMARY KEY("id"))
-#      EOS
-#    end
-#  end
-#
-#  describe "#property_schema_hash" do
-#    before(:each) do
-#      @model = Class.new do
-#        include DataMapper::Resource
-#
-#        property :id, Integer, :key => true
-#        property :serial, Integer, :serial => true, :key => false
-#      end
-#      @id_property =  @model.properties.to_a[0]
-#      @serial_property = @model.properties.to_a[1]
-#    end
-#
-#    it "should map :name to the property's field value" do
-#      @adapter.property_schema_hash(@id_property, @model)[:name].should == "id"
-#    end
-#
-#    it "should not set :key? if the property is a key" do
-#      @adapter.property_schema_hash(@id_property, @model).should_not be_key(:key?)
-#    end
-#  end
-#
-#  describe "#drop_table_statement" do
-#    it "should generate a SQL statement with the drop command" do
-#      @adapter.drop_table_statement(LittleBox).should == <<-EOS.compress_lines
-#        DROP TABLE IF EXISTS "little_boxes"
-#      EOS
-#    end
-#  end
-#end
