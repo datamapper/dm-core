@@ -2,7 +2,7 @@ module DataMapper
   module Associations
     class Relationship
 
-      attr_reader :name, :repository_name, :options
+      attr_reader :foreign_key_name, :repository_name, :options
 
       def child_key
         @child_key ||= begin
@@ -10,10 +10,10 @@ module DataMapper
 
           child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
             # TODO: use something similar to DM::NamingConventions to determine the property name
-            property_name ||= "#{@name}_#{parent_property.name}".to_sym
+            property_name ||= "#{foreign_key_name}_#{parent_property.name}".to_sym
             type = parent_property.type
             type = Integer if Fixnum == type  # TODO: remove this hack once all in-the-wild code uses Integer instead of Fixnum
-            model_properties[property_name] || child_model.property(property_name, type)
+            model_properties[property_name] || DataMapper.repository(repository_name) do child_model.property(property_name, type) end
           end
 
           PropertySet.new(child_key)
@@ -68,8 +68,8 @@ module DataMapper
       # and parent_properties refer to the PK.  For more information:
       # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
       # I wash my hands of it!
-      def initialize(name, repository_name, child_model_name, parent_model_name, options = {}, &loader)
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller                                unless Symbol === name
+      def initialize(foreign_key_name, repository_name, child_model_name, parent_model_name, options = {}, &loader)
+        raise ArgumentError, "+foreign_key_name+ should be a Symbol, but was #{foreign_key_name.class}", caller                                unless Symbol === foreign_key_name
         raise ArgumentError, "+repository_name+ must be a Symbol, but was #{repository_name.class}", caller            unless Symbol === repository_name
         raise ArgumentError, "+child_model_name+ must be a String, but was #{child_model_name.class}", caller          unless String === child_model_name
         raise ArgumentError, "+parent_model_name+ must be a String, but was #{parent_model_name.class}", caller        unless String === parent_model_name
@@ -84,7 +84,7 @@ module DataMapper
 
         query = options.reject{ |key,val| [:class_name, :child_key, :parent_key, :min, :max].include?(key) }
 
-        @name              = name
+        @foreign_key_name  = foreign_key_name
         @repository_name   = repository_name
         @child_model_name  = child_model_name
         @child_properties  = child_properties   # may be nil
