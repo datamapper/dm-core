@@ -72,7 +72,7 @@ module DataMapper
         instance_variable_set("@shadow_#{name}", instance_variable_get(ivar_name))
       end
 
-      dirty_attributes << property
+      dirty_attributes << property if attribute_get(name) != value || new_record?
 
       instance_variable_set(ivar_name, property.custom? ? property.type.dump(value, property) : property.typecast(value))
     end
