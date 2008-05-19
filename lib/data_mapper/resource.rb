@@ -233,21 +233,19 @@ module DataMapper
 
     # Updates attributes and saves model
     #
-    # ==== Parameters
-    # <Hash>:: Attributes to be updates
-    # <Symbol, String, Array>:: Keys of Hash to update (others won't be updated)
+    # @param attributes<Hash> Attributes to be updated
+    # @param keys<Symbol, String, Array> keys of Hash to update (others won't be updated)
     #
-    # ==== Returns
-    # <TrueClass, FalseClass>:: returns if model got saved or not
+    # @return <TrueClass, FalseClass> if model got saved or not
     #-
-    # @public
+    # @api public
     def update_attributes(hash, *update_only)
       raise 'Update takes a hash as first parameter' unless hash.is_a?(Hash)
       loop_thru = update_only.empty? ? hash.keys : update_only
       loop_thru.each {|attr|  send("#{attr}=", hash[attr])}
       save
     end
- 
+
     ##
     # Produce a new Transaction for the class of this Resource
     #
