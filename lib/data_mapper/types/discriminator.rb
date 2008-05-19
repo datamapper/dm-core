@@ -5,9 +5,6 @@ module DataMapper
       default lambda { |r,p| p.model }
 
       def self.bind(property)
-        model       = property.model
-        repository  = property.repository
-      
         model.class_eval <<-EOS
           def self.inheritance_scope_class_names
             @inheritance_scope_class_names ||= []
@@ -21,9 +18,6 @@ module DataMapper
             target.send(:scope_stack) << DataMapper::Query.new(#{property.name}.repository, target, :#{property.name} => target.inheritance_scope_class_names)
           end
         EOS
-      
-        # model.send(:scope_stack) << DataMapper::Query.new(repository, model, property.name => nil)
-      
       end # bind
     end # class Discriminator
   end # module Types
