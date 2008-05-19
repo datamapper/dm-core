@@ -112,6 +112,21 @@ EOF
     jupiter.core.should == "Toast"
     jupiter.type.should_not == "Bob"
   end
+  
+  it "should not mark attributes dirty if there similar after update" do
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil }
+    jupiter = Planet.new(attributes)
+    jupiter.save.should be_true
+    
+    jupiter.attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :type => nil }
+    
+    jupiter.attribute_dirty?(:name).should be_false
+    jupiter.attribute_dirty?(:age).should be_false
+    jupiter.attribute_dirty?(:core).should be_false
+    jupiter.attribute_dirty?(:type).should be_false
+    
+    jupiter.dirty?.should be_false
+  end
 
   it "should track attributes" do
 
