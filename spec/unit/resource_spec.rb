@@ -108,7 +108,7 @@ EOF
     jupiter.send(:private_attributes=, attributes.merge({ :core => 'Magma' }))
     jupiter.attributes.should == attributes.merge({ :core => 'Magma' })
 
-    jupiter.update_attributes({ :core => "Toast", :type => "Bob" }, :core)
+    jupiter.update_attributes({ :core => "Toast", :type => "Bob" }, :core).should be_true
     jupiter.core.should == "Toast"
     jupiter.type.should_not == "Bob"
   end
