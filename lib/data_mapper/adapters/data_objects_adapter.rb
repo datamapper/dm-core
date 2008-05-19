@@ -165,9 +165,9 @@ module DataMapper
 
         statement = update_statement(resource.class, properties)
         bind_values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-        parameters = (bind_values + resource.key)
+        bind_values.push(*resource.key)
 
-        execute(statement, *parameters).to_i == 1
+        execute(statement, *bind_values).to_i == 1
       end
 
       def delete(repository, resource)

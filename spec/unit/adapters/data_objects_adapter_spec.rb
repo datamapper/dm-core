@@ -246,7 +246,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @adapter.read(@repository, @model, @key)
     end
 
-    it 'should generate an SQL statement when the key is composite' do
+    it 'should generate an SQL statement with composite keys' do
       other_property = mock('other property', :field => 'other')
       statement = 'SELECT "property" FROM "models" WHERE "property" = ? AND "other" = ? LIMIT 1'
       @model.should_receive(:key).with(:default).once.and_return([ @property, other_property ])
@@ -254,8 +254,13 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @adapter.read(@repository, @model, @key)
     end
 
+    it 'should set the return types to the property primitives' do
+      @command.should_receive(:set_types).with([ @primitive ]).once
+      @adapter.read(@repository, @model, @key)
+    end
+
     it 'should close the reader' do
-      @reader.should_receive(:close).with(no_args)
+      @reader.should_receive(:close).with(no_args).once
       @adapter.read(@repository, @model, @key)
     end
 
@@ -266,7 +271,54 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   end
 
   describe '#update' do
-    it 'needs specs'
+    before do
+      @result = mock('result', :to_i => 1, :insert_id => 1)
+
+      @adapter.stub!(:execute).and_return(@result)
+
+      @property = mock('property', :field => 'property', :instance_variable_name => '@property', :serial? => false)
+      @model    = mock('model', :storage_name => 'models', :key => [ @property ])
+      @resource = mock('resource', :class => @model, :key => [ 1 ], :dirty_attributes => [ @property ], :instance_variable_get => 'bind value')
+
+      DataObjects::Connection.stub!(:new).and_return(@connection)
+    end
+
+    it 'should use only dirty properties' do
+      @resource.should_receive(:dirty_attributes).with(no_args).once.and_return([ @property ])
+      @adapter.update(@repository, @resource)
+    end
+
+    it 'should use the properties field accessors' do
+      @property.should_receive(:field).with(no_args).twice.and_return('property')
+      @adapter.update(@repository, @resource)
+    end
+
+    it 'should get the bind values' do
+      @property.should_receive(:instance_variable_name).with(no_args).once.and_return('@property')
+      @resource.should_receive(:instance_variable_get).with('@property').once.and_return('bind value')
+      @adapter.update(@repository, @resource)
+    end
+
+    it 'should get the key' do
+      @resource.should_receive(:key).with(no_args).once.and_return([ 1 ])
+      @adapter.update(@repository, @resource)
+    end
+
+    it 'should generate an SQL statement' do
+      statement = 'UPDATE "models" SET "property" = ? WHERE "property" = ?'
+      @adapter.should_receive(:execute).with(statement, 'bind value', 1).once.and_return(@result)
+      @adapter.update(@repository, @resource)
+    end
+
+    it 'should return false if number of rows updated is 0' do
+      @result.should_receive(:to_i).with(no_args).once.and_return(0)
+      @adapter.update(@repository, @resource).should be_false
+    end
+
+    it 'should return true if number of rows updated is 1' do
+      @result.should_receive(:to_i).with(no_args).once.and_return(1)
+      @adapter.update(@repository, @resource).should be_true
+    end
 
     it 'should not try to update if there are no dirty attributes' do
       repository = mock("repository")
@@ -274,39 +326,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       resource.stub!(:dirty_attributes).and_return({})
       @adapter.update(repository, resource).should == false
     end
-
-    #  describe "#update_statement" do
-    #
-    #    it 'should generate a SQL statement for all fields' do
-    #      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:name, :color)).should == <<-EOS.compress_lines
-    #        UPDATE "cheeses" SET
-    #        "name" = ?,
-    #        "color" = ?
-    #        WHERE "id" = ?
-    #      EOS
-    #    end
-    #
-    #    it "should generate a SQL statement for only dirty fields" do
-    #      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:name)).should == <<-EOS.compress_lines
-    #        UPDATE "cheeses" SET "name" = ? WHERE "id" = ?
-    #      EOS
-    #
-    #      @adapter.update_statement(Cheese, Cheese.properties(@adapter.name).slice(:color)).should == <<-EOS.compress_lines
-    #        UPDATE "cheeses" SET "color" = ? WHERE "id" = ?
-    #      EOS
-    #    end
-    #
-    #    it "should generate a SQL statement that includes a Composite Key" do
-    #      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).slice(:hillside)).should == <<-EOS.compress_lines
-    #        UPDATE "little_boxes" SET "hillside" = ? WHERE "street" = ? AND "color" = ?
-    #      EOS
-    #
-    #      @adapter.update_statement(LittleBox, LittleBox.properties(@adapter.name).slice(:color, :hillside)).should == <<-EOS.compress_lines
-    #        UPDATE "little_boxes" SET "color" = ?, "hillside" = ? WHERE "street" = ? AND "color" = ?
-    #      EOS
-    #    end
-    #
-    #  end
   end
 
   describe '#delete' do
