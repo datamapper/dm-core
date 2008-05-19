@@ -82,7 +82,7 @@ module DataMapper
           raise ArgumentError, "+parent_properties+ must be an Array or nil, but was #{parent_properties.class}", caller unless Array === parent_properties
         end
 
-        query = options.reject{ |key,val| [:class_name, :child_key, :parent_key, :min, :max].include?(key) }
+        query = options.reject{ |key,val| [:class_name, :child_key, :parent_key, :min, :max, :through].include?(key) }
 
         @foreign_key_name  = foreign_key_name
         @repository_name   = repository_name
