@@ -3,7 +3,7 @@ require 'forwardable'
 module DataMapper
   module Associations
     module OneToMany
-      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
+      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max, :remote_name ]
 
       private
 
@@ -15,10 +15,12 @@ module DataMapper
           relationships(repository.name)[name] = 
           if options.include?(:through)
             RelationshipChain.new(:child_model_name => options.fetch(:class_name, DataMapper::Inflection.classify(name)),
-                                  :parent_model => self,
+                                  :parent_model_name => self.name,
                                   :repository_name => repository.name,
                                   :near_relationship_name => options[:through],
-                                  :remote_relationship_name => options.fetch(:remote_name, name))
+                                  :remote_relationship_name => options.fetch(:remote_name, name),
+                                  :parent_key => options[:parent_key],
+                                  :child_key => options[:child_key])
           else
             relationships(repository.name)[name] = 
               Relationship.new(
@@ -78,8 +80,16 @@ module DataMapper
         end
 
         def <<(resource)
-          append_resource([ resource ])
+          #
+          # The order here is of the essence. 
+          #
+          # self.append_resource used to be called before children.<<, which created weird errors
+          # where the resource was appended in the db before it was appended onto the @children
+          # structure, that was just read from the database, and therefore suddenly had two
+          # elements instead of one after the first addition.
+          #
           children << resource
+          append_resource([ resource ])
           self
         end
 

@@ -6,6 +6,9 @@ if HAS_SQLITE3
 
     property :id, Integer, :serial => true
     property :name, String
+    repository(:sqlite3) do
+      one_to_many :yards
+    end
   end
 
   class Yard
@@ -249,11 +252,7 @@ if HAS_SQLITE3
       end
 
       it 'should save nil parents as NULL ids' do
-        pending <<-EOS.margin
-          Broken. I'm guessing Resource#attributes= doesn't make any concessions for associations
-          (probably not what we want to do anyways), and more importantly, that many_to_one accessor=
-          methods don't properly handle nils.
-        EOS
+        pending "Broken. I'm guessing Resource#attributes= doesn't make any concessions for associations (probably not what we want to do anyways), and more importantly, that many_to_one accessor= methods don't properly handle nils."
 
         y1,y2 = nil, nil
 
@@ -391,6 +390,9 @@ if HAS_SQLITE3
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, NULL)', 0, 'slice0')
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 1, 'slice1', 1)
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)
+
+        Engine.auto_migrate!(:sqlite3)
+        Yard.auto_migrate!(:sqlite3)
       end
 
       it "#one_to_many" do
@@ -414,6 +416,29 @@ if HAS_SQLITE3
 
         s.host.should be_nil
         s.host_id.should be_nil
+      end
+
+      it "#<< should add exactly the parameters" do
+        repository(:sqlite3) do
+          engine = Engine.new(:name => 'my engine')
+          4.times do |i|
+            engine.yards << Yard.new(:name => "yard nr #{i}")
+          end
+          engine.save
+          engine.yards.size.should == 4
+          4.times do |i|
+            engine.yards.any? do |yard|
+              yard.name == "yard nr #{i}"
+            end.should == true
+          end
+          engine = Engine[engine.id]
+          engine.yards.size.should == 4
+          4.times do |i|
+            engine.yards.any? do |yard|
+              yard.name == "yard nr #{i}"
+            end.should == true
+          end
+        end
       end
 
       it "should load the associated instances, in the correct order" do
@@ -562,7 +587,7 @@ if HAS_SQLITE3
         end
       end
 
-      describe '#through' do
+      describe 'through-associations' do
         before(:all) do
           module Sweets
             class Shop
@@ -574,7 +599,7 @@ if HAS_SQLITE3
               property :name, String
               has n, :cakes, :class_name => 'Sweets::Cake'                                     # one_to_many
               has n, {:cakes => :recipe}, :class_name => 'Sweets::Recipe'                      # one_to_many => one_to_one
-              has n, {:cakes => :ingredients}, :class_name => 'Sweets::Recipe'                 # one_to_many => one_to_one => one_to_many
+              has n, {:cakes => :ingredients}, :class_name => 'Sweets::Ingredient'             # one_to_many => one_to_one => one_to_many
               has n, {:cakes => :creator}, :class_name => 'Sweets::Creator'                    # one_to_many => one_to_one => one_to_one
               has n, {:cakes => :slices}, :class_name => 'Sweets::Slice'                       # one_to_many => one_to_many
               has n, {:cakes => :bites}, :class_name => 'Sweets::Bite'                         # one_to_many => one_to_many => one_to_many
@@ -585,7 +610,7 @@ if HAS_SQLITE3
               has n, {:shop_owner => :coats}, :class_name => 'Sweets::Coat'                    # one_to_one => one_to_one => one_to_many
               has n, {:shop_owner => :children}, :class_name => 'Sweets::Child'                # one_to_one => one_to_many
               has n, {:shop_owner => :toys}, :class_name => 'Sweets::Toy'                      # one_to_one => one_to_many => one_to_many
-              has n, {:shop_owner => :boogie}, :class_name => 'Sweets::Boogie'                 # one_to_one => one_to_many => one_to_one
+              has n, {:shop_owner => :booger}, :class_name => 'Sweets::Booger'                 # one_to_one => one_to_many => one_to_one
             end
 
             class ShopOwner
@@ -597,11 +622,11 @@ if HAS_SQLITE3
               property :name, String
               belongs_to :shop, :class_name => 'Sweets::Shop'
               has 1, :wife, :class_name => 'Sweets::Wife'
-              has 1, {:wife => :ring}, :class_name => 'Sweets::Ring'
               has n, :children, :class_name => 'Sweets::Child'
               has n, {:children => :toys}, :class_name => 'Sweets::Toy'
-              has n, {:children => :boogie}, :class_name => 'Sweets::Boogie'
+              has n, {:children => :booger}, :class_name => 'Sweets::Booger'
               has n, {:wife => :coats}, :class_name => 'Sweets::Coat'
+              has 1, {:wife => :ring}, :class_name => 'Sweets::Ring'
             end
             
             class Wife
@@ -645,10 +670,10 @@ if HAS_SQLITE3
               property :name, String
               belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
               has n, :toys, :class_name => 'Sweets::Toy'
-              has 1, :boogie, :class_name => 'Sweets::Boogie'
+              has 1, :booger, :class_name => 'Sweets::Booger'
             end
 
-            class Boogie
+            class Booger
               include DataMapper::Resource
               def self.default_repository_name
                 :sqlite3
@@ -795,7 +820,7 @@ if HAS_SQLITE3
 
             10.times do |i| german_chocolate.slices << Slice.new(:size => i) end
             5.times do |i| short_cake.slices << Slice.new(:size => i) end
-
+            german_chocolate.slices.size.should == 10
             # one_to_many => one_to_many => one_to_one
             
             german_chocolate.slices.each do |slice|
@@ -810,7 +835,6 @@ if HAS_SQLITE3
             end
 
             # one_to_many => one_to_many => one_to_many
-
             german_chocolate.slices.each do |slice|
               6.times do |i|
                 slice.bites << Bite.new(:name => "Big bite nr #{i}")
@@ -863,9 +887,9 @@ if HAS_SQLITE3
             # one_to_one => one_to_many => one_to_one
 
             betsy.children.each do |child|
-              boogie = Boogie.new(:name => 'Nasty booger')
-              child.boogie = boogie
-              boogie.save
+              booger = Booger.new(:name => 'Nasty booger')
+              child.booger = booger
+              booger.save
             end
           end
         end
@@ -882,6 +906,24 @@ if HAS_SQLITE3
             end
           end
         end
+        it "should return the right children for one_to_many => one_to_many => one_to_one" do
+          Sweets::Shop.first.shape.size.should == 15
+          Sweets::Shop.first.shape.select do |shape|
+            shape.name == "square"
+          end.size.should == 10
+          Sweets::Shop.first.shape.select do |shape|
+            shape.name == "round"
+          end.size.should == 5
+        end
+        it "should return the right children for one_to_many => one_to_many => one_to_many" do
+          Sweets::Shop.first.bites.size.should == 75
+          Sweets::Shop.first.bites.select do |bite|
+            bite.slice.cake == Sweets::Cake.first(:name => "German Chocolate")
+          end.size.should == 60
+          Sweets::Shop.first.bites.select do |bite|
+            bite.slice.cake == Sweets::Cake.first(:name => "Short Cake")
+          end.size.should == 15
+        end
         it "should return the right children for one_to_many => one_to_one relationships" do
           Sweets::Shop.first.recipe.size.should == 2
           Sweets::Shop.first.recipe.select do |recipe|
@@ -891,6 +933,28 @@ if HAS_SQLITE3
             recipe.name == "Shorty's Special"
           end.size.should == 1
         end
+        it "should return the right children for one_to_many => one_to_one => one_to_one relationships" do
+          Sweets::Shop.first.creator.size.should == 2
+          Sweets::Shop.first.creator.any? do |creator|
+            creator.name == "Runar"
+          end.should == true
+          Sweets::Shop.first.creator.any? do |creator|
+            creator.name == "Berit"
+          end.should == true
+        end
+        it "should return the right children for one_to_many => one_to_one => one_to_many relationships" do
+          Sweets::Shop.first.ingredients.size.should == 10
+          4.times do |i|
+            Sweets::Shop.first.ingredients.any? do |ingredient|
+              ingredient.name == "Secret ingredient nr #{i}" && ingredient.recipe.cake == Sweets::Cake.first(:name => "German Chocolate")
+            end.should == true
+          end
+          6.times do |i|
+            Sweets::Shop.first.ingredients.any? do |ingredient|
+              ingredient.name == "Well known ingredient nr #{i}" && ingredient.recipe.cake == Sweets::Cake.first(:name => "Short Cake")
+            end.should == true
+          end
+        end
 
         #
         # one_to_one
@@ -899,8 +963,40 @@ if HAS_SQLITE3
         it "should return the right children for one_to_one => one_to_one relationships" do
           Sweets::Shop.first.wife.should == Sweets::Wife.first
         end
+        it "should return the right children for one_to_one => one_to_one => one_to_one relationships" do
+          Sweets::Shop.first.ring.should == Sweets::Ring.first
+        end
+        it "should return the right children for one_to_one => one_to_one => one_to_many relationships" do
+          Sweets::Shop.first.coats.size.should == 3
+          3.times do |i|
+            Sweets::Shop.first.coats.any? do |coat|
+              coat.name == "Fancy coat nr #{i}"
+            end.should == true
+          end
+        end
         it "should return the right children for one_to_one => one_to_many relationships" do
           Sweets::Shop.first.children.size.should == 5
+          5.times do |i|
+            Sweets::Shop.first.children.any? do |child|
+              child.name == "Snotling nr #{i}"
+            end.should == true
+          end
+        end
+        it "should return the right children for one_to_one => one_to_many => one_to_one relationships" do
+          Sweets::Shop.first.booger.size.should == 5
+          Sweets::Shop.first.booger.inject(Set.new) do |sum, booger|
+            sum << booger.child_id
+          end.size.should == 5
+        end
+        it "should return the right children for one_to_one => one_to_many => one_to_many relationships" do
+          Sweets::Shop.first.toys.size.should == 20
+          5.times do |child_nr|
+            4.times do |toy_nr|
+              Sweets::Shop.first.toys.any? do |toy|
+                toy.name == "Cheap toy nr #{toy_nr}" && toy.child = Sweets::Child.first(:name => "Snotling nr #{child_nr}")
+              end.should == true
+            end
+          end
         end
 
         #

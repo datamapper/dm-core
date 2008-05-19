@@ -37,10 +37,12 @@ module DataMapper
     #                         # one_to_many :friends, :min => 1, :max => 3
     #   * has 3, :friends
     #                         # one_to_many :friends, :min => 3, :max => 3
-    #   * has 1, :friend, :class_name=>'User'
+    #   * has 1, :friend, :class_name => 'User'
     #                         # one_to_one :friend, :class_name => 'User'
-    #   * has 3, :friends, :through=>:friendships
+    #   * has 3, :friends, :through => :friendships
     #                         # one_to_many :friends, :through => :friendships
+    #   * has n, :friendships => :friends
+    #                         # identical to above example
     #
     # @param cardinality <Fixnum, Bignum, Infinity, Range>
     #   cardinality that defines the association type and constraints
@@ -51,6 +53,9 @@ module DataMapper
     #       a many-to-many association
     # @option :class_name<String> The name of the class to associate with, if omitted
     #       then the association name is assumed to match the class name
+    # @option :remote_name<Symbol> In the case of a :through option being present, the
+    #       name of the relationship on the other end of the :through-relationship
+    #       to be linked to this relationship.
     #
     # @return <DataMapper::Association::Relationship> the relationship that was
     #   created to reflect either a one-to-one, one-to-many or many-to-many
