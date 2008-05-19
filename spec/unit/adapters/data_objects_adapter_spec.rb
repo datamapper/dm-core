@@ -321,10 +321,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should not try to update if there are no dirty attributes' do
-      repository = mock("repository")
-      resource = mock("resource")
-      resource.stub!(:dirty_attributes).and_return({})
-      @adapter.update(repository, resource).should == false
+      @resource.should_receive(:dirty_attributes).with(no_args).once.and_return([])
+      @adapter.update(@repository, @resource).should be_false
     end
   end
 
