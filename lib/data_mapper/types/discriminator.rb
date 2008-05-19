@@ -5,7 +5,7 @@ module DataMapper
       default lambda { |r,p| p.model }
 
       def self.bind(property)
-        model.class_eval <<-EOS
+        property.model.class_eval <<-EOS
           def self.inheritance_scope_class_names
             @inheritance_scope_class_names ||= []
           end
