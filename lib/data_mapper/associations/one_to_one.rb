@@ -9,16 +9,21 @@ module DataMapper
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        child_model_name  = options.fetch(:class_name, DataMapper::Inflection.classify(name))
-        parent_model_name = DataMapper::Inflection.demodulize(self.name)
-
-        relationship = relationships(repository.name)[name] = Relationship.new(
-          DataMapper::Inflection.underscore(parent_model_name).to_sym,
-          repository.name,
-          child_model_name,
-          parent_model_name,
-          options
-        )
+        relationship = 
+          relationships(repository.name)[name] = 
+          if options.include?(:through)
+            RelationshipChain.new(:child_model_name => options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+                                  :parent_model => self,
+                                  :repository_name => repository.name,
+                                  :near_relationship_name => options[:through],
+                                  :remote_relationship_name => options.fetch(:remote_name, name))
+          else
+            Relationship.new(DataMapper::Inflection.underscore(DataMapper::Inflection.demodulize(self.name)).to_sym,
+                             repository.name,
+                             options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+                             self.name,
+                             options)
+          end
 
         class_eval <<-EOS, __FILE__, __LINE__
           # FIXME: I think this is a subtle bug.  Since we return the resource directly

@@ -567,46 +567,140 @@ if HAS_SQLITE3
           module Sweets
             class Shop
               include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
               property :id, Integer, :serial => true
               property :name, String
               has n, :cakes, :class_name => 'Sweets::Cake'
-              has n, :slices => :cakes
+              has n, {:cakes => :slices}, :class_name => 'Sweets::Slice'
+              has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'
+              has 1, {:shop_owner => :wife}, :class_name => 'Sweets::Wife'
+              has n, {:shop_owner => :children}, :class_name => 'Sweets::Child'
+              has n, {:cakes => :recipe}, :class_name => 'Sweets::Recipe'
             end
 
-            class Cake
+            class ShopOwner
               include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
               property :id, Integer, :serial => true
               property :name, String
-              has n, :slices, :class_name => 'Sweets::Slice'
+              belongs_to :shop, :class_name => 'Sweets::Shop'
+              has 1, :wife, :class_name => 'Sweets::Wife'
+              has n, :children, :class_name => 'Sweets::Child'
             end
-
+            
+            class Wife
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
+            end
+            
+            class Child
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
+            end
+            
+            class Cake
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :shop, :class_name => 'Sweets::Shop'
+              has n, :slices, :class_name => 'Sweets::Slice'
+              has 1, :recipe, :class_name => 'Sweets::Recipe'
+            end
+            
+            class Recipe
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :cake, :class_name => 'Sweets::Cake'
+            end
+            
             class Slice
               include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
               property :id, Integer, :serial => true
               property :size, Integer
               belongs_to :cake, :class_name => 'Sweets::Cake'
             end
-
-            # repository(:sqlite3) do
-            #   Shop.auto_migrate!(:sqlite3)
-            #   Cake.auto_migrate!(:sqlite3)
-            #   Slice.auto_migrate!(:sqlite3)
-            #
-            #   betsys = Shop.new(:name => "Betsy's")
-            #   german_chocolate = betsys.cakes << Cake.new(:name => 'German Chocolate')
-            #   10.times { |i| german_chocolate.slices << Slice.new(:size => i) }
-            #
-            #   short_cake = betsys.cakes << Cake.new(:name => 'Short Cake')
-            #   5.times { |i| short_cake.slices << Slice.new(:size => i) }
-            #
-            #   betsys.save!
-            # end
+            
+            Shop.auto_migrate!(:sqlite3)
+            Cake.auto_migrate!(:sqlite3)
+            Slice.auto_migrate!(:sqlite3)
+            ShopOwner.auto_migrate!(:sqlite3)
+            Wife.auto_migrate!(:sqlite3)
+            Child.auto_migrate!(:sqlite3)
+            Recipe.auto_migrate!(:sqlite3)
+            
+            betsys = Shop.new(:name => "Betsy's")
+            betsys.save
+            german_chocolate = Cake.new(:name => 'German Chocolate')
+            betsys.cakes << german_chocolate
+            german_chocolate.save
+            schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
+            schwarzwald.save
+            german_chocolate.recipe = schwarzwald
+            german_chocolate.save
+            10.times do |i| german_chocolate.slices << Slice.new(:size => i) end
+            
+            short_cake = Cake.new(:name => 'Short Cake')
+            betsys.cakes << short_cake
+            short_cake.save
+            shortys_special = Recipe.new(:name => "Shorty's Special")
+            shortys_special.save
+            short_cake.recipe = shortys_special
+            short_cake.save
+            5.times do |i| short_cake.slices << Slice.new(:size => i) end
+            
+            betsy = ShopOwner.new(:name => 'Betsy')
+            betsys.shop_owner = betsy
+            betsys.save
+            barry = Wife.new(:name => 'Barry')
+            betsy.wife = barry
+            barry.save
+            
+            5.times { |i| betsy.children << Child.new(:name => "Snotling nr #{i}") }
           end
         end
 
-        it "should be amazing" do
-          pending
-          Sweets::Shop.first.cakes.should have(2).entries
+        it "should return the right children for one_to_many => one_to_many relationships" do
+          Sweets::Shop.first.slices.size.should == 15
+          10.times do |i|
+            Sweets::Shop.first.slices.select do |slice|
+              slice.cake == Sweets::Cake.first("name" => "German Chocolate") && slice.size == i
+            end
+          end
+        end
+        it "should return the right children for one_to_one => one_to_many relationships" do
+          Sweets::Shop.first.children.size.should == 5
+        end
+        it "should return the right children for one_to_one => one_to_one relationships" do
+          Sweets::Shop.first.wife.should == Sweets::Wife.first
+        end
+        it "should raise exception if you try to change it" do
+          lambda do
+            Sweets::Shop.first.wife = Sweets::Wife.new(:name => 'Larry')
+          end.should raise_error(DataMapper::Associations::ImmutableAssociationError)
         end
       end
     end
