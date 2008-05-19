@@ -33,8 +33,8 @@ module DataMapper
           end
         
         class_eval <<-EOS, __FILE__, __LINE__
-          def #{name}
-            #{name}_association
+          def #{name}(options={})
+            options.empty? ? #{name}_association : #{name}_association.all(options)
           end
 
           def #{name}=(children)
