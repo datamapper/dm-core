@@ -96,6 +96,7 @@ module DataMapper
           tm.map(Fixnum).to('INT')
           tm.map(String).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
           tm.map(Class).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
+          tm.map(DM::Discriminator).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
           tm.map(BigDecimal).to('DECIMAL').with(:scale => Property::DEFAULT_SCALE, :precision => Property::DEFAULT_PRECISION)
           tm.map(Float).to('FLOAT').with(:scale => Property::DEFAULT_SCALE, :precision => Property::DEFAULT_PRECISION)
           tm.map(DateTime).to('DATETIME')

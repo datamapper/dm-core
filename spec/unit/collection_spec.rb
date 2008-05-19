@@ -96,7 +96,7 @@ describe DataMapper::Collection do
         class CollectionSpecParty
           include DataMapper::Resource
           property :name, String, :key => true
-          property :type, Class
+          property :type, Discriminator
         end
 
         class CollectionSpecUser < CollectionSpecParty

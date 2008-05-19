@@ -42,7 +42,7 @@ module DataMapper
     end
 
     def inheritance_property
-      @inheritance_property ||= detect { |property| property.type == Class }
+      @inheritance_property ||= detect { |property| property.type == DataMapper::Types::Discriminator }
     end
 
     def get(resource)

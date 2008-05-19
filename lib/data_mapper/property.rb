@@ -246,7 +246,8 @@ module DataMapper
       DateTime,
       Date,
       Object,
-      Class
+      Class,
+      DataMapper::Types::Discriminator
     ]
 
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]

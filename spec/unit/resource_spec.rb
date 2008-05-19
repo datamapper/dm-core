@@ -16,7 +16,7 @@ describe "DataMapper::Resource" do
       property :name, String, :lock => true
       property :age, Integer
       property :core, String, :private => true
-      property :type, Class
+      property :type, Discriminator
 
       repository(:legacy) do
         property :cowabunga, String
@@ -94,13 +94,13 @@ EOF
   end
 
   it "should have attributes" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => Planet }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
   end
 
   it "should be able to set attributes (including private attributes)" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => Planet }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
     jupiter.attributes = attributes.merge({ :core => 'Magma' })
@@ -299,7 +299,7 @@ EOF
     it '.inheritance_property should return a Property object' do
       Planet.inheritance_property(:legacy).should be_kind_of(DataMapper::Property)
       Planet.inheritance_property(:legacy).name.should == :type
-      Planet.inheritance_property(:legacy).type.should == Class
+      Planet.inheritance_property(:legacy).type.should == DataMapper::Types::Discriminator
     end
 
     it '.inheritance_property should use default repository when not passed any arguments' do
