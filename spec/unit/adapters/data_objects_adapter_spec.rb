@@ -140,7 +140,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
   describe '#create' do
     before do
-      @result = mock('result', :to_i => 1)
+      @result = mock('result', :to_i => 1, :insert_id => 1)
 
       @adapter.stub!(:execute).and_return(@result)
 
@@ -175,6 +175,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     it 'should generate an SQL statement when create_with_returning? is true' do
       statement = 'INSERT INTO "models" ("property") VALUES (?) RETURNING "property"'
+      @property.should_receive(:serial?).with(no_args).and_return(true)
       @adapter.should_receive(:create_with_returning?).with(no_args).and_return(true)
       @adapter.should_receive(:execute).with(statement, 'bind value').once.and_return(@result)
       @adapter.create(@repository, @resource)
@@ -200,21 +201,68 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   end
 
   describe '#read' do
-    it 'needs specs'
+    before do
+      @primitive  = mock('primitive')
+      @property   = mock('property', :field => 'property', :primitive => @primitive)
+      @properties = mock('properties', :defaults => [ @property ])
+      @repository = mock('repository', :name => :default, :kind_of? => true)
+      @model      = mock('model', :properties => @properties, :< => true, :inheritance_property => nil, :key => [ @property ], :storage_name => 'models')
+      @key        = mock('key')
+      @resource   = mock('resource')
+      @collection = mock('collection', :first => @resource)
 
-    #  describe "#read_statement (without lazy attributes)" do
-    #    it 'should generate a SQL statement for a serial Key' do
-    #      @adapter.read_statement(Cheese, [1]).should == <<-EOS.compress_lines
-    #        SELECT "id", "name", "color" FROM "cheeses" WHERE "id" = ?
-    #      EOS
-    #    end
-    #
-    #    it "should generate a SQL statement that includes a Composite Key" do
-    #      @adapter.read_statement(LittleBox, ['Shady Drive', 'Blue']).should == <<-EOS.compress_lines
-    #        SELECT "street", "color", "hillside" FROM "little_boxes" WHERE "street" = ? AND "color" = ?
-    #      EOS
-    #    end
-    #  end
+      @reader     = mock('reader', :close => true, :next! => false)
+      @command    = mock('command', :set_types => nil, :execute_reader => @reader)
+      @connection = mock('connection', :close => true, :create_command => @command)
+
+      DataObjects::Connection.stub!(:new).and_return(@connection)
+      DataMapper::Collection.stub!(:new).and_return(@collection)
+    end
+
+    it 'should lookup the model properties with the repository' do
+      @repository.should_receive(:name).with(no_args).at_least(:once).and_return(:default)
+      @model.should_receive(:properties).with(:default).once.and_return(@properties)
+      @adapter.read(@repository, @model, @key)
+    end
+
+    it 'should use the model default properties' do
+      @properties.should_receive(:defaults).with(no_args).once.and_return([ @property ])
+      @adapter.read(@repository, @model, @key)
+    end
+
+    it 'should create a collection under the hood for retrieving the resource' do
+      DataMapper::Collection.should_receive(:new).with(@repository, @model, { @property => 0 }).and_return(@collection)
+      @reader.should_receive(:next!).and_return(true)
+      @reader.should_receive(:values).with(no_args).once.and_return({ :property => 'value' })
+      @collection.should_receive(:load).with({ :property => 'value' }).once
+      @collection.should_receive(:first).with(no_args).once.and_return(@resource)
+      @adapter.read(@repository, @model, @key).should == @resource
+    end
+
+    it 'should generate an SQL statement' do
+      statement = 'SELECT "property" FROM "models" WHERE "property" = ? LIMIT 1'
+      @model.should_not_receive(:key).with(:default).once.and_return([ @property ])
+      @connection.should_receive(:create_command).with(statement).once.and_return(@command)
+      @adapter.read(@repository, @model, @key)
+    end
+
+    it 'should generate an SQL statement when the key is composite' do
+      other_property = mock('other property', :field => 'other')
+      statement = 'SELECT "property" FROM "models" WHERE "property" = ? AND "other" = ? LIMIT 1'
+      @model.should_receive(:key).with(:default).once.and_return([ @property, other_property ])
+      @connection.should_receive(:create_command).with(statement).once.and_return(@command)
+      @adapter.read(@repository, @model, @key)
+    end
+
+    it 'should close the reader' do
+      @reader.should_receive(:close).with(no_args)
+      @adapter.read(@repository, @model, @key)
+    end
+
+    it 'should close the connection' do
+      @connection.should_receive(:close).with(no_args)
+      @adapter.read(@repository, @model, @key)
+    end
   end
 
   describe '#update' do

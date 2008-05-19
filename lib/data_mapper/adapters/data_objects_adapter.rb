@@ -112,15 +112,19 @@ module DataMapper
       def create(repository, resource)
         properties = resource.dirty_attributes
 
-        statement = send(create_with_returning? ? :create_statement_with_returning : :create_statement, resource.class, properties)
+        identity_field = begin
+          key = resource.class.key(name)
+          key.first if key.size == 1 && key.first.serial?
+        end
+
+        statement = create_statement(resource.class, properties, identity_field)
         bind_values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
 
         result = execute(statement, *bind_values)
 
         return false if result.to_i != 1
 
-        key = resource.class.key(name)
-        if key.size == 1 && (identity_field = key.first).serial?
+        if identity_field
           resource.instance_variable_set(identity_field.instance_variable_name, result.insert_id)
         end
 
@@ -138,7 +142,7 @@ module DataMapper
         # needed for simple cases like this.
         set = Collection.new(repository, model, properties_with_indexes)
 
-        statement = read_statement(model, key)
+        statement = read_statement(model, properties)
 
         with_connection do |connection|
           command = connection.create_command(statement)
@@ -361,32 +365,27 @@ module DataMapper
       module SQL
         private
 
-        def create_statement(model, properties)
-          <<-EOS.compress_lines
+        def create_statement(model, properties, identity_field)
+          statement = <<-EOS.compress_lines
             INSERT INTO #{quote_table_name(model.storage_name(name))}
             (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
             VALUES
             (#{(['?'] * properties.size).join(', ')})
           EOS
-        end
 
-        def create_statement_with_returning(model, properties)
-          <<-EOS.compress_lines
-            INSERT INTO #{quote_table_name(model.storage_name(name))}
-            (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
-            VALUES
-            (#{(['?'] * properties.size).join(', ')})
-            RETURNING #{quote_column_name(model.key(name).first.field)}
-          EOS
+          if create_with_returning? && identity_field
+            statement << " RETURNING #{quote_column_name(identity_field.field)}"
+          end
+
+          statement
         end
 
         # TODO: remove this and use query_read_statement
-        def read_statement(model, key)
-          properties = model.properties(name).defaults
+        def read_statement(model, properties)
           <<-EOS.compress_lines
             SELECT #{properties.map { |property| quote_column_name(property.field) }.join(', ')}
             FROM #{quote_table_name(model.storage_name(name))}
-            WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
+            WHERE #{model.key(name).map { |property| "#{quote_column_name(property.field)} = ?" }.join(' AND ')}
             LIMIT 1
           EOS
         end
@@ -395,14 +394,14 @@ module DataMapper
           <<-EOS.compress_lines
             UPDATE #{quote_table_name(model.storage_name(name))}
             SET #{properties.map {|attribute| "#{quote_column_name(attribute.field)} = ?" }.join(', ')}
-            WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
+            WHERE #{model.key(name).map { |property| "#{quote_column_name(property.field)} = ?" }.join(' AND ')}
           EOS
         end
 
         def delete_statement(model)
           <<-EOS.compress_lines
             DELETE FROM #{quote_table_name(model.storage_name(name))}
-            WHERE #{model.key(name).map { |key| "#{quote_column_name(key.field)} = ?" }.join(' AND ')}
+            WHERE #{model.key(name).map { |property| "#{quote_column_name(property.field)} = ?" }.join(' AND ')}
           EOS
         end
 

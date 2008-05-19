@@ -92,8 +92,8 @@ module DataMapper
     #   pairs.
     #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
     def initialize(repository, model, properties_with_indexes, &loader)
-      raise ArgumentError, "+repository+ must be a DataMapper::Repository, but was #{repository.class}", caller unless Repository === repository
-      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource", caller                 unless Resource > model
+      raise ArgumentError, "+repository+ must be a DataMapper::Repository, but was #{repository.class}", caller unless repository.kind_of?(Repository)
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource", caller                 unless model < Resource
 
       @repository              = repository
       @model                   = model
