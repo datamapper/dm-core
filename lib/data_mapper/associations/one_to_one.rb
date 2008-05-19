@@ -1,7 +1,7 @@
 module DataMapper
   module Associations
     module OneToOne
-      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
+      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max, :remote_name ]
 
       private
 
@@ -13,10 +13,12 @@ module DataMapper
           relationships(repository.name)[name] = 
           if options.include?(:through)
             RelationshipChain.new(:child_model_name => options.fetch(:class_name, DataMapper::Inflection.classify(name)),
-                                  :parent_model => self,
+                                  :parent_model_name => self.name,
                                   :repository_name => repository.name,
                                   :near_relationship_name => options[:through],
-                                  :remote_relationship_name => options.fetch(:remote_name, name))
+                                  :remote_relationship_name => options.fetch(:remote_name, name),
+                                  :parent_key => options[:parent_key],
+                                  :child_key => options[:child_key])
           else
             Relationship.new(DataMapper::Inflection.underscore(DataMapper::Inflection.demodulize(self.name)).to_sym,
                              repository.name,

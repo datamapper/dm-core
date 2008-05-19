@@ -21,8 +21,6 @@ module DataMapper
 
       private
 
-      attr_reader :parent_model
-
       def foreign_key_name
         near_relationship.foreign_key_name
       end
@@ -60,7 +58,9 @@ module DataMapper
         raise ArgumentError.new("Option +:near_relationship_name+ required!") unless @near_relationship_name = options.delete(:near_relationship_name)
         raise ArgumentError.new("Option +:remote_relationship_name+ required!") unless @remote_relationship_name = options.delete(:remote_relationship_name)
         raise ArgumentError.new("Options +:child_model_name+ required!") unless @child_model_name = options.delete(:child_model_name)
-        raise ArgumentError.new("Options +:parent_model+ required!") unless @parent_model = options.delete(:parent_model)
+        raise ArgumentError.new("Options +:parent_model_name+ required!") unless @parent_model_name = options.delete(:parent_model_name)
+        @parent_properties = options.delete(:parent_key)
+        @child_properties = options.delete(:child_key)
         raise ArgumentError.new("Unknown options for #{self.class.name}#initialize: #{options.inspect}") unless options.empty?
         @query = options.reject{ |key,val| [:class_name, :child_key, :parent_key, :min, :max].include?(key) }
         @extra_links = []
