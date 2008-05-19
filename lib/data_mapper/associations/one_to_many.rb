@@ -78,8 +78,16 @@ module DataMapper
         end
 
         def <<(resource)
-          append_resource([ resource ])
+          #
+          # The order here is of the essence. 
+          #
+          # self.append_resource used to be called before children.<<, which created weird errors
+          # where the resource was appended in the db before it was appended onto the @children
+          # structure, that was just read from the database, and therefore suddenly had two
+          # elements instead of one after the first addition.
+          #
           children << resource
+          append_resource([ resource ])
           self
         end
 
