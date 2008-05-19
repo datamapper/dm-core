@@ -34,7 +34,7 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = self.class.relationships(repository.name)[#{name.inspect}]
+              relationship = self.class.relationships(:#{repository.name})[#{name.inspect}]
               raise ArgumentError.new("Relationship #{name.inspect} does not exist") unless relationship
               association = Proxy.new(relationship, self)
               parent_associations << association
