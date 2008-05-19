@@ -572,12 +572,20 @@ if HAS_SQLITE3
               end
               property :id, Integer, :serial => true
               property :name, String
-              has n, :cakes, :class_name => 'Sweets::Cake'
-              has n, {:cakes => :slices}, :class_name => 'Sweets::Slice'
-              has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'
-              has 1, {:shop_owner => :wife}, :class_name => 'Sweets::Wife'
-              has n, {:shop_owner => :children}, :class_name => 'Sweets::Child'
-              has n, {:cakes => :recipe}, :class_name => 'Sweets::Recipe'
+              has n, :cakes, :class_name => 'Sweets::Cake'                                     # one_to_many
+              has n, {:cakes => :recipe}, :class_name => 'Sweets::Recipe'                      # one_to_many => one_to_one
+              has n, {:cakes => :ingredients}, :class_name => 'Sweets::Recipe'                 # one_to_many => one_to_one => one_to_many
+              has n, {:cakes => :creator}, :class_name => 'Sweets::Creator'                    # one_to_many => one_to_one => one_to_one
+              has n, {:cakes => :slices}, :class_name => 'Sweets::Slice'                       # one_to_many => one_to_many
+              has n, {:cakes => :bites}, :class_name => 'Sweets::Bite'                         # one_to_many => one_to_many => one_to_many
+              has n, {:cakes => :shape}, :class_name => 'Sweets::Shape'                        # one_to_many => one_to_many => one_to_one
+              has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'                           # one_to_one
+              has 1, {:shop_owner => :wife}, :class_name => 'Sweets::Wife'                     # one_to_one => one_to_one
+              has 1, {:shop_owner => :ring}, :class_name => 'Sweets::Ring'                     # one_to_one => one_to_one => one_to_one
+              has n, {:shop_owner => :coats}, :class_name => 'Sweets::Coat'                    # one_to_one => one_to_one => one_to_many
+              has n, {:shop_owner => :children}, :class_name => 'Sweets::Child'                # one_to_one => one_to_many
+              has n, {:shop_owner => :toys}, :class_name => 'Sweets::Toy'                      # one_to_one => one_to_many => one_to_many
+              has n, {:shop_owner => :boogie}, :class_name => 'Sweets::Boogie'                 # one_to_one => one_to_many => one_to_one
             end
 
             class ShopOwner
@@ -589,7 +597,11 @@ if HAS_SQLITE3
               property :name, String
               belongs_to :shop, :class_name => 'Sweets::Shop'
               has 1, :wife, :class_name => 'Sweets::Wife'
+              has 1, {:wife => :ring}, :class_name => 'Sweets::Ring'
               has n, :children, :class_name => 'Sweets::Child'
+              has n, {:children => :toys}, :class_name => 'Sweets::Toy'
+              has n, {:children => :boogie}, :class_name => 'Sweets::Boogie'
+              has n, {:wife => :coats}, :class_name => 'Sweets::Coat'
             end
             
             class Wife
@@ -600,8 +612,30 @@ if HAS_SQLITE3
               property :id, Integer, :serial => true
               property :name, String
               belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
+              has 1, :ring, :class_name => 'Sweets::Ring'
+              has n, :coats, :class_name => 'Sweets::Coat'
             end
             
+            class Coat
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :wife, :class_name => 'Sweets::Wife'
+            end
+
+            class Ring
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :wife, :class_name => 'Sweets::Wife'
+            end
+
             class Child
               include DataMapper::Resource
               def self.default_repository_name
@@ -610,8 +644,30 @@ if HAS_SQLITE3
               property :id, Integer, :serial => true
               property :name, String
               belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
+              has n, :toys, :class_name => 'Sweets::Toy'
+              has 1, :boogie, :class_name => 'Sweets::Boogie'
+            end
+
+            class Boogie
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :child, :class_name => 'Sweets::Child'
             end
             
+            class Toy
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :child, :class_name => 'Sweets::Child'
+            end
+
             class Cake
               include DataMapper::Resource
               def self.default_repository_name
@@ -621,7 +677,11 @@ if HAS_SQLITE3
               property :name, String
               belongs_to :shop, :class_name => 'Sweets::Shop'
               has n, :slices, :class_name => 'Sweets::Slice'
+              has n, {:slices => :bites}, :class_name => 'Sweets::Bite'
               has 1, :recipe, :class_name => 'Sweets::Recipe'
+              has n, {:recipe => :ingredients}, :class_name => 'Sweets::Ingredient'
+              has 1, {:recipe => :creator}, :class_name => 'Sweets::Creator'
+              has n, {:slices => :shape}, :class_name => 'Sweets::Shape'
             end
             
             class Recipe
@@ -632,6 +692,28 @@ if HAS_SQLITE3
               property :id, Integer, :serial => true
               property :name, String
               belongs_to :cake, :class_name => 'Sweets::Cake'
+              has n, :ingredients, :class_name => 'Sweets::Ingredient'
+              has 1, :creator, :class_name => 'Sweets::Creator'
+            end
+
+            class Creator
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :recipe, :class_name => 'Sweets::Recipe'
+            end
+
+            class Ingredient
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :recipe, :class_name => 'Sweets::Recipe'
             end
             
             class Slice
@@ -642,46 +724,155 @@ if HAS_SQLITE3
               property :id, Integer, :serial => true
               property :size, Integer
               belongs_to :cake, :class_name => 'Sweets::Cake'
+              has n, :bites, :class_name => 'Sweets::Bite'
+              has 1, :shape, :class_name => 'Sweets::Shape'
+            end
+
+            class Shape
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :slice, :class_name => 'Sweets::Slice'
             end
             
-            Shop.auto_migrate!(:sqlite3)
-            Cake.auto_migrate!(:sqlite3)
-            Slice.auto_migrate!(:sqlite3)
-            ShopOwner.auto_migrate!(:sqlite3)
-            Wife.auto_migrate!(:sqlite3)
-            Child.auto_migrate!(:sqlite3)
-            Recipe.auto_migrate!(:sqlite3)
+            class Bite
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              belongs_to :slice, :class_name => 'Sweets::Slice'
+            end
+
+            DataMapper::Resource.descendents.each do |descendent|
+              descendent.auto_migrate!(:sqlite3) if descendent.name =~ /^Sweets::/
+            end
             
             betsys = Shop.new(:name => "Betsy's")
             betsys.save
+
+            #
+            # one_to_many
+            #
+
             german_chocolate = Cake.new(:name => 'German Chocolate')
             betsys.cakes << german_chocolate
             german_chocolate.save
+            short_cake = Cake.new(:name => 'Short Cake')
+            betsys.cakes << short_cake
+            short_cake.save
+
+            # one_to_many => one_to_one
+
             schwarzwald = Recipe.new(:name => 'Schwarzwald Cake')
             schwarzwald.save
             german_chocolate.recipe = schwarzwald
             german_chocolate.save
-            10.times do |i| german_chocolate.slices << Slice.new(:size => i) end
-            
-            short_cake = Cake.new(:name => 'Short Cake')
-            betsys.cakes << short_cake
-            short_cake.save
             shortys_special = Recipe.new(:name => "Shorty's Special")
             shortys_special.save
             short_cake.recipe = shortys_special
             short_cake.save
+
+            # one_to_many => one_to_one => one_to_one
+
+            runar = Creator.new(:name => "Runar")
+            schwarzwald.creator = runar
+            runar.save
+            berit = Creator.new(:name => 'Berit')
+            shortys_special.creator = berit
+            berit.save
+
+            # one_to_many => one_to_one => one_to_many
+
+            4.times do |i| schwarzwald.ingredients << Ingredient.new(:name => "Secret ingredient nr #{i}") end
+            6.times do |i| shortys_special.ingredients << Ingredient.new(:name => "Well known ingredient nr #{i}") end
+
+            # one_to_many => one_to_many
+
+            10.times do |i| german_chocolate.slices << Slice.new(:size => i) end
             5.times do |i| short_cake.slices << Slice.new(:size => i) end
+
+            # one_to_many => one_to_many => one_to_one
             
+            german_chocolate.slices.each do |slice|
+              shape = Shape.new(:name => 'square')
+              slice.shape = shape
+              shape.save
+            end
+            short_cake.slices.each do |slice|
+              shape = Shape.new(:name => 'round')
+              slice.shape = shape
+              shape.save
+            end
+
+            # one_to_many => one_to_many => one_to_many
+
+            german_chocolate.slices.each do |slice|
+              6.times do |i|
+                slice.bites << Bite.new(:name => "Big bite nr #{i}")
+              end
+            end
+            short_cake.slices.each do |slice|
+              3.times do |i|
+                slice.bites << Bite.new(:name => "Small bite nr #{i}")
+              end
+            end
+
+            #
+            # one_to_one
+            #
+
             betsy = ShopOwner.new(:name => 'Betsy')
             betsys.shop_owner = betsy
             betsys.save
+
+            # one_to_one => one_to_one           
+
             barry = Wife.new(:name => 'Barry')
             betsy.wife = barry
             barry.save
+
+            # one_to_one => one_to_one => one_to_one
+
+            golden = Ring.new(:name => 'golden')
+            barry.ring = golden
+            golden.save
+
+            # one_to_one => one_to_one => one_to_many
+
+            3.times do |i|
+              barry.coats << Coat.new(:name => "Fancy coat nr #{i}")
+            end
+
+            # one_to_one => one_to_many
             
             5.times { |i| betsy.children << Child.new(:name => "Snotling nr #{i}") }
+
+            # one_to_one => one_to_many => one_to_many
+
+            betsy.children.each do |child|
+              4.times do |i|
+                child.toys << Toy.new(:name => "Cheap toy nr #{i}")
+              end
+            end
+
+            # one_to_one => one_to_many => one_to_one
+
+            betsy.children.each do |child|
+              boogie = Boogie.new(:name => 'Nasty booger')
+              child.boogie = boogie
+              boogie.save
+            end
           end
         end
+
+        #
+        # one_to_many
+        #
 
         it "should return the right children for one_to_many => one_to_many relationships" do
           Sweets::Shop.first.slices.size.should == 15
@@ -691,17 +882,37 @@ if HAS_SQLITE3
             end
           end
         end
-        it "should return the right children for one_to_one => one_to_many relationships" do
-          Sweets::Shop.first.children.size.should == 5
+        it "should return the right children for one_to_many => one_to_one relationships" do
+          Sweets::Shop.first.recipe.size.should == 2
+          Sweets::Shop.first.recipe.select do |recipe|
+            recipe.name == "Schwarzwald Cake"
+          end.size.should == 1
+          Sweets::Shop.first.recipe.select do |recipe|
+            recipe.name == "Shorty's Special"
+          end.size.should == 1
         end
+
+        #
+        # one_to_one
+        #
+        
         it "should return the right children for one_to_one => one_to_one relationships" do
           Sweets::Shop.first.wife.should == Sweets::Wife.first
         end
+        it "should return the right children for one_to_one => one_to_many relationships" do
+          Sweets::Shop.first.children.size.should == 5
+        end
+
+        #
+        # misc
+        #
+
         it "should raise exception if you try to change it" do
           lambda do
             Sweets::Shop.first.wife = Sweets::Wife.new(:name => 'Larry')
           end.should raise_error(DataMapper::Associations::ImmutableAssociationError)
         end
+        
       end
     end
   end
