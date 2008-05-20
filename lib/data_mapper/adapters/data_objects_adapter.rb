@@ -110,15 +110,15 @@ module DataMapper
       # all of our CRUD
       # Methods dealing with a single resource object
       def create(repository, resource)
-        properties = resource.dirty_attributes
+        dirty_attributes = resource.dirty_attributes
 
         identity_field = begin
           key = resource.class.key(name)
           key.first if key.size == 1 && key.first.serial?
         end
 
-        statement = create_statement(resource.class, properties, identity_field)
-        bind_values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
+        statement = create_statement(resource.class, dirty_attributes, identity_field)
+        bind_values = dirty_attributes.map { |p| resource.instance_variable_get(p.instance_variable_name) }
 
         result = execute(statement, *bind_values)
 
@@ -131,10 +131,12 @@ module DataMapper
         true
       end
 
-      def read(repository, model, key)
+      def read(repository, model, bind_values)
         properties = model.properties(repository.name).defaults
 
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
+
+        key = model.key(name)
 
         # FIXME: do not use Collection for instantiating a single resource.
         # TODO: Create a Resource class method that instantiates a resource
@@ -142,14 +144,14 @@ module DataMapper
         # needed for simple cases like this.
         set = Collection.new(repository, model, properties_with_indexes)
 
-        statement = read_statement(model, properties)
+        statement = read_statement(model, properties, key)
 
         with_connection do |connection|
           command = connection.create_command(statement)
-          command.set_types(properties.map { |property| property.primitive })
+          command.set_types(properties.map { |p| p.primitive })
 
           begin
-            reader = command.execute_reader(*key)
+            reader = command.execute_reader(*bind_values)
             set.load(reader.values) if reader.next!
             set.first
           ensure
@@ -159,22 +161,28 @@ module DataMapper
       end
 
       def update(repository, resource)
-        properties = resource.dirty_attributes
+        # FIXME: if the properties are in different repositories
+        # won't this cause problems?
+        dirty_attributes = resource.dirty_attributes
 
-        return false if properties.empty?
+        return false if dirty_attributes.empty?
 
-        statement = update_statement(resource.class, properties)
-        bind_values = properties.map { |property| resource.instance_variable_get(property.instance_variable_name) }
-        bind_values.push(*resource.key)
+        key = resource.class.key(name)
+
+        statement = update_statement(resource.class, dirty_attributes, key)
+        bind_values = dirty_attributes.map { |p| resource.instance_variable_get(p.instance_variable_name) }
+        key.each { |p| bind_values << resource.instance_variable_get(p.instance_variable_name) }
 
         execute(statement, *bind_values).to_i == 1
       end
 
       def delete(repository, resource)
-        statement = delete_statement(resource.class)
-        key = resource.class.key(name).map { |property| resource.instance_variable_get(property.instance_variable_name) }
+        key = resource.class.key(name)
 
-        execute(statement, *key).to_i == 1
+        statement = delete_statement(resource.class, key)
+        bind_values = key.map { |p| resource.instance_variable_get(p.instance_variable_name) }
+
+        execute(statement, *bind_values).to_i == 1
       end
 
       # Methods dealing with finding stuff by some query parameters
@@ -346,7 +354,7 @@ module DataMapper
           with_connection do |connection|
             begin
               command = connection.create_command(sql)
-              command.set_types(properties.map { |property| property.primitive })
+              command.set_types(properties.map { |p| p.primitive })
 
               reader = command.execute_reader(*parameters)
 
@@ -377,16 +385,16 @@ module DataMapper
           true
         end
 
-        def create_statement(model, properties, identity_field)
+        def create_statement(model, dirty_attributes, identity_field)
           statement = "INSERT INTO #{quote_table_name(model.storage_name(name))} "
 
-          if properties.empty? && supports_default_values?
+          if dirty_attributes.empty? && supports_default_values?
             statement << 'DEFAULT VALUES'
           else
             statement << <<-EOS.compress_lines
-              (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
+              (#{dirty_attributes.map { |p| quote_column_name(p.field) }.join(', ')})
               VALUES
-              (#{(['?'] * properties.size).join(', ')})
+              (#{(['?'] * dirty_attributes.size).join(', ')})
             EOS
           end
 
@@ -397,28 +405,28 @@ module DataMapper
           statement
         end
 
-        # TODO: remove this and use query_read_statement
-        def read_statement(model, properties)
+        # TODO: remove this and use query_read_statement instead
+        def read_statement(model, properties, key)
           <<-EOS.compress_lines
-            SELECT #{properties.map { |property| quote_column_name(property.field) }.join(', ')}
+            SELECT #{properties.map { |p| quote_column_name(p.field) }.join(', ')}
             FROM #{quote_table_name(model.storage_name(name))}
-            WHERE #{model.key(name).map { |property| "#{quote_column_name(property.field)} = ?" }.join(' AND ')}
+            WHERE #{key.map { |p| "#{quote_column_name(p.field)} = ?" }.join(' AND ')}
             LIMIT 1
           EOS
         end
 
-        def update_statement(model, properties)
+        def update_statement(model, dirty_attributes, key)
           <<-EOS.compress_lines
             UPDATE #{quote_table_name(model.storage_name(name))}
-            SET #{properties.map {|attribute| "#{quote_column_name(attribute.field)} = ?" }.join(', ')}
-            WHERE #{model.key(name).map { |property| "#{quote_column_name(property.field)} = ?" }.join(' AND ')}
+            SET #{dirty_attributes.map { |p| "#{quote_column_name(p.field)} = ?" }.join(', ')}
+            WHERE #{key.map { |p| "#{quote_column_name(p.field)} = ?" }.join(' AND ')}
           EOS
         end
 
-        def delete_statement(model)
+        def delete_statement(model, key)
           <<-EOS.compress_lines
             DELETE FROM #{quote_table_name(model.storage_name(name))}
-            WHERE #{model.key(name).map { |property| "#{quote_column_name(property.field)} = ?" }.join(' AND ')}
+            WHERE #{key.map { |p| "#{quote_column_name(p.field)} = ?" }.join(' AND ')}
           EOS
         end
 
@@ -428,7 +436,7 @@ module DataMapper
 
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-          statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+          statement << "#{model.properties.collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
 
           if (key = model.properties.key).any?
             statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"

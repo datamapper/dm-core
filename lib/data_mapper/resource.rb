@@ -134,11 +134,12 @@ module DataMapper
       key.first if key.size == 1
     end
 
+    # FIXME: should this take a repository_name argument
     def key
       key = []
       self.class.key(repository.name).each do |property|
         value = instance_variable_get(property.instance_variable_name)
-        key << value if !value.nil?
+        key << value
       end
       key
     end

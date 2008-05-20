@@ -160,7 +160,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @adapter.create(@repository, @resource)
     end
 
-    it 'should get the bind values' do
+    it 'should use the bind values' do
       @property.should_receive(:instance_variable_name).with(no_args).once.and_return('@property')
       @resource.should_receive(:instance_variable_get).with('@property').once.and_return('bind value')
       @adapter.create(@repository, @resource)
@@ -255,6 +255,11 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @adapter.read(@repository, @model, @key).should == @resource
     end
 
+    it 'should use the bind values' do
+      @command.should_receive(:execute_reader).with(@key).once.and_return(@reader)
+      @adapter.read(@repository, @model, @key)
+    end
+
     it 'should generate an SQL statement' do
       statement = 'SELECT "property" FROM "models" WHERE "property" = ? LIMIT 1'
       @model.should_not_receive(:key).with(:default).once.and_return([ @property ])
@@ -263,10 +268,14 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should generate an SQL statement with composite keys' do
-      other_property = mock('other property', :field => 'other')
-      statement = 'SELECT "property" FROM "models" WHERE "property" = ? AND "other" = ? LIMIT 1'
+      other_property = mock('other property')
+      other_property.should_receive(:field).once.and_return('other')
+
       @model.should_receive(:key).with(:default).once.and_return([ @property, other_property ])
+
+      statement = 'SELECT "property" FROM "models" WHERE "property" = ? AND "other" = ? LIMIT 1'
       @connection.should_receive(:create_command).with(statement).once.and_return(@command)
+
       @adapter.read(@repository, @model, @key)
     end
 
@@ -288,15 +297,13 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
   describe '#update' do
     before do
-      @result = mock('result', :to_i => 1, :insert_id => 1)
+      @result = mock('result', :to_i => 1)
 
       @adapter.stub!(:execute).and_return(@result)
 
       @property = mock('property', :field => 'property', :instance_variable_name => '@property', :serial? => false)
       @model    = mock('model', :storage_name => 'models', :key => [ @property ])
-      @resource = mock('resource', :class => @model, :key => [ 1 ], :dirty_attributes => [ @property ], :instance_variable_get => 'bind value')
-
-      DataObjects::Connection.stub!(:new).and_return(@connection)
+      @resource = mock('resource', :class => @model, :dirty_attributes => [ @property ], :instance_variable_get => 'bind value')
     end
 
     it 'should use only dirty properties' do
@@ -309,20 +316,29 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @adapter.update(@repository, @resource)
     end
 
-    it 'should get the bind values' do
-      @property.should_receive(:instance_variable_name).with(no_args).once.and_return('@property')
-      @resource.should_receive(:instance_variable_get).with('@property').once.and_return('bind value')
-      @adapter.update(@repository, @resource)
-    end
-
-    it 'should get the key' do
-      @resource.should_receive(:key).with(no_args).once.and_return([ 1 ])
+    it 'should use the bind values' do
+      @property.should_receive(:instance_variable_name).with(no_args).twice.and_return('@property')
+      @resource.should_receive(:instance_variable_get).with('@property').twice.and_return('bind value')
+      @model.should_receive(:key).with(:default).once.and_return([ @property ])
+      @adapter.should_receive(:execute).with(anything, 'bind value', 'bind value').once.and_return(@result)
       @adapter.update(@repository, @resource)
     end
 
     it 'should generate an SQL statement' do
       statement = 'UPDATE "models" SET "property" = ? WHERE "property" = ?'
-      @adapter.should_receive(:execute).with(statement, 'bind value', 1).once.and_return(@result)
+      @adapter.should_receive(:execute).with(statement, anything, anything).once.and_return(@result)
+      @adapter.update(@repository, @resource)
+    end
+
+    it 'should generate an SQL statement with composite keys' do
+      other_property = mock('other property', :instance_variable_name => '@other')
+      other_property.should_receive(:field).with(no_args).once.and_return('other')
+
+      @model.should_receive(:key).with(:default).once.and_return([ @property, other_property ])
+
+      statement = 'UPDATE "models" SET "property" = ? WHERE "property" = ? AND "other" = ?'
+      @adapter.should_receive(:execute).with(statement, anything, anything, anything).once.and_return(@result)
+
       @adapter.update(@repository, @resource)
     end
 
@@ -343,23 +359,60 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   end
 
   describe '#delete' do
-    it 'needs specs'
+    before do
+      @result = mock('result', :to_i => 1)
 
-    #  describe "#delete_statement" do
-    #
-    #    it 'should generate a SQL statement for a serial Key' do
-    #      @adapter.delete_statement(Cheese).should == <<-EOS.compress_lines
-    #        DELETE FROM "cheeses" WHERE "id" = ?
-    #      EOS
-    #    end
-    #
-    #    it "should generate a SQL statement for a Composite Key" do
-    #      @adapter.delete_statement(LittleBox).should == <<-EOS.compress_lines
-    #        DELETE FROM "little_boxes" WHERE "street" = ? AND "color" = ?
-    #      EOS
-    #    end
-    #
-    #  end
+      @adapter.stub!(:execute).and_return(@result)
+
+      @property   = mock('property', :instance_variable_name => '@property', :field => 'property')
+      @repository = mock('repository')
+      @model      = mock('model', :storage_name => 'models', :key => [ @property ])
+      @resource   = mock('resource', :class => @model, :instance_variable_get => 'bind value')
+    end
+
+    it 'should use the properties field accessors' do
+      @property.should_receive(:field).with(no_args).once.and_return('property')
+      @adapter.delete(@repository, @resource)
+    end
+
+    it 'should use the bind values' do
+      @property.should_receive(:instance_variable_name).with(no_args).once.and_return('@property')
+      @resource.should_receive(:instance_variable_get).with('@property').once.and_return('bind value')
+
+      @model.should_receive(:key).with(:default).once.and_return([ @property ])
+
+      @adapter.should_receive(:execute).with(anything, 'bind value').once.and_return(@result)
+
+      @adapter.delete(@repository, @resource)
+    end
+
+    it 'should generate an SQL statement' do
+      statement = 'DELETE FROM "models" WHERE "property" = ?'
+      @adapter.should_receive(:execute).with(statement, anything).once.and_return(@result)
+      @adapter.delete(@repository, @resource)
+    end
+
+    it 'should generate an SQL statement with composite keys' do
+      other_property = mock('other property', :instance_variable_name => '@other')
+      other_property.should_receive(:field).with(no_args).once.and_return('other')
+
+      @model.should_receive(:key).with(:default).once.and_return([ @property, other_property ])
+
+      statement = 'DELETE FROM "models" WHERE "property" = ? AND "other" = ?'
+      @adapter.should_receive(:execute).with(statement, anything, anything).once.and_return(@result)
+
+      @adapter.delete(@repository, @resource)
+    end
+
+    it 'should return false if number of rows deleted is 0' do
+      @result.should_receive(:to_i).with(no_args).once.and_return(0)
+      @adapter.delete(@repository, @resource).should be_false
+    end
+
+    it 'should return true if number of rows deleted is 1' do
+      @result.should_receive(:to_i).with(no_args).once.and_return(1)
+      @adapter.delete(@repository, @resource).should be_true
+    end
   end
 
   describe '#read_set' do
