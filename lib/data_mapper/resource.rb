@@ -68,15 +68,18 @@ module DataMapper
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
-      return if instance_variable_get(ivar_name) == value
+      old_value = instance_variable_get(ivar_name)
+      new_value = property.custom? ? property.type.dump(value, property) : property.typecast(value)
+
+      return if old_value == new_value
 
       if property.lock?
-        instance_variable_set("@shadow_#{name}", instance_variable_get(ivar_name))
+        instance_variable_set("@shadow_#{name}", old_value)
       end
 
-      dirty_attributes << property if attribute_get(name) != value || new_record?
+      dirty_attributes << property
 
-      instance_variable_set(ivar_name, property.custom? ? property.type.dump(value, property) : property.typecast(value))
+      instance_variable_set(ivar_name, new_value)
     end
 
     def eql?(other)
