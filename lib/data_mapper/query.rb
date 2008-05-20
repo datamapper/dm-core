@@ -426,7 +426,10 @@ module DataMapper
           @properties[clause]
         when String
           if clause =~ /\w\.\w/
-            append_condition(clause.split(".").inject(@model) { |s,piece| s.send(piece) }, bind_value)
+            query_path = @model
+            clause.split(".").each { |piece| query_path = query_path.send(piece) }
+            append_condition(query_path, bind_value)
+            return
           else
             @properties[clause]
           end
