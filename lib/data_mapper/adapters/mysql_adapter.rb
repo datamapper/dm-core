@@ -47,6 +47,12 @@ module DataMapper
       end
 
       module SQL
+        private
+
+        def supports_default_values?
+          false
+        end
+
         def create_table_statement(model)
           character_set = show_variable('character_set_connection') || 'utf8'
           collation     = show_variable('collation_connection')     || 'utf8_general_ci'

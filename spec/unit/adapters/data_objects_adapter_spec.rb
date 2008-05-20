@@ -166,18 +166,34 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @adapter.create(@repository, @resource)
     end
 
-    it 'should generate an SQL statement when create_with_returning? is false' do
+    it 'should generate an SQL statement when supports_returning? is false' do
       statement = 'INSERT INTO "models" ("property") VALUES (?)'
-      @adapter.should_receive(:create_with_returning?).with(no_args).and_return(false)
+      @adapter.should_receive(:supports_returning?).with(no_args).once.and_return(false)
       @adapter.should_receive(:execute).with(statement, 'bind value').once.and_return(@result)
       @adapter.create(@repository, @resource)
     end
 
-    it 'should generate an SQL statement when create_with_returning? is true' do
+    it 'should generate an SQL statement when supports_returning? is true' do
       statement = 'INSERT INTO "models" ("property") VALUES (?) RETURNING "property"'
       @property.should_receive(:serial?).with(no_args).and_return(true)
-      @adapter.should_receive(:create_with_returning?).with(no_args).and_return(true)
+      @adapter.should_receive(:supports_returning?).with(no_args).and_return(true)
       @adapter.should_receive(:execute).with(statement, 'bind value').once.and_return(@result)
+      @adapter.create(@repository, @resource)
+    end
+
+    it 'should generate an SQL statement when supports_default_values? is true' do
+      statement = 'INSERT INTO "models" DEFAULT VALUES'
+      @resource.should_receive(:dirty_attributes).with(no_args).once.and_return([])
+      @adapter.should_receive(:supports_default_values?).with(no_args).once.and_return(true)
+      @adapter.should_receive(:execute).with(statement).once.and_return(@result)
+      @adapter.create(@repository, @resource)
+    end
+
+    it 'should generate an SQL statement when supports_default_values? is false' do
+      statement = 'INSERT INTO "models" () VALUES ()'
+      @resource.should_receive(:dirty_attributes).with(no_args).once.and_return([])
+      @adapter.should_receive(:supports_default_values?).with(no_args).once.and_return(false)
+      @adapter.should_receive(:execute).with(statement).once.and_return(@result)
       @adapter.create(@repository, @resource)
     end
 

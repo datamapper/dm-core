@@ -63,10 +63,10 @@ module DataMapper
         query(statement, column_name, storage_name).first > 0
       end
 
-      private
-
       module SQL
-        def create_with_returning?
+        private
+
+        def supports_returning?
           true
         end
 

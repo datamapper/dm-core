@@ -365,15 +365,32 @@ module DataMapper
       module SQL
         private
 
-        def create_statement(model, properties, identity_field)
-          statement = <<-EOS.compress_lines
-            INSERT INTO #{quote_table_name(model.storage_name(name))}
-            (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
-            VALUES
-            (#{(['?'] * properties.size).join(', ')})
-          EOS
+        # Adapters requiring a RETURNING syntax for INSERT statements
+        # should overwrite this to return true.
+        def supports_returning?
+          false
+        end
 
-          if create_with_returning? && identity_field
+        # Adapters that do not support the DEFAULT VALUES syntax for
+        # INSERT statements should overwrite this to return false.
+        def supports_default_values?
+          true
+        end
+
+        def create_statement(model, properties, identity_field)
+          statement = "INSERT INTO #{quote_table_name(model.storage_name(name))} "
+
+          if properties.empty? && supports_default_values?
+            statement << 'DEFAULT VALUES'
+          else
+            statement << <<-EOS.compress_lines
+              (#{properties.map { |property| quote_column_name(property.field) }.join(', ')})
+              VALUES
+              (#{(['?'] * properties.size).join(', ')})
+            EOS
+          end
+
+          if supports_returning? && identity_field
             statement << " RETURNING #{quote_column_name(identity_field.field)}"
           end
 
@@ -403,12 +420,6 @@ module DataMapper
             DELETE FROM #{quote_table_name(model.storage_name(name))}
             WHERE #{model.key(name).map { |property| "#{quote_column_name(property.field)} = ?" }.join(' AND ')}
           EOS
-        end
-
-        # Adapters requiring a RETURNING syntax for create statements
-        # should overwrite this to return true.
-        def create_with_returning?
-          false
         end
 
         def alter_table_add_column_statement(table_name, schema_hash)

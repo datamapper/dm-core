@@ -42,6 +42,8 @@ module DataMapper
       end
 
       module SQL
+        private
+
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
           statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
