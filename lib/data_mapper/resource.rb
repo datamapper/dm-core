@@ -150,14 +150,14 @@ module DataMapper
     def readonly?
       @readonly == true
     end
-
+    
     ##
     # save the instance to the data-store
     #
     # @return <True, False> results of the save
     # @see DataMapper::Repository#save
     def save
-      repository.save(self)
+      new_record? ? create : update
     end
 
     ##
@@ -264,6 +264,14 @@ module DataMapper
     end
 
     private
+    
+    def create
+      repository.save(self)
+    end
+    
+    def update
+      repository.save(self)
+    end
 
     def initialize(*args) # :nodoc:
       validate_resource

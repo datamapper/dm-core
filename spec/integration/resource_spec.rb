@@ -62,6 +62,56 @@ if HAS_SQLITE3
       end
 
     end
+    
+    describe "hooking" do
+      before(:all) do
+        class Car
+          include DataMapper::Resource
+          property :brand, String, :key => true
+          property :color, String
+          property :created_on, Date
+          property :touched_on, Date
+          property :updated_on, Date
+          
+          before :save do
+            self.touched_on = Date.today
+          end
+          
+          before :create do
+            self.created_on = Date.today
+          end
+          
+          before :update do
+            self.updated_on = Date.today
+          end
+        end
+        
+        Car.auto_migrate!(:sqlite3)
+      end
+      
+      it "should execute hooks before creating/updating objects" do
+        repository(:sqlite3) do
+          c1 = Car.new(:brand => 'BMW', :color => 'white')
+
+          c1.new_record?.should == true
+          c1.created_on.should == nil
+          
+          c1.save
+          
+          c1.new_record?.should == false
+          c1.touched_on.should == Date.today
+          c1.created_on.should == Date.today
+          c1.updated_on.should == nil
+          
+          c1.color = 'black'
+          c1.save
+          
+          c1.updated_on.should == Date.today
+        end
+        
+      end 
+      
+    end
 
     describe "inheritance" do
       before(:all) do
