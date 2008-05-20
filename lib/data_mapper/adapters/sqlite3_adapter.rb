@@ -16,11 +16,13 @@ module DataMapper
         end
       end
 
+      # TODO: move to dm-more/dm-migrations (if possible)
       def storage_exists?(storage_name)
         query_table(storage_name).size > 0
       end
       alias exists? storage_exists?
 
+      # TODO: move to dm-more/dm-migrations (if possible)
       def field_exists?(storage_name, column_name)
         query_table(storage_name).any? do |row|
           row.name == column_name
@@ -37,6 +39,7 @@ module DataMapper
 
       private
 
+      # TODO: move to dm-more/dm-migrations (if possible)
       def query_table(table_name)
         query('PRAGMA table_info(?)', table_name)
       end
@@ -44,6 +47,21 @@ module DataMapper
       module SQL
         private
 
+        def quote_column_value(column_value)
+          case column_value
+            when TrueClass  then quote_column_value('t')
+            when FalseClass then quote_column_value('f')
+            else
+              super
+          end
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def supports_autoincrement?
+          sqlite_version >= '3.1.0'
+        end
+
+        # TODO: move to dm-more/dm-migrations
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
           statement << "#{model.properties.collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
@@ -61,25 +79,14 @@ module DataMapper
           statement.compress_lines
         end
 
+        # TODO: move to dm-more/dm-migrations
         def property_schema_statement(schema)
           statement = super
           statement << ' PRIMARY KEY AUTOINCREMENT' if schema[:serial?] && supports_autoincrement?
           statement
         end
 
-        def quote_column_value(column_value)
-          case column_value
-            when TrueClass  then quote_column_value('t')
-            when FalseClass then quote_column_value('f')
-            else
-              super
-          end
-        end
-
-        def supports_autoincrement?
-          sqlite_version >= '3.1.0'
-        end
-
+        # TODO: move to dm-more/dm-migrations
         def sqlite_version
           @sqlite_version ||= query('SELECT sqlite_version(*)').first
         end

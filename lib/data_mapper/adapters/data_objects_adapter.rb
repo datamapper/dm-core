@@ -195,40 +195,6 @@ module DataMapper
                           query.reload?)
       end
 
-      def upgrade_model_storage(repository, model)
-        table_name = model.storage_name(name)
-
-        unless exists?(model.storage_name(name))
-          return create_model_storage(repository, model) ? model : nil
-        end
-
-        rval = []
-
-        with_connection do |connection|
-          model.properties.each do |property|
-            schema_hash = property_schema_hash(property, model)
-            unless field_exists?(table_name, schema_hash[:name])
-              statement = alter_table_add_column_statement(table_name, schema_hash)
-              command = connection.create_command(statement)
-              result = command.execute_non_query
-              rval << property if result.to_i == 1
-            end
-          end
-        end
-
-        rval
-      end
-
-      def create_model_storage(repository, model)
-        statement = create_table_statement(model)
-        execute(statement).to_i == 1
-      end
-
-      def destroy_model_storage(repository, model)
-        statement = drop_table_statement(model)
-        execute(statement).to_i == 1
-      end
-
       # Database-specific method
       def execute(statement, *args)
         with_connection do |connection|
@@ -258,6 +224,44 @@ module DataMapper
         results
       end
 
+      # TODO: move to dm-more/dm-migrations
+      def upgrade_model_storage(repository, model)
+        table_name = model.storage_name(name)
+
+        unless exists?(model.storage_name(name))
+          return create_model_storage(repository, model) ? model : nil
+        end
+
+        rval = []
+
+        with_connection do |connection|
+          model.properties.each do |property|
+            schema_hash = property_schema_hash(property, model)
+            unless field_exists?(table_name, schema_hash[:name])
+              statement = alter_table_add_column_statement(table_name, schema_hash)
+              command = connection.create_command(statement)
+              result = command.execute_non_query
+              rval << property if result.to_i == 1
+            end
+          end
+        end
+
+        rval
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def create_model_storage(repository, model)
+        statement = create_table_statement(model)
+        execute(statement).to_i == 1
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def destroy_model_storage(repository, model)
+        statement = drop_table_statement(model)
+        execute(statement).to_i == 1
+      end
+
+      # TODO: move to dm-more/dm-transactions
       def transaction_primitive
         DataObjects::Transaction.create_for_uri(@uri)
       end
@@ -296,6 +300,7 @@ module DataMapper
         driver_module.logger = DataMapper.logger if driver_module && driver_module.respond_to?(:logger)
       end
 
+      # TODO: clean up once transaction related methods move to dm-more/dm-transactions
       def create_connection
         if within_transaction?
           current_transaction.primitive_for(self).connection
@@ -306,6 +311,7 @@ module DataMapper
         end
       end
 
+      # TODO: clean up once transaction related methods move to dm-more/dm-transactions
       def close_connection(connection)
         connection.close unless within_transaction? && current_transaction.primitive_for(self).connection == connection
       end
@@ -428,70 +434,6 @@ module DataMapper
             DELETE FROM #{quote_table_name(model.storage_name(name))}
             WHERE #{key.map { |p| "#{quote_column_name(p.field)} = ?" }.join(' AND ')}
           EOS
-        end
-
-        def alter_table_add_column_statement(table_name, schema_hash)
-          "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
-        end
-
-        def create_table_statement(model)
-          statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-          statement << "#{model.properties.collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
-
-          if (key = model.properties.key).any?
-            statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
-          end
-
-          statement << ")"
-          statement.compress_lines
-        end
-
-        def drop_table_statement(model)
-          "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
-        end
-
-        def property_schema_hash(property, model)
-          schema = self.class.type_map[property.type].merge(:name => property.field)
-          # TODO: figure out a way to specify the size not be included, even if
-          # a default is defined in the typemap
-          #  - use this to make it so all TEXT primitive fields do not have size
-          if property.primitive == String && schema[:primitive] != 'TEXT'
-            schema[:size] = property.length
-          elsif property.primitive == BigDecimal || property.primitive == Float
-            schema[:scale]     = property.scale
-            schema[:precision] = property.precision
-          end
-
-          schema[:nullable?] = property.nullable?
-          schema[:serial?]   = property.serial?
-          schema[:default]   = property.default unless property.default.nil? || property.default.respond_to?(:call)
-
-          schema
-        end
-
-        def property_schema_statement(schema)
-          statement = quote_column_name(schema[:name])
-          statement << " #{schema[:primitive]}"
-
-          if schema[:scale] && schema[:precision]
-            statement << "(#{schema[:scale]},#{schema[:precision]})"
-          elsif schema[:size]
-            statement << "(#{schema[:size]})"
-          end
-
-          statement << ' NOT NULL' unless schema[:nullable?]
-          statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
-          statement
-        end
-
-        def relationship_schema_hash(relationship)
-          identifier, relationship = relationship
-
-          self.class.type_map[Fixnum].merge(:name => "#{identifier}_id") if identifier == relationship.name
-        end
-
-        def relationship_schema_statement(hash)
-          property_schema_statement(hash) unless hash.nil?
         end
 
         def query_read_statement(query)
@@ -668,6 +610,85 @@ module DataMapper
             else
               column_value.to_s
           end
+        end
+
+        # Adapters that support AUTO INCREMENT fields for CREATE TABLE
+        # statements should overwrite this to return true
+        #
+        # TODO: move to dm-more/dm-migrations
+        def supports_autoincrement?
+          false
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def alter_table_add_column_statement(table_name, schema_hash)
+          "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def create_table_statement(model)
+          statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
+          statement << "#{model.properties.collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+
+          if (key = model.properties.key).any?
+            statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
+          end
+
+          statement << ")"
+          statement.compress_lines
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def drop_table_statement(model)
+          "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def property_schema_hash(property, model)
+          schema = self.class.type_map[property.type].merge(:name => property.field)
+          # TODO: figure out a way to specify the size not be included, even if
+          # a default is defined in the typemap
+          #  - use this to make it so all TEXT primitive fields do not have size
+          if property.primitive == String && schema[:primitive] != 'TEXT'
+            schema[:size] = property.length
+          elsif property.primitive == BigDecimal || property.primitive == Float
+            schema[:scale]     = property.scale
+            schema[:precision] = property.precision
+          end
+
+          schema[:nullable?] = property.nullable?
+          schema[:serial?]   = property.serial?
+          schema[:default]   = property.default unless property.default.nil? || property.default.respond_to?(:call)
+
+          schema
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def property_schema_statement(schema)
+          statement = quote_column_name(schema[:name])
+          statement << " #{schema[:primitive]}"
+
+          if schema[:scale] && schema[:precision]
+            statement << "(#{schema[:scale]},#{schema[:precision]})"
+          elsif schema[:size]
+            statement << "(#{schema[:size]})"
+          end
+
+          statement << ' NOT NULL' unless schema[:nullable?]
+          statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
+          statement
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def relationship_schema_hash(relationship)
+          identifier, relationship = relationship
+
+          self.class.type_map[Fixnum].merge(:name => "#{identifier}_id") if identifier == relationship.name
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def relationship_schema_statement(hash)
+          property_schema_statement(hash) unless hash.nil?
         end
       end #module SQL
 

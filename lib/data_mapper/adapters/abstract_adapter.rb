@@ -57,34 +57,6 @@ module DataMapper
       #   raise ArgumentError unless block_given?
       # end
 
-      def upgrade_model_storage(repository, model)
-        raise NotImplementedError
-      end
-
-      def create_model_storage(repository, model)
-        raise NotImplementedError
-      end
-
-      def destroy_model_storage(repository, model)
-        raise NotImplementedError
-      end
-
-      def alter_model_storage(repository, *args)
-        raise NotImplementedError
-      end
-
-      def create_property_storage(repository, property)
-        raise NotImplementedError
-      end
-
-      def destroy_property_storage(repository, property)
-        raise NotImplementedError
-      end
-
-      def alter_property_storage(repository, *args)
-        raise NotImplementedError
-      end
-
       #
       # Returns whether the storage_name exists.
       #
@@ -93,6 +65,7 @@ module DataMapper
       #
       # @return <Boolean> true if the storage exists
       #
+      # TODO: move to dm-more/dm-migrations (if possible)
       def storage_exists?(storage_name)
         raise NotImplementedError
       end
@@ -106,7 +79,43 @@ module DataMapper
       #
       # @return <Boolean> true if the field exists.
       #
+      # TODO: move to dm-more/dm-migrations (if possible)
       def field_exists?(storage_name, field_name)
+        raise NotImplementedError
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def upgrade_model_storage(repository, model)
+        raise NotImplementedError
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def create_model_storage(repository, model)
+        raise NotImplementedError
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def destroy_model_storage(repository, model)
+        raise NotImplementedError
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def alter_model_storage(repository, *args)
+        raise NotImplementedError
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def create_property_storage(repository, property)
+        raise NotImplementedError
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def destroy_property_storage(repository, property)
+        raise NotImplementedError
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def alter_property_storage(repository, *args)
         raise NotImplementedError
       end
 
@@ -120,6 +129,7 @@ module DataMapper
       # @param transaction<DataMapper::Transaction> a Transaction to be the
       #   'current' transaction until popped.
       #
+      # TODO: move to dm-more/dm-transaction
       def push_transaction(transaction)
         @transactions[Thread.current] << transaction
       end
@@ -130,6 +140,8 @@ module DataMapper
       # context of said Transaction.
       #
       # @return <DataMapper::Transaction> the former 'current' transaction.
+      #
+      # TODO: move to dm-more/dm-transaction
       def pop_transaction
         @transactions[Thread.current].pop
       end
@@ -141,6 +153,8 @@ module DataMapper
       # Transaction.
       #
       # @return <DataMapper::Transaction> the 'current' transaction for this Adapter.
+      #
+      # TODO: move to dm-more/dm-transaction
       def current_transaction
         @transactions[Thread.current].last
       end
@@ -149,6 +163,8 @@ module DataMapper
       # Returns whether we are within a Transaction.
       #
       # @return <Boolean> whether we are within a Transaction.
+      #
+      # TODO: move to dm-more/dm-transaction
       def within_transaction?
         !current_transaction.nil?
       end
@@ -160,84 +176,10 @@ module DataMapper
       #
       # @return <Object> a new Object that responds to :close, :begin, :commit,
       #   :rollback, :rollback_prepared and :prepare
+      #
+      # TODO: move to dm-more/dm-transaction (if possible)
       def transaction_primitive
         raise NotImplementedError
-      end
-
-      # Methods dealing with a single resource object
-      def create(repository, resource)
-        raise NotImplementedError
-      end
-
-      def read(repository, resource, key)
-        raise NotImplementedError
-      end
-
-      def update(repository, resource)
-        raise NotImplementedError
-      end
-
-      def delete(repository, resource)
-        raise NotImplementedError
-      end
-
-      def upgrade_model_storage(repository, model)
-        raise NotImplementedError
-      end
-
-      def create_model_storage(repository, model)
-        raise NotImplementedError
-      end
-
-      def destroy_model_storage(repository, model)
-        raise NotImplementedError
-      end
-
-      def alter_model_storage(repository, *args)
-        raise NotImplementedError
-      end
-
-      def create_property_storage(repository, property)
-        raise NotImplementedError
-      end
-
-      def destroy_property_storage(repository, property)
-        raise NotImplementedError
-      end
-
-      def alter_property_storage(repository, *args)
-        raise NotImplementedError
-      end
-
-      # Methods dealing with locating a single object, by keys
-      def read_one(repository, query)
-        raise NotImplementedError
-      end
-
-      # Methods dealing with finding stuff by some query parameters
-      def read_set(repository, query)
-        raise NotImplementedError
-      end
-
-      def delete_set(repository, query)
-        raise NotImplementedError
-      end
-
-      # # Shortcuts
-      # Deprecated in favor of read_one
-      # def first(repository, resource, query = {})
-      #   raise ArgumentError, "You cannot pass in a :limit option to #first" if query.key?(:limit)
-      #   read_set(repository, resource, query.merge(:limit => 1)).first
-      # end
-
-      # Future Enumerable/convenience finders. Please leave in place. :-)
-      # def each(repository, klass, query)
-      #   raise NotImplementedError
-      #   raise ArgumentError unless block_given?
-      # end
-
-      def batch_insertable?
-        false
       end
 
       protected

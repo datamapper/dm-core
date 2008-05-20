@@ -19,6 +19,7 @@ module DataMapper
         end
       end
 
+      # TODO: move to dm-more/dm-migrations (if possible)
       def storage_exists?(storage_name)
         statement = <<-EOS.compress_lines
           SELECT COUNT(*)
@@ -30,6 +31,7 @@ module DataMapper
       end
       alias exists? storage_exists?
 
+      # TODO: move to dm-more/dm-migrations (if possible)
       def field_exists?(storage_name, field_name)
         statement = <<-EOS.compress_lines
           SELECT COUNT(*)
@@ -42,6 +44,7 @@ module DataMapper
 
       private
 
+      # TODO: move to dm-more/dm-migrations (if possible)
       def db_name
         @uri.path.split('/').last
       end
@@ -51,28 +54,6 @@ module DataMapper
 
         def supports_default_values?
           false
-        end
-
-        def create_table_statement(model)
-          character_set = show_variable('character_set_connection') || 'utf8'
-          collation     = show_variable('collation_connection')     || 'utf8_general_ci'
-          "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
-        end
-
-        def property_schema_hash(property, model)
-          schema = super
-          schema.delete(:default) if schema[:primitive] == 'TEXT'
-          schema
-        end
-
-        def property_schema_statement(schema)
-          statement = super
-          statement << ' AUTO_INCREMENT' if schema[:serial?]
-          statement
-        end
-
-        def show_variable(name)
-          query('SHOW VARIABLES WHERE `variable_name` = ?', name).first.value rescue nil
         end
 
         def quote_table_name(table_name)
@@ -91,7 +72,38 @@ module DataMapper
               super
           end
         end
-      end
+
+        # TODO: move to dm-more/dm-migrations
+        def supports_autoincrement?
+          true
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def create_table_statement(model)
+          character_set = show_variable('character_set_connection') || 'utf8'
+          collation     = show_variable('collation_connection')     || 'utf8_general_ci'
+          "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def property_schema_hash(property, model)
+          schema = super
+          schema.delete(:default) if schema[:primitive] == 'TEXT'
+          schema
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def property_schema_statement(schema)
+          statement = super
+          statement << ' AUTO_INCREMENT' if schema[:serial?] && supports_autoincrement?
+          statement
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def show_variable(name)
+          query('SHOW VARIABLES WHERE `variable_name` = ?', name).first.value rescue nil
+        end
+      end #module SQL
 
       include SQL
 

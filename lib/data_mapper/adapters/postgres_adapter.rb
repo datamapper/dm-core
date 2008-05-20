@@ -17,30 +17,7 @@ module DataMapper
         end
       end
 
-      def upgrade_model_storage(repository, model)
-        storage_name = model.storage_name(name)
-        model.key.each do |property|
-          schema_hash = property_schema_hash(property, model)
-          create_sequence_column(model, property) if property.serial? && !field_exists?(storage_name, schema_hash[:name])
-        end
-        super
-      end
-
-      def create_model_storage(repository, model)
-        model.key.each do |property|
-          create_sequence_column(model, property) if property.serial?
-        end
-        super
-      end
-
-      def destroy_model_storage(repository, model)
-        success = super
-        model.key.each do |property|
-          drop_sequence_column(model, property) if property.serial?
-        end
-        success
-      end
-
+      # TODO: move to dm-more/dm-migrations (if possible)
       def storage_exists?(storage_name)
         statement = <<-EOS.compress_lines
           SELECT COUNT(*)
@@ -52,6 +29,7 @@ module DataMapper
       end
       alias exists? storage_exists?
 
+      # TODO: move to dm-more/dm-migrations (if possible)
       def field_exists?(storage_name, column_name)
         statement = <<-EOS.compress_lines
           SELECT COUNT(*)
@@ -63,6 +41,33 @@ module DataMapper
         query(statement, column_name, storage_name).first > 0
       end
 
+      # TODO: move to dm-more/dm-migrations
+      def upgrade_model_storage(repository, model)
+        storage_name = model.storage_name(name)
+        model.key.each do |property|
+          schema_hash = property_schema_hash(property, model)
+          create_sequence_column(model, property) if property.serial? && !field_exists?(storage_name, schema_hash[:name])
+        end
+        super
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def create_model_storage(repository, model)
+        model.key.each do |property|
+          create_sequence_column(model, property) if property.serial?
+        end
+        super
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def destroy_model_storage(repository, model)
+        success = super
+        model.key.each do |property|
+          drop_sequence_column(model, property) if property.serial?
+        end
+        success
+      end
+
       module SQL
         private
 
@@ -70,29 +75,12 @@ module DataMapper
           true
         end
 
-        def create_sequence_column(model, property)
-          return if sequence_exists?(model, property)
-          statement = create_sequence_statement(model, property)
-          execute(statement)
+        # TODO: move to dm-more/dm-migrations
+        def sequence_name(model, property)
+          "#{model.storage_name(name)}_#{property.field}_seq"
         end
 
-        def create_sequence_statement(model, property)
-          statement = 'CREATE SEQUENCE '
-          statement << quote_column_name(sequence_name(model, property))
-          statement
-        end
-
-        def drop_sequence_column(model, property)
-          statement = drop_sequence_statement(model, property)
-          execute(statement)
-        end
-
-        def drop_sequence_statement(model, property)
-          statement = 'DROP SEQUENCE IF EXISTS '
-          statement << quote_column_name(sequence_name(model, property))
-          statement
-        end
-
+        # TODO: move to dm-more/dm-migrations
         def sequence_exists?(model, property)
           statement = <<-EOS.compress_lines
             SELECT COUNT(*)
@@ -103,10 +91,34 @@ module DataMapper
           query(statement, sequence_name(model, property)).first > 0
         end
 
-        def sequence_name(model, property)
-          "#{model.storage_name(name)}_#{property.field}_seq"
+        # TODO: move to dm-more/dm-migrations
+        def create_sequence_column(model, property)
+          return if sequence_exists?(model, property)
+          statement = create_sequence_statement(model, property)
+          execute(statement)
         end
 
+        # TODO: move to dm-more/dm-migrations
+        def drop_sequence_column(model, property)
+          statement = drop_sequence_statement(model, property)
+          execute(statement)
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def create_sequence_statement(model, property)
+          statement = 'CREATE SEQUENCE '
+          statement << quote_column_name(sequence_name(model, property))
+          statement
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def drop_sequence_statement(model, property)
+          statement = 'DROP SEQUENCE IF EXISTS '
+          statement << quote_column_name(sequence_name(model, property))
+          statement
+        end
+
+        # TODO: move to dm-more/dm-migrations
         def property_schema_statement(schema)
           statement = super
 
@@ -119,6 +131,7 @@ module DataMapper
           statement
         end
 
+        # TODO: move to dm-more/dm-migrations
         def property_schema_hash(property, model)
           schema = super
           schema[:sequence_name] = sequence_name(model, property) if property.serial?
@@ -135,7 +148,7 @@ module DataMapper
 
           schema
         end
-      end
+      end #module SQL
 
       include SQL
 
