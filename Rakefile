@@ -20,7 +20,7 @@ namespace :spec do
 end
 
 desc 'Remove all package, docs and spec products'
-task :clobber_all => %w[ clobber_package clobber_doc dm:clobber_spec ]
+task :clobber_all => %w[ clobber_package dm:clobber_spec ]
 
 namespace :dm do
   def run_spec(name, files, rcov = true)
@@ -166,20 +166,6 @@ namespace :ci do
     mkdir_p ROOT + "ci/token"
   end
 
-  task :publish do
-    out = ENV['CC_BUILD_ARTIFACTS'] || "out"
-    mkdir_p out unless File.directory? out
-
-    mv "ci/unit_rspec_report.html", "#{out}/unit_rspec_report.html"
-    mv "ci/unit_coverage", "#{out}/unit_coverage"
-    mv "ci/integration_rspec_report.html", "#{out}/integration_rspec_report.html"
-    mv "ci/integration_coverage", "#{out}/integration_coverage"
-    mv "ci/doc", "#{out}/doc"
-    mv "ci/cyclomatic", "#{out}/cyclomatic_complexity"
-    mv "ci/token", "#{out}/token_complexity"
-  end
-
-
   Spec::Rake::SpecTask.new("spec:unit" => :prepare) do |t|
     t.spec_opts = ["--format", "specdoc", "--format", "html:#{ROOT}/ci/unit_rspec_report.html", "--diff"]
     t.spec_files = Pathname.glob(ROOT + "spec/unit/**/*_spec.rb")
@@ -219,6 +205,20 @@ namespace :ci do
     system "saikuro -t -i lib -y 0 -w 20 -e 30 -o ci/token"
     mv 'ci/token/index_token.html', 'ci/token/index.html'
   end
+
+  task :publish do
+    out = ENV['CC_BUILD_ARTIFACTS'] || "out"
+    mkdir_p out unless File.directory? out
+
+    mv "ci/unit_rspec_report.html", "#{out}/unit_rspec_report.html"
+    mv "ci/unit_coverage", "#{out}/unit_coverage"
+    mv "ci/integration_rspec_report.html", "#{out}/integration_rspec_report.html"
+    mv "ci/integration_coverage", "#{out}/integration_coverage"
+    mv "ci/doc", "#{out}/doc"
+    mv "ci/cyclomatic", "#{out}/cyclomatic_complexity"
+    mv "ci/token", "#{out}/token_complexity"
+  end
 end
 
-task :ci => ["ci:spec", "ci:doc", "ci:saikuro", :install, :publish]
+#task :ci => %w[ ci:spec ci:doc ci:saikuro install ci:publish ]  # yard-related tasks do not work yet
+task :ci => %w[ ci:spec ci:saikuro install ]
