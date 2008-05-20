@@ -45,7 +45,7 @@ describe "DataMapper::Resource" do
     it "should use its class name by default" do
       Planet.storage_name.should == "planets"
     end
-    
+
     it "should allow changing using #default_storage_name" do
       Planet.class_eval <<EOF
 @storage_names.clear
@@ -112,19 +112,30 @@ EOF
     jupiter.core.should == "Toast"
     jupiter.type.should_not == "Bob"
   end
-  
+
   it "should not mark attributes dirty if there similar after update" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil }
-    jupiter = Planet.new(attributes)
+    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil)
     jupiter.save.should be_true
-    
-    jupiter.attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :type => nil }
-    
+
+    # discriminator will be set automatically
+    jupiter.type.should == Planet
+
+    jupiter.attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil }
+
     jupiter.attribute_dirty?(:name).should be_false
     jupiter.attribute_dirty?(:age).should be_false
     jupiter.attribute_dirty?(:core).should be_false
-    jupiter.attribute_dirty?(:type).should be_false
-    
+
+    jupiter.dirty?.should be_false
+  end
+
+  it "should not mark attributes dirty if they are similar after typecasting" do
+    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil)
+    jupiter.save.should be_true
+    jupiter.dirty?.should be_false
+
+    jupiter.age = '1_000_000'
+    jupiter.attribute_dirty?(:age).should be_false
     jupiter.dirty?.should be_false
   end
 
