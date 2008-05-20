@@ -57,7 +57,7 @@ module DataMapper
         end
 
         # TODO: move to dm-more/dm-migrations
-        def supports_autoincrement?
+        def supports_serial?
           sqlite_version >= '3.1.0'
         end
 
@@ -82,7 +82,7 @@ module DataMapper
         # TODO: move to dm-more/dm-migrations
         def property_schema_statement(schema)
           statement = super
-          statement << ' PRIMARY KEY AUTOINCREMENT' if schema[:serial?] && supports_autoincrement?
+          statement << ' PRIMARY KEY AUTOINCREMENT' if supports_serial? && schema[:serial?]
           statement
         end
 

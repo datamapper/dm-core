@@ -616,7 +616,7 @@ module DataMapper
         # statements should overwrite this to return true
         #
         # TODO: move to dm-more/dm-migrations
-        def supports_autoincrement?
+        def supports_serial?
           false
         end
 

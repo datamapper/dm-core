@@ -74,7 +74,7 @@ module DataMapper
         end
 
         # TODO: move to dm-more/dm-migrations
-        def supports_autoincrement?
+        def supports_serial?
           true
         end
 
@@ -95,7 +95,7 @@ module DataMapper
         # TODO: move to dm-more/dm-migrations
         def property_schema_statement(schema)
           statement = super
-          statement << ' AUTO_INCREMENT' if schema[:serial?] && supports_autoincrement?
+          statement << ' AUTO_INCREMENT' if supports_serial? && schema[:serial?]
           statement
         end
 
