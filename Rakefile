@@ -87,13 +87,14 @@ end
 desc "Generate documentation"
 task :doc do
   begin
+    gem 'yard', '>=0.2.2'
     require 'yard'
     exec 'yardoc'
     # TODO: options to port over
     #  rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
     #  rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
     #  rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
-  rescue LoadError
+  rescue
     puts 'You will need to install the latest version of Yard to generate the
           documentation for dm-core.'
   end
