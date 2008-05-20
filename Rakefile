@@ -87,14 +87,14 @@ end
 desc "Generate documentation"
 task :doc do
   begin
-    gem 'yard', '>=0.2.2'
+    gem 'yard', '>=0.2.1'
     require 'yard'
     exec 'yardoc'
     # TODO: options to port over
     #  rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
     #  rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
     #  rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
-  rescue
+  rescue Exception => e
     puts 'You will need to install the latest version of Yard to generate the
           documentation for dm-core.'
   end
@@ -154,6 +154,8 @@ if WINDOWS
   end
 end
 
+task 'ci:doc' => :doc
+
 namespace :ci do
 
   task :prepare do
@@ -208,15 +210,6 @@ namespace :ci do
 
     Rake::Task["ci:spec:integration"].invoke
     mv ROOT + "coverage", ROOT + "ci/integration_coverage"
-  end
-
-  task :doc do
-    require 'yardoc'
-    sh 'yardoc'
-    #  rdoc.rdoc_dir = 'ci/rdoc'
-    #  rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
-    #  rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
-    #  rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
   end
 
   task :saikuro => :prepare do
