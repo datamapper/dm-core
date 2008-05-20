@@ -74,7 +74,7 @@ module DataMapper
         instance_variable_set("@shadow_#{name}", instance_variable_get(ivar_name))
       end
 
-      dirty_attributes << property
+      dirty_attributes << property if attribute_get(name) != value || new_record?
 
       instance_variable_set(ivar_name, property.custom? ? property.type.dump(value, property) : property.typecast(value))
     end
@@ -233,13 +233,21 @@ module DataMapper
       end
     end
 
+    # Updates attributes and saves model
+    #
+    # @param attributes<Hash> Attributes to be updated
+    # @param keys<Symbol, String, Array> keys of Hash to update (others won't be updated)
+    #
+    # @return <TrueClass, FalseClass> if model got saved or not
+    #-
+    # @api public
     def update_attributes(hash, *update_only)
       raise 'Update takes a hash as first parameter' unless hash.is_a?(Hash)
       loop_thru = update_only.empty? ? hash.keys : update_only
       loop_thru.each {|attr|  send("#{attr}=", hash[attr])}
+      save
     end
 
- 
     ##
     # Produce a new Transaction for the class of this Resource
     #
@@ -310,6 +318,7 @@ module DataMapper
       def inherited(target)
         target.instance_variable_set(:@storage_names, @storage_names.dup)
         target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == :default ? self.properties(:default).dup(target) : h[:default].dup })
+        target.instance_variable_set(:@relationships, relationships)
       end
 
 

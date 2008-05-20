@@ -70,7 +70,7 @@ if HAS_SQLITE3
           property :id, Integer, :serial => true
           property :name, String
           property :iq, Integer, :default => 100
-          property :type, Class, :default => lambda { |r,p| p.model }
+          property :type, Discriminator
         end
 
         class Bully < Male
@@ -79,11 +79,11 @@ if HAS_SQLITE3
         end
 
         class Mugger < Bully
-
+        
         end
 
         class Maniac < Bully
-
+        
         end
 
         class Geek < Male
@@ -122,7 +122,6 @@ if HAS_SQLITE3
       end
 
       it "should not select parent type" do
-        pending("Bug...")
         repository(:sqlite3) do
           Male.first(:name => 'John Dorian').should be_a_kind_of(Male)
           Geek.first(:name => 'John Dorian').should be_nil
@@ -130,11 +129,10 @@ if HAS_SQLITE3
         end
       end
 
-      it "should select objects of all subtypes of type" do
-        pending("Implementation...")
+      it "should select objects of all inheriting classes" do
         repository(:sqlite3) do
           Male.all.should have(7).entries
-          Bully.all.should have(3).entries
+          Bully.all.should have(4).entries
           Mugger.all.should have(1).entries
           Maniac.all.should have(1).entries
         end
