@@ -73,18 +73,13 @@ if HAS_SQLITE3
           property :type, Discriminator
         end
 
-        class Bully < Male
-          # property :brutal, Boolean, :default => true
-          # Automigrate should add fields for all subclasses of an STI-model, but currently it does not.
-        end
+        class Bully < Male; end
 
-        class Mugger < Bully
-        
-        end
+        class Mugger < Bully; end
 
-        class Maniac < Bully
+        class Maniac < Bully; end
         
-        end
+        class Psycho < Maniac; end
 
         class Geek < Male
           property :awkward, Boolean, :default => true
@@ -100,13 +95,14 @@ if HAS_SQLITE3
           Bully.create!(:name => 'Johnson')
           Mugger.create!(:name => 'Frank')
           Maniac.create!(:name => 'William')
+          Psycho.create!(:name => 'Norman')
         end
       end
 
       it "should select appropriate types" do
         repository(:sqlite3) do
           males = Male.all
-          males.should have(7).entries
+          males.should have(8).entries
 
           males.each do |male|
             male.class.name.should == male.type.name
@@ -125,16 +121,18 @@ if HAS_SQLITE3
         repository(:sqlite3) do
           Male.first(:name => 'John Dorian').should be_a_kind_of(Male)
           Geek.first(:name => 'John Dorian').should be_nil
-          Geek.first.iq.should > Bully.first.iq # now its matching Male#1 against Male#1
+          Geek.first.iq.should > Bully.first.iq
         end
       end
 
       it "should select objects of all inheriting classes" do
         repository(:sqlite3) do
-          Male.all.should have(7).entries
-          Bully.all.should have(4).entries
+          Male.all.should have(8).entries
+          Geek.all.should have(2).entries
+          Bully.all.should have(5).entries
           Mugger.all.should have(1).entries
-          Maniac.all.should have(1).entries
+          Maniac.all.should have(2).entries
+          Psycho.all.should have(1).entries
         end
       end
     end

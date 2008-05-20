@@ -407,7 +407,7 @@ module DataMapper
 
     def append_condition(clause, bind_value)
       operator = :eql
-
+      bind_value = bind_value.call if bind_value.is_a?(Proc)
       property = case clause
         when Property
           clause

@@ -5,20 +5,24 @@ module DataMapper
       default lambda { |r,p| p.model }
 
       def self.bind(property)
-        property.model.class_eval <<-EOS
-          def self.inheritance_scope_class_names
-            @inheritance_scope_class_names ||= []
-          end
+        model = property.model
         
-          after_class_method :inherited, :send_inheritance_scope
+        model.class_eval <<-EOS
+          def self.inheritance_class_names
+            @inheritance_class_names ||= []
+          end
           
-          def self.send_inheritance_scope(target)
-            inheritance_scope_class_names << target.name
-            target.instance_variable_set(:@inheritance_scope_class_names, [target.name])
-            target.send(:scope_stack) << DataMapper::Query.new(#{property.name}.repository, target, :#{property.name} => target.inheritance_scope_class_names)
+          after_class_method :inherited, :propagate_inheritance_class_name
+
+          def self.propagate_inheritance_class_name(target)
+            inheritance_class_names << target.name
+            superclass.send(:propagate_inheritance_class_name,target) if superclass.respond_to?(:propagate_inheritance_class_name)
           end
         EOS
-      end # bind
+        
+        model.send(:scope_stack) << DataMapper::Query.new(property.repository, model, property.name => (model.inheritance_class_names << model.name))
+        
+      end
     end # class Discriminator
   end # module Types
 end # module DataMapper
