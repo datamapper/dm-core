@@ -20,6 +20,18 @@ describe "DataMapper::Associations" do
         has 1, :b
       end
     end
+    
+    class D
+      include DataMapper::Resource
+      has 1, :b
+    end
+    
+    class E < D
+    end
+    
+    class F < D
+      has 1, :a
+    end
 
     it "should assume the default repository when no arguments are passed" do
       lambda do
@@ -30,6 +42,12 @@ describe "DataMapper::Associations" do
     it "should return the right set of relationships given the repository name" do
       C.relationships.should be_empty
       C.relationships(:r).should_not be_empty
+    end
+    
+    it "should return the right set of relationships given the inheritance" do
+      E.relationships.should have(1).entries
+      D.relationships.should have(1).entries
+      F.relationships.should have(2).entries
     end
   end
 
