@@ -69,6 +69,19 @@ module DataMapper
       end
 
       module SQL
+        protected
+
+        # TODO: move to dm-more/dm-migrations
+        def create_sequence_column(model, property)
+          return if sequence_exists?(model, property)
+          execute(create_sequence_statement(model, property))
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def drop_sequence_column(model, property)
+          execute(drop_sequence_statement(model, property))
+        end
+
         private
 
         def supports_returning?
@@ -92,30 +105,13 @@ module DataMapper
         end
 
         # TODO: move to dm-more/dm-migrations
-        def create_sequence_column(model, property)
-          return if sequence_exists?(model, property)
-          statement = create_sequence_statement(model, property)
-          execute(statement)
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def drop_sequence_column(model, property)
-          statement = drop_sequence_statement(model, property)
-          execute(statement)
-        end
-
-        # TODO: move to dm-more/dm-migrations
         def create_sequence_statement(model, property)
-          statement = 'CREATE SEQUENCE '
-          statement << quote_column_name(sequence_name(model, property))
-          statement
+          "CREATE SEQUENCE #{quote_column_name(sequence_name(model, property))}"
         end
 
         # TODO: move to dm-more/dm-migrations
         def drop_sequence_statement(model, property)
-          statement = 'DROP SEQUENCE IF EXISTS '
-          statement << quote_column_name(sequence_name(model, property))
-          statement
+          "DROP SEQUENCE IF EXISTS #{quote_column_name(sequence_name(model, property))}"
         end
 
         # TODO: move to dm-more/dm-migrations
@@ -123,9 +119,7 @@ module DataMapper
           statement = super
 
           if schema.has_key?(:sequence_name)
-            statement << ' DEFAULT nextval('
-            statement << "'#{schema[:sequence_name]}'"  #not sure why this has to be single quotes
-            statement << ') NOT NULL'
+            statement << " DEFAULT nextval('#{schema[:sequence_name]}') NOT NULL"
           end
 
           statement

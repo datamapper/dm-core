@@ -290,16 +290,6 @@ module DataMapper
         )
       end
 
-      private
-
-      def initialize(name, uri_or_options)
-        super
-
-        # Default the driver-specifc logger to DataMapper's logger
-        driver_module = DataObjects.const_get(@uri.scheme.capitalize) rescue nil
-        driver_module.logger = DataMapper.logger if driver_module && driver_module.respond_to?(:logger)
-      end
-
       # TODO: clean up once transaction related methods move to dm-more/dm-transactions
       def create_connection
         if within_transaction?
@@ -314,6 +304,16 @@ module DataMapper
       # TODO: clean up once transaction related methods move to dm-more/dm-transactions
       def close_connection(connection)
         connection.close unless within_transaction? && current_transaction.primitive_for(self).connection == connection
+      end
+
+      private
+
+      def initialize(name, uri_or_options)
+        super
+
+        # Default the driver-specifc logger to DataMapper's logger
+        driver_module = DataObjects.const_get(@uri.scheme.capitalize) rescue nil
+        driver_module.logger = DataMapper.logger if driver_module && driver_module.respond_to?(:logger)
       end
 
       def with_connection(&block)

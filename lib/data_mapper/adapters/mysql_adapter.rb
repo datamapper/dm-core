@@ -80,8 +80,6 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def create_table_statement(model)
-          character_set = show_variable('character_set_connection') || 'utf8'
-          collation     = show_variable('collation_connection')     || 'utf8_general_ci'
           "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
         end
 
@@ -97,6 +95,16 @@ module DataMapper
           statement = super
           statement << ' AUTO_INCREMENT' if supports_serial? && schema[:serial?]
           statement
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def character_set
+          @character_set ||= show_variable('character_set_connection') || 'utf8'
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def collation
+          @collation ||= show_variable('collation_connection') || 'utf8_general_ci'
         end
 
         # TODO: move to dm-more/dm-migrations
