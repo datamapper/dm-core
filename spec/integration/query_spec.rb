@@ -38,7 +38,7 @@ if HAS_SQLITE3
 
       it "should find by conditions passed in as hash" do
         repository(:sqlite3) do
-          SailBoat.create(:name => "couldbe@email.com", :port => 1)
+          SailBoat.create(:name => "couldbe@email.com", :port => 'wee')
 
           find = SailBoat.first(:name => 'couldbe@email.com')
           find.name.should == 'couldbe@email.com'
@@ -47,6 +47,17 @@ if HAS_SQLITE3
           find.should_not be_nil
           find.port.should_not be_nil
           find.name.should == 'couldbe@email.com'
+        end
+      end
+      
+      it "should find by conditions passed in a range" do
+        repository(:sqlite3) do
+          find = SailBoat.all(:id => (0..2))
+          find.should_not be_nil
+          find.should have(2).entries
+
+          find = SailBoat.all(:id.not => (0..2))
+          find.should have(1).entries
         end
       end
 
