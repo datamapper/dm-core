@@ -624,6 +624,7 @@ if HAS_SQLITE3
               has n, {:cakes => :slices}, :class_name => 'Sweets::Slice'                       # one_to_many => one_to_many
               has n, {:cakes => :bites}, :class_name => 'Sweets::Bite'                         # one_to_many => one_to_many => one_to_many
               has n, {:cakes => :shape}, :class_name => 'Sweets::Shape'                        # one_to_many => one_to_many => one_to_one
+              has n, {:cakes => :customers}, :class_name => 'Sweets::Customer'                 # one_to_many => many_to_one (pending)
               has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'                           # one_to_one
               has 1, {:shop_owner => :wife}, :class_name => 'Sweets::Wife'                     # one_to_one => one_to_one
               has 1, {:shop_owner => :ring}, :class_name => 'Sweets::Ring'                     # one_to_one => one_to_one => one_to_one
@@ -647,8 +648,9 @@ if HAS_SQLITE3
               has n, {:children => :booger}, :class_name => 'Sweets::Booger'
               has n, {:wife => :coats}, :class_name => 'Sweets::Coat'
               has 1, {:wife => :ring}, :class_name => 'Sweets::Ring'
+              has n, {:children => :schools}, :class_name => 'Sweets::School'
             end
-            
+
             class Wife
               include DataMapper::Resource
               def self.default_repository_name
@@ -660,7 +662,7 @@ if HAS_SQLITE3
               has 1, :ring, :class_name => 'Sweets::Ring'
               has n, :coats, :class_name => 'Sweets::Coat'
             end
-            
+
             class Coat
               include DataMapper::Resource
               def self.default_repository_name
@@ -721,6 +723,7 @@ if HAS_SQLITE3
               property :id, Integer, :serial => true
               property :name, String
               belongs_to :shop, :class_name => 'Sweets::Shop'
+              belongs_to :customer, :class_name => 'Sweets::Customer'
               has n, :slices, :class_name => 'Sweets::Slice'
               has n, {:slices => :bites}, :class_name => 'Sweets::Bite'
               has 1, :recipe, :class_name => 'Sweets::Recipe'
@@ -739,6 +742,16 @@ if HAS_SQLITE3
               belongs_to :cake, :class_name => 'Sweets::Cake'
               has n, :ingredients, :class_name => 'Sweets::Ingredient'
               has 1, :creator, :class_name => 'Sweets::Creator'
+            end
+            
+            class Customer
+              include DataMapper::Resource
+              def self.default_repository_name
+                :sqlite3
+              end
+              property :id, Integer, :serial => true
+              property :name, String
+              has n, :cakes, :class_name => 'Sweets::Cake'
             end
 
             class Creator
@@ -809,6 +822,14 @@ if HAS_SQLITE3
             german_chocolate.save
             short_cake = Cake.new(:name => 'Short Cake')
             betsys.cakes << short_cake
+            short_cake.save
+
+            # one_to_many => many_to_one
+
+            old_customer = Customer.new(:name => 'John Johnsen')
+            old_customer.cakes << german_chocolate
+            old_customer.cakes << short_cake
+            german_chocolate.save
             short_cake.save
 
             # one_to_many => one_to_one
@@ -943,6 +964,14 @@ if HAS_SQLITE3
           Sweets::Shop.first.bites.select do |bite|
             bite.slice.cake == Sweets::Cake.first(:name => "Short Cake")
           end.size.should == 15
+        end
+        it "should return the right children for one_to_many => many_to_one relationships" do
+          pending("Implement through for one_to_many => many_to_one relationship")
+          Sweets::Customer.first.cakes.size.should == 2
+          Sweets::Shop.first.customers.select do |customer|
+            customer.name == 'John Johnsen'
+          end.size.should == 1
+          # another example can be found here: http://pastie.textmate.org/private/tt1hf1syfsytyxdgo4qxaw
         end
         it "should return the right children for one_to_many => one_to_one relationships" do
           Sweets::Shop.first.recipe.size.should == 2
