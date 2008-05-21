@@ -116,7 +116,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
     @resource = mock("resource", :null_object => true)
     @collection = []
     @repository = mock("repository", :save => nil)
-    @relationship = mock("relationship", :get_children => @collection, :repository_name => :a_symbol)
+    @relationship = mock("relationship", :get_children => @collection, :repository_name => :a_symbol, :query => {})
     @association = DataMapper::Associations::OneToMany::Proxy.new(@relationship, @parent)
   end
 
@@ -143,7 +143,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
       it "should save the resource after the parent is saved"
 
       it "should add the parent's keys to the resource after the parent is saved"
-    end
+    end 
   end
 
   describe "when deleting a resource" do

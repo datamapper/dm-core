@@ -2,7 +2,7 @@ module DataMapper
   module Associations
     class Relationship
 
-      attr_reader :foreign_key_name, :repository_name, :options
+      attr_reader :foreign_key_name, :repository_name, :options, :query
 
       def child_key
         @child_key ||= begin

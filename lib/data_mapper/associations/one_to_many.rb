@@ -147,7 +147,17 @@ module DataMapper
         def ensure_mutable
           raise ImmutableAssociationError, "You can not modify this assocation" if RelationshipChain === @relationship
         end
-
+        
+        def add_default_association_values(resources)
+          resources.each do |resource|
+            conditions = @relationship.query.reject { |key, value| key == :order }
+            conditions.each do |key, value|
+              resource.send("#{key}=", value) if key.class != DataMapper::Query::Operator && resource.send("#{key}") == nil
+            end  
+          end
+          resources  
+        end  
+        
         def remove_resource(resource)
           ensure_mutable
           begin
@@ -164,6 +174,7 @@ module DataMapper
 
         def append_resource(resources = [])
           ensure_mutable
+          add_default_association_values(resources)
           if @parent_resource.new_record?
             @dirty_children.push(*resources)
           else
