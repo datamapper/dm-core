@@ -52,7 +52,7 @@ module DataMapper
         end
 
         def save
-          if parent.new_record?
+          if parent && parent.new_record?
             repository(@relationship.repository_name) do
               parent.save
               @relationship.attach_parent(@child_resource, parent)

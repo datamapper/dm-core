@@ -47,7 +47,7 @@ module DataMapper
       ivar_name = property.instance_variable_name
 
       unless new_record? || instance_variable_defined?(ivar_name)
-        lazy_load(name)
+        property.lazy? ? lazy_load(name) : lazy_load(self.class.properties(repository.name).reject {|p| instance_variable_defined?(p.instance_variable_name) || p.lazy? })
       end
 
       value = instance_variable_get(ivar_name)

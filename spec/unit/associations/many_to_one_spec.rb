@@ -26,5 +26,11 @@ describe "DataMapper::Associations::ManyToOne" do
         @association.replace(@parent)
       end
     end
+    describe "when the parent is nil" do
+      it "should save without consequence" do
+        @relationship.should_receive(:get_parent).with(@child)
+        @association.save
+      end
+    end
   end
 end

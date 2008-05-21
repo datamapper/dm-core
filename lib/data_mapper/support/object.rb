@@ -13,7 +13,7 @@ class Object
   NESTED_CONSTANTS = Hash.new do |h,k|
     klass = Object
     k.split('::').each do |c|
-      klass = klass.const_get(c)
+      klass = klass.const_get(c) unless c.empty?
     end
     h[k] = klass
   end
