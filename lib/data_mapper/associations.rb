@@ -89,7 +89,7 @@ module DataMapper
     #
     # @example [Usage]
     #   * belongs_to :user                          # many_to_one, :friend
-    #   * belongs_to :friend, :classname => 'User'  # many_to_one :friends
+    #   * belongs_to :friend, :class_name => 'User'  # many_to_one :friends
     #
     # @param name<Symbol> The name that the association will be referenced by
     # @param opts<Hash>   An options hash (see below)
