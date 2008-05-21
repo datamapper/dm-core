@@ -59,7 +59,12 @@ module DataMapper
             end
           end
         end
-
+        
+        def reload!
+          @parent_resource = nil
+          self
+        end
+        
         private
 
         def initialize(relationship, child_resource)

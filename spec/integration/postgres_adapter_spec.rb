@@ -26,7 +26,7 @@ if HAS_POSTGRES
         @adapter.exists?("sputniks").should == true
         @adapter.field_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer, :serial => true
-        @adapter.drop_sequence_column(@adapter.create_connection, Sputnik, Sputnik.new_prop) rescue nil
+        @adapter.send(:drop_sequence_column, Sputnik, Sputnik.new_prop) rescue nil
         Sputnik.auto_upgrade!(:postgres)
         @adapter.field_exists?("sputniks", "new_prop").should == true
       end
