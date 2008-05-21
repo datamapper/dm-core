@@ -18,9 +18,9 @@ if HAS_POSTGRES
 
       it "#upgrade_model should work" do
         @adapter.destroy_model_storage(nil, Sputnik)
-        @adapter.exists?("sputniks").should be_false
+        @adapter.storage_exists?("sputniks").should be_false
         Sputnik.auto_migrate!(:postgres)
-        @adapter.exists?("sputniks").should be_true
+        @adapter.storage_exists?("sputniks").should be_true
         @adapter.field_exists?("sputniks", "new_prop").should be_false
         Sputnik.property :new_prop, Integer, :serial => true
         @adapter.send(:drop_sequence, Sputnik, Sputnik.new_prop)
@@ -40,15 +40,19 @@ if HAS_POSTGRES
 
         Sputnik.auto_migrate!(:postgres)
       end
-      it "#exists? should return true for tables that exist" do
-        @adapter.exists?("sputniks").should == true
+
+      it "#storage_exists? should return true for tables that exist" do
+        @adapter.storage_exists?("sputniks").should == true
       end
-      it "#exists? should return false for tables that don't exist" do
-        @adapter.exists?("space turds").should == false
+
+      it "#storage_exists? should return false for tables that don't exist" do
+        @adapter.storage_exists?("space turds").should == false
       end
+
       it "#field_exists? should return true for columns that exist" do
         @adapter.field_exists?("sputniks", "name").should == true
       end
+
       it "#field_exists? should return false for columns that don't exist" do
         @adapter.field_exists?("sputniks", "plur").should == false
       end
@@ -77,6 +81,7 @@ if HAS_POSTGRES
         end
         @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").empty?.should == true
       end
+
       it "should commit changes when #commit_transaction is called" do
         @transaction.commit do
           @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
@@ -86,7 +91,6 @@ if HAS_POSTGRES
     end
 
     describe "reading & writing a database" do
-
       before do
         class User
           include DataMapper::Resource
@@ -130,7 +134,6 @@ if HAS_POSTGRES
     end
 
     describe "CRUD for serial Key" do
-
       before do
         class VideoGame
           include DataMapper::Resource
@@ -231,7 +234,6 @@ if HAS_POSTGRES
     end
 
     describe "CRUD for Composite Key" do
-
       before do
         class BankCustomer
           include DataMapper::Resource
@@ -328,7 +330,6 @@ if HAS_POSTGRES
     end
 
     describe "Ordering a Query" do
-
       before do
         class SailBoat
           include DataMapper::Resource
@@ -374,7 +375,6 @@ if HAS_POSTGRES
     end
 
     describe "Lazy Loaded Properties" do
-
       before do
         class SailBoat
           include DataMapper::Resource
@@ -419,7 +419,6 @@ if HAS_POSTGRES
     end
 
     describe "finders" do
-
       before do
         class SerialFinderSpec
           include DataMapper::Resource
@@ -478,7 +477,6 @@ if HAS_POSTGRES
     end
 
     describe "many_to_one associations" do
-
       before do
         class Engine
           include DataMapper::Resource
@@ -567,7 +565,6 @@ if HAS_POSTGRES
     end
 
     describe "one_to_many associations" do
-
       before do
         class Host
           include DataMapper::Resource
@@ -640,13 +637,13 @@ if HAS_POSTGRES
       it "should add and save the associated instance" do
         repository(:postgres) do
           h = Host.first(:id => 1)
-          
+
           h.slices << Slice.new(:id => 3, :name => 'slice3')
-          
+
           s = repository(:postgres) do
             Slice.first(:id => 3)
           end
-          
+
           s.host.id.should == 1
         end
       end

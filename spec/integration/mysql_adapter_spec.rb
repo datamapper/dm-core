@@ -7,7 +7,7 @@ if HAS_MYSQL
     end
 
     describe "auto migrating" do
-      before :each do
+      before do
         class Sputnik
           include DataMapper::Resource
 
@@ -19,11 +19,12 @@ if HAS_MYSQL
         @command = mock("command")
         @result = mock("result")
       end
+
       it "#upgrade_model should work" do
         @adapter.destroy_model_storage(nil, Sputnik)
-        @adapter.exists?("sputniks").should == false
+        @adapter.storage_exists?("sputniks").should == false
         Sputnik.auto_migrate!(:mysql)
-        @adapter.exists?("sputniks").should == true
+        @adapter.storage_exists?("sputniks").should == true
         @adapter.field_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer
         Sputnik.auto_upgrade!(:mysql)
@@ -32,7 +33,7 @@ if HAS_MYSQL
     end
 
     describe "querying metadata" do
-      before :each do
+      before do
         class Sputnik
           include DataMapper::Resource
 
@@ -42,21 +43,25 @@ if HAS_MYSQL
 
         Sputnik.auto_migrate!(:mysql)
       end
-      it "#exists? should return true for tables that exist" do
-        @adapter.exists?("sputniks").should == true
+
+      it "#storage_exists? should return true for tables that exist" do
+        @adapter.storage_exists?("sputniks").should == true
       end
-      it "#exists? should return false for tables that don't exist" do
-        @adapter.exists?("space turds").should == false
+
+      it "#storage_exists? should return false for tables that don't exist" do
+        @adapter.storage_exists?("space turds").should == false
       end
+
       it "#field_exists? should return true for columns that exist" do
         @adapter.field_exists?("sputniks", "name").should == true
       end
-      it "#exists? should return false for tables that don't exist" do
+
+      it "#storage_exists? should return false for tables that don't exist" do
         @adapter.field_exists?("sputniks", "plur").should == false
       end
     end
 
-     describe "handling transactions" do
+    describe "handling transactions" do
       before :all do
         class Sputnik
           include DataMapper::Resource
@@ -68,7 +73,7 @@ if HAS_MYSQL
         Sputnik.auto_migrate!(:mysql)
       end
 
-      before :each do
+      before do
         @transaction = DataMapper::Transaction.new(@adapter)
       end
 
@@ -87,6 +92,5 @@ if HAS_MYSQL
         @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").size.should == 1
       end
     end
-
   end
 end

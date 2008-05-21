@@ -29,6 +29,8 @@ module DataMapper
 
         query(statement, db_name, storage_name).first > 0
       end
+
+      # TODO: remove this alias
       alias exists? storage_exists?
 
       # TODO: move to dm-more/dm-migrations (if possible)

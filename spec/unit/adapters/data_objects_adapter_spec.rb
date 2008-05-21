@@ -420,8 +420,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   end
 
   describe "when upgrading tables" do
-    it "should raise NotImplementedError when #exists? is called" do
-      lambda { @adapter.exists?("cheeses") }.should raise_error(NotImplementedError)
+    it "should raise NotImplementedError when #storage_exists? is called" do
+      lambda { @adapter.storage_exists?("cheeses") }.should raise_error(NotImplementedError)
     end
 
     describe "#upgrade_model_storage" do

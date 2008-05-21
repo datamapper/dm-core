@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if HAS_SQLITE3
   describe DataMapper::Adapters::DataObjectsAdapter do
-    before(:all) do
+    before :all do
       if ENV['SQLITE3_SPEC_URI']
         DataMapper.setup(:sqlite3_file, ENV['SQLITE3_SPEC_URI'])
       else
@@ -14,7 +14,7 @@ if HAS_SQLITE3
     end
 
     describe "auto migrating" do
-      before :each do
+      before do
         class Sputnik
           include DataMapper::Resource
 
@@ -26,19 +26,21 @@ if HAS_SQLITE3
         @command = mock("command")
         @result = mock("result")
       end
+
       it "#upgrade_model should work" do
         @adapter.destroy_model_storage(nil, Sputnik)
-        @adapter.exists?("sputniks").should == false
+        @adapter.storage_exists?("sputniks").should == false
         Sputnik.auto_migrate!(:sqlite3_file)
-        @adapter.exists?("sputniks").should == true
+        @adapter.storage_exists?("sputniks").should == true
         @adapter.field_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer
         Sputnik.auto_upgrade!(:sqlite3_file)
         @adapter.field_exists?("sputniks", "new_prop").should == true
       end
     end
+
     describe "querying metadata" do
-      before :each do
+      before do
         class Sputnik
           include DataMapper::Resource
 
@@ -48,16 +50,20 @@ if HAS_SQLITE3
 
         Sputnik.auto_migrate!(:sqlite3_file)
       end
-      it "#exists? should return true for tables that exist" do
-        @adapter.exists?("sputniks").should == true
+
+      it "#storage_exists? should return true for tables that exist" do
+        @adapter.storage_exists?("sputniks").should == true
       end
-      it "#exists? should return false for tables that don't exist" do
-        @adapter.exists?("space turds").should == false
+
+      it "#storage_exists? should return false for tables that don't exist" do
+        @adapter.storage_exists?("space turds").should == false
       end
+
       it "#field_exists? should return true for columns that exist" do
         @adapter.field_exists?("sputniks", "name").should == true
       end
-      it "#exists? should return false for tables that don't exist" do
+
+      it "#storage_exists? should return false for tables that don't exist" do
         @adapter.field_exists?("sputniks", "plur").should == false
       end
     end
@@ -78,8 +84,7 @@ if HAS_SQLITE3
     end
 
     describe "handling transactions" do
-
-      before :each do
+      before do
 
         class Sputnik
           include DataMapper::Resource
@@ -100,6 +105,7 @@ if HAS_SQLITE3
         end
         @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").empty?.should == true
       end
+
       it "should commit changes when #commit_transaction is called" do
         @transaction.commit do
           @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
@@ -109,7 +115,6 @@ if HAS_SQLITE3
     end
 
     describe "reading & writing a database" do
-
       before do
         class User
           include DataMapper::Resource
@@ -121,6 +126,10 @@ if HAS_SQLITE3
         User.auto_migrate!(:sqlite3_file)
 
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
+      end
+
+      after do
+        @adapter.execute('DROP TABLE "users"')
       end
 
       it 'should be able to #execute an arbitrary query' do
@@ -149,10 +158,6 @@ if HAS_SQLITE3
 
         result.should be_kind_of(Array)
         result.size.should == 0
-      end
-
-      after do
-        @adapter.execute('DROP TABLE "users"')
       end
     end
 

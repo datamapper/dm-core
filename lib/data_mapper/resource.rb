@@ -151,7 +151,7 @@ module DataMapper
     def readonly?
       @readonly == true
     end
-    
+
     ##
     # save the instance to the data-store
     #
@@ -262,16 +262,18 @@ module DataMapper
     #   of the class of this DataMapper::Resource added.
     #-
     # @api public
+    #
+    # TODO: move to dm-more/dm-transactions
     def transaction(&block)
       self.class.transaction(&block)
     end
 
     private
-    
+
     def create
       repository.save(self)
     end
-    
+
     def update
       repository.save(self)
     end
@@ -499,13 +501,18 @@ module DataMapper
       #   of the class of this DataMapper::Resource added.
       #-
       # @api public
+      #
+      # TODO: move to dm-more/dm-transactions
       def transaction(&block)
         DataMapper::Transaction.new(self, &block)
       end
 
-      def exists?(repo_name = default_repository_name)
-        repository(repo_name).storage_exists?(storage_name(repo_name))
+      def storage_exists?(repository_name = default_repository_name)
+        repository(repository_name).storage_exists?(storage_name(repository_name))
       end
+
+      # TODO: remove this alias
+      alias exists? storage_exists?
 
       private
 
