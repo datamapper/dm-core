@@ -20,15 +20,15 @@ describe "DataMapper::Associations" do
         has 1, :b
       end
     end
-    
+
     class D
       include DataMapper::Resource
       has 1, :b
     end
-    
+
     class E < D
     end
-    
+
     class F < D
       has 1, :a
     end
@@ -43,7 +43,7 @@ describe "DataMapper::Associations" do
       C.relationships.should be_empty
       C.relationships(:r).should_not be_empty
     end
-    
+
     it "should return the right set of relationships given the inheritance" do
       E.relationships.should have(1).entries
       D.relationships.should have(1).entries
@@ -154,12 +154,13 @@ describe "DataMapper::Associations" do
         end
       end
 
-      it "should create a many-to-many relationship if references are circular" do
-        Manufacturer.should_receive(:many_to_many).with(:subsidiaries, { :max=> @n, :class_name =>"Manufacturer", :min => @n })
-
-        class Manufacturer
-          has n..n, :subsidiaries, :class_name => 'Manufacturer'
-        end
+      # do not remove or change this spec.
+      it "should raise an exception when n..n is used for the cardinality" do
+        lambda do
+          class Manufacturer
+            has n..n, :subsidiaries, :class_name => 'Manufacturer'
+          end
+        end.should raise_error(ArgumentError)
       end
 
       it "should create one-to-many association and pass the :through option if specified" do
