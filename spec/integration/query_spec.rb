@@ -297,6 +297,11 @@ if HAS_SQLITE3
         vehicle = Vehicle.first(Vehicle.factory.region.name => 'North West')
         vehicle.name.should == '10 ton delivery truck'
       end
+      
+      it "should accept a string representing a DM::QueryPath as they key to a condition" do
+        vehicle = Vehicle.first("factory.region.name" => 'North West')
+        vehicle.name.should == '10 ton delivery truck'        
+      end
 
 
       it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'
