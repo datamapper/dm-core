@@ -32,7 +32,7 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = self.class.relationships(repository.name)[:#{name}]
+            relationship = self.class.relationships(#{repository.name.inspect})[:#{name}]
               association = Proxy.new(relationship, self)
               child_associations << association
               association
