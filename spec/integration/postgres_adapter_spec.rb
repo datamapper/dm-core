@@ -7,33 +7,31 @@ if HAS_POSTGRES
     end
 
     describe "auto migrating" do
-      before :each do
+      before :all do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-
-        @connection = mock("connection")
-        @command = mock("command")
-        @result = mock("result")
       end
+
       it "#upgrade_model should work" do
         @adapter.destroy_model_storage(nil, Sputnik)
-        @adapter.exists?("sputniks").should == false
+        @adapter.exists?("sputniks").should be_false
         Sputnik.auto_migrate!(:postgres)
-        @adapter.exists?("sputniks").should == true
-        @adapter.field_exists?("sputniks", "new_prop").should == false
+        puts "sputnik should exist!"
+        @adapter.exists?("sputniks").should be_true
+        @adapter.field_exists?("sputniks", "new_prop").should be_false
         Sputnik.property :new_prop, Integer, :serial => true
-        @adapter.send(:drop_sequence_column, Sputnik, Sputnik.new_prop) rescue nil
+        @adapter.send(:drop_sequence, Sputnik, Sputnik.new_prop)
         Sputnik.auto_upgrade!(:postgres)
         @adapter.field_exists?("sputniks", "new_prop").should == true
       end
     end
 
     describe "querying metadata" do
-      before :each do
+      before do
         class Sputnik
           include DataMapper::Resource
 
@@ -69,7 +67,7 @@ if HAS_POSTGRES
         Sputnik.auto_migrate!(:postgres)
       end
 
-      before :each do
+      before do
         @transaction = DataMapper::Transaction.new(@adapter)
       end
 

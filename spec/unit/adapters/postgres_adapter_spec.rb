@@ -6,49 +6,118 @@ if HAS_POSTGRES
       @adapter = repository(:postgres).adapter
     end
 
-    describe "auto migrating" do
-      before :each do
-        class Sputnik
-          include DataMapper::Resource
+    describe '#upgrade_model_storage' do
+      before do
+        @repository = mock('repository')
+        @property   = mock('property', :serial? => true, :field => 'property')
+        @model      = mock('model', :key => [ @property ], :storage_name => 'models')
+        @command    = mock('command')
+        @connection = mock('connection', :create_command => @command, :close => true)
+        @result     = mock('result', :to_i => 0)
 
-          property :id, Integer, :serial => true
-          property :name, DM::Text
+        DataObjects::Connection.stub!(:new).and_return(@connection)
+
+        @adapter.stub!(:execute).and_return(@result)
+        @adapter.stub!(:storage_exists?).and_return(true)
+        @adapter.stub!(:query).and_return([ 0 ])
+
+        @original_method = @adapter.class.superclass.instance_method(:upgrade_model_storage)
+        @adapter.class.superclass.send(:define_method, :upgrade_model_storage) {}
+      end
+
+      after do
+        method = @original_method
+        @adapter.class.superclass.send(:define_method, :upgrade_model_storage) do |*args|
+          method.bind(self).call(*args)
         end
+      end
 
-        @connection = mock("connection")
-        @command = mock("command")
-        @result = mock("result")
+      it 'should check to make sure the sequences exist' do
+        statement = %q[SELECT COUNT(*) FROM "pg_class" WHERE "relkind" = 'S' AND "relname" = ?]
+        @adapter.should_receive(:query).with(statement, 'models_property_seq').and_return([ 0 ])
+        @adapter.upgrade_model_storage(@repository, @model)
       end
-      it "#upgrade_model_storage should create sequences and then call super" do
-        @adapter.should_receive(:create_connection).at_least(1).times.and_return(@connection)
-        @connection.should_receive(:close).at_least(1).times
-        @adapter.should_receive(:exists?).at_least(1).times.with("sputniks").and_return(true)
-        @adapter.should_receive(:field_exists?).at_least(1).times.with("sputniks", "id").and_return(false)
-        @adapter.should_receive(:field_exists?).at_least(1).times.with("sputniks", "name").and_return(false)
-        @adapter.should_receive(:create_sequence_column).at_least(1).times.with(Sputnik, Sputnik.properties(:default)[:id])
-        @command.should_receive(:execute_non_query).any_number_of_times.and_return(@result)
-        @result.should_receive(:to_i).any_number_of_times.and_return(1)
-        @connection.should_receive(:create_command).once.with("ALTER TABLE \"sputniks\" ADD COLUMN \"id\" INT4 NOT NULL DEFAULT nextval('sputniks_id_seq') NOT NULL").and_return(@command)
-        @connection.should_receive(:create_command).once.with("ALTER TABLE \"sputniks\" ADD COLUMN \"name\" TEXT").and_return(@command)
-        @adapter.upgrade_model_storage(nil, Sputnik).should == [Sputnik.properties(:default)[:id], Sputnik.properties(:default)[:name]]
+
+      it 'should add sequences' do
+        statement = %q[CREATE SEQUENCE "models_property_seq"]
+        @adapter.should_receive(:execute).once
+        @adapter.upgrade_model_storage(@repository, @model)
       end
-      it "#create_model_storage should create sequences and then call super" do
-        @adapter.should_receive(:create_connection).at_least(1).times.and_return(@connection)
-        @connection.should_receive(:close).at_least(1).times
-        @adapter.should_receive(:create_sequence_column).at_least(1).times.with(Sputnik, Sputnik.properties(:default)[:id])
-        @command.should_receive(:execute_non_query).any_number_of_times.with(any_args()).and_return(@result)
-        @result.should_receive(:to_i).any_number_of_times.and_return(1)
-        @connection.should_receive(:create_command).once.with("CREATE TABLE \"sputniks\" (\"id\" INT4 NOT NULL DEFAULT nextval('sputniks_id_seq') NOT NULL, \"name\" TEXT, PRIMARY KEY(\"id\"))").and_return(@command)
-        @adapter.create_model_storage(nil, Sputnik)
+
+      it 'should execute the superclass upgrade_model_storage' do
+        rv = mock('inside super')
+        @adapter.class.superclass.send(:define_method, :upgrade_model_storage) { rv }
+        @adapter.upgrade_model_storage(@repository, @model).should == rv
       end
-      it "#destroy_model_storage should drop sequences and then call super" do
-        @adapter.should_receive(:create_connection).at_least(1).times.and_return(@connection)
-        @connection.should_receive(:close).at_least(1).times
-        @adapter.should_receive(:drop_sequence_column).at_least(1).times.with(Sputnik, Sputnik.properties(:default)[:id])
-        @command.should_receive(:execute_non_query).any_number_of_times.with(any_args()).and_return(@result)
-        @result.should_receive(:to_i).any_number_of_times.and_return(1)
-        @connection.should_receive(:create_command).once.with("DROP TABLE IF EXISTS \"sputniks\"").and_return(@command)
-        @adapter.destroy_model_storage(nil, Sputnik)
+    end
+
+    describe '#create_model_storage' do
+      before do
+        @repository = mock('repository')
+        @property   = mock('property', :serial? => true, :field => 'property')
+        @model      = mock('model', :key => [ @property ], :storage_name => 'models')
+
+        @adapter.stub!(:execute).and_return(@result)
+        @adapter.stub!(:storage_exists?).and_return(true)
+        @adapter.stub!(:query).and_return([ 0 ])
+
+        @original_method = @adapter.class.superclass.instance_method(:create_table_statement)
+        @adapter.class.superclass.send(:define_method, :create_table_statement) {}
+      end
+
+      after do
+        method = @original_method
+        @adapter.class.superclass.send(:define_method, :create_table_statement) do |*args|
+          method.bind(self).call(*args)
+        end
+      end
+
+      it 'should check to make sure the sequences exist' do
+        statement = %q[SELECT COUNT(*) FROM "pg_class" WHERE "relkind" = 'S' AND "relname" = ?]
+        @adapter.should_receive(:query).with(statement, 'models_property_seq').and_return([ 0 ])
+        @adapter.create_model_storage(@repository, @model)
+      end
+
+      it 'should add sequences' do
+        statement = %q[CREATE SEQUENCE "models_property_seq"]
+        @adapter.should_receive(:execute).once
+        @adapter.create_model_storage(@repository, @model)
+      end
+
+      it 'should execute the superclass upgrade_model_storage' do
+        rv = mock('inside super')
+        @adapter.class.superclass.send(:define_method, :create_table_statement) { rv }
+        @adapter.create_table_statement(@repository, @model).should == rv
+      end
+    end
+
+    describe '#destroy_model_storage' do
+      before do
+        @repository = mock('repository')
+        @property   = mock('property', :serial? => true, :field => 'property')
+        @model      = mock('model', :key => [ @property ], :storage_name => 'models')
+
+        @original_method = @adapter.class.superclass.instance_method(:destroy_model_storage)
+        @adapter.class.superclass.send(:define_method, :destroy_model_storage) {}
+      end
+
+      after do
+        method = @original_method
+        @adapter.class.superclass.send(:define_method, :destroy_model_storage) do |*args|
+          method.bind(self).call(*args)
+        end
+      end
+
+      it 'should execute the superclass destroy_model_storage' do
+        rv = mock('inside super')
+        @adapter.class.superclass.send(:define_method, :destroy_model_storage) { rv }
+        @adapter.destroy_model_storage(@repository, @model).should == rv
+      end
+
+      it 'should check to make sure the sequences exist' do
+        statement = %q[SELECT COUNT(*) FROM "pg_class" WHERE "relkind" = 'S' AND "relname" = ?]
+        @adapter.should_receive(:query).with(statement, 'models_property_seq').and_return([ 0 ])
+        @adapter.destroy_model_storage(@repository, @model)
       end
     end
   end

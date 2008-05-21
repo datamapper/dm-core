@@ -228,11 +228,11 @@ module DataMapper
       def upgrade_model_storage(repository, model)
         table_name = model.storage_name(name)
 
-        unless exists?(model.storage_name(name))
-          return create_model_storage(repository, model) ? model : nil
+        if success = create_model_storage(repository, model)
+          return model.properties
         end
 
-        rval = []
+        properties = []
 
         with_connection do |connection|
           model.properties.each do |property|
@@ -241,22 +241,24 @@ module DataMapper
               statement = alter_table_add_column_statement(table_name, schema_hash)
               command = connection.create_command(statement)
               result = command.execute_non_query
-              rval << property if result.to_i == 1
+              properties << property if result.to_i == 1
             end
           end
         end
 
-        rval
+        properties
       end
 
       # TODO: move to dm-more/dm-migrations
       def create_model_storage(repository, model)
+        return false if storage_exists?(model.storage_name(name))
         statement = create_table_statement(model)
         execute(statement).to_i == 1
       end
 
       # TODO: move to dm-more/dm-migrations
       def destroy_model_storage(repository, model)
+        return false unless storage_exists?(model.storage_name(name))
         statement = drop_table_statement(model)
         execute(statement).to_i == 1
       end
@@ -630,7 +632,7 @@ module DataMapper
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
           statement << "#{model.properties.collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
 
-          if (key = model.properties.key).any?
+          if (key = model.key).any?
             statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
           end
 
@@ -640,7 +642,7 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def drop_table_statement(model)
-          "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
+          "DROP TABLE #{quote_table_name(model.storage_name(name))}"
         end
 
         # TODO: move to dm-more/dm-migrations
