@@ -43,49 +43,51 @@ module DataMapper
 
       # TODO: move to dm-more/dm-migrations
       def upgrade_model_storage(repository, model)
-        storage_name = model.storage_name(name)
-        model.properties(repository).each do |property|
-          schema_hash = property_schema_hash(property, model)
-          create_sequence_column(model, property) if property.serial? && !field_exists?(storage_name, schema_hash[:name])
-        end
+        add_sequences(model)
         super
       end
 
       # TODO: move to dm-more/dm-migrations
       def create_model_storage(repository, model)
-        model.properties.each do |property|
-          create_sequence_column(model, property) if property.serial?
-        end
+        add_sequences(model)
         super
       end
 
       # TODO: move to dm-more/dm-migrations
       def destroy_model_storage(repository, model)
         success = super
-        model.properties.each do |property|
-          drop_sequence_column(model, property) if property.serial?
+        model.properties(name).each do |property|
+          drop_sequence(model, property) if property.serial?
         end
         success
       end
 
+      protected
+
+      # TODO: move to dm-more/dm-migrations
+      def create_sequence(model, property)
+        return if sequence_exists?(model, property)
+        execute(create_sequence_statement(model, property))
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def drop_sequence(model, property)
+        return unless sequence_exists?(model, property)
+        execute(drop_sequence_statement(model, property))
+      end
+
       module SQL
-        protected
-
-        # TODO: move to dm-more/dm-migrations
-        def create_sequence_column(model, property)
-          return if sequence_exists?(model, property)
-          execute(create_sequence_statement(model, property))
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def drop_sequence_column(model, property)
-          execute(drop_sequence_statement(model, property))
-        end
-
         private
 
         def supports_returning?
           true
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def add_sequences(model)
+          model.properties(name).each do |property|
+            create_sequence(model, property) if property.serial?
+          end
         end
 
         # TODO: move to dm-more/dm-migrations
@@ -111,7 +113,7 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def drop_sequence_statement(model, property)
-          "DROP SEQUENCE IF EXISTS #{quote_column_name(sequence_name(model, property))}"
+          "DROP SEQUENCE #{quote_column_name(sequence_name(model, property))}"
         end
 
         # TODO: move to dm-more/dm-migrations

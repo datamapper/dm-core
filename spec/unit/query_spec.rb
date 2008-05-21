@@ -279,7 +279,7 @@ describe DataMapper::Query do
         reader     = mock('reader', :next! => false, :close => nil)
         command    = mock('command', :set_types => nil, :execute_reader => reader)
         connection = mock('connect')
-        statement  = 'SELECT "id", "blog_id", "created_at", "author", "title" FROM "articles" ORDER BY "real_plank" DESC'
+        statement  = 'SELECT "id", "blog_id", "created_at", "author", "title", "real_plank" FROM "articles" ORDER BY "real_plank" DESC'
 
         adapter.should_receive(:with_connection).and_yield(connection).once
         connection.should_receive(:create_command).with(statement).and_return(command)

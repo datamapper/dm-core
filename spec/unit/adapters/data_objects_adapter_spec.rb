@@ -425,10 +425,9 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     describe "#upgrade_model_storage" do
-      it "should call #create_model_storage unless the model storage alread exists" do
-        @adapter.should_receive(:exists?).once.with("cheeses").and_return(false)
+      it "should call #create_model_storage" do
         @adapter.should_receive(:create_model_storage).once.with(nil, Cheese).and_return(true)
-        @adapter.upgrade_model_storage(nil, Cheese).should == Cheese
+        @adapter.upgrade_model_storage(nil, Cheese).should == Cheese.properties
       end
 
       it "should check if all properties of the model have columns if the table exists" do
@@ -436,7 +435,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @adapter.should_receive(:field_exists?).once.with("cheeses", "name").and_return(true)
         @adapter.should_receive(:field_exists?).once.with("cheeses", "color").and_return(true)
         @adapter.should_receive(:field_exists?).once.with("cheeses", "notes").and_return(true)
-        @adapter.should_receive(:exists?).once.with("cheeses").and_return(true)
+        @adapter.should_receive(:storage_exists?).once.with("cheeses").and_return(true)
         connection = mock("connection")
         connection.should_receive(:close).once
         @adapter.should_receive(:create_connection).once.and_return(connection)
@@ -448,7 +447,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @adapter.should_receive(:field_exists?).once.with("cheeses", "name").and_return(true)
         @adapter.should_receive(:field_exists?).once.with("cheeses", "color").and_return(true)
         @adapter.should_receive(:field_exists?).once.with("cheeses", "notes").and_return(false)
-        @adapter.should_receive(:exists?).once.with("cheeses").and_return(true)
+        @adapter.should_receive(:storage_exists?).once.with("cheeses").and_return(true)
         connection = mock("connection")
         connection.should_receive(:close).once
         @adapter.should_receive(:create_connection).once.and_return(connection)

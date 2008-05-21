@@ -315,7 +315,17 @@ EOF
     end
 
     it '.key should use default repository when not passed any arguments' do
-      Planet.key.object_id.should == Planet.key(:default).object_id
+      Planet.key.should == Planet.key(:default)
+    end
+
+    it '.key should not cache the key value' do
+      Planet.key.object_id.should_not == Planet.key(:default)
+
+      # change the key and make sure the Array changes
+      Planet.key == Planet.properties.slice(:id)
+      Planet.property(:new_prop, String, :key => true)
+      Planet.key.object_id.should_not == Planet.key(:default)
+      Planet.key == Planet.properties.slice(:id, :new_prop)
     end
 
     it 'should provide inheritance_property' do

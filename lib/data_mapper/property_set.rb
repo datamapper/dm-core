@@ -34,15 +34,15 @@ module DataMapper
     end
 
     def defaults
-      @defaults ||= reject { |property| property.lazy? }
+      reject { |property| property.lazy? }
     end
 
     def key
-      @key ||= select { |property| property.key? }
+      select { |property| property.key? }
     end
 
     def inheritance_property
-      @inheritance_property ||= detect { |property| property.type == DataMapper::Types::Discriminator }
+      detect { |property| property.type == DataMapper::Types::Discriminator }
     end
 
     def get(resource)
