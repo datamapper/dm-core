@@ -128,6 +128,12 @@ module DataMapper
         def first(options={})
           options.empty? ? children.first : @relationship.get_children(@parent_resource,options,:first)
         end
+        
+        def reload!
+          @dirty_children = []
+          @children = nil
+          self
+        end
 
         private
 

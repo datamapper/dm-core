@@ -201,6 +201,8 @@ module DataMapper
 
     def reload
       @collection.reload(:fields => loaded_attributes)
+      (parent_associations + child_associations).each { |association| association.reload! }
+      self
     end
     alias reload! reload
 
