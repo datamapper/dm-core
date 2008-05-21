@@ -623,7 +623,7 @@ if HAS_SQLITE3
               has n, {:cakes => :creator}, :class_name => 'Sweets::Creator'                    # one_to_many => one_to_one => one_to_one
               has n, {:cakes => :slices}, :class_name => 'Sweets::Slice'                       # one_to_many => one_to_many
               has n, {:cakes => :bites}, :class_name => 'Sweets::Bite'                         # one_to_many => one_to_many => one_to_many
-              has n, {:cakes => :shape}, :class_name => 'Sweets::Shape'
+              has n, {:cakes => :shape}, :class_name => 'Sweets::Shape'                        # one_to_many => one_to_many => one_to_one
               has n, {:cakes => :customers}, :class_name => 'Sweets::Customer'                 # one_to_many => many_to_one (pending)
               has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'                           # one_to_one
               has 1, {:shop_owner => :wife}, :class_name => 'Sweets::Wife'                     # one_to_one => one_to_one
