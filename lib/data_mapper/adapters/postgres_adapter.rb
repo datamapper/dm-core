@@ -44,7 +44,7 @@ module DataMapper
       # TODO: move to dm-more/dm-migrations
       def upgrade_model_storage(repository, model)
         storage_name = model.storage_name(name)
-        model.key.each do |property|
+        model.properties(repository).each do |property|
           schema_hash = property_schema_hash(property, model)
           create_sequence_column(model, property) if property.serial? && !field_exists?(storage_name, schema_hash[:name])
         end
@@ -53,7 +53,7 @@ module DataMapper
 
       # TODO: move to dm-more/dm-migrations
       def create_model_storage(repository, model)
-        model.key.each do |property|
+        model.properties.each do |property|
           create_sequence_column(model, property) if property.serial?
         end
         super
@@ -62,7 +62,7 @@ module DataMapper
       # TODO: move to dm-more/dm-migrations
       def destroy_model_storage(repository, model)
         success = super
-        model.key.each do |property|
+        model.properties.each do |property|
           drop_sequence_column(model, property) if property.serial?
         end
         success
