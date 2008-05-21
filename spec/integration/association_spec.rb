@@ -456,7 +456,7 @@ if HAS_SQLITE3
             Yard.first(:name => "yard 2").type.should == "not particular"
           # it should ignore non :eql conditions
             engine.fussy_yards << Yard.new(:name => "yard 3")
-            Yard.first(:name => "yard 3").type.should == "particular"
+            Yard.first(:name => "yard 3").rating.should == nil
         end  
       end 
       
