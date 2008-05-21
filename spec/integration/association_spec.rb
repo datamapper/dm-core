@@ -8,7 +8,7 @@ if HAS_SQLITE3
     property :name, String
     repository(:sqlite3) do
       one_to_many :yards
-      one_to_many :fussy_yards, {:rating.gte => 3, :type => "particular"}
+      one_to_many :fussy_yards, :class_name => "Yard", :rating.gte => 3, :type => "particular"
     end
   end
 
@@ -451,15 +451,12 @@ if HAS_SQLITE3
             engine.fussy_yards << Yard.new(:name => "yard 1", :rating => 4 )
             engine.save
             Yard.first(:name => "yard 1").type.should == "particular"
-            engine.fussy_good_yards.size.should ==1
           # it should not add default values if the condition's property already has a value
             engine.fussy_yards << Yard.new(:name => "yard 2", :rating => 4, :type => "not particular")
             Yard.first(:name => "yard 2").type.should == "not particular"
-            engine.fussy_good_yards.size.should ==1
           # it should ignore non :eql conditions
             engine.fussy_yards << Yard.new(:name => "yard 3")
             Yard.first(:name => "yard 3").type.should == "particular"
-            engine.fussy_good_yards.size.should ==1
         end  
       end 
       
