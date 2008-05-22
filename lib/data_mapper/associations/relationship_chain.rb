@@ -21,10 +21,6 @@ module DataMapper
 
       private
 
-      def foreign_key_name
-        near_relationship.foreign_key_name
-      end
-
       def near_relationship
         parent_model.relationships[@near_relationship_name]
       end
@@ -64,6 +60,8 @@ module DataMapper
         raise ArgumentError.new("Unknown options for #{self.class.name}#initialize: #{options.inspect}") unless options.empty?
         @query = options.reject{ |key,val| [:class_name, :child_key, :parent_key, :min, :max].include?(key) }
         @extra_links = []
+
+        @name = near_relationship.name
       end
     end # class Relationship
   end # module Associations
