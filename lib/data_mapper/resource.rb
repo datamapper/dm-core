@@ -355,7 +355,12 @@ module DataMapper
       #-
       # @api public
       def repository(name = nil, &block)
-        DataMapper.repository(*Array(Repository.context.last ? nil : name || default_repository_name), &block)
+        #
+        # There has been a couple of different strategies here, but me (zond) and dkubb are at least
+        # united in the concept of explicitness over implicitness. That is - the explicit wish of the
+        # caller (+name+) should be given more priority than the implicit wish of the caller (Repository.context.last).
+        #
+        DataMapper.repository(*Array(name || (Repository.context.last ? nil : default_repository_name)), &block)
       end
 
       ##
