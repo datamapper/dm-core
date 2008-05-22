@@ -1,14 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if HAS_SQLITE3
-<<<<<<< HEAD:spec/integration/association_spec.rb
-  class Engine
-    include DataMapper::Resource
-    
-    property :id, Integer, :serial => true
-    property :name, String
-    repository(:sqlite3) do
-=======
   repository(:sqlite3) do
     class Engine
       include DataMapper::Resource
@@ -19,7 +11,6 @@ if HAS_SQLITE3
 
       property :id, Integer, :serial => true
       property :name, String
->>>>>>> 68893cc186969cb17c27179f9113164e005a331e:spec/integration/association_spec.rb
       one_to_many :yards
       one_to_many :fussy_yards, :class_name => "Yard", :rating.gte => 3, :type => "particular"
     end
