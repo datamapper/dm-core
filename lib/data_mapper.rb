@@ -157,7 +157,12 @@ module DataMapper
   #   a new Session.
   #
   #     current_repository = DataMapper.repository
-  def self.repository(name = nil) # :yields: current_context
+  def self.repository(*args) # :yields: current_context
+    raise ArgumentError, "Can only pass in one optional argument, but passed in #{args.size} arguments", caller unless args.size <= 1
+    raise ArgumentError, "First optional argument must be a Symbol, but was #{args.first.inspect}", caller      unless args.empty? || Symbol === args.first
+
+    name = args.first
+
     current_repository = if name
       Repository.context.detect { |r| r.name == name } || Repository.new(name)
     else
@@ -182,7 +187,7 @@ module DataMapper
   # destructively migrates the repository upwards to match model definitions
   #
   # @param <Symbol> name repository to act on, :default is the default
-  def self.migrate!(name = :default)
+  def self.migrate!(name = Repository.default_name)
     repository(name).migrate!
   end
 
@@ -190,11 +195,11 @@ module DataMapper
   # drops and recreates the repository upwards to match model definitions
   #
   # @param <Symbol> name repository to act on, :default is the default
-  def self.auto_migrate!(name = :default)
+  def self.auto_migrate!(name = Repository.default_name)
     repository(name).auto_migrate!
   end
 
-  def self.prepare(name = nil, &blk)
-    yield repository(name)
+  def self.prepare(*args, &blk)
+    yield repository(*args)
   end
 end

@@ -328,12 +328,12 @@ module DataMapper
     module ClassMethods
       def self.extended(model)
         model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval do default_storage_name end) })
-        model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
+        model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
       end
 
       def inherited(target)
         target.instance_variable_set(:@storage_names, @storage_names.dup)
-        target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == :default ? self.properties(:default).dup(target) : h[:default].dup })
+        target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == Repository.default_name ? self.properties(Repository.default_name).dup(target) : h[Repository.default_name].dup })
         if @relationships
           duped_relationships = {}; @relationships.each_pair{ |repos, rels| duped_relationships[repos] = rels.dup}
           target.instance_variable_set(:@relationships, duped_relationships)
@@ -351,8 +351,9 @@ module DataMapper
       #   if given a block, otherwise the requested repository.
       #-
       # @api public
-      def repository(name = nil, &block)
-        DataMapper.repository(Repository.context.last ? nil : name || default_repository_name, &block)
+      def repository(*args, &block)
+        args << default_repository_name if args.empty? && Repository.context.last.nil?
+        DataMapper.repository(*args, &block)
       end
 
       ##
@@ -442,14 +443,22 @@ module DataMapper
       #
       # @see Repository#all
       def all(options = {})
-        repository(options[:repository]).all(self, options)
+        if options.has_key?(:repository)
+          repository(options[:repository]).all(self, options)
+        else
+          repository.all(self, options)
+        end
       end
 
       ##
       #
       # @see Repository#first
       def first(options = {})
-        repository(options[:repository]).first(self, options)
+        if options.has_key?(:repository)
+          repository(options[:repository]).first(self, options)
+        else
+          repository.first(self, options)
+        end
       end
 
       ##

@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 describe DataMapper do
   describe ".prepare" do
     it "should pass the default repository to the block if no argument is given" do
-      DataMapper.should_receive(:repository).with(nil).and_return :default_repo
+      DataMapper.should_receive(:repository).with(no_args).and_return :default_repo
 
       DataMapper.prepare do |r|
         r.should == :default_repo

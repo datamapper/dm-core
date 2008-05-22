@@ -19,7 +19,8 @@ module DataMapper
     include OneToOne
 
     def relationships(repository_name = default_repository_name)
-      (@relationships ||= Hash.new { |h,k| h[k] = (k == :default || !h.key?(:default) ? {} : h[:default].dup) })[repository_name]
+      @relationships ||= Hash.new { |h,k| h[k] = k == Repository.default_name ? {} : h[Repository.default_name].dup }
+      @relationships[repository_name]
     end
 
     def n
