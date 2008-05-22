@@ -638,17 +638,17 @@ if HAS_POSTGRES
       end
 
       it "should add and save the associated instance" do
-        h = repository(:postgres) do
-          Host.first(:id => 1)
+        repository(:postgres) do
+          h = Host.first(:id => 1)
+          
+          h.slices << Slice.new(:id => 3, :name => 'slice3')
+          
+          s = repository(:postgres) do
+            Slice.first(:id => 3)
+          end
+          
+          s.host.id.should == 1
         end
-
-        h.slices << Slice.new(:id => 3, :name => 'slice3')
-
-        s = repository(:postgres) do
-          Slice.first(:id => 3)
-        end
-
-        s.host.id.should == 1
       end
 
       it "should not save the associated instance if the parent is not saved" do

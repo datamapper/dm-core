@@ -190,7 +190,7 @@ module DataMapper
 
         def save_resources(resources = [])
           ensure_mutable
-          repository(@parent_resource.repository.name) do
+          repository(@relationship.repository_name) do
             resources.each do |resource|
               @relationship.attach_parent(resource, @parent_resource)
               resource.save

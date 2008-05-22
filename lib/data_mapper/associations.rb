@@ -67,16 +67,21 @@ module DataMapper
     def has(cardinality, name, options = {})
       options = options.merge(extract_min_max(cardinality))
       options = options.merge(extract_throughness(name))
-      relationship = nil
-      if options[:max] == 1
-        relationship = one_to_one(options.delete(:name), options)
+
+      # do not remove this. There is alot of confusion on people's
+      # part about what the first argument to has() is.  For the record it
+      # is the cardinality, or rather the min and max number of results
+      # the association will return.  It is not, as has been assumed,
+      # the number of results on the left and right hand side of the
+      # reltionship.
+      raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association' if options[:min] == n && options[:max] == n
+
+      relationship = if options[:max] == 1
+        one_to_one(options.delete(:name), options)
       else
-        if options[:min] == n && options[:max] == n
-          relationship = many_to_many(options.delete(:name), options)
-        else
-          relationship = one_to_many(options.delete(:name), options)
-        end
+        one_to_many(options.delete(:name), options)
       end
+
       # Please leave this in - I will release contextual serialization soon
       # which requires this -- guyvdb
       # TODO convert this to a hook in the plugin once hooks work on class

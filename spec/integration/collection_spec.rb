@@ -8,6 +8,10 @@ if HAS_SQLITE3
       class Zebra
         include DataMapper::Resource
 
+        def self.default_repository_name
+          :sqlite3
+        end
+
         property :id, Integer, :serial => true
         property :name, String
         property :age, Integer
@@ -17,6 +21,10 @@ if HAS_SQLITE3
 
       class Stripe
         include DataMapper::Resource
+
+        def self.default_repository_name
+          :sqlite3
+        end
 
         property :id, Integer, :serial => true
         property :name, String
