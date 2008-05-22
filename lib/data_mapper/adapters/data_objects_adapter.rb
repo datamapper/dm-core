@@ -132,7 +132,7 @@ module DataMapper
       end
 
       def read(repository, model, bind_values)
-        properties = model.properties(repository.name).defaults
+        properties = model.properties(name).defaults
 
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
 
@@ -204,9 +204,9 @@ module DataMapper
       end
 
       def query(statement, *args)
-        results = []
-
         with_reader(statement, *args) do |reader|
+          results = []
+
           if (fields = reader.fields).size > 1
             fields = fields.map { |field| DataMapper::Inflection.underscore(field).to_sym }
             struct = Struct.new(*fields)
@@ -219,9 +219,9 @@ module DataMapper
               results << reader.values.at(0)
             end
           end
-        end
 
-        results
+          results
+        end
       end
 
       # TODO: move to dm-more/dm-migrations
@@ -229,13 +229,13 @@ module DataMapper
         table_name = model.storage_name(name)
 
         if success = create_model_storage(repository, model)
-          return model.properties
+          return model.properties(name)
         end
 
         properties = []
 
         with_connection do |connection|
-          model.properties.each do |property|
+          model.properties(name).each do |property|
             schema_hash = property_schema_hash(property, model)
             unless field_exists?(table_name, schema_hash[:name])
               statement = alter_table_add_column_statement(table_name, schema_hash)
@@ -252,15 +252,13 @@ module DataMapper
       # TODO: move to dm-more/dm-migrations
       def create_model_storage(repository, model)
         return false if storage_exists?(model.storage_name(name))
-        statement = create_table_statement(model)
-        execute(statement).to_i == 1
+        execute(create_table_statement(model)).to_i == 1
       end
 
       # TODO: move to dm-more/dm-migrations
       def destroy_model_storage(repository, model)
         return false unless storage_exists?(model.storage_name(name))
-        statement = drop_table_statement(model)
-        execute(statement).to_i == 1
+        execute(drop_table_statement(model)).to_i == 1
       end
 
       # TODO: move to dm-more/dm-transactions
@@ -630,13 +628,13 @@ module DataMapper
         # TODO: move to dm-more/dm-migrations
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-          statement << "#{model.properties.collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+          statement << "#{model.properties(name).collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
 
-          if (key = model.key).any?
+          if (key = model.key(name)).any?
             statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
           end
 
-          statement << ")"
+          statement << ')'
           statement.compress_lines
         end
 

@@ -221,7 +221,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @primitive  = mock('primitive')
       @property   = mock('property', :field => 'property', :primitive => @primitive)
       @properties = mock('properties', :defaults => [ @property ])
-      @repository = mock('repository', :name => :default, :kind_of? => true)
+      @repository = mock('repository', :kind_of? => true)
       @model      = mock('model', :properties => @properties, :< => true, :inheritance_property => nil, :key => [ @property ], :storage_name => 'models')
       @key        = mock('key')
       @resource   = mock('resource')
@@ -236,7 +236,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should lookup the model properties with the repository' do
-      @repository.should_receive(:name).with(no_args).at_least(:once).and_return(:default)
       @model.should_receive(:properties).with(:default).once.and_return(@properties)
       @adapter.read(@repository, @model, @key)
     end
