@@ -354,9 +354,8 @@ module DataMapper
       #   if given a block, otherwise the requested repository.
       #-
       # @api public
-      def repository(*args, &block)
-        args << default_repository_name if args.empty? && Repository.context.last.nil?
-        DataMapper.repository(*args, &block)
+      def repository(name = nil, &block)
+        DataMapper.repository(*Array(Repository.context.last ? nil : name || default_repository_name), &block)
       end
 
       ##
@@ -446,22 +445,14 @@ module DataMapper
       #
       # @see Repository#all
       def all(options = {})
-        if options.has_key?(:repository)
-          repository(options[:repository]).all(self, options)
-        else
-          repository.all(self, options)
-        end
+        repository(*Array(options[:repository])).all(self, options)
       end
 
       ##
       #
       # @see Repository#first
       def first(options = {})
-        if options.has_key?(:repository)
-          repository(options[:repository]).first(self, options)
-        else
-          repository.first(self, options)
-        end
+        repository(*Array(options[:repository])).first(self, options)
       end
 
       ##
