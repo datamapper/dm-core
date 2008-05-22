@@ -23,12 +23,10 @@ module DataMapper
 
       def parent_key
         @parent_key ||= begin
-          model_properties = parent_model.properties(repository_name)
-
           parent_key = if @parent_properties
-            model_properties.slice(*@parent_properties)
+            parent_model.properties(repository_name).slice(*@parent_properties)
           else
-            model_properties.key
+            parent_model.key(repository_name)
           end
 
           PropertySet.new(parent_key)
@@ -44,7 +42,9 @@ module DataMapper
       end
 
       def get_parent(child)
-        query = parent_key.to_query(child_key.get(child))
+        bind_values = child_key.get(child)
+        return nil if bind_values.any? { |bind_value| bind_value.nil? }
+        query = parent_key.to_query(bind_values)
 
         DataMapper.repository(repository_name) do
           parent_model.first(query.merge(@query))

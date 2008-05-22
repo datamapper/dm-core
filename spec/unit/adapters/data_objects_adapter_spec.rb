@@ -435,9 +435,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @adapter.should_receive(:field_exists?).once.with("cheeses", "color").and_return(true)
         @adapter.should_receive(:field_exists?).once.with("cheeses", "notes").and_return(true)
         @adapter.should_receive(:storage_exists?).once.with("cheeses").and_return(true)
-        connection = mock("connection")
-        connection.should_receive(:close).once
-        @adapter.should_receive(:create_connection).once.and_return(connection)
         @adapter.upgrade_model_storage(nil, Cheese).should == []
       end
 

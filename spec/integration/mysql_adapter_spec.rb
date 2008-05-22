@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if HAS_MYSQL
-  describe DataMapper::Adapters::DataObjectsAdapter do
+  describe DataMapper::Adapters::MysqlAdapter do
     before :all do
       @adapter = repository(:mysql).adapter
     end

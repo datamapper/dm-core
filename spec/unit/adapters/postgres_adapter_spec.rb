@@ -41,7 +41,7 @@ if HAS_POSTGRES
 
       it 'should add sequences' do
         statement = %q[CREATE SEQUENCE "models_property_seq"]
-        @adapter.should_receive(:execute).once
+        @adapter.should_receive(:execute).with(statement)
         @adapter.upgrade_model_storage(@repository, @model)
       end
 
@@ -82,7 +82,7 @@ if HAS_POSTGRES
 
       it 'should add sequences' do
         statement = %q[CREATE SEQUENCE "models_property_seq"]
-        @adapter.should_receive(:execute).once
+        @adapter.should_receive(:execute).with(statement)
         @adapter.create_model_storage(@repository, @model)
       end
 
@@ -115,12 +115,6 @@ if HAS_POSTGRES
         rv = mock('inside super')
         @adapter.class.superclass.send(:define_method, :destroy_model_storage) { rv }
         @adapter.destroy_model_storage(@repository, @model).should == rv
-      end
-
-      it 'should check to make sure the sequences exist' do
-        statement = %q[SELECT COUNT(*) FROM "pg_class" WHERE "relkind" = 'S' AND "relname" = ?]
-        @adapter.should_receive(:query).with(statement, 'models_property_seq').and_return([ 0 ])
-        @adapter.destroy_model_storage(@repository, @model)
       end
     end
   end

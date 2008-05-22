@@ -71,7 +71,10 @@ module DataMapper
       old_value = instance_variable_get(ivar_name)
       new_value = property.custom? ? property.type.dump(value, property) : property.typecast(value)
 
-      return if old_value == new_value
+      # skip setting the attribute if the new value equals the old
+      # value, or if the new value is nil, and the property does not
+      # allow nil values
+      return if new_value == old_value || (new_value.nil? && !property.nullable?)
 
       if property.lock?
         instance_variable_set("@shadow_#{name}", old_value)

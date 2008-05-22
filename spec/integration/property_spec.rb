@@ -3,10 +3,10 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 gem 'fastercsv', '>=1.2.3'
 require 'fastercsv'
 
-if HAS_SQLITE3
-  describe DataMapper::Property do
+if ADAPTER
+  describe DataMapper::Property, "with #{ADAPTER}" do
     before do
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(ADAPTER).adapter
     end
 
     describe" tracking strategies" do
@@ -25,7 +25,7 @@ if HAS_SQLITE3
             # Potentially faster, but less safe, so use judiciously, when the odds of a hash-collision are low.
         end
 
-        Actor.auto_migrate!(:sqlite3)
+        Actor.auto_migrate!(ADAPTER)
       end
 
       it "false" do
@@ -84,9 +84,9 @@ if HAS_SQLITE3
           property :miles, Integer, :lazy => [:trip]
         end
 
-        SailBoat.auto_migrate!(:sqlite3)
+        SailBoat.auto_migrate!(ADAPTER)
 
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           SailBoat.create(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
           SailBoat.create(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
           SailBoat.create(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
@@ -94,7 +94,7 @@ if HAS_SQLITE3
       end
 
       it "should lazy load in context" do
-        result = repository(:sqlite3) do
+        result = repository(ADAPTER) do
           SailBoat.all
         end
 
@@ -106,7 +106,7 @@ if HAS_SQLITE3
         result[1].instance_variables.should include('@trip_report')
         result[1].instance_variables.should_not include('@miles')
 
-        result = repository(:sqlite3) do
+        result = repository(ADAPTER) do
           SailBoat.all
         end
 
@@ -135,7 +135,7 @@ if HAS_SQLITE3
           property :could_be_bool1, TrueClass, :default => false
         end
 
-        repository(:sqlite3){ Catamaran.auto_migrate!(:sqlite3) }
+        repository(ADAPTER){ Catamaran.auto_migrate!(ADAPTER) }
       end
 
       before(:each) do
@@ -149,7 +149,7 @@ if HAS_SQLITE3
 
         @cat.name = 'Mary Mayweather'
 
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           @cat.save
 
           cat = Catamaran.first
@@ -162,7 +162,7 @@ if HAS_SQLITE3
       end
 
       it "should have defaults even with creates" do
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           Catamaran.create(:name => 'Jingle All The Way')
           cat = Catamaran.first
           cat.name.should == 'Jingle All The Way'

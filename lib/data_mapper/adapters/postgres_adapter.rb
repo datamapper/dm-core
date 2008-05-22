@@ -52,12 +52,12 @@ module DataMapper
       # TODO: move to dm-more/dm-migrations
       def create_model_storage(repository, model)
         add_sequences(model)
-        super
+        without_notices { super }
       end
 
       # TODO: move to dm-more/dm-migrations
       def destroy_model_storage(repository, model)
-        success = super
+        success = without_notices { super }
         model.properties(name).each do |property|
           drop_sequence(model, property) if property.serial?
         end
@@ -74,8 +74,7 @@ module DataMapper
 
       # TODO: move to dm-more/dm-migrations
       def drop_sequence(model, property)
-        return unless sequence_exists?(model, property)
-        execute(drop_sequence_statement(model, property))
+        without_notices { execute(drop_sequence_statement(model, property)) }
       end
 
       module SQL
@@ -83,6 +82,17 @@ module DataMapper
 
         def supports_returning?
           true
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def without_notices(&block)
+          # execute the block with NOTICE messages disabled
+          begin
+            execute('SET client_min_messages = warning')
+            yield
+          ensure
+            execute('RESET client_min_messages')
+          end
         end
 
         # TODO: move to dm-more/dm-migrations
@@ -115,7 +125,7 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def drop_sequence_statement(model, property)
-          "DROP SEQUENCE #{quote_column_name(sequence_name(model, property))}"
+          "DROP SEQUENCE IF EXISTS #{quote_column_name(sequence_name(model, property))}"
         end
 
         # TODO: move to dm-more/dm-migrations

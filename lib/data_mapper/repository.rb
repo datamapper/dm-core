@@ -88,7 +88,7 @@ module DataMapper
       # set defaults for new resource
       if resource.new_record?
         model.properties(name).each do |property|
-          next if property.default.nil? || resource.attribute_loaded?(property.name)
+          next if resource.attribute_loaded?(property.name)
           property.set(resource, property.default_for(resource))
         end
       end

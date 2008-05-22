@@ -1,12 +1,12 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-if HAS_SQLITE3
-  repository(:sqlite3) do
+if ADAPTER
+  repository(ADAPTER) do
     class Engine
       include DataMapper::Resource
 
       def self.default_repository_name
-        :sqlite3
+        ADAPTER
       end
 
       property :id, Integer, :serial => true
@@ -19,7 +19,7 @@ if HAS_SQLITE3
       include DataMapper::Resource
 
       def self.default_repository_name
-        :sqlite3
+        ADAPTER
       end
 
       property :id, Integer, :serial => true
@@ -36,7 +36,7 @@ if HAS_SQLITE3
       include DataMapper::Resource
 
       def self.default_repository_name
-        :sqlite3
+        ADAPTER
       end
 
       property :id, Integer, :serial => true
@@ -51,7 +51,7 @@ if HAS_SQLITE3
       include DataMapper::Resource
 
       def self.default_repository_name
-        :sqlite3
+        ADAPTER
       end
 
       property :id, Integer, :serial => true
@@ -66,7 +66,7 @@ if HAS_SQLITE3
       include DataMapper::Resource
 
       def self.default_repository_name
-        :sqlite3
+        ADAPTER
       end
 
       property :id, Integer, :serial => true
@@ -79,7 +79,7 @@ if HAS_SQLITE3
       include DataMapper::Resource
 
       def self.default_repository_name
-        :sqlite3
+        ADAPTER
       end
 
       property :id, Integer, :serial => true
@@ -94,7 +94,7 @@ if HAS_SQLITE3
       include DataMapper::Resource
 
       def self.default_repository_name
-        :sqlite3
+        ADAPTER
       end
 
       property :id, Integer, :serial => true
@@ -112,7 +112,7 @@ if HAS_SQLITE3
         include DataMapper::Resource
 
         def self.default_repository_name
-          :sqlite3
+          ADAPTER
         end
 
         property :title, String, :length => 255, :key => true
@@ -125,7 +125,7 @@ if HAS_SQLITE3
         include DataMapper::Resource
 
         def self.default_repository_name
-          :sqlite3
+          ADAPTER
         end
 
         property :title, String, :length => 255, :key => true
@@ -138,12 +138,14 @@ if HAS_SQLITE3
   end
 
   describe DataMapper::Associations do
+    before :all do
+      @adapter = repository(ADAPTER).adapter
+    end
 
     describe "namespaced associations" do
       before do
-        @adapter = repository(:sqlite3).adapter
-        Models::Project.auto_migrate!(:sqlite3)
-        Models::Task.auto_migrate!(:sqlite3)
+        Models::Project.auto_migrate!(ADAPTER)
+        Models::Task.auto_migrate!(ADAPTER)
       end
 
       it 'should allow namespaced classes in parent and child' do
@@ -162,21 +164,15 @@ if HAS_SQLITE3
         p.tasks.size.should == 1
         p.tasks[0].title.should == "t1"
       end
-
-
     end
 
     describe "many to one associations" do
       before do
-        @adapter = repository(:sqlite3).adapter
-
-        Engine.auto_migrate!(:sqlite3)
+        Engine.auto_migrate!(ADAPTER)
+        Yard.auto_migrate!(ADAPTER)
 
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 1, 'engine1')
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 2, 'engine2')
-
-        Yard.auto_migrate!(:sqlite3)
-
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, ?)', 1, 'yard1', 1)
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, NULL)', 0, 'yard2')
       end
@@ -204,7 +200,7 @@ if HAS_SQLITE3
       end
 
       it "#many_to_one with namespaced models" do
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           module FlightlessBirds
             class Ostrich
               include DataMapper::Resource
@@ -217,7 +213,6 @@ if HAS_SQLITE3
           FlightlessBirds::Ostrich.properties.slice(:sky_id).should_not be_empty
         end
       end
-
 
       it "should load the associated instance" do
         y = Yard.first(:id => 1)
@@ -274,14 +269,10 @@ if HAS_SQLITE3
 
     describe "one to one associations" do
       before do
-        @adapter = repository(:sqlite3).adapter
-
-        Sky.auto_migrate!(:sqlite3)
+        Sky.auto_migrate!(ADAPTER)
+        Pie.auto_migrate!(ADAPTER)
 
         @adapter.execute('INSERT INTO "skies" ("id", "name") values (?, ?)', 1, 'sky1')
-
-        Pie.auto_migrate!(:sqlite3)
-
         @adapter.execute('INSERT INTO "pies" ("id", "name", "sky_id") values (?, ?, ?)', 1, 'pie1', 1)
         @adapter.execute('INSERT INTO "pies" ("id", "name") values (?, ?)', 2, 'pie2')
       end
@@ -348,30 +339,20 @@ if HAS_SQLITE3
         p2.id.should == 30
         p2.sky_id.should be_nil
       end
-
-      after do
-        @adapter.execute('DROP TABLE "pies"')
-        @adapter.execute('DROP TABLE "skies"')
-      end
     end
 
     describe "one to many associations" do
       before do
-        @adapter = repository(:sqlite3).adapter
-
-        Host.auto_migrate!(:sqlite3)
+        Host.auto_migrate!(ADAPTER)
+        Slice.auto_migrate!(ADAPTER)
+        Engine.auto_migrate!(ADAPTER)
+        Yard.auto_migrate!(ADAPTER)
 
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 2, 'host2')
-
-        Slice.auto_migrate!(:sqlite3)
-
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, NULL)', 0, 'slice0')
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 1, 'slice1', 1)
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)
-
-        Engine.auto_migrate!(:sqlite3)
-        Yard.auto_migrate!(:sqlite3)
       end
 
       it "#one_to_many" do
@@ -394,7 +375,7 @@ if HAS_SQLITE3
       end
 
       it "should use the IdentityMap correctly" do
-        repository(:sqlite3) do |repos|
+        repository(ADAPTER) do
           h = Host.first(:id => 1)
 
           slice =  h.slices.first
@@ -427,7 +408,6 @@ if HAS_SQLITE3
             yard.name == "yard nr #{i}"
           end.should == true
         end
-
       end
 
       it "#<< should add default values for relationships that have conditions" do
@@ -443,7 +423,6 @@ if HAS_SQLITE3
         engine.fussy_yards << Yard.new(:name => "yard 3")
         Yard.first(:name => "yard 3").rating.should == nil
       end
-
 
       it "should load the associated instances, in the correct order" do
         h = Host.first(:id => 1)
@@ -514,16 +493,14 @@ if HAS_SQLITE3
 
     describe "many-to-one and one-to-many associations combined" do
       before do
-        @adapter = repository(:sqlite3).adapter
+        Node.auto_migrate!(ADAPTER)
 
-        Node.auto_migrate!(:sqlite3)
-
-        @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, NULL)', 1, 'r1')
-        @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, NULL)', 2, 'r2')
-        @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, ?)',    3, 'r1c1', 1)
-        @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, ?)',    4, 'r1c2', 1)
-        @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, ?)',    5, 'r1c3', 1)
-        @adapter.execute('INSERT INTO "nodes" ("id", "name", "parent_id") values (?, ?, ?)',    6, 'r1c1c1', 3)
+        Node.create!(:name => 'r1')
+        Node.create!(:name => 'r2')
+        Node.create!(:name => 'r1c1',   :parent_id => 1)
+        Node.create!(:name => 'r1c2',   :parent_id => 1)
+        Node.create!(:name => 'r1c3',   :parent_id => 1)
+        Node.create!(:name => 'r1c1c1', :parent_id => 3)
       end
 
       it "should properly set #parent" do
@@ -563,13 +540,13 @@ if HAS_SQLITE3
     end
 
     describe 'through-associations' do
-      before(:all) do
-        repository(:sqlite3) do
+      before :all do
+        repository(ADAPTER) do
           module Sweets
             class Shop
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -593,7 +570,7 @@ if HAS_SQLITE3
             class ShopOwner
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -610,7 +587,7 @@ if HAS_SQLITE3
             class Wife
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -622,7 +599,7 @@ if HAS_SQLITE3
             class Coat
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -632,7 +609,7 @@ if HAS_SQLITE3
             class Ring
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -642,7 +619,7 @@ if HAS_SQLITE3
             class Child
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -654,7 +631,7 @@ if HAS_SQLITE3
             class Booger
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -664,7 +641,7 @@ if HAS_SQLITE3
             class Toy
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -674,7 +651,7 @@ if HAS_SQLITE3
             class Cake
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -691,7 +668,7 @@ if HAS_SQLITE3
             class Recipe
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -703,7 +680,7 @@ if HAS_SQLITE3
             class Customer
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -713,7 +690,7 @@ if HAS_SQLITE3
             class Creator
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -723,7 +700,7 @@ if HAS_SQLITE3
             class Ingredient
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -733,7 +710,7 @@ if HAS_SQLITE3
             class Slice
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :size, Integer
@@ -745,7 +722,7 @@ if HAS_SQLITE3
             class Shape
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -755,7 +732,7 @@ if HAS_SQLITE3
             class Bite
               include DataMapper::Resource
               def self.default_repository_name
-                :sqlite3
+                ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
@@ -763,7 +740,7 @@ if HAS_SQLITE3
             end
 
             DataMapper::Resource.descendents.each do |descendent|
-              descendent.auto_migrate!(:sqlite3) if descendent.name =~ /^Sweets::/
+              descendent.auto_migrate!(ADAPTER) if descendent.name =~ /^Sweets::/
             end
 
             betsys = Shop.new(:name => "Betsy's")
@@ -904,6 +881,7 @@ if HAS_SQLITE3
           end
         end
       end
+
       it "should return the right children for one_to_many => one_to_many => one_to_one" do
         Sweets::Shop.first.shape.size.should == 15
         Sweets::Shop.first.shape.select do |shape|
@@ -913,6 +891,7 @@ if HAS_SQLITE3
           shape.name == "round"
         end.size.should == 5
       end
+
       it "should return the right children for one_to_many => one_to_many => one_to_many" do
         Sweets::Shop.first.bites.size.should == 75
         Sweets::Shop.first.bites.select do |bite|
@@ -922,6 +901,7 @@ if HAS_SQLITE3
           bite.slice.cake == Sweets::Cake.first(:name => "Short Cake")
         end.size.should == 15
       end
+
       it "should return the right children for one_to_many => many_to_one relationships" do
         pending("Implement through for one_to_many => many_to_one relationship")
         Sweets::Customer.first.cakes.size.should == 2
@@ -930,6 +910,7 @@ if HAS_SQLITE3
         end.size.should == 1
         # another example can be found here: http://pastie.textmate.org/private/tt1hf1syfsytyxdgo4qxaw
       end
+
       it "should return the right children for one_to_many => one_to_one relationships" do
         Sweets::Shop.first.recipe.size.should == 2
         Sweets::Shop.first.recipe.select do |recipe|
@@ -939,6 +920,7 @@ if HAS_SQLITE3
           recipe.name == "Shorty's Special"
         end.size.should == 1
       end
+
       it "should return the right children for one_to_many => one_to_one => one_to_one relationships" do
         Sweets::Shop.first.creator.size.should == 2
         Sweets::Shop.first.creator.any? do |creator|
@@ -948,6 +930,7 @@ if HAS_SQLITE3
           creator.name == "Berit"
         end.should == true
       end
+
       it "should return the right children for one_to_many => one_to_one => one_to_many relationships" do
         Sweets::Shop.first.ingredients.size.should == 10
         4.times do |i|
@@ -969,9 +952,11 @@ if HAS_SQLITE3
       it "should return the right children for one_to_one => one_to_one relationships" do
         Sweets::Shop.first.wife.should == Sweets::Wife.first
       end
+
       it "should return the right children for one_to_one => one_to_one => one_to_one relationships" do
         Sweets::Shop.first.ring.should == Sweets::Ring.first
       end
+
       it "should return the right children for one_to_one => one_to_one => one_to_many relationships" do
         Sweets::Shop.first.coats.size.should == 3
         3.times do |i|
@@ -980,6 +965,7 @@ if HAS_SQLITE3
           end.should == true
         end
       end
+
       it "should return the right children for one_to_one => one_to_many relationships" do
         Sweets::Shop.first.children.size.should == 5
         5.times do |i|
@@ -988,12 +974,14 @@ if HAS_SQLITE3
           end.should == true
         end
       end
+
       it "should return the right children for one_to_one => one_to_many => one_to_one relationships" do
         Sweets::Shop.first.booger.size.should == 5
         Sweets::Shop.first.booger.inject(Set.new) do |sum, booger|
           sum << booger.child_id
         end.size.should == 5
       end
+
       it "should return the right children for one_to_one => one_to_many => one_to_many relationships" do
         Sweets::Shop.first.toys.size.should == 20
         5.times do |child_nr|

@@ -92,8 +92,8 @@ module DataMapper
       result
     end
 
-    def to_query(values)
-      Hash[ *zip(values).flatten ]
+    def to_query(bind_values)
+      Hash[ *zip(bind_values).flatten ]
     end
 
     def inspect

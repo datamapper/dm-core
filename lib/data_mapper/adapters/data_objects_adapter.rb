@@ -234,16 +234,12 @@ module DataMapper
 
         properties = []
 
-        with_connection do |connection|
-          model.properties(name).each do |property|
-            schema_hash = property_schema_hash(property, model)
-            unless field_exists?(table_name, schema_hash[:name])
-              statement = alter_table_add_column_statement(table_name, schema_hash)
-              command = connection.create_command(statement)
-              result = command.execute_non_query
-              properties << property if result.to_i == 1
-            end
-          end
+        model.properties(name).each do |property|
+          schema_hash = property_schema_hash(property, model)
+          next if field_exists?(table_name, schema_hash[:name])
+          statement = alter_table_add_column_statement(table_name, schema_hash)
+          result = execute(statement)
+          properties << property if result.to_i == 1
         end
 
         properties
@@ -257,7 +253,6 @@ module DataMapper
 
       # TODO: move to dm-more/dm-migrations
       def destroy_model_storage(repository, model)
-        return false unless storage_exists?(model.storage_name(name))
         execute(drop_table_statement(model)).to_i == 1
       end
 
@@ -640,7 +635,7 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def drop_table_statement(model)
-          "DROP TABLE #{quote_table_name(model.storage_name(name))}"
+          "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
         end
 
         # TODO: move to dm-more/dm-migrations

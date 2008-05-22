@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if HAS_POSTGRES
-  describe DataMapper::Adapters::DataObjectsAdapter do
+  describe DataMapper::Adapters::PostgresAdapter do
     before :all do
       @adapter = repository(:postgres).adapter
     end

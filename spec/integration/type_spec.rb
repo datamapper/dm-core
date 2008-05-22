@@ -3,12 +3,12 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 gem 'fastercsv', '>=1.2.3'
 require 'fastercsv'
 
-if HAS_SQLITE3
-  describe DataMapper::Type do
+if ADAPTER
+  describe DataMapper::Type, "with #{ADAPTER}" do
 
     before do
 
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(ADAPTER).adapter
 
       module TypeTests
         class Impostor < DataMapper::Type
@@ -18,7 +18,7 @@ if HAS_SQLITE3
         class Coconut
           include DataMapper::Resource
 
-          storage_names[:sqlite3] = 'coconuts'
+          storage_names[ADAPTER] = 'coconuts'
 
           property :id, Integer, :serial => true
           property :faked, Impostor
@@ -27,7 +27,7 @@ if HAS_SQLITE3
         end
       end
 
-      TypeTests::Coconut.auto_migrate!(:sqlite3)
+      TypeTests::Coconut.auto_migrate!(ADAPTER)
 
       @document = <<-EOS.margin
         NAME, RATING, CONVENIENCE
@@ -53,7 +53,7 @@ if HAS_SQLITE3
     end
 
     it "should CRUD an object with custom types" do
-      repository(:sqlite3) do
+      repository(ADAPTER) do
         coconut = TypeTests::Coconut.new(:faked => 'bob', :active => @active, :note => @note)
         coconut.save.should be_true
         coconut.id.should_not be_nil
@@ -89,19 +89,19 @@ if HAS_SQLITE3
         property :deleted_at, DataMapper::Types::ParanoidDateTime
       end
 
-      Lime.auto_migrate!(:sqlite3)
+      Lime.auto_migrate!(ADAPTER)
 
-      repository(:sqlite3) do
+      repository(ADAPTER) do
         lime = Lime.new
         lime.color = 'green'
 
         lime.save
         lime.destroy
         # lime.deleted_at.should_not be_nil
-        repository(:sqlite3).adapter.query("SELECT count(*) from limes").first.should_not == 0
-        repository(:sqlite3).adapter.query("SELECT * from limes").should_not be_empty
+        repository(ADAPTER).adapter.query("SELECT count(*) from limes").first.should_not == 0
+        repository(ADAPTER).adapter.query("SELECT * from limes").should_not be_empty
 
-        repository(:sqlite3).adapter.execute("DROP TABLE limes")
+        repository(ADAPTER).adapter.execute("DROP TABLE limes")
       end
     end
 
@@ -114,25 +114,25 @@ if HAS_SQLITE3
         property :deleted_at, DataMapper::Types::ParanoidBoolean
       end
 
-      Lime.auto_migrate!(:sqlite3)
+      Lime.auto_migrate!(ADAPTER)
 
-      repository(:sqlite3) do
+      repository(ADAPTER) do
         lime = Lime.new
         lime.color = 'green'
 
         lime.save
         lime.destroy
         # lime.deleted_at.should_not be_nil
-        repository(:sqlite3).adapter.query("SELECT count(*) from limes").first.should_not == 0
-        repository(:sqlite3).adapter.query("SELECT * from limes").should_not be_empty
+        repository(ADAPTER).adapter.query("SELECT count(*) from limes").first.should_not == 0
+        repository(ADAPTER).adapter.query("SELECT * from limes").should_not be_empty
 
-        repository(:sqlite3).adapter.execute("DROP TABLE limes")
+        repository(ADAPTER).adapter.execute("DROP TABLE limes")
       end
     end
 
 
     after do
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(ADAPTER).adapter
       @adapter.execute("DROP TABLE coconuts")
     end
   end
