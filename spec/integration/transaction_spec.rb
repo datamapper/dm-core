@@ -45,7 +45,7 @@ if HAS_MYSQL && HAS_POSTGRES
         DataMapper::Transaction.new(@adapter1, @adapter2) do |transaction|
           @adapter1.execute("INSERT INTO sputniks (name) VALUES ('hepp')")
           @adapter2.execute("INSERT INTO sputniks (name) VALUES ('hepp')")
-          transaction.primitive_for(@adapter1).should_receive(:prepare).once.and_throw(Exception.new("I am the famous test exception"))
+          transaction.primitive_for(@adapter1).should_receive(:prepare).and_throw(Exception.new("I am the famous test exception"))
         end
       end.should raise_error(Exception, /I am the famous test exception/)
       @adapter1.query("SELECT * FROM sputniks").should == []

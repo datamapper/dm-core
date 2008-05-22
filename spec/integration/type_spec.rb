@@ -100,10 +100,8 @@ if ADAPTER
         lime.save
         lime.destroy
         # lime.deleted_at.should_not be_nil
-        repository(ADAPTER).adapter.query("SELECT count(*) from limes").first.should_not == 0
-        repository(ADAPTER).adapter.query("SELECT * from limes").should_not be_empty
-
-        repository(ADAPTER).adapter.execute("DROP TABLE limes")
+        repository(ADAPTER).adapter.query("SELECT COUNT(*) FROM limes").first.should_not == 0
+        repository(ADAPTER).adapter.query("SELECT * FROM limes").should_not be_empty
       end
     end
 

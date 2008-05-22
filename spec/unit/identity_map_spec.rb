@@ -84,7 +84,7 @@ describe "Second Level Caching" do
     cache = @mock_class.new
     key   = %w[ test ]
 
-    cache.should_receive(:get).with(key).once.and_return('resource')
+    cache.should_receive(:get).with(key).and_return('resource')
 
     map = DataMapper::IdentityMap.new(cache)
     map.get(key).should == 'resource'
@@ -94,7 +94,7 @@ describe "Second Level Caching" do
     cache = @mock_class.new
     betsy = Cow.new(:id => 23, :name => 'Betsy')
 
-    cache.should_receive(:set).with(betsy.key, betsy).once.and_return(betsy)
+    cache.should_receive(:set).with(betsy.key, betsy).and_return(betsy)
 
     map = DataMapper::IdentityMap.new(cache)
     map.set(betsy.key, betsy).should == betsy
@@ -105,7 +105,7 @@ describe "Second Level Caching" do
     betsy = Cow.new(:id => 23, :name => 'Betsy')
 
     cache.stub!(:set)
-    cache.should_receive(:delete).with(betsy.key).once.and_return(betsy)
+    cache.should_receive(:delete).with(betsy.key).and_return(betsy)
 
     map = DataMapper::IdentityMap.new(cache)
     map.set(betsy.key, betsy).should == betsy

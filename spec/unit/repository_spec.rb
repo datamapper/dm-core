@@ -36,7 +36,7 @@ describe DataMapper::Repository do
   describe "managing transactions" do
     it "should create a new Transaction with itself as argument when #transaction is called" do
       transaction = mock('transaction')
-      DataMapper::Transaction.should_receive(:new).once.with(@repository).and_return(transaction)
+      DataMapper::Transaction.should_receive(:new).with(@repository).and_return(transaction)
       @repository.transaction.should == transaction
     end
   end
@@ -87,7 +87,7 @@ describe DataMapper::Repository do
         resource.should be_new_record
         resource.class.key.any? { |p| p.serial? }.should be_true
 
-        @adapter.should_receive(:create).with(@repository, resource).once.and_return(resource)
+        @adapter.should_receive(:create).with(@repository, resource).and_return(resource)
 
         @repository.save(resource).should be_true
       end

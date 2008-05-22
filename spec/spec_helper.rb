@@ -19,19 +19,19 @@ def load_driver(name, default_uri)
     require lib
     DataMapper.setup(name, ENV["#{name.to_s.upcase}_SPEC_URI"] || default_uri)
     true
-  rescue Gem::LoadError => e
-    warn "Could not load #{lib}: #{e}"
+  rescue Exception => e
+    warn "Could not load #{lib}: #{e}" if name == ADAPTER
     false
   end
 end
 
 ENV['ADAPTER'] ||= 'sqlite3'
 
+ADAPTER = ENV['ADAPTER'].to_sym
+
 HAS_SQLITE3  = load_driver(:sqlite3,  'sqlite3::memory:')
 HAS_MYSQL    = load_driver(:mysql,    'mysql://localhost/dm_core_test')
 HAS_POSTGRES = load_driver(:postgres, 'postgres://postgres@localhost/dm_core_test')
-
-ADAPTER = ENV['ADAPTER'].to_sym
 
 class Article
   include DataMapper::Resource

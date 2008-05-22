@@ -272,7 +272,7 @@ describe DataMapper::Property do
   it "should use the Repository of its @model" do
     p = DataMapper::Property.new(Zoo, :name, String)
     repo = mock("repository")
-    Zoo.should_receive(:repository).once.and_return(repo)
+    Zoo.should_receive(:repository).and_return(repo)
     p.repository.should == repo
   end
 

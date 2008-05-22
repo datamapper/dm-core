@@ -167,8 +167,8 @@ describe "DataMapper::Hook" do
 
     it 'should execute all class method advices once' do
       tester = mock("tester")
-      tester.should_receive(:before1).once
-      tester.should_receive(:before2).once
+      tester.should_receive(:before1)
+      tester.should_receive(:before2)
       @class.class_eval do
         def self.hook
         end
@@ -185,8 +185,8 @@ describe "DataMapper::Hook" do
 
     it 'should execute all advices once' do
       tester = mock("tester")
-      tester.should_receive(:before1).once
-      tester.should_receive(:before2).once
+      tester.should_receive(:before1)
+      tester.should_receive(:before2)
 
       @class.before :a_method do
         tester.before1
@@ -263,8 +263,8 @@ describe "DataMapper::Hook" do
 
     it 'should execute all class method advices once' do
       tester = mock("tester")
-      tester.should_receive(:after1).once
-      tester.should_receive(:after2).once
+      tester.should_receive(:after1)
+      tester.should_receive(:after2)
 
       @class.after_class_method :a_class_method do
         tester.after1
@@ -277,8 +277,8 @@ describe "DataMapper::Hook" do
 
     it 'should execute all advices once' do
       tester = mock("tester")
-      tester.should_receive(:after1).once
-      tester.should_receive(:after2).once
+      tester.should_receive(:after1)
+      tester.should_receive(:after2)
 
       @class.after :a_method do
         tester.after1

@@ -240,7 +240,7 @@ EOF
 
     it "should return a new Transaction with itself as argument on #transaction" do
       transaction = mock("transaction")
-      DataMapper::Transaction.should_receive(:new).once.with(Planet).and_return(transaction)
+      DataMapper::Transaction.should_receive(:new).with(Planet).and_return(transaction)
       Planet.transaction.should == transaction
     end
 
@@ -255,7 +255,7 @@ EOF
 
     it '.repository should delegate to DataMapper.repository' do
       repository = mock('repository')
-      DataMapper.should_receive(:repository).with(:legacy).once.and_return(repository)
+      DataMapper.should_receive(:repository).with(:legacy).and_return(repository)
       Planet.repository(:legacy).should == repository
     end
 
@@ -354,9 +354,9 @@ EOF
     end
 
     it '.storage_exists? should return whether or not the storage exists' do
-      Planet.should_receive(:repository).with(:default).once do
+      Planet.should_receive(:repository).with(:default) do
         repository = mock('repository')
-        repository.should_receive(:storage_exists?).with('planets').once.and_return(true)
+        repository.should_receive(:storage_exists?).with('planets').and_return(true)
         repository
       end
       Planet.storage_exists?.should == true

@@ -171,10 +171,10 @@ if ADAPTER
         Engine.auto_migrate!(ADAPTER)
         Yard.auto_migrate!(ADAPTER)
 
-        @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 1, 'engine1')
-        @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 2, 'engine2')
-        @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, ?)', 1, 'yard1', 1)
-        @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, NULL)', 0, 'yard2')
+        engine1 = Engine.create!(:name => 'engine1')
+        engine2 = Engine.create!(:name => 'engine2')
+        yard1   = Yard.create!(:name => 'yard1', :engine => engine1)
+        yard2   = Yard.create!(:name => 'yard2')
       end
 
       it "should load without the parent"
@@ -224,9 +224,9 @@ if ADAPTER
 
       it 'should save the association key in the child' do
         e = Engine.first(:id => 2)
-        Yard.create(:id => 2, :name => 'yard2', :engine => e)
+        Yard.create(:id => 3, :name => 'yard2', :engine => e)
 
-        Yard.first(:id => 2).engine_id.should == 2
+        Yard.first(:id => 3).engine_id.should == 2
       end
 
       it 'should save the parent upon saving of child' do
@@ -240,7 +240,7 @@ if ADAPTER
       end
 
       it 'should convert NULL parent ids into nils' do
-        y = Yard.first(:id => 0)
+        y = Yard.first(:id => 2)
 
         y.engine.should be_nil
       end

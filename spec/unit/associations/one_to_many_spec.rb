@@ -123,9 +123,9 @@ describe DataMapper::Associations::OneToMany::Proxy do
   describe "when adding a resource" do
     describe "with a persisted parent" do
       it "should save the resource" do
-        @parent.should_receive(:new_record?).with(no_args).once.and_return(false)
-        @relationship.should_receive(:attach_parent).with(@resource, @parent).once
-        @collection.should_receive(:<<).with(@resource).once.and_return(@collection)
+        @parent.should_receive(:new_record?).with(no_args).and_return(false)
+        @relationship.should_receive(:attach_parent).with(@resource, @parent)
+        @collection.should_receive(:<<).with(@resource).and_return(@collection)
 
         @association << @resource
       end
@@ -135,7 +135,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
       it "should not save the resource" do
         @parent.should_receive(:new_record?).and_return(true)
         @association.should_not_receive(:save_resource)
-        @collection.should_receive(:<<).with(@resource).once.and_return(@collection)
+        @collection.should_receive(:<<).with(@resource).and_return(@collection)
 
         @association << @resource
       end
@@ -149,23 +149,23 @@ describe DataMapper::Associations::OneToMany::Proxy do
   describe "when deleting a resource" do
     before do
       @collection.stub!(:delete).and_return(@resource)
-      @relationship.stub!(:attach_parent).once
+      @relationship.stub!(:attach_parent)
     end
 
     it "should delete the resource from the database" do
-      @resource.should_receive(:save).with(no_args).once
+      @resource.should_receive(:save).with(no_args)
 
       @association.delete(@resource)
     end
 
     it "should delete the resource from the association" do
-      @collection.should_receive(:delete).with(@resource).once.and_return(@resource)
+      @collection.should_receive(:delete).with(@resource).and_return(@resource)
 
       @association.delete(@resource)
     end
 
     it "should erase the ex-parent's keys from the resource" do
-      @relationship.should_receive(:attach_parent).with(@resource, nil).once
+      @relationship.should_receive(:attach_parent).with(@resource, nil)
 
       @association.delete(@resource)
     end
@@ -194,8 +194,8 @@ describe DataMapper::Associations::OneToMany::Proxy do
     end
 
     it "should remove each resource" do
-      @relationship.should_receive(:attach_parent).with(@resource, nil).once
-      @resource.should_receive(:save).with(no_args).once
+      @relationship.should_receive(:attach_parent).with(@resource, nil)
+      @resource.should_receive(:save).with(no_args)
 
       @association.replace(@children)
     end

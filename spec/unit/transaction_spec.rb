@@ -103,8 +103,8 @@ describe DataMapper::Transaction do
       lambda do @transaction.begin end.should raise_error(Exception, /Illegal state/)
     end
     it "should try to connect each adapter (or log fatal error), then begin each adapter (or rollback and close)" do
-      @transaction.should_receive(:each_adapter).once.with(:connect_adapter, [:log_fatal_transaction_breakage])
-      @transaction.should_receive(:each_adapter).once.with(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
+      @transaction.should_receive(:each_adapter).with(:connect_adapter, [:log_fatal_transaction_breakage])
+      @transaction.should_receive(:each_adapter).with(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
       @transaction.begin
     end
     it "should leave with state :begin" do
@@ -135,11 +135,11 @@ describe DataMapper::Transaction do
       lambda do @transaction.rollback end.should raise_error(Exception, /Illegal state/)
     end
     it "should try to rollback each adapter (or rollback and close), then then close (or log fatal error)" do
-      @transaction.should_receive(:each_adapter).once.with(:connect_adapter, [:log_fatal_transaction_breakage])
-      @transaction.should_receive(:each_adapter).once.with(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
-      @transaction.should_receive(:each_adapter).once.with(:rollback_adapter_if_begin, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
-      @transaction.should_receive(:each_adapter).once.with(:close_adapter_if_open, [:log_fatal_transaction_breakage])
-      @transaction.should_receive(:each_adapter).once.with(:rollback_prepared_adapter_if_prepare, [:rollback_prepared_and_close_adapter_if_begin, :close_adapter_if_none])
+      @transaction.should_receive(:each_adapter).with(:connect_adapter, [:log_fatal_transaction_breakage])
+      @transaction.should_receive(:each_adapter).with(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
+      @transaction.should_receive(:each_adapter).with(:rollback_adapter_if_begin, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
+      @transaction.should_receive(:each_adapter).with(:close_adapter_if_open, [:log_fatal_transaction_breakage])
+      @transaction.should_receive(:each_adapter).with(:rollback_prepared_adapter_if_prepare, [:rollback_prepared_and_close_adapter_if_begin, :close_adapter_if_none])
       @transaction.begin
       @transaction.rollback
     end
@@ -188,11 +188,11 @@ describe DataMapper::Transaction do
         lambda do @transaction.commit end.should raise_error(Exception, /Illegal state/)
       end
       it "should try to prepare each adapter (or rollback and close), then commit each adapter (or log fatal error), then close (or log fatal error)" do
-        @transaction.should_receive(:each_adapter).once.with(:connect_adapter, [:log_fatal_transaction_breakage])
-        @transaction.should_receive(:each_adapter).once.with(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
-        @transaction.should_receive(:each_adapter).once.with(:prepare_adapter, [:rollback_and_close_adapter_if_begin, :rollback_prepared_and_close_adapter_if_prepare])
-        @transaction.should_receive(:each_adapter).once.with(:commit_adapter, [:log_fatal_transaction_breakage])
-        @transaction.should_receive(:each_adapter).once.with(:close_adapter, [:log_fatal_transaction_breakage])
+        @transaction.should_receive(:each_adapter).with(:connect_adapter, [:log_fatal_transaction_breakage])
+        @transaction.should_receive(:each_adapter).with(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
+        @transaction.should_receive(:each_adapter).with(:prepare_adapter, [:rollback_and_close_adapter_if_begin, :rollback_prepared_and_close_adapter_if_prepare])
+        @transaction.should_receive(:each_adapter).with(:commit_adapter, [:log_fatal_transaction_breakage])
+        @transaction.should_receive(:each_adapter).with(:close_adapter, [:log_fatal_transaction_breakage])
         @transaction.begin
         @transaction.commit
       end
@@ -221,27 +221,27 @@ describe DataMapper::Transaction do
         lambda do @transaction.commit do end end.should raise_error(Exception, /Illegal state/)
       end
       it "should begin, yield and commit if the block raises no exception" do
-        @repository_transaction_primitive.should_receive(:begin).once
-        @repository_transaction_primitive.should_receive(:prepare).once
-        @repository_transaction_primitive.should_receive(:commit).once
-        @repository_transaction_primitive.should_receive(:close).once
-        @transaction_primitive.should_receive(:begin).once
-        @transaction_primitive.should_receive(:prepare).once
-        @transaction_primitive.should_receive(:commit).once
-        @transaction_primitive.should_receive(:close).once
+        @repository_transaction_primitive.should_receive(:begin)
+        @repository_transaction_primitive.should_receive(:prepare)
+        @repository_transaction_primitive.should_receive(:commit)
+        @repository_transaction_primitive.should_receive(:close)
+        @transaction_primitive.should_receive(:begin)
+        @transaction_primitive.should_receive(:prepare)
+        @transaction_primitive.should_receive(:commit)
+        @transaction_primitive.should_receive(:close)
         p = Proc.new do end
-        @transaction.should_receive(:within).once.with(&p)
+        @transaction.should_receive(:within).with(&p)
         @transaction.commit(&p)
       end
       it "should rollback if the block raises an exception" do
-        @repository_transaction_primitive.should_receive(:begin).once
-        @repository_transaction_primitive.should_receive(:rollback).once
-        @repository_transaction_primitive.should_receive(:close).once
-        @transaction_primitive.should_receive(:begin).once
-        @transaction_primitive.should_receive(:rollback).once
-        @transaction_primitive.should_receive(:close).once
+        @repository_transaction_primitive.should_receive(:begin)
+        @repository_transaction_primitive.should_receive(:rollback)
+        @repository_transaction_primitive.should_receive(:close)
+        @transaction_primitive.should_receive(:begin)
+        @transaction_primitive.should_receive(:rollback)
+        @transaction_primitive.should_receive(:close)
         p = Proc.new do raise "test exception, never mind me" end
-        @transaction.should_receive(:within).once.with(&p)
+        @transaction.should_receive(:within).with(&p)
         lambda do @transaction.commit(&p) end.should raise_error(Exception, /test exception, never mind me/)
       end
     end
@@ -257,22 +257,22 @@ describe DataMapper::Transaction do
       lambda do @transaction.within do end end.should raise_error(Exception, /Illegal state/)
     end
     it "should push itself on the per thread transaction context of each adapter and then pop itself out again" do
-      @repository_transaction_primitive.should_receive(:begin).once
-      @transaction_primitive.should_receive(:begin).once
-      @repository_adapter.should_receive(:push_transaction).once.with(@transaction)
-      @adapter.should_receive(:push_transaction).once.with(@transaction)
-      @repository_adapter.should_receive(:pop_transaction).once
-      @adapter.should_receive(:pop_transaction).once
+      @repository_transaction_primitive.should_receive(:begin)
+      @transaction_primitive.should_receive(:begin)
+      @repository_adapter.should_receive(:push_transaction).with(@transaction)
+      @adapter.should_receive(:push_transaction).with(@transaction)
+      @repository_adapter.should_receive(:pop_transaction)
+      @adapter.should_receive(:pop_transaction)
       @transaction.begin
       @transaction.within do end
     end
     it "should push itself on the per thread transaction context of each adapter and then pop itself out again even if an exception was raised" do
-      @repository_transaction_primitive.should_receive(:begin).once
-      @transaction_primitive.should_receive(:begin).once
-      @repository_adapter.should_receive(:push_transaction).once.with(@transaction)
-      @adapter.should_receive(:push_transaction).once.with(@transaction)
-      @repository_adapter.should_receive(:pop_transaction).once
-      @adapter.should_receive(:pop_transaction).once
+      @repository_transaction_primitive.should_receive(:begin)
+      @transaction_primitive.should_receive(:begin)
+      @repository_adapter.should_receive(:push_transaction).with(@transaction)
+      @adapter.should_receive(:push_transaction).with(@transaction)
+      @repository_adapter.should_receive(:pop_transaction)
+      @adapter.should_receive(:pop_transaction)
       @transaction.begin
       lambda do @transaction.within do raise "test exception, never mind me" end end.should raise_error(Exception, /test exception, never mind me/)
     end
@@ -285,22 +285,22 @@ describe DataMapper::Transaction do
       @adapter.should_receive(:is_a?).any_number_of_times.with(Regexp).and_return(false)
     end
     it "should delegate calls to [a method we have]_if_[state](adapter) to [a method we have](adapter) if state of adapter is [state]" do
-      @transaction.should_receive(:state_for).once.with(@adapter).and_return(:begin)
-      @transaction.should_receive(:connect_adapter).once.with(@adapter)
+      @transaction.should_receive(:state_for).with(@adapter).and_return(:begin)
+      @transaction.should_receive(:connect_adapter).with(@adapter)
       @transaction.connect_adapter_if_begin(@adapter)
     end
     it "should not delegate calls to [a method we have]_if_[state](adapter) to [a method we have](adapter) if state of adapter is not [state]" do
-      @transaction.should_receive(:state_for).once.with(@adapter).and_return(:commit)
+      @transaction.should_receive(:state_for).with(@adapter).and_return(:commit)
       @transaction.should_not_receive(:connect_adapter).with(@adapter)
       @transaction.connect_adapter_if_begin(@adapter)
     end
     it "should delegate calls to [a method we have]_unless_[state](adapter) to [a method we have](adapter) if state of adapter is not [state]" do
-      @transaction.should_receive(:state_for).once.with(@adapter).and_return(:none)
-      @transaction.should_receive(:connect_adapter).once.with(@adapter)
+      @transaction.should_receive(:state_for).with(@adapter).and_return(:none)
+      @transaction.should_receive(:connect_adapter).with(@adapter)
       @transaction.connect_adapter_unless_begin(@adapter)
     end
     it "should not delegate calls to [a method we have]_unless_[state](adapter) to [a method we have](adapter) if state of adapter is [state]" do
-      @transaction.should_receive(:state_for).once.with(@adapter).and_return(:begin)
+      @transaction.should_receive(:state_for).with(@adapter).and_return(:begin)
       @transaction.should_not_receive(:connect_adapter).with(@adapter)
       @transaction.connect_adapter_unless_begin(@adapter)
     end
@@ -334,8 +334,8 @@ describe DataMapper::Transaction do
       @repository_adapter.should_receive(:is_a?).any_number_of_times.with(Regexp).and_return(false)
     end
     it "should send the first argument to itself once for each adapter" do
-      @transaction.should_receive(:plupp).once.with(@adapter)
-      @transaction.should_receive(:plupp).once.with(@repository_adapter)
+      @transaction.should_receive(:plupp).with(@adapter)
+      @transaction.should_receive(:plupp).with(@repository_adapter)
       @transaction.instance_eval do each_adapter(:plupp, [:plur]) end
     end
     it "should stop sending if any call raises an exception, then send each element of the second argument to itself with each adapter as argument" do
@@ -349,10 +349,10 @@ describe DataMapper::Transaction do
           yield(@a2, :none)
         end
       end
-      @transaction.should_receive(:plupp).once.with(@repository_adapter).and_throw(Exception.new("test error - dont mind me"))
+      @transaction.should_receive(:plupp).with(@repository_adapter).and_throw(Exception.new("test error - dont mind me"))
       @transaction.should_not_receive(:plupp).with(@adapter)
-      @transaction.should_receive(:plur).once.with(@adapter)
-      @transaction.should_receive(:plur).once.with(@repository_adapter)
+      @transaction.should_receive(:plur).with(@adapter)
+      @transaction.should_receive(:plur).with(@repository_adapter)
       lambda do @transaction.instance_eval do each_adapter(:plupp, [:plur]) end end.should raise_error(Exception, /test error - dont mind me/)
     end
     it "should send each element of the second argument to itself with each adapter as argument even if exceptions occur in the process" do
@@ -366,10 +366,10 @@ describe DataMapper::Transaction do
           yield(@a2, :none)
         end
       end
-      @transaction.should_receive(:plupp).once.with(@repository_adapter).and_throw(Exception.new("test error - dont mind me"))
+      @transaction.should_receive(:plupp).with(@repository_adapter).and_throw(Exception.new("test error - dont mind me"))
       @transaction.should_not_receive(:plupp).with(@adapter)
-      @transaction.should_receive(:plur).once.with(@adapter).and_throw(Exception.new("another test error"))
-      @transaction.should_receive(:plur).once.with(@repository_adapter).and_throw(Exception.new("yet another error"))
+      @transaction.should_receive(:plur).with(@adapter).and_throw(Exception.new("another test error"))
+      @transaction.should_receive(:plur).with(@repository_adapter).and_throw(Exception.new("yet another error"))
       lambda do @transaction.instance_eval do each_adapter(:plupp, [:plur]) end end.should raise_error(Exception, /test error - dont mind me/)
     end
   end
@@ -407,7 +407,7 @@ describe DataMapper::Transaction do
       @repository_transaction_primitive.stub!(:begin)
       @transaction.begin
       a1 = @adapter
-      @transaction_primitive.should_receive(:ping).once
+      @transaction_primitive.should_receive(:ping)
       @transaction.instance_eval do do_adapter(a1, :ping, :begin) end
     end
   end
@@ -420,7 +420,7 @@ describe DataMapper::Transaction do
     end
     it "should be able to connect an adapter" do
       a1 = @other_adapter
-      @other_adapter.should_receive(:transaction_primitive).once.and_return(@transaction_primitive)
+      @other_adapter.should_receive(:transaction_primitive).and_return(@transaction_primitive)
       @transaction.instance_eval do connect_adapter(a1) end
       @transaction.transaction_primitives[@other_adapter].should == @transaction_primitive
     end
@@ -434,8 +434,8 @@ describe DataMapper::Transaction do
     end
     it "should be able to close the connection of an adapter" do
       a1 = @other_adapter
-      @transaction_primitive.should_receive(:close).once
-      @other_adapter.should_receive(:transaction_primitive).once.and_return(@transaction_primitive)
+      @transaction_primitive.should_receive(:close)
+      @other_adapter.should_receive(:transaction_primitive).and_return(@transaction_primitive)
       @transaction.instance_eval do connect_adapter(a1) end
       @transaction.transaction_primitives[@other_adapter].should == @transaction_primitive
       @transaction.instance_eval do close_adapter(a1) end
@@ -454,39 +454,39 @@ describe DataMapper::Transaction do
     end
     it "should only allow adapters in state :none to begin" do
       a1 = @other_adapter
-      @transaction.should_receive(:do_adapter).once.with(@other_adapter, :begin, :none)
+      @transaction.should_receive(:do_adapter).with(@other_adapter, :begin, :none)
       @transaction.instance_eval do begin_adapter(a1) end
     end
     it "should only allow adapters in state :begin to prepare" do
       a1 = @other_adapter
-      @transaction.should_receive(:do_adapter).once.with(@other_adapter, :prepare, :begin)
+      @transaction.should_receive(:do_adapter).with(@other_adapter, :prepare, :begin)
       @transaction.instance_eval do prepare_adapter(a1) end
     end
     it "should only allow adapters in state :prepare to commit" do
       a1 = @other_adapter
-      @transaction.should_receive(:do_adapter).once.with(@other_adapter, :commit, :prepare)
+      @transaction.should_receive(:do_adapter).with(@other_adapter, :commit, :prepare)
       @transaction.instance_eval do commit_adapter(a1) end
     end
     it "should only allow adapters in state :begin to rollback" do
       a1 = @other_adapter
-      @transaction.should_receive(:do_adapter).once.with(@other_adapter, :rollback, :begin)
+      @transaction.should_receive(:do_adapter).with(@other_adapter, :rollback, :begin)
       @transaction.instance_eval do rollback_adapter(a1) end
     end
     it "should only allow adapters in state :prepare to rollback_prepared" do
       a1 = @other_adapter
-      @transaction.should_receive(:do_adapter).once.with(@other_adapter, :rollback_prepared, :prepare)
+      @transaction.should_receive(:do_adapter).with(@other_adapter, :rollback_prepared, :prepare)
       @transaction.instance_eval do rollback_prepared_adapter(a1) end
     end
     it "should do delegate properly for rollback_and_close" do
       a1 = @other_adapter
-      @transaction.should_receive(:rollback_adapter).once.with(@other_adapter)
-      @transaction.should_receive(:close_adapter).once.with(@other_adapter)
+      @transaction.should_receive(:rollback_adapter).with(@other_adapter)
+      @transaction.should_receive(:close_adapter).with(@other_adapter)
       @transaction.instance_eval do rollback_and_close_adapter(a1) end
     end
     it "should do delegate properly for rollback_prepared_and_close" do
       a1 = @other_adapter
-      @transaction.should_receive(:rollback_prepared_adapter).once.with(@other_adapter)
-      @transaction.should_receive(:close_adapter).once.with(@other_adapter)
+      @transaction.should_receive(:rollback_prepared_adapter).with(@other_adapter)
+      @transaction.should_receive(:close_adapter).with(@other_adapter)
       @transaction.instance_eval do rollback_prepared_and_close_adapter(a1) end
     end
   end

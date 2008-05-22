@@ -310,7 +310,7 @@ describe DataMapper::Collection do
   describe '#load' do
     it 'should load resources from the identity map when possible' do
       @steve.collection = nil
-      @repository.should_receive(:identity_map_get).with(@cow, %w[ Steve ]).once.and_return(@steve)
+      @repository.should_receive(:identity_map_get).with(@cow, %w[ Steve ]).and_return(@steve)
       collection = DataMapper::Collection.new(@repository, @cow, @properties_with_indexes)
       collection.load([ @steve.name, @steve.age ])
       collection.size.should == 1
@@ -400,12 +400,12 @@ describe DataMapper::Collection do
 
   describe '#reload' do
     it 'should return self' do
-      @repository.adapter.should_receive(:read_set).once.and_return(@collection)
+      @repository.adapter.should_receive(:read_set).and_return(@collection)
       @collection.reload.object_id.should == @collection.object_id
     end
 
     it 'should replace the collection with the results of read_set' do
-      @repository.adapter.should_receive(:read_set).once.and_return(@other)
+      @repository.adapter.should_receive(:read_set).and_return(@other)
       @collection.object_id.should_not == @other.object_id
       @collection.size.should == 2
       @collection.reload.should == @other

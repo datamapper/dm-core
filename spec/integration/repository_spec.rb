@@ -58,11 +58,6 @@ if ADAPTER
         results.size.should == 10
         results.map(&:id).should == ids
       end
-
-      after do
-        @adapter.execute('DROP TABLE "serial_finder_specs"')
-      end
-
     end
   end
 end

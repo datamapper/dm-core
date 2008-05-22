@@ -281,7 +281,7 @@ describe DataMapper::Query do
         connection = mock('connect')
         statement  = 'SELECT "id", "blog_id", "created_at", "author", "title", "real_plank" FROM "articles" ORDER BY "real_plank" DESC'
 
-        adapter.should_receive(:with_connection).and_yield(connection).once
+        adapter.should_receive(:with_connection).and_yield(connection)
         connection.should_receive(:create_command).with(statement).and_return(command)
 
         # use the kicker method to execute the query
