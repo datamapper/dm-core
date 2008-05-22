@@ -1,6 +1,11 @@
 module DataMapper
   module Associations
     class RelationshipChain < Relationship
+      OPTIONS = [
+        :repository_name, :near_relationship_name, :remote_relationship_name,
+        :child_model_name, :parent_model_name, :parent_key, :child_key,
+        :min, :max
+      ]
 
       undef_method :get_parent
       undef_method :attach_parent
@@ -50,18 +55,22 @@ module DataMapper
       end
 
       def initialize(options)
-        raise ArgumentError.new("Option +:repository_name+ required!") unless @repository_name = options.delete(:repository_name)
-        raise ArgumentError.new("Option +:near_relationship_name+ required!") unless @near_relationship_name = options.delete(:near_relationship_name)
-        raise ArgumentError.new("Option +:remote_relationship_name+ required!") unless @remote_relationship_name = options.delete(:remote_relationship_name)
-        raise ArgumentError.new("Options +:child_model_name+ required!") unless @child_model_name = options.delete(:child_model_name)
-        raise ArgumentError.new("Options +:parent_model_name+ required!") unless @parent_model_name = options.delete(:parent_model_name)
-        @parent_properties = options.delete(:parent_key)
-        @child_properties = options.delete(:child_key)
-        raise ArgumentError.new("Unknown options for #{self.class.name}#initialize: #{options.inspect}") unless options.empty?
-        @query = options.reject{ |key,val| [:class_name, :child_key, :parent_key, :min, :max].include?(key) }
-        @extra_links = []
+        if (missing_options = options.keys - OPTIONS).any?
+          raise ArgumentError, "The options #{missing_options * ', '} are required"
+        end
 
-        @name = near_relationship.name
+        @repository_name          = options.fetch(:repository_name)
+        @near_relationship_name   = options.fetch(:near_relationship_name)
+        @remote_relationship_name = options.fetch(:remote_relationship_name)
+        @child_model_name         = options.fetch(:child_model_name)
+        @parent_model_name        = options.fetch(:parent_model_name)
+        @parent_properties        = options.fetch(:parent_key)
+        @child_properties         = options.fetch(:child_key)
+
+        @name        = near_relationship.name
+        @query       = options.reject{ |key,val| OPTIONS.include?(key) }
+        @extra_links = []
+        @options     = options
       end
     end # class Relationship
   end # module Associations
