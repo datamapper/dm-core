@@ -3,31 +3,28 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 if HAS_MYSQL
   describe DataMapper::Adapters::DataObjectsAdapter do
     before :all do
-      @adapter = repository(:mysql).adapter
+       @repository_name = :mysql
+       @adapter         = repository(@repository_name).adapter
     end
 
     describe "auto migrating" do
-      before do
+      before :all do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-
-        @connection = mock("connection")
-        @command = mock("command")
-        @result = mock("result")
       end
 
       it "#upgrade_model should work" do
         @adapter.destroy_model_storage(nil, Sputnik)
         @adapter.storage_exists?("sputniks").should == false
-        Sputnik.auto_migrate!(:mysql)
+        Sputnik.auto_migrate!(@repository_name)
         @adapter.storage_exists?("sputniks").should == true
         @adapter.field_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer
-        Sputnik.auto_upgrade!(:mysql)
+        Sputnik.auto_upgrade!(@repository_name)
         @adapter.field_exists?("sputniks", "new_prop").should == true
       end
     end
@@ -41,7 +38,7 @@ if HAS_MYSQL
           property :name, DM::Text
         end
 
-        Sputnik.auto_migrate!(:mysql)
+        Sputnik.auto_migrate!(@repository_name)
       end
 
       it "#storage_exists? should return true for tables that exist" do
@@ -70,7 +67,7 @@ if HAS_MYSQL
           property :name, DM::Text
         end
 
-        Sputnik.auto_migrate!(:mysql)
+        Sputnik.auto_migrate!(@repository_name)
       end
 
       before do

@@ -352,7 +352,7 @@ module DataMapper
       #-
       # @api public
       def repository(name = nil, &block)
-        DataMapper.repository( Repository.context.last ? nil : name || default_repository_name ,&block)
+        DataMapper.repository(Repository.context.last ? nil : name || default_repository_name, &block)
       end
 
       ##
