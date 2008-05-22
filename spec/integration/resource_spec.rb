@@ -24,13 +24,13 @@ if HAS_SQLITE3
       orange.reload!
       orange.color.should == 'orange'
     end
-    
+
     it "should be able to reload new objects" do
       repository(:sqlite3) do
         orange = Orange.new
         orange.name = 'Tom'
         orange.save
-        
+
         lambda do
           orange.reload!
         end.should_not raise_error
@@ -62,7 +62,7 @@ if HAS_SQLITE3
       end
 
     end
-    
+
     describe "hooking" do
       before(:all) do
         class Car
@@ -72,45 +72,45 @@ if HAS_SQLITE3
           property :created_on, Date
           property :touched_on, Date
           property :updated_on, Date
-          
+
           before :save do
             self.touched_on = Date.today
           end
-          
+
           before :create do
             self.created_on = Date.today
           end
-          
+
           before :update do
             self.updated_on = Date.today
           end
         end
-        
+
         Car.auto_migrate!(:sqlite3)
       end
-      
+
       it "should execute hooks before creating/updating objects" do
         repository(:sqlite3) do
           c1 = Car.new(:brand => 'BMW', :color => 'white')
 
           c1.new_record?.should == true
           c1.created_on.should == nil
-          
+
           c1.save
-          
+
           c1.new_record?.should == false
           c1.touched_on.should == Date.today
           c1.created_on.should == Date.today
           c1.updated_on.should == nil
-          
+
           c1.color = 'black'
           c1.save
-          
+
           c1.updated_on.should == Date.today
         end
-        
-      end 
-      
+
+      end
+
     end
 
     describe "inheritance" do
@@ -128,7 +128,7 @@ if HAS_SQLITE3
         class Mugger < Bully; end
 
         class Maniac < Bully; end
-        
+
         class Psycho < Maniac; end
 
         class Geek < Male

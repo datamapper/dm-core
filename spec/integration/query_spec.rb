@@ -49,7 +49,7 @@ if HAS_SQLITE3
           find.name.should == 'couldbe@email.com'
         end
       end
-      
+
       it "should find by conditions passed in a range" do
         repository(:sqlite3) do
           find = SailBoat.all(:id => (0..2))
@@ -308,10 +308,10 @@ if HAS_SQLITE3
         vehicle = Vehicle.first(Vehicle.factory.region.name => 'North West')
         vehicle.name.should == '10 ton delivery truck'
       end
-      
+
       it "should accept a string representing a DM::QueryPath as they key to a condition" do
         vehicle = Vehicle.first("factory.region.name" => 'North West')
-        vehicle.name.should == '10 ton delivery truck'        
+        vehicle.name.should == '10 ton delivery truck'
       end
 
 

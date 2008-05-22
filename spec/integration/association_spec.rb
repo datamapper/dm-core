@@ -105,12 +105,12 @@ if HAS_SQLITE3
       one_to_many :children, :class_name => "Node", :child_key => [ :parent_id ]
       many_to_one :parent, :class_name => "Node", :child_key => [ :parent_id ]
     end
-    
+
     module Models
-      
+
       class Project
         include DataMapper::Resource
-        
+
         def self.default_repository_name
           :sqlite3
         end
@@ -131,7 +131,7 @@ if HAS_SQLITE3
         property :title, String, :length => 255, :key => true
         property :description, DataMapper::Types::Text
         property :project_title, String, :length => 255
-        
+
         many_to_one :project, :class_name => "Models::Project"
       end
     end
@@ -150,33 +150,33 @@ if HAS_SQLITE3
         m = Models::Project.new(:title => "p1", :summary => "sum1")
         m.tasks << Models::Task.new(:title => "t1", :description => "desc 1")
         m.save
-        
+
         t = Models::Task.first(:title => "t1")
-        
+
         t.project.should_not be_nil
         t.project.title.should == 'p1'
         t.project.tasks.size.should == 1
-        
+
         p = Models::Project.first(:title => 'p1')
-        
+
         p.tasks.size.should == 1
         p.tasks[0].title.should == "t1"
       end
 
-      
+
     end
 
     describe "many to one associations" do
       before do
         @adapter = repository(:sqlite3).adapter
-        
+
         Engine.auto_migrate!(:sqlite3)
-        
+
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 1, 'engine1')
         @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 2, 'engine2')
-        
+
         Yard.auto_migrate!(:sqlite3)
-        
+
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, ?)', 1, 'yard1', 1)
         @adapter.execute('INSERT INTO "yards" ("id", "name", "engine_id") values (?, ?, NULL)', 0, 'yard2')
       end
@@ -185,15 +185,15 @@ if HAS_SQLITE3
 
       it 'should allow substituting the parent' do
         y, e = nil, nil
-        
+
         y = Yard.first(:id => 1)
         e = Engine.first(:id => 2)
-        
+
         y.engine = e
         y.save
-        
+
         y = Yard.first(:id => 1)
-        
+
         y.engine_id.should == 2
       end
 
@@ -213,7 +213,7 @@ if HAS_SQLITE3
               many_to_one :sky # there's something sad about this :'(
             end
           end
-          
+
           FlightlessBirds::Ostrich.properties.slice(:sky_id).should_not be_empty
         end
       end
@@ -221,16 +221,16 @@ if HAS_SQLITE3
 
       it "should load the associated instance" do
         y = Yard.first(:id => 1)
-        
+
         y.engine.should_not be_nil
         y.engine.id.should == 1
         y.engine.name.should == "engine1"
       end
-      
+
       it 'should save the association key in the child' do
         e = Engine.first(:id => 2)
         Yard.create(:id => 2, :name => 'yard2', :engine => e)
-        
+
         Yard.first(:id => 2).engine_id.should == 2
       end
 
@@ -239,27 +239,27 @@ if HAS_SQLITE3
         e = Engine.new(:id => 10, :name => "engine10")
         y = Yard.new(:id => 10, :name => "Yard10", :engine => e)
         y.save
-        
+
         y.engine_id.should == 10
         Engine.first(:id => 10).should_not be_nil
       end
-      
+
       it 'should convert NULL parent ids into nils' do
         y = Yard.first(:id => 0)
-        
+
         y.engine.should be_nil
       end
 
       it 'should save nil parents as NULL ids' do
         pending "Broken. I'm guessing Resource#attributes= doesn't make any concessions for associations (probably not what we want to do anyways), and more importantly, that many_to_one accessor= methods don't properly handle nils."
-        
+
         y1,y2 = nil, nil
-        
+
         y1 = Yard.new(:id => 20, :name => "Yard20")
         r.save(y1)
-        
+
         y2 = Yard.create!(:id => 30, :name => "Yard30", :engine => nil)
-        
+
         y1.id.should == 20
         y1.engine_id.should be_nil
         y2.id.should == 30
@@ -271,35 +271,35 @@ if HAS_SQLITE3
         @adapter.execute('DROP TABLE "engines"')
       end
     end
-    
+
     describe "one to one associations" do
       before do
         @adapter = repository(:sqlite3).adapter
-        
+
         Sky.auto_migrate!(:sqlite3)
-        
+
         @adapter.execute('INSERT INTO "skies" ("id", "name") values (?, ?)', 1, 'sky1')
-        
+
         Pie.auto_migrate!(:sqlite3)
-        
+
         @adapter.execute('INSERT INTO "pies" ("id", "name", "sky_id") values (?, ?, ?)', 1, 'pie1', 1)
         @adapter.execute('INSERT INTO "pies" ("id", "name") values (?, ?)', 2, 'pie2')
       end
 
       it 'should allow substituting the child' do
         s, p = nil, nil
-        
+
         s = Sky.first(:id => 1)
         p = Pie.first(:id => 2)
-        
+
         s.pie = p
-        
+
         p1 = Pie.first(:id => 1)
-        
+
         p1.sky_id.should be_nil
-        
+
         p2 = Pie.first(:id => 2)
-        
+
         p2.sky_id.should == 1
       end
 
@@ -320,35 +320,35 @@ if HAS_SQLITE3
       it 'should save the association key in the child' do
         p = Pie.first(:id => 2)
         Sky.create(:id => 2, :name => 'sky2', :pie => p)
-        
+
         Pie.first(:id => 2).sky_id.should == 2
       end
-      
+
       it 'should save the children upon saving of parent' do
         p = Pie.new(:id => 10, :name => "pie10")
         s = Sky.new(:id => 10, :name => "sky10", :pie => p)
-        
+
         s.save
-        
+
         p.sky_id.should == 10
-        
+
         Pie.first(:id => 10).should_not be_nil
       end
 
       it 'should save nil parents as NULL ids' do
         p1, p2 = nil, nil
-        
+
         p1 = Pie.new(:id => 20, :name => "Pie20")
         p1.save
-        
+
         p2 = Pie.create!(:id => 30, :name => "Pie30", :sky => nil)
-        
+
         p1.id.should == 20
         p1.sky_id.should be_nil
         p2.id.should == 30
         p2.sky_id.should be_nil
       end
-      
+
       after do
         @adapter.execute('DROP TABLE "pies"')
         @adapter.execute('DROP TABLE "skies"')
@@ -358,56 +358,56 @@ if HAS_SQLITE3
     describe "one to many associations" do
       before do
         @adapter = repository(:sqlite3).adapter
-        
+
         Host.auto_migrate!(:sqlite3)
-        
+
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 2, 'host2')
-        
+
         Slice.auto_migrate!(:sqlite3)
-        
+
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, NULL)', 0, 'slice0')
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 1, 'slice1', 1)
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)
-        
+
         Engine.auto_migrate!(:sqlite3)
         Yard.auto_migrate!(:sqlite3)
       end
-      
+
       it "#one_to_many" do
         h = Host.new
         h.should respond_to(:slices)
       end
-      
+
       it "should allow removal of a child through a loaded association" do
         h = Host.first(:id => 1)
-        
+
         s = h.slices.first
-        
+
         h.slices.delete(s)
         h.slices.size.should == 1
-        
+
         s = Slice.first(:id => s.id)
-        
+
         s.host.should be_nil
         s.host_id.should be_nil
       end
-      
+
       it "should use the IdentityMap correctly" do
         repository(:sqlite3) do |repos|
           h = Host.first(:id => 1)
-          
+
           slice =  h.slices.first
           slice2 = h.slices(:order => [:id.asc]).last # should be the same as 1
           slice3 = Slice.get(2) # should be the same as 1
-          
+
           slice.should == slice2
           slice.should == slice3
           slice.object_id.should == slice2.object_id
           slice.object_id.should == slice3.object_id
         end
       end
-      
+
       it "#<< should add exactly the parameters" do
         engine = Engine.new(:name => 'my engine')
         4.times do |i|
@@ -427,7 +427,7 @@ if HAS_SQLITE3
             yard.name == "yard nr #{i}"
           end.should == true
         end
-        
+
       end
 
       it "#<< should add default values for relationships that have conditions" do
@@ -442,15 +442,15 @@ if HAS_SQLITE3
         # it should ignore non :eql conditions
         engine.fussy_yards << Yard.new(:name => "yard 3")
         Yard.first(:name => "yard 3").rating.should == nil
-      end 
-      
-      
+      end
+
+
       it "should load the associated instances, in the correct order" do
         h = Host.first(:id => 1)
 
         h.slices.should_not be_nil
         h.slices.size.should == 2
-        h.slices.first.id.should == 2 # ordered by [:id.desc] 
+        h.slices.first.id.should == 2 # ordered by [:id.desc]
         h.slices.last.id.should == 1
 
         s0 = Slice.first(:id => 0)
@@ -472,7 +472,7 @@ if HAS_SQLITE3
       it "should not save the associated instance if the parent is not saved" do
         h = Host.new(:id => 10, :name => "host10")
         h.slices << Slice.new(:id => 10, :name => 'slice10')
-        
+
         Slice.first(:id => 10).should be_nil
       end
 
@@ -480,7 +480,7 @@ if HAS_SQLITE3
         h = Host.new(:id => 10, :name => "host10")
         h.slices << Slice.new(:id => 10, :name => 'slice10')
         h.save
-        
+
         s = Slice.first(:id => 10)
 
         s.should_not be_nil
@@ -490,24 +490,24 @@ if HAS_SQLITE3
 
       it 'should save the associated instances upon saving of parent when mass-assigned' do
         h = Host.create(:id => 10, :name => 'host10', :slices => [ Slice.new(:id => 10, :name => 'slice10') ])
-        
+
         s = Slice.first(:id => 10)
 
         s.should_not be_nil
         s.host.should_not be_nil
         s.host.id.should == 10
       end
-      
+
       it 'should have finder-functionality' do
         h = Host.first(:id => 1)
-        
+
         h.slices.should have(2).entries
-        
+
         s = h.slices.all(:name => 'slice2')
-        
+
         s.should have(1).entries
         s.first.id.should == 2
-        
+
         h.slices.first(:name => 'slice2').should == s.first
       end
     end
@@ -554,14 +554,14 @@ if HAS_SQLITE3
 
       it "should properly delete nodes" do
         r1 = Node.get 1
-        
+
         r1.children.size.should == 3
         r1.children.delete(Node.get(4))
         Node.get(4).parent.should be_nil
         r1.children.size.should == 2
       end
     end
-    
+
     describe 'through-associations' do
       before(:all) do
         repository(:sqlite3) do
@@ -660,7 +660,7 @@ if HAS_SQLITE3
               property :name, String
               belongs_to :child, :class_name => 'Sweets::Child'
             end
-            
+
             class Toy
               include DataMapper::Resource
               def self.default_repository_name
@@ -687,7 +687,7 @@ if HAS_SQLITE3
               has 1, {:recipe => :creator}, :class_name => 'Sweets::Creator'
               has n, {:slices => :shape}, :class_name => 'Sweets::Shape'
             end
-            
+
             class Recipe
               include DataMapper::Resource
               def self.default_repository_name
@@ -699,7 +699,7 @@ if HAS_SQLITE3
               has n, :ingredients, :class_name => 'Sweets::Ingredient'
               has 1, :creator, :class_name => 'Sweets::Creator'
             end
-            
+
             class Customer
               include DataMapper::Resource
               def self.default_repository_name
@@ -729,7 +729,7 @@ if HAS_SQLITE3
               property :name, String
               belongs_to :recipe, :class_name => 'Sweets::Recipe'
             end
-            
+
             class Slice
               include DataMapper::Resource
               def self.default_repository_name
@@ -751,7 +751,7 @@ if HAS_SQLITE3
               property :name, String
               belongs_to :slice, :class_name => 'Sweets::Slice'
             end
-            
+
             class Bite
               include DataMapper::Resource
               def self.default_repository_name
@@ -765,7 +765,7 @@ if HAS_SQLITE3
             DataMapper::Resource.descendents.each do |descendent|
               descendent.auto_migrate!(:sqlite3) if descendent.name =~ /^Sweets::/
             end
-            
+
             betsys = Shop.new(:name => "Betsy's")
             betsys.save
 
@@ -819,7 +819,7 @@ if HAS_SQLITE3
             5.times do |i| short_cake.slices << Slice.new(:size => i) end
             german_chocolate.slices.size.should == 10
             # one_to_many => one_to_many => one_to_one
-            
+
             german_chocolate.slices.each do |slice|
               shape = Shape.new(:name => 'square')
               slice.shape = shape
@@ -851,7 +851,7 @@ if HAS_SQLITE3
             betsys.shop_owner = betsy
             betsys.save
 
-            # one_to_one => one_to_one           
+            # one_to_one => one_to_one
 
             barry = Wife.new(:name => 'Barry')
             betsy.wife = barry
@@ -870,7 +870,7 @@ if HAS_SQLITE3
             end
 
             # one_to_one => one_to_many
-            
+
             5.times { |i| betsy.children << Child.new(:name => "Snotling nr #{i}") }
 
             # one_to_one => one_to_many => one_to_many
@@ -965,7 +965,7 @@ if HAS_SQLITE3
       #
       # one_to_one
       #
-      
+
       it "should return the right children for one_to_one => one_to_one relationships" do
         Sweets::Shop.first.wife.should == Sweets::Wife.first
       end
@@ -1014,7 +1014,7 @@ if HAS_SQLITE3
           Sweets::Shop.first.wife = Sweets::Wife.new(:name => 'Larry')
         end.should raise_error(DataMapper::Associations::ImmutableAssociationError)
       end
-        
+
     end
   end
 end
