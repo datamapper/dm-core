@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 if HAS_SQLITE3
   class Engine
     include DataMapper::Resource
-
+    
     property :id, Integer, :serial => true
     property :name, String
     repository(:sqlite3) do
@@ -419,6 +419,21 @@ if HAS_SQLITE3
 
         s.host.should be_nil
         s.host_id.should be_nil
+      end
+      
+      it "should use the IdentityMap correctly" do
+        repository(:sqlite3) do |repos|
+          h = Host.first(:id => 1)
+          
+          slice =  h.slices.first
+          slice2 = h.slices(:order => [:id.asc]).last # should be the same as 1
+          slice3 = Slice.get(2) # should be the same as 1
+          
+          slice.should == slice2
+          slice.should == slice3
+          slice.object_id.should == slice2.object_id
+          slice.object_id.should == slice3.object_id
+        end
       end
 
       it "#<< should add exactly the parameters" do
