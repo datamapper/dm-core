@@ -3,44 +3,34 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 if HAS_MYSQL
   describe DataMapper::Adapters::DataObjectsAdapter do
     before :all do
-       @repository_name = :mysql
-       @adapter         = repository(@repository_name).adapter
+      @adapter = repository(:mysql).adapter
+    end
+
+    before :all do
+      class Sputnik
+        include DataMapper::Resource
+
+        property :id, Integer, :serial => true
+        property :name, DM::Text
+
+        auto_migrate!(:mysql)
+      end
     end
 
     describe "auto migrating" do
-      before :all do
-        class Sputnik
-          include DataMapper::Resource
-
-          property :id, Integer, :serial => true
-          property :name, DM::Text
-        end
-      end
-
       it "#upgrade_model should work" do
         @adapter.destroy_model_storage(nil, Sputnik)
         @adapter.storage_exists?("sputniks").should == false
-        Sputnik.auto_migrate!(@repository_name)
+        Sputnik.auto_migrate!(:mysql)
         @adapter.storage_exists?("sputniks").should == true
         @adapter.field_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer
-        Sputnik.auto_upgrade!(@repository_name)
+        Sputnik.auto_upgrade!(:mysql)
         @adapter.field_exists?("sputniks", "new_prop").should == true
       end
     end
 
     describe "querying metadata" do
-      before do
-        class Sputnik
-          include DataMapper::Resource
-
-          property :id, Integer, :serial => true
-          property :name, DM::Text
-        end
-
-        Sputnik.auto_migrate!(@repository_name)
-      end
-
       it "#storage_exists? should return true for tables that exist" do
         @adapter.storage_exists?("sputniks").should == true
       end
@@ -59,17 +49,6 @@ if HAS_MYSQL
     end
 
     describe "handling transactions" do
-      before :all do
-        class Sputnik
-          include DataMapper::Resource
-
-          property :id, Integer, :serial => true
-          property :name, DM::Text
-        end
-
-        Sputnik.auto_migrate!(@repository_name)
-      end
-
       before do
         @transaction = DataMapper::Transaction.new(@adapter)
       end

@@ -14,17 +14,13 @@ if HAS_SQLITE3
     end
 
     describe "auto migrating" do
-      before do
+      before :all do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-
-        @connection = mock("connection")
-        @command = mock("command")
-        @result = mock("result")
       end
 
       it "#upgrade_model should work" do
@@ -40,14 +36,16 @@ if HAS_SQLITE3
     end
 
     describe "querying metadata" do
-      before do
+      before :all do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
+      end
 
+      before do
         Sputnik.auto_migrate!(:sqlite3_file)
       end
 
@@ -84,15 +82,16 @@ if HAS_SQLITE3
     end
 
     describe "handling transactions" do
-      before do
-
+      before :all do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
+      end
 
+      before do
         Sputnik.auto_migrate!(:sqlite3_file)
 
         @transaction = DataMapper::Transaction.new(@adapter)
@@ -115,21 +114,19 @@ if HAS_SQLITE3
     end
 
     describe "reading & writing a database" do
-      before do
+      before :all do
         class User
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
+      end
 
+      before do
         User.auto_migrate!(:sqlite3_file)
 
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
-      end
-
-      after do
-        @adapter.execute('DROP TABLE "users"')
       end
 
       it 'should be able to #execute an arbitrary query' do
@@ -162,14 +159,16 @@ if HAS_SQLITE3
     end
 
     describe "CRUD for serial Key" do
-      before do
+      before :all do
         class VideoGame
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, String
         end
+      end
 
+      before do
         VideoGame.auto_migrate!(:sqlite3_file)
       end
 
@@ -268,7 +267,9 @@ if HAS_SQLITE3
           property :account_number, String, :key => true
           property :name, String
         end
+      end
 
+      before do
         BankCustomer.auto_migrate!(:sqlite3_file)
       end
 
