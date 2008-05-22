@@ -350,13 +350,7 @@ module DataMapper
       #-
       # @api public
       def repository(name = nil, &block)
-        if name
-          DataMapper.repository(name, &block)
-        elsif Repository.context.last
-          DataMapper.repository(nil, &block)
-        else
-          DataMapper.repository(default_repository_name, &block)
-        end
+        DataMapper.repository( Repository.context.last ? nil : name || default_repository_name ,&block)
       end
 
       ##
