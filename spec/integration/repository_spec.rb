@@ -2,18 +2,22 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
   describe DataMapper::Repository, "with #{ADAPTER}" do
+    before :all do
+      @adapter = repository(ADAPTER).adapter
+    end
+
     describe "finders" do
-      before do
+      before :all do
         class SerialFinderSpec
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :sample, String
         end
+      end
 
+      before do
         SerialFinderSpec.auto_migrate!(ADAPTER)
-
-        @adapter = repository(ADAPTER).adapter
 
         setup_repository = repository(ADAPTER)
         100.times do

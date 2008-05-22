@@ -260,11 +260,6 @@ if ADAPTER
         y2.id.should == 30
         y2.engine_id.should be_nil
       end
-
-      after do
-        @adapter.execute('DROP TABLE "yards"')
-        @adapter.execute('DROP TABLE "engines"')
-      end
     end
 
     describe "one to one associations" do

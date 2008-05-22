@@ -10,7 +10,7 @@ if ADAPTER
     end
 
     describe" tracking strategies" do
-      before do
+      before :all do
         class Actor
           include DataMapper::Resource
 
@@ -24,7 +24,9 @@ if ADAPTER
           property :agent, String, :track => :hash # :track only Object#hash value on :load.
             # Potentially faster, but less safe, so use judiciously, when the odds of a hash-collision are low.
         end
+      end
 
+      before do
         Actor.auto_migrate!(ADAPTER)
       end
 
@@ -67,15 +69,10 @@ if ADAPTER
         bob.original_attributes.should have_key(:name)
         bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
       end
-
-      after do
-        @adapter.execute("DROP TABLE actors")
-      end
     end
 
     describe "lazy loading" do
-      before do
-
+      before :all do
         class SailBoat
           include DataMapper::Resource
           property :id, Integer, :serial => true
@@ -83,7 +80,9 @@ if ADAPTER
           property :trip_report, String, :lazy => [:notes,:trip]
           property :miles, Integer, :lazy => [:trip]
         end
+      end
 
+      before do
         SailBoat.auto_migrate!(ADAPTER)
 
         repository(ADAPTER) do
@@ -116,15 +115,10 @@ if ADAPTER
         result[1].trip_report.should_not be_nil
         result[2].instance_variables.should include('@miles')
       end
-
-      after do
-       @adapter.execute('DROP TABLE "sail_boats"')
-      end
-
     end
 
     describe 'defaults' do
-      before(:all) do
+      before :all do
         class Catamaran
           include DataMapper::Resource
           property :id, Integer, :serial => true
@@ -170,10 +164,7 @@ if ADAPTER
           cat.could_be_bool1.should_not be_nil
           cat.could_be_bool1.should == false
         end
-
-
       end
-
     end
   end
 end

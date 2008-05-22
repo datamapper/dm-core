@@ -5,11 +5,11 @@ require 'fastercsv'
 
 if ADAPTER
   describe DataMapper::Type, "with #{ADAPTER}" do
-
-    before do
-
+    before :all do
       @adapter = repository(ADAPTER).adapter
+    end
 
+    before :all do
       module TypeTests
         class Impostor < DataMapper::Type
           primitive String
@@ -26,7 +26,9 @@ if ADAPTER
           property :note, Text
         end
       end
+    end
 
+    before do
       TypeTests::Coconut.auto_migrate!(ADAPTER)
 
       @document = <<-EOS.margin
@@ -125,15 +127,7 @@ if ADAPTER
         # lime.deleted_at.should_not be_nil
         repository(ADAPTER).adapter.query("SELECT count(*) from limes").first.should_not == 0
         repository(ADAPTER).adapter.query("SELECT * from limes").should_not be_empty
-
-        repository(ADAPTER).adapter.execute("DROP TABLE limes")
       end
-    end
-
-
-    after do
-      @adapter = repository(ADAPTER).adapter
-      @adapter.execute("DROP TABLE coconuts")
     end
   end
 end
