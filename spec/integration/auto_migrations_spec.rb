@@ -153,20 +153,20 @@ if HAS_MYSQL
       end
 
       types = {
-        :serial      => [ Integer,    'INT(11)',      false, nil,                                                                            1,                 true  ],
-        :fixnum      => [ Integer,    'INT(11)',      false, '1',                                                                            1,                 false ],
-        :string      => [ String,     'VARCHAR(50)',  false, 'default',                                                                      'default',         false ],
-        :empty       => [ String,     'VARCHAR(50)',  false, '',                                                                             '',                false ],
-        :date        => [ Date,       'DATE',         false, TODAY.strftime('%Y-%m-%d'),                                                     TODAY,             false ],
-        :true_class  => [ TrueClass,  'TINYINT(1)',   false, '1',                                                                            true,              false ],
-        :false_class => [ TrueClass,  'TINYINT(1)',   false, '0',                                                                            false,             false ],
-        :text        => [ DM::Text,   'TEXT',         false, nil,                                                                            'text',            false ],
-#        :class       => [ Class,      'VARCHAR(50)',  false, 'Class',                                                                        'Class',           false ],
-        :big_decimal => [ BigDecimal, 'DECIMAL(2,1)', false, '1.1',                                                                          BigDecimal('1.1'), false ],
-        :float       => [ Float,      'FLOAT(2,1)',   false, '1.1',                                                                          1.1,               false ],
-        :date_time   => [ DateTime,   'DATETIME',     false, NOW.strftime('%Y-%m-%d %H:%M:%S'),                                              NOW,               false ],
-        :time        => [ Time,       'TIMESTAMP',    false, "#{CURRENT.strftime('%Y-%m-%d %H:%M:%S')}.#{CURRENT.usec.to_s.ljust(6, '0')}",  CURRENT,           false ],
-        :object      => [ Object,     'TEXT',         true,  nil,                                                                            nil,               false ],
+        :serial      => [ Integer,    'INT(11)',      false, nil,                                    1,                 true  ],
+        :fixnum      => [ Integer,    'INT(11)',      false, '1',                                    1,                 false ],
+        :string      => [ String,     'VARCHAR(50)',  false, 'default',                              'default',         false ],
+        :empty       => [ String,     'VARCHAR(50)',  false, '',                                     '',                false ],
+        :date        => [ Date,       'DATE',         false, TODAY.strftime('%Y-%m-%d'),             TODAY,             false ],
+        :true_class  => [ TrueClass,  'TINYINT(1)',   false, '1',                                    true,              false ],
+        :false_class => [ TrueClass,  'TINYINT(1)',   false, '0',                                    false,             false ],
+        :text        => [ DM::Text,   'TEXT',         false, nil,                                    'text',            false ],
+#        :class       => [ Class,      'VARCHAR(50)',  false, 'Class',                                'Class',           false ],
+        :big_decimal => [ BigDecimal, 'DECIMAL(2,1)', false, '1.1',                                  BigDecimal('1.1'), false ],
+        :float       => [ Float,      'FLOAT(2,1)',   false, '1.1',                                  1.1,               false ],
+        :date_time   => [ DateTime,   'DATETIME',     false, NOW.strftime('%Y-%m-%d %H:%M:%S'),      NOW,               false ],
+        :time        => [ Time,       'TIMESTAMP',    false, CURRENT.strftime('%Y-%m-%d %H:%M:%S'),  CURRENT,           false ],
+        :object      => [ Object,     'TEXT',         true,  nil,                                    nil,               false ],
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
@@ -185,7 +185,7 @@ if HAS_MYSQL
 
           expected_value = types[name][4]
           it 'should properly typecast value' do
-            if DateTime == klass
+            if DateTime == klass || Time == klass # mysql doesn't support microsecond
               @book.attribute_get(name).to_s.should == expected_value.to_s
             else
               @book.attribute_get(name).should == expected_value
