@@ -69,6 +69,8 @@ module DataMapper
       def storage_exists?(storage_name)
         raise NotImplementedError
       end
+
+      # TODO: remove this alias
       alias exists? storage_exists?
 
       #

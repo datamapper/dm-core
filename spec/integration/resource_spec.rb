@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-if HAS_SQLITE3
-  describe "DataMapper::Resource" do
+if ADAPTER
+  describe "DataMapper::Resource with #{ADAPTER}" do
 
     before(:all) do
       class Orange
@@ -10,27 +10,27 @@ if HAS_SQLITE3
         property :color, String
       end
 
-      Orange.auto_migrate!(:sqlite3)
+      Orange.auto_migrate!(ADAPTER)
       orange = Orange.new(:color => 'orange')
       orange.name = 'Bob' # Keys are protected from mass-assignment by default.
-      repository(:sqlite3) { orange.save }
+      repository(ADAPTER) { orange.save }
     end
 
     it "should be able to reload objects" do
-      orange = repository(:sqlite3) { Orange['Bob'] }
+      orange = repository(ADAPTER) { Orange['Bob'] }
       orange.color.should == 'orange'
       orange.color = 'blue'
       orange.color.should == 'blue'
       orange.reload!
       orange.color.should == 'orange'
     end
-    
+
     it "should be able to reload new objects" do
-      repository(:sqlite3) do
+      repository(ADAPTER) do
         orange = Orange.new
         orange.name = 'Tom'
         orange.save
-        
+
         lambda do
           orange.reload!
         end.should_not raise_error
@@ -45,11 +45,11 @@ if HAS_SQLITE3
           property :distance, Integer
         end
 
-        @planet.auto_migrate!(:sqlite3)
+        @planet.auto_migrate!(ADAPTER)
       end
 
       it "should be able to persist" do
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           pluto = @planet.new
           pluto.name = 'Pluto'
           pluto.distance = 1_000_000
@@ -62,7 +62,7 @@ if HAS_SQLITE3
       end
 
     end
-    
+
     describe "hooking" do
       before(:all) do
         class Car
@@ -72,45 +72,45 @@ if HAS_SQLITE3
           property :created_on, Date
           property :touched_on, Date
           property :updated_on, Date
-          
+
           before :save do
             self.touched_on = Date.today
           end
-          
+
           before :create do
             self.created_on = Date.today
           end
-          
+
           before :update do
             self.updated_on = Date.today
           end
         end
-        
-        Car.auto_migrate!(:sqlite3)
+
+        Car.auto_migrate!(ADAPTER)
       end
-      
+
       it "should execute hooks before creating/updating objects" do
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           c1 = Car.new(:brand => 'BMW', :color => 'white')
 
           c1.new_record?.should == true
           c1.created_on.should == nil
-          
+
           c1.save
-          
+
           c1.new_record?.should == false
           c1.touched_on.should == Date.today
           c1.created_on.should == Date.today
           c1.updated_on.should == nil
-          
+
           c1.color = 'black'
           c1.save
-          
+
           c1.updated_on.should == Date.today
         end
-        
-      end 
-      
+
+      end
+
     end
 
     describe "inheritance" do
@@ -128,16 +128,16 @@ if HAS_SQLITE3
         class Mugger < Bully; end
 
         class Maniac < Bully; end
-        
+
         class Psycho < Maniac; end
 
         class Geek < Male
           property :awkward, Boolean, :default => true
         end
 
-        Geek.auto_migrate!(:sqlite3)
+        Geek.auto_migrate!(ADAPTER)
 
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           Male.create!(:name => 'John Dorian')
           Bully.create!(:name => 'Bob')
           Geek.create!(:name => 'Steve', :awkward => false, :iq => 132)
@@ -150,7 +150,7 @@ if HAS_SQLITE3
       end
 
       it "should select appropriate types" do
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           males = Male.all
           males.should have(8).entries
 
@@ -168,7 +168,7 @@ if HAS_SQLITE3
       end
 
       it "should not select parent type" do
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           Male.first(:name => 'John Dorian').should be_a_kind_of(Male)
           Geek.first(:name => 'John Dorian').should be_nil
           Geek.first.iq.should > Bully.first.iq
@@ -176,7 +176,7 @@ if HAS_SQLITE3
       end
 
       it "should select objects of all inheriting classes" do
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           Male.all.should have(8).entries
           Geek.all.should have(2).entries
           Bully.all.should have(5).entries

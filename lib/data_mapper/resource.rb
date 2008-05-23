@@ -71,7 +71,10 @@ module DataMapper
       old_value = instance_variable_get(ivar_name)
       new_value = property.custom? ? property.type.dump(value, property) : property.typecast(value)
 
-      return if old_value == new_value
+      # skip setting the attribute if the new value equals the old
+      # value, or if the new value is nil, and the property does not
+      # allow nil values
+      return if new_value == old_value || (new_value.nil? && !property.nullable?)
 
       if property.lock?
         instance_variable_set("@shadow_#{name}", old_value)
@@ -151,7 +154,7 @@ module DataMapper
     def readonly?
       @readonly == true
     end
-    
+
     ##
     # save the instance to the data-store
     #
@@ -267,16 +270,18 @@ module DataMapper
     #   of the class of this DataMapper::Resource added.
     #-
     # @api public
+    #
+    # TODO: move to dm-more/dm-transactions
     def transaction(&block)
       self.class.transaction(&block)
     end
 
     private
-    
+
     def create
       repository.save(self)
     end
-    
+
     def update
       repository.save(self)
     end
@@ -331,12 +336,12 @@ module DataMapper
     module ClassMethods
       def self.extended(model)
         model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval do default_storage_name end) })
-        model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == :default ? PropertySet.new : h[:default].dup })
+        model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
       end
 
       def inherited(target)
         target.instance_variable_set(:@storage_names, @storage_names.dup)
-        target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == :default ? self.properties(:default).dup(target) : h[:default].dup })
+        target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == Repository.default_name ? self.properties(Repository.default_name).dup(target) : h[Repository.default_name].dup })
         if @relationships
           duped_relationships = {}; @relationships.each_pair{ |repos, rels| duped_relationships[repos] = rels.dup}
           target.instance_variable_set(:@relationships, duped_relationships)
@@ -355,7 +360,12 @@ module DataMapper
       #-
       # @api public
       def repository(name = nil, &block)
-        DataMapper.repository( Repository.context.last ? nil : name || default_repository_name ,&block)
+        #
+        # There has been a couple of different strategies here, but me (zond) and dkubb are at least
+        # united in the concept of explicitness over implicitness. That is - the explicit wish of the
+        # caller (+name+) should be given more priority than the implicit wish of the caller (Repository.context.last).
+        #
+        DataMapper.repository(*Array(name || (Repository.context.last ? nil : default_repository_name)), &block)
       end
 
       ##
@@ -445,14 +455,14 @@ module DataMapper
       #
       # @see Repository#all
       def all(options = {})
-        repository(options[:repository]).all(self, options)
+        repository(*Array(options[:repository])).all(self, options)
       end
 
       ##
       #
       # @see Repository#first
       def first(options = {})
-        repository(options[:repository]).first(self, options)
+        repository(*Array(options[:repository])).first(self, options)
       end
 
       ##
@@ -504,13 +514,18 @@ module DataMapper
       #   of the class of this DataMapper::Resource added.
       #-
       # @api public
+      #
+      # TODO: move to dm-more/dm-transactions
       def transaction(&block)
         DataMapper::Transaction.new(self, &block)
       end
 
-      def exists?(repo_name = default_repository_name)
-        repository(repo_name).storage_exists?(storage_name(repo_name))
+      def storage_exists?(repository_name = default_repository_name)
+        repository(repository_name).storage_exists?(storage_name(repository_name))
       end
+
+      # TODO: remove this alias
+      alias exists? storage_exists?
 
       private
 

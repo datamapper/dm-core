@@ -349,9 +349,17 @@ EOF
       Planet.should respond_to(:[])
     end
 
-    it '.exists? should return whether or not the repository exists' do
-      Planet.should respond_to(:exists?)
-      Planet.exists?.should == true
+    it 'should provide .storage_exists?' do
+      Planet.should respond_to(:storage_exists?)
+    end
+
+    it '.storage_exists? should return whether or not the storage exists' do
+      Planet.should_receive(:repository).with(:default).once do
+        repository = mock('repository')
+        repository.should_receive(:storage_exists?).with('planets').once.and_return(true)
+        repository
+      end
+      Planet.storage_exists?.should == true
     end
 
   end

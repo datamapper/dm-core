@@ -3,14 +3,14 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 gem 'fastercsv', '>=1.2.3'
 require 'fastercsv'
 
-if HAS_SQLITE3
-  describe DataMapper::Property do
+if ADAPTER
+  describe DataMapper::Property, "with #{ADAPTER}" do
     before do
-      @adapter = repository(:sqlite3).adapter
+      @adapter = repository(ADAPTER).adapter
     end
 
     describe" tracking strategies" do
-      before do
+      before :all do
         class Actor
           include DataMapper::Resource
 
@@ -24,8 +24,10 @@ if HAS_SQLITE3
           property :agent, String, :track => :hash # :track only Object#hash value on :load.
             # Potentially faster, but less safe, so use judiciously, when the odds of a hash-collision are low.
         end
+      end
 
-        Actor.auto_migrate!(:sqlite3)
+      before do
+        Actor.auto_migrate!(ADAPTER)
       end
 
       it "false" do
@@ -67,15 +69,10 @@ if HAS_SQLITE3
         bob.original_attributes.should have_key(:name)
         bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
       end
-
-      after do
-        @adapter.execute("DROP TABLE actors")
-      end
     end
 
     describe "lazy loading" do
-      before do
-
+      before :all do
         class SailBoat
           include DataMapper::Resource
           property :id, Integer, :serial => true
@@ -83,10 +80,12 @@ if HAS_SQLITE3
           property :trip_report, String, :lazy => [:notes,:trip]
           property :miles, Integer, :lazy => [:trip]
         end
+      end
 
-        SailBoat.auto_migrate!(:sqlite3)
+      before do
+        SailBoat.auto_migrate!(ADAPTER)
 
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           SailBoat.create(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
           SailBoat.create(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
           SailBoat.create(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
@@ -94,7 +93,7 @@ if HAS_SQLITE3
       end
 
       it "should lazy load in context" do
-        result = repository(:sqlite3) do
+        result = repository(ADAPTER) do
           SailBoat.all
         end
 
@@ -106,7 +105,7 @@ if HAS_SQLITE3
         result[1].instance_variables.should include('@trip_report')
         result[1].instance_variables.should_not include('@miles')
 
-        result = repository(:sqlite3) do
+        result = repository(ADAPTER) do
           SailBoat.all
         end
 
@@ -116,15 +115,10 @@ if HAS_SQLITE3
         result[1].trip_report.should_not be_nil
         result[2].instance_variables.should include('@miles')
       end
-
-      after do
-       @adapter.execute('DROP TABLE "sail_boats"')
-      end
-
     end
 
     describe 'defaults' do
-      before(:all) do
+      before :all do
         class Catamaran
           include DataMapper::Resource
           property :id, Integer, :serial => true
@@ -135,7 +129,7 @@ if HAS_SQLITE3
           property :could_be_bool1, TrueClass, :default => false
         end
 
-        repository(:sqlite3){ Catamaran.auto_migrate!(:sqlite3) }
+        repository(ADAPTER){ Catamaran.auto_migrate!(ADAPTER) }
       end
 
       before(:each) do
@@ -149,7 +143,7 @@ if HAS_SQLITE3
 
         @cat.name = 'Mary Mayweather'
 
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           @cat.save
 
           cat = Catamaran.first
@@ -162,7 +156,7 @@ if HAS_SQLITE3
       end
 
       it "should have defaults even with creates" do
-        repository(:sqlite3) do
+        repository(ADAPTER) do
           Catamaran.create(:name => 'Jingle All The Way')
           cat = Catamaran.first
           cat.name.should == 'Jingle All The Way'
@@ -170,10 +164,7 @@ if HAS_SQLITE3
           cat.could_be_bool1.should_not be_nil
           cat.could_be_bool1.should == false
         end
-
-
       end
-
     end
   end
 end

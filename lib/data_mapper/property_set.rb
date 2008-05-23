@@ -92,29 +92,26 @@ module DataMapper
       result
     end
 
-    def to_query(values)
-      Hash[ *zip(values).flatten ]
+    def to_query(bind_values)
+      Hash[ *zip(bind_values).flatten ]
     end
 
     def inspect
       '#<PropertySet:{' + map { |property| property.inspect }.join(',') + '}>'
     end
 
-    alias r__dup dup
     def dup(target = nil)
-      if target
-        properties = map do |property|
-          # TODO: remove this hack once most in-the-wild code has switched
-          # over to using Integer instead of Fixnum for properties
-          type = property.type
-          type = Integer if Fixnum == type
-          Property.new(target || property.model, property.name, type, property.options)
-        end
+      return super() unless target
 
-        self.class.new(properties)
-      else
-        r__dup
+      properties = map do |property|
+        # TODO: remove this hack once most in-the-wild code has switched
+        # over to using Integer instead of Fixnum for properties
+        type = property.type
+        type = Integer if Fixnum == type
+        Property.new(target || property.model, property.name, type, property.options.dup)
       end
+
+      self.class.new(properties)
     end
 
     private

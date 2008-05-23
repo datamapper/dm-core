@@ -1,10 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-if HAS_SQLITE3
-  describe DataMapper::Adapters::DataObjectsAdapter do
+if ADAPTER
+  describe DataMapper::Adapters::DataObjectsAdapter, "with #{ADAPTER}" do
     describe 'a connection' do
       before :each do
-        @adapter = DataMapper::Adapters::Sqlite3Adapter.new(:sqlite3, Addressable::URI.parse('sqlite3::memory:'))
+        @adapter  = DataMapper::Repository.adapters[ADAPTER]
         @transaction = DataMapper::Transaction.new(@adapter)
 
         @command = mock('command', :execute_non_query => nil)

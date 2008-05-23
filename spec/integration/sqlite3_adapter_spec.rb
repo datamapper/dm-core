@@ -1,63 +1,60 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if HAS_SQLITE3
-  describe DataMapper::Adapters::DataObjectsAdapter do
-    before(:all) do
-      if ENV['SQLITE3_SPEC_URI']
-        DataMapper.setup(:sqlite3_file, ENV['SQLITE3_SPEC_URI'])
-      else
-        db_file = "#{File.join(File.expand_path(File.dirname(__FILE__)), "sqlite3_adapter_spec.db")}"
-        FileUtils.touch(db_file)
-        DataMapper.setup(:sqlite3_file, "sqlite3://#{db_file}")
-      end
-      @adapter = repository(:sqlite3_file).adapter
+  describe DataMapper::Adapters::Sqlite3Adapter do
+    before :all do
+      @adapter = repository(:sqlite3).adapter
     end
 
     describe "auto migrating" do
-      before :each do
+      before :all do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-
-        @connection = mock("connection")
-        @command = mock("command")
-        @result = mock("result")
       end
+
       it "#upgrade_model should work" do
         @adapter.destroy_model_storage(nil, Sputnik)
-        @adapter.exists?("sputniks").should == false
-        Sputnik.auto_migrate!(:sqlite3_file)
-        @adapter.exists?("sputniks").should == true
+        @adapter.storage_exists?("sputniks").should == false
+        Sputnik.auto_migrate!(:sqlite3)
+        @adapter.storage_exists?("sputniks").should == true
         @adapter.field_exists?("sputniks", "new_prop").should == false
         Sputnik.property :new_prop, Integer
-        Sputnik.auto_upgrade!(:sqlite3_file)
+        Sputnik.auto_upgrade!(:sqlite3)
         @adapter.field_exists?("sputniks", "new_prop").should == true
       end
     end
+
     describe "querying metadata" do
-      before :each do
+      before :all do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
+      end
 
-        Sputnik.auto_migrate!(:sqlite3_file)
+      before do
+        Sputnik.auto_migrate!(:sqlite3)
       end
-      it "#exists? should return true for tables that exist" do
-        @adapter.exists?("sputniks").should == true
+
+      it "#storage_exists? should return true for tables that exist" do
+        @adapter.storage_exists?("sputniks").should == true
       end
-      it "#exists? should return false for tables that don't exist" do
-        @adapter.exists?("space turds").should == false
+
+      it "#storage_exists? should return false for tables that don't exist" do
+        @adapter.storage_exists?("space turds").should == false
       end
+
       it "#field_exists? should return true for columns that exist" do
         @adapter.field_exists?("sputniks", "name").should == true
       end
-      it "#exists? should return false for tables that don't exist" do
+
+      it "#storage_exists? should return false for tables that don't exist" do
         @adapter.field_exists?("sputniks", "plur").should == false
       end
     end
@@ -78,17 +75,17 @@ if HAS_SQLITE3
     end
 
     describe "handling transactions" do
-
-      before :each do
-
+      before :all do
         class Sputnik
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
+      end
 
-        Sputnik.auto_migrate!(:sqlite3_file)
+      before do
+        Sputnik.auto_migrate!(:sqlite3)
 
         @transaction = DataMapper::Transaction.new(@adapter)
       end
@@ -100,6 +97,7 @@ if HAS_SQLITE3
         end
         @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").empty?.should == true
       end
+
       it "should commit changes when #commit_transaction is called" do
         @transaction.commit do
           @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
@@ -109,16 +107,17 @@ if HAS_SQLITE3
     end
 
     describe "reading & writing a database" do
-
-      before do
+      before :all do
         class User
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
+      end
 
-        User.auto_migrate!(:sqlite3_file)
+      before do
+        User.auto_migrate!(:sqlite3)
 
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
       end
@@ -150,27 +149,25 @@ if HAS_SQLITE3
         result.should be_kind_of(Array)
         result.size.should == 0
       end
-
-      after do
-        @adapter.execute('DROP TABLE "users"')
-      end
     end
 
     describe "CRUD for serial Key" do
-      before do
+      before :all do
         class VideoGame
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, String
         end
+      end
 
-        VideoGame.auto_migrate!(:sqlite3_file)
+      before do
+        VideoGame.auto_migrate!(:sqlite3)
       end
 
       it 'should be able to create a record' do
         game = VideoGame.new(:name => 'System Shock')
-        repository(:sqlite3_file) do
+        repository(:sqlite3) do
           game.save
         end
 
@@ -185,7 +182,7 @@ if HAS_SQLITE3
         name = 'Wing Commander: Privateer'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
 
-        game = repository(:sqlite3_file) do
+        game = repository(:sqlite3) do
           VideoGame.get(id)
         end
 
@@ -200,7 +197,7 @@ if HAS_SQLITE3
         name = 'Resistance: Fall of Mon'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
 
-        game = repository(:sqlite3_file) do
+        game = repository(:sqlite3) do
           VideoGame.get(id)
         end
 
@@ -209,13 +206,13 @@ if HAS_SQLITE3
         game.should_not be_a_new_record
         game.should be_dirty
 
-        repository(:sqlite3_file) do
+        repository(:sqlite3) do
           game.save
         end
 
         game.should_not be_dirty
 
-        clone = repository(:sqlite3_file) do
+        clone = repository(:sqlite3) do
           VideoGame.get(id)
         end
 
@@ -228,13 +225,13 @@ if HAS_SQLITE3
         name = 'Zelda'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
 
-        game = repository(:sqlite3_file) do
+        game = repository(:sqlite3) do
           VideoGame.get(id)
         end
 
         game.name.should == name
 
-        repository(:sqlite3_file) do
+        repository(:sqlite3) do
           game.destroy.should be_true
         end
         game.should be_a_new_record
@@ -245,7 +242,7 @@ if HAS_SQLITE3
         name = 'Contra'
         id = @adapter.execute('INSERT INTO "video_games" ("name") VALUES (?)', name).insert_id
 
-        contra = repository(:sqlite3_file) { VideoGame.get(id) }
+        contra = repository(:sqlite3) { VideoGame.get(id) }
 
         contra.should_not be_nil
         contra.should_not be_dirty
@@ -263,13 +260,15 @@ if HAS_SQLITE3
           property :account_number, String, :key => true
           property :name, String
         end
+      end
 
-        BankCustomer.auto_migrate!(:sqlite3_file)
+      before do
+        BankCustomer.auto_migrate!(:sqlite3)
       end
 
       it 'should be able to create a record' do
         customer = BankCustomer.new(:bank => 'Community Bank', :account_number => '123456', :name => 'David Hasselhoff')
-        repository(:sqlite3_file) do
+        repository(:sqlite3) do
           customer.save
         end
 
@@ -285,7 +284,7 @@ if HAS_SQLITE3
         bank, account_number, name = 'Chase', '4321', 'Super Wonderful'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        repository(:sqlite3_file) do
+        repository(:sqlite3) do
           BankCustomer.get(bank, account_number).name.should == name
         end
 
@@ -296,7 +295,7 @@ if HAS_SQLITE3
         bank, account_number, name = 'Wells Fargo', '00101001', 'Spider Pig'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        customer = repository(:sqlite3_file) do
+        customer = repository(:sqlite3) do
           BankCustomer.get(bank, account_number)
         end
 
@@ -305,13 +304,13 @@ if HAS_SQLITE3
         customer.should_not be_a_new_record
         customer.should be_dirty
 
-        repository(:sqlite3_file) do
+        repository(:sqlite3) do
           customer.save
         end
 
         customer.should_not be_dirty
 
-        clone = repository(:sqlite3_file) do
+        clone = repository(:sqlite3) do
           BankCustomer.get(bank, account_number)
         end
 
@@ -324,13 +323,13 @@ if HAS_SQLITE3
         bank, account_number, name = 'Megacorp', 'ABC', 'Flash Gordon'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        customer = repository(:sqlite3_file) do
+        customer = repository(:sqlite3) do
           BankCustomer.get(bank, account_number)
         end
 
         customer.name.should == name
 
-        repository(:sqlite3_file) do
+        repository(:sqlite3) do
           customer.destroy.should be_true
         end
 
@@ -342,7 +341,7 @@ if HAS_SQLITE3
         bank, account_number, name = 'Conchords', '1100101', 'Robo Boogie'
         @adapter.execute('INSERT INTO "bank_customers" ("bank", "account_number", "name") VALUES (?, ?, ?)', bank, account_number, name)
 
-        robots = repository(:sqlite3_file) { BankCustomer.get(bank, account_number) }
+        robots = repository(:sqlite3) { BankCustomer.get(bank, account_number) }
 
         robots.should_not be_nil
         robots.should_not be_dirty

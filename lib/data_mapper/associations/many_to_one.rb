@@ -12,11 +12,11 @@ module DataMapper
         parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
 
         relationship = relationships(repository.name)[name] = Relationship.new(
-                                                                               name,
-                                                                               repository.name,
-                                                                               self.name,
-                                                                               parent_model_name,
-                                                                               options
+          name,
+          repository.name,
+          self.name,
+          parent_model_name,
+          options
         )
 
         class_eval <<-EOS, __FILE__, __LINE__
@@ -32,7 +32,7 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-            relationship = self.class.relationships(#{repository.name.inspect})[:#{name}]
+              relationship = self.class.relationships(#{repository.name.inspect})[:#{name}]
               association = Proxy.new(relationship, self)
               child_associations << association
               association
@@ -59,12 +59,12 @@ module DataMapper
             end
           end
         end
-        
+
         def reload!
           @parent_resource = nil
           self
         end
-        
+
         private
 
         def initialize(relationship, child_resource)

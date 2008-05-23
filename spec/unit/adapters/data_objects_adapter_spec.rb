@@ -221,7 +221,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @primitive  = mock('primitive')
       @property   = mock('property', :field => 'property', :primitive => @primitive)
       @properties = mock('properties', :defaults => [ @property ])
-      @repository = mock('repository', :name => :default, :kind_of? => true)
+      @repository = mock('repository', :kind_of? => true)
       @model      = mock('model', :properties => @properties, :< => true, :inheritance_property => nil, :key => [ @property ], :storage_name => 'models')
       @key        = mock('key')
       @resource   = mock('resource')
@@ -236,7 +236,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should lookup the model properties with the repository' do
-      @repository.should_receive(:name).with(no_args).at_least(:once).and_return(:default)
       @model.should_receive(:properties).with(:default).once.and_return(@properties)
       @adapter.read(@repository, @model, @key)
     end
@@ -420,8 +419,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   end
 
   describe "when upgrading tables" do
-    it "should raise NotImplementedError when #exists? is called" do
-      lambda { @adapter.exists?("cheeses") }.should raise_error(NotImplementedError)
+    it "should raise NotImplementedError when #storage_exists? is called" do
+      lambda { @adapter.storage_exists?("cheeses") }.should raise_error(NotImplementedError)
     end
 
     describe "#upgrade_model_storage" do
@@ -436,9 +435,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @adapter.should_receive(:field_exists?).once.with("cheeses", "color").and_return(true)
         @adapter.should_receive(:field_exists?).once.with("cheeses", "notes").and_return(true)
         @adapter.should_receive(:storage_exists?).once.with("cheeses").and_return(true)
-        connection = mock("connection")
-        connection.should_receive(:close).once
-        @adapter.should_receive(:create_connection).once.and_return(connection)
         @adapter.upgrade_model_storage(nil, Cheese).should == []
       end
 

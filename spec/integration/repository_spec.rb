@@ -1,21 +1,25 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-if HAS_SQLITE3
-  describe DataMapper::Repository do
+if ADAPTER
+  describe DataMapper::Repository, "with #{ADAPTER}" do
+    before :all do
+      @adapter = repository(ADAPTER).adapter
+    end
+
     describe "finders" do
-      before do
+      before :all do
         class SerialFinderSpec
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :sample, String
         end
+      end
 
-        SerialFinderSpec.auto_migrate!(:sqlite3)
+      before do
+        SerialFinderSpec.auto_migrate!(ADAPTER)
 
-        @adapter = repository(:sqlite3).adapter
-
-        setup_repository = repository(:sqlite3)
+        setup_repository = repository(ADAPTER)
         100.times do
           setup_repository.save(SerialFinderSpec.new(:sample => rand.to_s))
         end
@@ -28,18 +32,18 @@ if HAS_SQLITE3
       end
 
       it "should return all available rows" do
-        repository(:sqlite3).all(SerialFinderSpec, {}).should have(100).entries
+        repository(ADAPTER).all(SerialFinderSpec, {}).should have(100).entries
       end
 
       it "should allow limit and offset" do
-        repository(:sqlite3).all(SerialFinderSpec, { :limit => 50 }).should have(50).entries
+        repository(ADAPTER).all(SerialFinderSpec, { :limit => 50 }).should have(50).entries
 
-        repository(:sqlite3).all(SerialFinderSpec, { :limit => 20, :offset => 40 }).map(&:id).should ==
-          repository(:sqlite3).all(SerialFinderSpec, {})[40...60].map(&:id)
+        repository(ADAPTER).all(SerialFinderSpec, { :limit => 20, :offset => 40 }).map(&:id).should ==
+          repository(ADAPTER).all(SerialFinderSpec, {})[40...60].map(&:id)
       end
 
       it "should lazy-load missing attributes" do
-        sfs = repository(:sqlite3).all(SerialFinderSpec, { :fields => [:id], :limit => 1 }).first
+        sfs = repository(ADAPTER).all(SerialFinderSpec, { :fields => [:id], :limit => 1 }).first
         sfs.should be_a_kind_of(SerialFinderSpec)
         sfs.should_not be_a_new_record
 
@@ -48,8 +52,8 @@ if HAS_SQLITE3
       end
 
       it "should translate an Array to an IN clause" do
-        ids = repository(:sqlite3).all(SerialFinderSpec, { :limit => 10 }).map(&:id)
-        results = repository(:sqlite3).all(SerialFinderSpec, { :id => ids })
+        ids = repository(ADAPTER).all(SerialFinderSpec, { :limit => 10 }).map(&:id)
+        results = repository(ADAPTER).all(SerialFinderSpec, { :id => ids })
 
         results.size.should == 10
         results.map(&:id).should == ids

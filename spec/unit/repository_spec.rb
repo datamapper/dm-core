@@ -22,31 +22,41 @@ class Grain
 end
 
 describe DataMapper::Repository do
-
   before do
-    @adapter = DataMapper::Repository.adapters[:mock]
+    @adapter       = mock('adapter')
+    @identity_map  = mock('identity map', :[]= => nil)
+    @identity_maps = mock('identity maps', :[] => @identity_map)
+
+    @repository = repository(:mock)
+    @repository.stub!(:adapter).and_return(@adapter)
+
+    # TODO: stub out other external dependencies in repository
   end
 
   describe "managing transactions" do
     it "should create a new Transaction with itself as argument when #transaction is called" do
-      trans = mock("transaction")
-      repo = repository
-      DataMapper::Transaction.should_receive(:new).once.with(repo).and_return(trans)
-      repo.transaction.should == trans
+      transaction = mock('transaction')
+      DataMapper::Transaction.should_receive(:new).once.with(@repository).and_return(transaction)
+      @repository.transaction.should == transaction
     end
   end
 
-  it '.storage_exists? should whether or not the repository exists' do
-    repository.should respond_to(:storage_exists?)
-    repository.storage_exists?(:vegetable).should == true
+  it 'should provide .storage_exists?' do
+    @repository.should respond_to(:storage_exists?)
+  end
+
+  it '.storage_exists? should whether or not the storage exists' do
+    @adapter.should_receive(:storage_exists?).with(:vegetable).and_return(true)
+
+    @repository.storage_exists?(:vegetable).should == true
   end
 
   it "should provide persistance methods" do
-    repository.should respond_to(:get)
-    repository.should respond_to(:first)
-    repository.should respond_to(:all)
-    repository.should respond_to(:save)
-    repository.should respond_to(:destroy)
+    @repository.should respond_to(:get)
+    @repository.should respond_to(:first)
+    @repository.should respond_to(:all)
+    @repository.should respond_to(:save)
+    @repository.should respond_to(:destroy)
   end
   
   it "should be reused in inner scope" do
@@ -60,84 +70,78 @@ describe DataMapper::Repository do
   describe '#save' do
     describe 'with a new resource' do
       it 'should create when dirty' do
-        repository = repository(:mock)
-        instance = Vegetable.new({:id => 1, :name => 'Potato'})
+        resource = Vegetable.new({:id => 1, :name => 'Potato'})
 
-        instance.should be_dirty
-        instance.should be_new_record
+        resource.should be_dirty
+        resource.should be_new_record
 
-        @adapter.should_receive(:create).with(repository, instance).and_return(instance)
+        @adapter.should_receive(:create).with(@repository, resource).and_return(resource)
 
-        repository.save(instance)
+        @repository.save(resource)
       end
 
       it 'should create when non-dirty, and it has a serial key' do
-        repository = repository(:mock)
-        instance = Vegetable.new
+        resource = Vegetable.new
 
-        instance.should_not be_dirty
-        instance.should be_new_record
-        instance.class.key.any? { |p| p.serial? }.should be_true
+        resource.should_not be_dirty
+        resource.should be_new_record
+        resource.class.key.any? { |p| p.serial? }.should be_true
 
-        @adapter.should_receive(:create).with(repository, instance).once.and_return(instance)
+        @adapter.should_receive(:create).with(@repository, resource).once.and_return(resource)
 
-        repository.save(instance).should be_true
+        @repository.save(resource).should be_true
       end
 
       it 'should not create when non-dirty, and is has a non-serial key' do
-        repository = repository(:mock)
-        instance = Fruit.new
+        resource = Fruit.new
 
-        instance.should_not be_dirty
-        instance.should be_new_record
-        instance.class.key.any? { |p| p.serial? }.should_not be_true
+        resource.should_not be_dirty
+        resource.should be_new_record
+        resource.class.key.any? { |p| p.serial? }.should_not be_true
 
         @adapter.should_not_receive(:create)
 
-        repository.save(instance).should be_false
+        @repository.save(resource).should be_false
       end
 
       it 'should set defaults before create' do
-        repository = repository(:mock)
-        instance = Grain.new
+        resource = Grain.new
 
-        instance.should_not be_dirty
-        instance.should be_new_record
-        instance.instance_variable_get('@name').should be_nil
+        resource.should_not be_dirty
+        resource.should be_new_record
+        resource.instance_variable_get('@name').should be_nil
 
-        @adapter.should_receive(:create).with(repository, instance).and_return(instance)
+        @adapter.should_receive(:create).with(@repository, resource).and_return(resource)
 
-        repository.save(instance)
+        @repository.save(resource)
 
-        instance.instance_variable_get('@name').should == 'wheat'
+        resource.instance_variable_get('@name').should == 'wheat'
       end
     end
 
     describe 'with an existing resource' do
       it 'should update when dirty' do
-        repository = repository(:mock)
-        instance = Vegetable.new(:name => 'Potato')
-        instance.instance_variable_set('@new_record', false)
+        resource = Vegetable.new(:name => 'Potato')
+        resource.instance_variable_set('@new_record', false)
 
-        instance.should be_dirty
-        instance.should_not be_new_record
+        resource.should be_dirty
+        resource.should_not be_new_record
 
-        @adapter.should_receive(:update).with(repository, instance).and_return(instance)
+        @adapter.should_receive(:update).with(@repository, resource).and_return(resource)
 
-        repository.save(instance)
+        @repository.save(resource)
       end
 
       it 'should not update when non-dirty' do
-        repository = repository(:mock)
-        instance = Vegetable.new
-        instance.instance_variable_set('@new_record', false)
+        resource = Vegetable.new
+        resource.instance_variable_set('@new_record', false)
 
-        instance.should_not be_dirty
-        instance.should_not be_new_record
+        resource.should_not be_dirty
+        resource.should_not be_new_record
 
         @adapter.should_not_receive(:update)
 
-        repository.save(instance)
+        @repository.save(resource)
       end
     end
   end
@@ -152,40 +156,38 @@ describe DataMapper::Repository do
 
   describe "#migrate!" do
     it "should call DataMapper::Migrator.migrate with itself as the repository argument" do
-      repository = repository(:mock)
+      DataMapper::Migrator.should_receive(:migrate).with(@repository.name)
 
-      DataMapper::Migrator.should_receive(:migrate).with(repository.name)
-
-      repository.migrate!
+      @repository.migrate!
     end
   end
 
   describe "#auto_migrate!" do
     it "should call DataMapper::AutoMigrator.auto_migrate with itself as the repository argument" do
-      repository = repository(:mock)
+      DataMapper::AutoMigrator.should_receive(:auto_migrate).with(@repository.name)
 
-      DataMapper::AutoMigrator.should_receive(:auto_migrate).with(repository.name)
-
-      repository.auto_migrate!
+      @repository.auto_migrate!
     end
   end
 
   describe "#auto_upgrade!" do
     it "should call DataMapper::AutoMigrator.auto_upgrade with itself as the repository argument" do
-      repository = repository(:mock)
+      DataMapper::AutoMigrator.should_receive(:auto_upgrade).with(@repository.name)
 
-      DataMapper::AutoMigrator.should_receive(:auto_upgrade).with(repository.name)
-
-      repository.auto_upgrade!
+      @repository.auto_upgrade!
     end
   end
 
   describe "#map" do
-    it "should call @type_map.map with the arguments" do
-      repository = repository(:mock)
-      repository.type_map.should_receive(:map).with(:type, :arg)
+    it "should call type_map.map with the arguments" do
+      type_map = mock('type map')
 
-      repository.map(:type, :arg)
+      @adapter.class.should_receive(:type_map).and_return(type_map)
+      DataMapper::TypeMap.should_receive(:new).with(type_map).and_return(type_map)
+
+      type_map.should_receive(:map).with(:type, :arg)
+
+      @repository.map(:type, :arg)
     end
   end
 end

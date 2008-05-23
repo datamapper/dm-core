@@ -1,15 +1,14 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-if HAS_SQLITE3
+if ADAPTER
   describe 'association proxying' do
-
     before(:all) do
 
       class Zebra
         include DataMapper::Resource
 
         def self.default_repository_name
-          :sqlite3
+          ADAPTER
         end
 
         property :id, Integer, :serial => true
@@ -23,7 +22,7 @@ if HAS_SQLITE3
         include DataMapper::Resource
 
         def self.default_repository_name
-          :sqlite3
+          ADAPTER
         end
 
         property :id, Integer, :serial => true
@@ -35,10 +34,10 @@ if HAS_SQLITE3
 
       end
 
-      Zebra.auto_migrate!(:sqlite3)
-      Stripe.auto_migrate!(:sqlite3)
+      Zebra.auto_migrate!(ADAPTER)
+      Stripe.auto_migrate!(ADAPTER)
 
-      repository(:sqlite3) do
+      repository(ADAPTER) do
 
         nancy  = Zebra.new(:age => 11)
         nancy.name = 'nance'
@@ -66,7 +65,7 @@ if HAS_SQLITE3
     end
 
     it "should proxy the relationships of the model" do
-      repository(:sqlite3) do
+      repository(ADAPTER) do
         zebras = Zebra.all
         zebras.should have(3).entries
         zebras.find { |zebra| zebra.name == 'nance' }.stripes.should have(2).entries

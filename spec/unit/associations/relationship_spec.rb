@@ -15,7 +15,7 @@ describe DataMapper::Associations::Relationship do
       { :child_key => [ :manufacturer_id ] }
     )
 
-    belongs_to.should respond_to(:foreign_key_name)
+    belongs_to.should respond_to(:name)
     belongs_to.should respond_to(:repository_name)
     belongs_to.should respond_to(:child_key)
     belongs_to.should respond_to(:parent_key)
@@ -32,7 +32,7 @@ describe DataMapper::Associations::Relationship do
       { :child_key => [ :manufacturer_id ], :parent_key => [ :id ] }
     )
 
-    belongs_to.foreign_key_name.should == :manufacturer
+    belongs_to.name.should == :manufacturer
     belongs_to.repository_name.should == repository_name
 
     belongs_to.child_key.should be_a_kind_of(DataMapper::PropertySet)
@@ -52,7 +52,7 @@ describe DataMapper::Associations::Relationship do
       'Manufacturer'
     )
 
-    has_many.foreign_key_name.should == :models
+    has_many.name.should == :models
     has_many.repository_name.should == repository_name
 
     has_many.child_key.should be_a_kind_of(DataMapper::PropertySet)

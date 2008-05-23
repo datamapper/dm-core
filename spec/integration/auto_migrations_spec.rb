@@ -24,7 +24,7 @@ class Book
 end
 
 if HAS_SQLITE3
-  describe DataMapper::AutoMigrations, '.auto_migrate!' do
+  describe DataMapper::AutoMigrations, '.auto_migrate! with sqlite3' do
     before :all do
       @adapter = repository(:sqlite3).adapter
 
@@ -112,7 +112,7 @@ if HAS_SQLITE3
 end
 
 if HAS_MYSQL
-  describe DataMapper::AutoMigrations, '.auto_migrate!' do
+  describe DataMapper::AutoMigrations, '.auto_migrate! with mysql' do
     before :all do
       @adapter = repository(:mysql).adapter
 
@@ -194,7 +194,7 @@ if HAS_MYSQL
 end
 
 if HAS_POSTGRES
-  describe DataMapper::AutoMigrations, '.auto_migrate!' do
+  describe DataMapper::AutoMigrations, '.auto_migrate! with postgres' do
     before :all do
       @adapter = repository(:postgres).adapter
 

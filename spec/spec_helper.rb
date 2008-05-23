@@ -11,35 +11,27 @@ require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
   DataMapper.setup(repository_name, "mock://localhost/#{repository_name}")
 end
 
-HAS_SQLITE3 = begin
-  gem 'do_sqlite3', '=0.9.0'
-  require 'do_sqlite3'
-  DataMapper.setup(:sqlite3, ENV['SQLITE3_SPEC_URI'] || 'sqlite3::memory:')
-  true
-rescue Gem::LoadError
-  warn "Could not load do_sqlite3: #{$!}"
-  false
+def load_driver(name, default_uri)
+  lib = "do_#{name}"
+
+  begin
+    gem lib, '=0.9.0'
+    require lib
+    DataMapper.setup(name, ENV["#{name.to_s.upcase}_SPEC_URI"] || default_uri)
+    true
+  rescue Gem::LoadError => e
+    warn "Could not load #{lib}: #{e}"
+    false
+  end
 end
 
-HAS_MYSQL = begin
-  gem 'do_mysql', '=0.9.0'
-  require 'do_mysql'
-  DataMapper.setup(:mysql, ENV['MYSQL_SPEC_URI'] || 'mysql://localhost/dm_core_test')
-  true
-rescue Gem::LoadError
-  warn "Could not load do_mysql: #{$!}"
-  false
-end
+ENV['ADAPTER'] ||= 'sqlite3'
 
-HAS_POSTGRES = begin
-  gem 'do_postgres', '=0.9.0'
-  require 'do_postgres'
-  DataMapper.setup(:postgres, ENV['POSTGRES_SPEC_URI'] || 'postgres://postgres@localhost/dm_core_test')
-  true
-rescue Gem::LoadError
-  warn "Could not load do_postgres: #{$!}"
-  false
-end
+HAS_SQLITE3  = load_driver(:sqlite3,  'sqlite3::memory:')
+HAS_MYSQL    = load_driver(:mysql,    'mysql://localhost/dm_core_test')
+HAS_POSTGRES = load_driver(:postgres, 'postgres://postgres@localhost/dm_core_test')
+
+ADAPTER = ENV['ADAPTER'].to_sym
 
 class Article
   include DataMapper::Resource

@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if HAS_POSTGRES
-  describe DataMapper::Adapters::DataObjectsAdapter do
+  describe DataMapper::Adapters::PostgresAdapter do
     before :all do
       @adapter = repository(:postgres).adapter
     end
@@ -18,9 +18,9 @@ if HAS_POSTGRES
 
       it "#upgrade_model should work" do
         @adapter.destroy_model_storage(nil, Sputnik)
-        @adapter.exists?("sputniks").should be_false
+        @adapter.storage_exists?("sputniks").should be_false
         Sputnik.auto_migrate!(:postgres)
-        @adapter.exists?("sputniks").should be_true
+        @adapter.storage_exists?("sputniks").should be_true
         @adapter.field_exists?("sputniks", "new_prop").should be_false
         Sputnik.property :new_prop, Integer, :serial => true
         @adapter.send(:drop_sequence, Sputnik, Sputnik.new_prop)
@@ -30,7 +30,7 @@ if HAS_POSTGRES
     end
 
     describe "querying metadata" do
-      before do
+      before :all do
         class Sputnik
           include DataMapper::Resource
 
@@ -40,15 +40,19 @@ if HAS_POSTGRES
 
         Sputnik.auto_migrate!(:postgres)
       end
-      it "#exists? should return true for tables that exist" do
-        @adapter.exists?("sputniks").should == true
+
+      it "#storage_exists? should return true for tables that exist" do
+        @adapter.storage_exists?("sputniks").should == true
       end
-      it "#exists? should return false for tables that don't exist" do
-        @adapter.exists?("space turds").should == false
+
+      it "#storage_exists? should return false for tables that don't exist" do
+        @adapter.storage_exists?("space turds").should == false
       end
+
       it "#field_exists? should return true for columns that exist" do
         @adapter.field_exists?("sputniks", "name").should == true
       end
+
       it "#field_exists? should return false for columns that don't exist" do
         @adapter.field_exists?("sputniks", "plur").should == false
       end
@@ -77,6 +81,7 @@ if HAS_POSTGRES
         end
         @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").empty?.should == true
       end
+
       it "should commit changes when #commit_transaction is called" do
         @transaction.commit do
           @adapter.execute("INSERT INTO sputniks (name) VALUES ('my pretty sputnik')")
@@ -86,15 +91,16 @@ if HAS_POSTGRES
     end
 
     describe "reading & writing a database" do
-
-      before do
+      before :all do
         class User
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
+      end
 
+      before do
         User.auto_migrate!(:postgres)
 
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
@@ -130,15 +136,16 @@ if HAS_POSTGRES
     end
 
     describe "CRUD for serial Key" do
-
-      before do
+      before :all do
         class VideoGame
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, String
         end
+      end
 
+      before do
         VideoGame.auto_migrate!(:postgres)
       end
 
@@ -231,8 +238,7 @@ if HAS_POSTGRES
     end
 
     describe "CRUD for Composite Key" do
-
-      before do
+      before :all do
         class BankCustomer
           include DataMapper::Resource
 
@@ -240,7 +246,9 @@ if HAS_POSTGRES
           property :account_number, String, :key => true
           property :name, String
         end
+      end
 
+      before do
         BankCustomer.auto_migrate!(:postgres)
       end
 
@@ -328,15 +336,16 @@ if HAS_POSTGRES
     end
 
     describe "Ordering a Query" do
-
-      before do
+      before :all do
         class SailBoat
           include DataMapper::Resource
           property :id, Integer, :serial => true
           property :name, String
           property :port, String
         end
+      end
 
+      before do
         SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres) do
@@ -374,8 +383,7 @@ if HAS_POSTGRES
     end
 
     describe "Lazy Loaded Properties" do
-
-      before do
+      before :all do
         class SailBoat
           include DataMapper::Resource
           property :id, Integer, :serial => true
@@ -383,7 +391,9 @@ if HAS_POSTGRES
           property :trip_report, String, :lazy => [:notes,:trip]
           property :miles, Integer, :lazy => [:trip]
         end
+      end
 
+      before do
         SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres) do
@@ -419,15 +429,16 @@ if HAS_POSTGRES
     end
 
     describe "finders" do
-
-      before do
+      before :all do
         class SerialFinderSpec
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :sample, String
         end
+      end
 
+      before do
         SerialFinderSpec.auto_migrate!(:postgres)
 
         repository(:postgres) do
@@ -478,19 +489,13 @@ if HAS_POSTGRES
     end
 
     describe "many_to_one associations" do
-
-      before do
+      before :all do
         class Engine
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
           property :name, String
         end
-
-        Engine.auto_migrate!(:postgres)
-
-        @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 1, 'engine1')
-        @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 2, 'engine2')
 
         class Yard
           include DataMapper::Resource
@@ -503,7 +508,13 @@ if HAS_POSTGRES
             many_to_one :engine
           end
         end
+      end
 
+      before do
+        Engine.auto_migrate!(:postgres)
+
+        @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 1, 'engine1')
+        @adapter.execute('INSERT INTO "engines" ("id", "name") values (?, ?)', 2, 'engine2')
 
         Yard.auto_migrate!(:postgres)
 
@@ -567,8 +578,7 @@ if HAS_POSTGRES
     end
 
     describe "one_to_many associations" do
-
-      before do
+      before :all do
         class Host
           include DataMapper::Resource
 
@@ -591,13 +601,14 @@ if HAS_POSTGRES
             many_to_one :host
           end
         end
+      end
 
+      before do
         Host.auto_migrate!(:postgres)
+        Slice.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 1, 'host1')
         @adapter.execute('INSERT INTO "hosts" ("id", "name") values (?, ?)', 2, 'host2')
-
-        Slice.auto_migrate!(:postgres)
 
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 1, 'slice1', 1)
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)
@@ -640,13 +651,13 @@ if HAS_POSTGRES
       it "should add and save the associated instance" do
         repository(:postgres) do
           h = Host.first(:id => 1)
-          
+
           h.slices << Slice.new(:id => 3, :name => 'slice3')
-          
+
           s = repository(:postgres) do
             Slice.first(:id => 3)
           end
-          
+
           s.host.id.should == 1
         end
       end
