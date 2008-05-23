@@ -267,16 +267,16 @@ module DataMapper
     # @return <String> name of field in data-store
     # -
     # @api semi-public
-    def field
-      @field ||= @options.fetch(:field, repository.adapter.field_naming_convention.call(name))
+    def field(*args)
+      @options.fetch(:field, repository(*args).adapter.field_naming_convention.call(name))
     end
 
     def unique
       @unique ||= @options.fetch(:unique, @serial || @key || false)
     end
 
-    def repository
-      @model.repository
+    def repository(*args)
+      @model.repository(*args)
     end
 
     def hash

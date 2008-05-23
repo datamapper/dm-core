@@ -455,14 +455,22 @@ module DataMapper
       #
       # @see Repository#all
       def all(options = {})
-        repository(*Array(options[:repository])).all(self, options)
+        if Hash === options && options.has_key?(:repository)
+          repository(options[:repository]).all(self, options)
+        else
+          repository.all(self, options)
+        end
       end
 
       ##
       #
       # @see Repository#first
       def first(options = {})
-        repository(*Array(options[:repository])).first(self, options)
+        if Hash === options && options.has_key?(:repository)
+          repository(options[:repository]).first(self, options)
+        else
+          repository.first(self, options)
+        end
       end
 
       ##

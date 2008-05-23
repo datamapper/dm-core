@@ -88,6 +88,8 @@ module DataMapper
       # TODO convert this to a hook in the plugin once hooks work on class
       # methods
       self.init_has_relationship_for_serialization(relationship) if self.respond_to?(:init_has_relationship_for_serialization)
+
+      relationship
     end
 
     #

@@ -5,11 +5,7 @@ require 'fastercsv'
 
 if ADAPTER
   describe DataMapper::Property, "with #{ADAPTER}" do
-    before do
-      @adapter = repository(ADAPTER).adapter
-    end
-
-    describe" tracking strategies" do
+    describe " tracking strategies" do
       before :all do
         class Actor
           include DataMapper::Resource
@@ -86,9 +82,9 @@ if ADAPTER
         SailBoat.auto_migrate!(ADAPTER)
 
         repository(ADAPTER) do
-          SailBoat.create(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          SailBoat.create(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          SailBoat.create(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create!(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create!(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create!(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
         end
       end
 
@@ -132,7 +128,7 @@ if ADAPTER
         repository(ADAPTER){ Catamaran.auto_migrate!(ADAPTER) }
       end
 
-      before(:each) do
+      before :each do
         @cat = Catamaran.new
       end
 
@@ -157,7 +153,7 @@ if ADAPTER
 
       it "should have defaults even with creates" do
         repository(ADAPTER) do
-          Catamaran.create(:name => 'Jingle All The Way')
+          Catamaran.create!(:name => 'Jingle All The Way')
           cat = Catamaran.first
           cat.name.should == 'Jingle All The Way'
           cat.could_be_bool0.should == true

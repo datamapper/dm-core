@@ -1,11 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe DataMapper::Associations::Relationship do
-
-  before do
-    @adapter = DataMapper::Repository.adapters[:mock]
-  end
-
   it "should describe an association" do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,

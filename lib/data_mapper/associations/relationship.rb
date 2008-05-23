@@ -34,10 +34,11 @@ module DataMapper
       end
 
       def get_children(parent, options = {}, finder = :all)
-        query = @query.merge(options).merge(child_key.to_query(parent_key.get(parent)))
+        bind_values = parent_key.get(parent)
+        query = child_key.to_query(bind_values)
 
         DataMapper.repository(repository_name) do
-          child_model.send(finder, query)
+          child_model.send(finder, @query.merge(options).merge(query))
         end
       end
 
@@ -47,7 +48,7 @@ module DataMapper
         query = parent_key.to_query(bind_values)
 
         DataMapper.repository(repository_name) do
-          parent_model.first(query.merge(@query))
+          parent_model.first(@query.merge(query))
         end
       end
 

@@ -159,7 +159,6 @@ if HAS_POSTGRES
         game.should_not be_dirty
 
         @adapter.query('SELECT "id" FROM "video_games" WHERE "name" = ?', game.name).first.should == game.id
-        @adapter.execute('DELETE FROM "video_games" WHERE "id" = ? RETURNING id', game.id).to_i.should == 1
       end
 
       it 'should be able to read a record' do
@@ -173,8 +172,6 @@ if HAS_POSTGRES
         game.name.should == name
         game.should_not be_dirty
         game.should_not be_a_new_record
-
-        @adapter.execute('DELETE FROM "video_games" WHERE "name" = ?', name)
       end
 
       it 'should be able to update a record' do
@@ -202,8 +199,6 @@ if HAS_POSTGRES
         end
 
         clone.name.should == game.name
-
-        @adapter.execute('DELETE FROM "video_games" WHERE "id" = ?', id)
       end
 
       it 'should be able to delete a record' do
@@ -273,8 +268,6 @@ if HAS_POSTGRES
         repository(:postgres) do
           BankCustomer.get(bank, account_number).name.should == name
         end
-
-        @adapter.execute('DELETE FROM "bank_customers" WHERE "bank" = ? AND "account_number" = ?', bank, account_number)
       end
 
       it 'should be able to update a record' do
@@ -299,8 +292,6 @@ if HAS_POSTGRES
         end
 
         clone.name.should == customer.name
-
-        @adapter.execute('DELETE FROM "bank_customers" WHERE "bank" = ? AND "account_number" = ?', bank, account_number)
       end
 
       it 'should be able to delete a record' do
@@ -349,9 +340,9 @@ if HAS_POSTGRES
         SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres) do
-          SailBoat.create(:id => 1, :name => "A", :port => "C")
-          SailBoat.create(:id => 2, :name => "B", :port => "B")
-          SailBoat.create(:id => 3, :name => "C", :port => "A")
+          SailBoat.create!(:id => 1, :name => "A", :port => "C")
+          SailBoat.create!(:id => 2, :name => "B", :port => "B")
+          SailBoat.create!(:id => 3, :name => "C", :port => "A")
         end
       end
 
@@ -397,9 +388,9 @@ if HAS_POSTGRES
         SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres) do
-          SailBoat.create(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          SailBoat.create(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          SailBoat.create(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create!(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create!(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create!(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
         end
       end
 
@@ -443,7 +434,7 @@ if HAS_POSTGRES
 
         repository(:postgres) do
           100.times do
-            SerialFinderSpec.create(:sample => rand.to_s)
+            SerialFinderSpec.create!(:sample => rand.to_s)
           end
         end
       end
@@ -488,7 +479,7 @@ if HAS_POSTGRES
       end
     end
 
-    describe "many_to_one associations" do
+    describe "belongs_to associations" do
       before :all do
         class Engine
           include DataMapper::Resource
@@ -505,7 +496,7 @@ if HAS_POSTGRES
           property :engine_id, Integer
 
           repository(:postgres) do
-            many_to_one :engine
+            belongs_to :engine
           end
         end
       end
@@ -536,7 +527,7 @@ if HAS_POSTGRES
         end
       end
 
-      it "#many_to_one" do
+      it "#belongs_to" do
         yard = Yard.new
         yard.should respond_to(:engine)
         yard.should respond_to(:engine=)
@@ -554,7 +545,7 @@ if HAS_POSTGRES
       it 'should save the association key in the child' do
         repository(:postgres) do
           e = Engine.first(:id => 2)
-          Yard.create(:id => 2, :name => 'yard2', :engine => e)
+          Yard.create!(:id => 2, :name => 'yard2', :engine => e)
         end
 
         repository(:postgres) do
@@ -577,7 +568,7 @@ if HAS_POSTGRES
       end
     end
 
-    describe "one_to_many associations" do
+    describe "has n associations" do
       before :all do
         class Host
           include DataMapper::Resource
@@ -586,7 +577,7 @@ if HAS_POSTGRES
           property :name, String
 
           repository(:postgres) do
-            one_to_many :slices
+            has n, :slices
           end
         end
 
@@ -598,7 +589,7 @@ if HAS_POSTGRES
           property :host_id, Integer
 
           repository(:postgres) do
-            many_to_one :host
+            belongs_to :host
           end
         end
       end
@@ -614,7 +605,7 @@ if HAS_POSTGRES
         @adapter.execute('INSERT INTO "slices" ("id", "name", "host_id") values (?, ?, ?)', 2, 'slice2', 1)
       end
 
-      it "#one_to_many" do
+      it "#has n" do
         h = Host.new
         h.should respond_to(:slices)
       end

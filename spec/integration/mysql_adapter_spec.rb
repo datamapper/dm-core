@@ -54,18 +54,22 @@ if HAS_MYSQL
       end
 
       it "should rollback changes when #rollback_transaction is called" do
-        @transaction.commit do |trans|
-          @adapter.execute("INSERT INTO sputniks (id, name) VALUES (1, 'my pretty sputnik')")
-          trans.rollback
+        repository(:mysql) do
+          @transaction.commit do |trans|
+            Sputnik.create(:name => 'my pretty sputnik')
+            trans.rollback
+          end
+          Sputnik.all(:name => 'my pretty sputnik').should be_empty
         end
-        @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").empty?.should == true
       end
 
       it "should commit changes when #commit_transaction is called" do
-        @transaction.commit do
-          @adapter.execute("INSERT INTO sputniks (id, name) VALUES (1, 'my pretty sputnik')")
+        repository(:mysql) do
+          @transaction.commit do
+            Sputnik.create(:name => 'my pretty sputnik')
+          end
+          Sputnik.all(:name => 'my pretty sputnik').size.should == 1
         end
-        @adapter.query("SELECT * FROM sputniks WHERE name = 'my pretty sputnik'").size.should == 1
       end
     end
   end

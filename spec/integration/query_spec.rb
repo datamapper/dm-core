@@ -2,10 +2,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
   describe DataMapper::Query, "with #{ADAPTER}" do
-    before :all do
-      @adapter = repository(ADAPTER).adapter
-    end
-
     describe 'when ordering' do
       before :all do
         class SailBoat
@@ -123,33 +119,33 @@ if ADAPTER
         SailBoat.auto_migrate!(ADAPTER)
 
         repository(ADAPTER) do
-          SailBoat.create(:id => 1, :name => "Fantasy I",      :port => "Cape Town", :captain => 'Joe')
-          SailBoat.create(:id => 2, :name => "Royal Flush II", :port => "Cape Town", :captain => 'James')
-          SailBoat.create(:id => 3, :name => "Infringer III",  :port => "Cape Town", :captain => 'Jason')
+          SailBoat.create!(:id => 1, :name => "Fantasy I",      :port => "Cape Town", :captain => 'Joe')
+          SailBoat.create!(:id => 2, :name => "Royal Flush II", :port => "Cape Town", :captain => 'James')
+          SailBoat.create!(:id => 3, :name => "Infringer III",  :port => "Cape Town", :captain => 'Jason')
 
           #User 1 permission -- read boat 1 & 2
-          Permission.create(:id => 1, :user_id => 1, :resource_id => 1, :resource_type => 'SailBoat', :token => 'READ')
-          Permission.create(:id => 2, :user_id => 1, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
+          Permission.create!(:id => 1, :user_id => 1, :resource_id => 1, :resource_type => 'SailBoat', :token => 'READ')
+          Permission.create!(:id => 2, :user_id => 1, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
 
           #User 2 permission  -- read boat 2 & 3
-          Permission.create(:id => 3, :user_id => 2, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
-          Permission.create(:id => 4, :user_id => 2, :resource_id => 3, :resource_type => 'SailBoat', :token => 'READ')
+          Permission.create!(:id => 3, :user_id => 2, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
+          Permission.create!(:id => 4, :user_id => 2, :resource_id => 3, :resource_type => 'SailBoat', :token => 'READ')
         end
       end
 
       it 'should accept a DM::Query as a value of a condition' do
         # User 1
         acl = DataMapper::Query.new(repository(ADAPTER), Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [ :resource_id ])
-        query = DataMapper::Query.new(repository(ADAPTER), SailBoat, :port => 'Cape Town', :id => acl, :captain.like => 'J%', :order => [ :id ])
-        boats = @adapter.read_set(repository(ADAPTER), query)
+        query = { :port => 'Cape Town', :id => acl, :captain.like => 'J%', :order => [ :id ] }
+        boats = repository(ADAPTER) { SailBoat.all(query) }
         boats.should have(2).entries
         boats.entries[0].id.should == 1
         boats.entries[1].id.should == 2
 
         # User 2
         acl = DataMapper::Query.new(repository(ADAPTER), Permission, :user_id => 2, :resource_type => 'SailBoat', :token => 'READ', :fields => [ :resource_id ])
-        query = DataMapper::Query.new(repository(ADAPTER), SailBoat, :port => 'Cape Town', :id => acl, :captain.like => 'J%', :order => [ :id ])
-        boats = @adapter.read_set(repository(ADAPTER), query)
+        query = { :port => 'Cape Town', :id => acl, :captain.like => 'J%', :order => [ :id ] }
+        boats = repository(ADAPTER) { SailBoat.all(query) }
 
         boats.should have(2).entries
         boats.entries[0].id.should == 2
@@ -159,8 +155,8 @@ if ADAPTER
       it 'when value is NOT IN another query' do
         # Boats that User 1 Cannot see
         acl = DataMapper::Query.new(repository(ADAPTER), Permission, :user_id => 1, :resource_type => 'SailBoat', :token => 'READ', :fields => [:resource_id])
-        query = DataMapper::Query.new(repository(ADAPTER), SailBoat, :port => 'Cape Town', :id.not => acl, :captain.like => 'J%')
-        boats = @adapter.read_set(repository(ADAPTER),query)
+        query = { :port => 'Cape Town', :id.not => acl, :captain.like => 'J%' }
+        boats = repository(ADAPTER) { SailBoat.all(query) }
         boats.should have(1).entries
         boats.entries[0].id.should == 3
       end
@@ -188,7 +184,7 @@ if ADAPTER
             property :land, String
           end
 
-          many_to_one :region
+          belongs_to :region
 
           def self.default_repository_name
             ADAPTER
@@ -201,7 +197,7 @@ if ADAPTER
           property :factory_id, Integer
           property :name, String
 
-          many_to_one :factory
+          belongs_to :factory
 
           def self.default_repository_name
             ADAPTER
@@ -219,27 +215,23 @@ if ADAPTER
         Vehicle.new(:id=>1, :factory_id=>2000, :name=>'10 ton delivery truck').save
       end
 
-      it 'should require that all properties in :fields and all :links come from the same repository'
-      #      do
-      #        land = Factory.properties(:mock)[:land]
-      #        fields = []
-      #        Vehicle.properties(ADAPTER).map do |property|
-      #          fields << property
-      #        end
-      #        fields << land
+      it 'should require that all properties in :fields and all :links come from the same repository' #do
+      #  land = Factory.properties(:mock)[:land]
+      #  fields = []
+      #  Vehicle.properties(ADAPTER).map do |property|
+      #    fields << property
+      #  end
+      #  fields << land
       #
-      #        lambda{
-      #          begin
-      #            repository(ADAPTER) do
-      #              query = DataMapper::Query.new(repository(ADAPTER), Vehicle, :links => [:factory], :fields => fields)
-      #              results = @adapter.read_set(repository(ADAPTER), query)
-      #            end
-      #          rescue RuntimeError
-      #            $!.message.should == 'Property Factory.land not available in repository sqlite3.'
-      #            raise $!
-      #          end
-      #        }.should raise_error(RuntimeError)
-      #      end
+      #  lambda{
+      #    begin
+      #      results = repository(ADAPTER) { Vehicle.all(:links => [:factory], :fields => fields) }
+      #    rescue RuntimeError
+      #      $!.message.should == "Property Factory.land not available in repository #{ADAPTER}"
+      #      raise $!
+      #    end
+      #  }.should raise_error(RuntimeError)
+      #end
 
       it 'should accept a DM::Assoc::Relationship as a link' do
         factory = DataMapper::Associations::Relationship.new(
@@ -249,20 +241,17 @@ if ADAPTER
           'Factory',
           { :child_key => [ :factory_id ], :parent_key => [ :id ] }
         )
-        query = DataMapper::Query.new(repository(ADAPTER), Vehicle, :links => [factory])
-        results = @adapter.read_set(repository(ADAPTER), query)
+        results = repository(ADAPTER) { Vehicle.all(:links => [factory]) }
         results.should have(1).entries
       end
 
       it 'should accept a symbol of an association name as a link' do
-        query = DataMapper::Query.new(repository(ADAPTER), Vehicle, :links => [:factory])
-        results = @adapter.read_set(repository(ADAPTER),query)
+        results = repository(ADAPTER) { Vehicle.all(:links => [:factory]) }
         results.should have(1).entries
       end
 
       it 'should accept a string of an association name as a link' do
-        query = DataMapper::Query.new(repository(ADAPTER), Vehicle, :links => ['factory'])
-        results = @adapter.read_set(repository(ADAPTER),query)
+        results = repository(ADAPTER) { Vehicle.all(:links => ['factory']) }
         results.should have(1).entries
       end
 
@@ -274,8 +263,7 @@ if ADAPTER
           'Region',
           { :child_key => [ :region_id ], :parent_key => [ :id ] }
         )
-        query = DataMapper::Query.new(repository(ADAPTER), Vehicle, :links => ['factory',region])
-        results = @adapter.read_set(repository(ADAPTER), query)
+        results = repository(ADAPTER) { Vehicle.all(:links => ['factory',region]) }
         results.should have(1).entries
       end
 

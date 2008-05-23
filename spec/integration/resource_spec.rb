@@ -2,8 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
   describe "DataMapper::Resource with #{ADAPTER}" do
-
-    before(:all) do
+    before :all do
       class Orange
         include DataMapper::Resource
         property :name, String, :key => true

@@ -156,7 +156,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should use the properties field accessors' do
-      @property.should_receive(:field).with(no_args).and_return('property')
+      @property.should_receive(:field).with(:default).and_return('property')
       @adapter.create(@repository, @resource)
     end
 
@@ -268,7 +268,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     it 'should generate an SQL statement with composite keys' do
       other_property = mock('other property')
-      other_property.should_receive(:field).and_return('other')
+      other_property.should_receive(:field).with(:default).and_return('other')
 
       @model.should_receive(:key).with(:default).and_return([ @property, other_property ])
 
@@ -311,7 +311,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should use the properties field accessors' do
-      @property.should_receive(:field).with(no_args).twice.and_return('property')
+      @property.should_receive(:field).with(:default).twice.and_return('property')
       @adapter.update(@repository, @resource)
     end
 
@@ -331,7 +331,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     it 'should generate an SQL statement with composite keys' do
       other_property = mock('other property', :instance_variable_name => '@other')
-      other_property.should_receive(:field).with(no_args).and_return('other')
+      other_property.should_receive(:field).with(:default).and_return('other')
 
       @model.should_receive(:key).with(:default).and_return([ @property, other_property ])
 
@@ -370,7 +370,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should use the properties field accessors' do
-      @property.should_receive(:field).with(no_args).and_return('property')
+      @property.should_receive(:field).with(:default).and_return('property')
       @adapter.delete(@repository, @resource)
     end
 
@@ -393,7 +393,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     it 'should generate an SQL statement with composite keys' do
       other_property = mock('other property', :instance_variable_name => '@other')
-      other_property.should_receive(:field).with(no_args).and_return('other')
+      other_property.should_receive(:field).with(:default).and_return('other')
 
       @model.should_receive(:key).with(:default).and_return([ @property, other_property ])
 

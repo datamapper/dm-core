@@ -125,7 +125,7 @@ module DataMapper
 
       keys = {}
       @key_properties.zip(entry_keys.transpose).each do |property,values|
-        keys[property] = values
+        keys[property] = values.size == 1 ? values[0] : values
       end
       keys
     end

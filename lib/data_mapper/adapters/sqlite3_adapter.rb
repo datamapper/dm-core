@@ -73,7 +73,7 @@ module DataMapper
           # been defined
           unless model.properties.any? { |p| p.serial? }
             if (key = model.properties.key).any?
-              statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
+              statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
             end
           end
 

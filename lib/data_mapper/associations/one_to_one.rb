@@ -9,8 +9,8 @@ module DataMapper
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        relationship = 
-          relationships(repository.name)[name] = 
+        relationship =
+          relationships(repository.name)[name] =
           if options.include?(:through)
             RelationshipChain.new(:child_model_name => options.fetch(:class_name, DataMapper::Inflection.classify(name)),
                                   :parent_model_name => self.name,
@@ -20,11 +20,15 @@ module DataMapper
                                   :parent_key => options[:parent_key],
                                   :child_key => options[:child_key])
           else
-            Relationship.new(DataMapper::Inflection.underscore(DataMapper::Inflection.demodulize(self.name)).to_sym,
-                             repository.name,
-                             options.fetch(:class_name, DataMapper::Inflection.classify(name)),
-                             self.name,
-                             options)
+            # TODO: raise a warning if the other side of the relationship
+            # also has a one_to_one association
+            Relationship.new(
+              DataMapper::Inflection.underscore(DataMapper::Inflection.demodulize(self.name)).to_sym,
+              repository.name,
+              options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+              self.name,
+              options
+            )
           end
 
         class_eval <<-EOS, __FILE__, __LINE__

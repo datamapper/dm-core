@@ -394,14 +394,14 @@ module DataMapper
             statement << 'DEFAULT VALUES'
           else
             statement << <<-EOS.compress_lines
-              (#{dirty_attributes.map { |p| quote_column_name(p.field) }.join(', ')})
+              (#{dirty_attributes.map { |p| quote_column_name(p.field(name)) }.join(', ')})
               VALUES
               (#{(['?'] * dirty_attributes.size).join(', ')})
             EOS
           end
 
           if supports_returning? && identity_field
-            statement << " RETURNING #{quote_column_name(identity_field.field)}"
+            statement << " RETURNING #{quote_column_name(identity_field.field(name))}"
           end
 
           statement
@@ -410,9 +410,9 @@ module DataMapper
         # TODO: remove this and use query_read_statement instead
         def read_statement(model, properties, key)
           <<-EOS.compress_lines
-            SELECT #{properties.map { |p| quote_column_name(p.field) }.join(', ')}
+            SELECT #{properties.map { |p| quote_column_name(p.field(name)) }.join(', ')}
             FROM #{quote_table_name(model.storage_name(name))}
-            WHERE #{key.map { |p| "#{quote_column_name(p.field)} = ?" }.join(' AND ')}
+            WHERE #{key.map { |p| "#{quote_column_name(p.field(name))} = ?" }.join(' AND ')}
             LIMIT 1
           EOS
         end
@@ -420,15 +420,15 @@ module DataMapper
         def update_statement(model, dirty_attributes, key)
           <<-EOS.compress_lines
             UPDATE #{quote_table_name(model.storage_name(name))}
-            SET #{dirty_attributes.map { |p| "#{quote_column_name(p.field)} = ?" }.join(', ')}
-            WHERE #{key.map { |p| "#{quote_column_name(p.field)} = ?" }.join(' AND ')}
+            SET #{dirty_attributes.map { |p| "#{quote_column_name(p.field(name))} = ?" }.join(', ')}
+            WHERE #{key.map { |p| "#{quote_column_name(p.field(name))} = ?" }.join(' AND ')}
           EOS
         end
 
         def delete_statement(model, key)
           <<-EOS.compress_lines
             DELETE FROM #{quote_table_name(model.storage_name(name))}
-            WHERE #{key.map { |p| "#{quote_column_name(p.field)} = ?" }.join(' AND ')}
+            WHERE #{key.map { |p| "#{quote_column_name(p.field(name))} = ?" }.join(' AND ')}
           EOS
         end
 
@@ -462,25 +462,26 @@ module DataMapper
 
               # We only do LEFT OUTER JOIN for now
               s = ' LEFT OUTER JOIN '
-              s << parent_model_name << ' ON '
+              s << quote_table_name(parent_model_name) << ' ON '
               parts = []
               relationship.parent_key.zip(child_keys) do |parent_key,child_key|
-                part = ' ('
-                part <<  property_to_column_name(parent_model_name, parent_key, true)
+                part = ''
+#                part = '('  # TODO: uncomment if OR conditions become possible (for links)
+                part <<  property_to_column_name(parent_model_name, parent_key, qualify)
                 part << ' = '
-                part <<  property_to_column_name(child_model_name, child_key, true)
-                part << ')'
+                part <<  property_to_column_name(child_model_name, child_key, qualify)
+#                part << ')'  # TODO: uncomment if OR conditions become possible (for links)
                 parts << part
               end
               s << parts.join(' AND ')
               joins << s
             end
-            statement << joins.join(' ')
+            statement << joins.join
           end
 
           unless query.conditions.empty?
             statement << ' WHERE '
-            statement << '(' if query.conditions.size > 1
+#            statement << '(' if query.conditions.size > 1  # TODO: uncomment if OR conditions become possible (for conditions)
             statement << query.conditions.map do |operator, property, bind_value|
               # TODO Should we raise an error if there is no such property in
               #      the repository of the query?
@@ -501,8 +502,9 @@ module DataMapper
                 when :lte      then "#{property_to_column_name(table_name, property, qualify)} <= ?"
                 else raise "Invalid query operator: #{operator.inspect}"
               end
-            end.join(') AND (')
-            statement << ')' if query.conditions.size > 1
+            end.join(' AND ')
+#            end.join(') AND (')                            # TODO: uncomment if OR conditions become possible (for conditions)
+#            statement << ')' if query.conditions.size > 1  # TODO: uncomment if OR conditions become possible (for conditions)
           end
 
           unless query.order.empty?
@@ -515,7 +517,7 @@ module DataMapper
                   property = item
                 when DataMapper::Query::Direction
                   property  = item.property
-                  direction = item.direction
+                  direction = item.direction if item.direction == :desc
               end
 
               table_name = property.model.storage_name(name) if property && property.respond_to?(:model)
@@ -563,9 +565,9 @@ module DataMapper
 
         def property_to_column_name(table_name, property, qualify)
           if qualify
-            quote_table_name(table_name) + '.' + quote_column_name(property.field)
+            quote_table_name(table_name) + '.' + quote_column_name(property.field(name))
           else
-            quote_column_name(property.field)
+            quote_column_name(property.field(name))
           end
         end
 
@@ -629,7 +631,7 @@ module DataMapper
           statement << "#{model.properties(name).collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
 
           if (key = model.key(name)).any?
-            statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field) } * ', '})"
+            statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
           end
 
           statement << ')'
@@ -643,7 +645,7 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def property_schema_hash(property, model)
-          schema = self.class.type_map[property.type].merge(:name => property.field)
+          schema = self.class.type_map[property.type].merge(:name => property.field(name))
           # TODO: figure out a way to specify the size not be included, even if
           # a default is defined in the typemap
           #  - use this to make it so all TEXT primitive fields do not have size

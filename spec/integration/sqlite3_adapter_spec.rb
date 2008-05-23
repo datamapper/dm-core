@@ -175,7 +175,6 @@ if HAS_SQLITE3
         game.should_not be_dirty
 
         @adapter.query('SELECT "id" FROM "video_games" WHERE "name" = ?', game.name).first.should == game.id
-        @adapter.execute('DELETE FROM "video_games" WHERE "id" = ?', game.id).to_i.should == 1
       end
 
       it 'should be able to read a record' do
@@ -189,8 +188,6 @@ if HAS_SQLITE3
         game.name.should == name
         game.should_not be_dirty
         game.should_not be_a_new_record
-
-        @adapter.execute('DELETE FROM "video_games" WHERE "name" = ?', name)
       end
 
       it 'should be able to update a record' do
@@ -217,8 +214,6 @@ if HAS_SQLITE3
         end
 
         clone.name.should == game.name
-
-        @adapter.execute('DELETE FROM "video_games" WHERE "id" = ?', id)
       end
 
       it 'should be able to delete a record' do
@@ -287,8 +282,6 @@ if HAS_SQLITE3
         repository(:sqlite3) do
           BankCustomer.get(bank, account_number).name.should == name
         end
-
-        @adapter.execute('DELETE FROM "bank_customers" WHERE "bank" = ? AND "account_number" = ?', bank, account_number)
       end
 
       it 'should be able to update a record' do
@@ -315,8 +308,6 @@ if HAS_SQLITE3
         end
 
         clone.name.should == customer.name
-
-        @adapter.execute('DELETE FROM "bank_customers" WHERE "bank" = ? AND "account_number" = ?', bank, account_number)
       end
 
       it 'should be able to delete a record' do

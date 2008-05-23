@@ -1,9 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-if ADAPTER
+if [ HAS_SQLITE3, HAS_MYSQL, HAS_POSTGRES ].include?(ADAPTER)
   describe DataMapper::Adapters::DataObjectsAdapter, "with #{ADAPTER}" do
     describe 'a connection' do
-      before :each do
+      before do
         @adapter  = DataMapper::Repository.adapters[ADAPTER]
         @transaction = DataMapper::Transaction.new(@adapter)
 

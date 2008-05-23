@@ -6,10 +6,6 @@ require 'fastercsv'
 if ADAPTER
   describe DataMapper::Type, "with #{ADAPTER}" do
     before :all do
-      @adapter = repository(ADAPTER).adapter
-    end
-
-    before :all do
       module TypeTests
         class Impostor < DataMapper::Type
           primitive String
@@ -93,19 +89,25 @@ if ADAPTER
 
       Lime.auto_migrate!(ADAPTER)
 
-      repository(ADAPTER) do
+      lime = nil
+
+      repository(ADAPTER) do |repository|
         lime = Lime.new
         lime.color = 'green'
 
         lime.save
         lime.destroy
-        # lime.deleted_at.should_not be_nil
-        repository(ADAPTER).adapter.query("SELECT COUNT(*) FROM limes").first.should_not == 0
-        repository(ADAPTER).adapter.query("SELECT * FROM limes").should_not be_empty
+
+        lime.deleted_at.should be_kind_of(DateTime)
+      end
+
+      repository(ADAPTER) do |repository|
+        Lime.all.should be_empty
+        Lime[lime.id].should_not be_nil
       end
     end
 
-    it "should respect paranoia with a datetime" do
+    it "should respect paranoia with a boolean" do
 
       class Lime
         include DataMapper::Resource
@@ -116,15 +118,21 @@ if ADAPTER
 
       Lime.auto_migrate!(ADAPTER)
 
-      repository(ADAPTER) do
+      lime = nil
+
+      repository(ADAPTER) do |repository|
         lime = Lime.new
         lime.color = 'green'
 
         lime.save
         lime.destroy
-        # lime.deleted_at.should_not be_nil
-        repository(ADAPTER).adapter.query("SELECT count(*) from limes").first.should_not == 0
-        repository(ADAPTER).adapter.query("SELECT * from limes").should_not be_empty
+
+        lime.deleted_at.should be_kind_of(TrueClass)
+      end
+
+      repository(ADAPTER) do |repository|
+        Lime.all.should be_empty
+        Lime[lime.id].should_not be_nil
       end
     end
   end

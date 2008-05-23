@@ -2,8 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
   describe 'association proxying' do
-    before(:all) do
-
+    before :all do
       class Zebra
         include DataMapper::Resource
 
@@ -15,7 +14,6 @@ if ADAPTER
         property :name, String
         property :age, Integer
         has n, :stripes
-
       end
 
       class Stripe
@@ -31,14 +29,12 @@ if ADAPTER
         property :zebra_id, Integer
 
         belongs_to :zebra
-
       end
 
       Zebra.auto_migrate!(ADAPTER)
       Stripe.auto_migrate!(ADAPTER)
 
       repository(ADAPTER) do
-
         nancy  = Zebra.new(:age => 11)
         nancy.name = 'nance'
         nancy.save
@@ -73,5 +69,4 @@ if ADAPTER
       end
     end
   end
-
 end

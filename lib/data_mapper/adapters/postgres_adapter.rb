@@ -104,7 +104,7 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def sequence_name(model, property)
-          "#{model.storage_name(name)}_#{property.field}_seq"
+          "#{model.storage_name(name)}_#{property.field(name)}_seq"
         end
 
         # TODO: move to dm-more/dm-migrations

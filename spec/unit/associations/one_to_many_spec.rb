@@ -9,21 +9,17 @@ describe DataMapper::Associations::OneToMany do
 
       include DataMapper::Resource
 
-      class << self
-        public :one_to_many
-      end
-
       property :user_id, Integer, :key => true
     end
   end
 
-  describe '#one_to_many' do
-    it 'should provide #one_to_many' do
-      @class.should respond_to(:one_to_many)
+  describe '#has' do
+    it 'should provide #has' do
+      @class.should respond_to(:has)
     end
 
     it 'should return a Relationship' do
-      @class.one_to_many(:orders).should be_kind_of(DataMapper::Associations::Relationship)
+      @class.has(@class.n, :orders).should be_kind_of(DataMapper::Associations::Relationship)
     end
 
     describe 'relationship' do
@@ -36,16 +32,16 @@ describe DataMapper::Associations::OneToMany do
         DataMapper::Associations::Relationship.should_receive(:new) do |name,_,_,_,_|
           name.should == :user
         end
-        @class.one_to_many(:orders)
+        @class.has(@class.n, :orders)
       end
 
       it 'should receive the repository name' do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,repository_name,_,_,_|
-          repository_name.should == :one_to_many_spec
+          repository_name.should == :has_many_spec
         end
-        DataMapper.setup(:one_to_many_spec, "sqlite3:///tmp/one_to_many.db")
-        repository(:one_to_many_spec) do
-          @class.one_to_many(:orders)
+        DataMapper.setup(:has_many_spec, "sqlite3:///tmp/has_many.db")
+        repository(:has_many_spec) do
+          @class.has(@class.n, :orders)
         end
       end
 
@@ -53,21 +49,21 @@ describe DataMapper::Associations::OneToMany do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,_,child_model_name,_,_|
           child_model_name.should == 'Company::Order'
         end
-        @class.one_to_many(:orders, :class_name => 'Company::Order')
+        @class.has(@class.n, :orders, :class_name => 'Company::Order')
       end
 
       it 'should receive the child model name when class_name not passed in' do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,_,child_model_name,_,_|
           child_model_name.should == 'Order'
         end
-        @class.one_to_many(:orders)
+        @class.has(@class.n, :orders)
       end
 
       it 'should receive the parent model name' do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,_,_,parent_model_name,_|
           parent_model_name.should == 'User'
         end
-        @class.one_to_many(:orders)
+        @class.has(@class.n, :orders)
       end
 
       it 'should receive the parent model name' do
@@ -75,13 +71,13 @@ describe DataMapper::Associations::OneToMany do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,_,_,parent_model_name,_|
           options.object_id.should == options.object_id
         end
-        @class.one_to_many(:orders, options)
+        @class.has(@class.n, :orders, options)
       end
     end
 
     it 'should add an accessor for the proxy' do
       @class.new.should_not respond_to(:orders)
-      @class.one_to_many(:orders)
+      @class.has(@class.n, :orders)
       @class.new.should respond_to(:orders)
     end
 
@@ -89,9 +85,6 @@ describe DataMapper::Associations::OneToMany do
       before :all do
         class User
           include DataMapper::Resource
-          class << self
-            public :one_to_many
-          end
         end
 
         class Order
@@ -100,7 +93,7 @@ describe DataMapper::Associations::OneToMany do
       end
 
       it 'should return a OneToMany::Proxy' do
-        @class.one_to_many(:orders)
+        @class.has(@class.n, :orders)
         @class.new.orders.should be_kind_of(DataMapper::Associations::OneToMany::Proxy)
       end
     end
@@ -143,7 +136,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
       it "should save the resource after the parent is saved"
 
       it "should add the parent's keys to the resource after the parent is saved"
-    end 
+    end
   end
 
   describe "when deleting a resource" do

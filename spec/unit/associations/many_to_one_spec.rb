@@ -5,7 +5,7 @@ describe "DataMapper::Associations::ManyToOne" do
   it "should allow a declaration" do
     lambda do
       class Vehicle
-        many_to_one :manufacturer
+        belongs_to :manufacturer
       end
     end.should_not raise_error
   end
