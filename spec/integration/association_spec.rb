@@ -109,6 +109,20 @@ if ADAPTER
         property :summary, DataMapper::Types::Text
 
         has n, :tasks, :class_name => 'Models::Task'
+        has 1, :goal, :class_name => 'Models::Goal'
+      end
+
+      class Goal
+        include DataMapper::Resource
+
+        def self.default_repository_name
+          ADAPTER
+        end
+
+        property :title, String, :length => 255, :key => true
+        property :summary, DataMapper::Types::Text
+
+        belongs_to :project, :class_name => "Models::Project"
       end
 
       class Task
@@ -120,7 +134,6 @@ if ADAPTER
 
         property :title, String, :length => 255, :key => true
         property :description, DataMapper::Types::Text
-        property :project_title, String, :length => 255
 
         belongs_to :project, :class_name => 'Models::Project'
       end
@@ -132,9 +145,10 @@ if ADAPTER
       before do
         Models::Project.auto_migrate!(ADAPTER)
         Models::Task.auto_migrate!(ADAPTER)
+        Models::Goal.auto_migrate!(ADAPTER)
       end
 
-      it 'should allow namespaced classes in parent and child' do
+      it 'should allow namespaced classes in parent and child for many <=> one' do
         m = Models::Project.new(:title => 'p1', :summary => 'sum1')
         m.tasks << Models::Task.new(:title => 't1', :description => 'desc 1')
         m.save
@@ -150,7 +164,23 @@ if ADAPTER
         p.tasks.size.should == 1
         p.tasks[0].title.should == 't1'
       end
+
+    it 'should allow namespaced classes in parent and child for one <=> one' do
+      g = Models::Goal.new(:title => "g2", :description => "desc 2")
+      p = Models::Project.create!(:title => "p2", :summary => "sum 2", :goal => g)
+
+      pp = Models::Project.first(:title => 'p2')
+      pp.goal.title.should == "g2"
+
+      g = Models::Goal.first(:title => "g2")
+
+      g.project.should_not be_nil
+      g.project.title.should == 'p2'
+
+      g.project.goal.should_not be_nil
     end
+  end
+
 
     describe 'many to one associations' do
       before do
