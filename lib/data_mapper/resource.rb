@@ -205,6 +205,11 @@ module DataMapper
       self
     end
     alias reload! reload
+    
+    def reload_attributes(*attributes)
+      @collection.reload(:fields => attributes)
+      self
+    end
 
     ##
     # Returns <tt>true</tt> if this model hasn't been saved to the database,
