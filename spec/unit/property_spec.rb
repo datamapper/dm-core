@@ -254,6 +254,11 @@ describe DataMapper::Property do
       property.typecast('2000-01-01').should == Date.new(2000, 1, 1)
     end
 
+    it 'should typecast value for a Time property' do
+      property = DataMapper::Property.new(Zoo, :time, Time)
+      property.typecast('2000-01-01 01:01:01.123456').should == Time.local(2000, 1, 1, 1, 1, 1, 123456)
+    end
+
     it 'should typecast value for a Class property' do
       property = DataMapper::Property.new(Zoo, :class, Class)
       property.typecast('Zoo').should == Zoo

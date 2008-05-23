@@ -101,6 +101,7 @@ module DataMapper
           tm.map(Float).to('FLOAT').with(:scale => Property::DEFAULT_SCALE, :precision => Property::DEFAULT_PRECISION)
           tm.map(DateTime).to('DATETIME')
           tm.map(Date).to('DATE')
+          tm.map(Time).to('TIMESTAMP')
           tm.map(TrueClass).to('BOOLEAN')
           tm.map(Object).to('TEXT')
           tm.map(DM::Text).to('TEXT')
@@ -598,6 +599,8 @@ module DataMapper
               quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S'))
             when Date
               quote_column_value(column_value.strftime('%Y-%m-%d'))
+            when Time
+              quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S') + ((column_value.usec > 0 ? ".#{column_value.usec.to_s.ljust(6, '0')}" : '')))
             when Integer, Float
               column_value.to_s
             when BigDecimal

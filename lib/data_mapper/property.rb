@@ -53,6 +53,7 @@ module DataMapper
   # * BigDecimal
   # * DateTime
   # * Date
+  # * Time
   # * Object (marshalled out during serialization)
   # * Class (datastore primitive is the same as String. Used for Inheritance)
   #
@@ -245,6 +246,7 @@ module DataMapper
       BigDecimal,
       DateTime,
       Date,
+      Time,
       Object,
       Class,
       DataMapper::Types::Discriminator
@@ -368,7 +370,7 @@ module DataMapper
 
     # typecasts values into a primitive
     #
-    # @return <TrueClass, String, Float, Integer, BigDecimal, DateTime, Date,
+    # @return <TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Time
     #   Class> the primitive data-type, defaults to TrueClass
     #-
     # @private
@@ -382,6 +384,7 @@ module DataMapper
       elsif type == BigDecimal then BigDecimal(value.to_s)
       elsif type == DateTime   then DateTime.parse(value.to_s)
       elsif type == Date       then Date.parse(value.to_s)
+      elsif type == Time       then Time.parse(value.to_s)
       elsif type == Class      then find_const(value)
       end
     end
