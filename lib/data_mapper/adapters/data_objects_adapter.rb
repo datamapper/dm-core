@@ -602,7 +602,7 @@ module DataMapper
             when Date
               quote_column_value(column_value.strftime('%Y-%m-%d'))
             when Time
-              quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S') + ((column_value.usec > 0 ? ".#{column_value.usec.to_s.ljust(6, '0')}" : '')))
+              quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S') + ((column_value.usec > 0 ? ".#{column_value.usec.to_s.rjust(6, '0')}" : '')))
             when Integer, Float
               column_value.to_s
             when BigDecimal
