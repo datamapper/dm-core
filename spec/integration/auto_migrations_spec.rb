@@ -2,9 +2,18 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 require 'ostruct'
 
-TODAY = Date.today
-NOW   = DateTime.now
-CURRENT = Time.now
+TODAY   = Date.today
+NOW     = DateTime.now
+
+TIME_STRING_1 = '2007-04-21 04:14:12'
+TIME_STRING_2 = '2007-04-21 04:14:12.1'
+TIME_STRING_3 = '2007-04-21 04:14:12.01'
+TIME_STRING_4 = '2007-04-21 04:14:12.123456'
+
+TIME_1 = Time.parse(TIME_STRING_1)
+TIME_2 = Time.parse(TIME_STRING_2)
+TIME_3 = Time.parse(TIME_STRING_3)
+TIME_4 = Time.parse(TIME_STRING_4)
 
 class Book
   include DataMapper::Resource
@@ -21,7 +30,10 @@ class Book
   property :big_decimal, BigDecimal, :nullable => false, :default => BigDecimal('1.1'), :scale => 2, :precision => 1
   property :float,       Float,      :nullable => false, :default => 1.1,               :scale => 2, :precision => 1
   property :date_time,   DateTime,   :nullable => false, :default => NOW
-  property :time,        Time,       :nullable => false, :default => CURRENT
+  property :time_1,      Time,       :nullable => false, :default => TIME_1
+  property :time_2,      Time,       :nullable => false, :default => TIME_2
+  property :time_3,      Time,       :nullable => false, :default => TIME_3
+  property :time_4,      Time,       :nullable => false, :default => TIME_4
   property :object,      Object,     :nullable => true                       # FIXME: cannot supply a default for Object
 end
 
@@ -70,20 +82,24 @@ if HAS_SQLITE3
       end
 
       types = {
-        :serial      => [ Integer,    'INTEGER',      false, nil,                                                                            1,                 true  ],
-        :fixnum      => [ Integer,    'INTEGER',      false, '1',                                                                            1,                 false ],
-        :string      => [ String,     'VARCHAR(50)',  false, 'default',                                                                      'default',         false ],
-        :empty       => [ String,     'VARCHAR(50)',  false, '',                                                                             ''       ,         false ],
-        :date        => [ Date,       'DATE',         false, TODAY.strftime('%Y-%m-%d'),                                                     TODAY,             false ],
-        :true_class  => [ TrueClass,  'BOOLEAN',      false, 't',                                                                            true,              false ],
-        :false_class => [ TrueClass,  'BOOLEAN',      false, 'f',                                                                            false,             false ],
-        :text        => [ DM::Text,   'TEXT',         false, 'text',                                                                         'text',            false ],
-#        :class       => [ Class,      'VARCHAR(50)',  false, 'Class',                                                                        'Class',           false ],
-        :big_decimal => [ BigDecimal, 'DECIMAL(2,1)', false, '1.1',                                                                          BigDecimal('1.1'), false ],
-        :float       => [ Float,      'FLOAT(2,1)',   false, '1.1',                                                                          1.1,               false ],
-        :date_time   => [ DateTime,   'DATETIME',     false, NOW.strftime('%Y-%m-%d %H:%M:%S'),                                              NOW,               false ],
-        :time        => [ Time,       'TIMESTAMP',    false, "#{CURRENT.strftime('%Y-%m-%d %H:%M:%S')}.#{CURRENT.usec.to_s.rjust(6, '0')}",  CURRENT,           false ],
-        :object      => [ Object,     'TEXT',         true,  nil,                                                                            nil,               false ],
+        :serial      => [ Integer,    'INTEGER',      false, nil,                               1,                 true  ],
+        :fixnum      => [ Integer,    'INTEGER',      false, '1',                               1,                 false ],
+        :string      => [ String,     'VARCHAR(50)',  false, 'default',                         'default',         false ],
+        :empty       => [ String,     'VARCHAR(50)',  false, '',                                ''       ,         false ],
+        :date        => [ Date,       'DATE',         false, TODAY.strftime('%Y-%m-%d'),        TODAY,             false ],
+        :true_class  => [ TrueClass,  'BOOLEAN',      false, 't',                               true,              false ],
+        :false_class => [ TrueClass,  'BOOLEAN',      false, 'f',                               false,             false ],
+        :text        => [ DM::Text,   'TEXT',         false, 'text',                            'text',            false ],
+#        :class       => [ Class,      'VARCHAR(50)',  false, 'Class',                           'Class',           false ],
+        :big_decimal => [ BigDecimal, 'DECIMAL(2,1)', false, '1.1',                             BigDecimal('1.1'), false ],
+        :float       => [ Float,      'FLOAT(2,1)',   false, '1.1',                             1.1,               false ],
+        :date_time   => [ DateTime,   'DATETIME',     false, NOW.strftime('%Y-%m-%d %H:%M:%S'), NOW,               false ],
+        :time_1      => [ Time,       'TIMESTAMP',    false, TIME_STRING_1,                     TIME_1,            false ],
+#SQLite pads out the microseconds to the full 6 digits no matter what the value is - we simply pad up the zeros needed
+        :time_2      => [ Time,       'TIMESTAMP',    false, TIME_STRING_2.dup << '00000',      TIME_2,            false ],
+        :time_3      => [ Time,       'TIMESTAMP',    false, TIME_STRING_3.dup << '0000',       TIME_3,            false ],
+        :time_4      => [ Time,       'TIMESTAMP',    false, TIME_STRING_4,                     TIME_4,            false ],
+        :object      => [ Object,     'TEXT',         true,  nil,                               nil,               false ],
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
@@ -153,20 +169,23 @@ if HAS_MYSQL
       end
 
       types = {
-        :serial      => [ Integer,    'INT(11)',      false, nil,                                    1,                 true  ],
-        :fixnum      => [ Integer,    'INT(11)',      false, '1',                                    1,                 false ],
-        :string      => [ String,     'VARCHAR(50)',  false, 'default',                              'default',         false ],
-        :empty       => [ String,     'VARCHAR(50)',  false, '',                                     '',                false ],
-        :date        => [ Date,       'DATE',         false, TODAY.strftime('%Y-%m-%d'),             TODAY,             false ],
-        :true_class  => [ TrueClass,  'TINYINT(1)',   false, '1',                                    true,              false ],
-        :false_class => [ TrueClass,  'TINYINT(1)',   false, '0',                                    false,             false ],
-        :text        => [ DM::Text,   'TEXT',         false, nil,                                    'text',            false ],
-#        :class       => [ Class,      'VARCHAR(50)',  false, 'Class',                                'Class',           false ],
-        :big_decimal => [ BigDecimal, 'DECIMAL(2,1)', false, '1.1',                                  BigDecimal('1.1'), false ],
-        :float       => [ Float,      'FLOAT(2,1)',   false, '1.1',                                  1.1,               false ],
-        :date_time   => [ DateTime,   'DATETIME',     false, NOW.strftime('%Y-%m-%d %H:%M:%S'),      NOW,               false ],
-        :time        => [ Time,       'TIMESTAMP',    false, CURRENT.strftime('%Y-%m-%d %H:%M:%S'),  CURRENT,           false ],
-        :object      => [ Object,     'TEXT',         true,  nil,                                    nil,               false ],
+        :serial      => [ Integer,    'INT(11)',      false, nil,                                  1,                 true  ],
+        :fixnum      => [ Integer,    'INT(11)',      false, '1',                                  1,                 false ],
+        :string      => [ String,     'VARCHAR(50)',  false, 'default',                            'default',         false ],
+        :empty       => [ String,     'VARCHAR(50)',  false, '',                                   '',                false ],
+        :date        => [ Date,       'DATE',         false, TODAY.strftime('%Y-%m-%d'),           TODAY,             false ],
+        :true_class  => [ TrueClass,  'TINYINT(1)',   false, '1',                                  true,              false ],
+        :false_class => [ TrueClass,  'TINYINT(1)',   false, '0',                                  false,             false ],
+        :text        => [ DM::Text,   'TEXT',         false, nil,                                  'text',            false ],
+#        :class       => [ Class,      'VARCHAR(50)',  false, 'Class',                              'Class',           false ],
+        :big_decimal => [ BigDecimal, 'DECIMAL(2,1)', false, '1.1',                                BigDecimal('1.1'), false ],
+        :float       => [ Float,      'FLOAT(2,1)',   false, '1.1',                                1.1,               false ],
+        :date_time   => [ DateTime,   'DATETIME',     false, NOW.strftime('%Y-%m-%d %H:%M:%S'),    NOW,               false ],
+        :time_1      => [ Time,       'TIMESTAMP',    false, TIME_1.strftime('%Y-%m-%d %H:%M:%S'), TIME_1,            false ],
+        :time_2      => [ Time,       'TIMESTAMP',    false, TIME_2.strftime('%Y-%m-%d %H:%M:%S'), TIME_2,            false ],
+        :time_3      => [ Time,       'TIMESTAMP',    false, TIME_3.strftime('%Y-%m-%d %H:%M:%S'), TIME_3 ,           false ],
+        :time_4      => [ Time,       'TIMESTAMP',    false, TIME_4.strftime('%Y-%m-%d %H:%M:%S'), TIME_4 ,           false ],
+        :object      => [ Object,     'TEXT',         true,  nil,                                  nil,               false ],
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
@@ -282,7 +301,12 @@ if HAS_POSTGRES
         :big_decimal => [ BigDecimal, 'NUMERIC',     false, '1.1',                                                                 BigDecimal('1.1'), false ],
         :float       => [ Float,      'FLOAT8',      false, '1.1',                                                                 1.1,               false ],
         :date_time   => [ DateTime,   'TIMESTAMP',   false, "'#{NOW.strftime('%Y-%m-%d %H:%M:%S')}'::timestamp without time zone", NOW,               false ],
-        :time        => [ Time,       'TIMESTAMP',   false, "'#{CURRENT.strftime('%Y-%m-%d %H:%M:%S')}.#{CURRENT.usec.to_s.rjust(6, '0')}'::timestamp without time zone", CURRENT,           false ],
+        :time_1      => [ Time,       'TIMESTAMP',   false, "'" << TIME_STRING_1.dup << "'::timestamp without time zone",          TIME_1,            false ],
+#The weird zero here is simply because postgresql seems to want to store .10 instead of .1 for this one
+#affects anything with an exact tenth of a second (i.e. .1, .2, .3, ...)
+        :time_2      => [ Time,       'TIMESTAMP',   false, "'" << TIME_STRING_2.dup << "0'::timestamp without time zone",         TIME_2,            false ],
+        :time_3      => [ Time,       'TIMESTAMP',   false, "'" << TIME_STRING_3.dup << "'::timestamp without time zone",          TIME_3,            false ],
+        :time_4      => [ Time,       'TIMESTAMP',   false, "'" << TIME_STRING_4.dup << "'::timestamp without time zone",          TIME_4,            false ],
         :object      => [ Object,     'TEXT',        true,  nil,                                                                   nil,               false ],
       }
 
