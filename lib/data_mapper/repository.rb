@@ -19,12 +19,16 @@ module DataMapper
 
     attr_reader :name, :adapter, :type_map
   
-    def identity_map_get(model, key=nil)
-      key ? @identity_maps[model][key] : @identity_maps[model]
+    def identity_map_get(model, key)
+      identity_map(model)[key]
     end
 
     def identity_map_set(resource)
-      identity_maps[resource.class][resource.key] = resource
+      identity_map(resource.class)[resource.key] = resource
+    end
+    
+    def identity_map(model)
+      @identity_maps[model]
     end
 
     ##
