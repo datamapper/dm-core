@@ -269,21 +269,22 @@ if HAS_POSTGRES
         end
       end
 
+      pg_time_string = "'#{CURRENT.strftime('%Y-%m-%d %H:%M:%S')}" << (CURRENT.usec != 0 ? ".#{CURRENT.usec.to_s.ljust(6, '0')}".split(/0*$/).to_s : "") << "'::timestamp without time zone"
       types = {
-        :serial      => [ Integer,    'INT4',        false, nil,                                                                                                           1,                 true  ],
-        :fixnum      => [ Integer,    'INT4',        false, '1',                                                                                                           1,                 false ],
-        :string      => [ String,     'VARCHAR',     false, "'default'::character varying",                                                                                'default',         false ],
-        :empty       => [ String,     'VARCHAR',     false, "''::character varying",                                                                                       '',                false ],
-        :date        => [ Date,       'DATE',        false, "'#{TODAY.strftime('%Y-%m-%d')}'::date",                                                                       TODAY,             false ],
-        :true_class  => [ TrueClass,  'BOOL',        false, 'true',                                                                                                        true,              false ],
-        :false_class => [ TrueClass,  'BOOL',        false, 'false',                                                                                                       false,             false ],
-        :text        => [ DM::Text,   'TEXT',        false, "'text'::text",                                                                                                'text',            false ],
-#        :class       => [ Class,      'VARCHAR(50)', false, 'Class',                                                                                                       'Class',           false ],
-        :big_decimal => [ BigDecimal, 'NUMERIC',     false, '1.1',                                                                                                         BigDecimal('1.1'), false ],
-        :float       => [ Float,      'FLOAT8',      false, '1.1',                                                                                                         1.1,               false ],
-        :date_time   => [ DateTime,   'TIMESTAMP',   false, "'#{NOW.strftime('%Y-%m-%d %H:%M:%S')}'::timestamp without time zone",                                         NOW,               false ],
-        :time        => [ Time,       'TIMESTAMP',   false, "'#{CURRENT.strftime('%Y-%m-%d %H:%M:%S')}.#{CURRENT.usec.to_s.ljust(6, '0')}'::timestamp without time zone",  CURRENT,           false ],
-        :object      => [ Object,     'TEXT',        true,  nil,                                                                                                           nil,               false ],
+        :serial      => [ Integer,    'INT4',        false, nil,                                                                   1,                 true  ],
+        :fixnum      => [ Integer,    'INT4',        false, '1',                                                                   1,                 false ],
+        :string      => [ String,     'VARCHAR',     false, "'default'::character varying",                                        'default',         false ],
+        :empty       => [ String,     'VARCHAR',     false, "''::character varying",                                               '',                false ],
+        :date        => [ Date,       'DATE',        false, "'#{TODAY.strftime('%Y-%m-%d')}'::date",                               TODAY,             false ],
+        :true_class  => [ TrueClass,  'BOOL',        false, 'true',                                                                true,              false ],
+        :false_class => [ TrueClass,  'BOOL',        false, 'false',                                                               false,             false ],
+        :text        => [ DM::Text,   'TEXT',        false, "'text'::text",                                                        'text',            false ],
+#        :class       => [ Class,      'VARCHAR(50)', false, 'Class',                                                               'Class',           false ],
+        :big_decimal => [ BigDecimal, 'NUMERIC',     false, '1.1',                                                                 BigDecimal('1.1'), false ],
+        :float       => [ Float,      'FLOAT8',      false, '1.1',                                                                 1.1,               false ],
+        :date_time   => [ DateTime,   'TIMESTAMP',   false, "'#{NOW.strftime('%Y-%m-%d %H:%M:%S')}'::timestamp without time zone", NOW,               false ],
+        :time        => [ Time,       'TIMESTAMP',   false, pg_time_string,                                                        CURRENT,           false ],
+        :object      => [ Object,     'TEXT',        true,  nil,                                                                   nil,               false ],
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
