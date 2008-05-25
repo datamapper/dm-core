@@ -496,15 +496,6 @@ module DataMapper
         resource
       end
 
-      ##
-      # Attempts to find an instance matching +search_attributes+, and if doing so returns nil, attempts to create an instance with attributes matching the merge of +search_attributes+ and +create_attributes+
-      #
-      # @param <Hash(Symbol => Object)> search_attributes hash of attributes to search for
-      # @param <Hash(Symbol => Object)> create_attributes hash of attributes to ensure a created instance recieves should a query fail to return an instance
-      def find_or_create(search_attributes, create_attributes = {})
-        first(search_attributes) || create(search_attributes.merge(create_attributes))
-      end
-
       # TODO SPEC
       def copy(source, destination, options = {})
         repository(destination) do
