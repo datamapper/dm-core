@@ -22,15 +22,15 @@ class Book
   property :fixnum,      Integer,    :nullable => false, :default => 1
   property :string,      String,     :nullable => false, :default => 'default'
   property :empty,       String,     :nullable => false, :default => ''
-  property :date,        Date,       :nullable => false, :default => TODAY
+  property :date,        Date,       :nullable => false, :default => TODAY,                                           :index => :date_date_time, :unique_index => :date_float
   property :true_class,  TrueClass,  :nullable => false, :default => true
   property :false_class, TrueClass,  :nullable => false, :default => false
   property :text,        DM::Text,   :nullable => false, :default => 'text'
 #  property :class,       Class,      :nullable => false, :default => Class  # FIXME: Class types cause infinite recursions in Resource
   property :big_decimal, BigDecimal, :nullable => false, :default => BigDecimal('1.1'), :scale => 2, :precision => 1
-  property :float,       Float,      :nullable => false, :default => 1.1,               :scale => 2, :precision => 1
-  property :date_time,   DateTime,   :nullable => false, :default => NOW
-  property :time_1,      Time,       :nullable => false, :default => TIME_1
+  property :float,       Float,      :nullable => false, :default => 1.1,               :scale => 2, :precision => 1, :unique_index => :date_float
+  property :date_time,   DateTime,   :nullable => false, :default => NOW,                                             :index => [:date_date_time, true]
+  property :time_1,      Time,       :nullable => false, :default => TIME_1,                                          :unique_index => true
   property :time_2,      Time,       :nullable => false, :default => TIME_2
   property :time_3,      Time,       :nullable => false, :default => TIME_3
   property :time_4,      Time,       :nullable => false, :default => TIME_4
@@ -72,6 +72,8 @@ if HAS_SQLITE3
 
           ts.update(property.name => property)
         end
+
+        @index_list = @adapter.query('PRAGMA index_list("books")')
 
         # bypass DM to create the record using only the column default values
         @adapter.execute('INSERT INTO books (serial) VALUES (1)')
@@ -126,6 +128,19 @@ if HAS_SQLITE3
           end
         end
       end
+
+      it 'should have 4 indexes: 2 non-unique index, 2 unique index' do
+        @index_list.size.should == 4
+        @index_list[0].name.should == 'unique_index_books_date_float'
+        @index_list[0].unique.should == 1
+        @index_list[1].name.should == 'unique_index_books_time_1'
+        @index_list[1].unique.should == 1
+        @index_list[2].name.should == 'index_books_date_date_time'
+        @index_list[2].unique.should == 0
+        @index_list[3].name.should == 'index_books_date_time'
+        @index_list[3].unique.should == 0
+      end
+
     end
   end
 end
@@ -159,6 +174,8 @@ if HAS_MYSQL
 
           ts.update(property.name => property)
         end
+
+        @index_list = @adapter.query('SHOW INDEX FROM books')
 
         # bypass DM to create the record using only the column default values
         @adapter.execute('INSERT INTO books (serial, text) VALUES (1, \'text\')')
@@ -211,6 +228,18 @@ if HAS_MYSQL
             end
           end
         end
+      end
+
+      it 'should have 4 indexes: 2 non-unique index, 2 unique index' do
+        @index_list.size.should == 4
+        @index_list[0].Key_name.should == 'unique_index_books_date_float'
+        @index_list[0].Non_unique.should == 0
+        @index_list[1].Key_name.should == 'unique_index_books_time_1'
+        @index_list[1].Non_unique.should == 0
+        @index_list[2].Key_name.should == 'index_books_date_date_time'
+        @index_list[2].Non_unique.should == 1
+        @index_list[3].Key_name.should == 'index_books_date_time'
+        @index_list[3].Non_unique.should == 1
       end
     end
   end
@@ -333,6 +362,10 @@ if HAS_POSTGRES
             end
           end
         end
+      end
+
+      it 'should have 4 indexes: 2 non-unique index, 2 unique index' do
+        pending 'TODO'
       end
     end
   end

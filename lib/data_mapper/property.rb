@@ -229,8 +229,8 @@ module DataMapper
     PROPERTY_OPTIONS = [
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-      :format, :index, :check, :ordinal, :auto_validation, :validates, :unique,
-      :lock, :track, :scale, :precision
+      :format, :index, :unique_index, :check, :ordinal, :auto_validation,
+      :validates, :unique, :lock, :track, :scale, :precision
     ]
 
     # FIXME: can we pull the keys from
@@ -300,6 +300,14 @@ module DataMapper
       @length.is_a?(Range) ? @length.max : @length
     end
     alias size length
+
+    def index
+      @index
+    end
+
+    def unique_index
+      @unique_index
+    end
 
     # Returns whether or not the property is to be lazy-loaded
     #
@@ -441,6 +449,8 @@ module DataMapper
       @key      = @options.fetch(:key,      @serial || false)
       @default  = @options.fetch(:default,  nil)
       @nullable = @options.fetch(:nullable, @key == false && @default.nil?)
+      @index    = @options.fetch(:index,    false)
+      @unique_index = @options.fetch(:unique_index, false)
 
       @lazy     = @options.fetch(:lazy,     @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
 
