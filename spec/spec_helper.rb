@@ -31,6 +31,8 @@ HAS_SQLITE3  = setup_adapter(:sqlite3,  'sqlite3::memory:')
 HAS_MYSQL    = setup_adapter(:mysql,    'mysql://localhost/dm_core_test')
 HAS_POSTGRES = setup_adapter(:postgres, 'postgres://postgres@localhost/dm_core_test')
 
+DataMapper::Logger.new(nil, :debug)
+
 class Article
   include DataMapper::Resource
 

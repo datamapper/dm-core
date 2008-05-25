@@ -205,7 +205,7 @@ module DataMapper
     def do_adapter(adapter, what, prerequisite)
       raise "No primitive for #{adapter}" unless @transaction_primitives.include?(adapter)
       raise "Illegal state for #{what}: #{state_for(adapter)}" unless state_for(adapter) == prerequisite
-      DataMapper.logger.debug("#{adapter}: #{what}")
+      DataMapper.logger.debug("#{adapter.name}: #{what}")
       @transaction_primitives[adapter].send(what)
       @adapters[adapter] = what
     end

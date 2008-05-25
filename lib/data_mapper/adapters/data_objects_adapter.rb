@@ -313,8 +313,9 @@ module DataMapper
         super
 
         # Default the driver-specifc logger to DataMapper's logger
-        driver_module = DataObjects.const_get(@uri.scheme.capitalize) rescue nil
-        driver_module.logger = DataMapper.logger if driver_module && driver_module.respond_to?(:logger)
+        if driver_module = DataObjects.const_get(@uri.scheme.capitalize)
+          driver_module.logger = DataMapper.logger if driver_module.respond_to?(:logger=)
+        end
       end
 
       def with_connection(&block)
