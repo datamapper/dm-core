@@ -249,7 +249,12 @@ module DataMapper
       # TODO: move to dm-more/dm-migrations
       def create_model_storage(repository, model)
         return false if storage_exists?(model.storage_name(name))
-        execute(create_table_statement(model)).to_i == 1
+        fail = false
+        fail = true unless execute(create_table_statement(model)).to_i == 1
+        (create_index_statements(model) + create_unique_index_statements(model)).each do |sql|
+          fail = true unless execute(sql).to_i == 1
+        end
+        !fail
       end
 
       # TODO: move to dm-more/dm-migrations
@@ -602,7 +607,7 @@ module DataMapper
             when Date
               quote_column_value(column_value.strftime('%Y-%m-%d'))
             when Time
-              quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S') + ((column_value.usec > 0 ? ".#{column_value.usec.to_s.ljust(6, '0')}" : '')))
+              quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S') + ((column_value.usec > 0 ? ".#{column_value.usec.to_s.rjust(6, '0')}" : '')))
             when Integer, Float
               column_value.to_s
             when BigDecimal
@@ -641,6 +646,24 @@ module DataMapper
         # TODO: move to dm-more/dm-migrations
         def drop_table_statement(model)
           "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def create_index_statements(model)
+          table_name = model.storage_name(name)
+          model.properties.indexes.collect do |index_name, properties|
+            "CREATE INDEX #{quote_column_name('index_' + table_name + '_' + index_name)} ON " +
+            "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
+          end
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def create_unique_index_statements(model)
+          table_name = model.storage_name(name)
+          model.properties.unique_indexes.collect do |index_name, properties|
+            "CREATE UNIQUE INDEX #{quote_column_name('unique_index_' + table_name + '_' + index_name)} ON " +
+            "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
+          end
         end
 
         # TODO: move to dm-more/dm-migrations

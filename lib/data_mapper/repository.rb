@@ -26,7 +26,7 @@ module DataMapper
     def identity_map_set(resource)
       identity_map(resource.class)[resource.key] = resource
     end
-    
+
     def identity_map(model)
       @identity_maps[model]
     end

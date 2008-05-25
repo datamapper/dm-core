@@ -14,7 +14,9 @@ require 'active_record'
 socket_file = Pathname.glob(%w[
   /opt/local/var/run/mysql5/mysqld.sock
   tmp/mysqld.sock
+  /tmp/mysqld.sock
   tmp/mysql.sock
+  /tmp/mysql.sock
   /var/mysql/mysql.sock
 ]).find(&:socket?)
 

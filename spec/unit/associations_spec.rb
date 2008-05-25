@@ -7,8 +7,6 @@ describe "DataMapper::Associations" do
   end
 
   describe ".relationships" do
-    DataMapper.setup(:r, "sqlite3:///tmp/r.db")
-
     class B
       include DataMapper::Resource
     end
@@ -16,7 +14,7 @@ describe "DataMapper::Associations" do
     class C
       include DataMapper::Resource
 
-      repository(:r) do
+      repository(:mock) do
         has 1, :b
       end
     end
@@ -41,7 +39,7 @@ describe "DataMapper::Associations" do
 
     it "should return the right set of relationships given the repository name" do
       C.relationships.should be_empty
-      C.relationships(:r).should_not be_empty
+      C.relationships(:mock).should_not be_empty
     end
 
     it "should return the right set of relationships given the inheritance" do

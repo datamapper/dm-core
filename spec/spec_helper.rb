@@ -11,27 +11,25 @@ require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
   DataMapper.setup(repository_name, "mock://localhost/#{repository_name}")
 end
 
-def load_driver(name, default_uri)
-  lib = "do_#{name}"
-
+def setup_adapter(name, default_uri)
   begin
-    gem lib, '=0.9.0'
-    require lib
     DataMapper.setup(name, ENV["#{name.to_s.upcase}_SPEC_URI"] || default_uri)
+    Object.const_set('ADAPTER', ENV['ADAPTER'].to_sym) if name.to_s == ENV['ADAPTER']
     true
   rescue Exception => e
-    warn "Could not load #{lib}: #{e}" if name == ADAPTER
+    if name.to_s == ENV['ADAPTER']
+      Object.const_set('ADAPTER', nil)
+      warn "Could not load #{name} adapter: #{e}"
+    end
     false
   end
 end
 
 ENV['ADAPTER'] ||= 'sqlite3'
 
-ADAPTER = ENV['ADAPTER'].to_sym
-
-HAS_SQLITE3  = load_driver(:sqlite3,  'sqlite3::memory:')
-HAS_MYSQL    = load_driver(:mysql,    'mysql://localhost/dm_core_test')
-HAS_POSTGRES = load_driver(:postgres, 'postgres://postgres@localhost/dm_core_test')
+HAS_SQLITE3  = setup_adapter(:sqlite3,  'sqlite3::memory:')
+HAS_MYSQL    = setup_adapter(:mysql,    'mysql://localhost/dm_core_test')
+HAS_POSTGRES = setup_adapter(:postgres, 'postgres://postgres@localhost/dm_core_test')
 
 class Article
   include DataMapper::Resource

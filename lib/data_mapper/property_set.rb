@@ -41,6 +41,18 @@ module DataMapper
       select { |property| property.key? }
     end
 
+    def indexes
+      index_hash = {}
+      each { |property| parse_index(property.index, property.field.to_s, index_hash) }
+      index_hash
+    end
+
+    def unique_indexes
+      index_hash = {}
+      each { |property| parse_index(property.unique_index, property.field.to_s, index_hash) }
+      index_hash
+    end
+
     def inheritance_property
       detect { |property| property.type == DataMapper::Types::Discriminator }
     end
@@ -141,6 +153,16 @@ module DataMapper
 
     def lazy_contexts
       @lazy_contexts ||= Hash.new { |h,context| h[context] = [] }
+    end
+
+    def parse_index(index, property, index_hash)
+      case index
+      when true then index_hash[property] = [property]
+      when Symbol
+        index_hash[index.to_s] ||= []
+        index_hash[index.to_s] << property
+      when Array then index.each { |idx| parse_index(idx, property, index_hash) }
+      end
     end
 
   end # class PropertySet
