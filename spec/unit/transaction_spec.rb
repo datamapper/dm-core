@@ -10,9 +10,9 @@ describe DataMapper::Transaction do
   end
 
   before :each do
-    @adapter = mock("adapter")
+    @adapter = mock("adapter", :name => 'mock_adapter')
     @repository = mock("repository")
-    @repository_adapter = mock("repository adapter")
+    @repository_adapter = mock("repository adapter", :name => 'mock_repository_adapter')
     @resource = Smurf.new
     @transaction_primitive = mock("transaction primitive")
     @repository_transaction_primitive = mock("repository transaction primitive")
