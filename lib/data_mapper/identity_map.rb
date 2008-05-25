@@ -40,11 +40,11 @@ module DataMapper
         Hash.new
       end
     end
-    
+
     def cache
       @cache
     end
-    
+
     def method_missing(method, *args, &block)
       cache.__send__(method, *args, &block)
     end

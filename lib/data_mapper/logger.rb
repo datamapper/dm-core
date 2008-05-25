@@ -149,7 +149,7 @@ module DataMapper
     end
 
     # Appends a string and log level to logger's buffer.
-    
+
     # @note
     #   Note that the string is discarded if the string's log level less than the
     #   logger's log level.

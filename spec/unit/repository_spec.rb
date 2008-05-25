@@ -58,7 +58,7 @@ describe DataMapper::Repository do
     @repository.should respond_to(:save)
     @repository.should respond_to(:destroy)
   end
-  
+
   it "should be reused in inner scope" do
     DataMapper.repository(:default) do |outer_repos|
       DataMapper.repository(:default) do |inner_repos|

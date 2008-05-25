@@ -11,8 +11,8 @@ module DataMapper
         raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller     unless Symbol === name || Hash === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        relationship = 
-          relationships(repository.name)[name] = 
+        relationship =
+          relationships(repository.name)[name] =
           if options.include?(:through)
             RelationshipChain.new(:child_model_name => options.fetch(:class_name, DataMapper::Inflection.classify(name)),
                                   :parent_model_name => self.name,
@@ -22,7 +22,7 @@ module DataMapper
                                   :parent_key => options[:parent_key],
                                   :child_key => options[:child_key])
           else
-            relationships(repository.name)[name] = 
+            relationships(repository.name)[name] =
               Relationship.new(
                                DataMapper::Inflection.underscore(self.name.split('::').last).to_sym,
                                repository.name,
@@ -31,7 +31,7 @@ module DataMapper
                                options
                                )
           end
-        
+
         class_eval <<-EOS, __FILE__, __LINE__
           def #{name}(options={})
             options.empty? ? #{name}_association : #{name}_association.all(options)
@@ -81,7 +81,7 @@ module DataMapper
 
         def <<(resource)
           #
-          # The order here is of the essence. 
+          # The order here is of the essence.
           #
           # self.append_resource used to be called before children.<<, which created weird errors
           # where the resource was appended in the db before it was appended onto the @children
@@ -128,7 +128,7 @@ module DataMapper
         def first(options={})
           options.empty? ? children.first : @relationship.get_children(@parent_resource,options,:first)
         end
-        
+
         def reload!
           @dirty_children = []
           @children = nil
@@ -153,17 +153,17 @@ module DataMapper
         def ensure_mutable
           raise ImmutableAssociationError, "You can not modify this assocation" if RelationshipChain === @relationship
         end
-        
+
         def add_default_association_values(resources)
           resources.each do |resource|
             conditions = @relationship.query.reject { |key, value| key == :order }
             conditions.each do |key, value|
               resource.send("#{key}=", value) if key.class != DataMapper::Query::Operator && resource.send("#{key}") == nil
-            end  
+            end
           end
-          resources  
-        end  
-        
+          resources
+        end
+
         def remove_resource(resource)
           ensure_mutable
           begin

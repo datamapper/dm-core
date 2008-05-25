@@ -18,7 +18,7 @@ module DataMapper
     end
 
     attr_reader :name, :adapter, :type_map
-  
+
     def identity_map_get(model, key)
       identity_map(model)[key]
     end

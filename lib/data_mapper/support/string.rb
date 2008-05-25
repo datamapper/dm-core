@@ -9,7 +9,7 @@ class String
   end
 
   # Matches any whitespace (including newline) and replaces with a single space
-  # 
+  #
   # @example
   #   <<QUERY.compress_lines
   #     SELECT name

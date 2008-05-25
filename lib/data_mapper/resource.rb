@@ -208,7 +208,7 @@ module DataMapper
       self
     end
     alias reload! reload
-    
+
     def reload_attributes(*attributes)
       @collection.reload(:fields => attributes)
       self
