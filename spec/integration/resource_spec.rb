@@ -133,7 +133,7 @@ if ADAPTER
         class Geek < Male
           property :awkward, Boolean, :default => true
         end
-
+        
         Geek.auto_migrate!(ADAPTER)
 
         repository(ADAPTER) do
@@ -145,6 +145,26 @@ if ADAPTER
           Mugger.create!(:name => 'Frank')
           Maniac.create!(:name => 'William')
           Psycho.create!(:name => 'Norman')
+        end
+        
+        class Flanimal
+          include DataMapper::Resource
+          property :id, Integer, :serial => true
+          property :type, Discriminator
+          property :name, String
+
+        end
+
+        class Sprog < Flanimal; end
+        
+        Flanimal.auto_migrate!(ADAPTER)
+        
+      end
+      
+      it "should test bug ticket #302" do
+        repository(ADAPTER) do
+          Sprog.create(:name => 'Marty')
+          Sprog.first(:name => 'Marty').should_not be_nil
         end
       end
 
