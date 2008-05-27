@@ -119,7 +119,7 @@ gem_spec = Gem::Specification.new do |s|
 
   s.require_path = "lib"
   s.requirements << "none"
-  s.add_dependency("data_objects", ">=0.9.0")
+  s.add_dependency("data_objects", "=#{s.version}")
   s.add_dependency("english", ">=0.2.0")
   s.add_dependency("rspec", ">=1.1.3")
   s.add_dependency("addressable", ">=1.0.4")

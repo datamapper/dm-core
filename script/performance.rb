@@ -5,10 +5,10 @@ require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper')
 require 'benchmark'
 require 'rubygems'
 
-gem 'faker', '>= 0.3.1'
+gem 'faker', '>=0.3.1'
 require 'faker'
 
-gem 'activerecord', '>= 2.0.2'
+gem 'activerecord', '>=2.0.2'
 require 'active_record'
 
 socket_file = Pathname.glob(%w[
