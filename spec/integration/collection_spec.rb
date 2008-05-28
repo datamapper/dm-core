@@ -13,6 +13,8 @@ if ADAPTER
         property :id, Integer, :serial => true
         property :name, String
         property :age, Integer
+        property :notes, Text
+        
         has n, :stripes
       end
 
@@ -35,15 +37,15 @@ if ADAPTER
       Stripe.auto_migrate!(ADAPTER)
 
       repository(ADAPTER) do
-        nancy  = Zebra.new(:age => 11)
-        nancy.name = 'nance'
+        nancy  = Zebra.new(:age => 11, :notes => 'Spotted!')
+        nancy.name = 'Nance'
         nancy.save
 
-        bessie = Zebra.new(:age => 10)
+        bessie = Zebra.new(:age => 10, :notes => 'Striped!')
         bessie.name = 'Bessie'
         bessie.save
 
-        steve  = Zebra.new(:age => 8)
+        steve  = Zebra.new(:age => 8, :notes => 'Bald!')
         steve.name = 'Steve'
         steve.save
 
@@ -60,12 +62,40 @@ if ADAPTER
       end
     end
 
+    it "should provide a Query" do
+      repository(ADAPTER) do
+        zebras = Zebra.all(:order => [:name])
+        zebras.query.order.should == [DataMapper::Query::Direction.new(Zebra.properties(ADAPTER)[:name])]
+      end
+    end
+    
     it "should proxy the relationships of the model" do
       repository(ADAPTER) do
         zebras = Zebra.all
         zebras.should have(3).entries
-        zebras.find { |zebra| zebra.name == 'nance' }.stripes.should have(2).entries
+        zebras.find { |zebra| zebra.name == 'Nance' }.stripes.should have(2).entries
         zebras.stripes.should == [@babe, @snowball]
+      end
+    end
+    
+    it "should preserve it's order on reload" do
+      pending("Query#dup doesn't preserve order.")
+      repository(ADAPTER) do
+        zebras = Zebra.all(:order => [:name])
+        
+        order = %w{ Bessie Nance Steve }
+
+        zebras.each_with_index do |zebra, i|
+          zebra.name.should == order[i]
+        end
+        
+        # Force a lazy-load call:
+        zebras.first.notes
+        
+        # The order should be unaffected.
+        zebras.each_with_index do |zebra, i|
+          zebra.name.should == order[i]
+        end
       end
     end
   end

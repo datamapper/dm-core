@@ -102,7 +102,7 @@ module DataMapper
       :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
     ]
 
-    attr_reader :model, *OPTIONS
+    attr_reader :repository, :model, *OPTIONS
 
     def update(other)
       other = self.class.new(@repository, model, other) if Hash === other
@@ -202,7 +202,7 @@ module DataMapper
     private
 
     def initialize(repository, model, options = {})
-      raise TypeError, "+repository+ must be a Repository, but is #{repository.class}" unless Repository === repository
+      raise TypeError, "+repository+ must be a Repository, but is #{repository.class}" unless repository.kind_of?(Repository)
 
       options.each_pair { |k,v| option[k] = v.call if v.is_a? Proc } if options.is_a? Hash
 
@@ -275,8 +275,8 @@ module DataMapper
 
     # validate the model
     def validate_model(model)
-      raise ArgumentError, "+model+ must be a Class, but is #{model.class}" unless Class === model.class
-      raise ArgumentError, '+model+ must include DataMapper::Resource'      unless Resource > model
+      raise ArgumentError, "+model+ must be a Class, but is #{model.class}" unless model.kind_of?(Class)
+      raise ArgumentError, "+model+ must include DataMapper::Resource"      unless Resource > model
     end
 
     # validate the options

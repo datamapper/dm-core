@@ -221,11 +221,12 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @primitive  = mock('primitive')
       @property   = mock('property', :field => 'property', :primitive => @primitive)
       @properties = mock('properties', :defaults => [ @property ])
-      @repository = mock('repository', :kind_of? => true)
-      @model      = mock('model', :properties => @properties, :< => true, :inheritance_property => nil, :key => [ @property ], :storage_name => 'models')
+      @repository = mock('repository', :kind_of? => true, :name => ADAPTER)
+      @model      = mock('model', :properties => @properties, :< => true, :inheritance_property => nil, :key => [ @property ], :storage_name => 'models', :kind_of? => true)
       @key        = mock('key')
       @resource   = mock('resource')
-      @collection = mock('collection', :first => @resource)
+      @query      = mock('query', :repository => @repository, :model => @model)
+      @collection = mock('collection', :first => @resource, :query => @query)
 
       @reader     = mock('reader', :close => true, :next! => false)
       @command    = mock('command', :set_types => nil, :execute_reader => @reader)
@@ -233,6 +234,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       DataObjects::Connection.stub!(:new).and_return(@connection)
       DataMapper::Collection.stub!(:new).and_return(@collection)
+      DataMapper::Resource.stub!(:>).and_return(true)
+      DataMapper::Property.stub!(:===).and_return(true)
     end
 
     it 'should lookup the model properties with the repository' do
@@ -241,12 +244,13 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should use the model default properties' do
-      @properties.should_receive(:defaults).with(no_args).and_return([ @property ])
+      @properties.should_receive(:defaults).any_number_of_times.with(no_args).and_return([ @property ])
       @adapter.read(@repository, @model, @key)
     end
 
     it 'should create a collection under the hood for retrieving the resource' do
-      DataMapper::Collection.should_receive(:new).with(@repository, @model, { @property => 0 }).and_return(@collection)
+      pending("DataObjectsAdapter#read is deprecated")
+      DataMapper::Collection.should_receive(:new).with(@query, { @property => 0 }).and_return(@collection)
       @reader.should_receive(:next!).and_return(true)
       @reader.should_receive(:values).with(no_args).and_return({ :property => 'value' })
       @collection.should_receive(:load).with({ :property => 'value' })
@@ -261,7 +265,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     it 'should generate an SQL statement' do
       statement = 'SELECT "property" FROM "models" WHERE "property" = ? LIMIT 1'
-      @model.should_receive(:key).with(:default).and_return([ @property ])
+      @model.should_receive(:key).any_number_of_times.with(:default).and_return([ @property ])
       @connection.should_receive(:create_command).with(statement).and_return(@command)
       @adapter.read(@repository, @model, @key)
     end
@@ -270,7 +274,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       other_property = mock('other property')
       other_property.should_receive(:field).with(:default).and_return('other')
 
-      @model.should_receive(:key).with(:default).and_return([ @property, other_property ])
+      @model.should_receive(:key).any_number_of_times.with(:default).and_return([ @property, other_property ])
 
       statement = 'SELECT "property" FROM "models" WHERE "property" = ? AND "other" = ? LIMIT 1'
       @connection.should_receive(:create_command).with(statement).and_return(@command)

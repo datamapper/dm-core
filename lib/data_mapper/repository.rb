@@ -41,7 +41,7 @@ module DataMapper
     #
     #- TODO: this should use current_scope too
     def get(model, key)
-      identity_maps[model][key] || adapter.read(self, model, key)
+      identity_maps[model][key] || adapter.read_set(self, Query.new(self, model, Hash[*model.key(name).zip(key).flatten])).first
     end
 
     ##
@@ -106,8 +106,9 @@ module DataMapper
             identity_map_set(resource)
             resource.instance_variable_set(:@new_record, false)
             resource.dirty_attributes.clear
-            properties_with_indexes = Hash[*model.properties.zip((0...model.properties.length).to_a).flatten]
-            resource.collection = DataMapper::Collection.new(self, model, properties_with_indexes)
+            properties_with_indexes = Hash[*model.properties(name).zip((0...model.properties.length).to_a).flatten]
+            query = DataMapper::Query.new(self, model, Hash[*model.properties(name).key.zip(resource.key).flatten])
+            resource.collection = DataMapper::Collection.new(query, properties_with_indexes)
             resource.collection << resource
             success = true
           end

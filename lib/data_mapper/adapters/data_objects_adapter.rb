@@ -59,20 +59,37 @@ module DataMapper
             raise "unknown options to #find_by_sql: #{arg.inspect}" unless arg.empty?
           end
         end
-
+    
         the_repository = repository(repository_name)
         raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless the_repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
-
+    
         if query
           sql = the_repository.adapter.send(:query_read_statement, query)
           params = query.fields
         end
-
+    
         raise "#find_by_sql requires a query of some kind to work" unless sql
-
+    
         properties ||= self.properties
+        
+        properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
+        
+        Collection.new(Query.new(repository, self), properties_with_indexes) do |set|
+          repository.adapter.send(:with_connection) do |connection|
+            begin
+              command = connection.create_command(sql)
+              command.set_types(properties.map { |p| p.primitive })
 
-        repository.adapter.send(:read_set_with_sql, repository, self, properties, sql, params, do_reload)
+              reader = command.execute_reader(*params)
+
+              while(reader.next!)
+                set.load(reader.values, do_reload)
+              end
+            ensure
+              reader.close if reader
+            end
+          end
+        end        
       end
     end
 
@@ -143,7 +160,7 @@ module DataMapper
         # TODO: Create a Resource class method that instantiates a resource
         # and registers it in the IdentityMap so that Collection#load isn't
         # needed for simple cases like this.
-        set = Collection.new(repository, model, properties_with_indexes)
+        set = Collection.new(Query.new(repository, model, model.key(name) => bind_values), properties_with_indexes)
 
         statement = read_statement(model, properties, key)
 
@@ -188,12 +205,25 @@ module DataMapper
 
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
-        read_set_with_sql(repository,
-                          query.model,
-                          query.fields,
-                          query_read_statement(query),
-                          query.parameters,
-                          query.reload?)
+        properties_with_indexes = Hash[*query.fields.zip((0...query.fields.length).to_a).flatten]
+        Collection.new(query, properties_with_indexes) do |set|
+          with_connection do |connection|
+            begin
+              command = connection.create_command(query_read_statement(query))
+              command.set_types(query.fields.map { |p| p.primitive })
+
+              reader = command.execute_reader(*query.parameters)
+              
+              do_reload = query.reload?
+              
+              while(reader.next!)
+                set.load(reader.values, do_reload)
+              end
+            ensure
+              reader.close if reader
+            end
+          end
+        end
       end
 
       # Database-specific method
@@ -339,39 +369,6 @@ module DataMapper
             return yield(reader)
           ensure
             reader.close if reader
-          end
-        end
-      end
-
-      #
-      # used by find_by_sql and read_set
-      #
-      # @param repository<DataMapper::Repository> the repository to read from.
-      # @param model<Object>  the class of the instances to read.
-      # @param properties<Array>  the properties to read. Must contain Symbols,
-      #   Strings or DM::Properties.
-      # @param sql<String>  the query to execute.
-      # @param parameters<Array>  the conditions to the query.
-      # @param do_reload<Boolean> whether to reload objects already found in the
-      #   identity map.
-      #
-      # @return <Collection> a set of the found instances.
-      def read_set_with_sql(repository, model, properties, sql, parameters, do_reload)
-        properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-        Collection.new(repository, model, properties_with_indexes) do |set|
-          with_connection do |connection|
-            begin
-              command = connection.create_command(sql)
-              command.set_types(properties.map { |p| p.primitive })
-
-              reader = command.execute_reader(*parameters)
-
-              while(reader.next!)
-                set.load(reader.values, do_reload)
-              end
-            ensure
-              reader.close if reader
-            end
           end
         end
       end

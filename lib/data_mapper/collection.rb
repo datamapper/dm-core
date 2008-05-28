@@ -1,16 +1,14 @@
 require 'forwardable'
 module DataMapper
   class Collection < LazyArray
-    attr_reader :repository
+    attr_reader :repository, :query
 
     def reload(options = {})
-      query = Query.new(@repository, @model, keys.merge(:fields => @key_properties))
-      query.update(options.merge(:reload => true))
-      # TODO: the Collection should not be calling read_set directly, it should
-      # be going through Repository.all() instead
-      replace(@repository.adapter.read_set(@repository, query))
+      override_query = @query.merge(keys.merge(:fields => @key_properties))
+      override_query.update(options.dup.merge(:reload => true))
+      replace(@repository.adapter.read_set(@repository, override_query))
     end
-
+            
     def load(values, reload = false)
       model = if @inheritance_property_index
         values.at(@inheritance_property_index) || @model
@@ -24,8 +22,8 @@ module DataMapper
         key_values = values.values_at(*@key_property_indexes)
 
         if resource = @repository.identity_map_get(model, key_values)
-          self << resource
           resource.collection = self
+          self << resource  
           return resource unless reload
         else
           resource = begin
@@ -91,12 +89,12 @@ module DataMapper
     # +properties_with_indexes+ is a Hash of Property and values Array index
     #   pairs.
     #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
-    def initialize(repository, model, properties_with_indexes, &loader)
-      raise ArgumentError, "+repository+ must be a DataMapper::Repository, but was #{repository.class}", caller unless repository.kind_of?(Repository)
-      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource", caller                 unless model < Resource
+    def initialize(query, properties_with_indexes, &loader)
+      raise ArgumentError, "+query+ must be a DataMapper::Query, but was #{query.class}", caller unless query.kind_of?(Query)
 
-      @repository              = repository
-      @model                   = model
+      @query = query
+      @repository              = query.repository
+      @model                   = query.model
       @properties_with_indexes = properties_with_indexes
 
       super()
@@ -112,7 +110,7 @@ module DataMapper
     end
 
     def wrap(entries)
-      self.class.new(@repository, @model, @properties_with_indexes).replace(entries)
+      self.class.new(@query, @properties_with_indexes).replace(entries)
     end
 
     def remove_resource(resource)

@@ -112,7 +112,7 @@ describe DataMapper::Query do
       it 'when model is nil' do
         lambda {
           DataMapper::Query.new(repository(:mock), nil)
-        }.should raise_error(TypeError)
+        }.should raise_error(ArgumentError)
       end
     end
 
