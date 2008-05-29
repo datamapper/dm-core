@@ -1,19 +1,21 @@
-require 'forwardable'
 module DataMapper
   class Collection < LazyArray
-    attr_reader :repository, :query
+    attr_reader :query
+
+    def repository
+      query.repository
+    end
 
     def reload(options = {})
-      override_query = @query.merge(keys.merge(:fields => @key_properties))
-      override_query.update(options.dup.merge(:reload => true))
-      replace(@repository.adapter.read_set(@repository, override_query))
+      @query = query.merge(keys.merge(:fields => @key_properties).merge(options))
+      replace(repository.adapter.read_set(repository, query.merge(:reload => true)))
     end
 
     def load(values, reload = false)
       model = if @inheritance_property_index
-        values.at(@inheritance_property_index) || @model
+        values.at(@inheritance_property_index) || query.model
       else
-        @model
+        query.model
       end
 
       resource = nil
@@ -21,7 +23,7 @@ module DataMapper
       if @key_property_indexes
         key_values = values.values_at(*@key_property_indexes)
 
-        if resource = @repository.identity_map_get(model, key_values)
+        if resource = repository.identity_map_get(model, key_values)
           resource.collection = self
           self << resource
           return resource unless reload
@@ -38,7 +40,7 @@ module DataMapper
             resource.instance_variable_set(property.instance_variable_name, key_value)
           end
           resource.instance_variable_set(:@new_record, false)
-          @repository.identity_map_set(resource)
+          repository.identity_map_set(resource)
         end
       else
         resource = model.allocate
@@ -76,41 +78,28 @@ module DataMapper
       remove_resource(super)
     end
 
-    def method_missing(method_name, *args)
-      if @model.relationships(@repository.name)[method_name]
-        map{ |e| e.send(method_name) }.flatten.compact
-      else
-        super
-      end
-    end
-
     private
 
-    # +properties_with_indexes+ is a Hash of Property and values Array index
-    #   pairs.
-    #   { Property<:id> => 1, Property<:name> => 2, Property<:notes> => 3 }
-    def initialize(query, properties_with_indexes, &loader)
+    def initialize(query, &loader)
       raise ArgumentError, "+query+ must be a DataMapper::Query, but was #{query.class}", caller unless query.kind_of?(Query)
 
-      @query = query
-      @repository              = query.repository
-      @model                   = query.model
-      @properties_with_indexes = properties_with_indexes
+      @query                   = query
+      @properties_with_indexes = Hash[*query.fields.zip((0...query.fields.length).to_a).flatten]
 
       super()
       load_with(&loader)
 
-      if inheritance_property = @model.inheritance_property(@repository.name)
+      if inheritance_property = query.model.inheritance_property(repository.name)
         @inheritance_property_index = @properties_with_indexes[inheritance_property]
       end
 
-      if (@key_properties = @model.key(@repository.name)).all? { |key| @properties_with_indexes.include?(key) }
+      if (@key_properties = query.model.key(repository.name)).all? { |key| @properties_with_indexes.include?(key) }
         @key_property_indexes = @properties_with_indexes.values_at(*@key_properties)
       end
     end
 
     def wrap(entries)
-      self.class.new(@query, @properties_with_indexes).replace(entries)
+      self.class.new(query).replace(entries)
     end
 
     def remove_resource(resource)
@@ -126,6 +115,14 @@ module DataMapper
         keys[property] = values.size == 1 ? values[0] : values
       end
       keys
+    end
+
+    def method_missing(method_name, *args)
+      if query.model.relationships(repository.name)[method_name]
+        map { |e| e.send(method_name) }.flatten.compact
+      else
+        super
+      end
     end
   end # class Collection
 end # module DataMapper

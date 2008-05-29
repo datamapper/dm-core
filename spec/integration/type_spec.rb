@@ -103,7 +103,7 @@ if ADAPTER
 
       repository(ADAPTER) do |repository|
         Lime.all.should be_empty
-        Lime[lime.id].should_not be_nil
+        Lime.get(lime.id).should be_nil
       end
     end
 
@@ -132,7 +132,7 @@ if ADAPTER
 
       repository(ADAPTER) do |repository|
         Lime.all.should be_empty
-        Lime[lime.id].should_not be_nil
+        Lime.get(lime.id).should be_nil
       end
     end
   end

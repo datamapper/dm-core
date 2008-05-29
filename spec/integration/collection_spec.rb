@@ -79,24 +79,18 @@ if ADAPTER
     end
 
     it "should preserve it's order on reload" do
-      pending("Query#dup doesn't preserve order.") do
-        repository(ADAPTER) do
-          zebras = Zebra.all(:order => [:name])
+      repository(ADAPTER) do |r|
+        zebras = Zebra.all(:order => [:name])
 
-          order = %w{ Bessie Nance Steve }
+        order = %w{ Bessie Nance Steve }
 
-          zebras.each_with_index do |zebra, i|
-            zebra.name.should == order[i]
-          end
+        zebras.map { |z| z.name }.should == order
 
-          # Force a lazy-load call:
-          zebras.first.notes
+        # Force a lazy-load call:
+        zebras.first.notes
 
-          # The order should be unaffected.
-          zebras.each_with_index do |zebra, i|
-            zebra.name.should == order[i]
-          end
-        end
+        # The order should be unaffected.
+        zebras.map { |z| z.name }.should == order
       end
     end
   end

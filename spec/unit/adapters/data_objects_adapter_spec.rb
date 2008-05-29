@@ -239,32 +239,35 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should lookup the model properties with the repository' do
+      pending("DataObjectsAdapter#read is deprecated")
       @model.should_receive(:properties).with(:default).and_return(@properties)
       @adapter.read(@repository, @model, @key)
     end
 
     it 'should use the model default properties' do
+      pending("DataObjectsAdapter#read is deprecated")
       @properties.should_receive(:defaults).any_number_of_times.with(no_args).and_return([ @property ])
       @adapter.read(@repository, @model, @key)
     end
 
     it 'should create a collection under the hood for retrieving the resource' do
-      pending("DataObjectsAdapter#read is deprecated") do
-        DataMapper::Collection.should_receive(:new).with(@query, { @property => 0 }).and_return(@collection)
-        @reader.should_receive(:next!).and_return(true)
-        @reader.should_receive(:values).with(no_args).and_return({ :property => 'value' })
-        @collection.should_receive(:load).with({ :property => 'value' })
-        @collection.should_receive(:first).with(no_args).and_return(@resource)
-        @adapter.read(@repository, @model, @key).should == @resource
-      end
+      pending("DataObjectsAdapter#read is deprecated")
+      DataMapper::Collection.should_receive(:new).with(@query, { @property => 0 }).and_return(@collection)
+      @reader.should_receive(:next!).and_return(true)
+      @reader.should_receive(:values).with(no_args).and_return({ :property => 'value' })
+      @collection.should_receive(:load).with({ :property => 'value' })
+      @collection.should_receive(:first).with(no_args).and_return(@resource)
+      @adapter.read(@repository, @model, @key).should == @resource
     end
 
     it 'should use the bind values' do
+      pending("DataObjectsAdapter#read is deprecated")
       @command.should_receive(:execute_reader).with(@key).and_return(@reader)
       @adapter.read(@repository, @model, @key)
     end
 
     it 'should generate an SQL statement' do
+      pending("DataObjectsAdapter#read is deprecated")
       statement = 'SELECT "property" FROM "models" WHERE "property" = ? LIMIT 1'
       @model.should_receive(:key).any_number_of_times.with(:default).and_return([ @property ])
       @connection.should_receive(:create_command).with(statement).and_return(@command)
@@ -272,6 +275,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should generate an SQL statement with composite keys' do
+      pending("DataObjectsAdapter#read is deprecated")
       other_property = mock('other property')
       other_property.should_receive(:field).with(:default).and_return('other')
 
@@ -284,16 +288,19 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should set the return types to the property primitives' do
+      pending("DataObjectsAdapter#read is deprecated")
       @command.should_receive(:set_types).with([ @primitive ])
       @adapter.read(@repository, @model, @key)
     end
 
     it 'should close the reader' do
+      pending("DataObjectsAdapter#read is deprecated")
       @reader.should_receive(:close).with(no_args)
       @adapter.read(@repository, @model, @key)
     end
 
     it 'should close the connection' do
+      pending("DataObjectsAdapter#read is deprecated")
       @connection.should_receive(:close).with(no_args)
       @adapter.read(@repository, @model, @key)
     end

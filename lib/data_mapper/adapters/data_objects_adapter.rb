@@ -72,9 +72,7 @@ module DataMapper
 
         properties ||= self.properties
 
-        properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-
-        Collection.new(Query.new(repository, self), properties_with_indexes) do |set|
+        Collection.new(Query.new(repository, self)) do |set|
           repository.adapter.send(:with_connection) do |connection|
             begin
               command = connection.create_command(sql)
@@ -149,34 +147,32 @@ module DataMapper
         true
       end
 
-      def read(repository, model, bind_values)
-        properties = model.properties(name).defaults
-
-        properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-
-        key = model.key(name)
-
-        # FIXME: do not use Collection for instantiating a single resource.
-        # TODO: Create a Resource class method that instantiates a resource
-        # and registers it in the IdentityMap so that Collection#load isn't
-        # needed for simple cases like this.
-        set = Collection.new(Query.new(repository, model, model.key(name) => bind_values), properties_with_indexes)
-
-        statement = read_statement(model, properties, key)
-
-        with_connection do |connection|
-          command = connection.create_command(statement)
-          command.set_types(properties.map { |p| p.primitive })
-
-          begin
-            reader = command.execute_reader(*bind_values)
-            set.load(reader.values) if reader.next!
-            set.first
-          ensure
-            reader.close if reader
-          end
-        end
-      end
+      #def read(repository, model, bind_values)
+      #  properties = model.properties(name).defaults
+      #
+      #  key = model.key(name)
+      #
+      #  # FIXME: do not use Collection for instantiating a single resource.
+      #  # TODO: Create a Resource class method that instantiates a resource
+      #  # and registers it in the IdentityMap so that Collection#load isn't
+      #  # needed for simple cases like this.
+      #  set = Collection.new(Query.new(repository, model, model.key(name) => bind_values))
+      #
+      #  statement = read_statement(model, properties, key)
+      #
+      #  with_connection do |connection|
+      #    command = connection.create_command(statement)
+      #    command.set_types(properties.map { |p| p.primitive })
+      #
+      #    begin
+      #      reader = command.execute_reader(*bind_values)
+      #      set.load(reader.values) if reader.next!
+      #      set.first
+      #    ensure
+      #      reader.close if reader
+      #    end
+      #  end
+      #end
 
       def update(repository, resource)
         # FIXME: if the properties are in different repositories
@@ -205,8 +201,7 @@ module DataMapper
 
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
-        properties_with_indexes = Hash[*query.fields.zip((0...query.fields.length).to_a).flatten]
-        Collection.new(query, properties_with_indexes) do |set|
+        Collection.new(query) do |set|
           with_connection do |connection|
             begin
               command = connection.create_command(query_read_statement(query))

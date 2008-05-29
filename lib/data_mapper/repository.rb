@@ -38,10 +38,19 @@ module DataMapper
     # @param <Key> key The keys to look for
     # @return <Class> the instance of the Resource retrieved
     # @return <NilClass> could not find the instance requested
-    #
-    #- TODO: this should use current_scope too
     def get(model, key)
-      identity_maps[model][key] || adapter.read_set(self, Query.new(self, model, Hash[*model.key(name).zip(key).flatten])).first
+      identity_maps[model][key] || begin
+        conditions = Hash[ *model.key(name).zip(key).flatten ]
+        conditions.update(:limit => 1)
+
+        query = if current_scope = model.send(:current_scope)
+          current_scope.merge(conditions)
+        else
+          Query.new(self, model, conditions)
+        end
+
+        adapter.read_set(self, query).first
+      end
     end
 
     ##
@@ -75,6 +84,7 @@ module DataMapper
       else
         Query.new(self, model, options)
       end
+
       adapter.read_set(self, query)
     end
 
@@ -106,9 +116,8 @@ module DataMapper
             identity_map_set(resource)
             resource.instance_variable_set(:@new_record, false)
             resource.dirty_attributes.clear
-            properties_with_indexes = Hash[*model.properties(name).zip((0...model.properties.length).to_a).flatten]
             query = DataMapper::Query.new(self, model, Hash[*model.properties(name).key.zip(resource.key).flatten])
-            resource.collection = DataMapper::Collection.new(query, properties_with_indexes)
+            resource.collection = DataMapper::Collection.new(query)
             resource.collection << resource
             success = true
           end

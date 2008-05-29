@@ -12,39 +12,38 @@ describe DataMapper::Collection do
       property :age, Integer
     end
 
-    properties               = @cow.properties(:default)
-    @properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
+    properties = @cow.properties(:default)
   end
 
   before do
     @repository = DataMapper.repository(:default)
+    @query = DataMapper::Query.new(@repository, @cow)
 
     nancy  = @cow.new(:name => 'Nancy',  :age => 11)
     bessie = @cow.new(:name => 'Bessie', :age => 10)
     steve  = @cow.new(:name => 'Steve',  :age => 8)
 
-    @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, @cow), @properties_with_indexes)
+    @collection = DataMapper::Collection.new(@query)
     @collection.load([ nancy.name,  nancy.age  ])
     @collection.load([ bessie.name, bessie.age ])
 
     @nancy  = @collection[0]
     @bessie = @collection[1]
 
-    @other = DataMapper::Collection.new(DataMapper::Query.new(@repository, @cow), @properties_with_indexes)
+    @other = DataMapper::Collection.new(@query)
     @other.load([ steve.name, steve.age ])
 
     @steve = @other[0]
   end
 
   it "should return the right repository" do
-    DataMapper::Collection.new(DataMapper::Query.new(repository(:legacy), @cow), []).repository.name.should == :legacy
+    DataMapper::Collection.new(DataMapper::Query.new(repository(:legacy), @cow)).repository.name.should == :legacy
   end
 
   it "should be able to add arbitrary objects" do
-    properties              = @cow.properties(:default)
-    properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
+    properties = @cow.properties(:default)
 
-    collection = DataMapper::Collection.new(DataMapper::Query.new(DataMapper::repository(:default), @cow), properties_with_indexes)
+    collection = DataMapper::Collection.new(@query)
     collection.should respond_to(:reload)
 
     collection.load(['Bob', 10])
@@ -74,9 +73,7 @@ describe DataMapper::Collection do
   describe '.new' do
     describe 'with non-index keys' do
       it 'should instantiate read-only resources' do
-        properties_with_indexes = { @cow.properties(:default)[:age] => 0 }
-
-        @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, @cow), properties_with_indexes)
+        @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, @cow, :fields => [ :age ]))
         @collection.load([ 1 ])
 
         @collection.size.should == 1
@@ -104,12 +101,11 @@ describe DataMapper::Collection do
           property :password, String
         end
 
-        properties               = CollectionSpecParty.properties(:default)
-        @properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
+        properties = CollectionSpecParty.properties(:default)
       end
 
       it 'should instantiate resources using the inheritance property class' do
-        @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, CollectionSpecParty), @properties_with_indexes)
+        @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, CollectionSpecParty))
         @collection.load([ 'Dan', CollectionSpecUser ])
         @collection.length.should == 1
         resource = @collection[0]
@@ -311,7 +307,7 @@ describe DataMapper::Collection do
     it 'should load resources from the identity map when possible' do
       @steve.collection = nil
       @repository.should_receive(:identity_map_get).with(@cow, %w[ Steve ]).and_return(@steve)
-      collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, @cow), @properties_with_indexes)
+      collection = DataMapper::Collection.new(@query)
       collection.load([ @steve.name, @steve.age ])
       collection.size.should == 1
       collection[0].object_id.should == @steve.object_id
@@ -329,7 +325,7 @@ describe DataMapper::Collection do
     end
 
     it 'should return false for an uninitialized collection' do
-      uninitialized = DataMapper::Collection.new(DataMapper::Query.new(@repository, @cow), @properties_with_indexes) do
+      uninitialized = DataMapper::Collection.new(@query) do
         # do nothing
       end
       uninitialized.should_not be_loaded
@@ -627,12 +623,11 @@ describe DataMapper::Collection do
         property :age, Integer
       end
 
-      properties               = @cow.properties(:default)
-      @properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
+      properties = @cow.properties(:default)
     end
 
     it "should make a materialization block" do
-      collection = DataMapper::Collection.new(DataMapper::Query.new(DataMapper::repository(:default), @cow), @properties_with_indexes) do |c|
+      collection = DataMapper::Collection.new(@query) do |c|
         c.should be_empty
         c.load(['Bob', 10])
         c.load(['Nancy', 11])

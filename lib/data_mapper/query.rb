@@ -14,6 +14,10 @@ module DataMapper
         @property.hash + @direction.hash
       end
 
+      def inspect
+        "#<#{self.class.name} #{@property.inspect} #{@direction}>"
+      end
+
       private
 
       def initialize(property, direction = :asc)
@@ -112,12 +116,7 @@ module DataMapper
       @offset = other.offset unless other.offset == 0
       @limit  = other.limit  unless other.limit.nil?
 
-      # if self model and other model are the same, then
-      # overwrite @order with other order.  If they are different
-      # then set @order to the union of other order and @order,
-      # with the other order taking precedence
-      @order = @model == other.model ? other.order : other.order | @order
-
+      @order    |= other.order
       @fields   |= other.fields
       @links    |= other.links
       @includes |= other.includes
@@ -128,7 +127,7 @@ module DataMapper
     end
 
     def merge(other)
-      self.dup.update(other)
+      dup.update(other)
     end
 
     def ==(other)
@@ -186,14 +185,15 @@ module DataMapper
 
     def inspect
       attrs = [
-        [ :repository, @repository.name ],
-        [ :model,      model ],
-        [ :fields,     fields ],
-        [ :links,      links ],
-        [ :conditions, conditions ],
-        [ :order,      order ],
-        [ :limit,      limit ],
-        [ :offset,     offset ],
+        [ :repository, repository.name ],
+        [ :model,      model           ],
+        [ :fields,     fields          ],
+        [ :links,      links           ],
+        [ :conditions, conditions      ],
+        [ :order,      order           ],
+        [ :limit,      limit           ],
+        [ :offset,     offset          ],
+        [ :reload,     reload          ],
       ]
 
       "#<#{self.class.name} #{attrs.map { |(k,v)| "@#{k}=#{v.inspect}" } * ' '}>"
@@ -255,6 +255,18 @@ module DataMapper
           end
         end
       end
+
+      # freeze the internal attributes
+      OPTIONS.each do |attribute|
+        instance_variable_get("@#{attribute}").freeze
+      end
+
+#      freeze
+    end
+
+    def initialize_copy(original)
+      # deep-copy the condition tuples when copying the object
+      @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 
     def translate_custom_types(properties, options)
@@ -266,11 +278,6 @@ module DataMapper
           options[key] = properties[key].type.dump(value, properties[key]) if !properties[key].nil? && properties[key].custom?
         end
       end
-    end
-
-    def initialize_copy(original)
-      # deep-copy the condition tuples when copying the object
-      @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 
     # validate the model
@@ -456,6 +463,8 @@ module DataMapper
     # Vice versa, passing in eql should overwrite all of those operators.
 
     def update_conditions(other)
+      @conditions = @conditions.dup
+
       # build an index of conditions by the property and operator to
       # avoid nested looping
       conditions_index = Hash.new { |h,k| h[k] = {} }
@@ -489,6 +498,8 @@ module DataMapper
         # otherwise append the other condition
         @conditions << other_condition.dup
       end
+
+      @conditions.freeze
     end
   end # class Query
 end # module DataMapper
