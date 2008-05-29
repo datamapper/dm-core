@@ -68,6 +68,10 @@ class LazyArray  # borrowed partially from StrokeDB
     @load_with_proc.nil?
   end
 
+  def respond_to?(method)
+    super || @array.respond_to?(method)
+  end
+
   private
 
   def initialize(*args, &block)
@@ -91,5 +95,16 @@ class LazyArray  # borrowed partially from StrokeDB
   # instance of their class
   def wrap(results)
     self.class.new(results)
+  end
+
+  # delegate any not-explicitly-handled methods to @array, if possible.
+  # this is handy for handling methods mixed-into Array like group_by
+  def method_missing(method, *args, &block)
+    if @array.respond_to?(method)
+      lazy_load!
+      @array.send(method, *args, &block)
+    else
+      super
+    end
   end
 end

@@ -721,6 +721,29 @@ describe LazyArray do
     end
   end
 
+  describe 'a method mixed into Array' do
+    before :all do
+      class Array
+        def group_by(&block)
+          groups = []
+          each do |entry|
+            value = yield(entry)
+            if(last_group = groups.last) && last_group.first == value
+              last_group.last << entry
+            else
+              groups << [ value, [ entry ] ]
+            end
+          end
+          groups
+        end
+      end
+    end
+
+    it 'should delegate to the Array' do
+      @lazy_array.group_by { |e| e.length }.should == [ [ 5, %w[ nancy ] ], [ 6, %w[ bessie ] ] ]
+    end
+  end
+
   describe 'an unknown method' do
     it 'should raise an exception' do
       lambda { @lazy_array.unknown }.should raise_error(NoMethodError)
