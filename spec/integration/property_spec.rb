@@ -27,43 +27,48 @@ if ADAPTER
       end
 
       it "false" do
-        pending("Implementation...")
-        DataMapper::Resource::DIRTY.should_not be_nil
-        bob = Actor.new(:name => 'bob')
-        bob.original_attributes.should have_key(:name)
-        bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        pending("Implementation...") do
+          DataMapper::Resource::DIRTY.should_not be_nil
+          bob = Actor.new(:name => 'bob')
+          bob.original_attributes.should have_key(:name)
+          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        end
       end
 
       it ":load" do
-        pending("Implementation...")
-        DataMapper::Resource::DIRTY.should_not be_nil
-        bob = Actor.new(:name => 'bob')
-        bob.original_attributes.should have_key(:name)
-        bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        pending("Implementation...") do
+          DataMapper::Resource::DIRTY.should_not be_nil
+          bob = Actor.new(:name => 'bob')
+          bob.original_attributes.should have_key(:name)
+          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        end
       end
 
       it ":hash" do
-        pending("Implementation...")
-        DataMapper::Resource::DIRTY.should_not be_nil
-        bob = Actor.new(:name => 'bob')
-        bob.original_attributes.should have_key(:name)
-        bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        pending("Implementation...") do
+          DataMapper::Resource::DIRTY.should_not be_nil
+          bob = Actor.new(:name => 'bob')
+          bob.original_attributes.should have_key(:name)
+          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        end
       end
 
       it ":get" do
-        pending("Implementation...")
-        DataMapper::Resource::DIRTY.should_not be_nil
-        bob = Actor.new(:name => 'bob')
-        bob.original_attributes.should have_key(:name)
-        bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        pending("Implementation...") do
+          DataMapper::Resource::DIRTY.should_not be_nil
+          bob = Actor.new(:name => 'bob')
+          bob.original_attributes.should have_key(:name)
+          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        end
       end
 
       it ":set" do
-        pending("Implementation...")
-        DataMapper::Resource::DIRTY.should_not be_nil
-        bob = Actor.new(:name => 'bob')
-        bob.original_attributes.should have_key(:name)
-        bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        pending("Implementation...") do
+          DataMapper::Resource::DIRTY.should_not be_nil
+          bob = Actor.new(:name => 'bob')
+          bob.original_attributes.should have_key(:name)
+          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+        end
       end
     end
 

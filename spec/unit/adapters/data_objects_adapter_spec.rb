@@ -249,13 +249,14 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should create a collection under the hood for retrieving the resource' do
-      pending("DataObjectsAdapter#read is deprecated")
-      DataMapper::Collection.should_receive(:new).with(@query, { @property => 0 }).and_return(@collection)
-      @reader.should_receive(:next!).and_return(true)
-      @reader.should_receive(:values).with(no_args).and_return({ :property => 'value' })
-      @collection.should_receive(:load).with({ :property => 'value' })
-      @collection.should_receive(:first).with(no_args).and_return(@resource)
-      @adapter.read(@repository, @model, @key).should == @resource
+      pending("DataObjectsAdapter#read is deprecated") do
+        DataMapper::Collection.should_receive(:new).with(@query, { @property => 0 }).and_return(@collection)
+        @reader.should_receive(:next!).and_return(true)
+        @reader.should_receive(:values).with(no_args).and_return({ :property => 'value' })
+        @collection.should_receive(:load).with({ :property => 'value' })
+        @collection.should_receive(:first).with(no_args).and_return(@resource)
+        @adapter.read(@repository, @model, @key).should == @resource
+      end
     end
 
     it 'should use the bind values' do
@@ -495,9 +496,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should log any errors, then re-raise them' do
-      pending
       @mock_command.should_receive(:execute_non_query).and_raise("Oh Noes!")
-      #DataMapper.logger.should_receive(:error)
+      DataMapper.logger.should_receive(:error)
 
       lambda { @adapter.execute('SQL STRING') }.should raise_error("Oh Noes!")
     end
@@ -579,9 +579,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it 'should log any errors, then re-raise them' do
-      pending
       @mock_command.should_receive(:execute_non_query).and_raise("Oh Noes!")
-      #DataMapper.logger.should_receive(:error)
+      DataMapper.logger.should_receive(:error)
 
       lambda { @adapter.execute('SQL STRING') }.should raise_error("Oh Noes!")
     end

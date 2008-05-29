@@ -14,7 +14,7 @@ if ADAPTER
         property :name, String
         property :age, Integer
         property :notes, Text
-        
+
         has n, :stripes
       end
 
@@ -68,7 +68,7 @@ if ADAPTER
         zebras.query.order.should == [DataMapper::Query::Direction.new(Zebra.properties(ADAPTER)[:name])]
       end
     end
-    
+
     it "should proxy the relationships of the model" do
       repository(ADAPTER) do
         zebras = Zebra.all
@@ -77,24 +77,25 @@ if ADAPTER
         zebras.stripes.should == [@babe, @snowball]
       end
     end
-    
-    it "should preserve it's order on reload" do
-      pending("Query#dup doesn't preserve order.")
-      repository(ADAPTER) do
-        zebras = Zebra.all(:order => [:name])
-        
-        order = %w{ Bessie Nance Steve }
 
-        zebras.each_with_index do |zebra, i|
-          zebra.name.should == order[i]
-        end
-        
-        # Force a lazy-load call:
-        zebras.first.notes
-        
-        # The order should be unaffected.
-        zebras.each_with_index do |zebra, i|
-          zebra.name.should == order[i]
+    it "should preserve it's order on reload" do
+      pending("Query#dup doesn't preserve order.") do
+        repository(ADAPTER) do
+          zebras = Zebra.all(:order => [:name])
+
+          order = %w{ Bessie Nance Steve }
+
+          zebras.each_with_index do |zebra, i|
+            zebra.name.should == order[i]
+          end
+
+          # Force a lazy-load call:
+          zebras.first.notes
+
+          # The order should be unaffected.
+          zebras.each_with_index do |zebra, i|
+            zebra.name.should == order[i]
+          end
         end
       end
     end

@@ -2,12 +2,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
 describe "DataMapper::Associations::ManyToMany" do
   it "should allow a declaration" do
-    pending
-    lambda do
-      class Supplier
-        many_to_many :manufacturers
-      end
-    end.should_not raise_error
+    pending do
+      lambda do
+        class Supplier
+          many_to_many :manufacturers
+        end
+      end.should_not raise_error
+    end
   end
 
   describe DataMapper::Associations::ManyToMany::Proxy do

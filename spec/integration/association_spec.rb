@@ -873,12 +873,13 @@ if ADAPTER
       end
 
       it 'should return the right children for has n => belongs_to relationships' do
-        pending('Implement through for has n => belongs_to relationship')
-        Sweets::Customer.first.cakes.size.should == 2
-        Sweets::Shop.first.customers.select do |customer|
-          customer.name == 'John Johnsen'
-        end.size.should == 1
-        # another example can be found here: http://pastie.textmate.org/private/tt1hf1syfsytyxdgo4qxaw
+        pending('Implement through for has n => belongs_to relationship') do
+          Sweets::Customer.first.cakes.size.should == 2
+          Sweets::Shop.first.customers.select do |customer|
+            customer.name == 'John Johnsen'
+          end.size.should == 1
+          # another example can be found here: http://pastie.textmate.org/private/tt1hf1syfsytyxdgo4qxaw
+        end
       end
 
       it 'should return the right children for has n => has 1 relationships' do

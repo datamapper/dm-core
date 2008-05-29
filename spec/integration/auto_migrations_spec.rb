@@ -231,15 +231,17 @@ if HAS_MYSQL
       end
 
       it 'should have 4 indexes: 2 non-unique index, 2 unique index' do
-        pending 'TODO'
-        # @index_list[0].Key_name.should == 'unique_index_books_date_float'
-        # @index_list[0].Non_unique.should == 0
-        # @index_list[1].Key_name.should == 'unique_index_books_time_1'
-        # @index_list[1].Non_unique.should == 0
-        # @index_list[2].Key_name.should == 'index_books_date_date_time'
-        # @index_list[2].Non_unique.should == 1
-        # @index_list[3].Key_name.should == 'index_books_date_time'
-        # @index_list[3].Non_unique.should == 1
+        pending do
+          # TODO
+          @index_list[0].Key_name.should == 'unique_index_books_date_float'
+          @index_list[0].Non_unique.should == 0
+          @index_list[1].Key_name.should == 'unique_index_books_time_1'
+          @index_list[1].Non_unique.should == 0
+          @index_list[2].Key_name.should == 'index_books_date_date_time'
+          @index_list[2].Non_unique.should == 1
+          @index_list[3].Key_name.should == 'index_books_date_time'
+          @index_list[3].Non_unique.should == 1
+        end
       end
     end
   end

@@ -8,7 +8,7 @@ module DataMapper
       override_query.update(options.dup.merge(:reload => true))
       replace(@repository.adapter.read_set(@repository, override_query))
     end
-            
+
     def load(values, reload = false)
       model = if @inheritance_property_index
         values.at(@inheritance_property_index) || @model
@@ -23,7 +23,7 @@ module DataMapper
 
         if resource = @repository.identity_map_get(model, key_values)
           resource.collection = self
-          self << resource  
+          self << resource
           return resource unless reload
         else
           resource = begin

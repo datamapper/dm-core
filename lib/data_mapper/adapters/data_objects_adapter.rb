@@ -59,21 +59,21 @@ module DataMapper
             raise "unknown options to #find_by_sql: #{arg.inspect}" unless arg.empty?
           end
         end
-    
+
         the_repository = repository(repository_name)
         raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless the_repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
-    
+
         if query
           sql = the_repository.adapter.send(:query_read_statement, query)
           params = query.fields
         end
-    
+
         raise "#find_by_sql requires a query of some kind to work" unless sql
-    
+
         properties ||= self.properties
-        
+
         properties_with_indexes = Hash[*properties.zip((0...properties.length).to_a).flatten]
-        
+
         Collection.new(Query.new(repository, self), properties_with_indexes) do |set|
           repository.adapter.send(:with_connection) do |connection|
             begin
@@ -89,7 +89,7 @@ module DataMapper
               reader.close if reader
             end
           end
-        end        
+        end
       end
     end
 
@@ -213,9 +213,9 @@ module DataMapper
               command.set_types(query.fields.map { |p| p.primitive })
 
               reader = command.execute_reader(*query.parameters)
-              
+
               do_reload = query.reload?
-              
+
               while(reader.next!)
                 set.load(reader.values, do_reload)
               end

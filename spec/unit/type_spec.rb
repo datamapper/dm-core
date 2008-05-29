@@ -44,7 +44,6 @@ describe DataMapper::Type do
   end
 
   it "should have the same PROPERTY_OPTIONS array as DataMapper::Property" do
-    # pending("currently there is no way to read PROPERTY_OPTIONS and aliases from DataMapper::Property. Also, some properties need to be defined as aliases instead of being listed in the PROPERTY_OPTIONS array")
     DataMapper::Type::PROPERTY_OPTIONS.should == DataMapper::Property::PROPERTY_OPTIONS
   end
 
