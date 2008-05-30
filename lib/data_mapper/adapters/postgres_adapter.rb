@@ -12,7 +12,7 @@ module DataMapper
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
           tm.map(DateTime).to('TIMESTAMP')
-          tm.map(Fixnum).to('INT4')
+          tm.map(Integer).to('INT4')
           tm.map(Float).to('FLOAT8')
         end
       end
