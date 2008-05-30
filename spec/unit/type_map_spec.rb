@@ -43,7 +43,7 @@ describe DataMapper::TypeMap do
     describe "#lookup_by_type" do
       it "should raise an exception if the type is not mapped and does not have a primitive" do
         klass = Class.new
-        lambda { @tm.lookup(klass) }.should raise_error("TypeMap Exception: type #{klass} must have a default primitive or type map entry")
+        lambda { @tm.lookup(klass) }.should raise_error("Type #{klass} must have a default primitive or type map entry")
       end
     end
   end

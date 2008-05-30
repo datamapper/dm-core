@@ -32,9 +32,10 @@ module DataMapper
         {}
       end
     end
-
+    
+    # @raise <DataMapper::TypeMap::Error> if the type is not a default primitive or has a type map entry.
     def lookup_by_type(type)
-      raise "TypeMap Exception: type #{type} must have a default primitive or type map entry" unless type.respond_to?(:primitive) && !type.primitive.nil?
+      raise DataMapper::TypeMap::Error.new(type) unless type.respond_to?(:primitive) && !type.primitive.nil?
 
       lookup(type.primitive).merge(Type::PROPERTY_OPTIONS.inject({}) {|h, k| h[k] = type.send(k); h})
     end
@@ -65,6 +66,12 @@ module DataMapper
 
       def translate
         @attributes.merge((@primitive.nil? ? {} : {:primitive => @primitive}))
+      end
+    end # class TypeChain
+    
+    class Error < StandardError
+      def initialize(type)
+        super("Type #{type} must have a default primitive or type map entry")
       end
     end
   end # class TypeMap
