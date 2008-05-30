@@ -14,20 +14,31 @@ module DataMapper
 
     @@descendents = Set.new
 
-    # +----------------------
-    # Resource module methods
-
+    # When Resource is included in a class this method makes sure
+    # it gets all the methods
+    # 
+    # -
+    # @private
     def self.included(model)
       model.extend ClassMethods
       @@descendents << model
     end
 
-    ##
     # Return all classes that include the DataMapper::Resource module
     #
-    # @return <Set> a set containing the including classes
+    # ==== Returns
+    # Set:: a set containing the including classes
+    #
+    # ==== Example
+    # 
+    #   Class Foo
+    #     include DataMapper::Resource
+    #   end
+    # 
+    #   DataMapper.Resource.decendents[1].type == Foo
+    #
     # -
-    # @api semipublic
+    # @semipublic
     def self.descendents
       @@descendents
     end
@@ -37,11 +48,36 @@ module DataMapper
 
     attr_accessor :collection
 
-    ##
-    # returns the value of the attribute, invoking defaults if necessary
+    # returns the value of the attribute. Do not read from instance variables directly,
+    # but use this method. This method handels the lazy loading the attribute and returning
+    # of defaults if nessesary.
     #
-    # @param <Symbol> name attribute to lookup
-    # @return <Types> the value stored at that given attribute, nil if none, and default if necessary
+    # ==== Parameters
+    # name<Symbol>:: name attribute to lookup
+    #
+    # ==== Returns
+    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
+    #
+    # ==== Example
+    # 
+    #   Class Foo
+    #     include DataMapper::Resource
+    #
+    #     property :first_name, String
+    #     property :last_name, String
+    #
+    #     def full_name
+    #       "#{attribute_get(:first_name)} #{attribute_get(:last_name)}"
+    #     end
+    #
+    #     # using the shorter syntax
+    #     def name_for_address_book
+    #       "#{last_name}, #{first_name}"
+    #     end
+    #   end
+    #
+    # -
+    # @public
     def attribute_get(name)
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
@@ -59,11 +95,43 @@ module DataMapper
       property.custom? ? property.type.load(value, property) : value
     end
 
-    ##
-    # sets the value of the attribute, marks the attribute as dirty so that it may be saved
+    # sets the value of the attribute and marks the attribute as dirty
+    # if it has been changed so that it may be saved. Do not set from
+    # instance variables directly, but use this method. This method
+    # handels the lazy loading the property and returning of defaults
+    # if nessesary.
     #
-    # @param <Symbol> name property to set
-    # @param <Type> value value to store at that location
+    # ==== Parameters
+    # name<Symbol>:: name attribute to set
+    # value<Type>:: value to store at that location
+    #
+    # ==== Returns
+    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
+    #
+    # ==== Example
+    # 
+    #   Class Foo
+    #     include DataMapper::Resource
+    #
+    #     property :first_name, String
+    #     property :last_name, String
+    #
+    #     def full_name(name)
+    #       name = name.split(' ')
+    #       attribute_set(:first_name, name[0])
+    #       attribute_set(:last_name, name[1])
+    #     end
+    #
+    #     # using the shorter syntax
+    #     def name_from_address_book(name)
+    #       name = name.split(', ')
+    #       first_name = name[1]
+    #       last_name = name[0]
+    #     end
+    #   end
+    #
+    # -
+    # @public
     def attribute_set(name, value)
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
@@ -85,19 +153,42 @@ module DataMapper
       instance_variable_set(ivar_name, new_value)
     end
 
+    # Compares if its the same object or if attributes are equal
+    #
+    # ==== Parameters
+    # other<Object>:: Object to compare to
+    #
+    # ==== Returns
+    # <True>:: the outcome of the comparison as a boolean
+    #
+    # -
+    # @public
     def eql?(other)
       return true if object_id == other.object_id
       return false unless self.class === other
       attributes == other.attributes
     end
-
+    
     alias == eql?
 
+    # Inspection of the class name and the attributes
+    #
+    # ==== Returns
+    # <String>:: with the class name, attributes with their values
+    #
+    # ==== Example
+    # 
+    # >> Foo.new 
+    # => #<Foo name=nil updated_at=nil created_at=nil id=nil>
+    #
+    # -
+    # @public
     def inspect
       attrs = attributes.inject([]) {|s,(k,v)| s << "#{k}=#{v.inspect}"}
       "#<#{self.class.name} #{attrs.join(" ")}>"
     end
 
+    # TODO docs
     def pretty_print(pp)
       attrs = attributes.inject([]) {|s,(k,v)| s << [k,v]}
       pp.group(1, "#<#{self.class.name}", ">") do
@@ -112,7 +203,10 @@ module DataMapper
 
     ##
     #
-    # @return <Repository> the respository this resource belongs to in the context of a collection OR in the class's context
+    # ==== Returns
+    # <Repository>:: the respository this resource belongs to in the context of a collection OR in the class's context
+    #
+    # @public
     def repository
       @collection ? @collection.repository : self.class.repository
     end
@@ -125,13 +219,15 @@ module DataMapper
       @parent_associations ||= []
     end
 
-
-    ##
     # default id method to return the resource id when there is a
     # single key, and the model was defined with a primary key named
     # something other than id
     #
-    # @return <Array[Key], Key> key object
+    # ==== Returns
+    # <Array[Key], Key> key or keys
+    #
+    # --
+    # @public
     def id
       key = self.key
       key.first if key.size == 1
@@ -155,28 +251,67 @@ module DataMapper
       @readonly == true
     end
 
-    ##
     # save the instance to the data-store
     #
-    # @return <True, False> results of the save
+    # ==== Returns
+    # <True, False>:: results of the save
+    #
     # @see DataMapper::Repository#save
+    #
+    # --
+    # #public
     def save
       new_record? ? create : update
     end
 
-    ##
     # destroy the instance, remove it from the repository
     #
-    # @return <True, False> results of the destruction
+    # ==== Returns
+    # <True, False>:: results of the destruction
+    #
+    # --
+    # @public
     def destroy
       repository.destroy(self)
     end
 
+    # Checks if the attribute has been loaded
+    #
+    # ==== Example
+    # 
+    #   class Foo
+    #     include DataMapper::Resource
+    #     property :name, String
+    #     property :description, Text, :lazy => false
+    #   end
+    #
+    #   Foo.new.attribute_loaded?(:description) # will return false
+    #
+    # --
+    # @public
     def attribute_loaded?(name)
       property = self.class.properties(repository.name)[name]
       instance_variable_defined?(property.instance_variable_name)
     end
 
+    # fetches all the names of the attributes that have been loaded,
+    # even if they are lazy but have been called
+    #
+    # ==== Returns
+    # Array[<Symbol>]:: names of attributes that have been loaded
+    #
+    # ==== Example
+    # 
+    #   class Foo
+    #     include DataMapper::Resource
+    #     property :name, String
+    #     property :description, Text, :lazy => false
+    #   end
+    #
+    #   Foo.new.loaded_attributes # returns [:name]
+    #
+    # --
+    # @public
     def loaded_attributes
       names = []
       self.class.properties(repository.name).each do |property|
@@ -185,14 +320,38 @@ module DataMapper
       names
     end
 
+    # set of attributes that have been marked dirty
+    #
+    # ==== Returns
+    # Set:: attributes that have been marked dirty
+    #
+    # --
+    # @public
     def dirty_attributes
       @dirty_attributes ||= Set.new
     end
 
+    # Checks if the class is dirty
+    #
+    # ==== Returns
+    # True:: returns if class is dirty
+    #
+    # --
+    # @public
     def dirty?
       dirty_attributes.any?
     end
 
+    # Checks if the attribute is dirty
+    #
+    # ==== Parameters
+    # name<Symbol>:: name of attribute
+    #
+    # ==== Returns
+    # True:: returns if attribute is dirty
+    #
+    # --
+    # @public
     def attribute_dirty?(name)
       property = self.class.properties(repository.name)[name]
       dirty_attributes.include?(property)
@@ -202,6 +361,13 @@ module DataMapper
       instance_variable_get("@shadow_#{name}")
     end
 
+    # Reload association and all child association
+    #
+    # ==== Returns
+    # self:: returns the class itself
+    #
+    # --
+    # @public
     def reload
       @collection.reload(:fields => loaded_attributes)
       (parent_associations + child_associations).each { |association| association.reload! }
@@ -209,20 +375,39 @@ module DataMapper
     end
     alias reload! reload
 
+    # Relad all the attributes
+    #
+    # ==== Parameters
+    # *attributes<Array[<Symbol>]>:: name of attribute
+    #
+    # ==== Returns
+    # self:: returns the class itself
+    #
+    # --
+    # @public
     def reload_attributes(*attributes)
       @collection.reload(:fields => attributes)
       self
     end
 
-    ##
-    # Returns <tt>true</tt> if this model hasn't been saved to the database,
-    # <tt>false</tt> otherwise.
+    # Checks if the model has been saved
+    #  
+    # ==== Returns
+    # True:: status if the model is new
     #
-    # @return <TrueClass> if this model has been saved to the database
+    # --
+    # @public
     def new_record?
       !defined?(@new_record) || @new_record
     end
 
+    # all the attributes of the model
+    #  
+    # ==== Returns
+    # Hash[<Symbol>]:: All the (non)-lazy attributes
+    #
+    # --
+    # @public
     def attributes
       pairs = {}
 
@@ -235,7 +420,13 @@ module DataMapper
       pairs
     end
 
-    # Mass-assign mapped fields.
+    # Mass assign of attributes
+    #  
+    # ==== Parameters
+    # value_hash <Hash[<Symbol>]>:: 
+    #
+    # --
+    # @public
     def attributes=(values_hash)
       values_hash.each_pair do |k,v|
         setter = "#{k.to_s.sub(/\?\z/, '')}="
@@ -249,10 +440,13 @@ module DataMapper
 
     # Updates attributes and saves model
     #
-    # @param attributes<Hash> Attributes to be updated
-    # @param keys<Symbol, String, Array> keys of Hash to update (others won't be updated)
+    # ==== Parameters
+    # attributes<Hash> Attributes to be updated
+    # keys<Symbol, String, Array> keys of Hash to update (others won't be updated)
     #
-    # @return <TrueClass, FalseClass> if model got saved or not
+    # ==== Returns
+    # <TrueClass, FalseClass> if model got saved or not
+    #
     #-
     # @api public
     def update_attributes(hash, *update_only)
@@ -262,10 +456,10 @@ module DataMapper
       save
     end
 
-    ##
     # Produce a new Transaction for the class of this Resource
     #
-    # @return <DataMapper::Adapters::Transaction
+    # ==== Returns
+    # <DataMapper::Adapters::Transaction>::
     #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
     #   of the class of this DataMapper::Resource added.
     #-
