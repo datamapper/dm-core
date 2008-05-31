@@ -13,7 +13,7 @@ module DataMapper
       # @return <DataMapper::TypeMap> default TypeMap for MySql databases.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
-          tm.map(Fixnum).to('INT').with(:size => 11)
+          tm.map(Integer).to('INT').with(:size => 11)
           tm.map(TrueClass).to('TINYINT').with(:size => 1)  # TODO: map this to a BIT or CHAR(0) field?
           tm.map(Object).to('TEXT')
         end
