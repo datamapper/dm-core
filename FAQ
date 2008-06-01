@@ -7,7 +7,7 @@
 DataMapper will NOT create an auto-incrementing <tt>:id</tt> key for you 
 automatically, so you'll need to either explicitly create one with
 
-  property :id, Fixnum, :serial => true
+  property :id, Integer, :serial => true
 
 You can choose to use a natural key by doing
 
@@ -16,8 +16,8 @@ You can choose to use a natural key by doing
 Remember, DataMapper supports multiple keys ("composite keys"), so if your
 model has two or more keys, no big deal
 
-  property :store_id, 	Fixnum, :key => true
-  property :invoice_id, Fixnum, :key => true
+  property :store_id, 	Integer, :key => true
+  property :invoice_id, Integer, :key => true
 
 === How do I make a model paranoid?
 
@@ -32,12 +32,12 @@ you won't see deleted objects in your associations.
 
 === Does DataMapper do Single Table Inheritance?
 
-This is what the Class data-type is for:
+This is what the Discriminator data-type is for:
 
   class Person
     include DataMapper::Resource
-    property :id, Fixnum, :serial => true
-    property :type, Class ## other shared properties here
+    property :id, Integer, :serial => true
+    property :type, Discriminator ## other shared properties here
   end
 
   class Salesperson < Person; end
