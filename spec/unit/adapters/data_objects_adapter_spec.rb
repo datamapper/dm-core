@@ -56,7 +56,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       it "should accept a single String argument with or without options hash" do
         @connection.should_receive(:create_command).twice.with("SELECT * FROM plupps").and_return(@command)
-        @command.should_receive(:set_types).twice.with([Fixnum, String])
+        @command.should_receive(:set_types).twice.with([Integer, String])
         @command.should_receive(:execute_reader).twice.and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
@@ -66,7 +66,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       it "should accept an Array argument with or without options hash" do
         @connection.should_receive(:create_command).twice.with("SELECT * FROM plupps WHERE plur = ?").and_return(@command)
-        @command.should_receive(:set_types).twice.with([Fixnum, String])
+        @command.should_receive(:set_types).twice.with([Integer, String])
         @command.should_receive(:execute_reader).twice.with("my pretty plur").and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
@@ -76,7 +76,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       it "should accept a Query argument with or without options hash" do
         @connection.should_receive(:create_command).twice.with("SELECT \"name\" FROM \"plupps\" WHERE \"name\" = ?").and_return(@command)
-        @command.should_receive(:set_types).twice.with([Fixnum, String])
+        @command.should_receive(:set_types).twice.with([Integer, String])
         @command.should_receive(:execute_reader).twice.with(Plupp.properties[:name]).and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)

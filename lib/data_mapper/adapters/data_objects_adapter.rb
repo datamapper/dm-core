@@ -108,7 +108,7 @@ module DataMapper
       # @return <DataMapper::TypeMap> default TypeMap for data objects adapters.
       def self.type_map
         @type_map ||= TypeMap.new(super) do |tm|
-          tm.map(Fixnum).to('INT')
+          tm.map(Integer).to('INT')
           tm.map(String).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
           tm.map(Class).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
           tm.map(DM::Discriminator).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
@@ -699,7 +699,7 @@ module DataMapper
         def relationship_schema_hash(relationship)
           identifier, relationship = relationship
 
-          self.class.type_map[Fixnum].merge(:name => "#{identifier}_id") if identifier == relationship.name
+          self.class.type_map[Integer].merge(:name => "#{identifier}_id") if identifier == relationship.name
         end
 
         # TODO: move to dm-more/dm-migrations

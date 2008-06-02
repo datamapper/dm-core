@@ -116,11 +116,7 @@ module DataMapper
       return super() unless target
 
       properties = map do |property|
-        # TODO: remove this hack once most in-the-wild code has switched
-        # over to using Integer instead of Fixnum for properties
-        type = property.type
-        type = Integer if Fixnum == type
-        Property.new(target || property.model, property.name, type, property.options.dup)
+        Property.new(target || property.model, property.name, property.type, property.options.dup)
       end
 
       self.class.new(properties)

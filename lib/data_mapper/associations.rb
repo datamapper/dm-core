@@ -45,7 +45,7 @@ module DataMapper
     #   * has n, :friendships => :friends
     #                         # identical to above example
     #
-    # @param cardinality <Fixnum, Bignum, Infinity, Range>
+    # @param cardinality <Integer, Range, Infinity>
     #   cardinality that defines the association type and constraints
     # @param name <Symbol>  the name that the association will be referenced by
     # @param opts <Hash>    an options hash
@@ -62,7 +62,7 @@ module DataMapper
     #   created to reflect either a one-to-one, one-to-many or many-to-many
     #   relationship
     # @raise <ArgumentError> if the cardinality was not understood. Should be a
-    #   Fixnum, Bignum, Infinity(n) or Range
+    #   Integer, Range or Infinity(n)
     #
     # @api public
     def has(cardinality, name, options = {})
@@ -130,21 +130,21 @@ module DataMapper
       end
     end
 
-    # A support method form converting Fixnum, Range or Infinity values into a
+    # A support method form converting Integer, Range or Infinity values into a
     # {:min=>x, :max=>y} hash.
     #
     # @api private
     def extract_min_max(constraints)
       case constraints
+        when Integer
+          { :min => constraints, :max => constraints }
         when Range
           raise ArgumentError, "Constraint min (#{constraints.first}) cannot be larger than the max (#{constraints.last})" if constraints.first > constraints.last
           { :min => constraints.first, :max => constraints.last }
-        when Fixnum, Bignum
-          { :min => constraints, :max => constraints }
         when n
           {}
         else
-          raise ArgumentError, "Constraint #{constraints.inspect} (#{constraints.class}) not handled must be one of Range, Fixnum, Bignum, Infinity(n)"
+          raise ArgumentError, "Constraint #{constraints.inspect} (#{constraints.class}) not handled must be one of Integer, Range or Infinity(n)"
       end
     end
   end # module Associations

@@ -48,7 +48,6 @@ module DataMapper
   # * String
   # * Text (limit of 65k characters by default)
   # * Float
-  # * Fixnum
   # * Integer
   # * BigDecimal
   # * DateTime
@@ -241,7 +240,6 @@ module DataMapper
       String,
       DataMapper::Types::Text,
       Float,
-      Fixnum,
       Integer,
       BigDecimal,
       DateTime,
@@ -388,7 +386,7 @@ module DataMapper
       if    type == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
       elsif type == String     then value.to_s
       elsif type == Float      then value.to_f
-      elsif type == Fixnum     then value.to_i
+      elsif type == Integer    then value.to_i
       elsif type == BigDecimal then BigDecimal(value.to_s)
       elsif type == DateTime   then DateTime.parse(value.to_s)
       elsif type == Date       then Date.parse(value.to_s)
@@ -408,28 +406,22 @@ module DataMapper
     private
 
     def initialize(model, name, type, options = {})
-      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"                 unless Resource > model
-      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                           unless Symbol === name
-      raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
-
-      if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
-        raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
-      end
-
-      # TODO: change Integer to be used internally once most in-the-wild code
-      # is updated to use Integer for properties instead of Fixnum, or before
-      # DM 1.0, whichever comes first.
       if Fixnum == type
         # It was decided that Integer is a more expressively names class to
         # use instead of Fixnum.  Fixnum only represents smaller numbers,
         # so there was some confusion over whether or not it would also
         # work with Bignum too (it will).  Any Integer, which includes
         # Fixnum and Bignum, can be stored in this property.
-        warn 'Fixnum properties are deprecated.  Please use Integer instead'
-      elsif Integer == type
-        # XXX: ignore this for now :) We still use Fixnum internally
-        # until every DO driver is updated to handle Integer natively.
-        type = Fixnum
+        warn "#{type} properties are deprecated.  Please use Integer instead"
+        type = Integer
+      end
+
+      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"                 unless Resource > model
+      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                           unless Symbol === name
+      raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
+
+      if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
+        raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
       end
 
       @model                  = model

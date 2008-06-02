@@ -78,10 +78,9 @@ module DataMapper
         # TODO: change Integer to be used internally once most in-the-wild code
         # is updated to use Integer for properties instead of Fixnum, or before
         # DM 1.0, whichever comes first
-        if Fixnum == @primitive
-          warn 'Fixnum properties are deprecated.  Please use Integer instead'
-        elsif Integer == @primitive
-          @primitive = Fixnum
+        if Fixnum == primitive
+          warn "#{primitive} properties are deprecated.  Please use Integer instead"
+          primitive = Integer
         end
 
         @primitive = primitive

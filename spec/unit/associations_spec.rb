@@ -59,7 +59,7 @@ describe "DataMapper::Associations" do
       end.should_not raise_error
     end
 
-    it "should not allow a constraint that is not a Range, Fixnum, Bignum or Infinity" do
+    it "should not allow a constraint that is not an Integer, Range or Infinity" do
       lambda do
         class Manufacturer
           has '1', :halo_car

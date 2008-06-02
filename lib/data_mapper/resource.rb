@@ -16,7 +16,7 @@ module DataMapper
 
     # When Resource is included in a class this method makes sure
     # it gets all the methods
-    # 
+    #
     # -
     # @private
     def self.included(model)
@@ -30,11 +30,11 @@ module DataMapper
     # Set:: a set containing the including classes
     #
     # ==== Example
-    # 
+    #
     #   Class Foo
     #     include DataMapper::Resource
     #   end
-    # 
+    #
     #   DataMapper.Resource.decendents[1].type == Foo
     #
     # -
@@ -59,7 +59,7 @@ module DataMapper
     # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
     #
     # ==== Example
-    # 
+    #
     #   Class Foo
     #     include DataMapper::Resource
     #
@@ -109,7 +109,7 @@ module DataMapper
     # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
     #
     # ==== Example
-    # 
+    #
     #   Class Foo
     #     include DataMapper::Resource
     #
@@ -168,7 +168,7 @@ module DataMapper
       return false unless self.class === other
       attributes == other.attributes
     end
-    
+
     alias == eql?
 
     # Inspection of the class name and the attributes
@@ -177,8 +177,8 @@ module DataMapper
     # <String>:: with the class name, attributes with their values
     #
     # ==== Example
-    # 
-    # >> Foo.new 
+    #
+    # >> Foo.new
     # => #<Foo name=nil updated_at=nil created_at=nil id=nil>
     #
     # -
@@ -278,7 +278,7 @@ module DataMapper
     # Checks if the attribute has been loaded
     #
     # ==== Example
-    # 
+    #
     #   class Foo
     #     include DataMapper::Resource
     #     property :name, String
@@ -301,7 +301,7 @@ module DataMapper
     # Array[<Symbol>]:: names of attributes that have been loaded
     #
     # ==== Example
-    # 
+    #
     #   class Foo
     #     include DataMapper::Resource
     #     property :name, String
@@ -391,7 +391,7 @@ module DataMapper
     end
 
     # Checks if the model has been saved
-    #  
+    #
     # ==== Returns
     # True:: status if the model is new
     #
@@ -402,7 +402,7 @@ module DataMapper
     end
 
     # all the attributes of the model
-    #  
+    #
     # ==== Returns
     # Hash[<Symbol>]:: All the (non)-lazy attributes
     #
@@ -421,9 +421,9 @@ module DataMapper
     end
 
     # Mass assign of attributes
-    #  
+    #
     # ==== Parameters
-    # value_hash <Hash[<Symbol>]>:: 
+    # value_hash <Hash[<Symbol>]>::
     #
     # --
     # @public

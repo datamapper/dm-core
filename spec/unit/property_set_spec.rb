@@ -32,7 +32,7 @@ describe DataMapper::PropertySet do
   end
 
   it "#select should find properties" do
-    @properties.select { |property| property.type == Fixnum }.should have(3).entries
+    @properties.select { |property| property.type == Integer }.should have(3).entries
   end
 
   it "#[] should find properties by name (Symbol or String)" do
