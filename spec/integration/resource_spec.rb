@@ -61,11 +61,20 @@ if ADAPTER
         after :create do
           @created_id = self.id
         end
+        
+        after :save do
+          @save_id = self.id
+        end
       end
       
       bob = repository(ADAPTER) { FortunePig.create(:name => 'Bob') }
       bob.id.should_not be_nil
       bob.instance_variable_get("@created_id").should == bob.id
+      
+      fred = FortunePig.new(:name => 'Fred')
+      repository(ADAPTER) { fred.save }
+      fred.id.should_not be_nil
+      fred.instance_variable_get("@save_id").should == fred.id
     end
 
     describe "anonymity" do
