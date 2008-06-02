@@ -28,7 +28,7 @@ module DataMapper
     #
     # @example [Usage]
     #   * has 1, :friend                          # one friend
-    #   * has n, :friends                         # one to many friends
+    #   * has n, :friends                         # many friends
     #   * has 1..3, :friends
     #                         # many friends (at least 1, at most 3)
     #   * has 3, :friends

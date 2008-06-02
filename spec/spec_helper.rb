@@ -58,6 +58,10 @@ class Vehicle
 
   property :id, Integer, :serial => true
   property :name, String
+
+  class << self
+    attr_accessor :mock_relationship
+  end
 end
 
 class Manufacturer
@@ -65,6 +69,10 @@ class Manufacturer
 
   property :id, Integer, :serial => true
   property :name, String
+
+  class << self
+    attr_accessor :mock_relationship
+  end
 end
 
 class Supplier

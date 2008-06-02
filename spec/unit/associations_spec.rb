@@ -1,9 +1,11 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe "DataMapper::Associations" do
-  before :each do
+  before do
     @relationship = mock(DataMapper::Associations::Relationship)
     @n = 1.0/0
+
+    Manufacturer.mock_relationship = Vehicle.mock_relationship = @relationship
   end
 
   describe ".relationships" do
@@ -79,8 +81,9 @@ describe "DataMapper::Associations" do
       DataMapper::Associations::OneToMany.should_receive(:setup).
         with(:vehicles, Manufacturer, {:min=>1, :max=>2}).
         and_return(@relationship)
+
       class Manufacturer
-        has 1..2, :vehicles, :min=>5, :max=>10
+        has(1..2, :vehicles, :min => 5, :max => 10).should == mock_relationship
       end
     end
 
@@ -89,8 +92,9 @@ describe "DataMapper::Associations" do
         DataMapper::Associations::OneToOne.should_receive(:setup).
           with(:halo_car, Manufacturer, { :min => 1, :max => 1 }).
           and_return(@relationship)
+
         class Manufacturer
-          has 1, :halo_car
+          has(1, :halo_car).should == mock_relationship
         end
       end
 
@@ -98,8 +102,9 @@ describe "DataMapper::Associations" do
         DataMapper::Associations::OneToOne.should_receive(:setup).
           with(:halo_car, Manufacturer, { :min => 0, :max => 1 }).
           and_return(@relationship)
+
         class Manufacturer
-          has 0..1, :halo_car
+          has(0..1, :halo_car).should == mock_relationship
         end
       end
 
@@ -107,9 +112,9 @@ describe "DataMapper::Associations" do
         DataMapper::Associations::OneToOne.should_receive(:setup).
           with(:halo_car, Manufacturer, { :class_name => 'Car', :min => 1, :max => 1 }).
           and_return(@relationship)
+
         class Manufacturer
-          has 1, :halo_car,
-            :class_name => 'Car'
+          has(1, :halo_car, :class_name => 'Car').should == mock_relationship
         end
       end
     end
@@ -119,8 +124,9 @@ describe "DataMapper::Associations" do
         DataMapper::Associations::OneToMany.should_receive(:setup).
           with(:vehicles, Manufacturer, {}).
           and_return(@relationship)
+
         class Manufacturer
-          has n, :vehicles
+          has(n, :vehicles).should == mock_relationship
         end
       end
 
@@ -128,8 +134,9 @@ describe "DataMapper::Associations" do
         DataMapper::Associations::OneToMany.should_receive(:setup).
           with(:vehicles, Manufacturer, { :min => 4, :max => 4 }).
           and_return(@relationship)
+
         class Manufacturer
-          has 4, :vehicles
+          has(4, :vehicles).should == mock_relationship
         end
       end
 
@@ -137,8 +144,9 @@ describe "DataMapper::Associations" do
         DataMapper::Associations::OneToMany.should_receive(:setup).
           with(:vehicles, Manufacturer, { :min => 2, :max => 4 }).
           and_return(@relationship)
+
         class Manufacturer
-          has 2..4, :vehicles
+          has(2..4, :vehicles).should == mock_relationship
         end
       end
 
@@ -146,9 +154,9 @@ describe "DataMapper::Associations" do
         DataMapper::Associations::OneToMany.should_receive(:setup).
           with(:vehicles, Manufacturer, { :min => 1, :max => @n, :class_name => 'Car' }).
           and_return(@relationship)
+
         class Manufacturer
-          has 1..n, :vehicles,
-            :class_name => 'Car'
+          has(1..n, :vehicles, :class_name => 'Car').should == mock_relationship
         end
       end
 
@@ -165,8 +173,9 @@ describe "DataMapper::Associations" do
         DataMapper::Associations::OneToMany.should_receive(:setup).
           with(:suppliers, Vehicle, { :through => :manufacturers }).
           and_return(@relationship)
+
         class Vehicle
-          has n, :suppliers, :through => :manufacturers
+          has(n, :suppliers, :through => :manufacturers).should == mock_relationship
         end
       end
     end
@@ -177,8 +186,9 @@ describe "DataMapper::Associations" do
       DataMapper::Associations::ManyToOne.should_receive(:setup).
         with(:vehicle, Manufacturer, {}).
         and_return(@relationship)
+
       class Manufacturer
-        belongs_to :vehicle
+        belongs_to(:vehicle).should == mock_relationship
       end
     end
 
@@ -186,9 +196,9 @@ describe "DataMapper::Associations" do
       DataMapper::Associations::ManyToOne.should_receive(:setup).
         with(:vehicle, Manufacturer, { :class_name => 'Car' }).
         and_return(@relationship)
+
       class Manufacturer
-        belongs_to :vehicle,
-          :class_name => 'Car'
+        belongs_to(:vehicle, :class_name => 'Car').should == mock_relationship
       end
     end
   end

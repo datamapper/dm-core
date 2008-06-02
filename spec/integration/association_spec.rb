@@ -165,22 +165,21 @@ if ADAPTER
         p.tasks[0].title.should == 't1'
       end
 
-    it 'should allow namespaced classes in parent and child for one <=> one' do
-      g = Models::Goal.new(:title => "g2", :description => "desc 2")
-      p = Models::Project.create!(:title => "p2", :summary => "sum 2", :goal => g)
+      it 'should allow namespaced classes in parent and child for one <=> one' do
+        g = Models::Goal.new(:title => "g2", :description => "desc 2")
+        p = Models::Project.create!(:title => "p2", :summary => "sum 2", :goal => g)
 
-      pp = Models::Project.first(:title => 'p2')
-      pp.goal.title.should == "g2"
+        pp = Models::Project.first(:title => 'p2')
+        pp.goal.title.should == "g2"
 
-      g = Models::Goal.first(:title => "g2")
+        g = Models::Goal.first(:title => "g2")
 
-      g.project.should_not be_nil
-      g.project.title.should == 'p2'
+        g.project.should_not be_nil
+        g.project.title.should == 'p2'
 
-      g.project.goal.should_not be_nil
+        g.project.goal.should_not be_nil
+      end
     end
-  end
-
 
     describe 'many to one associations' do
       before do
