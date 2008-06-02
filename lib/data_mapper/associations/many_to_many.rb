@@ -1,30 +1,29 @@
 module DataMapper
   module Associations
     module ManyToMany
-      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
 
-      private
-
-      def many_to_many(name, options = {})
+      # Setup many to many relationship between two models
+      # -
+      # @private
+      def setup(name, model, options = {})
         raise NotImplementedError
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        child_model_name  = DataMapper::Inflection.demodulize(self.name)
-        parent_model_name = options.fetch(:class_name, DataMapper::Inflection.classify(name))
-
-        relationship = relationships(repository.name)[name] = Relationship.new(
-          name,
-          repository.name,
-          child_model_name,
-          parent_model_name,
-          options
-        )
+        repository_name = model.repository.name
 
         # TODO: add accessor/mutator to model with class_eval
 
-        relationships
+        model.relationships(repository_name)[name] = Relationship.new(
+          name,
+          repository_name,
+          model.name,
+          options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+          options
+        )
       end
+
+      module_function :setup
 
       class Proxy
         instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? should should_not ].include?(m) }

@@ -76,8 +76,8 @@ describe "DataMapper::Associations" do
     end
 
     it "should not allow overwriting of the auto assigned min/max values with keys" do
-      Manufacturer.should_receive(:one_to_many).
-        with(:vehicles, {:min=>1, :max=>2}).
+      DataMapper::Associations::OneToMany.should_receive(:setup).
+        with(:vehicles, Manufacturer, {:min=>1, :max=>2}).
         and_return(@relationship)
       class Manufacturer
         has 1..2, :vehicles, :min=>5, :max=>10
@@ -86,8 +86,8 @@ describe "DataMapper::Associations" do
 
     describe "one-to-one syntax" do
       it "should create a basic one-to-one association with fixed constraint" do
-        Manufacturer.should_receive(:one_to_one).
-          with(:halo_car, { :min => 1, :max => 1 }).
+        DataMapper::Associations::OneToOne.should_receive(:setup).
+          with(:halo_car, Manufacturer, { :min => 1, :max => 1 }).
           and_return(@relationship)
         class Manufacturer
           has 1, :halo_car
@@ -95,8 +95,8 @@ describe "DataMapper::Associations" do
       end
 
       it "should create a basic one-to-one association with min/max constraints" do
-        Manufacturer.should_receive(:one_to_one).
-          with(:halo_car, { :min => 0, :max => 1 }).
+        DataMapper::Associations::OneToOne.should_receive(:setup).
+          with(:halo_car, Manufacturer, { :min => 0, :max => 1 }).
           and_return(@relationship)
         class Manufacturer
           has 0..1, :halo_car
@@ -104,8 +104,8 @@ describe "DataMapper::Associations" do
       end
 
       it "should create a one-to-one association with options" do
-        Manufacturer.should_receive(:one_to_one).
-          with(:halo_car, {:class_name => 'Car', :min => 1, :max => 1 }).
+        DataMapper::Associations::OneToOne.should_receive(:setup).
+          with(:halo_car, Manufacturer, { :class_name => 'Car', :min => 1, :max => 1 }).
           and_return(@relationship)
         class Manufacturer
           has 1, :halo_car,
@@ -116,8 +116,8 @@ describe "DataMapper::Associations" do
 
     describe "one-to-many syntax" do
       it "should create a basic one-to-many association with no constraints" do
-        Manufacturer.should_receive(:one_to_many).
-          with(:vehicles,{}).
+        DataMapper::Associations::OneToMany.should_receive(:setup).
+          with(:vehicles, Manufacturer, {}).
           and_return(@relationship)
         class Manufacturer
           has n, :vehicles
@@ -125,8 +125,8 @@ describe "DataMapper::Associations" do
       end
 
       it "should create a one-to-many association with fixed constraint" do
-        Manufacturer.should_receive(:one_to_many).
-          with(:vehicles,{:min=>4, :max=>4}).
+        DataMapper::Associations::OneToMany.should_receive(:setup).
+          with(:vehicles, Manufacturer, { :min => 4, :max => 4 }).
           and_return(@relationship)
         class Manufacturer
           has 4, :vehicles
@@ -134,8 +134,8 @@ describe "DataMapper::Associations" do
       end
 
       it "should create a one-to-many association with min/max constraints" do
-        Manufacturer.should_receive(:one_to_many).
-          with(:vehicles,{:min=>2, :max=>4}).
+        DataMapper::Associations::OneToMany.should_receive(:setup).
+          with(:vehicles, Manufacturer, { :min => 2, :max => 4 }).
           and_return(@relationship)
         class Manufacturer
           has 2..4, :vehicles
@@ -143,8 +143,8 @@ describe "DataMapper::Associations" do
       end
 
       it "should create a one-to-many association with options" do
-        Manufacturer.should_receive(:one_to_many).
-          with(:vehicles,{:min=>1, :max=>@n, :class_name => 'Car'}).
+        DataMapper::Associations::OneToMany.should_receive(:setup).
+          with(:vehicles, Manufacturer, { :min => 1, :max => @n, :class_name => 'Car' }).
           and_return(@relationship)
         class Manufacturer
           has 1..n, :vehicles,
@@ -162,8 +162,8 @@ describe "DataMapper::Associations" do
       end
 
       it "should create one-to-many association and pass the :through option if specified" do
-        Vehicle.should_receive(:one_to_many).
-          with(:suppliers,{:through => :manufacturers}).
+        DataMapper::Associations::OneToMany.should_receive(:setup).
+          with(:suppliers, Vehicle, { :through => :manufacturers }).
           and_return(@relationship)
         class Vehicle
           has n, :suppliers, :through => :manufacturers
@@ -174,8 +174,8 @@ describe "DataMapper::Associations" do
 
   describe ".belongs_to" do
     it "should create a basic many-to-one association" do
-      Manufacturer.should_receive(:many_to_one).
-        with(:vehicle,{}).
+      DataMapper::Associations::ManyToOne.should_receive(:setup).
+        with(:vehicle, Manufacturer, {}).
         and_return(@relationship)
       class Manufacturer
         belongs_to :vehicle
@@ -183,8 +183,8 @@ describe "DataMapper::Associations" do
     end
 
     it "should create a many-to-one association with options" do
-      Manufacturer.should_receive(:many_to_one).
-        with(:vehicle,{:class_name => 'Car'}).
+      DataMapper::Associations::ManyToOne.should_receive(:setup).
+        with(:vehicle, Manufacturer, { :class_name => 'Car' }).
         and_return(@relationship)
       class Manufacturer
         belongs_to :vehicle,

@@ -3,37 +3,18 @@ require 'forwardable'
 module DataMapper
   module Associations
     module OneToMany
-      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max, :remote_name ]
 
-      private
+      # Setup one to many relationship between two models
+      # -
+      # @private
+      def setup(name, model, options = {})
+        raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller unless Symbol === name || Hash === name
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller                             unless Hash   === options
 
-      def one_to_many(name, options = {})
-        raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller     unless Symbol === name || Hash === name
-        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
+        repository_name = model.repository.name
 
-        relationship =
-          relationships(repository.name)[name] =
-          if options.include?(:through)
-            RelationshipChain.new(:child_model_name => options.fetch(:class_name, DataMapper::Inflection.classify(name)),
-                                  :parent_model_name => self.name,
-                                  :repository_name => repository.name,
-                                  :near_relationship_name => options[:through],
-                                  :remote_relationship_name => options.fetch(:remote_name, name),
-                                  :parent_key => options[:parent_key],
-                                  :child_key => options[:child_key])
-          else
-            relationships(repository.name)[name] =
-              Relationship.new(
-                               DataMapper::Inflection.underscore(self.name.split('::').last).to_sym,
-                               repository.name,
-                               options.fetch(:class_name, DataMapper::Inflection.classify(name)),
-                               self.name,
-                               options
-                               )
-          end
-
-        class_eval <<-EOS, __FILE__, __LINE__
-          def #{name}(options={})
+        model.class_eval <<-EOS, __FILE__, __LINE__
+          def #{name}(options = {})
             options.empty? ? #{name}_association : #{name}_association.all(options)
           end
 
@@ -45,7 +26,7 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = self.class.relationships(#{repository.name.inspect})[#{name.inspect}]
+              relationship = self.class.relationships(#{repository_name.inspect})[#{name.inspect}]
               raise ArgumentError.new("Relationship #{name.inspect} does not exist") unless relationship
               association = Proxy.new(relationship, self)
               parent_associations << association
@@ -54,8 +35,28 @@ module DataMapper
           end
         EOS
 
-        relationship
+        model.relationships(repository_name)[name] = if options.has_key?(:through)
+          RelationshipChain.new(
+            :child_model_name         => options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+            :parent_model_name        => model.name,
+            :repository_name          => repository_name,
+            :near_relationship_name   => options[:through],
+            :remote_relationship_name => options.fetch(:remote_name, name),
+            :parent_key               => options[:parent_key],
+            :child_key                => options[:child_key]
+          )
+        else
+          Relationship.new(
+            DataMapper::Inflection.underscore(DataMapper::Inflection.demodulize(model.name)).to_sym,
+            repository_name,
+            options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+            model.name,
+            options
+          )
+        end
       end
+
+      module_function :setup
 
       class Proxy
         instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? should should_not ].include?(m) }

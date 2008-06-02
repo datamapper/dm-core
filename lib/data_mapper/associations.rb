@@ -13,11 +13,6 @@ module DataMapper
     class ImmutableAssociationError < RuntimeError
     end
 
-    include ManyToOne
-    include OneToMany
-    include ManyToMany
-    include OneToOne
-
     def relationships(repository_name = default_repository_name)
       @relationships ||= Hash.new { |h,k| h[k] = k == Repository.default_name ? {} : h[Repository.default_name].dup }
       @relationships[repository_name]
@@ -32,16 +27,16 @@ module DataMapper
     # many-to-many resource relationships.
     #
     # @example [Usage]
-    #   * has 1, :friend                          # one_to_one, :friend
-    #   * has n, :friends                         # one_to_many :friends
+    #   * has 1, :friend                          # one friend
+    #   * has n, :friends                         # one to many friends
     #   * has 1..3, :friends
-    #                         # one_to_many :friends, :min => 1, :max => 3
+    #                         # many friends (at least 1, at most 3)
     #   * has 3, :friends
-    #                         # one_to_many :friends, :min => 3, :max => 3
+    #                         # many friends (exactly 3)
     #   * has 1, :friend, :class_name => 'User'
-    #                         # one_to_one :friend, :class_name => 'User'
+    #                         # one friend with the class name User
     #   * has 3, :friends, :through => :friendships
-    #                         # one_to_many :friends, :through => :friendships
+    #                         # many friends through the friendships relationship
     #   * has n, :friendships => :friends
     #                         # identical to above example
     #
@@ -77,11 +72,8 @@ module DataMapper
       # reltionship.
       raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association' if options[:min] == n && options[:max] == n
 
-      relationship = if options[:max] == 1
-        one_to_one(options.delete(:name), options)
-      else
-        one_to_many(options.delete(:name), options)
-      end
+      klass = options[:max] == 1 ? OneToOne : OneToMany
+      relationship = klass.setup(options.delete(:name), self, options)
 
       # Please leave this in - I will release contextual serialization soon
       # which requires this -- guyvdb
@@ -108,30 +100,31 @@ module DataMapper
     #
     # @api public
     def belongs_to(name, options={})
-      relationship = many_to_one(name, options)
+      relationship = ManyToOne.setup(name, self, options)
       # Please leave this in - I will release contextual serialization soon
       # which requires this -- guyvdb
       # TODO convert this to a hook in the plugin once hooks work on class
       # methods
       self.init_belongs_relationship_for_serialization(relationship) if self.respond_to?(:init_belongs_relationship_for_serialization)
+
+      relationship
     end
 
-
-  private
+    private
 
     def extract_throughness(name)
       case name
-      when Hash
-        {:name => name.values.first, :through => name.keys.first}
-      when Symbol
-        {:name => name}
-      else
-        raise ArgumentError, "Name of association must be Hash or Symbol, not #{name.inspect}"
+        when Hash
+          { :name => name.values.first, :through => name.keys.first }
+        when Symbol
+          { :name => name }
+        else
+          raise ArgumentError, "Name of association must be Hash or Symbol, not #{name.inspect}"
       end
     end
 
     # A support method form converting Integer, Range or Infinity values into a
-    # {:min=>x, :max=>y} hash.
+    # { :min => x, :max => y } hash.
     #
     # @api private
     def extract_min_max(constraints)

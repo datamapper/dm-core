@@ -1,25 +1,17 @@
 module DataMapper
   module Associations
     module ManyToOne
-      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max ]
 
-      private
-
-      def many_to_one(name, options = {})
+      # Setup many to one relationship between two models
+      # -
+      # @private
+      def setup(name, model, options = {})
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
         raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
 
-        parent_model_name = options[:class_name] || DataMapper::Inflection.classify(name)
+        repository_name = model.repository.name
 
-        relationship = relationships(repository.name)[name] = Relationship.new(
-          name,
-          repository.name,
-          self.name,
-          parent_model_name,
-          options
-        )
-
-        class_eval <<-EOS, __FILE__, __LINE__
+        model.class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
             #{name}_association.nil? ? nil : #{name}_association
           end
@@ -32,7 +24,7 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = self.class.relationships(#{repository.name.inspect})[:#{name}]
+              relationship = self.class.relationships(#{repository_name.inspect})[:#{name}]
               association = Proxy.new(relationship, self)
               child_associations << association
               association
@@ -40,8 +32,16 @@ module DataMapper
           end
         EOS
 
-        relationship
+        model.relationships(repository_name)[name] = Relationship.new(
+          name,
+          repository_name,
+          model.name,
+          options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+          options
+        )
       end
+
+      module_function :setup
 
       class Proxy
         instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? should should_not ].include?(m) }
