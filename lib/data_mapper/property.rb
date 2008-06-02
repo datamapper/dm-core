@@ -190,7 +190,6 @@ module DataMapper
   #   property :last_name,  String, :index => :name
   #   property :first_name, String, :index => :name
   #      # => index on (last_name, first_name)
-  #
   # 
   # If you want to make the indeces unique, use <tt>:unique_index</tt> instead
   # of <tt>:index</tt>
