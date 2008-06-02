@@ -9,12 +9,32 @@ if ADAPTER
         property :color, String
       end
 
+      class FortunePig
+        include DataMapper::Resource
+        
+        property :id, Integer, :serial => true
+        property :name, String
+        
+        def to_s
+          name
+        end
+      end
+      
       Orange.auto_migrate!(ADAPTER)
+      FortunePig.auto_migrate!(ADAPTER)
+      
       orange = Orange.new(:color => 'orange')
       orange.name = 'Bob' # Keys are protected from mass-assignment by default.
       repository(ADAPTER) { orange.save }
     end
 
+    it "should be able to overwrite Resource#to_s" do
+      repository(ADAPTER) do
+        ted = FortunePig.create!(:name => "Ted")      
+        FortunePig[ted.id].to_s.should == 'Ted'
+      end
+    end
+    
     it "should be able to reload objects" do
       orange = repository(ADAPTER) { Orange['Bob'] }
       orange.color.should == 'orange'
