@@ -55,6 +55,18 @@ if ADAPTER
         end.should_not raise_error
       end
     end
+    
+    it "should be able to respond to create hooks" do
+      class FortunePig
+        after :create do
+          @created_id = self.id
+        end
+      end
+      
+      bob = repository(ADAPTER) { FortunePig.create(:name => 'Bob') }
+      bob.id.should_not be_nil
+      bob.instance_variable_get("@created_id").should == bob.id
+    end
 
     describe "anonymity" do
 
