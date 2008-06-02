@@ -1,12 +1,12 @@
 module DataMapper
   class AutoMigrator
     def self.auto_migrate(repository_name = nil)
-      DataMapper::Resource.descendents.each do |model|
+      DataMapper::Resource.descendants.each do |model|
         model.auto_migrate!(repository_name)
       end
     end
     def self.auto_upgrade(repository_name = nil)
-      DataMapper::Resource.descendents.each do |model|
+      DataMapper::Resource.descendants.each do |model|
         model.auto_upgrade!(repository_name)
       end
     end

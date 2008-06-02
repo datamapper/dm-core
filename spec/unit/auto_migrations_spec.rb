@@ -17,11 +17,11 @@ describe DataMapper::AutoMigrations do
   end
 
   before(:each) do
-    DataMapper::Resource.descendents.clear
+    DataMapper::Resource.descendants.clear
   end
 
   after(:each) do
-    DataMapper::Resource.descendents.clear
+    DataMapper::Resource.descendants.clear
   end
 
   it "should add the resource class to AutoMigrator's models on a mixin" do
@@ -29,7 +29,7 @@ describe DataMapper::AutoMigrations do
       include DataMapper::Resource
     end
 
-    DataMapper::Resource.descendents.should include(@class)
+    DataMapper::Resource.descendants.should include(@class)
   end
 
   it "should add the #auto_migrate! method on a mixin" do
@@ -71,7 +71,7 @@ describe DataMapper::AutoMigrations do
       property :age, String
     end
 
-    DataMapper::Resource.descendents.should include(model_class)
+    DataMapper::Resource.descendants.should include(model_class)
     migrator_class.models.should include(model_class)
   end
 
@@ -84,7 +84,7 @@ describe DataMapper::AutoMigrations do
       models = [:cat, :dog, :fish, :cow].map {|m| mock(m)}
 
       models.each do |model|
-        DataMapper::Resource.descendents << model
+        DataMapper::Resource.descendants << model
         model.should_receive(:auto_migrate!).with(@repository_name)
       end
 
@@ -100,7 +100,7 @@ describe DataMapper::AutoMigrations do
       models = [:cat, :dog, :fish, :cow].map {|m| mock(m)}
 
       models.each do |model|
-        DataMapper::Resource.descendents << model
+        DataMapper::Resource.descendants << model
         model.should_receive(:auto_upgrade!).with(@repository_name)
       end
 

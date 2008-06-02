@@ -86,9 +86,9 @@ describe "DataMapper::Resource" do
   end
 
   it "should track the classes that include it" do
-    DataMapper::Resource.descendents.clear
+    DataMapper::Resource.descendants.clear
     klass = Class.new { include DataMapper::Resource }
-    DataMapper::Resource.descendents.should == Set.new([klass])
+    DataMapper::Resource.descendants.should == Set.new([klass])
   end
 
   it "should return an instance of the created object" do

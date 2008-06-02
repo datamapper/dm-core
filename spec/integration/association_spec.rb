@@ -708,8 +708,8 @@ if ADAPTER
               belongs_to :slice, :class_name => 'Sweets::Slice'
             end
 
-            DataMapper::Resource.descendents.each do |descendent|
-              descendent.auto_migrate!(ADAPTER) if descendent.name =~ /^Sweets::/
+            DataMapper::Resource.descendants.each do |descendant|
+              descendant.auto_migrate!(ADAPTER) if descendant.name =~ /^Sweets::/
             end
 
             betsys = Shop.new(:name => "Betsy's")

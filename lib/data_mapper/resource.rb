@@ -12,7 +12,7 @@ module DataMapper
       x
     end
 
-    @@descendents = Set.new
+    @@descendants = Set.new
 
     # When Resource is included in a class this method makes sure
     # it gets all the methods
@@ -21,7 +21,7 @@ module DataMapper
     # @private
     def self.included(model)
       model.extend ClassMethods
-      @@descendents << model
+      @@descendants << model
     end
 
     # Return all classes that include the DataMapper::Resource module
@@ -39,8 +39,12 @@ module DataMapper
     #
     # -
     # @semipublic
+    def self.descendants
+      @@descendants
+    end
+    # For backward compatibility
     def self.descendents
-      @@descendents
+      self.descendants
     end
 
     # +---------------
