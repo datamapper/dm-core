@@ -123,6 +123,7 @@ gem_spec = Gem::Specification.new do |s|
   s.add_dependency("english", ">=0.2.0")
   s.add_dependency("rspec", ">=1.1.3")
   s.add_dependency("addressable", ">=1.0.4")
+  s.add_dependency("extlib", ">= 0.1")
 
   s.has_rdoc    = false
   #s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
