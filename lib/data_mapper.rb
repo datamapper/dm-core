@@ -180,8 +180,8 @@ module DataMapper
     end
   end
 
-  # A logger should always be present.
-  Logger.new(nil, :fatal)
+  # A logger should always be present. Lets be consistent with DO
+  Logger.new(nil, :off)
 
   ##
   # destructively migrates the repository upwards to match model definitions

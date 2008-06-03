@@ -26,6 +26,10 @@ require "time" # httpdate
 #
 # To initialize the logger you create a new object, proxies to set_log.
 #   DataMapper::Logger.new(log{String, IO},level{Symbol, String})
+#
+# Logger will not create the file until something is actually logged
+# This avoids file creation on DataMapper init when it creates the
+# default logger.
 module DataMapper
 
   class << self #:nodoc:
@@ -35,28 +39,35 @@ module DataMapper
   class Logger
 
     attr_accessor :aio
-    attr_accessor :level
     attr_accessor :delimiter
+    attr_reader   :level
     attr_reader   :buffer
     attr_reader   :log
 
     # @note
     #   Ruby (standard) logger levels:
+    #     off:   absolutely nothing
     #     fatal: an unhandleable error that results in a program crash
     #     error: a handleable error condition
     #     warn:  a warning
     #     info:  generic (useful) information about system operation
     #     debug: low-level information for developers
     #
-    #   DataMapper::Logger::LEVELS[:fatal, :error, :warn, :info, :debug]
+    #   DataMapper::Logger::LEVELS[:off, :fatal, :error, :warn, :info, :debug]
     LEVELS =
     {
+      :off   => 99999,
       :fatal => 7,
       :error => 6,
       :warn  => 4,
       :info  => 3,
       :debug => 0
     }
+
+    def level=(new_level)
+      @level = LEVELS[new_level.to_sym]
+      reset_methods(:close)
+    end
 
     private
 
@@ -84,17 +95,42 @@ module DataMapper
 
     def initialize_log(log)
       close if @log # be sure that we don't leave open files laying around.
-      log ||= "log/dm.log"
-      if log.respond_to?(:write)
-        @log = log
-      else
-        log = Pathname(log)
+      @log = log || "log/dm.log"
+    end
+
+    def reset_methods(o_or_c)
+      if o_or_c == :open
+        alias internal_push push_opened
+      elsif o_or_c == :close
+        alias internal_push push_closed
+      end
+    end
+
+    def push_opened(string)
+      message = Time.now.httpdate
+      message << delimiter
+      message << string
+      message << "\n" unless message[-1] == ?\n
+      @buffer << message
+      flush # Force a flush for now until we figure out where we want to use the buffering.
+    end
+
+    def push_closed(string)
+      unless @log.respond_to?(:write)
+        log = Pathname(@log)
         log.dirname.mkpath
         @log = log.open('a')
         @log.sync = true
-        @log.write("#{Time.now.httpdate} #{delimiter} info #{delimiter} Logfile created\n")
       end
       set_write_method
+      reset_methods(:open)
+      push(string)
+    end
+
+    alias internal_push push_closed
+
+    def prep_msg(message, level)
+      level << delimiter << message
     end
 
     public
@@ -102,33 +138,40 @@ module DataMapper
     # To initialize the logger you create a new object, proxies to set_log.
     #   DataMapper::Logger.new(log{String, IO},level{Symbol, String})
     #
-    # @param log<IO,String>     either an IO object or a name of a logfile.
-    # @param log_level<String>  the message string to be logged
-    # @param delimiter<String>  delimiter to use between message sections
+    # @param log<IO,String>        either an IO object or a name of a logfile.
+    # @param log_level<String>     the message string to be logged
+    # @param delimiter<String>     delimiter to use between message sections
+    # @param log_creation<Boolean> log that the file is being created
     def initialize(*args)
-      set_log(*args)
+      set_log(*args)      
     end
 
     # To replace an existing logger with a new one:
     #  DataMapper::Logger.set_log(log{String, IO},level{Symbol, String})
     #
     #
-    # @param log<IO,String>     either an IO object or a name of a logfile.
-    # @param log_level<Symbol>  a symbol representing the log level from
-    #   {:fatal, :error, :warn, :info, :debug}
-    # @param delimiter<String>  delimiter to use between message sections
-    def set_log(log, log_level = nil, delimiter = " ~ ")
+    # @param log<IO,String>        either an IO object or a name of a logfile.
+    # @param log_level<Symbol>     a symbol representing the log level from
+    #   {:off, :fatal, :error, :warn, :info, :debug}
+    # @param delimiter<String>     delimiter to use between message sections
+    # @param log_creation<Boolean> log that the file is being created
+    def set_log(log, log_level = :off, delimiter = " ~ ", log_creation = false)
+      delimiter    ||= " ~ "
+
       if log_level && LEVELS[log_level.to_sym]
-        @level = LEVELS[log_level.to_sym]
+        self.level = log_level.to_sym
       else
-        @level = LEVELS[:debug]
+        self.level = :debug
       end
+
       @buffer    = []
       @delimiter = delimiter
 
       initialize_log(log)
 
       DataMapper.logger = self
+
+      self.info("Logfile created") if log_creation
     end
 
     # Flush the entire buffer to the log object.
@@ -160,12 +203,7 @@ module DataMapper
     # @param level<Fixnum>  the logging level as an integer
     # @param string<String> the message string to be logged
     def push(string)
-      message = Time.now.httpdate
-      message << delimiter
-      message << string
-      message << "\n" unless message[-1] == ?\n
-      @buffer << message
-      flush # Force a flush for now until we figure out where we want to use the buffering.
+      internal_push(string)
     end
     alias << push
 
@@ -176,7 +214,7 @@ module DataMapper
       class_eval <<-LEVELMETHODS, __FILE__, __LINE__
       # DOC
       def #{name}(message)
-        self.<<(message) if #{name}?
+        self.<<( prep_msg(message, "#{name}") ) if #{name}?
       end
 
       # DOC
