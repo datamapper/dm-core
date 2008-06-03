@@ -16,7 +16,7 @@ module DataMapper
         query[:links] = links
 
         DataMapper.repository(parent.repository.name) do
-          finder == :first ? grandchild_model.first(query) : grandchild_model.all(query)
+          finder == :first ? grandchild_model.first(query) : grandchild_model.all(query).uniq
         end
       end
 
@@ -47,7 +47,8 @@ module DataMapper
       end
 
       def remote_relationship
-        near_relationship.child_model.relationships[@remote_relationship_name]
+        near_relationship.child_model.relationships[@remote_relationship_name] ||
+          near_relationship.child_model.relationships[@remote_relationship_name.to_s.singularize.to_sym]
       end
 
       def grandchild_model

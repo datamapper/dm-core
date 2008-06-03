@@ -206,7 +206,7 @@ module DataMapper
             begin
               command = connection.create_command(query_read_statement(query))
               command.set_types(query.fields.map { |p| p.primitive })
-
+              
               reader = command.execute_reader(*query.parameters)
 
               do_reload = query.reload?
@@ -451,6 +451,7 @@ module DataMapper
 
           unless query.links.empty?
             joins = []
+                        
             query.links.each do |relationship|
               child_model       = relationship.child_model
               parent_model      = relationship.parent_model
@@ -458,9 +459,16 @@ module DataMapper
               parent_model_name = parent_model.storage_name(name)
               child_keys        = relationship.child_key.to_a
 
+              parent_table_name = quote_table_name(parent_model_name)
+              child_table_name = quote_table_name(child_model_name)
+
+              join_table_name = quote_table_name(query.model.storage_name(name)) == parent_table_name ?
+                                child_table_name :
+                                parent_table_name
+
               # We only do LEFT OUTER JOIN for now
               s = ' LEFT OUTER JOIN '
-              s << quote_table_name(parent_model_name) << ' ON '
+              s << join_table_name << ' ON '
               parts = []
               relationship.parent_key.zip(child_keys) do |parent_key,child_key|
                 part = ''

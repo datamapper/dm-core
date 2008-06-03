@@ -60,9 +60,9 @@ module DataMapper
     #   Integer, Range or Infinity(n)
     #
     # @api public
-    def has(cardinality, name, options = {})
+    def has(cardinality, name, options = {})      
       options = options.merge(extract_min_max(cardinality))
-      options = options.merge(extract_throughness(name))
+      options = options.merge(extract_throughness(name))      
 
       # do not remove this. There is alot of confusion on people's
       # part about what the first argument to has() is.  For the record it
@@ -115,7 +115,7 @@ module DataMapper
     def extract_throughness(name)
       case name
         when Hash
-          { :name => name.values.first, :through => name.keys.first }
+          { :name => name.keys.first, :through => name.values.first }
         when Symbol
           { :name => name }
         else
