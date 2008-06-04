@@ -27,7 +27,7 @@ end
 gem 'extlib', '>= 0.9'
 require 'extlib'
 
-dir = Pathname(__FILE__).dirname.expand_path / 'data_mapper'
+dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
 require dir / 'type'
 require dir / 'type_map'
@@ -134,7 +134,7 @@ module DataMapper
     unless Adapters::const_defined?(class_name)
       lib_name = "#{Extlib::Inflection.underscore(adapter_name)}_adapter"
       begin
-        require root / 'lib' / 'data_mapper' / 'adapters' / lib_name
+        require root / 'lib' / 'dm-core' / 'adapters' / lib_name
       rescue LoadError
         require lib_name
       end
