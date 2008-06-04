@@ -342,7 +342,7 @@ if HAS_POSTGRES
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
-        describe "a #{DataMapper::Inflection.classify(name.to_s)} property" do
+        describe "a #{Extlib::Inflection.classify(name.to_s)} property" do
           it "should be created as a #{type}" do
             @table_set[name.to_s].type.should == type
           end

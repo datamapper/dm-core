@@ -234,7 +234,7 @@ module DataMapper
           results = []
 
           if (fields = reader.fields).size > 1
-            fields = fields.map { |field| DataMapper::Inflection.underscore(field).to_sym }
+            fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
             struct = Struct.new(*fields)
 
             while(reader.next!) do

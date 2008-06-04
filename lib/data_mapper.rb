@@ -24,7 +24,8 @@ rescue LoadError
 end
 
 # for Pathname /
-require File.expand_path(File.join(File.dirname(__FILE__), 'data_mapper', 'support', 'pathname'))
+gem 'extlib', '>= 0.9'
+require 'extlib'
 
 dir = Pathname(__FILE__).dirname.expand_path / 'data_mapper'
 
@@ -128,10 +129,10 @@ module DataMapper
         raise ArgumentError, "+uri_or_options+ must be a Hash, Addressable::URI or String, but was #{uri_or_options.class}", caller
     end
 
-    class_name = DataMapper::Inflection.classify(adapter_name) + 'Adapter'
+    class_name = Extlib::Inflection.classify(adapter_name) + 'Adapter'
 
     unless Adapters::const_defined?(class_name)
-      lib_name = "#{DataMapper::Inflection.underscore(adapter_name)}_adapter"
+      lib_name = "#{Extlib::Inflection.underscore(adapter_name)}_adapter"
       begin
         require root / 'lib' / 'data_mapper' / 'adapters' / lib_name
       rescue LoadError

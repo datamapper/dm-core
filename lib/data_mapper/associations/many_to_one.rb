@@ -36,7 +36,7 @@ module DataMapper
           name,
           repository_name,
           model.name,
-          options.fetch(:class_name, DataMapper::Inflection.classify(name)),
+          options.fetch(:class_name, Extlib::Inflection.classify(name)),
           options
         )
       end
