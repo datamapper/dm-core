@@ -645,8 +645,13 @@ module DataMapper
       #
       # @see Resource#get
       # @raise <ObjectNotFoundError> "could not find .... with key: ...."
-      def [](key)
+      def get!(key)
         get(key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}")
+      end
+      
+      def [](key)
+        warn("Resource::[] is deprecated. Use Resource::get! instead.")
+        get!(key)
       end
 
       ##
