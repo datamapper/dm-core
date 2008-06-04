@@ -274,12 +274,11 @@ module DataMapper
       # TODO: move to dm-more/dm-migrations
       def create_model_storage(repository, model)
         return false if storage_exists?(model.storage_name(name))
-        fail = false
-        fail = true unless execute(create_table_statement(model)).to_i == 1
-        (create_index_statements(model) + create_unique_index_statements(model)).each do |sql|
-          fail = true unless execute(sql).to_i == 1
-        end
-        !fail
+        return false if execute(create_table_statement(model)).to_i != 1
+
+        (create_index_statements(model) + create_unique_index_statements(model)).map do |sql|
+          execute(sql).to_i == 1
+        end.all?
       end
 
       # TODO: move to dm-more/dm-migrations
