@@ -3,6 +3,7 @@ require 'pathname'
 require 'rubygems'
 require 'rake'
 require 'rake/clean'
+require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 require 'spec/rake/spectask'
@@ -86,21 +87,13 @@ task :ls do
   puts PACKAGE_FILES
 end
 
-desc "Generate documentation"
-task :doc do
-  begin
-    gem 'yard', '>=0.2.1'
-    require 'yard'
-    exec 'yardoc'
-    # TODO: options to port over
-    # rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
-    # rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
-    # rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
-  rescue Exception => e
-    puts 'You will need to install the latest version of Yard to generate the
-          documentation for dm-core.'
-  end
-end
+# when yard's ready, it'll have to come back, but for now...
+Rake::RDocTask.new("doc") do |t|
+  t.rdoc_dir = 'doc'
+  t.title    = "DataMapper - Ruby Object Relational Mapper"
+  t.options  = ['--line-numbers', '--inline-source', '--all']
+  t.rdoc_files.include("README", "QUICKLINKS", "FAQ", "lib/**/**/*.rb")
+end  
 
 gem_spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
