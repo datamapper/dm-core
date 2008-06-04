@@ -62,11 +62,11 @@ if HAS_POSTGRES
       before :all do
         class Sputnik
           include DataMapper::Resource
-
+          
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-
+        
         Sputnik.auto_migrate!(:postgres)
       end
 
@@ -98,6 +98,16 @@ if HAS_POSTGRES
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
+        
+        class Voyager
+          include DataMapper::Resource
+          storage_names[:postgres] = 'sattellites.voyagers'
+          
+          property :id, Integer, :serial => true
+          property :age, Integer
+        end
+        
+        # Voyager.auto_migrate!(:postgres)
       end
 
       before do
@@ -106,6 +116,15 @@ if HAS_POSTGRES
         @adapter.execute("INSERT INTO users (name) VALUES ('Paul')")
       end
 
+      it "should be able to specify a schema name as part of the storage name" do
+        pending "This works, but no create-schema support in PostgresAdapter to easily test with"
+        lambda do
+          repository(:postgres) do
+            Voyager.create!(:age => 1_000)
+          end
+        end.should_not raise_error
+      end
+      
       it 'should be able to #execute an arbitrary query' do
         result = @adapter.execute("INSERT INTO users (name) VALUES ('Sam')")
 

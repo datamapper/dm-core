@@ -583,7 +583,7 @@ module DataMapper
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
         def quote_table_name(table_name)
-          "\"#{table_name.gsub('"', '""')}\""
+          table_name.gsub('"', '""').split('.').map { |part| "\"#{part}\"" }.join('.')
         end
 
         # TODO: once the driver's quoting methods become public, have
