@@ -136,7 +136,7 @@ module DataMapper
     #
     # -
     # @public
-    def attribute_set(name, value)      
+    def attribute_set(name, value)
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 

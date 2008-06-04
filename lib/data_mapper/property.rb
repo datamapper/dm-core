@@ -176,13 +176,13 @@ module DataMapper
   #
   # == Indeces
   # You can add indeces for your properties by using the <tt>:index</tt>
-  # option. If you use <tt>true</tt> as the option value, the index will be 
+  # option. If you use <tt>true</tt> as the option value, the index will be
   # automatically named. If you want to name the index yourself, use a symbol
   # as the value.
   #
   #   property :last_name,  String, :index => true
   #   property :first_name, String, :index => :name
-  # 
+  #
   # You can create multi-column composite indeces by using the same symbol in
   # all the columns belonging to the index. The columns will appear in the
   # index in the order they are declared.
@@ -190,7 +190,7 @@ module DataMapper
   #   property :last_name,  String, :index => :name
   #   property :first_name, String, :index => :name
   #      # => index on (last_name, first_name)
-  # 
+  #
   # If you want to make the indeces unique, use <tt>:unique_index</tt> instead
   # of <tt>:index</tt>
   #

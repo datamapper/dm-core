@@ -206,7 +206,7 @@ module DataMapper
             begin
               command = connection.create_command(query_read_statement(query))
               command.set_types(query.fields.map { |p| p.primitive })
-              
+
               reader = command.execute_reader(*query.parameters)
 
               do_reload = query.reload?
@@ -264,8 +264,8 @@ module DataMapper
           schema_hash = property_schema_hash(property, model)
           next if field_exists?(table_name, schema_hash[:name])
           statement = alter_table_add_column_statement(table_name, schema_hash)
-          result = execute(statement)
-          properties << property if result.to_i == 1
+          execute(statement)
+          properties << property
         end
 
         properties
@@ -274,16 +274,20 @@ module DataMapper
       # TODO: move to dm-more/dm-migrations
       def create_model_storage(repository, model)
         return false if storage_exists?(model.storage_name(name))
-        return false if execute(create_table_statement(model)).to_i != 1
 
-        (create_index_statements(model) + create_unique_index_statements(model)).map do |sql|
-          execute(sql).to_i == 1
-        end.all?
+        execute(create_table_statement(model))
+
+        (create_index_statements(model) + create_unique_index_statements(model)).each do |sql|
+          execute(sql)
+        end
+
+        true
       end
 
       # TODO: move to dm-more/dm-migrations
       def destroy_model_storage(repository, model)
-        execute(drop_table_statement(model)).to_i == 1
+        execute(drop_table_statement(model))
+        true
       end
 
       # TODO: move to dm-more/dm-transactions
@@ -450,7 +454,7 @@ module DataMapper
 
           unless query.links.empty?
             joins = []
-                        
+
             query.links.each do |relationship|
               child_model       = relationship.child_model
               parent_model      = relationship.parent_model

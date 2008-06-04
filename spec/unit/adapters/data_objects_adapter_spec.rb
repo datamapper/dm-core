@@ -462,7 +462,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         statement = mock("statement")
         command = mock("command")
         result = mock("result")
-        result.should_receive(:to_i).and_return(1)
         command.should_receive(:execute_non_query).and_return(result)
         connection.should_receive(:create_command).with(statement).and_return(command)
         @adapter.should_receive(:alter_table_add_column_statement).with("cheeses",
