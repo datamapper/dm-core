@@ -95,6 +95,17 @@ Rake::RDocTask.new("doc") do |t|
   t.rdoc_files.include("README", "QUICKLINKS", "FAQ", "lib/**/**/*.rb")
 end  
 
+begin
+  gem 'yard', '>=0.2.1'
+  require 'yard'
+  
+  YARD::Rake::YardocTask.new("yardoc") do |t|
+    t.options << '--protected'
+    # t.files << '...anyglobshere...'
+  end
+rescue LoadError
+end
+
 gem_spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
   s.name = PROJECT
@@ -129,8 +140,8 @@ Rake::GemPackageTask.new(gem_spec) do |p|
 end
 
 desc "Publish to RubyForge"
-task :rubyforge => [ :doc, :gem ] do
-  Rake::SshDirPublisher.new("#{ENV['RUBYFORGE_USER']}@rubyforge.org", "/var/www/gforge-projects/#{PROJECT}", 'doc').upload
+task :rubyforge => [ :yardoc, :gem ] do
+  Rake::SshDirPublisher.new("#{ENV['RUBYFORGE_USER']}@rubyforge.org", "/var/www/gforge-projects/datamapper", 'doc').upload
 end
 
 WINDOWS = (RUBY_PLATFORM =~ /win32|mingw|bccwin|cygwin/) rescue nil
