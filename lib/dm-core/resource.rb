@@ -648,7 +648,7 @@ module DataMapper
       def get!(key)
         get(key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}")
       end
-      
+
       def [](key)
         warn("Resource::[] is deprecated. Use Resource::get! instead.")
         get!(key)
@@ -658,19 +658,19 @@ module DataMapper
         first(first_options) || begin
           resource = allocate
           first_options = first_options.dup
-          
+
           self.properties.key.each do |property|
             if value = first_options.delete(property.name)
               resource.send("#{property.name}=", value)
             end
           end
-          
+
           resource.attributes = first_options.merge(create_options)
           resource.save
           resource
         end
       end
-      
+
       ##
       #
       # @see Repository#all

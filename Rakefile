@@ -93,17 +93,18 @@ Rake::RDocTask.new("doc") do |t|
   t.title    = "DataMapper - Ruby Object Relational Mapper"
   t.options  = ['--line-numbers', '--inline-source', '--all']
   t.rdoc_files.include("README", "QUICKLINKS", "FAQ", "lib/**/**/*.rb")
-end  
+end
 
 begin
   gem 'yard', '>=0.2.1'
   require 'yard'
-  
+
   YARD::Rake::YardocTask.new("yardoc") do |t|
     t.options << '--protected'
     # t.files << '...anyglobshere...'
   end
-rescue LoadError
+rescue
+  # yard not installed
 end
 
 gem_spec = Gem::Specification.new do |s|

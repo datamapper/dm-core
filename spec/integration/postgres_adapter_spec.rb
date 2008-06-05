@@ -62,11 +62,11 @@ if HAS_POSTGRES
       before :all do
         class Sputnik
           include DataMapper::Resource
-          
+
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-        
+
         Sputnik.auto_migrate!(:postgres)
       end
 
@@ -98,15 +98,15 @@ if HAS_POSTGRES
           property :id, Integer, :serial => true
           property :name, DM::Text
         end
-        
+
         class Voyager
           include DataMapper::Resource
           storage_names[:postgres] = 'sattellites.voyagers'
-          
+
           property :id, Integer, :serial => true
           property :age, Integer
         end
-        
+
         # Voyager.auto_migrate!(:postgres)
       end
 
@@ -124,7 +124,7 @@ if HAS_POSTGRES
           end
         end.should_not raise_error
       end
-      
+
       it 'should be able to #execute an arbitrary query' do
         result = @adapter.execute("INSERT INTO users (name) VALUES ('Sam')")
 
