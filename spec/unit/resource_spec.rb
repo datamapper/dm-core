@@ -435,4 +435,52 @@ describe "DataMapper::Resource" do
     end
   end
 
+  describe "Single-table Inheritance" do
+    before(:all) do
+      class Plant
+        include DataMapper::Resource
+
+        property :id, Integer, :key => true
+        property :length, Integer
+
+        def calculate(int)
+          int ** 2
+        end
+
+        def length=(len)
+          attribute_set(:length, calculate(len))
+        end
+      end
+
+      class HousePlant < Plant
+        def calculate(int)
+          int ** 3
+        end
+      end
+
+      class PoisonIvy < Plant
+        def length=(len)
+          attribute_set(:length, len - 1)
+        end
+      end
+    end
+
+    it "should be able to overwrite getters" do
+      @p = Plant.new
+      @p.length = 3
+      @p.length.should == 9
+    end
+
+    it "should pick overwritten methods" do
+      @hp = HousePlant.new
+      @hp.length = 3
+      @hp.length.should == 27
+    end
+
+    it "should pick overwritten setters" do
+      @pi = PoisonIvy.new
+      @pi.length = 3
+      @pi.length.should == 2
+    end
+  end
 end

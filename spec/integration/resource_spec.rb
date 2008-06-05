@@ -161,6 +161,10 @@ if ADAPTER
           property :name, String
           property :iq, Integer, :default => 100
           property :type, Discriminator
+          
+          def iq=(i)
+            attribute_set(:iq, i - 1)
+          end
         end
 
         class Bully < Male; end
@@ -173,13 +177,17 @@ if ADAPTER
 
         class Geek < Male
           property :awkward, Boolean, :default => true
+
+          def iq=(i)
+            attribute_set(:iq, i + 30)
+          end
         end
 
         Geek.auto_migrate!(ADAPTER)
 
         repository(ADAPTER) do
           Male.create!(:name => 'John Dorian')
-          Bully.create!(:name => 'Bob')
+          Bully.create!(:name => 'Bob', :iq => 69)
           Geek.create!(:name => 'Steve', :awkward => false, :iq => 132)
           Geek.create!(:name => 'Bill', :iq => 150)
           Bully.create!(:name => 'Johnson')
@@ -243,6 +251,18 @@ if ADAPTER
           Mugger.all.should have(1).entries
           Maniac.all.should have(2).entries
           Psycho.all.should have(1).entries
+        end
+      end
+      
+      it "should inherit setter method from parent" do
+        repository(ADAPTER) do
+          Bully.first(:name => "Bob").iq.should == 68          
+        end
+      end
+      
+      it "should be able to overwrite a setter in a child class" do
+        repository(ADAPTER) do
+          Geek.first(:name => "Bill").iq.should == 180        
         end
       end
     end

@@ -511,12 +511,14 @@ module DataMapper
 
     # defines the setter for the property
     def create_setter
-      @model.class_eval <<-EOS, __FILE__, __LINE__
-        #{writer_visibility}
-        def #{name}=(value)
-          attribute_set(#{name.inspect}, value)
-        end
-      EOS
+      unless @model.instance_methods.include?(@name.to_s + "=")
+        @model.class_eval <<-EOS, __FILE__, __LINE__
+          #{writer_visibility}
+          def #{name}=(value)
+            attribute_set(#{name.inspect}, value)
+          end
+        EOS
+      end
     end
   end # class Property
 end # module DataMapper
