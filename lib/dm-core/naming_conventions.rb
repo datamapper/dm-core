@@ -26,25 +26,25 @@ module DataMapper
 
     module UnderscoredAndPluralized
       def self.call(value)
-        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value)).gsub('/','_')
+        Extlib::Inflection.pluralize(Extlib::Inflection.underscore(value)).gsub('/','_')
       end
     end # module UnderscoredAndPluralized
 
     module UnderscoredAndPluralizedWithoutModule
       def self.call(value)
-        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(DataMapper::Inflection.demodulize(value)))
+        Extlib::Inflection.pluralize(Extlib::Inflection.underscore(Extlib::Inflection.demodulize(value)))
       end
     end # module UnderscoredAndPluralizedWithoutModule
 
     module Underscored
       def self.call(value)
-        DataMapper::Inflection.underscore(value)
+        Extlib::Inflection.underscore(value)
       end
     end # module Underscored
 
     module Yaml
       def self.call(value)
-        DataMapper::Inflection.pluralize(DataMapper::Inflection.underscore(value)) + ".yaml"
+        Extlib::Inflection.pluralize(Extlib::Inflection.underscore(value)) + ".yaml"
       end
     end # module Yaml
 

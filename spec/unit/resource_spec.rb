@@ -21,7 +21,7 @@ describe "DataMapper::Resource" do
       repository(:legacy) do
         property :cowabunga, String
       end
-      
+
       def to_s
         name
       end
@@ -48,7 +48,7 @@ describe "DataMapper::Resource" do
   it "should be able to overwrite to_s" do
     Planet.new(:name => 'Mercury').to_s.should == 'Mercury'
   end
-  
+
   describe "storage names" do
     it "should use its class name by default" do
       Planet.storage_name.should == "planets"
@@ -61,7 +61,7 @@ describe "DataMapper::Resource" do
           "Superplanet"
         end
       EOF
-      
+
       Planet.storage_name.should == "superplanets"
       Planet.class_eval <<-EOF.margin
         @storage_names.clear

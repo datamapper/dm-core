@@ -202,8 +202,8 @@ module DataMapper
     private
 
     def initialize(repository, model, options = {})
-      raise TypeError, "+repository+ must be a Repository, but is #{repository.class}" unless repository.kind_of?(Repository)      
-      
+      raise TypeError, "+repository+ must be a Repository, but is #{repository.class}" unless repository.kind_of?(Repository)
+
       options.each_pair { |k,v| option[k] = v.call if v.is_a? Proc } if options.is_a? Hash
 
       validate_model(model)

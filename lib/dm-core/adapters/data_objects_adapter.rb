@@ -206,7 +206,7 @@ module DataMapper
             begin
               command = connection.create_command(query_read_statement(query))
               command.set_types(query.fields.map { |p| p.primitive })
-              
+
               reader = command.execute_reader(*query.parameters)
 
               do_reload = query.reload?
@@ -234,7 +234,7 @@ module DataMapper
           results = []
 
           if (fields = reader.fields).size > 1
-            fields = fields.map { |field| DataMapper::Inflection.underscore(field).to_sym }
+            fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
             struct = Struct.new(*fields)
 
             while(reader.next!) do
@@ -264,8 +264,8 @@ module DataMapper
           schema_hash = property_schema_hash(property, model)
           next if field_exists?(table_name, schema_hash[:name])
           statement = alter_table_add_column_statement(table_name, schema_hash)
-          result = execute(statement)
-          properties << property if result.to_i == 1
+          execute(statement)
+          properties << property
         end
 
         properties
@@ -274,17 +274,20 @@ module DataMapper
       # TODO: move to dm-more/dm-migrations
       def create_model_storage(repository, model)
         return false if storage_exists?(model.storage_name(name))
-        fail = false
-        fail = true unless execute(create_table_statement(model)).to_i == 1
+
+        execute(create_table_statement(model))
+
         (create_index_statements(model) + create_unique_index_statements(model)).each do |sql|
-          fail = true unless execute(sql).to_i == 1
+          execute(sql)
         end
-        !fail
+
+        true
       end
 
       # TODO: move to dm-more/dm-migrations
       def destroy_model_storage(repository, model)
-        execute(drop_table_statement(model)).to_i == 1
+        execute(drop_table_statement(model))
+        true
       end
 
       # TODO: move to dm-more/dm-transactions
@@ -451,7 +454,7 @@ module DataMapper
 
           unless query.links.empty?
             joins = []
-                        
+
             query.links.each do |relationship|
               child_model       = relationship.child_model
               parent_model      = relationship.parent_model
@@ -580,7 +583,7 @@ module DataMapper
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
         def quote_table_name(table_name)
-          "\"#{table_name.gsub('"', '""')}\""
+          table_name.gsub('"', '""').split('.').map { |part| "\"#{part}\"" }.join('.')
         end
 
         # TODO: once the driver's quoting methods become public, have

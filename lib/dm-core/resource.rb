@@ -136,7 +136,7 @@ module DataMapper
     #
     # -
     # @public
-    def attribute_set(name, value)      
+    def attribute_set(name, value)
       property  = self.class.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
@@ -645,8 +645,30 @@ module DataMapper
       #
       # @see Resource#get
       # @raise <ObjectNotFoundError> "could not find .... with key: ...."
-      def [](key)
+      def get!(key)
         get(key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}")
+      end
+
+      def [](key)
+        warn("Resource::[] is deprecated. Use Resource::get! instead.")
+        get!(key)
+      end
+
+      def first_or_create(first_options, create_options = {})
+        first(first_options) || begin
+          resource = allocate
+          first_options = first_options.dup
+
+          self.properties.key.each do |property|
+            if value = first_options.delete(property.name)
+              resource.send("#{property.name}=", value)
+            end
+          end
+
+          resource.attributes = first_options.merge(create_options)
+          resource.save
+          resource
+        end
       end
 
       ##

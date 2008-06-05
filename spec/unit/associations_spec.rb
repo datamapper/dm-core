@@ -178,7 +178,7 @@ describe "DataMapper::Associations" do
           has(n, :suppliers, :through => :manufacturers).should == mock_relationship
         end
       end
-      
+
       it "should create one-to-many association and pass the :through option if specified with the new syntax" do
         DataMapper::Associations::OneToMany.should_receive(:setup).
           with(:suppliers, Vehicle, { :through => :manufacturers }).

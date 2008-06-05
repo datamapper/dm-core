@@ -143,7 +143,7 @@ module DataMapper
     # @param delimiter<String>     delimiter to use between message sections
     # @param log_creation<Boolean> log that the file is being created
     def initialize(*args)
-      set_log(*args)      
+      set_log(*args)
     end
 
     # To replace an existing logger with a new one:

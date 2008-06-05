@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
-
 require 'pathname'
 require 'rubygems'
 require 'rake'
 require 'rake/clean'
+require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 require 'spec/rake/spectask'
@@ -87,20 +87,24 @@ task :ls do
   puts PACKAGE_FILES
 end
 
-desc "Generate documentation"
-task :doc do
-  begin
-    gem 'yard', '>=0.2.1'
-    require 'yard'
-    exec 'yardoc'
-    # TODO: options to port over
-    #  rdoc.title = "DataMapper -- An Object/Relational Mapper for Ruby"
-    #  rdoc.options << '--line-numbers' << '--inline-source' << '--main' << 'README'
-    #  rdoc.rdoc_files.include(*DOCUMENTED_FILES.map { |file| file.to_s })
-  rescue Exception => e
-    puts 'You will need to install the latest version of Yard to generate the
-          documentation for dm-core.'
+# when yard's ready, it'll have to come back, but for now...
+Rake::RDocTask.new("doc") do |t|
+  t.rdoc_dir = 'doc'
+  t.title    = "DataMapper - Ruby Object Relational Mapper"
+  t.options  = ['--line-numbers', '--inline-source', '--all']
+  t.rdoc_files.include("README", "QUICKLINKS", "FAQ", "lib/**/**/*.rb")
+end
+
+begin
+  gem 'yard', '>=0.2.1'
+  require 'yard'
+
+  YARD::Rake::YardocTask.new("yardoc") do |t|
+    t.options << '--protected'
+    # t.files << '...anyglobshere...'
   end
+rescue
+  # yard not installed
 end
 
 gem_spec = Gem::Specification.new do |s|
@@ -123,6 +127,7 @@ gem_spec = Gem::Specification.new do |s|
   s.add_dependency("english", ">=0.2.0")
   s.add_dependency("rspec", ">=1.1.3")
   s.add_dependency("addressable", ">=1.0.4")
+  s.add_dependency("extlib", ">= 0.1")
 
   s.has_rdoc    = false
   #s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
@@ -136,8 +141,8 @@ Rake::GemPackageTask.new(gem_spec) do |p|
 end
 
 desc "Publish to RubyForge"
-task :rubyforge => [ :doc, :gem ] do
-  Rake::SshDirPublisher.new("#{ENV['RUBYFORGE_USER']}@rubyforge.org", "/var/www/gforge-projects/#{PROJECT}", 'doc').upload
+task :rubyforge => [ :yardoc, :gem ] do
+  Rake::SshDirPublisher.new("#{ENV['RUBYFORGE_USER']}@rubyforge.org", "/var/www/gforge-projects/datamapper", 'doc').upload
 end
 
 WINDOWS = (RUBY_PLATFORM =~ /win32|mingw|bccwin|cygwin/) rescue nil

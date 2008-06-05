@@ -11,18 +11,18 @@ if ADAPTER
 
       class FortunePig
         include DataMapper::Resource
-        
+
         property :id, Integer, :serial => true
         property :name, String
-        
+
         def to_s
           name
         end
       end
-      
+
       Orange.auto_migrate!(ADAPTER)
       FortunePig.auto_migrate!(ADAPTER)
-      
+
       orange = Orange.new(:color => 'orange')
       orange.name = 'Bob' # Keys are protected from mass-assignment by default.
       repository(ADAPTER) { orange.save }
@@ -30,11 +30,11 @@ if ADAPTER
 
     it "should be able to overwrite Resource#to_s" do
       repository(ADAPTER) do
-        ted = FortunePig.create!(:name => "Ted")      
+        ted = FortunePig.create!(:name => "Ted")
         FortunePig[ted.id].to_s.should == 'Ted'
       end
     end
-    
+
     it "should be able to reload objects" do
       orange = repository(ADAPTER) { Orange['Bob'] }
       orange.color.should == 'orange'
@@ -55,22 +55,37 @@ if ADAPTER
         end.should_not raise_error
       end
     end
-    
+
+    it "should be able to find first or create objects" do
+      repository(ADAPTER) do
+        orange = Orange.new
+        orange.name = 'Naval'
+        orange.save
+
+        Orange.first_or_create(:name => 'Naval').should == orange
+
+        purple = Orange.first_or_create(:name => 'Purple', :color => 'Fuschia')
+        oranges = Orange.all(:name => 'Purple')
+        oranges.size.should == 1
+        oranges.first.should == purple
+      end
+    end
+
     it "should be able to respond to create hooks" do
       class FortunePig
         after :create do
           @created_id = self.id
         end
-        
+
         after :save do
           @save_id = self.id
         end
       end
-      
+
       bob = repository(ADAPTER) { FortunePig.create(:name => 'Bob') }
       bob.id.should_not be_nil
       bob.instance_variable_get("@created_id").should == bob.id
-      
+
       fred = FortunePig.new(:name => 'Fred')
       repository(ADAPTER) { fred.save }
       fred.id.should_not be_nil

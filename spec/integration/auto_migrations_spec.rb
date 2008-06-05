@@ -53,7 +53,7 @@ if HAS_SQLITE3
 
     describe 'with sqlite3' do
       before :all do
-        Book.auto_migrate!(:sqlite3)
+        Book.auto_migrate!(:sqlite3).should be_true
 
         @table_set = @adapter.query('PRAGMA table_info("books")').inject({}) do |ts,column|
           default = if 'NULL' == column.dflt_value || column.dflt_value.nil?
@@ -161,7 +161,7 @@ if HAS_MYSQL
 
     describe 'with mysql' do#
       before :all do
-        Book.auto_migrate!(:mysql)
+        Book.auto_migrate!(:mysql).should be_true
 
         @table_set = @adapter.query('DESCRIBE `books`').inject({}) do |ts,column|
           property = @property_class.new(
@@ -263,7 +263,7 @@ if HAS_POSTGRES
 
     describe 'with postgres' do
       before :all do
-        Book.auto_migrate!(:postgres)
+        Book.auto_migrate!(:postgres).should be_true
 
         query = <<-EOS
           SELECT
@@ -342,7 +342,7 @@ if HAS_POSTGRES
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
-        describe "a #{DataMapper::Inflection.classify(name.to_s)} property" do
+        describe "a #{Extlib::Inflection.classify(name.to_s)} property" do
           it "should be created as a #{type}" do
             @table_set[name.to_s].type.should == type
           end
