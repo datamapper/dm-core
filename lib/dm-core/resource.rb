@@ -654,6 +654,23 @@ module DataMapper
         get!(key)
       end
 
+      def first_or_create(first_options, create_options = {})
+        first(first_options) || begin
+          resource = allocate
+          first_options = first_options.dup
+          
+          self.properties.key.each do |property|
+            if value = first_options.delete(property.name)
+              resource.send("#{property.name}=", value)
+            end
+          end
+          
+          resource.attributes = first_options.merge(create_options)
+          resource.save
+          resource
+        end
+      end
+      
       ##
       #
       # @see Repository#all

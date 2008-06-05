@@ -55,7 +55,22 @@ if ADAPTER
         end.should_not raise_error
       end
     end
-
+    
+    it "should be able to find first or create objects" do
+      repository(ADAPTER) do
+        orange = Orange.new
+        orange.name = 'Naval'
+        orange.save
+        
+        Orange.first_or_create(:name => 'Naval').should == orange
+        
+        purple = Orange.first_or_create(:name => 'Purple', :color => 'Fuschia')
+        oranges = Orange.all(:name => 'Purple')
+        oranges.size.should == 1
+        oranges.first.should == purple        
+      end
+    end
+    
     it "should be able to respond to create hooks" do
       class FortunePig
         after :create do
