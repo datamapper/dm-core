@@ -76,7 +76,6 @@ module DataMapper
           repository.adapter.send(:with_connection) do |connection|
             begin
               command = connection.create_command(sql)
-              command.set_types(properties.map { |p| p.primitive })
 
               reader = command.execute_reader(*params)
 
