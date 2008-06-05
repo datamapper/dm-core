@@ -257,6 +257,32 @@ if ADAPTER
         y2.id.should == 30
         y2.engine.should be_nil
       end
+      
+      it "should respect non-default lengths on foreign keys" do
+        class Author
+          include DataMapper::Resource
+          
+          def self.default_repository_name
+            ADAPTER
+          end
+          
+          property :name, String, :key => true, :length => 255
+          
+          has n, :articles
+        end
+
+        class Article
+          include DataMapper::Resource
+          
+          def self.default_repository_name
+            ADAPTER
+          end
+          
+          belongs_to :author
+        end
+
+        Article.relationships[:author].child_key[:author_name].length.should == 255
+      end
     end
 
     describe 'one to one associations' do
