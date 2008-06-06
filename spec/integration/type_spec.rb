@@ -56,7 +56,7 @@ if ADAPTER
         coconut.save.should be_true
         coconut.id.should_not be_nil
 
-        fred = TypeTests::Coconut[coconut.id]
+        fred = TypeTests::Coconut.get!(coconut.id)
         fred.faked.should == 'bob'
         fred.active.should be_a_kind_of(TrueClass)
         fred.note.should be_a_kind_of(String)
@@ -72,7 +72,7 @@ if ADAPTER
         fred.save.should be_true
 
         # Can't call coconut.reload! since coconut.collection isn't setup.
-        mac = TypeTests::Coconut[fred.id]
+        mac = TypeTests::Coconut.get!(fred.id)
         mac.active.should == active
         mac.note.should == note
       end

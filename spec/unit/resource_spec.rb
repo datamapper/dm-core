@@ -391,14 +391,14 @@ describe "DataMapper::Resource" do
       m = mock("planet")
       Planet.should_receive(:get).with(1).and_return(m)
 
-      Planet[1].should == m
+      Planet.get!(1).should == m
     end
 
     it 'should raise an error if not found' do
       Planet.should_receive(:get).and_return(nil)
 
       lambda do
-        Planet[1]
+        Planet.get!(1)
       end.should raise_error(DataMapper::ObjectNotFoundError)
     end
   end

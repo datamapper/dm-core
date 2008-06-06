@@ -650,7 +650,7 @@ module DataMapper
       end
 
       def [](key)
-        warn("Resource::[] is deprecated. Use Resource::get! instead.")
+        warn("#{name}[] is deprecated. Use #{name}.get! instead.")
         get!(key)
       end
 

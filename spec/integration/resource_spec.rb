@@ -31,12 +31,12 @@ if ADAPTER
     it "should be able to overwrite Resource#to_s" do
       repository(ADAPTER) do
         ted = FortunePig.create!(:name => "Ted")
-        FortunePig[ted.id].to_s.should == 'Ted'
+        FortunePig.get!(ted.id).to_s.should == 'Ted'
       end
     end
 
     it "should be able to reload objects" do
-      orange = repository(ADAPTER) { Orange['Bob'] }
+      orange = repository(ADAPTER) { Orange.get!('Bob') }
       orange.color.should == 'orange'
       orange.color = 'blue'
       orange.color.should == 'blue'
@@ -110,7 +110,7 @@ if ADAPTER
           pluto.distance = 1_000_000
           pluto.save
 
-          clone = @planet['Pluto']
+          clone = @planet.get!('Pluto')
           clone.name.should == 'Pluto'
           clone.distance.should == 1_000_000
         end

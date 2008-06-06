@@ -408,7 +408,7 @@ if ADAPTER
             yard.name == "yard nr #{i}"
           end.should == true
         end
-        engine = Engine[engine.id]
+        engine = Engine.get!(engine.id)
         engine.yards.size.should == 4
         4.times do |i|
           engine.yards.any? do |yard|
