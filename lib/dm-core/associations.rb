@@ -135,7 +135,7 @@ module DataMapper
           raise ArgumentError, "Constraint min (#{constraints.first}) cannot be larger than the max (#{constraints.last})" if constraints.first > constraints.last
           { :min => constraints.first, :max => constraints.last }
         when n
-          {}
+          { :min => 0, :max => n }
         else
           raise ArgumentError, "Constraint #{constraints.inspect} (#{constraints.class}) not handled must be one of Integer, Range or Infinity(n)"
       end

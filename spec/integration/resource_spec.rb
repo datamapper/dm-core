@@ -176,7 +176,7 @@ if ADAPTER
           property :name, String
           property :iq, Integer, :default => 100
           property :type, Discriminator
-          
+
           def iq=(i)
             attribute_set(:iq, i - 1)
           end
@@ -268,16 +268,16 @@ if ADAPTER
           Psycho.all.should have(1).entries
         end
       end
-      
+
       it "should inherit setter method from parent" do
         repository(ADAPTER) do
-          Bully.first(:name => "Bob").iq.should == 68          
+          Bully.first(:name => "Bob").iq.should == 68
         end
       end
-      
+
       it "should be able to overwrite a setter in a child class" do
         repository(ADAPTER) do
-          Geek.first(:name => "Bill").iq.should == 180        
+          Geek.first(:name => "Bill").iq.should == 180
         end
       end
     end

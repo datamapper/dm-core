@@ -138,6 +138,27 @@ if ADAPTER
         belongs_to :project, :class_name => 'Models::Project'
       end
     end
+
+    class Galaxy
+      include DataMapper::Resource
+
+      def self.default_repository_name
+        ADAPTER
+      end
+
+      property :name, String, :key => true, :length => 255
+      property :size, Float,  :key => true, :scale => 15, :precision => 6
+    end
+
+    class Star
+      include DataMapper::Resource
+
+      def self.default_repository_name
+        ADAPTER
+      end
+
+      belongs_to :galaxy
+    end
   end
 
   describe DataMapper::Associations do
@@ -257,31 +278,16 @@ if ADAPTER
         y2.id.should == 30
         y2.engine.should be_nil
       end
-      
-      it "should respect non-default lengths on foreign keys" do
-        class Author
-          include DataMapper::Resource
-          
-          def self.default_repository_name
-            ADAPTER
-          end
-          
-          property :name, String, :key => true, :length => 255
-          
-          has n, :articles
-        end
 
-        class Article
-          include DataMapper::Resource
-          
-          def self.default_repository_name
-            ADAPTER
-          end
-          
-          belongs_to :author
-        end
+      it 'should respect length on foreign keys' do
+        property = Star.relationships[:galaxy].child_key[:galaxy_name]
+        property.length.should == 255
+      end
 
-        Article.relationships[:author].child_key[:author_name].length.should == 255
+      it 'should respect scale and precision on foreign keys' do
+        property = Star.relationships[:galaxy].child_key[:galaxy_size]
+        property.scale.should == 15
+        property.precision.should == 6
       end
     end
 

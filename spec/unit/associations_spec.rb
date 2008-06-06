@@ -79,7 +79,7 @@ describe "DataMapper::Associations" do
 
     it "should not allow overwriting of the auto assigned min/max values with keys" do
       DataMapper::Associations::OneToMany.should_receive(:setup).
-        with(:vehicles, Manufacturer, {:min=>1, :max=>2}).
+        with(:vehicles, Manufacturer, { :min => 1, :max => 2 }).
         and_return(@relationship)
 
       class Manufacturer
@@ -110,7 +110,7 @@ describe "DataMapper::Associations" do
 
       it "should create a one-to-one association with options" do
         DataMapper::Associations::OneToOne.should_receive(:setup).
-          with(:halo_car, Manufacturer, { :class_name => 'Car', :min => 1, :max => 1 }).
+          with(:halo_car, Manufacturer, { :min => 1, :max => 1, :class_name => 'Car' }).
           and_return(@relationship)
 
         class Manufacturer
@@ -122,7 +122,7 @@ describe "DataMapper::Associations" do
     describe "one-to-many syntax" do
       it "should create a basic one-to-many association with no constraints" do
         DataMapper::Associations::OneToMany.should_receive(:setup).
-          with(:vehicles, Manufacturer, {}).
+          with(:vehicles, Manufacturer, { :min => 0, :max => @n }).
           and_return(@relationship)
 
         class Manufacturer
@@ -171,7 +171,7 @@ describe "DataMapper::Associations" do
 
       it "should create one-to-many association and pass the :through option if specified" do
         DataMapper::Associations::OneToMany.should_receive(:setup).
-          with(:suppliers, Vehicle, { :through => :manufacturers }).
+          with(:suppliers, Vehicle, { :min => 0, :max => @n, :through => :manufacturers }).
           and_return(@relationship)
 
         class Vehicle
@@ -181,7 +181,7 @@ describe "DataMapper::Associations" do
 
       it "should create one-to-many association and pass the :through option if specified with the new syntax" do
         DataMapper::Associations::OneToMany.should_receive(:setup).
-          with(:suppliers, Vehicle, { :through => :manufacturers }).
+          with(:suppliers, Vehicle, { :min => 0, :max => @n, :through => :manufacturers }).
           and_return(@relationship)
 
         class Vehicle
