@@ -60,11 +60,18 @@ if HAS_SQLITE3
     end
 
     describe "database file handling" do
-      it "should contain a valid file path for file-based databases" do
-        file = '/newfile.db'
-        DataMapper.setup(:sqlite3newfile, "sqlite3://#{file}")
-        adapter = repository(:sqlite3newfile).adapter
-        adapter.uri.path.should == File.join(Dir.pwd, file)
+      it "should contain a valid file path for file-based databases with relative paths" do
+        file = 'newfile.db'
+        DataMapper.setup(:sqlite3relativepath, "sqlite3:#{file}")
+        adapter = repository(:sqlite3relativepath).adapter
+        adapter.uri.path.should == File.expand_path(file)
+      end
+
+      it "should contain a valid file path for file-based databases with absolute paths" do
+        file = '/tmp/newfile.db'
+        DataMapper.setup(:sqlite3absolutepath, "sqlite3://#{file}")
+        adapter = repository(:sqlite3absolutepath).adapter
+        adapter.uri.path.should == file
       end
 
       it "should contain have a path of just :memory: when using in memory databases" do

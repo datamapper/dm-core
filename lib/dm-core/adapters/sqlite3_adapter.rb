@@ -35,7 +35,7 @@ module DataMapper
 
       def normalize_uri(uri_or_options)
         uri = super
-        uri.path = File.join(Dir.pwd, File.dirname(uri.path), File.basename(uri.path)) unless File.exists?(uri.path) or uri.path == ':memory:'
+        uri.path = File.expand_path(uri.path) unless uri.path == ':memory:'
         uri
       end
 
