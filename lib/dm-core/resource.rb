@@ -676,12 +676,15 @@ module DataMapper
       #
       # @see Repository#all
       def all(query = {})
-        # TODO: perform the Model.query (scope) checking here instead of Repository#all
-        if Hash === query && query.has_key?(:repository)
-          repository(query[:repository]).all(self, query)
+        repository = if Hash === query && query.has_key?(:repository)
+          repository(query[:repository])
+        elsif Query === query
+          query.repository
         else
-          repository.all(self, query)
+          self.repository
         end
+
+        repository.all(self, query)
       end
 
       ##

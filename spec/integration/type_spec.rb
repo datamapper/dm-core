@@ -4,26 +4,52 @@ gem 'fastercsv', '>=1.2.3'
 require 'fastercsv'
 
 if ADAPTER
-  describe DataMapper::Type, "with #{ADAPTER}" do
-    before :all do
-      module TypeTests
-        class Impostor < DataMapper::Type
-          primitive String
-        end
-
-        class Coconut
-          include DataMapper::Resource
-
-          storage_names[ADAPTER] = 'coconuts'
-
-          property :id, Integer, :serial => true
-          property :faked, Impostor
-          property :active, Boolean
-          property :note, Text
-        end
-      end
+  module TypeTests
+    class Impostor < DataMapper::Type
+      primitive String
     end
 
+    class Coconut
+      include DataMapper::Resource
+
+      storage_names[ADAPTER] = 'coconuts'
+
+      def self.default_repository_name
+        ADAPTER
+      end
+
+      property :id, Integer, :serial => true
+      property :faked, Impostor
+      property :active, Boolean
+      property :note, Text
+    end
+  end
+
+  class Lemon
+    include DataMapper::Resource
+
+    def self.default_repository_name
+      ADAPTER
+    end
+
+    property :id, Integer, :serial => true
+    property :color, String
+    property :deleted_at, DataMapper::Types::ParanoidDateTime
+  end
+
+  class Lime
+    include DataMapper::Resource
+
+    def self.default_repository_name
+      ADAPTER
+    end
+
+    property :id, Integer, :serial => true
+    property :color, String
+    property :deleted_at, DataMapper::Types::ParanoidBoolean
+  end
+
+  describe DataMapper::Type, "with #{ADAPTER}" do
     before do
       TypeTests::Coconut.auto_migrate!(ADAPTER)
 
@@ -79,43 +105,27 @@ if ADAPTER
     end
 
     it "should respect paranoia with a datetime" do
+      Lemon.auto_migrate!(ADAPTER)
 
-      class Lime
-        include DataMapper::Resource
-        property :id, Integer, :serial => true
-        property :color, String
-        property :deleted_at, DataMapper::Types::ParanoidDateTime
-      end
-
-      Lime.auto_migrate!(ADAPTER)
-
-      lime = nil
+      lemon = nil
 
       repository(ADAPTER) do |repository|
-        lime = Lime.new
-        lime.color = 'green'
+        lemon = Lemon.new
+        lemon.color = 'green'
 
-        lime.save
-        lime.destroy
+        lemon.save
+        lemon.destroy
 
-        lime.deleted_at.should be_kind_of(DateTime)
+        lemon.deleted_at.should be_kind_of(DateTime)
       end
 
       repository(ADAPTER) do |repository|
-        Lime.all.should be_empty
-        Lime.get(lime.id).should be_nil
+        Lemon.all.should be_empty
+        Lemon.get(lemon.id).should be_nil
       end
     end
 
     it "should respect paranoia with a boolean" do
-
-      class Lime
-        include DataMapper::Resource
-        property :id, Integer, :serial => true
-        property :color, String
-        property :deleted_at, DataMapper::Types::ParanoidBoolean
-      end
-
       Lime.auto_migrate!(ADAPTER)
 
       lime = nil

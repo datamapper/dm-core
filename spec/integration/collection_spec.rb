@@ -1,53 +1,45 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
-  describe 'association proxying' do
-    before :all do
-      class Zebra
-        include DataMapper::Resource
+  class Zebra
+    include DataMapper::Resource
 
-        def self.default_repository_name
-          ADAPTER
-        end
+    def self.default_repository_name
+      ADAPTER
+    end
 
-        property :id, Integer, :serial => true
-        property :name, String
-        property :age, Integer
-        property :notes, Text
+    property :id, Integer, :serial => true
+    property :name, String
+    property :age, Integer
+    property :notes, Text
 
-        has n, :stripes
-      end
+    has n, :stripes
+  end
 
-      class Stripe
-        include DataMapper::Resource
+  class Stripe
+    include DataMapper::Resource
 
-        def self.default_repository_name
-          ADAPTER
-        end
+    def self.default_repository_name
+      ADAPTER
+    end
 
-        property :id, Integer, :serial => true
-        property :name, String
-        property :age,  Integer
-        property :zebra_id, Integer
+    property :id, Integer, :serial => true
+    property :name, String
+    property :age,  Integer
+    property :zebra_id, Integer
 
-        belongs_to :zebra
-      end
+    belongs_to :zebra
+  end
 
+  module CollectionSpecHelper
+    def setup
       Zebra.auto_migrate!(ADAPTER)
       Stripe.auto_migrate!(ADAPTER)
 
       repository(ADAPTER) do
-        nancy  = Zebra.new(:age => 11, :notes => 'Spotted!')
-        nancy.name = 'Nance'
-        nancy.save
-
-        bessie = Zebra.new(:age => 10, :notes => 'Striped!')
-        bessie.name = 'Bessie'
-        bessie.save
-
-        steve  = Zebra.new(:age => 8, :notes => 'Bald!')
-        steve.name = 'Steve'
-        steve.save
+        @nancy  = Zebra.create(:name => 'Nance',  :age => 11, :notes => 'Spotted!')
+        @bessie = Zebra.create(:name => 'Bessie', :age => 10, :notes => 'Striped!')
+        @steve  = Zebra.create(:name => 'Steve',  :age => 8,  :notes => 'Bald!')
 
         @babe      = Stripe.new
         @babe.name = 'Babe'
@@ -57,9 +49,17 @@ if ADAPTER
         @snowball.name = 'snowball'
         @snowball.save
 
-        nancy.stripes << @babe
-        nancy.stripes << @snowball
+        @nancy.stripes << @babe
+        @nancy.stripes << @snowball
       end
+    end
+  end
+
+  describe 'association proxying' do
+    include CollectionSpecHelper
+
+    before :all do
+      setup
     end
 
     it "should provide a Query" do
@@ -91,6 +91,72 @@ if ADAPTER
 
         # The order should be unaffected.
         zebras.map { |z| z.name }.should == order
+      end
+    end
+  end
+
+  describe DataMapper::Collection do
+    include CollectionSpecHelper
+
+    before :all do
+      setup
+    end
+
+    before do
+      query = DataMapper::Query.new(repository(ADAPTER), Zebra)
+
+      @collection = DataMapper::Collection.new(query)
+    end
+
+    describe '#first' do
+      describe 'with no arguments' do
+        it 'should return a Resource' do
+          first = @collection.first
+          first.should_not be_nil
+          first.should be_kind_of(DataMapper::Resource)
+        end
+      end
+
+      describe 'with number of results specified' do
+        it 'should return a Collection ' do
+          @collection.query.offset.should == 0
+          @collection.query.limit.should be_nil
+
+          collection = @collection.first(2)
+          collection.should be_kind_of(DataMapper::Collection)
+          collection.object_id.should_not == @collection.object_id
+          collection.query.offset.should == 0
+          collection.query.limit.should == 2
+          collection.length.should == 2
+          collection[0].should == @nancy
+          collection[1].should == @bessie
+        end
+      end
+    end
+
+    describe '#last' do
+      describe 'with no arguments' do
+        it 'should return a Resource' do
+          last = @collection.last
+          last.should_not be_nil
+          last.should be_kind_of(DataMapper::Resource)
+        end
+      end
+
+      describe 'with number of results specified' do
+        it 'should return a Collection ' do
+          @collection.query.offset.should == 0
+          @collection.query.limit.should be_nil
+
+          collection = @collection.last(2)
+          collection.should be_kind_of(DataMapper::Collection)
+          collection.object_id.should_not == @collection.object_id
+          collection.query.offset.should == 0
+          collection.query.limit.should == 2
+          collection.length.should == 2
+          collection[0].should == @bessie
+          collection[1].should == @steve
+        end
       end
     end
   end

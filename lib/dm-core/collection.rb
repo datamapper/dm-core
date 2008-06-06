@@ -57,18 +57,13 @@ module DataMapper
     end
 
     def all(query = {})
-      repository = self.query.repository
-      model      = self.query.model
-
       if Hash === query
         return self if query.empty?
-        query = self.query.class.new(repository, model, query)
+        query = self.query.class.new(self.query.repository, self.query.model, query)
       end
 
-      first_pos = self.query.offset
-      last_pos  = first_pos + self.query.limit if self.query.limit
-
-      first_pos += query.offset
+      first_pos = self.query.offset + query.offset
+      last_pos  = self.query.offset + self.query.limit if self.query.limit
 
       if limit = query.limit
         if last_pos.nil? || first_pos + limit < last_pos
@@ -84,39 +79,43 @@ module DataMapper
       query.update(:offset => first_pos)
       query.update(:limit => last_pos - first_pos) if last_pos
 
-      repository.all(model, self.query.merge(query))
+      query.model.all(self.query.merge(query))
     end
 
-    #def first(*args)
-    #  options = Hash === args.last ? args.pop.dup : {}
-    #
-    #  if args.any?
-    #    all(options.merge(:limit => args.shift))
-    #  else
-    #    # TODO: add offset to the existing offset
-    #
-    #    # TODO: return nil if out of range
-    #
-    #    query.model.first(query.merge(options))
-    #  end
-    #end
-    #
-    #def last(*args)
-    #  options = Hash === args.last ? args.pop : {}
-    #
-    #  # get the default sort order
-    #  options[:order] ||= query.order.any? ? query.order : query.model.key
-    #  query = query.merge(options)
-    #
-    #  # reverse the sort order
-    #  query = query.merge(:order => query.order.map { |o| o.reverse })
-    #
-    #  if args.any?
-    #    first(args.shift, query)
-    #  else
-    #    first(query)
-    #  end
-    #end
+    def first(*args)
+      query = args.last.respond_to?(:merge) ? args.pop : {}
+
+      # TODO: if the collection is loaded, and no query was provided,
+      # then try to access it like an Array
+      #if Hash === query && query.empty? && loaded?
+      #  return super
+      #end
+
+      if args.any?
+        all(query.merge(:limit => args.first))
+      else
+        all(query.merge(:limit => 1)).to_a.first
+      end
+    end
+
+    def last(*args)
+      query = args.last.respond_to?(:merge) ? args.pop.dup : {}
+      query = self.query.class.new(self.query.repository, self.query.model, query) if Hash === query
+
+      # get the default sort order
+      order = query.order
+      order = self.query.order.any? ? self.query.order : query.model.key if order.empty?
+      query.update(:order => order)
+
+      # reverse the sort order
+      query.update(:order => query.order.map { |o| o.reverse })
+
+      if args.any?
+        first(args.shift, query).reverse
+      else
+        first(query)
+      end
+    end
 
     # TODO: add at()
     # TODO: add slice()

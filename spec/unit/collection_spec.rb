@@ -5,23 +5,23 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 # multiple resources to the caller
 describe DataMapper::Collection do
   before :all do
-    @cow = Class.new do
+    @model = Class.new do
       include DataMapper::Resource
 
       property :name, String, :key => true
       property :age, Integer
     end
 
-    properties = @cow.properties(:default)
+    properties = @model.properties(:default)
   end
 
   before do
     @repository = DataMapper.repository(:default)
-    @query = DataMapper::Query.new(@repository, @cow, :offset => 10, :limit => 10)
+    @query = DataMapper::Query.new(@repository, @model, :offset => 10, :limit => 10)
 
-    nancy  = @cow.new(:name => 'Nancy',  :age => 11)
-    bessie = @cow.new(:name => 'Bessie', :age => 10)
-    steve  = @cow.new(:name => 'Steve',  :age => 8)
+    nancy  = @model.new(:name => 'Nancy',  :age => 11)
+    bessie = @model.new(:name => 'Bessie', :age => 10)
+    steve  = @model.new(:name => 'Steve',  :age => 8)
 
     @collection = DataMapper::Collection.new(@query)
     @collection.load([ nancy.name,  nancy.age  ])
@@ -37,11 +37,11 @@ describe DataMapper::Collection do
   end
 
   it "should return the right repository" do
-    DataMapper::Collection.new(DataMapper::Query.new(repository(:legacy), @cow)).repository.name.should == :legacy
+    DataMapper::Collection.new(DataMapper::Query.new(repository(:legacy), @model)).repository.name.should == :legacy
   end
 
   it "should be able to add arbitrary objects" do
-    properties = @cow.properties(:default)
+    properties = @model.properties(:default)
 
     collection = DataMapper::Collection.new(@query)
     collection.should respond_to(:reload)
@@ -73,14 +73,14 @@ describe DataMapper::Collection do
   describe '.new' do
     describe 'with non-index keys' do
       it 'should instantiate read-only resources' do
-        @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, @cow, :fields => [ :age ]))
+        @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, @model, :fields => [ :age ]))
         @collection.load([ 1 ])
 
         @collection.size.should == 1
 
         resource = @collection.entries[0]
 
-        resource.should be_kind_of(@cow)
+        resource.should be_kind_of(@model)
         resource.collection.object_id.should == @collection.object_id
         resource.should_not be_new_record
         resource.should be_readonly
@@ -129,7 +129,7 @@ describe DataMapper::Collection do
     describe 'with query arguments' do
       describe 'should return a Collection' do
         before do
-          query = DataMapper::Query.new(@repository, @cow)
+          query = DataMapper::Query.new(@repository, @model)
           @unlimited = DataMapper::Collection.new(query)
         end
 
@@ -308,19 +308,23 @@ describe DataMapper::Collection do
     end
   end
 
-  describe '#first' do
-    it 'should provide #first' do
-      @collection.should respond_to(:first)
-    end
+  it 'should provide #first' do
+    @collection.should respond_to(:first)
+  end
 
+  describe '#first' do
     describe 'with no arguments' do
       it 'should return a Resource' do
-        @collection.first.should be_kind_of(DataMapper::Resource)
+        @repository.adapter.should_receive(:read_set).and_return(@collection.dup)
+        first = @collection.first
+        first.should_not be_nil
+        first.should be_kind_of(DataMapper::Resource)
       end
     end
 
     describe 'with number of results specified' do
       it 'should return a Collection ' do
+        @repository.adapter.should_receive(:read_set).and_return(@collection.dup)
         collection = @collection.first(2)
         collection.should be_kind_of(DataMapper::Collection)
         collection.object_id.should_not == @collection.object_id
@@ -348,18 +352,22 @@ describe DataMapper::Collection do
 
     describe 'with no arguments' do
       it 'should return a Resource' do
-        @collection.last.should be_kind_of(DataMapper::Resource)
+        @repository.adapter.should_receive(:read_set).and_return(@collection.dup)
+        last = @collection.last
+        last.should_not be_nil
+        last.should be_kind_of(DataMapper::Resource)
       end
     end
 
     describe 'with number of results specified' do
       it 'should return a Collection ' do
+        @repository.adapter.should_receive(:read_set).and_return(@collection.dup)
         collection = @collection.last(2)
         collection.should be_kind_of(DataMapper::Collection)
         collection.object_id.should_not == @collection.object_id
         collection.length.should == 2
-        collection[0].should == @nancy
-        collection[1].should == @bessie
+        collection[0].should == @bessie
+        collection[1].should == @nancy
       end
     end
   end
@@ -367,7 +375,7 @@ describe DataMapper::Collection do
   describe '#load' do
     it 'should load resources from the identity map when possible' do
       @steve.collection = nil
-      @repository.should_receive(:identity_map_get).with(@cow, %w[ Steve ]).and_return(@steve)
+      @repository.should_receive(:identity_map_get).with(@model, %w[ Steve ]).and_return(@steve)
       collection = DataMapper::Collection.new(@query)
       collection.load([ @steve.name, @steve.age ])
       collection.size.should == 1
@@ -478,10 +486,10 @@ describe DataMapper::Collection do
         query.offset.should     == 10
         query.limit.should      == 10
         query.order.should      == []
-        query.fields.should     == @cow.properties.defaults
+        query.fields.should     == @model.properties.defaults
         query.links.should      == []
         query.includes.should   == []
-        query.conditions.should == [ [ :eql, @cow.properties[:name], %w[ Nancy Bessie ] ] ]
+        query.conditions.should == [ [ :eql, @model.properties[:name], %w[ Nancy Bessie ] ] ]
 
         @collection
       end
@@ -677,14 +685,14 @@ describe DataMapper::Collection do
 
   describe 'with lazy loading' do
     before :all do
-      @cow = Class.new do
+      @model = Class.new do
         include DataMapper::Resource
 
         property :name, String, :key => true
         property :age, Integer
       end
 
-      properties = @cow.properties(:default)
+      properties = @model.properties(:default)
     end
 
     it "should make a materialization block" do

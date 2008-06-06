@@ -1,25 +1,115 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
+  class Orange
+    include DataMapper::Resource
+
+    def self.default_repository_name
+      ADAPTER
+    end
+
+    property :name, String, :key => true
+    property :color, String
+  end
+
+  class FortunePig
+    include DataMapper::Resource
+
+    def self.default_repository_name
+      ADAPTER
+    end
+
+    property :id, Integer, :serial => true
+    property :name, String
+
+    def to_s
+      name
+    end
+
+    after :create do
+      @created_id = self.id
+    end
+
+    after :save do
+      @save_id = self.id
+    end
+  end
+
+  class Car
+    include DataMapper::Resource
+
+    def self.default_repository_name
+      ADAPTER
+    end
+
+    property :brand, String, :key => true
+    property :color, String
+    property :created_on, Date
+    property :touched_on, Date
+    property :updated_on, Date
+
+    before :save do
+      self.touched_on = Date.today
+    end
+
+    before :create do
+      self.created_on = Date.today
+    end
+
+    before :update do
+      self.updated_on = Date.today
+    end
+  end
+
+  class Male
+    include DataMapper::Resource
+
+    def self.default_repository_name
+      ADAPTER
+    end
+
+    property :id, Integer, :serial => true
+    property :name, String
+    property :iq, Integer, :default => 100
+    property :type, Discriminator
+
+    def iq=(i)
+      attribute_set(:iq, i - 1)
+    end
+  end
+
+  class Bully < Male; end
+
+  class Mugger < Bully; end
+
+  class Maniac < Bully; end
+
+  class Psycho < Maniac; end
+
+  class Geek < Male
+    property :awkward, Boolean, :default => true
+
+    def iq=(i)
+      attribute_set(:iq, i + 30)
+    end
+  end
+
+  class Flanimal
+    include DataMapper::Resource
+
+    def self.default_repository_name
+      ADAPTER
+    end
+
+    property :id, Integer, :serial => true
+    property :type, Discriminator
+    property :name, String
+  end
+
+  class Sprog < Flanimal; end
+
   describe "DataMapper::Resource with #{ADAPTER}" do
     before :all do
-      class Orange
-        include DataMapper::Resource
-        property :name, String, :key => true
-        property :color, String
-      end
-
-      class FortunePig
-        include DataMapper::Resource
-
-        property :id, Integer, :serial => true
-        property :name, String
-
-        def to_s
-          name
-        end
-      end
-
       Orange.auto_migrate!(ADAPTER)
       FortunePig.auto_migrate!(ADAPTER)
 
@@ -72,16 +162,6 @@ if ADAPTER
     end
 
     it "should be able to respond to create hooks" do
-      class FortunePig
-        after :create do
-          @created_id = self.id
-        end
-
-        after :save do
-          @save_id = self.id
-        end
-      end
-
       bob = repository(ADAPTER) { FortunePig.create(:name => 'Bob') }
       bob.id.should_not be_nil
       bob.instance_variable_get("@created_id").should == bob.id
@@ -94,7 +174,7 @@ if ADAPTER
 
     describe "anonymity" do
 
-      before(:all) do
+      before :all do
         @planet = DataMapper::Resource.new("planet") do
           property :name, String, :key => true
           property :distance, Integer
@@ -119,28 +199,7 @@ if ADAPTER
     end
 
     describe "hooking" do
-      before(:all) do
-        class Car
-          include DataMapper::Resource
-          property :brand, String, :key => true
-          property :color, String
-          property :created_on, Date
-          property :touched_on, Date
-          property :updated_on, Date
-
-          before :save do
-            self.touched_on = Date.today
-          end
-
-          before :create do
-            self.created_on = Date.today
-          end
-
-          before :update do
-            self.updated_on = Date.today
-          end
-        end
-
+      before :all do
         Car.auto_migrate!(ADAPTER)
       end
 
@@ -169,35 +228,7 @@ if ADAPTER
     end
 
     describe "inheritance" do
-      before(:all) do
-        class Male
-          include DataMapper::Resource
-          property :id, Integer, :serial => true
-          property :name, String
-          property :iq, Integer, :default => 100
-          property :type, Discriminator
-
-          def iq=(i)
-            attribute_set(:iq, i - 1)
-          end
-        end
-
-        class Bully < Male; end
-
-        class Mugger < Bully; end
-
-        class Maniac < Bully; end
-
-        class Psycho < Maniac; end
-
-        class Geek < Male
-          property :awkward, Boolean, :default => true
-
-          def iq=(i)
-            attribute_set(:iq, i + 30)
-          end
-        end
-
+      before :all do
         Geek.auto_migrate!(ADAPTER)
 
         repository(ADAPTER) do
@@ -210,16 +241,6 @@ if ADAPTER
           Maniac.create!(:name => 'William')
           Psycho.create!(:name => 'Norman')
         end
-
-        class Flanimal
-          include DataMapper::Resource
-          property :id, Integer, :serial => true
-          property :type, Discriminator
-          property :name, String
-
-        end
-
-        class Sprog < Flanimal; end
 
         Flanimal.auto_migrate!(ADAPTER)
 

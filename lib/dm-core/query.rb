@@ -14,6 +14,10 @@ module DataMapper
         @property.hash + @direction.hash
       end
 
+      def reverse
+        self.class.new(@property, @direction == :asc ? :desc : :asc)
+      end
+
       def inspect
         "#<#{self.class.name} #{@property.inspect} #{@direction}>"
       end
