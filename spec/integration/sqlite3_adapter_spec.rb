@@ -73,7 +73,7 @@ if HAS_SQLITE3
         adapter = repository(:sqlite3absolutepath).adapter
         adapter.uri.path.should == file
       end
-      
+
       it "should contain a valid file path for adapter initialization from a hash where the database uses relative paths" do
         file = 'newfile.db'
         DataMapper.setup(:sqlite3fromhash, {:adapter => :sqlite3, :database => file})

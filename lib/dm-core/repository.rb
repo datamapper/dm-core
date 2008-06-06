@@ -61,6 +61,8 @@ module DataMapper
     # @return <Class> the first retrieved instance which matches the query
     # @return <NilClass> no object could be found which matches that query
     # @see DataMapper::Query
+    #
+    # TODO: deprecate this
     def first(model, query)
       all(model, query.merge(:limit => 1)).first
     end
@@ -75,10 +77,10 @@ module DataMapper
     def all(model, query)
       query = if model.query
         model.query.merge(query)
-      elsif Query === query
-        query
-      else
+      elsif Hash === query
         Query.new(self, model, query)
+      else
+        query
       end
 
       adapter.read_set(self, query)

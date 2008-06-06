@@ -638,6 +638,7 @@ module DataMapper
       #
       # @see Repository#get
       def get(*key)
+        # TODO: perform the Model.query (scope) checking here instead of Repository#get
         repository.get(self, key)
       end
 
@@ -675,6 +676,7 @@ module DataMapper
       #
       # @see Repository#all
       def all(query = {})
+        # TODO: perform the Model.query (scope) checking here instead of Repository#all
         if Hash === query && query.has_key?(:repository)
           repository(query[:repository]).all(self, query)
         else
@@ -686,11 +688,7 @@ module DataMapper
       #
       # @see Repository#first
       def first(query = {})
-        if Hash === query && query.has_key?(:repository)
-          repository(query[:repository]).first(self, query)
-        else
-          repository.first(self, query)
-        end
+        all(query.merge(:limit => 1)).first
       end
 
       ##
