@@ -103,7 +103,7 @@ begin
     t.options << '--protected'
     # t.files << '...anyglobshere...'
   end
-rescue
+rescue Exception
   # yard not installed
 end
 
