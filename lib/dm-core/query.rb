@@ -111,15 +111,16 @@ module DataMapper
     def update(other)
       other = self.class.new(@repository, model, other) if Hash === other
 
-      @model, @reload = other.model, other.reload
+      raise ArgumentError, "+other.model+ was not equal to #{model.name}" unless model == other.model
 
-      @offset = other.offset unless other.offset == 0
-      @limit  = other.limit  unless other.limit.nil?
-
-      @order    |= other.order
-      @fields   |= other.fields
-      @links    |= other.links
-      @includes |= other.includes
+      # only overwrite the attributes with non-default values
+      @reload   = other.reload   unless other.reload   == false
+      @offset   = other.offset   unless other.offset   == 0
+      @limit    = other.limit    unless other.limit    == nil
+      @order    = other.order    unless other.order    == []
+      @fields   = other.fields   unless other.fields   == @properties.defaults
+      @links    = other.links    unless other.links    == []
+      @includes = other.includes unless other.includes == []
 
       update_conditions(other)
 
@@ -182,31 +183,6 @@ module DataMapper
     end
 
     alias reload? reload
-
-    def to_hash
-      hash = {}
-
-      (OPTIONS - [ :conditions ]).each do |option|
-        next unless value = send(option)
-        hash[option] = value if value.respond_to?(:empty?) && !value.empty?
-      end
-
-      conditions.each do |condition|
-        operator, property, bind_value = *condition
-
-        if operator == :raw
-          raw_query = property
-          hash[:conditions] = [ raw_query ]
-          hash[:conditions] << bind_value if bind_value
-        elsif Property === property
-          hash[ Operator.new(property.name, operator) ] = bind_value
-        else
-          hash[ Operator.new(property, operator) ] = bind_value
-        end
-      end
-
-      hash
-    end
 
     def inspect
       attrs = [

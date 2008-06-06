@@ -43,8 +43,8 @@ module DataMapper
         conditions = Hash[ *model.key(name).zip(key).flatten ]
         conditions.update(:limit => 1)
 
-        query = if current_scope = model.send(:current_scope)
-          current_scope.merge(conditions)
+        query = if model.query
+          model.query.merge(conditions)
         else
           Query.new(self, model, conditions)
         end
@@ -57,26 +57,28 @@ module DataMapper
     # retrieve a singular instance by query
     #
     # @param <Class> model the specific resource to retrieve from
-    # @param <Hash, Query> options composition of the query to perform
+    # @param <Hash, Query> query composition of the query to perform
     # @return <Class> the first retrieved instance which matches the query
     # @return <NilClass> no object could be found which matches that query
     # @see DataMapper::Query
-    def first(model, options)
-      all(model, options.merge(:limit => 1)).first
+    def first(model, query)
+      all(model, query.merge(:limit => 1)).first
     end
 
     ##
     # retrieve a collection of results of a query
     #
     # @param <Class> model the specific resource to retrieve from
-    # @param <Hash, Query> options composition of the query to perform
+    # @param <Hash, Query> query composition of the query to perform
     # @return <Collection> result set of the query
     # @see DataMapper::Query
-    def all(model, options)
-      query = if current_scope = model.send(:current_scope)
-        current_scope.merge(options)
+    def all(model, query)
+      query = if model.query
+        model.query.merge(query)
+      elsif Query === query
+        query
       else
-        Query.new(self, model, options)
+        Query.new(self, model, query)
       end
 
       adapter.read_set(self, query)

@@ -14,8 +14,8 @@ module DataMapper
         repository_name = model.repository.name
 
         model.class_eval <<-EOS, __FILE__, __LINE__
-          def #{name}(options = {})
-            options.empty? ? #{name}_association : #{name}_association.all(options)
+          def #{name}(query = {})
+            query.empty? ? #{name}_association : #{name}_association.all(query)
           end
 
           def #{name}=(children)

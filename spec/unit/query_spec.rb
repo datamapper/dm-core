@@ -33,7 +33,6 @@ end
 UPDATED_OPTIONS.merge!({ :fields => [ :id, :author ]})
 
 describe DataMapper::Query do
-
   describe '.new' do
     describe 'should set the attribute' do
       it '#model with model' do
@@ -152,7 +151,7 @@ describe DataMapper::Query do
 
     describe 'should normalize' do
       it '#fields' do
-        DataMapper::Query.new(repository(:mock), Article, :fields => [:id]).fields.should == Article.properties(:default).slice(:id).to_a
+        DataMapper::Query.new(repository(:mock), Article, :fields => [:id]).fields.should == Article.properties(:default).slice(:id)
       end
     end
 
@@ -187,17 +186,19 @@ describe DataMapper::Query do
       @query.update(other)
     end
 
+    it 'should raise an ArgumentError if other query model is different' do
+      lambda {
+        other = DataMapper::Query.new(repository(:mock), Comment)
+        @query.update(other)
+      }.should raise_error(ArgumentError)
+    end
+
     it 'should return self' do
       other = DataMapper::Query.new(repository(:mock), Article)
       @query.update(other).should == @query
     end
 
     describe 'should overwrite the attribute' do
-      it '#model with other model' do
-        other = DataMapper::Query.new(repository(:mock), Comment)
-        @query.update(other).model.should == Comment
-      end
-
       it '#reload with other reload' do
         other = DataMapper::Query.new(repository(:mock), Article, :reload => true)
         @query.update(other).reload.should == true
@@ -245,9 +246,7 @@ describe DataMapper::Query do
           @query.update(other).conditions.should == [ [ operator, Article.properties[:created_at], Time.at(1) ] ]
         end
       end
-    end
 
-    describe 'should append the attribute' do
       it "#order with other order unique values" do
         order = [
           DataMapper::Query::Direction.new(Article.properties[:created_at], :desc),
@@ -304,7 +303,7 @@ describe DataMapper::Query do
 
       it "#fields with other fields unique values" do
         other = DataMapper::Query.new(repository(:mock), Article, :fields => [ :blog_id ])
-        @query.update(other).fields.should == Article.properties(:default).slice(:id, :author, :blog_id).to_a
+        @query.update(other).fields.should == Article.properties(:default).slice(:blog_id)
       end
 
       it '#conditions with other conditions when they are unique' do

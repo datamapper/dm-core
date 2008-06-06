@@ -39,19 +39,18 @@ if ADAPTER
       end
 
       it "should lazy-load missing attributes" do
-        sfs = repository(ADAPTER).all(SerialFinderSpec, { :fields => [:id], :limit => 1 }).first
+        sfs = repository(ADAPTER).first(SerialFinderSpec, { :fields => [ :id ], :limit => 1 })
         sfs.should be_a_kind_of(SerialFinderSpec)
         sfs.should_not be_a_new_record
 
-        sfs.instance_variables.should_not include('@sample')
+        sfs.attribute_loaded?(:sample).should be_false
         sfs.sample.should_not be_nil
       end
 
       it "should translate an Array to an IN clause" do
-        ids = repository(ADAPTER).all(SerialFinderSpec, { :limit => 10 }).map(&:id)
+        ids = repository(ADAPTER).all(SerialFinderSpec, { :fields => [ :id ], :limit => 10 }).map(&:id)
         results = repository(ADAPTER).all(SerialFinderSpec, { :id => ids })
 
-        results.size.should == 10
         results.map(&:id).should == ids
       end
     end

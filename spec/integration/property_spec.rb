@@ -98,23 +98,25 @@ if ADAPTER
           SailBoat.all
         end
 
-        result[0].instance_variables.should_not include('@notes')
-        result[0].instance_variables.should_not include('@trip_report')
-        result[1].instance_variables.should_not include('@notes')
+        result[0].attribute_loaded?(:notes).should be_false
+        result[0].attribute_loaded?(:trip_report).should be_false
+        result[1].attribute_loaded?(:notes).should be_false
+
         result[0].notes.should_not be_nil
-        result[1].instance_variables.should include('@notes')
-        result[1].instance_variables.should include('@trip_report')
-        result[1].instance_variables.should_not include('@miles')
+
+        result[1].attribute_loaded?(:notes).should be_true
+        result[1].attribute_loaded?(:trip_report).should be_true
+        result[1].attribute_loaded?(:miles).should be_false
 
         result = repository(ADAPTER) do
           SailBoat.all
         end
 
-        result[0].instance_variables.should_not include('@trip_report')
-        result[0].instance_variables.should_not include('@miles')
+        result[0].attribute_loaded?(:trip_report).should be_false
+        result[0].attribute_loaded?(:miles).should be_false
 
         result[1].trip_report.should_not be_nil
-        result[2].instance_variables.should include('@miles')
+        result[2].attribute_loaded?(:miles).should be_true
       end
     end
 

@@ -6,11 +6,6 @@ module DataMapper
       query.repository
     end
 
-    def reload(options = {})
-      @query = query.merge(keys.merge(:fields => @key_properties).merge(options))
-      replace(all(:reload => true))
-    end
-
     def load(values, reload = false)
       model = if @inheritance_property_index
         values.at(@inheritance_property_index) || query.model
@@ -52,19 +47,30 @@ module DataMapper
       self
     end
 
-    def all(options = {})
-      return self if options.empty?
+    def reload(query = {})
+      query[:fields] ||= self.query.fields
+      query[:fields]  |= @key_properties
 
-      options = options.dup
+      @query = self.query.merge(keys.merge(query))
 
-      first_pos = query.offset
-      last_pos  = first_pos + query.limit if query.limit
+      replace(all(:reload => true))
+    end
 
-      if offset = options[:offset]
-        first_pos += offset
+    def all(query = {})
+      repository = self.query.repository
+      model      = self.query.model
+
+      if Hash === query
+        return self if query.empty?
+        query = self.query.class.new(repository, model, query)
       end
 
-      if limit = options[:limit]
+      first_pos = self.query.offset
+      last_pos  = first_pos + self.query.limit if self.query.limit
+
+      first_pos += query.offset
+
+      if limit = query.limit
         if last_pos.nil? || first_pos + limit < last_pos
           last_pos = first_pos + limit
         end
@@ -75,10 +81,10 @@ module DataMapper
         return empty_collection
       end
 
-      options.update(:offset => first_pos)
-      options.update(:limit => last_pos - first_pos) if last_pos
+      query.update(:offset => first_pos)
+      query.update(:limit => last_pos - first_pos) if last_pos
 
-      query.repository.all(query.model, query.to_hash.merge(options))
+      repository.all(model, self.query.merge(query))
     end
 
     #def first(*args)

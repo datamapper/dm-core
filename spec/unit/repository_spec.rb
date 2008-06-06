@@ -97,7 +97,7 @@ describe DataMapper::Repository do
 
         resource.should_not be_dirty
         resource.should be_new_record
-        resource.class.key.any? { |p| p.serial? }.should_not be_true
+        resource.class.key.any? { |p| p.serial? }.should be_false
 
         @adapter.should_not_receive(:create)
 

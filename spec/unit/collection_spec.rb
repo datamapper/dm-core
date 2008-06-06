@@ -53,8 +53,8 @@ describe DataMapper::Collection do
     results.should have(2).entries
 
     results.each do |cow|
-      cow.instance_variables.should include('@name')
-      cow.instance_variables.should include('@age')
+      cow.attribute_loaded?(:name).should be_true
+      cow.attribute_loaded?(:age).should be_true
     end
 
     bob, nancy = results[0], results[1]
@@ -478,7 +478,7 @@ describe DataMapper::Collection do
         query.offset.should     == 10
         query.limit.should      == 10
         query.order.should      == []
-        query.fields.should     == @cow.properties.slice(:name, :age)
+        query.fields.should     == @cow.properties.defaults
         query.links.should      == []
         query.includes.should   == []
         query.conditions.should == [ [ :eql, @cow.properties[:name], %w[ Nancy Bessie ] ] ]

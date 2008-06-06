@@ -654,18 +654,18 @@ module DataMapper
         get!(key)
       end
 
-      def first_or_create(first_options, create_options = {})
-        first(first_options) || begin
+      def first_or_create(query, attributes = {})
+        first(query) || begin
           resource = allocate
-          first_options = first_options.dup
+          query = query.dup
 
           self.properties.key.each do |property|
-            if value = first_options.delete(property.name)
+            if value = query.delete(property.name)
               resource.send("#{property.name}=", value)
             end
           end
 
-          resource.attributes = first_options.merge(create_options)
+          resource.attributes = query.merge(attributes)
           resource.save
           resource
         end
@@ -674,22 +674,22 @@ module DataMapper
       ##
       #
       # @see Repository#all
-      def all(options = {})
-        if Hash === options && options.has_key?(:repository)
-          repository(options[:repository]).all(self, options)
+      def all(query = {})
+        if Hash === query && query.has_key?(:repository)
+          repository(query[:repository]).all(self, query)
         else
-          repository.all(self, options)
+          repository.all(self, query)
         end
       end
 
       ##
       #
       # @see Repository#first
-      def first(options = {})
-        if Hash === options && options.has_key?(:repository)
-          repository(options[:repository]).first(self, options)
+      def first(query = {})
+        if Hash === query && query.has_key?(:repository)
+          repository(query[:repository]).first(self, query)
         else
-          repository.first(self, options)
+          repository.first(self, query)
         end
       end
 
@@ -717,9 +717,9 @@ module DataMapper
       end
 
       # TODO SPEC
-      def copy(source, destination, options = {})
+      def copy(source, destination, query = {})
         repository(destination) do
-          repository(source).all(self, options).each do |resource|
+          repository(source).all(self, query).each do |resource|
             self.create(resource)
           end
         end
