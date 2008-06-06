@@ -64,7 +64,7 @@ if HAS_SQLITE3
         file = 'newfile.db'
         DataMapper.setup(:sqlite3relativepath, "sqlite3:#{file}")
         adapter = repository(:sqlite3relativepath).adapter
-        adapter.uri.path.should == File.expand_path(file)
+        adapter.uri.path.should == file
       end
 
       it "should contain a valid file path for file-based databases with absolute paths" do
@@ -72,6 +72,13 @@ if HAS_SQLITE3
         DataMapper.setup(:sqlite3absolutepath, "sqlite3://#{file}")
         adapter = repository(:sqlite3absolutepath).adapter
         adapter.uri.path.should == file
+      end
+      
+      it "should contain a valid file path for adapter initialization from a hash where the database uses relative paths" do
+        file = 'newfile.db'
+        DataMapper.setup(:sqlite3fromhash, {:adapter => :sqlite3, :database => file})
+        adapter = repository(:sqlite3fromhash).adapter
+        adapter.uri.path.should == File.expand_path(file)
       end
 
       it "should contain have a path of just :memory: when using in memory databases" do
