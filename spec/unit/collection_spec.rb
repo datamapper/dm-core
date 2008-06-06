@@ -17,7 +17,7 @@ describe DataMapper::Collection do
 
   before do
     @repository = DataMapper.repository(:default)
-    @query = DataMapper::Query.new(@repository, @cow)
+    @query = DataMapper::Query.new(@repository, @cow, :offset => 10, :limit => 10)
 
     nancy  = @cow.new(:name => 'Nancy',  :age => 11)
     bessie = @cow.new(:name => 'Bessie', :age => 10)
@@ -111,6 +111,67 @@ describe DataMapper::Collection do
         resource = @collection[0]
         resource.class.should == CollectionSpecUser
         resource
+      end
+    end
+  end
+
+  it 'should provide #all' do
+    @collection.should respond_to(:all)
+  end
+
+  describe '#all' do
+    describe 'with no arguments' do
+      it 'should return self' do
+        @collection.all.object_id.should == @collection.object_id
+      end
+    end
+
+    describe 'with query arguments' do
+      describe 'should return a Collection' do
+        before do
+          query = DataMapper::Query.new(@repository, @cow)
+          @unlimited = DataMapper::Collection.new(query)
+        end
+
+        it 'has an offset equal to 10' do
+          @collection.all.query.offset.should == 10
+        end
+
+        it 'has a cumulative offset equal to 10 when passed an offset of 0' do
+          @collection.all(:offset => 0).query.offset.should == 10
+        end
+
+        it 'has a cumulative offset equal to 19 when passed an offset of 9' do
+          @collection.all(:offset => 9).query.offset.should == 19
+        end
+
+        it 'is empty when passed an offset that is out of range' do
+          pending do
+            empty_collection = @collection.all(:offset => 10)
+            empty_collection.should be_empty
+            empty_collection.should be_loaded
+          end
+        end
+
+        it 'has an limit equal to 10' do
+          @collection.all.query.limit.should == 10
+        end
+
+        it 'has a limit equal to 5' do
+          @collection.all(:limit => 5).query.limit.should == 5
+        end
+
+        it 'has a limit equal to 10 if passed a limit greater than 10' do
+          @collection.all(:limit => 11).query.limit.should == 10
+        end
+
+        it 'has no limit' do
+          @unlimited.all.query.limit.should be_nil
+        end
+
+        it 'has a limit equal to 1000 when passed a limit of 1000' do
+          @unlimited.all(:limit => 1000).query.limit.should == 1000
+        end
       end
     end
   end
@@ -414,8 +475,8 @@ describe DataMapper::Collection do
 
         query.should be_instance_of(DataMapper::Query)
         query.reload.should     be_true
-        query.offset.should     == 0
-        query.limit.should      be_nil
+        query.offset.should     == 10
+        query.limit.should      == 10
         query.order.should      == []
         query.fields.should     == @cow.properties.slice(:name, :age)
         query.links.should      == []

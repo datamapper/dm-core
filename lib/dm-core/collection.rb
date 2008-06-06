@@ -8,7 +8,7 @@ module DataMapper
 
     def reload(options = {})
       @query = query.merge(keys.merge(:fields => @key_properties).merge(options))
-      replace(repository.adapter.read_set(repository, query.merge(:reload => true)))
+      replace(all(:reload => true))
     end
 
     def load(values, reload = false)
@@ -28,12 +28,7 @@ module DataMapper
           self << resource
           return resource unless reload
         else
-          resource = begin
-            model.allocate
-          rescue NoMethodError
-            DataMapper.logger.error("Model not found for row: #{values.inspect} at index #{@inheritance_property_index}")
-            raise $!
-          end
+          resource = model.allocate
           self << resource
           resource.collection = self
           @key_properties.zip(key_values).each do |property,key_value|
@@ -57,8 +52,74 @@ module DataMapper
       self
     end
 
+    def all(options = {})
+      return self if options.empty?
+
+      options = options.dup
+
+      first_pos = query.offset
+      last_pos  = first_pos + query.limit if query.limit
+
+      if offset = options[:offset]
+        first_pos += offset
+      end
+
+      if limit = options[:limit]
+        if last_pos.nil? || first_pos + limit < last_pos
+          last_pos = first_pos + limit
+        end
+      end
+
+      # return empty collection if outside range
+      if last_pos && first_pos >= last_pos
+        return empty_collection
+      end
+
+      options.update(:offset => first_pos)
+      options.update(:limit => last_pos - first_pos) if last_pos
+
+      query.repository.all(query.model, query.to_hash.merge(options))
+    end
+
+    #def first(*args)
+    #  options = Hash === args.last ? args.pop.dup : {}
+    #
+    #  if args.any?
+    #    all(options.merge(:limit => args.shift))
+    #  else
+    #    # TODO: add offset to the existing offset
+    #
+    #    # TODO: return nil if out of range
+    #
+    #    query.model.first(query.merge(options))
+    #  end
+    #end
+    #
+    #def last(*args)
+    #  options = Hash === args.last ? args.pop : {}
+    #
+    #  # get the default sort order
+    #  options[:order] ||= query.order.any? ? query.order : query.model.key
+    #  query = query.merge(options)
+    #
+    #  # reverse the sort order
+    #  query = query.merge(:order => query.order.map { |o| o.reverse })
+    #
+    #  if args.any?
+    #    first(args.shift, query)
+    #  else
+    #    first(query)
+    #  end
+    #end
+
+    # TODO: add at()
+    # TODO: add slice()
+    # TODO: alias [] to slice()
+
     def clear
-      each { |resource| remove_resource(resource) }
+      if loaded?
+        each { |resource| remove_resource(resource) }
+      end
       super
     end
 
@@ -115,6 +176,11 @@ module DataMapper
         keys[property] = values.size == 1 ? values[0] : values
       end
       keys
+    end
+
+    def empty_collection
+      # TODO: figure out how to create an empty collection
+      []
     end
 
     def method_missing(method_name, *args)

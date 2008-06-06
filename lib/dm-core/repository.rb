@@ -62,13 +62,7 @@ module DataMapper
     # @return <NilClass> no object could be found which matches that query
     # @see DataMapper::Query
     def first(model, options)
-      query = if current_scope = model.send(:current_scope)
-        current_scope.merge(options.merge(:limit => 1))
-      else
-        Query.new(self, model, options.merge(:limit => 1))
-      end
-
-      adapter.read_set(self, query).first
+      all(model, options.merge(:limit => 1)).first
     end
 
     ##

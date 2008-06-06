@@ -183,6 +183,31 @@ module DataMapper
 
     alias reload? reload
 
+    def to_hash
+      hash = {}
+
+      (OPTIONS - [ :conditions ]).each do |option|
+        next unless value = send(option)
+        hash[option] = value if value.respond_to?(:empty?) && !value.empty?
+      end
+
+      conditions.each do |condition|
+        operator, property, bind_value = *condition
+
+        if operator == :raw
+          raw_query = property
+          hash[:conditions] = [ raw_query ]
+          hash[:conditions] << bind_value if bind_value
+        elsif Property === property
+          hash[ Operator.new(property.name, operator) ] = bind_value
+        else
+          hash[ Operator.new(property, operator) ] = bind_value
+        end
+      end
+
+      hash
+    end
+
     def inspect
       attrs = [
         [ :repository, repository.name ],
