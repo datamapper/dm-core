@@ -92,7 +92,7 @@ module DataMapper
 
       value = instance_variable_get(ivar_name)
 
-      if value.nil? && new_record? && !property.options[:default].nil?
+      if value.nil? && new_record? && !property.options[:default].nil? && !attribute_loaded?(name)
         value = property.default_for(self)
       end
 
@@ -146,7 +146,7 @@ module DataMapper
       # skip setting the attribute if the new value equals the old
       # value, or if the new value is nil, and the property does not
       # allow nil values
-      return if new_value == old_value || (new_value.nil? && !property.nullable?)
+      return if ((!new_record? || property.options[:default].nil?) && (new_value == old_value)) || (new_value.nil? && !property.nullable?)
 
       if property.lock?
         instance_variable_set("@shadow_#{name}", old_value)

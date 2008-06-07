@@ -12,6 +12,17 @@ if ADAPTER
     property :color, String
   end
 
+  class Vegetable
+    include DataMapper::Resource
+
+    def self.default_repository_name
+      ADAPTER
+    end
+
+    property :id, Integer, :serial => true
+    property :color, String, :default => 'green', :nullable => true
+  end
+
   class FortunePig
     include DataMapper::Resource
 
@@ -111,6 +122,7 @@ if ADAPTER
   describe "DataMapper::Resource with #{ADAPTER}" do
     before :all do
       Orange.auto_migrate!(ADAPTER)
+      Vegetable.auto_migrate!(ADAPTER)
       FortunePig.auto_migrate!(ADAPTER)
 
       orange = Orange.new(:color => 'orange')
@@ -158,6 +170,20 @@ if ADAPTER
         oranges = Orange.all(:name => 'Purple')
         oranges.size.should == 1
         oranges.first.should == purple
+      end
+    end
+
+    it "should be able to override a default with a nil" do
+      pending("Some weird issue with running from Rake") do
+        repository(ADAPTER) do
+          colorless_veggy = Vegetable.new
+          colorless_veggy.color = nil
+          colorless_veggy.save
+          colorless_veggy.color.should be_nil
+
+          colorless_veggy = Vegetable.create(:color => nil)
+          colorless_veggy.color.should be_nil
+        end
       end
     end
 
