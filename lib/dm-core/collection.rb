@@ -44,7 +44,7 @@ module DataMapper
         resource.instance_variable_set(property.instance_variable_name, values.at(i))
       end
 
-      self
+      resource
     end
 
     def reload(query = {})

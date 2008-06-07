@@ -24,16 +24,11 @@ describe DataMapper::Collection do
     steve  = @model.new(:name => 'Steve',  :age => 8)
 
     @collection = DataMapper::Collection.new(@query)
-    @collection.load([ nancy.name,  nancy.age  ])
-    @collection.load([ bessie.name, bessie.age ])
-
-    @nancy  = @collection[0]
-    @bessie = @collection[1]
+    @nancy  = @collection.load([ nancy.name,  nancy.age  ])
+    @bessie = @collection.load([ bessie.name, bessie.age ])
 
     @other = DataMapper::Collection.new(@query)
-    @other.load([ steve.name, steve.age ])
-
-    @steve = @other[0]
+    @steve = @other.load([ steve.name, steve.age ])
   end
 
   it "should return the right repository" do
@@ -372,6 +367,10 @@ describe DataMapper::Collection do
     end
   end
 
+  it 'should provide #load' do
+    @collection.should respond_to(:load)
+  end
+
   describe '#load' do
     it 'should load resources from the identity map when possible' do
       @steve.collection = nil
@@ -381,6 +380,10 @@ describe DataMapper::Collection do
       collection.size.should == 1
       collection[0].object_id.should == @steve.object_id
       @steve.collection.object_id.should == collection.object_id
+    end
+
+    it 'should return a Resource' do
+      @collection.load([ @steve.name, @steve.age ]).should be_kind_of(DataMapper::Resource)
     end
   end
 
