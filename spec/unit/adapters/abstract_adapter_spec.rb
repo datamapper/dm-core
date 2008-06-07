@@ -125,4 +125,17 @@ describe DataMapper::Adapters::AbstractAdapter do
   it "should raise NotImplementedError when #alter_property_storage is called" do
     lambda { @adapter.alter_property_storage(:repository, :property) }
   end
+
+  it "should clean out dead threads from @transactions" do
+    @adapter.instance_eval do @transactions end.size.should == 0
+    t = Thread.new do
+      @adapter.push_transaction("plur")
+    end
+    while t.alive? 
+      sleep 0.1
+    end
+    @adapter.instance_eval do @transactions end.size.should == 1
+    @adapter.push_transaction("ploj")
+    @adapter.instance_eval do @transactions end.size.should == 1
+  end
 end
