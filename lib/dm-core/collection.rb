@@ -130,9 +130,10 @@ module DataMapper
       elsif args.size == 1 && Range === args.first
         range  = args.first
         offset = range.first
-        limit  = range.exclude_end? ? range.last - range.first : range.last + 1 - range.first
+        limit  = range.last - offset
+        limit += 1 unless range.exclude_end?
       else
-        raise ArgumentError, "arguments may be 1 or 2 Integer, or 1 Range object, was: #{args.inspect}"
+        raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}"
       end
 
       all(:offset => offset, :limit => limit)
