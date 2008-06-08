@@ -96,7 +96,7 @@ if ADAPTER
       it "should lazy load in context" do
         result = repository(ADAPTER) do
           SailBoat.all
-        end
+        end.to_a
 
         result[0].attribute_loaded?(:notes).should be_false
         result[0].attribute_loaded?(:trip_report).should be_false
@@ -110,7 +110,7 @@ if ADAPTER
 
         result = repository(ADAPTER) do
           SailBoat.all
-        end
+        end.to_a
 
         result[0].attribute_loaded?(:trip_report).should be_false
         result[0].attribute_loaded?(:miles).should be_false

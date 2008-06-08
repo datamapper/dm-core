@@ -38,18 +38,12 @@ module DataMapper
     # @param <Key> key The keys to look for
     # @return <Class> the instance of the Resource retrieved
     # @return <NilClass> could not find the instance requested
+    #
+    # TODO: deprecate this
     def get(model, key)
       identity_maps[model][key] || begin
         conditions = Hash[ *model.key(name).zip(key).flatten ]
-        conditions.update(:limit => 1)
-
-        query = if model.query
-          model.query.merge(conditions)
-        else
-          Query.new(self, model, conditions)
-        end
-
-        adapter.read_set(self, query).first
+        first(model, conditions.update(:limit => 1))
       end
     end
 
@@ -173,10 +167,6 @@ module DataMapper
       DataMapper::Transaction.new(self)
     end
 
-    def to_s
-      "#<DataMapper::Repository:#{@name}>"
-    end
-
     def map(*args)
       type_map.map(*args)
     end
@@ -194,6 +184,17 @@ module DataMapper
 
     # TODO: remove this alias
     alias exists? storage_exists?
+
+    def eql?(other)
+      return true if super
+      name == other.name
+    end
+
+    alias == eql?
+
+    def to_s
+      "#<DataMapper::Repository:#{@name}>"
+    end
 
     private
 

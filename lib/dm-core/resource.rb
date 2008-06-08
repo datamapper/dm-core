@@ -188,8 +188,11 @@ module DataMapper
     # -
     # @public
     def inspect
-      attrs = attributes.inject([]) {|s,(k,v)| s << "#{k}=#{v.inspect}"}
-      "#<#{self.class.name} #{attrs.join(" ")}>"
+      attrs = []
+      attributes.each do |name,value|
+        attrs << "#{name}=#{value.inspect}"
+      end
+      "#<#{self.class.name} #{attrs * ' '}>"
     end
 
     # TODO docs
@@ -373,7 +376,7 @@ module DataMapper
     # --
     # @public
     def reload
-      @collection.reload(:fields => loaded_attributes)
+      reload_attributes(*loaded_attributes)
       (parent_associations + child_associations).each { |association| association.reload! }
       self
     end
@@ -390,7 +393,7 @@ module DataMapper
     # --
     # @public
     def reload_attributes(*attributes)
-      @collection.reload(:fields => attributes)
+      @collection.reload(:fields => attributes) if @collection
       self
     end
 
@@ -508,8 +511,7 @@ module DataMapper
     end
 
     def lazy_load(name)
-      return unless @collection
-      @collection.reload(:fields => self.class.properties(repository.name).lazy_load_context(name))
+      reload_attributes(*self.class.properties(repository.name).lazy_load_context(name))
     end
 
     def private_attributes
@@ -630,6 +632,8 @@ module DataMapper
         @properties[repository_name].key
       end
 
+      alias default_order key
+
       def inheritance_property(repository_name = default_repository_name)
         @properties[repository_name].inheritance_property
       end
@@ -638,7 +642,7 @@ module DataMapper
       #
       # @see Repository#get
       def get(*key)
-        # TODO: perform the Model.query (scope) checking here instead of Repository#get
+        # TODO: move IdentityMap lookup/search from Repository#get to here
         repository.get(self, key)
       end
 
@@ -676,6 +680,8 @@ module DataMapper
       #
       # @see Repository#all
       def all(query = {})
+        # TODO: perform the Model.query (scope) checking here instead of Repository#all
+
         repository = if Hash === query && query.has_key?(:repository)
           repository(query[:repository])
         elsif Query === query

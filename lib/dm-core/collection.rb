@@ -6,45 +6,50 @@ module DataMapper
       query.repository
     end
 
-    def load(values, reload = false)
+    def load(values)
+      raise "Expected #{@properties.size} attributes, got #{values.size}" if @properties.size != values.size
+
       model = if @inheritance_property_index
         values.at(@inheritance_property_index) || query.model
       else
         query.model
       end
 
+      # TODO: think about moving the logic here into Model#load
       resource = nil
 
       if @key_property_indexes
         key_values = values.values_at(*@key_property_indexes)
 
         if resource = repository.identity_map_get(model, key_values)
-          resource.collection = self
-          self << resource
-          return resource unless reload
+          add(resource)
+
+          return resource unless query.reload?
         else
           resource = model.allocate
-          self << resource
-          resource.collection = self
+          resource.instance_variable_set(:@new_record, false)
+
           @key_properties.zip(key_values).each do |property,key_value|
             resource.instance_variable_set(property.instance_variable_name, key_value)
           end
-          resource.instance_variable_set(:@new_record, false)
+
           repository.identity_map_set(resource)
+
+          add(resource)
         end
       else
         resource = model.allocate
-        self << resource
-        resource.collection = self
         resource.instance_variable_set(:@new_record, false)
         resource.readonly!
+
+        add(resource)
       end
 
-      @properties_with_indexes.each_pair do |property, i|
-        resource.instance_variable_set(property.instance_variable_name, values.at(i))
+      @properties.zip(values).each do |property,value|
+        resource.instance_variable_set(property.instance_variable_name, value)
       end
 
-      self
+      resource
     end
 
     def reload(query = {})
@@ -61,6 +66,9 @@ module DataMapper
         return self if query.empty?
         query = self.query.class.new(self.query.repository, self.query.model, query)
       end
+
+      # TODO: if loaded?, and the query is the same as self.query,
+      # then return self
 
       first_pos = self.query.offset + query.offset
       last_pos  = self.query.offset + self.query.limit if self.query.limit
@@ -79,17 +87,14 @@ module DataMapper
       query.update(:offset => first_pos)
       query.update(:limit => last_pos - first_pos) if last_pos
 
-      query.model.all(self.query.merge(query))
+      query.repository.all(query.model, self.query.merge(query))
     end
 
     def first(*args)
       query = args.last.respond_to?(:merge) ? args.pop : {}
 
-      # TODO: if the collection is loaded, and no query was provided,
-      # then try to access it like an Array
-      #if Hash === query && query.empty? && loaded?
-      #  return super
-      #end
+      # TODO: if loaded? and the passed-in query is a subset of
+      #   self.query then delegate to super
 
       if args.any?
         all(query.merge(:limit => args.first))
@@ -99,49 +104,90 @@ module DataMapper
     end
 
     def last(*args)
-      query = args.last.respond_to?(:merge) ? args.pop.dup : {}
-      query = self.query.class.new(self.query.repository, self.query.model, query) if Hash === query
+      reversed = reverse
 
-      # get the default sort order
-      order = query.order
-      order = self.query.order.any? ? self.query.order : query.model.key if order.empty?
-      query.update(:order => order)
+      # TODO: if loaded? and the passed-in query is a subset of
+      #   self.query then delegate to super
 
-      # reverse the sort order
-      query.update(:order => query.order.map { |o| o.reverse })
+      # tell the collection to reverse the order of the
+      # results coming out of the adapter
+      reversed.add_reversed = !add_reversed?
 
-      if args.any?
-        first(args.shift, query).reverse
-      else
-        first(query)
-      end
+      reversed.first(*args)
     end
 
-    # TODO: add at()
-    # TODO: add slice()
-    # TODO: alias [] to slice()
+    def at(offset)
+      first(:offset => offset)
+    end
+
+    def slice(*args)
+      raise ArgumentError, "must be 1 or 2 arguments, was #{args.size}" if args.size == 0 || args.size > 2
+
+      return at(args.first) if args.size == 1 && Integer === args.first
+
+      if args.size == 2 && Integer === args.first && Integer === args.last
+        offset, limit = args
+      elsif args.size == 1 && Range === args.first
+        range  = args.first
+        offset = range.first
+        limit  = range.last - offset
+        limit += 1 unless range.exclude_end?
+      else
+        raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}"
+      end
+
+      all(:offset => offset, :limit => limit)
+    end
+
+    alias [] slice
+
+    # TODO: add <<
+    # TODO: add push()
+    # TODO: add unshift()
+
+    def reverse
+      #if loaded?
+      #  reversed = super
+      #  reversed.query.reverse!
+      #  return reversed
+      #end
+
+      all(self.query.reverse)
+    end
+
+    def replace(other)
+      if loaded?
+        each { |resource| orphan_resource(resource) }
+      end
+      other.each { |resource| relate_resource(resource) }
+      super
+    end
 
     def clear
       if loaded?
-        each { |resource| remove_resource(resource) }
+        each { |resource| orphan_resource(resource) }
       end
       super
     end
 
     def pop
-      remove_resource(super)
+      orphan_resource(super)
     end
 
     def shift
-      remove_resource(super)
+      orphan_resource(super)
     end
 
     def delete(resource, &block)
-      remove_resource(super)
+      orphan_resource(super)
     end
 
     def delete_at(index)
-      remove_resource(super)
+      orphan_resource(super)
+    end
+
+    def add_reversed=(boolean)
+      query.add_reversed = boolean
     end
 
     private
@@ -149,32 +195,46 @@ module DataMapper
     def initialize(query, &loader)
       raise ArgumentError, "+query+ must be a DataMapper::Query, but was #{query.class}", caller unless query.kind_of?(Query)
 
-      @query                   = query
-      @properties_with_indexes = Hash[*query.fields.zip((0...query.fields.length).to_a).flatten]
+      @query      = query
+      @properties = query.fields
 
       super()
       load_with(&loader)
 
       if inheritance_property = query.model.inheritance_property(repository.name)
-        @inheritance_property_index = @properties_with_indexes[inheritance_property]
+        @inheritance_property_index = @properties.index(inheritance_property)
       end
 
-      if (@key_properties = query.model.key(repository.name)).all? { |key| @properties_with_indexes.include?(key) }
-        @key_property_indexes = @properties_with_indexes.values_at(*@key_properties)
+      if (@key_properties = query.model.key(repository.name)).all? { |property| @properties.include?(property) }
+        @key_property_indexes = @key_properties.map { |property| @properties.index(property) }
       end
+    end
+
+    def add_reversed?
+      query.add_reversed?
     end
 
     def wrap(entries)
       self.class.new(query).replace(entries)
     end
 
-    def remove_resource(resource)
+    def add(resource)
+      relate_resource(resource)  # TODO: remove this once unshift/push relate resources
+      add_reversed? ? unshift(resource) : push(resource)
+    end
+
+    def relate_resource(resource)
+      resource.collection = self if resource
+      resource
+    end
+
+    def orphan_resource(resource)
       resource.collection = nil if resource && resource.collection == self
       resource
     end
 
     def keys
-      entry_keys = @array.map { |resource| resource.key }
+      entry_keys = map { |resource| resource.key }
 
       keys = {}
       @key_properties.zip(entry_keys.transpose).each do |property,values|
@@ -185,6 +245,8 @@ module DataMapper
 
     def empty_collection
       # TODO: figure out how to create an empty collection
+      #   - must have a null query object.. i.e. should not be possible
+      #     to get any rows from it
       []
     end
 

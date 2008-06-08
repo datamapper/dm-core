@@ -12,7 +12,7 @@ if ADAPTER
     property :color, String
   end
 
-  class Vegetable
+  class Apple
     include DataMapper::Resource
 
     def self.default_repository_name
@@ -122,7 +122,7 @@ if ADAPTER
   describe "DataMapper::Resource with #{ADAPTER}" do
     before :all do
       Orange.auto_migrate!(ADAPTER)
-      Vegetable.auto_migrate!(ADAPTER)
+      Apple.auto_migrate!(ADAPTER)
       FortunePig.auto_migrate!(ADAPTER)
 
       orange = Orange.new(:color => 'orange')
@@ -148,21 +148,13 @@ if ADAPTER
 
     it "should be able to reload new objects" do
       repository(ADAPTER) do
-        orange = Orange.new
-        orange.name = 'Tom'
-        orange.save
-
-        lambda do
-          orange.reload!
-        end.should_not raise_error
+        Orange.create(:name => 'Tom').reload!
       end
     end
 
     it "should be able to find first or create objects" do
       repository(ADAPTER) do
-        orange = Orange.new
-        orange.name = 'Naval'
-        orange.save
+        orange = Orange.create(:name => 'Naval')
 
         Orange.first_or_create(:name => 'Naval').should == orange
 
@@ -174,16 +166,14 @@ if ADAPTER
     end
 
     it "should be able to override a default with a nil" do
-      pending("Some weird issue with running from Rake") do
-        repository(ADAPTER) do
-          colorless_veggy = Vegetable.new
-          colorless_veggy.color = nil
-          colorless_veggy.save
-          colorless_veggy.color.should be_nil
+      repository(ADAPTER) do
+        apple = Apple.new
+        apple.color = nil
+        apple.save
+        apple.color.should be_nil
 
-          colorless_veggy = Vegetable.create(:color => nil)
-          colorless_veggy.color.should be_nil
-        end
+        apple = Apple.create(:color => nil)
+        apple.color.should be_nil
       end
     end
 

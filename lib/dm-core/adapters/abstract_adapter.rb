@@ -204,7 +204,7 @@ module DataMapper
         @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Underscored
 
-        @transactions = Hash.new do |hash, key| 
+        @transactions = Hash.new do |hash, key|
           hash.delete_if do |k, v|
             !k.respond_to?(:alive?) || !k.alive?
           end

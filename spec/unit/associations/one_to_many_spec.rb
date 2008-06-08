@@ -181,6 +181,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
         mock("child 2"),
       ]
       @collection << @resource
+      @collection.stub!(:loaded?).and_return(true)
       @relationship.stub!(:attach_parent)
     end
 

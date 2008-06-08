@@ -131,7 +131,7 @@ describe DataMapper::Adapters::AbstractAdapter do
     t = Thread.new do
       @adapter.push_transaction("plur")
     end
-    while t.alive? 
+    while t.alive?
       sleep 0.1
     end
     @adapter.instance_eval do @transactions end.size.should == 1

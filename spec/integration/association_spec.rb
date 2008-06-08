@@ -312,9 +312,13 @@ if ADAPTER
         pie1 = Pie.first(:name => 'pie1')
         pie2 = Pie.first(:name => 'pie2')
 
+        sky1.pie.should == pie1
+        pie2.sky.should be_nil
+
         sky1.pie = pie2
-        pie1.reload.sky.should be_nil
+
         pie2.sky.should == sky1
+        pie1.reload.sky.should be_nil
       end
 
       it 'should load the associated instance' do

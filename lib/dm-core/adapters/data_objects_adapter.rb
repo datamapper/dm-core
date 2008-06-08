@@ -72,7 +72,7 @@ module DataMapper
 
         properties ||= self.properties
 
-        Collection.new(Query.new(repository, self)) do |set|
+        Collection.new(Query.new(repository, self)) do |collection|
           repository.adapter.send(:with_connection) do |connection|
             begin
               command = connection.create_command(sql)
@@ -80,7 +80,7 @@ module DataMapper
               reader = command.execute_reader(*params)
 
               while(reader.next!)
-                set.load(reader.values, do_reload)
+                collection.load(reader.values)
               end
             ensure
               reader.close if reader
@@ -155,7 +155,7 @@ module DataMapper
       #  # TODO: Create a Resource class method that instantiates a resource
       #  # and registers it in the IdentityMap so that Collection#load isn't
       #  # needed for simple cases like this.
-      #  set = Collection.new(Query.new(repository, model, model.key(name) => bind_values))
+      #  collection = Collection.new(Query.new(repository, model, model.key(name) => bind_values))
       #
       #  statement = read_statement(model, properties, key)
       #
@@ -165,8 +165,8 @@ module DataMapper
       #
       #    begin
       #      reader = command.execute_reader(*bind_values)
-      #      set.load(reader.values) if reader.next!
-      #      set.first
+      #      collection.load(reader.values) if reader.next!
+      #      collection.first
       #    ensure
       #      reader.close if reader
       #    end
@@ -200,18 +200,16 @@ module DataMapper
 
       # Methods dealing with finding stuff by some query parameters
       def read_set(repository, query)
-        Collection.new(query) do |set|
+        Collection.new(query) do |collection|
           with_connection do |connection|
             begin
               command = connection.create_command(query_read_statement(query))
               command.set_types(query.fields.map { |p| p.primitive })
 
-              reader = command.execute_reader(*query.parameters)
-
-              do_reload = query.reload?
+              reader = command.execute_reader(*query.bind_values)
 
               while(reader.next!)
-                set.load(reader.values, do_reload)
+                collection.load(reader.values)
               end
             ensure
               reader.close if reader

@@ -49,14 +49,15 @@ module DataMapper
         def replace(parent_resource)
           @parent_resource = parent_resource
           @relationship.attach_parent(@child_resource, @parent_resource) if @parent_resource.nil? || !@parent_resource.new_record?
+          self
         end
 
         def save
-          if parent && parent.new_record?
-            repository(@relationship.repository_name) do
-              parent.save
-              @relationship.attach_parent(@child_resource, parent)
-            end
+          return unless parent && parent.new_record?
+
+          repository(@relationship.repository_name) do
+            parent.save
+            @relationship.attach_parent(@child_resource, parent)
           end
         end
 
