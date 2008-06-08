@@ -59,6 +59,11 @@ module DataMapper
       module_function :setup
 
       class Proxy
+        # TODO: add assertions when attempting to perform operations
+        # on the proxy when the parent is a new record and the underlying
+        # children are an Array.  Will not be able to use .all(),
+        # or .first(), or .destroy() for example.
+
         instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
 
         def replace(resources)
