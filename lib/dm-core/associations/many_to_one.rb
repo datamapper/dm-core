@@ -78,6 +78,10 @@ module DataMapper
         def parent
           @parent_resource ||= @relationship.get_parent(@child_resource)
         end
+        
+        def kind_of?(klass)
+           super || parent.kind_of?(klass) 
+        end
 
         def method_missing(method, *args, &block)
           parent.__send__(method, *args, &block)

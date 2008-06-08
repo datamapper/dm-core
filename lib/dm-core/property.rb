@@ -380,7 +380,7 @@ module DataMapper
     #-
     # @api private
     def get(resource)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
+      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
       resource.attribute_get(@name)
     end
 
@@ -390,7 +390,7 @@ module DataMapper
     #-
     # @api private
     def set(resource, value)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
+      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
       resource.attribute_set(@name, value)
     end
 
