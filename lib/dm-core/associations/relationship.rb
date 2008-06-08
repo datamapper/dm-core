@@ -12,6 +12,7 @@ module DataMapper
           child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
             # TODO: use something similar to DM::NamingConventions to determine the property name
             property_name ||= "#{name}_#{parent_property.name}".to_sym
+
             model_properties[property_name] || DataMapper.repository(repository_name) do
               attributes = {}
               [ :length, :scale, :precision ].each do |attribute|
@@ -37,12 +38,12 @@ module DataMapper
         end
       end
 
-      def get_children(parent, options = {}, finder = :all)
+      def get_children(parent, options = {})
         bind_values = parent_key.get(parent)
         query = child_key.to_query(bind_values)
 
         DataMapper.repository(repository_name) do
-          child_model.send(finder, @query.merge(options).merge(query))
+          child_model.all(@query.merge(options).merge(query))
         end
       end
 

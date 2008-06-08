@@ -10,13 +10,14 @@ module DataMapper
       undef_method :get_parent
       undef_method :attach_parent
 
-      def get_children(parent, options = {}, finder = :all)
+      def get_children(parent, options = {})
         query = @query.merge(options).merge(child_key.to_query(parent_key.get(parent)))
 
         query[:links] = links
 
         DataMapper.repository(parent.repository.name) do
-          finder == :first ? grandchild_model.first(query) : grandchild_model.all(query).uniq
+          # FIXME: remove the need for the uniq
+          grandchild_model.all(query).uniq
         end
       end
 

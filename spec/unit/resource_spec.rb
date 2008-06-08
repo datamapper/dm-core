@@ -245,8 +245,8 @@ describe "DataMapper::Resource" do
     earth.orbit_period = 365.26
     earth.orbit_period.should == 365.26
   end
-  describe 'ClassMethods' do
 
+  describe 'ClassMethods' do
     it "should return a new Transaction with itself as argument on #transaction" do
       transaction = mock("transaction")
       DataMapper::Transaction.should_receive(:new).with(Planet).and_return(transaction)
@@ -371,6 +371,15 @@ describe "DataMapper::Resource" do
       Planet.storage_exists?.should == true
     end
 
+    it 'should provide #default_order' do
+      Planet.should respond_to(:default_order)
+    end
+
+    describe '#default_order' do
+      it 'should be equal to #key by default' do
+        Planet.default_order.should == Planet.key
+      end
+    end
   end
 
   describe "anonymity" do

@@ -59,77 +59,74 @@ module DataMapper
       module_function :setup
 
       class Proxy
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? should should_not ].include?(m) }
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
 
         def replace(resources)
-          each { |resource| remove_resource(resource) }
-          append_resource(resources)
-          children.replace(resources)
-          self
+          each { |resource| orphan_resource(resource) }
+          resources.each { |resource| relate_resource(resource) }
+          super
         end
 
         def push(*resources)
-          append_resource(resources)
-          children.push(*resources)
-          self
+          resources.each { |resource| relate_resource(resource) }
+          super
         end
 
         def unshift(*resources)
-          append_resource(resources)
-          children.unshift(*resources)
-          self
+          resources.each { |resource| relate_resource(resource) }
+          super
         end
 
         def <<(resource)
           #
           # The order here is of the essence.
           #
-          # self.append_resource used to be called before children.<<, which created weird errors
+          # self.relate_resource used to be called before children.<<, which created weird errors
           # where the resource was appended in the db before it was appended onto the @children
           # structure, that was just read from the database, and therefore suddenly had two
           # elements instead of one after the first addition.
           #
-          children << resource
-          append_resource([ resource ])
+          super
+          relate_resource(resource)
           self
         end
 
         def pop
-          remove_resource(children.pop)
+          orphan_resource(super)
         end
 
         def shift
-          remove_resource(children.shift)
+          orphan_resource(super)
         end
 
         def delete(resource, &block)
-          remove_resource(children.delete(resource, &block))
+          orphan_resource(super)
         end
 
         def delete_at(index)
-          remove_resource(children.delete_at(index))
+          orphan_resource(super)
         end
 
         def clear
-          each { |resource| remove_resource(resource) }
-          children.clear
+          each { |resource| orphan_resource(resource) }
+          super
           self
         end
 
         def save
-          save_resources(@dirty_children)
+          @dirty_children.each { |resource| save_resource(resource) }
           @dirty_children = []
           self
-        end
-
-        def first(options={})
-          options.empty? ? children.first : @relationship.get_children(@parent_resource, options, :first)
         end
 
         def reload!
           @dirty_children = []
           @children = nil
           self
+        end
+
+        def respond_to?(method)
+          super || children.respond_to?(method)
         end
 
         private
@@ -147,22 +144,31 @@ module DataMapper
           @children ||= @relationship.get_children(@parent_resource)
         end
 
-        def ensure_mutable
+        def assert_mutable
           raise ImmutableAssociationError, "You can not modify this assocation" if RelationshipChain === @relationship
         end
 
-        def add_default_association_values(resources)
-          resources.each do |resource|
-            conditions = @relationship.query.reject { |key, value| key == :order }
-            conditions.each do |key, value|
-              resource.send("#{key}=", value) if key.class != DataMapper::Query::Operator && resource.send("#{key}") == nil
-            end
+        # TODO: move this logic inside the Collection
+        def add_default_association_values(resource)
+          conditions = @relationship.query.reject { |key, value| key == :order }
+          conditions.each do |key, value|
+            resource.send("#{key}=", value) if key.class != DataMapper::Query::Operator && resource.send("#{key}") == nil
           end
-          resources
         end
 
-        def remove_resource(resource)
-          ensure_mutable
+        def relate_resource(resource)
+          assert_mutable
+          add_default_association_values(resource)
+          if @parent_resource.new_record?
+            @dirty_children << resource
+          else
+            save_resource(resource)
+          end
+          resource
+        end
+
+        def orphan_resource(resource)
+          assert_mutable
           begin
             repository(@relationship.repository_name) do
               @relationship.attach_parent(resource, nil)
@@ -175,28 +181,20 @@ module DataMapper
           resource
         end
 
-        def append_resource(resources = [])
-          ensure_mutable
-          add_default_association_values(resources)
-          if @parent_resource.new_record?
-            @dirty_children.push(*resources)
-          else
-            save_resources(resources)
-          end
-        end
-
-        def save_resources(resources = [])
-          ensure_mutable
+        def save_resource(resource)
+          assert_mutable
           repository(@relationship.repository_name) do
-            resources.each do |resource|
-              @relationship.attach_parent(resource, @parent_resource)
-              resource.save
-            end
+            @relationship.attach_parent(resource, @parent_resource)
+            resource.save
           end
         end
 
         def method_missing(method, *args, &block)
-          children.__send__(method, *args, &block)
+          results = children.__send__(method, *args, &block)
+
+          return self if LazyArray::RETURN_SELF.include?(method) && results.kind_of?(Array)
+
+          results
         end
       end # class Proxy
     end # module OneToMany

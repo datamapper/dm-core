@@ -107,24 +107,48 @@ module DataMapper
     end # class Path
 
     OPTIONS = [
-      :reload, :offset, :limit, :order, :fields, :links, :includes, :conditions
+      :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :includes, :conditions
     ]
 
-    attr_reader :repository, :model, *OPTIONS
+    attr_reader :repository, :model, *OPTIONS - [ :reload ]
+    attr_writer :add_reversed
+    alias add_reversed? add_reversed
+
+    def reload?
+      @reload
+    end
+
+    def reverse
+      dup.reverse!
+    end
+
+    def reverse!
+      # set the default sort order
+      order = normalize_order(self.order.any? ? self.order : model.default_order)
+
+      # reverse the sort order
+      update(:order => order.map { |o| o.reverse })
+
+      self
+    end
 
     def update(other)
+      assert_valid_other(other)
+
       other = self.class.new(@repository, model, other) if Hash === other
 
-      raise ArgumentError, "+other.model+ was not equal to #{model.name}" unless model == other.model
+      # TODO: update this so if "other" had a value explicitly set
+      #       overwrite the attributes in self
 
       # only overwrite the attributes with non-default values
-      @reload   = other.reload   unless other.reload   == false
-      @offset   = other.offset   unless other.offset   == 0
-      @limit    = other.limit    unless other.limit    == nil
-      @order    = other.order    unless other.order    == []
-      @fields   = other.fields   unless other.fields   == @properties.defaults
-      @links    = other.links    unless other.links    == []
-      @includes = other.includes unless other.includes == []
+      @reload       = other.reload?       unless other.reload?       == false
+      @offset       = other.offset        unless other.offset        == 0
+      @limit        = other.limit         unless other.limit         == nil
+      @order        = other.order         unless other.order         == []
+      @add_reversed = other.add_reversed? unless other.add_reversed? == false
+      @fields       = other.fields        unless other.fields        == @properties.defaults
+      @links        = other.links         unless other.links         == []
+      @includes     = other.includes      unless other.includes      == []
 
       update_conditions(other)
 
@@ -139,31 +163,32 @@ module DataMapper
       return true if super
       # TODO: add a #hash method, and then use it in the comparison, eg:
       #   return hash == other.hash
-      @model    == other.model    &&
-      @reload   == other.reload   &&
-      @offset   == other.offset   &&
-      @limit    == other.limit    &&
-      @order    == other.order    &&  # order is significant, so do not sort this
-      @fields   == other.fields   &&  # TODO: sort this so even if the order is different, it is equal
-      @links    == other.links    &&  # TODO: sort this so even if the order is different, it is equal
-      @includes == other.includes &&  # TODO: sort this so even if the order is different, it is equal
+      @model        == other.model         &&
+      @reload       == other.reload?       &&
+      @offset       == other.offset        &&
+      @limit        == other.limit         &&
+      @order        == other.order         &&  # order is significant, so do not sort this
+      @add_reversed == other.add_reversed? &&
+      @fields       == other.fields        &&  # TODO: sort this so even if the order is different, it is equal
+      @links        == other.links         &&  # TODO: sort this so even if the order is different, it is equal
+      @includes     == other.includes      &&  # TODO: sort this so even if the order is different, it is equal
       @conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash } == other.conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash }
     end
 
     alias eql? ==
 
-    def parameters
-      parameters = []
+    def bind_values
+      bind_values = []
       conditions.each do |tuple|
-        next unless tuple.size == 3
+        next if tuple.size == 2
         operator, property, bind_value = *tuple
         if :raw == operator
-          parameters.push(*bind_value)
+          bind_values.push(*bind_value)
         else
-          parameters << bind_value
+          bind_values << bind_value
         end
       end
-      parameters
+      bind_values
     end
 
     # find the point in self.conditions where the sub select tuple is
@@ -186,8 +211,6 @@ module DataMapper
       @conditions = new_conditions
     end
 
-    alias reload? reload
-
     def inspect
       attrs = [
         [ :repository, repository.name ],
@@ -198,7 +221,7 @@ module DataMapper
         [ :order,      order           ],
         [ :limit,      limit           ],
         [ :offset,     offset          ],
-        [ :reload,     reload          ],
+        [ :reload,     reload?         ],
       ]
 
       "#<#{self.class.name} #{attrs.map { |(k,v)| "@#{k}=#{v.inspect}" } * ' '}>"
@@ -211,25 +234,26 @@ module DataMapper
 
       options.each_pair { |k,v| option[k] = v.call if v.is_a? Proc } if options.is_a? Hash
 
-      validate_model(model)
-      validate_options(options)
+      assert_valid_model(model)
+      assert_valid_options(options)
 
       @repository = repository
       @properties = model.properties(@repository.name)
 
-      @model      = model                           # must be Class that includes DM::Resource
-      @reload     = options.fetch :reload,   false  # must be true or false
-      @offset     = options.fetch :offset,   0      # must be an Integer greater than or equal to 0
-      @limit      = options.fetch :limit,    nil    # must be an Integer greater than or equal to 1
-      @order      = options.fetch :order,    []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
-      @fields     = options.fetch :fields,   @properties.defaults  # must be an Array of Symbol, String or DM::Property
-      @links      = options.fetch :links,    []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
-      @includes   = options.fetch :includes, []     # must be an Array of DM::Query::Path
-      @conditions = []                              # must be an Array of triplets (or pairs when passing in raw String queries)
+      @model        = model                               # must be Class that includes DM::Resource
+      @reload       = options.fetch :reload,       false  # must be true or false
+      @offset       = options.fetch :offset,       0      # must be an Integer greater than or equal to 0
+      @limit        = options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
+      @order        = options.fetch :order,        []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
+      @add_reversed = options.fetch :add_reversed, false  # must be true or false
+      @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
+      @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
+      @includes     = options.fetch :includes,     []     # must be an Array of DM::Query::Path
+      @conditions   = []                                  # must be an Array of triplets (or pairs when passing in raw String queries)
 
       # normalize order and fields
-      normalize_order
-      normalize_fields
+      @order  = normalize_order(@order)
+      @fields = normalize_fields(@fields)
 
       # XXX: should I validate that each property in @order corresponds
       # to something in @fields?  Many DB engines require they match,
@@ -239,8 +263,8 @@ module DataMapper
 
       # normalize links and includes.
       # NOTE: this must be done after order and fields
-      normalize_links
-      normalize_includes
+      @links    = normalize_links(@links)
+      @includes = normalize_includes(@includes)
 
       translate_custom_types(@properties, options)
 
@@ -286,13 +310,13 @@ module DataMapper
     end
 
     # validate the model
-    def validate_model(model)
+    def assert_valid_model(model)
       raise ArgumentError, "+model+ must be a Class, but is #{model.class}" unless model.kind_of?(Class)
-      raise ArgumentError, "+model+ must include DataMapper::Resource"      unless Resource > model
+      raise ArgumentError, "+model+ must include DataMapper::Resource"      unless model.ancestors.include?(Resource)
     end
 
     # validate the options
-    def validate_options(options)
+    def assert_valid_options(options)
       raise ArgumentError, "+options+ must be a Hash, but was #{options.class}" unless Hash === options
 
       # validate the reload option
@@ -305,8 +329,8 @@ module DataMapper
         value = options[attribute]
         raise ArgumentError, "+options[:#{attribute}]+ must be an Integer, but was #{value.class}" unless Integer === value
       end
-      raise ArgumentError, '+options[:offset]+ must be greater than or equal to 0' if options.has_key?(:offset) && !(options[:offset] >= 0)
-      raise ArgumentError, '+options[:limit]+ must be greater than or equal to 1'  if options.has_key?(:limit)  && !(options[:limit]  >= 1)
+      raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{options[:offset].inspect}" if options.has_key?(:offset) && !(options[:offset] >= 0)
+      raise ArgumentError, "+options[:limit]+ must be greater than or equal to 1, but was #{options[:limit].inspect}"   if options.has_key?(:limit)  && !(options[:limit]  >= 1)
 
       # validate the order, fields, links, includes and conditions options
       ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
@@ -318,17 +342,18 @@ module DataMapper
 
     # TODO: spec this
     # validate other DM::Query or Hash object
-    def validate_other(other)
+    def assert_valid_other(other)
       if self.class === other
-        raise ArgumentError, "+other+ #{self.class} must belong to the same repository" unless other.repository == @repository
+        raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository" unless other.repository == repository
+        raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model"           unless other.model      == model
       elsif !(Hash === other)
         raise ArgumentError, "+other+ must be a #{self.class} or Hash, but was a #{other.class}"
       end
     end
 
     # normalize order elements to DM::Query::Direction
-    def normalize_order
-      @order = @order.map do |order_by|
+    def normalize_order(order)
+      order.map do |order_by|
         case order_by
           when Direction
             # NOTE: The property is available via order_by.property
@@ -363,8 +388,8 @@ module DataMapper
     end
 
     # normalize fields to DM::Property
-    def normalize_fields
-      @fields = @fields.map do |field|
+    def normalize_fields(fields)
+      fields.map do |field|
         case field
           when Property
             # TODO: if the Property's model doesn't match
@@ -385,12 +410,12 @@ module DataMapper
     end
 
     # normalize links to DM::Query::Path
-    def normalize_links
+    def normalize_links(links)
       # XXX: this should normalize to DM::Query::Path, not DM::Association::Relationship
       # because a link may be more than one-hop-away from the source.  A DM::Query::Path
       # should include an Array of Relationship objects that trace the "path" between
       # the source and the target.
-      @links = @links.map do |link|
+      links.map do |link|
         case link
           when Associations::Relationship
             link
@@ -405,10 +430,11 @@ module DataMapper
     end
 
     # normalize includes to DM::Query::Path
-    def normalize_includes
+    def normalize_includes(includes)
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
       # NOTE: :includes can only be and array of DM::Query::Path objects now. This method
       #       can go away after review of what has been done.
+      includes
     end
 
     # validate that all the links or includes are present for the given DM::Query::Path
