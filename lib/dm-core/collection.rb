@@ -114,6 +114,10 @@ module DataMapper
       reversed.first(*args)
     end
 
+    def at(offset)
+      first(:offset => offset)
+    end
+
     # TODO: add at()
     # TODO: add slice()
     # TODO: alias [] to slice()

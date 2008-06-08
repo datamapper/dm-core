@@ -249,7 +249,9 @@ if ADAPTER
 
         describe '#at' do
           it 'should return a Resource' do
-            @collection.at(0).should be_kind_of(DataMapper::Resource)
+            resource_at = @collection.at(1)
+            resource_at.should be_kind_of(DataMapper::Resource)
+            resource_at.id.should == @bessie.id
           end
         end
 
