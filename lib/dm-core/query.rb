@@ -344,8 +344,8 @@ module DataMapper
     # validate other DM::Query or Hash object
     def assert_valid_other(other)
       if self.class === other
-        raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository" unless other.repository == repository
-        raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model"           unless other.model      == model
+        raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}" unless other.repository == repository
+        raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}"                unless other.model      == model
       elsif !(Hash === other)
         raise ArgumentError, "+other+ must be a #{self.class} or Hash, but was a #{other.class}"
       end

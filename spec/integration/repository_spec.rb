@@ -34,8 +34,9 @@ if ADAPTER
       it "should allow limit and offset" do
         repository(ADAPTER).all(SerialFinderSpec, { :limit => 50 }).should have(50).entries
 
-        repository(ADAPTER).all(SerialFinderSpec, { :limit => 20, :offset => 40 }).map(&:id).should ==
-          repository(ADAPTER).all(SerialFinderSpec, {})[40...60].map(&:id)
+        collection = repository(ADAPTER).all(SerialFinderSpec, { :limit => 20, :offset => 40 })
+        collection.should have(20).entries
+        collection.map(&:id).should == repository(ADAPTER).all(SerialFinderSpec, {})[40...60].map(&:id)
       end
 
       it "should lazy-load missing attributes" do

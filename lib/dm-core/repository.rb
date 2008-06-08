@@ -167,10 +167,6 @@ module DataMapper
       DataMapper::Transaction.new(self)
     end
 
-    def to_s
-      "#<DataMapper::Repository:#{@name}>"
-    end
-
     def map(*args)
       type_map.map(*args)
     end
@@ -188,6 +184,17 @@ module DataMapper
 
     # TODO: remove this alias
     alias exists? storage_exists?
+
+    def eql?(other)
+      return true if super
+      name == other.name
+    end
+
+    alias == eql?
+
+    def to_s
+      "#<DataMapper::Repository:#{@name}>"
+    end
 
     private
 

@@ -7,6 +7,8 @@ module DataMapper
     end
 
     def load(values)
+      raise "Expected #{@properties.size} attributes, got #{values.size}" if @properties.size != values.size
+
       model = if @inheritance_property_index
         values.at(@inheritance_property_index) || query.model
       else
@@ -43,8 +45,8 @@ module DataMapper
         add(resource)
       end
 
-      @properties_with_indexes.each_pair do |property, i|
-        resource.instance_variable_set(property.instance_variable_name, values.at(i))
+      @properties.zip(values).each do |property,value|
+        resource.instance_variable_set(property.instance_variable_name, value)
       end
 
       resource
@@ -118,9 +120,25 @@ module DataMapper
       first(:offset => offset)
     end
 
-    # TODO: add at()
-    # TODO: add slice()
-    # TODO: alias [] to slice()
+    def slice(*args)
+      raise ArgumentError, "must be 1 or 2 arguments, was #{args.size}" if args.size == 0 || args.size > 2
+
+      return at(args.first) if args.size == 1 && Integer === args.first
+
+      if args.size == 2 && Integer === args.first && Integer === args.last
+        offset, limit = args
+      elsif args.size == 1 && Range === args.first
+        range  = args.first
+        offset = range.first
+        limit  = range.exclude_end? ? range.last - range.first : range.last + 1 - range.first
+      else
+        raise ArgumentError, "arguments may be 1 or 2 Integer, or 1 Range object, was: #{args.inspect}"
+      end
+
+      all(:offset => offset, :limit => limit)
+    end
+
+    alias [] slice
 
     # TODO: add <<
     # TODO: add push()
@@ -176,18 +194,18 @@ module DataMapper
     def initialize(query, &loader)
       raise ArgumentError, "+query+ must be a DataMapper::Query, but was #{query.class}", caller unless query.kind_of?(Query)
 
-      @query                   = query
-      @properties_with_indexes = Hash[*query.fields.zip((0...query.fields.length).to_a).flatten]
+      @query      = query
+      @properties = query.fields
 
       super()
       load_with(&loader)
 
       if inheritance_property = query.model.inheritance_property(repository.name)
-        @inheritance_property_index = @properties_with_indexes[inheritance_property]
+        @inheritance_property_index = @properties.index(inheritance_property)
       end
 
-      if (@key_properties = query.model.key(repository.name)).all? { |key| @properties_with_indexes.include?(key) }
-        @key_property_indexes = @properties_with_indexes.values_at(*@key_properties)
+      if (@key_properties = query.model.key(repository.name)).all? { |property| @properties.include?(property) }
+        @key_property_indexes = @key_properties.map { |property| @properties.index(property) }
       end
     end
 
