@@ -42,7 +42,7 @@ This is what the Discriminator data-type is for:
 
   class Salesperson < Person; end
 
-You can claim a column to have the type <tt>Class</tt> and DataMapper will
+You can claim a column to have the type <tt>Discriminator</tt> and DataMapper will
 automatically drop the class name of the inherited classes into that field of
 the data-store.
 
