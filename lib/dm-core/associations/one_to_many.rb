@@ -116,6 +116,7 @@ module DataMapper
         def save
           @dirty_children.each { |resource| save_resource(resource) }
           @dirty_children = []
+          @children = @relationship.get_children(@parent_resource).replace(@children) unless @children.kind_of?(Collection)
           self
         end
 

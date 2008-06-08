@@ -40,6 +40,7 @@ module DataMapper
 
       def get_children(parent, options = {})
         bind_values = parent_key.get(parent)
+        return [] if bind_values.any? { |bind_value| bind_value.nil? }
         query = child_key.to_query(bind_values)
 
         DataMapper.repository(repository_name) do

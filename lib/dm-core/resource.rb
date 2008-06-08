@@ -376,7 +376,7 @@ module DataMapper
     # --
     # @public
     def reload
-      @collection.reload(:fields => loaded_attributes)
+      reload_attributes(*loaded_attributes)
       (parent_associations + child_associations).each { |association| association.reload! }
       self
     end
@@ -393,7 +393,7 @@ module DataMapper
     # --
     # @public
     def reload_attributes(*attributes)
-      @collection.reload(:fields => attributes)
+      @collection.reload(:fields => attributes) if @collection
       self
     end
 
@@ -511,8 +511,7 @@ module DataMapper
     end
 
     def lazy_load(name)
-      return unless @collection
-      @collection.reload(:fields => self.class.properties(repository.name).lazy_load_context(name))
+      reload_attributes(*self.class.properties(repository.name).lazy_load_context(name))
     end
 
     def private_attributes
