@@ -189,9 +189,17 @@ module DataMapper
     # @public
     def inspect
       attrs = []
-      attributes.each do |name,value|
-        attrs << "#{name}=#{value.inspect}"
+
+      self.class.properties(repository.name).each do |property|
+        value = if property.lazy? && !attribute_loaded?(property.name) && !new_record?
+          '<not loaded>'
+        else
+          send(property.getter).inspect
+        end
+
+        attrs << "#{property.name}=#{value}"
       end
+
       "#<#{self.class.name} #{attrs * ' '}>"
     end
 
