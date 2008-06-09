@@ -166,7 +166,7 @@ if HAS_SQLITE3
     end
 
     describe "CRUD for serial Key" do
-      before :all do        
+      before :all do
         class VideoGame
           include DataMapper::Resource
 
@@ -187,7 +187,7 @@ if HAS_SQLITE3
           game.save
           game.should_not be_a_new_record
           game.should_not be_dirty
-          
+
           saved = VideoGame.first(:name => game.name)
           saved.id.should == game.id
           saved.object.should == time

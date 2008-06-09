@@ -176,7 +176,7 @@ if HAS_POSTGRES
           game.save
           game.should_not be_a_new_record
           game.should_not be_dirty
-          
+
           saved = VideoGame.first(:name => game.name)
           saved.id.should == game.id
           saved.object.should == time

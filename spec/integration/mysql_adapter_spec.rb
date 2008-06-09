@@ -17,7 +17,7 @@ if HAS_MYSQL
         auto_migrate!(:mysql)
       end
     end
-    
+
     it "should handle Object type" do
       time = Time.now
       repository(:mysql) do
