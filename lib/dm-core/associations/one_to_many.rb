@@ -178,12 +178,8 @@ module DataMapper
         end
 
         def orphan_resource(resource)
-          assert_mutable
           begin
-            repository(@relationship.repository_name) do
-              @relationship.attach_parent(resource, nil)
-              resource.save
-            end
+            save_resource(resource, nil)
           rescue
             children << resource
             raise
@@ -191,10 +187,10 @@ module DataMapper
           resource
         end
 
-        def save_resource(resource)
+        def save_resource(resource, parent = @parent_resource)
           assert_mutable
           repository(@relationship.repository_name) do
-            @relationship.attach_parent(resource, @parent_resource)
+            @relationship.attach_parent(resource, parent)
             resource.save
           end
         end
