@@ -222,6 +222,14 @@ module DataMapper
       super
     end
 
+    def properties
+      PropertySet.new(query.fields)
+    end
+
+    def relationships
+      query.model.relationships
+    end
+
     private
 
     def initialize(query, &loader)

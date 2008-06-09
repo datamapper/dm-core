@@ -96,12 +96,20 @@ describe DataMapper::Collection do
     @collection.should respond_to(:push)
   end
 
+  it 'should provide #properties' do
+    @collection.should respond_to(:properties)
+  end
+
   it 'should provide #reject' do
     @collection.should respond_to(:reject)
   end
 
   it 'should provide #reject!' do
     @collection.should respond_to(:reject!)
+  end
+
+  it 'should provide #relationships' do
+    @collection.should respond_to(:relationships)
   end
 
   it 'should provide #reload' do

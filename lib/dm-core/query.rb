@@ -389,6 +389,7 @@ module DataMapper
 
     # normalize fields to DM::Property
     def normalize_fields(fields)
+      # TODO: return a PropertySet
       fields.map do |field|
         case field
           when Property

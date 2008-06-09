@@ -526,6 +526,17 @@ if ADAPTER
           end
         end
 
+        describe '#properties' do
+          it 'should return a PropertySet' do
+            @collection.properties.should be_kind_of(DataMapper::PropertySet)
+          end
+
+          it 'should contain same properties as query.fields' do
+            properties = @collection.properties
+            properties.entries.should == @collection.query.fields
+          end
+        end
+
         describe '#push' do
           it 'should relate each new resource to the collection' do
             @nancy.collection.object_id.should_not == @collection.object_id
@@ -535,6 +546,17 @@ if ADAPTER
 
           it 'should return self' do
             @collection.push(@steve).object_id.should == @collection.object_id
+          end
+        end
+
+        describe '#relationships' do
+          it 'should return a Hash' do
+            @collection.relationships.should be_kind_of(Hash)
+          end
+
+          it 'should contain same properties as query.model.relationships' do
+            relationships = @collection.relationships
+            relationships.should == @collection.query.model.relationships
           end
         end
 
