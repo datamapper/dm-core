@@ -121,7 +121,7 @@ module DataMapper
 
     case uri_or_options
       when Hash
-        adapter_name = uri_or_options[:adapter]
+        adapter_name = uri_or_options[:adapter].to_s
       when String, Addressable::URI
         uri_or_options = Addressable::URI.parse(uri_or_options) if uri_or_options.kind_of?(String)
         adapter_name = uri_or_options.scheme
