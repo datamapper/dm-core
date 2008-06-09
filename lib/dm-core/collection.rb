@@ -53,6 +53,8 @@ module DataMapper
     end
 
     def reload(query = {})
+      # TODO: turn query into a Query object
+
       query[:fields] ||= self.query.fields
       query[:fields]  |= @key_properties
 
@@ -141,12 +143,23 @@ module DataMapper
 
     alias [] slice
 
-    # TODO: add <<
-    # TODO: add push()
-    # TODO: add unshift()
-
     def reverse
       all(self.query.reverse)
+    end
+
+    def <<(resource)
+      relate_resource(resource)
+      super
+    end
+
+    def push(*resources)
+      resources.each { |resource| relate_resource(resource) }
+      super
+    end
+
+    def unshift(*resources)
+      resources.each { |resource| relate_resource(resource) }
+      super
     end
 
     def replace(other)
@@ -154,13 +167,6 @@ module DataMapper
         each { |resource| orphan_resource(resource) }
       end
       other.each { |resource| relate_resource(resource) }
-      super
-    end
-
-    def clear
-      if loaded?
-        each { |resource| orphan_resource(resource) }
-      end
       super
     end
 
@@ -178,6 +184,13 @@ module DataMapper
 
     def delete_at(index)
       orphan_resource(super)
+    end
+
+    def clear
+      if loaded?
+        each { |resource| orphan_resource(resource) }
+      end
+      super
     end
 
     private
@@ -201,7 +214,6 @@ module DataMapper
     end
 
     def add(resource)
-      relate_resource(resource)  # TODO: remove this once unshift/push relate resources
       query.add_reversed? ? unshift(resource) : push(resource)
     end
 

@@ -202,6 +202,18 @@ if ADAPTER
           @collection.to_a if loaded
         end
 
+        describe '#<<' do
+          it 'should relate each new resource to the collection' do
+            @nancy.collection.object_id.should_not == @collection.object_id
+            @collection << @nancy
+            @nancy.collection.object_id.should == @collection.object_id
+          end
+
+          it 'should return self' do
+            @collection.<<(@steve).object_id.should == @collection.object_id
+          end
+        end
+
         describe '#all' do
           describe 'with no arguments' do
             it 'should return self' do
@@ -269,7 +281,7 @@ if ADAPTER
         end
 
         describe '#clear' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             entries = @collection.entries
             entries.each { |r| r.collection.object_id.should == @collection.object_id }
             @collection.clear
@@ -294,7 +306,7 @@ if ADAPTER
         end
 
         describe '#delete' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             nancy = @collection[0]
             nancy.collection.should_not be_nil
             nancy.collection.delete(nancy)
@@ -307,7 +319,7 @@ if ADAPTER
         end
 
         describe '#delete_at' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             nancy = @collection[0]
             nancy.collection.should_not be_nil
             nancy.collection.delete_at(0).should == nancy
@@ -469,7 +481,7 @@ if ADAPTER
         end
 
         describe '#pop' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             steve = @collection[2]
             steve.collection.should_not be_nil
             steve.collection.pop
@@ -482,6 +494,12 @@ if ADAPTER
         end
 
         describe '#push' do
+          it 'should relate each new resource to the collection' do
+            @nancy.collection.object_id.should_not == @collection.object_id
+            @collection.push(@nancy)
+            @nancy.collection.object_id.should == @collection.object_id
+          end
+
           it 'should return self' do
             @collection.push(@steve).object_id.should == @collection.object_id
           end
@@ -616,7 +634,7 @@ if ADAPTER
         end
 
         describe '#shift' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             nancy = @collection[0]
             nancy.collection.should_not be_nil
             nancy.collection.shift
@@ -702,6 +720,12 @@ if ADAPTER
         end
 
         describe '#unshift' do
+          it 'should relate each new resource to the collection' do
+            @nancy.collection.object_id.should_not == @collection.object_id
+            @collection.unshift(@nancy)
+            @nancy.collection.object_id.should == @collection.object_id
+          end
+
           it 'should return self' do
             @collection.unshift(@steve).object_id.should == @collection.object_id
           end

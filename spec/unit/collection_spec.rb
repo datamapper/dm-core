@@ -12,6 +12,10 @@ describe DataMapper::Collection do
     @collection = DataMapper::Collection.new(@query)
   end
 
+  it 'should provide #<<' do
+    @collection.should respond_to(:<<)
+  end
+
   it 'should provide #all' do
     @collection.should respond_to(:all)
   end
