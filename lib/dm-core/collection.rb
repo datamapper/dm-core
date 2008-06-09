@@ -111,7 +111,7 @@ module DataMapper
 
       # tell the collection to reverse the order of the
       # results coming out of the adapter
-      reversed.add_reversed = !add_reversed?
+      reversed.query.add_reversed = !query.add_reversed?
 
       reversed.first(*args)
     end
@@ -146,12 +146,6 @@ module DataMapper
     # TODO: add unshift()
 
     def reverse
-      #if loaded?
-      #  reversed = super
-      #  reversed.query.reverse!
-      #  return reversed
-      #end
-
       all(self.query.reverse)
     end
 
@@ -186,10 +180,6 @@ module DataMapper
       orphan_resource(super)
     end
 
-    def add_reversed=(boolean)
-      query.add_reversed = boolean
-    end
-
     private
 
     def initialize(query, &loader)
@@ -210,17 +200,9 @@ module DataMapper
       end
     end
 
-    def add_reversed?
-      query.add_reversed?
-    end
-
-    def wrap(entries)
-      self.class.new(query).replace(entries)
-    end
-
     def add(resource)
       relate_resource(resource)  # TODO: remove this once unshift/push relate resources
-      add_reversed? ? unshift(resource) : push(resource)
+      query.add_reversed? ? unshift(resource) : push(resource)
     end
 
     def relate_resource(resource)
