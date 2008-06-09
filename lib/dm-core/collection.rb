@@ -63,6 +63,35 @@ module DataMapper
       replace(all(:reload => true))
     end
 
+    def get(*key)
+      if loaded?
+        # loop over the collection to find the matching resource
+        detect { |resource| resource.key == key }
+      elsif query.limit || query.offset > 0
+        # current query is exclusive, find resource within the set
+
+        # TODO: use a subquery to retrieve the collection and then match
+        #   it up against the key.  This will require some changes to
+        #   how subqueries are generated, since the key may be a
+        #   composite key.  In the case of DO adapters, it means subselects
+        #   like the form "(a, b) IN(SELECT a,b FROM ...)", which will
+        #   require making it so the Query condition key can be a
+        #   Property or an Array of Property objects
+
+        # use the brute force approach until subquery lookups work
+        lazy_load!
+        get(*key)
+      else
+        # current query is all inclusive, lookup using normal approach
+        conditions = Hash[ *query.model.key(query.repository.name).zip(key).flatten ]
+        first(conditions)
+      end
+    end
+
+    def get!(*key)
+      get(*key) || raise(ObjectNotFoundError, "Could not find #{query.model.name} with key #{key.inspect} in collection")
+    end
+
     def all(query = {})
       if query.kind_of?(Hash)
         return self if query.empty?

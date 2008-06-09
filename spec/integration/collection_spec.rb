@@ -408,6 +408,36 @@ if ADAPTER
           end
         end
 
+        describe '#get' do
+          it 'should find a resource in a collection by key' do
+            resource = @collection.get(@nancy.key)
+            resource.should be_kind_of(DataMapper::Resource)
+            resource.id.should == @nancy.id
+          end
+
+          it 'should not find a resource not in the collection' do
+            @query.update(:offset => 0, :limit => 3)
+            @david = Zebra.create!(:name => 'David', :age => 15,  :notes => 'Albino')
+            @collection.get(@david.key).should be_nil
+          end
+        end
+
+        describe '#get!' do
+          it 'should find a resource in a collection by key' do
+            resource = @collection.get!(@nancy.key)
+            resource.should be_kind_of(DataMapper::Resource)
+            resource.id.should == @nancy.id
+          end
+
+          it 'should raise an exception if the resource is not found' do
+            @query.update(:offset => 0, :limit => 3)
+            @david = Zebra.create!(:name => 'David', :age => 15,  :notes => 'Albino')
+            lambda {
+              @collection.get!(@david.key)
+            }.should raise_error(DataMapper::ObjectNotFoundError)
+          end
+        end
+
         describe '#insert' do
           it 'should return self' do
             @collection.insert(1, @steve).object_id.should == @collection.object_id

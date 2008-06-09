@@ -64,6 +64,14 @@ describe DataMapper::Collection do
     @collection.should respond_to(:first)
   end
 
+  it 'should provide #get' do
+    @collection.should respond_to(:get)
+  end
+
+  it 'should provide #get!' do
+    @collection.should respond_to(:get!)
+  end
+
   it 'should provide #insert' do
     @collection.should respond_to(:insert)
   end

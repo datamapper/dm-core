@@ -195,14 +195,14 @@ module DataMapper
     # located. Delete the tuple and add value.conditions. value must be a
     # <DM::Query>
     #
-    def merge_sub_select_conditions(operator, property, value)
+    def merge_subquery(operator, property, value)
       raise ArgumentError, "+value+ is not a #{self.class}, but was #{value.class}", caller unless self.class === value
 
       new_conditions = []
       conditions.each do |tuple|
         if tuple.at(0).to_s == operator.to_s && tuple.at(1) == property && tuple.at(2) == value
-          value.conditions.each do |sub_select_tuple|
-            new_conditions << sub_select_tuple
+          value.conditions.each do |subquery_tuple|
+            new_conditions << subquery_tuple
           end
         else
           new_conditions << tuple

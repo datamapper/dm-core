@@ -663,13 +663,13 @@ module DataMapper
       #
       # @see Resource#get
       # @raise <ObjectNotFoundError> "could not find .... with key: ...."
-      def get!(key)
-        get(key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}")
+      def get!(*key)
+        get(*key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key #{key.inspect}")
       end
 
-      def [](key)
+      def [](*key)
         warn("#{name}[] is deprecated. Use #{name}.get! instead.")
-        get!(key)
+        get!(*key)
       end
 
       def first_or_create(query, attributes = {})

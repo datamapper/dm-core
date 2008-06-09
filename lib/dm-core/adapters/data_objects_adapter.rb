@@ -551,7 +551,9 @@ module DataMapper
             when Range             then "#{property_to_column_name(table_name, property, qualify)} BETWEEN ?"
             when NilClass          then "#{property_to_column_name(table_name, property, qualify)} IS ?"
             when DataMapper::Query then
-              query.merge_sub_select_conditions(operator, property, bind_value)
+              query.merge_subquery(operator, property, bind_value)
+              # TODO: make it possible for property to be an Array, and then
+              #   wrap the columns in parenthesis, eg:  (a, b, c) IN(SELECT a, b, c FROM ...)
               "#{property_to_column_name(table_name, property, qualify)} IN (#{query_read_statement(bind_value)})"
             else "#{property_to_column_name(table_name, property, qualify)} = ?"
           end
@@ -563,7 +565,9 @@ module DataMapper
             when Range             then "#{property_to_column_name(table_name, property, qualify)} NOT BETWEEN ?"
             when NilClass          then "#{property_to_column_name(table_name, property, qualify)} IS NOT ?"
             when DataMapper::Query then
-              query.merge_sub_select_conditions(operator, property, bind_value)
+              query.merge_subquery(operator, property, bind_value)
+              # TODO: make it possible for property to be an Array, and then
+              #   wrap the columns in parenthesis, eg:  (a, b, c) IN(SELECT a, b, c FROM ...)
               "#{property_to_column_name(table_name, property, qualify)} NOT IN (#{query_read_statement(bind_value)})"
             else "#{property_to_column_name(table_name, property, qualify)} <> ?"
           end
