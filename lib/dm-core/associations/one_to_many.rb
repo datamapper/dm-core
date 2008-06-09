@@ -15,7 +15,7 @@ module DataMapper
 
         model.class_eval <<-EOS, __FILE__, __LINE__
           def #{name}(query = {})
-            query.empty? ? #{name}_association : #{name}_association.all(query)
+            #{name}_association.all(query)
           end
 
           def #{name}=(children)
@@ -65,6 +65,19 @@ module DataMapper
         # or .first(), or .destroy() for example.
 
         instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
+
+        def all(query = {})
+          query.empty? ? self : @relationship.get_children(@parent_resource, query)
+        end
+
+        def first(*args)
+          if args.last.respond_to?(:merge)
+            query = args.pop
+            @relationship.get_children(@parent_resource, query, :first, *args)
+          else
+            super
+          end
+        end
 
         def replace(resources)
           each { |resource| orphan_resource(resource) }

@@ -38,16 +38,26 @@ module DataMapper
         end
       end
 
-      def get_children(parent, options = {})
+      def parent_model
+        find_const(@parent_model_name)
+      end
+
+      def child_model
+        find_const(@child_model_name)
+      end
+
+      # @private
+      def get_children(parent, options = {}, finder = :all, *args)
         bind_values = parent_key.get(parent)
         return [] if bind_values.any? { |bind_value| bind_value.nil? }
         query = child_key.to_query(bind_values)
 
         DataMapper.repository(repository_name) do
-          child_model.all(@query.merge(options).merge(query))
+          child_model.send(finder, *(args << @query.merge(options).merge(query)))
         end
       end
 
+      # @private
       def get_parent(child)
         bind_values = child_key.get(child)
         return nil if bind_values.any? { |bind_value| bind_value.nil? }
@@ -58,16 +68,9 @@ module DataMapper
         end
       end
 
+      # @private
       def attach_parent(child, parent)
         child_key.set(child, parent && parent_key.get(parent))
-      end
-
-      def parent_model
-        find_const(@parent_model_name)
-      end
-
-      def child_model
-        find_const(@child_model_name)
       end
 
       private

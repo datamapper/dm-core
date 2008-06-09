@@ -708,8 +708,9 @@ module DataMapper
       ##
       #
       # @see Repository#first
-      def first(query = {})
-        all(query.merge(:limit => 1)).first
+      def first(*args)
+        query = args.last.respond_to?(:merge) ? args.pop : {}
+        all(query).first(*args)
       end
 
       ##
