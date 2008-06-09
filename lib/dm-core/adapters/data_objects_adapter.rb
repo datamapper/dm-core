@@ -295,7 +295,7 @@ module DataMapper
       protected
 
       def normalize_uri(uri_or_options)
-        if String === uri_or_options
+        if uri_or_options.kind_of?(String)
           uri_or_options = Addressable::URI.parse(uri_or_options)
         end
         if Addressable::URI === uri_or_options

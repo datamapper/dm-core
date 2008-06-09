@@ -189,9 +189,17 @@ module DataMapper
     # @public
     def inspect
       attrs = []
-      attributes.each do |name,value|
-        attrs << "#{name}=#{value.inspect}"
+
+      self.class.properties(repository.name).each do |property|
+        value = if property.lazy? && !attribute_loaded?(property.name) && !new_record?
+          '<not loaded>'
+        else
+          send(property.getter).inspect
+        end
+
+        attrs << "#{property.name}=#{value}"
       end
+
       "#<#{self.class.name} #{attrs * ' '}>"
     end
 
@@ -381,7 +389,7 @@ module DataMapper
     # --
     # @public
     def reload
-      collection.reload(:fields => loaded_attributes)
+      reload_attributes(*loaded_attributes)
       (parent_associations + child_associations).each { |association| association.reload! }
       self
     end
@@ -516,8 +524,7 @@ module DataMapper
     end
 
     def lazy_load(name)
-      return unless @collection
-      @collection.reload(:fields => self.class.properties(repository.name).lazy_load_context(name))
+      reload_attributes(*self.class.properties(repository.name).lazy_load_context(name))
     end
 
     def private_attributes
@@ -688,9 +695,9 @@ module DataMapper
       def all(query = {})
         # TODO: perform the Model.query (scope) checking here instead of Repository#all
 
-        repository = if Hash === query && query.has_key?(:repository)
+        repository = if query.kind_of?(Hash) && query.has_key?(:repository)
           repository(query[:repository])
-        elsif Query === query
+        elsif query.kind_of?(Query)
           query.repository
         else
           self.repository

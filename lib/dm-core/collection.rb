@@ -53,6 +53,8 @@ module DataMapper
     end
 
     def reload(query = {})
+      # TODO: turn query into a Query object
+
       query[:fields] ||= self.query.fields
       query[:fields]  |= @key_properties
 
@@ -62,7 +64,7 @@ module DataMapper
     end
 
     def all(query = {})
-      if Hash === query
+      if query.kind_of?(Hash)
         return self if query.empty?
         query = self.query.class.new(self.query.repository, self.query.model, query)
       end
@@ -111,7 +113,7 @@ module DataMapper
 
       # tell the collection to reverse the order of the
       # results coming out of the adapter
-      reversed.add_reversed = !add_reversed?
+      reversed.query.add_reversed = !query.add_reversed?
 
       reversed.first(*args)
     end
@@ -123,11 +125,11 @@ module DataMapper
     def slice(*args)
       raise ArgumentError, "must be 1 or 2 arguments, was #{args.size}" if args.size == 0 || args.size > 2
 
-      return at(args.first) if args.size == 1 && Integer === args.first
+      return at(args.first) if args.size == 1 && args.first.kind_of?(Integer)
 
-      if args.size == 2 && Integer === args.first && Integer === args.last
+      if args.size == 2 && args.first.kind_of?(Integer) && args.last.kind_of?(Integer)
         offset, limit = args
-      elsif args.size == 1 && Range === args.first
+      elsif args.size == 1 && args.first.kind_of?(Range)
         range  = args.first
         offset = range.first
         limit  = range.last - offset
@@ -141,18 +143,23 @@ module DataMapper
 
     alias [] slice
 
-    # TODO: add <<
-    # TODO: add push()
-    # TODO: add unshift()
-
     def reverse
-      #if loaded?
-      #  reversed = super
-      #  reversed.query.reverse!
-      #  return reversed
-      #end
-
       all(self.query.reverse)
+    end
+
+    def <<(resource)
+      relate_resource(resource)
+      super
+    end
+
+    def push(*resources)
+      resources.each { |resource| relate_resource(resource) }
+      super
+    end
+
+    def unshift(*resources)
+      resources.each { |resource| relate_resource(resource) }
+      super
     end
 
     def replace(other)
@@ -160,13 +167,6 @@ module DataMapper
         each { |resource| orphan_resource(resource) }
       end
       other.each { |resource| relate_resource(resource) }
-      super
-    end
-
-    def clear
-      if loaded?
-        each { |resource| orphan_resource(resource) }
-      end
       super
     end
 
@@ -186,8 +186,11 @@ module DataMapper
       orphan_resource(super)
     end
 
-    def add_reversed=(boolean)
-      query.add_reversed = boolean
+    def clear
+      if loaded?
+        each { |resource| orphan_resource(resource) }
+      end
+      super
     end
 
     private
@@ -210,17 +213,8 @@ module DataMapper
       end
     end
 
-    def add_reversed?
-      query.add_reversed?
-    end
-
-    def wrap(entries)
-      self.class.new(query).replace(entries)
-    end
-
     def add(resource)
-      relate_resource(resource)  # TODO: remove this once unshift/push relate resources
-      add_reversed? ? unshift(resource) : push(resource)
+      query.add_reversed? ? unshift(resource) : push(resource)
     end
 
     def relate_resource(resource)

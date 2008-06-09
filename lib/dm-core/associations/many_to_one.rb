@@ -6,8 +6,8 @@ module DataMapper
       # -
       # @private
       def setup(name, model, options = {})
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
-        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
+        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless name.kind_of?(Symbol)
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless options.kind_of?(Hash)
 
         repository_name = model.repository.name
 
@@ -44,7 +44,7 @@ module DataMapper
       module_function :setup
 
       class Proxy
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? should should_not ].include?(m) }
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
 
         def replace(parent_resource)
           @parent_resource = parent_resource
@@ -66,11 +66,19 @@ module DataMapper
           self
         end
 
+        def kind_of?(klass)
+          super || parent.kind_of?(klass)
+        end
+
+        def respond_to?(method)
+          super || parent.respond_to?(method)
+        end
+
         private
 
         def initialize(relationship, child_resource)
-#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
-#          raise ArgumentError, "+child_resource+ should be a DataMapper::Resource, but was #{child_resource.class}", caller              unless Resource     === child_resource
+          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless relationship.kind_of?(Relationship)
+          raise ArgumentError, "+child_resource+ should be a DataMapper::Resource, but was #{child_resource.class}", caller              unless child_resource.kind_of?(Resource)
 
           @relationship   = relationship
           @child_resource = child_resource
@@ -78,6 +86,10 @@ module DataMapper
 
         def parent
           @parent_resource ||= @relationship.get_parent(@child_resource)
+        end
+
+        def kind_of?(klass)
+           super || parent.kind_of?(klass)
         end
 
         def method_missing(method, *args, &block)

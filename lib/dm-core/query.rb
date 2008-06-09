@@ -25,8 +25,8 @@ module DataMapper
       private
 
       def initialize(property, direction = :asc)
-        raise ArgumentError, "+property+ is not a DataMapper::Property, but was #{property.class}", caller unless Property === property
-        raise ArgumentError, "+direction+ is not a Symbol, but was #{direction.class}", caller             unless Symbol   === direction
+        raise ArgumentError, "+property+ is not a DataMapper::Property, but was #{property.class}", caller unless property.kind_of?(Property)
+        raise ArgumentError, "+direction+ is not a Symbol, but was #{direction.class}", caller             unless direction.kind_of?(Symbol)
 
         @property  = property
         @direction = direction
@@ -43,7 +43,7 @@ module DataMapper
       private
 
       def initialize(target, operator)
-        unless Symbol === operator
+        unless operator.kind_of?(Symbol)
           raise ArgumentError, "+operator+ is not a Symbol, but was #{type.class}", caller
         end
 
@@ -58,10 +58,10 @@ module DataMapper
 
 
       def initialize(repository, relationships, model, property_name = nil)
-        raise ArgumentError, "+repository+ is not a Repository, but was #{repository.class}", caller unless Repository  === repository
-        raise ArgumentError, "+relationships+ is not an Array, it is a #{relationships.class}", caller unless Array  === relationships
+        raise ArgumentError, "+repository+ is not a Repository, but was #{repository.class}", caller unless repository.kind_of?(Repository)
+        raise ArgumentError, "+relationships+ is not an Array, it is a #{relationships.class}", caller unless relationships.kind_of?(Array)
         raise ArgumentError, "+model+ is not a DM::Resource, it is a #{model}", caller   unless model.ancestors.include?(DataMapper::Resource)
-        raise ArgumentError, "+property_name+ is not a Symbol, it is a #{property_name.class}", caller unless Symbol === property_name || property_name.nil?
+        raise ArgumentError, "+property_name+ is not a Symbol, it is a #{property_name.class}", caller unless property_name.kind_of?(Symbol) || property_name.nil?
 
         @repository    = repository
         @relationships = relationships
@@ -135,7 +135,7 @@ module DataMapper
     def update(other)
       assert_valid_other(other)
 
-      other = self.class.new(@repository, model, other) if Hash === other
+      other = self.class.new(@repository, model, other) if other.kind_of?(Hash)
 
       # TODO: update this so if "other" had a value explicitly set
       #       overwrite the attributes in self
@@ -317,7 +317,7 @@ module DataMapper
 
     # validate the options
     def assert_valid_options(options)
-      raise ArgumentError, "+options+ must be a Hash, but was #{options.class}" unless Hash === options
+      raise ArgumentError, "+options+ must be a Hash, but was #{options.class}" unless options.kind_of?(Hash)
 
       # validate the reload option
       if options.has_key?(:reload) && options[:reload] != true && options[:reload] != false
@@ -327,7 +327,7 @@ module DataMapper
       # validate the offset and limit options
       ([ :offset, :limit ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, "+options[:#{attribute}]+ must be an Integer, but was #{value.class}" unless Integer === value
+        raise ArgumentError, "+options[:#{attribute}]+ must be an Integer, but was #{value.class}" unless value.kind_of?(Integer)
       end
       raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{options[:offset].inspect}" if options.has_key?(:offset) && !(options[:offset] >= 0)
       raise ArgumentError, "+options[:limit]+ must be greater than or equal to 1, but was #{options[:limit].inspect}"   if options.has_key?(:limit)  && !(options[:limit]  >= 1)
@@ -335,7 +335,7 @@ module DataMapper
       # validate the order, fields, links, includes and conditions options
       ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, "+options[:#{attribute}]+ must be an Array, but was #{value.class}" unless Array === value
+        raise ArgumentError, "+options[:#{attribute}]+ must be an Array, but was #{value.class}" unless value.kind_of?(Array)
         raise ArgumentError, "+options[:#{attribute}]+ cannot be empty"                          unless value.any?
       end
     end
@@ -346,7 +346,7 @@ module DataMapper
       if self.class === other
         raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}" unless other.repository == repository
         raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}"                unless other.model      == model
-      elsif !(Hash === other)
+      elsif !(other.kind_of?(Hash))
         raise ArgumentError, "+other+ must be a #{self.class} or Hash, but was a #{other.class}"
       end
     end
@@ -420,7 +420,7 @@ module DataMapper
           when Associations::Relationship
             link
           when Symbol, String
-            link = link.to_sym if String === link
+            link = link.to_sym if link.kind_of?(String)
             raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship" unless model.relationships(@repository.name).has_key?(link)
             model.relationships(@repository.name)[link]
           else

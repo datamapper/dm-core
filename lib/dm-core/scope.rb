@@ -12,7 +12,7 @@ module DataMapper
     end
 
     def with_exclusive_scope(query, &block)
-      query = DataMapper::Query.new(repository, self, query) if Hash === query
+      query = DataMapper::Query.new(repository, self, query) if query.kind_of?(Hash)
 
       scope_stack << query
 

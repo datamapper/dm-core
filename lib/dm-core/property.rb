@@ -380,7 +380,7 @@ module DataMapper
     #-
     # @api private
     def get(resource)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
+      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
       resource.attribute_get(@name)
     end
 
@@ -390,7 +390,7 @@ module DataMapper
     #-
     # @api private
     def set(resource, value)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless Resource === resource
+      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
       resource.attribute_set(@name, value)
     end
 
@@ -437,7 +437,7 @@ module DataMapper
       end
 
       raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"                 unless Resource > model
-      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                           unless Symbol === name
+      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                           unless name.kind_of?(Symbol)
       raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
 
       if (unknown_options = options.keys - PROPERTY_OPTIONS).any?

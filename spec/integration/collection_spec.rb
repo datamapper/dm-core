@@ -202,6 +202,18 @@ if ADAPTER
           @collection.to_a if loaded
         end
 
+        describe '#<<' do
+          it 'should relate each new resource to the collection' do
+            @nancy.collection.object_id.should_not == @collection.object_id
+            @collection << @nancy
+            @nancy.collection.object_id.should == @collection.object_id
+          end
+
+          it 'should return self' do
+            @collection.<<(@steve).object_id.should == @collection.object_id
+          end
+        end
+
         describe '#all' do
           describe 'with no arguments' do
             it 'should return self' do
@@ -269,7 +281,7 @@ if ADAPTER
         end
 
         describe '#clear' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             entries = @collection.entries
             entries.each { |r| r.collection.object_id.should == @collection.object_id }
             @collection.clear
@@ -294,7 +306,7 @@ if ADAPTER
         end
 
         describe '#delete' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             nancy = @collection[0]
             nancy.collection.should_not be_nil
             nancy.collection.delete(nancy)
@@ -308,7 +320,7 @@ if ADAPTER
         end
 
         describe '#delete_at' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             nancy = @collection[0]
             nancy.collection.should_not be_nil
             nancy.collection.delete_at(0).should == nancy
@@ -471,7 +483,7 @@ if ADAPTER
         end
 
         describe '#pop' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             steve = @collection[2]
             steve.collection.should_not be_nil
             steve.collection.pop
@@ -485,6 +497,12 @@ if ADAPTER
         end
 
         describe '#push' do
+          it 'should relate each new resource to the collection' do
+            @nancy.collection.object_id.should_not == @collection.object_id
+            @collection.push(@nancy)
+            @nancy.collection.object_id.should == @collection.object_id
+          end
+
           it 'should return self' do
             @collection.push(@steve).object_id.should == @collection.object_id
           end
@@ -493,19 +511,14 @@ if ADAPTER
         describe '#reject' do
           it 'should return a Collection with resources that did not match the block' do
             rejected = @collection.reject { |resource| false }
-            rejected.should be_kind_of(DataMapper::Collection)
-            rejected.object_id.should_not == @collection.object_id
-            rejected.length.should == 3
-            rejected[0].id.should == @nancy.id
-            rejected[1].id.should == @bessie.id
-            rejected[2].id.should == @steve.id
+            rejected.class.should == Array
+            rejected.should == [ @nancy, @bessie, @steve ]
           end
 
-          it 'should return an empty Collection if resources matched the block' do
+          it 'should return an empty Array if resources matched the block' do
             rejected = @collection.reject { |resource| true }
-            rejected.should be_kind_of(DataMapper::Collection)
-            rejected.object_id.should_not == @collection.object_id
-            rejected.length.should == 0
+            rejected.class.should == Array
+            rejected.should be_empty
           end
         end
 
@@ -610,23 +623,21 @@ if ADAPTER
         end
 
         describe '#select' do
-          it 'should return a Collection with resources that matched the block' do
+          it 'should return an Array with resources that matched the block' do
             selected = @collection.select { |resource| true }
-            selected.should be_kind_of(DataMapper::Collection)
-            selected.object_id.should_not == @collection.object_id
+            selected.class.should == Array
             selected.should == @collection
           end
 
-          it 'should return an empty Collection if no resources matched the block' do
+          it 'should return an empty Array if no resources matched the block' do
             selected = @collection.select { |resource| false }
-            selected.should be_kind_of(DataMapper::Collection)
-            selected.object_id.should_not == @collection.object_id
+            selected.class.should == Array
             selected.should be_empty
           end
         end
 
         describe '#shift' do
-          it 'should reset the resource.collection' do
+          it 'should orphan the resource from the collection' do
             nancy = @collection[0]
             nancy.collection.should_not be_nil
             nancy.collection.shift
@@ -680,12 +691,10 @@ if ADAPTER
           end
 
           describe 'with a start and length' do
-            it 'should return a Collection' do
+            it 'should return an Array' do
               sliced = @collection.slice!(0, 1)
-              sliced.should be_kind_of(DataMapper::Collection)
-              sliced.object_id.should_not == @collection.object_id
-              sliced.length.should == 1
-              sliced[0].id.should == @nancy.id
+              sliced.class.should == Array
+              sliced.map { |r| r.id }.should == [ @nancy.id ]
             end
           end
 
@@ -702,10 +711,9 @@ if ADAPTER
         end
 
         describe '#sort' do
-          it 'should return a Collection' do
+          it 'should return an Array' do
             sorted = @collection.sort { |a,b| a.age <=> b.age }
-            sorted.should be_kind_of(DataMapper::Collection)
-            sorted.object_id.should_not == @collection.object_id
+            sorted.class.should == Array
           end
         end
 
@@ -716,19 +724,24 @@ if ADAPTER
         end
 
         describe '#unshift' do
+          it 'should relate each new resource to the collection' do
+            @nancy.collection.object_id.should_not == @collection.object_id
+            @collection.unshift(@nancy)
+            @nancy.collection.object_id.should == @collection.object_id
+          end
+
           it 'should return self' do
             @collection.unshift(@steve).object_id.should == @collection.object_id
           end
         end
 
         describe '#values_at' do
-          it 'should return a Collection' do
+          it 'should return an Array' do
             values = @collection.values_at(0)
-            values.should be_kind_of(DataMapper::Collection)
-            values.object_id.should_not == @collection.object_id
+            values.class.should == Array
           end
 
-          it 'should return a Collection of the resources at the index' do
+          it 'should return an Array of the resources at the index' do
             @collection.values_at(0).entries.map { |r| r.id }.should == [ @nancy.id ]
           end
         end

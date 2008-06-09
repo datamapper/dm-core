@@ -8,8 +8,8 @@ module DataMapper
       # -
       # @private
       def setup(name, model, options = {})
-        raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller unless Symbol === name || Hash === name
-        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller                             unless Hash   === options
+        raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller unless name.kind_of?(Symbol) || name.kind_of?(Hash)
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller                             unless options.kind_of?(Hash)
 
         repository_name = model.repository.name
 
@@ -59,6 +59,11 @@ module DataMapper
       module_function :setup
 
       class Proxy
+        # TODO: add assertions when attempting to perform operations
+        # on the proxy when the parent is a new record and the underlying
+        # children are an Array.  Will not be able to use .all(),
+        # or .first(), or .destroy() for example.
+
         instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
 
         def replace(resources)
@@ -116,6 +121,7 @@ module DataMapper
         def save
           @dirty_children.each { |resource| save_resource(resource) }
           @dirty_children = []
+          @children = @relationship.get_children(@parent_resource).replace(@children) unless @children.kind_of?(Collection)
           self
         end
 
@@ -125,6 +131,10 @@ module DataMapper
           self
         end
 
+        def kind_of?(klass)
+          super || children.kind_of?(klass)
+        end
+
         def respond_to?(method)
           super || children.respond_to?(method)
         end
@@ -132,8 +142,8 @@ module DataMapper
         private
 
         def initialize(relationship, parent_resource)
-#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
-#          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
+          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless relationship.kind_of?(Relationship)
+          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless parent_resource.kind_of?(Resource)
 
           @relationship    = relationship
           @parent_resource = parent_resource
@@ -168,12 +178,8 @@ module DataMapper
         end
 
         def orphan_resource(resource)
-          assert_mutable
           begin
-            repository(@relationship.repository_name) do
-              @relationship.attach_parent(resource, nil)
-              resource.save
-            end
+            save_resource(resource, nil)
           rescue
             children << resource
             raise
@@ -181,10 +187,10 @@ module DataMapper
           resource
         end
 
-        def save_resource(resource)
+        def save_resource(resource, parent = @parent_resource)
           assert_mutable
           repository(@relationship.repository_name) do
-            @relationship.attach_parent(resource, @parent_resource)
+            @relationship.attach_parent(resource, parent)
             resource.save
           end
         end

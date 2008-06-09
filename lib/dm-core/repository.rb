@@ -71,7 +71,7 @@ module DataMapper
     def all(model, query)
       query = if model.query
         model.query.merge(query)
-      elsif Hash === query
+      elsif query.kind_of?(Hash)
         Query.new(self, model, query)
       else
         query
@@ -201,7 +201,7 @@ module DataMapper
     attr_reader :identity_maps
 
     def initialize(name)
-      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller unless Symbol === name
+      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller unless name.kind_of?(Symbol)
       raise ArgumentError, "Unknown adapter name: #{name}"                            unless self.class.adapters.has_key?(name)
 
       @name          = name

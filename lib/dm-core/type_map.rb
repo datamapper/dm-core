@@ -59,7 +59,7 @@ module DataMapper
       end
 
       def with(attributes)
-        raise "method 'with' expects a hash" unless Hash === attributes
+        raise "method 'with' expects a hash" unless attributes.kind_of?(Hash)
         @attributes.merge!(attributes)
         self
       end
