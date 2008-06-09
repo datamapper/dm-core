@@ -200,6 +200,10 @@ module DataMapper
     repository(name).auto_migrate!
   end
 
+  def self.auto_upgrade!(name = Repository.default_name)
+    repository(name).auto_upgrade!
+  end
+
   def self.prepare(*args, &blk)
     yield repository(*args)
   end
