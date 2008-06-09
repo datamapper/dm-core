@@ -16,8 +16,8 @@ module DataMapper
         query[:links] = links
 
         DataMapper.repository(parent.repository.name) do
-          # FIXME: remove the need for the uniq
-          grandchild_model.all(query).uniq
+          # FIXME: remove the need for the uniq.freeze
+          grandchild_model.all(query).uniq.freeze
         end
       end
 
@@ -32,18 +32,10 @@ module DataMapper
       end
 
       def links
-        if RelationshipChain === remote_relationship
-          remote_relationship.instance_eval do links end + [remote_relationship.instance_eval do near_relationship end]
+        if remote_relationship.kind_of?(RelationshipChain)
+          remote_relationship.instance_eval { links } + [remote_relationship.instance_eval { near_relationship } ]
         else
-          [remote_relationship]
-        end
-      end
-
-      def extra_links
-        if RelationshipChain === remote_relationship
-          []
-        else
-          []
+          [ remote_relationship ]
         end
       end
 

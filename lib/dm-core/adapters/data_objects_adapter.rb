@@ -219,10 +219,10 @@ module DataMapper
       end
 
       # Database-specific method
-      def execute(statement, *args)
+      def execute(statement, *bind_values)
         with_connection do |connection|
           command = connection.create_command(statement)
-          command.execute_non_query(*args)
+          command.execute_non_query(*bind_values)
         end
       end
 
@@ -298,7 +298,7 @@ module DataMapper
         if uri_or_options.kind_of?(String)
           uri_or_options = Addressable::URI.parse(uri_or_options)
         end
-        if Addressable::URI === uri_or_options
+        if uri_or_options.kind_of?(Addressable::URI)
           return uri_or_options.normalize
         end
 
@@ -356,11 +356,11 @@ module DataMapper
         end
       end
 
-      def with_reader(statement, *params, &block)
+      def with_reader(statement, *bind_values, &block)
         with_connection do |connection|
           reader = nil
           begin
-            reader = connection.create_command(statement).execute_reader(*params)
+            reader = connection.create_command(statement).execute_reader(*bind_values)
             return yield(reader)
           ensure
             reader.close if reader

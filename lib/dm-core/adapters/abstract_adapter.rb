@@ -196,7 +196,7 @@ module DataMapper
       # connection string for configuration.
       def initialize(name, uri_or_options)
         raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller                                     unless name.kind_of?(Symbol)
-        raise ArgumentError, "+uri_or_options+ should be a Hash, a Addressable::URI or a String but was #{uri_or_options.class}", caller unless [ Hash, Addressable::URI, String ].any? { |k| k === uri_or_options }
+        raise ArgumentError, "+uri_or_options+ should be a Hash, a Addressable::URI or a String but was #{uri_or_options.class}", caller unless [ Hash, Addressable::URI, String ].any? { |k| uri_or_options.kind_of?(k) }
 
         @name = name
         @uri  = normalize_uri(uri_or_options)

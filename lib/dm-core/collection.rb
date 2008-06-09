@@ -222,12 +222,48 @@ module DataMapper
       super
     end
 
+    def create(attributes = {})
+      resource = query.model.allocate
+      resource.send(:initialize_with_attributes, default_attributes.merge(attributes))
+      if query.repository.save(resource)
+        self << resource
+      end
+      resource
+    end
+
+    def update(attributes = {})
+      # TODO: update this to use bulk update once adapter API changes completed
+      map { |resource| resource.update_attributes(attributes) }.all?
+    end
+
+    def destroy
+      # TODO: update this to use bulk destroy once adapter API changes completed
+      success = map { |resource| query.repository.destroy(resource) }.all?
+      clear
+      success
+    end
+
     def properties
       PropertySet.new(query.fields)
     end
 
     def relationships
       query.model.relationships
+    end
+
+    def default_attributes
+      default_attributes = {}
+      query.conditions.each do |tuple|
+        operator, property, bind_value = *tuple
+
+        next unless operator == :eql &&
+          property.kind_of?(DataMapper::Property) &&
+          ![ Array, Range ].any? { |k| bind_value.kind_of?(k) }
+          !query.model.key.include?(property)
+
+        default_attributes[property.name] = bind_value
+      end
+      default_attributes
     end
 
     private
@@ -265,12 +301,14 @@ module DataMapper
     end
 
     def keys
-      entry_keys = map { |resource| resource.key }
-
       keys = {}
-      @key_properties.zip(entry_keys.transpose).each do |property,values|
-        keys[property] = values.size == 1 ? values[0] : values
+
+      if (entry_keys = map { |resource| resource.key }).any?
+        @key_properties.zip(entry_keys.transpose).each do |property,values|
+          keys[property] = values.size == 1 ? values[0] : values
+        end
       end
+
       keys
     end
 

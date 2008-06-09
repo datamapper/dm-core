@@ -36,12 +36,20 @@ describe DataMapper::Collection do
     @collection.should respond_to(:concat)
   end
 
+  it 'should provide #create' do
+    @collection.should respond_to(:create)
+  end
+
   it 'should provide #delete' do
     @collection.should respond_to(:delete)
   end
 
   it 'should provide #delete_at' do
     @collection.should respond_to(:delete_at)
+  end
+
+  it 'should provide #destroy' do
+    @collection.should respond_to(:destroy)
   end
 
   it 'should provide #each' do
@@ -154,6 +162,10 @@ describe DataMapper::Collection do
 
   it 'should provide #unshift' do
     @collection.should respond_to(:unshift)
+  end
+
+  it 'should provide #update' do
+    @collection.should respond_to(:update)
   end
 
   it 'should provide #values_at' do

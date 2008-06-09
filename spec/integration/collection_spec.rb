@@ -72,7 +72,7 @@ if ADAPTER
   describe 'association proxying' do
     include CollectionSpecHelper
 
-    before :all do
+    before do
       setup
     end
 
@@ -112,7 +112,7 @@ if ADAPTER
   describe DataMapper::Collection do
     include CollectionSpecHelper
 
-    before :all do
+    before do
       setup
     end
 
@@ -141,8 +141,8 @@ if ADAPTER
       results.should have(2).entries
 
       results.each do |cow|
-        cow.attribute_loaded?(:name).should be_true
-        cow.attribute_loaded?(:age).should be_true
+        cow.attribute_loaded?(:name).should == true
+        cow.attribute_loaded?(:age).should == true
       end
 
       bob, nancy = results[0], results[1]
@@ -179,7 +179,7 @@ if ADAPTER
       describe 'with inheritance property' do
         before do
           CollectionSpecUser.auto_migrate!
-          CollectionSpecUser.create(:name => 'Dan')
+          CollectionSpecUser.create(:name => 'John')
 
           properties = CollectionSpecParty.properties(:default)
         end
@@ -244,7 +244,7 @@ if ADAPTER
               it 'is empty when passed an offset that is out of range' do
                 pending do
                   empty_collection = @collection.all(:offset => 10)
-                  empty_collection.should be_empty
+                  empty_collection.should == []
                   empty_collection.should be_loaded
                 end
               end
@@ -305,6 +305,36 @@ if ADAPTER
           end
         end
 
+        describe '#create' do
+          it 'should create a new resource' do
+            resource = @collection.create(:name => 'John')
+            resource.should be_kind_of(@model)
+          end
+
+          it 'should append the new resource to the collection' do
+            resource = @collection.create(:name => 'John')
+            resource.collection.object_id.should == @collection.object_id
+            @collection.should include(resource)
+          end
+
+          it 'should not append the resource if it was not saved' do
+            @repository.should_receive(:save).with(be_instance_of(@model)).and_return(false)
+            resource = @collection.create(:name => 'John')
+            resource.collection.object_id.should_not == @collection.object_id
+            @collection.should_not include(resource)
+          end
+
+          it 'should use the query conditions to set default values' do
+            resource = @collection.create
+            resource.name.should be_nil
+
+            @collection.query.update(:name => 'John')
+
+            resource = @collection.create
+            resource.name.should == 'John'
+          end
+        end
+
         describe '#delete' do
           it 'should orphan the resource from the collection' do
             nancy = @collection[0]
@@ -330,6 +360,25 @@ if ADAPTER
 
           it 'should return a Resource' do
             @collection.delete_at(0).should be_kind_of(DataMapper::Resource)
+          end
+        end
+
+        describe '#destroy' do
+          before do
+            @ids = [ @nancy.id, @bessie.id, @steve.id ]
+          end
+
+          it 'should destroy the resources in the collection' do
+            @collection.map { |r| r.id }.should == @ids
+            @collection.destroy.should == true
+            @model.all(:id => @ids).should == []
+            @collection.reload.should == []
+          end
+
+          it 'should clear the collection' do
+            @collection.map { |r| r.id }.should == @ids
+            @collection.destroy.should == true
+            @collection.should == []
           end
         end
 
@@ -570,7 +619,7 @@ if ADAPTER
           it 'should return an empty Array if resources matched the block' do
             rejected = @collection.reject { |resource| true }
             rejected.class.should == Array
-            rejected.should be_empty
+            rejected.should == []
           end
         end
 
@@ -684,7 +733,7 @@ if ADAPTER
           it 'should return an empty Array if no resources matched the block' do
             selected = @collection.select { |resource| false }
             selected.class.should == Array
-            selected.should be_empty
+            selected.should == []
           end
         end
 
@@ -787,6 +836,16 @@ if ADAPTER
           end
         end
 
+        describe '#update' do
+          it 'should update the resources in the collection' do
+            names = [ @nancy.name, @bessie.name, @steve.name ]
+            @collection.map { |r| r.name }.should == names
+            @collection.update(:name => 'John')
+            @collection.map { |r| r.name }.should_not == names
+            @collection.map { |r| r.name }.should == %w[ John ] * 3
+          end
+        end
+
         describe '#values_at' do
           it 'should return an Array' do
             values = @collection.values_at(0)
@@ -801,7 +860,7 @@ if ADAPTER
         describe 'with lazy loading' do
           it "should take a materialization block" do
             collection = DataMapper::Collection.new(@query) do |c|
-              c.should be_empty
+              c.should == []
               c.load([ 1, 'Bob',   10 ])
               c.load([ 2, 'Nancy', 11 ])
             end

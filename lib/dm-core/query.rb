@@ -196,7 +196,7 @@ module DataMapper
     # <DM::Query>
     #
     def merge_subquery(operator, property, value)
-      raise ArgumentError, "+value+ is not a #{self.class}, but was #{value.class}", caller unless self.class === value
+      raise ArgumentError, "+value+ is not a #{self.class}, but was #{value.class}", caller unless value.kind_of?(self.class)
 
       new_conditions = []
       conditions.each do |tuple|
@@ -340,13 +340,12 @@ module DataMapper
       end
     end
 
-    # TODO: spec this
     # validate other DM::Query or Hash object
     def assert_valid_other(other)
-      if self.class === other
+      if other.kind_of?(self.class)
         raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}" unless other.repository == repository
         raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}"                unless other.model      == model
-      elsif !(other.kind_of?(Hash))
+      elsif !other.kind_of?(Hash)
         raise ArgumentError, "+other+ must be a #{self.class} or Hash, but was a #{other.class}"
       end
     end

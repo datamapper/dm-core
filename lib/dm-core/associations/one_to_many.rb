@@ -83,6 +83,7 @@ module DataMapper
         end
 
         def <<(resource)
+          assert_mutable
           #
           # The order here is of the essence.
           #
@@ -121,7 +122,7 @@ module DataMapper
         def save
           @dirty_children.each { |resource| save_resource(resource) }
           @dirty_children = []
-          @children = @relationship.get_children(@parent_resource).replace(@children) unless @children.kind_of?(Collection)
+          @children = @relationship.get_children(@parent_resource).replace(children) unless children.frozen?
           self
         end
 
@@ -155,14 +156,20 @@ module DataMapper
         end
 
         def assert_mutable
-          raise ImmutableAssociationError, "You can not modify this assocation" if RelationshipChain === @relationship
+          raise ImmutableAssociationError, 'You can not modify this assocation' if children.frozen?
         end
 
-        # TODO: move this logic inside the Collection
         def add_default_association_values(resource)
-          conditions = @relationship.query.reject { |key, value| key == :order }
-          conditions.each do |key, value|
-            resource.send("#{key}=", value) if key.class != DataMapper::Query::Operator && resource.send("#{key}") == nil
+          default_attributes = if respond_to?(:default_attributes)
+            self.default_attributes
+          else
+            @relationship.query.reject do |attribute, value|
+              Query::OPTIONS.include?(attribute) || attribute.kind_of?(Query::Operator)
+            end
+          end
+
+          default_attributes.each do |attribute, value|
+            resource.send("#{attribute}=", value) if resource.send(attribute).nil?
           end
         end
 
@@ -181,7 +188,7 @@ module DataMapper
           begin
             save_resource(resource, nil)
           rescue
-            children << resource
+            children << resource unless children.frozen? || children.include?(resource)
             raise
           end
           resource

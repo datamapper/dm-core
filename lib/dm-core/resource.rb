@@ -169,7 +169,7 @@ module DataMapper
     # @public
     def eql?(other)
       return true if object_id == other.object_id
-      return false unless self.class === other
+      return false unless other.kind_of?(self.class)
       attributes == other.attributes
     end
 
@@ -375,7 +375,6 @@ module DataMapper
     def shadow_attribute_get(name)
       instance_variable_get("@shadow_#{name}")
     end
-
 
     def collection
       @collection ||= self.class.all(Hash[ *self.class.key.zip(key).flatten ]) unless new_record?
