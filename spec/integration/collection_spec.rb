@@ -273,7 +273,7 @@ if ADAPTER
             entries = @collection.entries
             entries.each { |r| r.collection.object_id.should == @collection.object_id }
             @collection.clear
-            entries.each { |r| r.collection.should be_nil }
+            entries.each { |r| r.collection.should have(1).entries }
           end
 
           it 'should return self' do
@@ -298,7 +298,8 @@ if ADAPTER
             nancy = @collection[0]
             nancy.collection.should_not be_nil
             nancy.collection.delete(nancy)
-            nancy.collection.should be_nil
+            nancy.collection.should have(1).entries
+            nancy.collection.first.key.should == nancy.key
           end
 
           it 'should return a Resource' do
@@ -311,7 +312,8 @@ if ADAPTER
             nancy = @collection[0]
             nancy.collection.should_not be_nil
             nancy.collection.delete_at(0).should == nancy
-            nancy.collection.should be_nil
+            nancy.collection.should have(1).entries
+            nancy.collection.first.key.should == nancy.key
           end
 
           it 'should return a Resource' do
@@ -473,7 +475,8 @@ if ADAPTER
             steve = @collection[2]
             steve.collection.should_not be_nil
             steve.collection.pop
-            steve.collection.should be_nil
+            steve.collection.should have(1).entries
+            steve.collection.first.key.should == steve.key
           end
 
           it 'should return a Resource' do
@@ -555,7 +558,7 @@ if ADAPTER
             entries = @collection.entries
             entries.each { |r| r.collection.object_id.should == @collection.object_id }
             @collection.replace([])
-            entries.each { |r| r.collection.should be_nil }
+            entries.each { |r| r.collection.should have(1).entries; r.collection.first.key.should == r.key  }
           end
 
           it 'should relate each new resource to the collection' do
@@ -627,7 +630,8 @@ if ADAPTER
             nancy = @collection[0]
             nancy.collection.should_not be_nil
             nancy.collection.shift
-            nancy.collection.should be_nil
+            nancy.collection.should have(1).entries
+            nancy.collection.first.key.should == nancy.key
           end
 
           it 'should return a Resource' do

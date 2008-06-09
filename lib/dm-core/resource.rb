@@ -368,6 +368,11 @@ module DataMapper
       instance_variable_get("@shadow_#{name}")
     end
 
+
+    def collection
+      @collection ||= self.class.all(Hash[ *self.class.key.zip(key).flatten ]) unless new_record?
+    end
+
     # Reload association and all child association
     #
     # ==== Returns
@@ -376,13 +381,13 @@ module DataMapper
     # --
     # @public
     def reload
-      @collection.reload(:fields => loaded_attributes)
+      collection.reload(:fields => loaded_attributes)
       (parent_associations + child_associations).each { |association| association.reload! }
       self
     end
     alias reload! reload
 
-    # Relad all the attributes
+    # Reload specific attributes
     #
     # ==== Parameters
     # *attributes<Array[<Symbol>]>:: name of attribute
@@ -393,7 +398,7 @@ module DataMapper
     # --
     # @public
     def reload_attributes(*attributes)
-      @collection.reload(:fields => attributes)
+      collection.reload(:fields => attributes)
       self
     end
 
