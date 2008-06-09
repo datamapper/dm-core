@@ -117,13 +117,13 @@ module DataMapper
   # -
   # @api public
   def self.setup(name, uri_or_options)
-    raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller unless Symbol === name
+    raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller unless name.kind_of?(Symbol)
 
     case uri_or_options
       when Hash
         adapter_name = uri_or_options[:adapter]
       when String, Addressable::URI
-        uri_or_options = Addressable::URI.parse(uri_or_options) if String === uri_or_options
+        uri_or_options = Addressable::URI.parse(uri_or_options) if uri_or_options.kind_of?(String)
         adapter_name = uri_or_options.scheme
       else
         raise ArgumentError, "+uri_or_options+ must be a Hash, Addressable::URI or String, but was #{uri_or_options.class}", caller
@@ -160,7 +160,7 @@ module DataMapper
   #     current_repository = DataMapper.repository
   def self.repository(*args) # :yields: current_context
     raise ArgumentError, "Can only pass in one optional argument, but passed in #{args.size} arguments", caller unless args.size <= 1
-    raise ArgumentError, "First optional argument must be a Symbol, but was #{args.first.inspect}", caller      unless args.empty? || Symbol === args.first
+    raise ArgumentError, "First optional argument must be a Symbol, but was #{args.first.inspect}", caller      unless args.empty? || args.first.kind_of?(Symbol)
 
     name = args.first
 

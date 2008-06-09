@@ -62,7 +62,7 @@ module DataMapper
     end
 
     def all(query = {})
-      if Hash === query
+      if query.kind_of?(Hash)
         return self if query.empty?
         query = self.query.class.new(self.query.repository, self.query.model, query)
       end
@@ -123,11 +123,11 @@ module DataMapper
     def slice(*args)
       raise ArgumentError, "must be 1 or 2 arguments, was #{args.size}" if args.size == 0 || args.size > 2
 
-      return at(args.first) if args.size == 1 && Integer === args.first
+      return at(args.first) if args.size == 1 && args.first.kind_of?(Integer)
 
-      if args.size == 2 && Integer === args.first && Integer === args.last
+      if args.size == 2 && args.first.kind_of?(Integer) && args.last.kind_of?(Integer)
         offset, limit = args
-      elsif args.size == 1 && Range === args.first
+      elsif args.size == 1 && args.first.kind_of?(Range)
         range  = args.first
         offset = range.first
         limit  = range.last - offset

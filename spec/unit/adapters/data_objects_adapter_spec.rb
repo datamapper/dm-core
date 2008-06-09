@@ -232,7 +232,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       DataObjects::Connection.stub!(:new).and_return(@connection)
       DataMapper::Collection.stub!(:new).and_return(@collection)
       DataMapper::Resource.stub!(:>).and_return(true)
-      DataMapper::Property.stub!(:===).and_return(true)
     end
 
     it 'should lookup the model properties with the repository' do

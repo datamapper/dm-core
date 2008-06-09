@@ -6,8 +6,8 @@ module DataMapper
       # -
       # @private
       def setup(name, model, options = {})
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless Symbol === name
-        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless Hash   === options
+        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless name.kind_of?(Symbol)
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless options.kind_of?(Hash)
 
         repository_name = model.repository.name
 

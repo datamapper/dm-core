@@ -5,7 +5,7 @@ module DataMapper
   class IdentityMap
     # Get a resource from the IdentityMap
     def get(key)
-      raise ArgumentError, "+key+ is not an Array, but was #{key.class}" unless Array  === key
+      raise ArgumentError, "+key+ is not an Array, but was #{key.class}" unless key.kind_of?(Array)
 
       @cache[key]
     end
@@ -14,7 +14,7 @@ module DataMapper
 
     # Add a resource to the IdentityMap
     def set(key, resource)
-      raise ArgumentError, "+key+ is not an Array, but was #{key.class}"                            unless Array  === key
+      raise ArgumentError, "+key+ is not an Array, but was #{key.class}"                            unless key.kind_of?(Array)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
 
       @second_level_cache.set(key, resource) if @second_level_cache
@@ -25,7 +25,7 @@ module DataMapper
 
     # Remove a resource from the IdentityMap
     def delete(key)
-      raise ArgumentError, "+key+ is not an Array, but was #{key.class}" unless Array  === key
+      raise ArgumentError, "+key+ is not an Array, but was #{key.class}" unless key.kind_of?(Array)
 
       @second_level_cache.delete(key) if @second_level_cache
       @cache.delete(key)

@@ -103,11 +103,11 @@ end
 
 describe DataMapper::Associations::OneToMany::Proxy do
   before do
-    @parent = mock("parent", :new_record? => true)
+    @parent = mock("parent", :new_record? => true, :kind_of? => true)
     @resource = mock("resource", :null_object => true)
     @collection = []
-    @repository = mock("repository", :save => nil)
-    @relationship = mock("relationship", :get_children => @collection, :repository_name => :mock, :query => {})
+    @repository = mock("repository", :save => nil, :kind_of? => true)
+    @relationship = mock("relationship", :get_children => @collection, :repository_name => :mock, :query => {}, :kind_of? => true)
     @association = DataMapper::Associations::OneToMany::Proxy.new(@relationship, @parent)
   end
 

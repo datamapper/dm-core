@@ -12,9 +12,9 @@ describe "DataMapper::Associations::ManyToOne" do
 
   describe DataMapper::Associations::ManyToOne::Proxy do
     before do
-      @child = mock("child")
+      @child = mock("child", :kind_of? => true)
       @parent = mock("parent")
-      @relationship = mock("relationship")
+      @relationship = mock("relationship", :kind_of? => true)
       @association = DataMapper::Associations::ManyToOne::Proxy.new(@relationship, @child)
     end
 

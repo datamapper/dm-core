@@ -63,7 +63,7 @@ module DataMapper
 
     def set(resource, values)
       raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
-      if Array === values
+      if values.kind_of?(Array)
         raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller if values.length != length
       elsif !values.nil?
         raise ArgumentError, "+values+ must be nil or an Array, but was a #{values.class}", caller
@@ -85,9 +85,9 @@ module DataMapper
     end
 
     def lazy_load_context(names)
-      if Array === names
+      if names.kind_of?(Array)
         raise ArgumentError, "+names+ cannot be an empty Array", caller if names.empty?
-      elsif !(Symbol === names)
+      elsif !(names.kind_of?(Symbol))
         raise ArgumentError, "+names+ must be a Symbol or an Array of Symbols, but was a #{names.class}", caller
       end
 
@@ -125,7 +125,7 @@ module DataMapper
     private
 
     def initialize(properties = [])
-      raise ArgumentError, "+properties+ should be an Array, but was #{properties.class}", caller unless Array === properties
+      raise ArgumentError, "+properties+ should be an Array, but was #{properties.class}", caller unless properties.kind_of?(Array)
 
       @entries = properties
       @property_for = hash_for_property_for

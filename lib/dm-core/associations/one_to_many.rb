@@ -8,8 +8,8 @@ module DataMapper
       # -
       # @private
       def setup(name, model, options = {})
-        raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller unless Symbol === name || Hash === name
-        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller                             unless Hash   === options
+        raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller unless name.kind_of?(Symbol) || name.kind_of?(Hash)
+        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller                             unless options.kind_of?(Hash)
 
         repository_name = model.repository.name
 
@@ -131,6 +131,10 @@ module DataMapper
           self
         end
 
+        def kind_of?(klass)
+          super || children.kind_of?(klass)
+        end
+
         def respond_to?(method)
           super || children.respond_to?(method)
         end
@@ -138,8 +142,8 @@ module DataMapper
         private
 
         def initialize(relationship, parent_resource)
-#          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless Relationship === relationship
-#          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless Resource     === parent_resource
+          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless relationship.kind_of?(Relationship)
+          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless parent_resource.kind_of?(Resource)
 
           @relationship    = relationship
           @parent_resource = parent_resource
