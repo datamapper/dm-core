@@ -7,13 +7,7 @@ module DataMapper
     end
 
     def load(values)
-      raise "Expected #{@properties.size} attributes, got #{values.size}" if @properties.size != values.size
-
-      model = if @inheritance_property_index
-        values.at(@inheritance_property_index) || query.model
-      else
-        query.model
-      end
+      model = @inheritance_property_index && values && values.at(@inheritance_property_index) || self.model
 
       # TODO: think about moving the logic here into Model#load
       resource = nil
@@ -83,19 +77,19 @@ module DataMapper
         get(*key)
       else
         # current query is all inclusive, lookup using normal approach
-        conditions = Hash[ *query.model.key(query.repository.name).zip(key).flatten ]
+        conditions = Hash[ *@key_properties.zip(key).flatten ]
         first(conditions)
       end
     end
 
     def get!(*key)
-      get(*key) || raise(ObjectNotFoundError, "Could not find #{query.model.name} with key #{key.inspect} in collection")
+      get(*key) || raise(ObjectNotFoundError, "Could not find #{model.name} with key #{key.inspect} in collection")
     end
 
     def all(query = {})
       if query.kind_of?(Hash)
         return self if query.empty?
-        query = self.query.class.new(self.query.repository, self.query.model, query)
+        query = self.query.class.new(repository, model, query)
       end
 
       # TODO: if loaded?, and the query is the same as self.query,
@@ -118,7 +112,7 @@ module DataMapper
       query.update(:offset => first_pos)
       query.update(:limit => last_pos - first_pos) if last_pos
 
-      query.repository.all(query.model, self.query.merge(query))
+      repository.all(model, self.query.merge(query))
     end
 
     def first(*args)
@@ -223,9 +217,9 @@ module DataMapper
     end
 
     def create(attributes = {})
-      resource = query.model.allocate
+      resource = model.allocate
       resource.send(:initialize_with_attributes, default_attributes.merge(attributes))
-      if query.repository.save(resource)
+      if repository.save(resource)
         self << resource
       end
       resource
@@ -233,12 +227,15 @@ module DataMapper
 
     def update(attributes = {})
       # TODO: update this to use bulk update once adapter API changes completed
-      map { |resource| resource.update_attributes(attributes) }.all?
+      map do |resource|
+        resource.attributes = attributes
+        repository.save(resource)
+      end.all?
     end
 
     def destroy
       # TODO: update this to use bulk destroy once adapter API changes completed
-      success = map { |resource| query.repository.destroy(resource) }.all?
+      success = map { |resource| repository.destroy(resource) }.all?
       clear
       success
     end
@@ -248,7 +245,7 @@ module DataMapper
     end
 
     def relationships
-      query.model.relationships
+      model.relationships(repository.name)
     end
 
     def default_attributes
@@ -259,11 +256,17 @@ module DataMapper
         next unless operator == :eql &&
           property.kind_of?(DataMapper::Property) &&
           ![ Array, Range ].any? { |k| bind_value.kind_of?(k) }
-          !query.model.key.include?(property)
+          !@key_properties.include?(property)
 
         default_attributes[property.name] = bind_value
       end
       default_attributes
+    end
+
+    protected
+
+    def model
+      query.model
     end
 
     private
@@ -277,27 +280,13 @@ module DataMapper
       super()
       load_with(&loader)
 
-      if inheritance_property = query.model.inheritance_property(repository.name)
+      if inheritance_property = model.inheritance_property(repository.name)
         @inheritance_property_index = @properties.index(inheritance_property)
       end
 
-      if (@key_properties = query.model.key(repository.name)).all? { |property| @properties.include?(property) }
+      if (@key_properties = model.key(repository.name)).all? { |property| @properties.include?(property) }
         @key_property_indexes = @key_properties.map { |property| @properties.index(property) }
       end
-    end
-
-    def add(resource)
-      query.add_reversed? ? unshift(resource) : push(resource)
-    end
-
-    def relate_resource(resource)
-      resource.collection = self if resource
-      resource
-    end
-
-    def orphan_resource(resource)
-      resource.collection = nil if resource && resource.collection == self
-      resource
     end
 
     def keys
@@ -319,8 +308,22 @@ module DataMapper
       []
     end
 
+    def add(resource)
+      query.add_reversed? ? unshift(resource) : push(resource)
+    end
+
+    def relate_resource(resource)
+      resource.collection = self if resource
+      resource
+    end
+
+    def orphan_resource(resource)
+      resource.collection = nil if resource && resource.collection == self
+      resource
+    end
+
     def method_missing(method_name, *args)
-      if query.model.relationships(repository.name)[method_name]
+      if relationships[method_name]
         map { |e| e.send(method_name) }.flatten.compact
       else
         super

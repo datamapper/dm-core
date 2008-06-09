@@ -124,8 +124,10 @@ if ADAPTER
       @other      = @repository.all(@model, @query.merge(:limit => 2))
     end
 
-    it "should return the right repository" do
-      DataMapper::Collection.new(DataMapper::Query.new(repository(:legacy), @model)).repository.name.should == :legacy
+    it "should return the correct repository" do
+      repository = repository(:legacy)
+      query      = DataMapper::Query.new(repository, @model)
+      DataMapper::Collection.new(query).repository.object_id.should == repository.object_id
     end
 
     it "should be able to add arbitrary objects" do
