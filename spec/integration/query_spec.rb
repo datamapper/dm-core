@@ -203,6 +203,48 @@ if ADAPTER
             ADAPTER
           end
         end
+        
+        module Namespace
+          class Region
+            include DataMapper::Resource
+            property :id, Integer, :serial => true
+            property :name, String
+
+            def self.default_repository_name
+              ADAPTER
+            end
+          end
+          
+          class Factory
+            include DataMapper::Resource
+            property :id, Integer, :serial => true
+            property :region_id, Integer
+            property :name, String
+
+            repository(:mock) do
+              property :land, String
+            end
+
+            belongs_to :region
+
+            def self.default_repository_name
+              ADAPTER
+            end
+          end
+
+          class Vehicle
+            include DataMapper::Resource
+            property :id, Integer, :serial => true
+            property :factory_id, Integer
+            property :name, String
+
+            belongs_to :factory
+
+            def self.default_repository_name
+              ADAPTER
+            end
+          end
+        end
       end
 
       before do
@@ -213,6 +255,14 @@ if ADAPTER
         Region.new(:id=>1, :name=>'North West').save
         Factory.new(:id=>2000, :region_id=>1, :name=>'North West Plant').save
         Vehicle.new(:id=>1, :factory_id=>2000, :name=>'10 ton delivery truck').save
+        
+        Namespace::Region.auto_migrate!
+        Namespace::Factory.auto_migrate!
+        Namespace::Vehicle.auto_migrate!
+        
+        Namespace::Region.new(:id=>1, :name=>'North West').save
+        Namespace::Factory.new(:id=>2000, :region_id=>1, :name=>'North West Plant').save
+        Namespace::Vehicle.new(:id=>1, :factory_id=>2000, :name=>'10 ton delivery truck').save
       end
 
       it 'should require that all properties in :fields and all :links come from the same repository' #do
@@ -290,6 +340,9 @@ if ADAPTER
 
       it 'should accept a DM::QueryPath as the key to a condition' do
         vehicle = Vehicle.first(Vehicle.factory.region.name => 'North West')
+        vehicle.name.should == '10 ton delivery truck'
+        
+        vehicle = Namespace::Vehicle.first(Namespace::Vehicle.factory.region.name => 'North West')
         vehicle.name.should == '10 ton delivery truck'
       end
 
