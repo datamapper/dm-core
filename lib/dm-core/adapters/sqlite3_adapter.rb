@@ -31,18 +31,6 @@ module DataMapper
         end
       end
 
-      protected
-
-      def normalize_uri(uri_or_options)
-        path = nil
-        if uri_or_options.kind_of?(Hash)
-          path = File.expand_path(uri_or_options[:database])
-        end
-        uri = super
-        uri.path = path unless path.nil?
-        uri
-      end
-
       private
 
       # TODO: move to dm-more/dm-migrations (if possible)
