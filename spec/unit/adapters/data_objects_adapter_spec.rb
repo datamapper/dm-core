@@ -126,7 +126,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       }
 
       adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
-      adapter.uri.should == Addressable::URI.parse("mysql:///you_can_call_me_al")
+      adapter.uri.should == Addressable::URI.parse("mysql:you_can_call_me_al")
     end
 
     it 'should accept the uri when no overrides exist' do

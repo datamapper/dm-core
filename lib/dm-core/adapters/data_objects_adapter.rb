@@ -302,10 +302,10 @@ module DataMapper
           return uri_or_options.normalize
         end
 
-        adapter = uri_or_options.delete(:adapter)
+        adapter = uri_or_options.delete(:adapter).to_s
         user = uri_or_options.delete(:username)
         password = uri_or_options.delete(:password)
-        host = (uri_or_options.delete(:host) || "")
+        host = uri_or_options.delete(:host)
         port = uri_or_options.delete(:port)
         database = uri_or_options.delete(:database)
         query = uri_or_options.to_a.map { |pair| pair.join('=') }.join('&')
