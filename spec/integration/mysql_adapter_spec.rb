@@ -12,8 +12,17 @@ if HAS_MYSQL
 
         property :id, Integer, :serial => true
         property :name, DM::Text
+        property :object, Object
 
         auto_migrate!(:mysql)
+      end
+    end
+
+    it "should handle Object type" do
+      time = Time.now
+      repository(:mysql) do
+        Sputnik.create(:name => "Sputnik", :object => time)
+        Sputnik.first.object.should == time
       end
     end
 

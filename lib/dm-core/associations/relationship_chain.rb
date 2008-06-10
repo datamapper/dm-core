@@ -10,19 +10,21 @@ module DataMapper
       undef_method :get_parent
       undef_method :attach_parent
 
-      def get_children(parent, options = {})
+      def child_model
+        near_relationship.child_model
+      end
+
+      # @private
+      def get_children(parent, options = {}, finder = :all, *args)
         query = @query.merge(options).merge(child_key.to_query(parent_key.get(parent)))
 
         query[:links] = links
 
         DataMapper.repository(parent.repository.name) do
-          # FIXME: remove the need for the uniq
-          grandchild_model.all(query).uniq
+          results = grandchild_model.send(finder, *(args << query))
+          # FIXME: remove the need for the uniq.freeze
+          finder == :all ? results.uniq.freeze : results
         end
-      end
-
-      def child_model
-        near_relationship.child_model
       end
 
       private
@@ -32,18 +34,10 @@ module DataMapper
       end
 
       def links
-        if RelationshipChain === remote_relationship
-          remote_relationship.instance_eval do links end + [remote_relationship.instance_eval do near_relationship end]
+        if remote_relationship.kind_of?(RelationshipChain)
+          remote_relationship.instance_eval { links } + [remote_relationship.instance_eval { near_relationship } ]
         else
-          [remote_relationship]
-        end
-      end
-
-      def extra_links
-        if RelationshipChain === remote_relationship
-          []
-        else
-          []
+          [ remote_relationship ]
         end
       end
 

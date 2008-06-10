@@ -169,7 +169,7 @@ module DataMapper
     # @public
     def eql?(other)
       return true if object_id == other.object_id
-      return false unless self.class === other
+      return false unless other.kind_of?(self.class)
       attributes == other.attributes
     end
 
@@ -376,6 +376,10 @@ module DataMapper
       instance_variable_get("@shadow_#{name}")
     end
 
+    def collection
+      @collection ||= self.class.all(Hash[ *self.class.key.zip(key).flatten ]) unless new_record?
+    end
+
     # Reload association and all child association
     #
     # ==== Returns
@@ -390,7 +394,7 @@ module DataMapper
     end
     alias reload! reload
 
-    # Relad all the attributes
+    # Reload specific attributes
     #
     # ==== Parameters
     # *attributes<Array[<Symbol>]>:: name of attribute
@@ -401,7 +405,7 @@ module DataMapper
     # --
     # @public
     def reload_attributes(*attributes)
-      @collection.reload(:fields => attributes) if @collection
+      collection.reload(:fields => attributes)
       self
     end
 
@@ -658,13 +662,13 @@ module DataMapper
       #
       # @see Resource#get
       # @raise <ObjectNotFoundError> "could not find .... with key: ...."
-      def get!(key)
-        get(key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key: #{key.inspect}")
+      def get!(*key)
+        get(*key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key #{key.inspect}")
       end
 
-      def [](key)
+      def [](*key)
         warn("#{name}[] is deprecated. Use #{name}.get! instead.")
-        get!(key)
+        get!(*key)
       end
 
       def first_or_create(query, attributes = {})
@@ -704,8 +708,9 @@ module DataMapper
       ##
       #
       # @see Repository#first
-      def first(query = {})
-        all(query.merge(:limit => 1)).first
+      def first(*args)
+        query = args.last.respond_to?(:merge) ? args.pop : {}
+        all(query).first(*args)
       end
 
       ##

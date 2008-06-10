@@ -195,14 +195,14 @@ module DataMapper
     # located. Delete the tuple and add value.conditions. value must be a
     # <DM::Query>
     #
-    def merge_sub_select_conditions(operator, property, value)
-      raise ArgumentError, "+value+ is not a #{self.class}, but was #{value.class}", caller unless self.class === value
+    def merge_subquery(operator, property, value)
+      raise ArgumentError, "+value+ is not a #{self.class}, but was #{value.class}", caller unless value.kind_of?(self.class)
 
       new_conditions = []
       conditions.each do |tuple|
         if tuple.at(0).to_s == operator.to_s && tuple.at(1) == property && tuple.at(2) == value
-          value.conditions.each do |sub_select_tuple|
-            new_conditions << sub_select_tuple
+          value.conditions.each do |subquery_tuple|
+            new_conditions << subquery_tuple
           end
         else
           new_conditions << tuple
@@ -340,13 +340,12 @@ module DataMapper
       end
     end
 
-    # TODO: spec this
     # validate other DM::Query or Hash object
     def assert_valid_other(other)
-      if self.class === other
+      if other.kind_of?(self.class)
         raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}" unless other.repository == repository
         raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}"                unless other.model      == model
-      elsif !(other.kind_of?(Hash))
+      elsif !other.kind_of?(Hash)
         raise ArgumentError, "+other+ must be a #{self.class} or Hash, but was a #{other.class}"
       end
     end
@@ -389,6 +388,7 @@ module DataMapper
 
     # normalize fields to DM::Property
     def normalize_fields(fields)
+      # TODO: return a PropertySet
       fields.map do |field|
         case field
           when Property

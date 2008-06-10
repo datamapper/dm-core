@@ -7,13 +7,7 @@ module DataMapper
     end
 
     def load(values)
-      raise "Expected #{@properties.size} attributes, got #{values.size}" if @properties.size != values.size
-
-      model = if @inheritance_property_index
-        values.at(@inheritance_property_index) || query.model
-      else
-        query.model
-      end
+      model = @inheritance_property_index && values && values.at(@inheritance_property_index) || self.model
 
       # TODO: think about moving the logic here into Model#load
       resource = nil
@@ -63,10 +57,39 @@ module DataMapper
       replace(all(:reload => true))
     end
 
+    def get(*key)
+      if loaded?
+        # loop over the collection to find the matching resource
+        detect { |resource| resource.key == key }
+      elsif query.limit || query.offset > 0
+        # current query is exclusive, find resource within the set
+
+        # TODO: use a subquery to retrieve the collection and then match
+        #   it up against the key.  This will require some changes to
+        #   how subqueries are generated, since the key may be a
+        #   composite key.  In the case of DO adapters, it means subselects
+        #   like the form "(a, b) IN(SELECT a,b FROM ...)", which will
+        #   require making it so the Query condition key can be a
+        #   Property or an Array of Property objects
+
+        # use the brute force approach until subquery lookups work
+        lazy_load!
+        get(*key)
+      else
+        # current query is all inclusive, lookup using normal approach
+        conditions = Hash[ *@key_properties.zip(key).flatten ]
+        first(conditions)
+      end
+    end
+
+    def get!(*key)
+      get(*key) || raise(ObjectNotFoundError, "Could not find #{model.name} with key #{key.inspect} in collection")
+    end
+
     def all(query = {})
       if query.kind_of?(Hash)
         return self if query.empty?
-        query = self.query.class.new(self.query.repository, self.query.model, query)
+        query = self.query.class.new(repository, model, query)
       end
 
       # TODO: if loaded?, and the query is the same as self.query,
@@ -89,7 +112,7 @@ module DataMapper
       query.update(:offset => first_pos)
       query.update(:limit => last_pos - first_pos) if last_pos
 
-      query.repository.all(query.model, self.query.merge(query))
+      repository.all(model, self.query.merge(query))
     end
 
     def first(*args)
@@ -193,6 +216,59 @@ module DataMapper
       super
     end
 
+    def create(attributes = {})
+      resource = model.allocate
+      resource.send(:initialize_with_attributes, default_attributes.merge(attributes))
+      if repository.save(resource)
+        self << resource
+      end
+      resource
+    end
+
+    def update(attributes = {})
+      # TODO: update this to use bulk update once adapter API changes completed
+      map do |resource|
+        resource.attributes = attributes
+        repository.save(resource)
+      end.all?
+    end
+
+    def destroy
+      # TODO: update this to use bulk destroy once adapter API changes completed
+      success = map { |resource| repository.destroy(resource) }.all?
+      clear
+      success
+    end
+
+    def properties
+      PropertySet.new(query.fields)
+    end
+
+    def relationships
+      model.relationships(repository.name)
+    end
+
+    def default_attributes
+      default_attributes = {}
+      query.conditions.each do |tuple|
+        operator, property, bind_value = *tuple
+
+        next unless operator == :eql &&
+          property.kind_of?(DataMapper::Property) &&
+          ![ Array, Range ].any? { |k| bind_value.kind_of?(k) }
+          !@key_properties.include?(property)
+
+        default_attributes[property.name] = bind_value
+      end
+      default_attributes
+    end
+
+    protected
+
+    def model
+      query.model
+    end
+
     private
 
     def initialize(query, &loader)
@@ -204,13 +280,32 @@ module DataMapper
       super()
       load_with(&loader)
 
-      if inheritance_property = query.model.inheritance_property(repository.name)
+      if inheritance_property = model.inheritance_property(repository.name)
         @inheritance_property_index = @properties.index(inheritance_property)
       end
 
-      if (@key_properties = query.model.key(repository.name)).all? { |property| @properties.include?(property) }
+      if (@key_properties = model.key(repository.name)).all? { |property| @properties.include?(property) }
         @key_property_indexes = @key_properties.map { |property| @properties.index(property) }
       end
+    end
+
+    def keys
+      keys = {}
+
+      if (entry_keys = map { |resource| resource.key }).any?
+        @key_properties.zip(entry_keys.transpose).each do |property,values|
+          keys[property] = values.size == 1 ? values[0] : values
+        end
+      end
+
+      keys
+    end
+
+    def empty_collection
+      # TODO: figure out how to create an empty collection
+      #   - must have a null query object.. i.e. should not be possible
+      #     to get any rows from it
+      []
     end
 
     def add(resource)
@@ -227,25 +322,8 @@ module DataMapper
       resource
     end
 
-    def keys
-      entry_keys = map { |resource| resource.key }
-
-      keys = {}
-      @key_properties.zip(entry_keys.transpose).each do |property,values|
-        keys[property] = values.size == 1 ? values[0] : values
-      end
-      keys
-    end
-
-    def empty_collection
-      # TODO: figure out how to create an empty collection
-      #   - must have a null query object.. i.e. should not be possible
-      #     to get any rows from it
-      []
-    end
-
     def method_missing(method_name, *args)
-      if query.model.relationships(repository.name)[method_name]
+      if relationships[method_name]
         map { |e| e.send(method_name) }.flatten.compact
       else
         super

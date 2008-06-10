@@ -193,9 +193,8 @@ describe DataMapper::Query do
     it 'should instantiate a DataMapper::Query object from other when it is a Hash' do
       other = { :reload => :true }
 
-      mock_query_class = mock('DataMapper::Query class')
-      @query.should_receive(:class).with(no_args).twice.ordered.and_return(mock_query_class)
-      mock_query_class.should_receive(:new).with(@repository, @query.model, other).ordered.and_return(@query)
+      @query.should_receive(:class).with(no_args).twice.ordered.and_return(DataMapper::Query)
+      DataMapper::Query.should_receive(:new).with(@repository, @query.model, other).ordered.and_return(@query)
 
       @query.update(other)
     end

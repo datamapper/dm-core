@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
 
 require 'benchmark'
 require 'rubygems'
@@ -8,7 +8,7 @@ require 'rubygems'
 gem 'faker', '>=0.3.1'
 require 'faker'
 
-gem 'activerecord', '>=2.0.2'
+gem 'activerecord', '>=2.1.0'
 require 'active_record'
 
 socket_file = Pathname.glob(%w[

@@ -43,7 +43,7 @@ module DataMapper
     def get(model, key)
       identity_maps[model][key] || begin
         conditions = Hash[ *model.key(name).zip(key).flatten ]
-        first(model, conditions.update(:limit => 1))
+        first(model, conditions)
       end
     end
 

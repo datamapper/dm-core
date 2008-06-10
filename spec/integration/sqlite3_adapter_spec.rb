@@ -158,6 +158,7 @@ if HAS_SQLITE3
 
           property :id, Integer, :serial => true
           property :name, String
+          property :object, Object
         end
       end
 
@@ -166,15 +167,17 @@ if HAS_SQLITE3
       end
 
       it 'should be able to create a record' do
-        game = VideoGame.new(:name => 'System Shock')
+        time = Time.now
+        game = VideoGame.new(:name => 'System Shock', :object => time)
         repository(:sqlite3) do
           game.save
+          game.should_not be_a_new_record
+          game.should_not be_dirty
+
+          saved = VideoGame.first(:name => game.name)
+          saved.id.should == game.id
+          saved.object.should == time
         end
-
-        game.should_not be_a_new_record
-        game.should_not be_dirty
-
-        @adapter.query('SELECT "id" FROM "video_games" WHERE "name" = ?', game.name).first.should == game.id
       end
 
       it 'should be able to read a record' do
