@@ -37,6 +37,14 @@ class Book
   property :object,      Object,     :nullable => true                       # FIXME: cannot supply a default for Object
 end
 
+module Publications
+  class ShortStoryCollection
+    include DataMapper::Resource
+    property :serial, Integer, :serial => true
+    property :date,   Date,    :nullable => false, :default => TODAY, :index => :date_date_time
+  end
+end
+
 if HAS_SQLITE3
   describe DataMapper::AutoMigrations, '.auto_migrate! with sqlite3' do
     before :all do
@@ -140,6 +148,11 @@ if HAS_SQLITE3
         @index_list[3].name.should == 'index_books_date_time'
         @index_list[3].unique.should == 0
       end
+      
+      it 'should escape a namespaced model' do
+        Publications::ShortStoryCollection.auto_migrate!(:sqlite3).should be_true
+        @adapter.query("SELECT name FROM sqlite_master WHERE type='table'").should include("publications_short_story_collections")
+      end
 
     end
   end
@@ -242,6 +255,11 @@ if HAS_MYSQL
           @index_list[3].Key_name.should == 'index_books_date_time'
           @index_list[3].Non_unique.should == 1
         end
+      end
+      
+      it 'should escape a namespaced model' do
+        Publications::ShortStoryCollection.auto_migrate!(:mysql).should be_true
+        @adapter.query("SHOW TABLES").should include("publications_short_story_collections")
       end
     end
   end
@@ -368,6 +386,11 @@ if HAS_POSTGRES
 
       it 'should have 4 indexes: 2 non-unique index, 2 unique index' do
         pending 'TODO'
+      end
+
+      it 'should escape a namespaced model' do
+        Publications::ShortStoryCollection.auto_migrate!(:postgres).should be_true
+        @adapter.query("SELECT tablename FROM pg_tables where tablename not like 'pg_%'").should include("publications_short_story_collections")
       end
     end
   end
