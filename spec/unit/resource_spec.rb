@@ -22,6 +22,10 @@ describe "DataMapper::Resource" do
         property :cowabunga, String
       end
 
+      def age
+        attribute_get(:age)
+      end
+
       def to_s
         name
       end
