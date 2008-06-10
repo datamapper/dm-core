@@ -187,13 +187,10 @@ if ADAPTER
         end
 
         it 'should instantiate resources using the inheritance property class' do
-          pending 'length does not return 1, yet slice() can return a resource' do
-            @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, CollectionSpecParty))
-            @collection.length.should == 1
-            resource = @collection[0]
-            resource.class.should == CollectionSpecUser
-            resource
-          end
+          query = DataMapper::Query.new(@repository, CollectionSpecParty)
+          collection = @repository.all(query.model, query)
+          collection.should have(1).entries
+          collection.first.class.should == CollectionSpecUser
         end
       end
     end
@@ -206,8 +203,12 @@ if ADAPTER
 
         describe '#<<' do
           it 'should relate each new resource to the collection' do
+            # resource is orphaned
             @nancy.collection.object_id.should_not == @collection.object_id
+
             @collection << @nancy
+
+            # resource is related
             @nancy.collection.object_id.should == @collection.object_id
           end
 
@@ -285,9 +286,16 @@ if ADAPTER
         describe '#clear' do
           it 'should orphan the resource from the collection' do
             entries = @collection.entries
+
+            # resources are related
             entries.each { |r| r.collection.object_id.should == @collection.object_id }
+
+            @collection.should have(3).entries
             @collection.clear
-            entries.each { |r| r.collection.should have(1).entries }
+            @collection.should be_empty
+
+            # resources are orphaned
+            entries.each { |r| r.collection.object_id.should_not == @collection.object_id }
           end
 
           it 'should return self' do
@@ -339,29 +347,41 @@ if ADAPTER
 
         describe '#delete' do
           it 'should orphan the resource from the collection' do
-            nancy = @collection[0]
-            nancy.collection.should_not be_nil
-            nancy.collection.delete(nancy)
-            nancy.collection.should have(1).entries
-            nancy.collection.first.key.should == nancy.key
+            collection = @nancy.collection
+
+            # resource is related
+            @nancy.collection.object_id.should == collection.object_id
+
+            collection.should have(1).entries
+            collection.delete(@nancy)
+            collection.should be_empty
+
+            # resource is orphaned
+            @nancy.collection.object_id.should_not == collection.object_id
           end
 
           it 'should return a Resource' do
-            @collection.delete(@nancy).should be_kind_of(DataMapper::Resource)
+            @collection.delete(@nancy).object_id.should == @nancy.object_id
           end
         end
 
         describe '#delete_at' do
           it 'should orphan the resource from the collection' do
-            nancy = @collection[0]
-            nancy.collection.should_not be_nil
-            nancy.collection.delete_at(0).should == nancy
-            nancy.collection.should have(1).entries
-            nancy.collection.first.key.should == nancy.key
+            collection = @nancy.collection
+
+            # resource is related
+            @nancy.collection.object_id.should == collection.object_id
+
+            collection.should have(1).entries
+            collection.delete_at(0).object_id.should == @nancy.object_id
+            collection.should be_empty
+
+            # resource is orphaned
+            @nancy.collection.object_id.should_not == collection.object_id
           end
 
           it 'should return a Resource' do
-            @collection.delete_at(0).should be_kind_of(DataMapper::Resource)
+            @collection.delete_at(0).key.should == @nancy.key
           end
         end
 
@@ -565,15 +585,21 @@ if ADAPTER
 
         describe '#pop' do
           it 'should orphan the resource from the collection' do
-            steve = @collection[2]
-            steve.collection.should_not be_nil
-            steve.collection.pop
-            steve.collection.should have(1).entries
-            steve.collection.first.key.should == steve.key
+            collection = @steve.collection
+
+            # resource is related
+            @steve.collection.object_id.should == collection.object_id
+
+            collection.should have(1).entries
+            collection.pop.object_id.should == @steve.object_id
+            collection.should be_empty
+
+            # resource is orphaned
+            @steve.collection.object_id.should_not == collection.object_id
           end
 
           it 'should return a Resource' do
-            @collection.pop.should be_kind_of(DataMapper::Resource)
+            @collection.pop.key.should == @steve.key
           end
         end
 
@@ -590,8 +616,12 @@ if ADAPTER
 
         describe '#push' do
           it 'should relate each new resource to the collection' do
+            # resource is orphaned
             @nancy.collection.object_id.should_not == @collection.object_id
+
             @collection.push(@nancy)
+
+            # resource is related
             @nancy.collection.object_id.should == @collection.object_id
           end
 
@@ -672,14 +702,25 @@ if ADAPTER
         describe '#replace' do
           it "should orphan each existing resource from the collection if loaded?" do
             entries = @collection.entries
+
+            # resources are related
             entries.each { |r| r.collection.object_id.should == @collection.object_id }
-            @collection.replace([])
-            entries.each { |r| r.collection.should have(1).entries; r.collection.first.key.should == r.key  }
+
+            @collection.should have(3).entries
+            @collection.replace([]).object_id.should == @collection.object_id
+            @collection.should be_empty
+
+            # resources are orphaned
+            entries.each { |r| r.collection.object_id.should_not == @collection.object_id }
           end
 
           it 'should relate each new resource to the collection' do
+            # resource is orphaned
             @nancy.collection.object_id.should_not == @collection.object_id
+
             @collection.replace([ @nancy ])
+
+            # resource is related
             @nancy.collection.object_id.should == @collection.object_id
           end
 
@@ -741,15 +782,21 @@ if ADAPTER
 
         describe '#shift' do
           it 'should orphan the resource from the collection' do
-            nancy = @collection[0]
-            nancy.collection.should_not be_nil
-            nancy.collection.shift
-            nancy.collection.should have(1).entries
-            nancy.collection.first.key.should == nancy.key
+            collection = @nancy.collection
+
+            # resource is related
+            @nancy.collection.object_id.should == collection.object_id
+
+            collection.should have(1).entries
+            collection.shift.object_id.should == @nancy.object_id
+            collection.should be_empty
+
+            # resource is orphaned
+            @nancy.collection.object_id.should_not == collection.object_id
           end
 
           it 'should return a Resource' do
-            @collection.shift.should be_kind_of(DataMapper::Resource)
+            @collection.shift.key.should == @nancy.key
           end
         end
 
@@ -828,8 +875,12 @@ if ADAPTER
 
         describe '#unshift' do
           it 'should relate each new resource to the collection' do
+            # resource is orphaned
             @nancy.collection.object_id.should_not == @collection.object_id
+
             @collection.unshift(@nancy)
+
+            # resource is related
             @nancy.collection.object_id.should == @collection.object_id
           end
 
