@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require File.join(File.dirname(__FILE__), '..', 'lib', 'data_mapper')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
 
 require 'rubygems'
 
