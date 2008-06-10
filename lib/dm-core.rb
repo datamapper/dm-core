@@ -49,6 +49,7 @@ require dir / 'support'
 require dir / 'property'
 require dir / 'adapters'
 require dir / 'collection'
+require dir / 'is'
 
 # == Setup and Configuration
 # DataMapper uses URIs or a connection hash to connect to your data-store.

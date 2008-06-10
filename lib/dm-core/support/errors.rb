@@ -11,6 +11,8 @@ module DataMapper
   class IncompleteResourceError < StandardError; end
 
   class PersistenceError < StandardError; end
+  
+  class PluginNotFoundError < StandardError; end
 end # module DataMapper
 
 class StandardError
