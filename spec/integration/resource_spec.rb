@@ -83,6 +83,7 @@ if ADAPTER
     property :name, String
     property :iq, Integer, :default => 100
     property :type, Discriminator
+    property :data, Object
 
     def iq=(i)
       attribute_set(:iq, i - 1)
@@ -186,6 +187,21 @@ if ADAPTER
       repository(ADAPTER) { fred.save }
       fred.id.should_not be_nil
       fred.instance_variable_get("@save_id").should == fred.id
+    end
+    
+    it "should be dirty when Object properties are changed" do
+      pending "Awaiting Property#track implementation"
+      repository(ADAPTER) do
+        Male.auto_migrate!
+      end
+      bob = Male.new(:name => "Bob", :data => {})
+      bob.dirty?.should be_true
+      repository(ADAPTER) do
+        bob.save
+      end
+      bob.dirty?.should be_false
+      bob.data[:test] = "Dirty"
+      bob.dirty?.should be_true
     end
 
     describe "anonymity" do

@@ -17,6 +17,7 @@ describe "DataMapper::Resource" do
       property :age, Integer
       property :core, String, :private => true
       property :type, Discriminator
+      property :data, Object
 
       repository(:legacy) do
         property :cowabunga, String
@@ -107,13 +108,13 @@ describe "DataMapper::Resource" do
   end
 
   it "should have attributes" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => Planet }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => Planet, :data => nil }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
   end
 
   it "should be able to set attributes (including private attributes)" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => Planet }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => Planet, :data => nil }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
     jupiter.attributes = attributes.merge({ :core => 'Magma' })
@@ -127,17 +128,18 @@ describe "DataMapper::Resource" do
   end
 
   it "should not mark attributes dirty if there similar after update" do
-    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil)
+    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil, :data => { :a => "Yeah!" })
     jupiter.save.should be_true
 
     # discriminator will be set automatically
     jupiter.type.should == Planet
 
-    jupiter.attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil }
+    jupiter.attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :data => { :a => "Yeah!" } }
 
     jupiter.attribute_dirty?(:name).should be_false
     jupiter.attribute_dirty?(:age).should be_false
     jupiter.attribute_dirty?(:core).should be_false
+    jupiter.attribute_dirty?(:data).should be_false
 
     jupiter.dirty?.should be_false
   end
@@ -177,6 +179,7 @@ describe "DataMapper::Resource" do
     mars.attribute_dirty?(:id).should be_false
     mars.attribute_dirty?(:name).should be_true
     mars.attribute_loaded?(:age).should be_false
+    mars.attribute_dirty?(:data).should be_false
 
     mars.age.should be_nil
 
@@ -193,8 +196,11 @@ describe "DataMapper::Resource" do
     mars.attribute_dirty?(:age).should be_false
 
     mars.attribute_set(:age, 30)
+    mars.attribute_set(:data, { :a => "Yeah!" })
+    
     # Obviously. :-)
     mars.attribute_dirty?(:age).should be_true
+    mars.attribute_dirty?(:data).should be_true
 
     mars.should respond_to(:shadow_attribute_get)
   end
@@ -310,7 +316,7 @@ describe "DataMapper::Resource" do
 
     it '.properties should return an PropertySet' do
       Planet.properties(:legacy).should be_kind_of(DataMapper::PropertySet)
-      Planet.properties(:legacy).should have(6).entries
+      Planet.properties(:legacy).should have(7).entries
     end
 
     it '.properties should use default repository when not passed any arguments' do
