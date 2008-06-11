@@ -259,22 +259,22 @@ describe DataMapper::Property do
       property.typecast('2000-01-01 01:01:01.123456').should == Time.local(2000, 1, 1, 1, 1, 1, 123456)
     end
     
-    it 'should typecast hash for a Time property' do
+    it 'should typecast Hash for a Time property' do
       property = DataMapper::Property.new(Zoo, :time, Time)
       property.typecast(
-        :year => 2002, :month => 1, :day => 1, :hour => 12, :min => 0, :sec => 0
+        :year => 2002, "month" => 1, :day => 1, "hour" => 12, :min => 0, :sec => 0
       ).should == Time.local(2002, 1, 1, 12, 0, 0)
     end
     
-    it 'should typecast hash for a Date property' do
+    it 'should typecast Hash for a Date property' do
       property = DataMapper::Property.new(Zoo, :date, Date)
-      property.typecast(:year => 2002, :month => 1, :day => 1).should == Date.new(2002, 1, 1)
+      property.typecast(:year => 2002, "month" => 1, :day => 1).should == Date.new(2002, 1, 1)
     end
     
-    it 'should typecast hash for a DateTime property' do
+    it 'should typecast Hash for a DateTime property' do
       property = DataMapper::Property.new(Zoo, :date_time, DateTime)
       property.typecast(
-        :year => 2002, :month => 1, :day => 1, :hour => 12, :min => 0, :sec => 0
+        :year => 2002, :month => 1, :day => 1, "hour" => 12, :min => 0, "sec" => 0
       ).should == DateTime.new(2002, 1, 1, 12, 0, 0)
     end
     
