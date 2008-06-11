@@ -1,3 +1,5 @@
+# TODO: move to dm-more/dm-migrations
+
 module DataMapper
   module DestructiveMigrations
     def self.included(model)

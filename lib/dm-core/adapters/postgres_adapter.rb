@@ -3,80 +3,7 @@ require 'do_postgres'
 
 module DataMapper
   module Adapters
-
     class PostgresAdapter < DataObjectsAdapter
-
-      # TypeMap for PostgreSQL databases.
-      #
-      # @return <DataMapper::TypeMap> default TypeMap for PostgreSQL databases.
-      def self.type_map
-        @type_map ||= TypeMap.new(super) do |tm|
-          tm.map(DateTime).to('TIMESTAMP')
-          tm.map(Integer).to('INT4')
-          tm.map(Float).to('FLOAT8')
-        end
-      end
-
-      # TODO: move to dm-more/dm-migrations (if possible)
-      def storage_exists?(storage_name)
-        statement = <<-EOS.compress_lines
-          SELECT COUNT(*)
-          FROM "information_schema"."columns"
-          WHERE "table_name" = ? AND "table_schema" = current_schema()
-        EOS
-
-        query(statement, storage_name).first > 0
-      end
-
-      # TODO: remove this alias
-      alias exists? storage_exists?
-
-      # TODO: move to dm-more/dm-migrations (if possible)
-      def field_exists?(storage_name, column_name)
-        statement = <<-EOS.compress_lines
-          SELECT COUNT(*)
-          FROM "pg_class"
-          JOIN "pg_attribute" ON "pg_class"."oid" = "pg_attribute"."attrelid"
-          WHERE "pg_attribute"."attname" = ? AND "pg_class"."relname" = ? AND "pg_attribute"."attnum" >= 0
-        EOS
-
-        query(statement, column_name, storage_name).first > 0
-      end
-
-      # TODO: move to dm-more/dm-migrations
-      def upgrade_model_storage(repository, model)
-        add_sequences(model)
-        super
-      end
-
-      # TODO: move to dm-more/dm-migrations
-      def create_model_storage(repository, model)
-        add_sequences(model)
-        without_notices { super }
-      end
-
-      # TODO: move to dm-more/dm-migrations
-      def destroy_model_storage(repository, model)
-        success = without_notices { super }
-        model.properties(name).each do |property|
-          drop_sequence(model, property) if property.serial?
-        end
-        success
-      end
-
-      protected
-
-      # TODO: move to dm-more/dm-migrations
-      def create_sequence(model, property)
-        return if sequence_exists?(model, property)
-        execute(create_sequence_statement(model, property))
-      end
-
-      # TODO: move to dm-more/dm-migrations
-      def drop_sequence(model, property)
-        without_notices { execute(drop_sequence_statement(model, property)) }
-      end
-
       module SQL
         private
 
@@ -160,7 +87,83 @@ module DataMapper
 
       include SQL
 
-    end # class PostgresAdapter
+      # TODO: move to dm-more/dm-migrations (if possible)
+      module Migration
+        # TODO: move to dm-more/dm-migrations (if possible)
+        def storage_exists?(storage_name)
+          statement = <<-EOS.compress_lines
+            SELECT COUNT(*)
+            FROM "information_schema"."columns"
+            WHERE "table_name" = ? AND "table_schema" = current_schema()
+          EOS
 
+          query(statement, storage_name).first > 0
+        end
+
+        # TODO: move to dm-more/dm-migrations (if possible)
+        def field_exists?(storage_name, column_name)
+          statement = <<-EOS.compress_lines
+            SELECT COUNT(*)
+            FROM "pg_class"
+            JOIN "pg_attribute" ON "pg_class"."oid" = "pg_attribute"."attrelid"
+            WHERE "pg_attribute"."attname" = ? AND "pg_class"."relname" = ? AND "pg_attribute"."attnum" >= 0
+          EOS
+
+          query(statement, column_name, storage_name).first > 0
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def upgrade_model_storage(repository, model)
+          add_sequences(model)
+          super
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def create_model_storage(repository, model)
+          add_sequences(model)
+          without_notices { super }
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def destroy_model_storage(repository, model)
+          success = without_notices { super }
+          model.properties(name).each do |property|
+            drop_sequence(model, property) if property.serial?
+          end
+          success
+        end
+
+        protected
+
+        # TODO: move to dm-more/dm-migrations
+        def create_sequence(model, property)
+          return if sequence_exists?(model, property)
+          execute(create_sequence_statement(model, property))
+        end
+
+        # TODO: move to dm-more/dm-migrations
+        def drop_sequence(model, property)
+          without_notices { execute(drop_sequence_statement(model, property)) }
+        end
+
+        module ClassMethods
+          # TypeMap for PostgreSQL databases.
+          #
+          # @return <DataMapper::TypeMap> default TypeMap for PostgreSQL databases.
+          #
+          # TODO: move to dm-more/dm-migrations
+          def type_map
+            @type_map ||= TypeMap.new(super) do |tm|
+              tm.map(DateTime).to('TIMESTAMP')
+              tm.map(Integer).to('INT4')
+              tm.map(Float).to('FLOAT8')
+            end
+          end
+        end
+      end
+
+      include Migration
+      extend Migration::ClassMethods
+    end # class PostgresAdapter
   end # module Adapters
 end # module DataMapper

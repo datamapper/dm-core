@@ -1,3 +1,5 @@
+# TODO: move to dm-more/dm-migrations
+
 module DataMapper
   class AutoMigrator
     def self.auto_migrate(repository_name = nil)

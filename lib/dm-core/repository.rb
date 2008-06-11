@@ -117,6 +117,7 @@ module DataMapper
             resource.instance_variable_set(:@new_record, false)
             identity_map_set(resource)
           end
+          true
         else
           adapter.update(resource.dirty_attributes, resource.to_query)
         end
@@ -128,7 +129,7 @@ module DataMapper
 
       resource.parent_associations.each { |a| a.save }
 
-      !!success
+      success == true
     end
 
     ##
@@ -151,14 +152,17 @@ module DataMapper
       end
     end
 
+    # TODO: move to dm-more/dm-migrations
     def migrate!
       Migrator.migrate(name)
     end
 
+    # TODO: move to dm-more/dm-migrations
     def auto_migrate!
       AutoMigrator.auto_migrate(name)
     end
 
+    # TODO: move to dm-more/dm-migrations
     def auto_upgrade!
       AutoMigrator.auto_upgrade(name)
     end
@@ -169,14 +173,18 @@ module DataMapper
     #
     # @return <DataMapper::Adapters::Transaction> a new Transaction (in state
     #   :none) that can be used to execute code #with_transaction
+    #
+    # TODO: move to dm-more/dm-transactions
     def transaction
       DataMapper::Transaction.new(self)
     end
 
+    # TODO: move to dm-more/dm-migrations
     def map(*args)
       type_map.map(*args)
     end
 
+    # TODO: move to dm-more/dm-migrations
     def type_map
       @type_map ||= TypeMap.new(adapter.class.type_map)
     end

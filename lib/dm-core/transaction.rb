@@ -1,3 +1,5 @@
+# TODO: move to dm-more/dm-transactions
+
 module DataMapper
   class Transaction
 
