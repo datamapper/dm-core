@@ -269,7 +269,7 @@ module DataMapper
       translate_custom_types(@properties, options)
 
       # treat all non-options as conditions
-      (options.keys - OPTIONS - OPTIONS.map(&:to_s)).each do |k|
+      (options.keys - OPTIONS - OPTIONS.map { |option| option.to_s }).each do |k|
         append_condition(k, options[k])
       end
 

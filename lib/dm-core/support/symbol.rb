@@ -38,8 +38,4 @@ class Symbol
   def desc
     DataMapper::Query::Operator.new(self, :desc)
   end
-
-  def to_proc
-    lambda { |value| value.send(self) }
-  end
 end # class Symbol

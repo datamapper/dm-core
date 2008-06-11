@@ -473,7 +473,7 @@ if HAS_POSTGRES
         repository(:postgres) do
           SerialFinderSpec.all(:limit => 50).should have(50).entries
 
-          SerialFinderSpec.all(:limit => 20, :offset => 40).map(&:id).should == SerialFinderSpec.all[40...60].map(&:id)
+          SerialFinderSpec.all(:limit => 20, :offset => 40).map { |entry| entry.id }.should == SerialFinderSpec.all[40...60].map { |entry| entry.id }
         end
       end
 
@@ -491,7 +491,7 @@ if HAS_POSTGRES
 
       it "should translate an Array to an IN clause" do
         ids = repository(:postgres) do
-          SerialFinderSpec.all(:limit => 10).map(&:id)
+          SerialFinderSpec.all(:limit => 10).map { |entry| entry.id }
         end
 
         results = repository(:postgres) do
@@ -499,7 +499,7 @@ if HAS_POSTGRES
         end
 
         results.size.should == 10
-        results.map(&:id).should == ids
+        results.map { |entry| entry.id }.should == ids
       end
     end
 

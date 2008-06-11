@@ -36,7 +36,7 @@ if ADAPTER
 
         collection = repository(ADAPTER).all(SerialFinderSpec, { :limit => 20, :offset => 40 })
         collection.should have(20).entries
-        collection.map(&:id).should == repository(ADAPTER).all(SerialFinderSpec, {})[40...60].map(&:id)
+        collection.map { |entry| entry.id }.should == repository(ADAPTER).all(SerialFinderSpec, {})[40...60].map { |entry| entry.id }
       end
 
       it "should lazy-load missing attributes" do
@@ -49,10 +49,10 @@ if ADAPTER
       end
 
       it "should translate an Array to an IN clause" do
-        ids = repository(ADAPTER).all(SerialFinderSpec, { :fields => [ :id ], :limit => 10 }).map(&:id)
+        ids = repository(ADAPTER).all(SerialFinderSpec, { :fields => [ :id ], :limit => 10 }).map { |entry| entry.id }
         results = repository(ADAPTER).all(SerialFinderSpec, { :id => ids })
 
-        results.map(&:id).should == ids
+        results.map { |entry| entry.id }.should == ids
       end
     end
   end
