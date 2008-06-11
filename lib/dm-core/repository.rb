@@ -29,15 +29,19 @@ module DataMapper
     end
 
     def identity_map_get(model, key)
-      @identity_maps[model].get(key)
+      identity_map(model).get(key)
     end
 
     def identity_map_set(resource)
-      @identity_maps[resource.model].set(resource.key, resource)
+      identity_map(resource.model).set(resource.key, resource)
     end
 
     def identity_map_delete(resource)
-      @identity_maps[resource.model].delete(resource.key)
+      identity_map(resource.model).delete(resource.key)
+    end
+
+    def identity_map(model)
+      @identity_maps[model]
     end
 
     ##
