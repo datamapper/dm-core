@@ -408,9 +408,9 @@ module DataMapper
       elsif type == Float      then value.to_f
       elsif type == Integer    then value.to_i
       elsif type == BigDecimal then BigDecimal(value.to_s)
-      elsif type == DateTime   then DateTime.parse(value.to_s)
-      elsif type == Date       then Date.parse(value.to_s)
-      elsif type == Time       then Time.parse(value.to_s)
+      elsif type == DateTime   then typecast_to_datetime(value)
+      elsif type == Date       then typecast_to_date(value)
+      elsif type == Time       then typecast_to_time(value)
       elsif type == Class      then find_const(value)
       end
     end
@@ -519,6 +519,58 @@ module DataMapper
           end
         EOS
       end
+    end
+    
+    # Typecasts an arbitrary value to a DateTime
+    def typecast_to_datetime(value)
+      case value
+      when Hash then typecast_hash_to_datetime(value)
+      else DateTime.parse(value.to_s)
+      end
+    end
+    
+    # Typecasts an arbitrary value to a Date
+    def typecast_to_date(value)
+      case value
+      when Hash then typecast_hash_to_date(value)
+      else Date.parse(value.to_s)
+      end
+    end
+    
+    # Typecasts an arbitrary value to a Time
+    def typecast_to_time(value)
+      case value
+      when Hash then typecast_hash_to_time(value)
+      else Time.parse(value.to_s)
+      end
+    end
+    
+    def typecast_hash_to_datetime(hash)
+      args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
+      DateTime.new(*args)
+    rescue ArgumentError => ex
+      t = typecast_hash_to_time(hash)
+      DateTime.new(t.year, t.month, t.day, t.hour, t.min, t.sec)
+    end
+    
+    def typecast_hash_to_date(hash)
+      args = extract_time_args_from_hash(hash, :year, :month, :day)
+      Date.new(*args)
+    rescue ArgumentError => ex
+      t = typecast_hash_to_time(hash)
+      Date.new(t.year, t.month, t.day)
+    end
+    
+    def typecast_hash_to_time(hash)
+      args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
+      Time.local(*args)
+    end
+    
+    # Extracts the given args from the hash. If a value does not exist, it
+    # uses the value of Time.now
+    def extract_time_args_from_hash(hash, *args)
+      now = Time.now
+      args.map { |arg| hash[arg] || hash[arg.to_s] || now.send(arg) }
     end
   end # class Property
 end # module DataMapper
