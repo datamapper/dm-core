@@ -17,7 +17,7 @@ module DataMapper
       :default
     end
 
-    attr_reader :name, :type_map
+    attr_reader :name
 
     def adapter
       @adapter ||= begin
@@ -152,53 +152,6 @@ module DataMapper
       end
     end
 
-    # TODO: move to dm-more/dm-migrations
-    def migrate!
-      Migrator.migrate(name)
-    end
-
-    # TODO: move to dm-more/dm-migrations
-    def auto_migrate!
-      AutoMigrator.auto_migrate(name)
-    end
-
-    # TODO: move to dm-more/dm-migrations
-    def auto_upgrade!
-      AutoMigrator.auto_upgrade(name)
-    end
-
-    ##
-    # Produce a new Transaction for this Repository
-    #
-    #
-    # @return <DataMapper::Adapters::Transaction> a new Transaction (in state
-    #   :none) that can be used to execute code #with_transaction
-    #
-    # TODO: move to dm-more/dm-transactions
-    def transaction
-      DataMapper::Transaction.new(self)
-    end
-
-    # TODO: move to dm-more/dm-migrations
-    def map(*args)
-      type_map.map(*args)
-    end
-
-    # TODO: move to dm-more/dm-migrations
-    def type_map
-      @type_map ||= TypeMap.new(adapter.class.type_map)
-    end
-
-    ##
-    #
-    # @return <True, False> whether or not the data-store exists for this repo
-    def storage_exists?(storage_name)
-      adapter.storage_exists?(storage_name)
-    end
-
-    # TODO: remove this alias
-    alias exists? storage_exists?
-
     def eql?(other)
       return true if super
       name == other.name
@@ -230,5 +183,61 @@ module DataMapper
         query
       end
     end
+
+    # TODO: move to dm-more/dm-migrations
+    module Migration
+      # TODO: move to dm-more/dm-migrations
+      def map(*args)
+        type_map.map(*args)
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def type_map
+        @type_map ||= TypeMap.new(adapter.class.type_map)
+      end
+
+      ##
+      #
+      # @return <True, False> whether or not the data-store exists for this repo
+      #
+      # TODO: move to dm-more/dm-migrations
+      def storage_exists?(storage_name)
+        adapter.storage_exists?(storage_name)
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def migrate!
+        Migrator.migrate(name)
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def auto_migrate!
+        AutoMigrator.auto_migrate(name)
+      end
+
+      # TODO: move to dm-more/dm-migrations
+      def auto_upgrade!
+        AutoMigrator.auto_upgrade(name)
+      end
+    end
+
+    include Migration
+
+    # TODO: move to dm-more/dm-transactions
+    module Transaction
+      ##
+      # Produce a new Transaction for this Repository
+      #
+      #
+      # @return <DataMapper::Adapters::Transaction> a new Transaction (in state
+      #   :none) that can be used to execute code #with_transaction
+      #
+      # TODO: move to dm-more/dm-transactions
+      def transaction
+        DataMapper::Transaction.new(self)
+      end
+    end
+
+    include Transaction
   end # class Repository
 end # module DataMapper

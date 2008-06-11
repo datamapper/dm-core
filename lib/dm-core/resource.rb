@@ -12,8 +12,6 @@ module DataMapper
       x
     end
 
-    @@descendants = Set.new
-
     # When Resource is included in a class this method makes sure
     # it gets all the methods
     #
@@ -23,6 +21,8 @@ module DataMapper
       model.extend ClassMethods
       @@descendants << model
     end
+
+    @@descendants = Set.new
 
     # Return all classes that include the DataMapper::Resource module
     #
@@ -42,9 +42,10 @@ module DataMapper
     def self.descendants
       @@descendants
     end
+
     # For backward compatibility
-    def self.descendents
-      self.descendants
+    class << self
+      alias descendents descendants
     end
 
     # +---------------
@@ -368,7 +369,7 @@ module DataMapper
     # Hash:: attributes that have been marked dirty
     #
     # --
-    # @public
+    # @private
     def dirty_attributes
       dirty_attributes = {}
 
@@ -530,20 +531,6 @@ module DataMapper
       save
     end
 
-    # Produce a new Transaction for the class of this Resource
-    #
-    # ==== Returns
-    # <DataMapper::Adapters::Transaction>::
-    #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
-    #   of the class of this DataMapper::Resource added.
-    #-
-    # @api public
-    #
-    # TODO: move to dm-more/dm-transactions
-    def transaction(&block)
-      model.transaction(&block)
-    end
-
     # TODO: add docs
     def to_query(query = {})
       model.to_query(repository, key, query) unless new_record?
@@ -605,7 +592,44 @@ module DataMapper
       end
     end
 
+    # TODO: move to dm-more/dm-transactions
+    module Transaction
+      # Produce a new Transaction for the class of this Resource
+      #
+      # ==== Returns
+      # <DataMapper::Adapters::Transaction>::
+      #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
+      #   of the class of this DataMapper::Resource added.
+      #-
+      # @api public
+      #
+      # TODO: move to dm-more/dm-transactions
+      def transaction(&block)
+        model.transaction(&block)
+      end
+
+      module ClassMethods
+        #
+        # Produce a new Transaction for this Resource class
+        #
+        # @return <DataMapper::Adapters::Transaction
+        #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
+        #   of the class of this DataMapper::Resource added.
+        #-
+        # @api public
+        #
+        # TODO: move to dm-more/dm-transactions
+        def transaction(&block)
+          DataMapper::Transaction.new(self, &block)
+        end
+      end
+    end
+
+    include Transaction
+
     module ClassMethods
+      include Transaction::ClassMethods
+
       def self.extended(model)
         model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval do default_storage_name end) })
         model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
@@ -812,20 +836,7 @@ module DataMapper
         end
       end
 
-      #
-      # Produce a new Transaction for this Resource class
-      #
-      # @return <DataMapper::Adapters::Transaction
-      #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
-      #   of the class of this DataMapper::Resource added.
-      #-
-      # @api public
-      #
-      # TODO: move to dm-more/dm-transactions
-      def transaction(&block)
-        DataMapper::Transaction.new(self, &block)
-      end
-
+      # TODO: move to dm-more/dm-migrations
       def storage_exists?(repository_name = default_repository_name)
         repository(repository_name).storage_exists?(storage_name(repository_name))
       end
