@@ -2,6 +2,7 @@ module DataMapper
   class Collection < LazyArray
     attr_reader :query
 
+    # TODO: store repository within @repository when Query#repository is removed
     def repository
       query.repository
     end
@@ -11,13 +12,8 @@ module DataMapper
     end
 
     def reload(query = {})
-      # TODO: turn query into a Query object
-
-      query[:fields] ||= self.query.fields
-      query[:fields]  |= @key_properties
-
-      @query = self.query.merge(keys.merge(query))
-
+      @query = scoped_query(query.merge(keys))
+      @query.update(:fields => @query.fields | @key_properties)
       replace(all(:reload => true))
     end
 
@@ -41,8 +37,7 @@ module DataMapper
         get(*key)
       else
         # current query is all inclusive, lookup using normal approach
-        conditions = Hash[ *@key_properties.zip(key).flatten ]
-        first(conditions)
+        first(model.to_query(repository, key))
       end
     end
 
@@ -51,44 +46,24 @@ module DataMapper
     end
 
     def all(query = {})
-      if query.kind_of?(Hash)
-        return self if query.empty?
-        query = self.query.class.new(repository, model, query)
-      end
-
-      # TODO: if loaded?, and the query is the same as self.query,
-      # then return self
-
-      # return empty collection if outside range
-      unless set_relative_position(query)
-        return empty_collection
-      end
-
-      repository.all(model, self.query.merge(query))
+      return self if (query.kind_of?(Hash) && query.empty?) || query == self.query
+      repository.read_many(scoped_query(query))
     end
 
     def first(*args)
-      return super if loaded? && (args.empty? || args.first.kind_of?(Integer))
+      return super if loaded? && (args.empty? || (args.size == 1 && args.first.kind_of?(Integer)))
 
       query = args.last.respond_to?(:merge) ? args.pop : {}
-      query = self.query.class.new(repository, model, query) if query.kind_of?(Hash)
 
       if args.any?
-        query.update(:limit => args.first)
-
-        # return empty collection if outside range
-        unless set_relative_position(query)
-          return empty_collection
-        end
-
-        repository.all(model, self.query.merge(query))
+        repository.read_many(scoped_query(query.merge(:limit => args.first)))
       else
-        repository.first(model, self.query.merge(query))
+        repository.read_one(scoped_query(query))
       end
     end
 
     def last(*args)
-      return super if loaded? && (args.empty? || args.first.kind_of?(Integer))
+      return super if loaded? && (args.empty? || (args.size == 1 && args.first.kind_of?(Integer)))
 
       reversed = reverse
 
@@ -279,6 +254,22 @@ module DataMapper
       resource
     end
 
+    def scoped_query(query)
+      query = if query.kind_of?(Hash)
+        Query.new(repository, model, query)
+      elsif query.kind_of?(Query)
+        query
+      else
+        raise ArgumentError, "+query+ must be either a Hash or DataMapper::Query, but was a #{query.class}"
+      end
+
+      if query.limit || query.offset > 0
+        set_relative_position(query)
+      end
+
+      self.query.merge(query)
+    end
+
     def set_relative_position(query)
       first_pos = self.query.offset + query.offset
       last_pos  = self.query.offset + self.query.limit if self.query.limit
@@ -289,15 +280,12 @@ module DataMapper
         end
       end
 
-      # return false if outside range
       if last_pos && first_pos >= last_pos
-        return false
+        raise 'outside range'  # TODO: raise a proper exception object
       end
 
       query.update(:offset => first_pos)
       query.update(:limit => last_pos - first_pos) if last_pos
-
-      true
     end
 
     def method_missing(method_name, *args)

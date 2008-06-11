@@ -165,6 +165,8 @@ module DataMapper
 
     def ==(other)
       return true if super
+      return false unless other.kind_of?(self.class)
+
       # TODO: add a #hash method, and then use it in the comparison, eg:
       #   return hash == other.hash
       @model        == other.model         &&

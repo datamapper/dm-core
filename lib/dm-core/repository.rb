@@ -28,73 +28,39 @@ module DataMapper
       end
     end
 
-    def identity_map_get(model, key)
-      identity_map(model).get(key)
-    end
-
-    def identity_map_set(resource)
-      identity_map(resource.model).set(resource.key, resource)
-    end
-
-    def identity_map_delete(resource)
-      identity_map(resource.model).delete(resource.key)
-    end
-
     def identity_map(model)
       @identity_maps[model]
     end
 
     ##
-    # retrieve a specific instance by key
+    # retrieve a resource instance by a query
     #
-    # @param <Class> model the specific resource to retrieve from
-    # @param <Key> key The keys to look for
-    # @return <Class> the instance of the Resource retrieved
-    # @return <NilClass> could not find the instance requested
-    def get(model, key)
-      identity_map_get(model, key) || first(model, model.to_query(self, key))
-    end
-
-    ##
-    # retrieve a singular instance by query
-    #
-    # @param <Class> model the specific resource to retrieve from
-    # @param <Hash, Query> query composition of the query to perform
-    # @return <Class> the first retrieved instance which matches the query
+    # @param <Query> query composition of the query to perform
+    # @return <DataMapper::Resource> the first retrieved instance which matches the query
     # @return <NilClass> no object could be found which matches that query
     # @see DataMapper::Query
-    #
-    # TODO: why pass in the model with the query?  Form the query inside the Model
-    # and it'll carry along all the info necessary
-    def first(model, query, *args)
-      query = scoped_query(model, query)
-
-      if args.any?
-        adapter.read_many(query.merge(:limit => args.first))
-      else
-        adapter.read_one(query)
-      end
+    def read_one(query)
+      adapter.read_one(query)
     end
 
     ##
     # retrieve a collection of results of a query
     #
-    # @param <Class> model the specific resource to retrieve from
-    # @param <Hash, Query> query composition of the query to perform
-    # @return <Collection> result set of the query
+    # @param <Query> query composition of the query to perform
+    # @return <DataMapper::Collection> result set of the query
     # @see DataMapper::Query
     #
     # TODO: why pass in the model with the query?  Form the query inside the Model
     # and it'll carry along all the info necessary
-    def all(model, query)
-      adapter.read_many(scoped_query(model, query))
+    def read_many(query)
+      adapter.read_many(query)
     end
 
     ##
     # save the instance into the data-store, updating if it already exists
     # If the instance has dirty items in it's associations, they also get saved
     #
-    # @param <Class> resource the resource to return to the data-store
+    # @param <DataMapper::Resource> resource the resource to return to the data-store
     # @return <True, False> results of the save
     def save(resource)
       resource.child_associations.each { |a| a.save }
@@ -115,7 +81,7 @@ module DataMapper
           if adapter.create([ resource ])
             resource.instance_variable_set(:@repository, self)
             resource.instance_variable_set(:@new_record, false)
-            identity_map_set(resource)
+            identity_map(resource.model).set(resource.key, resource)
           end
           true
         else
@@ -135,13 +101,13 @@ module DataMapper
     ##
     # removes the resource from the data-store.  The instance will remain in active-memory, but will now be marked as a new_record and it's keys will be revoked
     #
-    # @param <Class> resource the resource to be destroyed
+    # @param <DataMapper::Resource> resource the resource to be destroyed
     # @return <True, False> results of the destruction
     def destroy(resource)
       if adapter.delete(resource.to_query)
         resource.instance_variable_set(:@new_record, true)
-        identity_map_delete(resource)
         resource.original_values.clear
+        identity_map(resource.model).delete(resource.key)
         resource.model.properties(name).each do |property|
           # We'll set the original value to nil as if we had a new record
           resource.original_values[property.name] = nil if resource.attribute_loaded?(property.name)
@@ -172,16 +138,6 @@ module DataMapper
 
       @name          = name
       @identity_maps = Hash.new { |h,model| h[model] = IdentityMap.new }
-    end
-
-    def scoped_query(model, query)
-      query = if model.query
-        model.query.merge(query)
-      elsif query.kind_of?(Hash)
-        Query.new(self, model, query)
-      elsif query.model == model
-        query
-      end
     end
 
     # TODO: move to dm-more/dm-migrations

@@ -121,8 +121,8 @@ if ADAPTER
       @repository = repository(ADAPTER)
       @model      = Zebra
       @query      = DataMapper::Query.new(@repository, @model, :order => [ :id ])
-      @collection = @repository.all(@model, @query)
-      @other      = @repository.all(@model, @query.merge(:limit => 2))
+      @collection = @repository.read_many(@query)
+      @other      = @repository.read_many(@query.merge(:limit => 2))
     end
 
     it "should return the correct repository" do
@@ -189,7 +189,7 @@ if ADAPTER
 
         it 'should instantiate resources using the inheritance property class' do
           query = DataMapper::Query.new(@repository, CollectionSpecParty)
-          collection = @repository.all(query.model, query)
+          collection = @repository.read_many(query)
           collection.should have(1).entries
           collection.first.model.should == CollectionSpecUser
         end
@@ -567,9 +567,9 @@ if ADAPTER
         describe '#load' do
           it 'should load resources from the identity map when possible' do
             @steve.collection = nil
-            @repository.should_receive(:identity_map_get).with(@model, [ @steve.id ]).and_return(@steve)
+            @repository.identity_map(@model).should_receive(:get).with([ @steve.id ]).and_return(@steve)
 
-            collection = @repository.adapter.read_many(@query.merge(:id => @steve.id))
+            collection = @repository.read_many(@query.merge(:id => @steve.id))
 
             collection.size.should == 1
             collection.map { |r| r.object_id }.should == [ @steve.object_id ]

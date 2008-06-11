@@ -10,7 +10,6 @@ module DataMapper
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
-      # all of our CRUD
       def create(resources)
         resources.map do |resource|
           attributes = resource.dirty_attributes

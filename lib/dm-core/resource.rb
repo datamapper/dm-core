@@ -754,8 +754,7 @@ module DataMapper
       #
       # @see Repository#get
       def get(*key)
-        # TODO: move IdentityMap lookup/search from Repository#get to here
-        repository.get(self, key)
+        identity_map(repository).get(key) || first(to_query(repository, key))
       end
 
       ##
@@ -792,8 +791,7 @@ module DataMapper
       #
       # @see Repository#all
       def all(query = {})
-        # TODO: perform the Model.query (scope) checking here instead of Repository#all
-        repository_for_finder(query).all(self, query)
+        repository_for_finder(query).read_many(scoped_query(query))
       end
 
       ##
@@ -801,7 +799,12 @@ module DataMapper
       # @see Repository#first
       def first(*args)
         query = args.last.respond_to?(:merge) ? args.pop : {}
-        repository_for_finder(query).first(self, query, *args)
+
+        if args.any?
+          repository_for_finder(query).read_many(scoped_query(query.merge(:limit => args.first)))
+        else
+          repository_for_finder(query).read_one(scoped_query(query))
+        end
       end
 
       ##
@@ -830,7 +833,7 @@ module DataMapper
       # TODO SPEC
       def copy(source, destination, query = {})
         repository(destination) do
-          repository(source).all(self, query).each do |resource|
+          repository(source).read_many(query).each do |resource|
             self.create(resource)
           end
         end
@@ -860,7 +863,7 @@ module DataMapper
         if key_property_indexes = query.key_property_indexes(repository)
           key_values = values.values_at(*key_property_indexes)
 
-          if resource = repository.identity_map_get(self, key_values)
+          if resource = identity_map(repository).get(key_values)
             return resource unless query.reload?
           else
             resource = allocate
@@ -871,7 +874,7 @@ module DataMapper
               resource.instance_variable_set(property.instance_variable_name, key_value)
             end
 
-            repository.identity_map_set(resource)
+            identity_map(repository).set(resource.key, resource)
           end
         else
           resource = allocate
@@ -899,6 +902,7 @@ module DataMapper
       # TODO: spec this
       def to_query(repository, key, query = {})
         conditions = Hash[ *self.key(repository.name).zip(key).flatten ]
+        # TODO: when Query#repository is removed, then remove the first argument
         Query.new(repository, self, query.merge(conditions))
       end
 
@@ -912,14 +916,30 @@ module DataMapper
         Repository.default_name
       end
 
+      def scoped_query(query)
+        query = if query.kind_of?(Hash)
+          Query.new(repository, self, query)
+        elsif query.kind_of?(Query)
+          query
+        else
+          raise ArgumentError, "+query+ must be either a Hash or DataMapper::Query, but was a #{query.class}"
+        end
+
+        self.query ? self.query.merge(query) : query
+      end
+
       def repository_for_finder(query)
         if query.kind_of?(Hash) && query.has_key?(:repository)
           repository(query[:repository])
         elsif query.kind_of?(Query)
           query.repository
         else
-          self.repository
+          repository
         end
+      end
+
+      def identity_map(repository)
+        repository.identity_map(self)
       end
 
       def method_missing(method, *args, &block)

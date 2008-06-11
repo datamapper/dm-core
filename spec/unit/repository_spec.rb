@@ -52,9 +52,8 @@ describe DataMapper::Repository do
   end
 
   it "should provide persistance methods" do
-    @repository.should respond_to(:get)
-    @repository.should respond_to(:first)
-    @repository.should respond_to(:all)
+    @repository.should respond_to(:read_one)
+    @repository.should respond_to(:read_many)
     @repository.should respond_to(:save)
     @repository.should respond_to(:destroy)
   end
