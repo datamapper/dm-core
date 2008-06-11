@@ -15,41 +15,6 @@ module DataMapper
               super
           end
         end
-
-        # TODO: move to dm-more/dm-migrations
-        def supports_serial?
-          sqlite_version >= '3.1.0'
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def create_table_statement(model)
-          statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-          statement << "#{model.properties_with_subclasses(name).collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
-
-          # skip adding the primary key if one of the columns is serial.  In
-          # SQLite the serial column must be the primary key, so it has already
-          # been defined
-          unless model.properties.any? { |p| p.serial? }
-            if (key = model.properties.key).any?
-              statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
-            end
-          end
-
-          statement << ')'
-          statement.compress_lines
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def property_schema_statement(schema)
-          statement = super
-          statement << ' PRIMARY KEY AUTOINCREMENT' if supports_serial? && schema[:serial?]
-          statement
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def sqlite_version
-          @sqlite_version ||= query('SELECT sqlite_version(*)').first
-        end
       end
 
       include SQL
@@ -74,6 +39,47 @@ module DataMapper
         def query_table(table_name)
           query('PRAGMA table_info(?)', table_name)
         end
+
+        module SQL
+          private
+
+          # TODO: move to dm-more/dm-migrations
+          def supports_serial?
+            sqlite_version >= '3.1.0'
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def create_table_statement(model)
+            statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
+            statement << "#{model.properties_with_subclasses(name).collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+
+            # skip adding the primary key if one of the columns is serial.  In
+            # SQLite the serial column must be the primary key, so it has already
+            # been defined
+            unless model.properties.any? { |p| p.serial? }
+              if (key = model.properties.key).any?
+                statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
+              end
+            end
+
+            statement << ')'
+            statement.compress_lines
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def property_schema_statement(schema)
+            statement = super
+            statement << ' PRIMARY KEY AUTOINCREMENT' if supports_serial? && schema[:serial?]
+            statement
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def sqlite_version
+            @sqlite_version ||= query('SELECT sqlite_version(*)').first
+          end
+        end
+
+        include SQL
 
         module ClassMethods
           # TypeMap for SQLite 3 databases.

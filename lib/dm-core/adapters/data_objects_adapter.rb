@@ -422,103 +422,6 @@ module DataMapper
               column_value.to_s
           end
         end
-
-        # Adapters that support AUTO INCREMENT fields for CREATE TABLE
-        # statements should overwrite this to return true
-        #
-        # TODO: move to dm-more/dm-migrations
-        def supports_serial?
-          false
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def alter_table_add_column_statement(table_name, schema_hash)
-          "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def create_table_statement(model)
-          statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-          statement << "#{model.properties_with_subclasses(name).collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
-
-          if (key = model.key(name)).any?
-            statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
-          end
-
-          statement << ')'
-          statement.compress_lines
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def drop_table_statement(model)
-          "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def create_index_statements(model)
-          table_name = model.storage_name(name)
-          model.properties.indexes.collect do |index_name, properties|
-            "CREATE INDEX #{quote_column_name('index_' + table_name + '_' + index_name)} ON " +
-            "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
-          end
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def create_unique_index_statements(model)
-          table_name = model.storage_name(name)
-          model.properties.unique_indexes.collect do |index_name, properties|
-            "CREATE UNIQUE INDEX #{quote_column_name('unique_index_' + table_name + '_' + index_name)} ON " +
-            "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
-          end
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def property_schema_hash(property, model)
-          schema = self.class.type_map[property.type].merge(:name => property.field(name))
-          # TODO: figure out a way to specify the size not be included, even if
-          # a default is defined in the typemap
-          #  - use this to make it so all TEXT primitive fields do not have size
-          if property.primitive == String && schema[:primitive] != 'TEXT'
-            schema[:size] = property.length
-          elsif property.primitive == BigDecimal || property.primitive == Float
-            schema[:scale]     = property.scale
-            schema[:precision] = property.precision
-          end
-
-          schema[:nullable?] = property.nullable?
-          schema[:serial?]   = property.serial?
-          schema[:default]   = property.default unless property.default.nil? || property.default.respond_to?(:call)
-
-          schema
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def property_schema_statement(schema)
-          statement = quote_column_name(schema[:name])
-          statement << " #{schema[:primitive]}"
-
-          if schema[:scale] && schema[:precision]
-            statement << "(#{schema[:scale]},#{schema[:precision]})"
-          elsif schema[:size]
-            statement << "(#{schema[:size]})"
-          end
-
-          statement << ' NOT NULL' unless schema[:nullable?]
-          statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
-          statement
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def relationship_schema_hash(relationship)
-          identifier, relationship = relationship
-
-          self.class.type_map[Integer].merge(:name => "#{identifier}_id") if identifier == relationship.name
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def relationship_schema_statement(hash)
-          property_schema_statement(hash) unless hash.nil?
-        end
       end #module SQL
 
       include SQL
@@ -569,6 +472,109 @@ module DataMapper
         def transaction_primitive
           DataObjects::Transaction.create_for_uri(@uri)
         end
+
+        module SQL
+          private
+
+          # Adapters that support AUTO INCREMENT fields for CREATE TABLE
+          # statements should overwrite this to return true
+          #
+          # TODO: move to dm-more/dm-migrations
+          def supports_serial?
+            false
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def alter_table_add_column_statement(table_name, schema_hash)
+            "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def create_table_statement(model)
+            statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
+            statement << "#{model.properties_with_subclasses(name).collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+
+            if (key = model.key(name)).any?
+              statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
+            end
+
+            statement << ')'
+            statement.compress_lines
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def drop_table_statement(model)
+            "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def create_index_statements(model)
+            table_name = model.storage_name(name)
+            model.properties.indexes.collect do |index_name, properties|
+              "CREATE INDEX #{quote_column_name('index_' + table_name + '_' + index_name)} ON " +
+              "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
+            end
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def create_unique_index_statements(model)
+            table_name = model.storage_name(name)
+            model.properties.unique_indexes.collect do |index_name, properties|
+              "CREATE UNIQUE INDEX #{quote_column_name('unique_index_' + table_name + '_' + index_name)} ON " +
+              "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
+            end
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def property_schema_hash(property, model)
+            schema = self.class.type_map[property.type].merge(:name => property.field(name))
+            # TODO: figure out a way to specify the size not be included, even if
+            # a default is defined in the typemap
+            #  - use this to make it so all TEXT primitive fields do not have size
+            if property.primitive == String && schema[:primitive] != 'TEXT'
+              schema[:size] = property.length
+            elsif property.primitive == BigDecimal || property.primitive == Float
+              schema[:scale]     = property.scale
+              schema[:precision] = property.precision
+            end
+
+            schema[:nullable?] = property.nullable?
+            schema[:serial?]   = property.serial?
+            schema[:default]   = property.default unless property.default.nil? || property.default.respond_to?(:call)
+
+            schema
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def property_schema_statement(schema)
+            statement = quote_column_name(schema[:name])
+            statement << " #{schema[:primitive]}"
+
+            if schema[:scale] && schema[:precision]
+              statement << "(#{schema[:scale]},#{schema[:precision]})"
+            elsif schema[:size]
+              statement << "(#{schema[:size]})"
+            end
+
+            statement << ' NOT NULL' unless schema[:nullable?]
+            statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
+            statement
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def relationship_schema_hash(relationship)
+            identifier, relationship = relationship
+
+            self.class.type_map[Integer].merge(:name => "#{identifier}_id") if identifier == relationship.name
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def relationship_schema_statement(hash)
+            property_schema_statement(hash) unless hash.nil?
+          end
+        end
+
+        include SQL
 
         module ClassMethods
           # Default TypeMap for all data object based adapters.

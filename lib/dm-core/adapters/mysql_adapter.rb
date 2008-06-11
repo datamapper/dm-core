@@ -29,45 +29,6 @@ module DataMapper
               super
           end
         end
-
-        # TODO: move to dm-more/dm-migrations
-        def supports_serial?
-          true
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def create_table_statement(model)
-          "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def property_schema_hash(property, model)
-          schema = super
-          schema.delete(:default) if schema[:primitive] == 'TEXT'
-          schema
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def property_schema_statement(schema)
-          statement = super
-          statement << ' AUTO_INCREMENT' if supports_serial? && schema[:serial?]
-          statement
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def character_set
-          @character_set ||= show_variable('character_set_connection') || 'utf8'
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def collation
-          @collation ||= show_variable('collation_connection') || 'utf8_general_ci'
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def show_variable(name)
-          query('SHOW VARIABLES WHERE `variable_name` = ?', name).first.value rescue nil
-        end
       end #module SQL
 
       include SQL
@@ -102,6 +63,51 @@ module DataMapper
         def db_name
           @uri.path.split('/').last
         end
+
+        module SQL
+          private
+
+          # TODO: move to dm-more/dm-migrations
+          def supports_serial?
+            true
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def create_table_statement(model)
+            "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def property_schema_hash(property, model)
+            schema = super
+            schema.delete(:default) if schema[:primitive] == 'TEXT'
+            schema
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def property_schema_statement(schema)
+            statement = super
+            statement << ' AUTO_INCREMENT' if supports_serial? && schema[:serial?]
+            statement
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def character_set
+            @character_set ||= show_variable('character_set_connection') || 'utf8'
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def collation
+            @collation ||= show_variable('collation_connection') || 'utf8_general_ci'
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def show_variable(name)
+            query('SHOW VARIABLES WHERE `variable_name` = ?', name).first.value rescue nil
+          end
+        end
+
+        include SQL
 
         module ClassMethods
           # TypeMap for MySql databases.
