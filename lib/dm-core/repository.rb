@@ -63,15 +63,7 @@ module DataMapper
     # TODO: why pass in the model with the query?  Form the query inside the Model
     # and it'll carry along all the info necessary
     def first(model, query, *args)
-
-      # TODO: DRY this up
-      query = if model.query
-        model.query.merge(query)
-      elsif query.kind_of?(Hash)
-        Query.new(self, model, query)
-      elsif query.model == model
-        query
-      end
+      query = scoped_query(model, query)
 
       if args.any?
         adapter.read_many(query.merge(:limit => args.first))
@@ -91,17 +83,7 @@ module DataMapper
     # TODO: why pass in the model with the query?  Form the query inside the Model
     # and it'll carry along all the info necessary
     def all(model, query)
-
-      # TODO: DRY this up
-      query = if model.query
-        model.query.merge(query)
-      elsif query.kind_of?(Hash)
-        Query.new(self, model, query)
-      elsif query.model == model
-        query
-      end
-
-      adapter.read_many(query)
+      adapter.read_many(scoped_query(model, query))
     end
 
     ##
@@ -227,5 +209,14 @@ module DataMapper
       @identity_maps = Hash.new { |h,model| h[model] = IdentityMap.new }
     end
 
+    def scoped_query(model, query)
+      query = if model.query
+        model.query.merge(query)
+      elsif query.kind_of?(Hash)
+        Query.new(self, model, query)
+      elsif query.model == model
+        query
+      end
+    end
   end # class Repository
 end # module DataMapper
