@@ -17,7 +17,16 @@ module DataMapper
       :default
     end
 
-    attr_reader :name, :adapter, :type_map
+    attr_reader :name, :type_map
+
+    def adapter
+      @adapter ||= begin
+        raise ArgumentError, "Adapter not set: #{@name}. Did you forget to setup?" \
+          unless self.class.adapters.has_key?(@name)
+
+        self.class.adapters[@name]
+      end
+    end
 
     def identity_map_get(model, key)
       identity_map(model)[key]
@@ -196,16 +205,16 @@ module DataMapper
       "#<DataMapper::Repository:#{@name}>"
     end
 
+
+
     private
 
     attr_reader :identity_maps
 
     def initialize(name)
       raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller unless name.kind_of?(Symbol)
-      raise ArgumentError, "Unknown adapter name: #{name}"                            unless self.class.adapters.has_key?(name)
 
       @name          = name
-      @adapter       = self.class.adapters[name]
       @identity_maps = Hash.new { |h,model| h[model] = IdentityMap.new }
     end
 

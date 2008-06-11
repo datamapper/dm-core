@@ -23,7 +23,7 @@ if ADAPTER
 
       it "should throw an exception if the named repository is unknown" do
         (lambda do
-          ::DataMapper::Repository.new(:completely_bogus)
+          ::DataMapper::Repository.new(:completely_bogus).adapter
         end).should raise_error(ArgumentError)
       end
 
