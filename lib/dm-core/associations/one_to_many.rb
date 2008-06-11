@@ -151,7 +151,7 @@ module DataMapper
           super || children.kind_of?(klass)
         end
 
-        def respond_to?(method)
+        def respond_to?(method, include_private = false)
           super || children.respond_to?(method)
         end
 
