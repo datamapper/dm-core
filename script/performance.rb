@@ -18,7 +18,7 @@ socket_file = Pathname.glob(%w[
   tmp/mysql.sock
   /tmp/mysql.sock
   /var/mysql/mysql.sock
-]).find(&:socket?)
+]).find { |path| path.socket? }
 
 configuration_options = {
   :adapter => 'mysql',
