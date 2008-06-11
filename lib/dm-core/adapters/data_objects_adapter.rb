@@ -1,6 +1,3 @@
-gem 'addressable', '>=1.0.4'
-require 'addressable/uri'
-
 gem 'data_objects', '=0.9.1'
 require 'data_objects'
 

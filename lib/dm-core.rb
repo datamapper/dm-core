@@ -1,7 +1,7 @@
 # This file begins the loading sequence.
 #
 # Quick Overview:
-# * Requires set, fastthread, support libs, and base.
+# * Requires fastthread, support libs, and base.
 # * Sets the application root and environment for compatibility with frameworks
 #   such as Rails or Merb.
 # * Checks for the database.yml and loads it if it exists.
@@ -9,23 +9,25 @@
 #   environment.
 #
 
-# Require the basics...
 require 'date'
 require 'pathname'
-require 'rubygems'
 require 'set'
 require 'time'
 require 'yaml'
+
+require 'rubygems'
+
+gem 'addressable', '>=1.0.4'
 require 'addressable/uri'
+
+gem 'extlib', '=0.9.1'
+require 'extlib'
 
 begin
   require 'fastthread'
 rescue LoadError
+  # fastthread not installed
 end
-
-# for Pathname /
-gem 'extlib', '=0.9.1'
-require 'extlib'
 
 dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
