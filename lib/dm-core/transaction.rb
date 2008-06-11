@@ -49,7 +49,7 @@ module DataMapper
         elsif thing.is_a?(Class) && thing.ancestors.include?(DataMapper::Resource)
           link(*thing.repositories)
         elsif thing.is_a?(DataMapper::Resource)
-          link(thing.class)
+          link(thing.model)
         else
           raise "Unknown argument to #{self}#link: #{thing.inspect}"
         end

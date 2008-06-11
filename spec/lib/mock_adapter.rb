@@ -2,8 +2,8 @@ module DataMapper
   module Adapters
     class MockAdapter < DataMapper::Adapters::DataObjectsAdapter
 
-      def create(repository, instance)
-        instance
+      def create(resources)
+        true
       end
 
       def exists?(storage_name)

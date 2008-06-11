@@ -50,7 +50,9 @@ module DataMapper
     # +---------------
     # Instance methods
 
-    attr_accessor :collection
+    attr_writer :collection
+
+    alias model class
 
     # returns the value of the attribute. Do not read from instance variables directly,
     # but use this method. This method handels the lazy loading the attribute and returning
@@ -83,29 +85,30 @@ module DataMapper
     # -
     # @public
     def attribute_get(name)
-      property  = self.class.properties(repository.name)[name]
+      property  = model.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
       unless new_record? || instance_variable_defined?(ivar_name)
-        property.lazy? ? lazy_load(name) : lazy_load(self.class.properties(repository.name).reject {|p| instance_variable_defined?(p.instance_variable_name) || p.lazy? })
+        property.lazy? ? lazy_load(name) : lazy_load(model.properties(repository.name).reject {|p| instance_variable_defined?(p.instance_variable_name) || p.lazy? })
       end
 
       value = instance_variable_get(ivar_name)
 
-      if [:get, :hash].include?(property.track)
-        if property.track == :hash
-          original_values[name] = value.dup.hash unless original_values.has_key?(name) rescue value.hash
-        else
-          original_values[name] = value.dup unless original_values.has_key?(name) rescue value
+      if track = property.track
+        case track
+          when :hash
+            original_values[name] = value.dup.hash unless original_values.has_key?(name) rescue value.hash
+          when :get
+            original_values[name] = value.dup unless original_values.has_key?(name) rescue value
         end
       end
 
       if value.nil? && new_record? && !property.options[:default].nil? && !attribute_loaded?(name)
         value = property.default_for(self)
+        instance_variable_set(ivar_name, value)
       end
 
-      instance_variable_set(ivar_name, value)
-      instance_variable_get(ivar_name)
+      value
     end
 
     # sets the value of the attribute and marks the attribute as dirty
@@ -146,7 +149,7 @@ module DataMapper
     # -
     # @public
     def attribute_set(name, value)
-      property  = self.class.properties(repository.name)[name]
+      property  = model.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
       old_value = instance_variable_get(ivar_name)
@@ -179,7 +182,8 @@ module DataMapper
     # @public
     def eql?(other)
       return true if object_id == other.object_id
-      return false unless other.kind_of?(self.class)
+      return false unless other.kind_of?(model)
+      return true if repository == other.repository && key == other.key
       attributes == other.attributes
     end
 
@@ -200,7 +204,7 @@ module DataMapper
     def inspect
       attrs = []
 
-      self.class.properties(repository.name).each do |property|
+      model.properties(repository.name).each do |property|
         value = if property.lazy? && !attribute_loaded?(property.name) && !new_record?
           '<not loaded>'
         else
@@ -210,13 +214,13 @@ module DataMapper
         attrs << "#{property.name}=#{value}"
       end
 
-      "#<#{self.class.name} #{attrs * ' '}>"
+      "#<#{model.name} #{attrs * ' '}>"
     end
 
     # TODO docs
     def pretty_print(pp)
       attrs = attributes.inject([]) {|s,(k,v)| s << [k,v]}
-      pp.group(1, "#<#{self.class.name}", ">") do
+      pp.group(1, "#<#{model.name}", ">") do
         pp.breakable
         pp.seplist(attrs) do |k_v|
           pp.text k_v[0].to_s
@@ -233,7 +237,7 @@ module DataMapper
     #
     # @public
     def repository
-      @collection ? @collection.repository : self.class.repository
+      @repository || model.repository
     end
 
     def child_associations
@@ -258,10 +262,9 @@ module DataMapper
       key.first if key.size == 1
     end
 
-    # FIXME: should this take a repository_name argument
     def key
       key = []
-      self.class.key(repository.name).each do |property|
+      model.key(repository.name).each do |property|
         value = instance_variable_get(property.instance_variable_name)
         key << value
       end
@@ -318,7 +321,7 @@ module DataMapper
     # --
     # @public
     def attribute_loaded?(name)
-      property = self.class.properties(repository.name)[name]
+      property = model.properties(repository.name)[name]
       instance_variable_defined?(property.instance_variable_name)
     end
 
@@ -342,7 +345,7 @@ module DataMapper
     # @public
     def loaded_attributes
       names = []
-      self.class.properties(repository.name).each do |property|
+      model.properties(repository.name).each do |property|
         names << property.name if instance_variable_defined?(property.instance_variable_name)
       end
       names
@@ -359,20 +362,22 @@ module DataMapper
       @original_values ||= {}
     end
 
-    # set of attributes that have been marked dirty
+    # Hash of attributes that have been marked dirty
     #
     # ==== Returns
-    # Array:: attributes that have been marked dirty
+    # Hash:: attributes that have been marked dirty
     #
     # --
     # @public
     def dirty_attributes
-      original_values.collect do |name, old_value|
-        property = self.class.properties(repository.name)[name]
+      dirty_attributes = {}
+
+      original_values.each do |name, old_value|
+        property  = self.class.properties(repository.name)[name]
         ivar_name = property.instance_variable_name
-        value = instance_variable_get(ivar_name)
-        
-        value = property.custom? ? property.type.dump(value, property) : property.typecast(value)
+
+        value     = instance_variable_get(ivar_name)
+        value     = property.custom? ? property.type.dump(value, property)     : property.typecast(value)
         old_value = property.custom? ? property.type.dump(old_value, property) : property.typecast(old_value)
 
         dirty = case property.track
@@ -382,10 +387,16 @@ module DataMapper
         
         if dirty
           property.hash
-          property
+          dirty_attributes[property] = value
         end
+      end
 
-      end.compact
+      #dirty_attributes.map do |p|
+      #  value = resource.instance_variable_get(p.instance_variable_name)
+      #  p.custom? ? p.type.dump(value, p) : p.typecast(value)
+      #end
+
+      dirty_attributes
     end
 
     # Checks if the class is dirty
@@ -410,8 +421,8 @@ module DataMapper
     # --
     # @public
     def attribute_dirty?(name)
-      property = self.class.properties(repository.name)[name]
-      dirty_attributes.include?(property)
+      property = model.properties(repository.name)[name]
+      dirty_attributes.has_key?(property)
     end
 
     def shadow_attribute_get(name)
@@ -419,7 +430,9 @@ module DataMapper
     end
 
     def collection
-      @collection ||= self.class.all(Hash[ *self.class.key.zip(key).flatten ]) unless new_record?
+      @collection ||= if query = to_query
+        Collection.new(query).replace([ self ])
+      end
     end
 
     # Reload association and all child association
@@ -472,7 +485,7 @@ module DataMapper
     def attributes
       pairs = {}
 
-      self.class.properties(repository.name).each do |property|
+      model.properties(repository.name).each do |property|
         if property.reader_visibility == :public
           pairs[property.name] = send(property.getter)
         end
@@ -528,7 +541,12 @@ module DataMapper
     #
     # TODO: move to dm-more/dm-transactions
     def transaction(&block)
-      self.class.transaction(&block)
+      model.transaction(&block)
+    end
+
+    # TODO: add docs
+    def to_query(query = {})
+      model.to_query(repository, key, query) unless new_record?
     end
 
     private
@@ -555,23 +573,23 @@ module DataMapper
     end
 
     def validate_resource # :nodoc:
-      if self.class.properties.empty? && self.class.relationships.empty?
+      if model.properties.empty? && model.relationships.empty?
         raise IncompleteResourceError, 'Resources must have at least one property or relationship to be initialized.'
       end
 
-      if self.class.properties.key.empty?
+      if model.properties.key.empty?
         raise IncompleteResourceError, 'Resources must have a key.'
       end
     end
 
     def lazy_load(name)
-      reload_attributes(*self.class.properties(repository.name).lazy_load_context(name))
+      reload_attributes(*model.properties(repository.name).lazy_load_context(name))
     end
 
     def private_attributes
       pairs = {}
 
-      self.class.properties(repository.name).each do |property|
+      model.properties(repository.name).each do |property|
         pairs[property.name] = send(property.getter)
       end
 
@@ -751,16 +769,7 @@ module DataMapper
       # @see Repository#all
       def all(query = {})
         # TODO: perform the Model.query (scope) checking here instead of Repository#all
-
-        repository = if query.kind_of?(Hash) && query.has_key?(:repository)
-          repository(query[:repository])
-        elsif query.kind_of?(Query)
-          query.repository
-        else
-          self.repository
-        end
-
-        repository.all(self, query)
+        repository_for_finder(query).all(self, query)
       end
 
       ##
@@ -768,7 +777,7 @@ module DataMapper
       # @see Repository#first
       def first(*args)
         query = args.last.respond_to?(:merge) ? args.pop : {}
-        all(query).first(*args)
+        repository_for_finder(query).first(self, query, *args)
       end
 
       ##
@@ -824,6 +833,64 @@ module DataMapper
       # TODO: remove this alias
       alias exists? storage_exists?
 
+      # @private
+      # TODO: spec this
+      def load(values, query)
+        repository = query.repository
+
+        if inheritance_property_index = query.inheritance_property_index(repository)
+          model = values.at(inheritance_property_index)
+
+          if model != self
+            return model.load(values, query)
+          end
+        end
+
+        if key_property_indexes = query.key_property_indexes(repository)
+          key_values = values.values_at(*key_property_indexes)
+
+          if resource = repository.identity_map_get(self, key_values)
+            return resource unless query.reload?
+          else
+            resource = allocate
+            resource.instance_variable_set(:@repository, repository)
+            resource.instance_variable_set(:@new_record, false)
+
+            key(repository.name).zip(key_values) do |property,key_value|
+              resource.instance_variable_set(property.instance_variable_name, key_value)
+            end
+
+            repository.identity_map_set(resource)
+          end
+        else
+          resource = allocate
+          resource.instance_variable_set(:@new_record, false)
+          resource.readonly!
+        end
+
+        query.fields.zip(values) do |property,value|
+          value = property.custom? ? property.type.load(value, property) : property.typecast(value)
+          resource.instance_variable_set(property.instance_variable_name, value)
+
+          if track = property.track
+            case track
+              when :hash
+                resource.original_values[property.name] = value.dup.hash unless resource.original_values.has_key?(property.name) rescue value.hash
+              when :load
+                 resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
+            end
+          end
+        end
+
+        resource
+      end
+
+      # TODO: spec this
+      def to_query(repository, key, query = {})
+        conditions = Hash[ *self.key(repository.name).zip(key).flatten ]
+        Query.new(repository, self, query.merge(conditions))
+      end
+
       private
 
       def default_storage_name
@@ -832,6 +899,16 @@ module DataMapper
 
       def default_repository_name
         Repository.default_name
+      end
+
+      def repository_for_finder(query)
+        if query.kind_of?(Hash) && query.has_key?(:repository)
+          repository(query[:repository])
+        elsif query.kind_of?(Query)
+          query.repository
+        else
+          self.repository
+        end
       end
 
       def method_missing(method, *args, &block)
@@ -849,7 +926,6 @@ module DataMapper
         end
         super
       end
-
     end # module ClassMethods
   end # module Resource
 end # module DataMapper

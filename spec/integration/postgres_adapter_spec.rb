@@ -417,9 +417,7 @@ if HAS_POSTGRES
       end
 
       it "should lazy load" do
-        result = repository(:postgres) do
-          SailBoat.all
-        end.to_a
+        result = repository(:postgres) { SailBoat.all.to_a }
 
         result[0].attribute_loaded?(:notes).should be_false
         result[0].attribute_loaded?(:trip_report).should be_false
@@ -431,9 +429,7 @@ if HAS_POSTGRES
         result[1].attribute_loaded?(:trip_report).should be_true
         result[1].attribute_loaded?(:miles).should be_false
 
-        result = repository(:postgres) do
-          SailBoat.all
-        end.to_a
+        result = repository(:postgres) { SailBoat.all.to_a }
 
         result[0].attribute_loaded?(:trip_report).should be_false
         result[0].attribute_loaded?(:miles).should be_false

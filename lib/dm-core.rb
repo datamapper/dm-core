@@ -24,7 +24,7 @@ rescue LoadError
 end
 
 # for Pathname /
-gem 'extlib', '>= 0.9'
+gem 'extlib', '=0.9.1'
 require 'extlib'
 
 dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'

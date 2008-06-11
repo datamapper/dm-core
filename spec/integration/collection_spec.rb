@@ -64,7 +64,8 @@ if ADAPTER
         @babe     = Stripe.create(:name => 'Babe')
         @snowball = Stripe.create(:name => 'snowball')
 
-        @nancy.stripes = [ @babe, @snowball ]
+        @nancy.stripes << @babe
+        @nancy.stripes << @snowball
       end
     end
   end
@@ -190,7 +191,7 @@ if ADAPTER
           query = DataMapper::Query.new(@repository, CollectionSpecParty)
           collection = @repository.all(query.model, query)
           collection.should have(1).entries
-          collection.first.class.should == CollectionSpecUser
+          collection.first.model.should == CollectionSpecUser
         end
       end
     end
@@ -361,7 +362,12 @@ if ADAPTER
           end
 
           it 'should return a Resource' do
-            @collection.delete(@nancy).object_id.should == @nancy.object_id
+            collection = @nancy.collection
+
+            resource = collection.delete(@nancy)
+
+            resource.should be_kind_of(DataMapper::Resource)
+            resource.object_id.should == @nancy.object_id
           end
         end
 
@@ -381,7 +387,12 @@ if ADAPTER
           end
 
           it 'should return a Resource' do
-            @collection.delete_at(0).key.should == @nancy.key
+            collection = @nancy.collection
+
+            resource = collection.delete_at(0)
+
+            resource.should be_kind_of(DataMapper::Resource)
+            resource.object_id.should == @nancy.object_id
           end
         end
 
@@ -558,7 +569,7 @@ if ADAPTER
             @steve.collection = nil
             @repository.should_receive(:identity_map_get).with(@model, [ @steve.id ]).and_return(@steve)
 
-            collection = @repository.adapter.read_set(@model, @query.merge(:id => @steve.id))
+            collection = @repository.adapter.read_many(@query.merge(:id => @steve.id))
 
             collection.size.should == 1
             collection.map { |r| r.object_id }.should == [ @steve.object_id ]
@@ -670,7 +681,7 @@ if ADAPTER
             @collection.reload.object_id.should == @collection.object_id
           end
 
-          it 'should replace the collection with the results of read_set' do
+          it 'should replace the collection' do
             original = @collection.dup
             @collection.reload.should == @collection
             @collection.should == original

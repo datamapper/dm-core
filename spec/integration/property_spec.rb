@@ -129,7 +129,7 @@ if ADAPTER
 
     describe "lazy loading" do
       before :all do
-        class SailBoat
+        class RowBoat
           include DataMapper::Resource
           property :id, Integer, :serial => true
           property :notes, String, :lazy => [:notes]
@@ -139,19 +139,17 @@ if ADAPTER
       end
 
       before do
-        SailBoat.auto_migrate!(ADAPTER)
+        RowBoat.auto_migrate!(ADAPTER)
 
         repository(ADAPTER) do
-          SailBoat.create!(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          SailBoat.create!(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          SailBoat.create!(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          RowBoat.create!(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          RowBoat.create!(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          RowBoat.create!(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
         end
       end
 
       it "should lazy load in context" do
-        result = repository(ADAPTER) do
-          SailBoat.all
-        end.to_a
+        result = repository(ADAPTER) { RowBoat.all.to_a }
 
         result[0].attribute_loaded?(:notes).should be_false
         result[0].attribute_loaded?(:trip_report).should be_false
@@ -163,9 +161,7 @@ if ADAPTER
         result[1].attribute_loaded?(:trip_report).should be_true
         result[1].attribute_loaded?(:miles).should be_false
 
-        result = repository(ADAPTER) do
-          SailBoat.all
-        end.to_a
+        result = repository(ADAPTER) { RowBoat.all.to_a }
 
         result[0].attribute_loaded?(:trip_report).should be_false
         result[0].attribute_loaded?(:miles).should be_false

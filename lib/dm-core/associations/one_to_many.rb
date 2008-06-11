@@ -26,7 +26,7 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = self.class.relationships(#{repository_name.inspect})[#{name.inspect}]
+              relationship = model.relationships(#{repository_name.inspect})[#{name.inspect}]
               raise ArgumentError.new("Relationship #{name.inspect} does not exist") unless relationship
               association = Proxy.new(relationship, self)
               parent_associations << association
@@ -107,6 +107,7 @@ module DataMapper
           # structure, that was just read from the database, and therefore suddenly had two
           # elements instead of one after the first addition.
           #
+
           super
           relate_resource(resource)
           self
@@ -184,7 +185,8 @@ module DataMapper
           end
 
           default_attributes.each do |attribute, value|
-            resource.send("#{attribute}=", value) if resource.send(attribute).nil?
+            next if resource.attribute_loaded?(attribute)
+            resource.send("#{attribute}=", value)
           end
         end
 

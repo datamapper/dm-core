@@ -75,7 +75,7 @@ describe DataMapper::Repository do
         resource.should be_dirty
         resource.should be_new_record
 
-        @adapter.should_receive(:create).with(@repository, resource).and_return(resource)
+        @adapter.should_receive(:create).with([ resource ]).and_return(resource)
 
         @repository.save(resource)
       end
@@ -85,9 +85,9 @@ describe DataMapper::Repository do
 
         resource.should_not be_dirty
         resource.should be_new_record
-        resource.class.key.any? { |p| p.serial? }.should be_true
+        resource.model.key.any? { |p| p.serial? }.should be_true
 
-        @adapter.should_receive(:create).with(@repository, resource).and_return(resource)
+        @adapter.should_receive(:create).with([ resource ]).and_return(resource)
 
         @repository.save(resource).should be_true
       end
@@ -97,7 +97,7 @@ describe DataMapper::Repository do
 
         resource.should_not be_dirty
         resource.should be_new_record
-        resource.class.key.any? { |p| p.serial? }.should be_false
+        resource.model.key.any? { |p| p.serial? }.should be_false
 
         @adapter.should_not_receive(:create)
 
@@ -111,7 +111,7 @@ describe DataMapper::Repository do
         resource.should be_new_record
         resource.instance_variable_get('@name').should be_nil
 
-        @adapter.should_receive(:create).with(@repository, resource).and_return(resource)
+        @adapter.should_receive(:create).with([ resource ]).and_return(resource)
 
         @repository.save(resource)
 
@@ -127,7 +127,7 @@ describe DataMapper::Repository do
         resource.should be_dirty
         resource.should_not be_new_record
 
-        @adapter.should_receive(:update).with(@repository, resource).and_return(resource)
+        @adapter.should_receive(:update).with(resource.dirty_attributes, resource.to_query).and_return(resource)
 
         @repository.save(resource)
       end

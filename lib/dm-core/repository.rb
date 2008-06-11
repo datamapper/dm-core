@@ -29,15 +29,15 @@ module DataMapper
     end
 
     def identity_map_get(model, key)
-      identity_map(model)[key]
+      @identity_maps[model].get(key)
     end
 
     def identity_map_set(resource)
-      identity_map(resource.class)[resource.key] = resource
+      @identity_maps[resource.model].set(resource.key, resource)
     end
 
-    def identity_map(model)
-      @identity_maps[model]
+    def identity_map_delete(resource)
+      @identity_maps[resource.model].delete(resource.key)
     end
 
     ##
@@ -47,13 +47,8 @@ module DataMapper
     # @param <Key> key The keys to look for
     # @return <Class> the instance of the Resource retrieved
     # @return <NilClass> could not find the instance requested
-    #
-    # TODO: deprecate this
     def get(model, key)
-      identity_maps[model][key] || begin
-        conditions = Hash[ *model.key(name).zip(key).flatten ]
-        first(model, conditions)
-      end
+      identity_map_get(model, key) || first(model, model.to_query(self, key))
     end
 
     ##
@@ -65,9 +60,24 @@ module DataMapper
     # @return <NilClass> no object could be found which matches that query
     # @see DataMapper::Query
     #
-    # TODO: deprecate this
-    def first(model, query)
-      all(model, query.merge(:limit => 1)).first
+    # TODO: why pass in the model with the query?  Form the query inside the Model
+    # and it'll carry along all the info necessary
+    def first(model, query, *args)
+
+      # TODO: DRY this up
+      query = if model.query
+        model.query.merge(query)
+      elsif query.kind_of?(Hash)
+        Query.new(self, model, query)
+      elsif query.model == model
+        query
+      end
+
+      if args.any?
+        adapter.read_many(query.merge(:limit => args.first))
+      else
+        adapter.read_one(query)
+      end
     end
 
     ##
@@ -77,16 +87,21 @@ module DataMapper
     # @param <Hash, Query> query composition of the query to perform
     # @return <Collection> result set of the query
     # @see DataMapper::Query
+    #
+    # TODO: why pass in the model with the query?  Form the query inside the Model
+    # and it'll carry along all the info necessary
     def all(model, query)
+
+      # TODO: DRY this up
       query = if model.query
         model.query.merge(query)
       elsif query.kind_of?(Hash)
         Query.new(self, model, query)
-      else
+      elsif query.model == model
         query
       end
 
-      adapter.read_set(self, query)
+      adapter.read_many(query)
     end
 
     ##
@@ -98,7 +113,7 @@ module DataMapper
     def save(resource)
       resource.child_associations.each { |a| a.save }
 
-      model = resource.class
+      model = resource.model
 
       # set defaults for new resource
       if resource.new_record?
@@ -108,31 +123,26 @@ module DataMapper
         end
       end
 
-      success = false
-
       # save the resource if is dirty, or is a new record with a serial key
-      if resource.dirty? || (resource.new_record? && model.key.any? { |p| p.serial? })
+      success = if resource.dirty? || (resource.new_record? && model.key.any? { |p| p.serial? })
         if resource.new_record?
-          if adapter.create(self, resource)
-            identity_map_set(resource)
+          if adapter.create([ resource ])
+            resource.instance_variable_set(:@repository, self)
             resource.instance_variable_set(:@new_record, false)
-            resource.original_values.clear
-            query = DataMapper::Query.new(self, model, Hash[*model.properties(name).key.zip(resource.key).flatten])
-            resource.collection = DataMapper::Collection.new(query)
-            resource.collection << resource
-            success = true
+            identity_map_set(resource)
           end
         else
-          if adapter.update(self, resource)
-            resource.original_values.clear
-            success = true
-          end
+          adapter.update(resource.dirty_attributes, resource.to_query)
         end
+      end
+
+      if success
+        resource.original_values.clear
       end
 
       resource.parent_associations.each { |a| a.save }
 
-      success
+      !!success
     end
 
     ##
@@ -141,11 +151,11 @@ module DataMapper
     # @param <Class> resource the resource to be destroyed
     # @return <True, False> results of the destruction
     def destroy(resource)
-      if adapter.delete(self, resource)
-        identity_maps[resource.class].delete(resource.key)
+      if adapter.delete(resource.to_query)
         resource.instance_variable_set(:@new_record, true)
+        identity_map_delete(resource)
         resource.original_values.clear
-        resource.class.properties(name).each do |property|
+        resource.model.properties(name).each do |property|
           # We'll set the original value to nil as if we had a new record
           resource.original_values[property.name] = nil if resource.attribute_loaded?(property.name)
         end
@@ -209,8 +219,6 @@ module DataMapper
 
 
     private
-
-    attr_reader :identity_maps
 
     def initialize(name)
       raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller unless name.kind_of?(Symbol)

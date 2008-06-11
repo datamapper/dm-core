@@ -63,35 +63,23 @@ describe DataMapper::Adapters::AbstractAdapter do
   end
 
   it "should raise NotImplementedError when #create is called" do
-    lambda { @adapter.create(:repository, :instance) }.should raise_error(NotImplementedError)
+    lambda { @adapter.create([ :resource ]) }.should raise_error(NotImplementedError)
   end
 
-  it "should raise NotImplementedError when #transaction_primitive is called" do
-    lambda { @adapter.transaction_primitive }.should raise_error(NotImplementedError)
-  end
-
-  it "should raise NotImplementedError when #read is called" do
-    lambda { @adapter.read(:repository, :resource, [:key]) }.should raise_error(NotImplementedError)
-  end
-
-  it "should raise NotImplementedError when #update is called" do
-    lambda { @adapter.update(:repository, :instance) }.should raise_error(NotImplementedError)
-  end
-
-  it "should raise NotImplementedError when #delete is called" do
-    lambda { @adapter.delete(:repository, :instance) }.should raise_error(NotImplementedError)
+  it "should raise NotImplementedError when #read_many is called" do
+    lambda { @adapter.read_many(:query) }.should raise_error(NotImplementedError)
   end
 
   it "should raise NotImplementedError when #read_one is called" do
-    lambda { @adapter.read_one(:repository, :query) }.should raise_error(NotImplementedError)
+    lambda { @adapter.read_one(:query) }.should raise_error(NotImplementedError)
   end
 
-  it "should raise NotImplementedError when #read_set is called" do
-    lambda { @adapter.read_set(:repository, :query) }.should raise_error(NotImplementedError)
+  it "should raise NotImplementedError when #update is called" do
+    lambda { @adapter.update(:attributes, :query) }.should raise_error(NotImplementedError)
   end
 
-  it "should raise NotImplementedError when #delete_set is called" do
-    lambda { @adapter.delete_set(:repository, :query) }.should raise_error(NotImplementedError)
+  it "should raise NotImplementedError when #delete is called" do
+    lambda { @adapter.delete(:query) }.should raise_error(NotImplementedError)
   end
 
   it "should raise NotImplementedError when #upgrade_model_storage is called" do
@@ -124,6 +112,10 @@ describe DataMapper::Adapters::AbstractAdapter do
 
   it "should raise NotImplementedError when #alter_property_storage is called" do
     lambda { @adapter.alter_property_storage(:repository, :property) }
+  end
+
+  it "should raise NotImplementedError when #transaction_primitive is called" do
+    lambda { @adapter.transaction_primitive }.should raise_error(NotImplementedError)
   end
 
   it "should clean out dead threads from @transactions" do

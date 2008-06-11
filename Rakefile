@@ -137,9 +137,9 @@ gem_spec = Gem::Specification.new do |s|
   s.require_path = "lib"
   s.requirements << "none"
   s.add_dependency("data_objects", "=#{s.version}")
+  s.add_dependency("extlib", "=#{s.version}")
   s.add_dependency("rspec", ">=1.1.3")
   s.add_dependency("addressable", ">=1.0.4")
-  s.add_dependency("extlib", ">= 0.1")
 
   s.has_rdoc = false
   #s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"

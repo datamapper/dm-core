@@ -13,49 +13,25 @@ module DataMapper
       attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention
 
-      # Methods dealing with a single resource object
-      def create(repository, resource)
+      def create(resources)
         raise NotImplementedError
       end
 
-      def read(repository, resource, key)
+      def read_many(query)
         raise NotImplementedError
       end
 
-      def update(repository, resource)
+      def read_one(query)
         raise NotImplementedError
       end
 
-      def delete(repository, resource)
+      def update(attributes, query)
         raise NotImplementedError
       end
 
-      # Methods dealing with locating a single object, by keys
-      def read_one(repository, query)
+      def delete(query)
         raise NotImplementedError
       end
-
-      # Methods dealing with finding stuff by some query parameters
-      def read_set(repository, query)
-        raise NotImplementedError
-      end
-
-      def delete_set(repository, query)
-        raise NotImplementedError
-      end
-
-      # # Shortcuts
-      # Deprecated in favor of read_one
-      # def first(repository, resource, query = {})
-      #   raise ArgumentError, "You cannot pass in a :limit option to #first" if query.key?(:limit)
-      #   read_set(repository, resource, query.merge(:limit => 1)).first
-      # end
-
-      # Future Enumerable/convenience finders. Please leave in place. :-)
-      # def each(repository, klass, query)
-      #   raise NotImplementedError
-      #   raise ArgumentError unless block_given?
-      # end
 
       #
       # Returns whether the storage_name exists.

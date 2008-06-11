@@ -195,6 +195,18 @@ module DataMapper
       bind_values
     end
 
+    # TODO: spec this
+    def inheritance_property_index(repository)
+      fields.index(model.inheritance_property(repository.name))
+    end
+
+    # TODO: spec this
+    def key_property_indexes(repository)
+      if (key_property_indexes = model.key(repository.name).map { |property| fields.index(property) }).all?
+        key_property_indexes
+      end
+    end
+
     # find the point in self.conditions where the sub select tuple is
     # located. Delete the tuple and add value.conditions. value must be a
     # <DM::Query>

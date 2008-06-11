@@ -73,8 +73,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       end
 
       it "should accept a Query argument with or without options hash" do
-        @connection.should_receive(:create_command).twice.with("SELECT \"name\" FROM \"plupps\" WHERE \"name\" = ?").and_return(@command)
-        @command.should_receive(:execute_reader).twice.with(Plupp.properties[:name]).and_return(@reader)
+        @connection.should_receive(:create_command).twice.with('SELECT "name" FROM "plupps" WHERE "name" = ?').and_return(@command)
+        @command.should_receive(:execute_reader).twice.with('my pretty plur').and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
         Plupp.find_by_sql(DataMapper::Query.new(@repository, Plupp, "name" => "my pretty plur", :fields => ["name"])).to_a
@@ -140,165 +140,201 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @result = mock('result', :to_i => 1, :insert_id => 1)
 
       @adapter.stub!(:execute).and_return(@result)
+      @adapter.stub!(:supports_returning?).and_return(false)
 
-      @property   = mock('property', :field => 'property', :instance_variable_name => '@property', :serial? => false, :custom? => false, :typecast => 'bind value')
-      @repository = mock('repository')
-      @model      = mock('model', :storage_name => 'models', :key => [ @property ])
-      @resource   = mock('resource', :class => @model, :dirty_attributes => [ @property ], :instance_variable_get => 'bind value')
+      @property    = mock('property', :kind_of? => true, :serial? => true, :instance_variable_name => '@property', :field => 'property', :custom? => false, :typecast => 'bind value')
+      @properties  = [ @property ]
+      @bind_values = [ 'bind value' ]
+      @attributes  = mock('attributes', :keys => @properties, :values => @bind_values)
+      @model       = mock('model', :key => [ @property ], :storage_name => 'models')
+      @resource    = mock('resource', :model => @model, :dirty_attributes => @attributes)
+      @statement   = 'INSERT INTO "models" ("property") VALUES (?)'
     end
 
     it 'should use only dirty properties' do
-      @resource.should_receive(:dirty_attributes).with(no_args).and_return([ @property ])
-      @adapter.create(@repository, @resource)
-    end
-
-    it 'should use the properties field accessors' do
-      @property.should_receive(:field).with(:default).and_return('property')
-      @adapter.create(@repository, @resource)
+      @resource.should_receive(:dirty_attributes).with(no_args).and_return(@attributes)
+      @adapter.create([ @resource ])
     end
 
     it 'should use the bind values' do
-      @property.should_receive(:instance_variable_name).with(no_args).and_return('@property')
-      @resource.should_receive(:instance_variable_get).with('@property').and_return('bind value')
-      @adapter.create(@repository, @resource)
-    end
+      @attributes.should_receive(:values).with(no_args).and_return(@bind_values)
 
-    it 'should generate an SQL statement when supports_returning? is false' do
-      statement = 'INSERT INTO "models" ("property") VALUES (?)'
-      @adapter.should_receive(:supports_returning?).with(no_args).and_return(false)
-      @adapter.should_receive(:execute).with(statement, 'bind value').and_return(@result)
-      @adapter.create(@repository, @resource)
+      @adapter.should_receive(:execute).with(@statement, *@bind_values).and_return(@result)
+
+      @adapter.create([ @resource ])
     end
 
     it 'should generate an SQL statement when supports_returning? is true' do
-      statement = 'INSERT INTO "models" ("property") VALUES (?) RETURNING "property"'
       @property.should_receive(:serial?).with(no_args).and_return(true)
       @adapter.should_receive(:supports_returning?).with(no_args).and_return(true)
-      @adapter.should_receive(:execute).with(statement, 'bind value').and_return(@result)
-      @adapter.create(@repository, @resource)
+
+      @statement = 'INSERT INTO "models" ("property") VALUES (?) RETURNING "property"'
+      @adapter.should_receive(:execute).with(@statement, 'bind value').and_return(@result)
+
+      @adapter.create([ @resource ])
     end
 
     it 'should generate an SQL statement when supports_default_values? is true' do
-      statement = 'INSERT INTO "models" DEFAULT VALUES'
-      @resource.should_receive(:dirty_attributes).with(no_args).and_return([])
+      @bind_values.clear
+      @properties.clear
       @adapter.should_receive(:supports_default_values?).with(no_args).and_return(true)
-      @adapter.should_receive(:execute).with(statement).and_return(@result)
-      @adapter.create(@repository, @resource)
+
+      @statement = 'INSERT INTO "models" DEFAULT VALUES'
+      @adapter.should_receive(:execute).with(@statement).and_return(@result)
+
+      @adapter.create([ @resource ])
     end
 
     it 'should generate an SQL statement when supports_default_values? is false' do
-      statement = 'INSERT INTO "models" () VALUES ()'
-      @resource.should_receive(:dirty_attributes).with(no_args).and_return([])
+      @bind_values.clear
+      @properties.clear
       @adapter.should_receive(:supports_default_values?).with(no_args).and_return(false)
-      @adapter.should_receive(:execute).with(statement).and_return(@result)
-      @adapter.create(@repository, @resource)
+
+      @statement = 'INSERT INTO "models" () VALUES ()'
+      @adapter.should_receive(:execute).with(@statement).and_return(@result)
+
+      @adapter.create([ @resource ])
     end
 
     it 'should return false if number of rows created is 0' do
       @result.should_receive(:to_i).with(no_args).and_return(0)
-      @adapter.create(@repository, @resource).should be_false
+      @adapter.create([ @resource ]).should be_false
     end
 
     it 'should return true if number of rows created is 1' do
       @result.should_receive(:to_i).with(no_args).and_return(1)
-      @adapter.create(@repository, @resource).should be_true
+      @adapter.create([ @resource ]).should be_true
     end
 
     it 'should set the resource primary key if the model key size is 1 and the key is serial' do
       @model.key.size.should == 1
       @property.should_receive(:serial?).and_return(true)
-      @result.should_receive(:insert_id).and_return(111)
-      @resource.should_receive(:instance_variable_set).with('@property', 111)
-      @adapter.create(@repository, @resource)
+      @result.should_receive(:insert_id).and_return(777)
+      @resource.should_receive(:instance_variable_set).with('@property', 777)
+      @adapter.create([ @resource ])
     end
   end
 
-  describe '#read' do
-    before do
-      @primitive  = mock('primitive')
-      @property   = mock('property', :field => 'property', :primitive => @primitive)
-      @properties = mock('properties', :defaults => [ @property ])
-      @repository = mock('repository', :kind_of? => true, :name => ADAPTER)
-      @model      = mock('model', :properties => @properties, :< => true, :inheritance_property => nil, :key => [ @property ], :storage_name => 'models', :kind_of? => true)
-      @key        = mock('key')
-      @resource   = mock('resource')
-      @query      = mock('query', :repository => @repository, :model => @model)
-      @collection = mock('collection', :first => @resource, :query => @query)
+  [ :read_many, :read_one ].each do |method|
+    describe "##{method}" do
+      before do
+        @key       = mock('key')
+        @model     = mock('model', :key => @key, :storage_name => 'models')
+        @primitive = mock('primitive')
+        @property  = mock('property', :kind_of? => true, :model => @model, :field => 'property', :primitive => @primitive)
 
-      @reader     = mock('reader', :close => true, :next! => false)
-      @command    = mock('command', :set_types => nil, :execute_reader => @reader)
-      @connection = mock('connection', :close => true, :create_command => @command)
+        @child_model     = @model
+        @parent_model    = mock('parent model', :storage_name => 'parents')
+        @parent_property = mock('parent id', :kind_of? => true, :model => @parent_model, :field => 'id')
 
-      DataObjects::Connection.stub!(:new).and_return(@connection)
-      DataMapper::Collection.stub!(:new).and_return(@collection)
-      DataMapper::Resource.stub!(:>).and_return(true)
-    end
+        @child_key    = [ @property ]
+        @parent_key   = [ @parent_property ]
+        @relationship = mock('relationship', :child_model => @child_model, :parent_model => @parent_model, :child_key => @child_key, :parent_key => @parent_key)
+        @links        = [ @relationship ]
 
-    it 'should lookup the model properties with the repository' do
-      pending("DataObjectsAdapter#read is deprecated")
-      @model.should_receive(:properties).with(:default).and_return(@properties)
-      @adapter.read(@repository, @model, @key)
-    end
+        @fields      = [ @property ]
+        @bind_values = [ 'bind value' ]
+        @conditions  = [ [ :eql, @property, @bind_values[0] ] ]
 
-    it 'should use the model default properties' do
-      pending("DataObjectsAdapter#read is deprecated")
-      @properties.should_receive(:defaults).any_number_of_times.with(no_args).and_return([ @property ])
-      @adapter.read(@repository, @model, @key)
-    end
+        @direction = mock('direction', :property => @property, :direction => :desc)
+        @order     = [ @direction ]
 
-    it 'should create a collection under the hood for retrieving the resource' do
-      pending("DataObjectsAdapter#read is deprecated")
-      DataMapper::Collection.should_receive(:new).with(@query, { @property => 0 }).and_return(@collection)
-      @reader.should_receive(:next!).and_return(true)
-      @reader.should_receive(:values).with(no_args).and_return({ :property => 'value' })
-      @collection.should_receive(:load).with({ :property => 'value' })
-      @collection.should_receive(:first).with(no_args).and_return(@resource)
-      @adapter.read(@repository, @model, @key).should == @resource
-    end
+        @query = mock('query', :model => @model, :kind_of? => true, :links => @links, :fields => @fields, :conditions => @conditions, :order => @order, :limit => 111, :offset => 222, :bind_values => @bind_values)
 
-    it 'should use the bind values' do
-      pending("DataObjectsAdapter#read is deprecated")
-      @command.should_receive(:execute_reader).with(@key).and_return(@reader)
-      @adapter.read(@repository, @model, @key)
-    end
+        @reader     = mock('reader', :close => true, :next! => false)
+        @command    = mock('command', :set_types => nil, :execute_reader => @reader)
+        @connection = mock('connection', :close => true, :create_command => @command)
 
-    it 'should generate an SQL statement' do
-      pending("DataObjectsAdapter#read is deprecated")
-      statement = 'SELECT "property" FROM "models" WHERE "property" = ? LIMIT 1'
-      @model.should_receive(:key).any_number_of_times.with(:default).and_return([ @property ])
-      @connection.should_receive(:create_command).with(statement).and_return(@command)
-      @adapter.read(@repository, @model, @key)
-    end
+        DataObjects::Connection.stub!(:new).and_return(@connection)
+        DataMapper::Query::Direction.stub!(:===).and_return(true)
+      end
 
-    it 'should generate an SQL statement with composite keys' do
-      pending("DataObjectsAdapter#read is deprecated")
-      other_property = mock('other property')
-      other_property.should_receive(:field).with(:default).and_return('other')
+      if method == :read_one
+        before do
+          @query.should_receive(:limit).with(no_args).twice.and_return(1)
+          @query.should_receive(:update).with(:limit => 1).and_return(@query)
 
-      @model.should_receive(:key).any_number_of_times.with(:default).and_return([ @property, other_property ])
+          @values = @bind_values.dup
 
-      statement = 'SELECT "property" FROM "models" WHERE "property" = ? AND "other" = ? LIMIT 1'
-      @connection.should_receive(:create_command).with(statement).and_return(@command)
+          @reader.should_receive(:next!).with(no_args).and_return(true)
+          @reader.should_receive(:values).with(no_args).and_return(@values)
 
-      @adapter.read(@repository, @model, @key)
-    end
+          @resource = mock('resource')
+          @resource.should_receive(:kind_of?).with(DataMapper::Resource).any_number_of_times.and_return(true)
 
-    it 'should set the return types to the property primitives' do
-      pending("DataObjectsAdapter#read is deprecated")
-      @command.should_receive(:set_types).with([ @primitive ])
-      @adapter.read(@repository, @model, @key)
-    end
+          @model.should_receive(:load).with(@values, @query).and_return(@resource)
 
-    it 'should close the reader' do
-      pending("DataObjectsAdapter#read is deprecated")
-      @reader.should_receive(:close).with(no_args)
-      @adapter.read(@repository, @model, @key)
-    end
+          @statement = 'SELECT "models"."property" FROM "models" LEFT OUTER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? ORDER BY "models"."property" DESC LIMIT 1 OFFSET 222'
+        end
 
-    it 'should close the connection' do
-      pending("DataObjectsAdapter#read is deprecated")
-      @connection.should_receive(:close).with(no_args)
-      @adapter.read(@repository, @model, @key)
+        define_method(:do_read) do
+          resource = @adapter.read_one(@query)
+          resource.should == @resource
+          resource
+        end
+      elsif method == :read_many
+        before do
+          @statement = 'SELECT "models"."property" FROM "models" LEFT OUTER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? ORDER BY "models"."property" DESC LIMIT 111 OFFSET 222'
+        end
+
+        define_method(:do_read) do
+          collection = @adapter.read_many(@query)
+          collection.to_a
+          collection
+        end
+      end
+
+      it 'should use the bind values' do
+        @command.should_receive(:execute_reader).with(*@bind_values).and_return(@reader)
+        do_read
+      end
+
+      it 'should generate an SQL statement' do
+        @connection.should_receive(:create_command).with(@statement).and_return(@command)
+        do_read
+      end
+
+      it 'should generate an SQL statement with composite keys' do
+        other_property = mock('other property', :kind_of? => true)
+        other_property.should_receive(:field).with(:default).and_return('other')
+        other_property.should_receive(:model).with(no_args).and_return(@model)
+
+        other_value = 'other value'
+        @bind_values << other_value
+        @conditions << [ :eql, other_property, other_value ]
+
+        @statement = %[SELECT "models"."property" FROM "models" LEFT OUTER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? AND "models"."other" = ? ORDER BY "models"."property" DESC LIMIT #{method == :read_one ? '1' : '111'} OFFSET 222]
+        @query.should_receive(:conditions).with(no_args).twice.and_return(@conditions)
+
+        @connection.should_receive(:create_command).with(@statement).and_return(@command)
+
+        do_read
+      end
+
+      it 'should set the return types to the property primitives' do
+        @command.should_receive(:set_types).with([ @primitive ])
+        do_read
+      end
+
+      it 'should close the reader' do
+        @reader.should_receive(:close).with(no_args)
+        do_read
+      end
+
+      it 'should close the connection' do
+        @connection.should_receive(:close).with(no_args)
+        do_read
+      end
+
+      if method == :read_one
+        it 'should return a DataMapper::Resource' do
+          do_read.should == be_kind_of(DataMapper::Resource)
+        end
+      else
+        it 'should return a DataMapper::Collection' do
+          do_read.should be_kind_of(DataMapper::Collection)
+        end
+      end
     end
   end
 
@@ -308,60 +344,62 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       @adapter.stub!(:execute).and_return(@result)
 
-      @property = mock('property', :field => 'property', :instance_variable_name => '@property', :serial? => false, :custom? => false, :typecast => 'bind value')
-      @model    = mock('model', :storage_name => 'models', :key => [ @property ])
-      @resource = mock('resource', :class => @model, :dirty_attributes => [ @property ], :instance_variable_get => 'bind value')
+      @values      = %w[ new ]
+      @model       = mock('model', :storage_name => 'models')
+      @property    = mock('property', :kind_of? => true, :field => 'property')
+      @bind_values = [ 'bind value' ]
+      @conditions  = [ [ :eql, @property, @bind_values[0] ] ]
+      @attributes  = mock('attributes', :empty? => false, :keys => [ @property ], :values => @values)
+      @query       = mock('query', :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
+      @statement   = 'UPDATE "models" SET "property" = ? WHERE "property" = ?'
     end
 
-    it 'should use only dirty properties' do
-      @resource.should_receive(:dirty_attributes).with(no_args).and_return([ @property ])
-      @adapter.update(@repository, @resource)
-    end
-
-    it 'should use the properties field accessors' do
-      @property.should_receive(:field).with(:default).twice.and_return('property')
-      @adapter.update(@repository, @resource)
+    def do_update
+      @adapter.update(@attributes, @query)
     end
 
     it 'should use the bind values' do
-      @property.should_receive(:instance_variable_name).with(no_args).twice.and_return('@property')
-      @resource.should_receive(:instance_variable_get).with('@property').twice.and_return('bind value')
-      @model.should_receive(:key).with(:default).and_return([ @property ])
-      @adapter.should_receive(:execute).with(anything, 'bind value', 'bind value').and_return(@result)
-      @adapter.update(@repository, @resource)
+      @attributes.should_receive(:values).with(no_args).and_return(@values)
+      @query.should_receive(:bind_values).with(no_args).and_return(@bind_values)
+
+      @adapter.should_receive(:execute).with(@statement, *@values + @bind_values).and_return(@result)
+
+      do_update.should be_true
     end
 
     it 'should generate an SQL statement' do
-      statement = 'UPDATE "models" SET "property" = ? WHERE "property" = ?'
-      @adapter.should_receive(:execute).with(statement, anything, anything).and_return(@result)
-      @adapter.update(@repository, @resource)
-    end
-
-    it 'should generate an SQL statement with composite keys' do
-      other_property = mock('other property', :instance_variable_name => '@other')
+      other_property = mock('other property', :kind_of? => true)
       other_property.should_receive(:field).with(:default).and_return('other')
+      other_property.should_receive(:model).with(no_args).and_return(@model)
 
-      @model.should_receive(:key).with(:default).and_return([ @property, other_property ])
+      other_value = 'other value'
+      @bind_values << other_value
+      @conditions << [ :eql, other_property, other_value ]
 
-      statement = 'UPDATE "models" SET "property" = ? WHERE "property" = ? AND "other" = ?'
-      @adapter.should_receive(:execute).with(statement, anything, anything, anything).and_return(@result)
+      @query.should_receive(:conditions).with(no_args).and_return(@conditions)
 
-      @adapter.update(@repository, @resource)
+      @statement   = 'UPDATE "models" SET "property" = ? WHERE "property" = ? AND "other" = ?'
+      @adapter.should_receive(:execute).with(@statement, *%w[ new ] + @bind_values).and_return(@result)
+
+      do_update.should be_true
     end
 
     it 'should return false if number of rows updated is 0' do
       @result.should_receive(:to_i).with(no_args).and_return(0)
-      @adapter.update(@repository, @resource).should be_false
+      do_update.should be_false
     end
 
     it 'should return true if number of rows updated is 1' do
       @result.should_receive(:to_i).with(no_args).and_return(1)
-      @adapter.update(@repository, @resource).should be_true
+      do_update.should be_true
     end
 
-    it 'should not try to update if there are no dirty attributes' do
-      @resource.should_receive(:dirty_attributes).with(no_args).and_return([])
-      @adapter.update(@repository, @resource).should be_false
+    it 'should return true if there are no dirty attributes to update' do
+      @attributes.should_receive(:empty?).with(no_args).and_return(true)
+
+      @adapter.should_not_receive(:execute)
+
+      do_update.should be_true
     end
   end
 
@@ -371,59 +409,53 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       @adapter.stub!(:execute).and_return(@result)
 
-      @property   = mock('property', :instance_variable_name => '@property', :field => 'property')
-      @repository = mock('repository')
-      @model      = mock('model', :storage_name => 'models', :key => [ @property ])
-      @resource   = mock('resource', :class => @model, :instance_variable_get => 'bind value')
+      @model       = mock('model', :storage_name => 'models')
+      @property    = mock('property', :kind_of? => true, :field => 'property')
+      @bind_values = [ 'bind value' ]
+      @conditions  = [ [ :eql, @property, @bind_values[0] ] ]
+      @query       = mock('query', :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
+      @resource    = mock('resource', :to_query => @query)
+      @statement   = 'DELETE FROM "models" WHERE "property" = ?'
     end
 
-    it 'should use the properties field accessors' do
-      @property.should_receive(:field).with(:default).and_return('property')
-      @adapter.delete(@repository, @resource)
+    def do_delete
+      @adapter.delete(@resource.to_query(@repository))
     end
 
     it 'should use the bind values' do
-      @property.should_receive(:instance_variable_name).with(no_args).and_return('@property')
-      @resource.should_receive(:instance_variable_get).with('@property').and_return('bind value')
+      @query.should_receive(:bind_values).with(no_args).and_return(@bind_values)
 
-      @model.should_receive(:key).with(:default).and_return([ @property ])
+      @adapter.should_receive(:execute).with(@statement, *@bind_values).and_return(@result)
 
-      @adapter.should_receive(:execute).with(anything, 'bind value').and_return(@result)
-
-      @adapter.delete(@repository, @resource)
+      do_delete.should be_true
     end
 
     it 'should generate an SQL statement' do
-      statement = 'DELETE FROM "models" WHERE "property" = ?'
-      @adapter.should_receive(:execute).with(statement, anything).and_return(@result)
-      @adapter.delete(@repository, @resource)
-    end
-
-    it 'should generate an SQL statement with composite keys' do
-      other_property = mock('other property', :instance_variable_name => '@other')
+      other_property = mock('other property', :kind_of? => true)
       other_property.should_receive(:field).with(:default).and_return('other')
+      other_property.should_receive(:model).with(no_args).and_return(@model)
 
-      @model.should_receive(:key).with(:default).and_return([ @property, other_property ])
+      other_value = 'other value'
+      @bind_values << other_value
+      @conditions << [ :eql, other_property, other_value ]
 
-      statement = 'DELETE FROM "models" WHERE "property" = ? AND "other" = ?'
-      @adapter.should_receive(:execute).with(statement, anything, anything).and_return(@result)
+      @query.should_receive(:conditions).with(no_args).and_return(@conditions)
 
-      @adapter.delete(@repository, @resource)
+      @statement = 'DELETE FROM "models" WHERE "property" = ? AND "other" = ?'
+      @adapter.should_receive(:execute).with(@statement, *@bind_values).and_return(@result)
+
+      do_delete.should be_true
     end
 
     it 'should return false if number of rows deleted is 0' do
       @result.should_receive(:to_i).with(no_args).and_return(0)
-      @adapter.delete(@repository, @resource).should be_false
+      do_delete.should be_false
     end
 
     it 'should return true if number of rows deleted is 1' do
       @result.should_receive(:to_i).with(no_args).and_return(1)
-      @adapter.delete(@repository, @resource).should be_true
+      do_delete.should be_true
     end
-  end
-
-  describe '#read_set' do
-    it 'needs specs'
   end
 
   describe "when upgrading tables" do

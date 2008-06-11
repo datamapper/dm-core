@@ -7,51 +7,7 @@ module DataMapper
     end
 
     def load(values)
-      model = @inheritance_property_index && values && values.at(@inheritance_property_index) || self.model
-
-      # TODO: think about moving the logic here into Model#load
-      resource = nil
-
-      if @key_property_indexes
-        key_values = values.values_at(*@key_property_indexes)
-
-        if resource = repository.identity_map_get(model, key_values)
-          add(resource)
-
-          return resource unless query.reload?
-        else
-          resource = model.allocate
-          resource.instance_variable_set(:@new_record, false)
-
-          @key_properties.zip(key_values).each do |property,key_value|
-            resource.instance_variable_set(property.instance_variable_name, key_value)
-          end
-
-          repository.identity_map_set(resource)
-
-          add(resource)
-        end
-      else
-        resource = model.allocate
-        resource.instance_variable_set(:@new_record, false)
-        resource.readonly!
-
-        add(resource)
-      end
-
-      @properties.zip(values).each do |property, value|
-        value = property.custom? ? property.type.load(value, property) : property.typecast(value)
-        resource.instance_variable_set(property.instance_variable_name, value)
-        if [:load, :hash].include?(property.track)
-          if property.track == :hash
-            resource.original_values[property.name] = value.dup.hash unless resource.original_values.has_key?(property.name) rescue value.hash
-          else
-            resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
-          end
-        end
-      end
-
-      resource
+      add(model.load(values, query))
     end
 
     def reload(query = {})
@@ -103,40 +59,37 @@ module DataMapper
       # TODO: if loaded?, and the query is the same as self.query,
       # then return self
 
-      first_pos = self.query.offset + query.offset
-      last_pos  = self.query.offset + self.query.limit if self.query.limit
-
-      if limit = query.limit
-        if last_pos.nil? || first_pos + limit < last_pos
-          last_pos = first_pos + limit
-        end
-      end
-
       # return empty collection if outside range
-      if last_pos && first_pos >= last_pos
+      unless set_relative_position(query)
         return empty_collection
       end
-
-      query.update(:offset => first_pos)
-      query.update(:limit => last_pos - first_pos) if last_pos
 
       repository.all(model, self.query.merge(query))
     end
 
     def first(*args)
-      query = args.last.respond_to?(:merge) ? args.pop : {}
+      return super if loaded? && (args.empty? || args.first.kind_of?(Integer))
 
-      # TODO: if loaded? and the passed-in query is a subset of
-      #   self.query then delegate to super
+      query = args.last.respond_to?(:merge) ? args.pop : {}
+      query = self.query.class.new(repository, model, query) if query.kind_of?(Hash)
 
       if args.any?
-        all(query.merge(:limit => args.first))
+        query.update(:limit => args.first)
+
+        # return empty collection if outside range
+        unless set_relative_position(query)
+          return empty_collection
+        end
+
+        repository.all(model, self.query.merge(query))
       else
-        all(query.merge(:limit => 1)).to_a.first
+        repository.first(model, self.query.merge(query))
       end
     end
 
     def last(*args)
+      return super if loaded? && (args.empty? || args.first.kind_of?(Integer))
+
       reversed = reverse
 
       # TODO: if loaded? and the passed-in query is a subset of
@@ -150,6 +103,7 @@ module DataMapper
     end
 
     def at(offset)
+      return super if loaded?
       first(:offset => offset)
     end
 
@@ -282,26 +236,18 @@ module DataMapper
     def initialize(query, &loader)
       raise ArgumentError, "+query+ must be a DataMapper::Query, but was #{query.class}", caller unless query.kind_of?(Query)
 
-      @query      = query
-      @properties = query.fields
+      @query          = query
+      @key_properties = model.key(repository.name)
 
       super()
       load_with(&loader)
-
-      if inheritance_property = model.inheritance_property(repository.name)
-        @inheritance_property_index = @properties.index(inheritance_property)
-      end
-
-      if (@key_properties = model.key(repository.name)).all? { |property| @properties.include?(property) }
-        @key_property_indexes = @key_properties.map { |property| @properties.index(property) }
-      end
     end
 
     def keys
       keys = {}
 
       if (entry_keys = map { |resource| resource.key }).any?
-        @key_properties.zip(entry_keys.transpose).each do |property,values|
+        @key_properties.zip(entry_keys.transpose) do |property,values|
           keys[property] = values.size == 1 ? values[0] : values
         end
       end
@@ -318,16 +264,40 @@ module DataMapper
 
     def add(resource)
       query.add_reversed? ? unshift(resource) : push(resource)
+      resource
     end
 
     def relate_resource(resource)
-      resource.collection = self if resource
+      return unless resource
+      resource.collection = self
       resource
     end
 
     def orphan_resource(resource)
-      resource.collection = nil if resource && resource.collection == self
+      return unless resource
+      resource.collection = nil if resource.collection == self
       resource
+    end
+
+    def set_relative_position(query)
+      first_pos = self.query.offset + query.offset
+      last_pos  = self.query.offset + self.query.limit if self.query.limit
+
+      if limit = query.limit
+        if last_pos.nil? || first_pos + limit < last_pos
+          last_pos = first_pos + limit
+        end
+      end
+
+      # return false if outside range
+      if last_pos && first_pos >= last_pos
+        return false
+      end
+
+      query.update(:offset => first_pos)
+      query.update(:limit => last_pos - first_pos) if last_pos
+
+      true
     end
 
     def method_missing(method_name, *args)
