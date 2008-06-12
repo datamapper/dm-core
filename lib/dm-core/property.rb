@@ -467,6 +467,7 @@ module DataMapper
       @unique_index = @options.fetch(:unique_index, false)
 
       @lazy     = @options.fetch(:lazy,     @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
+      
       @track    = @options.fetch(:track) do
         if @custom && @type.respond_to?(:track) && @type.track
           @type.track

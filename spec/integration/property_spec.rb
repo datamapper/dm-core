@@ -75,35 +75,23 @@ if ADAPTER
           jon.dirty?.should be_true
         end
       end
-
-      it ":load" do
-        pending("Implementation...") do
-          DataMapper::Resource::DIRTY.should_not be_nil
-          bob = Actor.new(:name => 'bob')
-          bob.original_attributes.should have_key(:name)
-          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+      
+      it "should track on :load" do
+        repository(ADAPTER) do
+          jan = Actor.create!(:name => 'jan', :lead => true)
+          jan.lead = false
+          jan.original_values[:lead].should be_true
+          jan.dirty?.should == true
+        end
+        repository(ADAPTER) do
+          jan = Actor.first
+          jan.original_values.should have_key(:lead)
+          jan.original_values[:lead].should be_true
+          jan.dirty?.should == false
         end
       end
 
       it ":hash" do
-        pending("Implementation...") do
-          DataMapper::Resource::DIRTY.should_not be_nil
-          bob = Actor.new(:name => 'bob')
-          bob.original_attributes.should have_key(:name)
-          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
-        end
-      end
-
-      it ":get" do
-        pending("Implementation...") do
-          DataMapper::Resource::DIRTY.should_not be_nil
-          bob = Actor.new(:name => 'bob')
-          bob.original_attributes.should have_key(:name)
-          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
-        end
-      end
-
-      it ":set" do
         pending("Implementation...") do
           DataMapper::Resource::DIRTY.should_not be_nil
           bob = Actor.new(:name => 'bob')

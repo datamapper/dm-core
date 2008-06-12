@@ -93,7 +93,7 @@ module DataMapper
       value = instance_variable_get(ivar_name)
 
       if property.track == :get
-        original_values[name] = value.dup if original_values[name] == false rescue value
+        original_values[name] = value.dup unless original_values.has_key?(name) rescue value
       end
 
       if value.nil? && new_record? && !property.options[:default].nil? && !attribute_loaded?(name)
@@ -156,7 +156,7 @@ module DataMapper
         instance_variable_set("@shadow_#{name}", old_value)
       end
 
-      original_values[name] = old_value if original_values[name] == false
+      original_values[name] = old_value unless original_values.has_key?(name)
 
       dirty_attributes << property
 
@@ -344,18 +344,18 @@ module DataMapper
     # set of original values of properties
     #
     # ==== Returns
-    # Set:: original values of properties
+    # Hash:: original values of properties
     #
     # --
     # @public
     def original_values
-      @original_values ||= Hash.new(false) # default to false, so we can distinguish from nil
+      @original_values ||= {}
     end
 
     # set of attributes that have been marked dirty
     #
     # ==== Returns
-    # Set:: attributes that have been marked dirty
+    # Array:: attributes that have been marked dirty
     #
     # --
     # @public
