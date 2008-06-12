@@ -16,7 +16,7 @@ module DataMapper
           after_class_method :inherited, :add_scope_for_discriminator
           
           def self.add_scope_for_discriminator(target)
-            #target.send(:scope_stack) << DataMapper::Query.new(target.repository, target, :#{property.name} => target.child_classes << target)
+            target.send(:scope_stack) << DataMapper::Query.new(target.repository, target, :#{property.name} => target.child_classes << target)
             propagate_child_classes(target)
           end
  
