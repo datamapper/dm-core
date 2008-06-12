@@ -278,7 +278,7 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
-      :default, :precision, :scale
+      :default, :precision, :scale, :track
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -465,6 +465,7 @@ module DataMapper
       @unique_index = @options.fetch(:unique_index, false)
 
       @lazy     = @options.fetch(:lazy,     @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
+      @track    = @options.fetch(:track,    @type.respond_to?(:track) ? @type.track : :set) || :set 
 
       # assign attributes per-type
       if String == @primitive || Class == @primitive

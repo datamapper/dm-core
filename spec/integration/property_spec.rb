@@ -12,11 +12,12 @@ if ADAPTER
 
           property :id, Integer, :serial => true
           property :name, String, :lock => true
-          property :notes, DataMapper::Types::Text, :track => false
-          property :age, Integer, :track => :set
-          property :rating, Integer # :track default should be false for immutable types
-          property :location, String # :track default should be :get for mutable types
+          property :notes, DataMapper::Types::Text
+          property :age, Integer
+          property :rating, Integer
+          property :location, String, :track => :get # :track default should be :get for mutable types
           property :lead, TrueClass, :track => :load
+          property :cv, Object # :track should be :hash
           property :agent, String, :track => :hash # :track only Object#hash value on :load.
             # Potentially faster, but less safe, so use judiciously, when the odds of a hash-collision are low.
         end
@@ -25,14 +26,26 @@ if ADAPTER
       before do
         Actor.auto_migrate!(ADAPTER)
       end
-
-      it "false" do
-        pending("Implementation...") do
-          DataMapper::Resource::DIRTY.should_not be_nil
-          bob = Actor.new(:name => 'bob')
-          bob.original_attributes.should have_key(:name)
-          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
-        end
+      
+      it "should set up tracking information" do
+        Actor.properties[:name].track.should == :set
+        Actor.properties[:location].track.should == :get
+        Actor.properties[:lead].track.should == :load
+        Actor.properties[:cv].track.should == :hash
+        Actor.properties[:agent].track.should == :hash
+      end
+      
+      it "should track on :set" do
+        bob = Actor.new(:name => 'bob')
+        bob.save
+        
+        bob.original_values.should_not have_key(:name)
+        bob.dirty?.should == false
+        
+        bob.name = "Bob"
+        bob.original_values.should have_key(:name)
+        bob.original_values[:name].should == 'bob'
+        bob.dirty?.should == true
       end
 
       it ":load" do
