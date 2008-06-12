@@ -2,8 +2,10 @@ require "base64"
 
 module DataMapper
   module Types
-    class Object < DataMapper::Type(Text)
-
+    class Object < DataMapper::Type
+      primitive String
+      size 65535
+      lazy true
       track :hash
 
       def self.dump(value, property)

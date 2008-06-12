@@ -90,13 +90,21 @@ if ADAPTER
           jan.dirty?.should == false
         end
       end
-
-      it ":hash" do
-        pending("Implementation...") do
-          DataMapper::Resource::DIRTY.should_not be_nil
-          bob = Actor.new(:name => 'bob')
-          bob.original_attributes.should have_key(:name)
-          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+      
+      it "should track on :hash" do
+        pending
+        cv = { 2005 => "Othello" }
+        repository(ADAPTER) do
+          tom = Actor.create!(:name => 'tom', :cv => cv)
+        end
+        repository(ADAPTER) do
+          tom = Actor.first(:name => 'tom')
+          tom.cv.merge!({2006 => "Macbeth"})
+          
+          tom.original_values.should have_key(:cv)
+          tom.original_values[:cv].should == cv.hash
+          tom.cv.should == { 2005 => "Othello", 2006 => "Macbeth" }
+          tom.dirty?.should == true
         end
       end
     end

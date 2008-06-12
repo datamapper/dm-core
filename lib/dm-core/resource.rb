@@ -92,7 +92,7 @@ module DataMapper
 
       value = instance_variable_get(ivar_name)
 
-      if property.track == :get
+      if [:get, :hash].include?(property.track)
         original_values[name] = value.dup unless original_values.has_key?(name) rescue value
       end
 
