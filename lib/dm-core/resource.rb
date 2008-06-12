@@ -281,7 +281,10 @@ module DataMapper
     #
     # --
     # #public
-    def save
+    def save(context = :default)
+      # Takes a context, but does nothing with it. This is to maintain the
+      # same API through out all of dm-more. dm-validations requires a
+      # context to be passed
       new_record? ? create : update
     end
 
