@@ -103,7 +103,15 @@ module DataMapper
         method_sym
       end
 
-      class_eval define_advised_method(name, scope), __FILE__, __LINE__
+      if scope == :instance && !instance_methods(false).include?(name.to_s)
+        advised_method = define_advised_method(name, scope)
+        advised_method_module = Module.new do
+          class_eval advised_method, __FILE__, __LINE__
+        end
+        class_eval { include advised_method_module }
+      else
+        class_eval define_advised_method(name, scope), __FILE__, __LINE__
+      end
     end
 
     def method_with_scope(name, scope)

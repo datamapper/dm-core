@@ -69,7 +69,7 @@ describe "DataMapper::Hook" do
     @class.before :a_method do
       hi_mom!
     end
-
+    
     inst = @class.new
     inst.should_receive(:hi_mom!)
 
@@ -105,6 +105,32 @@ describe "DataMapper::Hook" do
     inst.should_receive(:hi_mom!)
 
     inst.hook
+  end
+  
+  it 'should not overwrite methods included by modules after the hook is declared' do
+    my_module = Module.new do
+      # Just another module
+      @another_module = Module.new do
+        def some_method
+          "Hello " + super
+        end
+      end
+      
+      def some_method
+        "world"
+      end
+      
+      def self.included(base)
+        base.before(:some_method, :a_method)
+        base.send(:include, @another_module)
+      end
+    end
+
+    @class.class_eval { include my_module }
+    
+    inst = @class.new
+    inst.should_receive(:a_method)
+    inst.some_method.should == "Hello world"
   end
 
   describe "using before hook" do
