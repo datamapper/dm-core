@@ -848,33 +848,25 @@ module DataMapper
       # TODO: spec this
       def load(values, query)
         repository = query.repository
+        model      = self
 
         if inheritance_property_index = query.inheritance_property_index(repository)
           model = values.at(inheritance_property_index)
-
-          if model != self
-            return model.load(values, query)
-          end
         end
 
         if key_property_indexes = query.key_property_indexes(repository)
           key_values = values.values_at(*key_property_indexes)
 
-          if resource = repository.identity_map(self).get(key_values)
+          if resource = repository.identity_map(model).get(key_values)
             return resource unless query.reload?
           else
-            resource = allocate
+            resource = model.allocate
             resource.instance_variable_set(:@repository, repository)
             resource.instance_variable_set(:@new_record, false)
-
-            key(repository.name).zip(key_values) do |property,key_value|
-              resource.instance_variable_set(property.instance_variable_name, key_value)
-            end
-
-            repository.identity_map(self).set(resource.key, resource)
+            repository.identity_map(model).set(key_values, resource)
           end
         else
-          resource = allocate
+          resource = model.allocate
           resource.instance_variable_set(:@new_record, false)
           resource.readonly!
         end
