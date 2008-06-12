@@ -284,6 +284,12 @@ if ADAPTER
             resource_at.should be_kind_of(DataMapper::Resource)
             resource_at.id.should == @bessie.id
           end
+
+          it 'should return a Resource when using a negative index' do
+            resource_at = @collection.at(-1)
+            resource_at.should be_kind_of(DataMapper::Resource)
+            resource_at.id.should == @steve.id
+          end
         end
 
         describe '#clear' do

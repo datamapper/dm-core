@@ -77,7 +77,7 @@ module DataMapper
     end
 
     def at(offset)
-      return super if loaded?
+      return super if loaded? || offset < 0
       first(:offset => offset)
     end
 
