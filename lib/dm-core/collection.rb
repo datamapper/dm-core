@@ -12,7 +12,7 @@ module DataMapper
     end
 
     def reload(query = {})
-      @query = scoped_query(query.merge(keys))
+      @query = scoped_query(query)
       @query.update(:fields => @query.fields | @key_properties)
       replace(all(:reload => true))
     end
@@ -163,13 +163,19 @@ module DataMapper
 
     # TODO: delegate to Model.update
     def update(attributes = {})
+      return true if attributes.empty?
+
       dirty_attributes = {}
 
       model.properties(repository.name).slice(*attributes.keys).each do |property|
         dirty_attributes[property] = attributes[property.name] if property
       end
 
-      return false unless repository.update(dirty_attributes, query.merge(keys)) == (loaded? ? size : 1)
+      if loaded?
+        return false unless repository.update(dirty_attributes, scoped_query) == size
+      else
+        return false unless repository.update(dirty_attributes, scoped_query) > 0
+      end
 
       if loaded?
         each { |resource| resource.attributes = attributes }
@@ -180,10 +186,11 @@ module DataMapper
 
     # TODO: delegate to Model.destroy
     def destroy
-      return false unless repository.delete(query.merge(keys)) == (loaded? ? size : 1)
-
       if loaded?
+        return false unless repository.delete(scoped_query) == size
+
         identity_map = repository.identity_map(model)
+
         each do |resource|
           resource.instance_variable_set(:@new_record, true)
           identity_map.delete(resource.key)
@@ -194,6 +201,8 @@ module DataMapper
             resource.dirty_attributes[property] = property.get(resource)
           end
         end
+      else
+        return false unless repository.delete(scoped_query) > 0
       end
 
       clear
@@ -242,18 +251,6 @@ module DataMapper
       load_with(&loader)
     end
 
-    def keys
-      keys = {}
-
-      if (entry_keys = map { |resource| resource.key }).any?
-        @key_properties.zip(entry_keys.transpose) do |property,values|
-          keys[property] = values.size == 1 ? values[0] : values
-        end
-      end
-
-      keys
-    end
-
     def empty_collection
       # TODO: figure out how to create an empty collection
       #   - must have a null query object.. i.e. should not be possible
@@ -278,13 +275,17 @@ module DataMapper
       resource
     end
 
-    def scoped_query(query)
+    def scoped_query(query = self.query)
       query = if query.kind_of?(Hash)
         Query.new(repository, model, query)
       elsif query.kind_of?(Query)
         query
       else
         raise ArgumentError, "+query+ must be either a Hash or DataMapper::Query, but was a #{query.class}"
+      end
+
+      if loaded?
+        query.update(keys)
       end
 
       if query.limit || query.offset > 0
@@ -294,7 +295,21 @@ module DataMapper
       self.query.merge(query)
     end
 
+    def keys
+      keys = {}
+
+      if (entry_keys = map { |resource| resource.key }).any?
+        @key_properties.zip(entry_keys.transpose) do |property,values|
+          keys[property] = values.size == 1 ? values[0] : values
+        end
+      end
+
+      keys
+    end
+
     def set_relative_position(query)
+      return if query == self.query
+
       if query.offset == 0
         return if !query.limit.nil? && !self.query.limit.nil? && query.limit <= self.query.limit
         return if  query.limit.nil? &&  self.query.limit.nil?

@@ -141,6 +141,8 @@ module DataMapper
 
       other = self.class.new(@repository, model, other) if other.kind_of?(Hash)
 
+      return self if self == other
+
       # TODO: update this so if "other" had a value explicitly set
       #       overwrite the attributes in self
 
@@ -466,6 +468,7 @@ module DataMapper
     def append_condition(clause, bind_value)
       operator = :eql
       bind_value = bind_value.call if bind_value.is_a?(Proc)
+
       property = case clause
         when Property
           clause
@@ -532,12 +535,21 @@ module DataMapper
           if condition = conditions_index[other_property][other_operator]
             operator, property, bind_value = *condition
 
+            next if bind_value == other_bind_value
+
             # overwrite the bind value in the existing condition
             condition[2] = case operator
               when :eql, :like then other_bind_value
               when :gt,  :gte  then [ bind_value, other_bind_value ].min
               when :lt,  :lte  then [ bind_value, other_bind_value ].max
-              when :not, :in   then Array(bind_value) | Array(other_bind_value)
+              when :not, :in
+                if bind_value.kind_of?(Array)
+                  bind_value |= other_bind_value
+                elsif other_bind_value.kind_of?(Array)
+                  other_bind_value |= bind_value
+                else
+                  other_bind_value
+                end
             end
 
             next  # process the next other condition

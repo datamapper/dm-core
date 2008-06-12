@@ -238,18 +238,18 @@ module DataMapper
         end
 
         def update_statement(properties, query)
-          <<-EOS.compress_lines
+          statement = <<-EOS.compress_lines
             UPDATE #{quote_table_name(query.model.storage_name(name))}
             SET #{properties.map { |p| "#{quote_column_name(p.field(name))} = ?" }.join(', ')}
-            WHERE #{conditions_statement(query)}
           EOS
+          statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
+          statement
         end
 
         def delete_statement(query)
-          <<-EOS.compress_lines
-            DELETE FROM #{quote_table_name(query.model.storage_name(name))}
-            WHERE #{conditions_statement(query)}
-          EOS
+          statement = "DELETE FROM #{quote_table_name(query.model.storage_name(name))}"
+          statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
+          statement
         end
 
         def fields_statement(query)

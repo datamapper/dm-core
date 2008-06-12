@@ -379,7 +379,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @bind_values << other_value
       @conditions << [ :eql, other_property, other_value ]
 
-      @query.should_receive(:conditions).with(no_args).and_return(@conditions)
+      @query.should_receive(:conditions).with(no_args).twice.and_return(@conditions)
 
       @statement   = 'UPDATE "models" SET "property" = ? WHERE "property" = ? AND "other" = ?'
       @adapter.should_receive(:execute).with(@statement, *%w[ new ] + @bind_values).and_return(@result)
@@ -434,7 +434,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @bind_values << other_value
       @conditions << [ :eql, other_property, other_value ]
 
-      @query.should_receive(:conditions).with(no_args).and_return(@conditions)
+      @query.should_receive(:conditions).with(no_args).twice.and_return(@conditions)
 
       @statement = 'DELETE FROM "models" WHERE "property" = ? AND "other" = ?'
       @adapter.should_receive(:execute).with(@statement, *@bind_values).and_return(@result)
