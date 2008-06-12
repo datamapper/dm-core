@@ -406,7 +406,7 @@ module DataMapper
         when :hash then old_value != value.hash
         else old_value != value
         end
-        
+
         if dirty
           property.hash
           dirty_attributes[property] = value

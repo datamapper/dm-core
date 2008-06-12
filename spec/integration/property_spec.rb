@@ -90,7 +90,7 @@ if ADAPTER
           jan.dirty?.should == false
         end
       end
-      
+
       it "should track on :hash" do
         cv = { 2005 => "Othello" }
         repository(ADAPTER) do
@@ -99,7 +99,7 @@ if ADAPTER
         repository(ADAPTER) do
           tom = Actor.first(:name => 'tom')
           tom.cv.merge!({2006 => "Macbeth"})
-          
+
           tom.original_values.should have_key(:cv)
           # tom.original_values[:cv].should == cv.hash
           tom.cv.should == { 2005 => "Othello", 2006 => "Macbeth" }
