@@ -107,6 +107,25 @@ if ADAPTER
           tom.dirty?.should == true
         end
       end
+
+      it "should track with lazy text fields (#342)" do
+        repository(ADAPTER) do
+          tim = Actor.create!(:name => 'tim')
+        end
+        repository(ADAPTER) do
+          tim = Actor.first(:name => 'tim')
+          tim.notes # make sure they're loaded...
+          tim.dirty?.should be_false
+          tim.save.should be_false
+          tim.notes = "Testing"
+          tim.dirty?.should be_true
+          tim.save
+        end
+        repository(ADAPTER) do
+          tim = Actor.first(:name => 'tim')
+          tim.notes.should == "Testing"
+        end
+      end
     end
 
     describe "lazy loading" do
