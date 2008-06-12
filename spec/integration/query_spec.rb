@@ -360,6 +360,17 @@ if ADAPTER
           vehicle = Vehicle.first(:includes => [Vehicle.factory])
         end
       end
+      
+      it "should behave when using mocks" do
+        class Group
+          include DataMapper::Resource
+          property :id, Integer, :serial => true
+          property :name, String
+        end
+        
+        Group.should_receive(:all).with(:order => [:id.asc])
+        Group.all(:order => [:id.asc])
+      end
     end   # describe links
   end # DM::Query
 end

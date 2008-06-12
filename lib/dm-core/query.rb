@@ -40,6 +40,10 @@ module DataMapper
         @property_name
       end
 
+      def ==(other)
+        @operator == other.operator && @target == other.target
+      end
+
       private
 
       def initialize(target, operator)
