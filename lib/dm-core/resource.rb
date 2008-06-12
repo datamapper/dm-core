@@ -264,12 +264,9 @@ module DataMapper
     end
 
     def key
-      key = []
-      model.key(repository.name).each do |property|
-        value = instance_variable_get(property.instance_variable_name)
-        key << value
+      model.key(repository.name).map do |property|
+        instance_variable_get(property.instance_variable_name)
       end
-      key
     end
 
     def readonly!
