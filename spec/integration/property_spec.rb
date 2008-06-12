@@ -15,7 +15,7 @@ if ADAPTER
           property :notes, DataMapper::Types::Text
           property :age, Integer # :track default is :set for mutable types
           property :rating, Integer
-          property :location, String, :track => :get
+          property :location, String
           property :lead, TrueClass, :track => :load
           property :cv, Object # :track should be :hash
           property :agent, String, :track => :hash # :track only Object#hash value on :load.
