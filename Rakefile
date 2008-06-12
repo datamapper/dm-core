@@ -28,9 +28,6 @@ namespace :rcov do
   task :integration => 'dm:rcov:integration'
 end
 
-desc 'Remove all package, docs and spec products'
-task :clobber_all => %w[ clobber_package dm:clobber_spec ]
-
 namespace :dm do
   def run_spec(name, files, rcov)
     Spec::Rake::SpecTask.new(name) do |t|
@@ -73,12 +70,12 @@ namespace :dm do
 
   desc "Run comparison with ActiveRecord"
   task :perf do
-    load Pathname.glob(ROOT + 'script/performance.rb')
+    sh ROOT + 'script/performance.rb'
   end
 
   desc "Profile DataMapper"
   task :profile do
-    load Pathname.glob(ROOT + 'script/profile.rb')
+    sh ROOT + 'script/profile.rb'
   end
 end
 
@@ -102,11 +99,6 @@ DOCUMENTED_FILES = PACKAGE_FILES.reject do |path|
 end
 
 PROJECT = "dm-core"
-
-desc 'List all package files'
-task :ls do
-  puts PACKAGE_FILES
-end
 
 # when yard's ready, it'll have to come back, but for now...
 Rake::RDocTask.new("doc") do |t|
@@ -145,12 +137,11 @@ gem_spec = Gem::Specification.new do |s|
   s.require_path = "lib"
   s.requirements << "none"
   s.add_dependency("data_objects", "=#{s.version}")
-  s.add_dependency("english", ">=0.2.0")
   s.add_dependency("rspec", ">=1.1.3")
   s.add_dependency("addressable", ">=1.0.4")
   s.add_dependency("extlib", ">= 0.1")
 
-  s.has_rdoc    = false
+  s.has_rdoc = false
   #s.rdoc_options << "--line-numbers" << "--inline-source" << "--main" << "README"
   #s.extra_rdoc_files = DOCUMENTED_FILES.map { |f| f.to_s }
 end
