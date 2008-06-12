@@ -163,7 +163,7 @@ module DataMapper
           EOF
         end
       elsif scope == :instance
-        if superclass.method_defined?(name)
+        unless instance_methods(false).include?(name.to_s)
           "  super(#{args})\n"
         else
           <<-EOF
