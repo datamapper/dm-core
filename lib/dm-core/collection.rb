@@ -45,7 +45,7 @@ module DataMapper
     end
 
     def all(query = {})
-      return self if (query.kind_of?(Hash) && query.empty?) || query == self.query
+      return self if query.kind_of?(Hash) ? query.empty? : query == self.query
       repository.read_many(scoped_query(query))
     end
 

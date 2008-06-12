@@ -768,18 +768,18 @@ module DataMapper
       end
 
       def all(query = {})
-        repository = repository_for_finder(query)
-        repository.read_many(scoped_query(repository, query))
+        query = scoped_query(query)
+        query.repository.read_many(query)
       end
 
       def first(*args)
-        query      = args.last.respond_to?(:merge) ? args.pop : {}
-        repository = repository_for_finder(query)
+        query = args.last.respond_to?(:merge) ? args.pop : {}
+        query = scoped_query(query.merge(:limit => args.first || 1))
 
         if args.any?
-          repository.read_many(scoped_query(repository, query.merge(:limit => args.first)))
+          query.repository.read_many(query)
         else
-          repository.read_one(scoped_query(repository, query.merge(:limit => 1)))
+          query.repository.read_one(query)
         end
       end
 
@@ -836,14 +836,6 @@ module DataMapper
         end
       end
 
-      # TODO: move to dm-more/dm-migrations
-      def storage_exists?(repository_name = default_repository_name)
-        repository(repository_name).storage_exists?(storage_name(repository_name))
-      end
-
-      # TODO: remove this alias
-      alias exists? storage_exists?
-
       # @private
       # TODO: spec this
       def load(values, query)
@@ -855,21 +847,22 @@ module DataMapper
         end
 
         if key_property_indexes = query.key_property_indexes(repository)
-          key_values = values.values_at(*key_property_indexes)
+          key_values   = values.values_at(*key_property_indexes)
+          identity_map = repository.identity_map(model)
 
-          if resource = repository.identity_map(model).get(key_values)
+          if resource = identity_map.get(key_values)
             return resource unless query.reload?
           else
             resource = model.allocate
             resource.instance_variable_set(:@repository, repository)
-            resource.instance_variable_set(:@new_record, false)
-            repository.identity_map(model).set(key_values, resource)
+            identity_map.set(key_values, resource)
           end
         else
           resource = model.allocate
-          resource.instance_variable_set(:@new_record, false)
           resource.readonly!
         end
+
+        resource.instance_variable_set(:@new_record, false)
 
         query.fields.zip(values) do |property,value|
           value = property.custom? ? property.type.load(value, property) : property.typecast(value)
@@ -891,7 +884,6 @@ module DataMapper
       # TODO: spec this
       def to_query(repository, key, query = {})
         conditions = Hash[ *self.key(repository.name).zip(key).flatten ]
-        # TODO: when Query#repository is removed, then remove the first argument
         Query.new(repository, self, query.merge(conditions))
       end
 
@@ -905,19 +897,9 @@ module DataMapper
         Repository.default_name
       end
 
-      def repository_for_finder(query)
-        if query.kind_of?(Hash) && query.has_key?(:repository)
-          repository(query[:repository])
-        elsif query.kind_of?(Query)
-          query.repository
-        else
-          repository
-        end
-      end
-
-      def scoped_query(repository, query)
+      def scoped_query(query)
         query = if query.kind_of?(Hash)
-          Query.new(repository, self, query)
+          Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, self, query)
         elsif query.kind_of?(Query)
           query
         else
@@ -942,6 +924,16 @@ module DataMapper
         end
         super
       end
+
+      # TODO: move to dm-more/dm-migrations
+      module Migration
+        # TODO: move to dm-more/dm-migrations
+        def storage_exists?(repository_name = default_repository_name)
+          repository(repository_name).storage_exists?(storage_name(repository_name))
+        end
+      end # module Migration
+
+      include Migration
     end # module ClassMethods
   end # module Resource
 end # module DataMapper
