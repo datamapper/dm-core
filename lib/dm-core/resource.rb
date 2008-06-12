@@ -293,7 +293,20 @@ module DataMapper
       # Takes a context, but does nothing with it. This is to maintain the
       # same API through out all of dm-more. dm-validations requires a
       # context to be passed
-      new_record? ? create : update
+
+      child_associations.each { |a| a.save }
+
+      success = if dirty? || (new_record? && model.key.any? { |p| p.serial? })
+        new_record? ? create : update
+      end
+
+      if success
+        original_values.clear
+      end
+
+      parent_associations.each { |a| a.save }
+
+      success == true
     end
 
     # destroy the instance, remove it from the repository
@@ -304,7 +317,18 @@ module DataMapper
     # --
     # @public
     def destroy
-      repository.destroy(self)
+      return false unless repository.delete(to_query)
+
+      @new_record = true
+      repository.identity_map(model).delete(key)
+      original_values.clear
+
+      model.properties(name).each do |property|
+        # We'll set the original value to nil as if we had a new record
+        original_values[property.name] = nil if attribute_loaded?(property.name)
+      end
+
+      true
     end
 
     # Checks if the attribute has been loaded
@@ -538,58 +562,45 @@ module DataMapper
 
     private
 
-    def create
-      repository.save(self)
+    def initialize(attributes = {}) # :nodoc:
+      assert_valid_model
+      self.attributes = attributes
     end
 
-    def update
-      repository.save(self)
-    end
-
-    def initialize(*args) # :nodoc:
-      validate_resource
-      initialize_with_attributes(*args) unless args.empty?
-    end
-
-    def initialize_with_attributes(details) # :nodoc:
-      case details
-      when Hash             then self.attributes = details
-      when Resource, Struct then self.private_attributes = details.attributes
-        # else raise ArgumentError, "details should be a Hash, Resource or Struct\n\t#{details.inspect}"
-      end
-    end
-
-    def validate_resource # :nodoc:
+    def assert_valid_model # :nodoc:
       if model.properties.empty? && model.relationships.empty?
-        raise IncompleteResourceError, 'Resources must have at least one property or relationship to be initialized.'
+        raise IncompleteResourceError, "#{model.name} must have at least one property or relationship to be initialized."
       end
 
       if model.properties.key.empty?
-        raise IncompleteResourceError, 'Resources must have a key.'
+        raise IncompleteResourceError, "#{model.name} must have a key."
       end
+    end
+
+    def create
+      # set defaults for new resource
+      model.properties(repository.name).each do |property|
+        next if attribute_loaded?(property.name)
+        property.set(self, property.default_for(self))
+      end
+
+      return false unless repository.create([ self ]) == 1
+
+      @repository = repository
+      @new_record = false
+
+      repository.identity_map(model).set(key, self)
+
+      true
+    end
+
+    def update
+      return true if dirty_attributes.empty?
+      repository.update(dirty_attributes, to_query) == 1
     end
 
     def lazy_load(name)
       reload_attributes(*model.properties(repository.name).lazy_load_context(name))
-    end
-
-    def private_attributes
-      pairs = {}
-
-      model.properties(repository.name).each do |property|
-        pairs[property.name] = send(property.getter)
-      end
-
-      pairs
-    end
-
-    def private_attributes=(values_hash)
-      values_hash.each_pair do |k,v|
-        setter = "#{k.to_s.sub(/\?\z/, '')}="
-        if respond_to?(setter) || private_methods.include?(setter)
-          send(setter, v)
-        end
-      end
     end
 
     # TODO: move to dm-more/dm-transactions
@@ -717,8 +728,9 @@ module DataMapper
         property
       end
 
+      # TODO: make this a Set?
       def repositories
-        [repository] + @properties.keys.collect do |repository_name| DataMapper.repository(repository_name) end
+        [ repository ] + @properties.keys.collect { |repository_name| DataMapper.repository(repository_name) }
       end
 
       def properties(repository_name = default_repository_name)
@@ -754,7 +766,7 @@ module DataMapper
       #
       # @see Repository#get
       def get(*key)
-        identity_map(repository).get(key) || first(to_query(repository, key))
+        repository.identity_map(self).get(key) || first(to_query(repository, key))
       end
 
       ##
@@ -763,6 +775,27 @@ module DataMapper
       # @raise <ObjectNotFoundError> "could not find .... with key: ...."
       def get!(*key)
         get(*key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key #{key.inspect}")
+      end
+
+      ##
+      #
+      # @see Repository#all
+      def all(query = {})
+        repository_for_finder(query).read_many(scoped_query(query))
+      end
+
+      ##
+      #
+      # @see Repository#first
+      def first(*args)
+        query      = args.last.respond_to?(:merge) ? args.pop : {}
+        repository = repository_for_finder(query)
+
+        if args.any?
+          repository.read_many(scoped_query(query.merge(:limit => args.first)))
+        else
+          repository.read_one(scoped_query(query.merge(:limit => 1)))
+        end
       end
 
       def [](*key)
@@ -788,32 +821,11 @@ module DataMapper
       end
 
       ##
-      #
-      # @see Repository#all
-      def all(query = {})
-        repository_for_finder(query).read_many(scoped_query(query))
-      end
-
-      ##
-      #
-      # @see Repository#first
-      def first(*args)
-        query = args.last.respond_to?(:merge) ? args.pop : {}
-
-        if args.any?
-          repository_for_finder(query).read_many(scoped_query(query.merge(:limit => args.first)))
-        else
-          repository_for_finder(query).read_one(scoped_query(query))
-        end
-      end
-
-      ##
       # Create an instance of Resource with the given attributes
       #
       # @param <Hash(Symbol => Object)> attributes hash of attributes to set
       def create(attributes = {})
-        resource = allocate
-        resource.send(:initialize_with_attributes, attributes)
+        resource = new(attributes)
         resource.save
         resource
       end
@@ -863,7 +875,7 @@ module DataMapper
         if key_property_indexes = query.key_property_indexes(repository)
           key_values = values.values_at(*key_property_indexes)
 
-          if resource = identity_map(repository).get(key_values)
+          if resource = repository.identity_map(self).get(key_values)
             return resource unless query.reload?
           else
             resource = allocate
@@ -874,7 +886,7 @@ module DataMapper
               resource.instance_variable_set(property.instance_variable_name, key_value)
             end
 
-            identity_map(repository).set(resource.key, resource)
+            repository.identity_map(self).set(resource.key, resource)
           end
         else
           resource = allocate
@@ -936,10 +948,6 @@ module DataMapper
         else
           repository
         end
-      end
-
-      def identity_map(repository)
-        repository.identity_map(self)
       end
 
       def method_missing(method, *args, &block)

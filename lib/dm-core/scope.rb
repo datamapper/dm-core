@@ -17,7 +17,7 @@ module DataMapper
       scope_stack << query
 
       begin
-        yield
+        return yield(query)
       ensure
         scope_stack.pop
       end

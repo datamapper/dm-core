@@ -329,8 +329,13 @@ if ADAPTER
           end
 
           it 'should not append the resource if it was not saved' do
-            @repository.should_receive(:save).with(be_instance_of(@model)).and_return(false)
+            @repository.should_receive(:create).and_return(false)
+            Zebra.should_receive(:repository).at_least(:once).and_return(@repository)
+
             resource = @collection.create(:name => 'John')
+
+            resource.should be_new_record
+
             resource.collection.object_id.should_not == @collection.object_id
             @collection.should_not include(resource)
           end

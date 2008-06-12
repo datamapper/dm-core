@@ -32,6 +32,31 @@ module DataMapper
       @identity_maps[model]
     end
 
+    # TODO: spec this
+    def scope(&block)
+      Repository.context << self
+
+      begin
+        return yield(self)
+      ensure
+        Repository.context.pop
+      end
+    end
+
+    def create(resources)
+      adapter.create(resources)
+    end
+
+    ##
+    # retrieve a collection of results of a query
+    #
+    # @param <Query> query composition of the query to perform
+    # @return <DataMapper::Collection> result set of the query
+    # @see DataMapper::Query
+    def read_many(query)
+      adapter.read_many(query)
+    end
+
     ##
     # retrieve a resource instance by a query
     #
@@ -43,79 +68,12 @@ module DataMapper
       adapter.read_one(query)
     end
 
-    ##
-    # retrieve a collection of results of a query
-    #
-    # @param <Query> query composition of the query to perform
-    # @return <DataMapper::Collection> result set of the query
-    # @see DataMapper::Query
-    #
-    # TODO: why pass in the model with the query?  Form the query inside the Model
-    # and it'll carry along all the info necessary
-    def read_many(query)
-      adapter.read_many(query)
+    def update(attributes, query)
+      adapter.update(attributes, query)
     end
 
-    ##
-    # save the instance into the data-store, updating if it already exists
-    # If the instance has dirty items in it's associations, they also get saved
-    #
-    # @param <DataMapper::Resource> resource the resource to return to the data-store
-    # @return <True, False> results of the save
-    def save(resource)
-      resource.child_associations.each { |a| a.save }
-
-      model = resource.model
-
-      # set defaults for new resource
-      if resource.new_record?
-        model.properties(name).each do |property|
-          next if resource.attribute_loaded?(property.name)
-          property.set(resource, property.default_for(resource))
-        end
-      end
-
-      # save the resource if is dirty, or is a new record with a serial key
-      success = if resource.dirty? || (resource.new_record? && model.key.any? { |p| p.serial? })
-        if resource.new_record?
-          if adapter.create([ resource ])
-            resource.instance_variable_set(:@repository, self)
-            resource.instance_variable_set(:@new_record, false)
-            identity_map(resource.model).set(resource.key, resource)
-          end
-          true
-        else
-          adapter.update(resource.dirty_attributes, resource.to_query)
-        end
-      end
-
-      if success
-        resource.original_values.clear
-      end
-
-      resource.parent_associations.each { |a| a.save }
-
-      success == true
-    end
-
-    ##
-    # removes the resource from the data-store.  The instance will remain in active-memory, but will now be marked as a new_record and it's keys will be revoked
-    #
-    # @param <DataMapper::Resource> resource the resource to be destroyed
-    # @return <True, False> results of the destruction
-    def destroy(resource)
-      if adapter.delete(resource.to_query)
-        resource.instance_variable_set(:@new_record, true)
-        resource.original_values.clear
-        identity_map(resource.model).delete(resource.key)
-        resource.model.properties(name).each do |property|
-          # We'll set the original value to nil as if we had a new record
-          resource.original_values[property.name] = nil if resource.attribute_loaded?(property.name)
-        end
-        true
-      else
-        false
-      end
+    def delete(query)
+      adapter.delete(query)
     end
 
     def eql?(other)
@@ -128,8 +86,6 @@ module DataMapper
     def to_s
       "#<DataMapper::Repository:#{@name}>"
     end
-
-
 
     private
 

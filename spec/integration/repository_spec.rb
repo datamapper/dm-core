@@ -12,9 +12,7 @@ if ADAPTER
         auto_migrate!(ADAPTER)
       end
 
-      100.times do
-        repository(ADAPTER).save(SerialFinderSpec.new(:sample => rand.to_s))
-      end
+      repository(ADAPTER).create((0...100).map { SerialFinderSpec.new(:sample => rand.to_s) })
     end
 
     before do

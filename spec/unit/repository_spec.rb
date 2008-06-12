@@ -1,26 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-class Vegetable
-  include DataMapper::Resource
-
-  property :id, Integer, :serial => true
-  property :name, String
-end
-
-class Fruit
-  include DataMapper::Resource
-
-  property :id, Integer, :key => true
-  property :name, String
-end
-
-class Grain
-  include DataMapper::Resource
-
-  property :id, Integer, :key => true
-  property :name, String, :default => 'wheat'
-end
-
 describe DataMapper::Repository do
   before do
     @adapter       = mock('adapter')
@@ -52,95 +31,17 @@ describe DataMapper::Repository do
   end
 
   it "should provide persistance methods" do
-    @repository.should respond_to(:read_one)
+    @repository.should respond_to(:create)
     @repository.should respond_to(:read_many)
-    @repository.should respond_to(:save)
-    @repository.should respond_to(:destroy)
+    @repository.should respond_to(:read_one)
+    @repository.should respond_to(:update)
+    @repository.should respond_to(:delete)
   end
 
   it "should be reused in inner scope" do
     DataMapper.repository(:default) do |outer_repos|
       DataMapper.repository(:default) do |inner_repos|
         outer_repos.object_id.should == inner_repos.object_id
-      end
-    end
-  end
-
-  describe '#save' do
-    describe 'with a new resource' do
-      it 'should create when dirty' do
-        resource = Vegetable.new({:id => 1, :name => 'Potato'})
-
-        resource.should be_dirty
-        resource.should be_new_record
-
-        @adapter.should_receive(:create).with([ resource ]).and_return(resource)
-
-        @repository.save(resource)
-      end
-
-      it 'should create when non-dirty, and it has a serial key' do
-        resource = Vegetable.new
-
-        resource.should_not be_dirty
-        resource.should be_new_record
-        resource.model.key.any? { |p| p.serial? }.should be_true
-
-        @adapter.should_receive(:create).with([ resource ]).and_return(resource)
-
-        @repository.save(resource).should be_true
-      end
-
-      it 'should not create when non-dirty, and is has a non-serial key' do
-        resource = Fruit.new
-
-        resource.should_not be_dirty
-        resource.should be_new_record
-        resource.model.key.any? { |p| p.serial? }.should be_false
-
-        @adapter.should_not_receive(:create)
-
-        @repository.save(resource).should be_false
-      end
-
-      it 'should set defaults before create' do
-        resource = Grain.new
-
-        resource.should_not be_dirty
-        resource.should be_new_record
-        resource.instance_variable_get('@name').should be_nil
-
-        @adapter.should_receive(:create).with([ resource ]).and_return(resource)
-
-        @repository.save(resource)
-
-        resource.instance_variable_get('@name').should == 'wheat'
-      end
-    end
-
-    describe 'with an existing resource' do
-      it 'should update when dirty' do
-        resource = Vegetable.new(:name => 'Potato')
-        resource.instance_variable_set('@new_record', false)
-
-        resource.should be_dirty
-        resource.should_not be_new_record
-
-        @adapter.should_receive(:update).with(resource.dirty_attributes, resource.to_query).and_return(resource)
-
-        @repository.save(resource)
-      end
-
-      it 'should not update when non-dirty' do
-        resource = Vegetable.new
-        resource.instance_variable_set('@new_record', false)
-
-        resource.should_not be_dirty
-        resource.should_not be_new_record
-
-        @adapter.should_not_receive(:update)
-
-        @repository.save(resource)
       end
     end
   end

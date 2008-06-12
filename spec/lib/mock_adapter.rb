@@ -3,7 +3,7 @@ module DataMapper
     class MockAdapter < DataMapper::Adapters::DataObjectsAdapter
 
       def create(resources)
-        true
+        1
       end
 
       def exists?(storage_name)

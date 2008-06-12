@@ -58,7 +58,7 @@ module DataMapper
       if args.any?
         repository.read_many(scoped_query(query.merge(:limit => args.first)))
       else
-        repository.read_one(scoped_query(query))
+        repository.read_one(scoped_query(query.merge(:limit => 1)))
       end
     end
 
@@ -154,27 +154,51 @@ module DataMapper
     end
 
     def create(attributes = {})
-      resource = model.allocate
-      resource.send(:initialize_with_attributes, default_attributes.merge(attributes))
-      if repository.save(resource)
-        self << resource
+      repository.scope do
+        resource = model.create(default_attributes.merge(attributes))
+        self << resource unless resource.new_record?
+        resource
       end
-      resource
     end
 
+    # TODO: delegate to Model.update
     def update(attributes = {})
-      # TODO: update this to use bulk update once adapter API changes completed
-      map do |resource|
-        resource.attributes = attributes
-        repository.save(resource)
-      end.all?
+      dirty_attributes = {}
+
+      model.properties(repository.name).slice(*attributes.keys).each do |property|
+        dirty_attributes[property] = attributes[property.name] if property
+      end
+
+      return false unless repository.update(dirty_attributes, query.merge(keys)) == (loaded? ? size : 1)
+
+      if loaded?
+        each { |resource| resource.attributes = attributes }
+      end
+
+      true
     end
 
+    # TODO: delegate to Model.destroy
     def destroy
-      # TODO: update this to use bulk destroy once adapter API changes completed
-      success = map { |resource| repository.destroy(resource) }.all?
+      return false unless repository.delete(query.merge(keys)) == (loaded? ? size : 1)
+
+      if loaded?
+        identity_map = repository.identity_map(model)
+        each do |resource|
+          resource.instance_variable_set(:@new_record, true)
+          identity_map.delete(resource.key)
+          resource.dirty_attributes.clear
+
+          model.properties(repository.name).each do |property|
+            next unless resource.attribute_loaded?(property.name)
+            resource.dirty_attributes[property] = property.get(resource)
+          end
+        end
+      end
+
       clear
-      success
+
+      true
     end
 
     def properties
@@ -271,6 +295,11 @@ module DataMapper
     end
 
     def set_relative_position(query)
+      if query.offset == 0
+        return if !query.limit.nil? && !self.query.limit.nil? && query.limit <= self.query.limit
+        return if  query.limit.nil? &&  self.query.limit.nil?
+      end
+
       first_pos = self.query.offset + query.offset
       last_pos  = self.query.offset + self.query.limit if self.query.limit
 

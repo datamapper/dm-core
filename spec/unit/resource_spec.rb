@@ -48,6 +48,98 @@ describe "DataMapper::Resource" do
       property :name, String, :key => true
       property :awesomeness, Integer
     end
+
+    class Fruit
+      include DataMapper::Resource
+
+      property :id, Integer, :key => true
+      property :name, String
+    end
+
+    class Grain
+      include DataMapper::Resource
+
+      property :id, Integer, :serial => true
+      property :name, String, :default => 'wheat'
+    end
+
+    class Vegetable
+      include DataMapper::Resource
+
+      property :id, Integer, :serial => true
+      property :name, String
+    end
+  end
+
+  describe '#save' do
+    before do
+      @adapter = repository(:default).adapter
+    end
+
+    describe 'with a new resource' do
+      it 'should set defaults before create' do
+        resource = Grain.new
+
+        resource.should_not be_dirty
+        resource.should be_new_record
+        resource.instance_variable_get('@name').should be_nil
+
+        @adapter.should_receive(:create).with([ resource ]).and_return(1)
+
+        resource.save.should be_true
+
+        resource.instance_variable_get('@name').should == 'wheat'
+      end
+
+      it 'should create when dirty' do
+        resource = Vegetable.new(:id => 1, :name => 'Potato')
+
+        resource.should be_dirty
+        resource.should be_new_record
+
+        @adapter.should_receive(:create).with([ resource ]).and_return(1)
+
+        resource.save.should be_true
+      end
+
+      it 'should create when non-dirty, and it has a serial key' do
+        resource = Vegetable.new
+
+        resource.should_not be_dirty
+        resource.should be_new_record
+        resource.model.key.any? { |p| p.serial? }.should be_true
+
+        @adapter.should_receive(:create).with([ resource ]).and_return(1)
+
+        resource.save.should be_true
+      end
+
+      it 'should not create when non-dirty, and is has a non-serial key' do
+        resource = Fruit.new
+
+        resource.should_not be_dirty
+        resource.should be_new_record
+        resource.model.key.any? { |p| p.serial? }.should be_false
+
+        @adapter.should_not_receive(:create)
+
+        resource.save.should be_false
+      end
+    end
+
+    describe 'with an existing resource' do
+      it 'should update' do
+        resource = Vegetable.new(:name => 'Potato')
+        resource.instance_variable_set('@new_record', false)
+
+        resource.should be_dirty
+        resource.should_not be_new_record
+
+        @adapter.should_receive(:update).with(resource.dirty_attributes, resource.to_query).and_return(1)
+
+        resource.save.should be_true
+      end
+    end
   end
 
   it "should be able to overwrite to_s" do
@@ -113,14 +205,12 @@ describe "DataMapper::Resource" do
     jupiter.attributes.should == attributes
   end
 
-  it "should be able to set attributes (including private attributes)" do
+  it "should be able to set attributes" do
     attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => Planet, :data => nil }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
-    jupiter.attributes = attributes.merge({ :core => 'Magma' })
+    jupiter.attributes = attributes.merge(:core => 'Magma')
     jupiter.attributes.should == attributes
-    jupiter.send(:private_attributes=, attributes.merge({ :core => 'Magma' }))
-    jupiter.attributes.should == attributes.merge({ :core => 'Magma' })
 
     jupiter.update_attributes({ :core => "Toast", :type => "Bob" }, :core).should be_true
     jupiter.core.should == "Toast"

@@ -11,7 +11,8 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
       def create(resources)
-        resources.map do |resource|
+        created = 0
+        resources.each do |resource|
           attributes = resource.dirty_attributes
 
           identity_field = begin
@@ -24,16 +25,14 @@ module DataMapper
 
           result = execute(statement, *bind_values)
 
-          if result.to_i != 1
-            false
-          else
+          if result.to_i == 1
             if identity_field
               resource.instance_variable_set(identity_field.instance_variable_name, result.insert_id)
             end
-
-            true
+            created += 1
           end
-        end.all?
+        end
+        created
       end
 
       def read_many(query)
@@ -56,8 +55,6 @@ module DataMapper
       end
 
       def read_one(query)
-        query.update(:limit => 1)
-
         with_connection do |connection|
           command = connection.create_command(read_statement(query))
           command.set_types(query.fields.map { |p| p.primitive })
@@ -75,17 +72,14 @@ module DataMapper
       end
 
       def update(attributes, query)
-        return true if attributes.empty?
-
         statement = update_statement(attributes.keys, query)
         bind_values = attributes.values + query.bind_values
-
-        execute(statement, *bind_values).to_i == 1
+        execute(statement, *bind_values).to_i
       end
 
       def delete(query)
         statement = delete_statement(query)
-        execute(statement, *query.bind_values).to_i == 1
+        execute(statement, *query.bind_values).to_i
       end
 
       # Database-specific method
@@ -123,22 +117,21 @@ module DataMapper
         if uri_or_options.kind_of?(String)
           uri_or_options = Addressable::URI.parse(uri_or_options)
         end
+
         if uri_or_options.kind_of?(Addressable::URI)
           return uri_or_options.normalize
         end
 
-        adapter = uri_or_options.delete(:adapter).to_s
-        user = uri_or_options.delete(:username)
+        adapter  = uri_or_options.delete(:adapter).to_s
+        user     = uri_or_options.delete(:username)
         password = uri_or_options.delete(:password)
-        host = uri_or_options.delete(:host)
-        port = uri_or_options.delete(:port)
+        host     = uri_or_options.delete(:host)
+        port     = uri_or_options.delete(:port)
         database = uri_or_options.delete(:database)
-        query = uri_or_options.to_a.map { |pair| pair.join('=') }.join('&')
-        query = nil if query == ""
+        query    = uri_or_options.to_a.map { |pair| pair.join('=') }.join('&')
+        query    = nil if query == ''
 
-        return Addressable::URI.new(
-          adapter, user, password, host, port, database, query, nil
-        )
+        return Addressable::URI.new(adapter, user, password, host, port, database, query, nil)
       end
 
       # TODO: clean up once transaction related methods move to dm-more/dm-transactions
@@ -353,7 +346,7 @@ module DataMapper
 
         def equality_operator(operand)
           case operand
-            when Array, Query then ' IN'
+            when Array, Query then ' IN '
             when Range        then ' BETWEEN '
             when NilClass     then ' IS '
             else                   ' = '
@@ -362,7 +355,7 @@ module DataMapper
 
         def inequality_operator(operand)
           case operand
-            when Array, Query then ' NOT IN'
+            when Array, Query then ' NOT IN '
             when Range        then ' NOT BETWEEN '
             when NilClass     then ' IS NOT '
             else                   ' <> '

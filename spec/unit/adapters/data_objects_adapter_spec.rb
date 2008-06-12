@@ -151,9 +151,13 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @statement   = 'INSERT INTO "models" ("property") VALUES (?)'
     end
 
+    def do_create
+      @adapter.create([ @resource ])
+    end
+
     it 'should use only dirty properties' do
       @resource.should_receive(:dirty_attributes).with(no_args).and_return(@attributes)
-      @adapter.create([ @resource ])
+      do_create.should == 1
     end
 
     it 'should use the bind values' do
@@ -161,7 +165,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       @adapter.should_receive(:execute).with(@statement, *@bind_values).and_return(@result)
 
-      @adapter.create([ @resource ])
+      do_create.should == 1
     end
 
     it 'should generate an SQL statement when supports_returning? is true' do
@@ -171,7 +175,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @statement = 'INSERT INTO "models" ("property") VALUES (?) RETURNING "property"'
       @adapter.should_receive(:execute).with(@statement, 'bind value').and_return(@result)
 
-      @adapter.create([ @resource ])
+      do_create.should == 1
     end
 
     it 'should generate an SQL statement when supports_default_values? is true' do
@@ -182,7 +186,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @statement = 'INSERT INTO "models" DEFAULT VALUES'
       @adapter.should_receive(:execute).with(@statement).and_return(@result)
 
-      @adapter.create([ @resource ])
+      do_create.should == 1
     end
 
     it 'should generate an SQL statement when supports_default_values? is false' do
@@ -193,17 +197,17 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @statement = 'INSERT INTO "models" () VALUES ()'
       @adapter.should_receive(:execute).with(@statement).and_return(@result)
 
-      @adapter.create([ @resource ])
+      do_create.should == 1
     end
 
-    it 'should return false if number of rows created is 0' do
+    it 'should return 0 if no rows created' do
       @result.should_receive(:to_i).with(no_args).and_return(0)
-      @adapter.create([ @resource ]).should be_false
+      do_create.should == 0
     end
 
-    it 'should return true if number of rows created is 1' do
+    it 'should return 1 if number of rows created is 1' do
       @result.should_receive(:to_i).with(no_args).and_return(1)
-      @adapter.create([ @resource ]).should be_true
+      do_create.should == 1
     end
 
     it 'should set the resource primary key if the model key size is 1 and the key is serial' do
@@ -211,7 +215,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @property.should_receive(:serial?).and_return(true)
       @result.should_receive(:insert_id).and_return(777)
       @resource.should_receive(:instance_variable_set).with('@property', 777)
-      @adapter.create([ @resource ])
+      do_create.should == 1
     end
   end
 
@@ -252,7 +256,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       if method == :read_one
         before do
           @query.should_receive(:limit).with(no_args).twice.and_return(1)
-          @query.should_receive(:update).with(:limit => 1).and_return(@query)
 
           @values = @bind_values.dup
 
@@ -364,7 +367,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       @adapter.should_receive(:execute).with(@statement, *@values + @bind_values).and_return(@result)
 
-      do_update.should be_true
+      do_update.should == 1
     end
 
     it 'should generate an SQL statement' do
@@ -381,25 +384,17 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @statement   = 'UPDATE "models" SET "property" = ? WHERE "property" = ? AND "other" = ?'
       @adapter.should_receive(:execute).with(@statement, *%w[ new ] + @bind_values).and_return(@result)
 
-      do_update.should be_true
+      do_update.should == 1
     end
 
-    it 'should return false if number of rows updated is 0' do
+    it 'should return 0 if no rows updated' do
       @result.should_receive(:to_i).with(no_args).and_return(0)
-      do_update.should be_false
+      do_update.should == 0
     end
 
-    it 'should return true if number of rows updated is 1' do
+    it 'should return 1 if number of rows updated is 1' do
       @result.should_receive(:to_i).with(no_args).and_return(1)
-      do_update.should be_true
-    end
-
-    it 'should return true if there are no dirty attributes to update' do
-      @attributes.should_receive(:empty?).with(no_args).and_return(true)
-
-      @adapter.should_not_receive(:execute)
-
-      do_update.should be_true
+      do_update.should == 1
     end
   end
 
@@ -427,7 +422,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       @adapter.should_receive(:execute).with(@statement, *@bind_values).and_return(@result)
 
-      do_delete.should be_true
+      do_delete.should == 1
     end
 
     it 'should generate an SQL statement' do
@@ -444,17 +439,17 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @statement = 'DELETE FROM "models" WHERE "property" = ? AND "other" = ?'
       @adapter.should_receive(:execute).with(@statement, *@bind_values).and_return(@result)
 
-      do_delete.should be_true
+      do_delete.should == 1
     end
 
-    it 'should return false if number of rows deleted is 0' do
+    it 'should return 0 if no rows deleted' do
       @result.should_receive(:to_i).with(no_args).and_return(0)
-      do_delete.should be_false
+      do_delete.should == 0
     end
 
-    it 'should return true if number of rows deleted is 1' do
+    it 'should return 1 if number of rows deleted is 1' do
       @result.should_receive(:to_i).with(no_args).and_return(1)
-      do_delete.should be_true
+      do_delete.should == 1
     end
   end
 

@@ -161,7 +161,7 @@ module DataMapper
   #   a new Session.
   #
   #     current_repository = DataMapper.repository
-  def self.repository(*args) # :yields: current_context
+  def self.repository(*args, &block) # :yields: current_context
     raise ArgumentError, "Can only pass in one optional argument, but passed in #{args.size} arguments", caller unless args.size <= 1
     raise ArgumentError, "First optional argument must be a Symbol, but was #{args.first.inspect}", caller      unless args.empty? || args.first.kind_of?(Symbol)
 
@@ -175,13 +175,7 @@ module DataMapper
 
     return current_repository unless block_given?
 
-    Repository.context << current_repository
-
-    begin
-      return yield(current_repository)
-    ensure
-      Repository.context.pop
-    end
+    current_repository.scope(&block)
   end
 
   # A logger should always be present. Lets be consistent with DO
