@@ -40,9 +40,14 @@ module DataMapper
       end
 
       @properties.zip(values).each do |property, value|
+        value = property.custom? ? property.type.load(value, property) : property.typecast(value)
         resource.instance_variable_set(property.instance_variable_name, value)
         if [:load, :hash].include?(property.track)
-          resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
+          if property.track == :hash
+            resource.original_values[property.name] = value.dup.hash unless resource.original_values.has_key?(property.name) rescue value.hash
+          else
+            resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
+          end
         end
       end
 

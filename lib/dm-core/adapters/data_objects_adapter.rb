@@ -133,7 +133,10 @@ module DataMapper
         end
 
         statement = create_statement(resource.class, dirty_attributes, identity_field)
-        bind_values = dirty_attributes.map { |p| resource.instance_variable_get(p.instance_variable_name) }
+        bind_values = dirty_attributes.map do |p|
+          value = resource.instance_variable_get(p.instance_variable_name)
+          p.custom? ? p.type.dump(value, p) : p.typecast(value)
+        end
 
         result = execute(statement, *bind_values)
 
@@ -183,7 +186,10 @@ module DataMapper
         key = resource.class.key(name)
 
         statement = update_statement(resource.class, dirty_attributes, key)
-        bind_values = dirty_attributes.map { |p| resource.instance_variable_get(p.instance_variable_name) }
+        bind_values = dirty_attributes.map do |p|
+          value = resource.instance_variable_get(p.instance_variable_name)
+          p.custom? ? p.type.dump(value, p) : p.typecast(value)
+        end
         key.each { |p| bind_values << resource.instance_variable_get(p.instance_variable_name) }
 
         execute(statement, *bind_values).to_i == 1

@@ -93,14 +93,19 @@ module DataMapper
       value = instance_variable_get(ivar_name)
 
       if [:get, :hash].include?(property.track)
-        original_values[name] = value.dup unless original_values.has_key?(name) rescue value
+        if property.track == :hash
+          original_values[name] = value.dup.hash unless original_values.has_key?(name) rescue value.hash
+        else
+          original_values[name] = value.dup unless original_values.has_key?(name) rescue value
+        end
       end
 
       if value.nil? && new_record? && !property.options[:default].nil? && !attribute_loaded?(name)
         value = property.default_for(self)
       end
 
-      property.custom? ? property.type.load(value, property) : value
+      instance_variable_set(ivar_name, value)
+      instance_variable_get(ivar_name)
     end
 
     # sets the value of the attribute and marks the attribute as dirty
@@ -145,7 +150,8 @@ module DataMapper
       ivar_name = property.instance_variable_name
 
       old_value = instance_variable_get(ivar_name)
-      new_value = property.custom? ? property.type.dump(value, property) : property.typecast(value)
+      new_value = value
+      # new_value = property.custom? ? property.type.dump(value, property) : property.typecast(value)
 
       # skip setting the attribute if the new value equals the old
       # value, or if the new value is nil, and the property does not
@@ -157,8 +163,6 @@ module DataMapper
       end
 
       original_values[name] = old_value unless original_values.has_key?(name)
-
-      dirty_attributes << property
 
       instance_variable_set(ivar_name, new_value)
     end
@@ -364,12 +368,16 @@ module DataMapper
         property = self.class.properties(repository.name)[name]
         ivar_name = property.instance_variable_name
         value = instance_variable_get(ivar_name)
+        
+        value = property.custom? ? property.type.dump(value, property) : property.typecast(value)
+        old_value = property.custom? ? property.type.dump(old_value, property) : property.typecast(old_value)
 
-        if property.track == :hash
-          old_value, value = old_value.hash, value.hash
+        dirty = case property.track
+        when :hash then old_value != value.hash
+        else old_value != value
         end
-
-        if old_value != value
+        
+        if dirty
           property.hash
           property
         end

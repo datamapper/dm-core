@@ -190,18 +190,19 @@ if ADAPTER
     end
     
     it "should be dirty when Object properties are changed" do
-      pending "Awaiting Property#track implementation"
+      # pending "Awaiting Property#track implementation"
       repository(ADAPTER) do
         Male.auto_migrate!
       end
-      bob = Male.new(:name => "Bob", :data => {})
-      bob.dirty?.should be_true
       repository(ADAPTER) do
-        bob.save
+        bob = Male.create(:name => "Bob", :data => {})
+        bob.dirty?.should be_false
+        bob.data.merge!(:name => "Bob")
+        bob.dirty?.should be_true
+        bob = Male.first
+        bob.data[:name] = "Bob"
+        bob.dirty?.should be_true
       end
-      bob.dirty?.should be_false
-      bob.data[:test] = "Dirty"
-      bob.dirty?.should be_true
     end
 
     describe "anonymity" do

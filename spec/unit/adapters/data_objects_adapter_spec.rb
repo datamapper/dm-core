@@ -141,7 +141,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       @adapter.stub!(:execute).and_return(@result)
 
-      @property   = mock('property', :field => 'property', :instance_variable_name => '@property', :serial? => false)
+      @property   = mock('property', :field => 'property', :instance_variable_name => '@property', :serial? => false, :custom? => false, :typecast => 'bind value')
       @repository = mock('repository')
       @model      = mock('model', :storage_name => 'models', :key => [ @property ])
       @resource   = mock('resource', :class => @model, :dirty_attributes => [ @property ], :instance_variable_get => 'bind value')
@@ -308,7 +308,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       @adapter.stub!(:execute).and_return(@result)
 
-      @property = mock('property', :field => 'property', :instance_variable_name => '@property', :serial? => false)
+      @property = mock('property', :field => 'property', :instance_variable_name => '@property', :serial? => false, :custom? => false, :typecast => 'bind value')
       @model    = mock('model', :storage_name => 'models', :key => [ @property ])
       @resource = mock('resource', :class => @model, :dirty_attributes => [ @property ], :instance_variable_get => 'bind value')
     end
