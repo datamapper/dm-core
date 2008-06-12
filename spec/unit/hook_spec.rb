@@ -132,6 +132,36 @@ describe "DataMapper::Hook" do
     inst.should_receive(:a_method)
     inst.some_method.should == "Hello world"
   end
+  
+  it 'should not retain the original included method if it is overridden from another module' do
+    module_one = Module.new do
+      def some_method
+        # do nothing
+      end
+    end
+    
+    @class.class_eval do
+      include module_one
+      before(:some_method) { }
+    end
+    
+    module_two = Module.new do
+      def some_method
+        hi_mom!
+      end
+    end
+    
+    @class.class_eval do
+      include module_two
+      before :some_method do
+        # nothing
+      end
+    end
+    
+    inst = @class.new
+    inst.should_receive(:hi_mom!)
+    inst.some_method
+  end
 
   describe "using before hook" do
     it "should install the advice block under the appropriate hook" do
