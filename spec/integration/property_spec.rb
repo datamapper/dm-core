@@ -11,11 +11,11 @@ if ADAPTER
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
-          property :name, String, :lock => true
+          property :name, String, :track => :set, :lock => true # :track default is :get for mutable types
           property :notes, DataMapper::Types::Text
-          property :age, Integer
+          property :age, Integer # :track default is :set for mutable types
           property :rating, Integer
-          property :location, String, :track => :get # :track default should be :get for mutable types
+          property :location, String
           property :lead, TrueClass, :track => :load
           property :cv, Object # :track should be :hash
           property :agent, String, :track => :hash # :track only Object#hash value on :load.
@@ -30,22 +30,50 @@ if ADAPTER
       it "should set up tracking information" do
         Actor.properties[:name].track.should == :set
         Actor.properties[:location].track.should == :get
+        Actor.properties[:rating].track.should == :set
         Actor.properties[:lead].track.should == :load
         Actor.properties[:cv].track.should == :hash
         Actor.properties[:agent].track.should == :hash
       end
       
       it "should track on :set" do
-        bob = Actor.new(:name => 'bob')
-        bob.save
+        repository(ADAPTER) do
+          bob = Actor.new(:name => 'bob')
+          bob.save
         
-        bob.original_values.should_not have_key(:name)
-        bob.dirty?.should == false
+          bob.original_values.should_not have_key(:name)
+          bob.dirty?.should == false
         
-        bob.name = "Bob"
-        bob.original_values.should have_key(:name)
-        bob.original_values[:name].should == 'bob'
-        bob.dirty?.should == true
+          bob.name = "Bob"
+          bob.original_values.should have_key(:name)
+          bob.original_values[:name].should == 'bob'
+          bob.dirty?.should == true
+        end
+      end
+      
+      it "should track on :get" do
+        repository(ADAPTER) do
+          jon = Actor.new(:name => 'jon', :location => 'dallas')
+          jon.save
+        
+          jon.location
+          jon.original_values.should have_key(:location)
+          jon.original_values[:location].should == 'dallas'
+        
+          jon.dirty?.should be_false
+          jon.save.should be_false
+        
+          jon.location.upcase!
+          jon.location.should == 'DALLAS'
+          jon.original_values[:location].should == 'dallas'
+        
+          jon.dirty?.should be_true
+          jon.save.should be_true
+          
+          jon.location << '!'
+          jon.original_values[:location].should == 'DALLAS'
+          jon.dirty?.should be_true
+        end
       end
 
       it ":load" do

@@ -91,6 +91,10 @@ module DataMapper
       end
 
       value = instance_variable_get(ivar_name)
+      
+      if property.track == :get
+        original_values[name] ||= value.dup rescue value
+      end
 
       if value.nil? && new_record? && !property.options[:default].nil? && !attribute_loaded?(name)
         value = property.default_for(self)
