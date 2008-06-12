@@ -670,6 +670,21 @@ module DataMapper
       def properties(repository_name = default_repository_name)
         @properties[repository_name]
       end
+      
+      def properties_with_subclasses(repository_name = default_repository_name)
+        #return properties if we're not interested in sti
+       if @properties[repository_name].inheritance_property.nil?
+         @properties[repository_name] 
+       else
+          props = @properties[repository_name].dup
+          self.child_classes.each do |subclass|
+            subclass.properties(repository_name).each do |subprop|
+              props << subprop if not props.any? { |prop| prop.name == subprop.name }
+            end        
+          end
+          props
+        end
+      end
 
       def key(repository_name = default_repository_name)
         @properties[repository_name].key
