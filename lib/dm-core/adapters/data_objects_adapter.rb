@@ -128,7 +128,7 @@ module DataMapper
         host     = uri_or_options.delete(:host)
         port     = uri_or_options.delete(:port)
         database = uri_or_options.delete(:database)
-        query    = uri_or_options.to_a.map { |pair| pair.join('=') }.join('&')
+        query    = uri_or_options.to_a.map { |pair| pair * '=' } * '&'
         query    = nil if query == ''
 
         return Addressable::URI.new(adapter, user, password, host, port, database, query, nil)
@@ -210,9 +210,9 @@ module DataMapper
             statement << 'DEFAULT VALUES'
           else
             statement << <<-EOS.compress_lines
-              (#{properties.map { |p| quote_column_name(p.field(name)) }.join(', ')})
+              (#{properties.map { |p| quote_column_name(p.field(name)) } * ', '})
               VALUES
-              (#{(['?'] * properties.size).join(', ')})
+              (#{(['?'] * properties.size) * ', '})
             EOS
           end
 
@@ -240,7 +240,7 @@ module DataMapper
         def update_statement(properties, query)
           statement = <<-EOS.compress_lines
             UPDATE #{quote_table_name(query.model.storage_name(name))}
-            SET #{properties.map { |p| "#{quote_column_name(p.field(name))} = ?" }.join(', ')}
+            SET #{properties.map { |p| "#{quote_column_name(p.field(name))} = ?" } * ', '}
           EOS
           statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
           statement
@@ -264,7 +264,7 @@ module DataMapper
             #end
             #
             property_to_column_name(property, qualify)
-          end.join(', ')
+          end * ', '
         end
 
         def links_statement(query)
@@ -283,7 +283,7 @@ module DataMapper
 
             statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
               condition_statement(query, :eql, parent_property, child_property)
-            end.join(' AND ')
+            end * ' AND '
           end
 
           statement
@@ -292,7 +292,7 @@ module DataMapper
         def conditions_statement(query)
           query.conditions.map do |operator, property, bind_value|
             condition_statement(query, operator, property, bind_value)
-          end.join(' AND ')
+          end * ' AND '
         end
 
         def order_statement(query)
@@ -312,7 +312,7 @@ module DataMapper
             order = property_to_column_name(property, qualify)
             order << " #{direction.to_s.upcase}" if direction
             order
-          end.join(', ')
+          end * ', '
         end
 
         def condition_statement(query, operator, left_condition, right_condition)
@@ -328,7 +328,7 @@ module DataMapper
               query.merge_subquery(operator, opposite, condition)
               "(#{read_statement(condition)})"
             elsif condition.kind_of?(Array) && condition.all? { |p| p.kind_of?(Property) }
-              "(#{condition.map { |p| property_to_column_name(property, qualify) }.join(', ')})"
+              "(#{condition.map { |p| property_to_column_name(property, qualify) } * ', '})"
             else
               '?'
             end
@@ -345,7 +345,7 @@ module DataMapper
             else raise "Invalid query operator: #{operator.inspect}"
           end
 
-          conditions.join(" #{comparison} ")
+          conditions * " #{comparison} "
         end
 
         def equality_operator(operand)
@@ -379,7 +379,7 @@ module DataMapper
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
         def quote_table_name(table_name)
-          table_name.gsub('"', '""').split('.').map { |part| "\"#{part}\"" }.join('.')
+          table_name.gsub('"', '""').split('.').map { |part| "\"#{part}\"" } * '.'
         end
 
         # TODO: once the driver's quoting methods become public, have
@@ -506,10 +506,10 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def create_index_statements(model)
             table_name = model.storage_name(name)
-            model.properties(name).indexes.map do |index_name, properties|
+            model.properties(name).indexes.map do |index_name, fields|
               <<-EOS.compress_lines
                 CREATE INDEX #{quote_column_name("index_#{table_name}_#{index_name}")} ON
-                #{quote_table_name(table_name)} (#{properties.map { |p| quote_column_name(p) }.join ','})
+                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ','})
               EOS
             end
           end
@@ -517,10 +517,10 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def create_unique_index_statements(model)
             table_name = model.storage_name(name)
-            model.properties(name).unique_indexes.map do |index_name, properties|
+            model.properties(name).unique_indexes.map do |index_name, fields|
               <<-EOS.compress_lines
                 CREATE UNIQUE INDEX #{quote_column_name("unique_index_#{table_name}_#{index_name}")} ON
-                #{quote_table_name(table_name)} (#{properties.map { |p| quote_column_name(p) }.join ','})
+                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ','})
               EOS
             end
           end
