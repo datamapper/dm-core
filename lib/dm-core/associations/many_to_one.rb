@@ -71,7 +71,7 @@ module DataMapper
         end
 
         def respond_to?(method, include_private = false)
-          super || parent.respond_to?(method)
+          super || parent.respond_to?(method, include_private)
         end
 
         private

@@ -199,9 +199,11 @@ if ADAPTER
     end
 
     [ true, false ].each do |loaded|
-      describe " (#{loaded ? 'loaded' : 'not loaded'}) " do
-        before do
-          @collection.to_a if loaded
+      describe " (#{loaded ? '' : 'not '} loaded) " do
+        if loaded
+          before do
+            @collection.to_a
+          end
         end
 
         describe '#<<' do
@@ -505,7 +507,7 @@ if ADAPTER
 
         describe '#get' do
           it 'should find a resource in a collection by key' do
-            resource = @collection.get(@nancy.key)
+            resource = @collection.get(*@nancy.key)
             resource.should be_kind_of(DataMapper::Resource)
             resource.id.should == @nancy.id
           end
@@ -519,7 +521,7 @@ if ADAPTER
 
         describe '#get!' do
           it 'should find a resource in a collection by key' do
-            resource = @collection.get!(@nancy.key)
+            resource = @collection.get!(*@nancy.key)
             resource.should be_kind_of(DataMapper::Resource)
             resource.id.should == @nancy.id
           end
@@ -571,7 +573,7 @@ if ADAPTER
             it 'should return a Collection if limit is 1' do
               collection = @collection.last(1)
 
-              collection.should be_kind_of(DataMapper::Collection)
+              collection.class.should == DataMapper::Collection  # should be_kind_of(DataMapper::Collection)
               collection.object_id.should_not == @collection.object_id
             end
           end
@@ -596,14 +598,16 @@ if ADAPTER
         end
 
         describe '#loaded?' do
-          it 'should return true for an initialized collection' do
-            @collection.should_not be_loaded
-            @collection.to_a  # load collection
-            @collection.should be_loaded
-          end
-
-          it 'should return false for an uninitialized collection' do
-            @collection.should_not be_loaded
+          if loaded
+            it 'should return true for an initialized collection' do
+              @collection.should be_loaded
+            end
+          else
+            it 'should return false for an uninitialized collection' do
+              @collection.should_not be_loaded
+              @collection.to_a  # load collection
+              @collection.should be_loaded
+            end
           end
         end
 

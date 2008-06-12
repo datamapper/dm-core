@@ -50,7 +50,13 @@ module DataMapper
     end
 
     def first(*args)
-      return super if loaded? && (args.empty? || (args.size == 1 && args.first.kind_of?(Integer)))
+      if loaded?
+        if args.empty?
+          return super
+        elsif args.size == 1 && args.first.kind_of?(Integer)
+          return self.class.new(scoped_query(:limit => args.first)) { |c| c.replace(super) }
+        end
+      end
 
       query = args.last.respond_to?(:merge) ? args.pop : {}
 
@@ -62,12 +68,9 @@ module DataMapper
     end
 
     def last(*args)
-      return super if loaded? && (args.empty? || (args.size == 1 && args.first.kind_of?(Integer)))
+      return super if loaded? && args.empty?
 
       reversed = reverse
-
-      # TODO: if loaded? and the passed-in query is a subset of
-      #   self.query then delegate to super
 
       # tell the collection to reverse the order of the
       # results coming out of the adapter
@@ -77,13 +80,11 @@ module DataMapper
     end
 
     def at(offset)
-      return super if loaded? || offset < 0
-      first(:offset => offset)
+      return super if loaded?
+      offset >= 0 ? first(:offset => offset) : last(:offset => offset.abs - 1)
     end
 
     def slice(*args)
-      raise ArgumentError, "must be 1 or 2 arguments, was #{args.size}" if args.size == 0 || args.size > 2
-
       return at(args.first) if args.size == 1 && args.first.kind_of?(Integer)
 
       if args.size == 2 && args.first.kind_of?(Integer) && args.last.kind_of?(Integer)
@@ -107,26 +108,30 @@ module DataMapper
     end
 
     def <<(resource)
-      relate_resource(resource)
       super
+      relate_resource(resource)
+      self
     end
 
     def push(*resources)
-      resources.each { |resource| relate_resource(resource) }
       super
+      resources.each { |resource| relate_resource(resource) }
+      self
     end
 
     def unshift(*resources)
-      resources.each { |resource| relate_resource(resource) }
       super
+      resources.each { |resource| relate_resource(resource) }
+      self
     end
 
     def replace(other)
       if loaded?
         each { |resource| orphan_resource(resource) }
       end
-      other.each { |resource| relate_resource(resource) }
       super
+      other.each { |resource| relate_resource(resource) }
+      self
     end
 
     def pop
@@ -150,6 +155,7 @@ module DataMapper
         each { |resource| orphan_resource(resource) }
       end
       super
+      self
     end
 
     def create(attributes = {})
@@ -257,13 +263,6 @@ module DataMapper
       end
     end
 
-    def empty_collection
-      # TODO: figure out how to create an empty collection
-      #   - must have a null query object.. i.e. should not be possible
-      #     to get any rows from it
-      []
-    end
-
     def add(resource)
       query.add_reversed? ? unshift(resource) : push(resource)
       resource
@@ -271,7 +270,13 @@ module DataMapper
 
     def relate_resource(resource)
       return unless resource
+
       resource.collection = self
+
+      if loaded?
+        query.update(keys)
+      end
+
       resource
     end
 
