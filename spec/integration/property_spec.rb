@@ -90,13 +90,40 @@ if ADAPTER
           jan.dirty?.should == false
         end
       end
+      
+      it "should track on :hash" do
+        pending
+        cv = { 2005 => "Othello" }
+        repository(ADAPTER) do
+          tom = Actor.create!(:name => 'tom', :cv => cv)
+        end
+        repository(ADAPTER) do
+          tom = Actor.first(:name => 'tom')
+          tom.cv.merge!({2006 => "Macbeth"})
+          
+          tom.original_values.should have_key(:cv)
+          tom.original_values[:cv].should == cv.hash
+          tom.cv.should == { 2005 => "Othello", 2006 => "Macbeth" }
+          tom.dirty?.should == true
+        end
+      end
 
-      it ":hash" do
-        pending("Implementation...") do
-          DataMapper::Resource::DIRTY.should_not be_nil
-          bob = Actor.new(:name => 'bob')
-          bob.original_attributes.should have_key(:name)
-          bob.original_attributes[:name].should == DataMapper::Resource::DIRTY
+      it "should track with lazy text fields (#342)" do
+        repository(ADAPTER) do
+          tim = Actor.create!(:name => 'tim')
+        end
+        repository(ADAPTER) do
+          tim = Actor.first(:name => 'tim')
+          tim.notes # make sure they're loaded...
+          tim.dirty?.should be_false
+          tim.save.should be_false
+          tim.notes = "Testing"
+          tim.dirty?.should be_true
+          tim.save
+        end
+        repository(ADAPTER) do
+          tim = Actor.first(:name => 'tim')
+          tim.notes.should == "Testing"
         end
       end
     end

@@ -117,7 +117,7 @@ module DataMapper
           tm.map(Date).to('DATE')
           tm.map(Time).to('TIMESTAMP')
           tm.map(TrueClass).to('BOOLEAN')
-          tm.map(Object).to('TEXT')
+          tm.map(DM::Object).to('TEXT')
           tm.map(DM::Text).to('TEXT')
         end
       end

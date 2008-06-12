@@ -41,7 +41,7 @@ module DataMapper
 
       @properties.zip(values).each do |property, value|
         resource.instance_variable_set(property.instance_variable_name, value)
-        if property.track == :load
+        if [:load, :hash].include?(property.track)
           resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
         end
       end

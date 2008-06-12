@@ -159,6 +159,7 @@ if HAS_SQLITE3
           property :id, Integer, :serial => true
           property :name, String
           property :object, Object
+          property :notes, Text
         end
       end
 
@@ -168,14 +169,17 @@ if HAS_SQLITE3
 
       it 'should be able to create a record' do
         time = Time.now
-        game = VideoGame.new(:name => 'System Shock', :object => time)
-        repository(:sqlite3) do
+        game = repository(:sqlite3) do
+          game = VideoGame.new(:name => 'System Shock', :object => time, :notes => "Test")
           game.save
           game.should_not be_a_new_record
           game.should_not be_dirty
-
-          saved = VideoGame.first(:name => game.name)
+          game
+        end
+        repository(:sqlite3) do
+          saved = VideoGame.first(:name => 'System Shock')
           saved.id.should == game.id
+          saved.notes.should == game.notes
           saved.object.should == time
         end
       end
