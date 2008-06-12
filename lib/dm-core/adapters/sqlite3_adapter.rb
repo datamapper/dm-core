@@ -56,8 +56,8 @@ module DataMapper
             # skip adding the primary key if one of the columns is serial.  In
             # SQLite the serial column must be the primary key, so it has already
             # been defined
-            unless model.properties.any? { |p| p.serial? }
-              if (key = model.properties.key).any?
+            unless model.properties(name).any? { |p| p.serial? }
+              if (key = model.properties(name).key).any?
                 statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
               end
             end

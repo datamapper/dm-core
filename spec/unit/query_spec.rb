@@ -8,7 +8,7 @@ GOOD_OPTIONS = [
   [ :limit,    1         ],
   [ :limit,    2         ],
   [ :order,    [ DataMapper::Query::Direction.new(Article.properties[:created_at], :desc) ] ],
-  [ :fields,   Article.properties(:default).defaults.to_a ], # TODO: fill in allowed default value
+  [ :fields,   Article.properties.defaults.to_a ], # TODO: fill in allowed default value
   #[ :links,    [ :stub ] ], # TODO: fill in allowed default value
   [ :includes, [ :stub ] ], # TODO: fill in allowed default value
 ]
@@ -162,7 +162,7 @@ describe DataMapper::Query do
 
     describe 'should normalize' do
       it '#fields' do
-        DataMapper::Query.new(@repository, Article, :fields => [:id]).fields.should == Article.properties(:default).slice(:id)
+        DataMapper::Query.new(@repository, Article, :fields => [:id]).fields.should == Article.properties.slice(:id)
       end
     end
 
@@ -287,7 +287,7 @@ describe DataMapper::Query do
 
       it "#fields with other fields unique values" do
         other = DataMapper::Query.new(@repository, Article, :fields => [ :blog_id ])
-        @query.update(other).fields.should == Article.properties(:default).slice(:blog_id)
+        @query.update(other).fields.should == Article.properties.slice(:blog_id)
       end
 
       it '#conditions with other conditions when they are unique' do

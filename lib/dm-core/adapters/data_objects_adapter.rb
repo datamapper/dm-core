@@ -499,7 +499,7 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def create_index_statements(model)
             table_name = model.storage_name(name)
-            model.properties.indexes.collect do |index_name, properties|
+            model.properties(name).indexes.collect do |index_name, properties|
               "CREATE INDEX #{quote_column_name('index_' + table_name + '_' + index_name)} ON " +
               "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
             end
@@ -508,7 +508,7 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def create_unique_index_statements(model)
             table_name = model.storage_name(name)
-            model.properties.unique_indexes.collect do |index_name, properties|
+            model.properties(name).unique_indexes.collect do |index_name, properties|
               "CREATE UNIQUE INDEX #{quote_column_name('unique_index_' + table_name + '_' + index_name)} ON " +
               "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
             end
@@ -649,23 +649,23 @@ module DataMapper
           end
         end
 
-        the_repository = repository(repository_name)
-        raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless the_repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
+        repository = repository(repository_name)
+        raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
 
         if query
-          sql = the_repository.adapter.send(:read_statement, query)
+          sql = repository.adapter.send(:read_statement, query)
           bind_values = query.bind_values
         end
 
         raise "#find_by_sql requires a query of some kind to work" unless sql
 
-        properties ||= self.properties
+        properties ||= self.properties(repository.name)
 
         Collection.new(Query.new(repository, self)) do |collection|
           repository.adapter.send(:with_connection) do |connection|
-            begin
-              command = connection.create_command(sql)
+            command = connection.create_command(sql)
 
+            begin
               reader = command.execute_reader(*bind_values)
 
               while(reader.next!)

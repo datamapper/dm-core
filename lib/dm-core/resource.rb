@@ -296,7 +296,7 @@ module DataMapper
 
       child_associations.each { |a| a.save }
 
-      success = if dirty? || (new_record? && model.key.any? { |p| p.serial? })
+      success = if dirty? || (new_record? && model.key(repository.name).any? { |p| p.serial? })
         new_record? ? create : update
       end
 
@@ -568,11 +568,11 @@ module DataMapper
     end
 
     def assert_valid_model # :nodoc:
-      if model.properties.empty? && model.relationships.empty?
+      if model.properties(repository.name).empty? && model.relationships(repository.name).empty?
         raise IncompleteResourceError, "#{model.name} must have at least one property or relationship to be initialized."
       end
 
-      if model.properties.key.empty?
+      if model.properties(repository.name).key.empty?
         raise IncompleteResourceError, "#{model.name} must have a key."
       end
     end
@@ -762,32 +762,19 @@ module DataMapper
         @properties[repository_name].inheritance_property
       end
 
-      ##
-      #
-      # @see Repository#get
       def get(*key)
         repository.identity_map(self).get(key) || first(to_query(repository, key))
       end
 
-      ##
-      #
-      # @see Resource#get
-      # @raise <ObjectNotFoundError> "could not find .... with key: ...."
       def get!(*key)
         get(*key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key #{key.inspect}")
       end
 
-      ##
-      #
-      # @see Repository#all
       def all(query = {})
         repository = repository_for_finder(query)
         repository.read_many(scoped_query(repository, query))
       end
 
-      ##
-      #
-      # @see Repository#first
       def first(*args)
         query      = args.last.respond_to?(:merge) ? args.pop : {}
         repository = repository_for_finder(query)
@@ -809,7 +796,7 @@ module DataMapper
           resource = allocate
           query = query.dup
 
-          self.properties.key.each do |property|
+          properties(repository.name).key.each do |property|
             if value = query.delete(property.name)
               resource.send("#{property.name}=", value)
             end

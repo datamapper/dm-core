@@ -128,7 +128,7 @@ module DataMapper
 
     def reverse!
       # set the default sort order
-      order = normalize_order(self.order.any? ? self.order : model.default_order)
+      order = normalize_order(self.order.any? ? self.order : model.default_order(repository.name))
 
       # reverse the sort order
       update(:order => order.map { |o| o.reverse })
