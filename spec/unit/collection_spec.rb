@@ -9,7 +9,7 @@ describe DataMapper::Collection do
     @model    = mock('model', :inheritance_property => [ @property ], :key => [ @property ])
     @query    = mock('query', :kind_of? => true, :fields => [ @property ], :model => @model)
 
-    @collection = DataMapper::Collection.new(@query)
+    @collection = DataMapper::Collection.new(@query) {}
   end
 
   it 'should provide #<<' do

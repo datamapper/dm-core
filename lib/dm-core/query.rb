@@ -139,7 +139,10 @@ module DataMapper
     def update(other)
       assert_valid_other(other)
 
-      other = self.class.new(@repository, model, other) if other.kind_of?(Hash)
+      if other.kind_of?(Hash)
+        return self if other.empty?
+        other = self.class.new(@repository, model, other)
+      end
 
       return self if self == other
 

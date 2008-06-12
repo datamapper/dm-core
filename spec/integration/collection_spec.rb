@@ -128,17 +128,18 @@ if ADAPTER
     it "should return the correct repository" do
       repository = repository(:legacy)
       query      = DataMapper::Query.new(repository, @model)
-      DataMapper::Collection.new(query).repository.object_id.should == repository.object_id
+      DataMapper::Collection.new(query){}.repository.object_id.should == repository.object_id
     end
 
     it "should be able to add arbitrary objects" do
       properties = @model.properties(:default)
 
-      collection = DataMapper::Collection.new(@query)
-      collection.should respond_to(:reload)
+      collection = DataMapper::Collection.new(@query) do |c|
+        c.load([ 4, 'Bob',   10 ])
+        c.load([ 5, 'Nancy', 11 ])
+      end
 
-      collection.load([ 4, 'Bob',   10 ])
-      collection.load([ 5, 'Nancy', 11 ])
+      collection.should respond_to(:reload)
 
       results = collection.entries
       results.should have(2).entries
@@ -164,8 +165,9 @@ if ADAPTER
     describe '.new' do
       describe 'with non-index keys' do
         it 'should instantiate read-only resources' do
-          @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, @model, :fields => [ :age ]))
-          @collection.load([ 1 ])
+          @collection = DataMapper::Collection.new(DataMapper::Query.new(@repository, @model, :fields => [ :age ])) do |c|
+            c.load([ 1 ])
+          end
 
           @collection.size.should == 1
 
@@ -230,7 +232,7 @@ if ADAPTER
               before do
                 @query.update(:offset => 10, :limit => 10)
                 query = DataMapper::Query.new(@repository, @model)
-                @unlimited = DataMapper::Collection.new(query)
+                @unlimited = DataMapper::Collection.new(query) {}
               end
 
               it 'has an offset equal to 10' do

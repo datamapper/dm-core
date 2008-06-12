@@ -2,7 +2,6 @@ module DataMapper
   class Collection < LazyArray
     attr_reader :query
 
-    # TODO: store repository within @repository when Query#repository is removed
     def repository
       query.repository
     end
@@ -241,14 +240,21 @@ module DataMapper
 
     private
 
-    def initialize(query, &loader)
+    def initialize(query, &block)
       raise ArgumentError, "+query+ must be a DataMapper::Query, but was #{query.class}", caller unless query.kind_of?(Query)
+      raise ArgumentError, 'a block must be supplied for lazy loading results', caller           unless block_given?
 
       @query          = query
       @key_properties = model.key(repository.name)
 
       super()
-      load_with(&loader)
+
+      load_with do
+        yield self
+
+        # update the query scope to include the keys
+        query.update(keys)
+      end
     end
 
     def empty_collection
@@ -276,16 +282,14 @@ module DataMapper
     end
 
     def scoped_query(query = self.query)
+      return self.query if query == self.query
+
       query = if query.kind_of?(Hash)
         Query.new(repository, model, query)
       elsif query.kind_of?(Query)
         query
       else
         raise ArgumentError, "+query+ must be either a Hash or DataMapper::Query, but was a #{query.class}"
-      end
-
-      if loaded?
-        query.update(keys)
       end
 
       if query.limit || query.offset > 0
