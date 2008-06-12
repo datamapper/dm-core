@@ -4,7 +4,7 @@ module DataMapper
       primitive Class
       track :set
       default lambda { |r,p| p.model }
-
+ 
       def self.bind(property)
         model = property.model
 
@@ -13,15 +13,18 @@ module DataMapper
             @child_classes ||= []
           end
 
-          after_class_method :inherited, :propagate_child_classes
-
+          after_class_method :inherited, :add_scope_for_discriminator
+          
+          def self.add_scope_for_discriminator(target)
+            target.send(:scope_stack) << DataMapper::Query.new(target.repository, target, :#{property.name} => target.child_classes << target)
+            propagate_child_classes(target)
+          end
+ 
           def self.propagate_child_classes(target)
             child_classes << target
             superclass.send(:propagate_child_classes,target) if superclass.respond_to?(:propagate_child_classes)
           end
         EOS
-
-        model.send(:scope_stack) << DataMapper::Query.new(property.repository, model, property.name => (model.child_classes << model))
 
       end
     end # class Discriminator

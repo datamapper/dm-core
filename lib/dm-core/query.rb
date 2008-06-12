@@ -232,7 +232,7 @@ module DataMapper
     def initialize(repository, model, options = {})
       raise TypeError, "+repository+ must be a Repository, but is #{repository.class}" unless repository.kind_of?(Repository)
 
-      options.each_pair { |k,v| option[k] = v.call if v.is_a? Proc } if options.is_a? Hash
+      options.each_pair { |k,v| options[k] = v.call if v.is_a? Proc } if options.is_a? Hash
 
       assert_valid_model(model)
       assert_valid_options(options)
