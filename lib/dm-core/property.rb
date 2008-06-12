@@ -270,6 +270,8 @@ module DataMapper
       DataMapper::Types::Discriminator
     ]
 
+    IMMUTABLE_TYPES = [TrueClass, Integer, Float, BigDecimal]
+
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
 
     DEFAULT_LENGTH    = 50
@@ -278,7 +280,7 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
-      :default, :precision, :scale
+      :default, :precision, :scale, :track
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -408,9 +410,9 @@ module DataMapper
       elsif type == Float      then value.to_f
       elsif type == Integer    then value.to_i
       elsif type == BigDecimal then BigDecimal(value.to_s)
-      elsif type == DateTime   then DateTime.parse(value.to_s)
-      elsif type == Date       then Date.parse(value.to_s)
-      elsif type == Time       then Time.parse(value.to_s)
+      elsif type == DateTime   then typecast_to_datetime(value)
+      elsif type == Date       then typecast_to_date(value)
+      elsif type == Time       then typecast_to_time(value)
       elsif type == Class      then find_const(value)
       end
     end
@@ -465,6 +467,7 @@ module DataMapper
       @unique_index = @options.fetch(:unique_index, false)
 
       @lazy     = @options.fetch(:lazy,     @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
+      @track    = @options.fetch(:track,    @type.respond_to?(:track) ? @type.track : :set) || :set
 
       # assign attributes per-type
       if String == @primitive || Class == @primitive
@@ -519,6 +522,58 @@ module DataMapper
           end
         EOS
       end
+    end
+
+    # Typecasts an arbitrary value to a DateTime
+    def typecast_to_datetime(value)
+      case value
+      when Hash then typecast_hash_to_datetime(value)
+      else DateTime.parse(value.to_s)
+      end
+    end
+
+    # Typecasts an arbitrary value to a Date
+    def typecast_to_date(value)
+      case value
+      when Hash then typecast_hash_to_date(value)
+      else Date.parse(value.to_s)
+      end
+    end
+
+    # Typecasts an arbitrary value to a Time
+    def typecast_to_time(value)
+      case value
+      when Hash then typecast_hash_to_time(value)
+      else Time.parse(value.to_s)
+      end
+    end
+
+    def typecast_hash_to_datetime(hash)
+      args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
+      DateTime.new(*args)
+    rescue ArgumentError => ex
+      t = typecast_hash_to_time(hash)
+      DateTime.new(t.year, t.month, t.day, t.hour, t.min, t.sec)
+    end
+
+    def typecast_hash_to_date(hash)
+      args = extract_time_args_from_hash(hash, :year, :month, :day)
+      Date.new(*args)
+    rescue ArgumentError => ex
+      t = typecast_hash_to_time(hash)
+      Date.new(t.year, t.month, t.day)
+    end
+
+    def typecast_hash_to_time(hash)
+      args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
+      Time.local(*args)
+    end
+
+    # Extracts the given args from the hash. If a value does not exist, it
+    # uses the value of Time.now
+    def extract_time_args_from_hash(hash, *args)
+      now = Time.now
+      args.map { |arg| hash[arg] || hash[arg.to_s] || now.send(arg) }
     end
   end # class Property
 end # module DataMapper

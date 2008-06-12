@@ -70,7 +70,7 @@ module DataMapper
           super || parent.kind_of?(klass)
         end
 
-        def respond_to?(method)
+        def respond_to?(method, include_private = false)
           super || parent.respond_to?(method)
         end
 
