@@ -781,7 +781,8 @@ module DataMapper
       #
       # @see Repository#all
       def all(query = {})
-        repository_for_finder(query).read_many(scoped_query(query))
+        repository = repository_for_finder(query)
+        repository.read_many(scoped_query(repository, query))
       end
 
       ##
@@ -792,9 +793,9 @@ module DataMapper
         repository = repository_for_finder(query)
 
         if args.any?
-          repository.read_many(scoped_query(query.merge(:limit => args.first)))
+          repository.read_many(scoped_query(repository, query.merge(:limit => args.first)))
         else
-          repository.read_one(scoped_query(query.merge(:limit => 1)))
+          repository.read_one(scoped_query(repository, query.merge(:limit => 1)))
         end
       end
 
@@ -928,7 +929,17 @@ module DataMapper
         Repository.default_name
       end
 
-      def scoped_query(query)
+      def repository_for_finder(query)
+        if query.kind_of?(Hash) && query.has_key?(:repository)
+          repository(query[:repository])
+        elsif query.kind_of?(Query)
+          query.repository
+        else
+          repository
+        end
+      end
+
+      def scoped_query(repository, query)
         query = if query.kind_of?(Hash)
           Query.new(repository, self, query)
         elsif query.kind_of?(Query)
@@ -938,16 +949,6 @@ module DataMapper
         end
 
         self.query ? self.query.merge(query) : query
-      end
-
-      def repository_for_finder(query)
-        if query.kind_of?(Hash) && query.has_key?(:repository)
-          repository(query[:repository])
-        elsif query.kind_of?(Query)
-          query.repository
-        else
-          repository
-        end
       end
 
       def method_missing(method, *args, &block)
