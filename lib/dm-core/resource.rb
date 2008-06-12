@@ -91,6 +91,10 @@ module DataMapper
       end
 
       value = instance_variable_get(ivar_name)
+      
+      if property.track == :get
+        original_values[name] ||= value.dup rescue value
+      end
 
       if value.nil? && new_record? && !property.options[:default].nil? && !attribute_loaded?(name)
         value = property.default_for(self)
@@ -151,7 +155,9 @@ module DataMapper
       if property.lock?
         instance_variable_set("@shadow_#{name}", old_value)
       end
-
+      
+      original_values[name] ||= old_value
+      
       dirty_attributes << property
 
       instance_variable_set(ivar_name, new_value)
@@ -334,6 +340,17 @@ module DataMapper
       end
       names
     end
+    
+    # set of original values of properties
+    # 
+    # ==== Returns
+    # Set:: original values of properties
+    # 
+    # --
+    # @public
+    def original_values
+      @original_values ||= {}
+    end
 
     # set of attributes that have been marked dirty
     #
@@ -343,7 +360,21 @@ module DataMapper
     # --
     # @public
     def dirty_attributes
-      @dirty_attributes ||= Set.new
+      original_values.collect do |name, old_value|
+        property = self.class.properties(repository.name)[name]
+        ivar_name = property.instance_variable_name
+        value = instance_variable_get(ivar_name)
+        
+        if property.track == :hash
+          old_value, value = old_value.hash, value.hash
+        end
+        
+        if old_value != value
+          property.hash
+          property
+        end
+        
+      end.compact
     end
 
     # Checks if the class is dirty

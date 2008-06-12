@@ -37,7 +37,7 @@ module DataMapper
           super # || child.kind_of?(klass)
         end
 
-        def respond_to?(method)
+        def respond_to?(method, include_private = false)
           # TODO: uncomment once proxy target method defined
           super # || child.respond_to?(method)
         end

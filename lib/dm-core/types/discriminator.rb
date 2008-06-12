@@ -2,6 +2,7 @@ module DataMapper
   module Types
     class Discriminator < DataMapper::Type
       primitive Class
+      track :set
       default lambda { |r,p| p.model }
 
       def self.bind(property)

@@ -17,7 +17,16 @@ module DataMapper
       :default
     end
 
-    attr_reader :name, :adapter, :type_map
+    attr_reader :name, :type_map
+
+    def adapter
+      @adapter ||= begin
+        raise ArgumentError, "Adapter not set: #{@name}. Did you forget to setup?" \
+          unless self.class.adapters.has_key?(@name)
+
+        self.class.adapters[@name]
+      end
+    end
 
     def identity_map_get(model, key)
       identity_map(model)[key]
@@ -107,7 +116,7 @@ module DataMapper
           if adapter.create(self, resource)
             identity_map_set(resource)
             resource.instance_variable_set(:@new_record, false)
-            resource.dirty_attributes.clear
+            resource.original_values.clear
             query = DataMapper::Query.new(self, model, Hash[*model.properties(name).key.zip(resource.key).flatten])
             resource.collection = DataMapper::Collection.new(query)
             resource.collection << resource
@@ -115,7 +124,7 @@ module DataMapper
           end
         else
           if adapter.update(self, resource)
-            resource.dirty_attributes.clear
+            resource.original_values.clear
             success = true
           end
         end
@@ -135,9 +144,10 @@ module DataMapper
       if adapter.delete(self, resource)
         identity_maps[resource.class].delete(resource.key)
         resource.instance_variable_set(:@new_record, true)
-        resource.dirty_attributes.clear
+        resource.original_values.clear
         resource.class.properties(name).each do |property|
-          resource.dirty_attributes << property if resource.attribute_loaded?(property.name)
+          # We'll set the original value to nil as if we had a new record
+          resource.original_values[property.name] = nil if resource.attribute_loaded?(property.name)
         end
         true
       else
@@ -196,16 +206,16 @@ module DataMapper
       "#<DataMapper::Repository:#{@name}>"
     end
 
+
+
     private
 
     attr_reader :identity_maps
 
     def initialize(name)
       raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller unless name.kind_of?(Symbol)
-      raise ArgumentError, "Unknown adapter name: #{name}"                            unless self.class.adapters.has_key?(name)
 
       @name          = name
-      @adapter       = self.class.adapters[name]
       @identity_maps = Hash.new { |h,model| h[model] = IdentityMap.new }
     end
 
