@@ -14,15 +14,11 @@ module DataMapper
 
   module AutoMigrations
     def auto_migrate!(repository_name = nil)
-      if self.superclass != Object
-        self.superclass.auto_migrate!(repository_name) 
-      else 
-        repository_name ||= default_repository_name
-        repository(repository_name) do |r|
-          (relationships(r.name)||{}).each_value { |relationship| relationship.child_key }
-          r.adapter.destroy_model_storage(r, self)
-          r.adapter.create_model_storage(r, self)
-        end
+      repository_name ||= default_repository_name
+      repository(repository_name) do |r|
+        (relationships(r.name)||{}).each_value { |relationship| relationship.child_key }
+        r.adapter.destroy_model_storage(r, self)
+        r.adapter.create_model_storage(r, self)
       end
     end
     def auto_upgrade!(repository_name = nil)

@@ -638,7 +638,7 @@ module DataMapper
         # TODO: move to dm-more/dm-migrations
         def create_table_statement(model)
           statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-          statement << "#{model.properties_with_subclasses(name).collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+          statement << "#{model.properties(name).collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
 
           if (key = model.key(name)).any?
             statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
