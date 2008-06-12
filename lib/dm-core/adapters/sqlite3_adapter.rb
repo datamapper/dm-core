@@ -50,15 +50,17 @@ module DataMapper
 
           # TODO: move to dm-more/dm-migrations
           def create_table_statement(model)
-            statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-            statement << "#{model.properties_with_subclasses(name).collect {|p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+            statement = <<-EOS.compress_lines
+              CREATE TABLE #{quote_table_name(model.storage_name(name))} (
+              #{model.properties_with_subclasses(name).map { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}
+            EOS
 
             # skip adding the primary key if one of the columns is serial.  In
             # SQLite the serial column must be the primary key, so it has already
             # been defined
             unless model.properties(name).any? { |p| p.serial? }
               if (key = model.properties(name).key).any?
-                statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
+                statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field(name)) } * ', '})"
               end
             end
 

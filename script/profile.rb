@@ -7,7 +7,8 @@ require 'rubygems'
 gem 'ruby-prof', '>=0.6.0'
 require 'ruby-prof'
 
-OUTPUT = DataMapper.root / 'profile_results.txt'
+#OUTPUT = DataMapper.root / 'profile_results.txt'
+OUTPUT = DataMapper.root / 'profile_results.html'
 
 SOCKET_FILE = Pathname.glob(%w[
   /opt/local/var/run/mysql5/mysqld.sock
@@ -45,19 +46,20 @@ end
 # RubyProf, making profiling Ruby pretty since 1899!
 def profile(&b)
   result  = RubyProf.profile &b
-  printer = RubyProf::FlatPrinter.new(result)
+  #printer = RubyProf::FlatPrinter.new(result)
+  printer = RubyProf::GraphHtmlPrinter.new(result)
   printer.print(OUTPUT.open('w+'))
 end
 
 profile do
-  10_000.times { touch_attributes[Exhibit.get(1)] }
-
+#  10_000.times { touch_attributes[Exhibit.get(1)] }
+#
 #  repository(:default) do
 #    10_000.times { touch_attributes[Exhibit.get(1)] }
 #  end
-#
-#  1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
-#
+
+  1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
+
 #  repository(:default) do
 #    1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
 #  end

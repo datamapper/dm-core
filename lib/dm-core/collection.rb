@@ -54,7 +54,8 @@ module DataMapper
         if args.empty?
           return super
         elsif args.size == 1 && args.first.kind_of?(Integer)
-          return self.class.new(scoped_query(:limit => args.first)) { |c| c.replace(super) }
+          limit = args.shift
+          return self.class.new(scoped_query(:limit => limit)) { |c| c.replace(super(limit)) }
         end
       end
 
@@ -255,12 +256,7 @@ module DataMapper
 
       super()
 
-      load_with do
-        yield self
-
-        # update the query scope to include the keys
-        query.update(keys)
-      end
+      load_with(&block)
     end
 
     def add(resource)
@@ -270,13 +266,7 @@ module DataMapper
 
     def relate_resource(resource)
       return unless resource
-
       resource.collection = self
-
-      if loaded?
-        query.update(keys)
-      end
-
       resource
     end
 
@@ -287,6 +277,8 @@ module DataMapper
     end
 
     def scoped_query(query = self.query)
+      query.update(keys) if loaded?
+
       return self.query if query == self.query
 
       query = if query.kind_of?(Hash)

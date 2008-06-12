@@ -270,19 +270,23 @@ module DataMapper
         def links_statement(query)
           table_name = query.model.storage_name(name)
 
-          query.links.map do |relationship|
+          statement = ''
+
+          query.links.each do |relationship|
             parent_table_name = relationship.parent_model.storage_name(name)
             child_table_name  = relationship.child_model.storage_name(name)
 
             join_table_name = table_name == parent_table_name ? child_table_name : parent_table_name
 
             # We only do LEFT OUTER JOIN for now
-            statement = ' LEFT OUTER JOIN ' << quote_table_name(join_table_name) << ' ON '
+            statement << " LEFT OUTER JOIN #{quote_table_name(join_table_name)} ON "
 
             statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
               condition_statement(query, :eql, parent_property, child_property)
             end.join(' AND ')
-          end.join
+          end
+
+          statement
         end
 
         def conditions_statement(query)
@@ -333,39 +337,40 @@ module DataMapper
           comparison = case operator
             when :eql, :in then equality_operator(right_condition)
             when :not      then inequality_operator(right_condition)
-            when :like     then ' LIKE '
-            when :gt       then ' > '
-            when :gte      then ' >= '
-            when :lt       then ' < '
-            when :lte      then ' <= '
+            when :like     then 'LIKE'
+            when :gt       then '>'
+            when :gte      then '>='
+            when :lt       then '<'
+            when :lte      then '<='
             else raise "Invalid query operator: #{operator.inspect}"
           end
 
-          conditions.join(comparison)
+          conditions.join(" #{comparison} ")
         end
 
         def equality_operator(operand)
           case operand
-            when Array, Query then ' IN '
-            when Range        then ' BETWEEN '
-            when NilClass     then ' IS '
-            else                   ' = '
+            when Array, Query then 'IN'
+            when Range        then 'BETWEEN'
+            when NilClass     then 'IS'
+            else                   '='
           end
         end
 
         def inequality_operator(operand)
           case operand
-            when Array, Query then ' NOT IN '
-            when Range        then ' NOT BETWEEN '
-            when NilClass     then ' IS NOT '
-            else                   ' <> '
+            when Array, Query then 'NOT IN'
+            when Range        then 'NOT BETWEEN'
+            when NilClass     then 'IS NOT'
+            else                   '<>'
           end
         end
 
         def property_to_column_name(property, qualify)
           table_name = property.model.storage_name(name) if property && property.respond_to?(:model)
+
           if table_name && qualify
-            quote_table_name(table_name) + '.' + quote_column_name(property.field(name))
+            "#{quote_table_name(table_name)}.#{quote_column_name(property.field(name))}"
           else
             quote_column_name(property.field(name))
           end
@@ -480,15 +485,17 @@ module DataMapper
 
           # TODO: move to dm-more/dm-migrations
           def create_table_statement(model)
-            statement = "CREATE TABLE #{quote_table_name(model.storage_name(name))} ("
-            statement << "#{model.properties_with_subclasses(name).collect { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}"
+            statement = <<-EOS.compress_lines
+              CREATE TABLE #{quote_table_name(model.storage_name(name))} (
+              #{model.properties_with_subclasses(name).map { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}
+            EOS
 
             if (key = model.key(name)).any?
-              statement << ", PRIMARY KEY(#{ key.collect { |p| quote_column_name(p.field(name)) } * ', '})"
+              statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field(name)) } * ', '})"
             end
 
             statement << ')'
-            statement.compress_lines
+            statement
           end
 
           # TODO: move to dm-more/dm-migrations
@@ -499,18 +506,22 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def create_index_statements(model)
             table_name = model.storage_name(name)
-            model.properties(name).indexes.collect do |index_name, properties|
-              "CREATE INDEX #{quote_column_name('index_' + table_name + '_' + index_name)} ON " +
-              "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
+            model.properties(name).indexes.map do |index_name, properties|
+              <<-EOS.compress_lines
+                CREATE INDEX #{quote_column_name("index_#{table_name}_#{index_name}")} ON
+                #{quote_table_name(table_name)} (#{properties.map { |p| quote_column_name(p) }.join ','})
+              EOS
             end
           end
 
           # TODO: move to dm-more/dm-migrations
           def create_unique_index_statements(model)
             table_name = model.storage_name(name)
-            model.properties(name).unique_indexes.collect do |index_name, properties|
-              "CREATE UNIQUE INDEX #{quote_column_name('unique_index_' + table_name + '_' + index_name)} ON " +
-              "#{quote_table_name(table_name)} (#{properties.collect{|p| quote_column_name(p)}.join ','})"
+            model.properties(name).unique_indexes.map do |index_name, properties|
+              <<-EOS.compress_lines
+                CREATE UNIQUE INDEX #{quote_column_name("unique_index_#{table_name}_#{index_name}")} ON
+                #{quote_table_name(table_name)} (#{properties.map { |p| quote_column_name(p) }.join ','})
+              EOS
             end
           end
 

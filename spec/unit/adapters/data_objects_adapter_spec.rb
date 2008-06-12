@@ -277,7 +277,6 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         end
       elsif method == :read_many
         before do
-          @query.should_receive(:update).with({}).and_return(@query)
           @statement = 'SELECT "models"."property" FROM "models" LEFT OUTER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? ORDER BY "models"."property" DESC LIMIT 111 OFFSET 222'
         end
 

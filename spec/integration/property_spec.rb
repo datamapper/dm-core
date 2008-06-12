@@ -75,7 +75,7 @@ if ADAPTER
           jon.dirty?.should be_true
         end
       end
-      
+
       it "should track on :load" do
         repository(ADAPTER) do
           jan = Actor.create!(:name => 'jan', :lead => true)

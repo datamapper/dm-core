@@ -188,7 +188,7 @@ if ADAPTER
       fred.id.should_not be_nil
       fred.instance_variable_get("@save_id").should == fred.id
     end
-    
+
     it "should be dirty when Object properties are changed" do
       # pending "Awaiting Property#track implementation"
       repository(ADAPTER) do

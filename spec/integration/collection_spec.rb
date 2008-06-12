@@ -199,7 +199,7 @@ if ADAPTER
     end
 
     [ true, false ].each do |loaded|
-      describe " (#{loaded ? '' : 'not '} loaded) " do
+      describe " (#{loaded ? '' : 'not '}loaded) " do
         if loaded
           before do
             @collection.to_a

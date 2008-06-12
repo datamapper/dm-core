@@ -287,7 +287,7 @@ describe "DataMapper::Resource" do
 
     mars.attribute_set(:age, 30)
     mars.attribute_set(:data, { :a => "Yeah!" })
-    
+
     # Obviously. :-)
     mars.attribute_dirty?(:age).should be_true
     mars.attribute_dirty?(:data).should be_true
