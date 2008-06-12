@@ -258,26 +258,26 @@ describe DataMapper::Property do
       property = DataMapper::Property.new(Zoo, :time, Time)
       property.typecast('2000-01-01 01:01:01.123456').should == Time.local(2000, 1, 1, 1, 1, 1, 123456)
     end
-    
+
     it 'should typecast Hash for a Time property' do
       property = DataMapper::Property.new(Zoo, :time, Time)
       property.typecast(
         :year => 2002, "month" => 1, :day => 1, "hour" => 12, :min => 0, :sec => 0
       ).should == Time.local(2002, 1, 1, 12, 0, 0)
     end
-    
+
     it 'should typecast Hash for a Date property' do
       property = DataMapper::Property.new(Zoo, :date, Date)
       property.typecast(:year => 2002, "month" => 1, :day => 1).should == Date.new(2002, 1, 1)
     end
-    
+
     it 'should typecast Hash for a DateTime property' do
       property = DataMapper::Property.new(Zoo, :date_time, DateTime)
       property.typecast(
         :year => 2002, :month => 1, :day => 1, "hour" => 12, :min => 0, "sec" => 0
       ).should == DateTime.new(2002, 1, 1, 12, 0, 0)
     end
-    
+
     it 'should use now as defaults for missing parts of a Hash to Time typecast' do
       now = Time.now
       property = DataMapper::Property.new(Zoo, :time, Time)
@@ -285,7 +285,7 @@ describe DataMapper::Property do
         :month => 1, :day => 1
       ).should == Time.local(now.year, 1, 1, now.hour, now.min, now.sec)
     end
-    
+
     it 'should use now as defaults for missing parts of a Hash to Date typecast' do
       now = Time.now
       property = DataMapper::Property.new(Zoo, :date, Date)
@@ -293,7 +293,7 @@ describe DataMapper::Property do
         :month => 1, :day => 1
       ).should == Date.new(now.year, 1, 1)
     end
-    
+
     it 'should use now as defaults for missing parts of a Hash to DateTime typecast' do
       now = Time.now
       property = DataMapper::Property.new(Zoo, :date_time, DateTime)
@@ -301,12 +301,12 @@ describe DataMapper::Property do
         :month => 1, :day => 1
       ).should == DateTime.new(now.year, 1, 1, now.hour, now.min, now.sec)
     end
-    
+
     it 'should rescue after trying to typecast an invalid Date value from a hash' do
       property = DataMapper::Property.new(Zoo, :date, Date)
       property.typecast(:year => 2002, :month => 2, :day => 31).should == Date.new(2002, 3, 3)
     end
-    
+
     it 'should rescue after trying to typecast an invalid DateTime value from a hash' do
       property = DataMapper::Property.new(Zoo, :date_time, DateTime)
       property.typecast(

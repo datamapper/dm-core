@@ -26,7 +26,7 @@ if ADAPTER
       before do
         Actor.auto_migrate!(ADAPTER)
       end
-      
+
       it "should set up tracking information" do
         Actor.properties[:name].track.should == :set
         Actor.properties[:location].track.should == :get
@@ -35,41 +35,41 @@ if ADAPTER
         Actor.properties[:cv].track.should == :hash
         Actor.properties[:agent].track.should == :hash
       end
-      
+
       it "should track on :set" do
         repository(ADAPTER) do
           bob = Actor.new(:name => 'bob')
           bob.save
-        
+
           bob.original_values.should_not have_key(:name)
           bob.dirty?.should == false
-        
+
           bob.name = "Bob"
           bob.original_values.should have_key(:name)
           bob.original_values[:name].should == 'bob'
           bob.dirty?.should == true
         end
       end
-      
+
       it "should track on :get" do
         repository(ADAPTER) do
           jon = Actor.new(:name => 'jon', :location => 'dallas')
           jon.save
-        
+
           jon.location
           jon.original_values.should have_key(:location)
           jon.original_values[:location].should == 'dallas'
-        
+
           jon.dirty?.should be_false
           jon.save.should be_false
-        
+
           jon.location.upcase!
           jon.location.should == 'DALLAS'
           jon.original_values[:location].should == 'dallas'
-        
+
           jon.dirty?.should be_true
           jon.save.should be_true
-          
+
           jon.location << '!'
           jon.original_values[:location].should == 'DALLAS'
           jon.dirty?.should be_true

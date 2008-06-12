@@ -139,20 +139,20 @@ if HAS_SQLITE3
 
       it 'should have 4 indexes: 2 non-unique index, 2 unique index' do
         @index_list.size.should == 4
-        
+
         expected_indices = {
           "unique_index_books_date_float" => 1,
           "unique_index_books_time_1" => 1,
           "index_books_date_date_time" => 0,
           "index_books_date_time" => 0
         }
-        
+
         @index_list.each do |index|
           expected_indices.should have_key(index.name)
           expected_indices[index.name].should == index.unique
         end
       end
-      
+
       it 'should escape a namespaced model' do
         Publications::ShortStoryCollection.auto_migrate!(:sqlite3).should be_true
         @adapter.query("SELECT name FROM sqlite_master WHERE type='table'").should include("publications_short_story_collections")
@@ -260,7 +260,7 @@ if HAS_MYSQL
           @index_list[3].Non_unique.should == 1
         end
       end
-      
+
       it 'should escape a namespaced model' do
         Publications::ShortStoryCollection.auto_migrate!(:mysql).should be_true
         @adapter.query("SHOW TABLES").should include("publications_short_story_collections")

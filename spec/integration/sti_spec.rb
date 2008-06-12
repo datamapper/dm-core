@@ -19,7 +19,7 @@ if HAS_SQLITE3
         property :id,       Integer,    :serial => true
         property :title,    String,     :nullable => false
         property :isbn,     Integer,    :nullable => false
-        property :class_type, Discriminator 
+        property :class_type, Discriminator
       end
 
       class Propaganda < Book
@@ -33,7 +33,7 @@ if HAS_SQLITE3
       class ShortStory < Fiction
         property :moral,    String
       end
-      
+
       class ScienceFiction < Fiction
           property :aliens, Boolean
       end
@@ -172,4 +172,3 @@ if HAS_SQLITE3
     end
   end
 end
-

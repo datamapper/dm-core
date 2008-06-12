@@ -269,7 +269,7 @@ module DataMapper
       Class,
       DataMapper::Types::Discriminator
     ]
-    
+
     IMMUTABLE_TYPES = [TrueClass, Integer, Float, BigDecimal]
 
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
@@ -523,7 +523,7 @@ module DataMapper
         EOS
       end
     end
-    
+
     # Typecasts an arbitrary value to a DateTime
     def typecast_to_datetime(value)
       case value
@@ -531,7 +531,7 @@ module DataMapper
       else DateTime.parse(value.to_s)
       end
     end
-    
+
     # Typecasts an arbitrary value to a Date
     def typecast_to_date(value)
       case value
@@ -539,7 +539,7 @@ module DataMapper
       else Date.parse(value.to_s)
       end
     end
-    
+
     # Typecasts an arbitrary value to a Time
     def typecast_to_time(value)
       case value
@@ -547,7 +547,7 @@ module DataMapper
       else Time.parse(value.to_s)
       end
     end
-    
+
     def typecast_hash_to_datetime(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
       DateTime.new(*args)
@@ -555,7 +555,7 @@ module DataMapper
       t = typecast_hash_to_time(hash)
       DateTime.new(t.year, t.month, t.day, t.hour, t.min, t.sec)
     end
-    
+
     def typecast_hash_to_date(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day)
       Date.new(*args)
@@ -563,12 +563,12 @@ module DataMapper
       t = typecast_hash_to_time(hash)
       Date.new(t.year, t.month, t.day)
     end
-    
+
     def typecast_hash_to_time(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
       Time.local(*args)
     end
-    
+
     # Extracts the given args from the hash. If a value does not exist, it
     # uses the value of Time.now
     def extract_time_args_from_hash(hash, *args)

@@ -14,7 +14,7 @@ module DataMapper
           end
 
           after_class_method :inherited, :propagate_child_classes
-          
+
           def self.propagate_child_classes(target)
             child_classes << target
             superclass.send(:propagate_child_classes,target) if superclass.respond_to?(:propagate_child_classes)

@@ -3,7 +3,7 @@ require "base64"
 module DataMapper
   module Types
     class Object < DataMapper::Type(Text)
-      
+
       track :hash
 
       def self.dump(value, property)
