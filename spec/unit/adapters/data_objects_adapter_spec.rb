@@ -223,7 +223,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     describe "##{method}" do
       before do
         @key       = mock('key')
-        @model     = mock('model', :key => @key, :storage_name => 'models')
+        @model     = mock('model', :key => @key, :storage_name => 'models', :relationships => {})
         @primitive = mock('primitive')
         @property  = mock('property', :kind_of? => true, :model => @model, :field => 'property', :primitive => @primitive)
 
