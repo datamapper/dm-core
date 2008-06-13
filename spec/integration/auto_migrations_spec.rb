@@ -2,8 +2,8 @@ require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 require 'ostruct'
 
-TODAY   = Date.today
-NOW     = DateTime.now
+TODAY = Date.today
+NOW   = DateTime.now
 
 TIME_STRING_1 = '2007-04-21 04:14:12'
 TIME_STRING_2 = '2007-04-21 04:14:12.1'
@@ -15,7 +15,7 @@ TIME_2 = Time.parse(TIME_STRING_2)
 TIME_3 = Time.parse(TIME_STRING_3)
 TIME_4 = Time.parse(TIME_STRING_4)
 
-class Book
+class EveryType
   include DataMapper::Resource
 
   property :serial,      Integer,    :serial => true
@@ -61,9 +61,9 @@ if HAS_SQLITE3
 
     describe 'with sqlite3' do
       before :all do
-        Book.auto_migrate!(:sqlite3).should be_true
+        EveryType.auto_migrate!(:sqlite3).should be_true
 
-        @table_set = @adapter.query('PRAGMA table_info("books")').inject({}) do |ts,column|
+        @table_set = @adapter.query('PRAGMA table_info(?)', 'every_types').inject({}) do |ts,column|
           default = if 'NULL' == column.dflt_value || column.dflt_value.nil?
             nil
           else
@@ -81,14 +81,12 @@ if HAS_SQLITE3
           ts.update(property.name => property)
         end
 
-        @index_list = @adapter.query('PRAGMA index_list("books")')
+        @index_list = @adapter.query('PRAGMA index_list(?)', 'every_types')
 
         # bypass DM to create the record using only the column default values
-        @adapter.execute('INSERT INTO books (serial) VALUES (1)')
+        @adapter.execute('INSERT INTO "every_types" ("serial") VALUES (?)', 1)
 
-        repository(:sqlite3) do
-          @book = Book.first
-        end
+        @book = repository(:sqlite3) { EveryType.first }
       end
 
       types = {
@@ -141,10 +139,10 @@ if HAS_SQLITE3
         @index_list.size.should == 4
 
         expected_indices = {
-          "unique_index_books_date_float" => 1,
-          "unique_index_books_time_1" => 1,
-          "index_books_date_date_time" => 0,
-          "index_books_date_time" => 0
+          "unique_index_every_types_date_float" => 1,
+          "unique_index_every_types_time_1" => 1,
+          "index_every_types_date_date_time" => 0,
+          "index_every_types_date_time" => 0
         }
 
         @index_list.each do |index|
@@ -155,7 +153,7 @@ if HAS_SQLITE3
 
       it 'should escape a namespaced model' do
         Publications::ShortStoryCollection.auto_migrate!(:sqlite3).should be_true
-        @adapter.query("SELECT name FROM sqlite_master WHERE type='table'").should include("publications_short_story_collections")
+        @adapter.query('SELECT "name" FROM "sqlite_master" WHERE type = ?', 'table').should include('publications_short_story_collections')
       end
 
     end
@@ -178,9 +176,9 @@ if HAS_MYSQL
 
     describe 'with mysql' do#
       before :all do
-        Book.auto_migrate!(:mysql).should be_true
+        EveryType.auto_migrate!(:mysql).should be_true
 
-        @table_set = @adapter.query('DESCRIBE `books`').inject({}) do |ts,column|
+        @table_set = @adapter.query('DESCRIBE `every_types`').inject({}) do |ts,column|
           property = @property_class.new(
             column.field,
             column.type.upcase,
@@ -192,14 +190,12 @@ if HAS_MYSQL
           ts.update(property.name => property)
         end
 
-        @index_list = @adapter.query('SHOW INDEX FROM books')
+        @index_list = @adapter.query('SHOW INDEX FROM `every_types`')
 
         # bypass DM to create the record using only the column default values
-        @adapter.execute('INSERT INTO books (serial, text) VALUES (1, \'text\')')
+        @adapter.execute('INSERT INTO `every_types` (`serial`, `text`) VALUES (?, ?)', 1, 'text')
 
-        repository(:mysql) do
-          @book = Book.first
-        end
+        @book = repository(:mysql) { EveryType.first }
       end
 
       types = {
@@ -250,20 +246,20 @@ if HAS_MYSQL
       it 'should have 4 indexes: 2 non-unique index, 2 unique index' do
         pending do
           # TODO
-          @index_list[0].Key_name.should == 'unique_index_books_date_float'
+          @index_list[0].Key_name.should == 'unique_index_every_types_date_float'
           @index_list[0].Non_unique.should == 0
-          @index_list[1].Key_name.should == 'unique_index_books_time_1'
+          @index_list[1].Key_name.should == 'unique_index_every_types_time_1'
           @index_list[1].Non_unique.should == 0
-          @index_list[2].Key_name.should == 'index_books_date_date_time'
+          @index_list[2].Key_name.should == 'index_every_types_date_date_time'
           @index_list[2].Non_unique.should == 1
-          @index_list[3].Key_name.should == 'index_books_date_time'
+          @index_list[3].Key_name.should == 'index_every_types_date_time'
           @index_list[3].Non_unique.should == 1
         end
       end
 
       it 'should escape a namespaced model' do
         Publications::ShortStoryCollection.auto_migrate!(:mysql).should be_true
-        @adapter.query("SHOW TABLES").should include("publications_short_story_collections")
+        @adapter.query('SHOW TABLES').should include('publications_short_story_collections')
       end
     end
   end
@@ -285,39 +281,39 @@ if HAS_POSTGRES
 
     describe 'with postgres' do
       before :all do
-        Book.auto_migrate!(:postgres).should be_true
+        EveryType.auto_migrate!(:postgres).should be_true
 
         query = <<-EOS
           SELECT
             -- Field
-            pg_attribute.attname AS "Field",
+              "pg_attribute"."attname" AS "Field",
             -- Type
-            CASE pg_type.typname
-              WHEN 'varchar' THEN 'varchar'
-              ELSE pg_type.typname
-            END AS "Type",
+              CASE "pg_type"."typname"
+                WHEN 'varchar' THEN 'varchar'
+                ELSE "pg_type"."typname"
+              END AS "Type",
             -- Null
-            CASE WHEN pg_attribute.attnotnull THEN ''
-              ELSE 'YES'
-            END AS "Null",
+              CASE WHEN "pg_attribute"."attnotnull" THEN ''
+                ELSE 'YES'
+              END AS "Null",
             -- Default
-            pg_attrdef.adsrc AS "Default"
-          FROM pg_class
-            INNER JOIN pg_attribute
-              ON (pg_class.oid=pg_attribute.attrelid)
+              "pg_attrdef"."adsrc" AS "Default"
+          FROM "pg_class"
+            INNER JOIN "pg_attribute"
+              ON ("pg_class"."oid" = "pg_attribute"."attrelid")
             INNER JOIN pg_type
-              ON (pg_attribute.atttypid=pg_type.oid)
-            LEFT JOIN pg_attrdef
-              ON (pg_class.oid=pg_attrdef.adrelid AND pg_attribute.attnum=pg_attrdef.adnum)
-          WHERE pg_class.relname='books' AND pg_attribute.attnum >=1 AND NOT pg_attribute.attisdropped
-          ORDER BY pg_attribute.attnum
+              ON ("pg_attribute"."atttypid" = "pg_type"."oid")
+            LEFT JOIN "pg_attrdef"
+              ON ("pg_class"."oid" = "pg_attrdef"."adrelid" AND "pg_attribute"."attnum" = "pg_attrdef"."adnum")
+          WHERE "pg_class"."relname" = ? AND "pg_attribute"."attnum" >= ? AND NOT "pg_attribute"."attisdropped"
+          ORDER BY "pg_attribute"."attnum"
         EOS
 
-        @table_set = @adapter.query(query).inject({}) do |ts,column|
+        @table_set = @adapter.query(query, 'every_types', 1).inject({}) do |ts,column|
           default = column.default
           serial  = false
 
-          if column.default == "nextval('books_serial_seq'::regclass)"
+          if column.default == "nextval('every_types_serial_seq'::regclass)"
             default = nil
             serial  = true
           end
@@ -334,11 +330,10 @@ if HAS_POSTGRES
         end
 
         # bypass DM to create the record using only the column default values
-        @adapter.execute('INSERT INTO books (serial) VALUES (1)')
+        @adapter.execute('INSERT INTO "every_types" ("serial") VALUES (?)', 1)
 
-        repository(:postgres) do
-          @book = Book.first
-        end
+
+        @book = repository(:postgres) { EveryType.first }
       end
 
       types = {
@@ -394,7 +389,7 @@ if HAS_POSTGRES
 
       it 'should escape a namespaced model' do
         Publications::ShortStoryCollection.auto_migrate!(:postgres).should be_true
-        @adapter.query("SELECT tablename FROM pg_tables where tablename not like 'pg_%'").should include("publications_short_story_collections")
+        @adapter.query('SELECT "tablename" FROM "pg_tables" WHERE "tablename" NOT LIKE ?', 'pg_%').should include('publications_short_story_collections')
       end
     end
   end
