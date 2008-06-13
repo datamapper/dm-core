@@ -925,6 +925,27 @@ if ADAPTER
             @collection.map { |r| r.name }.should_not == names
             @collection.map { |r| r.name }.should == %w[ John ] * 3
           end
+          
+          it 'should update loaded resource even though whole collection is not loaded' do
+            # It fails because while the collection itself might not be loaded, nancy is cached
+            # in IM. If collection is not loaded when doing update, it needs to do some kind of
+            # magic, iterating through the IM and updating attributes or something. But it cannot
+            # do that unless it (1) loads, or (2) asks all models in the IM to reload these attrs
+            # (2) is how we do it in NestedSet.
+            # There may be other problems like this with #update when specs are not wrapped in
+            # repository-blocks / not using identity map.
+            pending do
+              repository(ADAPTER) do
+                nancy = Zebra.first
+                nancy.name.should == "Nancy"
+              
+                collection = Zebra.all(:name => ["Nancy","Bessie"])
+                collection.update(:name => "Stevie")
+              
+                nancy.name.should == "Stevie"
+              end
+            end
+          end
         end
 
         describe '#values_at' do
