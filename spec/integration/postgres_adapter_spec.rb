@@ -29,6 +29,32 @@ if HAS_POSTGRES
       end
     end
 
+    describe '#312' do
+      it "should behave sanely for time fields" do
+
+        class Thing
+          include DataMapper::Resource
+          property :id, Integer, :serial => true
+          property :created_at, Time
+        end
+
+        Thing.auto_migrate!(:postgres)
+
+        repository(:postgres) do
+          time_now = Time.now
+                    
+          t = Thing.new
+          t.created_at = time_now
+
+          t.save
+
+          t1 = Thing.first
+          t1.created_at.should == time_now
+        end
+
+      end
+    end
+
     describe "querying metadata" do
       before :all do
         class Sputnik
