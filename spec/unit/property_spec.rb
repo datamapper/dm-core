@@ -211,11 +211,16 @@ describe DataMapper::Property do
       end
     end
 
-    [ false, 'false', 'FALSE', 0, '0', 'f', 'F', nil ].each do |value|
+    [ false, 'false', 'FALSE', 0, '0', 'f', 'F' ].each do |value|
       it "should typecast #{value.inspect} to false for a Boolean property" do
         property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
         property.typecast(value).should == false
       end
+    end
+
+    it 'should typecast nil to nil for a Boolean property' do
+      property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
+      property.typecast(nil).should == nil
     end
 
     it 'should typecast "0" to "0" for a String property' do

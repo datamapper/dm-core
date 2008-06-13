@@ -155,7 +155,6 @@ module DataMapper
 
       old_value = instance_variable_get(ivar_name)
       new_value = value
-      # new_value = property.custom? ? property.type.dump(value, property) : property.typecast(value)
 
       # skip setting the attribute if the new value equals the old
       # value, or if the new value is nil, and the property does not
@@ -399,24 +398,20 @@ module DataMapper
         ivar_name = property.instance_variable_name
 
         value     = instance_variable_get(ivar_name)
-        value     = property.custom? ? property.type.dump(value, property)     : property.typecast(value)
+        new_value = property.custom? ? property.type.dump(value, property)     : property.typecast(value)
         old_value = property.custom? ? property.type.dump(old_value, property) : property.typecast(old_value)
 
         dirty = case property.track
-        when :hash then old_value != value.hash
-        else old_value != value
+          when :hash then old_value != new_value.hash
+          else
+            old_value != new_value
         end
 
         if dirty
           property.hash
-          dirty_attributes[property] = value
+          dirty_attributes[property] = new_value
         end
       end
-
-      #dirty_attributes.map do |p|
-      #  value = resource.instance_variable_get(p.instance_variable_name)
-      #  p.custom? ? p.type.dump(value, p) : p.typecast(value)
-      #end
 
       dirty_attributes
     end

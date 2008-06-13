@@ -403,7 +403,7 @@ module DataMapper
     #-
     # @private
     def typecast(value)
-      return value if value.kind_of?(type) || (value.nil? && type != TrueClass)
+      return value if value.kind_of?(type) || value.nil?
 
       if    type == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
       elsif type == String     then value.to_s
