@@ -136,21 +136,21 @@ module DataMapper
           self
         end
 
-        # FIXME: remove when RelationshipChain#get_children can return a Collection
         def create(attributes = {})
           assert_mutable
+          raise UnsavedParentError, 'You cannot create until the parent is saved' if @parent.new_record?
           super
         end
 
-        # FIXME: remove when RelationshipChain#get_children can return a Collection
         def update(attributes = {})
           assert_mutable
+          raise UnsavedParentError, 'You cannot mass-update until the parent is saved' if @parent.new_record?
           super
         end
 
-        # FIXME: remove when RelationshipChain#get_children can return a Collection
         def destroy
           assert_mutable
+          raise UnsavedParentError, 'You cannot delete until the parent is saved' if @parent.new_record?
           super
         end
 
@@ -207,16 +207,10 @@ module DataMapper
         end
 
         def add_default_association_values(resource)
-          default_attributes = if respond_to?(:default_attributes)
-            self.default_attributes
-          else
-            @relationship.query.reject do |attribute, value|
-              Query::OPTIONS.include?(attribute) || attribute.kind_of?(Query::Operator)
-            end
-          end
+          return if respond_to?(:default_attributes)
 
-          default_attributes.each do |attribute, value|
-            next if resource.attribute_loaded?(attribute)
+          @relationship.query.each do |attribute, value|
+            next if Query::OPTIONS.include?(attribute) || attribute.kind_of?(Query::Operator) || resource.attribute_loaded?(attribute)
             resource.send("#{attribute}=", value)
           end
         end

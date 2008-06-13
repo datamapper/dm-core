@@ -13,6 +13,9 @@ module DataMapper
     class ImmutableAssociationError < RuntimeError
     end
 
+    class UnsavedParentError < RuntimeError
+    end
+
     def relationships(repository_name = default_repository_name)
       @relationships ||= Hash.new { |h,k| h[k] = k == Repository.default_name ? {} : h[Repository.default_name].dup }
       @relationships[repository_name]

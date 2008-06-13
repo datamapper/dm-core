@@ -882,7 +882,7 @@ if ADAPTER
             betsy.children.each do |child|
               booger = Booger.new(:name => 'Nasty booger')
               child.booger = booger
-              booger.save
+              child.save
             end
           end
         end
