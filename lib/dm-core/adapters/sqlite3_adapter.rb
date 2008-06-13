@@ -51,8 +51,8 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def create_table_statement(model)
             statement = <<-EOS.compress_lines
-              CREATE TABLE #{quote_table_name(model.storage_name(name))} (
-              #{model.properties_with_subclasses(name).map { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}
+              CREATE TABLE #{quote_table_name(model.storage_name(name))}
+              (#{model.properties_with_subclasses(name).map { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}
             EOS
 
             # skip adding the primary key if one of the columns is serial.  In
@@ -65,7 +65,7 @@ module DataMapper
             end
 
             statement << ')'
-            statement.compress_lines
+            statement
           end
 
           # TODO: move to dm-more/dm-migrations
