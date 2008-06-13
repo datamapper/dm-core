@@ -79,7 +79,7 @@ namespace :dm do
   end
 end
 
-PACKAGE_VERSION = '0.9.1'
+PACKAGE_VERSION = '0.9.2'
 
 PACKAGE_FILES = [
   'README',
