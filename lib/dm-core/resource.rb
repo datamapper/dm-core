@@ -319,7 +319,7 @@ module DataMapper
       repository.identity_map(model).delete(key)
       original_values.clear
 
-      model.properties(name).each do |property|
+      model.properties(repository.name).each do |property|
         # We'll set the original value to nil as if we had a new record
         original_values[property.name] = nil if attribute_loaded?(property.name)
       end
