@@ -236,14 +236,16 @@ module DataMapper
           DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
           raise e
         end
-
+        
         def update_statement(properties, query)
-          statement = <<-EOS.compress_lines
-            UPDATE #{quote_table_name(query.model.storage_name(name))}
-            SET #{properties.map { |p| "#{quote_column_name(p.field(name))} = ?" } * ', '}
-          EOS
+          statement = "UPDATE #{quote_table_name(query.model.storage_name(name))}"
+          statement << " SET #{set_statement(properties)}"
           statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
           statement
+        end
+        
+        def set_statement(properties)
+          properties.map { |p| "#{quote_column_name(p.field(name))} = ?" } * ', '
         end
 
         def delete_statement(query)
