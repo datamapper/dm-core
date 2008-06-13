@@ -61,27 +61,26 @@ if ADAPTER
 
         post = Post.create(:title => "Entry")
         another_post = Post.create(:title => "Another")
-        post.save
-        another_post.save
 
         crappy = Tagging.new
         post.taggings << crappy
-        crappy.save
+        post.save
 
         crap = Tag.create(:title => "crap")
         crap.taggings << crappy
-        crappy.save
+        crap.save
 
         goody = Tagging.new
         another_post.taggings << goody
-        goody.save
+        another_post.save
 
         good = Tag.create(:title => "good")
         good.taggings << goody
+        good.save
 
         relation = Relationship.new(:related_post => another_post)
         post.relationships << relation
-        relation.save
+        post.save
       end
     end
 

@@ -218,7 +218,7 @@ describe "DataMapper::Resource" do
   end
 
   it "should not mark attributes dirty if there similar after update" do
-    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil, :data => { :a => "Yeah!" })
+    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :data => { :a => "Yeah!" })
     jupiter.save.should be_true
 
     # discriminator will be set automatically

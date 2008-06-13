@@ -926,7 +926,7 @@ if ADAPTER
             @collection.map { |r| r.name }.should_not == names
             @collection.map { |r| r.name }.should == %w[ John ] * 3
           end
-          
+
           it 'should update loaded resource even though whole collection is not loaded' do
             # It fails because while the collection itself might not be loaded, nancy is cached
             # in IM. If collection is not loaded when doing update, it needs to do some kind of
@@ -939,10 +939,10 @@ if ADAPTER
               repository(ADAPTER) do
                 nancy = Zebra.first
                 nancy.name.should == "Nancy"
-              
+
                 collection = Zebra.all(:name => ["Nancy","Bessie"])
                 collection.update(:name => "Stevie")
-              
+
                 nancy.name.should == "Stevie"
               end
             end

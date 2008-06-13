@@ -137,14 +137,14 @@ if ADAPTER
         FortunePig.get!(ted.id).to_s.should == 'Ted'
       end
     end
-    
+
     it "should be able to destroy objects" do
       apple = Apple.create!(:color => 'Green')
       lambda do
         apple.destroy
       end.should_not raise_error
     end
-    
+
     it "should be able to reload objects" do
       orange = repository(ADAPTER) { Orange.get!('Bob') }
       orange.color.should == 'orange'
@@ -340,6 +340,27 @@ if ADAPTER
         repository(ADAPTER) do
           Geek.first(:name => "Bill").iq.should == 180
         end
+      end
+    end
+  end
+
+  describe "DataMapper::Resource::ClassMethods with #{ADAPTER}" do
+    before do
+      repository(ADAPTER) do
+        Male.auto_migrate!
+      end
+    end
+
+    it 'should provide #load' do
+      Male.should respond_to(:load)
+    end
+
+    describe '#load' do
+      it 'should load resources with nil discriminator fields' do
+        jd = Male.create(:name => 'John Doe', :type => nil)
+        jd.type.should be_nil
+        males = Male.all.to_a  # would blow up prior to fix
+        males.first.should == jd
       end
     end
   end

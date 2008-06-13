@@ -153,13 +153,12 @@ module DataMapper
       property  = model.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
-      old_value = instance_variable_get(ivar_name)
       new_value = value
+      old_value = instance_variable_get(ivar_name)
 
-      # skip setting the attribute if the new value equals the old
-      # value, or if the new value is nil, and the property does not
-      # allow nil values
-      return if ((!new_record? || property.options[:default].nil?) && (new_value == old_value)) || (new_value.nil? && !property.nullable?)
+      # skip setting the propert if the new value is equal
+      # to the old value, and the old value was defined
+      return if new_value == old_value && instance_variable_defined?(ivar_name)
 
       if property.lock?
         instance_variable_set("@shadow_#{name}", old_value)
@@ -837,7 +836,7 @@ module DataMapper
         model      = self
 
         if inheritance_property_index = query.inheritance_property_index(repository)
-          model = values.at(inheritance_property_index)
+          model = values.at(inheritance_property_index) || model
         end
 
         if key_property_indexes = query.key_property_indexes(repository)
