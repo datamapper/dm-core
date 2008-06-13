@@ -357,10 +357,16 @@ if ADAPTER
 
     describe '#load' do
       it 'should load resources with nil discriminator fields' do
-        jd = Male.create(:name => 'John Doe', :type => nil)
-        jd.type.should be_nil
-        males = Male.all.to_a  # would blow up prior to fix
-        males.first.should == jd
+        jd = Male.create(:name => 'John Doe')
+        query = Male.all.query
+        fields = query.fields
+
+        fields.should == Male.properties(ADAPTER).slice(:id, :name, :iq, :type)
+
+        # would blow up prior to fix
+        lambda {
+          Male.load([ jd.id, jd.name, jd.iq, nil ], query)
+        }.should_not raise_error(NoMethodError)
       end
     end
   end
