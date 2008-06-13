@@ -46,7 +46,8 @@ module DataMapper
 
     def all(query = {})
       return self if query.kind_of?(Hash) ? query.empty? : query == self.query
-      repository.read_many(scoped_query(query))
+      query = scoped_query(query)
+      query.repository.read_many(query)
     end
 
     def first(*args)
@@ -60,11 +61,12 @@ module DataMapper
       end
 
       query = args.last.respond_to?(:merge) ? args.pop : {}
+      query = scoped_query(query.merge(:limit => args.first || 1))
 
       if args.any?
-        repository.read_many(scoped_query(query.merge(:limit => args.first)))
+        query.repository.read_many(query)
       else
-        repository.read_one(scoped_query(query.merge(:limit => 1)))
+        query.repository.read_one(query)
       end
     end
 
@@ -282,7 +284,7 @@ module DataMapper
       return self.query if query == self.query
 
       query = if query.kind_of?(Hash)
-        Query.new(repository, model, query)
+        Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, model, query)
       elsif query.kind_of?(Query)
         query
       else
