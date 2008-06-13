@@ -4,6 +4,7 @@ module DataMapper
       primitive Class
       track :set
       default lambda { |r,p| p.model }
+      nullable false
 
       def self.bind(property)
         model = property.model
