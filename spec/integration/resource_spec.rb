@@ -137,7 +137,14 @@ if ADAPTER
         FortunePig.get!(ted.id).to_s.should == 'Ted'
       end
     end
-
+    
+    it "should be able to destroy objects" do
+      apple = Apple.create!(:color => 'Green')
+      lambda do
+        apple.destroy
+      end.should_not raise_error
+    end
+    
     it "should be able to reload objects" do
       orange = repository(ADAPTER) { Orange.get!('Bob') }
       orange.color.should == 'orange'
