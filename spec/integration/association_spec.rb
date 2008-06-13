@@ -316,6 +316,7 @@ if ADAPTER
         pie2.sky.should be_nil
 
         sky1.pie = pie2
+        sky1.save
 
         pie2.sky.should == sky1
         pie1.reload.sky.should be_nil
@@ -383,8 +384,11 @@ if ADAPTER
         host1.slices.size.should == 1
 
         slice2 = Slice.first(:name => 'slice2')
+        slice2.host.should_not be_nil
 
-        slice2.host.should be_nil
+        host1.save
+
+        slice2.reload.host.should be_nil
       end
 
       it 'should use the IdentityMap correctly' do
@@ -429,9 +433,11 @@ if ADAPTER
         Yard.first(:name => 'yard 1').type.should == 'particular'
         # it should not add default values if the condition's property already has a value
         engine.fussy_yards << Yard.new(:name => 'yard 2', :rating => 4, :type => 'not particular')
+        engine.save
         Yard.first(:name => 'yard 2').type.should == 'not particular'
         # it should ignore non :eql conditions
         engine.fussy_yards << Yard.new(:name => 'yard 3')
+        engine.save
         Yard.first(:name => 'yard 3').rating.should == nil
       end
 
@@ -451,6 +457,7 @@ if ADAPTER
       it 'should add and save the associated instance' do
         host1 = Host.first(:name => 'host1')
         host1.slices << Slice.new(:id => 4, :name => 'slice4')
+        host1.save
 
         Slice.first(:name => 'slice4').host.should == host1
       end
@@ -539,6 +546,7 @@ if ADAPTER
 
         r1.children.size.should == 3
         r1.children.delete(Node.get(4))
+        r1.save
         Node.get(4).parent.should be_nil
         r1.children.size.should == 2
       end
@@ -851,10 +859,14 @@ if ADAPTER
             3.times do |i|
               barry.coats << Coat.new(:name => "Fancy coat nr #{i}")
             end
+            barry.save
 
             # has 1 => has n
 
-            5.times { |i| betsy.children << Child.new(:name => "Snotling nr #{i}") }
+            5.times do |i|
+              betsy.children << Child.new(:name => "Snotling nr #{i}")
+            end
+            betsy.save
 
             # has 1 => has n => has n
 
@@ -862,6 +874,7 @@ if ADAPTER
               4.times do |i|
                 child.toys << Toy.new(:name => "Cheap toy nr #{i}")
               end
+              child.save
             end
 
             # has 1 => has n => has 1
@@ -1010,40 +1023,40 @@ if ADAPTER
       end
 
     end
-  
+
     if false # Many to many not yet implemented
     describe "many to many associations" do
       before(:all) do
         class RightItem
           include DataMapper::Resource
-        
+
           def self.default_repository_name
             ADAPTER
           end
-        
+
           property :id, Integer, :serial => true
           property :name, String
-  
+
           has n..n, :left_items
         end
 
         class LeftItem
           include DataMapper::Resource
-        
+
           def self.default_repository_name
             ADAPTER
           end
-        
+
           property :id, Integer, :serial => true
           property :name, String
-  
+
           has n..n, :right_items
         end
 
         RightItem.auto_migrate!
         LeftItem.auto_migrate!
       end
-      
+
       def create_item_pair(number)
         @ri = RightItem.new(:name => "ri#{number}")
         @li = LeftItem.new(:name => "li#{number}")
@@ -1055,12 +1068,12 @@ if ADAPTER
         @ri.save; @li.save
         @ri.should_not be_new_record
         @li.should_not be_new_record
-  
+
         @li.right_items << @ri
         @li.right_items.should include(@ri)
         @li.reload
         @ri.reload
-        @li.right_items.should include(@ri)       
+        @li.right_items.should include(@ri)
       end
 
       it "should add to the association from the right" do
@@ -1068,7 +1081,7 @@ if ADAPTER
         @ri.save; @li.save
         @ri.should_not be_new_record
         @li.should_not be_new_record
-        
+
         @ri.left_items << @li
         @ri.left_items.should include(@li)
         @li.reload
@@ -1082,7 +1095,7 @@ if ADAPTER
         @ri.save; @li.save
         @ri.left_items << @li
         @ri.reload; @li.reload
-        
+
         @ri.left_items.should include(@li)
         @li.right_items.should include(@ri)
       end
@@ -1093,10 +1106,10 @@ if ADAPTER
         @ri.save; @li.save
         @li.right_items << @li
         @ri.reload; @li.reload
-        
+
         @ri.left_items.should include(@li)
         @li.right_items.should include(@ri)
-        
+
       end
 
       it "should save the left side of the association if new record" do
@@ -1105,21 +1118,21 @@ if ADAPTER
         @ri.save
         @li.should be_new_record
         @ri.left_items << @li
-        @li.should_not be_new_record        
+        @li.should_not be_new_record
       end
-      
+
       it "should save the right side of the assocaition if new record" do
         pending "Waiting on Many To Many to be implemented"
         create_item_pair "0050"
         @li.save
         @ri.should be_new_record
         @li.right_items << @ri
-        @ri.should_not be_new_record        
+        @ri.should_not be_new_record
       end
-      
+
       it "should save both side of the assocaition if new record" do
         pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0060"        
+        create_item_pair "0060"
         @li.should be_new_record
         @ri.should be_new_record
         @ri.left_items << @li
@@ -1164,7 +1177,7 @@ if ADAPTER
         @ri.reload
         @ri.left_items.should_not include(@li)
       end
-    end 
+    end
   end
   end
 end

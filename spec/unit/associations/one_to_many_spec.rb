@@ -13,11 +13,11 @@ describe DataMapper::Associations::OneToMany do
     end
   end
 
-  describe '#has' do
-    it 'should provide #has' do
-      @class.should respond_to(:has)
-    end
+  it 'should provide #has' do
+    @class.should respond_to(:has)
+  end
 
+  describe '#has' do
     it 'should return a Relationship' do
       @class.has(@class.n, :orders).should be_kind_of(DataMapper::Associations::Relationship)
     end
@@ -98,114 +98,258 @@ describe DataMapper::Associations::OneToMany do
     end
   end
 
-  it "should work with classes inside modules"
+  it 'should work with classes inside modules'
 end
 
 describe DataMapper::Associations::OneToMany::Proxy do
   before do
-    @parent = mock("parent", :new_record? => true, :kind_of? => true)
-    @resource = mock("resource", :null_object => true)
-    @collection = []
-    @repository = mock("repository", :save => nil, :kind_of? => true)
-    @relationship = mock("relationship", :get_children => @collection, :repository_name => :mock, :query => {}, :kind_of? => true)
-    @association = DataMapper::Associations::OneToMany::Proxy.new(@relationship, @parent)
+    @parent       = mock('parent', :new_record? => true, :kind_of? => true)
+    @resource     = mock('resource', :null_object => true)
+    @collection   = []
+    @repository   = mock('repository', :save => nil, :kind_of? => true)
+    @relationship = mock('relationship', :get_children => @collection, :repository_name => :mock, :query => {}, :kind_of? => true)
+    @association  = DataMapper::Associations::OneToMany::Proxy.new(@relationship, @parent)
   end
 
-  describe "when adding a resource" do
-    describe "with a persisted parent" do
-      it "should save the resource" do
-        @parent.should_receive(:new_record?).with(no_args).and_return(false)
-        @relationship.should_receive(:attach_parent).with(@resource, @parent)
-        @collection.should_receive(:<<).with(@resource).and_return(@collection)
-
-        @association << @resource
-      end
+  describe 'a method that relates the resource', :shared => true do
+    it 'should add the resource to the collection' do
+      @association.should_not include(@resource)
+      do_add.should == return_value
+      @association.should include(@resource)
     end
 
-    describe "with a non-persisted parent" do
-      it "should not save the resource" do
-        @parent.should_receive(:new_record?).and_return(true)
-        @association.should_not_receive(:save_resource)
-        @collection.should_receive(:<<).with(@resource).and_return(@collection)
+    it 'should not automatically save that the resource was added to the association' do
+      @relationship.should_not_receive(:attach_parent)
+      do_add.should == return_value
+    end
 
-        @association << @resource
-      end
-
-      it "should save the resource after the parent is saved"
-
-      it "should add the parent's keys to the resource after the parent is saved"
+    it 'should persist the addition after saving the association' do
+      do_add.should == return_value
+      @relationship.should_receive(:attach_parent).with(@resource, @parent)
+      @association.save
     end
   end
 
-  describe "when deleting a resource" do
+  describe 'a method that orphans the resource', :shared => true do
     before do
-      @collection.stub!(:delete).and_return(@resource)
-      @relationship.stub!(:attach_parent)
+      @association << @resource
     end
 
-    it "should delete the resource from the database" do
-      @resource.should_receive(:save).with(no_args)
-
-      @association.delete(@resource)
+    it 'should remove the resource from the collection' do
+      @association.should include(@resource)
+      do_remove.should == return_value
+      @association.should_not include(@resource)
     end
 
-    it "should delete the resource from the association" do
-      @collection.should_receive(:delete).with(@resource).and_return(@resource)
-
-      @association.delete(@resource)
+    it 'should not automatically save that the resource was removed from the association' do
+      @relationship.should_not_receive(:attach_parent)
+      do_remove.should == return_value
     end
 
-    it "should erase the ex-parent's keys from the resource" do
+    it 'should persist the removal after saving the association' do
+      do_remove.should == return_value
       @relationship.should_receive(:attach_parent).with(@resource, nil)
-
-      @association.delete(@resource)
+      @association.save
     end
   end
 
-  describe "when deleting the parent" do
-    it "should delete all the children without calling destroy if relationship :dependent is :delete_all"
-
-    it "should destroy all the children if relationship :dependent is :destroy"
-
-    it "should set the children's parent key to nil if relationship :dependent is :nullify"
-
-    it "should restrict the parent from being deleted if a child remains if relationship :dependent is restrict"
-
-    it "should be restrict by default if relationship :dependent is not specified"
+  it 'should provide #<<' do
+    @association.should respond_to(:<<)
   end
 
-  describe "when replacing the children" do
+  describe '#<<' do
+    def do_add
+      @association << @resource
+    end
+
+    def return_value
+      @association
+    end
+
+    it_should_behave_like 'a method that relates the resource'
+  end
+
+  it 'should provide #push' do
+    @association.should respond_to(:push)
+  end
+
+  describe '#push' do
+    def do_add
+      @association.push(@resource)
+    end
+
+    def return_value
+      @association
+    end
+
+    it_should_behave_like 'a method that relates the resource'
+  end
+
+  it 'should provide #unshift' do
+    @association.should respond_to(:unshift)
+  end
+
+  describe '#unshift' do
+    def do_add
+      @association.unshift(@resource)
+    end
+
+    def return_value
+      @association
+    end
+
+    it_should_behave_like 'a method that relates the resource'
+  end
+
+  it 'should provide #replace' do
+    @association.should respond_to(:replace)
+  end
+
+  describe '#replace' do
     before do
       @children = [
-        mock("child 1"),
-        mock("child 2"),
+        mock('child 1', :save => true),
+        mock('child 2', :save => true),
       ]
       @collection << @resource
       @collection.stub!(:loaded?).and_return(true)
       @relationship.stub!(:attach_parent)
     end
 
-    it "should remove each resource" do
-      @relationship.should_receive(:attach_parent).with(@resource, nil)
-      @resource.should_receive(:save).with(no_args)
-
+    def do_replace
       @association.replace(@children)
     end
 
-    it "should replace the children in the collection" do
-      @children.should_not == @collection
-      @association.entries.should == @collection
+    def return_value
+      @association
+    end
 
-      @association.replace(@children)
+    it 'should remove the resource from the collection' do
+      @association.should include(@resource)
+      do_replace.should == return_value
+      @association.should_not include(@resource)
+    end
 
-      @children.should == @collection  # collection was modified
-      @association.entries.should == @collection
+    it 'should not automatically save that the resource was removed from the association' do
+      @relationship.should_not_receive(:attach_parent)
+      do_replace.should == return_value
+    end
+
+    it 'should persist the removal after saving the association' do
+      do_replace.should == return_value
+      @relationship.should_receive(:attach_parent).with(@resource, nil)
+      @association.save
+    end
+
+    it 'should not automatically save that the children were added to the association' do
+      @relationship.should_not_receive(:attach_parent)
+      do_replace.should == return_value
+    end
+
+    it 'should persist the addition after saving the association' do
+      do_replace.should == return_value
+      @relationship.should_receive(:attach_parent).with(@children[0], @parent)
+      @relationship.should_receive(:attach_parent).with(@children[1], @parent)
+      @association.save
     end
   end
 
-  describe "with an unsaved parent" do
-    describe "when deleting a resource from an unsaved parent" do
-      it "should remove the resource from the association"
+  it 'should provide #pop' do
+    @association.should respond_to(:pop)
+  end
+
+  describe '#pop' do
+    def do_remove
+      @association.pop
     end
+
+    def return_value
+      @resource
+    end
+
+    it_should_behave_like 'a method that orphans the resource'
+  end
+
+  it 'should provide #shift' do
+    @association.should respond_to(:shift)
+  end
+
+  describe '#shift' do
+    def do_remove
+      @association.shift
+    end
+
+    def return_value
+      @resource
+    end
+
+    it_should_behave_like 'a method that orphans the resource'
+  end
+
+  it 'should provide #delete' do
+    @association.should respond_to(:delete)
+  end
+
+  describe '#delete' do
+    def do_remove
+      @association.delete(@resource)
+    end
+
+    def return_value
+      @resource
+    end
+
+    it_should_behave_like 'a method that orphans the resource'
+  end
+
+  it 'should provide #delete_at' do
+    @association.should respond_to(:delete_at)
+  end
+
+  describe '#delete_at' do
+    def do_remove
+      @association.delete_at(0)
+    end
+
+    def return_value
+      @resource
+    end
+
+    it_should_behave_like 'a method that orphans the resource'
+  end
+
+  it 'should provide #clear' do
+    @association.should respond_to(:clear)
+  end
+
+  describe '#clear' do
+    def do_remove
+      @association.clear
+    end
+
+    def return_value
+      @association
+    end
+
+    it_should_behave_like 'a method that orphans the resource'
+
+    it 'should empty the collection' do
+      @association << mock('other resource')
+      @association.should have(2).entries
+      do_remove
+      @association.should be_empty
+    end
+  end
+
+  describe 'when deleting the parent' do
+    it 'should delete all the children without calling destroy if relationship :dependent is :delete_all'
+
+    it 'should destroy all the children if relationship :dependent is :destroy'
+
+    it 'should set the parent key for each child to nil if relationship :dependent is :nullify'
+
+    it 'should restrict the parent from being deleted if a child remains if relationship :dependent is restrict'
+
+    it 'should be restrict by default if relationship :dependent is not specified'
   end
 end

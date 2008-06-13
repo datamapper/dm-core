@@ -461,10 +461,9 @@ module DataMapper
     # @public
     def reload
       reload_attributes(*loaded_attributes)
-      (parent_associations + child_associations).each { |association| association.reload! }
+      (parent_associations + child_associations).each { |association| association.reload }
       self
     end
-    alias reload! reload
 
     # Reload specific attributes
     #

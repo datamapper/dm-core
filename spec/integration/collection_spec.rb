@@ -66,6 +66,7 @@ if ADAPTER
 
         @nancy.stripes << @babe
         @nancy.stripes << @snowball
+        @nancy.save
       end
     end
   end

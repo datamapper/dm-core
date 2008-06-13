@@ -14,6 +14,7 @@ module DataMapper
       @query = scoped_query(query)
       @query.update(:fields => @query.fields | @key_properties)
       replace(all(:reload => true))
+      self
     end
 
     def get(*key)

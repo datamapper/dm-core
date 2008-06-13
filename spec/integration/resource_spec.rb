@@ -150,13 +150,13 @@ if ADAPTER
       orange.color.should == 'orange'
       orange.color = 'blue'
       orange.color.should == 'blue'
-      orange.reload!
+      orange.reload
       orange.color.should == 'orange'
     end
 
     it "should be able to reload new objects" do
       repository(ADAPTER) do
-        Orange.create(:name => 'Tom').reload!
+        Orange.create(:name => 'Tom').reload
       end
     end
 

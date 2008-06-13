@@ -58,94 +58,125 @@ module DataMapper
 
       module_function :setup
 
+      # TODO: look at making this inherit from Collection.  The API is
+      # almost identical, and it would make more sense for the
+      # relationship.get_children method to return a Proxy than a
+      # Collection that is wrapped in a Proxy.
       class Proxy
-        # TODO: add assertions when attempting to perform operations
-        # on the proxy when the parent is a new record and the underlying
-        # children are an Array.  Will not be able to use .all(),
-        # or .first(), or .destroy() for example.
-
         instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
 
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def all(query = {})
-          query.empty? ? self : @relationship.get_children(@parent_resource, query)
+          query.empty? ? self : @relationship.get_children(@parent, query)
         end
 
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def first(*args)
           if args.last.respond_to?(:merge)
             query = args.pop
-            @relationship.get_children(@parent_resource, query, :first, *args)
+            @relationship.get_children(@parent, query, :first, *args)
           else
             super
           end
         end
 
-        def replace(resources)
-          each { |resource| orphan_resource(resource) }
-          resources.each { |resource| relate_resource(resource) }
-          super
-        end
-
-        def push(*resources)
-          resources.each { |resource| relate_resource(resource) }
-          super
-        end
-
-        def unshift(*resources)
-          resources.each { |resource| relate_resource(resource) }
-          super
-        end
-
         def <<(resource)
           assert_mutable
-          #
-          # The order here is of the essence.
-          #
-          # self.relate_resource used to be called before children.<<, which created weird errors
-          # where the resource was appended in the db before it was appended onto the @children
-          # structure, that was just read from the database, and therefore suddenly had two
-          # elements instead of one after the first addition.
-          #
-
           super
           relate_resource(resource)
           self
         end
 
+        def push(*resources)
+          assert_mutable
+          super
+          resources.each { |resource| relate_resource(resource) }
+          self
+        end
+
+        def unshift(*resources)
+          assert_mutable
+          super
+          resources.each { |resource| relate_resource(resource) }
+          self
+        end
+
+        def replace(other)
+          assert_mutable
+          each { |resource| orphan_resource(resource) }
+          super
+          other.each { |resource| relate_resource(resource) }
+          self
+        end
+
         def pop
+          assert_mutable
           orphan_resource(super)
         end
 
         def shift
+          assert_mutable
           orphan_resource(super)
         end
 
         def delete(resource, &block)
+          assert_mutable
           orphan_resource(super)
         end
 
         def delete_at(index)
+          assert_mutable
           orphan_resource(super)
         end
 
         def clear
+          assert_mutable
           each { |resource| orphan_resource(resource) }
           super
           self
         end
 
-        def save
-          @dirty_children.each { |resource| save_resource(resource) }
-          @dirty_children = []
-          @children = @relationship.get_children(@parent_resource).replace(children) unless children.frozen?
-          self
+        # FIXME: remove when RelationshipChain#get_children can return a Collection
+        def create(attributes = {})
+          assert_mutable
+          super
         end
 
-        def reload!
-          @dirty_children = []
-          @children = nil
-          self
+        # FIXME: remove when RelationshipChain#get_children can return a Collection
+        def update(attributes = {})
+          assert_mutable
+          super
+        end
+
+        # FIXME: remove when RelationshipChain#get_children can return a Collection
+        def destroy
+          assert_mutable
+          super
+        end
+
+        def save
+          assert_mutable
+
+          # save every resource in the collection
+          each { |resource| save_resource(resource) }
+
+          # save orphan resources
+          @orphans.each do |resource|
+            begin
+              save_resource(resource, nil)
+            rescue
+              children << resource unless children.frozen? || children.include?(resource)
+              raise
+            end
+          end
+
+          # FIXME: remove when RelationshipChain#get_children can return a Collection
+          # place the children into a Collection if not already
+          if children.kind_of?(Array) && !children.frozen?
+            @children = @relationship.get_children(@parent).replace(children)
+          end
+
+          true
         end
 
         def kind_of?(klass)
@@ -158,17 +189,17 @@ module DataMapper
 
         private
 
-        def initialize(relationship, parent_resource)
+        def initialize(relationship, parent)
           raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless relationship.kind_of?(Relationship)
-          raise ArgumentError, "+parent_resource+ should be a DataMapper::Resource, but was #{parent_resource.class}", caller            unless parent_resource.kind_of?(Resource)
+          raise ArgumentError, "+parent+ should be a DataMapper::Resource, but was #{parent.class}", caller                              unless parent.kind_of?(Resource)
 
-          @relationship    = relationship
-          @parent_resource = parent_resource
-          @dirty_children  = []
+          @relationship = relationship
+          @parent       = parent
+          @orphans      = []
         end
 
         def children
-          @children ||= @relationship.get_children(@parent_resource)
+          @children ||= @relationship.get_children(@parent)
         end
 
         def assert_mutable
@@ -193,26 +224,17 @@ module DataMapper
         def relate_resource(resource)
           assert_mutable
           add_default_association_values(resource)
-          if @parent_resource.new_record?
-            @dirty_children << resource
-          else
-            save_resource(resource)
-          end
+          @orphans.delete(resource)
           resource
         end
 
         def orphan_resource(resource)
-          begin
-            save_resource(resource, nil)
-          rescue
-            children << resource unless children.frozen? || children.include?(resource)
-            raise
-          end
+          assert_mutable
+          @orphans << resource
           resource
         end
 
-        def save_resource(resource, parent = @parent_resource)
-          assert_mutable
+        def save_resource(resource, parent = @parent)
           repository(@relationship.repository_name) do
             @relationship.attach_parent(resource, parent)
             resource.save

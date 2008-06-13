@@ -639,6 +639,7 @@ if HAS_POSTGRES
 
         h.slices.delete(s)
         h.slices.size.should == 1
+        h.save
 
         s = repository(:postgres) do
           Slice.first(:id => s.id)
@@ -664,6 +665,7 @@ if HAS_POSTGRES
           h = Host.first(:id => 1)
 
           h.slices << Slice.new(:id => 3, :name => 'slice3')
+          h.save
 
           s = repository(:postgres) do
             Slice.first(:id => 3)

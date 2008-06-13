@@ -58,15 +58,17 @@ module DataMapper
     end
 
     def get(resource)
+      assert_argument_kind_of 'resource', resource, Resource
       map { |property| property.get(resource) }
     end
 
     def set(resource, values)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
+      assert_argument_kind_of('resource', resource, Resource)
+
       if values.kind_of?(Array)
         raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller if values.length != length
       elsif !values.nil?
-        raise ArgumentError, "+values+ must be nil or an Array, but was a #{values.class}", caller
+        assert_argument_kind_of('values', values, NiClass, Array)
       end
 
       each_with_index { |property,i| property.set(resource, values.nil? ? nil : values[i]) }
@@ -87,8 +89,8 @@ module DataMapper
     def lazy_load_context(names)
       if names.kind_of?(Array)
         raise ArgumentError, "+names+ cannot be an empty Array", caller if names.empty?
-      elsif !(names.kind_of?(Symbol))
-        raise ArgumentError, "+names+ must be a Symbol or an Array of Symbols, but was a #{names.class}", caller
+      else
+        assert_argument_kind_of('names', names, Symbol, Array)
       end
 
       result = []
@@ -125,7 +127,7 @@ module DataMapper
     private
 
     def initialize(properties = [])
-      raise ArgumentError, "+properties+ should be an Array, but was #{properties.class}", caller unless properties.kind_of?(Array)
+      assert_argument_kind_of('properties', properties, Array)
 
       @entries = properties
       @property_for = hash_for_property_for
@@ -138,7 +140,7 @@ module DataMapper
 
     def hash_for_property_for
       Hash.new do |h,k|
-        raise "Key must be a Symbol or String, but was #{k.class}" unless [String, Symbol].include?(k.class)
+        assert_argument_kind_of('key', k, String, Symbol)
 
         ksym = k.to_sym
         if property = detect { |property| property.name == ksym }
@@ -158,6 +160,12 @@ module DataMapper
         index_hash[index.to_s] ||= []
         index_hash[index.to_s] << property
       when Array then index.each { |idx| parse_index(idx, property, index_hash) }
+      end
+    end
+
+    def assert_argument_kind_of(name, value, *klasses)
+      unless klasses.any? { |k| value.kind_of?(k) }
+        raise ArgumentError, "+#{name}+ should be #{klasses.map { |k| k.to_s } * ' or '}, but was #{value.class}", caller(2)
       end
     end
 
