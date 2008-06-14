@@ -64,6 +64,11 @@ module DataMapper
     #
     # @api public
     def has(cardinality, name, options = {})
+      if name.kind_of?(Hash)
+        name_through, through = name.keys.first, name.values.first
+        warn("'has #{cardinality == n ? 'n' : cardinality.inspect}, #{name_through.inspect} => #{through.inspect}' is deprecated. Use 'has #{cardinality.inspect}, #{name_through.inspect}, :through => #{through.inspect}' instead")
+      end
+
       options = options.merge(extract_min_max(cardinality))
       options = options.merge(extract_throughness(name))
 
