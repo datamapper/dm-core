@@ -12,8 +12,8 @@ OUTPUT = DataMapper.root / 'profile_results.html'
 
 SOCKET_FILE = Pathname.glob(%w[
   /opt/local/var/run/mysql5/mysqld.sock
-  tmp/mysqld.sock
-  tmp/mysql.sock
+  /tmp/mysqld.sock
+  /tmp/mysql.sock
   /var/mysql/mysql.sock
 ]).find { |path| path.socket? }
 
