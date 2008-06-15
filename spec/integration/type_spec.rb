@@ -97,7 +97,7 @@ if ADAPTER
 
         fred.save.should be_true
 
-        # Can't call coconut.reload! since coconut.collection isn't setup.
+        # Can't call coconut.reload since coconut.collection isn't setup.
         mac = TypeTests::Coconut.get!(fred.id)
         mac.active.should == active
         mac.note.should == note

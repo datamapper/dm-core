@@ -89,11 +89,11 @@ module DataMapper
       #load DataMapper::Property options
       PROPERTY_OPTIONS.each do |property_option|
         self.class_eval <<-EOS, __FILE__, __LINE__
-        def #{property_option}(arg = nil)
-          return @#{property_option} if arg.nil?
+          def #{property_option}(arg = nil)
+            return @#{property_option} if arg.nil?
 
-          @#{property_option} = arg
-        end
+            @#{property_option} = arg
+          end
         EOS
       end
 
@@ -130,7 +130,7 @@ module DataMapper
     #
     # @api public
     def self.dump(value, property)
-        value
+      value
     end
 
     # Stub instance method for loading

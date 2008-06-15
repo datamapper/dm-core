@@ -16,8 +16,8 @@ module DataMapper
             #{name}_association.nil? ? nil : #{name}_association
           end
 
-          def #{name}=(parent_resource)
-            #{name}_association.replace(parent_resource)
+          def #{name}=(parent)
+            #{name}_association.replace(parent)
           end
 
           private
@@ -46,23 +46,24 @@ module DataMapper
       class Proxy
         instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
 
-        def replace(parent_resource)
-          @parent_resource = parent_resource
-          @relationship.attach_parent(@child_resource, @parent_resource) if @parent_resource.nil? || !@parent_resource.new_record?
+        def replace(parent)
+          @parent = parent
           self
         end
 
         def save
-          return unless parent && parent.new_record?
+          return false if parent.nil?
 
           repository(@relationship.repository_name) do
-            parent.save
-            @relationship.attach_parent(@child_resource, parent)
+            parent.save if parent.new_record?
+            @relationship.attach_parent(@child, parent)
           end
+
+          true
         end
 
-        def reload!
-          @parent_resource = nil
+        def reload
+          @parent = nil
           self
         end
 
@@ -76,20 +77,16 @@ module DataMapper
 
         private
 
-        def initialize(relationship, child_resource)
+        def initialize(relationship, child)
           raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless relationship.kind_of?(Relationship)
-          raise ArgumentError, "+child_resource+ should be a DataMapper::Resource, but was #{child_resource.class}", caller              unless child_resource.kind_of?(Resource)
+          raise ArgumentError, "+child+ should be a DataMapper::Resource, but was #{child.class}", caller                                unless child.kind_of?(Resource)
 
           @relationship   = relationship
-          @child_resource = child_resource
+          @child = child
         end
 
         def parent
-          @parent_resource ||= @relationship.get_parent(@child_resource)
-        end
-
-        def kind_of?(klass)
-           super || parent.kind_of?(klass)
+          @parent ||= @relationship.get_parent(@child)
         end
 
         def method_missing(method, *args, &block)

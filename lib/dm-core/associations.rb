@@ -13,6 +13,9 @@ module DataMapper
     class ImmutableAssociationError < RuntimeError
     end
 
+    class UnsavedParentError < RuntimeError
+    end
+
     def relationships(repository_name = default_repository_name)
       @relationships ||= Hash.new { |h,k| h[k] = k == Repository.default_name ? {} : h[Repository.default_name].dup }
       @relationships[repository_name]
@@ -61,13 +64,25 @@ module DataMapper
     #
     # @api public
     def has(cardinality, name, options = {})
+
+      # NOTE: the reason for this fix is that with the ability to pass in two
+      # hashes into has() there might be instances where people attempt to
+      # pass in the options into the name part and not know why things aren't
+      # working for them.
+      if name.kind_of?(Hash)
+        name_through, through = name.keys.first, name.values.first
+        cardinality_string = cardinality.to_s == 'Infinity' ? 'n' : cardinality.inspect
+        warn("In #{self.name} 'has #{cardinality_string}, #{name_through.inspect} => #{through.inspect}' is deprecated. Use 'has #{cardinality_string}, #{name_through.inspect}, :through => #{through.inspect}' instead")
+      end
+
       options = options.merge(extract_min_max(cardinality))
       options = options.merge(extract_throughness(name))
 
       # do not remove this. There is alot of confusion on people's
       # part about what the first argument to has() is.  For the record it
-      # is the cardinality, or rather the min and max number of results
-      # the association will return.  It is not, as has been assumed,
+      # is the min cardinality and max cardinality of the association.
+      # simply put, it constraints the number of resources that will be
+      # returned by the association.  It is not, as has been assumed,
       # the number of results on the left and right hand side of the
       # reltionship.
       raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association' if options[:min] == n && options[:max] == n
@@ -115,6 +130,7 @@ module DataMapper
     def extract_throughness(name)
       case name
         when Hash
+          raise ArgumentError, "name must have only one key, but had #{name.keys.size}" unless name.keys.size == 1
           { :name => name.keys.first, :through => name.values.first }
         when Symbol
           { :name => name }

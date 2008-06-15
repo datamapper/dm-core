@@ -153,13 +153,12 @@ module DataMapper
       property  = model.properties(repository.name)[name]
       ivar_name = property.instance_variable_name
 
+      new_value = property.typecast(value)
       old_value = instance_variable_get(ivar_name)
-      new_value = value
 
-      # skip setting the attribute if the new value equals the old
-      # value, or if the new value is nil, and the property does not
-      # allow nil values
-      return if ((!new_record? || property.options[:default].nil?) && (new_value == old_value)) || (new_value.nil? && !property.nullable?)
+      # skip setting the propert if the new value is equal
+      # to the old value, and the old value was defined
+      return if new_value == old_value && instance_variable_defined?(ivar_name)
 
       if property.lock?
         instance_variable_set("@shadow_#{name}", old_value)
@@ -395,11 +394,12 @@ module DataMapper
 
       original_values.each do |name, old_value|
         property  = self.class.properties(repository.name)[name]
-        ivar_name = property.instance_variable_name
+        new_value = instance_variable_get(property.instance_variable_name)
 
-        value     = instance_variable_get(ivar_name)
-        new_value = property.custom? ? property.type.dump(value, property)     : property.typecast(value)
-        old_value = property.custom? ? property.type.dump(old_value, property) : property.typecast(old_value)
+        if property.custom?
+          new_value = property.type.dump(new_value, property)
+          old_value = property.type.dump(old_value, property)
+        end
 
         dirty = case property.track
           when :hash then old_value != new_value.hash
@@ -461,10 +461,9 @@ module DataMapper
     # @public
     def reload
       reload_attributes(*loaded_attributes)
-      (parent_associations + child_associations).each { |association| association.reload! }
+      (parent_associations + child_associations).each { |association| association.reload }
       self
     end
-    alias reload! reload
 
     # Reload specific attributes
     #
@@ -838,7 +837,7 @@ module DataMapper
         model      = self
 
         if inheritance_property_index = query.inheritance_property_index(repository)
-          model = values.at(inheritance_property_index)
+          model = values.at(inheritance_property_index) || model
         end
 
         if key_property_indexes = query.key_property_indexes(repository)
@@ -892,7 +891,9 @@ module DataMapper
         Repository.default_name
       end
 
-      def scoped_query(query)
+      def scoped_query(query = self.query)
+        return self.query if query == self.query
+
         query = if query.kind_of?(Hash)
           Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, self, query)
         elsif query.kind_of?(Query)

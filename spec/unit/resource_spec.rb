@@ -71,6 +71,23 @@ describe "DataMapper::Resource" do
     end
   end
 
+  it 'should provide #attribute_set' do
+    Planet.new.should respond_to(:attribute_set)
+  end
+
+  describe '#attribute_set' do
+    it 'should typecast the value' do
+      Planet.properties[:age].should_receive(:typecast).with('1').and_return(1)
+      planet = Planet.new
+      planet.age = '1'
+      planet.age.should == 1
+    end
+  end
+
+  it 'should provide #save' do
+    Planet.new.should respond_to(:save)
+  end
+
   describe '#save' do
     before do
       @adapter = repository(:default).adapter
@@ -218,7 +235,7 @@ describe "DataMapper::Resource" do
   end
 
   it "should not mark attributes dirty if there similar after update" do
-    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil, :data => { :a => "Yeah!" })
+    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :data => { :a => "Yeah!" })
     jupiter.save.should be_true
 
     # discriminator will be set automatically

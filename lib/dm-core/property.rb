@@ -414,6 +414,8 @@ module DataMapper
       elsif type == Date       then typecast_to_date(value)
       elsif type == Time       then typecast_to_time(value)
       elsif type == Class      then find_const(value)
+      else
+        value
       end
     end
 
@@ -457,18 +459,17 @@ module DataMapper
       # Custom-Type and out of Property.
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
 
-      @getter   = TrueClass == @primitive ? "#{@name}?".to_sym : @name
-      @lock     = @options.fetch(:lock,     false)
-      @serial   = @options.fetch(:serial,   false)
-      @key      = @options.fetch(:key,      @serial || false)
-      @default  = @options.fetch(:default,  nil)
-      @nullable = @options.fetch(:nullable, @key == false && @default.nil?)
-      @index    = @options.fetch(:index,    false)
+      @getter       = TrueClass == @primitive ? "#{@name}?".to_sym : @name
+      @lock         = @options.fetch(:lock,         false)
+      @serial       = @options.fetch(:serial,       false)
+      @key          = @options.fetch(:key,          @serial || false)
+      @default      = @options.fetch(:default,      nil)
+      @nullable     = @options.fetch(:nullable,     @key == false)
+      @index        = @options.fetch(:index,        false)
       @unique_index = @options.fetch(:unique_index, false)
+      @lazy         = @options.fetch(:lazy,         @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
 
-      @lazy     = @options.fetch(:lazy,     @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
-
-      @track    = @options.fetch(:track) do
+      @track = @options.fetch(:track) do
         if @custom && @type.respond_to?(:track) && @type.track
           @type.track
         else
@@ -489,9 +490,8 @@ module DataMapper
       create_getter
       create_setter
 
-      @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
+      @model.auto_generate_validations(self)    if @model.respond_to?(:auto_generate_validations)
       @model.property_serialization_setup(self) if @model.respond_to?(:property_serialization_setup)
-
     end
 
     def determine_visibility # :nodoc:

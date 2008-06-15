@@ -66,6 +66,7 @@ if ADAPTER
 
         @nancy.stripes << @babe
         @nancy.stripes << @snowball
+        @nancy.save
       end
     end
   end
@@ -330,10 +331,12 @@ if ADAPTER
           it 'should create a new resource' do
             resource = @collection.create(:name => 'John')
             resource.should be_kind_of(@model)
+            resource.should_not be_new_record
           end
 
           it 'should append the new resource to the collection' do
             resource = @collection.create(:name => 'John')
+            resource.should_not be_new_record
             resource.collection.object_id.should == @collection.object_id
             @collection.should include(resource)
           end
@@ -343,7 +346,6 @@ if ADAPTER
             Zebra.should_receive(:repository).at_least(:once).and_return(@repository)
 
             resource = @collection.create(:name => 'John')
-
             resource.should be_new_record
 
             resource.collection.object_id.should_not == @collection.object_id
@@ -352,6 +354,7 @@ if ADAPTER
 
           it 'should use the query conditions to set default values' do
             resource = @collection.create
+            resource.should_not be_new_record
             resource.name.should be_nil
 
             @collection.query.update(:name => 'John')
@@ -925,7 +928,7 @@ if ADAPTER
             @collection.map { |r| r.name }.should_not == names
             @collection.map { |r| r.name }.should == %w[ John ] * 3
           end
-          
+
           it 'should update loaded resource even though whole collection is not loaded' do
             # It fails because while the collection itself might not be loaded, nancy is cached
             # in IM. If collection is not loaded when doing update, it needs to do some kind of
@@ -938,10 +941,10 @@ if ADAPTER
               repository(ADAPTER) do
                 nancy = Zebra.first
                 nancy.name.should == "Nancy"
-              
+
                 collection = Zebra.all(:name => ["Nancy","Bessie"])
                 collection.update(:name => "Stevie")
-              
+
                 nancy.name.should == "Stevie"
               end
             end

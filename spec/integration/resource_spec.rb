@@ -137,26 +137,26 @@ if ADAPTER
         FortunePig.get!(ted.id).to_s.should == 'Ted'
       end
     end
-    
+
     it "should be able to destroy objects" do
       apple = Apple.create!(:color => 'Green')
       lambda do
         apple.destroy
       end.should_not raise_error
     end
-    
+
     it "should be able to reload objects" do
       orange = repository(ADAPTER) { Orange.get!('Bob') }
       orange.color.should == 'orange'
       orange.color = 'blue'
       orange.color.should == 'blue'
-      orange.reload!
+      orange.reload
       orange.color.should == 'orange'
     end
 
     it "should be able to reload new objects" do
       repository(ADAPTER) do
-        Orange.create(:name => 'Tom').reload!
+        Orange.create(:name => 'Tom').reload
       end
     end
 
@@ -340,6 +340,33 @@ if ADAPTER
         repository(ADAPTER) do
           Geek.first(:name => "Bill").iq.should == 180
         end
+      end
+    end
+  end
+
+  describe "DataMapper::Resource::ClassMethods with #{ADAPTER}" do
+    before do
+      repository(ADAPTER) do
+        Male.auto_migrate!
+      end
+    end
+
+    it 'should provide #load' do
+      Male.should respond_to(:load)
+    end
+
+    describe '#load' do
+      it 'should load resources with nil discriminator fields' do
+        jd = Male.create(:name => 'John Doe')
+        query = Male.all.query
+        fields = query.fields
+
+        fields.should == Male.properties(ADAPTER).slice(:id, :name, :iq, :type)
+
+        # would blow up prior to fix
+        lambda {
+          Male.load([ jd.id, jd.name, jd.iq, nil ], query)
+        }.should_not raise_error(NoMethodError)
       end
     end
   end
