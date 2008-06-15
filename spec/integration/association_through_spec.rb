@@ -4,7 +4,7 @@ if ADAPTER
   describe 'through-associations' do
     before :all do
       repository(ADAPTER) do
-        
+
         class Tag
           include DataMapper::Resource
           def self.default_repository_name
@@ -22,7 +22,7 @@ if ADAPTER
 
           has n, :posts, :through => :taggings
         end
-        
+
         class Tagging
           include DataMapper::Resource
           def self.default_repository_name
@@ -35,7 +35,7 @@ if ADAPTER
           belongs_to :post
           belongs_to :tag
         end
-        
+
         class Post
           include DataMapper::Resource
           def self.default_repository_name
@@ -50,11 +50,11 @@ if ADAPTER
 
           has n, :relationships
           has n, :related_posts,
-                 :through    => :relationships, 
+                 :through    => :relationships,
                  :class_name => "Post"
-          
-          has n,  :void_tags, 
-                  :through => :taggings, 
+
+          has n,  :void_tags,
+                  :through => :taggings,
                   :class_name => "Tag",
                   :remote_relationship_name => :tag,
                   Post.taggings.tag.voided => true
@@ -69,7 +69,7 @@ if ADAPTER
           property :id, Integer, :serial => true
           belongs_to :post
           belongs_to :related_post, :class_name => "Post"
-        end        
+        end
 
         [Post, Tag, Tagging, Relationship].each do |descendant|
           descendant.auto_migrate!(ADAPTER)
@@ -85,11 +85,11 @@ if ADAPTER
         crap = Tag.create(:title => "crap")
         crap.taggings << crappy
         crap.save
-        
+
         crappier = Tagging.new
         post.taggings << crappier
         post.save
-        
+
         crapz = Tag.create(:title => "crapz", :voided => true)
         crapz.taggings << crappier
         crapz.save
@@ -138,13 +138,13 @@ if ADAPTER
     it 'should proxy object should be frozen' do
       Post.first.related_posts.should be_frozen
     end
-    
+
     it "should respect tagging with conditions" do
       post = Post.get(1)
       post.tags.size
       post.tags.select{|t| t.voided == true}.size.should == 1
       post.void_tags.size.should == 1
-      post.void_tags.all?{|t| t.voided == true}.should be_true      
+      post.void_tags.all?{|t| t.voided == true}.should be_true
     end
   end
 end

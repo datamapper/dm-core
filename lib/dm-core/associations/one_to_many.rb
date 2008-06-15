@@ -47,7 +47,7 @@ module DataMapper
           opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
           opts[:parent_key]               =   opts[:parent_key]
           opts[:child_key]                =   opts[:child_key]
-          
+
           RelationshipChain.new( opts )
         else
           Relationship.new(
