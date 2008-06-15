@@ -17,7 +17,7 @@ if HAS_SQLITE3
       end
 
       it "#upgrade_model should work" do
-        @adapter.destroy_model_storage(nil, Sputnik)
+        @adapter.destroy_model_storage(repository(:sqlite3), Sputnik)
         @adapter.storage_exists?("sputniks").should == false
         Sputnik.auto_migrate!(:sqlite3)
         @adapter.storage_exists?("sputniks").should == true

@@ -1,5 +1,7 @@
 module DataMapper
   class Collection < LazyArray
+    include Assertions
+
     attr_reader :query
 
     def repository
@@ -98,7 +100,7 @@ module DataMapper
         limit  = range.last - offset
         limit += 1 unless range.exclude_end?
       else
-        raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}"
+        raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}", caller
       end
 
       all(:offset => offset, :limit => limit)
@@ -250,8 +252,11 @@ module DataMapper
     private
 
     def initialize(query, &block)
-      raise ArgumentError, "+query+ must be a DataMapper::Query, but was #{query.class}", caller unless query.kind_of?(Query)
-      raise ArgumentError, 'a block must be supplied for lazy loading results', caller           unless block_given?
+      assert_kind_of 'query', query, Query
+
+      unless block_given?
+        raise ArgumentError, 'a block must be supplied for lazy loading results', caller
+      end
 
       @query          = query
       @key_properties = model.key(repository.name)
@@ -279,16 +284,16 @@ module DataMapper
     end
 
     def scoped_query(query = self.query)
+      assert_kind_of 'query', query, Query, Hash
+
       query.update(keys) if loaded?
 
       return self.query if query == self.query
 
       query = if query.kind_of?(Hash)
         Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, model, query)
-      elsif query.kind_of?(Query)
-        query
       else
-        raise ArgumentError, "+query+ must be either a Hash or DataMapper::Query, but was a #{query.class}"
+        query
       end
 
       if query.limit || query.offset > 0

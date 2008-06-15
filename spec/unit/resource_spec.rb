@@ -363,142 +363,6 @@ describe "DataMapper::Resource" do
     earth.orbit_period.should == 365.26
   end
 
-  describe 'ClassMethods' do
-    it "should return a new Transaction with itself as argument on #transaction" do
-      transaction = mock("transaction")
-      DataMapper::Transaction.should_receive(:new).with(Planet).and_return(transaction)
-      Planet.transaction.should == transaction
-    end
-
-    it 'should add hook functionality to including class' do
-      Planet.should respond_to(:before)
-      Planet.should respond_to(:after)
-    end
-
-    it 'should provide a repository' do
-      Planet.should respond_to(:repository)
-    end
-
-    it '.repository should delegate to DataMapper.repository' do
-      repository = mock('repository')
-      DataMapper.should_receive(:repository).with(:legacy).and_return(repository)
-      Planet.repository(:legacy).should == repository
-    end
-
-    it '.repository should use default repository when not passed any arguments' do
-      Planet.repository.name.should == Planet.repository(:default).name
-      LegacyStar.repository.name.should == LegacyStar.repository(:legacy).name
-    end
-
-    it 'should provide storage_name' do
-      Planet.should respond_to(:storage_name)
-    end
-
-    it '.storage_name should map a repository to the storage location' do
-      Planet.storage_name(:legacy).should == 'dying_planets'
-    end
-
-    it '.storage_name should use default repository when not passed any arguments' do
-      Planet.storage_name.object_id.should == Planet.storage_name(:default).object_id
-    end
-
-    it 'should provide storage_names' do
-      Planet.should respond_to(:storage_names)
-    end
-
-    it '.storage_names should return a Hash mapping each repository to a storage location' do
-      Planet.storage_names.should be_kind_of(Hash)
-      Planet.storage_names.should == { :default => 'planets', :legacy => 'dying_planets' }
-    end
-
-    it 'should provide property' do
-      Planet.should respond_to(:property)
-    end
-
-    it 'should specify property'
-
-    it 'should provide properties' do
-      Planet.should respond_to(:properties)
-    end
-
-    it '.properties should return an PropertySet' do
-      Planet.properties(:legacy).should be_kind_of(DataMapper::PropertySet)
-      Planet.properties(:legacy).should have(7).entries
-    end
-
-    it '.properties should use default repository when not passed any arguments' do
-      Planet.properties.object_id.should == Planet.properties(:default).object_id
-    end
-
-    it 'should provide key' do
-      Planet.should respond_to(:key)
-    end
-
-    it '.key should return an Array of Property objects' do
-      Planet.key(:legacy).should be_kind_of(Array)
-      Planet.key(:legacy).should have(1).entries
-      Planet.key(:legacy).first.should be_kind_of(DataMapper::Property)
-    end
-
-    it '.key should use default repository when not passed any arguments' do
-      Planet.key.should == Planet.key(:default)
-    end
-
-    it '.key should not cache the key value' do
-      Planet.key.object_id.should_not == Planet.key(:default)
-
-      # change the key and make sure the Array changes
-      Planet.key == Planet.properties.slice(:id)
-      Planet.property(:new_prop, String, :key => true)
-      Planet.key.object_id.should_not == Planet.key(:default)
-      Planet.key == Planet.properties.slice(:id, :new_prop)
-    end
-
-    it 'should provide inheritance_property' do
-      Planet.should respond_to(:inheritance_property)
-    end
-
-    it '.inheritance_property should return a Property object' do
-      Planet.inheritance_property(:legacy).should be_kind_of(DataMapper::Property)
-      Planet.inheritance_property(:legacy).name.should == :type
-      Planet.inheritance_property(:legacy).type.should == DataMapper::Types::Discriminator
-    end
-
-    it '.inheritance_property should use default repository when not passed any arguments' do
-      Planet.inheritance_property.object_id.should == Planet.inheritance_property(:default).object_id
-    end
-
-    it 'should provide finder methods' do
-      Planet.should respond_to(:get)
-      Planet.should respond_to(:first)
-      Planet.should respond_to(:all)
-      Planet.should respond_to(:[])
-    end
-
-    it 'should provide .storage_exists?' do
-      Planet.should respond_to(:storage_exists?)
-    end
-
-    it '.storage_exists? should return whether or not the storage exists' do
-      Planet.should_receive(:repository).with(:default) do
-        repository = mock('repository')
-        repository.should_receive(:storage_exists?).with('planets').and_return(true)
-        repository
-      end
-      Planet.storage_exists?.should == true
-    end
-
-    it 'should provide #default_order' do
-      Planet.should respond_to(:default_order)
-    end
-
-    describe '#default_order' do
-      it 'should be equal to #key by default' do
-        Planet.default_order.should == Planet.key
-      end
-    end
-  end
-
   describe "anonymity" do
     it "should require a default storage name and accept a block" do
       pluto = DataMapper::Resource.new("planet") do
@@ -607,6 +471,172 @@ describe "DataMapper::Resource" do
       @pi = PoisonIvy.new
       @pi.length = 3
       @pi.length.should == 2
+    end
+  end
+end
+
+describe 'DataMapper::Resource::ClassMethods' do
+  describe '#transaction' do
+    it 'should return a new Transaction with Model as argument' do
+      transaction = mock("transaction")
+      DataMapper::Transaction.should_receive(:new).with(Planet).and_return(transaction)
+      Planet.transaction.should == transaction
+    end
+  end
+
+  it 'should provide #before' do
+    Planet.should respond_to(:before)
+  end
+
+  it 'should provide #after' do
+    Planet.should respond_to(:after)
+  end
+
+  it 'should provide #repository' do
+    Planet.should respond_to(:repository)
+  end
+
+  describe '#repository' do
+    it 'should delegate to DataMapper.repository' do
+      repository = mock('repository')
+      DataMapper.should_receive(:repository).with(:legacy).and_return(repository)
+      Planet.repository(:legacy).should == repository
+    end
+
+    it 'should use default repository when not passed any arguments' do
+      Planet.repository.name.should == Planet.repository(:default).name
+      LegacyStar.repository.name.should == LegacyStar.repository(:legacy).name
+    end
+  end
+
+  it 'should provide #storage_name' do
+    Planet.should respond_to(:storage_name)
+  end
+
+  describe '#storage_name' do
+    it 'should map a repository to the storage location' do
+      Planet.storage_name(:legacy).should == 'dying_planets'
+    end
+
+    it 'should use default repository when not passed any arguments' do
+      Planet.storage_name.object_id.should == Planet.storage_name(:default).object_id
+    end
+  end
+
+  it 'should provide #storage_names' do
+    Planet.should respond_to(:storage_names)
+  end
+
+  describe '#storage_names' do
+    it 'should return a Hash mapping each repository to a storage location' do
+      Planet.storage_names.should be_kind_of(Hash)
+      Planet.storage_names.should == { :default => 'planets', :legacy => 'dying_planets' }
+    end
+  end
+
+  it 'should provide #property' do
+    Planet.should respond_to(:property)
+  end
+
+  describe '#property' do
+    it 'should raise a SyntaxError when the name contains invalid characters' do
+      lambda {
+        Planet.property(:"with space", TrueClass)
+      }.should raise_error(SyntaxError)
+    end
+  end
+
+  it 'should provide #properties' do
+    Planet.should respond_to(:properties)
+  end
+
+  describe '#properties' do
+    it 'should return an PropertySet' do
+      Planet.properties(:legacy).should be_kind_of(DataMapper::PropertySet)
+      Planet.properties(:legacy).should have(7).entries
+    end
+
+    it 'should use default repository when not passed any arguments' do
+      Planet.properties.object_id.should == Planet.properties(:default).object_id
+    end
+  end
+
+  it 'should provide #key' do
+    Planet.should respond_to(:key)
+  end
+
+  describe '#key' do
+    it 'should return an Array of Property objects' do
+      Planet.key(:legacy).should be_kind_of(Array)
+      Planet.key(:legacy).should have(1).entries
+      Planet.key(:legacy).first.should be_kind_of(DataMapper::Property)
+    end
+
+    it 'should use default repository when not passed any arguments' do
+      Planet.key.should == Planet.key(:default)
+    end
+
+    it 'should not cache the key value' do
+      Planet.key.object_id.should_not == Planet.key(:default)
+
+      # change the key and make sure the Array changes
+      Planet.key == Planet.properties.slice(:id)
+      Planet.property(:new_prop, String, :key => true)
+      Planet.key.object_id.should_not == Planet.key(:default)
+      Planet.key == Planet.properties.slice(:id, :new_prop)
+    end
+  end
+
+  it 'should provide #inheritance_property' do
+    Planet.should respond_to(:inheritance_property)
+  end
+
+  describe '#inheritance_property' do
+    it 'should return a Property object' do
+      Planet.inheritance_property(:legacy).should be_kind_of(DataMapper::Property)
+      Planet.inheritance_property(:legacy).name.should == :type
+      Planet.inheritance_property(:legacy).type.should == DataMapper::Types::Discriminator
+    end
+
+    it 'should use default repository when not passed any arguments' do
+      Planet.inheritance_property.object_id.should == Planet.inheritance_property(:default).object_id
+    end
+  end
+
+  it 'should provide #get' do
+    Planet.should respond_to(:get)
+  end
+
+  it 'should provide #first' do
+    Planet.should respond_to(:first)
+  end
+
+  it 'should provide #all' do
+    Planet.should respond_to(:all)
+  end
+
+  it 'should provide #storage_exists?' do
+    Planet.should respond_to(:storage_exists?)
+  end
+
+  describe '#storage_exists?' do
+    it 'should return whether or not the storage exists' do
+      Planet.should_receive(:repository).with(:default) do
+        repository = mock('repository')
+        repository.should_receive(:storage_exists?).with('planets').and_return(true)
+        repository
+      end
+      Planet.storage_exists?.should == true
+    end
+  end
+
+  it 'should provide #default_order' do
+    Planet.should respond_to(:default_order)
+  end
+
+  describe '#default_order' do
+    it 'should be equal to #key by default' do
+      Planet.default_order.should == Planet.key
     end
   end
 end

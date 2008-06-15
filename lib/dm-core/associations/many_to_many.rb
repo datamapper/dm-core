@@ -1,14 +1,17 @@
 module DataMapper
   module Associations
     module ManyToMany
+      extend Assertions
 
       # Setup many to many relationship between two models
       # -
       # @private
-      def setup(name, model, options = {})
-        raise NotImplementedError
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless name.kind_of?(Symbol)
-        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless options.kind_of?(Hash)
+      def self.setup(name, model, options = {})
+        assert_kind_of 'name',    name,    Symbol
+        assert_kind_of 'model',   model,   Resource::ClassMethods
+        assert_kind_of 'options', options, Hash
+
+        raise NotImplementedError, 'many to many relationships not ready yet'
 
         repository_name = model.repository.name
 
@@ -23,10 +26,10 @@ module DataMapper
         )
       end
 
-      module_function :setup
-
       class Proxy
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
+        include Assertions
+
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not ].include?(m) }
 
         def save
           raise NotImplementedError

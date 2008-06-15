@@ -10,17 +10,21 @@ module DataMapper
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
+      include Assertions
+
       def create(resources)
+        assert_kind_of 'resources', resources, Enumerable
+
         created = 0
         resources.each do |resource|
+          repository = resource.repository
+          model      = resource.model
           attributes = resource.dirty_attributes
 
-          identity_field = begin
-            key = resource.model.key(name)
-            key.first if key.size == 1 && key.first.serial?
-          end
+          # TODO: make a model.identity_field method
+          identity_field = model.key(repository.name).detect { |p| p.serial? }
 
-          statement = create_statement(resource.model, attributes.keys, identity_field)
+          statement = create_statement(repository, model, attributes.keys, identity_field)
           bind_values = attributes.values
 
           result = execute(statement, *bind_values)
@@ -36,6 +40,8 @@ module DataMapper
       end
 
       def read_many(query)
+        assert_kind_of 'query', query, Query
+
         Collection.new(query) do |collection|
           with_connection do |connection|
             command = connection.create_command(read_statement(query))
@@ -55,6 +61,8 @@ module DataMapper
       end
 
       def read_one(query)
+        assert_kind_of 'query', query, Query
+
         with_connection do |connection|
           command = connection.create_command(read_statement(query))
           command.set_types(query.fields.map { |p| p.primitive })
@@ -72,12 +80,17 @@ module DataMapper
       end
 
       def update(attributes, query)
+        assert_kind_of 'attributes', attributes, Hash
+        assert_kind_of 'query',      query,      Query
+
         statement = update_statement(attributes.keys, query)
         bind_values = attributes.values + query.bind_values
         execute(statement, *bind_values).to_i
       end
 
       def delete(query)
+        assert_kind_of 'query', query, Query
+
         statement = delete_statement(query)
         execute(statement, *query.bind_values).to_i
       end
@@ -203,21 +216,26 @@ module DataMapper
           true
         end
 
-        def create_statement(model, properties, identity_field)
-          statement = "INSERT INTO #{quote_table_name(model.storage_name(name))} "
+        def create_statement(repository, model, properties, identity_field)
+          assert_kind_of 'repository',     repository,     Repository
+          assert_kind_of 'model',          model,          Resource::ClassMethods
+          assert_kind_of 'properties',     properties,     Enumerable
+          assert_kind_of 'identity_field', identity_field, Property unless identity_field.nil?
+
+          statement = "INSERT INTO #{quote_table_name(model.storage_name(repository.name))} "
 
           if supports_default_values? && properties.empty?
             statement << 'DEFAULT VALUES'
           else
             statement << <<-EOS.compress_lines
-              (#{properties.map { |p| quote_column_name(p.field(name)) } * ', '})
+              (#{properties.map { |p| quote_column_name(p.field(repository.name)) } * ', '})
               VALUES
               (#{(['?'] * properties.size) * ', '})
             EOS
           end
 
           if supports_returning? && identity_field
-            statement << " RETURNING #{quote_column_name(identity_field.field(name))}"
+            statement << " RETURNING #{quote_column_name(identity_field.field(repository.name))}"
           end
 
           statement
@@ -225,7 +243,7 @@ module DataMapper
 
         def read_statement(query)
           statement = "SELECT #{fields_statement(query)}"
-          statement << " FROM #{quote_table_name(query.model.storage_name(name))}"
+          statement << " FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
           statement << links_statement(query)                  if query.links.any?
           statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
           statement << " ORDER BY #{order_statement(query)}"   if query.order.any?
@@ -238,18 +256,18 @@ module DataMapper
         end
 
         def update_statement(properties, query)
-          statement = "UPDATE #{quote_table_name(query.model.storage_name(name))}"
-          statement << " SET #{set_statement(properties)}"
+          statement = "UPDATE #{quote_table_name(query.model.storage_name(query.repository.name))}"
+          statement << " SET #{set_statement(query.repository, properties)}"
           statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
           statement
         end
 
-        def set_statement(properties)
-          properties.map { |p| "#{quote_column_name(p.field(name))} = ?" } * ', '
+        def set_statement(repository, properties)
+          properties.map { |p| "#{quote_column_name(p.field(repository.name))} = ?" } * ', '
         end
 
         def delete_statement(query)
-          statement = "DELETE FROM #{quote_table_name(query.model.storage_name(name))}"
+          statement = "DELETE FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
           statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
           statement
         end
@@ -261,22 +279,22 @@ module DataMapper
             # TODO Should we raise an error if there is no such property in the
             #      repository of the query?
             #
-            #if property.model.properties(name)[property.name].nil?
+            #if property.model.properties(query.repository.name)[property.name].nil?
             #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{name}."
             #end
             #
-            property_to_column_name(property, qualify)
+            property_to_column_name(query.repository, property, qualify)
           end * ', '
         end
 
         def links_statement(query)
-          table_name = query.model.storage_name(name)
+          table_name = query.model.storage_name(query.repository.name)
 
           statement = ''
 
           query.links.each do |relationship|
-            parent_table_name = relationship.parent_model.storage_name(name)
-            child_table_name  = relationship.child_model.storage_name(name)
+            parent_table_name = relationship.parent_model.storage_name(query.repository.name)
+            child_table_name  = relationship.child_model.storage_name(query.repository.name)
 
             join_table_name = table_name == parent_table_name ? child_table_name : parent_table_name
 
@@ -311,7 +329,7 @@ module DataMapper
                 direction = item.direction if item.direction == :desc
             end
 
-            order = property_to_column_name(property, qualify)
+            order = property_to_column_name(query.repository, property, qualify)
             order << " #{direction.to_s.upcase}" if direction
             order
           end * ', '
@@ -324,13 +342,13 @@ module DataMapper
 
           conditions = [ left_condition, right_condition ].map do |condition|
             if condition.kind_of?(Property) || condition.kind_of?(Query::Path)
-              property_to_column_name(condition, qualify)
+              property_to_column_name(query.repository, condition, qualify)
             elsif condition.kind_of?(Query)
               opposite = condition == left_condition ? right_condition : left_condition
               query.merge_subquery(operator, opposite, condition)
               "(#{read_statement(condition)})"
             elsif condition.kind_of?(Array) && condition.all? { |p| p.kind_of?(Property) }
-              "(#{condition.map { |p| property_to_column_name(property, qualify) } * ', '})"
+              "(#{condition.map { |p| property_to_column_name(query.repository, property, qualify) } * ', '})"
             else
               '?'
             end
@@ -368,13 +386,13 @@ module DataMapper
           end
         end
 
-        def property_to_column_name(property, qualify)
-          table_name = property.model.storage_name(name) if property && property.respond_to?(:model)
+        def property_to_column_name(repository, property, qualify)
+          table_name = property.model.storage_name(repository.name) if property && property.respond_to?(:model)
 
           if table_name && qualify
-            "#{quote_table_name(table_name)}.#{quote_column_name(property.field(name))}"
+            "#{quote_table_name(table_name)}.#{quote_column_name(property.field(repository.name))}"
           else
-            quote_column_name(property.field(name))
+            quote_column_name(property.field(repository.name))
           end
         end
 
@@ -426,16 +444,19 @@ module DataMapper
       module Migration
         # TODO: move to dm-more/dm-migrations
         def upgrade_model_storage(repository, model)
-          table_name = model.storage_name(name)
+          assert_kind_of 'repository', repository, Repository
+          assert_kind_of 'model',      model,      Resource::ClassMethods
+
+          table_name = model.storage_name(repository.name)
 
           if success = create_model_storage(repository, model)
-            return model.properties(name)
+            return model.properties(repository.name)
           end
 
           properties = []
 
-          model.properties(name).each do |property|
-            schema_hash = property_schema_hash(property, model)
+          model.properties(repository.name).each do |property|
+            schema_hash = property_schema_hash(repository, property)
             next if field_exists?(table_name, schema_hash[:name])
             statement = alter_table_add_column_statement(table_name, schema_hash)
             execute(statement)
@@ -447,11 +468,14 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def create_model_storage(repository, model)
-          return false if storage_exists?(model.storage_name(name))
+          assert_kind_of 'repository', repository, Repository
+          assert_kind_of 'model',      model,      Resource::ClassMethods
 
-          execute(create_table_statement(model))
+          return false if storage_exists?(model.storage_name(repository.name))
 
-          (create_index_statements(model) + create_unique_index_statements(model)).each do |sql|
+          execute(create_table_statement(repository, model))
+
+          (create_index_statements(repository, model) + create_unique_index_statements(repository, model)).each do |sql|
             execute(sql)
           end
 
@@ -460,7 +484,10 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def destroy_model_storage(repository, model)
-          execute(drop_table_statement(model))
+          assert_kind_of 'repository', repository, Repository
+          assert_kind_of 'model',      model,      Resource::ClassMethods
+
+          execute(drop_table_statement(repository, model))
           true
         end
 
@@ -486,14 +513,16 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def create_table_statement(model)
+          def create_table_statement(repository, model)
+            repository_name = repository.name
+
             statement = <<-EOS.compress_lines
-              CREATE TABLE #{quote_table_name(model.storage_name(name))}
-              (#{model.properties_with_subclasses(name).map { |p| property_schema_statement(property_schema_hash(p, model)) } * ', '}
+              CREATE TABLE #{quote_table_name(model.storage_name(repository_name))}
+              (#{model.properties_with_subclasses(repository_name).map { |p| property_schema_statement(property_schema_hash(repository, p)) } * ', '}
             EOS
 
-            if (key = model.key(name)).any?
-              statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field(name)) } * ', '})"
+            if (key = model.key(repository_name)).any?
+              statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field(repository_name)) } * ', '})"
             end
 
             statement << ')'
@@ -501,14 +530,14 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def drop_table_statement(model)
-            "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
+          def drop_table_statement(repisitory, model)
+            "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(repository.name))}"
           end
 
           # TODO: move to dm-more/dm-migrations
-          def create_index_statements(model)
-            table_name = model.storage_name(name)
-            model.properties(name).indexes.map do |index_name, fields|
+          def create_index_statements(repository, model)
+            table_name = model.storage_name(repository.name)
+            model.properties(repository.name).indexes.map do |index_name, fields|
               <<-EOS.compress_lines
                 CREATE INDEX #{quote_column_name("index_#{table_name}_#{index_name}")} ON
                 #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ','})
@@ -517,9 +546,9 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def create_unique_index_statements(model)
-            table_name = model.storage_name(name)
-            model.properties(name).unique_indexes.map do |index_name, fields|
+          def create_unique_index_statements(repository, model)
+            table_name = model.storage_name(repository.name)
+            model.properties(repository.name).unique_indexes.map do |index_name, fields|
               <<-EOS.compress_lines
                 CREATE UNIQUE INDEX #{quote_column_name("unique_index_#{table_name}_#{index_name}")} ON
                 #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ','})
@@ -528,8 +557,8 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def property_schema_hash(property, model)
-            schema = self.class.type_map[property.type].merge(:name => property.field(name))
+          def property_schema_hash(repository, property)
+            schema = self.class.type_map[property.type].merge(:name => property.field(repository.name))
             # TODO: figure out a way to specify the size not be included, even if
             # a default is defined in the typemap
             #  - use this to make it so all TEXT primitive fields do not have size

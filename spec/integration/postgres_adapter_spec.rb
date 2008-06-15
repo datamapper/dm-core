@@ -17,13 +17,13 @@ if HAS_POSTGRES
       end
 
       it "#upgrade_model should work" do
-        @adapter.destroy_model_storage(nil, Sputnik)
+        @adapter.destroy_model_storage(repository(:postgres), Sputnik)
         @adapter.storage_exists?("sputniks").should be_false
         Sputnik.auto_migrate!(:postgres)
         @adapter.storage_exists?("sputniks").should be_true
         @adapter.field_exists?("sputniks", "new_prop").should be_false
         Sputnik.property :new_prop, Integer, :serial => true
-        @adapter.send(:drop_sequence, Sputnik, Sputnik.new_prop)
+        @adapter.send(:drop_sequence, repository(:postgres), Sputnik.new_prop)
         Sputnik.auto_upgrade!(:postgres)
         @adapter.field_exists?("sputniks", "new_prop").should == true
       end

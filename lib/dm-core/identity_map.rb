@@ -3,9 +3,11 @@ module DataMapper
   # Tracks objects to help ensure that each object gets loaded only once.
   # See: http://www.martinfowler.com/eaaCatalog/identityMap.html
   class IdentityMap
+    include Assertions
+
     # Get a resource from the IdentityMap
     def get(key)
-      raise ArgumentError, "+key+ is not an Array, but was #{key.class}" unless key.kind_of?(Array)
+      assert_kind_of 'key', key, Array
 
       @cache[key]
     end
@@ -14,8 +16,8 @@ module DataMapper
 
     # Add a resource to the IdentityMap
     def set(key, resource)
-      raise ArgumentError, "+key+ is not an Array, but was #{key.class}"                            unless key.kind_of?(Array)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
+      assert_kind_of 'key',      key,      Array
+      assert_kind_of 'resource', resource, Resource
 
       @second_level_cache.set(key, resource) if @second_level_cache
       @cache[key] = resource
@@ -25,7 +27,7 @@ module DataMapper
 
     # Remove a resource from the IdentityMap
     def delete(key)
-      raise ArgumentError, "+key+ is not an Array, but was #{key.class}" unless key.kind_of?(Array)
+      assert_kind_of 'key', key, Array
 
       @second_level_cache.delete(key) if @second_level_cache
       @cache.delete(key)

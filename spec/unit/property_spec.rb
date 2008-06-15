@@ -339,8 +339,4 @@ describe DataMapper::Property do
   it 'should return an abbreviated representation of the property when inspected' do
     DataMapper::Property.new(Zoo, :name, String).inspect.should == '#<Property:Zoo:name>'
   end
-
-  it 'should raise a SyntaxError when the name contains invalid characters' do
-    lambda { DataMapper::Property.new(Zoo, :"with space", TrueClass) }.should raise_error(SyntaxError)
-  end
 end

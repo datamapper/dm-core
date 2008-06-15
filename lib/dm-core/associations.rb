@@ -9,6 +9,7 @@ require dir / 'one_to_one'
 
 module DataMapper
   module Associations
+    include Assertions
 
     class ImmutableAssociationError < RuntimeError
     end
@@ -85,7 +86,9 @@ module DataMapper
       # returned by the association.  It is not, as has been assumed,
       # the number of results on the left and right hand side of the
       # reltionship.
-      raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association' if options[:min] == n && options[:max] == n
+      if options[:min] == n && options[:max] == n
+        raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller
+      end
 
       klass = options[:max] == 1 ? OneToOne : OneToMany
       relationship = klass.setup(options.delete(:name), self, options)
@@ -128,14 +131,17 @@ module DataMapper
     private
 
     def extract_throughness(name)
+      assert_kind_of 'name', name, Hash, Symbol
+
       case name
         when Hash
-          raise ArgumentError, "name must have only one key, but had #{name.keys.size}" unless name.keys.size == 1
+          unless name.keys.size == 1
+            raise ArgumentError, "name must have only one key, but had #{name.keys.size}", caller(2)
+          end
+
           { :name => name.keys.first, :through => name.values.first }
         when Symbol
           { :name => name }
-        else
-          raise ArgumentError, "Name of association must be Hash or Symbol, not #{name.inspect}"
       end
     end
 
@@ -144,16 +150,19 @@ module DataMapper
     #
     # @api private
     def extract_min_max(constraints)
+      assert_kind_of 'constraints', constraints, Integer, Range unless constraints == n
+
       case constraints
         when Integer
           { :min => constraints, :max => constraints }
         when Range
-          raise ArgumentError, "Constraint min (#{constraints.first}) cannot be larger than the max (#{constraints.last})" if constraints.first > constraints.last
+          if constraints.first > constraints.last
+            raise ArgumentError, "Constraint min (#{constraints.first}) cannot be larger than the max (#{constraints.last})"
+          end
+
           { :min => constraints.first, :max => constraints.last }
         when n
           { :min => 0, :max => n }
-        else
-          raise ArgumentError, "Constraint #{constraints.inspect} (#{constraints.class}) not handled must be one of Integer, Range or Infinity(n)"
       end
     end
   end # module Associations

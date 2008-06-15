@@ -28,7 +28,7 @@ if HAS_MYSQL
 
     describe "auto migrating" do
       it "#upgrade_model should work" do
-        @adapter.destroy_model_storage(nil, Sputnik)
+        @adapter.destroy_model_storage(repository(:mysql), Sputnik)
         @adapter.storage_exists?("sputniks").should == false
         Sputnik.auto_migrate!(:mysql)
         @adapter.storage_exists?("sputniks").should == true

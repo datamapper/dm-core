@@ -3,13 +3,15 @@ require 'forwardable'
 module DataMapper
   module Associations
     module OneToMany
+      extend Assertions
 
       # Setup one to many relationship between two models
       # -
       # @private
-      def setup(name, model, options = {})
-        raise ArgumentError, "+name+ should be a Symbol (or Hash for +through+ support), but was #{name.class}", caller unless name.kind_of?(Symbol) || name.kind_of?(Hash)
-        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller                             unless options.kind_of?(Hash)
+      def self.setup(name, model, options = {})
+        assert_kind_of 'name',    name,    Symbol
+        assert_kind_of 'model',   model,   Resource::ClassMethods
+        assert_kind_of 'options', options, Hash
 
         repository_name = model.repository.name
 
@@ -26,8 +28,9 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = model.relationships(#{repository_name.inspect})[#{name.inspect}]
-              raise ArgumentError.new("Relationship #{name.inspect} does not exist") unless relationship
+              unless relationship = model.relationships(#{repository_name.inspect})[#{name.inspect}]
+                raise ArgumentError, 'Relationship #{name.inspect} does not exist'
+              end
               association = Proxy.new(relationship, self)
               parent_associations << association
               association
@@ -57,14 +60,14 @@ module DataMapper
         end
       end
 
-      module_function :setup
-
       # TODO: look at making this inherit from Collection.  The API is
       # almost identical, and it would make more sense for the
       # relationship.get_children method to return a Proxy than a
       # Collection that is wrapped in a Proxy.
       class Proxy
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
+        include Assertions
+
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not ].include?(m) }
 
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def all(query = {})
@@ -191,8 +194,8 @@ module DataMapper
         private
 
         def initialize(relationship, parent)
-          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless relationship.kind_of?(Relationship)
-          raise ArgumentError, "+parent+ should be a DataMapper::Resource, but was #{parent.class}", caller                              unless parent.kind_of?(Resource)
+          assert_kind_of 'relationship', relationship, Relationship
+          assert_kind_of 'parent',       parent,       Resource
 
           @relationship = relationship
           @parent       = parent
@@ -230,7 +233,7 @@ module DataMapper
         end
 
         def save_resource(resource, parent = @parent)
-          repository(@relationship.repository_name) do
+          DataMapper.repository(@relationship.repository_name) do
             @relationship.attach_parent(resource, parent)
             resource.save
           end

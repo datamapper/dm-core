@@ -1,5 +1,7 @@
 module DataMapper
   class Repository
+    include Assertions
+
     @adapters = {}
 
     ##
@@ -17,16 +19,7 @@ module DataMapper
       :default
     end
 
-    attr_reader :name
-
-    def adapter
-      @adapter ||= begin
-        raise ArgumentError, "Adapter not set: #{@name}. Did you forget to setup?" \
-          unless self.class.adapters.has_key?(@name)
-
-        self.class.adapters[@name]
-      end
-    end
+    attr_reader :name, :adapter
 
     def identity_map(model)
       @identity_maps[model]
@@ -90,9 +83,14 @@ module DataMapper
     private
 
     def initialize(name)
-      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller unless name.kind_of?(Symbol)
+      assert_kind_of 'name', name, Symbol
+
+      unless self.class.adapters.has_key?(name)
+        raise ArgumentError, "Adapter not set: #{name}. Did you forget to setup?", caller
+      end
 
       @name          = name
+      @adapter       = self.class.adapters[name]
       @identity_maps = Hash.new { |h,model| h[model] = IdentityMap.new }
     end
 

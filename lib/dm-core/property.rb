@@ -238,6 +238,7 @@ module DataMapper
   # * You may declare a Property with the data-type of <tt>Class</tt>.
   #   see SingleTableInheritance for more on how to use <tt>Class</tt> columns.
   class Property
+    include Assertions
 
     # NOTE: check is only for psql, so maybe the postgres adapter should
     # define its own property options. currently it will produce a warning tho
@@ -382,7 +383,8 @@ module DataMapper
     #-
     # @api private
     def get(resource)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
+      assert_kind_of 'resource', resource, Resource
+
       resource.attribute_get(@name)
     end
 
@@ -392,7 +394,8 @@ module DataMapper
     #-
     # @api private
     def set(resource, value)
-      raise ArgumentError, "+resource+ should be a DataMapper::Resource, but was #{resource.class}" unless resource.kind_of?(Resource)
+      assert_kind_of 'resource', resource, Resource
+
       resource.attribute_set(@name, value)
     end
 
@@ -430,6 +433,10 @@ module DataMapper
     private
 
     def initialize(model, name, type, options = {})
+      assert_kind_of 'model', model, Resource::ClassMethods
+      assert_kind_of 'name',  name,  Symbol
+      assert_kind_of 'type',  type,  Class
+
       if Fixnum == type
         # It was decided that Integer is a more expressively names class to
         # use instead of Fixnum.  Fixnum only represents smaller numbers,
@@ -440,12 +447,12 @@ module DataMapper
         type = Integer
       end
 
-      raise ArgumentError, "+model+ is a #{model.class}, but is not a type of Resource"                 unless Resource > model
-      raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}"                           unless name.kind_of?(Symbol)
-      raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}" unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
+      unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
+        raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}", caller
+      end
 
       if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
-        raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}"
+        raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}", caller
       end
 
       @model                  = model
@@ -487,9 +494,6 @@ module DataMapper
 
       determine_visibility
 
-      create_getter
-      create_setter
-
       @model.auto_generate_validations(self)    if @model.respond_to?(:auto_generate_validations)
       @model.property_serialization_setup(self) if @model.respond_to?(:property_serialization_setup)
     end
@@ -499,35 +503,9 @@ module DataMapper
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
       @writer_visibility = :protected if @options[:protected]
       @writer_visibility = :private   if @options[:private]
-      raise ArgumentError, "property visibility must be :public, :protected, or :private" unless VISIBILITY_OPTIONS.include?(@reader_visibility) && VISIBILITY_OPTIONS.include?(@writer_visibility)
-    end
 
-    # defines the getter for the property
-    def create_getter
-      @model.class_eval <<-EOS, __FILE__, __LINE__
-        #{reader_visibility}
-        def #{@getter}
-          attribute_get(#{name.inspect})
-        end
-      EOS
-
-      if @primitive == TrueClass && !@model.instance_methods.include?(@name.to_s)
-        @model.class_eval <<-EOS, __FILE__, __LINE__
-          #{reader_visibility}
-          alias #{@name} #{@getter}
-        EOS
-      end
-    end
-
-    # defines the setter for the property
-    def create_setter
-      unless @model.instance_methods.include?(@name.to_s + "=")
-        @model.class_eval <<-EOS, __FILE__, __LINE__
-          #{writer_visibility}
-          def #{name}=(value)
-            attribute_set(#{name.inspect}, value)
-          end
-        EOS
+      unless VISIBILITY_OPTIONS.include?(@reader_visibility) && VISIBILITY_OPTIONS.include?(@writer_visibility)
+        raise ArgumentError, 'property visibility must be :public, :protected, or :private', caller(2)
       end
     end
 
@@ -558,7 +536,7 @@ module DataMapper
     def typecast_hash_to_datetime(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
       DateTime.new(*args)
-    rescue ArgumentError => ex
+    rescue ArgumentError
       t = typecast_hash_to_time(hash)
       DateTime.new(t.year, t.month, t.day, t.hour, t.min, t.sec)
     end
@@ -566,7 +544,7 @@ module DataMapper
     def typecast_hash_to_date(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day)
       Date.new(*args)
-    rescue ArgumentError => ex
+    rescue ArgumentError
       t = typecast_hash_to_time(hash)
       Date.new(t.year, t.month, t.day)
     end

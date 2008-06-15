@@ -1,13 +1,15 @@
 module DataMapper
   module Associations
     module ManyToOne
+      extend Assertions
 
       # Setup many to one relationship between two models
       # -
       # @private
-      def setup(name, model, options = {})
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless name.kind_of?(Symbol)
-        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless options.kind_of?(Hash)
+      def self.setup(name, model, options = {})
+        assert_kind_of 'name',    name,    Symbol
+        assert_kind_of 'model',   model,   Resource::ClassMethods
+        assert_kind_of 'options', options, Hash
 
         repository_name = model.repository.name
 
@@ -24,7 +26,9 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-              relationship = model.relationships(#{repository_name.inspect})[:#{name}]
+              unless relationship = model.relationships(#{repository_name.inspect})[:#{name}]
+                raise ArgumentError, 'Relationship #{name.inspect} does not exist'
+              end
               association = Proxy.new(relationship, self)
               child_associations << association
               association
@@ -41,10 +45,10 @@ module DataMapper
         )
       end
 
-      module_function :setup
-
       class Proxy
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? should should_not ].include?(m) }
+        include Assertions
+
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not ].include?(m) }
 
         def replace(parent)
           @parent = parent
@@ -54,7 +58,7 @@ module DataMapper
         def save
           return false if parent.nil?
 
-          repository(@relationship.repository_name) do
+          DataMapper.repository(@relationship.repository_name) do
             parent.save if parent.new_record?
             @relationship.attach_parent(@child, parent)
           end
@@ -78,11 +82,11 @@ module DataMapper
         private
 
         def initialize(relationship, child)
-          raise ArgumentError, "+relationship+ should be a DataMapper::Association::Relationship, but was #{relationship.class}", caller unless relationship.kind_of?(Relationship)
-          raise ArgumentError, "+child+ should be a DataMapper::Resource, but was #{child.class}", caller                                unless child.kind_of?(Resource)
+          assert_kind_of 'relationship', relationship, Relationship
+          assert_kind_of 'child',        child,        Resource
 
-          @relationship   = relationship
-          @child = child
+          @relationship = relationship
+          @child        = child
         end
 
         def parent

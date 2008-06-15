@@ -51,8 +51,8 @@ module DataMapper
       end
 
       def initialize(options)
-        if (missing_options = OPTIONS - [:min, :max] - options.keys ).any?
-          raise ArgumentError, "The options #{missing_options * ', '} are required"
+        if (missing_options = OPTIONS - [ :min, :max ] - options.keys ).any?
+          raise ArgumentError, "The options #{missing_options * ', '} are required", caller
         end
 
         @repository_name          = options.fetch(:repository_name)

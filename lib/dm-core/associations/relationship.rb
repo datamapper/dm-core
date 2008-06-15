@@ -1,6 +1,8 @@
 module DataMapper
   module Associations
     class Relationship
+      include Assertions
+
       OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max, :through ]
 
       attr_reader :name, :repository_name, :options, :query
@@ -79,18 +81,18 @@ module DataMapper
       # and parent_properties refer to the PK.  For more information:
       # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
       # I wash my hands of it!
-      def initialize(name, repository_name, child_model_name, parent_model_name, options = {}, &loader)
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller                         unless name.kind_of?(Symbol)
-        raise ArgumentError, "+repository_name+ must be a Symbol, but was #{repository_name.class}", caller     unless repository_name.kind_of?(Symbol)
-        raise ArgumentError, "+child_model_name+ must be a String, but was #{child_model_name.class}", caller   unless child_model_name.kind_of?(String)
-        raise ArgumentError, "+parent_model_name+ must be a String, but was #{parent_model_name.class}", caller unless parent_model_name.kind_of?(String)
+      def initialize(name, repository_name, child_model_name, parent_model_name, options = {})
+        assert_kind_of 'name',              name,              Symbol
+        assert_kind_of 'repository_name',   repository_name,   Symbol
+        assert_kind_of 'child_model_name',  child_model_name,  String
+        assert_kind_of 'parent_model_name', parent_model_name, String
 
         if child_properties = options[:child_key]
-          raise ArgumentError, "+options[:child_key]+ must be an Array or nil, but was #{child_properties.class}", caller unless child_properties.kind_of?(Array)
+          assert_kind_of 'options[:child_key]', child_properties, Array
         end
 
         if parent_properties = options[:parent_key]
-          raise ArgumentError, "+parent_properties+ must be an Array or nil, but was #{parent_properties.class}", caller unless parent_properties.kind_of?(Array)
+          assert_kind_of 'options[:parent_key]', parent_properties, Array
         end
 
         @name              = name
@@ -101,7 +103,6 @@ module DataMapper
         @parent_model_name = parent_model_name
         @parent_properties = parent_properties  # may be nil
         @options           = options
-        @loader            = loader
       end
     end # class Relationship
   end # module Associations

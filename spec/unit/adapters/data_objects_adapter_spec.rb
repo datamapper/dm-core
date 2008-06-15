@@ -460,8 +460,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
     describe "#upgrade_model_storage" do
       it "should call #create_model_storage" do
-        @adapter.should_receive(:create_model_storage).with(nil, Cheese).and_return(true)
-        @adapter.upgrade_model_storage(nil, Cheese).should == Cheese.properties
+        @adapter.should_receive(:create_model_storage).with(repository, Cheese).and_return(true)
+        @adapter.upgrade_model_storage(repository, Cheese).should == Cheese.properties
       end
 
       it "should check if all properties of the model have columns if the table exists" do
@@ -470,7 +470,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @adapter.should_receive(:field_exists?).with("cheeses", "color").and_return(true)
         @adapter.should_receive(:field_exists?).with("cheeses", "notes").and_return(true)
         @adapter.should_receive(:storage_exists?).with("cheeses").and_return(true)
-        @adapter.upgrade_model_storage(nil, Cheese).should == []
+        @adapter.upgrade_model_storage(repository, Cheese).should == []
       end
 
       it "should create and execute add column statements for columns that dont exist" do
@@ -495,7 +495,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
                                                                                :primitive => "VARCHAR",
                                                                                :size => 100
                                                                              }).and_return(statement)
-        @adapter.upgrade_model_storage(nil, Cheese).should == [Cheese.notes]
+        @adapter.upgrade_model_storage(repository, Cheese).should == [Cheese.notes]
       end
     end
   end

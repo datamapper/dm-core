@@ -1,6 +1,8 @@
 module DataMapper
   module Adapters
     class AbstractAdapter
+      include Assertions
+
       attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention
 
@@ -35,8 +37,8 @@ module DataMapper
       # Instantiate an Adapter by passing it a DataMapper::Repository
       # connection string for configuration.
       def initialize(name, uri_or_options)
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller                                     unless name.kind_of?(Symbol)
-        raise ArgumentError, "+uri_or_options+ should be a Hash, a Addressable::URI or a String but was #{uri_or_options.class}", caller unless [ Hash, Addressable::URI, String ].any? { |k| uri_or_options.kind_of?(k) }
+        assert_kind_of 'name',           name,           Symbol
+        assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
 
         @name = name
         @uri  = normalize_uri(uri_or_options)

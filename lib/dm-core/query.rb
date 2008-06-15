@@ -1,114 +1,6 @@
 module DataMapper
   class Query
-    class Direction
-      attr_reader :property, :direction
-
-      def ==(other)
-        return true if super
-        hash == other.hash
-      end
-
-      alias eql? ==
-
-      def hash
-        @property.hash + @direction.hash
-      end
-
-      def reverse
-        self.class.new(@property, @direction == :asc ? :desc : :asc)
-      end
-
-      def inspect
-        "#<#{self.class.name} #{@property.inspect} #{@direction}>"
-      end
-
-      private
-
-      def initialize(property, direction = :asc)
-        raise ArgumentError, "+property+ is not a DataMapper::Property, but was #{property.class}", caller unless property.kind_of?(Property)
-        raise ArgumentError, "+direction+ is not a Symbol, but was #{direction.class}", caller             unless direction.kind_of?(Symbol)
-
-        @property  = property
-        @direction = direction
-      end
-    end # class Direction
-
-    class Operator
-      attr_reader :target, :operator
-
-      def to_sym
-        @property_name
-      end
-
-      def ==(other)
-        @operator == other.operator && @target == other.target
-      end
-
-      private
-
-      def initialize(target, operator)
-        unless operator.kind_of?(Symbol)
-          raise ArgumentError, "+operator+ is not a Symbol, but was #{type.class}", caller
-        end
-
-        @target     = target
-        @operator   = operator
-      end
-    end # class Operator
-
-    class Path
-
-      attr_reader :relationships, :model, :property, :operator
-
-
-      def initialize(repository, relationships, model, property_name = nil)
-        raise ArgumentError, "+repository+ is not a Repository, but was #{repository.class}", caller unless repository.kind_of?(Repository)
-        raise ArgumentError, "+relationships+ is not an Array, it is a #{relationships.class}", caller unless relationships.kind_of?(Array)
-        raise ArgumentError, "+model+ is not a DM::Resource, it is a #{model}", caller   unless model.ancestors.include?(DataMapper::Resource)
-        raise ArgumentError, "+property_name+ is not a Symbol, it is a #{property_name.class}", caller unless property_name.kind_of?(Symbol) || property_name.nil?
-
-        @repository    = repository
-        @relationships = relationships
-        @model         = model
-        @property      = @model.properties(@repository.name)[property_name] if property_name
-      end
-
-      [:gt, :gte, :lt, :lte, :not, :eql, :like, :in].each do |sym|
-
-        self.class_eval <<-RUBY
-          def #{sym}
-            Operator.new(self, :#{sym})
-          end
-        RUBY
-
-      end
-
-      def method_missing(method, *args)
-        if relationship = @model.relationships(@repository.name)[method]
-          clazz = if @model == relationship.child_model
-           relationship.parent_model
-          else
-           relationship.child_model
-          end
-          relations = []
-          relations.concat(@relationships)
-          relations << relationship #@model.relationships[method]
-          return Query::Path.new(@repository, relations,clazz)
-        end
-
-        if @model.properties(@model.repository.name)[method]
-          @property = @model.properties(@model.repository.name)[method]
-          return self
-        end
-        raise NoMethodError, "undefined property or association `#{method}' on #{@model}"
-      end
-
-      # duck type the DM::Query::Path to act like a DM::Property
-      def field(*args)
-        @property ? @property.field(*args) : nil
-      end
-
-    end # class Path
+    include Assertions
 
     OPTIONS = [
       :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :includes, :conditions
@@ -137,6 +29,8 @@ module DataMapper
     end
 
     def update(other)
+      assert_kind_of 'other', other, self.class, Hash
+
       assert_valid_other(other)
 
       if other.kind_of?(Hash)
@@ -219,7 +113,7 @@ module DataMapper
     # <DM::Query>
     #
     def merge_subquery(operator, property, value)
-      raise ArgumentError, "+value+ is not a #{self.class}, but was #{value.class}", caller unless value.kind_of?(self.class)
+      assert_kind_of 'value', value, self.class
 
       new_conditions = []
       conditions.each do |tuple|
@@ -253,11 +147,12 @@ module DataMapper
     private
 
     def initialize(repository, model, options = {})
-      raise TypeError, "+repository+ must be a Repository, but is #{repository.class}" unless repository.kind_of?(Repository)
+      assert_kind_of 'repository', repository, Repository
+      assert_kind_of 'model',      model,      Resource::ClassMethods
+      assert_kind_of 'options',    options,    Hash
 
       options.each_pair { |k,v| options[k] = v.call if v.is_a? Proc } if options.is_a? Hash
 
-      assert_valid_model(model)
       assert_valid_options(options)
 
       @repository = repository
@@ -332,44 +227,48 @@ module DataMapper
       end
     end
 
-    # validate the model
-    def assert_valid_model(model)
-      raise ArgumentError, "+model+ must be a Class, but is #{model.class}" unless model.kind_of?(Class)
-      raise ArgumentError, "+model+ must include DataMapper::Resource"      unless model.ancestors.include?(Resource)
-    end
-
     # validate the options
     def assert_valid_options(options)
-      raise ArgumentError, "+options+ must be a Hash, but was #{options.class}" unless options.kind_of?(Hash)
-
       # validate the reload option
       if options.has_key?(:reload) && options[:reload] != true && options[:reload] != false
-        raise ArgumentError, "+options[:reload]+ must be true or false, but was #{options[:reload].inspect}"
+        raise ArgumentError, "+options[:reload]+ must be true or false, but was #{options[:reload].inspect}", caller(2)
       end
 
       # validate the offset and limit options
       ([ :offset, :limit ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, "+options[:#{attribute}]+ must be an Integer, but was #{value.class}" unless value.kind_of?(Integer)
+        assert_kind_of "options[:#{attribute}]", value, Integer
       end
-      raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{options[:offset].inspect}" if options.has_key?(:offset) && !(options[:offset] >= 0)
-      raise ArgumentError, "+options[:limit]+ must be greater than or equal to 1, but was #{options[:limit].inspect}"   if options.has_key?(:limit)  && !(options[:limit]  >= 1)
+
+      if options.has_key?(:offset) && options[:offset] < 0
+        raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{options[:offset].inspect}", caller(2)
+      end
+
+      if options.has_key?(:limit)  && options[:limit] < 1
+        raise ArgumentError, "+options[:limit]+ must be greater than or equal to 1, but was #{options[:limit].inspect}", caller(2)
+      end
 
       # validate the order, fields, links, includes and conditions options
       ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
         value = options[attribute]
-        raise ArgumentError, "+options[:#{attribute}]+ must be an Array, but was #{value.class}" unless value.kind_of?(Array)
-        raise ArgumentError, "+options[:#{attribute}]+ cannot be empty"                          unless value.any?
+        assert_kind_of "options[:#{attribute}]", value, Array
+
+        unless value.any?
+          raise ArgumentError, "+options[:#{attribute}]+ cannot be empty", caller(2)
+        end
       end
     end
 
     # validate other DM::Query or Hash object
     def assert_valid_other(other)
-      if other.kind_of?(self.class)
-        raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}" unless other.repository == repository
-        raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}"                unless other.model      == model
-      elsif !other.kind_of?(Hash)
-        raise ArgumentError, "+other+ must be a #{self.class} or Hash, but was a #{other.class}"
+      return unless  other.kind_of?(self.class)
+
+      unless other.repository == repository
+        raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}", caller(2)
+      end
+
+      unless other.model == model
+        raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}", caller(2)
       end
     end
 
@@ -401,10 +300,14 @@ module DataMapper
             Direction.new(property, order_by.operator)
           when Symbol, String
             property = @properties[order_by]
-            raise ArgumentError, "+options[:order]+ entry #{order_by} does not map to a DataMapper::Property" if property.nil?
+
+            if property.nil?
+              raise ArgumentError, "+options[:order]+ entry #{order_by} does not map to a DataMapper::Property", caller(2)
+            end
+
             Direction.new(property)
           else
-            raise ArgumentError, "+options[:order]+ entry #{order_by.inspect} not supported"
+            raise ArgumentError, "+options[:order]+ entry #{order_by.inspect} not supported", caller(2)
         end
       end
     end
@@ -424,10 +327,14 @@ module DataMapper
             field
           when Symbol, String
             property = @properties[field]
-            raise ArgumentError, "+options[:fields]+ entry #{field} does not map to a DataMapper::Property" if property.nil?
+
+            if property.nil?
+              raise ArgumentError, "+options[:fields]+ entry #{field} does not map to a DataMapper::Property", caller(2)
+            end
+
             property
           else
-            raise ArgumentError, "+options[:fields]+ entry #{field.inspect} not supported"
+            raise ArgumentError, "+options[:fields]+ entry #{field.inspect} not supported", caller(2)
         end
       end
     end
@@ -444,10 +351,14 @@ module DataMapper
             link
           when Symbol, String
             link = link.to_sym if link.kind_of?(String)
-            raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship" unless model.relationships(@repository.name).has_key?(link)
+
+            unless model.relationships(@repository.name).has_key?(link)
+              raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship", caller(2)
+            end
+
             model.relationships(@repository.name)[link]
           else
-            raise ArgumentError, "+options[:links]+ entry #{link.inspect} not supported"
+            raise ArgumentError, "+options[:links]+ entry #{link.inspect} not supported", caller(2)
         end
       end
     end
@@ -498,10 +409,12 @@ module DataMapper
             @properties[clause]
           end
         else
-          raise ArgumentError, "Condition type #{clause.inspect} not supported"
+          raise ArgumentError, "Condition type #{clause.inspect} not supported", caller(2)
       end
 
-      raise ArgumentError, "Clause #{clause.inspect} does not map to a DataMapper::Property" if property.nil?
+      if property.nil?
+        raise ArgumentError, "Clause #{clause.inspect} does not map to a DataMapper::Property", caller(2)
+      end
 
       @conditions << [ operator, property, bind_value ]
     end
@@ -565,5 +478,116 @@ module DataMapper
 
       @conditions.freeze
     end
+
+    class Direction
+      include Assertions
+
+      attr_reader :property, :direction
+
+      def ==(other)
+        return true if super
+        hash == other.hash
+      end
+
+      alias eql? ==
+
+      def hash
+        @property.hash + @direction.hash
+      end
+
+      def reverse
+        self.class.new(@property, @direction == :asc ? :desc : :asc)
+      end
+
+      def inspect
+        "#<#{self.class.name} #{@property.inspect} #{@direction}>"
+      end
+
+      private
+
+      def initialize(property, direction = :asc)
+        assert_kind_of 'property',  property,  Property
+        assert_kind_of 'direction', direction, Symbol
+
+        @property  = property
+        @direction = direction
+      end
+    end # class Direction
+
+    class Operator
+      include Assertions
+
+      attr_reader :target, :operator
+
+      def to_sym
+        @property_name
+      end
+
+      def ==(other)
+        @operator == other.operator && @target == other.target
+      end
+
+      private
+
+      def initialize(target, operator)
+        assert_kind_of 'operator', operator, Symbol
+
+        @target   = target
+        @operator = operator
+      end
+    end # class Operator
+
+    class Path
+      include Assertions
+
+      attr_reader :relationships, :model, :property, :operator
+
+      [ :gt, :gte, :lt, :lte, :not, :eql, :like, :in ].each do |sym|
+        class_eval <<-EOS, __FILE__, __LINE__
+          def #{sym}
+            Operator.new(self, :#{sym})
+          end
+        EOS
+      end
+
+      # duck type the DM::Query::Path to act like a DM::Property
+      def field(*args)
+        @property ? @property.field(*args) : nil
+      end
+
+      private
+
+      def initialize(repository, relationships, model, property_name = nil)
+        assert_kind_of 'repository',    repository,    Repository
+        assert_kind_of 'relationships', relationships, Array
+        assert_kind_of 'model',         model,         Resource::ClassMethods
+        assert_kind_of 'property_name', property_name, Symbol unless property_name.nil?
+
+        @repository    = repository
+        @relationships = relationships
+        @model         = model
+        @property      = @model.properties(@repository.name)[property_name] if property_name
+      end
+
+      def method_missing(method, *args)
+        if relationship = @model.relationships(@repository.name)[method]
+          clazz = if @model == relationship.child_model
+           relationship.parent_model
+          else
+           relationship.child_model
+          end
+          relations = []
+          relations.concat(@relationships)
+          relations << relationship #@model.relationships[method]
+          return Query::Path.new(@repository, relations,clazz)
+        end
+
+        if @model.properties(@model.repository.name)[method]
+          @property = @model.properties(@model.repository.name)[method]
+          return self
+        end
+        raise NoMethodError, "undefined property or association `#{method}' on #{@model}"
+      end
+    end # class Path
   end # class Query
 end # module DataMapper

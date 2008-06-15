@@ -1,5 +1,6 @@
 module DataMapper
   class PropertySet
+    include Assertions
     include Enumerable
 
     def [](name)
@@ -58,17 +59,17 @@ module DataMapper
     end
 
     def get(resource)
-      assert_argument_kind_of 'resource', resource, Resource
+      assert_kind_of 'resource', resource, Resource
+
       map { |property| property.get(resource) }
     end
 
     def set(resource, values)
-      assert_argument_kind_of('resource', resource, Resource)
+      assert_kind_of 'resource', resource, Resource
+      assert_kind_of 'values',   values,   Array unless values.nil?
 
-      if values.kind_of?(Array)
-        raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller if values.length != length
-      elsif !values.nil?
-        assert_argument_kind_of('values', values, NiClass, Array)
+      if values.kind_of?(Array) && values.length != length
+        raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller
       end
 
       each_with_index { |property,i| property.set(resource, values.nil? ? nil : values[i]) }
@@ -87,10 +88,10 @@ module DataMapper
     end
 
     def lazy_load_context(names)
-      if names.kind_of?(Array)
-        raise ArgumentError, "+names+ cannot be an empty Array", caller if names.empty?
-      else
-        assert_argument_kind_of('names', names, Symbol, Array)
+      assert_kind_of 'names', names, Symbol, Array
+
+      if names.kind_of?(Array) && names.empty?
+        raise ArgumentError, '+names+ cannot be empty', caller
       end
 
       result = []
@@ -127,7 +128,7 @@ module DataMapper
     private
 
     def initialize(properties = [])
-      assert_argument_kind_of('properties', properties, Array)
+      assert_kind_of 'properties', properties, Enumerable
 
       @entries = properties
       @property_for = hash_for_property_for
@@ -140,7 +141,7 @@ module DataMapper
 
     def hash_for_property_for
       Hash.new do |h,k|
-        assert_argument_kind_of('key', k, String, Symbol)
+        assert_kind_of 'key', k, String, Symbol
 
         ksym = k.to_sym
         if property = detect { |property| property.name == ksym }
@@ -159,15 +160,8 @@ module DataMapper
       when Symbol
         index_hash[index.to_s] ||= []
         index_hash[index.to_s] << property
-      when Array then index.each { |idx| parse_index(idx, property, index_hash) }
+      when Enumerable then index.each { |idx| parse_index(idx, property, index_hash) }
       end
     end
-
-    def assert_argument_kind_of(name, value, *klasses)
-      unless klasses.any? { |k| value.kind_of?(k) }
-        raise ArgumentError, "+#{name}+ should be #{klasses.map { |k| k.to_s } * ' or '}, but was #{value.class}", caller(2)
-      end
-    end
-
   end # class PropertySet
 end # module DataMapper

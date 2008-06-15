@@ -1,13 +1,15 @@
 module DataMapper
   module Associations
     module OneToOne
+      extend Assertions
 
       # Setup one to one relationship between two models
       # -
       # @private
-      def setup(name, model, options = {})
-        raise ArgumentError, "+name+ should be a Symbol, but was #{name.class}", caller     unless name.kind_of?(Symbol)
-        raise ArgumentError, "+options+ should be a Hash, but was #{options.class}", caller unless options.kind_of?(Hash)
+      def self.setup(name, model, options = {})
+        assert_kind_of 'name',    name,    Symbol
+        assert_kind_of 'model',   model,   Resource::ClassMethods
+        assert_kind_of 'options', options, Hash
 
         repository_name = model.repository.name
 
@@ -24,7 +26,9 @@ module DataMapper
 
           def #{name}_association
             @#{name}_association ||= begin
-            relationship = model.relationships(#{repository_name.inspect})[:#{name}]
+              unless relationship = model.relationships(#{repository_name.inspect})[:#{name}]
+                raise ArgumentError, 'Relationship #{name.inspect} does not exist'
+              end
               association = Associations::OneToMany::Proxy.new(relationship, self)
               parent_associations << association
               association
@@ -52,9 +56,6 @@ module DataMapper
           )
         end
       end
-
-      module_function :setup
-
     end # module HasOne
   end # module Associations
 end # module DataMapper

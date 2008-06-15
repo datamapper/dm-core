@@ -31,6 +31,7 @@ end
 
 dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
+require dir / 'support'
 require dir / 'type'
 require dir / 'type_map'
 require dir / 'types'
@@ -47,7 +48,6 @@ require dir / 'transaction'
 require dir / 'repository'
 require dir / 'resource'
 require dir / 'scope'
-require dir / 'support'
 require dir / 'property'
 require dir / 'adapters'
 require dir / 'collection'
@@ -99,6 +99,8 @@ require dir / 'is'
 # see DataMapper::Logger for more information.
 #
 module DataMapper
+  extend Assertions
+
   def self.root
     @root ||= Pathname(__FILE__).dirname.parent.expand_path
   end
@@ -120,7 +122,8 @@ module DataMapper
   # -
   # @api public
   def self.setup(name, uri_or_options)
-    raise ArgumentError, "+name+ must be a Symbol, but was #{name.class}", caller unless name.kind_of?(Symbol)
+    assert_kind_of 'name',           name,           Symbol
+    assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
 
     case uri_or_options
       when Hash
@@ -128,8 +131,6 @@ module DataMapper
       when String, Addressable::URI
         uri_or_options = Addressable::URI.parse(uri_or_options) if uri_or_options.kind_of?(String)
         adapter_name = uri_or_options.scheme
-      else
-        raise ArgumentError, "+uri_or_options+ must be a Hash, Addressable::URI or String, but was #{uri_or_options.class}", caller
     end
 
     class_name = Extlib::Inflection.classify(adapter_name) + 'Adapter'
@@ -162,8 +163,13 @@ module DataMapper
   #
   #     current_repository = DataMapper.repository
   def self.repository(*args, &block) # :yields: current_context
-    raise ArgumentError, "Can only pass in one optional argument, but passed in #{args.size} arguments", caller unless args.size <= 1
-    raise ArgumentError, "First optional argument must be a Symbol, but was #{args.first.inspect}", caller      unless args.empty? || args.first.kind_of?(Symbol)
+    if args.size > 1
+      raise ArgumentError, "Can only pass in one optional argument, but passed in #{args.size} arguments", caller
+    end
+
+    if args.any? && !args.first.kind_of?(Symbol)
+      raise ArgumentError, "First optional argument must be a Symbol, but was #{args.first.inspect}", caller
+    end
 
     name = args.first
 

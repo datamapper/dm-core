@@ -692,6 +692,10 @@ module DataMapper
       # @see DataMapper::Property
       def property(name, type, options = {})
         property = Property.new(self, name, type, options)
+
+        create_property_getter(property)
+        create_property_setter(property)
+
         @properties[repository.name] << property
 
         # Add property to the other mappings as well if this is for the default
@@ -892,17 +896,46 @@ module DataMapper
       end
 
       def scoped_query(query = self.query)
+        assert_kind_of 'query', query, Query, Hash
+
         return self.query if query == self.query
 
         query = if query.kind_of?(Hash)
           Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, self, query)
-        elsif query.kind_of?(Query)
-          query
         else
-          raise ArgumentError, "+query+ must be either a Hash or DataMapper::Query, but was a #{query.class}"
+          query
         end
 
         self.query ? self.query.merge(query) : query
+      end
+
+      # defines the getter for the property
+      def create_property_getter(property)
+        class_eval <<-EOS, __FILE__, __LINE__
+          #{property.reader_visibility}
+          def #{property.getter}
+            attribute_get(#{property.name.inspect})
+          end
+        EOS
+
+        if property.primitive == TrueClass && !property.model.instance_methods.include?(property.name.to_s)
+          class_eval <<-EOS, __FILE__, __LINE__
+            #{property.reader_visibility}
+            alias #{property.name} #{property.getter}
+          EOS
+        end
+      end
+
+      # defines the setter for the property
+      def create_property_setter(property)
+        unless instance_methods.include?(property.name.to_s + '=')
+          class_eval <<-EOS, __FILE__, __LINE__
+            #{property.writer_visibility}
+            def #{property.name}=(value)
+              attribute_set(#{property.name.inspect}, value)
+            end
+          EOS
+        end
       end
 
       def method_missing(method, *args, &block)

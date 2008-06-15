@@ -73,7 +73,7 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def create_table_statement(model)
+          def create_table_statement(repository, model)
             "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
           end
 

@@ -8,10 +8,12 @@ if HAS_POSTGRES
 
     describe '#upgrade_model_storage' do
       before do
-        @repository = mock('repository')
-        @property   = mock('property', :serial? => true, :field => 'property')
-        @model      = mock('model', :key => [ @property ], :storage_name => 'models')
+        @repository = mock('repository', :name => :postgres)
+        @model      = mock('model', :storage_name => 'models')
+        @property   = mock('property', :model => @model, :serial? => true, :field => 'property')
+
         @model.should_receive(:properties).with(:postgres).any_number_of_times.and_return([@property])
+
         @command    = mock('command')
         @connection = mock('connection', :create_command => @command, :close => true)
         @result     = mock('result', :to_i => 0)
@@ -54,9 +56,10 @@ if HAS_POSTGRES
 
     describe '#create_model_storage' do
       before do
-        @repository = mock('repository')
-        @property   = mock('property', :serial? => true, :field => 'property')
-        @model      = mock('model', :key => [ @property ], :storage_name => 'models')
+        @repository = mock('repository', :name => :postgres)
+        @model      = mock('model', :storage_name => 'models')
+        @property   = mock('property', :model => @model, :serial? => true, :field => 'property')
+
         @model.should_receive(:properties).with(:postgres).any_number_of_times.and_return([@property])
 
         @adapter.stub!(:execute).and_return(@result)
@@ -95,9 +98,10 @@ if HAS_POSTGRES
 
     describe '#destroy_model_storage' do
       before do
-        @repository = mock('repository')
-        @property   = mock('property', :serial? => true, :field => 'property')
-        @model      = mock('model', :key => [ @property ], :storage_name => 'models')
+        @repository = mock('repository', :name => :postgres)
+        @model      = mock('model', :storage_name => 'models')
+        @property   = mock('property', :model => @model, :serial? => true, :field => 'property')
+
         @model.should_receive(:properties).with(:postgres).any_number_of_times.and_return([@property])
 
         @original_method = @adapter.class.superclass.instance_method(:destroy_model_storage)

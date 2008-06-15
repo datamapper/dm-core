@@ -1,5 +1,6 @@
 module DataMapper
   module Hook
+    include Assertions
 
     # Inject code that executes before the target class method.
     #
@@ -65,33 +66,40 @@ module DataMapper
 
     def define_instance_or_class_method(new_meth_name, block, scope)
       case scope
-      when :class
-        class << self
-          self
-        end.instance_eval do
+        when :class
+          class << self
+            self
+          end.instance_eval do
+            define_method new_meth_name, block
+          end
+        when :instance
           define_method new_meth_name, block
-        end
-      when :instance
-        define_method new_meth_name, block
-      else
-        raise ArgumentError.new("You need to pass :class or :instance as scope")
+        else
+          raise ArgumentError, 'You need to pass :class or :instance as scope'
       end
     end
 
     def hooks_with_scope(scope)
       case scope
-      when :class then class_method_hooks
-      when :instance then hooks
-      else
-        raise ArgumentError.new("You need to pass :class or :instance as scope")
+        when :class    then class_method_hooks
+        when :instance then hooks
+        else
+          raise ArgumentError, 'You need to pass :class or :instance as scope'
       end
     end
 
     def install_hook(type, name, method_sym, scope, &block)
-      raise ArgumentError.new("You need to pass 2 arguments to \"#{type}\".") if ! block_given? and method_sym.nil?
-      raise ArgumentError.new("target_method should be a symbol") unless name.is_a?(Symbol)
-      raise ArgumentError.new("method_sym should be a symbol") if method_sym && ! method_sym.is_a?(Symbol)
-      raise ArgumentError.new("You need to pass :class or :instance as scope") unless [:class, :instance].include?(scope)
+      assert_kind_of 'name',       name,       Symbol
+      assert_kind_of 'method_sym', method_sym, Symbol unless method_sym.nil?
+      assert_kind_of 'scope',      scope,      Symbol
+
+      if !block_given? and method_sym.nil?
+        raise ArgumentError, "You need to pass 2 arguments to \"#{type}\"."
+      end
+
+      unless [ :class, :instance ].include?(scope)
+        raise ArgumentError, 'You need to pass :class or :instance as scope'
+      end
 
       hooks_with_scope(scope)[name][type] ||= []
 
@@ -116,10 +124,10 @@ module DataMapper
 
     def method_with_scope(name, scope)
       case scope
-      when :class then method(name)
-      when :instance then instance_method(name)
-      else
-        raise ArgumentError.new("You need to pass :class or :instance as scope")
+        when :class    then method(name)
+        when :instance then instance_method(name)
+        else
+          raise ArgumentError, 'You need to pass :class or :instance as scope'
       end
     end
 
@@ -133,7 +141,7 @@ module DataMapper
         prefix = "self."
         types = [:before_class_method, :after_class_method]
       elsif scope != :instance
-        raise ArgumentError.new("You need to pass :class or :instance as scope")
+        raise ArgumentError, 'You need to pass :class or :instance as scope'
       end
 
       <<-EOD
@@ -172,7 +180,7 @@ module DataMapper
           EOF
         end
       else
-        raise ArgumentError.new("You need to pass :class or :instance as scope")
+        raise ArgumentError, 'You need to pass :class or :instance as scope'
       end
     end
 
@@ -182,14 +190,14 @@ module DataMapper
       method_def = ""
       hooks_with_scope(scope)[name][type].each_with_index do |e, i|
         case e
-        when Symbol
-          method_def << "  #{e}(#{args})\n"
-        else
-          # TODO: Test this. Testing order should be before, after and after,
-          # before
-          method_def << "(@__hooks_#{scope}_#{quote_method(name)}_#{type}_#{i} || "
-          method_def << "  @__hooks_#{scope}_#{quote_method(name)}_#{type}_#{i} = self.class.hooks_with_scope(#{scope.inspect})[:#{name}][:#{type}][#{i}])"
-          method_def << ".call #{args}\n"
+          when Symbol
+            method_def << "  #{e}(#{args})\n"
+          else
+            # TODO: Test this. Testing order should be before, after and after,
+            # before
+            method_def << "(@__hooks_#{scope}_#{quote_method(name)}_#{type}_#{i} || "
+            method_def << "  @__hooks_#{scope}_#{quote_method(name)}_#{type}_#{i} = self.class.hooks_with_scope(#{scope.inspect})[:#{name}][:#{type}][#{i}])"
+            method_def << ".call #{args}\n"
         end
       end
 
