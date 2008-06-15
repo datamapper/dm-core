@@ -331,10 +331,12 @@ if ADAPTER
           it 'should create a new resource' do
             resource = @collection.create(:name => 'John')
             resource.should be_kind_of(@model)
+            resource.should_not be_new_record
           end
 
           it 'should append the new resource to the collection' do
             resource = @collection.create(:name => 'John')
+            resource.should_not be_new_record
             resource.collection.object_id.should == @collection.object_id
             @collection.should include(resource)
           end
@@ -344,7 +346,6 @@ if ADAPTER
             Zebra.should_receive(:repository).at_least(:once).and_return(@repository)
 
             resource = @collection.create(:name => 'John')
-
             resource.should be_new_record
 
             resource.collection.object_id.should_not == @collection.object_id
@@ -353,6 +354,7 @@ if ADAPTER
 
           it 'should use the query conditions to set default values' do
             resource = @collection.create
+            resource.should_not be_new_record
             resource.name.should be_nil
 
             @collection.query.update(:name => 'John')

@@ -414,6 +414,8 @@ module DataMapper
       elsif type == Date       then typecast_to_date(value)
       elsif type == Time       then typecast_to_time(value)
       elsif type == Class      then find_const(value)
+      else
+        value
       end
     end
 
