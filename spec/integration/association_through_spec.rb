@@ -14,10 +14,10 @@ if ADAPTER
           property :title, String
 
           has n, :taggings
-          has n, :tags => :taggings
+          has n, :tags, :through => :taggings
 
           has n, :relationships
-          has n, {:related_posts => :relationships}, :class_name => "Post"
+          has n, :related_posts, :through => :relationships, :class_name => 'Post'
         end
 
         class Tag
@@ -30,7 +30,7 @@ if ADAPTER
           property :title, String
 
           has n, :taggings
-          has n, :posts => :taggings
+          has n, :posts, :through => :taggings
         end
 
         class Tagging

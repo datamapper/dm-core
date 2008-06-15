@@ -563,21 +563,21 @@ if ADAPTER
               end
               property :id, Integer, :serial => true
               property :name, String
-              has n, :cakes, :class_name => 'Sweets::Cake'                                     # has n
-              has n, {:recipes => :cakes}, :class_name => 'Sweets::Recipe'                      # has n => has 1
-              has n, {:ingredients => :cakes}, :class_name => 'Sweets::Ingredient'             # has n => has 1 => has n
-              has n, {:creators => :cakes}, :class_name => 'Sweets::Creator'                    # has n => has 1 => has 1
-              has n, {:slices => :cakes}, :class_name => 'Sweets::Slice'                       # has n => has n
-              has n, {:bites => :cakes}, :class_name => 'Sweets::Bite'                         # has n => has n => has n
-              has n, {:shapes => :cakes}, :class_name => 'Sweets::Shape'                        # has n => has n => has 1
-              has n, {:customers => :cakes}, :class_name => 'Sweets::Customer'                 # has n => belongs_to (pending)
-              has 1, :shop_owner, :class_name => 'Sweets::ShopOwner'                           # has 1
-              has 1, {:wife => :shop_owner}, :class_name => 'Sweets::Wife'                     # has 1 => has 1
-              has 1, {:ring => :shop_owner}, :class_name => 'Sweets::Ring'                     # has 1 => has 1 => has 1
-              has n, {:coats => :shop_owner}, :class_name => 'Sweets::Coat'                    # has 1 => has 1 => has n
-              has n, {:children => :shop_owner}, :class_name => 'Sweets::Child'                # has 1 => has n
-              has n, {:toys => :shop_owner}, :class_name => 'Sweets::Toy'                      # has 1 => has n => has n
-              has n, {:boogers => :shop_owner}, :class_name => 'Sweets::Booger'                 # has 1 => has n => has 1
+              has n, :cakes,                                :class_name => 'Sweets::Cake'        # has n
+              has n, :recipes,     :through => :cakes,      :class_name => 'Sweets::Recipe'      # has n => has 1
+              has n, :ingredients, :through => :cakes,      :class_name => 'Sweets::Ingredient'  # has n => has 1 => has n
+              has n, :creators,    :through => :cakes,      :class_name => 'Sweets::Creator'     # has n => has 1 => has 1
+              has n, :slices,      :through => :cakes,      :class_name => 'Sweets::Slice'       # has n => has n
+              has n, :bites,       :through => :cakes,      :class_name => 'Sweets::Bite'        # has n => has n => has n
+              has n, :shapes,      :through => :cakes,      :class_name => 'Sweets::Shape'       # has n => has n => has 1
+              has n, :customers,   :through => :cakes,      :class_name => 'Sweets::Customer'    # has n => belongs_to (pending)
+              has 1, :shop_owner,                           :class_name => 'Sweets::ShopOwner'   # has 1
+              has 1, :wife,        :through => :shop_owner, :class_name => 'Sweets::Wife'        # has 1 => has 1
+              has 1, :ring,        :through => :shop_owner, :class_name => 'Sweets::Ring'        # has 1 => has 1 => has 1
+              has n, :coats,       :through => :shop_owner, :class_name => 'Sweets::Coat'        # has 1 => has 1 => has n
+              has n, :children,    :through => :shop_owner, :class_name => 'Sweets::Child'       # has 1 => has n
+              has n, :toys,        :through => :shop_owner, :class_name => 'Sweets::Toy'         # has 1 => has n => has n
+              has n, :boogers,     :through => :shop_owner, :class_name => 'Sweets::Booger'      # has 1 => has n => has 1
             end
 
             class ShopOwner
@@ -588,13 +588,13 @@ if ADAPTER
               property :id, Integer, :serial => true
               property :name, String
               belongs_to :shop, :class_name => 'Sweets::Shop'
-              has 1, :wife, :class_name => 'Sweets::Wife'
-              has n, :children, :class_name => 'Sweets::Child'
-              has n, {:toys => :children}, :class_name => 'Sweets::Toy'
-              has n, {:boogers => :children}, :class_name => 'Sweets::Booger'
-              has n, {:coats => :wife}, :class_name => 'Sweets::Coat'
-              has 1, {:ring => :wife}, :class_name => 'Sweets::Ring'
-              has n, {:schools => :children}, :class_name => 'Sweets::School'
+              has 1, :wife,                            :class_name => 'Sweets::Wife'
+              has n, :children,                        :class_name => 'Sweets::Child'
+              has n, :toys,     :through => :children, :class_name => 'Sweets::Toy'
+              has n, :boogers,  :through => :children, :class_name => 'Sweets::Booger'
+              has n, :coats,    :through => :wife,     :class_name => 'Sweets::Coat'
+              has 1, :ring,     :through => :wife,     :class_name => 'Sweets::Ring'
+              has n, :schools,  :through => :children, :class_name => 'Sweets::School'
             end
 
             class Wife
@@ -605,7 +605,7 @@ if ADAPTER
               property :id, Integer, :serial => true
               property :name, String
               belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
-              has 1, :ring, :class_name => 'Sweets::Ring'
+              has 1, :ring,  :class_name => 'Sweets::Ring'
               has n, :coats, :class_name => 'Sweets::Coat'
             end
 
@@ -637,7 +637,7 @@ if ADAPTER
               property :id, Integer, :serial => true
               property :name, String
               belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
-              has n, :toys, :class_name => 'Sweets::Toy'
+              has n, :toys,   :class_name => 'Sweets::Toy'
               has 1, :booger, :class_name => 'Sweets::Booger'
             end
 
@@ -670,12 +670,12 @@ if ADAPTER
               property :name, String
               belongs_to :shop, :class_name => 'Sweets::Shop'
               belongs_to :customer, :class_name => 'Sweets::Customer'
-              has n, :slices, :class_name => 'Sweets::Slice'
-              has n, {:bites => :slices}, :class_name => 'Sweets::Bite'
-              has 1, :recipe, :class_name => 'Sweets::Recipe'
-              has n, {:ingredients => :recipe}, :class_name => 'Sweets::Ingredient'
-              has 1, {:creator => :recipe}, :class_name => 'Sweets::Creator'
-              has n, {:shapes => :slices}, :class_name => 'Sweets::Shape'
+              has n, :slices,                           :class_name => 'Sweets::Slice'
+              has n, :bites,       :through => :slices, :class_name => 'Sweets::Bite'
+              has 1, :recipe,                           :class_name => 'Sweets::Recipe'
+              has n, :ingredients, :through => :recipe, :class_name => 'Sweets::Ingredient'
+              has 1, :creator,     :through => :recipe, :class_name => 'Sweets::Creator'
+              has n, :shapes,      :through => :slices, :class_name => 'Sweets::Shape'
             end
 
             class Recipe
@@ -687,7 +687,7 @@ if ADAPTER
               property :name, String
               belongs_to :cake, :class_name => 'Sweets::Cake'
               has n, :ingredients, :class_name => 'Sweets::Ingredient'
-              has 1, :creator, :class_name => 'Sweets::Creator'
+              has 1, :creator,     :class_name => 'Sweets::Creator'
             end
 
             class Customer
