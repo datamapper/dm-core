@@ -106,7 +106,7 @@ module DataMapper
 
       if value.nil? && new_record? && !property.options[:default].nil? && !attribute_loaded?(name)
         value = property.default_for(self)
-        instance_variable_set(ivar_name, value)
+        attribute_set(property.name, value)
       end
 
       value

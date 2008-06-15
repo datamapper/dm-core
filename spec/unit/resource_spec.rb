@@ -69,6 +69,29 @@ describe "DataMapper::Resource" do
       property :id, Integer, :serial => true
       property :name, String
     end
+
+    class Banana < Fruit
+      property :type, Discriminator
+    end
+  end
+
+  it 'should provide #attribute_get' do
+    Planet.new.should respond_to(:attribute_get)
+  end
+
+  describe '#attribute_get' do
+    it 'should set the default when original value is nil' do
+      banana = Banana.new
+      banana.original_values.should == {}
+      banana.type.should == Banana
+    end
+
+    it 'should set the default so it the attribute is dirty' do
+      banana = Banana.new
+      banana.dirty_attributes.should == {}
+      banana.type.should == Banana
+      banana.dirty_attributes.should == { Banana.properties[:type] => Banana }
+    end
   end
 
   it 'should provide #attribute_set' do
