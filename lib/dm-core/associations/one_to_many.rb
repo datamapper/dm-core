@@ -36,15 +36,16 @@ module DataMapper
         EOS
 
         model.relationships(repository_name)[name] = if options.has_key?(:through)
-          RelationshipChain.new(
-            :child_model_name         => options.fetch(:class_name, Extlib::Inflection.classify(name)),
-            :parent_model_name        => model.name,
-            :repository_name          => repository_name,
-            :near_relationship_name   => options[:through],
-            :remote_relationship_name => options.fetch(:remote_name, name),
-            :parent_key               => options[:parent_key],
-            :child_key                => options[:child_key]
-          )
+          opts = options.dup
+          opts[:child_model_name]         ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
+          opts[:parent_model_name]        =   model.name
+          opts[:repository_name]          =   repository_name
+          opts[:near_relationship_name]   =   opts.delete(:through)
+          opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
+          opts[:parent_key]               =   opts[:parent_key]
+          opts[:child_key]                =   opts[:child_key]
+          
+          RelationshipChain.new( opts )
         else
           Relationship.new(
             Extlib::Inflection.underscore(Extlib::Inflection.demodulize(model.name)).to_sym,

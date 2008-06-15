@@ -51,7 +51,7 @@ module DataMapper
       end
 
       def initialize(options)
-        if (missing_options = options.keys - OPTIONS).any?
+        if (missing_options = OPTIONS - [:min, :max] - options.keys ).any?
           raise ArgumentError, "The options #{missing_options * ', '} are required"
         end
 
