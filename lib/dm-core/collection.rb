@@ -32,7 +32,7 @@ module DataMapper
         #   Property or an Array of Property objects
 
         # use the brute force approach until subquery lookups work
-        lazy_load!
+        lazy_load
         get(*key)
       else
         # current query is all inclusive, lookup using normal approach
