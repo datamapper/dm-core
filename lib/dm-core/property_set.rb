@@ -59,15 +59,10 @@ module DataMapper
     end
 
     def get(resource)
-      assert_kind_of 'resource', resource, Resource
-
       map { |property| property.get(resource) }
     end
 
     def set(resource, values)
-      assert_kind_of 'resource', resource, Resource
-      assert_kind_of 'values',   values,   Array unless values.nil?
-
       if values.kind_of?(Array) && values.length != length
         raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller
       end
@@ -88,8 +83,6 @@ module DataMapper
     end
 
     def lazy_load_context(names)
-      assert_kind_of 'names', names, Symbol, Array
-
       if names.kind_of?(Array) && names.empty?
         raise ArgumentError, '+names+ cannot be empty', caller
       end
@@ -141,8 +134,6 @@ module DataMapper
 
     def hash_for_property_for
       Hash.new do |h,k|
-        assert_kind_of 'key', k, String, Symbol
-
         ksym = k.to_sym
         if property = detect { |property| property.name == ksym }
           h[ksym] = h[k.to_s] = property

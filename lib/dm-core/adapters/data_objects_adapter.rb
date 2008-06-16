@@ -10,11 +10,7 @@ module DataMapper
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
-      include Assertions
-
       def create(resources)
-        assert_kind_of 'resources', resources, Enumerable
-
         created = 0
         resources.each do |resource|
           repository = resource.repository
@@ -40,8 +36,6 @@ module DataMapper
       end
 
       def read_many(query)
-        assert_kind_of 'query', query, Query
-
         Collection.new(query) do |collection|
           with_connection do |connection|
             command = connection.create_command(read_statement(query))
@@ -61,8 +55,6 @@ module DataMapper
       end
 
       def read_one(query)
-        assert_kind_of 'query', query, Query
-
         with_connection do |connection|
           command = connection.create_command(read_statement(query))
           command.set_types(query.fields.map { |p| p.primitive })
@@ -80,17 +72,12 @@ module DataMapper
       end
 
       def update(attributes, query)
-        assert_kind_of 'attributes', attributes, Hash
-        assert_kind_of 'query',      query,      Query
-
         statement = update_statement(attributes.keys, query)
         bind_values = attributes.values + query.bind_values
         execute(statement, *bind_values).to_i
       end
 
       def delete(query)
-        assert_kind_of 'query', query, Query
-
         statement = delete_statement(query)
         execute(statement, *query.bind_values).to_i
       end
@@ -217,11 +204,6 @@ module DataMapper
         end
 
         def create_statement(repository, model, properties, identity_field)
-          assert_kind_of 'repository',     repository,     Repository
-          assert_kind_of 'model',          model,          Resource::ClassMethods
-          assert_kind_of 'properties',     properties,     Enumerable
-          assert_kind_of 'identity_field', identity_field, Property unless identity_field.nil?
-
           statement = "INSERT INTO #{quote_table_name(model.storage_name(repository.name))} "
 
           if supports_default_values? && properties.empty?
@@ -444,9 +426,6 @@ module DataMapper
       module Migration
         # TODO: move to dm-more/dm-migrations
         def upgrade_model_storage(repository, model)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'model',      model,      Resource::ClassMethods
-
           table_name = model.storage_name(repository.name)
 
           if success = create_model_storage(repository, model)
@@ -468,9 +447,6 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def create_model_storage(repository, model)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'model',      model,      Resource::ClassMethods
-
           return false if storage_exists?(model.storage_name(repository.name))
 
           execute(create_table_statement(repository, model))
@@ -484,9 +460,6 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def destroy_model_storage(repository, model)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'model',      model,      Resource::ClassMethods
-
           execute(drop_table_statement(repository, model))
           true
         end

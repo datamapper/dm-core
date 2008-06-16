@@ -379,8 +379,6 @@ module DataMapper
     #-
     # @api private
     def get(resource)
-      assert_kind_of 'resource', resource, Resource
-
       new_record = resource.new_record?
 
       unless new_record || resource.attribute_loaded?(name)
@@ -413,7 +411,6 @@ module DataMapper
     end
 
     def get!(resource)
-      assert_kind_of 'resource', resource, Resource
       resource.instance_variable_get(instance_variable_name)
     end
 
@@ -423,8 +420,6 @@ module DataMapper
     #-
     # @api private
     def set(resource, value)
-      assert_kind_of 'resource', resource, Resource
-
       new_value = typecast(value)
       old_value = get!(resource)
 
@@ -438,7 +433,6 @@ module DataMapper
     end
 
     def set!(resource, value)
-      assert_kind_of 'resource', resource, Resource
       resource.instance_variable_set(instance_variable_name, value)
     end
 

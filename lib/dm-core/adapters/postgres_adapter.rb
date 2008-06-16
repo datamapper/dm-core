@@ -41,27 +41,18 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def upgrade_model_storage(repository, model)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'model',      model,      Resource::ClassMethods
-
           add_sequences(repository, model)
           super
         end
 
         # TODO: move to dm-more/dm-migrations
         def create_model_storage(repository, model)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'model',      model,      Resource::ClassMethods
-
           add_sequences(repository, model)
           without_notices { super }
         end
 
         # TODO: move to dm-more/dm-migrations
         def destroy_model_storage(repository, model)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'model',      model,      Resource::ClassMethods
-
           success = without_notices { super }
           model.properties(repository.name).each do |property|
             drop_sequence(repository, property) if property.serial?
@@ -73,18 +64,12 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def create_sequence(repository, property)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'property',   property,   Property
-
           return if sequence_exists?(repository, property)
           execute(create_sequence_statement(repository, property))
         end
 
         # TODO: move to dm-more/dm-migrations
         def drop_sequence(repository, property)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'property',   property,   Property
-
           without_notices { execute(drop_sequence_statement(repository, property)) }
         end
 

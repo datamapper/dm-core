@@ -228,8 +228,6 @@ module DataMapper
     # --
     # @public
     def attribute_loaded?(name)
-      assert_kind_of 'name', name, Symbol
-
       property = model.properties(repository.name)[name]
       instance_variable_defined?(property.instance_variable_name)
     end
@@ -506,8 +504,6 @@ module DataMapper
     # -
     # @semipublic
     def attribute_get(name)
-      assert_kind_of 'name', name, Symbol
-
       property = model.properties(repository.name)[name]
       property.get(self)
     end
@@ -515,8 +511,6 @@ module DataMapper
     # TODO document
     # @semipublic
     def attribute_get!(name)
-      assert_kind_of 'name', name, Symbol
-
       property = model.properties(repository.name)[name]
       property.get!(self)
     end
@@ -559,8 +553,6 @@ module DataMapper
     # -
     # @semipublic
     def attribute_set(name, value)
-      assert_kind_of 'name', name, Symbol
-
       property = model.properties(repository.name)[name]
       property.set(self, value)
     end
@@ -568,8 +560,6 @@ module DataMapper
     # TODO document
     # @semipublic
     def attribute_set!(name, value)
-      assert_kind_of 'name', name, Symbol
-
       property = model.properties(repository.name)[name]
       property.set!(self, value)
     end
