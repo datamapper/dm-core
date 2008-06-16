@@ -142,12 +142,15 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @adapter.stub!(:execute).and_return(@result)
       @adapter.stub!(:supports_returning?).and_return(false)
 
-      @property    = mock('property', :kind_of? => true, :serial? => true, :instance_variable_name => '@property', :field => 'property', :custom? => false, :typecast => 'bind value')
+      @property    = mock('property', :kind_of? => true, :serial? => true, :name => :property, :field => 'property', :custom? => false, :typecast => 'bind value')
       @properties  = [ @property ]
       @bind_values = [ 'bind value' ]
       @attributes  = mock('attributes', :keys => @properties, :values => @bind_values)
       @model       = mock('model', :key => [ @property ], :storage_name => 'models')
       @resource    = mock('resource', :model => @model, :dirty_attributes => @attributes)
+
+      @property.stub!(:set!).and_return(@resource)
+
       @statement   = 'INSERT INTO "models" ("property") VALUES (?)'
     end
 
@@ -214,7 +217,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @model.key.size.should == 1
       @property.should_receive(:serial?).and_return(true)
       @result.should_receive(:insert_id).and_return(777)
-      @resource.should_receive(:instance_variable_set).with('@property', 777)
+      @property.should_receive(:set!).with(@resource, 777)
       do_create.should == 1
     end
   end

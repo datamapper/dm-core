@@ -9,7 +9,7 @@ module DataMapper
 
         model.class_eval <<-EOS
           def destroy
-            attribute_set(#{property.name.inspect}, DateTime::now)
+            attribute_set(#{property.name.inspect}, DateTime.now)
             save
           end
         EOS

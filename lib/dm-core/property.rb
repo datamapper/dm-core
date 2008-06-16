@@ -250,7 +250,7 @@ module DataMapper
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :unique_index, :check, :ordinal, :auto_validation,
-      :validates, :unique, :lock, :track, :scale, :precision
+      :validates, :unique, :track, :scale, :precision
     ]
 
     # FIXME: can we pull the keys from
@@ -369,10 +369,6 @@ module DataMapper
       @nullable
     end
 
-    def lock?
-      @lock
-    end
-
     def custom?
       @custom
     end
@@ -385,7 +381,40 @@ module DataMapper
     def get(resource)
       assert_kind_of 'resource', resource, Resource
 
-      resource.attribute_get(@name)
+      new_record = resource.new_record?
+
+      unless new_record || resource.attribute_loaded?(name)
+        # TODO: refactor this section
+        contexts = if lazy?
+          name
+        else
+          model.properties(resource.repository.name).reject do |property|
+            property.lazy? || resource.attribute_loaded?(property.name)
+          end
+        end
+        resource.send(:lazy_load, contexts)
+      end
+
+      value = get!(resource)
+
+      case track
+        when :hash
+          resource.original_values[name] = value.dup.hash unless resource.original_values.has_key?(name) rescue value.hash
+        when :get
+          resource.original_values[name] = value.dup unless resource.original_values.has_key?(name) rescue value
+      end
+
+      if value.nil? && new_record && !options[:default].nil? && !resource.attribute_loaded?(name)
+        value = default_for(resource)
+        set(resource, value)
+      end
+
+      value
+    end
+
+    def get!(resource)
+      assert_kind_of 'resource', resource, Resource
+      resource.instance_variable_get(instance_variable_name)
     end
 
     # Provides a standardized setter method for the property
@@ -396,21 +425,21 @@ module DataMapper
     def set(resource, value)
       assert_kind_of 'resource', resource, Resource
 
-      ivar_name = instance_variable_name
       new_value = typecast(value)
-      old_value = resource.instance_variable_get(ivar_name)
+      old_value = get!(resource)
 
       # skip setting the property if the new value is equal
       # to the old value, and the old value was defined
-      return if new_value == old_value && resource.instance_variable_defined?(ivar_name)
-
-      if lock?
-        resource.instance_variable_set("@shadow_#{name}", old_value)
-      end
+      return if new_value == old_value && resource.attribute_loaded?(name)
 
       resource.original_values[name] = old_value unless resource.original_values.has_key?(name)
 
-      resource.instance_variable_set(ivar_name, new_value)
+      set!(resource, new_value)
+    end
+
+    def set!(resource, value)
+      assert_kind_of 'resource', resource, Resource
+      resource.instance_variable_set(instance_variable_name, value)
     end
 
     # typecasts values into a primitive
@@ -481,7 +510,6 @@ module DataMapper
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
 
       @getter       = TrueClass == @primitive ? "#{@name}?".to_sym : @name
-      @lock         = @options.fetch(:lock,         false)
       @serial       = @options.fetch(:serial,       false)
       @key          = @options.fetch(:key,          @serial || false)
       @default      = @options.fetch(:default,      nil)

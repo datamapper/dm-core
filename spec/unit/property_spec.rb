@@ -1,8 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Property do
-
-  before(:all) do
+  before :all do
     class Zoo
       include DataMapper::Resource
     end
@@ -14,6 +13,84 @@ describe DataMapper::Property do
 
     class Tomato
       include DataMapper::Resource
+    end
+  end
+
+  before do
+    @property = DataMapper::Property.new(Zoo, :name, String, :default => 'San Diego')
+  end
+
+  it 'should provide #get' do
+    @property.should respond_to(:get)
+  end
+
+  describe '#get' do
+    before do
+      @original_values = {}
+      @resource        = mock('resource', :new_record? => true, :original_values => @original_values)
+    end
+
+    describe 'when setting the default on initial access' do
+      before do
+        # make sure there was no original value
+        @original_values.should_not have_key(:name)
+
+        # force the default to be set
+        @resource.should_receive(:instance_variable_get).with('@name').twice.and_return(nil)
+        @resource.should_receive(:attribute_loaded?).with(:name).and_return(false)
+      end
+
+      it 'should set the ivar to the default' do
+        @resource.should_receive(:instance_variable_set).with('@name', 'San Diego')
+
+        @property.get(@resource).should == 'San Diego'
+      end
+
+      it 'should set the original value to nil' do
+        @property.get(@resource).should == 'San Diego'
+
+        @original_values.should == { :name => nil }
+      end
+    end
+  end
+
+  it 'should provide #get!' do
+    @property.should respond_to(:get!)
+  end
+
+  describe '#get!' do
+    it 'should get the resource instance variable' do
+      resource = mock('resource')
+      resource.should_receive(:instance_variable_get).with('@name').and_return('Portland Zoo')
+      @property.get!(resource).should == 'Portland Zoo'
+    end
+  end
+
+  it 'should provide #set' do
+    @property.should respond_to(:set)
+  end
+
+  describe '#set' do
+    before do
+      @original_values = {}
+      @resource        = mock('resource', :original_values => @original_values)
+    end
+
+    it 'should typecast the value' do
+      @property.should_receive(:typecast).with(888)
+      @property.set(@resource, 888)
+    end
+  end
+
+  it 'should provide #set!' do
+    @property.should respond_to(:set!)
+  end
+
+  describe '#set!' do
+    it 'should set the resource instance variable' do
+      resource = mock('resource')
+      resource.should_receive(:instance_variable_set).with('@name', 'Seattle Zoo').and_return(resource)
+      @property.set!(resource, 'Seattle Zoo').object_id.should == resource.object_id
     end
   end
 
@@ -84,14 +161,10 @@ describe DataMapper::Property do
     DataMapper::Property.new(Tomato,:botanical_name,String,{}).serial?.should == false
   end
 
-  it "should determine whether it is lockable" do
-    DataMapper::Property.new(Tomato, :id, Integer, { :lock => true }).lock?.should == true
-    DataMapper::Property.new(Tomato, :botanical_name, String, {}).lock?.should == false
-  end
-
-  # TODO should we add an accessor method property.default_value
   it "should determine a default value" do
-    DataMapper::Property.new(Tomato,:botanical_name,String,{:default => 'Tomato'}).options[:default].should == 'Tomato'
+    resource = mock('resource')
+    property = DataMapper::Property.new(Tomato, :botanical_name, String, :default => 'Tomato')
+    property.default_for(resource).should == 'Tomato'
   end
 
   it "should determine visibility of readers and writers" do
@@ -152,7 +225,7 @@ describe DataMapper::Property do
     tomato.id.should == 2
   end
 
-  it 'should respond to custom?' do
+  it 'should provide #custom?' do
     DataMapper::Property.new(Zoo, :name, Name, { :size => 50 }).should be_custom
     DataMapper::Property.new(Zoo, :state, String, { :size => 2 }).should_not be_custom
   end

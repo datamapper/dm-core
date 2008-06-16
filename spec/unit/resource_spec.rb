@@ -4,7 +4,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 # So we give it a String of the module name instead.
 # DO NOT CHANGE THIS!
 describe "DataMapper::Resource" do
-
   before :all do
     class Planet
 
@@ -13,7 +12,7 @@ describe "DataMapper::Resource" do
       storage_names[:legacy] = "dying_planets"
 
       property :id, Integer, :key => true
-      property :name, String, :lock => true
+      property :name, String
       property :age, Integer
       property :core, String, :private => true
       property :type, Discriminator
@@ -75,27 +74,20 @@ describe "DataMapper::Resource" do
     end
   end
 
-  it 'should provide #attribute_get' do
-    Planet.new.should respond_to(:attribute_get)
+  it 'should provide private #attribute_get' do
+    Planet.new.private_methods.should include('attribute_get')
   end
 
   describe '#attribute_get' do
-    it 'should set the default when original value is nil' do
-      banana = Banana.new
-      banana.original_values.should == {}
-      banana.type.should == Banana
-    end
-
-    it 'should set the default so it the attribute is dirty' do
-      banana = Banana.new
-      banana.dirty_attributes.should == {}
-      banana.type.should == Banana
-      banana.dirty_attributes.should == { Banana.properties[:type] => Banana }
+    it 'should delegate to Property#get' do
+      planet = Planet.new
+      Planet.properties[:age].should_receive(:get).with(planet).and_return(1)
+      planet.age.should == 1
     end
   end
 
-  it 'should provide #attribute_set' do
-    Planet.new.should respond_to(:attribute_set)
+  it 'should provide private #attribute_set' do
+    Planet.new.private_methods.should include('attribute_set')
   end
 
   describe '#attribute_set' do
@@ -104,6 +96,12 @@ describe "DataMapper::Resource" do
       planet = Planet.new
       planet.age = '1'
       planet.age.should == 1
+    end
+
+    it 'should delegate to Property#set' do
+      planet = Planet.new
+      Planet.properties[:age].should_receive(:set).with(planet, 1).and_return(1)
+      planet.age = 1
     end
   end
 
@@ -320,19 +318,17 @@ describe "DataMapper::Resource" do
     #    mars.attribute_loaded?(:age).should be_true
 
     # A value should be able to be both loaded and nil.
-    mars.attribute_get(:age).should be_nil
+    mars.age.should be_nil
 
     # Unless you call #[]= it's not dirty.
     mars.attribute_dirty?(:age).should be_false
 
-    mars.attribute_set(:age, 30)
-    mars.attribute_set(:data, { :a => "Yeah!" })
+    mars.age = 30
+    mars.data = { :a => "Yeah!" }
 
     # Obviously. :-)
     mars.attribute_dirty?(:age).should be_true
     mars.attribute_dirty?(:data).should be_true
-
-    mars.should respond_to(:shadow_attribute_get)
   end
 
   it "should mark the key as dirty, if it is a natural key and has been set" do
@@ -360,17 +356,6 @@ describe "DataMapper::Resource" do
 
   it 'should provide a key' do
     Planet.new.should respond_to(:key)
-  end
-
-  it 'should temporarily store original values for locked attributes' do
-    mars = Planet.new
-    mars.instance_variable_set('@name', 'Mars')
-    mars.instance_variable_set('@new_record', false)
-
-    mars.attribute_set(:name, 'God of War')
-    mars.attribute_get(:name).should == 'God of War'
-    mars.name.should == 'God of War'
-    mars.shadow_attribute_get(:name).should == 'Mars'
   end
 
   it 'should store and retrieve default values' do

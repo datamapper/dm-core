@@ -31,7 +31,7 @@ module DataMapper
 
           if result.to_i == 1
             if identity_field
-              resource.instance_variable_set(identity_field.instance_variable_name, result.insert_id)
+              identity_field.set!(resource, result.insert_id)
             end
             created += 1
           end

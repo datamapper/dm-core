@@ -129,9 +129,9 @@ if HAS_SQLITE3
           expected_value = types[name][4]
           it 'should properly typecast value' do
             if DateTime == klass
-              @book.attribute_get(name).to_s.should == expected_value.to_s
+              @book.send(name).to_s.should == expected_value.to_s
             else
-              @book.attribute_get(name).should == expected_value
+              @book.send(name).should == expected_value
             end
           end
         end
@@ -237,9 +237,9 @@ if HAS_MYSQL
           expected_value = types[name][4]
           it 'should properly typecast value' do
             if DateTime == klass || Time == klass # mysql doesn't support microsecond
-              @book.attribute_get(name).to_s.should == expected_value.to_s
+              @book.send(name).to_s.should == expected_value.to_s
             else
-              @book.attribute_get(name).should == expected_value
+              @book.send(name).should == expected_value
             end
           end
         end
@@ -377,9 +377,9 @@ if HAS_POSTGRES
           expected_value = types[name][4]
           it 'should properly typecast value' do
             if DateTime == klass
-              @book.attribute_get(name).to_s.should == expected_value.to_s
+              @book.send(name).to_s.should == expected_value.to_s
             else
-              @book.attribute_get(name).should == expected_value
+              @book.send(name).should == expected_value
             end
           end
         end

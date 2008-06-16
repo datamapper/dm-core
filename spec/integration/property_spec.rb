@@ -11,7 +11,7 @@ if ADAPTER
           include DataMapper::Resource
 
           property :id, Integer, :serial => true
-          property :name, String, :track => :set, :lock => true # :track default is :get for mutable types
+          property :name, String, :track => :set # :track default is :get for mutable types
           property :notes, DataMapper::Types::Text
           property :age, Integer # :track default is :set for mutable types
           property :rating, Integer
