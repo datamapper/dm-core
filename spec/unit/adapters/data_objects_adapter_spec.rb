@@ -146,7 +146,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @properties  = [ @property ]
       @bind_values = [ 'bind value' ]
       @attributes  = mock('attributes', :keys => @properties, :values => @bind_values)
-      @model       = mock('model', :key => [ @property ], :storage_name => 'models')
+      @model       = mock('model', :kind_of? => true, :key => [ @property ], :storage_name => 'models')
       @resource    = mock('resource', :model => @model, :dirty_attributes => @attributes)
 
       @property.stub!(:set!).and_return(@resource)
@@ -355,8 +355,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @property    = mock('property', :kind_of? => true, :field => 'property')
       @bind_values = [ 'bind value' ]
       @conditions  = [ [ :eql, @property, @bind_values[0] ] ]
-      @attributes  = mock('attributes', :empty? => false, :keys => [ @property ], :values => @values)
-      @query       = mock('query', :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
+      @attributes  = mock('attributes', :kind_of? => true, :empty? => false, :keys => [ @property ], :values => @values)
+      @query       = mock('query', :kind_of? => true, :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
       @statement   = 'UPDATE "models" SET "property" = ? WHERE "property" = ?'
     end
 
@@ -411,7 +411,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @property    = mock('property', :kind_of? => true, :field => 'property')
       @bind_values = [ 'bind value' ]
       @conditions  = [ [ :eql, @property, @bind_values[0] ] ]
-      @query       = mock('query', :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
+      @query       = mock('query', :kind_of? => true, :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
       @resource    = mock('resource', :to_query => @query)
       @statement   = 'DELETE FROM "models" WHERE "property" = ?'
     end

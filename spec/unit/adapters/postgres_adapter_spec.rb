@@ -8,9 +8,9 @@ if HAS_POSTGRES
 
     describe '#upgrade_model_storage' do
       before do
-        @repository = mock('repository', :name => :postgres)
-        @model      = mock('model', :storage_name => 'models')
-        @property   = mock('property', :model => @model, :serial? => true, :field => 'property')
+        @repository = mock('repository', :kind_of? => true, :name => :postgres)
+        @model      = mock('model', :kind_of? => true, :storage_name => 'models')
+        @property   = mock('property', :kind_of? => true, :model => @model, :serial? => true, :field => 'property')
 
         @model.should_receive(:properties).with(:postgres).any_number_of_times.and_return([@property])
 
@@ -56,9 +56,9 @@ if HAS_POSTGRES
 
     describe '#create_model_storage' do
       before do
-        @repository = mock('repository', :name => :postgres)
-        @model      = mock('model', :storage_name => 'models')
-        @property   = mock('property', :model => @model, :serial? => true, :field => 'property')
+        @repository = mock('repository', :kind_of? => true, :name => :postgres)
+        @model      = mock('model', :kind_of? => true, :storage_name => 'models')
+        @property   = mock('property', :kind_of? => true, :model => @model, :serial? => true, :field => 'property')
 
         @model.should_receive(:properties).with(:postgres).any_number_of_times.and_return([@property])
 
@@ -98,9 +98,9 @@ if HAS_POSTGRES
 
     describe '#destroy_model_storage' do
       before do
-        @repository = mock('repository', :name => :postgres)
-        @model      = mock('model', :storage_name => 'models')
-        @property   = mock('property', :model => @model, :serial? => true, :field => 'property')
+        @repository = mock('repository', :kind_of? => true, :name => :postgres)
+        @model      = mock('model', :kind_of? => true, :storage_name => 'models')
+        @property   = mock('property', :kind_of? => true, :model => @model, :serial? => true, :field => 'property')
 
         @model.should_receive(:properties).with(:postgres).any_number_of_times.and_return([@property])
 

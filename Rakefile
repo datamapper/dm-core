@@ -66,7 +66,7 @@ namespace :dm do
     desc "Run integration specifications with rcov"
     run_spec('integration', integration_specs, true)
   end
-  
+
   desc "Run all comparisons with ActiveRecord"
   task :perf do
     sh ROOT + 'script/performance.rb'
