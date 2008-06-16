@@ -39,7 +39,12 @@ log_dir.mkdir unless log_dir.directory?
 
 DataMapper::Logger.new(log_dir / 'dm.log', :debug)
 adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
-sqlfile = File.join(File.dirname(__FILE__),'..','tmp','perf.sql')
+
+if configuration_options[:adapter]
+  sqlfile = File.join(File.dirname(__FILE__),'..','tmp','perf.sql')
+  mysql_bin = %w[mysql mysql5].select{|bin| `which #{bin}`.length > 0 }
+  mysqldump_bin = %w[mysqldump mysqldump5].select{|bin| `which #{bin}`.length > 0 }
+end
 
 ActiveRecord::Base.logger = Logger.new(log_dir / 'ar.log')
 ActiveRecord::Base.logger.level = 0
@@ -75,9 +80,10 @@ end
 
 c = configuration_options
 
-if File.exists?(sqlfile) && configuration_options[:adapter] == 'mysql'
+if sqlfile && File.exists?(sqlfile)
   puts "Found data-file. Importing from #{sqlfile}"
-  `mysql -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
+  #adapter.execute("LOAD DATA LOCAL INFILE '#{sqlfile}' INTO TABLE exhibits")
+  `#{mysql_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
 else
   
   Exhibit.auto_migrate!
@@ -97,7 +103,7 @@ else
   end
   10_000.times { |i| adapter.execute(*exhibits.at(i)) }
   
-  if configuration_options[:adapter] == 'mysql'
+  if sqlfile
     answer = nil
     until answer && answer[/^$|y|yes|n|no/]
       print("Would you like to dump data into tmp/perf.sql (for faster setup)? [Yn]");
@@ -107,7 +113,8 @@ else
   
     if answer[/^$|y|yes/]
       File.makedirs(File.dirname(sqlfile))
-      `mysqldump -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} exhibits > #{sqlfile}`
+      #adapter.execute("SELECT * INTO OUTFILE '#{sqlfile}' FROM exhibits;")
+      `#{mysqldump_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} exhibits > #{sqlfile}`
       puts "File saved\n"
     end
   end
