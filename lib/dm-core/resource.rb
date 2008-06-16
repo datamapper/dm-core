@@ -150,23 +150,8 @@ module DataMapper
     # -
     # @public
     def attribute_set(name, value)
-      property  = model.properties(repository.name)[name]
-      ivar_name = property.instance_variable_name
-
-      new_value = property.typecast(value)
-      old_value = instance_variable_get(ivar_name)
-
-      # skip setting the propert if the new value is equal
-      # to the old value, and the old value was defined
-      return if new_value == old_value && instance_variable_defined?(ivar_name)
-
-      if property.lock?
-        instance_variable_set("@shadow_#{name}", old_value)
-      end
-
-      original_values[name] = old_value unless original_values.has_key?(name)
-
-      instance_variable_set(ivar_name, new_value)
+      property = model.properties(repository.name)[name]
+      property.set(self, value)
     end
 
     # Compares if its the same object or if attributes are equal

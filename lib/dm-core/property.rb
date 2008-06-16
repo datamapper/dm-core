@@ -396,7 +396,21 @@ module DataMapper
     def set(resource, value)
       assert_kind_of 'resource', resource, Resource
 
-      resource.attribute_set(@name, value)
+      ivar_name = instance_variable_name
+      new_value = typecast(value)
+      old_value = resource.instance_variable_get(ivar_name)
+
+      # skip setting the property if the new value is equal
+      # to the old value, and the old value was defined
+      return if new_value == old_value && resource.instance_variable_defined?(ivar_name)
+
+      if lock?
+        resource.instance_variable_set("@shadow_#{name}", old_value)
+      end
+
+      resource.original_values[name] = old_value unless resource.original_values.has_key?(name)
+
+      resource.instance_variable_set(ivar_name, new_value)
     end
 
     # typecasts values into a primitive
