@@ -17,7 +17,6 @@ Pathname.glob(ROOT + 'tasks/**/*.rb') { |t| require t }
 task :default => 'dm:spec'
 task :spec    => 'dm:spec'
 task :rcov    => 'dm:rcov'
-task :perf    => 'dm:perf:all'
 
 namespace :spec do
   task :unit        => 'dm:spec:unit'
