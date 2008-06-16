@@ -17,6 +17,7 @@ Pathname.glob(ROOT + 'tasks/**/*.rb') { |t| require t }
 task :default => 'dm:spec'
 task :spec    => 'dm:spec'
 task :rcov    => 'dm:rcov'
+task :perf    => 'dm:perf:all'
 
 namespace :spec do
   task :unit        => 'dm:spec:unit'
@@ -66,8 +67,8 @@ namespace :dm do
     desc "Run integration specifications with rcov"
     run_spec('integration', integration_specs, true)
   end
-
-  desc "Run comparison with ActiveRecord"
+  
+  desc "Run all comparisons with ActiveRecord"
   task :perf do
     sh ROOT + 'script/performance.rb'
   end
