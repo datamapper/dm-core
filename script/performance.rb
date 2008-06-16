@@ -85,9 +85,9 @@ if sqlfile && File.exists?(sqlfile)
   #adapter.execute("LOAD DATA LOCAL INFILE '#{sqlfile}' INTO TABLE exhibits")
   `#{mysql_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
 else
-  
+
   Exhibit.auto_migrate!
-    
+
   exhibits = []
   # pre-compute the insert statements and fake data compilation,
   # so the benchmarks below show the actual runtime for the execute
@@ -102,7 +102,7 @@ else
     ]
   end
   10_000.times { |i| adapter.execute(*exhibits.at(i)) }
-  
+
   if sqlfile
     answer = nil
     until answer && answer[/^$|y|yes|n|no/]
@@ -110,7 +110,7 @@ else
       STDOUT.flush
       answer = gets
     end
-  
+
     if answer[/^$|y|yes/]
       File.makedirs(File.dirname(sqlfile))
       #adapter.execute("SELECT * INTO OUTFILE '#{sqlfile}' FROM exhibits;")
@@ -118,7 +118,7 @@ else
       puts "File saved\n"
     end
   end
-  
+
 end
 
 TIMES = ENV['x'] ? ENV['x'].to_i : 10_000
@@ -128,54 +128,54 @@ puts "Some tasks will be run 10 and 1000 times less than (number)"
 puts "Benchmarks will now run #{TIMES} times"
 
 RBench.run(TIMES) do
-  
+
   column :times
   column :dm, :title => "DM 0.9.2"
   column :ar, :title => "AR 2.1"
   column :diff, :compare => [:dm,:ar]
-  
+
   report "#get specific (not cached)" do
     dm { touch_attributes[Exhibit.get(1)] }
     ActiveRecord::Base::uncached { ar { touch_attributes[ARExhibit.find(1)] } }
   end
-  
+
   report "#get specific (cached)" do
     Exhibit.repository(:default) { dm { touch_attributes[Exhibit.get(1)]    } }
     ActiveRecord::Base::cache    { ar { touch_attributes[ARExhibit.find(1)] } }
   end
-  
+
   report "#get first" do
     dm { touch_attributes[Exhibit.first]   }
     ar { touch_attributes[ARExhibit.first] }
   end
-  
+
   report "#all limit(100) (not cached)", TIMES / 10 do
     dm { touch_attributes[Exhibit.all(:limit => 100)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
   end
-  
+
   report "#all limit(100) (cached)", TIMES / 10 do
     Exhibit.repository(:default) { dm { touch_attributes[Exhibit.all(:limit => 100)] } }
     ActiveRecord::Base::cache    { ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] } }
   end
-  
+
   report "#all limit(10,000) (not cached)", TIMES / 1000 do
     dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
   end
-  
+
   report "#all limit(10,000) (cached)", TIMES / 1000 do
     Exhibit.repository(:default) { dm { touch_attributes[Exhibit.all(:limit => 10_000)] } }
     ActiveRecord::Base::cache    { ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] } }
   end
-  
+
   create_exhibit = {
     :name       => Faker::Company.name,
     :zoo_id     => rand(10).ceil,
     :notes      => Faker::Lorem.paragraphs.join($/),
     :created_on => Date.today
   }
-  
+
   report "#create" do
     dm { Exhibit.create(create_exhibit)   }
     ar { ARExhibit.create(create_exhibit) }
@@ -185,14 +185,14 @@ RBench.run(TIMES) do
     dm { e = Exhibit.get(1); e.name = 'bob'; e.save   }
     ar { e = ARExhibit.find(1); e.name = 'bob'; e.save  }
   end
-  
+
   report "#destroy" do
     dm { Exhibit.first.destroy }
     ar { ARExhibit.first.destroy }
   end
-  
+
   summary "Total"
-  
+
 end
 
 connection = adapter.send(:create_connection)
@@ -218,7 +218,7 @@ get first                                x10000 |    6.987 |   2.756 |   2.54x |
 Total                                           |  117.242 |  92.936 |   1.26x |
 
 
-## PROBLEMS WITH THE RECENT DAYS COMMITS !!! ## 
+## PROBLEMS WITH THE RECENT DAYS COMMITS !!! ##
 
                                                 | DM 0.9.2 |  AR 2.1 |    DIFF |
 --------------------------------------------------------------------------------
@@ -234,4 +234,3 @@ Total                                           |  117.242 |  92.936 |   1.26x |
 #destroy                                  x1000 |   12.892 |   1.512 |   8.52x |
 ================================================================================
 Total                                         0 |  318.237 |   8.483 |  42.69x |
-

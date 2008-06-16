@@ -60,7 +60,7 @@ module DataMapper
             # been defined
             unless model.properties(repository.name).any? { |p| p.serial? }
               if (key = model.properties(repository.name).key).any?
-                statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field(repository.name)) } * ', '})"
+                statement << ", PRIMARY KEY(#{key.map { |p| quote_column_name(p.field(repository.name)) } * ', '})"
               end
             end
 
