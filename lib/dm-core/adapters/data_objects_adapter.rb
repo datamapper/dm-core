@@ -244,11 +244,11 @@ module DataMapper
         def read_statement(query)
           statement = "SELECT #{fields_statement(query)}"
           statement << " FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
-          statement << links_statement(query)                  if query.links.any?
-          statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
-          statement << " ORDER BY #{order_statement(query)}"   if query.order.any?
-          statement << " LIMIT #{query.limit}"                 if query.limit
-          statement << " OFFSET #{query.offset}"               if query.offset && query.offset > 0
+          statement << links_statement(query)                        if query.links.any?
+          statement << " WHERE #{conditions_statement(query)}"       if query.conditions.any?
+          statement << " ORDER BY #{order_statement(query)}"         if query.order.any?
+          statement << " LIMIT #{quote_column_value(query.limit)}"   if query.limit
+          statement << " OFFSET #{quote_column_value(query.offset)}" if query.offset && query.offset > 0
           statement
         rescue => e
           DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
@@ -319,18 +319,18 @@ module DataMapper
           qualify = query.links.any?
 
           query.order.map do |item|
-            property, direction = nil, nil
+            property, descending = nil, false
 
             case item
               when Property
                 property = item
               when Query::Direction
                 property  = item.property
-                direction = item.direction if item.direction == :desc
+                descending = true if item.direction == :desc
             end
 
             order = property_to_column_name(query.repository, property, qualify)
-            order << " #{direction.to_s.upcase}" if direction
+            order << ' DESC' if descending
             order
           end * ', '
         end
@@ -582,9 +582,9 @@ module DataMapper
             statement << " #{schema[:primitive]}"
 
             if schema[:scale] && schema[:precision]
-              statement << "(#{schema[:scale]},#{schema[:precision]})"
+              statement << "(#{quote_column_value(schema[:scale])},#{quote_column_value(schema[:precision])})"
             elsif schema[:size]
-              statement << "(#{schema[:size]})"
+              statement << "(#{quote_column_value(schema[:size])})"
             end
 
             statement << ' NOT NULL' unless schema[:nullable?]
