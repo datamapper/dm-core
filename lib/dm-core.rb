@@ -31,6 +31,26 @@ end
 
 dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
+# Define an interface for plugins to hook into
+module DataMapper
+  module Resource
+    @@extra_inclusions = Set.new
+    @@extra_extensions = Set.new
+
+    # Adds modules to be included into the model when DataMapper::Resource
+    # is included
+    def self.append_inclusions(*inclusions)
+      @@extra_inclusions.merge inclusions
+    end
+
+    # Adds modules that will be used to extend the model when
+    # DataMapper::Resource is included
+    def self.append_extensions(*extensions)
+      @@extra_extensions.merge extensions
+    end
+  end
+end
+
 require dir / 'support'
 require dir / 'type'
 require dir / 'type_map'

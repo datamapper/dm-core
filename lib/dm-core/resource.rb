@@ -20,6 +20,10 @@ module DataMapper
     # @private
     def self.included(model)
       model.extend ClassMethods
+      
+      @@extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
+      @@extra_extensions.each { |extension| model.extend(extension) }
+      
       @@descendants << model
     end
 
