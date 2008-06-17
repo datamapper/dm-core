@@ -37,19 +37,47 @@ module DataMapper
   module Resource
     @@extra_inclusions = []
 
-    # Adds modules to be included into the model when DataMapper::Resource
-    # is included
+    #
+    # Appends a module for inclusion into the model class after
+    # DataMapper::Resource.
+    #
+    # This is a useful way to extend DataMapper::Resource while still retaining
+    # a self.included method.
+    #
+    # @param inclusion<Module> the module that is to be appended to the module
+    #        after DataMapper::Resource
+    #
+    # @return <TrueClass, FalseClass> whether or not the inclusions have been
+    #         successfully appended to the list
+    #-
+    # @api public
     def self.append_inclusions(*inclusions)
       @@extra_inclusions.concat inclusions
+      true
     end
     
     module ClassMethods
       @@extra_extensions = []
       
-      # Adds modules that will be used to extend the model when
-      # DataMapper::Resource is included
+      #
+      # Extends the model with this module after DataMapper::Resource has been
+      # included.
+      #
+      # This is a useful way to extend DataMapper::Resource::ClassMethods while
+      # still retaining a self.extended method.
+      #
+      # @param extension<Module> the module that is to be extend the model after
+      #        after DataMapper::Resource::ClassMethods
+      #
+      # @return <TrueClass, FalseClass> whether or not the inclusions have been
+      #         successfully appended to the list
+      #-
+      # @api public
+      #
+      # TODO: Move this do DataMapper::Model when DataMapper::Model is created
       def self.append_extensions(*extensions)
         @@extra_extensions.concat extensions
+        true
       end
     end
   end
