@@ -48,6 +48,81 @@ module DataMapper
 
     alias model class
 
+    # returns the value of the attribute. Do not read from instance variables directly,
+    # but use this method. This method handels the lazy loading the attribute and returning
+    # of defaults if nessesary.
+    #
+    # ==== Parameters
+    # name<Symbol>:: name attribute to lookup
+    #
+    # ==== Returns
+    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
+    #
+    # ==== Example
+    #
+    #   Class Foo
+    #     include DataMapper::Resource
+    #
+    #     property :first_name, String
+    #     property :last_name, String
+    #
+    #     def full_name
+    #       "#{attribute_get(:first_name)} #{attribute_get(:last_name)}"
+    #     end
+    #
+    #     # using the shorter syntax
+    #     def name_for_address_book
+    #       "#{last_name}, #{first_name}"
+    #     end
+    #   end
+    #
+    # -
+    # @semipublic
+    def attribute_get(name)
+      properties[name].get(self)
+    end
+
+    # sets the value of the attribute and marks the attribute as dirty
+    # if it has been changed so that it may be saved. Do not set from
+    # instance variables directly, but use this method. This method
+    # handels the lazy loading the property and returning of defaults
+    # if nessesary.
+    #
+    # ==== Parameters
+    # name<Symbol>:: name attribute to set
+    # value<Type>:: value to store at that location
+    #
+    # ==== Returns
+    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
+    #
+    # ==== Example
+    #
+    #   Class Foo
+    #     include DataMapper::Resource
+    #
+    #     property :first_name, String
+    #     property :last_name, String
+    #
+    #     def full_name(name)
+    #       name = name.split(' ')
+    #       attribute_set(:first_name, name[0])
+    #       attribute_set(:last_name, name[1])
+    #     end
+    #
+    #     # using the shorter syntax
+    #     def name_from_address_book(name)
+    #       name = name.split(', ')
+    #       first_name = name[1]
+    #       last_name = name[0]
+    #     end
+    #   end
+    #
+    # -
+    # @semipublic
+    def attribute_set(name, value)
+      properties[name].set(self, value)
+    end
+
     # Compares if its the same object or if attributes are equal
     #
     # ==== Parameters
@@ -475,85 +550,10 @@ module DataMapper
       repository.update(dirty_attributes, to_query) == 1
     end
 
-    # returns the value of the attribute. Do not read from instance variables directly,
-    # but use this method. This method handels the lazy loading the attribute and returning
-    # of defaults if nessesary.
-    #
-    # ==== Parameters
-    # name<Symbol>:: name attribute to lookup
-    #
-    # ==== Returns
-    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
-    #
-    # ==== Example
-    #
-    #   Class Foo
-    #     include DataMapper::Resource
-    #
-    #     property :first_name, String
-    #     property :last_name, String
-    #
-    #     def full_name
-    #       "#{attribute_get(:first_name)} #{attribute_get(:last_name)}"
-    #     end
-    #
-    #     # using the shorter syntax
-    #     def name_for_address_book
-    #       "#{last_name}, #{first_name}"
-    #     end
-    #   end
-    #
-    # -
-    # @semipublic
-    def attribute_get(name)
-      properties[name].get(self)
-    end
-
     # TODO document
     # @semipublic
     def attribute_get!(name)
       properties[name].get!(self)
-    end
-
-    # sets the value of the attribute and marks the attribute as dirty
-    # if it has been changed so that it may be saved. Do not set from
-    # instance variables directly, but use this method. This method
-    # handels the lazy loading the property and returning of defaults
-    # if nessesary.
-    #
-    # ==== Parameters
-    # name<Symbol>:: name attribute to set
-    # value<Type>:: value to store at that location
-    #
-    # ==== Returns
-    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
-    #
-    # ==== Example
-    #
-    #   Class Foo
-    #     include DataMapper::Resource
-    #
-    #     property :first_name, String
-    #     property :last_name, String
-    #
-    #     def full_name(name)
-    #       name = name.split(' ')
-    #       attribute_set(:first_name, name[0])
-    #       attribute_set(:last_name, name[1])
-    #     end
-    #
-    #     # using the shorter syntax
-    #     def name_from_address_book(name)
-    #       name = name.split(', ')
-    #       first_name = name[1]
-    #       last_name = name[0]
-    #     end
-    #   end
-    #
-    # -
-    # @semipublic
-    def attribute_set(name, value)
-      properties[name].set(self, value)
     end
 
     # TODO document
