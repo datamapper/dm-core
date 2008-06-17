@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 describe "DataMapper::Resource" do
   before :all do
     class Planet
-
       include DataMapper::Resource
 
       storage_names[:legacy] = "dying_planets"
@@ -585,13 +584,16 @@ describe 'DataMapper::Resource::ClassMethods' do
     end
 
     it 'should not cache the key value' do
-      Planet.key.object_id.should_not == Planet.key(:default)
+      class GasGiant < Planet
+      end
+
+      GasGiant.key.object_id.should_not == Planet.key(:default)
 
       # change the key and make sure the Array changes
-      Planet.key == Planet.properties.slice(:id)
-      Planet.property(:new_prop, String, :key => true)
-      Planet.key.object_id.should_not == Planet.key(:default)
-      Planet.key == Planet.properties.slice(:id, :new_prop)
+      GasGiant.key == GasGiant.properties.slice(:id)
+      GasGiant.property(:new_prop, String, :key => true)
+      GasGiant.key.object_id.should_not == Planet.key(:default)
+      GasGiant.key == GasGiant.properties.slice(:id, :new_prop)
     end
   end
 
@@ -644,7 +646,7 @@ describe 'DataMapper::Resource::ClassMethods' do
 
   describe '#default_order' do
     it 'should be equal to #key by default' do
-      Planet.default_order.should == Planet.key
+      Planet.default_order.should == [ DataMapper::Query::Direction.new(Planet.properties[:id], :asc) ]
     end
   end
 end

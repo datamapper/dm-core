@@ -110,9 +110,14 @@ describe DataMapper::Query do
           query.conditions.should == [ [ :like, Article.properties[:author], /\Ad(?:an\.)kubb\z/ ] ]
         end
       end
+
+      it '#order with model.default_order if none provided' do
+        query = DataMapper::Query.new(@repository, Article)
+        query.order.should == [ DataMapper::Query::Direction.new(Article.properties[:id], :asc) ]
+      end
     end
 
-    describe 'should raise a ArgumentError' do
+    describe 'should raise an ArgumentError' do
       it 'when repository is nil' do
         lambda {
           DataMapper::Query.new(nil, NormalClass)
@@ -124,9 +129,7 @@ describe DataMapper::Query do
           DataMapper::Query.new(@repository, nil)
         }.should raise_error(ArgumentError)
       end
-    end
 
-    describe 'should raise an ArgumentError' do
       it 'when model is a Class that does not include DataMapper::Resource' do
         lambda {
           DataMapper::Query.new(@repository, NormalClass)
@@ -453,25 +456,15 @@ describe DataMapper::Query do
 
   describe '#reverse!' do
     it 'should update the query with the reverse order' do
-      direction = DataMapper::Query::Direction.new(Article.properties[:created_at])
+      normal_order  = Article.key.map { |p| DataMapper::Query::Direction.new(p, :asc) }
+      reverse_order = Article.key.map { |p| DataMapper::Query::Direction.new(p, :desc) }
 
-      @query.update(:order => [ :created_at.desc ])
-      @query.order.should_not be_empty
-      @query.should_receive(:update).with(:order => [ direction ])
+      normal_order.should_not be_empty
+      reverse_order.should_not be_empty
+
+      @query.order.should == normal_order
+      @query.should_receive(:update).with(:order => reverse_order)
       @query.reverse!.object_id.should == @query.object_id
     end
-
-
-    it 'should update the query with the reverse default order if its order is empty' do
-      direction = DataMapper::Query::Direction.new(Article.properties[:id], :desc)
-
-      @query.order.should be_empty
-      @query.should_receive(:update).with(:order => [ direction ])
-      @query.reverse!.object_id.should == @query.object_id
-    end
-
-
-#    # set the default sort order
-#    update(:order => model.default_order) if order.empty?
   end
 end

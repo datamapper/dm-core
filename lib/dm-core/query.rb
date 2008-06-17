@@ -19,11 +19,8 @@ module DataMapper
     end
 
     def reverse!
-      # set the default sort order
-      order = normalize_order(self.order.any? ? self.order : model.default_order(repository.name))
-
       # reverse the sort order
-      update(:order => order.map { |o| o.reverse })
+      update(:order => self.order.map { |o| o.reverse })
 
       self
     end
@@ -47,7 +44,7 @@ module DataMapper
       @reload       = other.reload?       unless other.reload?       == false
       @offset       = other.offset        unless other.offset        == 0
       @limit        = other.limit         unless other.limit         == nil
-      @order        = other.order         unless other.order         == []
+      @order        = other.order         unless other.order         == model.default_order
       @add_reversed = other.add_reversed? unless other.add_reversed? == false
       @fields       = other.fields        unless other.fields        == @properties.defaults
       @links        = other.links         unless other.links         == []
@@ -162,7 +159,7 @@ module DataMapper
       @reload       = options.fetch :reload,       false  # must be true or false
       @offset       = options.fetch :offset,       0      # must be an Integer greater than or equal to 0
       @limit        = options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
-      @order        = options.fetch :order,        []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
+      @order        = options.fetch :order,        model.default_order   # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @add_reversed = options.fetch :add_reversed, false  # must be true or false
       @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]

@@ -731,10 +731,12 @@ module DataMapper
         @properties[repository_name].key
       end
 
-      alias default_order key
-
       def inheritance_property(repository_name = default_repository_name)
         @properties[repository_name].inheritance_property
+      end
+
+      def default_order
+        @default_order ||= key.map { |property| Query::Direction.new(property) }
       end
 
       def get(*key)
