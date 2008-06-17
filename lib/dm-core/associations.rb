@@ -91,6 +91,7 @@ module DataMapper
       end
 
       klass = options[:max] == 1 ? OneToOne : OneToMany
+      klass = ManyToMany if options[:through] == DataMapper::Resource
       relationship = klass.setup(options.delete(:name), self, options)
 
       # Please leave this in - I will release contextual serialization soon

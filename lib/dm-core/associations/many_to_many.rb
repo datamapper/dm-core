@@ -1,3 +1,4 @@
+require File.join(File.dirname(__FILE__), "one_to_many")
 module DataMapper
   module Associations
     module ManyToMany
@@ -11,46 +12,83 @@ module DataMapper
         assert_kind_of 'model',   model,   Resource::ClassMethods
         assert_kind_of 'options', options, Hash
 
-        raise NotImplementedError, 'many to many relationships not ready yet'
-
         repository_name = model.repository.name
+        
+        model.class_eval <<-EOS, __FILE__, __LINE__
+          def #{name}(query = {})
+            #{name}_association.all(query)
+          end
 
-        # TODO: add accessor/mutator to model with class_eval
+          def #{name}=(children)
+            #{name}_association.replace(children)
+          end
 
-        model.relationships(repository_name)[name] = Relationship.new(
-          name,
-          repository_name,
-          model.name,
-          options.fetch(:class_name, Extlib::Inflection.classify(name)),
-          options
-        )
+          private
+
+          def #{name}_association
+            @#{name}_association ||= begin
+              unless relationship = model.relationships(#{repository_name.inspect})[#{name.inspect}]
+                raise ArgumentError, 'Relationship #{name.inspect} does not exist'
+              end
+              association = Proxy.new(relationship, self)
+              parent_associations << association
+              association
+            end
+          end
+        EOS
+        
+        opts = options.dup
+        opts.delete(:through)
+        opts[:child_model]            ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
+        opts[:parent_model]             =   model.name
+        opts[:repository_name]          =   repository_name
+        opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
+        opts[:parent_key]               =   opts[:parent_key]
+        opts[:child_key]                =   opts[:child_key]
+        
+        names = [opts[:child_model], opts[:parent_model]].sort!
+
+        class_name = Extlib::Inflection.pluralize(names[0]) + names[1]
+        storage_name = Extlib::Inflection.tableize(class_name)
+
+        opts[:near_relationship_name] = storage_name.to_sym
+
+        model.has 1.0/0, storage_name.to_sym
+        model.relationships(repository_name)[name] = RelationshipChain.new( opts )
+
+        unless Object.const_defined?(class_name)
+          resource = DataMapper::Resource.new(storage_name)
+          resource.class_eval <<-EOS, __FILE__, __LINE__
+          def self.name; #{class_name.inspect} end
+          EOS
+          names.each do |name|
+            name = Extlib::Inflection.underscore(name)
+            resource.class_eval <<-EOS, __FILE__, __LINE__
+            property :#{name}_id, Integer, :key => true
+            belongs_to :#{name}
+            EOS
+          end
+          Object.const_set(class_name, resource)
+        end
       end
 
-      class Proxy
-        include Assertions
-
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not ].include?(m) }
-
+      class Proxy < DataMapper::Associations::OneToMany::Proxy
+        
+        def <<(resource)
+          remote_relationship = @relationship.send(:remote_relationship)
+          resource.save if resource.new_record?
+          through = @relationship.child_model.new(
+            @relationship.child_key.key.first.name => @relationship.parent_key.key.first.get(@parent),
+            remote_relationship.child_key.key.first.name => remote_relationship.parent_key.key.first.get(resource)
+          )
+          @parent.send(@relationship.send(:instance_variable_get, :@near_relationship_name)) << through
+        end
+        
         def save
-          raise NotImplementedError
         end
-
-        def kind_of?(klass)
-          # TODO: uncomment once proxy target method defined
-          super # || child.kind_of?(klass)
+        
+        def assert_mutable
         end
-
-        def respond_to?(method, include_private = false)
-          # TODO: uncomment once proxy target method defined
-          super # || child.respond_to?(method)
-        end
-
-        private
-
-        def initialize
-          raise NotImplementedError
-        end
-
       end # class Proxy
     end # module ManyToMany
   end # module Associations

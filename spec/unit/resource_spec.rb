@@ -372,7 +372,7 @@ describe "DataMapper::Resource" do
 
   describe "anonymity" do
     it "should require a default storage name and accept a block" do
-      pluto = DataMapper::Resource.new("planet") do
+      pluto = DataMapper::Resource.new("planets") do
         property :name, String, :key => true
       end
 

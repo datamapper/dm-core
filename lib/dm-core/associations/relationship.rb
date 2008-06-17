@@ -23,7 +23,6 @@ module DataMapper
               child_model.property(property_name, parent_property.type, attributes)
             end
           end
-
           PropertySet.new(child_key)
         end
       end
@@ -41,11 +40,11 @@ module DataMapper
       end
 
       def parent_model
-        find_const(@parent_model_name)
+        Class === @parent_model ? @parent_model : find_const(@parent_model)
       end
 
       def child_model
-        find_const(@child_model_name)
+        Class === @child_model ? @child_model : find_const(@child_model)
       end
 
       # @private
@@ -81,11 +80,11 @@ module DataMapper
       # and parent_properties refer to the PK.  For more information:
       # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
       # I wash my hands of it!
-      def initialize(name, repository_name, child_model_name, parent_model_name, options = {})
+      def initialize(name, repository_name, child_model, parent_model, options = {})
         assert_kind_of 'name',              name,              Symbol
         assert_kind_of 'repository_name',   repository_name,   Symbol
-        assert_kind_of 'child_model_name',  child_model_name,  String
-        assert_kind_of 'parent_model_name', parent_model_name, String
+        assert_kind_of 'child_model',  child_model,  String, Class
+        assert_kind_of 'parent_model', parent_model, String, Class
 
         if child_properties = options[:child_key]
           assert_kind_of 'options[:child_key]', child_properties, Array
@@ -97,10 +96,10 @@ module DataMapper
 
         @name              = name
         @repository_name   = repository_name
-        @child_model_name  = child_model_name
+        @child_model       = child_model
         @child_properties  = child_properties   # may be nil
         @query             = options.reject { |k,v| OPTIONS.include?(k) }
-        @parent_model_name = parent_model_name
+        @parent_model      = parent_model
         @parent_properties = parent_properties  # may be nil
         @options           = options
       end

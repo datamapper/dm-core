@@ -7,8 +7,8 @@ module DataMapper
     def self.new(default_name, &b)
       x = Class.new
       x.send(:include, self)
-      x.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(default_name) })
-      x.instance_eval(&b)
+      x.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = default_name })
+      x.instance_eval(&b) if block_given?
       x
     end
 
@@ -19,6 +19,7 @@ module DataMapper
     # @private
     def self.included(model)
       model.extend ClassMethods
+      model.const_set('Resource', self) unless model.const_defined?('Resource')
       descendants << model
     end
 
