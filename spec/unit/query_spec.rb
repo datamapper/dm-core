@@ -59,6 +59,11 @@ describe DataMapper::Query do
       end
 
       describe ' #conditions with options[:conditions]' do
+        it 'when they are a Hash' do
+          query = DataMapper::Query.new(@repository, Article, :conditions => { :author => 'dkubb' })
+          query.conditions.should == [ [ :eql, Article.properties[:author], 'dkubb' ] ]
+        end
+
         it 'when they have a one element Array' do
           query = DataMapper::Query.new(@repository, Article, :conditions => [ 'name = "dkubb"' ])
           query.conditions.should == [ [ :raw, 'name = "dkubb"' ] ]

@@ -190,7 +190,11 @@ module DataMapper
 
       # parse raw options[:conditions] differently
       if conditions = options[:conditions]
-        if conditions.kind_of?(Array)
+        if conditions.kind_of?(Hash)
+          conditions.each do |k,v|
+            append_condition(k, v)
+          end
+        elsif conditions.kind_of?(Array)
           raw_query, *bind_values = conditions
           @conditions << if bind_values.empty?
             [ :raw, raw_query ]
@@ -246,12 +250,21 @@ module DataMapper
       end
 
       # validate the order, fields, links, includes and conditions options
-      ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
+      ([ :order, :fields, :links, :includes ] & options.keys).each do |attribute|
         value = options[attribute]
         assert_kind_of "options[:#{attribute}]", value, Array
 
-        unless value.any?
+        if value.empty?
           raise ArgumentError, "+options[:#{attribute}]+ cannot be empty", caller(2)
+        end
+      end
+
+      if options.has_key?(:conditions)
+        value = options[:conditions]
+        assert_kind_of 'options[:conditions]', value, Hash, Array
+
+        if value.empty?
+          raise ArgumentError, '+options[:conditions]+ cannot be empty', caller(2)
         end
       end
     end
