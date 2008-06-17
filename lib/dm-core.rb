@@ -31,24 +31,25 @@ end
 
 dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
-# Define an interface for plugins to hook into
+# Define an interface for plugins to hook into. I have to add this code up
+# here because it needs to be available to all the files.
 module DataMapper
   module Resource
-    @@extra_inclusions = Set.new
+    @@extra_inclusions = []
 
     # Adds modules to be included into the model when DataMapper::Resource
     # is included
     def self.append_inclusions(*inclusions)
-      @@extra_inclusions.merge inclusions
+      @@extra_inclusions.concat inclusions
     end
     
     module ClassMethods
-      @@extra_extensions = Set.new
+      @@extra_extensions = []
       
       # Adds modules that will be used to extend the model when
       # DataMapper::Resource is included
       def self.append_extensions(*extensions)
-        @@extra_extensions.merge extensions
+        @@extra_extensions.concat extensions
       end
     end
   end
