@@ -19,6 +19,7 @@ module DataMapper
     # @private
     def self.included(model)
       model.extend ClassMethods
+      @@extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
       descendants << model
     end
 
@@ -615,6 +616,7 @@ module DataMapper
       def self.extended(model)
         model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval do default_storage_name end) })
         model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
+        @@extra_extensions.each { |extension| model.extend(extension) }
       end
 
       def inherited(target)
