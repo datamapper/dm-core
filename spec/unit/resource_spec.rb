@@ -74,8 +74,8 @@ describe "DataMapper::Resource" do
     end
   end
 
-  it 'should provide private #attribute_get' do
-    Planet.new.private_methods.should include('attribute_get')
+  it 'should provide #attribute_get' do
+    Planet.new.should respond_to(:attribute_get)
   end
 
   describe '#attribute_get' do
@@ -86,8 +86,8 @@ describe "DataMapper::Resource" do
     end
   end
 
-  it 'should provide private #attribute_set' do
-    Planet.new.private_methods.should include('attribute_set')
+  it 'should provide #attribute_set' do
+    Planet.new.should respond_to(:attribute_set)
   end
 
   describe '#attribute_set' do

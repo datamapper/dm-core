@@ -1,7 +1,6 @@
 require 'set'
 
 module DataMapper
-
   module Resource
     include Assertions
 
@@ -20,14 +19,8 @@ module DataMapper
     # @private
     def self.included(model)
       model.extend ClassMethods
-      
-      @@extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
-      @@extra_extensions.each { |extension| model.extend(extension) }
-      
-      @@descendants << model
+      descendants << model
     end
-
-    @@descendants = Set.new
 
     # Return all classes that include the DataMapper::Resource module
     #
@@ -45,12 +38,7 @@ module DataMapper
     # -
     # @semipublic
     def self.descendants
-      @@descendants
-    end
-
-    # For backward compatibility
-    class << self
-      alias descendents descendants
+      @descendants ||= Set.new
     end
 
     # +---------------
@@ -59,6 +47,81 @@ module DataMapper
     attr_writer :collection
 
     alias model class
+
+    # returns the value of the attribute. Do not read from instance variables directly,
+    # but use this method. This method handels the lazy loading the attribute and returning
+    # of defaults if nessesary.
+    #
+    # ==== Parameters
+    # name<Symbol>:: name attribute to lookup
+    #
+    # ==== Returns
+    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
+    #
+    # ==== Example
+    #
+    #   Class Foo
+    #     include DataMapper::Resource
+    #
+    #     property :first_name, String
+    #     property :last_name, String
+    #
+    #     def full_name
+    #       "#{attribute_get(:first_name)} #{attribute_get(:last_name)}"
+    #     end
+    #
+    #     # using the shorter syntax
+    #     def name_for_address_book
+    #       "#{last_name}, #{first_name}"
+    #     end
+    #   end
+    #
+    # -
+    # @semipublic
+    def attribute_get(name)
+      properties[name].get(self)
+    end
+
+    # sets the value of the attribute and marks the attribute as dirty
+    # if it has been changed so that it may be saved. Do not set from
+    # instance variables directly, but use this method. This method
+    # handels the lazy loading the property and returning of defaults
+    # if nessesary.
+    #
+    # ==== Parameters
+    # name<Symbol>:: name attribute to set
+    # value<Type>:: value to store at that location
+    #
+    # ==== Returns
+    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
+    #
+    # ==== Example
+    #
+    #   Class Foo
+    #     include DataMapper::Resource
+    #
+    #     property :first_name, String
+    #     property :last_name, String
+    #
+    #     def full_name(name)
+    #       name = name.split(' ')
+    #       attribute_set(:first_name, name[0])
+    #       attribute_set(:last_name, name[1])
+    #     end
+    #
+    #     # using the shorter syntax
+    #     def name_from_address_book(name)
+    #       name = name.split(', ')
+    #       first_name = name[1]
+    #       last_name = name[0]
+    #     end
+    #   end
+    #
+    # -
+    # @semipublic
+    def attribute_set(name, value)
+      properties[name].set(self, value)
+    end
 
     # Compares if its the same object or if attributes are equal
     #
@@ -74,7 +137,12 @@ module DataMapper
       return true if object_id == other.object_id
       return false unless other.kind_of?(model)
       return true if repository == other.repository && key == other.key
-      attributes == other.attributes
+
+      properties.each do |property|
+        return false if property.get!(self) != property.get!(other)
+      end
+
+      true
     end
 
     alias == eql?
@@ -94,7 +162,7 @@ module DataMapper
     def inspect
       attrs = []
 
-      model.properties(repository.name).each do |property|
+      properties.each do |property|
         value = if property.lazy? && !attribute_loaded?(property.name) && !new_record?
           '<not loaded>'
         else
@@ -109,10 +177,9 @@ module DataMapper
 
     # TODO docs
     def pretty_print(pp)
-      attrs = attributes.inject([]) {|s,(k,v)| s << [k,v]}
       pp.group(1, "#<#{model.name}", ">") do
         pp.breakable
-        pp.seplist(attrs) do |k_v|
+        pp.seplist(attributes.to_a) do |k_v|
           pp.text k_v[0].to_s
           pp.text " = "
           pp.pp k_v[1]
@@ -130,14 +197,6 @@ module DataMapper
       @repository || model.repository
     end
 
-    def child_associations
-      @child_associations ||= []
-    end
-
-    def parent_associations
-      @parent_associations ||= []
-    end
-
     # default id method to return the resource id when there is a
     # single key, and the model was defined with a primary key named
     # something other than id
@@ -153,8 +212,8 @@ module DataMapper
     end
 
     def key
-      model.key(repository.name).map do |property|
-        instance_variable_get(property.instance_variable_name)
+      key_properties.map do |property|
+        property.get!(self)
       end
     end
 
@@ -182,7 +241,7 @@ module DataMapper
 
       child_associations.each { |a| a.save }
 
-      success = if dirty? || (new_record? && model.key(repository.name).any? { |p| p.serial? })
+      success = if dirty? || (new_record? && key_properties.any? { |p| p.serial? })
         new_record? ? create : update
       end
 
@@ -209,7 +268,7 @@ module DataMapper
       repository.identity_map(model).delete(key)
       original_values.clear
 
-      model.properties(repository.name).each do |property|
+      properties.each do |property|
         # We'll set the original value to nil as if we had a new record
         original_values[property.name] = nil if attribute_loaded?(property.name)
       end
@@ -232,8 +291,7 @@ module DataMapper
     # --
     # @public
     def attribute_loaded?(name)
-      property = model.properties(repository.name)[name]
-      instance_variable_defined?(property.instance_variable_name)
+      instance_variable_defined?(properties[name].instance_variable_name)
     end
 
     # fetches all the names of the attributes that have been loaded,
@@ -256,8 +314,8 @@ module DataMapper
     # @public
     def loaded_attributes
       names = []
-      model.properties(repository.name).each do |property|
-        names << property.name if instance_variable_defined?(property.instance_variable_name)
+      properties.each do |property|
+        names << property.name if attribute_loaded?(property.name)
       end
       names
     end
@@ -282,10 +340,11 @@ module DataMapper
     # @private
     def dirty_attributes
       dirty_attributes = {}
+      properties       = self.properties
 
       original_values.each do |name, old_value|
-        property  = self.class.properties(repository.name)[name]
-        new_value = instance_variable_get(property.instance_variable_name)
+        property  = properties[name]
+        new_value = property.get!(self)
 
         if property.custom?
           new_value = property.type.dump(new_value, property)
@@ -329,8 +388,7 @@ module DataMapper
     # --
     # @public
     def attribute_dirty?(name)
-      property = model.properties(repository.name)[name]
-      dirty_attributes.has_key?(property)
+      dirty_attributes.has_key?(properties[name])
     end
 
     def collection
@@ -388,10 +446,9 @@ module DataMapper
     def attributes
       pairs = {}
 
-      model.properties(repository.name).each do |property|
-        if property.reader_visibility == :public
-          pairs[property.name] = send(property.getter)
-        end
+      properties.each do |property|
+        next unless property.reader_visibility == :public
+        pairs[property.name] = send(property.getter)
       end
 
       pairs
@@ -407,11 +464,10 @@ module DataMapper
     def attributes=(values_hash)
       values_hash.each_pair do |k,v|
         setter = "#{k.to_s.sub(/\?\z/, '')}="
-        # We check #public_methods and not Class#public_method_defined? to
-        # account for singleton methods.
-        if public_methods.include?(setter)
-          send(setter, v)
-        end
+
+        # use the attribute mutator if it is public to set the value
+        next unless respond_to?(setter, false)
+        send(setter, v)
       end
     end
 
@@ -429,13 +485,27 @@ module DataMapper
     def update_attributes(hash, *update_only)
       raise 'Update takes a hash as first parameter' unless hash.is_a?(Hash)
       loop_thru = update_only.empty? ? hash.keys : update_only
-      loop_thru.each {|attr|  send("#{attr}=", hash[attr])}
+      loop_thru.each { |attr|  send("#{attr}=", hash[attr]) }
       save
     end
 
     # TODO: add docs
     def to_query(query = {})
       model.to_query(repository, key, query) unless new_record?
+    end
+
+    protected
+
+    def properties
+      model.properties(repository.name)
+    end
+
+    def key_properties
+      model.key(repository.name)
+    end
+
+    def relationships
+      model.relationships(repository.name)
     end
 
     private
@@ -446,18 +516,20 @@ module DataMapper
     end
 
     def assert_valid_model # :nodoc:
-      if model.properties(repository.name).empty? && model.relationships(repository.name).empty?
+      properties = self.properties
+
+      if properties.empty? && relationships.empty?
         raise IncompleteResourceError, "#{model.name} must have at least one property or relationship to be initialized."
       end
 
-      if model.properties(repository.name).key.empty?
+      if properties.key.empty?
         raise IncompleteResourceError, "#{model.name} must have a key."
       end
     end
 
     def create
       # set defaults for new resource
-      model.properties(repository.name).each do |property|
+      properties.each do |property|
         next if attribute_loaded?(property.name)
         property.set(self, property.default_for(self))
       end
@@ -473,103 +545,33 @@ module DataMapper
     end
 
     def update
+      dirty_attributes = self.dirty_attributes
       return true if dirty_attributes.empty?
       repository.update(dirty_attributes, to_query) == 1
-    end
-
-    # returns the value of the attribute. Do not read from instance variables directly,
-    # but use this method. This method handels the lazy loading the attribute and returning
-    # of defaults if nessesary.
-    #
-    # ==== Parameters
-    # name<Symbol>:: name attribute to lookup
-    #
-    # ==== Returns
-    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
-    #
-    # ==== Example
-    #
-    #   Class Foo
-    #     include DataMapper::Resource
-    #
-    #     property :first_name, String
-    #     property :last_name, String
-    #
-    #     def full_name
-    #       "#{attribute_get(:first_name)} #{attribute_get(:last_name)}"
-    #     end
-    #
-    #     # using the shorter syntax
-    #     def name_for_address_book
-    #       "#{last_name}, #{first_name}"
-    #     end
-    #   end
-    #
-    # -
-    # @semipublic
-    def attribute_get(name)
-      property = model.properties(repository.name)[name]
-      property.get(self)
     end
 
     # TODO document
     # @semipublic
     def attribute_get!(name)
-      property = model.properties(repository.name)[name]
-      property.get!(self)
-    end
-
-    # sets the value of the attribute and marks the attribute as dirty
-    # if it has been changed so that it may be saved. Do not set from
-    # instance variables directly, but use this method. This method
-    # handels the lazy loading the property and returning of defaults
-    # if nessesary.
-    #
-    # ==== Parameters
-    # name<Symbol>:: name attribute to set
-    # value<Type>:: value to store at that location
-    #
-    # ==== Returns
-    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
-    #
-    # ==== Example
-    #
-    #   Class Foo
-    #     include DataMapper::Resource
-    #
-    #     property :first_name, String
-    #     property :last_name, String
-    #
-    #     def full_name(name)
-    #       name = name.split(' ')
-    #       attribute_set(:first_name, name[0])
-    #       attribute_set(:last_name, name[1])
-    #     end
-    #
-    #     # using the shorter syntax
-    #     def name_from_address_book(name)
-    #       name = name.split(', ')
-    #       first_name = name[1]
-    #       last_name = name[0]
-    #     end
-    #   end
-    #
-    # -
-    # @semipublic
-    def attribute_set(name, value)
-      property = model.properties(repository.name)[name]
-      property.set(self, value)
+      properties[name].get!(self)
     end
 
     # TODO document
     # @semipublic
     def attribute_set!(name, value)
-      property = model.properties(repository.name)[name]
-      property.set!(self, value)
+      properties[name].set!(self, value)
     end
 
     def lazy_load(name)
-      reload_attributes(*model.properties(repository.name).lazy_load_context(name))
+      reload_attributes(*properties.lazy_load_context(name))
+    end
+
+    def child_associations
+      @child_associations ||= []
+    end
+
+    def parent_associations
+      @parent_associations ||= []
     end
 
     # TODO: move to dm-more/dm-transactions
