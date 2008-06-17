@@ -7,10 +7,6 @@ module DataMapper
     def repository
       query.repository
     end
-    
-    def identity_map
-      repository.identity_map(model)
-    end
 
     def load(values)
       add(model.load(values, query))
@@ -176,7 +172,7 @@ module DataMapper
     end
 
     # TODO: delegate to Model.update
-    def update(attributes = {},preload=true)
+    def update(attributes = {},preload=false)
       return true if attributes.empty?
 
       dirty_attributes, keys_to_reload = {}, {}
@@ -320,6 +316,10 @@ module DataMapper
       end
 
       keys
+    end
+    
+    def identity_map
+      repository.identity_map(model)
     end
 
     def set_relative_position(query)
