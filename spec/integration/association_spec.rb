@@ -257,6 +257,11 @@ if ADAPTER
         Yard.first(:name => 'yard3').engine.should == engine2
       end
 
+      it 'should set the association key immediately' do
+        engine = Engine.first(:name => 'engine1')
+        Yard.new(:engine => engine).engine_id.should == engine.id
+      end
+
       it 'should save the parent upon saving of child' do
         e = Engine.new(:name => 'engine10')
         y = Yard.create!(:name => 'yard10', :engine => e)
