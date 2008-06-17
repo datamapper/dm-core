@@ -189,18 +189,16 @@ module DataMapper
 
       if loaded? || preload && is_affected && lazy_load
         each { |resource| resource.attributes = attributes }
-      elsif !identity_map.empty?
-        @key_properties.zip(identity_map.keys.transpose) do |property,values|
-          keys_to_reload[property] = values
-        end
-        keys_to_reload = all(keys_to_reload).send(:keys) if is_affected
+      elsif identity_map.any?
+        @key_properties.zip(identity_map.keys.transpose) { |p,v| keys_to_reload[p] = v }
+        to_reload = is_affected ? model.all(all(keys_to_reload).send(:keys)) : all(keys_to_reload)
       end
 
       affected = repository.update(dirty_attributes, scoped_query)
 
-      (is_affected ? model : self).all(keys_to_reload).reload(:fields => attributes.keys) unless keys_to_reload.empty?
+      to_reload.reload(:fields => attributes.keys) if to_reload && to_reload.query.conditions.any?
       
-      query.update(attributes) # all items in collection will/should now have attributes, so reload
+      query.update(attributes)
 
       return loaded? ? affected == size : affected > 0
     end
