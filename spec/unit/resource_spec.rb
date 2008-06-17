@@ -673,6 +673,11 @@ describe 'DataMapper::Resource::ClassMethods' do
       }
     end
     
+    after(:each) do
+      DataMapper::Resource.send(:class_variable_set, '@@extra_inclusions', [])
+      DataMapper::Resource::ClassMethods.send(:class_variable_set, '@@extra_extensions', [])
+    end
+    
     it "should append the module to be included in resources" do
       DataMapper::Resource.append_inclusions @module
       @class.class_eval(@class_code)
