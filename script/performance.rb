@@ -5,9 +5,9 @@ require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
 require 'rubygems'
 require 'ftools'
 
-# gem install rbench
-# OR git clone git://github.com/somebee/rbench.git; rake install
-#gem 'rbench', '>=0.2.2'
+# sudo gem install rbench
+# OR git clone git://github.com/somebee/rbench.git , rake install
+gem 'rbench', '>=0.2.2'
 require 'rbench'
 
 gem 'faker', '>=0.3.1'
