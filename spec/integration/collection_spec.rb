@@ -951,6 +951,18 @@ if ADAPTER
               collection.query.conditions.first[2].should == "Stevie"
             end
           end
+          
+          it 'should be possible to override preloading in specific cases' do
+            # it does the right thing automatically (does not preload if not needed)
+            # but in some cases you might specifically not preload, even though
+            # it should. (for high-performance, large updates with changed query)
+            repository(ADAPTER) do
+              collection = Zebra.all(:name => ["Nancy","Bessie"])
+              collection.update({:name => "Stevie"},false)
+              collection.length.should == 2
+              collection.query.conditions.first[2].should == "Stevie"
+            end
+          end
         end
 
         describe '#values_at' do

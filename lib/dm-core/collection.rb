@@ -7,6 +7,10 @@ module DataMapper
     def repository
       query.repository
     end
+    
+    def identity_map
+      repository.identity_map(model)
+    end
 
     def load(values)
       add(model.load(values, query))
@@ -184,15 +188,11 @@ module DataMapper
       is_affected = query.conditions.detect{|c| dirty_attributes.include?(c[1]) || c[0] == :raw }
 
       if loaded? || preload && is_affected && lazy_load
-        
         each { |resource| resource.attributes = attributes }
-        
-      elsif !repository.identity_map(model).empty?
-        
-        @key_properties.zip(repository.identity_map(model).keys.transpose) do |property,values|
+      elsif !identity_map.empty?
+        @key_properties.zip(identity_map.keys.transpose) do |property,values|
           keys_to_reload[property] = values
         end
-
         keys_to_reload = all(keys_to_reload).send(:keys) if is_affected
       end
 
@@ -209,8 +209,6 @@ module DataMapper
     def destroy
       if loaded?
         return false unless repository.delete(scoped_query) == size
-
-        identity_map = repository.identity_map(model)
 
         each do |resource|
           resource.instance_variable_set(:@new_record, true)
