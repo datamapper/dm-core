@@ -234,6 +234,16 @@ describe DataMapper::Query do
         other = DataMapper::Query.new(@repository, Article, :limit => 1)
         @query.update(other).limit.should == 1
       end
+      
+      it '#the operator if condition is the same and operater is changed (:not / :eql)' do
+        # especially needed for collection#update where you might do something like:
+        # all(:name.not => "John").update(:name => "John")
+        pending do
+          other = DataMapper::Query.new(@repository, Article, :author.not => "dkubb")
+          @query.update(other).conditions.should == [ [ :not, Article.properties[:author], 'dkubb' ] ]
+          @query.update(:author => "dkubb").conditions.should == [ [ :eql, Article.properties[:author], 'dkubb' ] ]
+        end
+      end
 
       [ :eql, :like ].each do |operator|
         it "#conditions with other conditions when updating the '#{operator}' clause to a different value than in self" do

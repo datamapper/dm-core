@@ -172,26 +172,37 @@ module DataMapper
     end
 
     # TODO: delegate to Model.update
-    def update(attributes = {})
+    def update(attributes = {},preload=true)
       return true if attributes.empty?
 
-      dirty_attributes = {}
+      dirty_attributes, keys_to_reload = {}, {}
 
       model.properties(repository.name).slice(*attributes.keys).each do |property|
         dirty_attributes[property] = attributes[property.name] if property
       end
 
-      if loaded?
-        return false unless repository.update(dirty_attributes, scoped_query) == size
-      else
-        return false unless repository.update(dirty_attributes, scoped_query) > 0
-      end
+      is_affected = query.conditions.detect{|c| dirty_attributes.include?(c[1]) || c[0] == :raw }
 
-      if loaded?
+      if loaded? || preload && is_affected && lazy_load
+        
         each { |resource| resource.attributes = attributes }
+        
+      elsif !repository.identity_map(model).empty?
+        
+        @key_properties.zip(repository.identity_map(model).keys.transpose) do |property,values|
+          keys_to_reload[property] = values
+        end
+
+        keys_to_reload = all(keys_to_reload).send(:keys) if is_affected
       end
 
-      true
+      affected = repository.update(dirty_attributes, scoped_query)
+
+      (is_affected ? model : self).all(keys_to_reload).reload(:fields => attributes.keys) unless keys_to_reload.empty?
+      
+      query.update(attributes) # all items in collection will/should now have attributes, so reload
+
+      return loaded? ? affected == size : affected > 0
     end
 
     # TODO: delegate to Model.destroy
