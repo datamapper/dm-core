@@ -940,7 +940,7 @@ if ADAPTER
               nancy.name.should == "Stevie"
             end
           end
-          
+
           it 'should update collection-query when updating' do
             repository(ADAPTER) do
               collection = Zebra.all(:name => ["Nancy","Bessie"])
@@ -951,7 +951,7 @@ if ADAPTER
               collection.query.conditions.first[2].should == "Stevie"
             end
           end
-          
+
           it 'should be possible to override preloading in specific cases' do
             # it does the right thing automatically (does not preload if not needed)
             # but in some cases you might specifically not preload, even though

@@ -13,7 +13,7 @@ module DataMapper
         assert_kind_of 'options', options, Hash
 
         repository_name = model.repository.name
-        
+
         model.class_eval <<-EOS, __FILE__, __LINE__
           def #{name}(query = {})
             #{name}_association.all(query)
@@ -36,7 +36,7 @@ module DataMapper
             end
           end
         EOS
-        
+
         opts = options.dup
         opts.delete(:through)
         opts[:child_model]            ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
@@ -45,7 +45,7 @@ module DataMapper
         opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
         opts[:parent_key]               =   opts[:parent_key]
         opts[:child_key]                =   opts[:child_key]
-        
+
         names = [opts[:child_model], opts[:parent_model]].sort!
 
         class_name = Extlib::Inflection.pluralize(names[0]) + names[1]
@@ -73,7 +73,7 @@ module DataMapper
       end
 
       class Proxy < DataMapper::Associations::OneToMany::Proxy
-        
+
         def <<(resource)
           remote_relationship = @relationship.send(:remote_relationship)
           resource.save if resource.new_record?
@@ -83,10 +83,10 @@ module DataMapper
           )
           @parent.send(@relationship.send(:instance_variable_get, :@near_relationship_name)) << through
         end
-        
+
         def save
         end
-        
+
         def assert_mutable
         end
       end # class Proxy

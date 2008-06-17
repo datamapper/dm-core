@@ -649,4 +649,136 @@ describe 'DataMapper::Resource::ClassMethods' do
       Planet.default_order.should == [ DataMapper::Query::Direction.new(Planet.properties[:id], :asc) ]
     end
   end
+
+  describe '#append_inclusions' do
+    before(:each) do
+      DataMapper::Resource.send(:class_variable_set, '@@extra_inclusions', [])
+      DataMapper::Resource::ClassMethods.send(:class_variable_set, '@@extra_extensions', [])
+
+      @module = Module.new do
+        def greet
+          hi_mom!
+        end
+      end
+
+      @another_module = Module.new do
+        def hello
+          hi_dad!
+        end
+      end
+
+      @class = Class.new
+
+      @class_code = %{
+        include DataMapper::Resource
+        property :id, Integer, :serial => true
+      }
+    end
+
+    after(:each) do
+      DataMapper::Resource.send(:class_variable_set, '@@extra_inclusions', [])
+      DataMapper::Resource::ClassMethods.send(:class_variable_set, '@@extra_extensions', [])
+    end
+
+    it "should append the module to be included in resources" do
+      DataMapper::Resource.append_inclusions @module
+      @class.class_eval(@class_code)
+
+      instance = @class.new
+      instance.should_receive(:hi_mom!)
+      instance.greet
+    end
+
+    it "should append the module to all resources" do
+      DataMapper::Resource.append_inclusions @module
+
+      objects = (1..5).map do
+        the_class = Class.new
+        the_class.class_eval(@class_code)
+
+        instance = the_class.new
+        instance.should_receive(:hi_mom!)
+        instance
+      end
+
+      objects.each { |obj| obj.greet }
+    end
+
+    it "should append multiple modules to be included in resources" do
+      DataMapper::Resource.append_inclusions @module, @another_module
+      @class.class_eval(@class_code)
+
+      instance = @class.new
+      instance.should_receive(:hi_mom!)
+      instance.should_receive(:hi_dad!)
+      instance.greet
+      instance.hello
+    end
+
+    it "should include the appended modules in order" do
+      module_one = Module.new do
+        def self.included(base); base.hi_mom!; end;
+      end
+
+      module_two = Module.new do
+        def self.included(base); base.hi_dad!; end;
+      end
+
+      DataMapper::Resource.append_inclusions module_two, module_one
+
+      @class.should_receive(:hi_dad!).once.ordered
+      @class.should_receive(:hi_mom!).once.ordered
+
+      @class.class_eval(@class_code)
+    end
+
+    it "should append the module to extend resources with" do
+      DataMapper::Resource::ClassMethods.append_extensions @module
+      @class.class_eval(@class_code)
+
+      @class.should_receive(:hi_mom!)
+      @class.greet
+    end
+
+    it "should extend all resources with the module" do
+      DataMapper::Resource::ClassMethods.append_extensions @module
+
+      classes = (1..5).map do
+        the_class = Class.new
+        the_class.class_eval(@class_code)
+        the_class.should_receive(:hi_mom!)
+        the_class
+      end
+
+      classes.each { |cla| cla.greet }
+    end
+
+    it "should append multiple modules to extend resources with" do
+      DataMapper::Resource::ClassMethods.append_extensions @module, @another_module
+      @class.class_eval(@class_code)
+
+      @class.should_receive(:hi_mom!)
+      @class.should_receive(:hi_dad!)
+      @class.greet
+      @class.hello
+    end
+
+    it "should extend the resource in the order that the modules were appended" do
+      @module.class_eval do
+        def self.extended(base); base.hi_mom!; end;
+      end
+
+      @another_module.class_eval do
+        def self.extended(base); base.hi_dad!; end;
+      end
+
+      DataMapper::Resource::ClassMethods.append_extensions @another_module, @module
+
+      @class.should_receive(:hi_dad!).once.ordered
+      @class.should_receive(:hi_mom!).once.ordered
+
+      @class.class_eval(@class_code)
+    end
+
+  end
 end

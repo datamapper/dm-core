@@ -168,9 +168,11 @@ module DataMapper
     end
   end # module Associations
 
-  module Resource
-    module ClassMethods
-      include DataMapper::Associations
-    end # module ClassMethods
-  end # module Resource
+  Resource::ClassMethods.append_extensions DataMapper::Associations
+
+  # module Resource
+  #   module ClassMethods
+  #     include DataMapper::Associations
+  #   end # module ClassMethods
+  # end # module Resource
 end # module DataMapper

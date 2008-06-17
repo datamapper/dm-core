@@ -7,7 +7,7 @@ module DataMapper
     def repository
       query.repository
     end
-    
+
     def identity_map
       repository.identity_map(model)
     end
@@ -197,7 +197,7 @@ module DataMapper
       affected = repository.update(dirty_attributes, scoped_query)
 
       to_reload.reload(:fields => attributes.keys) if to_reload && to_reload.query.conditions.any?
-      
+
       query.update(attributes)
 
       return loaded? ? affected == size : affected > 0
