@@ -237,9 +237,6 @@ module DataMapper
     end
   end # module Hook
 
-  module Resource
-    module ClassMethods
-      include Hook
-    end # module ClassMethods
-  end # module Hook
+
+  DataMapper::Resource::ClassMethods.append_extensions Hook
 end # module DataMapper

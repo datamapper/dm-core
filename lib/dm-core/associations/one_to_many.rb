@@ -40,13 +40,40 @@ module DataMapper
 
         model.relationships(repository_name)[name] = if options.has_key?(:through)
           opts = options.dup
-          opts[:child_model_name]         ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
-          opts[:parent_model_name]        =   model.name
+
+          opts[:child_model]            ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
+          opts[:parent_model]             =   model.name
           opts[:repository_name]          =   repository_name
           opts[:near_relationship_name]   =   opts.delete(:through)
           opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
           opts[:parent_key]               =   opts[:parent_key]
           opts[:child_key]                =   opts[:child_key]
+
+          if opts[:near_relationship_name] == DataMapper::Resource
+            names = [opts[:child_model], opts[:parent_model]].sort!
+
+            class_name = Extlib::Inflection.pluralize(names[0]) + names[1]
+            storage_name = Extlib::Inflection.tableize(class_name)
+
+            opts[:near_relationship_name] = storage_name.to_sym
+
+            model.has 1.0/0, storage_name.to_sym
+
+            unless Object.const_defined?(class_name)
+              resource = DataMapper::Resource.new(storage_name)
+              resource.class_eval <<-EOS, __FILE__, __LINE__
+              def self.name; #{class_name.inspect} end
+              EOS
+              names.each do |name|
+                name = Extlib::Inflection.underscore(name)
+                resource.class_eval <<-EOS, __FILE__, __LINE__
+                property :#{name}_id, Integer, :key => true
+                belongs_to :#{name}
+                EOS
+              end
+              Object.const_set(class_name, resource)
+            end
+          end
 
           RelationshipChain.new( opts )
         else

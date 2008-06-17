@@ -6,6 +6,7 @@ require dir / 'text'
 require dir / 'paranoid_datetime'
 require dir / 'paranoid_boolean'
 require dir / 'object'
+require dir / 'serial'
 
 module DataMapper
   module Resource

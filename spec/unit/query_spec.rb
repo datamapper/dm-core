@@ -234,7 +234,7 @@ describe DataMapper::Query do
         other = DataMapper::Query.new(@repository, Article, :limit => 1)
         @query.update(other).limit.should == 1
       end
-      
+
       it '#the operator if condition is the same and operater is changed (:not / :eql)' do
         # especially needed for collection#update where you might do something like:
         # all(:name.not => "John").update(:name => "John")
