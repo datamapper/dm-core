@@ -172,6 +172,11 @@ module DataMapper
           super
         end
 
+        def reload
+          @children = nil
+          self
+        end
+
         def save
           assert_mutable
 

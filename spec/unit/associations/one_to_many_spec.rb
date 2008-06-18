@@ -341,6 +341,36 @@ describe DataMapper::Associations::OneToMany::Proxy do
     end
   end
 
+  it 'should provide #reload' do
+    @association.should respond_to(:reload)
+  end
+
+  describe '#reload' do
+    before do
+      @children = [ mock('child 1', :save => true), mock('child 2', :save => true) ]
+      @relationship.stub!(:get_children).and_return(@children)
+    end
+
+    it 'should set the @children ivar to nil' do
+      @association.__send__(:children).should == @children # Sanity check.
+
+      # We can't test the value of the @children instance variable since
+      # #instance_variable_get will be run on @children (thanks to
+      # Proxy#method_missing). Instead, test that Relationship#get_children is
+      # run -- if @children wasn't set to nil, this expectation should fail.
+      @relationship.should_receive(:get_children).once.and_return(@children)
+      @association.reload
+
+      # Trigger #get_children on the relationship.
+      @association.__send__(:children).should == @children
+    end
+
+    it 'should return self' do
+      @association.reload.should be_kind_of(DataMapper::Associations::OneToMany::Proxy)
+      @association.reload.object_id.should == @association.object_id
+    end
+  end
+
   describe 'when deleting the parent' do
     it 'should delete all the children without calling destroy if relationship :dependent is :delete_all'
 
