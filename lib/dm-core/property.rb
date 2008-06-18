@@ -161,7 +161,7 @@ module DataMapper
   #
   # Examples:
   #
-  #  property :id,        Integer, :serial => true  # auto-incrementing key
+  #  property :id,        Serial                    # auto-incrementing key
   #  property :legacy_pk, String, :key => true      # 'natural' key
   #
   # This is roughly equivalent to ActiveRecord's <tt>set_primary_key</tt>,

@@ -6,7 +6,7 @@ if ADAPTER
       class SerialFinderSpec
         include DataMapper::Resource
 
-        property :id, Integer, :serial => true
+        property :id, Serial
         property :sample, String
 
         auto_migrate!(ADAPTER)

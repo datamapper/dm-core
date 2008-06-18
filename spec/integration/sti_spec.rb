@@ -16,7 +16,7 @@ if HAS_SQLITE3
       class Book
         include DataMapper::Resource
 
-        property :id,       Integer,    :serial => true
+        property :id,       Serial
         property :title,    String,     :nullable => false
         property :isbn,     Integer,    :nullable => false
         property :class_type, Discriminator

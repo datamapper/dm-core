@@ -19,7 +19,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :color, String, :default => 'green', :nullable => true
   end
 
@@ -30,7 +30,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :name, String
 
     def to_s
@@ -79,7 +79,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :name, String
     property :iq, Integer, :default => 100
     property :type, Discriminator
@@ -113,7 +113,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :type, Discriminator
     property :name, String
   end

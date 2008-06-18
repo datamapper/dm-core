@@ -134,7 +134,11 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def property_schema_hash(repository, property)
             schema = super
-            schema[:sequence_name] = sequence_name(repository, property) if property.serial?
+
+            if property.serial?
+              schema.delete(:default)  # the sequence will be the default
+              schema[:sequence_name] = sequence_name(repository, property)
+            end
 
             # TODO: see if TypeMap can be updated to set specific attributes to nil
             # for different adapters.  scale/precision are perfect examples for

@@ -26,7 +26,7 @@ DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{SOCKET
 class Exhibit
   include DataMapper::Resource
 
-  property :id,         Integer, :serial => true
+  property :id,         Serial
   property :name,       String
   property :zoo_id,     Integer
   property :notes,      Text, :lazy => true

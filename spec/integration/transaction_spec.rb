@@ -10,7 +10,7 @@ if ADAPTERS.any?
   class Sputnik
     include DataMapper::Resource
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :name, DM::Text
   end
 

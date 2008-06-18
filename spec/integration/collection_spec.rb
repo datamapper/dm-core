@@ -8,7 +8,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :name, String
     property :age, Integer
     property :notes, Text
@@ -23,7 +23,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :name, String
     property :age,  Integer
     property :zebra_id, Integer

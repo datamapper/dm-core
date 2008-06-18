@@ -11,7 +11,7 @@ if ADAPTER
             ADAPTER
           end
 
-          property :id,     Integer, :serial => true
+          property :id,     Serial
           property :title,  String
           property :voided, Boolean, :default => false
 
@@ -29,7 +29,7 @@ if ADAPTER
             ADAPTER
           end
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :title, String
 
           belongs_to :post
@@ -42,7 +42,7 @@ if ADAPTER
             ADAPTER
           end
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :title, String
 
           has n, :taggings
@@ -66,7 +66,7 @@ if ADAPTER
             ADAPTER
           end
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           belongs_to :post
           belongs_to :related_post, :class_name => "Post"
         end

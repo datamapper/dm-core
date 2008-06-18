@@ -60,7 +60,7 @@ ARExhibit.find_by_sql('SELECT 1')
 class Exhibit
   include DataMapper::Resource
 
-  property :id,         Integer, :serial => true
+  property :id,         Serial
   property :name,       String
   property :zoo_id,     Integer
   property :notes,      Text, :lazy => true

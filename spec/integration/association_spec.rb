@@ -9,7 +9,7 @@ if ADAPTER
         ADAPTER
       end
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
 
       has n, :yards
@@ -23,7 +23,7 @@ if ADAPTER
         ADAPTER
       end
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
       property :rating, Integer
       property :type, String
@@ -38,7 +38,7 @@ if ADAPTER
         ADAPTER
       end
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
 
       belongs_to :sky
@@ -51,7 +51,7 @@ if ADAPTER
         ADAPTER
       end
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
 
       has 1, :pie
@@ -64,7 +64,7 @@ if ADAPTER
         ADAPTER
       end
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
 
       has n, :slices, :order => [:id.desc]
@@ -77,7 +77,7 @@ if ADAPTER
         ADAPTER
       end
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
 
       belongs_to :host
@@ -90,7 +90,7 @@ if ADAPTER
         ADAPTER
       end
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
 
       has n, :children, :class_name => 'Node', :child_key => [ :parent_id ]
@@ -235,7 +235,7 @@ if ADAPTER
           module FlightlessBirds
             class Ostrich
               include DataMapper::Resource
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :sky # there's something sad about this :'(
             end
@@ -566,7 +566,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               has n, :cakes,                                :class_name => 'Sweets::Cake'        # has n
               has n, :recipes,     :through => :cakes,      :class_name => 'Sweets::Recipe'      # has n => has 1
@@ -590,7 +590,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :shop, :class_name => 'Sweets::Shop'
               has 1, :wife,                            :class_name => 'Sweets::Wife'
@@ -607,7 +607,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
               has 1, :ring,  :class_name => 'Sweets::Ring'
@@ -619,7 +619,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :wife, :class_name => 'Sweets::Wife'
             end
@@ -629,7 +629,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :wife, :class_name => 'Sweets::Wife'
             end
@@ -639,7 +639,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :shop_owner, :class_name => 'Sweets::ShopOwner'
               has n, :toys,   :class_name => 'Sweets::Toy'
@@ -651,7 +651,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :child, :class_name => 'Sweets::Child'
             end
@@ -661,7 +661,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :child, :class_name => 'Sweets::Child'
             end
@@ -671,7 +671,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :shop, :class_name => 'Sweets::Shop'
               belongs_to :customer, :class_name => 'Sweets::Customer'
@@ -688,7 +688,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :cake, :class_name => 'Sweets::Cake'
               has n, :ingredients, :class_name => 'Sweets::Ingredient'
@@ -700,7 +700,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               has n, :cakes, :class_name => 'Sweets::Cake'
             end
@@ -710,7 +710,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :recipe, :class_name => 'Sweets::Recipe'
             end
@@ -720,7 +720,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :recipe, :class_name => 'Sweets::Recipe'
             end
@@ -730,7 +730,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :size, Integer
               belongs_to :cake, :class_name => 'Sweets::Cake'
               has n, :bites, :class_name => 'Sweets::Bite'
@@ -742,7 +742,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :slice, :class_name => 'Sweets::Slice'
             end
@@ -752,7 +752,7 @@ if ADAPTER
               def self.default_repository_name
                 ADAPTER
               end
-              property :id, Integer, :serial => true
+              property :id, Serial
               property :name, String
               belongs_to :slice, :class_name => 'Sweets::Slice'
             end
@@ -1039,7 +1039,7 @@ if ADAPTER
             ADAPTER
           end
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, String
 
           has n..n, :left_items
@@ -1052,7 +1052,7 @@ if ADAPTER
             ADAPTER
           end
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, String
 
           has n..n, :right_items

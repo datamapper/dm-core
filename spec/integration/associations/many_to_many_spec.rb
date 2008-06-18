@@ -8,7 +8,7 @@ describe "ManyToMany" do
 
       def self.default_repository_name; ADAPTER end
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
 
       has n, :books, :through => Resource

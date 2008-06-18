@@ -9,7 +9,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   before :all do
     class Cheese
       include DataMapper::Resource
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String, :nullable => false
       property :color, String, :default => 'yellow'
       property :notes, String, :length => 100, :lazy => true

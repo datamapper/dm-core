@@ -57,14 +57,14 @@ describe "DataMapper::Resource" do
     class Grain
       include DataMapper::Resource
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String, :default => 'wheat'
     end
 
     class Vegetable
       include DataMapper::Resource
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
     end
 
@@ -671,7 +671,7 @@ describe 'DataMapper::Resource::ClassMethods' do
 
       @class_code = %{
         include DataMapper::Resource
-        property :id, Integer, :serial => true
+        property :id, Serial
       }
     end
 

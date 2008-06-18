@@ -36,7 +36,7 @@ DataMapper::Logger.new(nil, :debug)
 class Article
   include DataMapper::Resource
 
-  property :id,         Integer, :serial => true
+  property :id,         Serial
   property :blog_id,    Integer
   property :created_at, DateTime
   property :author,     String
@@ -56,7 +56,7 @@ end
 class Vehicle
   include DataMapper::Resource
 
-  property :id, Integer, :serial => true
+  property :id, Serial
   property :name, String
 
   class << self
@@ -67,7 +67,7 @@ end
 class Manufacturer
   include DataMapper::Resource
 
-  property :id, Integer, :serial => true
+  property :id, Serial
   property :name, String
 
   class << self
@@ -78,7 +78,7 @@ end
 class Supplier
   include DataMapper::Resource
 
-  property :id, Integer, :serial => true
+  property :id, Serial
   property :name, String
 end
 

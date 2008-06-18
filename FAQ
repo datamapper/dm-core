@@ -7,7 +7,7 @@
 DataMapper will NOT create an auto-incrementing <tt>:id</tt> key for you 
 automatically, so you'll need to either explicitly create one with
 
-  property :id, Integer, :serial => true
+  property :id, Serial
 
 You can choose to use a natural key by doing
 
@@ -36,7 +36,7 @@ This is what the Discriminator data-type is for:
 
   class Person
     include DataMapper::Resource
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :type, Discriminator ## other shared properties here
   end
 

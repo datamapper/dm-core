@@ -10,7 +10,7 @@ if ADAPTER
         class Actor
           include DataMapper::Resource
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, String, :track => :set # :track default is :get for mutable types
           property :notes, DataMapper::Types::Text
           property :age, Integer # :track default is :set for mutable types
@@ -131,7 +131,7 @@ if ADAPTER
       before :all do
         class RowBoat
           include DataMapper::Resource
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :notes, String, :lazy => [:notes]
           property :trip_report, String, :lazy => [:notes,:trip]
           property :miles, Integer, :lazy => [:trip]
@@ -175,7 +175,7 @@ if ADAPTER
       before :all do
         class Catamaran
           include DataMapper::Resource
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, String
 
           # Boolean
