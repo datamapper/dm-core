@@ -82,18 +82,23 @@ module DataMapper
             @relationship.child_key.key.first.name => @relationship.parent_key.key.first.get(@parent),
             remote_relationship.child_key.key.first.name => remote_relationship.parent_key.key.first.get(resource)
           )
-          @parent.send(near_relationship_name) << through
+          near_model << through
           super
         end
 
         def delete(resource)
-          through = @parent.send(near_relationship_name).get(*(@parent.key + resource.key))
-          @parent.send(near_relationship_name).delete(through)
+          through = near_model.get(*(@parent.key + resource.key))
+          near_model.delete(through)
           orphan_resource(super)
         end
 
         def clear
-          @parent.send(near_relationship_name).clear
+          near_model.clear
+          super
+        end
+        
+        def destroy
+          near_model.destroy
           super
         end
 
@@ -113,6 +118,10 @@ module DataMapper
 
         def remote_relationship
           @remote_relationship ||= @relationship.send(:remote_relationship)
+        end
+        
+        def near_model
+          @near_model ||= @parent.send(near_relationship_name)
         end
 
         def near_relationship_name

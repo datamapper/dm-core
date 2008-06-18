@@ -119,4 +119,12 @@ describe "ManyToMany" do
     book.reload
     Editor.get(1).books.should_not include(book)
   end
+  
+  it "should be destroyable" do
+    book = Book.get(3)
+    book.editors.destroy
+    book.save
+    book.reload
+    book.editors.size.should == 0
+  end
 end
