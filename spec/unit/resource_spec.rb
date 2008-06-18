@@ -389,6 +389,70 @@ describe "DataMapper::Resource" do
     earth.orbit_period.should == 365.26
   end
 
+  describe "#reload_attributes" do
+    it 'should call collection.reload if not a new record' do
+      planet = Planet.new(:name => 'Omicron Persei VIII')
+      planet.stub!(:new_record?).and_return(false)
+
+      collection = mock('collection')
+      collection.should_receive(:reload).with(:fields => [:name]).once
+
+      planet.stub!(:collection).and_return(collection)
+      planet.reload_attributes(:name)
+    end
+
+    it 'should not call collection.reload if no attributes are provided to reload' do
+      planet = Planet.new(:name => 'Omicron Persei VIII')
+      planet.stub!(:new_record?).and_return(false)
+
+      collection = mock('collection')
+      collection.should_not_receive(:reload)
+
+      planet.stub!(:collection).and_return(collection)
+      planet.reload_attributes
+    end
+
+    it 'should not call collection.reload if the record is new' do
+      planet = Planet.new(:name => 'Omicron Persei VIII')
+      planet.should_not_receive(:collection)
+      planet.reload_attributes(:name)
+    end
+  end
+
+  describe '#reload' do
+    it 'should call #reload_attributes with the currently loaded attributes' do
+      planet = Planet.new(:name => 'Omicron Persei VIII', :age => 1)
+      planet.stub!(:new_record?).and_return(false)
+
+      planet.should_receive(:reload_attributes).with(:name, :age).once
+
+      planet.reload
+    end
+
+    it 'should call #reload on the parent and child associations' do
+      planet = Planet.new(:name => 'Omicron Persei VIII', :age => 1)
+      planet.stub!(:new_record?).and_return(false)
+
+      child_association = mock('child assoc')
+      child_association.should_receive(:reload).once.and_return(true)
+
+      parent_association = mock('parent assoc')
+      parent_association.should_receive(:reload).once.and_return(true)
+
+      planet.stub!(:child_associations).and_return([child_association])
+      planet.stub!(:parent_associations).and_return([parent_association])
+      planet.stub!(:reload_attributes).and_return(planet)
+
+      planet.reload
+    end
+
+    it 'should not do anything if the record is new' do
+      planet = Planet.new(:name => 'Omicron Persei VIII', :age => 1)
+      planet.should_not_receive(:reload_attributes)
+      planet.reload
+    end
+  end
+
   describe "anonymity" do
     it "should require a default storage name and accept a block" do
       pluto = DataMapper::Resource.new("planets") do

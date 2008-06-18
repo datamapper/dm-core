@@ -409,8 +409,11 @@ module DataMapper
     # --
     # @api public
     def reload
-      reload_attributes(*loaded_attributes)
-      (parent_associations + child_associations).each { |association| association.reload }
+      unless new_record?
+        reload_attributes(*loaded_attributes)
+        (parent_associations + child_associations).each { |association| association.reload }
+      end
+
       self
     end
 
@@ -425,7 +428,10 @@ module DataMapper
     # --
     # @api public
     def reload_attributes(*attributes)
-      collection.reload(:fields => attributes)
+      unless attributes.empty? || new_record?
+        collection.reload(:fields => attributes)
+      end
+
       self
     end
 
