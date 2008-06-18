@@ -105,7 +105,7 @@ module DataMapper
           def show_variable(name)
             query('SHOW VARIABLES WHERE `variable_name` = ?', name).first.value rescue nil
           end
-        end
+        end # module SQL
 
         include SQL
 
@@ -122,8 +122,8 @@ module DataMapper
               tm.map(Object).to('TEXT')
             end
           end
-        end
-      end
+        end # module ClassMethods
+      end # module Migration
 
       include Migration
       extend Migration::ClassMethods
