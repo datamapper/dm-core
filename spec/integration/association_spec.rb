@@ -294,6 +294,15 @@ if ADAPTER
         property.precision.should == 15
         property.scale.should == 6
       end
+
+      it 'should be reloaded when calling Resource#reload' do
+        e = Engine.new(:name => 'engine40')
+        y = Yard.create!(:name => 'yard40', :engine => e)
+
+        y.send(:engine_association).should_receive(:reload).once
+
+        lambda { y.reload }.should_not raise_error
+      end
     end
 
     describe 'one to one associations' do
@@ -358,6 +367,12 @@ if ADAPTER
         p1.sky.should be_nil
         p2.id.should == 30
         p2.sky.should be_nil
+      end
+
+      it 'should be reloaded when calling Resource#reload' do
+        pie = Pie.first(:name => 'pie1')
+        pie.send(:sky_association).should_receive(:reload).once
+        lambda { pie.reload }.should_not raise_error
       end
     end
 
@@ -505,6 +520,12 @@ if ADAPTER
         s.first.id.should == 2
 
         h.slices.first(:name => 'slice2').should == s.first
+      end
+
+      it 'should be reloaded when calling Resource#reload' do
+        host = Host.first(:name => 'host1')
+        host.send(:slices_association).should_receive(:reload).once
+        lambda { host.reload }.should_not raise_error
       end
     end
 
@@ -1025,6 +1046,12 @@ if ADAPTER
         lambda do
           Sweets::Shop.first.wife = Sweets::Wife.new(:name => 'Larry')
         end.should raise_error(DataMapper::Associations::ImmutableAssociationError)
+      end
+
+      it 'should be reloaded when calling Resource#reload' do
+        betsys = Sweets::Shop.first(:name => "Betsy's")
+        betsys.send(:customers_association).should_receive(:reload).once
+        lambda { betsys.reload }.should_not raise_error
       end
 
     end
