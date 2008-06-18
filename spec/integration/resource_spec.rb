@@ -141,8 +141,12 @@ if ADAPTER
     it "should be able to destroy objects" do
       apple = Apple.create!(:color => 'Green')
       lambda do
-        apple.destroy
+        apple.destroy.should be_true
       end.should_not raise_error
+    end
+
+    it 'should return false to #destroy if the resource is new' do
+      Apple.new.destroy.should be_false
     end
 
     it "should be able to reload objects" do

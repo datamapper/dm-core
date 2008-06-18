@@ -265,6 +265,7 @@ module DataMapper
     # --
     # @api public
     def destroy
+      return false if new_record?
       return false unless repository.delete(to_query)
 
       @new_record = true
