@@ -317,7 +317,7 @@ module DataMapper
 
       keys
     end
-    
+
     def identity_map
       repository.identity_map(model)
     end

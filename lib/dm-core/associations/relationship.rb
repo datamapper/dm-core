@@ -20,7 +20,7 @@ module DataMapper
               [ :length, :scale, :precision ].each do |attribute|
                 attributes[attribute] = parent_property.send(attribute)
               end
-              child_model.property(property_name, parent_property.type, attributes)
+              child_model.property(property_name, parent_property.primitive, attributes)
             end
           end
           PropertySet.new(child_key)

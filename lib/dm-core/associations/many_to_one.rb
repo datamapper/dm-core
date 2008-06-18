@@ -66,7 +66,8 @@ module DataMapper
         end
 
         def reload
-          replace(nil)
+          @parent = nil
+          self
         end
 
         def kind_of?(klass)

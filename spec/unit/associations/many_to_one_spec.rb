@@ -26,26 +26,26 @@ describe DataMapper::Associations::ManyToOne::Proxy do
 
   describe '#replace' do
     before do
-      @resource = mock('resource')
+      @other = mock('other parent')
     end
 
     before do
-      @relationship.should_receive(:attach_parent).with(@child, @resource)
+      @relationship.should_receive(:attach_parent).with(@child, @other)
     end
 
     it 'should remove the resource from the collection' do
       @association.should == @parent
-      @association.replace(@resource)
-      @association.should == @resource
+      @association.replace(@other)
+      @association.should == @other
     end
 
     it 'should not automatically save that the resource was removed from the association' do
-      @resource.should_not_receive(:save)
-      @association.replace(@resource)
+      @other.should_not_receive(:save)
+      @association.replace(@other)
     end
 
     it 'should return the association' do
-      @association.replace(@resource).object_id.should == @association.object_id
+      @association.replace(@other).object_id.should == @association.object_id
     end
   end
 
@@ -106,8 +106,13 @@ describe DataMapper::Associations::ManyToOne::Proxy do
   end
 
   describe '#reload' do
-    it 'should replace the parent with nil' do
-      @association.should_receive(:replace).with(nil)
+    it 'should unset the @parent ivar' do
+      @association.reload
+      @association.instance_variable_get(:@parent).should be_nil
+    end
+
+    it 'should not change the foreign key in the child' do
+      @relationship.should_not_receive(:attach_parent)
       @association.reload
     end
 
@@ -115,5 +120,4 @@ describe DataMapper::Associations::ManyToOne::Proxy do
       @association.reload.object_id.should == @association.object_id
     end
   end
-
 end
