@@ -106,9 +106,23 @@ describe DataMapper::Associations::ManyToOne::Proxy do
   end
 
   describe '#reload' do
-    it 'should unset the @parent ivar' do
+    before(:each) do
+      @mock_parent = mock('#reload test parent')
+      @association.replace(@mock_parent)
+    end
+
+    it 'should set the @parent ivar to nil' do
+      @association.__send__(:parent).should == @mock_parent # Sanity check.
+
+      # We can't test the value of the instance variable since
+      # #instance_variable_get will be run on the @parent (thanks to
+      # Proxy#method_missing). Instead, test that Relationship#get_parent is
+      # run -- if @parent wasn't set to nil, this expecation should fail.
+      @relationship.should_receive(:get_parent).once.and_return(@mock_parent)
       @association.reload
-      @association.instance_variable_get(:@parent).should be_nil
+
+      # Trigger #get_parent on the relationship.
+      @association.__send__(:parent)
     end
 
     it 'should not change the foreign key in the child' do
@@ -117,6 +131,7 @@ describe DataMapper::Associations::ManyToOne::Proxy do
     end
 
     it 'should return self' do
+      @association.reload.should be_kind_of(DataMapper::Associations::ManyToOne::Proxy)
       @association.reload.object_id.should == @association.object_id
     end
   end
