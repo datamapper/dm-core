@@ -9,7 +9,7 @@ module DataMapper
       # @private
       def self.setup(name, model, options = {})
         assert_kind_of 'name',    name,    Symbol
-        assert_kind_of 'model',   model,   Resource::ClassMethods
+        assert_kind_of 'model',   model,   Model
         assert_kind_of 'options', options, Hash
 
         repository_name = model.repository.name

@@ -152,7 +152,7 @@ module DataMapper
 
             schema
           end
-        end
+        end # module SQL
 
         include SQL
 
@@ -169,8 +169,8 @@ module DataMapper
               tm.map(Float).to('FLOAT8')
             end
           end
-        end
-      end
+        end # module ClassMethods
+      end # module Migration
 
       include Migration
       extend Migration::ClassMethods

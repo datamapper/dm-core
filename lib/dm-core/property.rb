@@ -1,7 +1,3 @@
-unless defined?(DM)
-  DM = DataMapper::Types
-end
-
 require 'date'
 require 'time'
 require 'bigdecimal'
@@ -470,7 +466,7 @@ module DataMapper
     private
 
     def initialize(model, name, type, options = {})
-      assert_kind_of 'model', model, Resource::ClassMethods
+      assert_kind_of 'model', model, Model
       assert_kind_of 'name',  name,  Symbol
       assert_kind_of 'type',  type,  Class
 

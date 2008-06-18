@@ -55,34 +55,33 @@ module DataMapper
       @@extra_inclusions.concat inclusions
       true
     end
+  end # module Resource
 
-    module ClassMethods
-      @@extra_extensions = []
+  module Model
+    @@extra_extensions = []
 
-      #
-      # Extends the model with this module after DataMapper::Resource has been
-      # included.
-      #
-      # This is a useful way to extend DataMapper::Resource::ClassMethods while
-      # still retaining a self.extended method.
-      #
-      # @param extension<Module> the module that is to be extend the model after
-      #        after DataMapper::Resource::ClassMethods
-      #
-      # @return <TrueClass, FalseClass> whether or not the inclusions have been
-      #         successfully appended to the list
-      #-
-      # @api public
-      #
-      # TODO: Move this do DataMapper::Model when DataMapper::Model is created
-      def self.append_extensions(*extensions)
-        @@extra_extensions.concat extensions
-        true
-      end
+    #
+    # Extends the model with this module after DataMapper::Resource has been
+    # included.
+    #
+    # This is a useful way to extend DataMapper::Model while
+    # still retaining a self.extended method.
+    #
+    # @param extension<Module> the module that is to be extend the model after
+    #        after DataMapper::Model
+    #
+    # @return <TrueClass, FalseClass> whether or not the inclusions have been
+    #         successfully appended to the list
+    #-
+    # @api public
+    #
+    # TODO: Move this do DataMapper::Model when DataMapper::Model is created
+    def self.append_extensions(*extensions)
+      @@extra_extensions.concat extensions
+      true
     end
-  end
-
-end
+  end # module Model
+end # module DataMapper
 
 require dir / 'support'
 require dir / 'type'
@@ -94,6 +93,7 @@ require dir / 'hook'
 require dir / 'identity_map'
 require dir / 'logger'
 require dir / 'migrator'
+require dir / 'model'
 require dir / 'naming_conventions'
 require dir / 'property_set'
 require dir / 'query'

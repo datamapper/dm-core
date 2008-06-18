@@ -11,11 +11,6 @@ module DataMapper
       end
     end
 
+    Model.send(:include, self)
   end # module Is
-
-  module Resource
-    module ClassMethods
-      include DataMapper::Is
-    end # module ClassMethods
-  end # module Resource
 end # module DataMapper

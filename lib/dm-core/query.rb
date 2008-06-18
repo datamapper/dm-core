@@ -145,7 +145,7 @@ module DataMapper
 
     def initialize(repository, model, options = {})
       assert_kind_of 'repository', repository, Repository
-      assert_kind_of 'model',      model,      Resource::ClassMethods
+      assert_kind_of 'model',      model,      Model
       assert_kind_of 'options',    options,    Hash
 
       options.each_pair { |k,v| options[k] = v.call if v.is_a? Proc } if options.is_a? Hash
@@ -570,7 +570,7 @@ module DataMapper
       def initialize(repository, relationships, model, property_name = nil)
         assert_kind_of 'repository',    repository,    Repository
         assert_kind_of 'relationships', relationships, Array
-        assert_kind_of 'model',         model,         Resource::ClassMethods
+        assert_kind_of 'model',         model,         Model
         assert_kind_of 'property_name', property_name, Symbol unless property_name.nil?
 
         @repository    = repository

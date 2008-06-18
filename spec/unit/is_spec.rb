@@ -27,11 +27,9 @@ describe "DataMapper::Is" do
         end
       end
 
-      module Resource
-        module ClassMethods
-          include DataMapper::Is::Example
-        end # module ClassMethods
-      end # module Resource
+      module Model
+        include DataMapper::Is::Example
+      end # module Model
     end # module DataMapper
 
     class House
