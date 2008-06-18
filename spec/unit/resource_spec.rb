@@ -413,6 +413,10 @@ describe "DataMapper::Resource" do
     end
 
     it 'should not call collection.reload if the record is new' do
+      lambda {
+        Planet.new(:name => 'Omicron Persei VIII').reload_attributes(:name)
+      }.should_not raise_error
+
       planet = Planet.new(:name => 'Omicron Persei VIII')
       planet.should_not_receive(:collection)
       planet.reload_attributes(:name)
