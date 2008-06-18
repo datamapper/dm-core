@@ -117,7 +117,7 @@ describe DataMapper::Associations::ManyToOne::Proxy do
       # We can't test the value of the instance variable since
       # #instance_variable_get will be run on the @parent (thanks to
       # Proxy#method_missing). Instead, test that Relationship#get_parent is
-      # run -- if @parent wasn't set to nil, this expecation should fail.
+      # run -- if @parent wasn't set to nil, this expectation should fail.
       @relationship.should_receive(:get_parent).once.and_return(@mock_parent)
       @association.reload
 
