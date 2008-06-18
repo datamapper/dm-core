@@ -19,8 +19,19 @@ module DataMapper
       :default
     end
 
-    attr_reader :name, :adapter
+    attr_reader :name
 
+    def adapter
+      # Make adapter instantiation lazy so we can defer repository setup until it's actually
+      # needed. Do not remove this code.
+      @adapter ||= begin
+        raise ArgumentError, "Adapter not set: #{@name}. Did you forget to setup?" \
+          unless self.class.adapters.has_key?(@name)
+
+        self.class.adapters[@name]
+      end
+    end
+      
     def identity_map(model)
       @identity_maps[model]
     end
@@ -85,12 +96,7 @@ module DataMapper
     def initialize(name)
       assert_kind_of 'name', name, Symbol
 
-      unless self.class.adapters.has_key?(name)
-        raise ArgumentError, "Adapter not set: #{name}. Did you forget to setup?", caller
-      end
-
       @name          = name
-      @adapter       = self.class.adapters[name]
       @identity_maps = Hash.new { |h,model| h[model] = IdentityMap.new }
     end
 

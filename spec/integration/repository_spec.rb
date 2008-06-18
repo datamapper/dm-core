@@ -22,9 +22,8 @@ if ADAPTER
     end
 
     it "should throw an exception if the named repository is unknown" do
-      lambda {
-        DataMapper::Repository.new(:completely_bogus).adapter
-      }.should raise_error(ArgumentError)
+      r = DataMapper::Repository.new(:completely_bogus)
+      lambda { r.adapter }.should raise_error(ArgumentError)
     end
 
     it "should return all available rows" do
