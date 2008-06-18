@@ -31,7 +31,7 @@ module DataMapper
         self.class.adapters[@name]
       end
     end
-      
+
     def identity_map(model)
       @identity_maps[model]
     end

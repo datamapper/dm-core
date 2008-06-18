@@ -261,13 +261,17 @@ module DataMapper
 
         def save_resource(resource, parent = @parent)
           DataMapper.repository(@relationship.repository_name) do
-            @relationship.attach_parent(resource, parent)
-            resource.save
+            if parent.nil? && resource.respond_to?(:many_to_many)
+              resource.destroy
+            else
+              @relationship.attach_parent(resource, parent)
+              resource.save
+            end
           end
         end
 
         def method_missing(method, *args, &block)
-          results = children.__send__(method, *args, &block)
+          results = children.__send__(method, *args, &block) if children.respond_to?(method)
 
           return self if LazyArray::RETURN_SELF.include?(method) && results.kind_of?(Array)
 

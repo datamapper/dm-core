@@ -45,6 +45,7 @@ module DataMapper
         opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
         opts[:parent_key]               =   opts[:parent_key]
         opts[:child_key]                =   opts[:child_key]
+        opts[:mutable]                  =   true
 
         names = [opts[:child_model], opts[:parent_model]].sort!
 
@@ -60,6 +61,7 @@ module DataMapper
           resource = DataMapper::Resource.new(storage_name)
           resource.class_eval <<-EOS, __FILE__, __LINE__
           def self.name; #{class_name.inspect} end
+          def many_to_many; true end
           EOS
           names.each do |name|
             name = Extlib::Inflection.underscore(name)
@@ -75,19 +77,46 @@ module DataMapper
       class Proxy < DataMapper::Associations::OneToMany::Proxy
 
         def <<(resource)
-          remote_relationship = @relationship.send(:remote_relationship)
           resource.save if resource.new_record?
           through = @relationship.child_model.new(
             @relationship.child_key.key.first.name => @relationship.parent_key.key.first.get(@parent),
             remote_relationship.child_key.key.first.name => remote_relationship.parent_key.key.first.get(resource)
           )
-          @parent.send(@relationship.send(:instance_variable_get, :@near_relationship_name)) << through
+          @parent.send(near_relationship_name) << through
+          super
+        end
+
+        def delete(resource)
+          through = @parent.send(near_relationship_name).get(*(@parent.key + resource.key))
+          @parent.send(near_relationship_name).delete(through)
+          orphan_resource(super)
+        end
+
+        def clear
+          @parent.send(near_relationship_name).clear
+          super
         end
 
         def save
         end
 
+        def orphan_resource(resource)
+          assert_mutable
+          @orphans << resource
+          resource
+        end
+
         def assert_mutable
+        end
+
+        private
+
+        def remote_relationship
+          @remote_relationship ||= @relationship.send(:remote_relationship)
+        end
+
+        def near_relationship_name
+          @near_relationship_name ||= @relationship.send(:instance_variable_get, :@near_relationship_name)
         end
       end # class Proxy
     end # module ManyToMany

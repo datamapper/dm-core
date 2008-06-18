@@ -23,7 +23,7 @@ module DataMapper
         DataMapper.repository(parent.repository.name) do
           results = grandchild_model.send(finder, *(args << query))
           # FIXME: remove the need for the uniq.freeze
-          finder == :all ? results.uniq.freeze : results
+          finder == :all ? (@mutable ? results.uniq : results.uniq.freeze) : results
         end
       end
 
@@ -62,6 +62,7 @@ module DataMapper
         @parent_model             = options.fetch(:parent_model)
         @parent_properties        = options.fetch(:parent_key)
         @child_properties         = options.fetch(:child_key)
+        @mutable                  = options.delete(:mutable) || false
 
         @name        = near_relationship.name
         @query       = options.reject{ |key,val| OPTIONS.include?(key) }
