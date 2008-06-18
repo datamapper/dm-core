@@ -80,18 +80,17 @@ describe "ManyToMany" do
     book.editors.size.should == 1
     Editor.get(2).books.size.should == 3
   end
-  #
-  # it "should be able to clear intermediate model" do
-  #   book = Book.get(3)
-  #   be = BooksEditor.get(3,1)
-  #   book.books_editors.delete(be)
-  #   book.save
-  #   book.reload
-  #   book = Book.get(3)
-  #   pp book.books_editors
-  #   book.books_editors.size.should == 2
-  #   book.editors.size.should == 2
-  # end
+  
+  it "should be able to delete intermediate model" do
+    book = Book.get(3)
+    be = BooksEditor.get(3,1)
+    book.books_editors.delete(be)
+    book.save
+    book.reload
+    book = Book.get(3)
+    book.books_editors.size.should == 2
+    book.editors.size.should == 2
+  end
 
   it "should be clearable" do
     repository(ADAPTER) do
