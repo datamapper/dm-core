@@ -17,7 +17,7 @@ module DataMapper
     ##
     # Safely migrates the data-store to match the model
     # preserving data already in the data-store
-    # 
+    #
     # @param Symbol repository_name the repository to be migrated
     # @calls DataMapper::Resource#auto_upgrade!
     def self.auto_upgrade(repository_name = nil)
@@ -49,7 +49,7 @@ module DataMapper
     ##
     # Safely migrates the data-store to match the model
     # preserving data already in the data-store
-    # 
+    #
     # @param Symbol repository_name the repository to be migrated
     def auto_upgrade!(repository_name = nil)
       repository_name ||= default_repository_name

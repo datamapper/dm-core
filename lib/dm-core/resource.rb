@@ -510,7 +510,7 @@ module DataMapper
     def relationships
       model.relationships(repository.name)
     end
-    
+
     # Needs to be a protected method so that it is hookable
     def create
       # set defaults for new resource

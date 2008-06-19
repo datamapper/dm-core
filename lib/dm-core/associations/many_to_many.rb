@@ -99,7 +99,7 @@ module DataMapper
           near_model.clear
           super
         end
-        
+
         def destroy
           near_model.destroy
           super
@@ -122,7 +122,7 @@ module DataMapper
         def remote_relationship
           @remote_relationship ||= @relationship.send(:remote_relationship)
         end
-        
+
         def near_model
           @near_model ||= @parent.send(near_relationship_name)
         end

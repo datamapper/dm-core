@@ -42,7 +42,7 @@ if HAS_POSTGRES
 
         repository(:postgres) do
           time_now = Time.now
-                    
+
           t = Thing.new
           t.created_at = time_now
 

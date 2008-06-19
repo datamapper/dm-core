@@ -27,7 +27,7 @@ describe "ManyToMany" do
     end
 
     [Book, Editor, BooksEditor].each { |k| k.auto_migrate!(ADAPTER) }
-    
+
     adapter = repository(ADAPTER).adapter
     adapter.execute("INSERT INTO books_editors (book_id, editor_id) VALUES (1, 1)")
     adapter.execute("INSERT INTO books_editors (book_id, editor_id) VALUES (2, 1)")
@@ -79,7 +79,7 @@ describe "ManyToMany" do
     book.editors.size.should == 1
     Editor.get(2).books.size.should == 3
   end
-  
+
   it "should be able to delete intermediate model" do
     book = Book.get(3)
     be = BooksEditor.get(3,1)
@@ -118,7 +118,7 @@ describe "ManyToMany" do
     book.reload
     Editor.get(1).books.should_not include(book)
   end
-  
+
   it "should be destroyable" do
     book = Book.get(3)
     book.editors.destroy

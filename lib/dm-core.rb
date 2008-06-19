@@ -51,7 +51,7 @@ module DataMapper
     #
     # @return [TrueClass, FalseClass] whether or not the inclusions have been
     #   successfully appended to the list
-    # @return <TrueClass, FalseClass> 
+    # @return <TrueClass, FalseClass>
     #-
     # @api public
     def self.append_inclusions(*inclusions)
@@ -64,7 +64,7 @@ module DataMapper
     @@extra_extensions = []
 
     ##
-    # 
+    #
     # Extends the model with this module after DataMapper::Resource has been
     # included.
     #
@@ -164,19 +164,19 @@ module DataMapper
 
   ##
   # Setups up a connection to a data-store
-  # 
+  #
   # @param Symbol name a name for the context, defaults to :default
-  # @param [Hash{Symbol => String}, Addressable::URI, String] uri_or_options 
+  # @param [Hash{Symbol => String}, Addressable::URI, String] uri_or_options
   #   connection information
-  # 
+  #
   # @return Repository the resulting setup repository
-  # 
+  #
   # @raise ArgumentError "+name+ must be a Symbol, but was..." indicates that
   #   an invalid argument was passed for name[Symbol]
-  # @raise [ArgumentError] "+uri_or_options+ must be a Hash, URI or String, 
-  #   but was..." indicates that connection information could not be gleaned 
+  # @raise [ArgumentError] "+uri_or_options+ must be a Hash, URI or String,
+  #   but was..." indicates that connection information could not be gleaned
   #   from the given uri_or_options<Hash, Addressable::URI, String>
-  # 
+  #
   # -
   # @api public
   def self.setup(name, uri_or_options)
