@@ -26,13 +26,12 @@ describe "ManyToMany" do
       has n, :editors, :through => Resource
     end
 
+    [Book, Editor, BooksEditor].each { |k| k.auto_migrate!(ADAPTER) }
+    
     adapter = repository(ADAPTER).adapter
-    adapter.execute("CREATE TABLE books_editors (id INTEGER PRIMARY KEY, book_id INT, editor_id INT)")
     adapter.execute("INSERT INTO books_editors (book_id, editor_id) VALUES (1, 1)")
     adapter.execute("INSERT INTO books_editors (book_id, editor_id) VALUES (2, 1)")
     adapter.execute("INSERT INTO books_editors (book_id, editor_id) VALUES (1, 2)")
-
-    [Book, Editor].each { |k| k.auto_migrate!(ADAPTER) }
 
     def BooksEditor.default_repository_name; ADAPTER end
 

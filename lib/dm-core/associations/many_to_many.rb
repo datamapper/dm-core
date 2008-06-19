@@ -78,10 +78,13 @@ module DataMapper
 
         def <<(resource)
           resource.save if resource.new_record?
-          through = @relationship.child_model.new(
-            @relationship.child_key.key.first.name => @relationship.parent_key.key.first.get(@parent),
-            remote_relationship.child_key.key.first.name => remote_relationship.parent_key.key.first.get(resource)
-          )
+          through = @relationship.child_model.new
+          @relationship.child_key.each_with_index do |key, index|
+            through.send("#{key.name}=", @relationship.parent_key.key[index].get(@parent))
+          end
+          remote_relationship.child_key.each_with_index do |key, index|
+            through.send("#{key.name}=", remote_relationship.parent_key.key[index].get(resource))
+          end
           near_model << through
           super
         end
