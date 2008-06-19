@@ -37,6 +37,8 @@ module DataMapper
   module Resource
     @@extra_inclusions = []
 
+
+    ##
     #
     # Appends a module for inclusion into the model class after
     # DataMapper::Resource.
@@ -44,11 +46,12 @@ module DataMapper
     # This is a useful way to extend DataMapper::Resource while still retaining
     # a self.included method.
     #
-    # @param inclusion<Module> the module that is to be appended to the module
-    #        after DataMapper::Resource
+    # @param [Module] inclusion the module that is to be appended to the module
+    #   after DataMapper::Resource
     #
-    # @return <TrueClass, FalseClass> whether or not the inclusions have been
-    #         successfully appended to the list
+    # @return [TrueClass, FalseClass] whether or not the inclusions have been
+    #   successfully appended to the list
+    # @return <TrueClass, FalseClass> 
     #-
     # @api public
     def self.append_inclusions(*inclusions)
@@ -60,18 +63,19 @@ module DataMapper
   module Model
     @@extra_extensions = []
 
-    #
+    ##
+    # 
     # Extends the model with this module after DataMapper::Resource has been
     # included.
     #
     # This is a useful way to extend DataMapper::Model while
     # still retaining a self.extended method.
     #
-    # @param extension<Module> the module that is to be extend the model after
-    #        after DataMapper::Model
+    # @param [Module] extensions the module that is to be extend the model after
+    #   after DataMapper::Model
     #
-    # @return <TrueClass, FalseClass> whether or not the inclusions have been
-    #         successfully appended to the list
+    # @return [TrueClass, FalseClass] whether or not the inclusions have been
+    #   successfully appended to the list
     #-
     # @api public
     #
@@ -160,18 +164,19 @@ module DataMapper
 
   ##
   # Setups up a connection to a data-store
-  #
-  # @param name<Symbol> a name for the context, defaults to :default
-  # @param uri_or_options<Hash{Symbol => String}, Addressable::URI, String>
+  # 
+  # @param Symbol name a name for the context, defaults to :default
+  # @param [Hash{Symbol => String}, Addressable::URI, String] uri_or_options 
   #   connection information
-  #
-  # @return <Repository> the resulting setup repository
-  #
-  # @raise <ArgumentError> "+name+ must be a Symbol, but was..." indicates that
-  #   an invalid argument was passed for name<Symbol>
-  # @raise <ArgumentError> "+uri_or_options+ must be a Hash, URI or String, but was..."
-  #   indicates that connection information could not be gleaned from the given
-  #   uri_or_options<Hash, Addressable::URI, String>
+  # 
+  # @return Repository the resulting setup repository
+  # 
+  # @raise ArgumentError "+name+ must be a Symbol, but was..." indicates that
+  #   an invalid argument was passed for name[Symbol]
+  # @raise [ArgumentError] "+uri_or_options+ must be a Hash, URI or String, 
+  #   but was..." indicates that connection information could not be gleaned 
+  #   from the given uri_or_options<Hash, Addressable::URI, String>
+  # 
   # -
   # @api public
   def self.setup(name, uri_or_options)
@@ -201,20 +206,17 @@ module DataMapper
   end
 
   ##
-  #
-  # @details [Block Syntax]
+  # Block Syntax
   #   Pushes the named repository onto the context-stack,
   #   yields a new session, and pops the context-stack.
   #
-  #     results = DataMapper.repository(:second_database) do |current_context|
-  #       ...
-  #     end
-  #
-  # @details [Non-Block Syntax]
+  # Non-Block Syntax
   #   Returns the current session, or if there is none,
   #   a new Session.
   #
-  #     current_repository = DataMapper.repository
+  # @param [Symbol] args the name of a repository to act within or return, :default is default
+  # @yield [Proc] (optional) block to execute within the context of the named repository
+  # @demo spec/integration/repository_spec.rb
   def self.repository(*args, &block) # :yields: current_context
     if args.size > 1
       raise ArgumentError, "Can only pass in one optional argument, but passed in #{args.size} arguments", caller
@@ -243,7 +245,7 @@ module DataMapper
   ##
   # destructively migrates the repository upwards to match model definitions
   #
-  # @param <Symbol> name repository to act on, :default is the default
+  # @param [Symbol] name repository to act on, :default is the default
   def self.migrate!(name = Repository.default_name)
     repository(name).migrate!
   end
@@ -251,7 +253,7 @@ module DataMapper
   ##
   # drops and recreates the repository upwards to match model definitions
   #
-  # @param <Symbol> name repository to act on, :default is the default
+  # @param [Symbol] name repository to act on, :default is the default
   def self.auto_migrate!(name = Repository.default_name)
     repository(name).auto_migrate!
   end

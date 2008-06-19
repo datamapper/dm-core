@@ -26,7 +26,7 @@ module DataMapper
       1.0/0
     end
 
-    #
+    ##
     # A shorthand, clear syntax for defining one-to-one, one-to-many and
     # many-to-many resource relationships.
     #
@@ -44,23 +44,23 @@ module DataMapper
     #   * has n, :friendships => :friends
     #                         # identical to above example
     #
-    # @param cardinality <Integer, Range, Infinity>
+    # @param cardinality [Integer, Range, Infinity]
     #   cardinality that defines the association type and constraints
     # @param name <Symbol>  the name that the association will be referenced by
     # @param opts <Hash>    an options hash
     #
-    # @option :through<Symbol>  A association that this join should go through to form
+    # @option :through[Symbol]  A association that this join should go through to form
     #       a many-to-many association
-    # @option :class_name<String> The name of the class to associate with, if omitted
+    # @option :class_name[String] The name of the class to associate with, if omitted
     #       then the association name is assumed to match the class name
-    # @option :remote_name<Symbol> In the case of a :through option being present, the
+    # @option :remote_name[Symbol] In the case of a :through option being present, the
     #       name of the relationship on the other end of the :through-relationship
     #       to be linked to this relationship.
     #
-    # @return <DataMapper::Association::Relationship> the relationship that was
+    # @return [DataMapper::Association::Relationship] the relationship that was
     #   created to reflect either a one-to-one, one-to-many or many-to-many
     #   relationship
-    # @raise <ArgumentError> if the cardinality was not understood. Should be a
+    # @raise [ArgumentError] if the cardinality was not understood. Should be a
     #   Integer, Range or Infinity(n)
     #
     # @api public
@@ -103,18 +103,17 @@ module DataMapper
       relationship
     end
 
-    #
+    ##
     # A shorthand, clear syntax for defining many-to-one resource relationships.
     #
     # @example [Usage]
     #   * belongs_to :user                          # many_to_one, :friend
     #   * belongs_to :friend, :class_name => 'User'  # many_to_one :friends
     #
-    # @param name<Symbol> The name that the association will be referenced by
-    # @param opts<Hash>   An options hash (see below)
+    # @param name [Symbol] The name that the association will be referenced by
     # @see #has
     #
-    # @return <DataMapper::Association::ManyToOne> The association created
+    # @return [DataMapper::Association::ManyToOne] The association created
     #   should not be accessed directly
     #
     # @api public
@@ -170,9 +169,4 @@ module DataMapper
 
   Model.append_extensions DataMapper::Associations
 
-  # module Resource
-  #   module ClassMethods
-  #     include DataMapper::Associations
-  #   end # module ClassMethods
-  # end # module Resource
 end # module DataMapper

@@ -437,7 +437,7 @@ module DataMapper
     # @return <TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Time
     #   Class> the primitive data-type, defaults to TrueClass
     #-
-    # @private
+    # @api private
     def typecast(value)
       return value if value.kind_of?(type) || value.nil?
 

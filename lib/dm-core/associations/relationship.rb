@@ -47,7 +47,7 @@ module DataMapper
         Class === @child_model ? @child_model : find_const(@child_model)
       end
 
-      # @private
+      # @api private
       def get_children(parent, options = {}, finder = :all, *args)
         bind_values = parent_key.get(parent)
         return [] if bind_values.any? { |bind_value| bind_value.nil? }
@@ -58,7 +58,7 @@ module DataMapper
         end
       end
 
-      # @private
+      # @api private
       def get_parent(child)
         bind_values = child_key.get(child)
         return nil if bind_values.any? { |bind_value| bind_value.nil? }
@@ -69,7 +69,7 @@ module DataMapper
         end
       end
 
-      # @private
+      # @api private
       def attach_parent(child, parent)
         child_key.set(child, parent && parent_key.get(parent))
       end

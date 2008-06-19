@@ -16,7 +16,7 @@ module DataMapper
     # it gets all the methods
     #
     # -
-    # @private
+    # @api private
     def self.included(model)
       model.extend Model
       model.extend ClassMethods if defined?(ClassMethods)
@@ -39,7 +39,7 @@ module DataMapper
     #   DataMapper.Resource.decendents[1].type == Foo
     #
     # -
-    # @semipublic
+    # @api semipublic
     def self.descendants
       @descendants ||= Set.new
     end
@@ -80,7 +80,7 @@ module DataMapper
     #   end
     #
     # -
-    # @semipublic
+    # @api semipublic
     def attribute_get(name)
       properties[name].get(self)
     end
@@ -121,7 +121,7 @@ module DataMapper
     #   end
     #
     # -
-    # @semipublic
+    # @api semipublic
     def attribute_set(name, value)
       properties[name].set(self, value)
     end
@@ -135,7 +135,7 @@ module DataMapper
     # <True>:: the outcome of the comparison as a boolean
     #
     # -
-    # @public
+    # @api public
     def eql?(other)
       return true if object_id == other.object_id
       return false unless other.kind_of?(model)
@@ -161,7 +161,7 @@ module DataMapper
     # => #<Foo name=nil updated_at=nil created_at=nil id=nil>
     #
     # -
-    # @public
+    # @api public
     def inspect
       attrs = []
 
@@ -195,7 +195,7 @@ module DataMapper
     # ==== Returns
     # <Repository>:: the respository this resource belongs to in the context of a collection OR in the class's context
     #
-    # @public
+    # @api public
     def repository
       @repository || model.repository
     end
@@ -208,7 +208,7 @@ module DataMapper
     # <Array[Key], Key> key or keys
     #
     # --
-    # @public
+    # @api public
     def id
       key = self.key
       key.first if key.size == 1
@@ -263,7 +263,7 @@ module DataMapper
     # <True, False>:: results of the destruction
     #
     # --
-    # @public
+    # @api public
     def destroy
       return false unless repository.delete(to_query)
 
@@ -292,7 +292,7 @@ module DataMapper
     #   Foo.new.attribute_loaded?(:description) # will return false
     #
     # --
-    # @public
+    # @api public
     def attribute_loaded?(name)
       instance_variable_defined?(properties[name].instance_variable_name)
     end
@@ -314,7 +314,7 @@ module DataMapper
     #   Foo.new.loaded_attributes # returns [:name]
     #
     # --
-    # @public
+    # @api public
     def loaded_attributes
       names = []
       properties.each do |property|
@@ -329,7 +329,7 @@ module DataMapper
     # Hash:: original values of properties
     #
     # --
-    # @public
+    # @api public
     def original_values
       @original_values ||= {}
     end
@@ -340,7 +340,7 @@ module DataMapper
     # Hash:: attributes that have been marked dirty
     #
     # --
-    # @private
+    # @api private
     def dirty_attributes
       dirty_attributes = {}
       properties       = self.properties
@@ -375,7 +375,7 @@ module DataMapper
     # True:: returns if class is dirty
     #
     # --
-    # @public
+    # @api public
     def dirty?
       dirty_attributes.any?
     end
@@ -389,7 +389,7 @@ module DataMapper
     # True:: returns if attribute is dirty
     #
     # --
-    # @public
+    # @api public
     def attribute_dirty?(name)
       dirty_attributes.has_key?(properties[name])
     end
@@ -406,7 +406,7 @@ module DataMapper
     # self:: returns the class itself
     #
     # --
-    # @public
+    # @api public
     def reload
       reload_attributes(*loaded_attributes)
       (parent_associations + child_associations).each { |association| association.reload }
@@ -422,7 +422,7 @@ module DataMapper
     # self:: returns the class itself
     #
     # --
-    # @public
+    # @api public
     def reload_attributes(*attributes)
       collection.reload(:fields => attributes)
       self
@@ -434,7 +434,7 @@ module DataMapper
     # True:: status if the model is new
     #
     # --
-    # @public
+    # @api public
     def new_record?
       !defined?(@new_record) || @new_record
     end
@@ -445,7 +445,7 @@ module DataMapper
     # Hash[<Symbol>]:: All the (non)-lazy attributes
     #
     # --
-    # @public
+    # @api public
     def attributes
       pairs = {}
 
@@ -463,7 +463,7 @@ module DataMapper
     # value_hash <Hash[<Symbol>]>::
     #
     # --
-    # @public
+    # @api public
     def attributes=(values_hash)
       values_hash.each_pair do |k,v|
         setter = "#{k.to_s.sub(/\?\z/, '')}="
@@ -556,13 +556,13 @@ module DataMapper
     end
 
     # TODO document
-    # @semipublic
+    # @api semipublic
     def attribute_get!(name)
       properties[name].get!(self)
     end
 
     # TODO document
-    # @semipublic
+    # @api semipublic
     def attribute_set!(name, value)
       properties[name].set!(self, value)
     end

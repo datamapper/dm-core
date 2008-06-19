@@ -6,7 +6,7 @@ module DataMapper
 
       # Setup many to many relationship between two models
       # -
-      # @private
+      # @api private
       def self.setup(name, model, options = {})
         assert_kind_of 'name',    name,    Symbol
         assert_kind_of 'model',   model,   Model

@@ -4,20 +4,48 @@ module DataMapper
 
     attr_reader :query
 
+    ##
+    # @return [Repository] the repository the collection is 
+    #   associated with
+    # @api public
     def repository
       query.repository
     end
 
+    ##
+    # loads the entries for the collection. Used by the
+    # adapters to load the instances of the declared
+    # model for this collection's query.
+    # 
+    # @api private
     def load(values)
       add(model.load(values, query))
     end
 
+    ##
+    # reloads the entries associated with this collection
+    #
+    # @param [DataMapper::Query] query (optional) additional query
+    #   to scope by.  Use this if you want to query a collections result 
+    #   set
+    # 
+    # @see DataMapper::Collection#all
+    # 
+    # @api public 
     def reload(query = {})
       @query = scoped_query(query)
       @query.update(:fields => @query.fields | @key_properties)
       replace(all(:reload => true))
     end
 
+    ##
+    # retrieves an entry out of the collection's entry by key
+    # 
+    # @param [DataMapper::Types::*, ...] key keys which uniquely
+    #   identify a resource in the collection
+    # @return [DataMapper::Resource, NilClass] the resource which 
+    #   has the supplied keys
+    # @api public
     def get(*key)
       if loaded?
         # loop over the collection to find the matching resource
@@ -42,17 +70,51 @@ module DataMapper
       end
     end
 
+    ##
+    # retrieves an entry out of the collection's entry by key,
+    # raising an exception if the object cannot be found
+    # 
+    # @param [DataMapper::Types::*, ...] key keys which uniquely
+    #   identify a resource in the collection
+    # 
+    # @calls DataMapper::Collection#get
+    # 
+    # @raise [ObjectNotFoundError] "Could not find #{model.name} with key #{key.inspect} in collection"
+    # 
     def get!(*key)
       get(*key) || raise(ObjectNotFoundError, "Could not find #{model.name} with key #{key.inspect} in collection")
     end
 
+    ##
+    # Further refines a collection's conditions.  #all provides an
+    # interface which simulates a database view. 
+    # 
+    # @param [Hash[Symbol, Object], DataMapper::Query] query parameters for
+    #   an query within the results of the original query.
+    # 
+    # @return [DataMapper::Collection] a collection whose query is the result
+    #   of a merge
     def all(query = {})
+      # TODO: this shouldn't be a kicker if scoped_query() is called
       return self if query.kind_of?(Hash) ? query.empty? : query == self.query
       query = scoped_query(query)
       query.repository.read_many(query)
     end
 
+    ##
+    # Simulates Array#first by returning the first entry (when 
+    # there are no arguments), or transforms the collection's query 
+    # by applying :limit => n when you supply an Integer. If you 
+    # provide a conditions hash, or a Query object, the internal 
+    # query is scoped and a new collection is returned
+    # 
+    # @param [Integer, Hash[Symbol, Object], Query] args 
+    #
+    # @return [DataMapper::Resource, DataMapper::Collection] The
+    #   first resource in the entries of this collection, or
+    #   a new collection whose query has been merged
     def first(*args)
+      # TODO: this shouldn't be a kicker if scoped_query() is called
       if loaded?
         if args.empty?
           return super
@@ -72,6 +134,16 @@ module DataMapper
       end
     end
 
+    ##
+    # Simulates Array#last by returning the last entry (when 
+    # there are no arguments), or transforming the collection's
+    # query by reversing the declared order, and applying
+    # :limit => n when you supply an Integer.  If you
+    # supply a conditions hash, or a Query object, the
+    # internal query is scoped and a new collection is returned
+    # 
+    # @calls Collection#first
+    # 
     def last(*args)
       return super if loaded? && args.empty?
 
@@ -84,11 +156,40 @@ module DataMapper
       reversed.first(*args)
     end
 
+    ##
+    # Simulates Array#at and returns the entrie at that index.
+    # Also accepts negative indexes and appropriate reverses
+    # the order of the query 
+    # 
+    # @calls Collection#first
+    # @calls Collection#last
+    # 
+    # @author adam
     def at(offset)
       return super if loaded?
       offset >= 0 ? first(:offset => offset) : last(:offset => offset.abs - 1)
     end
 
+    ##
+    # Simulates Array#slice and returns a new Collection
+    # whose query has a new offset or limit according to the
+    # arguments provided.
+    # 
+    # If you provide a range, the min is used as the offset
+    # and the max minues the offset is used as the limit.
+    # 
+    # @param [Integer, Array(Integer), Range] args the offset,
+    # offset and limit, or range indicating offsets and limits
+    # 
+    # @return [DataMapper::Resource, DataMapper::Collection]
+    #   The entry which resides at that offset and limit,
+    #   or a new Collection object with the set limits and offset
+    # 
+    # @raise [ArgumentError] "arguments may be 1 or 2 Integers, 
+    #   or 1 Range object, was: #{args.inspect}"
+    # 
+    # @alias []
+    # 
     def slice(*args)
       return at(args.first) if args.size == 1 && args.first.kind_of?(Integer)
 
@@ -108,22 +209,35 @@ module DataMapper
 
     alias [] slice
 
+    ##
+    # 
+    # @return [DataMapper::Collection] a new collection whose 
+    #   query is sorted in the reverse
+    # 
+    # @see Array#reverse, DataMapper#all, DataMapper::Query#reverse
+    # 
     def reverse
       all(self.query.reverse)
     end
 
+    ##
+    # @see Array#<<
     def <<(resource)
       super
       relate_resource(resource)
       self
     end
 
+    ##
+    # @see Array#push
     def push(*resources)
       super
       resources.each { |resource| relate_resource(resource) }
       self
     end
-
+    
+    ##
+    # @see Array#unshift
     def unshift(*resources)
       super
       resources.each { |resource| relate_resource(resource) }
@@ -163,6 +277,11 @@ module DataMapper
       self
     end
 
+    ##
+    # creates a new array, saves it, and << it onto the collection
+    # 
+    # @param Hash[Symbol => Object] attributes attributes which
+    #   the new resource should have.
     def create(attributes = {})
       repository.scope do
         resource = model.create(default_attributes.merge(attributes))
@@ -171,8 +290,18 @@ module DataMapper
       end
     end
 
-    # TODO: delegate to Model.update
+    ##
+    # batch updates the entries belongs to this collection. 
+    # 
+    # @example Reached the Age of Alchohol Consumption
+    #   Person.all(:age.gte => 21).update(:allow_beer => true)
+    # 
+    # @return [TrueClass, FalseClass] 
+    #   TrueClass indicates that all entries were affected
+    #   FalseClass indicates that some entries were affected
+    # 
     def update(attributes = {},preload=false)
+      # TODO: delegate to Model.update
       return true if attributes.empty?
 
       dirty_attributes, keys_to_reload = {}, {}
@@ -199,8 +328,18 @@ module DataMapper
       return loaded? ? affected == size : affected > 0
     end
 
-    # TODO: delegate to Model.destroy
+    ##
+    # batch destroy the entries belongs to this collection. 
+    # 
+    # @example The War On Terror (if only it were this easy)
+    #   Person.all(:terrorist => true).destroy() # 
+    # 
+    # @return [TrueClass, FalseClass] 
+    #   TrueClass indicates that all entries were affected
+    #   FalseClass indicates that some entries were affected
+    #
     def destroy
+      # TODO: delegate to Model.destroy
       if loaded?
         return false unless repository.delete(scoped_query) == size
 
@@ -223,10 +362,17 @@ module DataMapper
       true
     end
 
+    ##
+    # @return [DataMapper::PropertySet] The set of properties this
+    #   query will be retrieving
+    # 
     def properties
       PropertySet.new(query.fields)
     end
 
+    ##
+    # @return [DataMapper::Relationship] The model's relationships
+    # 
     def relationships
       model.relationships(repository.name)
     end

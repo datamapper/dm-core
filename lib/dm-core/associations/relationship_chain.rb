@@ -14,7 +14,7 @@ module DataMapper
         near_relationship.child_model
       end
 
-      # @private
+      # @api private
       def get_children(parent, options = {}, finder = :all, *args)
         query = @query.merge(options).merge(child_key.to_query(parent_key.get(parent)))
 

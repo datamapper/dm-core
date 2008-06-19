@@ -205,7 +205,7 @@ module DataMapper
       end
     end
 
-    # @private
+    # @api private
     # TODO: spec this
     def load(values, query)
       repository = query.repository
