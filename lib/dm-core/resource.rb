@@ -510,6 +510,31 @@ module DataMapper
     def relationships
       model.relationships(repository.name)
     end
+    
+    # Needs to be a protected method so that it is hookable
+    def create
+      # set defaults for new resource
+      properties.each do |property|
+        next if attribute_loaded?(property.name)
+        property.set(self, property.default_for(self))
+      end
+
+      return false unless repository.create([ self ]) == 1
+
+      @repository = repository
+      @new_record = false
+
+      repository.identity_map(model).set(key, self)
+
+      true
+    end
+
+    # Needs to be a protected method so that it is hookable
+    def update
+      dirty_attributes = self.dirty_attributes
+      return true if dirty_attributes.empty?
+      repository.update(dirty_attributes, to_query) == 1
+    end
 
     private
 
@@ -528,29 +553,6 @@ module DataMapper
       if properties.key.empty?
         raise IncompleteResourceError, "#{model.name} must have a key."
       end
-    end
-
-    def create
-      # set defaults for new resource
-      properties.each do |property|
-        next if attribute_loaded?(property.name)
-        property.set(self, property.default_for(self))
-      end
-
-      return false unless repository.create([ self ]) == 1
-
-      @repository = repository
-      @new_record = false
-
-      repository.identity_map(model).set(key, self)
-
-      true
-    end
-
-    def update
-      dirty_attributes = self.dirty_attributes
-      return true if dirty_attributes.empty?
-      repository.update(dirty_attributes, to_query) == 1
     end
 
     # TODO document
