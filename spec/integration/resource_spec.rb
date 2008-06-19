@@ -19,7 +19,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :color, String, :default => 'green', :nullable => true
   end
 
@@ -30,7 +30,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :name, String
 
     def to_s
@@ -79,7 +79,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :name, String
     property :iq, Integer, :default => 100
     property :type, Discriminator
@@ -113,7 +113,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :type, Discriminator
     property :name, String
   end
@@ -340,33 +340,6 @@ if ADAPTER
         repository(ADAPTER) do
           Geek.first(:name => "Bill").iq.should == 180
         end
-      end
-    end
-  end
-
-  describe "DataMapper::Resource::ClassMethods with #{ADAPTER}" do
-    before do
-      repository(ADAPTER) do
-        Male.auto_migrate!
-      end
-    end
-
-    it 'should provide #load' do
-      Male.should respond_to(:load)
-    end
-
-    describe '#load' do
-      it 'should load resources with nil discriminator fields' do
-        jd = Male.create(:name => 'John Doe')
-        query = Male.all.query
-        fields = query.fields
-
-        fields.should == Male.properties(ADAPTER).slice(:id, :name, :iq, :type)
-
-        # would blow up prior to fix
-        lambda {
-          Male.load([ jd.id, jd.name, jd.iq, nil ], query)
-        }.should_not raise_error(NoMethodError)
       end
     end
   end

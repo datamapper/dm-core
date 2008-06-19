@@ -19,11 +19,8 @@ module DataMapper
     end
 
     def reverse!
-      # set the default sort order
-      order = normalize_order(self.order.any? ? self.order : model.default_order(repository.name))
-
       # reverse the sort order
-      update(:order => order.map { |o| o.reverse })
+      update(:order => self.order.map { |o| o.reverse })
 
       self
     end
@@ -47,7 +44,7 @@ module DataMapper
       @reload       = other.reload?       unless other.reload?       == false
       @offset       = other.offset        unless other.offset        == 0
       @limit        = other.limit         unless other.limit         == nil
-      @order        = other.order         unless other.order         == []
+      @order        = other.order         unless other.order         == model.default_order
       @add_reversed = other.add_reversed? unless other.add_reversed? == false
       @fields       = other.fields        unless other.fields        == @properties.defaults
       @links        = other.links         unless other.links         == []
@@ -148,7 +145,7 @@ module DataMapper
 
     def initialize(repository, model, options = {})
       assert_kind_of 'repository', repository, Repository
-      assert_kind_of 'model',      model,      Resource::ClassMethods
+      assert_kind_of 'model',      model,      Model
       assert_kind_of 'options',    options,    Hash
 
       options.each_pair { |k,v| options[k] = v.call if v.is_a? Proc } if options.is_a? Hash
@@ -162,7 +159,7 @@ module DataMapper
       @reload       = options.fetch :reload,       false  # must be true or false
       @offset       = options.fetch :offset,       0      # must be an Integer greater than or equal to 0
       @limit        = options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
-      @order        = options.fetch :order,        []     # must be an Array of Symbol, DM::Query::Direction or DM::Property
+      @order        = options.fetch :order,        model.default_order   # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @add_reversed = options.fetch :add_reversed, false  # must be true or false
       @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
@@ -193,7 +190,11 @@ module DataMapper
 
       # parse raw options[:conditions] differently
       if conditions = options[:conditions]
-        if conditions.kind_of?(Array)
+        if conditions.kind_of?(Hash)
+          conditions.each do |k,v|
+            append_condition(k, v)
+          end
+        elsif conditions.kind_of?(Array)
           raw_query, *bind_values = conditions
           @conditions << if bind_values.empty?
             [ :raw, raw_query ]
@@ -249,12 +250,21 @@ module DataMapper
       end
 
       # validate the order, fields, links, includes and conditions options
-      ([ :order, :fields, :links, :includes, :conditions ] & options.keys).each do |attribute|
+      ([ :order, :fields, :links, :includes ] & options.keys).each do |attribute|
         value = options[attribute]
         assert_kind_of "options[:#{attribute}]", value, Array
 
-        unless value.any?
+        if value.empty?
           raise ArgumentError, "+options[:#{attribute}]+ cannot be empty", caller(2)
+        end
+      end
+
+      if options.has_key?(:conditions)
+        value = options[:conditions]
+        assert_kind_of 'options[:conditions]', value, Hash, Array
+
+        if value.empty?
+          raise ArgumentError, '+options[:conditions]+ cannot be empty', caller(2)
         end
       end
     end
@@ -560,7 +570,7 @@ module DataMapper
       def initialize(repository, relationships, model, property_name = nil)
         assert_kind_of 'repository',    repository,    Repository
         assert_kind_of 'relationships', relationships, Array
-        assert_kind_of 'model',         model,         Resource::ClassMethods
+        assert_kind_of 'model',         model,         Model
         assert_kind_of 'property_name', property_name, Symbol unless property_name.nil?
 
         @repository    = repository

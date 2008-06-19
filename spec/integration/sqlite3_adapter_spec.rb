@@ -11,7 +11,7 @@ if HAS_SQLITE3
         class Sputnik
           include DataMapper::Resource
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, DM::Text
         end
       end
@@ -33,7 +33,7 @@ if HAS_SQLITE3
         class Sputnik
           include DataMapper::Resource
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, DM::Text
         end
       end
@@ -79,7 +79,7 @@ if HAS_SQLITE3
         class Sputnik
           include DataMapper::Resource
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, DM::Text
         end
       end
@@ -111,7 +111,7 @@ if HAS_SQLITE3
         class User
           include DataMapper::Resource
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, DM::Text
         end
       end
@@ -156,7 +156,7 @@ if HAS_SQLITE3
         class VideoGame
           include DataMapper::Resource
 
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, String
           property :object, Object
           property :notes, Text

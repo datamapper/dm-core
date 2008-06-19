@@ -10,7 +10,7 @@ if HAS_MYSQL
       class Sputnik
         include DataMapper::Resource
 
-        property :id, Integer, :serial => true
+        property :id, Serial
         property :name, DM::Text
         property :object, Object
 

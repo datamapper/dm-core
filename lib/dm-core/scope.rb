@@ -29,11 +29,7 @@ module DataMapper
       scope_stack_for = Thread.current[:dm_scope_stack] ||= Hash.new { |h,k| h[k] = [] }
       scope_stack_for[self]
     end
-  end # module Scope
 
-  module Resource
-    module ClassMethods
-      include Scope
-    end # module ClassMethods
-  end # module Resource
+    Model.send(:include, self)
+  end # module Scope
 end # module DataMapper

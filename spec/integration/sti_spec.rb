@@ -1,12 +1,7 @@
 require 'pathname'
 require Pathname(__FILE__).dirname.expand_path.parent + 'spec_helper'
 
-
-
-
 if HAS_SQLITE3
-
-
   describe DataMapper::AutoMigrations, '.auto_migrate! on STI models with sqlite3' do
     before :all do
       @adapter = repository(:sqlite3).adapter
@@ -16,7 +11,7 @@ if HAS_SQLITE3
       class Book
         include DataMapper::Resource
 
-        property :id,       Integer,    :serial => true
+        property :id,       Serial
         property :title,    String,     :nullable => false
         property :isbn,     Integer,    :nullable => false
         property :class_type, Discriminator

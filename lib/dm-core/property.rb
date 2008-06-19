@@ -1,7 +1,3 @@
-unless defined?(DM)
-  DM = DataMapper::Types
-end
-
 require 'date'
 require 'time'
 require 'bigdecimal'
@@ -161,7 +157,7 @@ module DataMapper
   #
   # Examples:
   #
-  #  property :id,        Integer, :serial => true  # auto-incrementing key
+  #  property :id,        Serial                    # auto-incrementing key
   #  property :legacy_pk, String, :key => true      # 'natural' key
   #
   # This is roughly equivalent to ActiveRecord's <tt>set_primary_key</tt>,
@@ -379,8 +375,6 @@ module DataMapper
     #-
     # @api private
     def get(resource)
-      assert_kind_of 'resource', resource, Resource
-
       new_record = resource.new_record?
 
       unless new_record || resource.attribute_loaded?(name)
@@ -413,7 +407,6 @@ module DataMapper
     end
 
     def get!(resource)
-      assert_kind_of 'resource', resource, Resource
       resource.instance_variable_get(instance_variable_name)
     end
 
@@ -423,8 +416,6 @@ module DataMapper
     #-
     # @api private
     def set(resource, value)
-      assert_kind_of 'resource', resource, Resource
-
       new_value = typecast(value)
       old_value = get!(resource)
 
@@ -438,7 +429,6 @@ module DataMapper
     end
 
     def set!(resource, value)
-      assert_kind_of 'resource', resource, Resource
       resource.instance_variable_set(instance_variable_name, value)
     end
 
@@ -476,7 +466,7 @@ module DataMapper
     private
 
     def initialize(model, name, type, options = {})
-      assert_kind_of 'model', model, Resource::ClassMethods
+      assert_kind_of 'model', model, Model
       assert_kind_of 'name',  name,  Symbol
       assert_kind_of 'type',  type,  Class
 

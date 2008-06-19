@@ -8,7 +8,7 @@ module DataMapper
       # @private
       def self.setup(name, model, options = {})
         assert_kind_of 'name',    name,    Symbol
-        assert_kind_of 'model',   model,   Resource::ClassMethods
+        assert_kind_of 'model',   model,   Model
         assert_kind_of 'options', options, Hash
 
         repository_name = model.repository.name
@@ -38,8 +38,8 @@ module DataMapper
 
         model.relationships(repository_name)[name] = if options.has_key?(:through)
           RelationshipChain.new(
-            :child_model_name         => options.fetch(:class_name, Extlib::Inflection.classify(name)),
-            :parent_model_name        => model.name,
+            :child_model              => options.fetch(:class_name, Extlib::Inflection.classify(name)),
+            :parent_model             => model.name,
             :repository_name          => repository_name,
             :near_relationship_name   => options[:through],
             :remote_relationship_name => options.fetch(:remote_name, name),

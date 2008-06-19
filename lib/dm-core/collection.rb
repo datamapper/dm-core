@@ -172,34 +172,37 @@ module DataMapper
     end
 
     # TODO: delegate to Model.update
-    def update(attributes = {})
+    def update(attributes = {},preload=false)
       return true if attributes.empty?
 
-      dirty_attributes = {}
+      dirty_attributes, keys_to_reload = {}, {}
 
       model.properties(repository.name).slice(*attributes.keys).each do |property|
         dirty_attributes[property] = attributes[property.name] if property
       end
 
-      if loaded?
-        return false unless repository.update(dirty_attributes, scoped_query) == size
-      else
-        return false unless repository.update(dirty_attributes, scoped_query) > 0
-      end
+      is_affected = query.conditions.detect{|c| dirty_attributes.include?(c[1]) || c[0] == :raw }
 
-      if loaded?
+      if loaded? || preload && is_affected && lazy_load
         each { |resource| resource.attributes = attributes }
+      elsif identity_map.any?
+        @key_properties.zip(identity_map.keys.transpose) { |p,v| keys_to_reload[p] = v }
+        to_reload = is_affected ? model.all(all(keys_to_reload).send(:keys)) : all(keys_to_reload)
       end
 
-      true
+      affected = repository.update(dirty_attributes, scoped_query)
+
+      to_reload.reload(:fields => attributes.keys) if to_reload && to_reload.query.conditions.any?
+
+      query.update(attributes)
+
+      return loaded? ? affected == size : affected > 0
     end
 
     # TODO: delegate to Model.destroy
     def destroy
       if loaded?
         return false unless repository.delete(scoped_query) == size
-
-        identity_map = repository.identity_map(model)
 
         each do |resource|
           resource.instance_variable_set(:@new_record, true)
@@ -313,6 +316,10 @@ module DataMapper
       end
 
       keys
+    end
+
+    def identity_map
+      repository.identity_map(model)
     end
 
     def set_relative_position(query)

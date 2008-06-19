@@ -15,7 +15,7 @@ module DataMapper
               super
           end
         end
-      end
+      end # module SQL
 
       include SQL
 
@@ -60,7 +60,7 @@ module DataMapper
             # been defined
             unless model.properties(repository.name).any? { |p| p.serial? }
               if (key = model.properties(repository.name).key).any?
-                statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field(repository.name)) } * ', '})"
+                statement << ", PRIMARY KEY(#{key.map { |p| quote_column_name(p.field(repository.name)) } * ', '})"
               end
             end
 
@@ -79,7 +79,7 @@ module DataMapper
           def sqlite_version
             @sqlite_version ||= query('SELECT sqlite_version(*)').first
           end
-        end
+        end # module SQL
 
         include SQL
 
@@ -95,8 +95,8 @@ module DataMapper
               tm.map(Class).to('VARCHAR')
             end
           end
-        end
-      end
+        end # module ClassMethods
+      end # module Migration
 
       include Migration
       extend Migration::ClassMethods

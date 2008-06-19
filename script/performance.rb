@@ -5,9 +5,9 @@ require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
 require 'rubygems'
 require 'ftools'
 
-# gem install somebee-rbench -s http://gems.github.com
-# OR git clone git://github.com/somebee/rbench.git; rake install
-# gem 'somebee-rbench', '>=0.2.0'
+# sudo gem install rbench
+# OR git clone git://github.com/somebee/rbench.git , rake install
+gem 'rbench', '>=0.2.2'
 require 'rbench'
 
 gem 'faker', '>=0.3.1'
@@ -39,7 +39,12 @@ log_dir.mkdir unless log_dir.directory?
 
 DataMapper::Logger.new(log_dir / 'dm.log', :debug)
 adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
-sqlfile = File.join(File.dirname(__FILE__),'..','tmp','perf.sql')
+
+if configuration_options[:adapter]
+  sqlfile = File.join(File.dirname(__FILE__),'..','tmp','perf.sql')
+  mysql_bin = %w[mysql mysql5].select{|bin| `which #{bin}`.length > 0 }
+  mysqldump_bin = %w[mysqldump mysqldump5].select{|bin| `which #{bin}`.length > 0 }
+end
 
 ActiveRecord::Base.logger = Logger.new(log_dir / 'ar.log')
 ActiveRecord::Base.logger.level = 0
@@ -55,7 +60,7 @@ ARExhibit.find_by_sql('SELECT 1')
 class Exhibit
   include DataMapper::Resource
 
-  property :id,         Integer, :serial => true
+  property :id,         Serial
   property :name,       String
   property :zoo_id,     Integer
   property :notes,      Text, :lazy => true
@@ -75,13 +80,14 @@ end
 
 c = configuration_options
 
-if File.exists?(sqlfile) && configuration_options[:adapter] == 'mysql'
+if sqlfile && File.exists?(sqlfile)
   puts "Found data-file. Importing from #{sqlfile}"
-  `mysql -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
+  #adapter.execute("LOAD DATA LOCAL INFILE '#{sqlfile}' INTO TABLE exhibits")
+  `#{mysql_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
 else
-  
+
   Exhibit.auto_migrate!
-    
+
   exhibits = []
   # pre-compute the insert statements and fake data compilation,
   # so the benchmarks below show the actual runtime for the execute
@@ -96,22 +102,23 @@ else
     ]
   end
   10_000.times { |i| adapter.execute(*exhibits.at(i)) }
-  
-  if configuration_options[:adapter] == 'mysql'
+
+  if sqlfile
     answer = nil
     until answer && answer[/^$|y|yes|n|no/]
       print("Would you like to dump data into tmp/perf.sql (for faster setup)? [Yn]");
       STDOUT.flush
       answer = gets
     end
-  
+
     if answer[/^$|y|yes/]
       File.makedirs(File.dirname(sqlfile))
-      `mysqldump -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} exhibits > #{sqlfile}`
+      #adapter.execute("SELECT * INTO OUTFILE '#{sqlfile}' FROM exhibits;")
+      `#{mysqldump_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} exhibits > #{sqlfile}`
       puts "File saved\n"
     end
   end
-  
+
 end
 
 TIMES = ENV['x'] ? ENV['x'].to_i : 10_000
@@ -121,110 +128,64 @@ puts "Some tasks will be run 10 and 1000 times less than (number)"
 puts "Benchmarks will now run #{TIMES} times"
 
 RBench.run(TIMES) do
-  
+
   column :times
   column :dm, :title => "DM 0.9.2"
   column :ar, :title => "AR 2.1"
   column :diff, :compare => [:dm,:ar]
-  
-  report "#get specific (not cached)" do
+
+  report "Model.get specific (not cached)" do
     dm { touch_attributes[Exhibit.get(1)] }
-    ActiveRecord::Base::uncached { ar { touch_attributes[ARExhibit.find(1)] } }
+    ActiveRecord::Base.uncached { ar { touch_attributes[ARExhibit.find(1)] } }
   end
-  
-  report "#get specific (cached)" do
+
+  report "Model.get specific (cached)" do
     Exhibit.repository(:default) { dm { touch_attributes[Exhibit.get(1)]    } }
-    ActiveRecord::Base::cache    { ar { touch_attributes[ARExhibit.find(1)] } }
+    ActiveRecord::Base.cache    { ar { touch_attributes[ARExhibit.find(1)] } }
   end
-  
-  report "#get first" do
+
+  report "Model.first" do
     dm { touch_attributes[Exhibit.first]   }
     ar { touch_attributes[ARExhibit.first] }
   end
-  
-  report "#all limit(100) (not cached)", TIMES / 10 do
+
+  report "Model.all limit(100)", TIMES / 10 do
     dm { touch_attributes[Exhibit.all(:limit => 100)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
   end
-  
-  report "#all limit(100) (cached)", TIMES / 10 do
-    Exhibit.repository(:default) { dm { touch_attributes[Exhibit.all(:limit => 100)] } }
-    ActiveRecord::Base::cache    { ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] } }
-  end
-  
-  report "#all limit(10,000) (not cached)", TIMES / 1000 do
+
+  report "Model.all limit(10,000)", TIMES / 1000 do
     dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
   end
-  
-  report "#all limit(10,000) (cached)", TIMES / 1000 do
-    Exhibit.repository(:default) { dm { touch_attributes[Exhibit.all(:limit => 10_000)] } }
-    ActiveRecord::Base::cache    { ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] } }
-  end
-  
+
   create_exhibit = {
     :name       => Faker::Company.name,
     :zoo_id     => rand(10).ceil,
     :notes      => Faker::Lorem.paragraphs.join($/),
     :created_on => Date.today
   }
-  
-  report "#create" do
+
+  report "Model.create" do
     dm { Exhibit.create(create_exhibit)   }
     ar { ARExhibit.create(create_exhibit) }
   end
 
-  report "#update" do
+  report "Resource#update" do
     dm { e = Exhibit.get(1); e.name = 'bob'; e.save   }
     ar { e = ARExhibit.find(1); e.name = 'bob'; e.save  }
   end
-  
-  report "#destroy" do
+
+  report "Resource#destroy" do
     dm { Exhibit.first.destroy }
     ar { ARExhibit.first.destroy }
   end
-  
+
   summary "Total"
-  
+
 end
 
 connection = adapter.send(:create_connection)
 command = connection.create_command("DROP TABLE exhibits")
 command.execute_non_query rescue nil
 connection.close
-
-__END__
-
-                                                | DM 0.9.2 |  AR 2.1 |    DIFF |
---------------------------------------------------------------------------------
-get specific (not cached)                x10000 |    8.949 |   3.108 |   2.88x |
-get specific (cached)                    x10000 |    0.223 |   3.090 |   0.07x |
-get first                                x10000 |    6.987 |   2.756 |   2.54x |
-#all limit(100) (not cached)              x1000 |    6.625 |   7.734 |   0.86x |
-#all limit(100) (cached)                  x1000 |    4.828 |   7.686 |   0.63x |
-#all limit(10,000) (not cached)             x10 |    6.252 |   9.145 |   0.68x |
-#all limit(10,000) (cached)                 x10 |    5.001 |   9.368 |   0.53x |
-#create                                  x10000 |   38.884 |  21.757 |   1.79x |
-#update                                  x10000 |    9.102 |   6.790 |   1.34x |
-#destroy                                 x10000 |   30.391 |  21.502 |   1.41x |
-================================================================================
-Total                                           |  117.242 |  92.936 |   1.26x |
-
-
-## PROBLEMS WITH THE RECENT DAYS COMMITS !!! ## 
-
-                                                | DM 0.9.2 |  AR 2.1 |    DIFF |
---------------------------------------------------------------------------------
-#get specific (not cached)                x1000 |   12.490 |   0.309 |  40.43x |
-#get specific (cached)                    x1000 |    3.980 |   0.305 |  13.03x |
-#get first                                x1000 |   10.087 |   0.277 |  36.39x |
-#all limit(100) (not cached)               x100 |   59.252 |   0.780 |  75.92x |
-#all limit(100) (cached)                   x100 |   41.236 |   0.774 |  53.24x |
-#all limit(10,000) (not cached)              x1 |   71.123 |   0.826 |  86.12x |
-#all limit(10,000) (cached)                  x1 |   72.477 |   0.835 |  86.79x |
-#create                                   x1000 |   24.836 |   2.219 |  11.19x |
-#update                                   x1000 |    9.866 |   0.645 |  15.31x |
-#destroy                                  x1000 |   12.892 |   1.512 |   8.52x |
-================================================================================
-Total                                         0 |  318.237 |   8.483 |  42.69x |
-

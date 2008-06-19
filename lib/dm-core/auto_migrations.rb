@@ -7,6 +7,7 @@ module DataMapper
         model.auto_migrate!(repository_name)
       end
     end
+
     def self.auto_upgrade(repository_name = nil)
       DataMapper::Resource.descendants.each do |model|
         model.auto_upgrade!(repository_name)
@@ -27,6 +28,7 @@ module DataMapper
         end
       end
     end
+
     def auto_upgrade!(repository_name = nil)
       repository_name ||= default_repository_name
       repository(repository_name) do |r|
@@ -34,11 +36,7 @@ module DataMapper
         r.adapter.upgrade_model_storage(r, self)
       end
     end
-  end # module AutoMigrations
 
-  module Resource
-    module ClassMethods
-      include AutoMigrations
-    end # module ClassMethods
-  end # module Resource
+    Model.send(:include, self)
+  end # module AutoMigrations
 end # module DataMapper

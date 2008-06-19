@@ -18,7 +18,7 @@ TIME_4 = Time.parse(TIME_STRING_4)
 class EveryType
   include DataMapper::Resource
 
-  property :serial,        Integer,    :serial => true
+  property :serial,        Serial
   property :fixnum,        Integer,    :nullable => false, :default => 1
   property :string,        String,     :nullable => false, :default => 'default'
   property :empty,         String,     :nullable => false, :default => ''
@@ -41,7 +41,7 @@ end
 module Publications
   class ShortStoryCollection
     include DataMapper::Resource
-    property :serial, Integer, :serial => true
+    property :serial, Serial
     property :date,   Date,    :nullable => false, :default => TODAY, :index => :date_date_time
   end
 end

@@ -3,7 +3,7 @@ module DataMapper
     class RelationshipChain < Relationship
       OPTIONS = [
         :repository_name, :near_relationship_name, :remote_relationship_name,
-        :child_model_name, :parent_model_name, :parent_key, :child_key,
+        :child_model, :parent_model, :parent_key, :child_key,
         :min, :max
       ]
 
@@ -23,7 +23,7 @@ module DataMapper
         DataMapper.repository(parent.repository.name) do
           results = grandchild_model.send(finder, *(args << query))
           # FIXME: remove the need for the uniq.freeze
-          finder == :all ? results.uniq.freeze : results
+          finder == :all ? (@mutable ? results.uniq : results.uniq.freeze) : results
         end
       end
 
@@ -47,7 +47,7 @@ module DataMapper
       end
 
       def grandchild_model
-        find_const(@child_model_name)
+        Class === @child_model ? @child_model : find_const(@child_model)
       end
 
       def initialize(options)
@@ -58,10 +58,11 @@ module DataMapper
         @repository_name          = options.fetch(:repository_name)
         @near_relationship_name   = options.fetch(:near_relationship_name)
         @remote_relationship_name = options.fetch(:remote_relationship_name)
-        @child_model_name         = options.fetch(:child_model_name)
-        @parent_model_name        = options.fetch(:parent_model_name)
+        @child_model              = options.fetch(:child_model)
+        @parent_model             = options.fetch(:parent_model)
         @parent_properties        = options.fetch(:parent_key)
         @child_properties         = options.fetch(:child_key)
+        @mutable                  = options.delete(:mutable) || false
 
         @name        = near_relationship.name
         @query       = options.reject{ |key,val| OPTIONS.include?(key) }

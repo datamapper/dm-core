@@ -14,9 +14,10 @@ describe DataMapper::Associations::ManyToOne::Proxy do
   before do
     @child        = mock('child', :kind_of? => true)
     @parent       = mock('parent')
-    @resource     = mock('resource', :save => true, :new_record? => false)
-    @relationship = mock('relationship', :kind_of? => true, :repository_name => :default, :get_parent => @parent)
+    @relationship = mock('relationship', :kind_of? => true, :repository_name => :default, :get_parent => @parent, :attach_parent => nil)
     @association  = DataMapper::Associations::ManyToOne::Proxy.new(@relationship, @child)
+
+    @association.replace(@parent)
   end
 
   it 'should provide #replace' do
@@ -24,40 +25,99 @@ describe DataMapper::Associations::ManyToOne::Proxy do
   end
 
   describe '#replace' do
-    def do_replace
-      @association.replace(@resource)
+    before do
+      @other = mock('other parent')
     end
 
-    def return_value
-      @association
+    before do
+      @relationship.should_receive(:attach_parent).with(@child, @other)
     end
 
     it 'should remove the resource from the collection' do
       @association.should == @parent
-      do_replace.should == return_value
-      @association.should == @resource
+      @association.replace(@other)
+      @association.should == @other
     end
 
     it 'should not automatically save that the resource was removed from the association' do
+      @other.should_not_receive(:save)
+      @association.replace(@other)
+    end
+
+    it 'should return the association' do
+      @association.replace(@other).object_id.should == @association.object_id
+    end
+  end
+
+  it 'should provide #save' do
+    @association.should respond_to(:replace)
+  end
+
+  describe '#save' do
+    describe 'when the parent is nil' do
+      before do
+        @parent.should_receive(:nil?).with(no_args).and_return(true)
+      end
+
+      it 'should not save the parent' do
+        @association.save
+      end
+
+      it 'should return false' do
+        @association.save.should == false
+      end
+    end
+
+    describe 'when the parent is not a new record' do
+      before do
+        @parent.should_receive(:new_record?).with(no_args).and_return(false)
+      end
+
+      it 'should not save the parent' do
+        @parent.should_not_receive(:save)
+        @association.save
+      end
+
+      it 'should return true' do
+        @association.save.should == true
+      end
+    end
+
+    describe 'when the parent is a new record' do
+      before do
+        @parent.should_receive(:new_record?).with(no_args).and_return(true)
+      end
+
+      it 'should save the parent' do
+        @parent.should_receive(:save).with(no_args)
+        @association.save
+      end
+
+      it 'should return the result of the save' do
+        save_results = mock('save results')
+        @parent.should_receive(:save).with(no_args).and_return(save_results)
+        @association.save.object_id.should == save_results.object_id
+      end
+    end
+  end
+
+  it 'should provide #reload' do
+    @association.should respond_to(:reload)
+  end
+
+  describe '#reload' do
+    it 'should unset the @parent ivar' do
+      @association.reload
+      @association.instance_variable_get(:@parent).should be_nil
+    end
+
+    it 'should not change the foreign key in the child' do
       @relationship.should_not_receive(:attach_parent)
-      do_replace.should == return_value
+      @association.reload
     end
 
-    it 'should persist the removal after saving the association' do
-      do_replace.should == return_value
-      @relationship.should_receive(:attach_parent).with(@child, @resource)
-      @association.save
-    end
-
-    it 'should not automatically save that the children were added to the association' do
-      @relationship.should_not_receive(:attach_parent)
-      do_replace.should == return_value
-    end
-
-    it 'should persist the addition after saving the association' do
-      do_replace.should == return_value
-      @relationship.should_receive(:attach_parent).with(@child, @resource)
-      @association.save
+    it 'should return self' do
+      @association.reload.object_id.should == @association.object_id
     end
   end
 end

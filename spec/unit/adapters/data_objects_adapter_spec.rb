@@ -9,7 +9,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   before :all do
     class Cheese
       include DataMapper::Resource
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String, :nullable => false
       property :color, String, :default => 'yellow'
       property :notes, String, :length => 100, :lazy => true
@@ -33,8 +33,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       end
     end
 
-    it "should be added to DataMapper::Resource::ClassMethods" do
-      DataMapper::Resource::ClassMethods.instance_methods.include?("find_by_sql").should == true
+    it "should be added to DataMapper::Model" do
+      DataMapper::Model.instance_methods.include?("find_by_sql").should == true
       Plupp.should respond_to(:find_by_sql)
     end
 
@@ -73,7 +73,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       end
 
       it "should accept a Query argument with or without options hash" do
-        @connection.should_receive(:create_command).twice.with('SELECT "name" FROM "plupps" WHERE "name" = ?').and_return(@command)
+        @connection.should_receive(:create_command).twice.with('SELECT "name" FROM "plupps" WHERE "name" = ? ORDER BY "id"').and_return(@command)
         @command.should_receive(:execute_reader).twice.with('my pretty plur').and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
@@ -146,7 +146,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @properties  = [ @property ]
       @bind_values = [ 'bind value' ]
       @attributes  = mock('attributes', :keys => @properties, :values => @bind_values)
-      @model       = mock('model', :key => [ @property ], :storage_name => 'models')
+      @model       = mock('model', :kind_of? => true, :key => [ @property ], :storage_name => 'models')
       @resource    = mock('resource', :model => @model, :dirty_attributes => @attributes)
 
       @property.stub!(:set!).and_return(@resource)
@@ -355,8 +355,8 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @property    = mock('property', :kind_of? => true, :field => 'property')
       @bind_values = [ 'bind value' ]
       @conditions  = [ [ :eql, @property, @bind_values[0] ] ]
-      @attributes  = mock('attributes', :empty? => false, :keys => [ @property ], :values => @values)
-      @query       = mock('query', :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
+      @attributes  = mock('attributes', :kind_of? => true, :empty? => false, :keys => [ @property ], :values => @values)
+      @query       = mock('query', :kind_of? => true, :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
       @statement   = 'UPDATE "models" SET "property" = ? WHERE "property" = ?'
     end
 
@@ -411,7 +411,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @property    = mock('property', :kind_of? => true, :field => 'property')
       @bind_values = [ 'bind value' ]
       @conditions  = [ [ :eql, @property, @bind_values[0] ] ]
-      @query       = mock('query', :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
+      @query       = mock('query', :kind_of? => true, :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
       @resource    = mock('resource', :to_query => @query)
       @statement   = 'DELETE FROM "models" WHERE "property" = ?'
     end

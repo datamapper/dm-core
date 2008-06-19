@@ -6,7 +6,7 @@ if ADAPTER
       before :all do
         class SailBoat
           include DataMapper::Resource
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, String
           property :port, String
         end
@@ -98,7 +98,7 @@ if ADAPTER
       before :all do
         class Permission
           include DataMapper::Resource
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :user_id, Integer
           property :resource_id, Integer
           property :resource_type, String
@@ -107,7 +107,7 @@ if ADAPTER
 
         class SailBoat
           include DataMapper::Resource
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, String
           property :port, String
           property :captain, String
@@ -166,7 +166,7 @@ if ADAPTER
       before :all do
         class Region
           include DataMapper::Resource
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, String
 
           def self.default_repository_name
@@ -176,7 +176,7 @@ if ADAPTER
 
         class Factory
           include DataMapper::Resource
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :region_id, Integer
           property :name, String
 
@@ -193,7 +193,7 @@ if ADAPTER
 
         class Vehicle
           include DataMapper::Resource
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :factory_id, Integer
           property :name, String
 
@@ -207,7 +207,7 @@ if ADAPTER
         module Namespace
           class Region
             include DataMapper::Resource
-            property :id, Integer, :serial => true
+            property :id, Serial
             property :name, String
 
             def self.default_repository_name
@@ -217,7 +217,7 @@ if ADAPTER
 
           class Factory
             include DataMapper::Resource
-            property :id, Integer, :serial => true
+            property :id, Serial
             property :region_id, Integer
             property :name, String
 
@@ -234,7 +234,7 @@ if ADAPTER
 
           class Vehicle
             include DataMapper::Resource
-            property :id, Integer, :serial => true
+            property :id, Serial
             property :factory_id, Integer
             property :name, String
 
@@ -364,7 +364,7 @@ if ADAPTER
       it "should behave when using mocks" do
         class Group
           include DataMapper::Resource
-          property :id, Integer, :serial => true
+          property :id, Serial
           property :name, String
         end
 

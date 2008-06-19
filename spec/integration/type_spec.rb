@@ -18,7 +18,7 @@ if ADAPTER
         ADAPTER
       end
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :faked, Impostor
       property :active, Boolean
       property :note, Text
@@ -32,7 +32,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :color, String
     property :deleted_at, DataMapper::Types::ParanoidDateTime
   end
@@ -44,7 +44,7 @@ if ADAPTER
       ADAPTER
     end
 
-    property :id, Integer, :serial => true
+    property :id, Serial
     property :color, String
     property :deleted_at, DataMapper::Types::ParanoidBoolean
   end

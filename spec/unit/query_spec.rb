@@ -59,6 +59,11 @@ describe DataMapper::Query do
       end
 
       describe ' #conditions with options[:conditions]' do
+        it 'when they are a Hash' do
+          query = DataMapper::Query.new(@repository, Article, :conditions => { :author => 'dkubb' })
+          query.conditions.should == [ [ :eql, Article.properties[:author], 'dkubb' ] ]
+        end
+
         it 'when they have a one element Array' do
           query = DataMapper::Query.new(@repository, Article, :conditions => [ 'name = "dkubb"' ])
           query.conditions.should == [ [ :raw, 'name = "dkubb"' ] ]
@@ -110,9 +115,14 @@ describe DataMapper::Query do
           query.conditions.should == [ [ :like, Article.properties[:author], /\Ad(?:an\.)kubb\z/ ] ]
         end
       end
+
+      it '#order with model.default_order if none provided' do
+        query = DataMapper::Query.new(@repository, Article)
+        query.order.should == [ DataMapper::Query::Direction.new(Article.properties[:id], :asc) ]
+      end
     end
 
-    describe 'should raise a ArgumentError' do
+    describe 'should raise an ArgumentError' do
       it 'when repository is nil' do
         lambda {
           DataMapper::Query.new(nil, NormalClass)
@@ -124,9 +134,7 @@ describe DataMapper::Query do
           DataMapper::Query.new(@repository, nil)
         }.should raise_error(ArgumentError)
       end
-    end
 
-    describe 'should raise an ArgumentError' do
       it 'when model is a Class that does not include DataMapper::Resource' do
         lambda {
           DataMapper::Query.new(@repository, NormalClass)
@@ -225,6 +233,16 @@ describe DataMapper::Query do
       it '#limit with other limit when it is not nil' do
         other = DataMapper::Query.new(@repository, Article, :limit => 1)
         @query.update(other).limit.should == 1
+      end
+
+      it '#the operator if condition is the same and operater is changed (:not / :eql)' do
+        # especially needed for collection#update where you might do something like:
+        # all(:name.not => "John").update(:name => "John")
+        pending do
+          other = DataMapper::Query.new(@repository, Article, :author.not => "dkubb")
+          @query.update(other).conditions.should == [ [ :not, Article.properties[:author], 'dkubb' ] ]
+          @query.update(:author => "dkubb").conditions.should == [ [ :eql, Article.properties[:author], 'dkubb' ] ]
+        end
       end
 
       [ :eql, :like ].each do |operator|
@@ -453,25 +471,15 @@ describe DataMapper::Query do
 
   describe '#reverse!' do
     it 'should update the query with the reverse order' do
-      direction = DataMapper::Query::Direction.new(Article.properties[:created_at])
+      normal_order  = Article.key.map { |p| DataMapper::Query::Direction.new(p, :asc) }
+      reverse_order = Article.key.map { |p| DataMapper::Query::Direction.new(p, :desc) }
 
-      @query.update(:order => [ :created_at.desc ])
-      @query.order.should_not be_empty
-      @query.should_receive(:update).with(:order => [ direction ])
+      normal_order.should_not be_empty
+      reverse_order.should_not be_empty
+
+      @query.order.should == normal_order
+      @query.should_receive(:update).with(:order => reverse_order)
       @query.reverse!.object_id.should == @query.object_id
     end
-
-
-    it 'should update the query with the reverse default order if its order is empty' do
-      direction = DataMapper::Query::Direction.new(Article.properties[:id], :desc)
-
-      @query.order.should be_empty
-      @query.should_receive(:update).with(:order => [ direction ])
-      @query.reverse!.object_id.should == @query.object_id
-    end
-
-
-#    # set the default sort order
-#    update(:order => model.default_order) if order.empty?
   end
 end

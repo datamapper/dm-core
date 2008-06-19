@@ -31,6 +31,58 @@ end
 
 dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
+# Define an interface for plugins to hook into. I have to add this code up
+# here because it needs to be available to all the files.
+module DataMapper
+  module Resource
+    @@extra_inclusions = []
+
+    #
+    # Appends a module for inclusion into the model class after
+    # DataMapper::Resource.
+    #
+    # This is a useful way to extend DataMapper::Resource while still retaining
+    # a self.included method.
+    #
+    # @param inclusion<Module> the module that is to be appended to the module
+    #        after DataMapper::Resource
+    #
+    # @return <TrueClass, FalseClass> whether or not the inclusions have been
+    #         successfully appended to the list
+    #-
+    # @api public
+    def self.append_inclusions(*inclusions)
+      @@extra_inclusions.concat inclusions
+      true
+    end
+  end # module Resource
+
+  module Model
+    @@extra_extensions = []
+
+    #
+    # Extends the model with this module after DataMapper::Resource has been
+    # included.
+    #
+    # This is a useful way to extend DataMapper::Model while
+    # still retaining a self.extended method.
+    #
+    # @param extension<Module> the module that is to be extend the model after
+    #        after DataMapper::Model
+    #
+    # @return <TrueClass, FalseClass> whether or not the inclusions have been
+    #         successfully appended to the list
+    #-
+    # @api public
+    #
+    # TODO: Move this do DataMapper::Model when DataMapper::Model is created
+    def self.append_extensions(*extensions)
+      @@extra_extensions.concat extensions
+      true
+    end
+  end # module Model
+end # module DataMapper
+
 require dir / 'support'
 require dir / 'type'
 require dir / 'type_map'
@@ -41,6 +93,7 @@ require dir / 'hook'
 require dir / 'identity_map'
 require dir / 'logger'
 require dir / 'migrator'
+require dir / 'model'
 require dir / 'naming_conventions'
 require dir / 'property_set'
 require dir / 'query'

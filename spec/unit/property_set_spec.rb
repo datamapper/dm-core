@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 class Icon
       include DataMapper::Resource
 
-      property :id, Integer, :serial => true
+      property :id, Serial
       property :name, String
       property :width, Integer, :lazy => true
       property :height, Integer, :lazy => true
@@ -32,7 +32,7 @@ describe DataMapper::PropertySet do
   end
 
   it "#select should find properties" do
-    @properties.select { |property| property.type == Integer }.should have(3).entries
+    @properties.select { |property| property.primitive == Integer }.should have(3).entries
   end
 
   it "#[] should find properties by name (Symbol or String)" do

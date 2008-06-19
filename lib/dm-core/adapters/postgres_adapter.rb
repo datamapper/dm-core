@@ -41,27 +41,18 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def upgrade_model_storage(repository, model)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'model',      model,      Resource::ClassMethods
-
           add_sequences(repository, model)
           super
         end
 
         # TODO: move to dm-more/dm-migrations
         def create_model_storage(repository, model)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'model',      model,      Resource::ClassMethods
-
           add_sequences(repository, model)
           without_notices { super }
         end
 
         # TODO: move to dm-more/dm-migrations
         def destroy_model_storage(repository, model)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'model',      model,      Resource::ClassMethods
-
           success = without_notices { super }
           model.properties(repository.name).each do |property|
             drop_sequence(repository, property) if property.serial?
@@ -73,18 +64,12 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def create_sequence(repository, property)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'property',   property,   Property
-
           return if sequence_exists?(repository, property)
           execute(create_sequence_statement(repository, property))
         end
 
         # TODO: move to dm-more/dm-migrations
         def drop_sequence(repository, property)
-          assert_kind_of 'repository', repository, Repository
-          assert_kind_of 'property',   property,   Property
-
           without_notices { execute(drop_sequence_statement(repository, property)) }
         end
 
@@ -149,7 +134,11 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def property_schema_hash(repository, property)
             schema = super
-            schema[:sequence_name] = sequence_name(repository, property) if property.serial?
+
+            if property.serial?
+              schema.delete(:default)  # the sequence will be the default
+              schema[:sequence_name] = sequence_name(repository, property)
+            end
 
             # TODO: see if TypeMap can be updated to set specific attributes to nil
             # for different adapters.  scale/precision are perfect examples for
@@ -163,7 +152,7 @@ module DataMapper
 
             schema
           end
-        end
+        end # module SQL
 
         include SQL
 
@@ -180,8 +169,8 @@ module DataMapper
               tm.map(Float).to('FLOAT8')
             end
           end
-        end
-      end
+        end # module ClassMethods
+      end # module Migration
 
       include Migration
       extend Migration::ClassMethods

@@ -8,7 +8,7 @@ module DataMapper
       # @private
       def self.setup(name, model, options = {})
         assert_kind_of 'name',    name,    Symbol
-        assert_kind_of 'model',   model,   Resource::ClassMethods
+        assert_kind_of 'model',   model,   Model
         assert_kind_of 'options', options, Hash
 
         repository_name = model.repository.name
@@ -52,18 +52,17 @@ module DataMapper
 
         def replace(parent)
           @parent = parent
+          @relationship.attach_parent(@child, @parent)
           self
         end
 
         def save
-          return false if parent.nil?
+          return false if @parent.nil?
+          return true  unless parent.new_record?
 
           DataMapper.repository(@relationship.repository_name) do
-            parent.save if parent.new_record?
-            @relationship.attach_parent(@child, parent)
+            parent.save
           end
-
-          true
         end
 
         def reload

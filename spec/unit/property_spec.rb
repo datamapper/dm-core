@@ -27,7 +27,7 @@ describe DataMapper::Property do
   describe '#get' do
     before do
       @original_values = {}
-      @resource        = mock('resource', :new_record? => true, :original_values => @original_values)
+      @resource        = mock('resource', :kind_of? => true, :new_record? => true, :original_values => @original_values)
     end
 
     describe 'when setting the default on initial access' do
@@ -60,7 +60,7 @@ describe DataMapper::Property do
 
   describe '#get!' do
     it 'should get the resource instance variable' do
-      resource = mock('resource')
+      resource = mock('resource', :kind_of? => true)
       resource.should_receive(:instance_variable_get).with('@name').and_return('Portland Zoo')
       @property.get!(resource).should == 'Portland Zoo'
     end
@@ -73,7 +73,7 @@ describe DataMapper::Property do
   describe '#set' do
     before do
       @original_values = {}
-      @resource        = mock('resource', :original_values => @original_values)
+      @resource        = mock('resource', :kind_of? => true, :original_values => @original_values)
     end
 
     it 'should typecast the value' do
@@ -88,7 +88,7 @@ describe DataMapper::Property do
 
   describe '#set!' do
     it 'should set the resource instance variable' do
-      resource = mock('resource')
+      resource = mock('resource', :kind_of? => true)
       resource.should_receive(:instance_variable_set).with('@name', 'Seattle Zoo').and_return(resource)
       @property.set!(resource, 'Seattle Zoo').object_id.should == resource.object_id
     end
