@@ -246,7 +246,7 @@ module DataMapper
       :public, :protected, :private, :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :unique_index, :check, :ordinal, :auto_validation,
-      :validates, :unique, :track, :scale, :precision
+      :validates, :unique, :track, :precision, :scale
     ]
 
     # FIXME: can we pull the keys from
@@ -272,8 +272,8 @@ module DataMapper
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
 
     DEFAULT_LENGTH    = 50
-    DEFAULT_SCALE     = 10
-    DEFAULT_PRECISION = 0
+    DEFAULT_PRECISION = 10
+    DEFAULT_SCALE     = 0
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
@@ -520,8 +520,8 @@ module DataMapper
       if String == @primitive || Class == @primitive
         @length = @options.fetch(:length, @options.fetch(:size, DEFAULT_LENGTH))
       elsif BigDecimal == @primitive || Float == @primitive
-        @scale     = @options.fetch(:scale,     DEFAULT_SCALE)
         @precision = @options.fetch(:precision, DEFAULT_PRECISION)
+        @scale     = @options.fetch(:scale,     DEFAULT_SCALE)
       end
 
       determine_visibility

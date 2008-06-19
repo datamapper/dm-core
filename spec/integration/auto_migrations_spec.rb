@@ -27,8 +27,8 @@ class EveryType
   property :false_class,   TrueClass,  :nullable => false, :default => false
   property :text,          DM::Text,   :nullable => false, :default => 'text'
 #  property :class,         Class,      :nullable => false, :default => Class  # FIXME: Class types cause infinite recursions in Resource
-  property :big_decimal,   BigDecimal, :nullable => false, :default => BigDecimal('1.1'), :scale => 2, :precision => 1
-  property :float,         Float,      :nullable => false, :default => 1.1,               :scale => 2, :precision => 1, :unique_index => :date_float
+  property :big_decimal,   BigDecimal, :nullable => false, :default => BigDecimal('1.1'), :precision => 2, :scale => 1
+  property :float,         Float,      :nullable => false, :default => 1.1,               :precision => 2, :scale => 1, :unique_index => :date_float
   property :date_time,     DateTime,   :nullable => false, :default => NOW,                                             :index => [:date_date_time, true]
   property :time_1,        Time,       :nullable => false, :default => TIME_1,                                          :unique_index => true
   property :time_2,        Time,       :nullable => false, :default => TIME_2

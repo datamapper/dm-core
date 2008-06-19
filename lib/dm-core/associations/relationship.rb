@@ -17,7 +17,7 @@ module DataMapper
 
             model_properties[property_name] || DataMapper.repository(repository_name) do
               attributes = {}
-              [ :length, :scale, :precision ].each do |attribute|
+              [ :length, :precision, :scale ].each do |attribute|
                 attributes[attribute] = parent_property.send(attribute)
               end
               child_model.property(property_name, parent_property.primitive, attributes)

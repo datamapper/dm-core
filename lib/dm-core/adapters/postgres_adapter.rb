@@ -141,13 +141,13 @@ module DataMapper
             end
 
             # TODO: see if TypeMap can be updated to set specific attributes to nil
-            # for different adapters.  scale/precision are perfect examples for
+            # for different adapters.  precision/scale are perfect examples for
             # Postgres floats
 
-            # Postgres does not support scale and precision for Float
+            # Postgres does not support precision and scale for Float
             if property.primitive == Float
-              schema.delete(:scale)
               schema.delete(:precision)
+              schema.delete(:scale)
             end
 
             schema

@@ -147,7 +147,7 @@ if ADAPTER
       end
 
       property :name, String, :key => true, :length => 255
-      property :size, Float,  :key => true, :scale => 15, :precision => 6
+      property :size, Float,  :key => true, :precision => 15, :scale => 6
     end
 
     class Star
@@ -289,10 +289,10 @@ if ADAPTER
         property.length.should == 255
       end
 
-      it 'should respect scale and precision on foreign keys' do
+      it 'should respect precision and scale on foreign keys' do
         property = Star.relationships[:galaxy].child_key[:galaxy_size]
-        property.scale.should == 15
-        property.precision.should == 6
+        property.precision.should == 15
+        property.scale.should == 6
       end
     end
 

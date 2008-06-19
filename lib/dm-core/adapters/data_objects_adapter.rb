@@ -513,7 +513,7 @@ module DataMapper
             model.properties(repository.name).indexes.map do |index_name, fields|
               <<-EOS.compress_lines
                 CREATE INDEX #{quote_column_name("index_#{table_name}_#{index_name}")} ON
-                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ','})
+                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ', '})
               EOS
             end
           end
@@ -524,7 +524,7 @@ module DataMapper
             model.properties(repository.name).unique_indexes.map do |index_name, fields|
               <<-EOS.compress_lines
                 CREATE UNIQUE INDEX #{quote_column_name("unique_index_#{table_name}_#{index_name}")} ON
-                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ','})
+                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ', '})
               EOS
             end
           end
@@ -538,8 +538,8 @@ module DataMapper
             if property.primitive == String && schema[:primitive] != 'TEXT'
               schema[:size] = property.length
             elsif property.primitive == BigDecimal || property.primitive == Float
-              schema[:scale]     = property.scale
               schema[:precision] = property.precision
+              schema[:scale]     = property.scale
             end
 
             schema[:nullable?] = property.nullable?
@@ -554,8 +554,8 @@ module DataMapper
             statement = quote_column_name(schema[:name])
             statement << " #{schema[:primitive]}"
 
-            if schema[:scale] && schema[:precision]
-              statement << "(#{quote_column_value(schema[:scale])},#{quote_column_value(schema[:precision])})"
+            if schema[:precision] && schema[:scale]
+              statement << "(#{[ :precision, :scale ].map { |k| quote_column_value(schema[k]) } * ','})"
             elsif schema[:size]
               statement << "(#{quote_column_value(schema[:size])})"
             end
@@ -592,8 +592,8 @@ module DataMapper
               tm.map(String).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
               tm.map(Class).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
               tm.map(DM::Discriminator).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
-              tm.map(BigDecimal).to('DECIMAL').with(:scale => Property::DEFAULT_SCALE, :precision => Property::DEFAULT_PRECISION)
-              tm.map(Float).to('FLOAT').with(:scale => Property::DEFAULT_SCALE, :precision => Property::DEFAULT_PRECISION)
+              tm.map(BigDecimal).to('DECIMAL').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE)
+              tm.map(Float).to('FLOAT').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE)
               tm.map(DateTime).to('DATETIME')
               tm.map(Date).to('DATE')
               tm.map(Time).to('TIMESTAMP')
