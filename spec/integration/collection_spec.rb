@@ -238,13 +238,6 @@ if ADAPTER
                 @unlimited = DataMapper::Collection.new(query) {}
               end
 
-              it "should not be a kicker" do
-                pending do
-                  puts @collection.all.loaded?
-                  @collection.all.should_not be_loaded
-                end
-              end
-
               it 'has an offset equal to 10' do
                 @collection.all.query.offset.should == 10
               end
