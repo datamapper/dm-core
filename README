@@ -29,16 +29,14 @@ see all <tt>false</tt> results. Do the same in DataMapper and it's
 
 This makes DataMapper faster and allocate less resources to get things done.
 
-== Don't Do What You Don't Have To
+== Dirty Tracking
 
-ActiveRecord updates every field in a row during a save whether that field
-changed or not. So it performs work it doesn't really need to making it much
-slower, and more likely to eat data during concurrent access if you don't go
-around adding locking support to everything.
-
-DataMapper only does what it needs to. So it plays well with others. You can
+When you save a model back to your data-store, DataMapper will only write
+the fields that actually changed. So it plays well with others. You can
 use it in an Integration data-store without worrying that your application will
 be a bad actor causing trouble for all of your other processes.
+
+You can also configure which strategy you'd like to use to track dirtiness.
 
 == Eager Loading
 

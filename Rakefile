@@ -113,6 +113,7 @@ begin
 
   YARD::Rake::YardocTask.new("yardoc") do |t|
     t.options << '--protected'
+    t.options << '-q'
     # t.files << '...anyglobshere...'
   end
 rescue Exception
