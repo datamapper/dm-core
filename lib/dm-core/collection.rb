@@ -578,12 +578,27 @@ module DataMapper
 
     ##
     # @api private
-    def method_missing(method_name, *args)
-      if relationships[method_name]
-        map { |e| e.send(method_name) }.flatten.compact
-      else
-        super
+    def method_missing(method, *args, &block)
+      if relationship = relationships[method]
+        klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
+
+        # TODO: when self.query includes an offset/limit use it as a
+        # subquery to scope the results rather than a join
+
+        query = Query.new(repository, klass)
+        query.conditions.push(*self.query.conditions)
+        query.update(relationship.query)
+        query.update(args.pop) if args.last.kind_of?(Hash)
+
+        query.update(
+          :fields => klass.properties(repository.name).defaults,
+          :links  => self.query.links + [ relationship ]
+        )
+
+        return klass.all(query, &block)
       end
+
+      super
     end
   end # class Collection
 end # module DataMapper

@@ -203,13 +203,6 @@ module DataMapper
           end
         end
       end
-
-      # freeze the internal attributes
-      OPTIONS.each do |attribute|
-        instance_variable_get("@#{attribute}").freeze
-      end
-
-#      freeze
     end
 
     def initialize_copy(original)
@@ -486,7 +479,7 @@ module DataMapper
         @conditions << other_condition.dup
       end
 
-      @conditions.freeze
+      @conditions
     end
 
     class Direction
@@ -581,21 +574,15 @@ module DataMapper
 
       def method_missing(method, *args)
         if relationship = @model.relationships(@repository.name)[method]
-          clazz = if @model == relationship.child_model
-           relationship.parent_model
-          else
-           relationship.child_model
-          end
-          relations = []
-          relations.concat(@relationships)
-          relations << relationship #@model.relationships[method]
-          return Query::Path.new(@repository, relations,clazz)
+          klass = klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
+          return Query::Path.new(@repository, @relationships + [ relationship ], klass)
         end
 
-        if @model.properties(@model.repository.name)[method]
-          @property = @model.properties(@model.repository.name)[method]
+        if @model.properties(@repository.name)[method]
+          @property = @model.properties(@repository.name)[method]
           return self
         end
+
         raise NoMethodError, "undefined property or association `#{method}' on #{@model}"
       end
     end # class Path

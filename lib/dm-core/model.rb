@@ -311,17 +311,14 @@ module DataMapper
 
     def method_missing(method, *args, &block)
       if relationship = relationships(repository.name)[method]
-         clazz = if self == relationship.child_model
-           relationship.parent_model
-         else
-           relationship.child_model
-         end
-         return DataMapper::Query::Path.new(repository, [relationship],clazz)
+        klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
+        return DataMapper::Query::Path.new(repository, [ relationship ], klass)
       end
 
       if property = properties(repository.name)[method]
         return property
       end
+
       super
     end
 
