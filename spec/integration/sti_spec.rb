@@ -30,7 +30,11 @@ if HAS_SQLITE3
       end
 
       class ScienceFiction < Fiction
-          property :aliens, Boolean
+        property :aliens, Boolean
+      end
+
+      class SpaceWestern < ScienceFiction
+        property :cowboys, Boolean
       end
     end
 
@@ -163,6 +167,18 @@ if HAS_SQLITE3
 
       it "should create the uncle class' property columns" do
         @table_set.keys.should include("marxist")
+      end
+    end
+
+    describe "with a great-grandchild class" do
+      it "should inherit its parent's properties" do
+        SpaceWestern.properties[:aliens].should_not be_nil
+      end
+      it "should inherit its grandparent's properties" do
+        SpaceWestern.properties[:series].should_not be_nil
+      end
+      it "should inherit its great-granparent's properties" do
+        SpaceWestern.properties[:title].should_not be_nil
       end
     end
   end
