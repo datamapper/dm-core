@@ -1,5 +1,5 @@
 class Array
-  
+
   ##
   # atm it assumes self is an array of [key,value]-arrays
   # this is just a better way to make hashes than Hash[*array.flatten]
@@ -10,5 +10,4 @@ class Array
     self.each{ |k,v| h[k] = v }
     h
   end
-  alias_method :to_h, :to_hash
 end # class Symbol

@@ -447,7 +447,7 @@ module DataMapper
     # --
     # @api public
     def attributes
-      properties.map{|p| [p.name,send(p.getter)] if p.reader_visibility == :public}.compact.to_h
+      properties.map{|p| [p.name,send(p.getter)] if p.reader_visibility == :public}.compact.to_hash
     end
 
     # Mass assign of attributes

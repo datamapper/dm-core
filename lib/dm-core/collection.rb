@@ -372,7 +372,7 @@ module DataMapper
       query.update(attributes)
 
       if identity_map.any? && reload
-        reload_query = @key_properties.zip(identity_map.keys.transpose).to_h
+        reload_query = @key_properties.zip(identity_map.keys.transpose).to_hash
         model.all(reload_query.merge(attributes)).reload(:fields => attributes.keys)
       end
 
@@ -540,7 +540,7 @@ module DataMapper
     # @api private
     def keys
       keys = map {|r| r.key }
-      keys.any? ? @key_properties.zip(keys.transpose).to_h : {}
+      keys.any? ? @key_properties.zip(keys.transpose).to_hash : {}
     end
 
     ##
