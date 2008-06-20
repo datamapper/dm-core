@@ -447,14 +447,7 @@ module DataMapper
     # --
     # @api public
     def attributes
-      pairs = {}
-
-      properties.each do |property|
-        next unless property.reader_visibility == :public
-        pairs[property.name] = send(property.getter)
-      end
-
-      pairs
+      properties.map{|p| [p.name,send(p.getter)] if p.reader_visibility == :public}.compact.to_h
     end
 
     # Mass assign of attributes

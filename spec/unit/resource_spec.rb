@@ -28,6 +28,13 @@ end
 class Moon
 end
 
+class BlackHole
+  include DataMapper::Resource
+  
+  property :id, Integer, :key => true
+  property :data, Object, :reader => :private
+end
+
 class LegacyStar
   include DataMapper::Resource
   def self.default_repository_name
@@ -99,6 +106,20 @@ describe "DataMapper::Resource" do
       planet = Planet.new
       Planet.properties[:age].should_receive(:set).with(planet, 1).and_return(1)
       planet.age = 1
+    end
+  end
+  
+  describe '#attributes' do
+    it 'should return a hash of attribute-names and values' do
+      vegetable = Vegetable.new
+      vegetable.attributes.should == {:name => nil, :id => nil}
+      vegetable.name = "carot"
+      vegetable.attributes.should == {:name => "carot", :id => nil}
+    end
+    
+    it 'should not include private attributes' do
+      hole = BlackHole.new
+      hole.attributes.should == {:id => nil}
     end
   end
 

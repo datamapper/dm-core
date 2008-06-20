@@ -362,21 +362,20 @@ module DataMapper
       model.properties(repository.name).slice(*attributes.keys).each do |property|
         dirty_attributes[property] = attributes[property.name] if property
       end
-      
+
       # this should never be done on update! even if collection is loaded. or?
       # each { |resource| resource.attributes = attributes } if loaded?
-        
+
       changes = repository.update(dirty_attributes, scoped_query)
 
       # need to decide if this should be done in update!
       query.update(attributes)
 
       if identity_map.any? && reload
-        reload_query = attributes
-        @key_properties.zip(identity_map.keys.transpose) { |p,v| reload_query[p] = v }
-        model.all(reload_query).reload(:fields => attributes.keys)
+        reload_query = @key_properties.zip(identity_map.keys.transpose).to_hash
+        model.all(reload_query.merge(attributes)).reload(:fields => attributes.keys)
       end
-      
+
       # this should return true if there are any changes at all. as it skips validations
       # the only way it could be fewer changes is if some resources already was updated.
       # that should not return false? true = 'now all objects have these new values'
@@ -540,15 +539,8 @@ module DataMapper
     ##
     # @api private
     def keys
-      keys = {}
-
-      if (entry_keys = map { |resource| resource.key }).any?
-        @key_properties.zip(entry_keys.transpose) do |property,values|
-          keys[property] = values.size == 1 ? values[0] : values
-        end
-      end
-
-      keys
+      keys = map {|r| r.key }
+      keys.any? ? @key_properties.zip(keys.transpose).to_h : {}
     end
 
     ##

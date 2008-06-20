@@ -971,6 +971,14 @@ if ADAPTER
             end
           end
         end
+        
+        describe '#keys' do
+          it 'should return a hash of keys' do
+            keys = @collection.send(:keys)
+            keys.length.should == 1
+            keys.each{|property,values| values.should == [1,2,3]}
+          end
+        end
 
         describe '#values_at' do
           it 'should return an Array' do
