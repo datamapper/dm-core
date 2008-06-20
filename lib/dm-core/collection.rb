@@ -7,6 +7,7 @@ module DataMapper
     ##
     # @return [Repository] the repository the collection is
     #   associated with
+    #
     # @api public
     def repository
       query.repository
@@ -43,8 +44,10 @@ module DataMapper
     #
     # @param [DataMapper::Types::*, ...] key keys which uniquely
     #   identify a resource in the collection
+    #
     # @return [DataMapper::Resource, NilClass] the resource which
     #   has the supplied keys
+    #
     # @api public
     def get(*key)
       if loaded?
@@ -81,6 +84,7 @@ module DataMapper
     #
     # @raise [ObjectNotFoundError] "Could not find #{model.name} with key #{key.inspect} in collection"
     #
+    # @api public
     def get!(*key)
       get(*key) || raise(ObjectNotFoundError, "Could not find #{model.name} with key #{key.inspect} in collection")
     end
@@ -94,6 +98,8 @@ module DataMapper
     #
     # @return [DataMapper::Collection] a collection whose query is the result
     #   of a merge
+    #
+    # @api public
     def all(query = {})
       # TODO: this shouldn't be a kicker if scoped_query() is called
       return self if query.kind_of?(Hash) ? query.empty? : query == self.query
@@ -113,6 +119,8 @@ module DataMapper
     # @return [DataMapper::Resource, DataMapper::Collection] The
     #   first resource in the entries of this collection, or
     #   a new collection whose query has been merged
+    #
+    # @api public
     def first(*args)
       # TODO: this shouldn't be a kicker if scoped_query() is called
       if loaded?
@@ -144,6 +152,7 @@ module DataMapper
     #
     # @calls Collection#first
     #
+    # @api public
     def last(*args)
       return super if loaded? && args.empty?
 
@@ -164,7 +173,7 @@ module DataMapper
     # @calls Collection#first
     # @calls Collection#last
     #
-    # @author adam
+    # @api public
     def at(offset)
       return super if loaded?
       offset >= 0 ? first(:offset => offset) : last(:offset => offset.abs - 1)
@@ -190,6 +199,7 @@ module DataMapper
     #
     # @alias []
     #
+    # @api public
     def slice(*args)
       return at(args.first) if args.size == 1 && args.first.kind_of?(Integer)
 
@@ -216,12 +226,15 @@ module DataMapper
     #
     # @see Array#reverse, DataMapper#all, DataMapper::Query#reverse
     #
+    # @api public
     def reverse
       all(self.query.reverse)
     end
 
     ##
     # @see Array#<<
+    #
+    # @api public
     def <<(resource)
       super
       relate_resource(resource)
@@ -230,6 +243,8 @@ module DataMapper
 
     ##
     # @see Array#push
+    #
+    # @api public
     def push(*resources)
       super
       resources.each { |resource| relate_resource(resource) }
@@ -238,12 +253,18 @@ module DataMapper
 
     ##
     # @see Array#unshift
+    #
+    # @api public
     def unshift(*resources)
       super
       resources.each { |resource| relate_resource(resource) }
       self
     end
 
+    ##
+    # @see Array#replace
+    #
+    # @api public
     def replace(other)
       if loaded?
         each { |resource| orphan_resource(resource) }
@@ -253,22 +274,42 @@ module DataMapper
       self
     end
 
+    ##
+    # @see Array#pop
+    #
+    # @api public
     def pop
       orphan_resource(super)
     end
 
+    ##
+    # @see Array#shift
+    #
+    # @api public
     def shift
       orphan_resource(super)
     end
 
+    ##
+    # @see Array#delete
+    #
+    # @api public
     def delete(resource, &block)
       orphan_resource(super)
     end
 
+    ##
+    # @see Array#delete_at
+    #
+    # @api public
     def delete_at(index)
       orphan_resource(super)
     end
 
+    ##
+    # @see Array#clear
+    #
+    # @api public
     def clear
       if loaded?
         each { |resource| orphan_resource(resource) }
@@ -282,6 +323,8 @@ module DataMapper
     #
     # @param Hash[Symbol => Object] attributes attributes which
     #   the new resource should have.
+    #
+    # @api public
     def create(attributes = {})
       repository.scope do
         resource = model.create(default_attributes.merge(attributes))
@@ -300,6 +343,7 @@ module DataMapper
     #   TrueClass indicates that all entries were affected
     #   FalseClass indicates that some entries were affected
     #
+    # @api public
     def update(attributes = {},preload=false)
       # TODO: delegate to Model.update
       return true if attributes.empty?
@@ -338,6 +382,7 @@ module DataMapper
     #   TrueClass indicates that all entries were affected
     #   FalseClass indicates that some entries were affected
     #
+    # @api public
     def destroy
       # TODO: delegate to Model.destroy
       if loaded?
@@ -366,6 +411,7 @@ module DataMapper
     # @return [DataMapper::PropertySet] The set of properties this
     #   query will be retrieving
     #
+    # @api public
     def properties
       PropertySet.new(query.fields)
     end
@@ -373,10 +419,19 @@ module DataMapper
     ##
     # @return [DataMapper::Relationship] The model's relationships
     #
+    # @api public
     def relationships
       model.relationships(repository.name)
     end
 
+    ##
+    # default values to use when creating a Resource within the Collection
+    #
+    # @return [Hash] The default attributes for DataMapper::Collection#create
+    #
+    # @see DataMapper::Collection#create
+    #
+    # @api public
     def default_attributes
       default_attributes = {}
       query.conditions.each do |tuple|
@@ -394,12 +449,18 @@ module DataMapper
 
     protected
 
+    ##
+    # @api private
+    #
+    # @api public
     def model
       query.model
     end
 
     private
 
+    ##
+    # @api public
     def initialize(query, &block)
       assert_kind_of 'query', query, Query
 
@@ -415,23 +476,31 @@ module DataMapper
       load_with(&block)
     end
 
+    ##
+    # @api private
     def add(resource)
       query.add_reversed? ? unshift(resource) : push(resource)
       resource
     end
 
+    ##
+    # @api private
     def relate_resource(resource)
       return unless resource
       resource.collection = self
       resource
     end
 
+    ##
+    # @api private
     def orphan_resource(resource)
       return unless resource
       resource.collection = nil if resource.collection == self
       resource
     end
 
+    ##
+    # @api private
     def scoped_query(query = self.query)
       assert_kind_of 'query', query, Query, Hash
 
@@ -452,6 +521,8 @@ module DataMapper
       self.query.merge(query)
     end
 
+    ##
+    # @api private
     def keys
       keys = {}
 
@@ -464,10 +535,14 @@ module DataMapper
       keys
     end
 
+    ##
+    # @api private
     def identity_map
       repository.identity_map(model)
     end
 
+    ##
+    # @api private
     def set_relative_position(query)
       return if query == self.query
 
@@ -493,6 +568,8 @@ module DataMapper
       query.update(:limit => last_pos - first_pos) if last_pos
     end
 
+    ##
+    # @api private
     def method_missing(method_name, *args)
       if relationships[method_name]
         map { |e| e.send(method_name) }.flatten.compact
