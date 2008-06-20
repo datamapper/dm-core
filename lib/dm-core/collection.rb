@@ -333,18 +333,23 @@ module DataMapper
       end
     end
 
+    def update(attributes = {}, preload = false)
+      raise NotImplementedError, 'update *with* validations has not be written yet, try update!'
+    end
+
     ##
-    # batch updates the entries belongs to this collection.
+    # batch updates the entries belongs to this collection, and skip
+    # validations for all resources.
     #
     # @example Reached the Age of Alchohol Consumption
-    #   Person.all(:age.gte => 21).update(:allow_beer => true)
+    #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
     # @return [TrueClass, FalseClass]
     #   TrueClass indicates that all entries were affected
     #   FalseClass indicates that some entries were affected
     #
     # @api public
-    def update(attributes = {},preload=false)
+    def update!(attributes = {}, preload = false)
       # TODO: delegate to Model.update
       return true if attributes.empty?
 
@@ -372,8 +377,13 @@ module DataMapper
       return loaded? ? affected == size : affected > 0
     end
 
+    def destroy
+      raise NotImplementedError, 'destroy *with* validations has not be written yet, try destroy!'
+    end
+
     ##
-    # batch destroy the entries belongs to this collection.
+    # batch destroy the entries belongs to this collection, and skip
+    # validations for all resources.
     #
     # @example The War On Terror (if only it were this easy)
     #   Person.all(:terrorist => true).destroy() #
@@ -383,7 +393,7 @@ module DataMapper
     #   FalseClass indicates that some entries were affected
     #
     # @api public
-    def destroy
+    def destroy!
       # TODO: delegate to Model.destroy
       if loaded?
         return false unless repository.delete(scoped_query) == size

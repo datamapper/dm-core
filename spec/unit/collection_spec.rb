@@ -48,8 +48,8 @@ describe DataMapper::Collection do
     @collection.should respond_to(:delete_at)
   end
 
-  it 'should provide #destroy' do
-    @collection.should respond_to(:destroy)
+  it 'should provide #destroy!' do
+    @collection.should respond_to(:destroy!)
   end
 
   it 'should provide #each' do
@@ -164,8 +164,8 @@ describe DataMapper::Collection do
     @collection.should respond_to(:unshift)
   end
 
-  it 'should provide #update' do
-    @collection.should respond_to(:update)
+  it 'should provide #update!' do
+    @collection.should respond_to(:update!)
   end
 
   it 'should provide #values_at' do

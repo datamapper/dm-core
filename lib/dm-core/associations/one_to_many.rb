@@ -179,9 +179,21 @@ module DataMapper
           super
         end
 
+        def update!(attributes = {})
+          assert_mutable
+          raise UnsavedParentError, 'You cannot mass-update without validations until the parent is saved' if @parent.new_record?
+          super
+        end
+
         def destroy
           assert_mutable
-          raise UnsavedParentError, 'You cannot delete until the parent is saved' if @parent.new_record?
+          raise UnsavedParentError, 'You cannot mass-delete until the parent is saved' if @parent.new_record?
+          super
+        end
+
+        def destroy!
+          assert_mutable
+          raise UnsavedParentError, 'You cannot mass-delete without validations until the parent is saved' if @parent.new_record?
           super
         end
 

@@ -414,21 +414,21 @@ if ADAPTER
           end
         end
 
-        describe '#destroy' do
+        describe '#destroy!' do
           before do
             @ids = [ @nancy.id, @bessie.id, @steve.id ]
           end
 
           it 'should destroy the resources in the collection' do
             @collection.map { |r| r.id }.should == @ids
-            @collection.destroy.should == true
+            @collection.destroy!.should == true
             @model.all(:id => @ids).should == []
             @collection.reload.should == []
           end
 
           it 'should clear the collection' do
             @collection.map { |r| r.id }.should == @ids
-            @collection.destroy.should == true
+            @collection.destroy!.should == true
             @collection.should == []
           end
         end
@@ -920,11 +920,11 @@ if ADAPTER
           end
         end
 
-        describe '#update' do
+        describe '#update!' do
           it 'should update the resources in the collection' do
             names = [ @nancy.name, @bessie.name, @steve.name ]
             @collection.map { |r| r.name }.should == names
-            @collection.update(:name => 'John')
+            @collection.update!(:name => 'John')
             @collection.map { |r| r.name }.should_not == names
             @collection.map { |r| r.name }.should == %w[ John ] * 3
           end
@@ -935,7 +935,7 @@ if ADAPTER
               nancy.name.should == "Nancy"
 
               collection = Zebra.all(:name => ["Nancy","Bessie"])
-              collection.update(:name => "Stevie")
+              collection.update!(:name => "Stevie")
 
               nancy.name.should == "Stevie"
             end
@@ -946,7 +946,7 @@ if ADAPTER
               collection = Zebra.all(:name => ["Nancy","Bessie"])
               collection.query.conditions.first[2].should == ["Nancy","Bessie"]
               collection.length.should == 2
-              collection.update(:name => "Stevie")
+              collection.update!(:name => "Stevie")
               collection.length.should == 2
               collection.query.conditions.first[2].should == "Stevie"
             end
@@ -958,7 +958,7 @@ if ADAPTER
             # it should. (for high-performance, large updates with changed query)
             repository(ADAPTER) do
               collection = Zebra.all(:name => ["Nancy","Bessie"])
-              collection.update({:name => "Stevie"},false)
+              collection.update!({:name => "Stevie"},false)
               collection.length.should == 2
               collection.query.conditions.first[2].should == "Stevie"
             end
