@@ -922,20 +922,39 @@ if ADAPTER
 
         describe '#update!' do
           it 'should update the resources in the collection' do
-            names = [ @nancy.name, @bessie.name, @steve.name ]
-            @collection.map { |r| r.name }.should == names
-            @collection.update!(:name => 'John')
-            @collection.map { |r| r.name }.should_not == names
-            @collection.map { |r| r.name }.should == %w[ John ] * 3
+            pending do
+              # this will not pass with new update!
+              # update! should never loop through and set attributes
+              # even if it is loaded, and it will not reload the
+              # changed objects (even with reload=true, as objects
+              # are created is not in any identity map)
+              names = [ @nancy.name, @bessie.name, @steve.name ]
+              @collection.map { |r| r.name }.should == names
+              @collection.update!(:name => 'John')
+              @collection.map { |r| r.name }.should_not == names
+              @collection.map { |r| r.name }.should == %w[ John ] * 3
+            end
           end
 
-          it 'should update loaded resource even though whole collection is not loaded' do
+          it 'should not update loaded resources unless forced' do
             repository(ADAPTER) do
               nancy = Zebra.first
               nancy.name.should == "Nancy"
 
               collection = Zebra.all(:name => ["Nancy","Bessie"])
               collection.update!(:name => "Stevie")
+
+              nancy.name.should == "Nancy"
+            end
+          end
+          
+          it 'should update loaded resources if forced' do
+            repository(ADAPTER) do
+              nancy = Zebra.first
+              nancy.name.should == "Nancy"
+
+              collection = Zebra.all(:name => ["Nancy","Bessie"])
+              collection.update!({:name => "Stevie"},true)
 
               nancy.name.should == "Stevie"
             end
@@ -947,18 +966,6 @@ if ADAPTER
               collection.query.conditions.first[2].should == ["Nancy","Bessie"]
               collection.length.should == 2
               collection.update!(:name => "Stevie")
-              collection.length.should == 2
-              collection.query.conditions.first[2].should == "Stevie"
-            end
-          end
-
-          it 'should be possible to override preloading in specific cases' do
-            # it does the right thing automatically (does not preload if not needed)
-            # but in some cases you might specifically not preload, even though
-            # it should. (for high-performance, large updates with changed query)
-            repository(ADAPTER) do
-              collection = Zebra.all(:name => ["Nancy","Bessie"])
-              collection.update!({:name => "Stevie"},false)
               collection.length.should == 2
               collection.query.conditions.first[2].should == "Stevie"
             end

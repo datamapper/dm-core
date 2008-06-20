@@ -344,37 +344,43 @@ module DataMapper
     # @example Reached the Age of Alchohol Consumption
     #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
+    # @param attributes Hash[Symbol => Object] attributes to update
+    # @param reload [FalseClass, TrueClass] if set to true, collection
+    #   will have loaded resources reflect updates.
+    #
     # @return [TrueClass, FalseClass]
     #   TrueClass indicates that all entries were affected
     #   FalseClass indicates that some entries were affected
     #
     # @api public
-    def update!(attributes = {}, preload = false)
+    def update!(attributes = {}, reload = false)
       # TODO: delegate to Model.update
       return true if attributes.empty?
 
-      dirty_attributes, keys_to_reload = {}, {}
+      dirty_attributes = {}
 
       model.properties(repository.name).slice(*attributes.keys).each do |property|
         dirty_attributes[property] = attributes[property.name] if property
       end
+      
+      # this should never be done on update! even if collection is loaded. or?
+      # each { |resource| resource.attributes = attributes } if loaded?
+        
+      changes = repository.update(dirty_attributes, scoped_query)
 
-      is_affected = query.conditions.detect{|c| dirty_attributes.include?(c[1]) || c[0] == :raw }
-
-      if loaded? || preload && is_affected && lazy_load
-        each { |resource| resource.attributes = attributes }
-      elsif identity_map.any?
-        @key_properties.zip(identity_map.keys.transpose) { |p,v| keys_to_reload[p] = v }
-        to_reload = is_affected ? model.all(all(keys_to_reload).send(:keys)) : all(keys_to_reload)
-      end
-
-      affected = repository.update(dirty_attributes, scoped_query)
-
-      to_reload.reload(:fields => attributes.keys) if to_reload && to_reload.query.conditions.any?
-
+      # need to decide if this should be done in update!
       query.update(attributes)
 
-      return loaded? ? affected == size : affected > 0
+      if identity_map.any? && reload
+        reload_query = attributes
+        @key_properties.zip(identity_map.keys.transpose) { |p,v| reload_query[p] = v }
+        model.all(reload_query).reload(:fields => attributes.keys)
+      end
+      
+      # this should return true if there are any changes at all. as it skips validations
+      # the only way it could be fewer changes is if some resources already was updated.
+      # that should not return false? true = 'now all objects have these new values'
+      return loaded? ? changes == size : changes > 0
     end
 
     def destroy
