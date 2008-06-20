@@ -30,7 +30,7 @@ end
 
 class BlackHole
   include DataMapper::Resource
-  
+
   property :id, Integer, :key => true
   property :data, Object, :reader => :private
 end
@@ -108,7 +108,7 @@ describe "DataMapper::Resource" do
       planet.age = 1
     end
   end
-  
+
   describe '#attributes' do
     it 'should return a hash of attribute-names and values' do
       vegetable = Vegetable.new
@@ -116,7 +116,7 @@ describe "DataMapper::Resource" do
       vegetable.name = "carot"
       vegetable.attributes.should == {:name => "carot", :id => nil}
     end
-    
+
     it 'should not include private attributes' do
       hole = BlackHole.new
       hole.attributes.should == {:id => nil}

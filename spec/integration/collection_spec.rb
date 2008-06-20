@@ -947,7 +947,7 @@ if ADAPTER
               nancy.name.should == "Nancy"
             end
           end
-          
+
           it 'should update loaded resources if forced' do
             repository(ADAPTER) do
               nancy = Zebra.first
@@ -971,7 +971,7 @@ if ADAPTER
             end
           end
         end
-        
+
         describe '#keys' do
           it 'should return a hash of keys' do
             keys = @collection.send(:keys)
