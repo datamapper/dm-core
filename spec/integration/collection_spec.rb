@@ -978,6 +978,11 @@ if ADAPTER
             keys.length.should == 1
             keys.each{|property,values| values.should == [1,2,3]}
           end
+
+          it 'should return an empty hash if collection is empty' do
+            keys = Zebra.all(:id.gt => 10000).send(:keys)
+            keys.should == {}
+          end
         end
 
         describe '#values_at' do
