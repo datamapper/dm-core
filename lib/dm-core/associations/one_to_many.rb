@@ -49,32 +49,6 @@ module DataMapper
           opts[:parent_key]               =   opts[:parent_key]
           opts[:child_key]                =   opts[:child_key]
 
-          if opts[:near_relationship_name] == DataMapper::Resource
-            names = [opts[:child_model], opts[:parent_model]].sort!
-
-            class_name = Extlib::Inflection.pluralize(names[0]) + names[1]
-            storage_name = Extlib::Inflection.tableize(class_name)
-
-            opts[:near_relationship_name] = storage_name.to_sym
-
-            model.has 1.0/0, storage_name.to_sym
-
-            unless Object.const_defined?(class_name)
-              resource = DataMapper::Resource.new(storage_name)
-              resource.class_eval <<-EOS, __FILE__, __LINE__
-              def self.name; #{class_name.inspect} end
-              EOS
-              names.each do |name|
-                name = Extlib::Inflection.underscore(name)
-                resource.class_eval <<-EOS, __FILE__, __LINE__
-                property :#{name}_id, Integer, :key => true
-                belongs_to :#{name}
-                EOS
-              end
-              Object.const_set(class_name, resource)
-            end
-          end
-
           RelationshipChain.new( opts )
         else
           Relationship.new(
@@ -135,6 +109,7 @@ module DataMapper
         def replace(other)
           assert_mutable
           each { |resource| orphan_resource(resource) }
+          other = other.map { |resource| Hash === resource ? @relationship.child_model.new(resource) : resource }
           super
           other.each { |resource| relate_resource(resource) }
           self
