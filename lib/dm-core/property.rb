@@ -525,6 +525,18 @@ module DataMapper
       elsif BigDecimal == @primitive || Float == @primitive
         @precision = @options.fetch(:precision, DEFAULT_PRECISION)
         @scale     = @options.fetch(:scale,     DEFAULT_SCALE)
+
+        unless @precision > 0
+          raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"
+        end
+
+        unless @scale >= 0
+          raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
+        end
+
+        unless @precision >= @scale
+          raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision} and scale was #{@scale}"
+        end
       end
 
       determine_visibility

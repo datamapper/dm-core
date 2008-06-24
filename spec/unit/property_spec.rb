@@ -20,6 +20,38 @@ describe DataMapper::Property do
     @property = DataMapper::Property.new(Zoo, :name, String, :default => 'San Diego')
   end
 
+  it 'should provide .new' do
+    DataMapper::Property.should respond_to(:new)
+  end
+
+  describe '.new' do
+    [ Float, BigDecimal ].each do |primitive|
+      describe "with a #{primitive} primitive" do
+        it 'should raise an ArgumentError if precision is equal to or less than 0' do
+          lambda{
+            DataMapper::Property.new(Zoo, :test, primitive, :precision => 0)
+          }.should raise_error(ArgumentError)
+
+          lambda{
+            DataMapper::Property.new(Zoo, :test, primitive, :precision => -1)
+          }.should raise_error(ArgumentError)
+        end
+
+        it 'should raise an ArgumentError if scale is less than 0' do
+          lambda{
+            DataMapper::Property.new(Zoo, :test, primitive, :scale => -1)
+          }.should raise_error(ArgumentError)
+        end
+
+        it 'should raise an ArgumentError if precision is less than scale' do
+          lambda{
+            DataMapper::Property.new(Zoo, :test, primitive, :precision => 1, :scale => 2)
+          }.should raise_error(ArgumentError)
+        end
+      end
+    end
+  end
+
   it 'should provide #get' do
     @property.should respond_to(:get)
   end
