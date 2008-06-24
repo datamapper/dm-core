@@ -20,7 +20,7 @@ module DataMapper
       model = Class.new
       model.send(:include, Resource)
       model.class_eval <<-EOS, __FILE__, __LINE__
-        def self.name
+        def self.default_storage_name
           #{Extlib::Inflection.classify(storage_name).inspect}
         end
       EOS

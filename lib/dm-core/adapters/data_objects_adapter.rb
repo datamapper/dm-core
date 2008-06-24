@@ -544,7 +544,13 @@ module DataMapper
 
             schema[:nullable?] = property.nullable?
             schema[:serial?]   = property.serial?
-            schema[:default]   = property.default unless property.default.nil? || property.default.respond_to?(:call)
+
+            if property.default.nil? || property.default.respond_to?(:call)
+              # remove the default if the property is not nullable
+              schema.delete(:default) unless property.nullable?
+            else
+              schema[:default] = property.default
+            end
 
             schema
           end

@@ -39,7 +39,7 @@ module DataMapper
 
         opts = options.dup
         opts.delete(:through)
-        opts[:child_model]            ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
+        opts[:child_model]              ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
         opts[:parent_model]             =   model.name
         opts[:repository_name]          =   repository_name
         opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
@@ -47,29 +47,30 @@ module DataMapper
         opts[:child_key]                =   opts[:child_key]
         opts[:mutable]                  =   true
 
-        names = [opts[:child_model], opts[:parent_model]].sort!
+        names        = [ opts[:child_model], opts[:parent_model] ].sort
+        model_name   = names.join
+        storage_name = Extlib::Inflection.tableize(Extlib::Inflection.pluralize(names[0]) + names[1])
 
-        class_name = Extlib::Inflection.pluralize(names[0]) + names[1]
-        storage_name = Extlib::Inflection.tableize(class_name)
+        opts[:near_relationship_name] = Extlib::Inflection.tableize(model_name).to_sym
 
-        opts[:near_relationship_name] = storage_name.to_sym
+        model.has(model.n, opts[:near_relationship_name])
 
-        model.has 1.0/0, storage_name.to_sym
-        relationship = model.relationships(repository_name)[name] = RelationshipChain.new( opts )
+        relationship = model.relationships(repository_name)[name] = RelationshipChain.new(opts)
 
-        unless Object.const_defined?(class_name)
+        unless Object.const_defined?(model_name)
           model = DataMapper::Model.new(storage_name)
 
           model.class_eval <<-EOS, __FILE__, __LINE__
+            def self.name; #{model_name.inspect} end
             def self.default_repository_name; #{repository_name.inspect} end
             def self.many_to_many; true end
           EOS
 
-          names.each do |name|
-            model.belongs_to Extlib::Inflection.underscore(name).to_sym
+          names.each do |n|
+            model.belongs_to(Extlib::Inflection.underscore(n).to_sym)
           end
 
-          Object.const_set(class_name, model)
+          Object.const_set(model_name, model)
         end
 
         relationship

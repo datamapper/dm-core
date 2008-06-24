@@ -24,7 +24,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
       has n, :editors, :through => Resource
     end
 
-    [ Book, Editor, BooksEditor ].each { |k| k.auto_migrate! }
+    [ Book, Editor, BookEditor ].each { |k| k.auto_migrate! }
 
     repository(ADAPTER) do
       book_1 = Book.create(:title => "Dubliners")
@@ -34,9 +34,9 @@ describe DataMapper::Associations::ManyToMany::Proxy do
       editor_1 = Editor.create(:name => "Jon Doe")
       editor_2 = Editor.create(:name => "Jane Doe")
 
-      BooksEditor.create(:book => book_1, :editor => editor_1)
-      BooksEditor.create(:book => book_2, :editor => editor_1)
-      BooksEditor.create(:book => book_1, :editor => editor_2)
+      BookEditor.create(:book => book_1, :editor => editor_1)
+      BookEditor.create(:book => book_2, :editor => editor_1)
+      BookEditor.create(:book => book_1, :editor => editor_2)
     end
   end
 
@@ -51,8 +51,8 @@ describe DataMapper::Associations::ManyToMany::Proxy do
     book = Book.get(3)
     # book.editors.size.should == 0
 
-    be = BooksEditor.new(:book_id => book.id, :editor_id => 2)
-    book.books_editors << be
+    be = BookEditor.new(:book_id => book.id, :editor_id => 2)
+    book.book_editors << be
     book.save
 
     book.reload
@@ -77,12 +77,12 @@ describe DataMapper::Associations::ManyToMany::Proxy do
 
   it "should be able to delete intermediate model" do
     book = Book.get(3)
-    be = BooksEditor.get(3,1)
-    book.books_editors.delete(be)
+    be = BookEditor.get(3,1)
+    book.book_editors.delete(be)
     book.save
     book.reload
     book = Book.get(3)
-    book.books_editors.size.should == 2
+    book.book_editors.size.should == 2
     book.editors.size.should == 2
   end
 
@@ -93,7 +93,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
       book.editors.clear
       book.save
       book.reload
-      book.books_editors.size.should == 0
+      book.book_editors.size.should == 0
       book.editors.size.should == 0
     end
     repository(ADAPTER) do
@@ -107,7 +107,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
 
     book.editors.size.should == 2
     book.editors.delete(editor)
-    book.books_editors.size.should == 1
+    book.book_editors.size.should == 1
     book.editors.size.should == 1
     book.save
     book.reload
@@ -140,7 +140,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
         has n, :authors, :through => Resource
       end
 
-      [ Author, AuthorsBook ].each { |k| k.auto_migrate! }
+      [ Author, AuthorBook ].each { |k| k.auto_migrate! }
 
       @author = Author.create(:name =>  'James Joyce')
 
@@ -148,17 +148,17 @@ describe DataMapper::Associations::ManyToMany::Proxy do
       @book_2 = Book.get!(2)
       @book_3 = Book.get!(3)
 
-      AuthorsBook.create(:book => @book_1, :author => @author)
-      AuthorsBook.create(:book => @book_2, :author => @author)
-      AuthorsBook.create(:book => @book_3, :author => @author)
+      AuthorBook.create(:book => @book_1, :author => @author)
+      AuthorBook.create(:book => @book_2, :author => @author)
+      AuthorBook.create(:book => @book_3, :author => @author)
     end
 
     it 'should have a join resource where the natural key is a property' do
-      AuthorsBook.properties[:author_name].primitive.should == String
+      AuthorBook.properties[:author_name].primitive.should == String
     end
 
     it 'should have a join resource where every property is part of the key' do
-      AuthorsBook.key.should == AuthorsBook.properties.to_a
+      AuthorBook.key.should == AuthorBook.properties.to_a
     end
 
     it 'should correctly link records' do
