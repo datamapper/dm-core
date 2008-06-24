@@ -1,8 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe "ManyToMany" do
-  before(:all) do
-
+describe DataMapper::Associations::ManyToMany::Proxy do
+  before :all do
     class Editor
       include DataMapper::Resource
 
@@ -25,23 +24,20 @@ describe "ManyToMany" do
       has n, :editors, :through => Resource
     end
 
-    [Book, Editor, BooksEditor].each { |k| k.auto_migrate!(ADAPTER) }
-
-    adapter = repository(ADAPTER).adapter
-    adapter.execute("INSERT INTO books_editors (book_id, editor_id) VALUES (1, 1)")
-    adapter.execute("INSERT INTO books_editors (book_id, editor_id) VALUES (2, 1)")
-    adapter.execute("INSERT INTO books_editors (book_id, editor_id) VALUES (1, 2)")
-
-    def BooksEditor.default_repository_name; ADAPTER end
+    [ Book, Editor, BooksEditor ].each { |k| k.auto_migrate! }
 
     repository(ADAPTER) do
-      Book.create!(:title => "Dubliners")
-      Book.create!(:title => "Portrait of the Artist as a Young Man")
-      Book.create!(:title => "Ulysses")
-      Editor.create!(:name => "Jon Doe")
-      Editor.create!(:name => "Jane Doe")
-    end
+      book_1 = Book.create(:title => "Dubliners")
+      book_2 = Book.create(:title => "Portrait of the Artist as a Young Man")
+      book_3 = Book.create(:title => "Ulysses")
 
+      editor_1 = Editor.create(:name => "Jon Doe")
+      editor_2 = Editor.create(:name => "Jane Doe")
+
+      BooksEditor.create(:book => book_1, :editor => editor_1)
+      BooksEditor.create(:book => book_2, :editor => editor_1)
+      BooksEditor.create(:book => book_1, :editor => editor_2)
+    end
   end
 
   it "should correctly link records" do
@@ -125,6 +121,51 @@ describe "ManyToMany" do
       book.save
       book.reload
       book.editors.size.should == 0
+    end
+  end
+
+  describe 'with natural keys' do
+    before :all do
+      class Author
+        include DataMapper::Resource
+
+        def self.default_repository_name; ADAPTER end
+
+        property :name, String, :key => true
+
+        has n, :books, :through => Resource
+      end
+
+      class Book
+        has n, :authors, :through => Resource
+      end
+
+      [ Author, AuthorsBook ].each { |k| k.auto_migrate! }
+
+      @author = Author.create(:name =>  'James Joyce')
+
+      @book_1 = Book.get!(1)
+      @book_2 = Book.get!(2)
+      @book_3 = Book.get!(3)
+
+      AuthorsBook.create(:book => @book_1, :author => @author)
+      AuthorsBook.create(:book => @book_2, :author => @author)
+      AuthorsBook.create(:book => @book_3, :author => @author)
+    end
+
+    it 'should have a join resource where the natural key is a property' do
+      AuthorsBook.properties[:author_name].primitive.should == String
+    end
+
+    it 'should have a join resource where every property is part of the key' do
+      AuthorsBook.key.should == AuthorsBook.properties.to_a
+    end
+
+    it 'should correctly link records' do
+      @author.books.should have(3).entries
+      @book_1.authors.should have(1).entries
+      @book_2.authors.should have(1).entries
+      @book_3.authors.should have(1).entries
     end
   end
 end

@@ -13,6 +13,27 @@ describe 'DataMapper::Model' do
     end
   end
 
+  it 'should provide .new' do
+    meta_class = class << ModelSpec::Resource; self end
+    meta_class.should respond_to(:new)
+  end
+
+  describe '.new' do
+    it 'should require a default storage name and accept a block' do
+      pluto = DataMapper::Model.new('planets') do
+        property :name, String, :key => true
+      end
+
+      pluto.storage_name(:default).should == 'planets'
+      pluto.storage_name(:legacy).should == 'planets'
+      pluto.properties[:name].should_not be_nil
+    end
+  end
+
+  it 'should provide #transaction' do
+    ModelSpec::Resource.should respond_to(:transaction)
+  end
+
   describe '#transaction' do
     it 'should return a new Transaction with Model as argument' do
       transaction = mock("transaction")

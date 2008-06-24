@@ -4,14 +4,6 @@ module DataMapper
   module Resource
     include Assertions
 
-    def self.new(default_name, &b)
-      x = Class.new
-      x.send(:include, self)
-      x.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = default_name })
-      x.instance_eval(&b) if block_given?
-      x
-    end
-
     # When Resource is included in a class this method makes sure
     # it gets all the methods
     #

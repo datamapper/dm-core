@@ -55,23 +55,24 @@ module DataMapper
         opts[:near_relationship_name] = storage_name.to_sym
 
         model.has 1.0/0, storage_name.to_sym
-        model.relationships(repository_name)[name] = RelationshipChain.new( opts )
+        relationship = model.relationships(repository_name)[name] = RelationshipChain.new( opts )
 
         unless Object.const_defined?(class_name)
-          resource = DataMapper::Resource.new(storage_name)
-          resource.class_eval <<-EOS, __FILE__, __LINE__
-          def self.name; #{class_name.inspect} end
-          def many_to_many; true end
+          model = DataMapper::Model.new(storage_name)
+
+          model.class_eval <<-EOS, __FILE__, __LINE__
+            def self.default_repository_name; #{repository_name.inspect} end
+            def self.many_to_many; true end
           EOS
+
           names.each do |name|
-            name = Extlib::Inflection.underscore(name)
-            resource.class_eval <<-EOS, __FILE__, __LINE__
-            property :#{name}_id, Integer, :key => true
-            belongs_to :#{name}
-            EOS
+            model.belongs_to Extlib::Inflection.underscore(name).to_sym
           end
-          Object.const_set(class_name, resource)
+
+          Object.const_set(class_name, model)
         end
+
+        relationship
       end
 
       class Proxy < DataMapper::Associations::OneToMany::Proxy
