@@ -535,7 +535,7 @@ module DataMapper
         end
 
         unless @precision >= @scale
-          raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision} and scale was #{@scale}"
+          raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{@scale.inspect}"
         end
       end
 
