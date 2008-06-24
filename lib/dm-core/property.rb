@@ -440,17 +440,20 @@ module DataMapper
     # @api private
     def typecast(value)
       return value if value.kind_of?(type) || value.nil?
-
-      if    type == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
-      elsif type == String     then value.to_s
-      elsif type == Float      then value.to_f
-      elsif type == Integer    then value.to_i
-      elsif type == BigDecimal then BigDecimal(value.to_s)
-      elsif type == DateTime   then typecast_to_datetime(value)
-      elsif type == Date       then typecast_to_date(value)
-      elsif type == Time       then typecast_to_time(value)
-      elsif type == Class      then find_const(value)
-      else
+      begin
+        if    type == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
+        elsif type == String     then value.to_s
+        elsif type == Float      then value.to_f
+        elsif type == Integer    then value.to_i
+        elsif type == BigDecimal then BigDecimal(value.to_s)
+        elsif type == DateTime   then typecast_to_datetime(value)
+        elsif type == Date       then typecast_to_date(value)
+        elsif type == Time       then typecast_to_time(value)
+        elsif type == Class      then find_const(value)
+        else
+          value
+        end
+      rescue
         value
       end
     end
