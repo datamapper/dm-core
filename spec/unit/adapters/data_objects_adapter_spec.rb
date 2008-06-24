@@ -270,7 +270,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
           @model.should_receive(:load).with(@values, @query).and_return(@resource)
 
-          @statement = 'SELECT "models"."property" FROM "models" LEFT OUTER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? ORDER BY "models"."property" DESC LIMIT 1 OFFSET 222'
+          @statement = 'SELECT "models"."property" FROM "models" INNER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? ORDER BY "models"."property" DESC LIMIT 1 OFFSET 222'
         end
 
         define_method(:do_read) do
@@ -280,7 +280,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         end
       elsif method == :read_many
         before do
-          @statement = 'SELECT "models"."property" FROM "models" LEFT OUTER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? ORDER BY "models"."property" DESC LIMIT 111 OFFSET 222'
+          @statement = 'SELECT "models"."property" FROM "models" INNER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? ORDER BY "models"."property" DESC LIMIT 111 OFFSET 222'
         end
 
         define_method(:do_read) do
@@ -309,7 +309,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @bind_values << other_value
         @conditions << [ :eql, other_property, other_value ]
 
-        @statement = %[SELECT "models"."property" FROM "models" LEFT OUTER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? AND "models"."other" = ? ORDER BY "models"."property" DESC LIMIT #{method == :read_one ? '1' : '111'} OFFSET 222]
+        @statement = %[SELECT "models"."property" FROM "models" INNER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? AND "models"."other" = ? ORDER BY "models"."property" DESC LIMIT #{method == :read_one ? '1' : '111'} OFFSET 222]
         @query.should_receive(:conditions).with(no_args).twice.and_return(@conditions)
 
         @connection.should_receive(:create_command).with(@statement).and_return(@command)

@@ -280,8 +280,8 @@ module DataMapper
 
             join_table_name = table_name == parent_table_name ? child_table_name : parent_table_name
 
-            # We only do LEFT OUTER JOIN for now
-            statement << " LEFT OUTER JOIN #{quote_table_name(join_table_name)} ON "
+            # We only do INNER JOIN for now
+            statement << " INNER JOIN #{quote_table_name(join_table_name)} ON "
 
             statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
               condition_statement(query, :eql, parent_property, child_property)
