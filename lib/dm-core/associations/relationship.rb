@@ -17,9 +17,17 @@ module DataMapper
 
             model_properties[property_name] || DataMapper.repository(repository_name) do
               attributes = {}
+
               [ :length, :precision, :scale ].each do |attribute|
                 attributes[attribute] = parent_property.send(attribute)
               end
+
+              # NOTE: hack to make each many to many child_key a true key,
+              # until I can figure out a better place for this check
+              if child_model.respond_to?(:many_to_many)
+                attributes[:key] = true
+              end
+
               child_model.property(property_name, parent_property.primitive, attributes)
             end
           end

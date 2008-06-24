@@ -216,32 +216,6 @@ if ADAPTER
       end
     end
 
-    describe "anonymity" do
-
-      before :all do
-        @planet = DataMapper::Resource.new("planet") do
-          property :name, String, :key => true
-          property :distance, Integer
-        end
-
-        @planet.auto_migrate!(ADAPTER)
-      end
-
-      it "should be able to persist" do
-        repository(ADAPTER) do
-          pluto = @planet.new
-          pluto.name = 'Pluto'
-          pluto.distance = 1_000_000
-          pluto.save
-
-          clone = @planet.get!('Pluto')
-          clone.name.should == 'Pluto'
-          clone.distance.should == 1_000_000
-        end
-      end
-
-    end
-
     describe "hooking" do
       before :all do
         Car.auto_migrate!(ADAPTER)

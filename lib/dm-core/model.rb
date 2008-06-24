@@ -1,7 +1,7 @@
 module DataMapper
   module Model
     def self.extended(model)
-      model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval do default_storage_name end) })
+      model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval { default_storage_name }) })
       model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
       @@extra_extensions.each { |extension| model.extend(extension) }
     end
@@ -14,6 +14,18 @@ module DataMapper
         duped_relationships = {}; @relationships.each_pair{ |repos, rels| duped_relationships[repos] = rels.dup}
         target.instance_variable_set(:@relationships, duped_relationships)
       end
+    end
+
+    def self.new(storage_name, &block)
+      model = Class.new
+      model.send(:include, Resource)
+      model.class_eval <<-EOS, __FILE__, __LINE__
+        def self.name
+          #{Extlib::Inflection.classify(storage_name).inspect}
+        end
+      EOS
+      model.instance_eval(&block) if block_given?
+      model
     end
 
     ##

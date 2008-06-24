@@ -227,7 +227,7 @@ describe "DataMapper::Resource" do
 
   it "should require a key" do
     lambda do
-      DataMapper::Resource.new("stuff") do
+      DataMapper::Model.new("stuff") do
         property :name, String
       end.new
     end.should raise_error(DataMapper::IncompleteResourceError)
@@ -455,19 +455,6 @@ describe "DataMapper::Resource" do
       planet.should_not_receive(:reload_attributes)
       planet.reload
     end
-  end
-
-  describe "anonymity" do
-    it "should require a default storage name and accept a block" do
-      pluto = DataMapper::Resource.new("planets") do
-        property :name, String, :key => true
-      end
-
-      pluto.storage_name(:default).should == 'planets'
-      pluto.storage_name(:legacy).should == 'planets'
-      pluto.properties[:name].should_not be_nil
-    end
-
   end
 
   describe 'when retrieving by key' do

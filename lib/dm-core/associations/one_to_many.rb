@@ -253,7 +253,7 @@ module DataMapper
 
         def save_resource(resource, parent = @parent)
           DataMapper.repository(@relationship.repository_name) do
-            if parent.nil? && resource.respond_to?(:many_to_many)
+            if parent.nil? && resource.model.respond_to?(:many_to_many)
               resource.destroy
             else
               @relationship.attach_parent(resource, parent)

@@ -22,6 +22,30 @@ if ADAPTER
       end
     end
 
+    describe '.new' do
+      before :all do
+        @planet = DataMapper::Model.new('planet') do
+          property :name, String, :key => true
+          property :distance, Integer
+        end
+
+        @planet.auto_migrate!(ADAPTER)
+      end
+
+      it 'should be able to persist' do
+        repository(ADAPTER) do
+          pluto = @planet.new
+          pluto.name = 'Pluto'
+          pluto.distance = 1_000_000
+          pluto.save
+
+          clone = @planet.get!('Pluto')
+          clone.name.should == 'Pluto'
+          clone.distance.should == 1_000_000
+        end
+      end
+    end
+
     it 'should provide #load' do
       ModelSpec::STI.should respond_to(:load)
     end
