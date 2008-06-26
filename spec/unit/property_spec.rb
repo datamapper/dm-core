@@ -199,20 +199,58 @@ describe DataMapper::Property do
     property.default_for(resource).should == 'Tomato'
   end
 
-  it "should determine visibility of readers and writers" do
-    name = DataMapper::Property.new(Tomato,:botanical_name,String,{})
-    name.reader_visibility.should == :public
-    name.writer_visibility.should == :public
+  describe "reader and writer visibility" do
+    # parameter passed to Property.new                    # reader | writer visibility
+    {
+      {}                                                 => [:public,    :public],
+      { :accessor => :public }                           => [:public,    :public],
+      { :accessor => :protected }                        => [:protected, :protected],
+      { :accessor => :private }                          => [:private,   :private],
+      { :reader => :public }                             => [:public,    :public],
+      { :reader => :protected }                          => [:protected, :public],
+      { :reader => :private }                            => [:private,   :public],
+      { :writer => :public }                             => [:public,    :public],
+      { :writer => :protected }                          => [:public,    :protected],
+      { :writer => :private }                            => [:public,    :private],
+      { :reader => :public, :writer => :public }         => [:public,    :public],
+      { :reader => :public, :writer => :protected }      => [:public,    :protected],
+      { :reader => :public, :writer => :private }        => [:public,    :private],
+      { :reader => :protected, :writer => :public }      => [:protected, :public],
+      { :reader => :protected, :writer => :protected }   => [:protected, :protected],
+      { :reader => :protected, :writer => :private }     => [:protected, :private],
+      { :reader => :private, :writer => :public }        => [:private,   :public],
+      { :reader => :private, :writer => :protected }     => [:private,   :protected],
+      { :reader => :private, :writer => :private }       => [:private,   :private],
+    }.each do |input, output|
+      it "#{input.inspect} should make reader #{output[0]} and writer #{output[1]}" do
+        property = DataMapper::Property.new(Tomato, :botanical_name, String, input)
+        property.reader_visibility.should == output[0]
+        property.writer_visibility.should == output[1]
+      end
+    end
 
-    seeds = DataMapper::Property.new(Tomato,:seeds,TrueClass,{:accessor=>:private})
-    seeds.reader_visibility.should == :private
-    seeds.writer_visibility.should == :private
-
-    family = DataMapper::Property.new(Tomato,:family,String,{:reader => :public, :writer => :private })
-    family.reader_visibility.should == :public
-    family.writer_visibility.should == :private
+    [
+      { :accessor => :junk },
+      { :reader   => :junk },
+      {                          :writer => :junk },
+      { :reader   => :public,    :writer => :junk },
+      { :reader   => :protected, :writer => :junk },
+      { :reader   => :private,   :writer => :junk },
+      { :reader   => :junk,      :writer => :public },
+      { :reader   => :junk,      :writer => :protected },
+      { :reader   => :junk,      :writer => :private },
+      { :reader   => :junk,      :writer => :junk },
+      { :reader   => :junk,      :writer => :junk },
+      { :reader   => :junk,      :writer => :junk },
+    ].each do |input|
+      it "#{input.inspect} should raise ArgumentError" do
+        lambda {
+          property = DataMapper::Property.new(Tomato, :family, String, input)
+        }.should raise_error(ArgumentError)
+      end
+    end
   end
-
+  
   it "should return an instance variable name" do
    DataMapper::Property.new(Tomato, :flavor, String, {}).instance_variable_name.should == '@flavor'
    DataMapper::Property.new(Tomato, :ripe, TrueClass, {}).instance_variable_name.should == '@ripe' #not @ripe?
