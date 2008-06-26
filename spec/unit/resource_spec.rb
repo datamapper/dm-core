@@ -71,6 +71,12 @@ class Banana < Fruit
   property :type, Discriminator
 end
 
+class Cyclist
+  include DataMapper::Resource
+  property :id,         Integer, :serial => true
+  property :victories,  Integer
+end
+
 # rSpec completely FUBARs everything if you give it a Module here.
 # So we give it a String of the module name instead.
 # DO NOT CHANGE THIS!
@@ -177,6 +183,13 @@ describe "DataMapper::Resource" do
         @adapter.should_not_receive(:create)
 
         resource.save.should be_false
+      end
+      
+      it "for an integer field, should save a string as nil" do
+        resource = Cyclist.new
+        resource.victories = "none"
+        resource.save.should be_true
+        resource.victories.should == nil
       end
     end
 
