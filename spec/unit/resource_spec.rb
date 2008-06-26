@@ -25,9 +25,6 @@ class Planet
   end
 end
 
-class Moon
-end
-
 class BlackHole
   include DataMapper::Resource
 
@@ -113,8 +110,8 @@ describe "DataMapper::Resource" do
     it 'should return a hash of attribute-names and values' do
       vegetable = Vegetable.new
       vegetable.attributes.should == {:name => nil, :id => nil}
-      vegetable.name = "carot"
-      vegetable.attributes.should == {:name => "carot", :id => nil}
+      vegetable.name = "carrot"
+      vegetable.attributes.should == {:name => "carrot", :id => nil}
     end
 
     it 'should not include private attributes' do
@@ -273,7 +270,7 @@ describe "DataMapper::Resource" do
     jupiter.type.should_not == "Bob"
   end
 
-  it "should not mark attributes dirty if there similar after update" do
+  it "should not mark attributes dirty if they are similar after update" do
     jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :data => { :a => "Yeah!" })
     jupiter.save.should be_true
 
@@ -378,7 +375,7 @@ describe "DataMapper::Resource" do
 
   it 'should store and retrieve default values' do
     Planet.property(:satellite_count, Integer, :default => 0)
-    # stupid example but it's realiable and works
+    # stupid example but it's reliable and works
     Planet.property(:orbit_period, Float, :default => lambda { |r,p| p.name.to_s.length })
     earth = Planet.new(:name => 'Earth')
     earth.satellite_count.should == 0
