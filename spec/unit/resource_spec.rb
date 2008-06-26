@@ -185,12 +185,45 @@ describe "DataMapper::Resource" do
         resource.save.should be_false
       end
       
-      it "for an integer field, should save a string as nil" do
-        resource = Cyclist.new
-        resource.victories = "none"
-        resource.save.should be_true
-        resource.victories.should == nil
+      describe 'for integer fields' do
+
+        it "should save strings without digits as nil" do
+          resource = Cyclist.new
+          resource.victories = "none"
+          resource.save.should be_true
+          resource.victories.should be_nil
+        end
+
+        it "should save strings beginning with non-digits as nil" do
+          resource = Cyclist.new
+          resource.victories = "almost 5"
+          resource.save.should be_true
+          resource.victories.should be_nil
+        end
+
+        it 'should save strings beginning with negative numbers as that number' do
+          resource = Cyclist.new
+          resource.victories = "-4 victories"
+          resource.save.should be_true
+          resource.victories.should == -4
+        end
+
+        it 'should save strings beginning with 0 as 0' do
+          resource = Cyclist.new
+          resource.victories = "0 victories"
+          resource.save.should be_true
+          resource.victories.should == 0
+        end
+
+        it 'should save strings beginning with positive numbers as that number' do
+          resource = Cyclist.new
+          resource.victories = "23 victories"
+          resource.save.should be_true
+          resource.victories.should == 23
+        end
+      
       end
+
     end
 
     describe 'with an existing resource' do

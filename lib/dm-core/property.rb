@@ -444,7 +444,19 @@ module DataMapper
         if    type == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
         elsif type == String     then value.to_s
         elsif type == Float      then value.to_f
-        elsif type == Integer    then value.to_i
+        elsif type == Integer    then
+          #
+          value_to_i = value.to_i
+          if value_to_i == 0 && value != '0'
+            value_to_s = value.to_s
+            begin
+              Integer(value_to_s =~ /^(\d+)/ ? $1 : value_to_s)
+            rescue ArgumentError
+              nil
+            end
+          else
+            value_to_i
+          end
         elsif type == BigDecimal then BigDecimal(value.to_s)
         elsif type == DateTime   then typecast_to_datetime(value)
         elsif type == Date       then typecast_to_date(value)
