@@ -444,8 +444,15 @@ module DataMapper
         if    type == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
         elsif type == String     then value.to_s
         elsif type == Float      then value.to_f
-        elsif type == Integer    then
+        elsif type == Integer
+          # The simplest possible implementation, i.e. value.to_i, is not
+          # desirable because "junk".to_i gives "0". We want nil instead,
+          # because this makes it clear that the typecast failed.
           #
+          # After benchmarking, we preferred the current implementation over
+          # these two alternatives:
+          # * Integer(value) rescue nil
+          # * Integer(value_to_s =~ /(\d+)/ ? $1 : value_to_s) rescue nil
           value_to_i = value.to_i
           if value_to_i == 0 && value != '0'
             value_to_s = value.to_s
