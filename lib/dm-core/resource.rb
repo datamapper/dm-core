@@ -2,6 +2,31 @@ require 'set'
 
 module DataMapper
   module Resource
+    ##
+    #
+    # Appends a module for inclusion into the model class after
+    # DataMapper::Resource.
+    #
+    # This is a useful way to extend DataMapper::Resource while still retaining
+    # a self.included method.
+    #
+    # @param [Module] inclusion the module that is to be appended to the module
+    #   after DataMapper::Resource
+    #
+    # @return [TrueClass, FalseClass] whether or not the inclusions have been
+    #   successfully appended to the list
+    # @return <TrueClass, FalseClass>
+    #-
+    # @api public
+    def self.append_inclusions(*inclusions)
+      extra_inclusions.concat inclusions
+      true
+    end
+    
+    def self.extra_inclusions
+      @extra_inclusions ||= []
+    end
+    
     include Assertions
 
     # When Resource is included in a class this method makes sure
@@ -13,7 +38,7 @@ module DataMapper
       model.extend Model
       model.extend ClassMethods if defined?(ClassMethods)
       model.const_set('Resource', self) unless model.const_defined?('Resource')
-      @@extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
+      extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
       descendants << model
     end
 

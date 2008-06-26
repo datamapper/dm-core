@@ -201,10 +201,15 @@ describe 'DataMapper::Model' do
   end
 
   describe '#append_inclusions' do
+    before(:all) do
+      @standard_resource_inclusions = DataMapper::Resource.instance_variable_get('@extra_inclusions')
+      @standard_model_extensions = DataMapper::Model.instance_variable_get('@extra_extensions')
+    end
+    
     before(:each) do
-      DataMapper::Resource.send(:class_variable_set, '@@extra_inclusions', [])
-      DataMapper::Model.send(:class_variable_set, '@@extra_extensions', [])
-
+      DataMapper::Resource.instance_variable_set('@extra_inclusions', [])
+      DataMapper::Model.instance_variable_set('@extra_extensions', [])
+      
       @module = Module.new do
         def greet
           hi_mom!
@@ -226,8 +231,8 @@ describe 'DataMapper::Model' do
     end
 
     after(:each) do
-      DataMapper::Resource.send(:class_variable_set, '@@extra_inclusions', [])
-      DataMapper::Model.send(:class_variable_set, '@@extra_extensions', [])
+      DataMapper::Resource.instance_variable_set('@extra_inclusions', @standard_resource_inclusions)
+      DataMapper::Model.instance_variable_set('@extra_extensions', @standard_model_extensions)
     end
 
     it "should append the module to be included in resources" do

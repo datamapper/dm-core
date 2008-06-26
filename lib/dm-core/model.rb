@@ -1,9 +1,35 @@
 module DataMapper
   module Model
+    ##
+    #
+    # Extends the model with this module after DataMapper::Resource has been
+    # included.
+    #
+    # This is a useful way to extend DataMapper::Model while
+    # still retaining a self.extended method.
+    #
+    # @param [Module] extensions the module that is to be extend the model after
+    #   after DataMapper::Model
+    #
+    # @return [TrueClass, FalseClass] whether or not the inclusions have been
+    #   successfully appended to the list
+    #-
+    # @api public
+    #
+    # TODO: Move this do DataMapper::Model when DataMapper::Model is created
+    def self.append_extensions(*extensions)
+      extra_extensions.concat extensions
+      true
+    end
+    
+    def self.extra_extensions
+      @extra_extensions ||= []
+    end
+    
     def self.extended(model)
       model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval { default_storage_name }) })
       model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
-      @@extra_extensions.each { |extension| model.extend(extension) }
+      extra_extensions.each { |extension| model.extend(extension) }
     end
 
     def inherited(target)
@@ -321,8 +347,14 @@ module DataMapper
       end
     end
 
-    def method_missing(method, *args, &block)
-      raise NoMethodError.new("#{self.name} does not respond to :relationships") unless self.respond_to?(:relationships)
+    def relationships(*args)
+      # DO NOT REMOVE!
+      # method_missing depends on these existing. Without this stub,
+      # a missing module can cause misleading recursive errors.
+      raise NotImplementedError.new
+    end
+    
+    def method_missing(method, *args, &block)      
       if relationship = self.relationships(repository.name)[method]
         klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
         return DataMapper::Query::Path.new(repository, [ relationship ], klass)
