@@ -449,7 +449,7 @@ module DataMapper
         elsif type == DateTime   then typecast_to_datetime(value)
         elsif type == Date       then typecast_to_date(value)
         elsif type == Time       then typecast_to_time(value)
-        elsif type == Class      then find_const(value)
+        elsif type == Class      then self.class.find_const(value)
         else
           value
         end
