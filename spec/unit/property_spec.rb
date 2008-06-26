@@ -340,7 +340,28 @@ describe DataMapper::Property do
       end
     end
 
+    { '-8' => -8, '-8.0' => -8, -8 => -8, -8.0 => -8, BigDecimal('8.0') => 8 }.each do |value,expected|
+      it "should typecast #{format(value)} to #{format(expected)} for an Integer property" do
+        property = DataMapper::Property.new(Zoo, :integer, Integer)
+        property.typecast(value).should == expected
+      end
+    end
+
     { '0' => 0, '0.0' => 0, 0 => 0, 0.0 => 0, BigDecimal('0.0') => 0 }.each do |value,expected|
+      it "should typecast #{format(value)} to #{format(expected)} for an Integer property" do
+        property = DataMapper::Property.new(Zoo, :integer, Integer)
+        property.typecast(value).should == expected
+      end
+    end
+
+    { '5' => 5, '5.0' => 5, 5 => 5, 5.0 => 5, BigDecimal('5.0') => 5 }.each do |value,expected|
+      it "should typecast #{format(value)} to #{format(expected)} for an Integer property" do
+        property = DataMapper::Property.new(Zoo, :integer, Integer)
+        property.typecast(value).should == expected
+      end
+    end
+
+    { 'none' => nil, 'almost 5' => nil, '-3 change' => -3, '9 items' => 9 }.each do |value,expected|
       it "should typecast #{format(value)} to #{format(expected)} for an Integer property" do
         property = DataMapper::Property.new(Zoo, :integer, Integer)
         property.typecast(value).should == expected
