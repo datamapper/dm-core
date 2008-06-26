@@ -322,7 +322,8 @@ module DataMapper
     end
 
     def method_missing(method, *args, &block)
-      if relationship = relationships(repository.name)[method]
+      raise NoMethodError.new("#{self.name} does not respond to :relationships") unless self.respond_to?(:relationships)
+      if relationship = self.relationships(repository.name)[method]
         klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
         return DataMapper::Query::Path.new(repository, [ relationship ], klass)
       end
