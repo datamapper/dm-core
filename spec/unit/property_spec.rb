@@ -250,7 +250,7 @@ describe DataMapper::Property do
       end
     end
   end
-  
+
   it "should return an instance variable name" do
    DataMapper::Property.new(Tomato, :flavor, String, {}).instance_variable_name.should == '@flavor'
    DataMapper::Property.new(Tomato, :ripe, TrueClass, {}).instance_variable_name.should == '@ripe' #not @ripe?

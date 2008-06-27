@@ -184,7 +184,7 @@ describe "DataMapper::Resource" do
 
         resource.save.should be_false
       end
-      
+
       describe 'for integer fields' do
 
         it "should save strings without digits as nil" do
@@ -221,7 +221,7 @@ describe "DataMapper::Resource" do
           resource.save.should be_true
           resource.victories.should == 23
         end
-      
+
       end
 
     end
@@ -308,12 +308,12 @@ describe "DataMapper::Resource" do
     attributes = { :name => 'Jupiter', :age => 1_000_000, :id => 42, :type => Planet, :data => nil }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
-    
+
     new_attributes = attributes.merge( :age => 2_500_000 )
     jupiter.attributes = new_attributes
     jupiter.attributes.should == new_attributes
   end
-  
+
   it "should be able to set attributes using update_attributes" do
     attributes = { :name => 'Jupiter', :age => 1_000_000, :id => 42, :type => Planet, :data => nil }
     jupiter = Planet.new(attributes)
@@ -324,7 +324,7 @@ describe "DataMapper::Resource" do
     jupiter.age.should == 3_700_000
     jupiter.attributes.should == attributes.merge(new_age)
   end
-  
+
   # :core is a private accessor so Ruby should raise NameError
   it "should not be able to set private attributes" do
     lambda {

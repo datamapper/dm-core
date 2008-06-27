@@ -21,11 +21,11 @@ module DataMapper
       extra_extensions.concat extensions
       true
     end
-    
+
     def self.extra_extensions
       @extra_extensions ||= []
     end
-    
+
     def self.extended(model)
       model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval { default_storage_name }) })
       model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
@@ -353,8 +353,8 @@ module DataMapper
       # a missing module can cause misleading recursive errors.
       raise NotImplementedError.new
     end
-    
-    def method_missing(method, *args, &block)      
+
+    def method_missing(method, *args, &block)
       if relationship = self.relationships(repository.name)[method]
         klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
         return DataMapper::Query::Path.new(repository, [ relationship ], klass)

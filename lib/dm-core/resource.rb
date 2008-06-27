@@ -22,11 +22,11 @@ module DataMapper
       extra_inclusions.concat inclusions
       true
     end
-    
+
     def self.extra_inclusions
       @extra_inclusions ||= []
     end
-    
+
     include Assertions
 
     # When Resource is included in a class this method makes sure
@@ -486,7 +486,7 @@ module DataMapper
     def attributes=(values_hash)
       values_hash.each_pair do |k,v|
         setter = "#{k.to_s.sub(/\?\z/, '')}="
-        
+
         if respond_to?(setter)
           send(setter, v)
         else

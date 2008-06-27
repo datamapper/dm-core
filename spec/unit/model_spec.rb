@@ -205,11 +205,11 @@ describe 'DataMapper::Model' do
       @standard_resource_inclusions = DataMapper::Resource.instance_variable_get('@extra_inclusions')
       @standard_model_extensions = DataMapper::Model.instance_variable_get('@extra_extensions')
     end
-    
+
     before(:each) do
       DataMapper::Resource.instance_variable_set('@extra_inclusions', [])
       DataMapper::Model.instance_variable_set('@extra_extensions', [])
-      
+
       @module = Module.new do
         def greet
           hi_mom!
