@@ -130,7 +130,7 @@ puts "Benchmarks will now run #{TIMES} times"
 RBench.run(TIMES) do
 
   column :times
-  column :dm, :title => "DM 0.9.2"
+  column :dm, :title => "DM 0.9.3"
   column :ar, :title => "AR 2.1"
   column :diff, :compare => [:dm,:ar]
 
