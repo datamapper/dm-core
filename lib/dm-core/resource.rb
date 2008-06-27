@@ -471,7 +471,9 @@ module DataMapper
     # --
     # @api public
     def attributes
-      properties.map{|p| [p.name,send(p.getter)] if p.reader_visibility == :public}.compact.to_hash
+      properties.map do |p|
+        [p.name, send(p.getter)] if p.reader_visibility == :public
+      end.compact.to_hash
     end
 
     # Mass assign of attributes
@@ -484,10 +486,12 @@ module DataMapper
     def attributes=(values_hash)
       values_hash.each_pair do |k,v|
         setter = "#{k.to_s.sub(/\?\z/, '')}="
-
-        # use the attribute mutator if it is public to set the value
-        next unless respond_to?(setter, false)
-        send(setter, v)
+        
+        if respond_to?(setter)
+          send(setter, v)
+        else
+          raise NameError, "#{setter} is not a public property"
+        end
       end
     end
 

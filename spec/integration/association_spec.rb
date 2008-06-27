@@ -187,7 +187,7 @@ if ADAPTER
       end
 
       it 'should allow namespaced classes in parent and child for one <=> one' do
-        g = Models::Goal.new(:title => "g2", :description => "desc 2")
+        g = Models::Goal.new(:title => "g2", :summary => "desc 2")
         p = Models::Project.create!(:title => "p2", :summary => "sum 2", :goal => g)
 
         pp = Models::Project.first(:title => 'p2')
