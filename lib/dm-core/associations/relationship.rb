@@ -13,7 +13,7 @@ module DataMapper
 
           child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
             # TODO: use something similar to DM::NamingConventions to determine the property name
-            property_name ||= "#{name}_#{parent_property.name}".to_sym
+            property_name ||= "#{Extlib::Inflection.underscore(parent_model)}_#{parent_property.name}".to_sym
 
             model_properties[property_name] || DataMapper.repository(repository_name) do
               attributes = {}
@@ -57,23 +57,50 @@ module DataMapper
 
       # @api private
       def get_children(parent, options = {}, finder = :all, *args)
-        bind_values = parent_key.get(parent)
-        return [] if bind_values.any? { |bind_value| bind_value.nil? }
-        query = child_key.to_query(bind_values)
+        bind_values = parent_values = parent_key.get(parent)
+        bind_values |= DataMapper.repository(repository_name).identity_map(parent_model).keys.flatten
+        bind_values.reject! { |k| DataMapper.repository(repository_name).identity_map(child_model)[[k]] }
+
+        return [] if bind_values.empty? || bind_values.any? { |bind_value| bind_value.nil? }
+
+        query = {}
+        child_key.each do |key|
+          query[key] = bind_values
+        end
 
         DataMapper.repository(repository_name) do
-          child_model.send(finder, *(args << @query.merge(options).merge(query)))
+          collection = child_model.send(finder, *(args << @query.merge(options).merge(query)))
+          ret = []
+          association_accessor = "#{self.name}_association"
+          collection.each do |model|
+            key = child_key.get(model)
+            parent = get_parent(model)
+            if key == parent_values
+              ret << model
+            else
+              association = parent.send(association_accessor)
+              parents_children = association.instance_variable_get(:@children)
+              parents_children ||= Collection.new()
+              parents_children << model
+              association.instance_variable_set(:@children, parents_children)
+            end
+          end
+          ret
         end
       end
 
       # @api private
       def get_parent(child)
-        bind_values = child_key.get(child)
-        return nil if bind_values.any? { |bind_value| bind_value.nil? }
-        query = parent_key.to_query(bind_values)
+        if parent = DataMapper.repository(repository_name).identity_map(parent_model)[child_key.get(child)]
+          return parent
+        else
+          bind_values = child_key.get(child)
+          return nil if bind_values.any? { |bind_value| bind_value.nil? }
+          query = parent_key.to_query(bind_values)
 
-        DataMapper.repository(repository_name) do
-          parent_model.first(@query.merge(query))
+          DataMapper.repository(repository_name) do
+            parent_model.first(@query.merge(query))
+          end
         end
       end
 

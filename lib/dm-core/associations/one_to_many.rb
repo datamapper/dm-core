@@ -52,7 +52,7 @@ module DataMapper
           RelationshipChain.new( opts )
         else
           Relationship.new(
-            Extlib::Inflection.underscore(Extlib::Inflection.demodulize(model.name)).to_sym,
+            name,
             repository_name,
             options.fetch(:class_name, Extlib::Inflection.classify(name)),
             model.name,
@@ -68,7 +68,7 @@ module DataMapper
       class Proxy
         include Assertions
 
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not ].include?(m) }
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not instance_variable_set instance_variable_get ].include?(m) }
 
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def all(query = {})
