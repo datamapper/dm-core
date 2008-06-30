@@ -8,7 +8,7 @@ class Planet
   property :id, Integer, :key => true
   property :name, String
   property :age, Integer
-  property :core, String, :private => true
+  property :core, String, :accessor => :private
   property :type, Discriminator
   property :data, Object
 
@@ -184,7 +184,7 @@ describe "DataMapper::Resource" do
 
         resource.save.should be_false
       end
-      
+
       describe 'for integer fields' do
 
         it "should save strings without digits as nil" do
@@ -221,7 +221,7 @@ describe "DataMapper::Resource" do
           resource.save.should be_true
           resource.victories.should == 23
         end
-      
+
       end
 
     end
@@ -288,7 +288,7 @@ describe "DataMapper::Resource" do
   end
 
   it "should return an instance of the created object" do
-    Planet.create!(:name => 'Venus', :age => 1_000_000, :core => nil, :id => 42).should be_a_kind_of(Planet)
+    Planet.create!(:name => 'Venus', :age => 1_000_000, :id => 42).should be_a_kind_of(Planet)
   end
 
   it 'should provide persistance methods' do
@@ -299,31 +299,47 @@ describe "DataMapper::Resource" do
   end
 
   it "should have attributes" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => Planet, :data => nil }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :id => 42, :type => Planet, :data => nil }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
   end
 
   it "should be able to set attributes" do
-    attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => Planet, :data => nil }
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :id => 42, :type => Planet, :data => nil }
     jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
-    jupiter.attributes = attributes.merge(:core => 'Magma')
+
+    new_attributes = attributes.merge( :age => 2_500_000 )
+    jupiter.attributes = new_attributes
+    jupiter.attributes.should == new_attributes
+  end
+
+  it "should be able to set attributes using update_attributes" do
+    attributes = { :name => 'Jupiter', :age => 1_000_000, :id => 42, :type => Planet, :data => nil }
+    jupiter = Planet.new(attributes)
     jupiter.attributes.should == attributes
 
-    jupiter.update_attributes({ :core => "Toast", :type => "Bob" }, :core).should be_true
-    jupiter.core.should == "Toast"
-    jupiter.type.should_not == "Bob"
+    new_age = { :age => 3_700_000 }
+    jupiter.update_attributes(new_age).should be_true
+    jupiter.age.should == 3_700_000
+    jupiter.attributes.should == attributes.merge(new_age)
+  end
+
+  # :core is a private accessor so Ruby should raise NameError
+  it "should not be able to set private attributes" do
+    lambda {
+      jupiter = Planet.new({ :core => "Molten Metal" })
+    }.should raise_error(NameError)
   end
 
   it "should not mark attributes dirty if they are similar after update" do
-    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :data => { :a => "Yeah!" })
+    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :id => 42, :data => { :a => "Yeah!" })
     jupiter.save.should be_true
 
     # discriminator will be set automatically
     jupiter.type.should == Planet
 
-    jupiter.attributes = { :name => 'Jupiter', :age => 1_000_000, :core => nil, :data => { :a => "Yeah!" } }
+    jupiter.attributes = { :name => 'Jupiter', :age => 1_000_000, :data => { :a => "Yeah!" } }
 
     jupiter.attribute_dirty?(:name).should be_false
     jupiter.attribute_dirty?(:age).should be_false
@@ -334,7 +350,7 @@ describe "DataMapper::Resource" do
   end
 
   it "should not mark attributes dirty if they are similar after typecasting" do
-    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :core => nil, :id => 42, :type => nil)
+    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :id => 42, :type => nil)
     jupiter.save.should be_true
     jupiter.dirty?.should be_false
 

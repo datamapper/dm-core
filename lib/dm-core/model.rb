@@ -1,3 +1,5 @@
+require 'set'
+
 module DataMapper
   module Model
     ##
@@ -21,11 +23,11 @@ module DataMapper
       extra_extensions.concat extensions
       true
     end
-    
+
     def self.extra_extensions
       @extra_extensions ||= []
     end
-    
+
     def self.extended(model)
       model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval { default_storage_name }) })
       model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
@@ -130,28 +132,24 @@ module DataMapper
       property
     end
 
-    # TODO: make this a Set?
     def repositories
-      [ repository ] + @properties.keys.collect { |repository_name| DataMapper.repository(repository_name) }
+      [ repository ].to_set + @properties.keys.collect { |repository_name| DataMapper.repository(repository_name) }
     end
 
     def properties(repository_name = default_repository_name)
       @properties[repository_name]
     end
 
+    # @api private
     def properties_with_subclasses(repository_name = default_repository_name)
-      #return properties if we're not interested in sti
-     if @properties[repository_name].inheritance_property.nil?
-       @properties[repository_name]
-     else
-        props = @properties[repository_name].dup
-        self.child_classes.each do |subclass|
-          subclass.properties(repository_name).each do |subprop|
-            props << subprop if not props.any? { |prop| prop.name == subprop.name }
-          end
+      properties = PropertySet.new
+      ([ self ] + (respond_to?(:child_classes) ? child_classes : [])).each do |model|
+        model.relationships(repository_name).each_value { |relationship| relationship.child_key }
+        model.properties(repository_name).each do |property|
+          properties << property unless properties.has_property?(property.name)
         end
-        props
       end
+      properties
     end
 
     def key(repository_name = default_repository_name)
@@ -353,8 +351,8 @@ module DataMapper
       # a missing module can cause misleading recursive errors.
       raise NotImplementedError.new
     end
-    
-    def method_missing(method, *args, &block)      
+
+    def method_missing(method, *args, &block)
       if relationship = self.relationships(repository.name)[method]
         klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
         return DataMapper::Query::Path.new(repository, [ relationship ], klass)

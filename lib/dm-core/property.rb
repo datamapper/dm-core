@@ -61,9 +61,9 @@ module DataMapper
   #
   #  class Post
   #   include DataMapper::Resource
-  #    property :title,  String,                  :accessor => :private
+  #    property :title,  String, :accessor => :private
   #      # Both reader and writer are private
-  #    property :body,   Text, :accessor => :protected
+  #    property :body,   Text,   :accessor => :protected
   #      # Both reader and writer are protected
   #  end
   #
@@ -243,7 +243,7 @@ module DataMapper
     # NOTE: PLEASE update PROPERTY_OPTIONS in DataMapper::Type when updating
     # them here
     PROPERTY_OPTIONS = [
-      :public, :protected, :private, :accessor, :reader, :writer,
+      :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :unique_index, :check, :ordinal, :auto_validation,
       :validates, :unique, :track, :precision, :scale
@@ -335,7 +335,6 @@ module DataMapper
     def lazy?
       @lazy
     end
-
 
     # Returns whether or not the property is a key or a part of a key
     #
@@ -567,8 +566,6 @@ module DataMapper
     def determine_visibility # :nodoc:
       @reader_visibility = @options[:reader] || @options[:accessor] || :public
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
-      @writer_visibility = :protected if @options[:protected]
-      @writer_visibility = :private   if @options[:private]
 
       unless VISIBILITY_OPTIONS.include?(@reader_visibility) && VISIBILITY_OPTIONS.include?(@writer_visibility)
         raise ArgumentError, 'property visibility must be :public, :protected, or :private', caller(2)
