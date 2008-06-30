@@ -30,7 +30,7 @@ describe DataMapper::Associations::OneToMany do
 
       it 'should receive the name' do
         DataMapper::Associations::Relationship.should_receive(:new) do |name,_,_,_,_|
-          name.should == :user
+          name.should == :orders
         end
         @class.has(@class.n, :orders)
       end
@@ -60,7 +60,7 @@ describe DataMapper::Associations::OneToMany do
 
       it 'should receive the parent model name' do
         DataMapper::Associations::Relationship.should_receive(:new) do |_,_,_,parent_model_name,_|
-          parent_model_name.should == 'User'
+          parent_model_name.should == @class
         end
         @class.has(@class.n, :orders)
       end

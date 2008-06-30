@@ -39,7 +39,7 @@ module DataMapper
         model.relationships(repository_name)[name] = Relationship.new(
           name,
           repository_name,
-          model.name,
+          model,
           options.fetch(:class_name, Extlib::Inflection.classify(name)),
           options
         )

@@ -18,7 +18,7 @@ if ADAPTER
           has n, :taggings
 
           has n, :relationships
-          has n, :related_posts, :through => :relationships, :class_name => 'Post'
+          has n, :related_posts, :through => :relationships, :class_name => 'Post', :child_key => [:post_id]
 
           has n, :posts, :through => :taggings
         end
@@ -68,7 +68,7 @@ if ADAPTER
 
           property :id, Serial
           belongs_to :post
-          belongs_to :related_post, :class_name => "Post"
+          belongs_to :related_post, :class_name => "Post", :child_key => [:related_post_id]
         end
 
         [Post, Tag, Tagging, Relationship].each do |descendant|
@@ -102,7 +102,7 @@ if ADAPTER
         good.taggings << goody
         good.save
 
-        relation = Relationship.new(:related_post => another_post)
+        relation = Relationship.new(:related_post_id => another_post.id)
         post.relationships << relation
         post.save
       end

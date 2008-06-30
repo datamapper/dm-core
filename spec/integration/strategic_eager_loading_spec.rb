@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 require 'pp'
-DataMapper::Logger.new(STDOUT, 0)
-DataObjects::Sqlite3.logger = DataObjects::Logger.new(STDOUT, 0)
+# DataMapper::Logger.new(STDOUT, 0)
+# DataObjects::Sqlite3.logger = DataObjects::Logger.new(STDOUT, 0)
 describe "Strategic Eager Loading" do
   before :all do
 
@@ -46,6 +46,8 @@ describe "Strategic Eager Loading" do
 
       Zoo.create(:name => "San Diego")
       Exhibit.create(:name => "Aviary", :zoo_id => 2)
+      Exhibit.create(:name => "Insectorium", :zoo_id => 2)
+      Exhibit.create(:name => "Bears", :zoo_id => 2)
       Animal.create(:name => "Bald Eagle", :exhibit_id => 2)
       Animal.create(:name => "Parakeet", :exhibit_id => 2)
     end
@@ -59,12 +61,18 @@ describe "Strategic Eager Loading" do
     repository(ADAPTER) do
       zoos = Zoo.all.entries # load all zoos
       dallas = zoos.find { |z| z.name == 'Dallas Zoo' }
-      # exhibits = Exhibit.all.entries
+
       dallas.exhibits.entries # load all exhibits for zoos in identity_map
       dallas.exhibits.size.should == 1
       repository.identity_map(Zoo).keys.should == zoo_ids
-      repository.identity_map(Exhibit).keys.should == exhibit_ids
-      zoos.each { |zoo| pp zoo.exhibits.entries } # issues no queries
+      repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
+      zoos.each { |zoo| zoo.exhibits.entries } # issues no queries
+      dallas.exhibits << Exhibit.new(:name => "Reptiles")
+      dallas.exhibits.size.should == 2
+      dallas.save
+    end
+    repository(ADAPTER) do
+      Zoo.first.exhibits.size.should == 2
     end
   end
 

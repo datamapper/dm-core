@@ -40,14 +40,14 @@ module DataMapper
         opts = options.dup
         opts.delete(:through)
         opts[:child_model]              ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
-        opts[:parent_model]             =   model.name
+        opts[:parent_model]             =   model
         opts[:repository_name]          =   repository_name
         opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
         opts[:parent_key]               =   opts[:parent_key]
         opts[:child_key]                =   opts[:child_key]
         opts[:mutable]                  =   true
 
-        names        = [ opts[:child_model], opts[:parent_model] ].sort
+        names        = [ opts[:child_model], opts[:parent_model].name ].sort
         model_name   = names.join
         storage_name = Extlib::Inflection.tableize(Extlib::Inflection.pluralize(names[0]) + names[1])
 

@@ -39,7 +39,7 @@ module DataMapper
         model.relationships(repository_name)[name] = if options.has_key?(:through)
           RelationshipChain.new(
             :child_model              => options.fetch(:class_name, Extlib::Inflection.classify(name)),
-            :parent_model             => model.name,
+            :parent_model             => model,
             :repository_name          => repository_name,
             :near_relationship_name   => options[:through],
             :remote_relationship_name => options.fetch(:remote_name, name),
@@ -48,10 +48,10 @@ module DataMapper
           )
         else
           Relationship.new(
-            Extlib::Inflection.underscore(Extlib::Inflection.demodulize(model.name)).to_sym,
+            name,
             repository_name,
             options.fetch(:class_name, Extlib::Inflection.classify(name)),
-            model.name,
+            model,
             options
           )
         end

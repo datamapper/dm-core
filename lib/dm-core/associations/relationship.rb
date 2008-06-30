@@ -13,7 +13,8 @@ module DataMapper
 
           child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
             # TODO: use something similar to DM::NamingConventions to determine the property name
-            property_name ||= "#{Extlib::Inflection.underscore(parent_model)}_#{parent_property.name}".to_sym
+            parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model))
+            property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
 
             model_properties[property_name] || DataMapper.repository(repository_name) do
               attributes = {}
@@ -48,42 +49,47 @@ module DataMapper
       end
 
       def parent_model
-        Class === @parent_model ? @parent_model : self.class.find_const(@parent_model)
+        Class === @parent_model ? @parent_model : (Class === @child_model ? @child_model.find_const(@parent_model) : Object.find_const(@parent_model))
       end
 
       def child_model
-        Class === @child_model ? @child_model : self.class.find_const(@child_model)
+        Class === @child_model ? @child_model : (Class === @parent_model ? @parent_model.find_const(@child_model) : Object.find_const(@child_model))
       end
 
       # @api private
       def get_children(parent, options = {}, finder = :all, *args)
         bind_values = parent_values = parent_key.get(parent)
         bind_values |= DataMapper.repository(repository_name).identity_map(parent_model).keys.flatten
-        bind_values.reject! { |k| DataMapper.repository(repository_name).identity_map(child_model)[[k]] }
+        query_values = bind_values.reject { |k| DataMapper.repository(repository_name).identity_map(child_model)[[k]] }
 
-        return [] if bind_values.empty? || bind_values.any? { |bind_value| bind_value.nil? }
+        association_accessor = "#{self.name}_association"
 
         query = {}
         child_key.each do |key|
-          query[key] = bind_values
+          query[key] = query_values.empty? ? bind_values : query_values
         end
 
         DataMapper.repository(repository_name) do
           collection = child_model.send(finder, *(args << @query.merge(options).merge(query)))
+          return collection unless Collection === collection
+          grouped_collection = collection.inject({}) do |grouped, model|
+            (grouped[get_parent(model)] ||= []) << model
+            grouped
+          end
           ret = []
-          association_accessor = "#{self.name}_association"
-          collection.each do |model|
-            key = child_key.get(model)
-            parent = get_parent(model)
-            if key == parent_values
-              ret << model
+          grouped_collection.each do |parent, children|
+            association = parent.send(association_accessor)
+            parents_children = association.instance_variable_get(:@children)
+            if parents_children.blank?
+              query = collection.query
+              query.conditions[0][2] = *children.map { |child| child_key.get(child) }
+              parents_children = Collection.new(query) do |collection|
+                children.each { |child| collection.send(:add, child) }
+              end
             else
-              association = parent.send(association_accessor)
-              parents_children = association.instance_variable_get(:@children)
-              parents_children ||= Collection.new()
-              parents_children << model
-              association.instance_variable_set(:@children, parents_children)
+              parents_children |= children
             end
+            parent_key.get(parent) == parent_values ? ret = parents_children : association.instance_variable_set(:@children, parents_children)
           end
           ret
         end
@@ -99,7 +105,7 @@ module DataMapper
           query = parent_key.to_query(bind_values)
 
           DataMapper.repository(repository_name) do
-            parent_model.first(@query.merge(query))
+            parent_model.first(query)
           end
         end
       end

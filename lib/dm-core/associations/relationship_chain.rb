@@ -47,7 +47,7 @@ module DataMapper
       end
 
       def grandchild_model
-        Class === @child_model ? @child_model : self.class.find_const(@child_model)
+        Class === @child_model ? @child_model : (Class === @parent_model ? @parent_model.find_const(@child_model) : Object.find_const(@child_model))
       end
 
       def initialize(options)

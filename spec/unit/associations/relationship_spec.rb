@@ -44,7 +44,8 @@ describe DataMapper::Associations::Relationship do
       :models,
       repository_name,
       'Vehicle',
-      'Manufacturer'
+      'Manufacturer',
+      { :child_key => [:model_id] }
     )
 
     has_many.name.should == :models
@@ -52,8 +53,8 @@ describe DataMapper::Associations::Relationship do
 
     has_many.child_key.should be_a_kind_of(DataMapper::PropertySet)
     has_many.parent_key.should be_a_kind_of(DataMapper::PropertySet)
-
-    has_many.child_key.to_a.should == Vehicle.properties(repository_name).slice(:models_id)
+    # Vehicle.has n, :models, :class_name => 'Manufacturer', :child_key => "models_id"
+    has_many.child_key.to_a.should == Vehicle.properties(repository_name).slice(:model_id)
     has_many.parent_key.to_a.should == Manufacturer.properties(repository_name).key
   end
 

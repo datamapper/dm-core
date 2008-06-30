@@ -40,9 +40,12 @@ module DataMapper
 
         model.relationships(repository_name)[name] = if options.has_key?(:through)
           opts = options.dup
+          warn(<<-EOS.margin) if opts.key?(:class_name) && !opts.key?(:child_key)
+          You have speficied #{model.name}.has(#{opts[:class_name]}) with the :class_name option. You probably also want to specify the :child_key option.
+          EOS
 
           opts[:child_model]            ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
-          opts[:parent_model]             =   model.name
+          opts[:parent_model]             =   model
           opts[:repository_name]          =   repository_name
           opts[:near_relationship_name]   =   opts.delete(:through)
           opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
@@ -55,7 +58,7 @@ module DataMapper
             name,
             repository_name,
             options.fetch(:class_name, Extlib::Inflection.classify(name)),
-            model.name,
+            model,
             options
           )
         end
