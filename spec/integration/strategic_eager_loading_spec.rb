@@ -1,5 +1,17 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 require 'pp'
+
+def hr(word = nil)
+  width = 80
+  return puts "="*width if word.nil?
+
+  word = "[ #{word.upcase} ]"
+  middle = width/2
+  middle_word = word.size/2
+  end_word = middle + middle_word
+  print '='*(end_word - word.size), word, '='*(width - end_word), "\n"
+end
+
 # DataMapper::Logger.new(STDOUT, 0)
 # DataObjects::Sqlite3.logger = DataObjects::Logger.new(STDOUT, 0)
 describe "Strategic Eager Loading" do
@@ -50,11 +62,13 @@ describe "Strategic Eager Loading" do
       Exhibit.create(:name => "Bears", :zoo_id => 2)
       Animal.create(:name => "Bald Eagle", :exhibit_id => 2)
       Animal.create(:name => "Parakeet", :exhibit_id => 2)
+      Animal.create(:name => "Roach", :exhibit_id => 3)
+      Animal.create(:name => "Brown Bear", :exhibit_id => 4)
     end
 
   end
 
-  it "should eager load one relationship deep" do
+  it "should eager load children" do
     zoo_ids     = Zoo.all.map { |z| z.key }
     exhibit_ids = Exhibit.all.map { |e| e.key }
 
@@ -64,7 +78,7 @@ describe "Strategic Eager Loading" do
 
       dallas.exhibits.entries # load all exhibits for zoos in identity_map
       dallas.exhibits.size.should == 1
-      repository.identity_map(Zoo).keys.should == zoo_ids
+      repository.identity_map(Zoo).keys.sort.should == zoo_ids
       repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
       zoos.each { |zoo| zoo.exhibits.entries } # issues no queries
       dallas.exhibits << Exhibit.new(:name => "Reptiles")
@@ -76,12 +90,35 @@ describe "Strategic Eager Loading" do
     end
   end
 
-  it "should eager load two deep" do
+  it "should not eager load children when a query is provided" do
+    repository(ADAPTER) do
+      dallas = Zoo.all.entries.find { |z| z.name == 'Dallas Zoo' }
+      exhibits = dallas.exhibits.entries # load all exhibits
+      reptiles = dallas.exhibits(:name => 'Reptiles')
+      reptiles.size.should == 1
+      primates = dallas.exhibits(:name => 'Primates')
+      primates.size.should == 1
+      primates.should_not == reptiles
+    end
+  end
+
+  it "should eager load parents" do
     pending
-    animals = Animal.all.map { |e| e.key }
+    animal_ids =  Animal.all.map { |a| a.key }
+    exhibit_ids = Exhibit.all.map { |e| e.key }
 
     repository(ADAPTER) do
+      animals = Animal.all.entries
+      bear = animals.find { |a| a.name == 'Brown Bear' }
 
+      bear.exhibit
+      repository.identity_map(Animal).keys.sort.should == animal_ids
+      repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
     end
+  end
+
+  it "should not eager load parents when parent is in IM" do
+    pending
+    #
   end
 end

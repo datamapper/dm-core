@@ -58,9 +58,9 @@ module DataMapper
 
       # @api private
       def get_children(parent, options = {}, finder = :all, *args)
-        bind_values = parent_values = parent_key.get(parent)
-        bind_values |= DataMapper.repository(repository_name).identity_map(parent_model).keys.flatten
-        query_values = bind_values.reject { |k| DataMapper.repository(repository_name).identity_map(child_model)[[k]] }
+        bind_values  = parent_values = parent_key.get(parent)
+        query_values = DataMapper.repository(repository_name).identity_map(parent_model).keys.flatten
+        query_values.reject! { |k| DataMapper.repository(repository_name).identity_map(child_model)[[k]] }
 
         association_accessor = "#{self.name}_association"
 
@@ -80,14 +80,10 @@ module DataMapper
           grouped_collection.each do |parent, children|
             association = parent.send(association_accessor)
             parents_children = association.instance_variable_get(:@children)
-            if parents_children.blank?
-              query = collection.query
-              query.conditions[0][2] = *children.map { |child| child_key.get(child) }
-              parents_children = Collection.new(query) do |collection|
-                children.each { |child| collection.send(:add, child) }
-              end
-            else
-              parents_children |= children
+            query = collection.query
+            query.conditions[0][2] = *children.map { |child| child_key.get(child) }
+            parents_children = Collection.new(query) do |collection|
+              children.each { |child| collection.send(:add, child) }
             end
             parent_key.get(parent) == parent_values ? ret = parents_children : association.instance_variable_set(:@children, parents_children)
           end
@@ -97,10 +93,10 @@ module DataMapper
 
       # @api private
       def get_parent(child)
-        if parent = DataMapper.repository(repository_name).identity_map(parent_model)[child_key.get(child)]
+        bind_values  = child_value = child_key.get(child)
+        if parent = DataMapper.repository(repository_name).identity_map(parent_model)[child_value]
           return parent
         else
-          bind_values = child_key.get(child)
           return nil if bind_values.any? { |bind_value| bind_value.nil? }
           query = parent_key.to_query(bind_values)
 
