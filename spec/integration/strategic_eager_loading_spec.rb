@@ -3,7 +3,7 @@ require 'pp'
 
 def hr(word = nil)
   width = 80
-  return puts "="*width if word.nil?
+  return puts("="*width) if word.nil?
 
   word = "[ #{word.upcase} ]"
   middle = width/2
@@ -103,14 +103,13 @@ describe "Strategic Eager Loading" do
   end
 
   it "should eager load parents" do
-    pending
-    animal_ids =  Animal.all.map { |a| a.key }
-    exhibit_ids = Exhibit.all.map { |e| e.key }
+    animal_ids  = Animal.all.map { |a| a.key }
+    exhibit_ids = Exhibit.all.map { |e| e.key }.sort
+    exhibit_ids.pop # remove Reptile exhibit, which has no Animals
 
     repository(ADAPTER) do
       animals = Animal.all.entries
       bear = animals.find { |a| a.name == 'Brown Bear' }
-
       bear.exhibit
       repository.identity_map(Animal).keys.sort.should == animal_ids
       repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
@@ -118,7 +117,11 @@ describe "Strategic Eager Loading" do
   end
 
   it "should not eager load parents when parent is in IM" do
-    pending
-    #
+    repository(ADAPTER) do
+      animal = Animal.first
+      exhibit = Exhibit.get(1) # load exhibit into IM
+      animal.exhibit # load exhibit from IM
+      repository.identity_map(Exhibit).keys.should == [exhibit.key]
+    end
   end
 end

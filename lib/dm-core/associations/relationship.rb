@@ -93,15 +93,30 @@ module DataMapper
 
       # @api private
       def get_parent(child)
-        bind_values  = child_value = child_key.get(child)
+        bind_values = child_value = child_key.get(child)
+        return nil if child_value.any? { |bind_value| bind_value.nil? }
         if parent = DataMapper.repository(repository_name).identity_map(parent_model)[child_value]
           return parent
         else
-          return nil if bind_values.any? { |bind_value| bind_value.nil? }
-          query = parent_key.to_query(bind_values)
+          association_accessor = "#{self.name}_association"
+          children = DataMapper.repository(repository_name).identity_map(child_model)
+          children.each do |key, c|
+            bind_values |= child_key.get(c)
+          end
+          query_values = bind_values.reject { |k| DataMapper.repository(repository_name).identity_map(parent_model)[[k]] }
+
+          query = {}
+          parent_key.each do |key|
+            query[key] = query_values.empty? ? bind_values : query_values
+          end
 
           DataMapper.repository(repository_name) do
-            parent_model.first(query)
+            collection = parent_model.send(:all, query)
+            collection.send(:lazy_load)
+            children.each do |id, c|
+              c.send(association_accessor).instance_variable_set(:@parent, collection.get(child_key.get(c)))
+            end
+            child.send(association_accessor).instance_variable_get(:@parent)
           end
         end
       end
