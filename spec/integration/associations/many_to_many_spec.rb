@@ -13,6 +13,8 @@ describe DataMapper::Associations::ManyToMany::Proxy do
       has n, :books, :through => Resource
     end
 
+    Object.send(:remove_const, :Book) if defined?(Book)
+
     class Book
       include DataMapper::Resource
 
