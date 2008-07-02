@@ -2,7 +2,7 @@ module DataMapper
   module Associations
     class RelationshipChain < Relationship
       OPTIONS = [
-        :repository_name, :near_relationship_name, :remote_relationship_name,
+        :repository, :near_relationship_name, :remote_relationship_name,
         :child_model, :parent_model, :parent_key, :child_key,
         :min, :max
       ]
@@ -20,7 +20,7 @@ module DataMapper
 
         query[:links] = links
 
-        DataMapper.repository(parent.repository.name) do
+        with_repository(parent) do
           results = grandchild_model.send(finder, *(args << query))
           # FIXME: remove the need for the uniq.freeze
           finder == :all ? (@mutable ? results.uniq : results.uniq.freeze) : results
@@ -55,7 +55,7 @@ module DataMapper
           raise ArgumentError, "The options #{missing_options * ', '} are required", caller
         end
 
-        @repository_name          = options.fetch(:repository_name)
+        @repository               = options.fetch(:repository)
         @near_relationship_name   = options.fetch(:near_relationship_name)
         @remote_relationship_name = options.fetch(:remote_relationship_name)
         @child_model              = options.fetch(:child_model)

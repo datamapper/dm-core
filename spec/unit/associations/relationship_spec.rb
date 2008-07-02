@@ -1,17 +1,20 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe DataMapper::Associations::Relationship do
+  before do
+    @repository = mock('repository', :name => :mock, :save => nil, :kind_of? => true)
+  end
   it "should describe an association" do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
-      :mock,
+      @repository,
       'Vehicle',
       'Manufacturer',
       { :child_key => [ :manufacturer_id ] }
     )
 
     belongs_to.should respond_to(:name)
-    belongs_to.should respond_to(:repository_name)
+    belongs_to.should respond_to(:with_repository)
     belongs_to.should respond_to(:child_key)
     belongs_to.should respond_to(:parent_key)
   end
@@ -21,14 +24,16 @@ describe DataMapper::Associations::Relationship do
 
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
-      repository_name,
+      @repository,
       'Vehicle',
       'Manufacturer',
       { :child_key => [ :manufacturer_id ], :parent_key => [ :id ] }
     )
 
     belongs_to.name.should == :manufacturer
-    belongs_to.repository_name.should == repository_name
+    belongs_to.with_repository do |r|
+      r.name.should == repository_name
+    end
 
     belongs_to.child_key.should be_a_kind_of(DataMapper::PropertySet)
     belongs_to.parent_key.should be_a_kind_of(DataMapper::PropertySet)
@@ -42,14 +47,16 @@ describe DataMapper::Associations::Relationship do
 
     has_many = DataMapper::Associations::Relationship.new(
       :models,
-      repository_name,
+      @repository,
       'Vehicle',
       'Manufacturer',
       { :child_key => [:model_id] }
     )
 
     has_many.name.should == :models
-    has_many.repository_name.should == repository_name
+    has_many.with_repository do |r|
+      r.name.should == repository_name
+    end
 
     has_many.child_key.should be_a_kind_of(DataMapper::PropertySet)
     has_many.parent_key.should be_a_kind_of(DataMapper::PropertySet)

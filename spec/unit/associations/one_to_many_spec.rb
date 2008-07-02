@@ -36,8 +36,8 @@ describe DataMapper::Associations::OneToMany do
       end
 
       it 'should receive the repository name' do
-        DataMapper::Associations::Relationship.should_receive(:new) do |_,repository_name,_,_,_|
-          repository_name.should == :mock
+        DataMapper::Associations::Relationship.should_receive(:new) do |_,repository,_,_,_|
+          repository.name.should == :mock
         end
         repository(:mock) do
           @class.has(@class.n, :orders)
@@ -107,7 +107,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
     @resource     = mock('resource', :null_object => true)
     @collection   = []
     @repository   = mock('repository', :save => nil, :kind_of? => true)
-    @relationship = mock('relationship', :get_children => @collection, :repository_name => :mock, :query => {}, :kind_of? => true)
+    @relationship = mock('relationship', :get_children => @collection, :query => {}, :kind_of? => true)
     @association  = DataMapper::Associations::OneToMany::Proxy.new(@relationship, @parent)
   end
 
@@ -124,6 +124,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
     end
 
     it 'should persist the addition after saving the association' do
+      @relationship.should_receive(:with_repository).with(@resource).and_yield(@repository)
       do_add.should == return_value
       @relationship.should_receive(:attach_parent).with(@resource, @parent)
       @association.save
@@ -147,6 +148,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
     end
 
     it 'should persist the removal after saving the association' do
+      @relationship.should_receive(:with_repository).with(@resource).and_yield(@repository)
       do_remove.should == return_value
       @relationship.should_receive(:attach_parent).with(@resource, nil)
       @association.save
@@ -237,6 +239,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
 
     it 'should persist the removal after saving the association' do
       do_replace.should == return_value
+      @relationship.should_receive(:with_repository).exactly(3).times.and_yield(@repository)
       @relationship.should_receive(:attach_parent).with(@resource, nil)
       @association.save
     end
@@ -248,6 +251,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
 
     it 'should persist the addition after saving the association' do
       do_replace.should == return_value
+      @relationship.should_receive(:with_repository).exactly(3).times.and_yield(@repository)
       @relationship.should_receive(:attach_parent).with(@children[0], @parent)
       @relationship.should_receive(:attach_parent).with(@children[1], @parent)
       @association.save

@@ -14,7 +14,7 @@ describe DataMapper::Associations::ManyToOne::Proxy do
   before do
     @child        = mock('child', :kind_of? => true)
     @parent       = mock('parent')
-    @relationship = mock('relationship', :kind_of? => true, :repository_name => :default, :get_parent => @parent, :attach_parent => nil)
+    @relationship = mock('relationship', :kind_of? => true, :get_parent => @parent, :attach_parent => nil)
     @association  = DataMapper::Associations::ManyToOne::Proxy.new(@relationship, @child)
 
     @association.replace(@parent)
@@ -89,11 +89,13 @@ describe DataMapper::Associations::ManyToOne::Proxy do
       end
 
       it 'should save the parent' do
+        @relationship.should_receive(:with_repository).and_yield(@repository)
         @parent.should_receive(:save).with(no_args)
         @association.save
       end
 
       it 'should return the result of the save' do
+        @relationship.should_receive(:with_repository).and_yield(@repository)
         save_results = mock('save results')
         @parent.should_receive(:save).with(no_args).and_return(save_results)
         @association.save.object_id.should == save_results.object_id
