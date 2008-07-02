@@ -40,7 +40,7 @@ module DataMapper
           RelationshipChain.new(
             :child_model              => options.fetch(:class_name, Extlib::Inflection.classify(name)),
             :parent_model             => model,
-            :repository_name          => repository_name,
+            :repository               => model.repository,
             :near_relationship_name   => options[:through],
             :remote_relationship_name => options.fetch(:remote_name, name),
             :parent_key               => options[:parent_key],
@@ -49,7 +49,7 @@ module DataMapper
         else
           Relationship.new(
             name,
-            repository_name,
+            model.repository,
             options.fetch(:class_name, Extlib::Inflection.classify(name)),
             model,
             options

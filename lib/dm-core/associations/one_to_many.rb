@@ -46,7 +46,7 @@ module DataMapper
 
           opts[:child_model]            ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
           opts[:parent_model]             =   model
-          opts[:repository_name]          =   repository_name
+          opts[:repository]               =   model.repository
           opts[:near_relationship_name]   =   opts.delete(:through)
           opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
           opts[:parent_key]               =   opts[:parent_key]
@@ -56,7 +56,7 @@ module DataMapper
         else
           Relationship.new(
             name,
-            repository_name,
+            model.repository,
             options.fetch(:class_name, Extlib::Inflection.classify(name)),
             model,
             options
@@ -255,7 +255,7 @@ module DataMapper
         end
 
         def save_resource(resource, parent = @parent)
-          DataMapper.repository(@relationship.repository_name) do
+          @relationship.with_repository(resource) do
             if parent.nil? && resource.model.respond_to?(:many_to_many)
               resource.destroy
             else

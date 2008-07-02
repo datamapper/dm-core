@@ -38,7 +38,7 @@ module DataMapper
 
         model.relationships(repository_name)[name] = Relationship.new(
           name,
-          repository_name,
+          model.repository,
           model,
           options.fetch(:class_name, Extlib::Inflection.classify(name)),
           options
@@ -60,7 +60,7 @@ module DataMapper
           return false if @parent.nil?
           return true  unless parent.new_record?
 
-          DataMapper.repository(@relationship.repository_name) do
+          @relationship.with_repository(parent) do
             parent.save
           end
         end

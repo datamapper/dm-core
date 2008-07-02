@@ -529,6 +529,7 @@ if HAS_POSTGRES
       before :all do
         class Engine
           include DataMapper::Resource
+          def self.default_repository_name; :postgres end
 
           property :id, Serial
           property :name, String
@@ -536,14 +537,13 @@ if HAS_POSTGRES
 
         class Yard
           include DataMapper::Resource
+          def self.default_repository_name; :postgres end
 
           property :id, Serial
           property :name, String
           property :engine_id, Integer
 
-          repository(:postgres) do
-            belongs_to :engine
-          end
+          belongs_to :engine
         end
       end
 
@@ -618,25 +618,23 @@ if HAS_POSTGRES
       before :all do
         class Host
           include DataMapper::Resource
+          def self.default_repository_name; :postgres end
 
           property :id, Serial
           property :name, String
 
-          repository(:postgres) do
-            has n, :slices
-          end
+          has n, :slices
         end
 
         class Slice
           include DataMapper::Resource
+          def self.default_repository_name; :postgres end
 
           property :id, Serial
           property :name, String
           property :host_id, Integer
 
-          repository(:postgres) do
-            belongs_to :host
-          end
+          belongs_to :host
         end
       end
 
