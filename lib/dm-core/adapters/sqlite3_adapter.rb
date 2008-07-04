@@ -41,7 +41,7 @@ module DataMapper
         end
 
         module SQL
-          private
+#          private  ## This cannot be private for current migrations
 
           # TODO: move to dm-more/dm-migrations
           def supports_serial?
@@ -71,7 +71,7 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def property_schema_statement(schema)
             statement = super
-            statement << ' PRIMARY KEY AUTOINCREMENT' if supports_serial? && schema[:serial?]
+            statement << ' PRIMARY KEY AUTOINCREMENT' if supports_serial? && schema[:serial]
             statement
           end
 
