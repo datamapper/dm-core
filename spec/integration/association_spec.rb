@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
   repository(ADAPTER) do
-    class Engine
+    class Machine
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -12,11 +12,11 @@ if ADAPTER
       property :id, Serial
       property :name, String
 
-      has n, :yards
-      has n, :fussy_yards, :class_name => 'Yard', :rating.gte => 3, :type => 'particular'
+      has n, :areas
+      has n, :fussy_areas, :class_name => 'Area', :rating.gte => 3, :type => 'particular'
     end
 
-    class Yard
+    class Area
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -28,7 +28,7 @@ if ADAPTER
       property :rating, Integer
       property :type, String
 
-      belongs_to :engine
+      belongs_to :machine
     end
 
     class Pie
@@ -57,7 +57,7 @@ if ADAPTER
       has 1, :pie
     end
 
-    class Host
+    class Ultrahost
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -67,10 +67,10 @@ if ADAPTER
       property :id, Serial
       property :name, String
 
-      has n, :slices, :order => [:id.desc]
+      has n, :ultraslices, :order => [:id.desc]
     end
 
-    class Slice
+    class Ultraslice
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -80,7 +80,7 @@ if ADAPTER
       property :id, Serial
       property :name, String
 
-      belongs_to :host
+      belongs_to :ultrahost
     end
 
     class Node
@@ -204,30 +204,30 @@ if ADAPTER
 
     describe 'many to one associations' do
       before do
-        Engine.auto_migrate!(ADAPTER)
-        Yard.auto_migrate!(ADAPTER)
+        Machine.auto_migrate!(ADAPTER)
+        Area.auto_migrate!(ADAPTER)
 
-        engine1 = Engine.create!(:name => 'engine1')
-        engine2 = Engine.create!(:name => 'engine2')
-        yard1   = Yard.create!(:name => 'yard1', :engine => engine1)
-        yard2   = Yard.create!(:name => 'yard2')
+        machine1 = Machine.create!(:name => 'machine1')
+        machine2 = Machine.create!(:name => 'machine2')
+        area1   = Area.create!(:name => 'area1', :machine => machine1)
+        area2   = Area.create!(:name => 'area2')
       end
 
       it '#belongs_to' do
-        yard = Yard.new
-        yard.should respond_to(:engine)
-        yard.should respond_to(:engine=)
+        area = Area.new
+        area.should respond_to(:machine)
+        area.should respond_to(:machine=)
       end
 
       it 'should load without the parent'
 
       it 'should allow substituting the parent' do
-        yard1   = Yard.first(:name => 'yard1')
-        engine2 = Engine.first(:name => 'engine2')
+        area1   = Area.first(:name => 'area1')
+        machine2 = Machine.first(:name => 'machine2')
 
-        yard1.engine = engine2
-        yard1.save
-        Yard.first(:name => 'yard1').engine.should == engine2
+        area1.machine = machine2
+        area1.save
+        Area.first(:name => 'area1').machine.should == machine2
       end
 
       it '#belongs_to with namespaced models' do
@@ -246,42 +246,42 @@ if ADAPTER
       end
 
       it 'should load the associated instance' do
-        engine1 = Engine.first(:name => 'engine1')
-        Yard.first(:name => 'yard1').engine.should == engine1
+        machine1 = Machine.first(:name => 'machine1')
+        Area.first(:name => 'area1').machine.should == machine1
       end
 
       it 'should save the association key in the child' do
-        engine2 = Engine.first(:name => 'engine2')
+        machine2 = Machine.first(:name => 'machine2')
 
-        Yard.create!(:name => 'yard3', :engine => engine2)
-        Yard.first(:name => 'yard3').engine.should == engine2
+        Area.create!(:name => 'area3', :machine => machine2)
+        Area.first(:name => 'area3').machine.should == machine2
       end
 
       it 'should set the association key immediately' do
-        engine = Engine.first(:name => 'engine1')
-        Yard.new(:engine => engine).engine_id.should == engine.id
+        machine = Machine.first(:name => 'machine1')
+        Area.new(:machine => machine).machine_id.should == machine.id
       end
 
       it 'should save the parent upon saving of child' do
-        e = Engine.new(:name => 'engine10')
-        y = Yard.create!(:name => 'yard10', :engine => e)
+        e = Machine.new(:name => 'machine10')
+        y = Area.create!(:name => 'area10', :machine => e)
 
-        y.engine.name.should == 'engine10'
-        Engine.first(:name => 'engine10').should_not be_nil
+        y.machine.name.should == 'machine10'
+        Machine.first(:name => 'machine10').should_not be_nil
       end
 
       it 'should convert NULL parent ids into nils' do
-        Yard.first(:name => 'yard2').engine.should be_nil
+        Area.first(:name => 'area2').machine.should be_nil
       end
 
       it 'should save nil parents as NULL ids' do
-        y1 = Yard.create!(:id => 20, :name => 'yard20')
-        y2 = Yard.create!(:id => 30, :name => 'yard30', :engine => nil)
+        y1 = Area.create!(:id => 20, :name => 'area20')
+        y2 = Area.create!(:id => 30, :name => 'area30', :machine => nil)
 
         y1.id.should == 20
-        y1.engine.should be_nil
+        y1.machine.should be_nil
         y2.id.should == 30
-        y2.engine.should be_nil
+        y2.machine.should be_nil
       end
 
       it 'should respect length on foreign keys' do
@@ -296,10 +296,10 @@ if ADAPTER
       end
 
       it 'should be reloaded when calling Resource#reload' do
-        e = Engine.new(:name => 'engine40')
-        y = Yard.create!(:name => 'yard40', :engine => e)
+        e = Machine.new(:name => 'machine40')
+        y = Area.create!(:name => 'area40', :machine => e)
 
-        y.send(:engine_association).should_receive(:reload).once
+        y.send(:machine_association).should_receive(:reload).once
 
         lambda { y.reload }.should_not raise_error
       end
@@ -378,155 +378,155 @@ if ADAPTER
 
     describe 'one to many associations' do
       before do
-        Host.auto_migrate!(ADAPTER)
-        Slice.auto_migrate!(ADAPTER)
-        Engine.auto_migrate!(ADAPTER)
-        Yard.auto_migrate!(ADAPTER)
+        Ultrahost.auto_migrate!(ADAPTER)
+        Ultraslice.auto_migrate!(ADAPTER)
+        Machine.auto_migrate!(ADAPTER)
+        Area.auto_migrate!(ADAPTER)
 
-        host1  = Host.create!(:name => 'host1')
-        host2  = Host.create!(:name => 'host2')
-        slice1 = Slice.create!(:name => 'slice1', :host => host1)
-        slice2 = Slice.create!(:name => 'slice2', :host => host1)
-        slice3 = Slice.create!(:name => 'slice3')
+        ultrahost1  = Ultrahost.create!(:name => 'ultrahost1')
+        ultrahost2  = Ultrahost.create!(:name => 'ultrahost2')
+        ultraslice1 = Ultraslice.create!(:name => 'ultraslice1', :ultrahost => ultrahost1)
+        ultraslice2 = Ultraslice.create!(:name => 'ultraslice2', :ultrahost => ultrahost1)
+        ultraslice3 = Ultraslice.create!(:name => 'ultraslice3')
       end
 
       it '#has n' do
-        h = Host.new
-        h.should respond_to(:slices)
+        h = Ultrahost.new
+        h.should respond_to(:ultraslices)
       end
 
       it 'should allow removal of a child through a loaded association' do
-        host1  = Host.first(:name => 'host1')
-        slice2 = host1.slices.first
+        ultrahost1  = Ultrahost.first(:name => 'ultrahost1')
+        ultraslice2 = ultrahost1.ultraslices.first
 
-        host1.slices.size.should == 2
-        host1.slices.delete(slice2)
-        host1.slices.size.should == 1
+        ultrahost1.ultraslices.size.should == 2
+        ultrahost1.ultraslices.delete(ultraslice2)
+        ultrahost1.ultraslices.size.should == 1
 
-        slice2 = Slice.first(:name => 'slice2')
-        slice2.host.should_not be_nil
+        ultraslice2 = Ultraslice.first(:name => 'ultraslice2')
+        ultraslice2.ultrahost.should_not be_nil
 
-        host1.save
+        ultrahost1.save
 
-        slice2.reload.host.should be_nil
+        ultraslice2.reload.ultrahost.should be_nil
       end
 
       it 'should use the IdentityMap correctly' do
         pending "Relationship repository fixes"
         repository(ADAPTER) do
-          host1 = Host.first(:name => 'host1')
+          ultrahost1 = Ultrahost.first(:name => 'ultrahost1')
 
-          slice =  host1.slices.first
-          slice2 = host1.slices(:order => [:id]).last # should be the same as 1
-          slice3 = Slice.get(2) # should be the same as 1
+          ultraslice =  ultrahost1.ultraslices.first
+          ultraslice2 = ultrahost1.ultraslices(:order => [:id]).last # should be the same as 1
+          ultraslice3 = Ultraslice.get(2) # should be the same as 1
 
-          slice.object_id.should == slice2.object_id
-          slice.object_id.should == slice3.object_id
+          ultraslice.object_id.should == ultraslice2.object_id
+          ultraslice.object_id.should == ultraslice3.object_id
         end
       end
 
       it '#<< should add exactly the parameters' do
-        engine = Engine.new(:name => 'my engine')
+        machine = Machine.new(:name => 'my machine')
         4.times do |i|
-          engine.yards << Yard.new(:name => "yard nr #{i}")
+          machine.areas << Area.new(:name => "area nr #{i}")
         end
-        engine.save
-        engine.yards.size.should == 4
+        machine.save
+        machine.areas.size.should == 4
         4.times do |i|
-          engine.yards.any? do |yard|
-            yard.name == "yard nr #{i}"
+          machine.areas.any? do |area|
+            area.name == "area nr #{i}"
           end.should == true
         end
-        engine = Engine.get!(engine.id)
-        engine.yards.size.should == 4
+        machine = Machine.get!(machine.id)
+        machine.areas.size.should == 4
         4.times do |i|
-          engine.yards.any? do |yard|
-            yard.name == "yard nr #{i}"
+          machine.areas.any? do |area|
+            area.name == "area nr #{i}"
           end.should == true
         end
       end
 
       it '#<< should add default values for relationships that have conditions' do
         # it should add default values
-        engine = Engine.new(:name => 'my engine')
-        engine.fussy_yards << Yard.new(:name => 'yard 1', :rating => 4 )
-        engine.save
-        Yard.first(:name => 'yard 1').type.should == 'particular'
+        machine = Machine.new(:name => 'my machine')
+        machine.fussy_areas << Area.new(:name => 'area 1', :rating => 4 )
+        machine.save
+        Area.first(:name => 'area 1').type.should == 'particular'
         # it should not add default values if the condition's property already has a value
-        engine.fussy_yards << Yard.new(:name => 'yard 2', :rating => 4, :type => 'not particular')
-        engine.save
-        Yard.first(:name => 'yard 2').type.should == 'not particular'
+        machine.fussy_areas << Area.new(:name => 'area 2', :rating => 4, :type => 'not particular')
+        machine.save
+        Area.first(:name => 'area 2').type.should == 'not particular'
         # it should ignore non :eql conditions
-        engine.fussy_yards << Yard.new(:name => 'yard 3')
-        engine.save
-        Yard.first(:name => 'yard 3').rating.should == nil
+        machine.fussy_areas << Area.new(:name => 'area 3')
+        machine.save
+        Area.first(:name => 'area 3').rating.should == nil
       end
 
       it 'should load the associated instances, in the correct order' do
-        host1 = Host.first(:name => 'host1')
+        ultrahost1 = Ultrahost.first(:name => 'ultrahost1')
 
-        host1.slices.should_not be_nil
-        host1.slices.size.should == 2
-        host1.slices.first.name.should == 'slice2' # ordered by [:id.desc]
-        host1.slices.last.name.should == 'slice1'
+        ultrahost1.ultraslices.should_not be_nil
+        ultrahost1.ultraslices.size.should == 2
+        ultrahost1.ultraslices.first.name.should == 'ultraslice2' # ordered by [:id.desc]
+        ultrahost1.ultraslices.last.name.should == 'ultraslice1'
 
-        slice3 = Slice.first(:name => 'slice3')
+        ultraslice3 = Ultraslice.first(:name => 'ultraslice3')
 
-        slice3.host.should be_nil
+        ultraslice3.ultrahost.should be_nil
       end
 
       it 'should add and save the associated instance' do
-        host1 = Host.first(:name => 'host1')
-        host1.slices << Slice.new(:id => 4, :name => 'slice4')
-        host1.save
+        ultrahost1 = Ultrahost.first(:name => 'ultrahost1')
+        ultrahost1.ultraslices << Ultraslice.new(:id => 4, :name => 'ultraslice4')
+        ultrahost1.save
 
-        Slice.first(:name => 'slice4').host.should == host1
+        Ultraslice.first(:name => 'ultraslice4').ultrahost.should == ultrahost1
       end
 
       it 'should not save the associated instance if the parent is not saved' do
-        h = Host.new(:id => 10, :name => 'host10')
-        h.slices << Slice.new(:id => 10, :name => 'slice10')
+        h = Ultrahost.new(:id => 10, :name => 'ultrahost10')
+        h.ultraslices << Ultraslice.new(:id => 10, :name => 'ultraslice10')
 
-        Slice.first(:name => 'slice10').should be_nil
+        Ultraslice.first(:name => 'ultraslice10').should be_nil
       end
 
       it 'should save the associated instance upon saving of parent' do
-        h = Host.new(:id => 10, :name => 'host10')
-        h.slices << Slice.new(:id => 10, :name => 'slice10')
+        h = Ultrahost.new(:id => 10, :name => 'ultrahost10')
+        h.ultraslices << Ultraslice.new(:id => 10, :name => 'ultraslice10')
         h.save
 
-        s = Slice.first(:name => 'slice10')
+        s = Ultraslice.first(:name => 'ultraslice10')
 
         s.should_not be_nil
-        s.host.should == h
+        s.ultrahost.should == h
       end
 
       it 'should save the associated instances upon saving of parent when mass-assigned' do
-        h = Host.create!(:id => 10, :name => 'host10', :slices => [ Slice.new(:id => 10, :name => 'slice10') ])
+        h = Ultrahost.create!(:id => 10, :name => 'ultrahost10', :ultraslices => [ Ultraslice.new(:id => 10, :name => 'ultraslice10') ])
 
-        s = Slice.first(:name => 'slice10')
+        s = Ultraslice.first(:name => 'ultraslice10')
 
         s.should_not be_nil
-        s.host.should == h
+        s.ultrahost.should == h
       end
 
       it 'should have finder-functionality' do
-        h = Host.first(:name => 'host1')
+        h = Ultrahost.first(:name => 'ultrahost1')
 
-        h.slices.should have(2).entries
+        h.ultraslices.should have(2).entries
 
-        s = h.slices.all(:name => 'slice2')
+        s = h.ultraslices.all(:name => 'ultraslice2')
 
         s.should have(1).entries
         s.first.id.should == 2
 
-        h.slices.first(:name => 'slice2').should == s.first
+        h.ultraslices.first(:name => 'ultraslice2').should == s.first
       end
 
       it 'should be reloaded when calling Resource#reload' do
-        host = Host.first(:name => 'host1')
-        host.send(:slices_association).should_receive(:reload).once
-        lambda { host.reload }.should_not raise_error
+        ultrahost = Ultrahost.first(:name => 'ultrahost1')
+        ultrahost.send(:ultraslices_association).should_receive(:reload).once
+        lambda { ultrahost.reload }.should_not raise_error
       end
     end
 
@@ -594,7 +594,7 @@ if ADAPTER
               has n, :recipes,     :through => :cakes       # has n => has 1
               has n, :ingredients, :through => :cakes       # has n => has 1 => has n
               has n, :creators,    :through => :cakes       # has n => has 1 => has 1
-              has n, :slices,      :through => :cakes       # has n => has n
+              has n, :ultraslices,      :through => :cakes       # has n => has n
               has n, :bites,       :through => :cakes       # has n => has n => has n
               has n, :shapes,      :through => :cakes       # has n => has n => has 1
               has n, :customers,   :through => :cakes       # has n => belongs_to (pending)
@@ -697,12 +697,12 @@ if ADAPTER
               property :name, String
               belongs_to :shop
               belongs_to :customer
-              has n, :slices
-              has n, :bites,       :through => :slices
+              has n, :ultraslices
+              has n, :bites,       :through => :ultraslices
               has 1, :recipe
               has n, :ingredients, :through => :recipe
               has 1, :creator,     :through => :recipe
-              has n, :shapes,      :through => :slices
+              has n, :shapes,      :through => :ultraslices
             end
 
             class Recipe
@@ -747,7 +747,7 @@ if ADAPTER
               belongs_to :recipe
             end
 
-            class Slice
+            class Ultraslice
               include DataMapper::Resource
               def self.default_repository_name
                 ADAPTER
@@ -766,7 +766,7 @@ if ADAPTER
               end
               property :id, Serial
               property :name, String
-              belongs_to :slice
+              belongs_to :ultraslice
             end
 
             class Bite
@@ -776,7 +776,7 @@ if ADAPTER
               end
               property :id, Serial
               property :name, String
-              belongs_to :slice
+              belongs_to :ultraslice
             end
 
             DataMapper::Resource.descendants.each do |descendant|
@@ -833,31 +833,31 @@ if ADAPTER
 
             # has n => has n
 
-            10.times do |i| german_chocolate.slices << Slice.new(:size => i) end
-            5.times do |i| short_cake.slices << Slice.new(:size => i) end
-            german_chocolate.slices.size.should == 10
+            10.times do |i| german_chocolate.ultraslices << Ultraslice.new(:size => i) end
+            5.times do |i| short_cake.ultraslices << Ultraslice.new(:size => i) end
+            german_chocolate.ultraslices.size.should == 10
             # has n => has n => has 1
 
-            german_chocolate.slices.each do |slice|
+            german_chocolate.ultraslices.each do |ultraslice|
               shape = Shape.new(:name => 'square')
-              slice.shape = shape
+              ultraslice.shape = shape
               shape.save
             end
-            short_cake.slices.each do |slice|
+            short_cake.ultraslices.each do |ultraslice|
               shape = Shape.new(:name => 'round')
-              slice.shape = shape
+              ultraslice.shape = shape
               shape.save
             end
 
             # has n => has n => has n
-            german_chocolate.slices.each do |slice|
+            german_chocolate.ultraslices.each do |ultraslice|
               6.times do |i|
-                slice.bites << Bite.new(:name => "Big bite nr #{i}")
+                ultraslice.bites << Bite.new(:name => "Big bite nr #{i}")
               end
             end
-            short_cake.slices.each do |slice|
+            short_cake.ultraslices.each do |ultraslice|
               3.times do |i|
-                slice.bites << Bite.new(:name => "Small bite nr #{i}")
+                ultraslice.bites << Bite.new(:name => "Small bite nr #{i}")
               end
             end
 
@@ -920,10 +920,10 @@ if ADAPTER
       #
 
       it 'should return the right children for has n => has n relationships' do
-        Sweets::Shop.first.slices.size.should == 15
+        Sweets::Shop.first.ultraslices.size.should == 15
         10.times do |i|
-          Sweets::Shop.first.slices.select do |slice|
-            slice.cake == Sweets::Cake.first(:name => 'German Chocolate') && slice.size == i
+          Sweets::Shop.first.ultraslices.select do |ultraslice|
+            ultraslice.cake == Sweets::Cake.first(:name => 'German Chocolate') && ultraslice.size == i
           end
         end
       end
@@ -941,10 +941,10 @@ if ADAPTER
       it 'should return the right children for has n => has n => has n' do
         Sweets::Shop.first.bites.size.should == 75
         Sweets::Shop.first.bites.select do |bite|
-          bite.slice.cake == Sweets::Cake.first(:name => 'German Chocolate')
+          bite.ultraslice.cake == Sweets::Cake.first(:name => 'German Chocolate')
         end.size.should == 60
         Sweets::Shop.first.bites.select do |bite|
-          bite.slice.cake == Sweets::Cake.first(:name => 'Short Cake')
+          bite.ultraslice.cake == Sweets::Cake.first(:name => 'Short Cake')
         end.size.should == 15
       end
 
