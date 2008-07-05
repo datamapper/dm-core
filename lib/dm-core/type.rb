@@ -86,7 +86,7 @@ module DataMapper
         @primitive = primitive
       end
 
-      #load DataMapper::Property options
+      # Load DataMapper::Property options
       PROPERTY_OPTIONS.each do |property_option|
         self.class_eval <<-EOS, __FILE__, __LINE__
           def #{property_option}(arg = nil)
@@ -97,7 +97,7 @@ module DataMapper
         EOS
       end
 
-      #create property aliases
+      # Create property aliases
       PROPERTY_OPTION_ALIASES.each do |property_option, aliases|
         aliases.each do |ali|
           self.class_eval <<-EOS, __FILE__, __LINE__

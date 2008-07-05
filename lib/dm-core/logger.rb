@@ -213,19 +213,19 @@ module DataMapper
     #  :off only gets a off? method
     LEVELS.each_pair do |name, number|
       unless name.to_s == 'off'
-        class_eval <<-EOS
-        # DOC
-        def #{name}(message)
-          self.<<( prep_msg(message, "#{name}") ) if #{name}?
-        end
+        class_eval <<-EOS, __FILE__, __LINE__
+          # DOC
+          def #{name}(message)
+            self.<<( prep_msg(message, "#{name}") ) if #{name}?
+          end
         EOS
       end
 
-      class_eval <<-EOS
-      # DOC
-      def #{name}?
-        #{number} >= level
-      end
+      class_eval <<-EOS, __FILE__, __LINE__
+        # DOC
+        def #{name}?
+          #{number} >= level
+        end
       EOS
     end
 
