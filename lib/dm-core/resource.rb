@@ -334,11 +334,7 @@ module DataMapper
     # --
     # @api public
     def loaded_attributes
-      names = []
-      properties.each do |property|
-        names << property.name if attribute_loaded?(property.name)
-      end
-      names
+      properties.map{|p| p.name if attribute_loaded?(p.name)}.compact
     end
 
     # set of original values of properties
