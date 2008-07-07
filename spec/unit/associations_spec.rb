@@ -7,7 +7,7 @@ describe "DataMapper::Associations" do
 
     Manufacturer.mock_relationship = Vehicle.mock_relationship = @relationship
   end
-  
+
   describe "#many_to_one_relationships" do
     before :all do
       module MTORelationships
