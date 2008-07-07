@@ -38,7 +38,7 @@ describe "DataMapper::Associations" do
       end
     end
     it "should list all relationships that are one-to-many" do
-      MTORelationships::A.many_to_one_relationships.should == [MTORelationships::A.relationships(:b_db)[:b], MTORelationships::A.relationships(:c_db)[:c]]
+      MTORelationships::A.many_to_one_relationships.sort_by { |r| r.name.to_s }.should == [MTORelationships::A.relationships(:b_db)[:b], MTORelationships::A.relationships(:c_db)[:c]]
     end
   end
 
