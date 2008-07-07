@@ -145,6 +145,7 @@ module DataMapper
       properties = PropertySet.new
       ([ self ] + (respond_to?(:child_classes) ? child_classes : [])).each do |model|
         model.relationships(repository_name).each_value { |relationship| relationship.child_key }
+        model.many_to_one_relationships.each do |relationship| relationship.child_key end
         model.properties(repository_name).each do |property|
           properties << property unless properties.has_property?(property.name)
         end

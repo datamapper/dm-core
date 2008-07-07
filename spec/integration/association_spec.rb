@@ -1,5 +1,75 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
+if HAS_SQLITE3
+  describe DataMapper::Associations do
+    before :all do
+      db1 = File.expand_path(File.join(File.dirname(__FILE__), "custom_db1_sqlite3.db"))
+      db2 = File.expand_path(File.join(File.dirname(__FILE__), "custom_db2_sqlite3.db"))
+      FileUtils.touch(db1)
+      FileUtils.touch(db2)
+      DataMapper.setup(:custom_db1, "sqlite3://#{db1}")
+      DataMapper.setup(:custom_db2, "sqlite3://#{db2}")
+      class CustomParent
+        include DataMapper::Resource
+        def self.default_repository_name
+          :custom_db1
+        end
+        property :id, Serial
+        property :name, String
+        repository(:custom_db2) do
+          has n, :custom_childs
+        end
+      end
+      class CustomChild
+        include DataMapper::Resource
+        def self.default_repository_name
+          :custom_db2
+        end
+        property :id, Serial
+        property :name, String
+        repository(:custom_db1) do
+          belongs_to :custom_parent
+        end
+      end
+      CustomChild.auto_migrate!
+      CustomParent.auto_migrate!
+    end
+    before :each do
+      t = Time.now.to_f
+      parent = CustomParent.create!(:name => "mamma.#{t}")
+      child1 = CustomChild.create!(:name => "son.#{t}")
+      child2 = CustomChild.create!(:name => "dotter.#{t}")
+      parent.custom_childs << child1
+      parent.custom_childs << child2
+      parent.save
+      @parent = CustomParent.first(:name => "mamma.#{t}")
+      @child1 = CustomChild.first(:name => "son.#{t}")
+      @child2 = CustomChild.first(:name => "dotter.#{t}")
+    end
+    it "should be able to handle has_many relationships to other repositories" do
+      @parent.custom_childs.size.should == 2
+      @parent.custom_childs.include?(@child1).should == true
+      @parent.custom_childs.include?(@child2).should == true
+      @parent.custom_childs.delete(@child1)
+      @parent.custom_childs.save
+      @parent.reload
+      @parent.custom_childs.size.should == 1
+      @parent.custom_childs.include?(@child2).should == true
+    end
+    it "should be able to handle belongs_to relationships to other repositories" do
+      @child1.custom_parent.should == @parent
+      @child2.custom_parent.should == @parent
+      @child1.custom_parent = nil
+      @child1.save
+      @child1.reload
+      @child1.custom_parent.should == nil
+      @parent.reload
+      @parent.custom_childs.size.should == 1
+      @parent.custom_childs.include?(@child2).should == true
+    end
+  end
+end
+
 if ADAPTER
   repository(ADAPTER) do
     class Machine

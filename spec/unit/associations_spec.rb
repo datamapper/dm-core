@@ -7,6 +7,40 @@ describe "DataMapper::Associations" do
 
     Manufacturer.mock_relationship = Vehicle.mock_relationship = @relationship
   end
+  
+  describe "#many_to_one_relationships" do
+    before :all do
+      module MTORelationships
+        class A
+          include DataMapper::Resource
+          def self.default_repository_name
+            :a_db
+          end
+          repository(:b_db) do
+            belongs_to :b
+          end
+          repository(:c_db) do
+            belongs_to :c
+          end
+        end
+        class B
+          include DataMapper::Resource
+          def self.default_repository_name
+            :b_db
+          end
+        end
+        class C
+          include DataMapper::Resource
+          def self.default_repository_name
+            :c_db
+          end
+        end
+      end
+    end
+    it "should list all relationships that are one-to-many" do
+      MTORelationships::A.many_to_one_relationships.should == [MTORelationships::A.relationships(:b_db)[:b], MTORelationships::A.relationships(:c_db)[:c]]
+    end
+  end
 
   describe ".relationships" do
     class B

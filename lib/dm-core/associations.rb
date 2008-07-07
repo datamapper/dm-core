@@ -17,6 +17,32 @@ module DataMapper
     class UnsavedParentError < RuntimeError
     end
 
+    # Returns all relationships that are many-to-one for this model.
+    #
+    # Used to find the relationships that require properties in any Repository.
+    #
+    # Example:
+    # class Plur
+    #   include DataMapper::Resource
+    #   def self.default_repository_name
+    #     :plur_db
+    #   end
+    #   repository(:plupp_db) do
+    #     has 1, :plupp
+    #   end
+    # end
+    #
+    # This resource has a many-to-one to the Plupp resource residing in the :plupp_db repository,
+    # but the Plur resource needs the plupp_id property no matter what repository itself lives in,
+    # ie we need to create that property when we migrate etc.
+    #
+    # Used in DataMapper::Model.properties_with_subclasses
+    #
+    # @api private
+    def many_to_one_relationships
+      @relationships.values.collect do |rels| rels.values end.flatten.select do |relationship| relationship.child_model == self end
+    end
+
     def relationships(repository_name = default_repository_name)
       @relationships ||= Hash.new { |h,k| h[k] = k == Repository.default_name ? {} : h[Repository.default_name].dup }
       @relationships[repository_name]
