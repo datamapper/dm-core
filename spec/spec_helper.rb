@@ -113,26 +113,20 @@ class Class
 end
 
 module LoggingHelper
-  def setup_log(adapter, name = 'tmp')
-    @log_dir = File.join(SPEC_ROOT, "log", name)
-    @current_adapter = DataObjects.const_get(repository(adapter).adapter.uri.scheme.capitalize)
-    @old_logger = @current_adapter.logger
-    @current_adapter.logger = DataObjects::Logger.new(@log_dir, 0)
-    @log_handle = File.open(@log_dir, "a+")
-  end
+  def logger(adapter = ADAPTER, &block)
+    current_adapter = DataObjects.const_get(repository(adapter).adapter.uri.scheme.capitalize)
+    old_logger = current_adapter.logger
 
-  def read_log
-    @log_handle.readlines
-  end
-
-  def clear_log
-    @log_handle.truncate(0)
-  end
-
-  def reset_log
-    @current_adapter.logger = @old_logger
-    @log_handle.truncate(0)
-    @log_handle.close
-    File.delete(@log_dir)
+    log_path = File.join(SPEC_ROOT, "log", "tmp.log")
+    handle = File.open(log_path, "a+")
+    current_adapter.logger = DataObjects::Logger.new(log_path, 0)
+    begin
+      yield(handle)
+    ensure
+      handle.truncate(0)
+      handle.close
+      current_adapter.logger = old_logger
+      File.delete(log_path)
+    end
   end
 end

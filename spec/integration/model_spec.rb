@@ -71,21 +71,21 @@ if ADAPTER
       end
 
       it "should use the identity map within a repository block" do
-        setup_log(ADAPTER)
-        repository(ADAPTER) do
-          @moon.get("1")
-          @moon.get(1)
+        logger do |log|
+          repository(ADAPTER) do
+            @moon.get("1")
+            @moon.get(1)
+          end
+          log.readlines.size.should == 1
         end
-        read_log.size.should == 1
-        reset_log
       end
 
       it "should not use the identity map outside a repository block" do
-        setup_log(ADAPTER)
-        @moon.get(1)
-        @moon.get(1)
-        read_log.size.should == 2
-        reset_log
+        logger do |log|
+          @moon.get(1)
+          @moon.get(1)
+          log.readlines.size.should == 2
+        end
       end
     end
 

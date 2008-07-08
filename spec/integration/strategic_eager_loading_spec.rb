@@ -1,23 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-require 'pp'
-
-def hr(word = nil)
-  width = 80
-  return puts("="*width) if word.nil?
-
-  word = "[ #{word.upcase} ]"
-  middle = width/2
-  middle_word = word.size/2
-  end_word = middle + middle_word
-  print '='*(end_word - word.size), word, '='*(width - end_word), "\n"
-end
-
 describe "Strategic Eager Loading" do
   include LoggingHelper
 
   before :all do
-    setup_log(ADAPTER)
     class Zoo
       include DataMapper::Resource
       def self.default_repository_name; ADAPTER end
@@ -68,13 +54,6 @@ describe "Strategic Eager Loading" do
       Animal.create(:name => "Roach", :exhibit_id => 3)
       Animal.create(:name => "Brown Bear", :exhibit_id => 4)
     end
-
-    clear_log
-
-  end
-
-  after :all do
-    reset_log
   end
 
   it "should eager load children" do
@@ -90,9 +69,10 @@ describe "Strategic Eager Loading" do
       repository.identity_map(Zoo).keys.sort.should == zoo_ids
       repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
 
-      clear_log
-      zoos.each { |zoo| zoo.exhibits.entries } # issues no queries
-      read_log.should be_empty
+      logger do |log|
+        zoos.each { |zoo| zoo.exhibits.entries } # issues no queries
+        log.readlines.should be_empty
+      end
 
       dallas.exhibits << Exhibit.new(:name => "Reptiles")
       dallas.exhibits.size.should == 2
@@ -108,13 +88,16 @@ describe "Strategic Eager Loading" do
       dallas = Zoo.all.entries.find { |z| z.name == 'Dallas Zoo' }
       exhibits = dallas.exhibits.entries # load all exhibits
 
-      clear_log
-      reptiles = dallas.exhibits(:name => 'Reptiles')
-      reptiles.size.should == 1
-      primates = dallas.exhibits(:name => 'Primates')
-      primates.size.should == 1
-      primates.should_not == reptiles
-      read_log.size.should == 2
+      logger do |log|
+        reptiles = dallas.exhibits(:name => 'Reptiles')
+        reptiles.size.should == 1
+
+        primates = dallas.exhibits(:name => 'Primates')
+        primates.size.should == 1
+        primates.should_not == reptiles
+
+        log.readlines.size.should == 2
+      end
     end
   end
 
@@ -137,9 +120,10 @@ describe "Strategic Eager Loading" do
       animal = Animal.first
       exhibit = Exhibit.get(1) # load exhibit into IM
 
-      clear_log
-      animal.exhibit # load exhibit from IM
-      read_log.size.should == 0
+      logger do |log|
+        animal.exhibit # load exhibit from IM
+        log.readlines.should be_empty
+      end
       repository.identity_map(Exhibit).keys.should == [exhibit.key]
     end
   end
