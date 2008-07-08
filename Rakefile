@@ -82,6 +82,13 @@ if WINDOWS
   task :install => :gem do
     system %{gem install --no-rdoc --no-ri -l pkg/#{NAME}-#{DataMapper::VERSION}.gem}
   end
+  namespace :dev do
+    desc 'Install for development (for windows)'
+    task :winstall => :gem do
+      warn "You can now call 'rake install' instead of 'rake dev:winstall'."
+      system %{gem install --no-rdoc --no-ri -l pkg/#{NAME}-#{DataMapper::VERSION}.gem}
+    end
+  end
 else
   task :install => :package do
     sh %{gem install --local pkg/#{NAME}-#{DataMapper::VERSION}.gem}
