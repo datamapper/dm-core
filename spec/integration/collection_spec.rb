@@ -515,6 +515,12 @@ if ADAPTER
             resource.id.should == @nancy.id
           end
 
+          it "should find a resource in a collection by typecasting the key" do
+            resource = @collection.get(@nancy.key.to_s)
+            resource.should be_kind_of(DataMapper::Resource)
+            resource.id.should == @nancy.id
+          end
+
           it 'should not find a resource not in the collection' do
             @query.update(:offset => 0, :limit => 3)
             @david = Zebra.create!(:name => 'David', :age => 15,  :notes => 'Albino')

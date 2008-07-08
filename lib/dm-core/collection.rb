@@ -50,6 +50,7 @@ module DataMapper
     #
     # @api public
     def get(*key)
+      key = model.typecast_key(key)
       if loaded?
         # loop over the collection to find the matching resource
         detect { |resource| resource.key == key }

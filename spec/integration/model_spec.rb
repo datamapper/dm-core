@@ -20,18 +20,27 @@ if ADAPTER
       repository(ADAPTER) do
         ModelSpec::STI.auto_migrate!
       end
+
+      @planet = DataMapper::Model.new('planet') do
+        property :name, String, :key => true
+        property :distance, Integer
+      end
+
+      @moon   = DataMapper::Model.new('moon') do
+        property :id, DM::Serial
+        property :name, String
+      end
+
+      @planet.auto_migrate!(ADAPTER)
+      @moon.auto_migrate!(ADAPTER)
+
+      repository(ADAPTER) do
+        @moon.create(:name => "Charon")
+        @moon.create(:name => "Phobos")
+      end
     end
 
     describe '.new' do
-      before :all do
-        @planet = DataMapper::Model.new('planet') do
-          property :name, String, :key => true
-          property :distance, Integer
-        end
-
-        @planet.auto_migrate!(ADAPTER)
-      end
-
       it 'should be able to persist' do
         repository(ADAPTER) do
           pluto = @planet.new
@@ -43,6 +52,18 @@ if ADAPTER
           clone.name.should == 'Pluto'
           clone.distance.should == 1_000_000
         end
+      end
+    end
+
+    describe ".get" do
+      it "should typecast key" do
+        resource = nil
+        lambda {
+          repository(ADAPTER) do
+            resource = @moon.get("1")
+          end
+        }.should_not raise_error
+        resource.should be_kind_of(DataMapper::Resource)
       end
     end
 

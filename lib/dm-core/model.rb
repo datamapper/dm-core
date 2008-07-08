@@ -166,6 +166,7 @@ module DataMapper
     end
 
     def get(*key)
+      key = typecast_key(key)
       repository.identity_map(self).get(key) || first(to_query(repository, key))
     end
 
@@ -291,6 +292,10 @@ module DataMapper
     def to_query(repository, key, query = {})
       conditions = Hash[ *self.key(repository.name).zip(key).flatten ]
       Query.new(repository, self, query.merge(conditions))
+    end
+
+    def typecast_key(key)
+      self.key(repository.name).zip(key).map { |k, v| k.typecast(v) }
     end
 
     private

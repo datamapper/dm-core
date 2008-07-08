@@ -264,7 +264,8 @@ module DataMapper
       Time,
       Object,
       Class,
-      DataMapper::Types::Discriminator
+      DataMapper::Types::Discriminator,
+      DataMapper::Types::Serial
     ]
 
     IMMUTABLE_TYPES = [ TrueClass, Float, Integer, BigDecimal]
@@ -438,12 +439,13 @@ module DataMapper
     #-
     # @api private
     def typecast(value)
-      return value if value.kind_of?(type) || value.nil?
+      return type.typecast(value, self) if type.respond_to?(:typecast)
+      return value if value.kind_of?(primitive) || value.nil?
       begin
-        if    type == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
-        elsif type == String     then value.to_s
-        elsif type == Float      then value.to_f
-        elsif type == Integer
+        if    primitive == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
+        elsif primitive == String     then value.to_s
+        elsif primitive == Float      then value.to_f
+        elsif primitive == Integer
           # The simplest possible implementation, i.e. value.to_i, is not
           # desirable because "junk".to_i gives "0". We want nil instead,
           # because this makes it clear that the typecast failed.
@@ -463,11 +465,11 @@ module DataMapper
           else
             value_to_i
           end
-        elsif type == BigDecimal then BigDecimal(value.to_s)
-        elsif type == DateTime   then typecast_to_datetime(value)
-        elsif type == Date       then typecast_to_date(value)
-        elsif type == Time       then typecast_to_time(value)
-        elsif type == Class      then self.class.find_const(value)
+        elsif primitive == BigDecimal then BigDecimal(value.to_s)
+        elsif primitive == DateTime   then typecast_to_datetime(value)
+        elsif primitive == Date       then typecast_to_date(value)
+        elsif primitive == Time       then typecast_to_time(value)
+        elsif primitive == Class      then self.class.find_const(value)
         else
           value
         end

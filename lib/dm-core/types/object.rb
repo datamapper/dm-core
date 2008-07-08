@@ -8,6 +8,10 @@ module DataMapper
       lazy true
       track :hash
 
+      def self.typecast(value, property)
+        value
+      end
+
       def self.dump(value, property)
         Base64.encode64(Marshal.dump(value))
       end
