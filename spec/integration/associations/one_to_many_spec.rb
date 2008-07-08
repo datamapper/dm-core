@@ -9,8 +9,12 @@ describe "OneToMany" do
 
       property :id, Serial
       property :name, String
+      property :class_type, Discriminator
 
       has n, :players
+    end
+
+    class BaseballTeam < Team
     end
 
     class Player
@@ -27,6 +31,7 @@ describe "OneToMany" do
     [Team, Player].each { |k| k.auto_migrate!(ADAPTER) }
 
     Team.create!(:name => "Cowboys")
+    BaseballTeam.create!(:name => "Giants")
   end
 
   it "unsaved parent model should accept array of hashes for association" do
@@ -42,7 +47,7 @@ describe "OneToMany" do
     team.save
 
     repository(ADAPTER) do
-      Team.get(2).players.should == players
+      Team.get(3).players.should == players
     end
   end
 
@@ -61,6 +66,17 @@ describe "OneToMany" do
 
     repository(ADAPTER) do
       Team.get(1).players.should == players
+    end
+  end
+
+  describe "STI" do
+    it "should work" do
+      repository(ADAPTER) do
+        Player.create(:name => "Barry Bonds", :team => BaseballTeam.first)
+      end
+      repository(ADAPTER) do
+        Player.first.team.should == BaseballTeam.first
+      end
     end
   end
 end

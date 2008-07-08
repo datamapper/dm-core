@@ -22,8 +22,12 @@ if ADAPTER
 
       property :id,   Serial
       property :name, String
+      property :type, Discriminator
 
       belongs_to :parent, :class_name => 'ManyToOneSpec::Parent'
+    end
+
+    class StepChild < Child
     end
   end
 
@@ -32,10 +36,34 @@ if ADAPTER
       ManyToOneSpec::Parent.auto_migrate!
       ManyToOneSpec::Child.auto_migrate!
 
-      @parent      = ManyToOneSpec::Parent.create(:name => 'parent')
-      @child       = ManyToOneSpec::Child.create(:name => 'child', :parent => @parent)
-      @other       = ManyToOneSpec::Parent.create(:name => 'other parent')
-      @association = @child.parent
+      repository(ADAPTER) do
+        @parent      = ManyToOneSpec::Parent.create(:name => 'parent')
+        @child       = ManyToOneSpec::Child.create(:name => 'child', :parent => @parent)
+        @other       = ManyToOneSpec::Parent.create(:name => 'other parent')
+        @step_child  = ManyToOneSpec::StepChild.create(:name => 'step child', :parent => @other)
+        @association = @child.parent
+      end
+    end
+
+    describe "#association_accessor (STI)" do
+      include LoggingHelper
+
+      it "should set parent" do
+        ManyToOneSpec::StepChild.first.parent.should == @other
+      end
+
+      it "should use the identity map for STI" do
+        repository(ADAPTER) do |r|
+          child = ManyToOneSpec::Child.first
+          step_child = ManyToOneSpec::StepChild.first
+          logger do |log|
+            child.parent
+            step_child.parent
+            step_child.parent
+            log.readlines.size.should == 1
+          end
+        end
+      end
     end
 
     describe '#replace' do
