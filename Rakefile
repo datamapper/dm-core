@@ -12,73 +12,14 @@ CLEAN.include '{coverage,doc,log}/', 'profile_results.*'
 
 ROOT = Pathname(__FILE__).dirname.expand_path
 
+NAME = "dm-core"
+
+require "lib/dm-core/version"
 Pathname.glob(ROOT + 'tasks/**/*.rb') { |t| require t }
 
-task :default => 'dm:spec'
-task :spec    => 'dm:spec'
-task :rcov    => 'dm:rcov'
-
-namespace :spec do
-  task :unit        => 'dm:spec:unit'
-  task :integration => 'dm:spec:integration'
-end
-
-namespace :rcov do
-  task :unit        => 'dm:rcov:unit'
-  task :integration => 'dm:rcov:integration'
-end
-
-namespace :dm do
-  def run_spec(name, files, rcov)
-    Spec::Rake::SpecTask.new(name) do |t|
-      t.spec_opts << '--colour' << '--loadby' << 'random'
-      t.spec_files = Pathname.glob(ENV['FILES'] || files)
-      t.rcov = rcov
-      t.rcov_opts << '--exclude' << 'spec,environment.rb'
-      t.rcov_opts << '--text-summary'
-      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-      t.rcov_opts << '--only-uncovered'
-    end
-  end
-
-  unit_specs = ROOT + 'spec/unit/**/*_spec.rb'
-  integration_specs = ROOT + 'spec/integration/**/*_spec.rb'
-  all_specs = ROOT + 'spec/**/*_spec.rb'
-
-  desc "Run all specifications"
-  run_spec('spec', all_specs, false)
-
-  desc "Run all specifications with rcov"
-  run_spec('rcov', all_specs, true)
-
-  namespace :spec do
-    desc "Run unit specifications"
-    run_spec('unit', unit_specs, false)
-
-    desc "Run integration specifications"
-    run_spec('integration', integration_specs, false)
-  end
-
-  namespace :rcov do
-    desc "Run unit specifications with rcov"
-    run_spec('unit', unit_specs, true)
-
-    desc "Run integration specifications with rcov"
-    run_spec('integration', integration_specs, true)
-  end
-
-  desc "Run all comparisons with ActiveRecord"
-  task :perf do
-    sh ROOT + 'script/performance.rb'
-  end
-
-  desc "Profile DataMapper"
-  task :profile do
-    sh ROOT + 'script/profile.rb'
-  end
-end
-
-PACKAGE_VERSION = '0.9.3'
+##############################################################################
+# Packaging & Installation
+##############################################################################
 
 PACKAGE_FILES = [
   'README',
@@ -97,39 +38,16 @@ DOCUMENTED_FILES = PACKAGE_FILES.reject do |path|
   path.directory? || path.to_s.match(/(?:^spec|\/spec|\/swig\_)/)
 end
 
-PROJECT = "dm-core"
-
-# when yard's ready, it'll have to come back, but for now...
-Rake::RDocTask.new("doc") do |t|
-  t.rdoc_dir = 'doc'
-  t.title    = "DataMapper - Ruby Object Relational Mapper"
-  t.options  = ['--line-numbers', '--inline-source', '--all']
-  t.rdoc_files.include("README", "QUICKLINKS", "FAQ", "lib/**/**/*.rb")
-end
-
-begin
-  gem 'yard', '>=0.2.1'
-  require 'yard'
-
-  YARD::Rake::YardocTask.new("yardoc") do |t|
-    t.options << '--protected'
-    # t.options << '-q'
-    # t.files << '...anyglobshere...'
-  end
-rescue Exception
-  # yard not installed
-end
-
 gem_spec = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
-  s.name = PROJECT
+  s.name = NAME
   s.summary = "An Object/Relational Mapper for Ruby"
   s.description = "Faster, Better, Simpler."
-  s.version = PACKAGE_VERSION
+  s.version = DataMapper::VERSION
 
   s.authors = "Sam Smoot"
   s.email = "ssmoot@gmail.com"
-  s.rubyforge_project = PROJECT
+  s.rubyforge_project = NAME
   s.homepage = "http://datamapper.org"
 
   s.files = PACKAGE_FILES.map { |f| f.to_s }
@@ -158,87 +76,14 @@ task :rubyforge => [ :yardoc, :gem ] do
 end
 
 WINDOWS = (RUBY_PLATFORM =~ /win32|mingw|bccwin|cygwin/) rescue nil
-SUDO    = WINDOWS ? '' : ('sudo' unless ENV['SUDOLESS'])
 
-desc "Install #{PROJECT}"
-task :install => :package do
-  sh %{#{SUDO} gem install --local pkg/#{PROJECT}-#{PACKAGE_VERSION} --no-update-sources}
-end
-
+desc "Install #{NAME}"
 if WINDOWS
-  namespace :dev do
-    desc 'Install for development (for windows)'
-    task :winstall => :gem do
-      system %{gem install --no-rdoc --no-ri -l pkg/#{PROJECT}-#{PACKAGE_VERSION}.gem}
-    end
+  task :install => :gem do
+    system %{gem install --no-rdoc --no-ri -l pkg/#{NAME}-#{DataMapper::VERSION}.gem}
+  end
+else
+  task :install => :package do
+    sh %{gem install --local pkg/#{NAME}-#{DataMapper::VERSION}.gem}
   end
 end
-
-task 'ci:doc' => :doc
-
-namespace :ci do
-
-  task :prepare do
-    rm_rf ROOT + "ci"
-    mkdir_p ROOT + "ci"
-    mkdir_p ROOT + "ci/doc"
-    mkdir_p ROOT + "ci/cyclomatic"
-    mkdir_p ROOT + "ci/token"
-  end
-
-  Spec::Rake::SpecTask.new("spec:unit" => :prepare) do |t|
-    t.spec_opts = ["--format", "specdoc", "--format", "html:#{ROOT}/ci/unit_rspec_report.html", "--diff"]
-    t.spec_files = Pathname.glob(ROOT + "spec/unit/**/*_spec.rb")
-    unless ENV['NO_RCOV']
-      t.rcov = true
-      t.rcov_opts << '--exclude' << "spec,gems"
-      t.rcov_opts << '--text-summary'
-      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-      t.rcov_opts << '--only-uncovered'
-    end
-  end
-
-  Spec::Rake::SpecTask.new("spec:integration" => :prepare) do |t|
-    t.spec_opts = ["--format", "specdoc", "--format", "html:#{ROOT}/ci/integration_rspec_report.html", "--diff"]
-    t.spec_files = Pathname.glob(ROOT + "spec/integration/**/*_spec.rb")
-    unless ENV['NO_RCOV']
-      t.rcov = true
-      t.rcov_opts << '--exclude' << "spec,gems"
-      t.rcov_opts << '--text-summary'
-      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-      t.rcov_opts << '--only-uncovered'
-    end
-  end
-
-  task :spec do
-    Rake::Task["ci:spec:unit"].invoke
-    mv ROOT + "coverage", ROOT + "ci/unit_coverage"
-
-    Rake::Task["ci:spec:integration"].invoke
-    mv ROOT + "coverage", ROOT + "ci/integration_coverage"
-  end
-
-  task :saikuro => :prepare do
-    system "saikuro -c -i lib -y 0 -w 10 -e 15 -o ci/cyclomatic"
-    mv 'ci/cyclomatic/index_cyclo.html', 'ci/cyclomatic/index.html'
-
-    system "saikuro -t -i lib -y 0 -w 20 -e 30 -o ci/token"
-    mv 'ci/token/index_token.html', 'ci/token/index.html'
-  end
-
-  task :publish do
-    out = ENV['CC_BUILD_ARTIFACTS'] || "out"
-    mkdir_p out unless File.directory? out
-
-    mv "ci/unit_rspec_report.html", "#{out}/unit_rspec_report.html"
-    mv "ci/unit_coverage", "#{out}/unit_coverage"
-    mv "ci/integration_rspec_report.html", "#{out}/integration_rspec_report.html"
-    mv "ci/integration_coverage", "#{out}/integration_coverage"
-    mv "ci/doc", "#{out}/doc"
-    mv "ci/cyclomatic", "#{out}/cyclomatic_complexity"
-    mv "ci/token", "#{out}/token_complexity"
-  end
-end
-
-#task :ci => %w[ ci:spec ci:doc ci:saikuro install ci:publish ]  # yard-related tasks do not work yet
-task :ci => %w[ ci:spec ci:saikuro install ]
