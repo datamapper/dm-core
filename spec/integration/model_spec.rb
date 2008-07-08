@@ -22,11 +22,13 @@ if ADAPTER
       end
 
       @planet = DataMapper::Model.new('planet') do
+        def self.default_repository_name; ADAPTER end
         property :name, String, :key => true
         property :distance, Integer
       end
 
       @moon   = DataMapper::Model.new('moon') do
+        def self.default_repository_name; ADAPTER end
         property :id, DM::Serial
         property :name, String
       end
@@ -56,6 +58,8 @@ if ADAPTER
     end
 
     describe ".get" do
+      include LoggingHelper
+
       it "should typecast key" do
         resource = nil
         lambda {
@@ -64,6 +68,24 @@ if ADAPTER
           end
         }.should_not raise_error
         resource.should be_kind_of(DataMapper::Resource)
+      end
+
+      it "should use the identity map within a repository block" do
+        setup_log(ADAPTER)
+        repository(ADAPTER) do
+          @moon.get("1")
+          @moon.get(1)
+        end
+        read_log.size.should == 1
+        reset_log
+      end
+
+      it "should not use the identity map outside a repository block" do
+        setup_log(ADAPTER)
+        @moon.get(1)
+        @moon.get(1)
+        read_log.size.should == 2
+        reset_log
       end
     end
 

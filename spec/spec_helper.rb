@@ -3,7 +3,8 @@ gem 'rspec', '>=1.1.3'
 require 'spec'
 require 'pathname'
 
-require Pathname(__FILE__).dirname.expand_path.parent + 'lib/dm-core'
+SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
+require SPEC_ROOT.parent + 'lib/dm-core'
 require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
 
 # setup mock adapters
@@ -108,5 +109,30 @@ class Class
         protected(*saved_protected_instance_methods)
       end
     end
+  end
+end
+
+module LoggingHelper
+  def setup_log(adapter, name = 'tmp')
+    @log_dir = File.join(SPEC_ROOT, "log", name)
+    @current_adapter = DataObjects.const_get(repository(adapter).adapter.uri.scheme.capitalize)
+    @old_logger = @current_adapter.logger
+    @current_adapter.logger = DataObjects::Logger.new(@log_dir, 0)
+    @log_handle = File.open(@log_dir, "a+")
+  end
+
+  def read_log
+    @log_handle.readlines
+  end
+
+  def clear_log
+    @log_handle.truncate(0)
+  end
+
+  def reset_log
+    @current_adapter.logger = @old_logger
+    @log_handle.truncate(0)
+    @log_handle.close
+    File.delete(@log_dir)
   end
 end
