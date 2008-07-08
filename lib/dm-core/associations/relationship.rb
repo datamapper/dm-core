@@ -91,7 +91,7 @@ module DataMapper
             association = parent.send(association_accessor)
             parents_children = association.instance_variable_get(:@children)
             query = collection.query
-            query.conditions[0][2] = *children.map { |child| child_key.get(child) }
+            query.conditions[0][2] = *children.map { |child| child_key.get(child) }.uniq
             parents_children = Collection.new(query) do |collection|
               children.each { |child| collection.send(:add, child) }
             end
