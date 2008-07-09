@@ -1,9 +1,9 @@
 module DataMapper
   ##
-  # 
+  #
   # DataMapper's DependencyQueue is used to store callbacks for classes which
   # may or may not be loaded already.
-  # 
+  #
   class DependencyQueue
     def initialize
       @dependencies = Hash.new { |h,k| h[k] = [] }
@@ -13,7 +13,7 @@ module DataMapper
       @dependencies[class_name] << callback
       resolve!
     end
-    
+
     def resolve!
       @dependencies.each do |class_name, callbacks|
         next unless Object.const_defined?(class_name)

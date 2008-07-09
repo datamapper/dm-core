@@ -24,7 +24,7 @@ describe "DataMapper::DependencyQueue" do
       @dependencies['Zoo'].first.call.should == true
     end
   end
-  
+
   describe "#resolve!" do
     describe "(when dependency is not defined)" do
       it "should not alter @dependencies" do
