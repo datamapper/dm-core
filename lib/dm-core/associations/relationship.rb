@@ -18,7 +18,7 @@ module DataMapper
               parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model))
               property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
 
-              if model_properties[property_name]
+              if model_properties.has_property?(property_name)
                 model_properties[property_name]
               else
                 attributes = {}

@@ -214,9 +214,9 @@ module DataMapper
       options.each do |key, value|
         case key
           when DataMapper::Query::Operator
-            options[key] = properties[key.target].type.dump(value, properties[key.target]) if !properties[key.target].nil? && properties[key.target].custom?
+            options[key] = properties[key.target].type.dump(value, properties[key.target]) if properties.has_property?(key.target) && properties[key.target].custom?
           when Symbol, String
-            options[key] = properties[key].type.dump(value, properties[key]) if !properties[key].nil? && properties[key].custom?
+            options[key] = properties[key].type.dump(value, properties[key]) if properties.has_property?(key) && properties[key].custom?
         end
       end
     end

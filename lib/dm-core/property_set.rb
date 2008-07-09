@@ -4,10 +4,12 @@ module DataMapper
     include Enumerable
 
     def [](name)
-      @property_for[name]
+      @property_for[name] || raise(ArgumentError, "Unknown property '#{name}'", caller)
     end
 
-    alias has_property? []
+    def has_property?(name)
+      !!@property_for[name]
+    end
 
     def slice(*names)
       @property_for.values_at(*names)
