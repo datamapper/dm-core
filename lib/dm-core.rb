@@ -35,6 +35,7 @@ require dir / 'support'
 require dir / 'resource'
 require dir / 'model'
 
+require dir / 'dependency_queue'
 require dir / 'type'
 require dir / 'type_map'
 require dir / 'types'
