@@ -15,7 +15,7 @@ module DataMapper
 
             child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
               # TODO: use something similar to DM::NamingConventions to determine the property name
-              parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model))
+              parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.name))
               property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
 
               if model_properties.has_property?(property_name)
@@ -170,6 +170,16 @@ module DataMapper
         @parent_model      = parent_model
         @parent_properties = parent_properties  # may be nil
         @options           = options
+
+        # attempt to load the child_key if the parent and child model constants are defined
+        if model_defined?(@child_model) && model_defined?(@parent_model)
+          child_key
+        end
+      end
+
+      def model_defined?(model)
+        # TODO: figure out other ways to see if the model is loaded
+        model.kind_of?(Class)
       end
     end # class Relationship
   end # module Associations
