@@ -29,14 +29,14 @@ module DataMapper
     end
 
     def self.extended(model)
-      model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.instance_eval { default_storage_name }) })
+      model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.send(:default_storage_name)) })
       model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
       extra_extensions.each { |extension| model.extend(extension) }
     end
 
     def inherited(target)
       target.instance_variable_set(:@storage_names, @storage_names.dup)
-      target.instance_variable_set(:@properties, Hash.new { |h,k| h[k] = k == Repository.default_name ? self.properties(Repository.default_name).dup(target) : h[Repository.default_name].dup })
+      target.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? self.properties(k).dup(target) : h[Repository.default_name].dup })
 
       if @relationships
         @relationships.each_pair do |repos, rels|
@@ -338,7 +338,7 @@ module DataMapper
         end
       EOS
 
-      if property.primitive == TrueClass && !property.model.instance_methods.include?(property.name.to_s)
+      if property.primitive == TrueClass && !instance_methods.include?(property.name.to_s)
         class_eval <<-EOS, __FILE__, __LINE__
           #{property.reader_visibility}
           alias #{property.name} #{property.getter}
@@ -348,7 +348,7 @@ module DataMapper
 
     # defines the setter for the property
     def create_property_setter(property)
-      unless instance_methods.include?(property.name.to_s + '=')
+      unless instance_methods.include?("#{property.name}=")
         class_eval <<-EOS, __FILE__, __LINE__
           #{property.writer_visibility}
           def #{property.name}=(value)

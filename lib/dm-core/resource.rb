@@ -2,6 +2,8 @@ require 'set'
 
 module DataMapper
   module Resource
+    include Assertions
+
     ##
     #
     # Appends a module for inclusion into the model class after
@@ -26,8 +28,6 @@ module DataMapper
     def self.extra_inclusions
       @extra_inclusions ||= []
     end
-
-    include Assertions
 
     # When Resource is included in a class this method makes sure
     # it gets all the methods
