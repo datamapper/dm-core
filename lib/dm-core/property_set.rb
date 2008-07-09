@@ -110,16 +110,6 @@ module DataMapper
       '#<PropertySet:{' + map { |property| property.inspect }.join(',') + '}>'
     end
 
-    def dup(target = nil)
-      return super() unless target
-
-      properties = map do |property|
-        Property.new(target || property.model, property.name, property.type, property.options.dup)
-      end
-
-      self.class.new(properties)
-    end
-
     private
 
     def initialize(properties = [])

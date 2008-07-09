@@ -36,15 +36,24 @@ module DataMapper
 
     def inherited(target)
       target.instance_variable_set(:@storage_names, @storage_names.dup)
-      target.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? self.properties(k).dup(target) : h[Repository.default_name].dup })
+      target.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
+
+      @properties.each do |repository_name,properties|
+        repository(repository_name) do
+          properties.each { |p| target.property(p.name, p.type, p.options.dup) }
+        end
+      end
 
       if @relationships
-        @relationships.each_pair do |repos, rels|
-          rels.each do |name, rel|
-            if rel.options.include?(:max) && rel.options.include?(:min)
-              target.has rel.options.delete(:max), name, rel.options
-            else
-              target.belongs_to name, rel.options
+        @relationships.each do |repository_name,relationships|
+          repository(repository_name) do
+            relationships.each do |name,relationship|
+              options = relationship.options.dup
+              if options.has_key?(:max) && options.has_key?(:min)
+                target.has options.delete(:max), name, options
+              else
+                target.belongs_to name, options
+              end
             end
           end
         end
