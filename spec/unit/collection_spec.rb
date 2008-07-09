@@ -24,6 +24,10 @@ describe DataMapper::Collection do
     @collection.should respond_to(:at)
   end
 
+  it 'should provide #build' do
+    @collection.should respond_to(:build)
+  end
+
   it 'should provide #clear' do
     @collection.should respond_to(:clear)
   end

@@ -319,8 +319,22 @@ module DataMapper
       self
     end
 
+    # builds a new resource and appends it to the collection
+    #
+    # @param Hash[Symbol => Object] attributes attributes which
+    #   the new resource should have.
+    #
+    # @api public
+    def build(attributes = {})
+      repository.scope do
+        resource = model.new(default_attributes.merge(attributes))
+        self << resource
+        resource
+      end
+    end
+
     ##
-    # creates a new array, saves it, and << it onto the collection
+    # creates a new resource, saves it, and appends it to the collection
     #
     # @param Hash[Symbol => Object] attributes attributes which
     #   the new resource should have.

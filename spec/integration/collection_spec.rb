@@ -295,6 +295,32 @@ if ADAPTER
           end
         end
 
+        describe '#build' do
+          it 'should build a new resource' do
+            resource = @collection.build(:name => 'John')
+            resource.should be_kind_of(@model)
+            resource.should be_new_record
+          end
+
+          it 'should append the new resource to the collection' do
+            resource = @collection.build(:name => 'John')
+            resource.should be_new_record
+            resource.collection.object_id.should == @collection.object_id
+            @collection.should include(resource)
+          end
+
+          it 'should use the query conditions to set default values' do
+            resource = @collection.build
+            resource.should be_new_record
+            resource.name.should be_nil
+
+            @collection.query.update(:name => 'John')
+
+            resource = @collection.build
+            resource.name.should == 'John'
+          end
+        end
+
         describe '#clear' do
           it 'should orphan the resource from the collection' do
             entries = @collection.entries
