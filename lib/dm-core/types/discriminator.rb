@@ -10,20 +10,20 @@ module DataMapper
         model = property.model
 
         model.class_eval <<-EOS, __FILE__, __LINE__
-          def self.child_classes
-            @child_classes ||= []
+          def self.descendants
+            @descendants ||= []
           end
 
           after_class_method :inherited, :add_scope_for_discriminator
 
           def self.add_scope_for_discriminator(target)
-            target.send(:scope_stack) << DataMapper::Query.new(target.repository, target, :#{property.name} => target.child_classes << target)
-            propagate_child_classes(target)
+            target.send(:scope_stack) << DataMapper::Query.new(target.repository, target, :#{property.name} => target.descendants << target)
+            propagate_descendants(target)
           end
 
-          def self.propagate_child_classes(target)
-            child_classes << target
-            superclass.send(:propagate_child_classes,target) if superclass.respond_to?(:propagate_child_classes)
+          def self.propagate_descendants(target)
+            descendants << target
+            superclass.send(:propagate_descendants,target) if superclass.respond_to?(:propagate_descendants)
           end
         EOS
       end

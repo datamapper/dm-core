@@ -145,6 +145,16 @@ module DataMapper
         end
       end
 
+      # add the property to the child classes only if the property was
+      # added after the child classes' properties have been copied from
+      # the parent
+      if respond_to?(:descendants)
+        descendants.each do |model|
+          next if model.properties(repository.name).has_property?(name)
+          model.property(name, type, options)
+        end
+      end
+
       property
     end
 
@@ -159,7 +169,7 @@ module DataMapper
     # @api private
     def properties_with_subclasses(repository_name = default_repository_name)
       properties = PropertySet.new
-      ([ self ] + (respond_to?(:child_classes) ? child_classes : [])).each do |model|
+      ([ self ] + (respond_to?(:descendants) ? descendants : [])).each do |model|
         model.relationships(repository_name).each_value { |relationship| relationship.child_key }
         model.many_to_one_relationships.each do |relationship| relationship.child_key end
         model.properties(repository_name).each do |property|
