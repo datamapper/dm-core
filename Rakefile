@@ -91,6 +91,6 @@ if WINDOWS
   end
 else
   task :install => :package do
-    sh %{#{'sudo' unless ENV['SUDOLESS']} gem install --local pkg/#{NAME}-#{DataMapper::VERSION}.gem}
+    sh %{gem install --local pkg/#{NAME}-#{DataMapper::VERSION}.gem}
   end
 end
