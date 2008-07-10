@@ -46,18 +46,13 @@ module DataMapper
       end
 
       if @relationships
+        duped_relationships = Hash.new { |h,k| h[k] = {} }
         @relationships.each do |repository_name,relationships|
-          repository(repository_name) do
-            relationships.each do |name,relationship|
-              options = relationship.options.dup
-              if options.has_key?(:max) && options.has_key?(:min)
-                target.has options.delete(:max), name, options
-              else
-                target.belongs_to name, options
-              end
-            end
+          relationships.each do |name, relationship|
+            duped_relationships[repository_name][name] = relationship.dup
           end
         end
+        target.instance_variable_set(:@relationships, duped_relationships)
       end
     end
 
