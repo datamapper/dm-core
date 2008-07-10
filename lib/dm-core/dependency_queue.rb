@@ -16,8 +16,7 @@ module DataMapper
 
     def resolve!
       @dependencies.each do |class_name, callbacks|
-        next unless Object.const_defined?(class_name)
-        klass = Object.const_get(class_name)
+        next unless klass = Object.find_const(class_name)
         callbacks.each do |callback|
           callback.call(klass)
         end
