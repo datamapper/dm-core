@@ -20,15 +20,15 @@ describe "DataMapper::DependencyQueue" do
 
   describe "#add" do
     it "should store the supplied callback in @dependencies" do
-      @q.add('Zoo') { true }
-      @dependencies['Zoo'].first.call.should == true
+      @q.add('MissingConstant') { true }
+      @dependencies['MissingConstant'].first.call.should == true
     end
   end
 
   describe "#resolve!" do
     describe "(when dependency is not defined)" do
       it "should not alter @dependencies" do
-        @q.add('Zoo') { true }
+        @q.add('MissingConstant') { true }
         old_dependencies = @dependencies.dup
         @q.resolve!
         old_dependencies.should == @dependencies
@@ -37,20 +37,20 @@ describe "DataMapper::DependencyQueue" do
 
     describe "(when dependency is defined)" do
       before :each do
-        @q.add('Zoo') { |klass| klass.instance_variable_set("@resolved", true) } # add before Zoo is loaded
+        @q.add('MissingConstant') { |klass| klass.instance_variable_set("@resolved", true) } # add before MissingConstant is loaded
 
-        class Zoo
+        class MissingConstant
         end
       end
 
       it "should execute stored callbacks" do
         @q.resolve!
-        Zoo.instance_variable_get("@resolved").should == true
+        MissingConstant.instance_variable_get("@resolved").should == true
       end
 
       it "should clear @dependencies" do
         @q.resolve!
-        @dependencies['Zoo'].should be_empty
+        @dependencies['MissingConstant'].should be_empty
       end
     end
   end

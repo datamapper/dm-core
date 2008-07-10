@@ -16,11 +16,14 @@ module DataMapper
 
     def resolve!
       @dependencies.each do |class_name, callbacks|
-        next unless klass = Object.find_const(class_name)
-        callbacks.each do |callback|
-          callback.call(klass)
+        begin
+          klass = Object.find_const(class_name)
+          callbacks.each do |callback|
+            callback.call(klass)
+          end
+          callbacks.clear
+        rescue NameError
         end
-        callbacks.clear
       end
     end
 
