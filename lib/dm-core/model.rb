@@ -169,7 +169,7 @@ module DataMapper
     # @api private
     def properties_with_subclasses(repository_name = default_repository_name)
       properties = PropertySet.new
-      ([ self ] + (respond_to?(:descendants) ? descendants : [])).each do |model|
+      ([ self ].to_set + (respond_to?(:descendants) ? descendants : [])).each do |model|
         model.relationships(repository_name).each_value { |relationship| relationship.child_key }
         model.many_to_one_relationships.each do |relationship| relationship.child_key end
         model.properties(repository_name).each do |property|

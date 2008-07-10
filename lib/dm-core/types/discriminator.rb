@@ -11,19 +11,21 @@ module DataMapper
 
         model.class_eval <<-EOS, __FILE__, __LINE__
           def self.descendants
-            @descendants ||= []
+            (@descendants ||= []).uniq!
+            @descendants
           end
 
           after_class_method :inherited, :add_scope_for_discriminator
 
           def self.add_scope_for_discriminator(target)
-            target.send(:scope_stack) << DataMapper::Query.new(target.repository, target, :#{property.name} => target.descendants << target)
+            target.descendants << target
+            target.send(:scope_stack) << DataMapper::Query.new(target.repository, target, :#{property.name} => target.descendants)
             propagate_descendants(target)
           end
 
           def self.propagate_descendants(target)
             descendants << target
-            superclass.send(:propagate_descendants,target) if superclass.respond_to?(:propagate_descendants)
+            superclass.propagate_descendants(target) if superclass.respond_to?(:propagate_descendants)
           end
         EOS
       end

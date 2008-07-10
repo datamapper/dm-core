@@ -79,26 +79,42 @@ module DataMapper
           query[key] = query_values.empty? ? bind_values : query_values
         end
 
-        ret = []
+        ret = nil
+
         with_repository(parent) do
-          collection = child_model.send(finder, *(args << @query.merge(options).merge(query)))
-          return collection unless Collection === collection
-          grouped_collection = collection.inject({}) do |grouped, model|
-            (grouped[get_parent(model, parent)] ||= []) << model
-            grouped
+          collection = child_model.send(finder, *(args.dup << @query.merge(options).merge(query)))
+          return collection unless collection.kind_of?(Collection) && collection.any?
+
+          grouped_collection = Hash.new { |h,k| h[k] = [] }
+          collection.each do |resource|
+            grouped_collection[get_parent(resource, parent)] << resource
           end
+
           grouped_collection.each do |parent, children|
             association = parent.send(association_accessor)
-            parents_children = association.instance_variable_get(:@children)
-            query = collection.query
-            query.conditions[0][2] = *children.map { |child| child_key.get(child) }.uniq
+
+            query = collection.query.dup
+
+            query.conditions.map! do |operator, property, bind_value|
+              if child_key.has_property?(property.name)
+                bind_value = *children.map { |child| property.get(child) }.uniq
+              end
+              [ operator, property, bind_value ]
+            end
+
             parents_children = Collection.new(query) do |collection|
               children.each { |child| collection.send(:add, child) }
             end
-            parent_key.get(parent) == parent_values ? ret = parents_children : association.instance_variable_set(:@children, parents_children)
+
+            if parent_key.get(parent) == parent_values
+              ret = parents_children
+            else
+              association.instance_variable_set(:@children, parents_children)
+            end
           end
         end
-        ret
+
+        ret || child_model.send(finder, *(args.dup << @query.merge(options).merge(child_key.zip(bind_values).to_hash)))
       end
 
       # @api private

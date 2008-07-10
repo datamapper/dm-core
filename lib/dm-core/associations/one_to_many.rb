@@ -145,10 +145,21 @@ module DataMapper
           self
         end
 
+        def build(attributes = {})
+          assert_mutable
+          attributes = default_attributes.merge(attributes)
+          resource = children.respond_to?(:build) ? super(attributes) : @relationship.child_model.new(attributes)
+          self << resource
+          resource
+        end
+
         def create(attributes = {})
           assert_mutable
           raise UnsavedParentError, 'You cannot create until the parent is saved' if @parent.new_record?
-          super
+          attributes = default_attributes.merge(attributes)
+          resource = children.respond_to?(:create) ? super(attributes) : @relationship.child_model.create(attributes)
+          self << resource
+          resource
         end
 
         def update(attributes = {})
@@ -232,11 +243,24 @@ module DataMapper
           raise ImmutableAssociationError, 'You can not modify this assocation' if children.frozen?
         end
 
-        def add_default_association_values(resource)
-          return if respond_to?(:default_attributes)
+        def default_attributes
+          default_attributes = {}
 
           @relationship.query.each do |attribute, value|
-            next if Query::OPTIONS.include?(attribute) || attribute.kind_of?(Query::Operator) || resource.attribute_loaded?(attribute)
+            next if Query::OPTIONS.include?(attribute) || attribute.kind_of?(Query::Operator)
+            default_attributes[attribute] = value
+          end
+
+          @relationship.child_key.zip(@relationship.parent_key.get(@parent)) do |property,value|
+            default_attributes[property.name] = value
+          end
+
+          default_attributes
+        end
+
+        def add_default_association_values(resource)
+          default_attributes.each do |attribute, value|
+            next if !resource.respond_to?("#{attribute}=") || resource.attribute_loaded?(attribute)
             resource.send("#{attribute}=", value)
           end
         end

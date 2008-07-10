@@ -127,4 +127,12 @@ describe "Strategic Eager Loading" do
       repository.identity_map(Exhibit).keys.should == [exhibit.key]
     end
   end
+
+  it "should return a Collection when no children" do
+    Zoo.create(:name => 'Portland')
+
+    Zoo.all.each do |zoo|
+      zoo.exhibits.should be_kind_of(DataMapper::Collection)
+    end
+  end
 end
