@@ -49,7 +49,10 @@ module DataMapper
         duped_relationships = Hash.new { |h,k| h[k] = {} }
         @relationships.each do |repository_name,relationships|
           relationships.each do |name, relationship|
-            duped_relationships[repository_name][name] = relationship.dup
+            dup = relationship.dup
+            dup.instance_variable_set(:@child_model, target) if dup.instance_variable_get(:@child_model) == self
+            dup.instance_variable_set(:@parent_model, target) if dup.instance_variable_get(:@parent_model) == self
+            duped_relationships[repository_name][name] = dup
           end
         end
         target.instance_variable_set(:@relationships, duped_relationships)
