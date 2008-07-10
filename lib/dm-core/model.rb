@@ -37,6 +37,7 @@ module DataMapper
     def inherited(target)
       target.instance_variable_set(:@storage_names, @storage_names.dup)
       target.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
+      target.instance_variable_set(:@base_model,    self.base_model)
 
       @properties.each do |repository_name,properties|
         repository(repository_name) do
@@ -70,6 +71,10 @@ module DataMapper
       EOS
       model.instance_eval(&block) if block_given?
       model
+    end
+
+    def base_model
+      @base_model ||= self
     end
 
     ##

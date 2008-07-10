@@ -15,7 +15,7 @@ module DataMapper
 
             child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
               # TODO: use something similar to DM::NamingConventions to determine the property name
-              parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.name))
+              parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
               property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
 
               if model_properties.has_property?(property_name)

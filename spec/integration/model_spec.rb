@@ -13,6 +13,9 @@ if ADAPTER
       property :name, String
       property :type, Discriminator
     end
+
+    class STIDescendant < STI
+    end
   end
 
   describe "DataMapper::Model with #{ADAPTER}" do
@@ -85,6 +88,19 @@ if ADAPTER
           @moon.get(1)
           @moon.get(1)
           log.readlines.size.should == 2
+        end
+      end
+    end
+
+    describe ".base_model" do
+      describe "(when called on base model)" do
+        it "should refer to itself" do
+          ModelSpec::STI.base_model.should == ModelSpec::STI
+        end
+      end
+      describe "(when called on descendant model)" do
+        it "should refer to the base model" do
+          ModelSpec::STIDescendant.base_model.should == ModelSpec::STI.base_model
         end
       end
     end
