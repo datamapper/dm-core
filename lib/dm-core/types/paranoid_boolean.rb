@@ -3,6 +3,7 @@ module DataMapper
     class ParanoidBoolean < DataMapper::Type(Boolean)
       primitive TrueClass
       default   false
+      lazy      true
 
       def self.bind(property)
         model = property.model

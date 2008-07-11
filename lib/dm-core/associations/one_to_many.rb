@@ -38,9 +38,12 @@ module DataMapper
 
         model.relationships(repository_name)[name] = if options.has_key?(:through)
           opts = options.dup
-          warn(<<-EOS.margin) if opts.key?(:class_name) && !opts.key?(:child_key)
-          You have speficied #{model.base_model.name}.has(#{opts[:class_name]}) with the :class_name option. You probably also want to specify the :child_key option.
-          EOS
+
+          if opts.key?(:class_name) && !opts.key?(:child_key)
+            warn(<<-EOS.margin)
+              You have specified #{model.base_model.name}.has(#{name.inspect}) with :class_name => #{opts[:class_name].inspect}. You probably also want to specify the :child_key option.
+            EOS
+          end
 
           opts[:child_model]            ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
           opts[:parent_model]             =   model

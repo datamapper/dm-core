@@ -507,8 +507,9 @@ if HAS_POSTGRES
         sfs.should be_a_kind_of(SerialFinderSpec)
         sfs.should_not be_a_new_record
 
-        sfs.instance_variables.should_not include('@sample')
-        sfs.sample.should_not be_nil
+        sfs.attribute_loaded?(:sample).should be_false
+        sfs.sample
+        sfs.attribute_loaded?(:sample).should be_true
       end
 
       it "should translate an Array to an IN clause" do

@@ -2,6 +2,7 @@ module DataMapper
   module Types
     class ParanoidDateTime < DataMapper::Type(DateTime)
       primitive DateTime
+      lazy      true
 
       def self.bind(property)
         model = property.model

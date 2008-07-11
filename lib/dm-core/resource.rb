@@ -585,7 +585,7 @@ module DataMapper
     end
 
     def lazy_load(name)
-      reload_attributes(*properties.lazy_load_context(name))
+      reload_attributes(*properties.lazy_load_context(name) - loaded_attributes)
     end
 
     def child_associations
