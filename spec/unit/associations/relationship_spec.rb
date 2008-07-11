@@ -1,13 +1,10 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe DataMapper::Associations::Relationship do
-  before do
-    @repository = mock('repository', :name => :mock, :save => nil, :kind_of? => true)
-  end
   it "should describe an association" do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
-      @repository,
+      :mock,
       'Vehicle',
       'Manufacturer',
       { :child_key => [ :manufacturer_id ] }
@@ -20,11 +17,9 @@ describe DataMapper::Associations::Relationship do
   end
 
   it "should map properties explicitly when an association method passes them in its options" do
-    repository_name = :mock
-
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
-      @repository,
+      :mock,
       'Vehicle',
       'Manufacturer',
       { :child_key => [ :manufacturer_id ], :parent_key => [ :id ] }
@@ -32,22 +27,20 @@ describe DataMapper::Associations::Relationship do
 
     belongs_to.name.should == :manufacturer
     belongs_to.with_repository do |r|
-      r.name.should == repository_name
+      r.name.should == :mock
     end
 
     belongs_to.child_key.should be_a_kind_of(DataMapper::PropertySet)
     belongs_to.parent_key.should be_a_kind_of(DataMapper::PropertySet)
 
-    belongs_to.child_key.to_a.should == Vehicle.properties(repository_name).slice(:manufacturer_id)
-    belongs_to.parent_key.to_a.should == Manufacturer.properties(repository_name).key
+    belongs_to.child_key.to_a.should == Vehicle.properties(:mock).slice(:manufacturer_id)
+    belongs_to.parent_key.to_a.should == Manufacturer.properties(:mock).key
   end
 
   it "should infer properties when options aren't passed" do
-    repository_name = :mock
-
     has_many = DataMapper::Associations::Relationship.new(
       :models,
-      @repository,
+      :mock,
       'Vehicle',
       'Manufacturer',
       { :child_key => [:model_id] }
@@ -55,14 +48,14 @@ describe DataMapper::Associations::Relationship do
 
     has_many.name.should == :models
     has_many.with_repository do |r|
-      r.name.should == repository_name
+      r.name.should == :mock
     end
 
     has_many.child_key.should be_a_kind_of(DataMapper::PropertySet)
     has_many.parent_key.should be_a_kind_of(DataMapper::PropertySet)
     # Vehicle.has n, :models, :class_name => 'Manufacturer', :child_key => "models_id"
-    has_many.child_key.to_a.should == Vehicle.properties(repository_name).slice(:model_id)
-    has_many.parent_key.to_a.should == Manufacturer.properties(repository_name).key
+    has_many.child_key.to_a.should == Vehicle.properties(:mock).slice(:model_id)
+    has_many.parent_key.to_a.should == Manufacturer.properties(:mock).key
   end
 
   it "should generate child properties with a safe subset of the parent options" do

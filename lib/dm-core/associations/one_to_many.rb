@@ -1,5 +1,3 @@
-require 'forwardable'
-
 module DataMapper
   module Associations
     module OneToMany
@@ -46,7 +44,7 @@ module DataMapper
 
           opts[:child_model]            ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
           opts[:parent_model]             =   model
-          opts[:repository]               =   model.repository
+          opts[:repository_name]          =   repository_name
           opts[:near_relationship_name]   =   opts.delete(:through)
           opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
           opts[:parent_key]               =   opts[:parent_key]
@@ -56,7 +54,7 @@ module DataMapper
         else
           Relationship.new(
             name,
-            model.repository,
+            repository_name,
             options.fetch(:class_name, Extlib::Inflection.classify(name)),
             model,
             options

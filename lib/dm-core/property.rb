@@ -285,16 +285,13 @@ module DataMapper
     # @return <String> name of field in data-store
     # -
     # @api semi-public
-    def field(*args)
-      @options.fetch(:field, repository(*args).adapter.field_naming_convention.call(name))
+    def field(repository_name)
+      @fields ||= Hash.new { |h,k| h[k] = repository(k).adapter.field_naming_convention.call(self.name) }
+      @fields[repository_name]
     end
 
     def unique
       @unique ||= @options.fetch(:unique, @serial || @key || false)
-    end
-
-    def repository(*args)
-      @model.repository(*args)
     end
 
     def hash

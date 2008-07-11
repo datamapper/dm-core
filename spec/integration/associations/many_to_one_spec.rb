@@ -33,8 +33,7 @@ if ADAPTER
 
   describe DataMapper::Associations::ManyToOne::Proxy do
     before do
-      ManyToOneSpec::Parent.auto_migrate!
-      ManyToOneSpec::Child.auto_migrate!
+      [ ManyToOneSpec::Parent, ManyToOneSpec::Child ].each { |model| model.auto_migrate! }
 
       repository(ADAPTER) do
         @parent      = ManyToOneSpec::Parent.create(:name => 'parent')
@@ -54,12 +53,20 @@ if ADAPTER
 
       it "should use the identity map for STI" do
         repository(ADAPTER) do |r|
-          child = ManyToOneSpec::Child.first
+          parent     = ManyToOneSpec::Parent.first
+          child      = ManyToOneSpec::Child.first
           step_child = ManyToOneSpec::StepChild.first
           logger do |log|
-            child.parent
-            step_child.parent
-            step_child.parent
+            # should retrieve from the IdentityMap
+            child.parent.object_id.should == parent.object_id
+
+            # should retrieve from the datasource
+            other = step_child.parent
+
+            # should retrieve from the IdentityMap
+            step_child.parent.should == @other
+            step_child.parent.object_id.should == other.object_id
+
             log.readlines.size.should == 1
           end
         end

@@ -31,20 +31,18 @@ if HAS_SQLITE3
           belongs_to :custom_parent
         end
       end
-      CustomChild.auto_migrate!
-      CustomParent.auto_migrate!
+
     end
     before :each do
-      t = Time.now.to_f
-      parent = CustomParent.create!(:name => "mamma.#{t}")
-      child1 = CustomChild.create!(:name => "son.#{t}")
-      child2 = CustomChild.create!(:name => "dotter.#{t}")
-      parent.custom_childs << child1
-      parent.custom_childs << child2
-      parent.save
-      @parent = CustomParent.first(:name => "mamma.#{t}")
-      @child1 = CustomChild.first(:name => "son.#{t}")
-      @child2 = CustomChild.first(:name => "dotter.#{t}")
+      [ CustomChild, CustomParent ].each { |m| m.auto_migrate! }
+
+      parent = CustomParent.create!(:name => "mother")
+      child1 = parent.custom_childs.create(:name => "son")
+      child2 = parent.custom_childs.create(:name => "daughter")
+
+      @parent = CustomParent.first(:name => "mother")
+      @child1 = CustomChild.first(:name => "son")
+      @child2 = CustomChild.first(:name => "daughter")
     end
     it "should be able to handle has_many relationships to other repositories" do
       @parent.custom_childs.size.should == 2

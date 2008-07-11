@@ -41,7 +41,10 @@ module DataMapper
 
       @properties.each do |repository_name,properties|
         repository(repository_name) do
-          properties.each { |p| target.property(p.name, p.type, p.options.dup) }
+          properties.each do |property|
+            next if target.properties(repository_name).has_property?(property.name)
+            target.property(property.name, property.type, property.options.dup)
+          end
         end
       end
 
@@ -75,6 +78,10 @@ module DataMapper
       @base_model ||= self
     end
 
+    def repository_name
+      Repository.context.any? ? Repository.context.last.name : default_repository_name
+    end
+
     ##
     # Get the repository with a given name, or the default one for the current
     # context, or the default one for this class.
@@ -92,7 +99,7 @@ module DataMapper
       # united in the concept of explicitness over implicitness. That is - the explicit wish of the
       # caller (+name+) should be given more priority than the implicit wish of the caller (Repository.context.last).
       #
-      DataMapper.repository(*Array(name || (Repository.context.last ? nil : default_repository_name)), &block)
+      DataMapper.repository(name || repository_name, &block)
     end
 
     ##
@@ -124,11 +131,11 @@ module DataMapper
       create_property_getter(property)
       create_property_setter(property)
 
-      @properties[repository.name] << property
+      @properties[repository_name] << property
 
       # Add property to the other mappings as well if this is for the default
       # repository.
-      if repository.name == default_repository_name
+      if repository_name == default_repository_name
         @properties.each_pair do |repository_name, properties|
           next if repository_name == default_repository_name
           properties << property
@@ -144,7 +151,7 @@ module DataMapper
         context = :default if context == true
 
         Array(context).each do |item|
-          @properties[repository.name].lazy_context(item) << name
+          @properties[repository_name].lazy_context(item) << name
         end
       end
 
@@ -153,7 +160,7 @@ module DataMapper
       # the parent
       if respond_to?(:descendants)
         descendants.each do |model|
-          next if model.properties(repository.name).has_property?(name)
+          next if model.properties(repository_name).has_property?(name)
           model.property(name, type, options)
         end
       end
@@ -229,7 +236,7 @@ module DataMapper
         resource = allocate
         query = query.dup
 
-        properties(repository.name).key.each do |property|
+        properties(repository_name).key.each do |property|
           if value = query.delete(property.name)
             resource.send("#{property.name}=", value)
           end
@@ -309,7 +316,7 @@ module DataMapper
             when :hash
               resource.original_values[property.name] = value.dup.hash unless resource.original_values.has_key?(property.name) rescue value.hash
             when :load
-               resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
+              resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
           end
         end
       end
@@ -319,22 +326,22 @@ module DataMapper
 
     # TODO: spec this
     def to_query(repository, key, query = {})
-      conditions = Hash[ *self.key(repository.name).zip(key).flatten ]
+      conditions = Hash[ *self.key(repository_name).zip(key).flatten ]
       Query.new(repository, self, query.merge(conditions))
     end
 
     def typecast_key(key)
-      self.key(repository.name).zip(key).map { |k, v| k.typecast(v) }
+      self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
+    end
+
+    def default_repository_name
+      Repository.default_name
     end
 
     private
 
     def default_storage_name
       self.name
-    end
-
-    def default_repository_name
-      Repository.default_name
     end
 
     def scoped_query(query = self.query)
@@ -348,7 +355,11 @@ module DataMapper
         query
       end
 
-      self.query ? self.query.merge(query) : query
+      if self.query
+        self.query.merge(query)
+      else
+        merge_with_default_scope(query)
+      end
     end
 
     # defines the getter for the property
@@ -388,12 +399,12 @@ module DataMapper
     end
 
     def method_missing(method, *args, &block)
-      if relationship = self.relationships(repository.name)[method]
+      if relationship = self.relationships(repository_name)[method]
         klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
         return DataMapper::Query::Path.new(repository, [ relationship ], klass)
       end
 
-      if property = properties(repository.name)[method]
+      if property = properties(repository_name)[method]
         return property
       end
 

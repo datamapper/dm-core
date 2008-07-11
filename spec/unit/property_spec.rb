@@ -301,8 +301,8 @@ describe DataMapper::Property do
   end
 
   it "should set the field to the correct field_naming_convention" do
-    DataMapper::Property.new(Zoo, :species, String, {}).field.should == 'species'
-    DataMapper::Property.new(Tomato, :genetic_history, DataMapper::Types::Text, {}).field.should == "genetic_history"
+    DataMapper::Property.new(Zoo, :species, String, {}).field(:default).should == 'species'
+    DataMapper::Property.new(Tomato, :genetic_history, DataMapper::Types::Text, {}).field(:default).should == "genetic_history"
   end
 
   it "should provide the primitive mapping" do
@@ -491,13 +491,6 @@ describe DataMapper::Property do
 
   it 'should provide #inspect' do
     DataMapper::Property.new(Zoo, :name, String).should respond_to(:inspect)
-  end
-
-  it "should use the Repository of its @model" do
-    p = DataMapper::Property.new(Zoo, :name, String)
-    repo = mock("repository")
-    Zoo.should_receive(:repository).and_return(repo)
-    p.repository.should == repo
   end
 
   it 'should return an abbreviated representation of the property when inspected' do

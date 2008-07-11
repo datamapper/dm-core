@@ -5,13 +5,15 @@ module DataMapper
 
       OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max, :through ]
 
-      attr_reader :name, :repository, :options, :query
+      # @api private
+      attr_reader :name, :options, :query
 
+      # @api private
       def child_key
         @child_key ||= begin
           child_key = nil
-          with_repository(child_model) do
-            model_properties = child_model.properties
+          child_model.repository.scope do |r|
+            model_properties = child_model.properties(r.name)
 
             child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
               # TODO: use something similar to DM::NamingConventions to determine the property name
@@ -21,19 +23,19 @@ module DataMapper
               if model_properties.has_property?(property_name)
                 model_properties[property_name]
               else
-                attributes = {}
+                options = {}
 
-                [ :length, :precision, :scale ].each do |attribute|
-                  attributes[attribute] = parent_property.send(attribute)
+                [ :length, :precision, :scale ].each do |option|
+                  options[option] = parent_property.send(option)
                 end
 
                 # NOTE: hack to make each many to many child_key a true key,
                 # until I can figure out a better place for this check
                 if child_model.respond_to?(:many_to_many)
-                  attributes[:key] = true
+                  options[:key] = true
                 end
 
-                child_model.property(property_name, parent_property.primitive, attributes)
+                child_model.property(property_name, parent_property.primitive, options)
               end
             end
           end
@@ -41,12 +43,13 @@ module DataMapper
         end
       end
 
+      # @api private
       def parent_key
         @parent_key ||= begin
           parent_key = nil
-          with_repository(parent_model) do
+          parent_model.repository.scope do |r|
             parent_key = if @parent_properties
-              parent_model.properties.slice(*@parent_properties)
+              parent_model.properties(r.name).slice(*@parent_properties)
             else
               parent_model.key
             end
@@ -55,33 +58,31 @@ module DataMapper
         end
       end
 
+      # @api private
       def parent_model
         Class === @parent_model ? @parent_model : (Class === @child_model ? @child_model.find_const(@parent_model) : Object.find_const(@parent_model))
       end
 
+      # @api private
       def child_model
         Class === @child_model ? @child_model : (Class === @parent_model ? @parent_model.find_const(@child_model) : Object.find_const(@child_model))
       end
 
       # @api private
       def get_children(parent, options = {}, finder = :all, *args)
-        bind_values  = parent_values = parent_key.get(parent)
-        query_values = []
-        with_repository(parent) do |r|
-          query_values = r.identity_map(parent_model).keys.flatten
-          query_values.reject! { |k| r.identity_map(child_model)[[k]] }
-        end
+        bind_values   = parent_key.get(parent)
+        parent_values = bind_values.dup
 
-        association_accessor = "#{self.name}_association"
+        with_repository(child_model) do |r|
+          parent_identity_map = parent.repository.identity_map(parent_model)
+          child_identity_map  = r.identity_map(child_model)
 
-        query = {}
-        child_key.each do |key|
-          query[key] = query_values.empty? ? bind_values : query_values
-        end
+          query_values = parent_identity_map.keys.flatten
+          query_values.reject! { |k| child_identity_map[[k]] }
 
-        ret = nil
+          bind_values = query_values unless query_values.empty?
+          query = child_key.map { |k| [ k, bind_values ] }.to_hash
 
-        with_repository(parent) do
           collection = child_model.send(finder, *(args.dup << @query.merge(options).merge(query)))
           return collection unless collection.kind_of?(Collection) && collection.any?
 
@@ -90,11 +91,13 @@ module DataMapper
             grouped_collection[get_parent(resource, parent)] << resource
           end
 
+          association_accessor = "#{self.name}_association"
+
+          ret = nil
           grouped_collection.each do |parent, children|
             association = parent.send(association_accessor)
 
             query = collection.query.dup
-
             query.conditions.map! do |operator, property, bind_value|
               if child_key.has_property?(property.name)
                 bind_value = *children.map { |child| property.get(child) }.uniq
@@ -112,45 +115,54 @@ module DataMapper
               association.instance_variable_set(:@children, parents_children)
             end
           end
-        end
 
-        ret || child_model.send(finder, *(args.dup << @query.merge(options).merge(child_key.zip(bind_values).to_hash)))
+          ret || child_model.send(finder, *(args.dup << @query.merge(options).merge(child_key.zip(parent_values).to_hash)))
+        end
       end
 
       # @api private
       def get_parent(child, parent = nil)
-        ret = nil
-        with_repository(parent || child) do |r|
-          bind_values = child_value = child_key.get(child)
-          return nil if child_value.any? { |bind_value| bind_value.nil? }
-          if parent = r.identity_map(parent_model)[child_value]
+        bind_values = child_key.get(child)
+        child_value = bind_values.dup
+        return nil unless child_value.nitems == child_value.size
+
+        with_repository(parent || parent_model) do
+          parent_identity_map = (parent || parent_model).repository.identity_map(parent_model)
+          child_identity_map  = child.repository.identity_map(child_model)
+
+          if parent = parent_identity_map[child_value]
             return parent
-          else
-            association_accessor = "#{self.name}_association"
-            children = r.identity_map(child_model)
-            children.each do |key, c|
-              bind_values |= child_key.get(c)
-            end
-            query_values = bind_values.reject { |k| r.identity_map(parent_model)[[k]] }
-
-            query = {}
-            parent_key.each do |key|
-              query[key] = query_values.empty? ? bind_values : query_values
-            end
-
-            collection = parent_model.send(:all, query)
-            collection.send(:lazy_load)
-            children.each do |id, c|
-              c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
-            end
-            ret = child.send(association_accessor).instance_variable_get(:@parent)
           end
+
+          children = child_identity_map.values
+
+          bind_values |= children.map { |c| child_key.get(c) }
+          query_values = bind_values.reject { |k| parent_identity_map[[k]] }
+
+          bind_values = query_values unless query_values.empty?
+          query = parent_key.map { |k| [ k, bind_values ] }.to_hash
+
+          association_accessor = "#{self.name}_association"
+
+          collection = parent_model.send(:all, query)
+          collection.send(:lazy_load)
+          children.each do |c|
+            c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
+          end
+          child.send(association_accessor).instance_variable_get(:@parent)
         end
-        ret
       end
 
-      def with_repository(instance = nil, &block)
-        instance == nil ? yield(@repository) : yield(instance.repository)
+      # @api private
+      def with_repository(object = nil, &block)
+        other_model = object.model == child_model ? parent_model : child_model if object.respond_to?(:model)
+        other_model = object       == child_model ? parent_model : child_model if object.kind_of?(DataMapper::Resource)
+
+        if other_model && other_model.repository == object.repository && object.repository.name != @repository_name
+          object.repository.scope(&block)
+        else
+          repository(@repository_name, &block)
+        end
       end
 
       # @api private
@@ -164,11 +176,11 @@ module DataMapper
       # and parent_properties refer to the PK.  For more information:
       # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
       # I wash my hands of it!
-      def initialize(name, repository, child_model, parent_model, options = {})
-        assert_kind_of 'name',              name,              Symbol
-        # assert_kind_of 'repository_name',   repository_name,   Symbol
-        assert_kind_of 'child_model',  child_model,  String, Class
-        assert_kind_of 'parent_model', parent_model, String, Class
+      def initialize(name, repository_name, child_model, parent_model, options = {})
+        assert_kind_of 'name',            name,            Symbol
+        assert_kind_of 'repository_name', repository_name, Symbol
+        assert_kind_of 'child_model',     child_model,     String, Class
+        assert_kind_of 'parent_model',    parent_model,    String, Class
 
         if child_properties = options[:child_key]
           assert_kind_of 'options[:child_key]', child_properties, Array
@@ -179,7 +191,7 @@ module DataMapper
         end
 
         @name              = name
-        @repository        = repository
+        @repository_name   = repository_name
         @child_model       = child_model
         @child_properties  = child_properties   # may be nil
         @query             = options.reject { |k,v| OPTIONS.include?(k) }
@@ -193,6 +205,7 @@ module DataMapper
         end
       end
 
+      # @api private
       def model_defined?(model)
         # TODO: figure out other ways to see if the model is loaded
         model.kind_of?(Class)

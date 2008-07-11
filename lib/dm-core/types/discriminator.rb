@@ -19,7 +19,7 @@ module DataMapper
 
           def self.add_scope_for_discriminator(target)
             target.descendants << target
-            target.send(:scope_stack) << DataMapper::Query.new(target.repository, target, :#{property.name} => target.descendants)
+            target.default_scope.update(#{property.name.inspect} => target.descendants)
             propagate_descendants(target)
           end
 

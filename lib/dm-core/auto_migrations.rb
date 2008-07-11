@@ -37,7 +37,6 @@ module DataMapper
       if self.superclass != Object
         self.superclass.auto_migrate!(repository_name)
       else
-        repository_name ||= default_repository_name
         repository(repository_name) do |r|
           r.adapter.destroy_model_storage(r, self)
           r.adapter.create_model_storage(r, self)
@@ -51,7 +50,6 @@ module DataMapper
     #
     # @param Symbol repository_name the repository to be migrated
     def auto_upgrade!(repository_name = nil)
-      repository_name ||= default_repository_name
       repository(repository_name) do |r|
         r.adapter.upgrade_model_storage(r, self)
       end

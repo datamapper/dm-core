@@ -36,8 +36,8 @@ describe DataMapper::Associations::OneToMany do
       end
 
       it 'should receive the repository name' do
-        DataMapper::Associations::Relationship.should_receive(:new) do |_,repository,_,_,_|
-          repository.name.should == :mock
+        DataMapper::Associations::Relationship.should_receive(:new) do |_,repository_name,_,_,_|
+          repository_name.should == :mock
         end
         repository(:mock) do
           @class.has(@class.n, :orders)

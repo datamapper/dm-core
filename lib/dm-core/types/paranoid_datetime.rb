@@ -14,7 +14,7 @@ module DataMapper
           end
         EOS
 
-        model.send(:scope_stack) << DataMapper::Query.new(repository, model, property.name => nil)
+        model.default_scope.update(property.name => nil)
       end
     end # class ParanoidDateTime
   end # module Types
