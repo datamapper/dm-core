@@ -285,9 +285,8 @@ module DataMapper
     # @return <String> name of field in data-store
     # -
     # @api semi-public
-    def field(repository_name)
-      @fields ||= Hash.new { |h,k| h[k] = repository(k).adapter.field_naming_convention.call(self.name) }
-      @fields[repository_name]
+    def field(repository_name = nil)
+      @field || fields[repository_name || model.repository_name]
     end
 
     def unique
@@ -520,6 +519,7 @@ module DataMapper
       @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
 
       @getter       = TrueClass == @primitive ? "#{@name}?".to_sym : @name
+      @field        = @options.fetch(:field,        nil)
       @serial       = @options.fetch(:serial,       false)
       @key          = @options.fetch(:key,          @serial || false)
       @default      = @options.fetch(:default,      nil)
@@ -560,6 +560,10 @@ module DataMapper
 
       @model.auto_generate_validations(self)    if @model.respond_to?(:auto_generate_validations)
       @model.property_serialization_setup(self) if @model.respond_to?(:property_serialization_setup)
+    end
+
+    def fields
+      @fields ||= Hash.new { |h,k| h[k] = repository(k).adapter.field_naming_convention.call(self.name) }
     end
 
     def determine_visibility # :nodoc:

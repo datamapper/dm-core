@@ -52,6 +52,25 @@ describe DataMapper::Property do
     end
   end
 
+  it 'should provide #field' do
+    @property.should respond_to(:field)
+  end
+
+  describe '#field' do
+    it 'should accept a custom field' do
+      property = DataMapper::Property.new(Zoo, :location, String, :field => 'City')
+      property.field.should == 'City'
+    end
+
+    it 'should use repository name if passed in' do
+      @property.field(:default).should == 'name'
+    end
+
+    it 'should return default field if no repository name passed in' do
+      @property.field.should == 'name'
+    end
+  end
+
   it 'should provide #get' do
     @property.should respond_to(:get)
   end
