@@ -29,6 +29,10 @@ if ADAPTER
     property :zebra_id, Integer
 
     belongs_to :zebra
+
+    def self.sort_by_name
+      all(:order => [ :name ])
+    end
   end
 
   class CollectionSpecParty
@@ -67,46 +71,6 @@ if ADAPTER
         @nancy.stripes << @babe
         @nancy.stripes << @snowball
         @nancy.save
-      end
-    end
-  end
-
-  describe 'association proxying' do
-    include CollectionSpecHelper
-
-    before do
-      setup
-    end
-
-    it "should provide a Query" do
-      repository(ADAPTER) do
-        zebras = Zebra.all(:order => [ :name ])
-        zebras.query.order.should == [DataMapper::Query::Direction.new(Zebra.properties(ADAPTER)[:name])]
-      end
-    end
-
-    it "should proxy the relationships of the model" do
-      repository(ADAPTER) do
-        zebras = Zebra.all
-        zebras.should have(3).entries
-        zebras.find { |zebra| zebra.name == 'Nancy' }.stripes.should have(2).entries
-        zebras.stripes.should == [@babe, @snowball]
-      end
-    end
-
-    it "should preserve it's order on reload" do
-      repository(ADAPTER) do |r|
-        zebras = Zebra.all(:order => [ :name ])
-
-        order = %w{ Bessie Nancy Steve }
-
-        zebras.map { |z| z.name }.should == order
-
-        # Force a lazy-load call:
-        zebras.first.notes
-
-        # The order should be unaffected.
-        zebras.map { |z| z.name }.should == order
       end
     end
   end
@@ -161,6 +125,49 @@ if ADAPTER
       nancy.should_not be_a_new_record
 
       results.first.should == bob
+    end
+
+    describe 'model proxying' do
+      it 'should delegate to a model method' do
+        stripes = @model.first.stripes
+        stripes.should respond_to(:sort_by_name)
+        stripes.sort_by_name.should == [ @babe, @snowball ]
+      end
+    end
+
+    describe 'association proxying' do
+      it "should provide a Query" do
+        repository(ADAPTER) do
+          zebras = Zebra.all(:order => [ :name ])
+          zebras.query.order.should == [DataMapper::Query::Direction.new(Zebra.properties(ADAPTER)[:name])]
+        end
+      end
+
+      it "should proxy the relationships of the model" do
+        repository(ADAPTER) do
+          zebras = Zebra.all
+          zebras.should have(3).entries
+          zebras.find { |zebra| zebra.name == 'Nancy' }.stripes.should have(2).entries
+          zebras.should respond_to(:stripes)
+          zebras.stripes.should == [@babe, @snowball]
+        end
+      end
+
+      it "should preserve it's order on reload" do
+        repository(ADAPTER) do |r|
+          zebras = Zebra.all(:order => [ :name ])
+
+          order = %w{ Bessie Nancy Steve }
+
+          zebras.map { |z| z.name }.should == order
+
+          # Force a lazy-load call:
+          zebras.first.notes
+
+          # The order should be unaffected.
+          zebras.map { |z| z.name }.should == order
+        end
+      end
     end
 
     describe '.new' do

@@ -477,12 +477,26 @@ module DataMapper
       default_attributes
     end
 
+    ##
+    # check to see if collection can respond to the method
+    #
+    # @param method [Symbol] method to check in the object
+    # @param include_private [FalseClass, TrueClass] if set to true,
+    #   collection will check private methods
+    #
+    # @return [TrueClass, FalseClass]
+    #   TrueClass indicates the method can be responded to by the collection
+    #   FalseClass indicates the method can not be responded to by the collection
+    #
+    # @api public
+    def respond_to?(method, include_private = false)
+      super || model.respond_to?(method, include_private) || relationships.has_key?(method)
+    end
+
     protected
 
     ##
     # @api private
-    #
-    # @api public
     def model
       query.model
     end
@@ -594,7 +608,11 @@ module DataMapper
     ##
     # @api private
     def method_missing(method, *args, &block)
-      if relationship = relationships[method]
+      if model.respond_to?(method)
+        model.send(:with_scope, query) do
+          model.send(method, *args, &block)
+        end
+      elsif relationship = relationships[method]
         klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
 
         # TODO: when self.query includes an offset/limit use it as a
@@ -610,10 +628,10 @@ module DataMapper
           :links  => self.query.links + [ relationship ]
         )
 
-        return klass.all(query, &block)
+        klass.all(query, &block)
+      else
+        super
       end
-
-      super
     end
   end # class Collection
 end # module DataMapper
