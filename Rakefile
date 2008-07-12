@@ -75,10 +75,11 @@ task :rubyforge => [ :yardoc, :gem ] do
   Rake::SshDirPublisher.new("#{ENV['RUBYFORGE_USER']}@rubyforge.org", "/var/www/gforge-projects/datamapper", 'doc').upload
 end
 
-WINDOWS = (RUBY_PLATFORM =~ /win32|mingw|bccwin|cygwin/) rescue nil
+WIN32 = (RUBY_PLATFORM =~ /win32|mingw|bccwin|cygwin/) rescue nil
+SUDO = WIN32 ? '' : ('sudo' unless ENV['SUDOLESS'])
 
 desc "Install #{NAME}"
-if WINDOWS
+if WIN32
   task :install => :gem do
     system %{gem install --no-rdoc --no-ri -l pkg/#{NAME}-#{DataMapper::VERSION}.gem}
   end
@@ -91,6 +92,6 @@ if WINDOWS
   end
 else
   task :install => :package do
-    sh %{gem install --local pkg/#{NAME}-#{DataMapper::VERSION}.gem}
+    sh %{#{SUDO} gem install --local pkg/#{NAME}-#{DataMapper::VERSION}.gem}
   end
 end
