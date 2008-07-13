@@ -228,6 +228,7 @@ module DataMapper
           statement << " FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
           statement << links_statement(query)                        if query.links.any?
           statement << " WHERE #{conditions_statement(query)}"       if query.conditions.any?
+          statement << " GROUP BY #{group_by_statement(query)}"      if query.unique?
           statement << " ORDER BY #{order_statement(query)}"         if query.order.any?
           statement << " LIMIT #{quote_column_value(query.limit)}"   if query.limit
           statement << " OFFSET #{quote_column_value(query.offset)}" if query.offset && query.offset > 0
@@ -256,17 +257,7 @@ module DataMapper
 
         def fields_statement(query)
           qualify = query.links.any?
-
-          query.fields.map do |property|
-            # TODO Should we raise an error if there is no such property in the
-            #      repository of the query?
-            #
-            #if property.model.properties(query.repository.name)[property.name].nil?
-            #  raise "Property #{property.model.to_s}.#{property.name.to_s} not available in repository #{name}."
-            #end
-            #
-            property_to_column_name(query.repository, property, qualify)
-          end * ', '
+          query.fields.map { |p| property_to_column_name(query.repository, p, qualify) } * ', '
         end
 
         def links_statement(query)
@@ -295,6 +286,11 @@ module DataMapper
           query.conditions.map do |operator, property, bind_value|
             condition_statement(query, operator, property, bind_value)
           end * ' AND '
+        end
+
+        def group_by_statement(query)
+          qualify = query.links.any?
+          query.fields.map { |p| property_to_column_name(query.repository, p, qualify) } * ', '
         end
 
         def order_statement(query)
@@ -330,7 +326,7 @@ module DataMapper
               query.merge_subquery(operator, opposite, condition)
               "(#{read_statement(condition)})"
             elsif condition.kind_of?(Array) && condition.all? { |p| p.kind_of?(Property) }
-              "(#{condition.map { |p| property_to_column_name(query.repository, property, qualify) } * ', '})"
+              "(#{condition.map { |p| property_to_column_name(query.repository, p, qualify) } * ', '})"
             else
               '?'
             end

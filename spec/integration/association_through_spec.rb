@@ -136,7 +136,6 @@ if ADAPTER
     end
 
     it 'should handle get()' do
-      pending "Collection#uniq isn't implemented, see lib/dm-core/associations/relationship_chain.rb:27"
       post = Post.get!(2)
       related_posts = Post.first.related_posts
       related_posts.get(2).should == post

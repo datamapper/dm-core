@@ -247,6 +247,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @order     = [ @direction ]
 
         @query = mock('query', :model => @model, :kind_of? => true, :links => @links, :fields => @fields, :conditions => @conditions, :order => @order, :limit => 111, :offset => 222, :bind_values => @bind_values)
+        @query.should_receive(:unique?).with(no_args).and_return(false)
 
         @reader     = mock('reader', :close => true, :next! => false)
         @command    = mock('command', :set_types => nil, :execute_reader => @reader)
