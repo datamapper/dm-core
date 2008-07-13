@@ -541,6 +541,14 @@ if ADAPTER
           end
         end
 
+        describe '#freeze' do
+          it 'should freeze the underlying array' do
+            @collection.should_not be_frozen
+            @collection.freeze
+            @collection.should be_frozen
+          end
+        end
+
         describe '#get' do
           it 'should find a resource in a collection by key' do
             resource = @collection.get(*@nancy.key)

@@ -490,7 +490,7 @@ module DataMapper
     #
     # @api public
     def respond_to?(method, include_private = false)
-      super || model.respond_to?(method, include_private) || relationships.has_key?(method)
+      super || model.public_methods(false).include?(method.to_s) || relationships.has_key?(method)
     end
 
     protected
@@ -608,7 +608,7 @@ module DataMapper
     ##
     # @api private
     def method_missing(method, *args, &block)
-      if model.respond_to?(method)
+      if model.public_methods(false).include?(method.to_s)
         model.send(:with_scope, query) do
           model.send(method, *args, &block)
         end

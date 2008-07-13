@@ -76,6 +76,10 @@ describe DataMapper::Collection do
     @collection.should respond_to(:first)
   end
 
+  it 'should provide #freeze' do
+    @collection.should respond_to(:freeze)
+  end
+
   it 'should provide #get' do
     @collection.should respond_to(:get)
   end
