@@ -3,7 +3,7 @@ module DataMapper
     include Assertions
 
     OPTIONS = [
-      :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :includes, :conditions, :unique, :group_by
+      :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :includes, :conditions, :unique
     ]
 
     attr_reader :repository, :model, *OPTIONS - [ :reload, :unique ]
@@ -172,7 +172,6 @@ module DataMapper
       @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
       @includes     = options.fetch :includes,     []     # must be an Array of DM::Query::Path
-      @group_by     = options.fetch :group_by,     nil    # must be a an Array of Symbol, String or DM::Property
       @conditions   = []                                  # must be an Array of triplets (or pairs when passing in raw String queries)
 
       # normalize order and fields
@@ -329,6 +328,7 @@ module DataMapper
     # normalize fields to DM::Property
     def normalize_fields(fields)
       # TODO: return a PropertySet
+      # TODO: raise an exception if the property is not available in the repository
       fields.map do |field|
         case field
           when Property
