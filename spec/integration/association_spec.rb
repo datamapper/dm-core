@@ -480,7 +480,6 @@ if ADAPTER
       end
 
       it 'should use the IdentityMap correctly' do
-        pending "Relationship repository fixes"
         repository(ADAPTER) do
           ultrahost1 = Ultrahost.first(:name => 'ultrahost1')
 

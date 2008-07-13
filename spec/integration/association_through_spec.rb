@@ -135,6 +135,13 @@ if ADAPTER
       related_posts.first(10, :id => 2).map { |r| r.id }.should == [ post.id ]
     end
 
+    it 'should handle get()' do
+      pending "Collection#uniq isn't implemented, see lib/dm-core/associations/relationship_chain.rb:27"
+      post = Post.get!(2)
+      related_posts = Post.first.related_posts
+      related_posts.get(2).should == post
+    end
+
     it 'should proxy object should be frozen' do
       Post.first.related_posts.should be_frozen
     end
