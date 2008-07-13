@@ -3,15 +3,19 @@ module DataMapper
     include Assertions
 
     OPTIONS = [
-      :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :includes, :conditions
+      :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :includes, :conditions, :unique, :group_by
     ]
 
-    attr_reader :repository, :model, *OPTIONS - [ :reload ]
+    attr_reader :repository, :model, *OPTIONS - [ :reload, :unique ]
     attr_writer :add_reversed
     alias add_reversed? add_reversed
 
     def reload?
       @reload
+    end
+
+    def unique?
+      @unique
     end
 
     def reverse
@@ -42,6 +46,7 @@ module DataMapper
 
       # only overwrite the attributes with non-default values
       @reload       = other.reload?       unless other.reload?       == false
+      @unique       = other.unique?       unless other.unique?       == false
       @offset       = other.offset        unless other.offset        == 0
       @limit        = other.limit         unless other.limit         == nil
       @order        = other.order         unless other.order         == model.default_order
@@ -67,6 +72,7 @@ module DataMapper
       #   return hash == other.hash
       @model        == other.model         &&
       @reload       == other.reload?       &&
+      @unique       == other.unique?       &&
       @offset       == other.offset        &&
       @limit        == other.limit         &&
       @order        == other.order         &&  # order is significant, so do not sort this
@@ -136,6 +142,7 @@ module DataMapper
         [ :limit,      limit           ],
         [ :offset,     offset          ],
         [ :reload,     reload?         ],
+        [ :unique,     unique?         ],
       ]
 
       "#<#{self.class.name} #{attrs.map { |(k,v)| "@#{k}=#{v.inspect}" } * ' '}>"
@@ -157,6 +164,7 @@ module DataMapper
 
       @model        = model                               # must be Class that includes DM::Resource
       @reload       = options.fetch :reload,       false  # must be true or false
+      @unique       = options.fetch :unique,       false  # must be true or false
       @offset       = options.fetch :offset,       0      # must be an Integer greater than or equal to 0
       @limit        = options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
       @order        = options.fetch :order,        model.default_order   # must be an Array of Symbol, DM::Query::Direction or DM::Property
@@ -164,6 +172,7 @@ module DataMapper
       @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
       @includes     = options.fetch :includes,     []     # must be an Array of DM::Query::Path
+      @group_by     = options.fetch :group_by,     nil    # must be a an Array of Symbol, String or DM::Property
       @conditions   = []                                  # must be an Array of triplets (or pairs when passing in raw String queries)
 
       # normalize order and fields
@@ -223,9 +232,11 @@ module DataMapper
 
     # validate the options
     def assert_valid_options(options)
-      # validate the reload option
-      if options.has_key?(:reload) && options[:reload] != true && options[:reload] != false
-        raise ArgumentError, "+options[:reload]+ must be true or false, but was #{options[:reload].inspect}", caller(2)
+      # validate the reload option & unique option
+      ([ :reload, :unique ] & options.keys).each do |attribute|
+        if options[attribute] != true && options[attribute] != false
+          raise ArgumentError, "+options[:#{attribute}]+ must be true or false, but was #{options[attribute].inspect}", caller(2)
+        end
       end
 
       # validate the offset and limit options

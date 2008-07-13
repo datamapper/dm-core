@@ -19,12 +19,13 @@ module DataMapper
       def get_children(parent, options = {}, finder = :all, *args)
         query = @query.merge(options).merge(child_key.to_query(parent_key.get(parent)))
 
-        query[:links] = links
+        query[:links]  = links
+        query[:unique] = true
 
         with_repository(parent) do
           results = grandchild_model.send(finder, *(args << query))
           # FIXME: remove the need for the uniq.freeze
-          finder == :all ? (@mutable ? results.uniq : results.uniq.freeze) : results
+          finder == :all ? (@mutable ? results : results.freeze) : results
         end
       end
 
