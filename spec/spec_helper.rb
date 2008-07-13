@@ -5,7 +5,11 @@ require 'pathname'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 require SPEC_ROOT.parent + 'lib/dm-core'
-require DataMapper.root / 'spec' / 'lib' / 'mock_adapter'
+
+# Load the various helpers for the spec suite
+Dir[DataMapper.root / 'spec' / 'lib' / '*.rb'].each do |file|
+  require file
+end
 
 # setup mock adapters
 [ :default, :mock, :legacy, :west_coast, :east_coast ].each do |repository_name|
@@ -34,6 +38,22 @@ HAS_POSTGRES = setup_adapter(:postgres, 'postgres://postgres@localhost/dm_core_t
 
 DataMapper::Logger.new(nil, :debug)
 
+# ----------------------------------------------------------------------
+# --- Do not declare new models unless absolutely necessary. Instead ---
+# --- pick a metaphor and use those models. If you do need new       ---
+# --- models, define them according to the metaphor being used.      ---
+# ----------------------------------------------------------------------
+
+Spec::Runner.configure do |config|
+  config.before(:each) do
+    # load_models_for_metaphor :vehicles
+  end
+end
+
+# ----------------------------------------------------------------------
+# --- All these models are going to be removed. Don't use them!!!    ---
+# ----------------------------------------------------------------------
+
 class Article
   include DataMapper::Resource
 
@@ -50,83 +70,4 @@ end
 
 class NormalClass
   # should not include DataMapper::Resource
-end
-
-# ==========================
-# Used for Association specs
-class Vehicle
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :name, String
-
-  class << self
-    attr_accessor :mock_relationship
-  end
-end
-
-class Manufacturer
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :name, String
-
-  class << self
-    attr_accessor :mock_relationship
-  end
-end
-
-class Supplier
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :name, String
-end
-
-class Class
-  def publicize_methods
-    klass = class << self; self; end
-
-    saved_private_class_methods      = klass.private_instance_methods
-    saved_protected_class_methods    = klass.protected_instance_methods
-    saved_private_instance_methods   = self.private_instance_methods
-    saved_protected_instance_methods = self.protected_instance_methods
-
-    self.class_eval do
-      klass.send(:public, *saved_private_class_methods)
-      klass.send(:public, *saved_protected_class_methods)
-      public(*saved_private_instance_methods)
-      public(*saved_protected_instance_methods)
-    end
-
-    begin
-      yield
-    ensure
-      self.class_eval do
-        klass.send(:private, *saved_private_class_methods)
-        klass.send(:protected, *saved_protected_class_methods)
-        private(*saved_private_instance_methods)
-        protected(*saved_protected_instance_methods)
-      end
-    end
-  end
-end
-
-module LoggingHelper
-  def logger(adapter = ADAPTER, &block)
-    current_adapter = DataObjects.const_get(repository(adapter).adapter.uri.scheme.capitalize)
-    old_logger = current_adapter.logger
-
-    log_path = File.join(SPEC_ROOT, "tmp.log")
-    handle = File.open(log_path, "a+")
-    current_adapter.logger = DataObjects::Logger.new(log_path, 0)
-    begin
-      yield(handle)
-    ensure
-      handle.truncate(0)
-      handle.close
-      current_adapter.logger = old_logger
-      File.delete(log_path)
-    end
-  end
 end

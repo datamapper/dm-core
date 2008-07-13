@@ -1,6 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe DataMapper::Associations::OneToMany do
+  
+  load_models_for_metaphor :vehicles
+  
   before do
     @class = Class.new do
       def self.name
