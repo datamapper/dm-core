@@ -125,6 +125,23 @@ if ADAPTER
       end
     end
     
+    it "should provide access to paranoid items with DateTime" do
+      Lemon.auto_migrate!(ADAPTER)
+
+      lemon = nil
+
+      repository(ADAPTER) do |repository|
+        %w(red green yellow blue).each do |color|
+          Lemon.create(:color => color)
+        end
+        
+        Lemon.all.size.should == 4
+        Lemon.first.destroy
+        Lemon.all.size.should == 3
+        Lemon.with_deleted{Lemon.all.size.should == 1}
+      end
+    end
+    
     it "should set paranoid datetime to a date time" do
       tmp = (DateTime.now - 0.5)
       dt = DateTime.now
@@ -157,6 +174,23 @@ if ADAPTER
       repository(ADAPTER) do |repository|
         Lime.all.should be_empty
         Lime.get(lime.id).should be_nil
+      end
+    end
+    
+    it "should provide access to paranoid items with Boolean" do
+      Lime.auto_migrate!(ADAPTER)
+
+      lemon = nil
+
+      repository(ADAPTER) do |repository|
+        %w(red green yellow blue).each do |color|
+          Lime.create(:color => color)
+        end
+        
+        Lime.all.size.should == 4
+        Lime.first.destroy
+        Lime.all.size.should == 3
+        Lime.with_deleted{Lime.all.size.should == 1}
       end
     end
     
@@ -230,7 +264,7 @@ if ADAPTER
           orange.deleted.should be_true
           orange.deleted_at.should be_a_kind_of(DateTime)
         end
-      end
+      end      
     end
   end
 end
