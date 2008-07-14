@@ -122,8 +122,7 @@ module DataMapper
 
       # @api private
       def get_parent(child, parent = nil)
-        bind_values = child_key.get(child)
-        child_value = bind_values.dup
+        child_value = child_key.get(child)
         return nil unless child_value.nitems == child_value.size
 
         with_repository(parent || parent_model) do
@@ -136,7 +135,7 @@ module DataMapper
 
           children = child_identity_map.values
 
-          bind_values |= children.map { |c| child_key.get(c) }
+          bind_values = *children.map { |c| child_key.get(c) }.uniq
           query_values = bind_values.reject { |k| parent_identity_map[[k]] }
 
           bind_values = query_values unless query_values.empty?
