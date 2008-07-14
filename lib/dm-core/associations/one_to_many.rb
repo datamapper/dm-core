@@ -91,7 +91,7 @@ module DataMapper
 
         def <<(resource)
           assert_mutable
-          return if self.include?(resource)
+          return if !resource.new_record? && self.include?(resource)
           super
           relate_resource(resource)
           self

@@ -515,6 +515,14 @@ if ADAPTER
         end
       end
 
+      it "#<< should add the correct number of elements if they are created" do
+        machine = Machine.create(:name => 'my machine')
+        4.times do |i|
+          machine.areas << Area.create(:name => "area nr #{i}", :machine => machine)
+        end
+        machine.areas.size.should == 4
+      end
+
       it '#<< should add default values for relationships that have conditions' do
         # it should add default values
         machine = Machine.new(:name => 'my machine')

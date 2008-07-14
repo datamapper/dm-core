@@ -342,7 +342,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
     it_should_behave_like 'a method that orphans the resource'
 
     it 'should empty the collection' do
-      @association << mock('other resource')
+      @association << mock('other resource', :new_record? => false)
       @association.should have(2).entries
       do_remove
       @association.should be_empty
