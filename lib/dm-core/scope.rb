@@ -26,11 +26,6 @@ module DataMapper
     def with_exclusive_scope(query, &block)
       query = DataMapper::Query.new(repository, self, query) if query.kind_of?(Hash)
 
-      # merge the query with the default scope if the scope stack is empty
-      if scope_stack.empty?
-        query = merge_with_default_scope(query)
-      end
-
       scope_stack << query
 
       begin

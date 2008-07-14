@@ -75,6 +75,17 @@ describe DataMapper::Scope do
         Article.query.should be_nil
       end
     end
+    
+    it "should ignore the default_scope when using an exclusive scope" do
+      Article.default_scope.update(:blog_id => 1)
+      Article.publicize_methods do
+        Article.with_exclusive_scope(:author => 'dkubb') do
+          Article.query.should == DataMapper::Query.new(repository(:mock), Article, :author => 'dkubb')
+        end
+      end
+      Article.default_scope.delete(:blog_id)
+    end
+    
   end
 
   describe '.scope_stack' do
