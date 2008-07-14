@@ -249,6 +249,8 @@ if ADAPTER
         t.project.tasks.size.should == 1
 
         p = Models::Project.first(:title => 'p1')
+        # this project already includes t, so it shouldn't add it again
+        p.tasks << t
 
         p.tasks.size.should == 1
         p.tasks[0].title.should == 't1'
