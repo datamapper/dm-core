@@ -91,7 +91,7 @@ module DataMapper
 
         def <<(resource)
           assert_mutable
-          return if !resource.new_record? && self.include?(resource)
+          return self if !resource.new_record? && self.include?(resource)
           super
           relate_resource(resource)
           self
@@ -99,6 +99,7 @@ module DataMapper
 
         def push(*resources)
           assert_mutable
+          resources.reject { |resource| !resource.new_record? && self.include?(resource) }
           super
           resources.each { |resource| relate_resource(resource) }
           self
@@ -106,6 +107,7 @@ module DataMapper
 
         def unshift(*resources)
           assert_mutable
+          resources.reject { |resource| !resource.new_record? && self.include?(resource) }
           super
           resources.each { |resource| relate_resource(resource) }
           self
