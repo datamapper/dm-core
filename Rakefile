@@ -3,8 +3,6 @@ require 'pathname'
 require 'rubygems'
 require 'rake'
 require 'rake/rdoctask'
-require 'rake/gempackagetask'
-require 'rake/contrib/rubyforgepublisher'
 require 'spec/rake/spectask'
 
 require 'lib/dm-core/version'
