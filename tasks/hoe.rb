@@ -23,18 +23,16 @@ hoe = Hoe.new(GEM_NAME, GEM_VERSION) do |p|
 
   p.developer(AUTHOR, EMAIL)
 
-  p.description = "Faster, Better, Simpler."
-  p.summary = "An Object/Relational Mapper for Ruby"
-  p.url = HOMEPATH
+  p.description = PROJECT_DESCRIPTION
+  p.summary = PROJECT_SUMMARY
+  p.url = PROJECT_URL
 
-  p.rubyforge_name = RUBYFORGE_PROJECT if RUBYFORGE_PROJECT
+  p.rubyforge_name = PROJECT_NAME if PROJECT_NAME
 
-  p.test_globs = ["spec/**/*_spec.rb"]
   p.clean_globs |= ["{coverage,doc,log}/", "profile_results.*", "**/.*.sw?", "*.gem", ".config", "**/.DS_Store"]
 
-  p.extra_deps << ["data_objects", p.version]
-  p.extra_deps << ["extlib", p.version]
-  p.extra_deps << ["rspec", ">=1.1.3"]
-  p.extra_deps << ["addressable", ">=1.0.4"]
+  GEM_DEPENDENCIES.each do |dep|
+    p.extra_deps << dep
+  end
 
 end

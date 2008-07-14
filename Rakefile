@@ -13,8 +13,14 @@ AUTHOR = "Sam Smoot"
 EMAIL  = "ssmoot@gmail.com"
 GEM_NAME = "dm-core"
 GEM_VERSION = DataMapper::VERSION
-RUBYFORGE_PROJECT = "datamapper"
-HOMEPATH = "http://datamapper.org"
+GEM_DEPENDENCIES = ["data_objects", GEM_VERSION], ["extlib", GEM_VERSION],
+                   ["rspec", ">=1.1.3"], ["addressable", ">=1.0.4"]
+
+
+PROJECT_NAME = "datamapper"
+PROJECT_DESCRIPTION = "Faster, Better, Simpler."
+PROJECT_SUMMARY = "An Object/Relational Mapper for Ruby"
+PROJECT_URL  = "http://datamapper.org"
 
 require ROOT + 'tasks/hoe'
 require ROOT + 'tasks/install'
