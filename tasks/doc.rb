@@ -3,7 +3,7 @@ Rake::RDocTask.new("doc") do |t|
   t.rdoc_dir = 'doc'
   t.title    = "DataMapper - Ruby Object Relational Mapper"
   t.options  = ['--line-numbers', '--inline-source', '--all']
-  t.rdoc_files.include("README", "QUICKLINKS", "FAQ", "lib/**/**/*.rb")
+  t.rdoc_files.include("README.txt", "QUICKLINKS", "FAQ", "lib/**/**/*.rb")
 end
 
 begin
