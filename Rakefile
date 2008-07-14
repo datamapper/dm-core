@@ -18,4 +18,8 @@ GEM_VERSION = DataMapper::VERSION
 RUBYFORGE_PROJECT = "datamapper"
 HOMEPATH = "http://datamapper.org"
 
-Pathname.glob(ROOT + 'tasks/**/*.rb') { |t| require t }
+require ROOT + 'tasks/hoe'
+require ROOT + 'tasks/install'
+require ROOT + 'tasks/dm'
+require ROOT + 'tasks/doc'
+require ROOT + 'tasks/ci'
