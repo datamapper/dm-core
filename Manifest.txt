@@ -67,8 +67,6 @@ spec/integration/associations/many_to_one_spec.rb
 spec/integration/associations/one_to_many_spec.rb
 spec/integration/auto_migrations_spec.rb
 spec/integration/collection_spec.rb
-spec/integration/custom_db1_sqlite3.db
-spec/integration/custom_db2_sqlite3.db
 spec/integration/data_objects_adapter_spec.rb
 spec/integration/dependency_queue_spec.rb
 spec/integration/model_spec.rb
