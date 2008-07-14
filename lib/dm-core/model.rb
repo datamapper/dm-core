@@ -35,9 +35,10 @@ module DataMapper
     end
 
     def inherited(target)
-      target.instance_variable_set(:@storage_names, @storage_names.dup)
-      target.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
-      target.instance_variable_set(:@base_model,    self.base_model)
+      target.instance_variable_set(:@storage_names,       @storage_names.dup)
+      target.instance_variable_set(:@properties,          Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
+      target.instance_variable_set(:@base_model,          self.base_model)
+      target.instance_variable_set(:@paranoid_properties, @paranoid_properties)
 
       @properties.each do |repository_name,properties|
         repository(repository_name) do
@@ -337,6 +338,11 @@ module DataMapper
     def default_repository_name
       Repository.default_name
     end
+    
+    def paranoid_properties
+      @paranoid_properties ||= {}
+      @paranoid_properties
+    end
 
     private
 
@@ -360,6 +366,10 @@ module DataMapper
       else
         merge_with_default_scope(query)
       end
+    end
+    
+    def set_paranoid_property(name, &block)
+      self.paranoid_properties[name] = block
     end
 
     # defines the getter for the property

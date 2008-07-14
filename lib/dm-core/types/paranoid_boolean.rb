@@ -9,14 +9,18 @@ module DataMapper
         model = property.model
         repository = property.repository
 
+        model.send(:set_paranoid_property, property.name){true}
+
         model.class_eval <<-EOS, __FILE__, __LINE__
           def destroy
-            attribute_set(#{property.name.inspect}, true)
+            self.class.paranoid_properties.each do |name, blk|
+              attribute_set(name, blk.call(self))
+            end
             save
           end
         EOS
 
-        model.default_scope.update(property.name => nil)
+        model.default_scope(repository.name).update(property.name => false)
       end
     end # class ParanoidBoolean
   end # module Types

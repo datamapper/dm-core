@@ -8,7 +8,7 @@ if ADAPTER
     class Impostor < DataMapper::Type
       primitive String
     end
-
+    
     class Coconut
       include DataMapper::Resource
 
@@ -118,11 +118,25 @@ if ADAPTER
 
         lemon.deleted_at.should be_kind_of(DateTime)
       end
-
+      
       repository(ADAPTER) do |repository|
         Lemon.all.should be_empty
         Lemon.get(lemon.id).should be_nil
       end
+    end
+    
+    it "should set paranoid datetime to a date time" do
+      tmp = (DateTime.now - 0.5)
+      dt = DateTime.now
+      DateTime.stub!(:now).and_return(tmp)
+      
+      repository(ADAPTER) do |repository|
+        lemon = Lemon.new
+        lemon.color = 'green'
+        lemon.save
+        lemon.destroy
+        lemon.deleted_at.should == tmp
+      end     
     end
 
     it "should respect paranoia with a boolean" do
@@ -143,6 +157,79 @@ if ADAPTER
       repository(ADAPTER) do |repository|
         Lime.all.should be_empty
         Lime.get(lime.id).should be_nil
+      end
+    end
+    
+    describe "paranoid types across repositories" do
+      before(:all) do
+        DataMapper::Repository.adapters[:alternate_paranoid] = repository(ADAPTER).adapter.dup
+        
+        class Orange
+          include DataMapper::Resource
+
+          def self.default_repository_name
+            ADAPTER
+          end
+
+          property :id, Serial
+          property :color, String
+
+          repository(:alternate_paranoid) do
+            property :deleted,    DataMapper::Types::ParanoidBoolean
+            property :deleted_at, DataMapper::Types::ParanoidDateTime
+          end
+        end
+        
+        repository(:alternate_paranoid){Orange.auto_migrate!}
+      end
+        
+      before(:each) do
+        %w(red orange blue green).each{|color| o = Orange.create(:color => color)}
+      end
+      
+      after(:each) do
+        Orange.repository.adapter.execute("DELETE FROM oranges")
+      end
+      
+      it "should setup the correct objects for the spec" do
+        repository(:alternate_paranoid){Orange.all.should have(4).items}
+      end
+      
+      it "should allow access the the default repository" do
+        Orange.all.should have(4).items
+      end
+      
+      it "should mark the objects as deleted in the alternate_paranoid repository" do
+        repository(:alternate_paranoid) do
+          Orange.first.destroy
+          Orange.all.should have(3).items
+          Orange.find_by_sql("SELECT * FROM oranges").should have(4).items
+        end
+      end
+      
+      it "should mark the objects as deleted in the alternate_paranoid repository but ignore it in the #{ADAPTER} repository" do
+        repository(:alternate_paranoid) do
+          Orange.first.destroy
+        end
+        Orange.all.should have(4).items
+      end
+      
+      it "should raise an error when trying to destroy from a repository that is not paranoid" do
+        lambda do
+          Orange.first.destroy
+        end.should raise_error(ArgumentError)
+      end
+      
+      it "should set all paranoid attributes on delete" do
+        repository(:alternate_paranoid) do
+          orange = Orange.first
+          orange.deleted.should be_false
+          orange.deleted_at.should be_nil
+          orange.destroy
+          
+          orange.deleted.should be_true
+          orange.deleted_at.should be_a_kind_of(DateTime)
+        end
       end
     end
   end

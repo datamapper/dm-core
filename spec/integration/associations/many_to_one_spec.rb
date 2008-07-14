@@ -48,14 +48,14 @@ if ADAPTER
       include LoggingHelper
 
       it "should set parent" do
-        ManyToOneSpec::StepChild.first.parent.should == @other
+        ManyToOneSpec::StepChild.first(:id => @step_child.id).parent.should == @other
       end
 
       it "should use the identity map for STI" do
         repository(ADAPTER) do |r|
-          parent     = ManyToOneSpec::Parent.first
-          child      = ManyToOneSpec::Child.first
-          step_child = ManyToOneSpec::StepChild.first
+          parent     = ManyToOneSpec::Parent.first(:id => @parent.id)
+          child      = ManyToOneSpec::Child.first(:id => @child.id)
+          step_child = ManyToOneSpec::StepChild.first(:id => @step_child.id)
           logger do |log|
             # should retrieve from the IdentityMap
             child.parent.object_id.should == parent.object_id
