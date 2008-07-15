@@ -110,7 +110,7 @@ describe DataMapper::Query do
           query.conditions.should == [ [ :eql, Article.properties[:author], 'dkubb' ] ]
         end
 
-        it 'when a Symbol::Operator object is a key' do
+        it 'when a Query::Operator object is a key' do
           query = DataMapper::Query.new(@repository, Article, :author.like => /\Ad(?:an\.)kubb\z/)
           query.conditions.should == [ [ :like, Article.properties[:author], /\Ad(?:an\.)kubb\z/ ] ]
         end
@@ -161,7 +161,7 @@ describe DataMapper::Query do
         end
       end
 
-      it 'when unknown options use something that is not a Symbol::Operator, Symbol or String is a key' do
+      it 'when unknown options use something that is not a Query::Operator, Symbol or String is a key' do
         lambda {
           DataMapper::Query.new(@repository, Article, nil => nil)
         }.should raise_error(ArgumentError)
@@ -480,6 +480,51 @@ describe DataMapper::Query do
       @query.order.should == normal_order
       @query.should_receive(:update).with(:order => reverse_order)
       @query.reverse!.object_id.should == @query.object_id
+    end
+  end
+end
+
+describe DataMapper::Query::Operator do
+  before do
+    @operator = :thing.gte
+  end
+
+  it 'should provide #==' do
+    @operator.should respond_to(:==)
+  end
+
+  describe '#==' do
+    describe 'should be equal' do
+      it 'when other is same object' do
+        @operator.should == @operator
+      end
+
+      it 'when other has the same target and operator' do
+        other = :thing.gte
+        @operator.target.should == other.target
+        @operator.operator.should == other.operator
+        @operator.should == other
+      end
+    end
+
+    describe 'should be different' do
+      it 'when other class is not a descendant of self.class' do
+        other = :thing
+        other.class.should_not be_kind_of(@operator.class)
+        @operator.should_not == other
+      end
+
+      it 'when other has a different target' do
+        other = :other.gte
+        @operator.target.should_not == other.target
+        @operator.should_not == other
+      end
+
+      it 'when other has a different operator' do
+        other = :thing.gt
+        @operator.operator.should_not == other.operator
+        @operator.should_not == other
+      end
     end
   end
 end

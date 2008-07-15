@@ -548,6 +548,8 @@ module DataMapper
       end
 
       def ==(other)
+        return true if super
+        return false unless other.kind_of?(self.class)
         @operator == other.operator && @target == other.target
       end
 

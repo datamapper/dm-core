@@ -4,38 +4,38 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 # So we give it a String of the module name instead.
 # DO NOT CHANGE THIS!
 describe "DataMapper::Resource" do
-  
+
   load_models_for_metaphor :zoo
-  
+
 # ---------- ATTRIBUTE RELATED METHODS ---------------
-  
+
   describe '#attribute_get' do
     it 'should provide #attribute_get' do
       Zoo.new.should respond_to(:attribute_get)
     end
-    
+
     it 'should delegate to Property#get' do
       Zoo.properties[:name].should_receive(:get).with(zoo = Zoo.new)
       zoo.name
     end
-    
+
     it "should return Property#get's return value"  do
       Zoo.properties[:name].should_receive(:get).and_return("San Francisco")
       Zoo.new.name.should == "San Francisco"
     end
   end
-  
+
   describe '#attribute_set' do
     it "should provide #attribute_set" do
       Zoo.new.should respond_to(:attribute_set)
     end
-    
+
     it 'should delegate to Property#set' do
       Zoo.properties[:name].should_receive(:set).with(zoo = Zoo.new, "San Francisco")
       zoo.name = "San Francisco"
     end
   end
-  
+
   describe '#attributes' do
     it 'should return a hash of attribute-names and values' do
       zoo = Zoo.new
@@ -46,7 +46,7 @@ describe "DataMapper::Resource" do
         :id => nil, :inception => nil, :open => false, :size => nil
       }
     end
-    
+
     it "should return a hash with all nil values if the instance is new and has no default values" do
       Species.new.attributes.should == { :id => nil, :name => nil }
     end
@@ -55,21 +55,21 @@ describe "DataMapper::Resource" do
       Species.new.attributes.should == { :id => nil, :name => nil }
     end
   end
-  
+
 # ---------- REPOSITORY WRITE METHODS ---------------
-  
+
   describe '#save' do
-    
+
     describe 'with a new resource' do
       it 'should set defaults before create'
       it 'should create when dirty'
       it 'should create when non-dirty, and it has a serial key'
     end
-    
+
     describe 'with an existing resource' do
       it 'should update'
     end
-    
+
   end
 end
 
@@ -157,7 +157,7 @@ end
 # So we give it a String of the module name instead.
 # DO NOT CHANGE THIS!
 describe "DataMapper::Resource" do
-  
+
   it 'should provide #save' do
     Planet.new.should respond_to(:save)
   end
