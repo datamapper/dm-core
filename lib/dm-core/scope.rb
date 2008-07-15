@@ -3,10 +3,10 @@ module DataMapper
     Model.append_extensions self
 
     # @api private
-    def default_scope(repo = nil)
-      repo = self.default_repository_name if repo == :default || repo.nil?
+    def default_scope(repository_name = nil)
+      repository_name = self.default_repository_name if repository_name == :default || repository_name.nil?
       @default_scope ||= Hash.new{|h,k| h[k] = {}}
-      @default_scope[repo]
+      @default_scope[repository_name]
     end
 
     # @api private
@@ -50,9 +50,9 @@ module DataMapper
     
     # @api private
     def default_scope_for_query(query)
-      name = query.repository.name      
-      default_name = query.model.default_repository_name
-      self.default_scope(default_name).merge(self.default_scope(name))
+      repository_name = query.repository.name      
+      default_repository_name = query.model.default_repository_name
+      self.default_scope(default_repository_name).merge(self.default_scope(repository_name))
     end
   end # module Scope
 end # module DataMapper
