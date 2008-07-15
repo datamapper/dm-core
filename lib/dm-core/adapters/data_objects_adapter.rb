@@ -228,7 +228,7 @@ module DataMapper
           statement << " FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
           statement << links_statement(query)                        if query.links.any?
           statement << " WHERE #{conditions_statement(query)}"       if query.conditions.any?
-          statement << " GROUP BY #{group_by_statement(query)}"      if query.unique?
+          statement << " GROUP BY #{group_by_statement(query)}"      if query.unique? && query.fields.any? { |p| p.kind_of?(Property) }
           statement << " ORDER BY #{order_statement(query)}"         if query.order.any?
           statement << " LIMIT #{quote_column_value(query.limit)}"   if query.limit
           statement << " OFFSET #{quote_column_value(query.offset)}" if query.offset && query.offset > 0
