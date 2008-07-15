@@ -140,51 +140,61 @@ if ADAPTER
       end
 
       describe 'when true' do
-        it 'should add a GROUP BY to the SQL query' do
-          logger do |log|
-            QuerySpec::SailBoat.all(:unique => true, :fields => [ :id ]).to_a
-            if ADAPTER == :mysql
-              parse_statement(log).should == 'SELECT `id` FROM `query_spec_sail_boats` GROUP BY `id` ORDER BY `id`'
-            else
-              parse_statement(log).should == 'SELECT "id" FROM "query_spec_sail_boats" GROUP BY "id" ORDER BY "id"'
-            end
-          end
-        end
+        if [ :postgres, :sqlite3, :mysql ].include?(ADAPTER)
+          it 'should add a GROUP BY to the SQL query' do
+            logger do |log|
+              QuerySpec::SailBoat.all(:unique => true, :fields => [ :id ]).to_a
 
-        it 'should not add a GROUP BY to the SQL query if no field is a Property' do
-          operator = DataMapper::Query::Operator.new(:thing, :test)
-
-          # make the operator act like a Property
-          class << operator
-            property = QuerySpec::SailBoat.properties[:id]
-            (property.methods - (public_instance_methods - %w[ type ])).each do |method|
-              define_method(method) do |*args|
-                property.send(method, *args)
+              case ADAPTER
+                when :postgres, :sqlite3
+                  parse_statement(log).should == 'SELECT "id" FROM "query_spec_sail_boats" GROUP BY "id" ORDER BY "id"'
+                when :mysql
+                  parse_statement(log).should == 'SELECT `id` FROM `query_spec_sail_boats` GROUP BY `id` ORDER BY `id`'
               end
             end
           end
 
-          operator.should_not be_kind_of(DataMapper::Property)
+          it 'should not add a GROUP BY to the SQL query if no field is a Property' do
+            operator = DataMapper::Query::Operator.new(:thing, :test)
 
-          logger do |log|
-            QuerySpec::SailBoat.all(:unique => true, :fields => [ operator ]).to_a
-            if ADAPTER == :mysql
-              parse_statement(log).should == 'SELECT `id` FROM `query_spec_sail_boats` ORDER BY `id`'
-            else
-              parse_statement(log).should == 'SELECT "id" FROM "query_spec_sail_boats" ORDER BY "id"'
+            # make the operator act like a Property
+            class << operator
+              property = QuerySpec::SailBoat.properties[:id]
+              (property.methods - (public_instance_methods - %w[ type ])).each do |method|
+                define_method(method) do |*args|
+                  property.send(method, *args)
+                end
+              end
+            end
+
+            operator.should_not be_kind_of(DataMapper::Property)
+
+            logger do |log|
+              QuerySpec::SailBoat.all(:unique => true, :fields => [ operator ]).to_a
+
+              case ADAPTER
+                when :postgres, :sqlite3
+                  parse_statement(log).should == 'SELECT "id" FROM "query_spec_sail_boats" ORDER BY "id"'
+                when :mysql
+                  parse_statement(log).should == 'SELECT `id` FROM `query_spec_sail_boats` ORDER BY `id`'
+              end
             end
           end
         end
       end
 
       describe 'when false' do
-        it 'should not add a GROUP BY to the SQL query' do
-          logger do |log|
-            QuerySpec::SailBoat.all(:unique => false, :fields => [ :id ]).to_a
-            if ADAPTER == :mysql
-              parse_statement(log).should == 'SELECT `id` FROM `query_spec_sail_boats` ORDER BY `id`'
-            else
-              parse_statement(log).should == 'SELECT "id" FROM "query_spec_sail_boats" ORDER BY "id"'
+        if [ :postgres, :sqlite3, :mysql ].include?(ADAPTER)
+          it 'should not add a GROUP BY to the SQL query' do
+            logger do |log|
+              QuerySpec::SailBoat.all(:unique => false, :fields => [ :id ]).to_a
+
+              case ADAPTER
+                when :postgres, :sqlite3
+                  parse_statement(log).should == 'SELECT "id" FROM "query_spec_sail_boats" ORDER BY "id"'
+                when :mysql
+                  parse_statement(log).should == 'SELECT `id` FROM `query_spec_sail_boats` ORDER BY `id`'
+              end
             end
           end
         end
