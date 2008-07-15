@@ -116,7 +116,7 @@ module DataMapper
         def replace(other)
           assert_mutable
           each { |resource| orphan_resource(resource) }
-          other = other.map { |resource| Hash === resource ? @relationship.child_model.new(resource) : resource }
+          other = other.map { |resource| resource.kind_of?(Hash) ? new_child(resource) : resource }
           super
           other.each { |resource| relate_resource(resource) }
           self
@@ -152,7 +152,7 @@ module DataMapper
         def build(attributes = {})
           assert_mutable
           attributes = default_attributes.merge(attributes)
-          resource = children.respond_to?(:build) ? super(attributes) : @relationship.child_model.new(attributes)
+          resource = children.respond_to?(:build) ? super(attributes) : new_child(attributes)
           self << resource
           resource
         end
@@ -267,6 +267,10 @@ module DataMapper
             next if !resource.respond_to?("#{attribute}=") || resource.attribute_loaded?(attribute)
             resource.send("#{attribute}=", value)
           end
+        end
+
+        def new_child(attributes)
+          @relationship.child_model.new(default_attributes.merge(attributes))
         end
 
         def relate_resource(resource)

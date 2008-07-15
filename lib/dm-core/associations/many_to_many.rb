@@ -77,37 +77,48 @@ module DataMapper
       end
 
       class Proxy < DataMapper::Associations::OneToMany::Proxy
-
-        def <<(resource)
-          resource.save if resource.new_record?
-          through = @relationship.child_model.new
-          @relationship.child_key.each_with_index do |key, index|
-            through.send("#{key.name}=", @relationship.parent_key.key[index].get(@parent))
-          end
-          remote_relationship.child_key.each_with_index do |key, index|
-            through.send("#{key.name}=", remote_relationship.parent_key.key[index].get(resource))
-          end
-          near_model << through
-          super
-        end
-
         def delete(resource)
-          through = near_model.get(*(@parent.key + resource.key))
-          near_model.delete(through)
+          through = near_association.get(*(@parent.key + resource.key))
+          near_association.delete(through)
           orphan_resource(super)
         end
 
         def clear
-          near_model.clear
+          near_association.clear
           super
         end
 
         def destroy
-          near_model.destroy
+          near_association.destroy
           super
         end
 
         def save
+        end
+
+        private
+
+        def new_child(attributes)
+          remote_relationship.parent_model.new(attributes)
+        end
+
+        def relate_resource(resource)
+          assert_mutable
+          add_default_association_values(resource)
+          @orphans.delete(resource)
+
+          # TODO: fix this so it does not automatically save on append, if possible
+          resource.save if resource.new_record?
+          through_resource = @relationship.child_model.new
+          @relationship.child_key.zip(@relationship.parent_key) do |child_key,parent_key|
+            through_resource.send("#{child_key.name}=", parent_key.get(@parent))
+          end
+          remote_relationship.child_key.zip(remote_relationship.parent_key) do |child_key,parent_key|
+            through_resource.send("#{child_key.name}=", parent_key.get(resource))
+          end
+          near_association << through_resource
+
+          resource
         end
 
         def orphan_resource(resource)
@@ -119,14 +130,12 @@ module DataMapper
         def assert_mutable
         end
 
-        private
-
         def remote_relationship
           @remote_relationship ||= @relationship.send(:remote_relationship)
         end
 
-        def near_model
-          @near_model ||= @parent.send(near_relationship_name)
+        def near_association
+          @near_association ||= @parent.send(near_relationship_name)
         end
 
         def near_relationship_name

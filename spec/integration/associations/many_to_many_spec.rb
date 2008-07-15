@@ -25,7 +25,9 @@ describe DataMapper::Associations::ManyToMany::Proxy do
 
       has n, :editors, :through => Resource
     end
+  end
 
+  before do
     [ Book, Editor, BookEditor ].each { |k| k.auto_migrate! }
 
     repository(ADAPTER) do
@@ -39,90 +41,150 @@ describe DataMapper::Associations::ManyToMany::Proxy do
       BookEditor.create(:book => book_1, :editor => editor_1)
       BookEditor.create(:book => book_2, :editor => editor_1)
       BookEditor.create(:book => book_1, :editor => editor_2)
+
+      @parent      = book_3
+      @association = @parent.editors
+      @other       = [ editor_1 ]
+    end
+  end
+
+  it 'should provide #replace' do
+    @association.should respond_to(:replace)
+  end
+
+  describe '#replace' do
+    it 'should remove the resource from the collection' do
+      @association.should have(0).entries
+      @association.replace(@other)
+      @association.should == @other
+    end
+
+    it 'should not automatically save that the resource was removed from the association' do
+      @association.replace(@other)
+      @parent.reload.should have(0).editors
+    end
+
+    it 'should return the association' do
+      @association.replace(@other).object_id.should == @association.object_id
+    end
+
+    it 'should add the new resources so they will be saved when saving the parent' do
+      @association.replace(@other)
+      @association.should == @other
+      @parent.save
+      @association.reload.should == @other
+    end
+
+    it 'should instantiate the remote model if passed an array of hashes' do
+      @association.replace([ { :name => 'Jim Smith' } ])
+      other = [ Editor.first(:name => 'Jim Smith') ]
+      other.first.should_not be_nil
+      @association.should == other
+      @parent.save
+      @association.reload.should == other
     end
   end
 
   it "should correctly link records" do
-    Editor.get(1).books.size.should == 2
-    Editor.get(2).books.size.should == 1
-    Book.get(1).editors.size.should == 2
-    Book.get(2).editors.size.should == 1
+    Book.get(1).should have(2).editors
+    Book.get(2).should have(1).editors
+    Book.get(3).should have(0).editors
+    Editor.get(1).should have(2).books
+    Editor.get(2).should have(1).books
   end
 
   it "should be able to have associated objects manually added" do
     book = Book.get(3)
-    # book.editors.size.should == 0
+    book.should have(0).editors
 
     be = BookEditor.new(:book_id => book.id, :editor_id => 2)
     book.book_editors << be
     book.save
 
-    book.reload
-    book.editors.size.should == 1
+    book.reload.should have(1).editors
   end
 
   it "should automatically added necessary through class" do
     book = Book.get(3)
+    book.should have(0).editors
+
     book.editors << Editor.get(1)
     book.editors << Editor.new(:name => "Jimmy John")
     book.save
-    book.editors.size.should == 3
+
+    book.reload.should have(2).editors
   end
 
   it "should react correctly to a new record" do
     book = Book.new(:title => "Finnegan's Wake")
-    book.editors << Editor.get(2)
+    editor = Editor.get(2)
+    book.should have(0).editors
+    editor.should have(1).books
+
+    book.editors << editor
     book.save
-    book.editors.size.should == 1
-    Editor.get(2).books.size.should == 3
+
+    book.reload.should have(1).editors
+    editor.reload.should have(2).books
   end
 
   it "should be able to delete intermediate model" do
-    book = Book.get(3)
-    be = BookEditor.get(3,1)
+    book = Book.get(1)
+    book.should have(2).book_editors
+    book.should have(2).editors
+
+    be = BookEditor.get(1,1)
     book.book_editors.delete(be)
     book.save
+
     book.reload
-    book = Book.get(3)
-    book.book_editors.size.should == 2
-    book.editors.size.should == 2
+    book.should have(1).book_editors
+    book.should have(1).editors
   end
 
   it "should be clearable" do
     repository(ADAPTER) do
       book = Book.get(2)
-      book.editors.size.should == 1
+      book.should have(1).book_editors
+      book.should have(1).editors
+
       book.editors.clear
       book.save
+
       book.reload
-      book.book_editors.size.should == 0
-      book.editors.size.should == 0
+      book.should have(0).book_editors
+      book.should have(0).editors
     end
     repository(ADAPTER) do
-      Book.get(2).editors.size.should == 0
+      Book.get(2).should have(0).editors
     end
   end
 
   it "should be able to delete one object" do
     book = Book.get(1)
-    editor = book.editors.first
+    book.should have(2).book_editors
+    book.should have(2).editors
 
-    book.editors.size.should == 2
+    editor = book.editors.first
     book.editors.delete(editor)
-    book.book_editors.size.should == 1
-    book.editors.size.should == 1
     book.save
+
     book.reload
-    Editor.get(1).books.should_not include(book)
+    book.should have(1).book_editors
+    book.should have(1).editors
+    editor.reload.books.should_not include(book)
   end
 
   it "should be destroyable" do
     pending 'cannot destroy a collection yet' do
-      book = Book.get(3)
+      book = Book.get(2)
+      book.should have(1).editors
+
       book.editors.destroy
       book.save
+
       book.reload
-      book.editors.size.should == 0
+      book.should have(0).editors
     end
   end
 
@@ -141,7 +203,9 @@ describe DataMapper::Associations::ManyToMany::Proxy do
       class Book
         has n, :authors, :through => Resource
       end
+    end
 
+    before do
       [ Author, AuthorBook ].each { |k| k.auto_migrate! }
 
       @author = Author.create(:name =>  'James Joyce')
@@ -164,10 +228,10 @@ describe DataMapper::Associations::ManyToMany::Proxy do
     end
 
     it 'should correctly link records' do
-      @author.books.should have(3).entries
-      @book_1.authors.should have(1).entries
-      @book_2.authors.should have(1).entries
-      @book_3.authors.should have(1).entries
+      @author.should have(3).books
+      @book_1.should have(1).authors
+      @book_2.should have(1).authors
+      @book_3.should have(1).authors
     end
   end
 end
