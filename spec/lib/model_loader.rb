@@ -35,42 +35,42 @@
 #   end
 # end
 module ModelLoader
-  
+
   def self.included(base)
     base.extend(ClassMethods)
     base.class_eval { include InstanceMethods }
     # base.before(:each) { load_models(:global) }
     base.after(:each)  { unload_models }
   end
-  
+
   module ClassMethods
-    
+
     def load_models_for_metaphor(*metaphors)
       before(:each) { load_models_for_metaphor(*metaphors) }
     end
-    
+
   end
-  
+
   module InstanceMethods
-    
+
     def load_models_for_metaphor(*metaphors)
       files = metaphors.map { |m| DataMapper.root / "spec" / "models" / "#{m}.rb" }
-      
+
       klasses = object_space_classes.dup
       files.each { |file| load file }
       loaded_models.concat(object_space_classes - klasses)
     end
-    
+
     def unload_models
       while model = loaded_models.pop
         remove_model(model)
       end
     end
-    
+
     def loaded_models
       @loaded_models ||= []
     end
-    
+
   private
 
     def object_space_classes
@@ -78,7 +78,7 @@ module ModelLoader
       ObjectSpace.each_object(Class) {|o| klasses << o}
       klasses
     end
-    
+
     def remove_model(klass)
       DataMapper::Resource.descendants.delete(klass)
       Object.module_eval { remove_const klass.to_s }

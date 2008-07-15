@@ -338,7 +338,7 @@ module DataMapper
     def default_repository_name
       Repository.default_name
     end
-    
+
     def paranoid_properties
       @paranoid_properties ||= {}
       @paranoid_properties
@@ -367,7 +367,7 @@ module DataMapper
         merge_with_default_scope(query)
       end
     end
-    
+
     def set_paranoid_property(name, &block)
       self.paranoid_properties[name] = block
     end

@@ -1,9 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe "DataMapper::Associations" do
-  
+
   load_models_for_metaphor :vehicles
-  
+
   before do
     @relationship = mock(DataMapper::Associations::Relationship)
     @n = 1.0/0

@@ -47,10 +47,10 @@ module DataMapper
       scope_stack_for = Thread.current[:dm_scope_stack] ||= Hash.new { |h,model| h[model] = [] }
       scope_stack_for[self]
     end
-    
+
     # @api private
     def default_scope_for_query(query)
-      repository_name = query.repository.name      
+      repository_name = query.repository.name
       default_repository_name = query.model.default_repository_name
       self.default_scope(default_repository_name).merge(self.default_scope(repository_name))
     end

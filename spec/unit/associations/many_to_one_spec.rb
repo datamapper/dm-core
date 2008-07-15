@@ -1,9 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe DataMapper::Associations::ManyToOne do
-  
+
   load_models_for_metaphor :vehicles
-  
+
   it 'should allow a declaration' do
     lambda do
       class Vehicle
@@ -14,9 +14,9 @@ describe DataMapper::Associations::ManyToOne do
 end
 
 describe DataMapper::Associations::ManyToOne::Proxy do
-  
+
   load_models_for_metaphor :vehicles
-  
+
   before do
     @child        = mock('child', :kind_of? => true)
     @parent       = mock('parent')

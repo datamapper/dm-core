@@ -12,13 +12,13 @@ module DataMapper
         model.send(:set_paranoid_property, property.name){true}
 
         model.class_eval <<-EOS, __FILE__, __LINE__
-        
+
           def self.with_deleted
             with_exclusive_scope(#{property.name.inspect} => true) do
               yield
             end
           end
-        
+
           def destroy
             self.class.paranoid_properties.each do |name, blk|
               attribute_set(name, blk.call(self))

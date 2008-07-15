@@ -75,7 +75,7 @@ describe DataMapper::Scope do
         Article.query.should be_nil
       end
     end
-    
+
     it "should ignore the default_scope when using an exclusive scope" do
       Article.default_scope.update(:blog_id => 1)
       Article.publicize_methods do
@@ -85,7 +85,7 @@ describe DataMapper::Scope do
       end
       Article.default_scope.delete(:blog_id)
     end
-    
+
   end
 
   describe '.scope_stack' do
