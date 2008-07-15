@@ -283,34 +283,35 @@ module DataMapper
         end
 
         def conditions_statement(query)
-          query.conditions.map do |operator, property, bind_value|
-            condition_statement(query, operator, property, bind_value)
-          end * ' AND '
+          query.conditions.map { |o,p,b| condition_statement(query, o, p, b) } * ' AND '
         end
 
         def group_by_statement(query)
-          qualify = query.links.any?
-          query.fields.map { |p| property_to_column_name(query.repository, p, qualify) } * ', '
+          repository = query.repository
+          qualify    = query.links.any?
+          query.fields.select { |p| p.kind_of?(Property) }.map { |p| property_to_column_name(repository, p, qualify) } * ', '
         end
 
         def order_statement(query)
-          qualify = query.links.any?
+          repository = query.repository
+          qualify    = query.links.any?
+          query.order.map { |i| order_column(repository, i, qualify) } * ', '
+        end
 
-          query.order.map do |item|
-            property, descending = nil, false
+        def order_column(repository, item, qualify)
+          property, descending = nil, false
 
-            case item
-              when Property
-                property = item
-              when Query::Direction
-                property  = item.property
-                descending = true if item.direction == :desc
-            end
+          case item
+            when Property
+              property = item
+            when Query::Direction
+              property  = item.property
+              descending = true if item.direction == :desc
+          end
 
-            order = property_to_column_name(query.repository, property, qualify)
-            order << ' DESC' if descending
-            order
-          end * ', '
+          order_column = property_to_column_name(repository, property, qualify)
+          order_column << ' DESC' if descending
+          order_column
         end
 
         def condition_statement(query, operator, left_condition, right_condition)

@@ -231,7 +231,7 @@ module DataMapper
 
     # validate the options
     def assert_valid_options(options)
-      # validate the reload option & unique option
+      # validate the reload option and unique option
       ([ :reload, :unique ] & options.keys).each do |attribute|
         if options[attribute] != true && options[attribute] != false
           raise ArgumentError, "+options[:#{attribute}]+ must be true or false, but was #{options[attribute].inspect}", caller(2)
@@ -258,7 +258,17 @@ module DataMapper
         assert_kind_of "options[:#{attribute}]", value, Array
 
         if value.empty?
-          raise ArgumentError, "+options[:#{attribute}]+ cannot be empty", caller(2)
+          if attribute == :fields
+            if options[:unique] == false
+              raise ArgumentError, '+options[:fields]+ cannot be empty if +options[:unique] is false', caller(2)
+            end
+          elsif attribute == :order
+            if options[:fields] && options[:fields].any? { |p| !p.kind_of?(Operator) }
+              raise ArgumentError, '+options[:order]+ cannot be empty if +options[:fields] contains a non-operator', caller(2)
+            end
+          else
+            raise ArgumentError, "+options[:#{attribute}]+ cannot be empty", caller(2)
+          end
         end
       end
 
@@ -331,7 +341,7 @@ module DataMapper
       # TODO: raise an exception if the property is not available in the repository
       fields.map do |field|
         case field
-          when Property
+          when Property, Operator
             # TODO: if the Property's model doesn't match
             # self.model, append the property's model to @links
             # eg:
