@@ -9,6 +9,10 @@ class Zoo
   property :size,         Integer
 
   has n, :animals
+  
+  def to_s
+    name
+  end
 end
 
 class Species

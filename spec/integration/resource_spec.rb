@@ -1,6 +1,108 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
+  describe "DataMapper::Resource with #{ADAPTER}" do
+    
+    load_models_for_metaphor :zoo
+    
+    before(:each) do
+      DataMapper.auto_migrate!(ADAPTER)
+      @zoo = Zoo.new(:name => "San Francisco")
+      repository(ADAPTER) { @zoo.save }
+    end
+    
+  # --- Move somewhere ----
+    it "should be able to destroy objects" do
+      lambda { @zoo.destroy.should be_true }.should_not raise_error
+    end
+    
+  # --------------- ATTRIBUTE METHODS ---------------
+
+    describe '#attribute_get' do
+      it 'should provide #attribute_get' do
+        Zoo.new.should respond_to(:attribute_get)
+      end
+
+      it 'should delegate to Property#get' do
+        Zoo.properties[:name].should_receive(:get).with(zoo = Zoo.new)
+        zoo.name
+      end
+
+      it "should return Property#get's return value"  do
+        Zoo.properties[:name].should_receive(:get).and_return("San Francisco")
+        Zoo.new.name.should == "San Francisco"
+      end
+    end
+
+    describe '#attribute_set' do
+      it "should provide #attribute_set" do
+        Zoo.new.should respond_to(:attribute_set)
+      end
+
+      it 'should delegate to Property#set' do
+        Zoo.properties[:name].should_receive(:set).with(zoo = Zoo.new, "San Francisco")
+        zoo.name = "San Francisco"
+      end
+    end
+    
+    describe '#id' do
+      it "should be awesome"
+    end
+    
+    describe '#key' do
+      it "should be awesome"
+    end
+    
+    describe '#eql?' do
+      it "should return true if the objects are the same instances"
+      it "should return false if the other object is not an instance of the same model"
+      it "should return false if the other object is a different class"
+      it "should return true if the repositories are the same and the primary key is the same"
+      it "should return true if all the properties are the same"
+      it "should return false if any of the properties are different"
+    end
+    
+  # --------------- REPOSITORY WRITE METHODS ---------------
+
+    describe '#save' do
+
+      describe 'with a new resource' do
+        it 'should set defaults before create'
+        it 'should create when dirty'
+        it 'should create when non-dirty, and it has a serial key'
+      end
+
+      describe 'with an existing resource' do
+        it 'should update'
+      end
+
+    end
+    
+  # --------------- REPOSITORY METHODS ---------------
+    
+    describe '#repository' do
+      it "should return the repository associated with the object if there is one"
+      it "should return the repository associated with the model if the object doesn't have one"
+    end
+    
+  # -------------- MISCELLANEOUS METHODS ---------------
+    
+    describe '#inspect' do
+      it "should return a string representing the object"
+    end
+    
+    describe '#pretty_print' do
+      it "should display a pretty version of inspect"
+    end
+    
+  end
+end
+
+
+
+
+# ---------- Old specs... BOOOOOOOOOO ---------------
+if ADAPTER
   class Orange
     include DataMapper::Resource
 
