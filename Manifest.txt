@@ -86,6 +86,7 @@ spec/lib/mock_adapter.rb
 spec/lib/model_loader.rb
 spec/lib/publicize_methods.rb
 spec/models/vehicles.rb
+spec/models/zoo.rb
 spec/spec.opts
 spec/spec_helper.rb
 spec/unit/adapters/abstract_adapter_spec.rb
