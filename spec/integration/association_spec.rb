@@ -298,6 +298,14 @@ if ADAPTER
         Area.first(:name => 'area1').machine.should == machine2
       end
 
+      it 'should save both the object and parent if both are new' do
+        pending "This is fixed"
+        area1 = Area.new(:name => 'area1')
+        area1.machine = Machine.new(:name => 'machine1')
+        area1.machine.save
+        area1.machine_id.should == area1.machine.id
+      end
+
       it '#belongs_to with namespaced models' do
         repository(ADAPTER) do
           module FlightlessBirds
