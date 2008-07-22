@@ -34,6 +34,7 @@ if ADAPTER
 
       property :id,   Serial
       property :name, String
+			property :type, String
 
       def self.default_repository_name
         ADAPTER
@@ -332,7 +333,7 @@ if ADAPTER
       before do
         [ QuerySpec::Region, QuerySpec::Factory, QuerySpec::Vehicle ].each { |m| m.auto_migrate! }
 
-        QuerySpec::Region.create(:id => 1, :name => 'North West')
+        QuerySpec::Region.create(:id => 1, :name => 'North West', :type => 'commercial')
         QuerySpec::Factory.create(:id => 2000, :region_id => 1, :name => 'North West Plant')
         QuerySpec::Vehicle.create(:id => 1, :factory_id => 2000, :name => '10 ton delivery truck')
 
@@ -430,6 +431,13 @@ if ADAPTER
         vehicle = QuerySpec::Vehicle.first("factory.region.name" => 'North West')
         vehicle.name.should == '10 ton delivery truck'
       end
+
+			it "should accept 'id' and 'type' as endpoints on ah DM::QueryPath" do
+				vehicle = QuerySpec::Vehicle.first( QuerySpec::Vehicle.factory.region.type => 'commercial' )
+				vehicle.name.should == '10 ton delivery truck'
+				vehicle = QuerySpec::Vehicle.first( QuerySpec::Vehicle.factory.region.id => 1 )
+				vehicle.name.should == '10 ton delivery truck'
+			end
 
       it 'should auto generate the link if a DM::Property from a different resource is in the :fields option'
 

@@ -274,7 +274,8 @@ module DataMapper
 
     DEFAULT_LENGTH    = 50
     DEFAULT_PRECISION = 10
-    DEFAULT_SCALE     = 0
+    DEFAULT_SCALE_BIGDECIMAL = 0
+    DEFAULT_SCALE_FLOAT = nil
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
@@ -541,18 +542,23 @@ module DataMapper
         @length = @options.fetch(:length, @options.fetch(:size, DEFAULT_LENGTH))
       elsif BigDecimal == @primitive || Float == @primitive
         @precision = @options.fetch(:precision, DEFAULT_PRECISION)
-        @scale     = @options.fetch(:scale,     DEFAULT_SCALE)
+        
+        default_scale = (Float == @primitive) ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL
+        @scale     = @options.fetch(:scale, default_scale)
+        # @scale     = @options.fetch(:scale, DEFAULT_SCALE_BIGDECIMAL)
 
         unless @precision > 0
           raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"
         end
 
-        unless @scale >= 0
-          raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
-        end
+        if (BigDecimal == @primitive) || (Float == @primitive && !@scale.nil?)
+          unless @scale >= 0
+            raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
+          end
 
-        unless @precision >= @scale
-          raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{@scale.inspect}"
+          unless @precision >= @scale
+            raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{@scale.inspect}"
+          end
         end
       end
 
