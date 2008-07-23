@@ -16,7 +16,7 @@ Writing Specs
   * Use existing models that are part of a metaphor.
   * Nest describe blocks (2 or 3 levels deep is probably fine).
   * Limit a describe block to 10 - 15 examples.
-  * Group specs by method being tested.
+  * Group specs by method being tested. (See the 'Ordering Specs' section)
   * Use custom matchers.
   
   = DON'T:
@@ -51,3 +51,13 @@ Mocks and Stubs
   Obviously, mocks and stubs are a powerful feature when it comes to BDD;
   however, remember that you are writing specs for behavior and NOT
   implementation.
+  
+Ordering Specs
+==============
+
+  Specs aren't much use if nobody can find where anything is, so keeping specs
+  well organized is critical. Currently, we are trying out the following
+  structure:
+  
+    * List guidelines here...
+  
