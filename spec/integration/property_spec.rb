@@ -13,7 +13,7 @@ if ADAPTER
           property :id, Serial
           property :name, String, :track => :set # :track default is :get for mutable types
           property :notes, DataMapper::Types::Text
-          property :age, Integer # :track default is :set for mutable types
+          property :age, Integer # :track default is :set for immutable types
           property :rating, Integer
           property :location, String
           property :lead, TrueClass, :track => :load
