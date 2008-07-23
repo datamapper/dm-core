@@ -291,7 +291,7 @@ describe "DataMapper::Resource" do
   end
 
   it "should return an instance of the created object" do
-    Planet.create!(:name => 'Venus', :age => 1_000_000, :id => 42).should be_a_kind_of(Planet)
+    Planet.create(:name => 'Venus', :age => 1_000_000, :id => 42).should be_a_kind_of(Planet)
   end
 
   it 'should provide persistance methods' do

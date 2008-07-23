@@ -146,7 +146,7 @@ if HAS_POSTGRES
         pending "This works, but no create-schema support in PostgresAdapter to easily test with"
         lambda do
           repository(:postgres) do
-            Voyager.create!(:age => 1_000)
+            Voyager.create(:age => 1_000)
           end
         end.should_not raise_error
       end
@@ -388,9 +388,9 @@ if HAS_POSTGRES
         SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres) do
-          SailBoat.create!(:id => 1, :name => "A", :port => "C")
-          SailBoat.create!(:id => 2, :name => "B", :port => "B")
-          SailBoat.create!(:id => 3, :name => "C", :port => "A")
+          SailBoat.create(:id => 1, :name => "A", :port => "C")
+          SailBoat.create(:id => 2, :name => "B", :port => "B")
+          SailBoat.create(:id => 3, :name => "C", :port => "A")
         end
       end
 
@@ -436,9 +436,9 @@ if HAS_POSTGRES
         SailBoat.auto_migrate!(:postgres)
 
         repository(:postgres) do
-          SailBoat.create!(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          SailBoat.create!(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          SailBoat.create!(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          SailBoat.create(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
         end
       end
 
@@ -480,7 +480,7 @@ if HAS_POSTGRES
 
         repository(:postgres) do
           100.times do
-            SerialFinderSpec.create!(:sample => rand.to_s)
+            SerialFinderSpec.create(:sample => rand.to_s)
           end
         end
       end
@@ -592,7 +592,7 @@ if HAS_POSTGRES
       it 'should save the association key in the child' do
         repository(:postgres) do
           e = Engine.first(:id => 2)
-          Yard.create!(:id => 2, :name => 'yard2', :engine => e)
+          Yard.create(:id => 2, :name => 'yard2', :engine => e)
         end
 
         repository(:postgres) do

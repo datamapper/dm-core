@@ -39,7 +39,7 @@ module DataMapper
       target.instance_variable_set(:@properties,          Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
       target.instance_variable_set(:@base_model,          self.base_model)
       target.instance_variable_set(:@paranoid_properties, @paranoid_properties)
-      target.instance_variable_set(:@validations,         @validations) if self.respond_to?(:validators)
+      target.instance_variable_set(:@validations,         @validations.dup) if self.respond_to?(:validators)
 
       @properties.each do |repository_name,properties|
         repository(repository_name) do
@@ -261,12 +261,10 @@ module DataMapper
     end
 
     ##
-    # Dangerous version of #create.  Raises if there is a failure
-    #
-    # @see DataMapper::Resource#create
-    # @param <Hash(Symbol => Object)> attributes hash of attributes to set
-    # @raise <PersistenceError> The resource could not be saved
+    # This method is deprecated, and will be removed from dm-core.
+    # 
     def create!(attributes = {})
+      warn("Model#create! is deprecated. It is moving to dm-validations, and will be used to create a record without validations")
       resource = create(attributes)
       raise PersistenceError, "Resource not saved: :new_record => #{resource.new_record?}, :dirty_attributes => #{resource.dirty_attributes.inspect}" if resource.new_record?
       resource

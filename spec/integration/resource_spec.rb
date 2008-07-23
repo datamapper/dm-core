@@ -231,13 +231,13 @@ if ADAPTER
 
     it "should be able to overwrite Resource#to_s" do
       repository(ADAPTER) do
-        ted = FortunePig.create!(:name => "Ted")
+        ted = FortunePig.create(:name => "Ted")
         FortunePig.get!(ted.id).to_s.should == 'Ted'
       end
     end
 
     it "should be able to destroy objects" do
-      apple = Apple.create!(:color => 'Green')
+      apple = Apple.create(:color => 'Green')
       lambda do
         apple.destroy.should be_true
       end.should_not raise_error
@@ -348,14 +348,14 @@ if ADAPTER
         Geek.auto_migrate!(ADAPTER)
 
         repository(ADAPTER) do
-          Male.create!(:name => 'John Dorian')
-          Bully.create!(:name => 'Bob', :iq => 69)
-          Geek.create!(:name => 'Steve', :awkward => false, :iq => 132)
-          Geek.create!(:name => 'Bill', :iq => 150)
-          Bully.create!(:name => 'Johnson')
-          Mugger.create!(:name => 'Frank')
-          Maniac.create!(:name => 'William')
-          Psycho.create!(:name => 'Norman')
+          Male.create(:name => 'John Dorian')
+          Bully.create(:name => 'Bob', :iq => 69)
+          Geek.create(:name => 'Steve', :awkward => false, :iq => 132)
+          Geek.create(:name => 'Bill', :iq => 150)
+          Bully.create(:name => 'Johnson')
+          Mugger.create(:name => 'Frank')
+          Maniac.create(:name => 'William')
+          Psycho.create(:name => 'Norman')
         end
 
         Flanimal.auto_migrate!(ADAPTER)

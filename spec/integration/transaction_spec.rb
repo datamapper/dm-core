@@ -32,7 +32,7 @@ if ADAPTERS.any?
     it "should commit changes to all involved adapters on a two phase commit" do
       DataMapper::Transaction.new(*@repositories) do
         ADAPTERS.each do |name|
-          repository(name) { Sputnik.create!(:name => 'hepp') }
+          repository(name) { Sputnik.create(:name => 'hepp') }
         end
       end
 
@@ -45,7 +45,7 @@ if ADAPTERS.any?
       lambda do
         DataMapper::Transaction.new(*@repositories) do
           ADAPTERS.each do |name|
-            repository(name) { Sputnik.create!(:name => 'hepp') }
+            repository(name) { Sputnik.create(:name => 'hepp') }
           end
           raise "plur"
         end
@@ -60,7 +60,7 @@ if ADAPTERS.any?
       lambda do
         DataMapper::Transaction.new(*@repositories) do |transaction|
           ADAPTERS.each do |name|
-            repository(name) { Sputnik.create!(:name => 'hepp') }
+            repository(name) { Sputnik.create(:name => 'hepp') }
           end
 
           transaction.primitive_for(@repositories.last.adapter).should_receive(:prepare).and_throw(Exception.new("I am the famous test exception"))

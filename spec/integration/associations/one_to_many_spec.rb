@@ -30,8 +30,8 @@ describe "OneToMany" do
 
     [Team, Player].each { |k| k.auto_migrate!(ADAPTER) }
 
-    Team.create!(:name => "Cowboys")
-    BaseballTeam.create!(:name => "Giants")
+    Team.create(:name => "Cowboys")
+    BaseballTeam.create(:name => "Giants")
   end
 
   it "unsaved parent model should accept array of hashes for association" do
