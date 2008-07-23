@@ -274,7 +274,8 @@ module DataMapper
 
     DEFAULT_LENGTH    = 50
     DEFAULT_PRECISION = 10
-    DEFAULT_SCALE     = 0
+    DEFAULT_SCALE_BIGDECIMAL = 0
+    DEFAULT_SCALE_FLOAT = nil
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
@@ -373,17 +374,7 @@ module DataMapper
     def get(resource)
       new_record = resource.new_record?
 
-      unless new_record || resource.attribute_loaded?(name)
-        # TODO: refactor this section
-        contexts = if lazy?
-          name
-        else
-          model.properties(resource.repository.name).reject do |property|
-            property.lazy? || resource.attribute_loaded?(property.name)
-          end
-        end
-        resource.send(:lazy_load, contexts)
-      end
+      lazy_load(resource) unless new_record || resource.attribute_loaded?(name)
 
       value = get!(resource)
 
@@ -412,6 +403,7 @@ module DataMapper
     #-
     # @api private
     def set(resource, value)
+      lazy_load(resource) unless resource.new_record? || resource.attribute_loaded?(name)
       new_value = typecast(value)
       old_value = get!(resource)
 
@@ -426,6 +418,21 @@ module DataMapper
 
     def set!(resource, value)
       resource.instance_variable_set(instance_variable_name, value)
+    end
+
+    # Loads lazy columns when get or set is called.
+    #-
+    # @api private
+    def lazy_load(resource)
+      # TODO: refactor this section
+      contexts = if lazy?
+        name
+      else
+        model.properties(resource.repository.name).reject do |property|
+          property.lazy? || resource.attribute_loaded?(property.name)
+        end
+      end
+      resource.send(:lazy_load, contexts)
     end
 
     # typecasts values into a primitive
@@ -541,18 +548,23 @@ module DataMapper
         @length = @options.fetch(:length, @options.fetch(:size, DEFAULT_LENGTH))
       elsif BigDecimal == @primitive || Float == @primitive
         @precision = @options.fetch(:precision, DEFAULT_PRECISION)
-        @scale     = @options.fetch(:scale,     DEFAULT_SCALE)
+        
+        default_scale = (Float == @primitive) ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL
+        @scale     = @options.fetch(:scale, default_scale)
+        # @scale     = @options.fetch(:scale, DEFAULT_SCALE_BIGDECIMAL)
 
         unless @precision > 0
           raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"
         end
 
-        unless @scale >= 0
-          raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
-        end
+        if (BigDecimal == @primitive) || (Float == @primitive && !@scale.nil?)
+          unless @scale >= 0
+            raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
+          end
 
-        unless @precision >= @scale
-          raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{@scale.inspect}"
+          unless @precision >= @scale
+            raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{@scale.inspect}"
+          end
         end
       end
 

@@ -6,7 +6,7 @@ if WIN32
   task :install => :gem do
     system %{gem install --no-rdoc --no-ri -l pkg/#{GEM_NAME}-#{GEM_VERSION}.gem}
   end
-  GEM_NAMEspace :dev do
+  namespace :dev do
     desc 'Install for development (for windows)'
     task :winstall => :gem do
       warn "You can now call 'rake install' instead of 'rake dev:winstall'."

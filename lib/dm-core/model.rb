@@ -39,6 +39,7 @@ module DataMapper
       target.instance_variable_set(:@properties,          Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
       target.instance_variable_set(:@base_model,          self.base_model)
       target.instance_variable_set(:@paranoid_properties, @paranoid_properties)
+      target.instance_variable_set(:@validations,         @validations) if self.respond_to?(:validators)
 
       @properties.each do |repository_name,properties|
         repository(repository_name) do

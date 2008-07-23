@@ -169,6 +169,15 @@ if ADAPTER
         result[1].trip_report.should_not be_nil
         result[2].attribute_loaded?(:miles).should be_true
       end
+
+      it "should lazy load on Property#set" do
+        repository(ADAPTER) do
+          boat = RowBoat.first
+          boat.attribute_loaded?(:notes).should be_false
+          boat.notes = 'New Note'
+          boat.original_values[:notes].should == "Note"
+        end
+      end
     end
 
     describe 'defaults' do

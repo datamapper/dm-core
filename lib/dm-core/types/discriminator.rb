@@ -17,7 +17,7 @@ module DataMapper
 
           after_class_method :inherited, :add_scope_for_discriminator
 
-          def self.add_scope_for_discriminator(target)
+          def self.add_scope_for_discriminator(retval, target)
             target.descendants << target
             target.default_scope.update(#{property.name.inspect} => target.descendants)
             propagate_descendants(target)
