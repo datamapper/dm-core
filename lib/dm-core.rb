@@ -20,7 +20,7 @@ require 'rubygems'
 gem 'addressable', '>=1.0.4'
 require 'addressable/uri'
 
-gem 'extlib', '=0.9.3'
+gem 'extlib', '=0.9.4'
 require 'extlib'
 
 begin
