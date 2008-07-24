@@ -1,4 +1,5 @@
 .autotest
+CONTRIBUTING
 FAQ
 History.txt
 MIT-LICENSE

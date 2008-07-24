@@ -1,5 +1,8 @@
 desc "Generate gemspec"
 task :gemspec do |x|
+  # Clean up extraneous files before checking manifest
+  %x[rake clean]
+
   # Check the manifest before generating the gemspec
   manifest = %x[rake check_manifest]
   manifest.gsub!("(in /usr/local/projects/dm/dm-core)\n", "")
@@ -15,5 +18,6 @@ EOS
     puts manifest
   else
     %x[rake debug_gem > #{GEM_NAME}.gemspec]
+    puts "Successfully created gemspec for #{GEM_NAME}!"
   end
 end
