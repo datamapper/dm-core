@@ -124,7 +124,7 @@ describe DataMapper::Property do
   describe '#set' do
     before do
       @original_values = {}
-      @resource        = mock('resource', :kind_of? => true, :original_values => @original_values)
+      @resource        = mock('resource', :kind_of? => true, :original_values => @original_values, :new_record? => true)
     end
 
     it 'should typecast the value' do

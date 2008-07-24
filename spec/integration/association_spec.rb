@@ -36,7 +36,7 @@ if HAS_SQLITE3
     before :each do
       [ CustomChild, CustomParent ].each { |m| m.auto_migrate! }
 
-      parent = CustomParent.create!(:name => "mother")
+      parent = CustomParent.create(:name => "mother")
       child1 = parent.custom_childs.create(:name => "son")
       child2 = parent.custom_childs.create(:name => "daughter")
 
@@ -256,7 +256,7 @@ if ADAPTER
 
       it 'should allow namespaced classes in parent and child for one <=> one' do
         g = Models::Goal.new(:title => "g2", :summary => "desc 2")
-        p = Models::Project.create!(:title => "p2", :summary => "sum 2", :goal => g)
+        p = Models::Project.create(:title => "p2", :summary => "sum 2", :goal => g)
 
         pp = Models::Project.first(:title => 'p2')
         pp.goal.title.should == "g2"
@@ -275,10 +275,10 @@ if ADAPTER
         Machine.auto_migrate!(ADAPTER)
         Area.auto_migrate!(ADAPTER)
 
-        machine1 = Machine.create!(:name => 'machine1')
-        machine2 = Machine.create!(:name => 'machine2')
-        area1   = Area.create!(:name => 'area1', :machine => machine1)
-        area2   = Area.create!(:name => 'area2')
+        machine1 = Machine.create(:name => 'machine1')
+        machine2 = Machine.create(:name => 'machine2')
+        area1   = Area.create(:name => 'area1', :machine => machine1)
+        area2   = Area.create(:name => 'area2')
       end
 
       it '#belongs_to' do
@@ -329,7 +329,7 @@ if ADAPTER
       it 'should save the association key in the child' do
         machine2 = Machine.first(:name => 'machine2')
 
-        Area.create!(:name => 'area3', :machine => machine2)
+        Area.create(:name => 'area3', :machine => machine2)
         Area.first(:name => 'area3').machine.should == machine2
       end
 
@@ -340,7 +340,7 @@ if ADAPTER
 
       it 'should save the parent upon saving of child' do
         e = Machine.new(:name => 'machine10')
-        y = Area.create!(:name => 'area10', :machine => e)
+        y = Area.create(:name => 'area10', :machine => e)
 
         y.machine.name.should == 'machine10'
         Machine.first(:name => 'machine10').should_not be_nil
@@ -351,8 +351,8 @@ if ADAPTER
       end
 
       it 'should save nil parents as NULL ids' do
-        y1 = Area.create!(:id => 20, :name => 'area20')
-        y2 = Area.create!(:id => 30, :name => 'area30', :machine => nil)
+        y1 = Area.create(:id => 20, :name => 'area20')
+        y2 = Area.create(:id => 30, :name => 'area30', :machine => nil)
 
         y1.id.should == 20
         y1.machine.should be_nil
@@ -373,7 +373,7 @@ if ADAPTER
 
       it 'should be reloaded when calling Resource#reload' do
         e = Machine.new(:name => 'machine40')
-        y = Area.create!(:name => 'area40', :machine => e)
+        y = Area.create(:name => 'area40', :machine => e)
 
         y.send(:machine_association).should_receive(:reload).once
 
@@ -386,9 +386,9 @@ if ADAPTER
         Sky.auto_migrate!(ADAPTER)
         Pie.auto_migrate!(ADAPTER)
 
-        pie1 = Pie.create!(:name => 'pie1')
-        pie2 = Pie.create!(:name => 'pie2')
-        sky1 = Sky.create!(:name => 'sky1', :pie => pie1)
+        pie1 = Pie.create(:name => 'pie1')
+        pie2 = Pie.create(:name => 'pie2')
+        sky1 = Sky.create(:name => 'sky1', :pie => pie1)
       end
 
       it '#has 1' do
@@ -422,13 +422,13 @@ if ADAPTER
       it 'should save the association key in the child' do
         pie2 = Pie.first(:name => 'pie2')
 
-        sky2 = Sky.create!(:id => 2, :name => 'sky2', :pie => pie2)
+        sky2 = Sky.create(:id => 2, :name => 'sky2', :pie => pie2)
         pie2.sky.should == sky2
       end
 
       it 'should save the children upon saving of parent' do
         p = Pie.new(:id => 10, :name => 'pie10')
-        s = Sky.create!(:id => 10, :name => 'sky10', :pie => p)
+        s = Sky.create(:id => 10, :name => 'sky10', :pie => p)
 
         p.sky.should == s
 
@@ -436,8 +436,8 @@ if ADAPTER
       end
 
       it 'should save nil parents as NULL ids' do
-        p1 = Pie.create!(:id => 20, :name => 'pie20')
-        p2 = Pie.create!(:id => 30, :name => 'pie30', :sky => nil)
+        p1 = Pie.create(:id => 20, :name => 'pie20')
+        p2 = Pie.create(:id => 30, :name => 'pie30', :sky => nil)
 
         p1.id.should == 20
         p1.sky.should be_nil
@@ -459,11 +459,11 @@ if ADAPTER
         Machine.auto_migrate!(ADAPTER)
         Area.auto_migrate!(ADAPTER)
 
-        ultrahost1  = Ultrahost.create!(:name => 'ultrahost1')
-        ultrahost2  = Ultrahost.create!(:name => 'ultrahost2')
-        ultraslice1 = Ultraslice.create!(:name => 'ultraslice1', :ultrahost => ultrahost1)
-        ultraslice2 = Ultraslice.create!(:name => 'ultraslice2', :ultrahost => ultrahost1)
-        ultraslice3 = Ultraslice.create!(:name => 'ultraslice3')
+        ultrahost1  = Ultrahost.create(:name => 'ultrahost1')
+        ultrahost2  = Ultrahost.create(:name => 'ultrahost2')
+        ultraslice1 = Ultraslice.create(:name => 'ultraslice1', :ultrahost => ultrahost1)
+        ultraslice2 = Ultraslice.create(:name => 'ultraslice2', :ultrahost => ultrahost1)
+        ultraslice3 = Ultraslice.create(:name => 'ultraslice3')
       end
 
       it '#has n' do
@@ -585,7 +585,7 @@ if ADAPTER
       end
 
       it 'should save the associated instances upon saving of parent when mass-assigned' do
-        h = Ultrahost.create!(:id => 10, :name => 'ultrahost10', :ultraslices => [ Ultraslice.new(:id => 10, :name => 'ultraslice10') ])
+        h = Ultrahost.create(:id => 10, :name => 'ultrahost10', :ultraslices => [ Ultraslice.new(:id => 10, :name => 'ultraslice10') ])
 
         s = Ultraslice.first(:name => 'ultraslice10')
 
@@ -617,12 +617,12 @@ if ADAPTER
       before do
         Node.auto_migrate!(ADAPTER)
 
-        Node.create!(:name => 'r1')
-        Node.create!(:name => 'r2')
-        Node.create!(:name => 'r1c1',   :parent_id => 1)
-        Node.create!(:name => 'r1c2',   :parent_id => 1)
-        Node.create!(:name => 'r1c3',   :parent_id => 1)
-        Node.create!(:name => 'r1c1c1', :parent_id => 3)
+        Node.create(:name => 'r1')
+        Node.create(:name => 'r2')
+        Node.create(:name => 'r1c1',   :parent_id => 1)
+        Node.create(:name => 'r1c2',   :parent_id => 1)
+        Node.create(:name => 'r1c3',   :parent_id => 1)
+        Node.create(:name => 'r1c1c1', :parent_id => 3)
       end
 
       it 'should properly set #parent' do
@@ -646,7 +646,7 @@ if ADAPTER
       end
 
       it 'should allow to create root nodes' do
-        r = Node.create!(:name => 'newroot')
+        r = Node.create(:name => 'newroot')
         r.parent.should be_nil
         r.children.size.should == 0
       end

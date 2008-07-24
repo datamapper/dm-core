@@ -374,17 +374,7 @@ module DataMapper
     def get(resource)
       new_record = resource.new_record?
 
-      unless new_record || resource.attribute_loaded?(name)
-        # TODO: refactor this section
-        contexts = if lazy?
-          name
-        else
-          model.properties(resource.repository.name).reject do |property|
-            property.lazy? || resource.attribute_loaded?(property.name)
-          end
-        end
-        resource.send(:lazy_load, contexts)
-      end
+      lazy_load(resource) unless new_record || resource.attribute_loaded?(name)
 
       value = get!(resource)
 
@@ -413,6 +403,7 @@ module DataMapper
     #-
     # @api private
     def set(resource, value)
+      lazy_load(resource) unless resource.new_record? || resource.attribute_loaded?(name)
       new_value = typecast(value)
       old_value = get!(resource)
 
@@ -427,6 +418,21 @@ module DataMapper
 
     def set!(resource, value)
       resource.instance_variable_set(instance_variable_name, value)
+    end
+
+    # Loads lazy columns when get or set is called.
+    #-
+    # @api private
+    def lazy_load(resource)
+      # TODO: refactor this section
+      contexts = if lazy?
+        name
+      else
+        model.properties(resource.repository.name).reject do |property|
+          property.lazy? || resource.attribute_loaded?(property.name)
+        end
+      end
+      resource.send(:lazy_load, contexts)
     end
 
     # typecasts values into a primitive

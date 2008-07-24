@@ -131,9 +131,9 @@ if ADAPTER
       before do
         QuerySpec::SailBoat.auto_migrate!
 
-        QuerySpec::SailBoat.create!(:name => 'A', :port => 'C')
-        QuerySpec::SailBoat.create!(:name => 'B', :port => 'B')
-        QuerySpec::SailBoat.create!(:name => 'C', :port => 'A')
+        QuerySpec::SailBoat.create(:name => 'A', :port => 'C')
+        QuerySpec::SailBoat.create(:name => 'B', :port => 'B')
+        QuerySpec::SailBoat.create(:name => 'C', :port => 'A')
       end
 
       def parse_statement(log)
@@ -206,9 +206,9 @@ if ADAPTER
       before do
         QuerySpec::SailBoat.auto_migrate!
 
-        QuerySpec::SailBoat.create!(:name => 'A', :port => 'C')
-        QuerySpec::SailBoat.create!(:name => 'B', :port => 'B')
-        QuerySpec::SailBoat.create!(:name => 'C', :port => 'A')
+        QuerySpec::SailBoat.create(:name => 'A', :port => 'C')
+        QuerySpec::SailBoat.create(:name => 'B', :port => 'B')
+        QuerySpec::SailBoat.create(:name => 'C', :port => 'A')
       end
 
       it "should find by conditions" do
@@ -227,7 +227,7 @@ if ADAPTER
 
       it "should find by conditions passed in as hash" do
         repository(ADAPTER) do
-          QuerySpec::SailBoat.create!(:name => "couldbe@email.com", :port => 'wee')
+          QuerySpec::SailBoat.create(:name => "couldbe@email.com", :port => 'wee')
 
           find = QuerySpec::SailBoat.first(:name => 'couldbe@email.com')
           find.name.should == 'couldbe@email.com'
@@ -287,17 +287,17 @@ if ADAPTER
       before do
         [ QuerySpec::SailBoat, QuerySpec::Permission ].each { |m| m.auto_migrate! }
 
-        QuerySpec::SailBoat.create!(:id => 1, :name => "Fantasy I",      :port => "Cape Town", :captain => 'Joe')
-        QuerySpec::SailBoat.create!(:id => 2, :name => "Royal Flush II", :port => "Cape Town", :captain => 'James')
-        QuerySpec::SailBoat.create!(:id => 3, :name => "Infringer III",  :port => "Cape Town", :captain => 'Jason')
+        QuerySpec::SailBoat.create(:id => 1, :name => "Fantasy I",      :port => "Cape Town", :captain => 'Joe')
+        QuerySpec::SailBoat.create(:id => 2, :name => "Royal Flush II", :port => "Cape Town", :captain => 'James')
+        QuerySpec::SailBoat.create(:id => 3, :name => "Infringer III",  :port => "Cape Town", :captain => 'Jason')
 
         #User 1 permission -- read boat 1 & 2
-        QuerySpec::Permission.create!(:id => 1, :user_id => 1, :resource_id => 1, :resource_type => 'SailBoat', :token => 'READ')
-        QuerySpec::Permission.create!(:id => 2, :user_id => 1, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
+        QuerySpec::Permission.create(:id => 1, :user_id => 1, :resource_id => 1, :resource_type => 'SailBoat', :token => 'READ')
+        QuerySpec::Permission.create(:id => 2, :user_id => 1, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
 
         #User 2 permission  -- read boat 2 & 3
-        QuerySpec::Permission.create!(:id => 3, :user_id => 2, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
-        QuerySpec::Permission.create!(:id => 4, :user_id => 2, :resource_id => 3, :resource_type => 'SailBoat', :token => 'READ')
+        QuerySpec::Permission.create(:id => 3, :user_id => 2, :resource_id => 2, :resource_type => 'SailBoat', :token => 'READ')
+        QuerySpec::Permission.create(:id => 4, :user_id => 2, :resource_id => 3, :resource_type => 'SailBoat', :token => 'READ')
       end
 
       it 'should accept a DM::Query as a value of a condition' do

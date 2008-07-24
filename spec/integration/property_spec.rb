@@ -13,7 +13,7 @@ if ADAPTER
           property :id, Serial
           property :name, String, :track => :set # :track default is :get for mutable types
           property :notes, DataMapper::Types::Text
-          property :age, Integer # :track default is :set for mutable types
+          property :age, Integer # :track default is :set for immutable types
           property :rating, Integer
           property :location, String
           property :lead, TrueClass, :track => :load
@@ -78,7 +78,7 @@ if ADAPTER
 
       it "should track on :load" do
         repository(ADAPTER) do
-          jan = Actor.create!(:name => 'jan', :lead => true)
+          jan = Actor.create(:name => 'jan', :lead => true)
           jan.lead = false
           jan.original_values[:lead].should be_true
           jan.dirty?.should == true
@@ -94,7 +94,7 @@ if ADAPTER
       it "should track on :hash" do
         cv = { 2005 => "Othello" }
         repository(ADAPTER) do
-          tom = Actor.create!(:name => 'tom', :cv => cv)
+          tom = Actor.create(:name => 'tom', :cv => cv)
         end
         repository(ADAPTER) do
           tom = Actor.first(:name => 'tom')
@@ -109,7 +109,7 @@ if ADAPTER
 
       it "should track with lazy text fields (#342)" do
         repository(ADAPTER) do
-          tim = Actor.create!(:name => 'tim')
+          tim = Actor.create(:name => 'tim')
         end
         repository(ADAPTER) do
           tim = Actor.first(:name => 'tim')
@@ -142,9 +142,9 @@ if ADAPTER
         RowBoat.auto_migrate!(ADAPTER)
 
         repository(ADAPTER) do
-          RowBoat.create!(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          RowBoat.create!(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
-          RowBoat.create!(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          RowBoat.create(:id => 1, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          RowBoat.create(:id => 2, :notes=>'Note',:trip_report=>'Report',:miles=>23)
+          RowBoat.create(:id => 3, :notes=>'Note',:trip_report=>'Report',:miles=>23)
         end
       end
 
@@ -168,6 +168,15 @@ if ADAPTER
 
         result[1].trip_report.should_not be_nil
         result[2].attribute_loaded?(:miles).should be_true
+      end
+
+      it "should lazy load on Property#set" do
+        repository(ADAPTER) do
+          boat = RowBoat.first
+          boat.attribute_loaded?(:notes).should be_false
+          boat.notes = 'New Note'
+          boat.original_values[:notes].should == "Note"
+        end
       end
     end
 
@@ -211,7 +220,7 @@ if ADAPTER
 
       it "should have defaults even with creates" do
         repository(ADAPTER) do
-          Catamaran.create!(:name => 'Jingle All The Way')
+          Catamaran.create(:name => 'Jingle All The Way')
           cat = Catamaran.first
           cat.name.should == 'Jingle All The Way'
           cat.could_be_bool0.should == true
