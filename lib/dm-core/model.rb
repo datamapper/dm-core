@@ -476,8 +476,9 @@ module DataMapper
         return DataMapper::Query::Path.new(repository, [ relationship ], klass)
       end
 
-      if property = properties(repository_name)[method]
-        return property
+      property_set = properties(repository_name)
+      if property_set.has_property?(method)
+        return property_set[method]
       end
 
       super
