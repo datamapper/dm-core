@@ -23,6 +23,7 @@ PROJECT_SUMMARY = "An Object/Relational Mapper for Ruby"
 PROJECT_URL  = "http://datamapper.org"
 
 require ROOT + 'tasks/hoe'
+require ROOT + 'tasks/gemspec'
 require ROOT + 'tasks/install'
 require ROOT + 'tasks/dm'
 require ROOT + 'tasks/doc'
