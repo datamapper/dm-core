@@ -165,6 +165,19 @@ if ADAPTER
       belongs_to :parent, :class_name => 'Node', :child_key => [ :parent_id ]
     end
 
+    class MadeUpThing
+      include DataMapper::Resource
+
+      def self.default_repository_name
+        ADAPTER
+      end
+
+      property :id, Serial
+      property :name, String
+      belongs_to :area
+      belongs_to :machine
+    end
+
     module Models
       class Project
         include DataMapper::Resource
@@ -227,6 +240,7 @@ if ADAPTER
 
       belongs_to :galaxy
     end
+
   end
 
   describe DataMapper::Associations do
@@ -274,6 +288,7 @@ if ADAPTER
       before do
         Machine.auto_migrate!(ADAPTER)
         Area.auto_migrate!(ADAPTER)
+        MadeUpThing.auto_migrate!(ADAPTER)
 
         machine1 = Machine.create(:name => 'machine1')
         machine2 = Machine.create(:name => 'machine2')
@@ -299,7 +314,7 @@ if ADAPTER
       end
 
       it 'should save both the object and parent if both are new' do
-        pending "This is fixed"
+        pending "This is a bug that should be fixed"
         area1 = Area.new(:name => 'area1')
         area1.machine = Machine.new(:name => 'machine1')
         area1.machine.save
@@ -336,6 +351,17 @@ if ADAPTER
       it 'should set the association key immediately' do
         machine = Machine.first(:name => 'machine1')
         Area.new(:machine => machine).machine_id.should == machine.id
+      end
+
+      it "should be able to set an association obtained from another association" do
+        pending "This is a bug that should be fixed"
+        machine1 = Machine.first(:name => 'machine1')
+        area1 = Area.first(:name => 'area1')
+
+        m = MadeUpThing.create(:machine => machine1, :area => area1.machine, :name => "Weird")
+
+        m.machine_id.should == machine1.id
+        m.area_id.should == area1.machine.id
       end
 
       it 'should save the parent upon saving of child' do
