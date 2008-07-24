@@ -61,11 +61,15 @@ module DataMapper
       # @api private
       def parent_model
         Class === @parent_model ? @parent_model : (Class === @child_model ? @child_model.find_const(@parent_model) : Object.find_const(@parent_model))
+      rescue NameError
+        raise NameError, "Cannot find the parent_model #{@parent_model} for #{@child_model}"
       end
 
       # @api private
       def child_model
         Class === @child_model ? @child_model : (Class === @parent_model ? @parent_model.find_const(@child_model) : Object.find_const(@child_model))
+      rescue NameError
+        raise NameError, "Cannot find the child_model #{@child_model} for #{@parent_model}"
       end
 
       # @api private
