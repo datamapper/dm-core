@@ -4,10 +4,10 @@ require "time" # httpdate
 # Logger taken from Merb :)
 #
 # To replace an existing logger with a new one:
-#  DataMapper::Logger.set_log(log{String, IO},level{Symbol, String})
+#   DataMapper.logger.set_log(log{String, IO},level{Symbol, String})
 #
-# Available logging levels are
-#   DataMapper::Logger::{ Fatal, Error, Warn, Info, Debug }
+# Available logging levels are:
+#   :off, :fatal, :error, :warn, :info, :debug
 #
 # Logging via:
 #   DataMapper.logger.fatal(message<String>)
@@ -25,7 +25,7 @@ require "time" # httpdate
 # ==== Private DataMapper Logger API
 #
 # To initialize the logger you create a new object, proxies to set_log.
-#   DataMapper::Logger.new(log{String, IO},level{Symbol, String})
+#   DataMapper::Logger.new(log{String, IO}, level{Symbol, String})
 #
 # Logger will not create the file until something is actually logged
 # This avoids file creation on DataMapper init when it creates the
@@ -147,8 +147,7 @@ module DataMapper
     end
 
     # To replace an existing logger with a new one:
-    #  DataMapper::Logger.set_log(log{String, IO},level{Symbol, String})
-    #
+    #   DataMapper.logger.set_log(log{String, IO},level{Symbol, String})
     #
     # @param log<IO,String>        either an IO object or a name of a logfile.
     # @param log_level<Symbol>     a symbol representing the log level from
