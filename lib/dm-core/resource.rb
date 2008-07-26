@@ -503,7 +503,10 @@ module DataMapper
     #-
     # @api public
     def update_attributes(hash, *update_only)
-      raise 'Update takes a hash as first parameter' unless hash.is_a?(Hash)
+      unless hash.is_a?(Hash)
+        raise ArgumentError, "Expecting the first parameter of " +
+          "update_attributes to be a hash; got #{hash.inspect}"
+      end
       loop_thru = update_only.empty? ? hash.keys : update_only
       loop_thru.each { |attr|  send("#{attr}=", hash[attr]) }
       save

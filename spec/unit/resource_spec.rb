@@ -308,6 +308,23 @@ describe DataMapper::Resource do
     jupiter.attributes.should == attributes.merge(new_age)
   end
 
+  # Illustrates a possible controller situation, where an expected params
+  # key does not exist.
+  it "update_attributes(nil) should raise an exception" do
+    hincapie = Cyclist.new
+    params = {}
+    lambda {
+      hincapie.update_attributes(params[:does_not_exist])
+    }.should raise_error(ArgumentError)
+  end
+
+  it "update_attributes(:not_a_hash) should raise an exception" do
+    hincapie = Cyclist.new
+    lambda {
+      hincapie.update_attributes(:not_a_hash).should be_false
+    }.should raise_error(ArgumentError)
+  end
+
   # :core is a private accessor so Ruby should raise NameError
   it "should not be able to set private attributes" do
     lambda {
