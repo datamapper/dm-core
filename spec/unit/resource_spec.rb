@@ -69,20 +69,6 @@ class Planet
   end
 end
 
-class BlackHole
-  include DataMapper::Resource
-
-  property :id, Integer, :key => true
-  property :data, Object, :reader => :private
-end
-
-class LegacyStar
-  include DataMapper::Resource
-  def self.default_repository_name
-    :legacy
-  end
-end
-
 class Phone
   include DataMapper::Resource
 
