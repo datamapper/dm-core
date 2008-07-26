@@ -1,9 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-# rSpec completely FUBARs everything if you give it a Module here.
-# So we give it a String of the module name instead.
-# DO NOT CHANGE THIS!
-describe "DataMapper::Resource" do
+describe DataMapper::Resource do 
 
   load_models_for_metaphor :zoo
 
@@ -124,10 +121,7 @@ class Cyclist
   property :victories,  Integer
 end
 
-# rSpec completely FUBARs everything if you give it a Module here.
-# So we give it a String of the module name instead.
-# DO NOT CHANGE THIS!
-describe "DataMapper::Resource" do
+describe DataMapper::Resource do
 
   it 'should provide #save' do
     Planet.new.should respond_to(:save)
