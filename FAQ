@@ -77,3 +77,16 @@ To send a message to the DataMapper logger:
   DataMapper.logger.error("something")
   DataMapper.logger.fatal("something")
 
+
+=== I want to run the specs, but I have a custom database setup
+
+For example, if you installed MySQL using MacPorts, your socket may be located
+at /opt/local/var/run/mysql5/mysqld.sock instead of /tmp/mysql.sock
+
+In that case, setup an environment variable in your shell before running the
+specs:
+  export MYSQL_SPEC_URI="mysql://localhost/dm_core_test?socket=/opt/local/var/run/mysql5/mysqld.sock"
+  rake spec
+
+Using another kind of database? Note that spec_helper.rb will also look for
+SQLITE3_SPEC_URI AND POSTGRES_SPEC_URI.

@@ -16,6 +16,14 @@ end
   DataMapper.setup(repository_name, "mock://localhost/#{repository_name}")
 end
 
+# These environment variables will override the default connection string:
+#   MYSQL_SPEC_URI
+#   POSTGRES_SPEC_URI
+#   SQLITE3_SPEC_URI
+#
+# For example, in the bash shell, you might use:
+#   export MYSQL_SPEC_URI="mysql://localhost/dm_core_test?socket=/opt/local/var/run/mysql5/mysqld.sock"
+#
 def setup_adapter(name, default_uri)
   begin
     DataMapper.setup(name, ENV["#{name.to_s.upcase}_SPEC_URI"] || default_uri)
