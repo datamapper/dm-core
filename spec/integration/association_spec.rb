@@ -1206,7 +1206,7 @@ if ADAPTER
         @li = LeftItem.new(:name => "li#{number}")
       end
 
-      it "should add to the assocaiton from the left" do
+      it "should add to the association from the left" do
         pending "Waiting on Many To Many to be implemented" do
           create_item_pair "0000"
           @ri.save; @li.save
