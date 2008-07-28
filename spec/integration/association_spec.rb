@@ -317,7 +317,7 @@ if ADAPTER
         pending "This is a bug that should be fixed"
         area1 = Area.new(:name => 'area1')
         area1.machine = Machine.new(:name => 'machine1')
-        area1.machine.save
+        area1.save
         area1.machine_id.should == area1.machine.id
       end
 
