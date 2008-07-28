@@ -152,5 +152,47 @@ if ADAPTER
       post.void_tags.size.should == 1
       post.void_tags.all?{|t| t.voided == true}.should be_true
     end
+
+    describe "Saved Tag, Post, Tagging" do
+      before(:each) do
+        @tag      = Tag.create
+        @post     = Post.create
+        @tagging  = Tagging.create(
+          :tag  => @tag,
+          :post => @post
+        )
+      end
+
+      it "should get posts of a tag" do
+        @tag.posts.should == [@post]
+      end
+
+      it "should get tags of a post" do
+        @post.tags.should == [@tag]
+      end
+    end
+
+    describe "In-memory Tag, Post, Tagging" do
+      before(:each) do
+        @tag      = Tag.new
+        @post     = Post.new
+        @tagging  = Tagging.new(
+          :tag  => @tag,
+          :post => @post
+        )
+      end
+
+      it "should get posts of a tag" do
+        pending("DataMapper does not yet support in-memory associations") do
+          @tag.posts.should == [@post]
+        end
+      end
+
+      it "should get tags of a post" do
+        pending("DataMapper does not yet support in-memory associations") do
+          @post.tags.should == [@tag]
+        end
+      end
+    end
   end
 end
