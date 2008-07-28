@@ -23,6 +23,7 @@ socket_file = Pathname.glob(%w[
   tmp/mysql.sock
   /tmp/mysql.sock
   /var/mysql/mysql.sock
+  /var/run/mysqld/mysqld.sock
 ]).find { |path| path.socket? }
 
 configuration_options = {
