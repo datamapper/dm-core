@@ -34,6 +34,72 @@ describe "OneToMany" do
     BaseballTeam.create(:name => "Giants")
   end
 
+  describe "(saved parent, saved child)" do
+    before(:each) do
+      @dc_united = Team.create
+      @emilio = Player.create(:team => @dc_united)
+    end
+
+    it "child association should return parent" do
+      @emilio.team.should == @dc_united
+    end
+    
+    it "parent association should return children" do
+      @dc_united.players.should == [@emilio]
+    end
+  end
+
+  describe "(saved parent, unsaved child)" do
+    before(:each) do
+      @dc_united = Team.create
+      @emilio = Player.new(:team => @dc_united)
+    end
+
+    it "child association should return parent" do
+      @emilio.team.should == @dc_united
+    end
+    
+    it "parent association should return children" do
+      pending("DataMapper does not yet support in-memory associations") do
+        @dc_united.players.should == [@emilio]
+      end
+    end
+  end
+
+  describe "(unsaved parent, saved child)" do
+    before(:each) do
+      @dc_united = Team.new
+      @emilio = Player.create(:team => @dc_united)
+    end
+
+    it "child association should return parent" do
+      @emilio.team.should == @dc_united
+    end
+    
+    it "parent association should return children" do
+      pending("DataMapper does not yet support in-memory associations") do
+        @dc_united.players.should == [@emilio]
+      end
+    end
+  end
+  
+  describe "(unsaved parent, unsaved child)" do
+    before(:each) do
+      @dc_united = Team.new
+      @emilio = Player.new(:team => @dc_united)
+    end
+
+    it "child association should return parent" do
+      @emilio.team.should == @dc_united
+    end
+    
+    it "parent association should return children" do
+      pending("DataMapper does not yet support in-memory associations") do
+        @dc_united.players.should == [@emilio]
+      end
+    end
+  end
+
   it "unsaved parent model should accept array of hashes for association" do
     players = [{ :name => "Brett Favre" }, { :name => "Reggie White" }]
 
