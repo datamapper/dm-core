@@ -77,9 +77,7 @@ describe "OneToMany" do
     end
     
     it "parent association should return children" do
-      pending("DataMapper does not yet support in-memory associations") do
-        @dc_united.players.should == [@emilio]
-      end
+      @dc_united.players.should == [@emilio]
     end
   end
   

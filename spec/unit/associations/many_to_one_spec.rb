@@ -101,7 +101,13 @@ describe DataMapper::Associations::ManyToOne::Proxy do
       end
 
       it 'should return the result of the save' do
+        child_key = mock("child_key")
+        child_key.should_receive(:set).and_return(true)
+        parent_key = mock("parent_key")
+        parent_key.should_receive(:get).and_return(1)
         @relationship.should_receive(:with_repository).and_yield(@repository)
+        @relationship.should_receive(:child_key).and_return(child_key)
+        @relationship.should_receive(:parent_key).and_return(parent_key)
         save_results = mock('save results')
         @parent.should_receive(:save).with(no_args).and_return(save_results)
         @association.save.object_id.should == save_results.object_id

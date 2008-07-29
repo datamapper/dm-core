@@ -314,12 +314,10 @@ if ADAPTER
       end
 
       it 'should save both the object and parent if both are new' do
-        pending "This is a bug that should be fixed" do
-          area1 = Area.new(:name => 'area1')
-          area1.machine = Machine.new(:name => 'machine1')
-          area1.save
-          area1.machine_id.should == area1.machine.id
-        end
+        area1 = Area.new(:name => 'area1')
+        area1.machine = Machine.new(:name => 'machine1')
+        area1.save
+        area1.machine_id.should == area1.machine.id
       end
 
       it '#belongs_to with namespaced models' do

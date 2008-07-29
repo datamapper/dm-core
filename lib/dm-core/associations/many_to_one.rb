@@ -61,7 +61,9 @@ module DataMapper
           return true  unless parent.new_record?
 
           @relationship.with_repository(parent) do
-            parent.save
+            result = parent.save
+            @relationship.child_key.set(@child, @relationship.parent_key.get(parent)) if result
+            result
           end
         end
 
