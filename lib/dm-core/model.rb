@@ -31,6 +31,7 @@ module DataMapper
     def self.extended(model)
       model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.send(:default_storage_name)) })
       model.instance_variable_set(:@properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
+      model.instance_variable_set(:@field_naming_conventions, Hash.new { |h,k| h[k] = repository(k).adapter.field_naming_convention })
       extra_extensions.each { |extension| model.extend(extension) }
     end
 
@@ -39,6 +40,7 @@ module DataMapper
       target.instance_variable_set(:@properties,          Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
       target.instance_variable_set(:@base_model,          self.base_model)
       target.instance_variable_set(:@paranoid_properties, @paranoid_properties)
+      target.instance_variable_set(:@field_naming_conventions,  @field_naming_conventions.dup)
 
       if self.respond_to?(:validators)
         @validations.contexts.each do |context, validators|
@@ -123,6 +125,14 @@ module DataMapper
     # @return <Hash(Symbol => String)> All available names of storage recepticles
     def storage_names
       @storage_names
+    end
+
+    ##
+    # The field naming conventions for this resource across all repositories.
+    # 
+    # @return <Hash(Symbol => String)> All available field naming conventions
+    def field_naming_conventions
+      @field_naming_conventions
     end
 
     ##
