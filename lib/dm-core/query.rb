@@ -565,8 +565,8 @@ module DataMapper
 
     class Path
       include Assertions
-			
-			%w[ id type ].each { |m| undef_method m }
+
+   %w[ id type ].each { |m| undef_method m }
 
       attr_reader :relationships, :model, :property, :operator
 

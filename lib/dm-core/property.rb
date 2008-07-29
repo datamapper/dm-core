@@ -548,7 +548,7 @@ module DataMapper
         @length = @options.fetch(:length, @options.fetch(:size, DEFAULT_LENGTH))
       elsif BigDecimal == @primitive || Float == @primitive
         @precision = @options.fetch(:precision, DEFAULT_PRECISION)
-        
+
         default_scale = (Float == @primitive) ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL
         @scale     = @options.fetch(:scale, default_scale)
         # @scale     = @options.fetch(:scale, DEFAULT_SCALE_BIGDECIMAL)

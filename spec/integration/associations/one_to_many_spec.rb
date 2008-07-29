@@ -43,7 +43,7 @@ describe "OneToMany" do
     it "child association should return parent" do
       @emilio.team.should == @dc_united
     end
-    
+
     it "parent association should return children" do
       @dc_united.players.should == [@emilio]
     end
@@ -58,7 +58,7 @@ describe "OneToMany" do
     it "child association should return parent" do
       @emilio.team.should == @dc_united
     end
-    
+
     it "parent association should return children" do
       pending("DataMapper does not yet support in-memory associations") do
         @dc_united.players.should == [@emilio]
@@ -75,12 +75,12 @@ describe "OneToMany" do
     it "child association should return parent" do
       @emilio.team.should == @dc_united
     end
-    
+
     it "parent association should return children" do
       @dc_united.players.should == [@emilio]
     end
   end
-  
+
   describe "(unsaved parent, unsaved child)" do
     before(:each) do
       @dc_united = Team.new
@@ -90,7 +90,7 @@ describe "OneToMany" do
     it "child association should return parent" do
       @emilio.team.should == @dc_united
     end
-    
+
     it "parent association should return children" do
       pending("DataMapper does not yet support in-memory associations") do
         @dc_united.players.should == [@emilio]

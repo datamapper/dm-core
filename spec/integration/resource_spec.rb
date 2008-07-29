@@ -7,15 +7,15 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
   describe "DataMapper::Resource with #{ADAPTER}" do
-    
+
     load_models_for_metaphor :zoo
-    
+
     before(:each) do
       DataMapper.auto_migrate!(ADAPTER)
       @zoo = Zoo.new(:name => "San Francisco")
       repository(ADAPTER) { @zoo.save }
     end
-    
+
   # --- Move somewhere ----
     it "should be able to destroy objects" do
       lambda { @zoo.destroy.should be_true }.should_not raise_error
@@ -47,7 +47,7 @@ if ADAPTER
         zoo.name = "San Francisco"
       end
     end
-    
+
     describe '#eql?' do
       it "should return true if the objects are the same instances"
       it "should return false if the other object is not an instance of the same model"
@@ -56,19 +56,19 @@ if ADAPTER
       it "should return true if all the properties are the same"
       it "should return false if any of the properties are different"
     end
-    
+
     describe '#id' do
       it "should be awesome"
     end
-    
+
     describe '#inspect' do
       it "should return a string representing the object"
     end
-    
+
     describe '#key' do
       it "should be awesome"
     end
-    
+
     describe '#pretty_print' do
       it "should display a pretty version of inspect"
     end
@@ -86,7 +86,7 @@ if ADAPTER
       end
 
     end
-    
+
     describe '#repository' do
       it "should return the repository associated with the object if there is one"
       it "should return the repository associated with the model if the object doesn't have one"

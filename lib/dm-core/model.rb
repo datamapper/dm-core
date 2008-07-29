@@ -129,7 +129,7 @@ module DataMapper
 
     ##
     # The field naming conventions for this resource across all repositories.
-    # 
+    #
     # @return <Hash(Symbol => String)> All available field naming conventions
     def field_naming_conventions
       @field_naming_conventions
@@ -277,7 +277,7 @@ module DataMapper
 
     ##
     # This method is deprecated, and will be removed from dm-core.
-    # 
+    #
     def create!(attributes = {})
       warn("Model#create! is deprecated. It is moving to dm-validations, and will be used to create a record without validations")
       resource = create(attributes)

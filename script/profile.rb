@@ -18,7 +18,7 @@ SOCKET_FILE = Pathname.glob(%w[
   /tmp/mysqld.sock
   /tmp/mysql.sock
   /var/mysql/mysql.sock
-  /var/run/mysqld/mysqld.sock  
+  /var/run/mysqld/mysqld.sock
 ]).find { |path| path.socket? }
 
 DataMapper::Logger.new(DataMapper.root / 'log' / 'dm.log', :debug)

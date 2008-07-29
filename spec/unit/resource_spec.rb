@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-describe DataMapper::Resource do 
+describe DataMapper::Resource do
 
   load_models_for_metaphor :zoo
 
