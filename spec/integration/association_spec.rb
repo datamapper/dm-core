@@ -359,7 +359,7 @@ if ADAPTER
           machine1 = Machine.first(:name => 'machine1')
           area1 = Area.first(:name => 'area1')
 
-          m = MadeUpThing.create(:machine => machine1, :area => area1.machine, :name => "Weird")
+          m = MadeUpThing.create(:machine => area1.machine, :area => area1, :name => "Weird")
 
           m.machine_id.should == machine1.id
           m.area_id.should == area1.machine.id
