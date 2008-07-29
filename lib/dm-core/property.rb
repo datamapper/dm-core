@@ -575,7 +575,7 @@ module DataMapper
     end
 
     def fields
-      @fields ||= Hash.new { |h,k| h[k] = repository(k).adapter.field_naming_convention.call(self.name) }
+      @fields ||= Hash.new { |h,k| h[k] = repository(k).adapter.field_naming_convention.call(self) }
     end
 
     def determine_visibility # :nodoc:
