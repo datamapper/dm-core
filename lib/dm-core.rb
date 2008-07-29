@@ -143,8 +143,13 @@ module DataMapper
       lib_name = "#{Extlib::Inflection.underscore(adapter_name)}_adapter"
       begin
         require root / 'lib' / 'dm-core' / 'adapters' / lib_name
-      rescue LoadError
-        require lib_name
+      rescue LoadError => e
+        begin
+          require lib_name
+        rescue Exception
+          # library not found, raise the original error
+          raise e
+        end
       end
     end
 
