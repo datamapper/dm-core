@@ -353,15 +353,13 @@ if ADAPTER
       end
 
       it "should be able to set an association obtained from another association" do
-        pending "This is a bug that should be fixed" do
-          machine1 = Machine.first(:name => 'machine1')
-          area1 = Area.first(:name => 'area1')
+        machine1 = Machine.first(:name => 'machine1')
+        area1 = Area.first(:name => 'area1')
+        area1.machine = machine1
 
-          m = MadeUpThing.create(:machine => area1.machine, :area => area1, :name => "Weird")
+        m = MadeUpThing.create(:machine => area1.machine, :name => "Weird")
 
-          m.machine_id.should == machine1.id
-          m.area_id.should == area1.machine.id
-        end
+        m.machine_id.should == machine1.id
       end
 
       it 'should save the parent upon saving of child' do

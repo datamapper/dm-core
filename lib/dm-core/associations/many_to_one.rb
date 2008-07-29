@@ -80,6 +80,10 @@ module DataMapper
           super || parent.respond_to?(method, include_private)
         end
 
+        def instance_variable_get(variable)
+          super || parent.instance_variable_get(variable)
+        end
+
         private
 
         def initialize(relationship, child)
