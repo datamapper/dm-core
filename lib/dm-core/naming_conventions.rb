@@ -4,7 +4,7 @@ module DataMapper
   # The default is UnderscoredAndPluralized.
   # You assign a naming convention like so:
   #
-  #   repository(:default).adapter.resource_naming_convention = NamingConventions::Underscored
+  #   repository(:default).adapter.resource_naming_convention = NamingConventions::Resource::Underscored
   #
   # You can also easily assign a custom convention with a Proc:
   #
@@ -21,32 +21,64 @@ module DataMapper
   # use code like this:
   #
   #   adapter = DataMapper.setup(:default, "mock://localhost/mock")
-  #   adapter.resource_naming_convention = DataMapper::NamingConventions::Underscored
+  #   adapter.resource_naming_convention = DataMapper::NamingConventions::Resource::Underscored
   module NamingConventions
 
-    module UnderscoredAndPluralized
-      def self.call(value)
-        Extlib::Inflection.pluralize(Extlib::Inflection.underscore(value)).gsub('/','_')
-      end
-    end # module UnderscoredAndPluralized
+    module Resource
 
-    module UnderscoredAndPluralizedWithoutModule
-      def self.call(value)
-        Extlib::Inflection.pluralize(Extlib::Inflection.underscore(Extlib::Inflection.demodulize(value)))
-      end
-    end # module UnderscoredAndPluralizedWithoutModule
+      module UnderscoredAndPluralized
+        def self.call(name)
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(name)).gsub('/','_')
+        end
+      end # module UnderscoredAndPluralized
 
-    module Underscored
-      def self.call(value)
-        Extlib::Inflection.underscore(value)
-      end
-    end # module Underscored
+      module UnderscoredAndPluralizedWithoutModule
+        def self.call(name)
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(Extlib::Inflection.demodulize(name)))
+        end
+      end # module UnderscoredAndPluralizedWithoutModule
 
-    module Yaml
-      def self.call(value)
-        Extlib::Inflection.pluralize(Extlib::Inflection.underscore(value)) + ".yaml"
-      end
-    end # module Yaml
+      module Underscored
+        def self.call(name)
+          Extlib::Inflection.underscore(name)
+        end
+      end # module Underscored
+
+      module Yaml
+        def self.call(name)
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(name)) + ".yaml"
+        end
+      end # module Yaml
+
+    end # module Resource
+
+    module Field
+
+      module UnderscoredAndPluralized
+        def self.call(property)
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name)).gsub('/','_')
+        end
+      end # module UnderscoredAndPluralized
+
+      module UnderscoredAndPluralizedWithoutModule
+        def self.call(property)
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(Extlib::Inflection.demodulize(property.name)))
+        end
+      end # module UnderscoredAndPluralizedWithoutModule
+
+      module Underscored
+        def self.call(property)
+          Extlib::Inflection.underscore(property.name)
+        end
+      end # module Underscored
+
+      module Yaml
+        def self.call(property)
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name)) + ".yaml"
+        end
+      end # module Yaml
+
+    end # module Field
 
   end # module NamingConventions
 end # module DataMapper

@@ -244,7 +244,7 @@ module DataMapper
         end
 
         def assert_mutable
-          raise ImmutableAssociationError, 'You can not modify this assocation' if children.frozen?
+          raise ImmutableAssociationError, 'You can not modify this association' if children.frozen?
         end
 
         def default_attributes

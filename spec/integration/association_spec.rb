@@ -1206,18 +1206,19 @@ if ADAPTER
         @li = LeftItem.new(:name => "li#{number}")
       end
 
-      it "should add to the assocaiton from the left" do
-        pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0000"
-        @ri.save; @li.save
-        @ri.should_not be_new_record
-        @li.should_not be_new_record
+      it "should add to the association from the left" do
+        pending "Waiting on Many To Many to be implemented" do
+          create_item_pair "0000"
+          @ri.save; @li.save
+          @ri.should_not be_new_record
+          @li.should_not be_new_record
 
-        @li.right_items << @ri
-        @li.right_items.should include(@ri)
-        @li.reload
-        @ri.reload
-        @li.right_items.should include(@ri)
+          @li.right_items << @ri
+          @li.right_items.should include(@ri)
+          @li.reload
+          @ri.reload
+          @li.right_items.should include(@ri)
+        end
       end
 
       it "should add to the association from the right" do
@@ -1233,93 +1234,100 @@ if ADAPTER
         @ri.left_items.should include(@li)
       end
 
-      it "should load the assocaited collection from the either side" do
-        pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0020"
-        @ri.save; @li.save
-        @ri.left_items << @li
-        @ri.reload; @li.reload
+      it "should load the associated collection from the either side" do
+        pending "Waiting on Many To Many to be implemented" do
+          create_item_pair "0020"
+          @ri.save; @li.save
+          @ri.left_items << @li
+          @ri.reload; @li.reload
 
-        @ri.left_items.should include(@li)
-        @li.right_items.should include(@ri)
+          @ri.left_items.should include(@li)
+          @li.right_items.should include(@ri)
+        end
       end
 
-      it "should load the assocatied collection from the right" do
-        pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0030"
-        @ri.save; @li.save
-        @li.right_items << @li
-        @ri.reload; @li.reload
+      it "should load the associated collection from the right" do
+        pending "Waiting on Many To Many to be implemented" do
+          create_item_pair "0030"
+          @ri.save; @li.save
+          @li.right_items << @li
+          @ri.reload; @li.reload
 
-        @ri.left_items.should include(@li)
-        @li.right_items.should include(@ri)
-
+          @ri.left_items.should include(@li)
+          @li.right_items.should include(@ri)
+        end
       end
 
       it "should save the left side of the association if new record" do
-        pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0040"
-        @ri.save
-        @li.should be_new_record
-        @ri.left_items << @li
-        @li.should_not be_new_record
+        pending "Waiting on Many To Many to be implemented" do
+          create_item_pair "0040"
+          @ri.save
+          @li.should be_new_record
+          @ri.left_items << @li
+          @li.should_not be_new_record
+        end
       end
 
-      it "should save the right side of the assocaition if new record" do
-        pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0050"
-        @li.save
-        @ri.should be_new_record
-        @li.right_items << @ri
-        @ri.should_not be_new_record
+      it "should save the right side of the association if new record" do
+        pending "Waiting on Many To Many to be implemented" do
+          create_item_pair "0050"
+          @li.save
+          @ri.should be_new_record
+          @li.right_items << @ri
+          @ri.should_not be_new_record
+        end
       end
 
-      it "should save both side of the assocaition if new record" do
-        pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0060"
-        @li.should be_new_record
-        @ri.should be_new_record
-        @ri.left_items << @li
-        @ri.should_not be_new_record
-        @li.should_not be_new_record
+      it "should save both side of the association if new record" do
+        pending "Waiting on Many To Many to be implemented" do
+          create_item_pair "0060"
+          @li.should be_new_record
+          @ri.should be_new_record
+          @ri.left_items << @li
+          @ri.should_not be_new_record
+          @li.should_not be_new_record
+        end
       end
 
       it "should remove an item from the left collection without destroying the item" do
-        pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0070"
-        @li.save; @ri.save
-        @ri.left_items << @li
-        @ri.reload; @li.reload
-        @ri.left_items.should include(@li)
-        @ri.left_items.delete(@li)
-        @ri.left_items.should_not include(@li)
-        @li.reload
-        LeftItem.get(@li.id).should_not be_nil
+        pending "Waiting on Many To Many to be implemented" do
+          create_item_pair "0070"
+          @li.save; @ri.save
+          @ri.left_items << @li
+          @ri.reload; @li.reload
+          @ri.left_items.should include(@li)
+          @ri.left_items.delete(@li)
+          @ri.left_items.should_not include(@li)
+          @li.reload
+          LeftItem.get(@li.id).should_not be_nil
+        end
       end
 
       it "should remove an item from the right collection without destroying the item" do
-        pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0080"
-        @li.save; @ri.save
-        @li.right_items << @ri
-        @li.reload; @ri.reload
-        @li.right_items.should include(@ri)
-        @li.right_items.delete(@ri)
-        @li.right_items.should_not include(@ri)
-        @ri.reload
-        RightItem.get(@ri.id).should_not be_nil
+        pending "Waiting on Many To Many to be implemented" do
+          create_item_pair "0080"
+          @li.save; @ri.save
+          @li.right_items << @ri
+          @li.reload; @ri.reload
+          @li.right_items.should include(@ri)
+          @li.right_items.delete(@ri)
+          @li.right_items.should_not include(@ri)
+          @ri.reload
+          RightItem.get(@ri.id).should_not be_nil
+        end
       end
 
       it "should remove the item from the collection when an item is deleted" do
-        pending "Waiting on Many To Many to be implemented"
-        create_item_pair "0090"
-        @li.save; @ri.save
-        @ri.left_items << @li
-        @ri.reload; @li.reload
-        @ri.left_items.should include(@li)
-        @li.destroy
-        @ri.reload
-        @ri.left_items.should_not include(@li)
+        pending "Waiting on Many To Many to be implemented" do
+          create_item_pair "0090"
+          @li.save; @ri.save
+          @ri.left_items << @li
+          @ri.reload; @li.reload
+          @ri.left_items.should include(@li)
+          @li.destroy
+          @ri.reload
+          @ri.left_items.should_not include(@li)
+        end
       end
     end
   end

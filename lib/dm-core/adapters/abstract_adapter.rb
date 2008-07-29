@@ -43,8 +43,8 @@ module DataMapper
         @name = name
         @uri  = normalize_uri(uri_or_options)
 
-        @resource_naming_convention = NamingConventions::UnderscoredAndPluralized
-        @field_naming_convention    = NamingConventions::Underscored
+        @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
+        @field_naming_convention    = NamingConventions::Field::Underscored
 
         @transactions = Hash.new do |hash, key|
           hash.delete_if do |k, v|
