@@ -103,7 +103,7 @@ module DataMapper
 
             query = collection.query.dup
             query.conditions.map! do |operator, property, bind_value|
-              if child_key.has_property?(property.name)
+              if operator != :raw && child_key.has_property?(property.name)
                 bind_value = *children.map { |child| property.get(child) }.uniq
               end
               [ operator, property, bind_value ]
