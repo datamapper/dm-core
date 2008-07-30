@@ -38,6 +38,29 @@ if HAS_SQLITE3
       end
     end
 
+    describe "with the identity map" do
+      before :all do
+        Book.auto_migrate!(:sqlite3)
+        repository(:sqlite3) do
+          Propaganda.create(:title => "Something", :isbn => "129038")
+        end
+      end
+
+      it "should find the base model in the identity map" do
+        repository(:sqlite3) do
+          book = Book.first
+          book.object_id.should == Propaganda.first.object_id
+        end
+      end
+
+      it "should find the child model in the identity map" do
+        repository(:sqlite3) do
+          book = Propaganda.first
+          book.object_id.should == Book.first.object_id
+        end
+      end
+    end
+
     describe "with a parent class" do
       before :all do
         Book.auto_migrate!(:sqlite3).should be_true
