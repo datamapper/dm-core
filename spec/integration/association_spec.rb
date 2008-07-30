@@ -721,7 +721,7 @@ if ADAPTER
               end
               property :id, Serial
               property :name, String
-              belongs_to :shop, :class_name => 'Sweets::Shop'
+              belongs_to :shop
               has 1, :wife
               has n, :children
               has n, :toys,     :through => :children

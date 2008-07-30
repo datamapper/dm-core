@@ -24,7 +24,7 @@ if ADAPTER
       property :name, String
       property :type, Discriminator
 
-      belongs_to :parent, :class_name => 'ManyToOneSpec::Parent'
+      belongs_to :parent
     end
 
     class StepChild < Child
