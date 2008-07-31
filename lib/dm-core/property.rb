@@ -279,7 +279,7 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
-      :default, :precision, :scale, :track
+      :default, :precision, :scale, :track, :extra_options
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -510,8 +510,9 @@ module DataMapper
         raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}", caller
       end
 
-      if (unknown_options = options.keys - PROPERTY_OPTIONS).any?
-        raise ArgumentError, "+options+ contained unknown keys: #{unknown_options * ', '}", caller
+      @extra_options = {}
+      (options.keys - PROPERTY_OPTIONS).each do |key|
+        @extra_options[key] = options.delete(key)
       end
 
       @model                  = model

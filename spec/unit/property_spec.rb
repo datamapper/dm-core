@@ -292,10 +292,9 @@ describe DataMapper::Property do
     Potato.new().should respond_to(:public?)
   end
 
-  it "should raise an ArgumentError when created with an invalid option" do
-    lambda{
-      DataMapper::Property.new(Tomato,:botanical_name,String,{:foo=>:bar})
-    }.should raise_error(ArgumentError)
+  it "should move unknown options into Property#extra_options" do
+    d = DataMapper::Property.new(Tomato,:botanical_name,String,{:foo=>:bar})
+    d.extra_options.should == {:foo => :bar}
   end
 
   it 'should return the attribute value from a given instance' do
