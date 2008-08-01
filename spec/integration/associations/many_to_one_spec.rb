@@ -108,6 +108,7 @@ if ADAPTER
       describe 'when the parent is not a new record' do
         before do
           @parent.should_not be_new_record
+          @child.should_not be_new_record
         end
 
         it 'should not save the parent' do
@@ -117,6 +118,10 @@ if ADAPTER
 
         it 'should return true' do
           @association.save.should == true
+        end
+
+        it "should return true to the child" do
+          @child.save.should == true
         end
       end
 

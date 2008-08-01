@@ -79,6 +79,11 @@ describe "OneToMany" do
     it "parent association should return children" do
       @dc_united.players.should == [@emilio]
     end
+
+    it "should return true to child.save" do
+      @emilio.should_not be_a_new_record
+      @emilio.save.should be_true
+    end
   end
 
   describe "(unsaved parent, unsaved child)" do
