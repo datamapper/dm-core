@@ -546,7 +546,11 @@ module DataMapper
               # remove the default if the property is not nullable
               schema.delete(:default) unless property.nullable?
             else
-              schema[:default] = property.default
+              if property.type.respond_to?(:dump)
+                schema[:default] = property.type.dump(property.default, property)
+              else
+                schema[:default] = property.default
+              end
             end
 
             schema
