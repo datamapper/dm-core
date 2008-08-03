@@ -1055,6 +1055,13 @@ if ADAPTER
             collection.length.should == 2
             collection.should be_loaded
           end
+
+          it "should load lazy columns when using offset" do
+            repository(ADAPTER) do
+              zebras = Zebra.all(:offset => 1, :limit => 2)
+              zebras.first.notes.should_not be_nil
+            end
+          end
         end
       end
     end

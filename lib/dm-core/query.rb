@@ -47,7 +47,7 @@ module DataMapper
       # only overwrite the attributes with non-default values
       @reload       = other.reload?       unless other.reload?       == false
       @unique       = other.unique?       unless other.unique?       == false
-      @offset       = other.offset        unless other.offset        == 0
+      @offset       = other.offset        if other.reload? || other.offset != 0
       @limit        = other.limit         unless other.limit         == nil
       @order        = other.order         unless other.order         == model.default_order
       @add_reversed = other.add_reversed? unless other.add_reversed? == false
