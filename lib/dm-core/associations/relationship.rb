@@ -139,11 +139,11 @@ module DataMapper
 
           children = child_identity_map.values
 
-          bind_values = *children.map { |c| child_key.get(c) }.uniq
-          query_values = bind_values.reject { |k| parent_identity_map[[k]] }
+          bind_values = children.map { |c| child_key.get(c) }.uniq
+          query_values = bind_values.reject { |k| parent_identity_map[k] }
 
           bind_values = query_values unless query_values.empty?
-          query = parent_key.map { |k| [ k, bind_values ] }.to_hash
+          query = parent_key.zip(bind_values.transpose).to_hash
 
           association_accessor = "#{self.name}_association"
 
