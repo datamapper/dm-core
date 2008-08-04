@@ -66,7 +66,28 @@ if ADAPTER
     end
 
     describe '#key' do
-      it "should be awesome"
+      describe "original_value[:key]" do
+        it "should be used when an existing resource's key changes" do
+          employee = Employee.create(:name => "John")
+          employee.name = "Jon"
+          employee.key.should == ["John"]
+        end
+
+        it "should be used when saving an existing resource" do
+          repository(ADAPTER) do
+            employee = Employee.create(:name => "John")
+            employee.name = "Jon"
+            employee.save.should == true
+            Employee.get("Jon").should == employee
+          end
+        end
+
+        it "should not be used when a new resource's key changes" do
+          employee = Employee.new(:name => "John")
+          employee.name = "Jon"
+          employee.key.should == ["Jon"]
+        end
+      end
     end
 
     describe '#pretty_print' do

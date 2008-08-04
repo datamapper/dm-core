@@ -39,8 +39,7 @@ end
 class Employee
   include DataMapper::Resource
 
-  property :id,   Serial
-  property :name, String
+  property :name, String, :key => true
 end
 
 class Keeper < Employee

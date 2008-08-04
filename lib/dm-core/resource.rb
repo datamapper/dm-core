@@ -233,7 +233,7 @@ module DataMapper
 
     def key
       key_properties.map do |property|
-        property.get!(self)
+        original_values[property.name] || property.get!(self)
       end
     end
 
