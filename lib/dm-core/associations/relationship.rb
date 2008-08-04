@@ -109,9 +109,8 @@ module DataMapper
               [ operator, property, bind_value ]
             end
 
-            parents_children = Collection.new(query) do |collection|
-              children.each { |child| collection.send(:add, child) }
-            end
+            parents_children = Collection.new(query)
+            children.each { |child| parents_children.send(:add, child) }
 
             if parent_key.get(parent) == parent_values
               ret = parents_children

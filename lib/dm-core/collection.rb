@@ -509,7 +509,8 @@ module DataMapper
       assert_kind_of 'query', query, Query
 
       unless block_given?
-        raise ArgumentError, 'a block must be supplied for lazy loading results', caller
+        # It can be helpful (relationship.rb: 112-13, used for SEL) to have a non-lazy Collection.
+        block = lambda {}
       end
 
       @query          = query
