@@ -403,6 +403,12 @@ if ADAPTER
 
         lambda { y.reload }.should_not raise_error
       end
+
+      it "should have machine when created using machine_id" do
+        m = Machine.create(:name => 'machineX')
+        a = Area.new(:machine_id => m.id)
+        a.machine.should == m
+      end
     end
 
     describe 'one to one associations' do

@@ -136,7 +136,7 @@ module DataMapper
             return parent
           end
 
-          children = child_identity_map.values
+          children = child_identity_map.values | [child]
 
           bind_values = children.map { |c| child_key.get(c) }.uniq
           query_values = bind_values.reject { |k| parent_identity_map[k] }
