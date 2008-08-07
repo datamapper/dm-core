@@ -40,6 +40,7 @@ module DataMapper
     #
     # @api private
     def many_to_one_relationships
+      relationships unless @relationships # needs to be initialized!
       @relationships.values.collect do |rels| rels.values end.flatten.select do |relationship| relationship.child_model == self end
     end
 

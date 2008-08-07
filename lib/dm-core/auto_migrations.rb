@@ -8,9 +8,14 @@ module DataMapper
     #
     # @param Symbol repository_name the repository to be migrated
     # @calls DataMapper::Resource#auto_migrate!
-    def self.auto_migrate(repository_name = nil)
-      DataMapper::Resource.descendants.each do |model|
-        model.auto_migrate!(repository_name)
+    def self.auto_migrate(repository_name = nil, *descendants)
+      descendants = DataMapper::Resource.descendants.to_a if descendants.empty?
+      descendants.reverse.each do |model|
+        model.auto_migrate_down!(repository_name)
+      end
+
+      descendants.each do |model|
+        model.auto_migrate_up!(repository_name)
       end
     end
 
@@ -34,11 +39,35 @@ module DataMapper
     #
     # @param Symbol repository_name the repository to be migrated
     def auto_migrate!(repository_name = nil)
+      auto_migrate_down!(repository_name)
+      auto_migrate_up!(repository_name)
+    end
+
+    ##
+    # Destructively migrates the data-store down, which basically
+    # deletes all the models.
+    # REPEAT: THIS IS DESTRUCTIVE
+    #
+    # @param Symbol repository_name the repository to be migrated
+    def auto_migrate_down!(repository_name = nil)
       if self.superclass != Object
         self.superclass.auto_migrate!(repository_name)
       else
         repository(repository_name) do |r|
           r.adapter.destroy_model_storage(r, self)
+        end
+      end
+    end
+
+    ##
+    # Auto migrates the data-store to match the model
+    #
+    # @param Symbol repository_name the repository to be migrated
+    def auto_migrate_up!(repository_name = nil)
+      if self.superclass != Object
+        self.superclass.auto_migrate!(repository_name)
+      else
+        repository(repository_name) do |r|
           r.adapter.create_model_storage(r, self)
         end
       end

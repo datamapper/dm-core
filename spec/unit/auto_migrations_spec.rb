@@ -85,7 +85,8 @@ describe DataMapper::AutoMigrations do
 
       models.each do |model|
         DataMapper::Resource.descendants << model
-        model.should_receive(:auto_migrate!).with(@repository_name)
+        model.should_receive(:auto_migrate_down!).with(@repository_name)
+        model.should_receive(:auto_migrate_up!).with(@repository_name)
       end
 
       DataMapper::AutoMigrator.auto_migrate(@repository_name)

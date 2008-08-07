@@ -370,6 +370,13 @@ if ADAPTER
         Machine.first(:name => 'machine10').should_not be_nil
       end
 
+      it 'should set and retrieve associations on not yet saved objects' do
+        e = Machine.create(:name => 'machine10')
+        y = e.areas.build(:name => 'area10')
+
+        y.machine.name.should == 'machine10'
+      end
+
       it 'should convert NULL parent ids into nils' do
         Area.first(:name => 'area2').machine.should be_nil
       end
