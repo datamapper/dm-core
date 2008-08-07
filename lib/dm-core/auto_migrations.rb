@@ -49,6 +49,7 @@ module DataMapper
     # REPEAT: THIS IS DESTRUCTIVE
     #
     # @param Symbol repository_name the repository to be migrated
+    # @api private
     def auto_migrate_down!(repository_name = nil)
       if self.superclass != Object
         self.superclass.auto_migrate!(repository_name)
@@ -63,6 +64,7 @@ module DataMapper
     # Auto migrates the data-store to match the model
     #
     # @param Symbol repository_name the repository to be migrated
+    # @api private
     def auto_migrate_up!(repository_name = nil)
       if self.superclass != Object
         self.superclass.auto_migrate!(repository_name)
