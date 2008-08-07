@@ -3,17 +3,38 @@
 module DataMapper
   class AutoMigrator
     ##
-    # Destructively automigrates the data-store to match the model
+    # Destructively automigrates the data-store to match the model.
+    # First migrates all models down and then up.
     # REPEAT: THIS IS DESTRUCTIVE
     #
     # @param Symbol repository_name the repository to be migrated
-    # @calls DataMapper::Resource#auto_migrate!
     def self.auto_migrate(repository_name = nil, *descendants)
+      auto_migrate_down(repository_name, *descendants)
+      auto_migrate_up(repository_name, *descendants)
+    end
+
+    ##
+    # Destructively automigrates the data-store down
+    # REPEAT: THIS IS DESTRUCTIVE
+    #
+    # @param Symbol repository_name the repository to be migrated
+    # @calls DataMapper::Resource#auto_migrate_down!
+    # @api private
+    def self.auto_migrate_down(repository_name = nil, *descendants)
       descendants = DataMapper::Resource.descendants.to_a if descendants.empty?
       descendants.reverse.each do |model|
         model.auto_migrate_down!(repository_name)
       end
+    end
 
+    ##
+    # Automigrates the data-store up
+    #
+    # @param Symbol repository_name the repository to be migrated
+    # @calls DataMapper::Resource#auto_migrate_up!
+    # @api private
+    def self.auto_migrate_up(repository_name = nil, *descendants)
+      descendants = DataMapper::Resource.descendants.to_a if descendants.empty?
       descendants.each do |model|
         model.auto_migrate_up!(repository_name)
       end
