@@ -39,8 +39,10 @@ module DataMapper
         def storage_exists?(storage_name)
           statement = <<-EOS.compress_lines
             SELECT COUNT(*)
-            FROM `information_schema`.`columns`
-            WHERE `table_schema` = ? AND `table_name` = ?
+            FROM `information_schema`.`tables`
+            WHERE `table_type` = 'BASE TABLE'
+            AND `table_schema` = ?
+            AND `table_name` = ?
           EOS
 
           query(statement, db_name, storage_name).first > 0
@@ -51,7 +53,9 @@ module DataMapper
           statement = <<-EOS.compress_lines
             SELECT COUNT(*)
             FROM `information_schema`.`columns`
-            WHERE `table_schema` = ? AND `table_name` = ? AND `column_name` = ?
+            WHERE `table_schema` = ?
+            AND `table_name` = ?
+            AND `column_name` = ?
           EOS
 
           query(statement, db_name, storage_name, field_name).first > 0

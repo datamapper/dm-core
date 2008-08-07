@@ -21,7 +21,8 @@ module DataMapper
           statement = <<-EOS.compress_lines
             SELECT COUNT(*)
             FROM "information_schema"."columns"
-            WHERE "table_name" = ? AND "table_schema" = current_schema()
+            WHERE "table_name" = ?
+            AND "table_schema" = current_schema()
           EOS
 
           query(statement, storage_name).first > 0
@@ -33,7 +34,9 @@ module DataMapper
             SELECT COUNT(*)
             FROM "pg_class"
             JOIN "pg_attribute" ON "pg_class"."oid" = "pg_attribute"."attrelid"
-            WHERE "pg_attribute"."attname" = ? AND "pg_class"."relname" = ? AND "pg_attribute"."attnum" >= 0
+            WHERE "pg_attribute"."attname" = ?
+            AND "pg_class"."relname" = ?
+            AND "pg_attribute"."attnum" >= 0
           EOS
 
           query(statement, column_name, storage_name).first > 0
