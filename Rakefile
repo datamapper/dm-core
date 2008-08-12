@@ -13,7 +13,7 @@ AUTHOR = "Sam Smoot"
 EMAIL  = "ssmoot@gmail.com"
 GEM_NAME = "dm-core"
 GEM_VERSION = DataMapper::VERSION
-GEM_DEPENDENCIES = ["data_objects", GEM_VERSION], ["extlib", GEM_VERSION],
+GEM_DEPENDENCIES = ["data_objects", GEM_VERSION], ["extlib", "=0.9.5"],
                    ["rspec", ">=1.1.3"], ["addressable", ">=1.0.4"]
 
 
