@@ -56,25 +56,25 @@ module DataMapper
 
       module UnderscoredAndPluralized
         def self.call(property)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name)).gsub('/','_')
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name.to_s)).gsub('/','_')
         end
       end # module UnderscoredAndPluralized
 
       module UnderscoredAndPluralizedWithoutModule
         def self.call(property)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(Extlib::Inflection.demodulize(property.name)))
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(Extlib::Inflection.demodulize(property.name.to_s)))
         end
       end # module UnderscoredAndPluralizedWithoutModule
 
       module Underscored
         def self.call(property)
-          Extlib::Inflection.underscore(property.name)
+          Extlib::Inflection.underscore(property.name.to_s)
         end
       end # module Underscored
 
       module Yaml
         def self.call(property)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name)) + ".yaml"
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name.to_s)) + ".yaml"
         end
       end # module Yaml
 
