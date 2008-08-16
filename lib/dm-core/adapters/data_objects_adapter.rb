@@ -327,7 +327,11 @@ module DataMapper
               query.merge_subquery(operator, opposite, condition)
               "(#{read_statement(condition)})"
             elsif condition.kind_of?(Array) && condition.all? { |p| p.kind_of?(Property) }
-              "(#{condition.map { |p| property_to_column_name(query.repository, p, qualify) } * ', '})"
+              property_values = condition.map { |p| property_to_column_name(query.repository, p, qualify) }
+              # An IN() clause with an empty set is the same as a false condition
+              # IN() with an empty set is not supported on all RDMS, but this is.
+              return "0=1" if property_values.empty?
+              "(#{property_values * ', '})"
             else
               '?'
             end

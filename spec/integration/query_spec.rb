@@ -250,6 +250,20 @@ if ADAPTER
         end
       end
 
+      it "should find by conditions passed in as an array" do
+        repository(ADAPTER) do
+          find = QuerySpec::SailBoat.all(:id => [1,2])
+          find.should_not be_nil
+          find.should have(2).entries
+
+          find = QuerySpec::SailBoat.all(:id.not => [1,2])
+          find.should have(1).entries
+
+          find = QuerySpec::SailBoat.all(:id => [])
+          find.should have(0).entries
+        end
+      end
+
       it "should order results" do
         repository(ADAPTER) do
           result = QuerySpec::SailBoat.all(:order => [
