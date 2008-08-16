@@ -417,7 +417,7 @@ if ADAPTER
         a.machine.should == m
       end
       
-      it "should not cause a stack trace error" do
+      it "should not have a machine when orphaned" do
         a = Area.new(:machine_id => 42)
         a.machine.should be_nil
       end
