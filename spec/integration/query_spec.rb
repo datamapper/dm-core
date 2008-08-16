@@ -261,6 +261,9 @@ if ADAPTER
 
           find = QuerySpec::SailBoat.all(:id => [])
           find.should have(0).entries
+
+          find = QuerySpec::SailBoat.all(:id.not => [])
+          find.should have(3).entries
         end
       end
 

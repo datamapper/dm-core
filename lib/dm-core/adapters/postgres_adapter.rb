@@ -56,6 +56,7 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def destroy_model_storage(repository, model)
+          return true unless storage_exists?(model.storage_name(repository.name))
           success = without_notices { super }
           model.properties(repository.name).each do |property|
             drop_sequence(repository, property) if property.serial?
@@ -78,6 +79,11 @@ module DataMapper
 
         module SQL
           private
+
+          # TODO: move to dm-more/dm-migrations
+          def drop_table_statement(repository, model)
+            "DROP TABLE #{quote_table_name(model.storage_name(repository.name))}"
+          end
 
           # TODO: move to dm-more/dm-migrations
           def without_notices(&block)

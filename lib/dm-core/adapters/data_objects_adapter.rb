@@ -330,7 +330,13 @@ module DataMapper
               property_values = condition.map { |p| property_to_column_name(query.repository, p, qualify) }
               # An IN() clause with an empty set is the same as a false condition
               # IN() with an empty set is not supported on all RDMS, but this is.
-              return "0=1" if property_values.empty?
+              if property_values.empty?
+                if [:eql, :in, :not].include? operator
+                  return operator == :not ? "1=1" : "0=1" 
+                else
+                  raise "Invalid query operator #{operator.inspect} for #{property_values.inspect}"
+                end
+              end
               "(#{property_values * ', '})"
             else
               '?'
@@ -504,7 +510,7 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def drop_table_statement(repisitory, model)
+          def drop_table_statement(repository, model)
             "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(repository.name))}"
           end
 
