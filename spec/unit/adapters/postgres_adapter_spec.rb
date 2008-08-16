@@ -115,9 +115,17 @@ if HAS_POSTGRES
         end
       end
 
-      it 'should execute the superclass destroy_model_storage' do
+      it 'should not execute the superclass destroy_model_storage if the storage does not exist' do
         rv = mock('inside super')
         @adapter.class.superclass.send(:define_method, :destroy_model_storage) { rv }
+        @adapter.destroy_model_storage(@repository, @model).should_not == rv
+      end
+
+      it 'should execute the superclass destroy_model_storage if the storage exists' do
+        rv = mock('inside super')
+        @adapter.class.superclass.send(:define_method, :destroy_model_storage) { rv }
+        @adapter.stub!(:storage_exists?).and_return(true)
+
         @adapter.destroy_model_storage(@repository, @model).should == rv
       end
     end
