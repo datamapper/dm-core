@@ -143,15 +143,17 @@ module DataMapper
 
           bind_values = query_values unless query_values.empty?
           query = parent_key.zip(bind_values.transpose).to_hash
-
           association_accessor = "#{self.name}_association"
 
           collection = parent_model.send(:all, query)
-          collection.send(:lazy_load)
-          children.each do |c|
-            c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
+          unless collection.empty?
+            collection.send(:lazy_load)
+            children.each do |c|
+              c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
+            end
+          
+            child.send(association_accessor).instance_variable_get(:@parent)
           end
-          child.send(association_accessor).instance_variable_get(:@parent)
         end
       end
 
