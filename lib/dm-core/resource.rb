@@ -167,6 +167,17 @@ module DataMapper
 
     alias == eql?
 
+    # Computes a hash for the resource
+    #
+    # ==== Returns
+    # <Integer>:: the hash value of the resource
+    #
+    # -
+    # @api public
+    def hash
+      model.hash + key.hash
+    end
+
     # Inspection of the class name and the attributes
     #
     # ==== Returns

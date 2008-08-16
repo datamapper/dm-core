@@ -57,6 +57,34 @@ if ADAPTER
       it "should return false if any of the properties are different"
     end
 
+    describe '#hash' do
+      it "should return the same hash values for unsaved objects that are equal" do
+        e1 = Employee.new(:name => "John")
+        e2 = Employee.new(:name => "John")
+        e1.hash.should == e2.hash
+      end
+
+      it "should return the same hash values for saved objects that are equal" do
+        # Make sure that the object_id's are not the same
+        e1 = e2 = nil
+        repository(ADAPTER) do
+          e1 = Employee.create(:name => "John")
+        end
+        repository(ADAPTER) do
+          e2 = Employee.get("John")
+        end
+        e1.hash.should == e2.hash
+      end
+
+      it "should return a different hash value for different objects of the same type" do
+        e1 = Employee.create(:name => "John")
+        e2 = Employee.create(:name => "Dan")
+        e1.hash.should_not == e2.hash
+      end
+
+      it "should return a different hash value for different types of objects with the same key"
+    end
+
     describe '#id' do
       it "should be awesome"
     end
