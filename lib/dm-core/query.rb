@@ -189,8 +189,6 @@ module DataMapper
       @links    = normalize_links(@links)
       @includes = normalize_includes(@includes)
 
-      translate_custom_types(@properties, options)
-
       # treat all non-options as conditions
       (options.keys - OPTIONS - OPTIONS.map { |option| option.to_s }).each do |k|
         append_condition(k, options[k])
@@ -216,17 +214,6 @@ module DataMapper
     def initialize_copy(original)
       # deep-copy the condition tuples when copying the object
       @conditions = original.conditions.map { |tuple| tuple.dup }
-    end
-
-    def translate_custom_types(properties, options)
-      options.each do |key, value|
-        case key
-          when DataMapper::Query::Operator
-            options[key] = properties[key.target].type.dump(value, properties[key.target]) if properties.has_property?(key.target) && properties[key.target].custom?
-          when Symbol, String
-            options[key] = properties[key].type.dump(value, properties[key]) if properties.has_property?(key) && properties[key].custom?
-        end
-      end
     end
 
     # validate the options
@@ -440,7 +427,24 @@ module DataMapper
         raise ArgumentError, "Clause #{clause.inspect} does not map to a DataMapper::Property", caller(2)
       end
 
+      bind_value = dump_custom_value(property, bind_value)
+
       @conditions << [ operator, property, bind_value ]
+    end
+
+    def dump_custom_value(property_or_path, bind_value)
+      case property_or_path
+      when DataMapper::Query::Path
+        dump_custom_value(property_or_path.property, bind_value)
+      when Property
+        if property_or_path.custom?
+          property_or_path.type.dump(bind_value, property_or_path) 
+        else
+          bind_value
+        end
+      else
+        bind_value
+      end
     end
 
     # TODO: check for other mutually exclusive operator + property
