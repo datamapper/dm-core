@@ -22,6 +22,7 @@ require 'addressable/uri'
 
 gem 'extlib', '>=0.9.5'
 require 'extlib'
+require "extlib/inflection"
 
 begin
   require 'fastthread'
