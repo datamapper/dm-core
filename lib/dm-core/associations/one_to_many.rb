@@ -153,7 +153,6 @@ module DataMapper
           assert_mutable
           attributes = default_attributes.merge(attributes)
           resource = children.respond_to?(:build) ? super(attributes) : new_child(attributes)
-          self << resource
           resource
         end
 

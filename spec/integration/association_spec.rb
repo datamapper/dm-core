@@ -376,7 +376,7 @@ if ADAPTER
 
         y.machine.name.should == 'machine10'
       end
-
+      
       it 'should convert NULL parent ids into nils' do
         Area.first(:name => 'area2').machine.should be_nil
       end
