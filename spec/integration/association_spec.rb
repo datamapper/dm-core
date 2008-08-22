@@ -416,7 +416,7 @@ if ADAPTER
         a = Area.new(:machine_id => m.id)
         a.machine.should == m
       end
-      
+
       it "should not have a machine when orphaned" do
         a = Area.new(:machine_id => 42)
         a.machine.should be_nil
@@ -1167,6 +1167,11 @@ if ADAPTER
       #
       # misc
       #
+
+      it 'should join tables in the right order during has 1 => has n => has 1 queries' do
+        child = Sweets::Shop.first.children(:name => 'Snotling nr 3').booger(:name.like => 'ooger')
+        child.should_not be_nil
+      end
 
       it 'should raise exception if you try to change it' do
         lambda do
