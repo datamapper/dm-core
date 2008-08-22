@@ -7,6 +7,16 @@ module DataMapper
       @property_for[name] || raise(ArgumentError, "Unknown property '#{name}'", caller)
     end
 
+    def []=(name, property)
+      if existing_property = detect { |p| p.name == name }
+        property.hash
+        @entries[@entries.index(existing_property)] = property
+      else
+        add(property)
+      end
+      property
+    end
+
     def has_property?(name)
       !!@property_for[name]
     end

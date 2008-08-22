@@ -148,7 +148,7 @@ module DataMapper
       create_property_getter(property)
       create_property_setter(property)
 
-      @properties[repository_name] << property
+      @properties[repository_name][property.name] = property
 
       # Add property to the other mappings as well if this is for the default
       # repository.
