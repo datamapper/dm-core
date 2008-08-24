@@ -195,7 +195,7 @@ module DataMapper
         end
 
         def save
-          assert_mutable
+          return true if children.frozen?
 
           # save every resource in the collection
           each { |resource| save_resource(resource) }
