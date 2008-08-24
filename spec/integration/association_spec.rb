@@ -570,6 +570,15 @@ if ADAPTER
         end
         machine.areas.size.should == 4
       end
+      
+      it "#build should add exactly one instance of the built record" do
+        machine = Machine.create(:name => 'my machine')
+        
+        original_size = machine.areas.size
+        machine.areas.build(:name => "an area", :machine => machine)
+        
+        machine.areas.size.should == original_size + 1
+      end
 
       it '#<< should add default values for relationships that have conditions' do
         # it should add default values
