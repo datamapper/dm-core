@@ -1,3 +1,3 @@
 module DataMapper
-  VERSION = '0.9.5' unless defined?(DataMapper::VERSION)
+  VERSION = '0.9.6' unless defined?(DataMapper::VERSION)
 end
