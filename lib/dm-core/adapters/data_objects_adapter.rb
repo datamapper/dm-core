@@ -264,8 +264,7 @@ module DataMapper
           table_name = query.model.storage_name(query.repository.name)
 
           statement = ''
-
-          query.links.reverse.each do |relationship|
+          query.links.each do |relationship|
             parent_table_name = relationship.parent_model.storage_name(query.repository.name)
             child_table_name  = relationship.child_model.storage_name(query.repository.name)
 

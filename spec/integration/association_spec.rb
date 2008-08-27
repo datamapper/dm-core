@@ -1169,8 +1169,16 @@ if ADAPTER
       #
 
       it 'should join tables in the right order during has 1 => has n => has 1 queries' do
-        child = Sweets::Shop.first.children(:name => 'Snotling nr 3').booger(:name.like => 'ooger')
+        child = Sweets::Shop.first.children(:name => 'Snotling nr 3').booger(:name.like => 'Nasty booger')
         child.should_not be_nil
+        child.size.should eql(1)
+        child.first.name.should eql("Nasty booger")
+      end
+
+      it 'should join tables in the right order for belongs_to relations' do
+        wife = Sweets::Wife.first(Sweets::Wife.shop_owner.name => "Betsy", Sweets::Wife.shop_owner.shop.name => "Betsy's")
+        wife.should_not be_nil
+        wife.name.should eql("Barry")
       end
 
       it 'should raise exception if you try to change it' do

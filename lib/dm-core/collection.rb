@@ -626,7 +626,7 @@ module DataMapper
 
         query.update(
           :fields => klass.properties(repository.name).defaults,
-          :links  => self.query.links + [ relationship ]
+          :links  => [ relationship ] + self.query.links
         )
 
         klass.all(query, &block)
