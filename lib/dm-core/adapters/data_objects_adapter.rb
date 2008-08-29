@@ -327,15 +327,6 @@ module DataMapper
               "(#{read_statement(condition)})"
             elsif condition.kind_of?(Array) && condition.all? { |p| p.kind_of?(Property) }
               property_values = condition.map { |p| property_to_column_name(query.repository, p, qualify) }
-              # An IN() clause with an empty set is the same as a false condition
-              # IN() with an empty set is not supported on all RDMS, but this is.
-              if property_values.empty?
-                if [:eql, :in, :not].include? operator
-                  return operator == :not ? "1=1" : "0=1" 
-                else
-                  raise "Invalid query operator #{operator.inspect} for #{property_values.inspect}"
-                end
-              end
               "(#{property_values * ', '})"
             else
               '?'
