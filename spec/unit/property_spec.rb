@@ -75,17 +75,21 @@ describe DataMapper::Property do
     before(:each) do
       Zoo.class_eval do
         property :location, String, :field => "City"
+        
+        repository(:mock) do
+          property :location, String, :field => "MockCity"
+        end
       end
-      
-      @property = Zoo.properties[:location]
     end
     
     it 'should accept a custom field' do
-      @property.field.should == 'City'
+      Zoo.properties[:location].field.should == 'City'
     end
 
+    # How is this supposed to work?
     it 'should use repository name if passed in' do
-      @property.field(:default).should == 'City'
+      pending
+      Zoo.properties[:location].field(:mock).should == 'MockCity'
     end
   end
 

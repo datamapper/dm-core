@@ -109,6 +109,11 @@ end
 
 describe DataMapper::Resource do
 
+  before do
+    Planet.auto_migrate!
+    Cyclist.auto_migrate!
+  end
+
   it 'should provide #save' do
     Planet.new.should respond_to(:save)
   end
@@ -350,7 +355,7 @@ describe DataMapper::Resource do
   end
 
   it "should not mark attributes dirty if they are similar after typecasting" do
-    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :id => 42, :type => nil)
+    jupiter = Planet.new(:name => 'Jupiter', :age => 1_000_000, :id => 42, :type => Planet)
     jupiter.save.should be_true
     jupiter.dirty?.should be_false
 
