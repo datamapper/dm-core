@@ -287,7 +287,7 @@ module DataMapper
     # -
     # @api semi-public
     def field(repository_name = nil)
-      @field || fields[repository_name || model.repository_name]
+      @field  || fields[repository_name]
     end
 
     def unique
