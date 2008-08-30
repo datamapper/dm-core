@@ -1,221 +1,262 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Property do
-  before :all do
+  before :each do
+    Object.send(:remove_const, :Zoo) if defined?(Zoo)
     class Zoo
       include DataMapper::Resource
+      
+      property :id, DataMapper::Types::Serial
     end
 
+    Object.send(:remove_const, :Name) if defined?(Name)
     class Name < DataMapper::Type
       primitive String
-      size 100
+      track :hash
+      
+      def self.load(value, property)
+        value.split(", ").reverse
+      end
+      
+      def self.dump(value, property)
+        value && value.reverse.join(", ")
+      end
+      
+      def self.typecast(value, property)
+        value
+      end
     end
-
+    
+    Object.send(:remove_const, :Tomato) if defined?(Tomato)
     class Tomato
       include DataMapper::Resource
     end
   end
 
-  before do
-    @property = DataMapper::Property.new(Zoo, :name, String, :default => 'San Diego')
-  end
-
-  it 'should provide .new' do
-    DataMapper::Property.should respond_to(:new)
-  end
-
   describe '.new' do
     [ Float, BigDecimal ].each do |primitive|
       describe "with a #{primitive} primitive" do
-        it 'should raise an ArgumentError if precision is equal to or less than 0' do
-          lambda{
-            DataMapper::Property.new(Zoo, :test, primitive, :precision => 0)
+        it 'should raise an ArgumentError if precision is 0' do
+          lambda {
+            Zoo.class_eval <<-RUBY
+              property :test, #{primitive}, :precision => 0
+            RUBY
           }.should raise_error(ArgumentError)
+        end
 
-          lambda{
-            DataMapper::Property.new(Zoo, :test, primitive, :precision => -1)
+        it "raises an ArgumentError if precision is less than 0" do
+          lambda {
+            Zoo.class_eval <<-RUBY
+              property :test, #{primitive}, :precision => -1
+            RUBY
           }.should raise_error(ArgumentError)
         end
 
         it 'should raise an ArgumentError if scale is less than 0' do
-          lambda{
-            DataMapper::Property.new(Zoo, :test, primitive, :scale => -1)
+          lambda {
+            Zoo.class_eval <<-RUBY
+              property :test, #{primitive}, :scale => -1
+            RUBY
           }.should raise_error(ArgumentError)
         end
 
         it 'should raise an ArgumentError if precision is less than scale' do
-          lambda{
-            DataMapper::Property.new(Zoo, :test, primitive, :precision => 1, :scale => 2)
+          lambda {
+            Zoo.class_eval <<-RUBY
+              property :test, #{primitive}, :precision => 1, :scale => 2
+            RUBY
           }.should raise_error(ArgumentError)
         end
       end
     end
   end
 
-  it 'should provide #field' do
-    @property.should respond_to(:field)
-  end
-
   describe '#field' do
+    before(:each) do
+      Zoo.class_eval do
+        property :location, String, :field => "City"
+      end
+      
+      @property = Zoo.properties[:location]
+    end
+    
     it 'should accept a custom field' do
-      property = DataMapper::Property.new(Zoo, :location, String, :field => 'City')
-      property.field.should == 'City'
+      @property.field.should == 'City'
     end
 
     it 'should use repository name if passed in' do
-      @property.field(:default).should == 'name'
+      @property.field(:default).should == 'City'
     end
-
-    it 'should return default field if no repository name passed in' do
-      @property.field.should == 'name'
-    end
-  end
-
-  it 'should provide #get' do
-    @property.should respond_to(:get)
   end
 
   describe '#get' do
     before do
-      @original_values = {}
-      @resource        = mock('resource', :kind_of? => true, :new_record? => true, :original_values => @original_values)
+      Zoo.class_eval do
+        property :name, String, :default => "San Diego"
+      end
+      @resource        = Zoo.new
     end
 
     describe 'when setting the default on initial access' do
-      before do
-        # make sure there was no original value
-        @original_values.should_not have_key(:name)
-
-        # force the default to be set
-        @resource.should_receive(:instance_variable_get).with('@name').twice.and_return(nil)
-        @resource.should_receive(:attribute_loaded?).with(:name).and_return(false)
-      end
-
       it 'should set the ivar to the default' do
-        @resource.should_receive(:instance_variable_set).with('@name', 'San Diego')
-
-        @property.get(@resource).should == 'San Diego'
+        @resource.name.should == 'San Diego'
       end
 
       it 'should set the original value to nil' do
-        @property.get(@resource).should == 'San Diego'
-
-        @original_values.should == { :name => nil }
+        @resource.original_values[:name].should == nil
       end
     end
   end
 
-  it 'should provide #get!' do
-    @property.should respond_to(:get!)
-  end
-
   describe '#get!' do
-    it 'should get the resource instance variable' do
-      resource = mock('resource', :kind_of? => true)
-      resource.should_receive(:instance_variable_get).with('@name').and_return('Portland Zoo')
-      @property.get!(resource).should == 'Portland Zoo'
+    it 'should get the resource' do
+      Zoo.class_eval do
+        property :name, String
+      end
+      
+      resource = Zoo.new(:name => "Portland Zoo")
+      resource.name.should == "Portland Zoo"
     end
-  end
-
-  it 'should provide #set' do
-    @property.should respond_to(:set)
   end
 
   describe '#set' do
     before do
-      @original_values = {}
-      @resource        = mock('resource', :kind_of? => true, :original_values => @original_values, :new_record? => true)
+      Zoo.class_eval do
+        property :name, String
+        property :age, Integer
+      end
+      @resource = Zoo.new
     end
 
     it 'should typecast the value' do
-      @property.should_receive(:typecast).with(888)
-      @property.set(@resource, 888)
+      @resource.age = "888"
+      @resource.age.should == 888
     end
-  end
-
-  it 'should provide #set!' do
-    @property.should respond_to(:set!)
   end
 
   describe '#set!' do
-    it 'should set the resource instance variable' do
-      resource = mock('resource', :kind_of? => true)
-      resource.should_receive(:instance_variable_set).with('@name', 'Seattle Zoo').and_return(resource)
-      @property.set!(resource, 'Seattle Zoo').object_id.should == resource.object_id
+    before do
+      Zoo.class_eval do
+        property :name, String
+        property :age, Integer
+      end
+    end
+    
+    it 'should set the resource' do
+      resource = Zoo.new
+      resource.name = "Seattle Zoo"
+      resource.name.should == "Seattle Zoo"
     end
   end
 
-  it "should evaluate two similar properties as equal" do
-    p1 = DataMapper::Property.new(Zoo, :name, String, { :size => 30 })
-    p2 = DataMapper::Property.new(Zoo, :name, String, { :size => 30 })
-    p3 = DataMapper::Property.new(Zoo, :title, String, { :size => 30 })
-    p1.eql?(p2).should == true
-    p1.hash.should == p2.hash
-    p1.eql?(p3).should == false
-    p1.hash.should_not == p3.hash
-  end
+  # What is this for?
+  # ---
+  # it "should evaluate two similar properties as equal" do
+  #   p1 = DataMapper::Property.new(Zoo, :name, String, { :size => 30 })
+  #   p2 = DataMapper::Property.new(Zoo, :name, String, { :size => 30 })
+  #   p3 = DataMapper::Property.new(Zoo, :title, String, { :size => 30 })
+  #   p1.eql?(p2).should == true
+  #   p1.hash.should == p2.hash
+  #   p1.eql?(p3).should == false
+  #   p1.hash.should_not == p3.hash
+  # end
 
   it "should create a String property" do
-    property = DataMapper::Property.new(Zoo, :name, String, { :size => 30 })
-
-    property.primitive.should == String
+    Zoo.class_eval do
+      property :name, String, :size => 30
+    end
+    
+    resource = Zoo.new
+    resource.name = 100
+    resource.name.should == "100"
   end
 
   it "should not have key that is lazy" do
-    property = DataMapper::Property.new(Zoo, :id, DataMapper::Types::Text, { :key => true })
-    property.lazy?.should == false
+    Zoo.class_eval do
+      property :id, DataMapper::Types::Text, :key => true
+      property :name, String, :lazy => true
+    end
+    Zoo.auto_migrate!
+
+    Zoo.create(:id => "100", :name => "San Diego Zoo")
+    zoo = Zoo.first
+    
+    # Do we mean for attribute_loaded? to be public?
+    zoo.attribute_loaded?(:id).should == true
   end
 
   it "should use a custom type Name property" do
-    class Name < DataMapper::Type
-      primitive String
+    Zoo.class_eval do
+      property :name, Name
     end
 
-    property = DataMapper::Property.new(Zoo, :name, Name, {})
-
-    property.primitive.should == String
-    property.type.should == Name
-    property.primitive.should == property.type.primitive
+    Zoo.auto_migrate!
+    
+    zoo = Zoo.create(:name => %w(Zoo San\ Diego))
+    Zoo.first.name.should == %w(Zoo San\ Diego)
   end
 
   it "should override type options with property options" do
-    property = DataMapper::Property.new(Zoo, :name, Name, { :size => 50 })
-    options = property.instance_variable_get(:@options)
+    Zoo.class_eval do
+      property :name, Name, :track => :get
+    end
 
-    options[:size].should == 50
+    Zoo.auto_migrate!
+    
+    Zoo.create(:name => %w(Awesome Person\ Dude))
+    zoo = Zoo.first
+    zoo.name = %w(Awesome Person\ Dude)
+    
+    # If we were tracking by hash, this would cause zoo to be dirty,
+    # as its hash would not match the original. Since we've overridden
+    # and are tracking by :get, it won't be dirty
+    zoo.name.stub!(:hash).and_return(1)
+    zoo.should_not be_dirty
   end
 
-  it "should determine nullness" do
-    DataMapper::Property.new(Tomato,:botanical_name,String,{:nullable => true}).options[:nullable].should == true
-  end
+  describe "public details" do
+    before do
+      Zoo.class_eval do
+        property :botanical_name, String, :nullable => true, :lazy => true
+        property :colloquial_name, DataMapper::Types::Text, :default => "Tomato"
+      end
+      Zoo.auto_migrate!
+    end
+    
+    it "should determine nullness" do
+      Zoo.properties[:botanical_name].options[:nullable].should be_true
+    end
 
-  it "should determine its name"  do
-    DataMapper::Property.new(Tomato,:botanical_name,String,{}).name.should == :botanical_name
-  end
+    it "should determine its name"  do
+      Zoo.properties[:botanical_name].name.should == :botanical_name
+    end
 
-  it "should determine laziness" do
-    DataMapper::Property.new(Tomato,:botanical_name,String,{:lazy => true}).lazy?.should == true
-    DataMapper::Property.new(Tomato,:seedless,TrueClass,{}).lazy?.should == false
-  end
+    # lazy? is not exposed to or used by the adapters, so it should be tested indirectly
+    it "should determine laziness" do
+      Zoo.create(:botanical_name => "Calystegia sepium")
+      Zoo.first.attribute_loaded?(:botanical_name).should be_false
+    end
 
-  it "should automatically set laziness to true on text fields?" do
-    DataMapper::Property.new(Tomato,:botanical_name,DataMapper::Types::Text,{}).lazy?.should == true
-  end
+    it "should automatically set laziness to true on text fields" do
+      Zoo.create(:colloquial_name => "American hedge bindweed")
+      Zoo.first.attribute_loaded?(:colloquial_name).should be_false
+    end
 
-  it "should determine whether it is a key" do
-    DataMapper::Property.new(Tomato,:id,Integer,{:key => true}).key?.should == true
-    DataMapper::Property.new(Tomato,:botanical_name,String,{}).key?.should == false
-  end
+    it "should determine whether it is a key" do
+      zoo = Zoo.create(:botanical_name => "Calystegia sepium")
+      id = zoo.id
+      Zoo.first.id.should == id
+    end
 
-  it "should determine whether it is serial" do
-    DataMapper::Property.new(Tomato,:id,Integer,{:serial => true}).serial?.should == true
-    DataMapper::Property.new(Tomato,:botanical_name,String,{}).serial?.should == false
-  end
+    it "should determine whether it is serial" do
+      zoo = Zoo.create(:botanical_name => "Calystegia sepium")
+      zoo.id.should_not be_nil
+    end
 
-  it "should determine a default value" do
-    resource = mock('resource')
-    property = DataMapper::Property.new(Tomato, :botanical_name, String, :default => 'Tomato')
-    property.default_for(resource).should == 'Tomato'
+    it "should determine a default value" do
+      zoo = Zoo.new
+      zoo.colloquial_name.should == "Tomato"
+    end
   end
 
   describe "reader and writer visibility" do
@@ -242,9 +283,11 @@ describe DataMapper::Property do
       { :reader => :private, :writer => :private }       => [:private,   :private],
     }.each do |input, output|
       it "#{input.inspect} should make reader #{output[0]} and writer #{output[1]}" do
-        property = DataMapper::Property.new(Tomato, :botanical_name, String, input)
-        property.reader_visibility.should == output[0]
-        property.writer_visibility.should == output[1]
+        Tomato.class_eval <<-RUBY
+          property :botanical_name, String, #{input.inspect}
+        RUBY
+        Tomato.send("#{output[0]}_instance_methods").should include("botanical_name")
+        Tomato.send("#{output[1]}_instance_methods").should include("botanical_name=")
       end
     end
 
@@ -264,16 +307,20 @@ describe DataMapper::Property do
     ].each do |input|
       it "#{input.inspect} should raise ArgumentError" do
         lambda {
-          property = DataMapper::Property.new(Tomato, :family, String, input)
+          Tomato.class_eval <<-RUBY
+            property :family, String, #{input.inspect}
+          RUBY
         }.should raise_error(ArgumentError)
       end
     end
   end
 
-  it "should return an instance variable name" do
-   DataMapper::Property.new(Tomato, :flavor, String, {}).instance_variable_name.should == '@flavor'
-   DataMapper::Property.new(Tomato, :ripe, TrueClass, {}).instance_variable_name.should == '@ripe' #not @ripe?
-  end
+  # This is handled by get!
+  # ---
+  # it "should return an instance variable name" do
+  #  DataMapper::Property.new(Tomato, :flavor, String, {}).instance_variable_name.should == '@flavor'
+  #  DataMapper::Property.new(Tomato, :ripe, TrueClass, {}).instance_variable_name.should == '@ripe' #not @ripe?
+  # end
 
   it "should append ? to TrueClass property reader methods" do
     class Potato
@@ -283,60 +330,61 @@ describe DataMapper::Property do
       property :public, TrueClass
     end
 
-    Potato.new().should respond_to(:fresh)
-    Potato.new().should respond_to(:fresh?)
-
     Potato.new(:fresh => true).should be_fresh
-
-    Potato.new().should respond_to(:public)
-    Potato.new().should respond_to(:public?)
   end
 
   it "should move unknown options into Property#extra_options" do
-    d = DataMapper::Property.new(Tomato,:botanical_name,String,{:foo=>:bar})
-    d.extra_options.should == {:foo => :bar}
-  end
-
-  it 'should return the attribute value from a given instance' do
-    class Tomato
-      include DataMapper::Resource
-      property :id, Integer, :key => true
+    Tomato.class_eval do
+      property :botanical_name, String, :foo => :bar
     end
-
-    tomato = Tomato.new(:id => 1)
-    tomato.model.properties(:default)[:id].get(tomato).should == 1
-  end
-
-  it 'should set the attribute value in a given instance' do
-    tomato = Tomato.new
-    tomato.model.properties(:default)[:id].set(tomato, 2)
-    tomato.id.should == 2
+    Tomato.properties[:botanical_name].extra_options.should == {:foo => :bar}
   end
 
   it 'should provide #custom?' do
-    DataMapper::Property.new(Zoo, :name, Name, { :size => 50 }).should be_custom
-    DataMapper::Property.new(Zoo, :state, String, { :size => 2 }).should_not be_custom
+    Zoo.class_eval do
+      property :name, Name, :size => 50
+      property :state, String, :size => 2
+    end
+    Zoo.properties[:name].should be_custom
+    Zoo.properties[:state].should_not be_custom
   end
 
   it "should set the field to the correct field_naming_convention" do
-    DataMapper::Property.new(Zoo, :species, String, {}).field(:default).should == 'species'
-    DataMapper::Property.new(Tomato, :genetic_history, DataMapper::Types::Text, {}).field(:default).should == "genetic_history"
+    Zoo.class_eval { property :species, String }
+    Tomato.class_eval { property :genetic_history, DataMapper::Types::Text }
+    
+    Zoo.properties[:species].field.should == "species"
+    Tomato.properties[:genetic_history].field.should == "genetic_history"
   end
 
   it "should provide the primitive mapping" do
-    DataMapper::Property.new(Zoo, :poverty, String, {}).primitive.should == String
-    DataMapper::Property.new(Zoo, :fortune, DataMapper::Types::Text, {}).primitive.should == String
+    Zoo.class_eval do
+      property :poverty, String
+      property :fortune, DataMapper::Types::Text
+    end
+
+    Zoo.properties[:poverty].primitive.should == String
+    Zoo.properties[:fortune].primitive.should == String
   end
 
-  it "should provide a size/length" do
-    DataMapper::Property.new(Zoo, :cleanliness, String, { :size => 100 }).size.should == 100
-    DataMapper::Property.new(Zoo, :cleanliness, String, { :length => 200 }).size.should == 200
-    DataMapper::Property.new(Zoo, :cleanliness, String, { :size => (0..100) }).size.should == 100
-    DataMapper::Property.new(Zoo, :cleanliness, String, { :length => (0..200) }).size.should == 200
+  it "should make it possible to define an integer size" do
+    Zoo.class_eval { property :cleanliness, String, :size => 100 }
+    Zoo.properties[:cleanliness].size.should == 100
   end
 
-  it 'should provide #typecast' do
-    DataMapper::Property.new(Zoo, :name, String).should respond_to(:typecast)
+  it "should make it possible to define an integer length (which defines size)" do
+    Zoo.class_eval { property :cleanliness, String, :length => 100 }
+    Zoo.properties[:cleanliness].size.should == 100
+  end
+
+  it "should make it possible to define a range size" do
+    Zoo.class_eval { property :cleanliness, String, :size => 0..100 }
+    Zoo.properties[:cleanliness].size.should == 100    
+  end
+
+  it "should make it possible to define a range length (which defines size)" do
+    Zoo.class_eval { property :cleanliness, String, :length => 0..100 }
+    Zoo.properties[:cleanliness].size.should == 100
   end
 
   describe '#typecast' do
@@ -349,169 +397,213 @@ describe DataMapper::Property do
     end
 
     it 'should pass through the value if it is the same type when typecasting' do
-      value = 'San Diego'
-      property = DataMapper::Property.new(Zoo, :name, String)
-      property.typecast(value).object_id.should == value.object_id
+      Zoo.class_eval do
+        property :name, String
+      end
+      zoo = Zoo.new
+      value = "San Diego"
+      zoo.name = value
+      zoo.name.object_id.should == value.object_id
     end
 
     it 'should pass through the value nil when typecasting' do
-      property = DataMapper::Property.new(Zoo, :string, String)
-      property.typecast(nil).should == nil
+      Zoo.class_eval do
+        property :name, String
+      end
+
+      zoo = Zoo.new
+      zoo.name = nil
+      zoo.name.should == nil
     end
 
     it 'should pass through the value for an Object property' do
-      value = 'a ruby object'
-      property = DataMapper::Property.new(Zoo, :object, Object)
-      property.typecast(value).object_id.should == value.object_id
+      value = Object.new
+      Zoo.class_eval do
+        property :object, Object
+      end
+
+      zoo = Zoo.new
+      zoo.object = value
+      zoo.object.object_id.should == value.object_id
     end
 
     [ true, 'true', 'TRUE', 1, '1', 't', 'T' ].each do |value|
       it "should typecast #{value.inspect} to true for a TrueClass property" do
-        property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
-        property.typecast(value).should == true
+        Zoo.class_eval do
+          property :boolean, TrueClass
+        end
+        
+        zoo = Zoo.new
+        zoo.boolean = value
+        zoo.boolean.should == true
       end
     end
 
     [ false, 'false', 'FALSE', 0, '0', 'f', 'F' ].each do |value|
       it "should typecast #{value.inspect} to false for a Boolean property" do
-        property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
-        property.typecast(value).should == false
+        Zoo.class_eval do
+          property :boolean, TrueClass
+        end
+        
+        zoo = Zoo.new
+        zoo.boolean = value
+        zoo.boolean.should == false
       end
     end
 
     it 'should typecast nil to nil for a Boolean property' do
-      property = DataMapper::Property.new(Zoo, :true_class, TrueClass)
-      property.typecast(nil).should == nil
+      Zoo.class_eval do
+        property :boolean, TrueClass
+      end
+      
+      zoo = Zoo.new
+      zoo.boolean = nil
+      zoo.boolean.should == nil
     end
 
     it 'should typecast "0" to "0" for a String property' do
-      property = DataMapper::Property.new(Zoo, :string, String)
-      property.typecast(0).should == '0'
+      Zoo.class_eval do
+        property :string, String
+      end
+      
+      zoo = Zoo.new
+      zoo.string = "0"
+      zoo.string.should == "0"
     end
 
     { '0' => 0.0, '0.0' => 0.0, 0 => 0.0, 0.0 => 0.0, BigDecimal('0.0') => 0.0 }.each do |value,expected|
       it "should typecast #{format(value)} to #{format(expected)} for a Float property" do
-        property = DataMapper::Property.new(Zoo, :float, Float)
-        property.typecast(value).should == expected
+        Zoo.class_eval do
+          property :float, Float
+        end
+        
+        zoo = Zoo.new
+        zoo.float = value
+        zoo.float.should == expected
       end
     end
 
-    { '-8' => -8, '-8.0' => -8, -8 => -8, -8.0 => -8, BigDecimal('8.0') => 8 }.each do |value,expected|
+    { '-8' => -8, '-8.0' => -8, -8 => -8, -8.0 => -8, BigDecimal('8.0') => 8,
+      '0' => 0, '0.0' => 0, 0 => 0, 0.0 => 0, BigDecimal('0.0') => 0,
+      '5' => 5, '5.0' => 5, 5 => 5, 5.0 => 5, BigDecimal('5.0') => 5,
+      'none' => nil, 'almost 5' => nil, '-3 change' => -3, '9 items' => 9}.each do |value,expected|
       it "should typecast #{format(value)} to #{format(expected)} for an Integer property" do
-        property = DataMapper::Property.new(Zoo, :integer, Integer)
-        property.typecast(value).should == expected
-      end
-    end
-
-    { '0' => 0, '0.0' => 0, 0 => 0, 0.0 => 0, BigDecimal('0.0') => 0 }.each do |value,expected|
-      it "should typecast #{format(value)} to #{format(expected)} for an Integer property" do
-        property = DataMapper::Property.new(Zoo, :integer, Integer)
-        property.typecast(value).should == expected
-      end
-    end
-
-    { '5' => 5, '5.0' => 5, 5 => 5, 5.0 => 5, BigDecimal('5.0') => 5 }.each do |value,expected|
-      it "should typecast #{format(value)} to #{format(expected)} for an Integer property" do
-        property = DataMapper::Property.new(Zoo, :integer, Integer)
-        property.typecast(value).should == expected
-      end
-    end
-
-    { 'none' => nil, 'almost 5' => nil, '-3 change' => -3, '9 items' => 9 }.each do |value,expected|
-      it "should typecast #{format(value)} to #{format(expected)} for an Integer property" do
-        property = DataMapper::Property.new(Zoo, :integer, Integer)
-        property.typecast(value).should == expected
+        Zoo.class_eval do
+          property :int, Integer
+        end
+        
+        zoo = Zoo.new
+        zoo.int = value
+        zoo.int.should == expected
       end
     end
 
     { '0' => BigDecimal('0'), '0.0' => BigDecimal('0.0'), 0.0 => BigDecimal('0.0'), BigDecimal('0.0') => BigDecimal('0.0') }.each do |value,expected|
       it "should typecast #{format(value)} to #{format(expected)} for a BigDecimal property" do
-        property = DataMapper::Property.new(Zoo, :big_decimal, BigDecimal)
-        property.typecast(value).should == expected
+        Zoo.class_eval do
+          property :big_decimal, BigDecimal
+        end
+        
+        zoo = Zoo.new
+        zoo.big_decimal = value
+        zoo.big_decimal.should == expected
       end
     end
 
     it 'should typecast value for a DateTime property' do
-      property = DataMapper::Property.new(Zoo, :date_time, DateTime)
-      property.typecast('2000-01-01 00:00:00').should == DateTime.new(2000, 1, 1, 0, 0, 0)
+      Zoo.class_eval { property :date_time, DateTime }
+      zoo = Zoo.new
+      zoo.date_time = '2000-01-01 00:00:00'
+      zoo.date_time.should == DateTime.new(2000, 1, 1, 0, 0, 0)
     end
 
     it 'should typecast value for a Date property' do
-      property = DataMapper::Property.new(Zoo, :date, Date)
-      property.typecast('2000-01-01').should == Date.new(2000, 1, 1)
+      Zoo.class_eval { property :date, Date }
+      zoo = Zoo.new
+      zoo.date = '2000-01-01'
+      zoo.date.should == Date.new(2000, 1, 1)
     end
 
     it 'should typecast value for a Time property' do
-      property = DataMapper::Property.new(Zoo, :time, Time)
-      property.typecast('2000-01-01 01:01:01.123456').should == Time.local(2000, 1, 1, 1, 1, 1, 123456)
+      Zoo.class_eval { property :time, Time }
+      zoo = Zoo.new
+      zoo.time = '2000-01-01 01:01:01.123456'
+      zoo.time.should == Time.local(2000, 1, 1, 1, 1, 1, 123456)
     end
 
     it 'should typecast Hash for a Time property' do
-      property = DataMapper::Property.new(Zoo, :time, Time)
-      property.typecast(
-        :year => 2002, "month" => 1, :day => 1, "hour" => 12, :min => 0, :sec => 0
-      ).should == Time.local(2002, 1, 1, 12, 0, 0)
+      Zoo.class_eval { property :time, Time }
+      zoo = Zoo.new
+      zoo.time = {:year => 2002, "month" => 1, :day => 1, "hour" => 12, :min => 0, :sec => 0}
+      zoo.time.should == Time.local(2002, 1, 1, 12, 0, 0)
     end
 
     it 'should typecast Hash for a Date property' do
-      property = DataMapper::Property.new(Zoo, :date, Date)
-      property.typecast(:year => 2002, "month" => 1, :day => 1).should == Date.new(2002, 1, 1)
+      Zoo.class_eval { property :date, Date }
+      zoo = Zoo.new
+      zoo.date = {:year => 2002, "month" => 1, :day => 1}
+      zoo.date.should == Date.new(2002, 1, 1)
     end
 
     it 'should typecast Hash for a DateTime property' do
-      property = DataMapper::Property.new(Zoo, :date_time, DateTime)
-      property.typecast(
-        :year => 2002, :month => 1, :day => 1, "hour" => 12, :min => 0, "sec" => 0
-      ).should == DateTime.new(2002, 1, 1, 12, 0, 0)
+      Zoo.class_eval { property :date_time, DateTime }
+      zoo = Zoo.new
+      zoo.date_time = {:year => 2002, :month => 1, :day => 1, "hour" => 12, :min => 0, "sec" => 0}
+      zoo.date_time.should == DateTime.new(2002, 1, 1, 12, 0, 0)
     end
 
     it 'should use now as defaults for missing parts of a Hash to Time typecast' do
       now = Time.now
-      property = DataMapper::Property.new(Zoo, :time, Time)
-      property.typecast(
-        :month => 1, :day => 1
-      ).should == Time.local(now.year, 1, 1, now.hour, now.min, now.sec)
+      Zoo.class_eval { property :time, Time }
+      zoo = Zoo.new
+      zoo.time = {:month => 1, :day => 1}
+      zoo.time.should == Time.local(now.year, 1, 1, now.hour, now.min, now.sec)
     end
 
     it 'should use now as defaults for missing parts of a Hash to Date typecast' do
       now = Time.now
-      property = DataMapper::Property.new(Zoo, :date, Date)
-      property.typecast(
-        :month => 1, :day => 1
-      ).should == Date.new(now.year, 1, 1)
+      Zoo.class_eval { property :date, Date }
+      zoo = Zoo.new
+      zoo.date = {:month => 1, :day => 1}
+      zoo.date.should == Date.new(now.year, 1, 1)
     end
 
     it 'should use now as defaults for missing parts of a Hash to DateTime typecast' do
       now = Time.now
-      property = DataMapper::Property.new(Zoo, :date_time, DateTime)
-      property.typecast(
-        :month => 1, :day => 1
-      ).should == DateTime.new(now.year, 1, 1, now.hour, now.min, now.sec)
+      Zoo.class_eval { property :date_time, DateTime }
+      zoo = Zoo.new
+      zoo.date_time = {:month => 1, :day => 1}
+      zoo.date_time.should == DateTime.new(now.year, 1, 1, now.hour, now.min, now.sec)
     end
 
     it 'should rescue after trying to typecast an invalid Date value from a hash' do
-      property = DataMapper::Property.new(Zoo, :date, Date)
-      property.typecast(:year => 2002, :month => 2, :day => 31).should == Date.new(2002, 3, 3)
+      now = Time.now
+      Zoo.class_eval { property :date, Date }
+      zoo = Zoo.new
+      zoo.date = {:year => 2002, :month => 2, :day => 31}
+      zoo.date.should == Date.new(2002, 3, 3)
     end
 
     it 'should rescue after trying to typecast an invalid DateTime value from a hash' do
-      property = DataMapper::Property.new(Zoo, :date_time, DateTime)
-      property.typecast(
+      now = Time.now
+      Zoo.class_eval { property :date_time, DateTime }
+      zoo = Zoo.new
+      zoo.date_time = {
         :year => 2002, :month => 2, :day => 31, :hour => 12, :min => 0, :sec => 0
-      ).should == DateTime.new(2002, 3, 3, 12, 0, 0)
+      }
+      zoo.date_time.should == DateTime.new(2002, 3, 3, 12, 0, 0)
     end
 
     it 'should typecast value for a Class property' do
-      property = DataMapper::Property.new(Zoo, :class, Class)
-      property.typecast('Zoo').should == Zoo
+      Zoo.class_eval { property :klass, Class }
+      zoo = Zoo.new
+      zoo.klass = "Zoo"
+      zoo.klass.should == Zoo
     end
   end
 
-  it 'should provide #inspect' do
-    DataMapper::Property.new(Zoo, :name, String).should respond_to(:inspect)
-  end
-
   it 'should return an abbreviated representation of the property when inspected' do
-    DataMapper::Property.new(Zoo, :name, String).inspect.should == '#<Property:Zoo:name>'
+    Zoo.class_eval { property :name, String }
+    Zoo.properties[:name].inspect.should == '#<Property:Zoo:name>'
   end
 end

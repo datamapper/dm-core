@@ -377,20 +377,15 @@ module DataMapper
         property  = properties[name]
         new_value = property.get!(self)
 
-        if property.custom?
-          new_value = property.type.dump(new_value, property)
-          old_value = property.type.dump(old_value, property)
-        end
-
         dirty = case property.track
-          when :hash then old_value != new_value.hash
-          else
-            old_value != new_value
+        when :hash then old_value != new_value.hash
+        else
+          property.value(old_value) != property.value(new_value)
         end
 
         if dirty
           property.hash
-          dirty_attributes[property] = new_value
+          dirty_attributes[property] = property.value(new_value)
         end
       end
 

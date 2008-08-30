@@ -485,6 +485,10 @@ module DataMapper
       @default.respond_to?(:call) ? @default.call(resource, self) : @default
     end
 
+    def value(val)
+      custom? ? self.type.dump(val, self) : val
+    end
+
     def inspect
       "#<Property:#{@model}:#{@name}>"
     end
