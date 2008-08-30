@@ -258,12 +258,25 @@ if ADAPTER
 
           find = QuerySpec::SailBoat.all(:id.not => [1,2])
           find.should have(1).entries
+        end
+      end
 
+      it "should find by conditions passed in as an empty array" do
+        repository(ADAPTER) do
           find = QuerySpec::SailBoat.all(:id => [])
           find.should have(0).entries
 
           find = QuerySpec::SailBoat.all(:id.not => [])
           find.should have(3).entries
+
+          find = QuerySpec::SailBoat.all(:id => [], :name => "A")
+          find.should have(0).entries
+
+          find = QuerySpec::SailBoat.all(:id.not => [], :name => "A")
+          find.should have(1).entries
+
+          find = QuerySpec::SailBoat.all(:id.not => [], :name => ["A", "B"])
+          find.should have(2).entries
         end
       end
 
