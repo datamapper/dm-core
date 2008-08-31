@@ -513,8 +513,9 @@ describe DataMapper::Property do
       end
       zoo = Zoo.new
       value = "San Diego"
+      def value.to_s() "San Francisco" end
       zoo.name = value
-      zoo.name.object_id.should == value.object_id
+      zoo.name.should == "San Diego"
     end
 
     it 'should pass through the value nil when typecasting' do
