@@ -97,6 +97,7 @@ describe DataMapper::Property do
     before do
       Zoo.class_eval do
         property :name, String, :default => "San Diego"
+        property :address, String
       end
       @resource        = Zoo.new
     end
@@ -108,7 +109,66 @@ describe DataMapper::Property do
 
       it 'should set the original value to nil' do
         @resource.original_values[:name].should == nil
+      end      
+    end
+    
+    it "should not reload the default if you set the property to nil" do
+      @resource.name = nil
+      @resource.name.should == nil
+    end
+  end
+
+  describe '#get, when tracking via :hash' do
+    before do
+      Zoo.class_eval do
+        property :name, String, :lazy => true, :track => :hash
       end
+      Zoo.auto_migrate!
+      @resource = Zoo.create(:name => "San Diego")
+    end
+
+    describe 'when setting the default on initial access' do
+      it 'should set the ivar to the default' do
+        @resource.name.should == "San Diego"
+      end
+
+      it 'should set the original value to nil' do
+        @resource.name
+        @resource.original_values[:name].should == "San Diego".hash
+      end
+      
+      it "should know it's dirty if a change was made to the object" do
+        @resource.name.upcase!
+        @resource.should be_dirty
+      end      
+    end
+  end
+
+  describe '#get, when tracking via :get' do
+    before do
+      Zoo.class_eval do
+        property :name, String
+      end
+      Zoo.auto_migrate!
+      @resource = Zoo.create(:name => "San Diego")
+    end
+
+    describe 'when setting the default on initial access' do
+      it 'should set the ivar to the default' do
+        @resource.name.should == "San Diego"
+      end
+
+      it 'should set the original value to "San Diego"' do
+        @resource.name
+        @resource.original_values[:name].should == "San Diego"
+      end
+    end
+    
+    it "should know it's dirty if a change was made to the object" do
+      @resource.name.upcase!
+      @resource.name
+      @resource.should be_dirty
+      @resource.original_values[:name].should == "San Diego"
     end
   end
 
