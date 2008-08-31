@@ -42,7 +42,7 @@ if ADAPTER
       sfs = @repository.read_one(@query.merge(:fields => [ :id ], :limit => 1))
       sfs.should be_a_kind_of(@model)
       sfs.should_not be_a_new_record
-
+    
       sfs.attribute_loaded?(:sample).should be_false
       sfs.sample.should_not be_nil
     end

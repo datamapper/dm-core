@@ -13,6 +13,7 @@ end
 
 # setup mock adapters
 DataMapper.setup(:default, "sqlite3::memory:")
+DataMapper.setup(:default2, "sqlite3::memory:")
 
 [ :mock, :legacy, :west_coast, :east_coast ].each do |repository_name|
   DataMapper.setup(repository_name, "mock://localhost/#{repository_name}")

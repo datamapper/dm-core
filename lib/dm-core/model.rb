@@ -192,6 +192,10 @@ module DataMapper
     def properties(repository_name = default_repository_name)
       @properties[repository_name]
     end
+    
+    def eager_properties(repository_name = default_repository_name)
+      properties(repository_name).reject {|p| p.lazy? }
+    end
 
     # @api private
     def properties_with_subclasses(repository_name = default_repository_name)

@@ -54,7 +54,7 @@ class Planet
   property :age, Integer
   property :core, String, :accessor => :private
   property :type, Discriminator
-  property :data, Object
+  property :data, Object, :track => :get
 
   repository(:legacy) do
     property :cowabunga, String
@@ -109,7 +109,7 @@ end
 
 describe DataMapper::Resource do
 
-  before do
+  before(:each) do
     Planet.auto_migrate!
     Cyclist.auto_migrate!
   end
@@ -119,7 +119,7 @@ describe DataMapper::Resource do
   end
 
   describe '#save' do
-    before do
+    before(:each) do
       @adapter = repository(:default).adapter
     end
 

@@ -372,21 +372,15 @@ module DataMapper
     #-
     # @api private
     def get(resource)
-      new_record = resource.new_record?
-
-      lazy_load(resource) unless new_record || resource.attribute_loaded?(name)
+      lazy_load(resource)
 
       value = get!(resource)
       
-      if !resource.original_values.key?(name) && track.in?(:get, :hash)
-        val = value.try_dup
-        val = val.hash if track == :hash
-        resource.original_values[name] = val
-      end
+      set_original_value(resource, value)
 
-      # Why do we care whether options[:default] is nil. The default value of nil will be
-      # applied either way
-      if value.nil? && new_record && !resource.attribute_loaded?(name)
+      # [YK] Why did we previously care whether options[:default] is nil. 
+      # The default value of nil will be applied either way
+      if value.nil? && resource.new_record? && !resource.attribute_loaded?(name)
         value = default_for(resource)
         set(resource, value)
       end
@@ -398,21 +392,39 @@ module DataMapper
       resource.instance_variable_get(instance_variable_name)
     end
 
+    def set_original_value(resource, val)
+      unless resource.original_values.key?(name)
+        val = val.try_dup
+        val = val.hash if track == :hash
+        resource.original_values[name] = val
+      end
+    end
+
     # Provides a standardized setter method for the property
     #
     # @raise <ArgumentError> "+resource+ should be a DataMapper::Resource, but was ...."
     #-
     # @api private
     def set(resource, value)
-      lazy_load(resource) unless resource.new_record? || resource.attribute_loaded?(name)
+      # [YK] We previously checked for new_record? here, but lazy loading
+      # is blocked anyway if we're in a new record by by 
+      # Resource#reload_attributes. This may eventually be useful for
+      # optimizing, but let's (a) benchmark it first, and (b) do
+      # whatever refactoring is necessary, which will benefit from the
+      # centralize checking
+      lazy_load(resource)
+      
       new_value = typecast(value)
       old_value = get!(resource)
 
       # skip setting the property if the new value is equal
       # to the old value, and the old value was defined
-      return if new_value == old_value && resource.attribute_loaded?(name)
+      # ---
+      # [YK] Why bother? Does this change the result at all?
+      # ---
+      # return if new_value == old_value && resource.attribute_loaded?(name)
 
-      resource.original_values[name] = old_value unless resource.original_values.has_key?(name)
+      set_original_value(resource, old_value)
 
       set!(resource, new_value)
     end
@@ -425,14 +437,11 @@ module DataMapper
     #-
     # @api private
     def lazy_load(resource)
-      # TODO: refactor this section
-      contexts = if lazy?
-        name
-      else
-        model.properties(resource.repository.name).reject do |property|
-          property.lazy? || resource.attribute_loaded?(property.name)
-        end
-      end
+      return if resource.attribute_loaded?(name)
+      # If we're trying to load a lazy property, load it. Otherwise, lazy-load
+      # any properties that should be eager-loaded but were not included
+      # in the original :fields list
+      contexts = lazy? ? name : model.eager_properties(resource.repository.name)
       resource.send(:lazy_load, contexts)
     end
 

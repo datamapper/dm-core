@@ -184,17 +184,34 @@ describe DataMapper::Property do
   end
 
   describe '#set' do
-    before do
+    before(:each) do
       Zoo.class_eval do
         property :name, String
         property :age, Integer
+        property :description, String, :lazy => true
       end
+      Zoo.auto_migrate!
+      Zoo.create(:name => "San Diego Zoo", :age => 888, 
+        :description => "Great Zoo")
       @resource = Zoo.new
     end
 
     it 'should typecast the value' do
       @resource.age = "888"
       @resource.age.should == 888
+    end
+    
+    it "should lazy load itself first" do
+      resource = Zoo.first
+      resource.description = "Still a Great Zoo"
+      resource.original_values[:description].should == "Great Zoo"
+    end
+    
+    it "should only set original_values once" do
+      resource = Zoo.first
+      resource.description = "Still a Great Zoo"
+      resource.description = "What can I say. This is one great Zoo"
+      resource.original_values[:description].should == "Great Zoo"
     end
   end
 
@@ -247,6 +264,36 @@ describe DataMapper::Property do
     
     # Do we mean for attribute_loaded? to be public?
     zoo.attribute_loaded?(:id).should == true
+  end
+  
+  it "should lazily load other non-loaded, non-lazy fields" do
+    # This somewhat contorted setup is to successfully test that 
+    # the list of eager properties to be loaded when it's initially
+    # missing is, in fact, repository-scoped
+    Zoo.class_eval do
+      property :id, DataMapper::Types::Serial
+      property :name, String, :lazy => true
+      property :address, String, :lazy => true
+      
+      repository(:default2) do
+        property :name, String
+        property :address, String
+      end
+    end
+
+    repository(:default2) do 
+      Zoo.auto_migrate!
+      Zoo.create(:name => "San Diego Zoo", :address => "San Diego")
+    end
+    repository(:default2) do
+      zoo = Zoo.first(:fields => [:id])
+      
+      zoo.attribute_loaded?(:name).should == false
+      zoo.attribute_loaded?(:address).should == false
+      zoo.name
+      zoo.attribute_loaded?(:name).should == true
+      zoo.attribute_loaded?(:address).should == true
+    end
   end
 
   it "should use a custom type Name property" do
