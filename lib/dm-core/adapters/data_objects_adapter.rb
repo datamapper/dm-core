@@ -42,7 +42,10 @@ module DataMapper
             command.set_types(query.fields.map { |p| p.primitive })
 
             begin
-              reader = command.execute_reader(*query.bind_values)
+              bind_values = query.bind_values.map do |v|
+                v == [] ? [nil] : v
+              end
+              reader = command.execute_reader(*bind_values)
 
               while(reader.next!)
                 collection.load(reader.values)
@@ -325,7 +328,9 @@ module DataMapper
               opposite = condition == left_condition ? right_condition : left_condition
               query.merge_subquery(operator, opposite, condition)
               "(#{read_statement(condition)})"
-            elsif condition.kind_of?(Array) && condition.all? { |p| p.kind_of?(Property) }
+            
+            # [].all? is always true
+            elsif condition.kind_of?(Array) && condition.any? && condition.all? { |p| p.kind_of?(Property) }
               property_values = condition.map { |p| property_to_column_name(query.repository, p, qualify) }
               "(#{property_values * ', '})"
             else
@@ -344,7 +349,7 @@ module DataMapper
             else raise "Invalid query operator: #{operator.inspect}"
           end
 
-          conditions * " #{comparison} "
+          "(" + (conditions * " #{comparison} ") + ")"
         end
 
         def equality_operator(operand)
