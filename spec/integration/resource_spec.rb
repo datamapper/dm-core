@@ -77,9 +77,11 @@ if ADAPTER
       end
 
       it "should return a different hash value for different objects of the same type" do
-        e1 = Employee.create(:name => "John")
-        e2 = Employee.create(:name => "Dan")
-        e1.hash.should_not == e2.hash
+        repository(ADAPTER) do
+          e1 = Employee.create(:name => "John")
+          e2 = Employee.create(:name => "Dan")
+          e1.hash.should_not == e2.hash
+        end
       end
 
       it "should return a different hash value for different types of objects with the same key"
@@ -96,9 +98,11 @@ if ADAPTER
     describe '#key' do
       describe "original_value[:key]" do
         it "should be used when an existing resource's key changes" do
-          employee = Employee.create(:name => "John")
-          employee.name = "Jon"
-          employee.key.should == ["John"]
+          repository(ADAPTER) do
+            employee = Employee.create(:name => "John")
+            employee.name = "Jon"
+            employee.key.should == ["John"]
+          end
         end
 
         it "should be used when saving an existing resource" do

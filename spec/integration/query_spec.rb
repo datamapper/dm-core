@@ -128,7 +128,7 @@ if ADAPTER
     describe '#unique' do
       include LoggingHelper
 
-      before do
+      before(:each) do
         QuerySpec::SailBoat.auto_migrate!
 
         QuerySpec::SailBoat.create(:name => 'A', :port => 'C')
@@ -203,7 +203,7 @@ if ADAPTER
     end
 
     describe 'when ordering' do
-      before do
+      before(:each) do
         QuerySpec::SailBoat.auto_migrate!
 
         QuerySpec::SailBoat.create(:name => 'A', :port => 'C')
@@ -261,22 +261,40 @@ if ADAPTER
         end
       end
 
-      it "should find by conditions passed in as an empty array" do
-        repository(ADAPTER) do
-          find = QuerySpec::SailBoat.all(:id => [])
-          find.should have(0).entries
+      describe "conditions passed in as an empty array" do
+        it "should work when id is an empty Array" do
+          repository(ADAPTER) do
+            find = QuerySpec::SailBoat.all(:id => [])
+            find.should have(0).entries
+          end
+        end
+        
+        it "should work when id is NOT an empty Array" do
+          repository(ADAPTER) do
+            find = QuerySpec::SailBoat.all(:id.not => [])
+            find.should have(3).entries
+          end
+        end
+        
+        it "should work when id is an empty Array and other conditions are specified" do
+          repository(ADAPTER) do
+            find = QuerySpec::SailBoat.all(:id => [], :name => "A")
+            find.should have(0).entries
+          end
+        end        
 
-          find = QuerySpec::SailBoat.all(:id.not => [])
-          find.should have(3).entries
+        it "should work when id is NOT an empty Array and other conditions are specified" do
+          repository(ADAPTER) do
+            find = QuerySpec::SailBoat.all(:id.not => [], :name => "A")
+            find.should have(1).entries
+          end
+        end
 
-          find = QuerySpec::SailBoat.all(:id => [], :name => "A")
-          find.should have(0).entries
-
-          find = QuerySpec::SailBoat.all(:id.not => [], :name => "A")
-          find.should have(1).entries
-
-          find = QuerySpec::SailBoat.all(:id.not => [], :name => ["A", "B"])
-          find.should have(2).entries
+        it "should work when id is NOT an empty Array and other Array conditions are specified" do
+          repository(ADAPTER) do
+            find = QuerySpec::SailBoat.all(:id.not => [], :name => ["A", "B"])
+            find.should have(2).entries
+          end
         end
       end
 
@@ -314,7 +332,7 @@ if ADAPTER
     end
 
     describe 'when sub-selecting' do
-      before do
+      before(:each) do
         [ QuerySpec::SailBoat, QuerySpec::Permission ].each { |m| m.auto_migrate! }
 
         QuerySpec::SailBoat.create(:id => 1, :name => "Fantasy I",      :port => "Cape Town", :captain => 'Joe')
@@ -360,7 +378,7 @@ if ADAPTER
     end  # describe sub-selecting
 
     describe 'when linking associated objects' do
-      before do
+      before(:each) do
         [ QuerySpec::Region, QuerySpec::Factory, QuerySpec::Vehicle ].each { |m| m.auto_migrate! }
 
         QuerySpec::Region.create(:id => 1, :name => 'North West', :type => 'commercial')

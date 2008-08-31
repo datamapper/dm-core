@@ -198,6 +198,7 @@ if ADAPTER
       before(:all) do
         DataMapper::Repository.adapters[:alternate_paranoid] = repository(ADAPTER).adapter.dup
 
+        Object.send(:remove_const, :Orange) if defined?(Orange)
         class Orange
           include DataMapper::Resource
 
