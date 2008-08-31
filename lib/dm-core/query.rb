@@ -402,6 +402,7 @@ module DataMapper
           clause
         when Operator
           operator = clause.operator
+          return if operator == :not && bind_value == []
           if clause.target.is_a?(Symbol)
             @properties[clause.target]
           elsif clause.target.is_a?(Query::Path)
