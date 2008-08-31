@@ -377,15 +377,16 @@ module DataMapper
       lazy_load(resource) unless new_record || resource.attribute_loaded?(name)
 
       value = get!(resource)
-
-      case track
-        when :hash
-          resource.original_values[name] = value.dup.hash unless resource.original_values.has_key?(name) rescue value.hash
-        when :get
-          resource.original_values[name] = value.dup unless resource.original_values.has_key?(name) rescue value
+      
+      if !resource.original_values.key?(name) && track.in?(:get, :hash)
+        val = value.try_dup
+        val = val.hash if track == :hash
+        resource.original_values[name] = val
       end
 
-      if value.nil? && new_record && !options[:default].nil? && !resource.attribute_loaded?(name)
+      # Why do we care whether options[:default] is nil. The default value of nil will be
+      # applied either way
+      if value.nil? && new_record && !resource.attribute_loaded?(name)
         value = default_for(resource)
         set(resource, value)
       end
