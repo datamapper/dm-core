@@ -220,6 +220,21 @@ module DataMapper
   # dm-more bundle. For more information about validations, check the
   # documentation for dm-validations.
   #
+  # == Default Values
+  # To set a default for a property, use the <tt>:default</tt> key.  The
+  # property will be set to the value associated with that key the first time
+  # it is accessed, or when the resource is saved if it hasn't been set with
+  # another value already.  This value can be a static value, such as 'hello'
+  # but it can also be a proc that will be evaluated when the property is read
+  # before its value has been set.  The property is set to the return of the
+  # proc.  The proc is passed two values, the resource the property is being set
+  # for and the property itself.
+  #
+  #   property :display_name, String, :default => { |r, p| r.login }
+  #
+  # Word of warning.  Don't try to read the value of the property you're setting
+  # the default for in the proc.  An infinite loop will ensue.
+  #
   # == Embedded Values
   # As an alternative to extraneous has_one relationships, consider using an
   # EmbeddedValue.
