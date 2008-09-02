@@ -482,14 +482,13 @@ module DataMapper
           # these two alternatives:
           # * Integer(value) rescue nil
           # * Integer(value_to_s =~ /(\d+)/ ? $1 : value_to_s) rescue nil
+          #
+          # [YK] The previous implementation used a rescue. Why use a rescue
+          # when the list of cases where a valid string other than "0" could
+          # produce 0 is known?
           value_to_i = value.to_i
-          if value_to_i == 0 && value != '0'
-            value_to_s = value.to_s
-            begin
-              Integer(value_to_s =~ /^(\d+)/ ? $1 : value_to_s)
-            rescue ArgumentError
-              nil
-            end
+          if value_to_i == 0
+            value.to_s =~ /^(0x|0b)?0+/ ? 0 : nil
           else
             value_to_i
           end
