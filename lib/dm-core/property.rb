@@ -643,7 +643,7 @@ module DataMapper
     def typecast_hash_to_datetime(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
       DateTime.new(*args)
-    rescue ArgumentError
+    rescue ArgumentError => e
       t = typecast_hash_to_time(hash)
       DateTime.new(t.year, t.month, t.day, t.hour, t.min, t.sec)
     end

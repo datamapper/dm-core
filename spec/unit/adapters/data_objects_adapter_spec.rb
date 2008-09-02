@@ -73,7 +73,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       end
 
       it "should accept a Query argument with or without options hash" do
-        @connection.should_receive(:create_command).twice.with('SELECT "name" FROM "plupps" WHERE "name" = ? ORDER BY "id"').and_return(@command)
+        @connection.should_receive(:create_command).twice.with('SELECT "name" FROM "plupps" WHERE ("name" = ?) ORDER BY "id"').and_return(@command)
         @command.should_receive(:execute_reader).twice.with('my pretty plur').and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)
@@ -271,7 +271,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
           @model.should_receive(:load).with(@values, @query).and_return(@resource)
 
-          @statement = 'SELECT "models"."property" FROM "models" INNER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? ORDER BY "models"."property" DESC LIMIT 1 OFFSET 222'
+          @statement = 'SELECT "models"."property" FROM "models" INNER JOIN "parents" ON ("parents"."id" = "models"."property") WHERE ("models"."property" = ?) ORDER BY "models"."property" DESC LIMIT 1 OFFSET 222'
         end
 
         define_method(:do_read) do
@@ -281,7 +281,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         end
       elsif method == :read_many
         before do
-          @statement = 'SELECT "models"."property" FROM "models" INNER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? ORDER BY "models"."property" DESC LIMIT 111 OFFSET 222'
+          @statement = 'SELECT "models"."property" FROM "models" INNER JOIN "parents" ON ("parents"."id" = "models"."property") WHERE ("models"."property" = ?) ORDER BY "models"."property" DESC LIMIT 111 OFFSET 222'
         end
 
         define_method(:do_read) do
@@ -310,7 +310,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
         @bind_values << other_value
         @conditions << [ :eql, other_property, other_value ]
 
-        @statement = %[SELECT "models"."property" FROM "models" INNER JOIN "parents" ON "parents"."id" = "models"."property" WHERE "models"."property" = ? AND "models"."other" = ? ORDER BY "models"."property" DESC LIMIT #{method == :read_one ? '1' : '111'} OFFSET 222]
+        @statement = %[SELECT "models"."property" FROM "models" INNER JOIN "parents" ON ("parents"."id" = "models"."property") WHERE ("models"."property" = ?) AND ("models"."other" = ?) ORDER BY "models"."property" DESC LIMIT #{method == :read_one ? '1' : '111'} OFFSET 222]
         @query.should_receive(:conditions).with(no_args).twice.and_return(@conditions)
 
         @connection.should_receive(:create_command).with(@statement).and_return(@command)
@@ -358,7 +358,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @conditions  = [ [ :eql, @property, @bind_values[0] ] ]
       @attributes  = mock('attributes', :kind_of? => true, :empty? => false, :keys => [ @property ], :values => @values)
       @query       = mock('query', :kind_of? => true, :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
-      @statement   = 'UPDATE "models" SET "property" = ? WHERE "property" = ?'
+      @statement   = 'UPDATE "models" SET "property" = ? WHERE ("property" = ?)'
     end
 
     def do_update
@@ -385,7 +385,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       @query.should_receive(:conditions).with(no_args).twice.and_return(@conditions)
 
-      @statement   = 'UPDATE "models" SET "property" = ? WHERE "property" = ? AND "other" = ?'
+      @statement   = 'UPDATE "models" SET "property" = ? WHERE ("property" = ?) AND ("other" = ?)'
       @adapter.should_receive(:execute).with(@statement, *%w[ new ] + @bind_values).and_return(@result)
 
       do_update.should == 1
@@ -414,7 +414,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       @conditions  = [ [ :eql, @property, @bind_values[0] ] ]
       @query       = mock('query', :kind_of? => true, :model => @model, :links => [], :conditions => @conditions, :bind_values => @bind_values)
       @resource    = mock('resource', :to_query => @query)
-      @statement   = 'DELETE FROM "models" WHERE "property" = ?'
+      @statement   = 'DELETE FROM "models" WHERE ("property" = ?)'
     end
 
     def do_delete
@@ -440,7 +440,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       @query.should_receive(:conditions).with(no_args).twice.and_return(@conditions)
 
-      @statement = 'DELETE FROM "models" WHERE "property" = ? AND "other" = ?'
+      @statement = 'DELETE FROM "models" WHERE ("property" = ?) AND ("other" = ?)'
       @adapter.should_receive(:execute).with(@statement, *@bind_values).and_return(@result)
 
       do_delete.should == 1
