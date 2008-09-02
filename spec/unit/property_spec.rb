@@ -172,6 +172,38 @@ describe DataMapper::Property do
     end
   end
 
+  describe 'with Proc defaults' do
+    it "calls the proc" do
+      Zoo.class_eval do
+        property :name, String, :default => proc {|r,p| "San Diego"}
+        property :address, String
+      end
+
+      Zoo.new.name.should == "San Diego"
+    end
+    
+    it "provides the resource to the proc" do
+      Zoo.class_eval do
+        property :name, String, :default => proc {|r,p| r.address}
+        property :address, String
+      end      
+      
+      zoo = Zoo.new
+      zoo.address = "San Diego"
+      zoo.name.should == "San Diego"
+    end
+    
+    it "provides the property to the proc" do
+      Zoo.class_eval do
+        property :name, String, :default => proc {|r,p| p.name.to_s}
+      end
+      
+      zoo = Zoo.new
+      zoo.name.should == "name"
+    end
+  end
+
+
   describe '#get!' do
     it 'should get the resource' do
       Zoo.class_eval do
