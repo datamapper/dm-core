@@ -153,7 +153,6 @@ module DataMapper
           assert_mutable
           attributes = default_attributes.merge(attributes)
           resource = children.respond_to?(:build) ? super(attributes) : new_child(attributes)
-          self << resource
           resource
         end
 
@@ -196,7 +195,7 @@ module DataMapper
         end
 
         def save
-          assert_mutable
+          return true if children.frozen?
 
           # save every resource in the collection
           each { |resource| save_resource(resource) }
