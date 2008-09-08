@@ -40,6 +40,10 @@ module DataMapper
       model.const_set('Resource', self) unless model.const_defined?('Resource')
       extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
       descendants << model
+      class << model
+        @_valid_model = false
+        attr_reader :_valid_model
+      end
     end
 
     # Return all classes that include the DataMapper::Resource module
@@ -571,8 +575,9 @@ module DataMapper
       assert_valid_model
       self.attributes = attributes
     end
-
+    
     def assert_valid_model # :nodoc:
+      return if self.class._valid_model
       properties = self.properties
 
       if properties.empty? && relationships.empty?
@@ -582,6 +587,8 @@ module DataMapper
       if properties.key.empty?
         raise IncompleteResourceError, "#{model.name} must have a key."
       end
+
+      class << self; @_valid_model = true; end
     end
 
     # TODO document

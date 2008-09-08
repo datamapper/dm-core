@@ -135,6 +135,11 @@ RBench.run(TIMES) do
   column :ar, :title => "AR 2.1"
   column :diff, :compare => [:dm,:ar]
 
+  report "Model.new (instantiation)" do
+    dm { Exhibit.new }
+    ar { ARExhibit.new }
+  end
+
   report "Model.get specific (not cached)" do
     dm { touch_attributes[Exhibit.get(1)] }
     ActiveRecord::Base.uncached { ar { touch_attributes[ARExhibit.find(1)] } }
