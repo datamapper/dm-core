@@ -53,7 +53,7 @@ module DataMapper
     #     include DataMapper::Resource
     #   end
     #
-    #   DataMapper.Resource.decendents[1].type == Foo
+    #   DataMapper::Resource.descendants.to_a.first == Foo
     #
     # -
     # @api semipublic
