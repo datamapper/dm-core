@@ -590,7 +590,7 @@ module DataMapper
 
       # more duck typing
       def to_sym
-        @property ? @property.to_sym : @model.storage_name(@repository).to_sym
+        @property ? @property.name.to_sym : @model.storage_name(@repository).to_sym
       end
 
       private
