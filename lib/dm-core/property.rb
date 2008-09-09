@@ -428,7 +428,7 @@ module DataMapper
       # whatever refactoring is necessary, which will benefit from the
       # centralize checking
       lazy_load(resource)
-      
+
       new_value = typecast(value)
       old_value = get!(resource)
 
