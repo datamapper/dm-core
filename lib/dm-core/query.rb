@@ -588,6 +588,11 @@ module DataMapper
         @property ? @property.field(*args) : nil
       end
 
+      # more duck typing
+      def to_sym
+        @property ? @property.to_sym : @model.storage_name(@repository).to_sym
+      end
+
       private
 
       def initialize(repository, relationships, model, property_name = nil)
@@ -609,7 +614,7 @@ module DataMapper
         end
 
         if @model.properties(@repository.name)[method]
-          @property = @model.properties(@repository.name)[method]
+          @property = @model.properties(@repository.name)[method] unless @property
           return self
         end
 
