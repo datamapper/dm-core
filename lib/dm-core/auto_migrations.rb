@@ -59,7 +59,7 @@ module DataMapper
     # REPEAT: THIS IS DESTRUCTIVE
     #
     # @param Symbol repository_name the repository to be migrated
-    def auto_migrate!(repository_name = nil)
+    def auto_migrate!(repository_name = self.repository_name)
       auto_migrate_down!(repository_name)
       auto_migrate_up!(repository_name)
     end
@@ -71,7 +71,8 @@ module DataMapper
     #
     # @param Symbol repository_name the repository to be migrated
     # @api private
-    def auto_migrate_down!(repository_name = nil)
+    def auto_migrate_down!(repository_name = self.repository_name)
+      # repository_name ||= default_repository_name
       if self.superclass != Object
         self.superclass.auto_migrate!(repository_name)
       else
@@ -86,7 +87,7 @@ module DataMapper
     #
     # @param Symbol repository_name the repository to be migrated
     # @api private
-    def auto_migrate_up!(repository_name = nil)
+    def auto_migrate_up!(repository_name = self.repository_name)
       if self.superclass != Object
         self.superclass.auto_migrate!(repository_name)
       else
@@ -101,7 +102,7 @@ module DataMapper
     # preserving data already in the data-store
     #
     # @param Symbol repository_name the repository to be migrated
-    def auto_upgrade!(repository_name = nil)
+    def auto_upgrade!(repository_name = self.repository_name)
       repository(repository_name) do |r|
         r.adapter.upgrade_model_storage(r, self)
       end

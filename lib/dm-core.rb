@@ -206,12 +206,12 @@ module DataMapper
   # drops and recreates the repository upwards to match model definitions
   #
   # @param [Symbol] name repository to act on, :default is the default
-  def self.auto_migrate!(name = Repository.default_name)
-    repository(name).auto_migrate!
+  def self.auto_migrate!(repository_name = nil)
+    AutoMigrator.auto_migrate(repository_name)
   end
 
-  def self.auto_upgrade!(name = Repository.default_name)
-    repository(name).auto_upgrade!
+  def self.auto_upgrade!(repository_name = nil)
+    AutoMigrator.auto_upgrade(repository_name)
   end
 
   def self.prepare(*args, &blk)
