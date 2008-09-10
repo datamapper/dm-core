@@ -50,10 +50,12 @@ if ADAPTER
           has n, :relationships
           has n, :related_posts,
                  :through    => :relationships,
+                 :child_key => [:post_id],
                  :class_name => "Post"
 
           has n, :void_tags,
                  :through => :taggings,
+                 :child_key => [:post_id],
                  :class_name => "Tag",
                  :remote_relationship_name => :tag,
                  Post.taggings.tag.voided => true
