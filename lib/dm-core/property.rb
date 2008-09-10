@@ -452,7 +452,7 @@ module DataMapper
     #-
     # @api private
     def lazy_load(resource)
-      # It is faster to bail out at at a new_record? here than to process
+      # It is faster to bail out at at a new_record? rather than to process
       # which properties would be loaded and then not load them.
       return if resource.new_record? || resource.attribute_loaded?(name)
       # If we're trying to load a lazy property, load it. Otherwise, lazy-load
