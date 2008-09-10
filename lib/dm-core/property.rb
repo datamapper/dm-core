@@ -390,7 +390,7 @@ module DataMapper
       lazy_load(resource)
 
       value = get!(resource)
-      
+
       set_original_value(resource, value)
 
       # [YK] Why did we previously care whether options[:default] is nil. 
@@ -452,7 +452,9 @@ module DataMapper
     #-
     # @api private
     def lazy_load(resource)
-      return if resource.attribute_loaded?(name)
+      # It is faster to bail out at at a new_record? here than to process
+      # which properties would be loaded and then not load them.
+      return if resource.new_record? || resource.attribute_loaded?(name)
       # If we're trying to load a lazy property, load it. Otherwise, lazy-load
       # any properties that should be eager-loaded but were not included
       # in the original :fields list
