@@ -140,6 +140,12 @@ RBench.run(TIMES) do
     ar { ARExhibit.new }
   end
 
+  report "Model.new (setting attributes)" do
+    attrs = {:name => 'sam', :zoo_id => 1}
+    dm { Exhibit.new(attrs) }
+    ar { ARExhibit.new(attrs) }
+  end
+
   report "Model.get specific (not cached)" do
     dm { touch_attributes[Exhibit.get(1)] }
     ActiveRecord::Base.uncached { ar { touch_attributes[ARExhibit.find(1)] } }
