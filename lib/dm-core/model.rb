@@ -31,7 +31,6 @@ module DataMapper
     def self.extended(model)
       model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.send(:default_storage_name)) })
       model.instance_variable_set(:@properties,       Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
-      model.instance_variable_set(:@eager_properties, Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
       model.instance_variable_set(:@field_naming_conventions, Hash.new { |h,k| h[k] = repository(k).adapter.field_naming_convention })
       extra_extensions.each { |extension| model.extend(extension) }
     end
@@ -39,7 +38,6 @@ module DataMapper
     def inherited(target)
       target.instance_variable_set(:@storage_names,       @storage_names.dup)
       target.instance_variable_set(:@properties,          Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
-      target.instance_variable_set(:@eager_properties,    Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
       target.instance_variable_set(:@base_model,          self.base_model)
       target.instance_variable_set(:@paranoid_properties, @paranoid_properties)
       target.instance_variable_set(:@field_naming_conventions,  @field_naming_conventions.dup)
@@ -151,7 +149,6 @@ module DataMapper
       create_property_setter(property)
 
       @properties[repository_name][property.name] = property
-      @eager_properties[repository_name][property.name] = property unless property.lazy?
 
       # Add property to the other mappings as well if this is for the default
       # repository.
@@ -197,7 +194,7 @@ module DataMapper
     end
 
     def eager_properties(repository_name = default_repository_name)
-      @eager_properties[repository_name]
+      @properties[repository_name].defaults
     end
 
     # @api private
