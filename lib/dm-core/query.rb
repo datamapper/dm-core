@@ -167,7 +167,7 @@ module DataMapper
       @unique       = options.fetch :unique,       false  # must be true or false
       @offset       = options.fetch :offset,       0      # must be an Integer greater than or equal to 0
       @limit        = options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
-      @order        = options.fetch :order,        model.default_order   # must be an Array of Symbol, DM::Query::Direction or DM::Property
+      @order        = options.fetch :order,        model.default_order(@repository.name)   # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @add_reversed = options.fetch :add_reversed, false  # must be true or false
       @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
