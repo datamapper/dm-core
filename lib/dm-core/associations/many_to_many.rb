@@ -42,7 +42,7 @@ module DataMapper
         opts[:child_model]              ||= opts.delete(:class_name)  || Extlib::Inflection.classify(name)
         opts[:parent_model]             =   model
         opts[:repository_name]          =   repository_name
-        opts[:remote_relationship_name] ||= opts.delete(:remote_name) || name
+        opts[:remote_relationship_name] ||= opts.delete(:remote_name) || Extlib::Inflection.tableize(opts[:child_model])
         opts[:parent_key]               =   opts[:parent_key]
         opts[:child_key]                =   opts[:child_key]
         opts[:mutable]                  =   true

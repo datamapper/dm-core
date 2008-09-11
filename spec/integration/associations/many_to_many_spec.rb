@@ -294,4 +294,156 @@ describe DataMapper::Associations::ManyToMany::Proxy do
     end
   end
 
+  describe "with renamed associations" do
+    before :all do
+      class Singer
+        include DataMapper::Resource
+
+        def self.default_repository_name; ADAPTER end
+
+        property :id, Serial
+        property :name, String
+
+        has n, :tunes, :through => Resource, :class_name => 'Song'
+      end
+
+      class Song
+        include DataMapper::Resource
+
+        def self.default_repository_name; ADAPTER end
+
+        property :id, Serial
+        property :title, String
+
+        has n, :performers, :through => Resource, :class_name => 'Singer'
+      end
+    end
+
+    before do
+      [ Singer, Song, SingerSong ].each { |k| k.auto_migrate! }
+
+      song_1 = Song.create(:title => "Dubliners")
+      song_2 = Song.create(:title => "Portrait of the Artist as a Young Man")
+      song_3 = Song.create(:title => "Ulysses")
+
+      singer_1 = Singer.create(:name => "Jon Doe")
+      singer_2 = Singer.create(:name => "Jane Doe")
+
+      SingerSong.create(:song => song_1, :singer => singer_1)
+      SingerSong.create(:song => song_2, :singer => singer_1)
+      SingerSong.create(:song => song_1, :singer => singer_2)
+
+      @parent      = song_3
+      @association = @parent.performers
+      @other       = [ singer_1 ]
+    end
+
+    it "should provide #replace" do
+      @association.should respond_to(:replace)
+    end
+
+    it "should correctly link records" do
+      Song.get(1).should have(2).performers
+      Song.get(2).should have(1).performers
+      Song.get(3).should have(0).performers
+      Singer.get(1).should have(2).tunes
+      Singer.get(2).should have(1).tunes
+    end
+
+    it "should be able to have associated objects manually added" do
+      song = Song.get(3)
+      song.should have(0).performers
+
+      be = SingerSong.new(:song_id => song.id, :singer_id => 2)
+      song.singer_songs << be
+      song.save
+
+      song.reload.should have(1).performers
+    end
+
+    it "should automatically added necessary through class" do
+      song = Song.get(3)
+      song.should have(0).performers
+
+      song.performers << Singer.get(1)
+      song.performers << Singer.new(:name => "Jimmy John")
+      song.save
+
+      song.reload.should have(2).performers
+    end
+
+    it "should react correctly to a new record" do
+      song = Song.new(:title => "Finnegan's Wake")
+      singer = Singer.get(2)
+      song.should have(0).performers
+      singer.should have(1).tunes
+
+      song.performers << singer
+      song.save
+
+      song.reload.should have(1).performers
+      singer.reload.should have(2).tunes
+    end
+
+    it "should be able to delete intermediate model" do
+      song = Song.get(1)
+      song.should have(2).singer_songs
+      song.should have(2).performers
+
+      be = SingerSong.get(1,1)
+      song.singer_songs.delete(be)
+      song.save
+
+      song.reload
+      song.should have(1).singer_songs
+      song.should have(1).performers
+    end
+
+    it "should be clearable" do
+      repository(ADAPTER) do
+        song = Song.get(2)
+        song.should have(1).singer_songs
+        song.should have(1).performers
+
+        song.performers.clear
+        song.save
+
+        song.reload
+        song.should have(0).singer_songs
+        song.should have(0).performers
+      end
+      repository(ADAPTER) do
+        Song.get(2).should have(0).performers
+      end
+    end
+
+    it "should be able to delete one object" do
+      song = Song.get(1)
+      song.should have(2).singer_songs
+      song.should have(2).performers
+
+      editor = song.performers.first
+      song.performers.delete(editor)
+      song.save
+
+      song.reload
+      song.should have(1).singer_songs
+      song.should have(1).performers
+      editor.reload.tunes.should_not include(song)
+    end
+
+    it "should be destroyable" do
+      pending "cannot destroy a collection yet" do
+        song = Song.get(2)
+        song.should have(1).performers
+
+        song.performers.destroy
+        song.save
+
+        song.reload
+        song.should have(0).performers
+      end
+    end
+  end
+
 end
