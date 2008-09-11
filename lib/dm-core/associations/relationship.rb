@@ -151,7 +151,6 @@ module DataMapper
             children.each do |c|
               c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
             end
-          
             child.send(association_accessor).instance_variable_get(:@parent)
           end
         end

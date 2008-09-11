@@ -155,7 +155,7 @@ module DataMapper
       if repository_name == default_repository_name
         @properties.each_pair do |repository_name, properties|
           next if repository_name == default_repository_name
-          properties << property
+          properties << property unless properties.has_property?(property.name)
         end
       end
 
