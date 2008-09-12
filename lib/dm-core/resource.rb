@@ -575,7 +575,7 @@ module DataMapper
       assert_valid_model
       self.attributes = attributes
     end
-    
+
     def assert_valid_model # :nodoc:
       return if self.class._valid_model
       properties = self.properties

@@ -376,7 +376,7 @@ if ADAPTER
 
         y.machine.name.should == 'machine10'
       end
-      
+
       it 'should convert NULL parent ids into nils' do
         Area.first(:name => 'area2').machine.should be_nil
       end
@@ -570,13 +570,13 @@ if ADAPTER
         end
         machine.areas.size.should == 4
       end
-      
+
       it "#build should add exactly one instance of the built record" do
         machine = Machine.create(:name => 'my machine')
-        
+
         original_size = machine.areas.size
         machine.areas.build(:name => "an area", :machine => machine)
-        
+
         machine.areas.size.should == original_size + 1
       end
 

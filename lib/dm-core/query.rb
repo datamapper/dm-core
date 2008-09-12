@@ -439,7 +439,7 @@ module DataMapper
         dump_custom_value(property_or_path.property, bind_value)
       when Property
         if property_or_path.custom?
-          property_or_path.type.dump(bind_value, property_or_path) 
+          property_or_path.type.dump(bind_value, property_or_path)
         else
           bind_value
         end

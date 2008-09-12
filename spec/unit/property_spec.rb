@@ -5,7 +5,7 @@ describe DataMapper::Property do
     Object.send(:remove_const, :Zoo) if defined?(Zoo)
     class Zoo
       include DataMapper::Resource
-      
+
       property :id, DataMapper::Types::Serial
     end
 
@@ -13,20 +13,20 @@ describe DataMapper::Property do
     class Name < DataMapper::Type
       primitive String
       track :hash
-      
+
       def self.load(value, property)
         value.split(", ").reverse
       end
-      
+
       def self.dump(value, property)
         value && value.reverse.join(", ")
       end
-      
+
       def self.typecast(value, property)
         value
       end
     end
-    
+
     Object.send(:remove_const, :Tomato) if defined?(Tomato)
     class Tomato
       include DataMapper::Resource
@@ -75,13 +75,13 @@ describe DataMapper::Property do
     before(:each) do
       Zoo.class_eval do
         property :location, String, :field => "City"
-        
+
         repository(:mock) do
           property :location, String, :field => "MockCity"
         end
       end
     end
-    
+
     it 'should accept a custom field' do
       Zoo.properties[:location].field.should == 'City'
     end
@@ -109,9 +109,9 @@ describe DataMapper::Property do
 
       it 'should set the original value to nil' do
         @resource.original_values[:name].should == nil
-      end      
+      end
     end
-    
+
     it "should not reload the default if you set the property to nil" do
       @resource.name = nil
       @resource.name.should == nil
@@ -136,11 +136,11 @@ describe DataMapper::Property do
         @resource.name
         @resource.original_values[:name].should == "San Diego".hash
       end
-      
+
       it "should know it's dirty if a change was made to the object" do
         @resource.name.upcase!
         @resource.should be_dirty
-      end      
+      end
     end
   end
 
@@ -163,7 +163,7 @@ describe DataMapper::Property do
         @resource.original_values[:name].should == "San Diego"
       end
     end
-    
+
     it "should know it's dirty if a change was made to the object" do
       @resource.name.upcase!
       @resource.name
@@ -181,23 +181,23 @@ describe DataMapper::Property do
 
       Zoo.new.name.should == "San Diego"
     end
-    
+
     it "provides the resource to the proc" do
       Zoo.class_eval do
         property :name, String, :default => proc {|r,p| r.address}
         property :address, String
-      end      
-      
+      end
+
       zoo = Zoo.new
       zoo.address = "San Diego"
       zoo.name.should == "San Diego"
     end
-    
+
     it "provides the property to the proc" do
       Zoo.class_eval do
         property :name, String, :default => proc {|r,p| p.name.to_s}
       end
-      
+
       zoo = Zoo.new
       zoo.name.should == "name"
     end
@@ -209,7 +209,7 @@ describe DataMapper::Property do
       Zoo.class_eval do
         property :name, String
       end
-      
+
       resource = Zoo.new(:name => "Portland Zoo")
       resource.name.should == "Portland Zoo"
     end
@@ -223,7 +223,7 @@ describe DataMapper::Property do
         property :description, String, :lazy => true
       end
       Zoo.auto_migrate!
-      Zoo.create(:name => "San Diego Zoo", :age => 888, 
+      Zoo.create(:name => "San Diego Zoo", :age => 888,
         :description => "Great Zoo")
       @resource = Zoo.new
     end
@@ -232,13 +232,13 @@ describe DataMapper::Property do
       @resource.age = "888"
       @resource.age.should == 888
     end
-    
+
     it "should lazy load itself first" do
       resource = Zoo.first
       resource.description = "Still a Great Zoo"
       resource.original_values[:description].should == "Great Zoo"
     end
-    
+
     it "should only set original_values once" do
       resource = Zoo.first
       resource.description = "Still a Great Zoo"
@@ -254,7 +254,7 @@ describe DataMapper::Property do
         property :age, Integer
       end
     end
-    
+
     it 'should set the resource' do
       resource = Zoo.new
       resource.name = "Seattle Zoo"
@@ -278,7 +278,7 @@ describe DataMapper::Property do
     Zoo.class_eval do
       property :name, String, :size => 30
     end
-    
+
     resource = Zoo.new
     resource.name = 100
     resource.name.should == "100"
@@ -293,33 +293,33 @@ describe DataMapper::Property do
 
     Zoo.create(:id => "100", :name => "San Diego Zoo")
     zoo = Zoo.first
-    
+
     # Do we mean for attribute_loaded? to be public?
     zoo.attribute_loaded?(:id).should == true
   end
-  
+
   it "should lazily load other non-loaded, non-lazy fields" do
-    # This somewhat contorted setup is to successfully test that 
+    # This somewhat contorted setup is to successfully test that
     # the list of eager properties to be loaded when it's initially
     # missing is, in fact, repository-scoped
     Zoo.class_eval do
       property :id, DataMapper::Types::Serial
       property :name, String, :lazy => true
       property :address, String, :lazy => true
-      
+
       repository(:default2) do
         property :name, String
         property :address, String
       end
     end
 
-    repository(:default2) do 
+    repository(:default2) do
       Zoo.auto_migrate!
       Zoo.create(:name => "San Diego Zoo", :address => "San Diego")
     end
     repository(:default2) do
       zoo = Zoo.first(:fields => [:id])
-      
+
       zoo.attribute_loaded?(:name).should == false
       zoo.attribute_loaded?(:address).should == false
       zoo.name
@@ -334,7 +334,7 @@ describe DataMapper::Property do
     end
 
     Zoo.auto_migrate!
-    
+
     zoo = Zoo.create(:name => %w(Zoo San\ Diego))
     Zoo.first.name.should == %w(Zoo San\ Diego)
   end
@@ -345,11 +345,11 @@ describe DataMapper::Property do
     end
 
     Zoo.auto_migrate!
-    
+
     Zoo.create(:name => %w(Awesome Person\ Dude))
     zoo = Zoo.first
     zoo.name = %w(Awesome Person\ Dude)
-    
+
     # If we were tracking by hash, this would cause zoo to be dirty,
     # as its hash would not match the original. Since we've overridden
     # and are tracking by :get, it won't be dirty
@@ -365,7 +365,7 @@ describe DataMapper::Property do
       end
       Zoo.auto_migrate!
     end
-    
+
     it "should determine nullness" do
       Zoo.properties[:botanical_name].options[:nullable].should be_true
     end
@@ -495,7 +495,7 @@ describe DataMapper::Property do
   it "should set the field to the correct field_naming_convention" do
     Zoo.class_eval { property :species, String }
     Tomato.class_eval { property :genetic_history, DataMapper::Types::Text }
-    
+
     Zoo.properties[:species].field.should == "species"
     Tomato.properties[:genetic_history].field.should == "genetic_history"
   end
@@ -522,7 +522,7 @@ describe DataMapper::Property do
 
   it "should make it possible to define a range size" do
     Zoo.class_eval { property :cleanliness, String, :size => 0..100 }
-    Zoo.properties[:cleanliness].size.should == 100    
+    Zoo.properties[:cleanliness].size.should == 100
   end
 
   it "should make it possible to define a range length (which defines size)" do
@@ -576,7 +576,7 @@ describe DataMapper::Property do
         Zoo.class_eval do
           property :boolean, TrueClass
         end
-        
+
         zoo = Zoo.new
         zoo.boolean = value
         zoo.boolean.should == true
@@ -588,7 +588,7 @@ describe DataMapper::Property do
         Zoo.class_eval do
           property :boolean, TrueClass
         end
-        
+
         zoo = Zoo.new
         zoo.boolean = value
         zoo.boolean.should == false
@@ -599,7 +599,7 @@ describe DataMapper::Property do
       Zoo.class_eval do
         property :boolean, TrueClass
       end
-      
+
       zoo = Zoo.new
       zoo.boolean = nil
       zoo.boolean.should == nil
@@ -609,7 +609,7 @@ describe DataMapper::Property do
       Zoo.class_eval do
         property :string, String
       end
-      
+
       zoo = Zoo.new
       zoo.string = "0"
       zoo.string.should == "0"
@@ -620,7 +620,7 @@ describe DataMapper::Property do
         Zoo.class_eval do
           property :float, Float
         end
-        
+
         zoo = Zoo.new
         zoo.float = value
         zoo.float.should == expected
@@ -635,7 +635,7 @@ describe DataMapper::Property do
         Zoo.class_eval do
           property :int, Integer
         end
-        
+
         zoo = Zoo.new
         zoo.int = value
         zoo.int.should == expected
@@ -647,7 +647,7 @@ describe DataMapper::Property do
         Zoo.class_eval do
           property :big_decimal, BigDecimal
         end
-        
+
         zoo = Zoo.new
         zoo.big_decimal = value
         zoo.big_decimal.should == expected

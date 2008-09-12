@@ -268,20 +268,20 @@ if ADAPTER
             find.should have(0).entries
           end
         end
-        
+
         it "should work when id is NOT an empty Array" do
           repository(ADAPTER) do
             find = QuerySpec::SailBoat.all(:id.not => [])
             find.should have(3).entries
           end
         end
-        
+
         it "should work when id is an empty Array and other conditions are specified" do
           repository(ADAPTER) do
             find = QuerySpec::SailBoat.all(:id => [], :name => "A")
             find.should have(0).entries
           end
-        end        
+        end
 
         it "should work when id is NOT an empty Array and other conditions are specified" do
           repository(ADAPTER) do

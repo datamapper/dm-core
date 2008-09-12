@@ -328,7 +328,7 @@ module DataMapper
               opposite = condition == left_condition ? right_condition : left_condition
               query.merge_subquery(operator, opposite, condition)
               "(#{read_statement(condition)})"
-            
+
             # [].all? is always true
             elsif condition.kind_of?(Array) && condition.any? && condition.all? { |p| p.kind_of?(Property) }
               property_values = condition.map { |p| property_to_column_name(query.repository, p, qualify) }

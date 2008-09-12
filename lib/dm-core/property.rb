@@ -393,7 +393,7 @@ module DataMapper
 
       set_original_value(resource, value)
 
-      # [YK] Why did we previously care whether options[:default] is nil. 
+      # [YK] Why did we previously care whether options[:default] is nil.
       # The default value of nil will be applied either way
       if value.nil? && resource.new_record? && !resource.attribute_loaded?(name)
         value = default_for(resource)
@@ -422,7 +422,7 @@ module DataMapper
     # @api private
     def set(resource, value)
       # [YK] We previously checked for new_record? here, but lazy loading
-      # is blocked anyway if we're in a new record by by 
+      # is blocked anyway if we're in a new record by by
       # Resource#reload_attributes. This may eventually be useful for
       # optimizing, but let's (a) benchmark it first, and (b) do
       # whatever refactoring is necessary, which will benefit from the
