@@ -1,4 +1,3 @@
-(in /usr/local/projects/dm/dm-core)
 Gem::Specification.new do |s|
   s.name = %q{dm-core}
   s.version = "0.9.6"
