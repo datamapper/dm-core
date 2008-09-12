@@ -41,75 +41,80 @@ describe DataMapper::Resource do
   end
 end
 
-
 # ---------- Old specs... BOOOOOOOOOO ---------------
 
-class Planet
-  include DataMapper::Resource
-
-  storage_names[:legacy] = "dying_planets"
-
-  property :id, Integer, :key => true
-  property :name, String
-  property :age, Integer
-  property :core, String, :accessor => :private
-  property :type, Discriminator
-  property :data, Object, :track => :get
-
-  repository(:legacy) do
-    property :cowabunga, String
-  end
-
-  def age
-    attribute_get(:age)
-  end
-
-  def to_s
-    name
-  end
-end
-
-class Phone
-  include DataMapper::Resource
-
-  property :name, String, :key => true
-  property :awesomeness, Integer
-end
-
-class Fruit
-  include DataMapper::Resource
-
-  property :id, Integer, :key => true
-  property :name, String
-end
-
-class Grain
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :name, String, :default => 'wheat'
-end
-
-class Vegetable
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :name, String
-end
-
-class Banana < Fruit
-  property :type, Discriminator
-end
-
-class Cyclist
-  include DataMapper::Resource
-  property :id,         Integer, :serial => true
-  property :victories,  Integer
-end
-
 describe DataMapper::Resource do
-
   before(:each) do
+    Object.send(:remove_const, :Planet) if defined?(Planet)
+    class Planet
+      include DataMapper::Resource
+
+      storage_names[:legacy] = "dying_planets"
+
+      property :id, Integer, :key => true
+      property :name, String
+      property :age, Integer
+      property :core, String, :accessor => :private
+      property :type, Discriminator
+      property :data, Object, :track => :get
+
+      repository(:legacy) do
+        property :cowabunga, String
+      end
+
+      def age
+        attribute_get(:age)
+      end
+
+      def to_s
+        name
+      end
+    end
+
+    Object.send(:remove_const, :Phone) if defined?(Phone)
+    class Phone
+      include DataMapper::Resource
+
+      property :name, String, :key => true
+      property :awesomeness, Integer
+    end
+
+    Object.send(:remove_const, :Fruit) if defined?(Fruit)
+    class Fruit
+      include DataMapper::Resource
+
+      property :id, Integer, :key => true
+      property :name, String
+    end
+
+    Object.send(:remove_const, :Grain) if defined?(Grain)
+    class Grain
+      include DataMapper::Resource
+
+      property :id, Serial
+      property :name, String, :default => 'wheat'
+    end
+
+    Object.send(:remove_const, :Vegetable) if defined?(Vegetable)
+    class Vegetable
+      include DataMapper::Resource
+
+      property :id, Serial
+      property :name, String
+    end
+
+    Object.send(:remove_const, :Banana) if defined?(Banana)
+    class Banana < Fruit
+      property :type, Discriminator
+    end
+
+    Object.send(:remove_const, :Cyclist) if defined?(Cyclist)
+    class Cyclist
+      include DataMapper::Resource
+      property :id,         Serial
+      property :victories,  Integer
+    end
+
     Planet.auto_migrate!
     Cyclist.auto_migrate!
   end
