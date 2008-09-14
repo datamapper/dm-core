@@ -12,7 +12,7 @@ namespace :ci do
 
   Spec::Rake::SpecTask.new("spec:unit" => :prepare) do |t|
     t.spec_opts = ["--format", "specdoc", "--format", "html:#{ROOT}/ci/unit_rspec_report.html", "--diff"]
-    t.spec_files = Pathname.glob(ROOT + "spec/unit/**/*_spec.rb")
+    t.spec_files = Pathname.glob((ROOT + 'spec/unit/**/*_spec.rb').to_s)
     unless ENV['NO_RCOV']
       t.rcov = true
       t.rcov_opts << '--exclude' << "spec,gems"
@@ -24,7 +24,7 @@ namespace :ci do
 
   Spec::Rake::SpecTask.new("spec:integration" => :prepare) do |t|
     t.spec_opts = ["--format", "specdoc", "--format", "html:#{ROOT}/ci/integration_rspec_report.html", "--diff"]
-    t.spec_files = Pathname.glob(ROOT + "spec/integration/**/*_spec.rb")
+    t.spec_files = Pathname.glob((ROOT + 'spec/integration/**/*_spec.rb').to_s)
     unless ENV['NO_RCOV']
       t.rcov = true
       t.rcov_opts << '--exclude' << "spec,gems"

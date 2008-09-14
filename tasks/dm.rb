@@ -16,7 +16,7 @@ namespace :dm do
   def run_spec(name, files, rcov)
     Spec::Rake::SpecTask.new(name) do |t|
       t.spec_opts << '--colour' << '--loadby' << 'random'
-      t.spec_files = Pathname.glob(ENV['FILES'] || files)
+      t.spec_files = Pathname.glob(ENV['FILES'] || files.to_s)
       t.rcov = rcov
       t.rcov_opts << '--exclude' << 'spec,environment.rb'
       t.rcov_opts << '--text-summary'
@@ -25,9 +25,9 @@ namespace :dm do
     end
   end
 
-  unit_specs = ROOT + 'spec/unit/**/*_spec.rb'
+  unit_specs        = ROOT + 'spec/unit/**/*_spec.rb'
   integration_specs = ROOT + 'spec/integration/**/*_spec.rb'
-  all_specs = ROOT + 'spec/**/*_spec.rb'
+  all_specs         = ROOT + 'spec/**/*_spec.rb'
 
   desc "Run all specifications"
   run_spec('spec', all_specs, false)
