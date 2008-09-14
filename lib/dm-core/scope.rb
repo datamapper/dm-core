@@ -17,13 +17,13 @@ module DataMapper
     protected
 
     # @api semipublic
-    def with_scope(query, &block)
+    def with_scope(query)
       # merge the current scope with the passed in query
-      with_exclusive_scope(self.query ? self.query.merge(query) : query, &block)
+      with_exclusive_scope(self.query ? self.query.merge(query) : query) {|*block_args| yield(*block_args) }
     end
 
     # @api semipublic
-    def with_exclusive_scope(query, &block)
+    def with_exclusive_scope(query)
       query = DataMapper::Query.new(repository, self, query) if query.kind_of?(Hash)
 
       scope_stack << query

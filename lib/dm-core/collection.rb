@@ -295,7 +295,7 @@ module DataMapper
     # @see Array#delete
     #
     # @api public
-    def delete(resource, &block)
+    def delete(resource)
       orphan_resource(super)
     end
 

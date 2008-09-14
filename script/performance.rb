@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core', 'version')
 
 require 'rubygems'
 require 'ftools'
@@ -38,7 +39,7 @@ configuration_options[:socket] = socket_file unless socket_file.nil?
 log_dir = DataMapper.root / 'log'
 log_dir.mkdir unless log_dir.directory?
 
-DataMapper::Logger.new(log_dir / 'dm.log', :debug)
+DataMapper::Logger.new(log_dir / 'dm.log', :off)
 adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 if configuration_options[:adapter]
@@ -131,7 +132,7 @@ puts "Benchmarks will now run #{TIMES} times"
 RBench.run(TIMES) do
 
   column :times
-  column :dm, :title => "DM 0.9.4"
+  column :dm, :title => "DM #{DataMapper::VERSION}"
   column :ar, :title => "AR 2.1"
   column :diff, :compare => [:dm,:ar]
 
@@ -183,6 +184,13 @@ RBench.run(TIMES) do
     ar { ARExhibit.create(create_exhibit) }
   end
 
+  report "Resource#attributes" do
+    attrs_first  = {:name => 'sam', :zoo_id => 1}
+    attrs_second = {:name => 'tom', :zoo_id => 1}
+    dm { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
+    ar { e = ARExhibit.new(attrs_first); e.attributes = attrs_second }
+  end
+
   report "Resource#update" do
     dm { e = Exhibit.get(1); e.name = 'bob'; e.save   }
     ar { e = ARExhibit.find(1); e.name = 'bob'; e.save  }
@@ -191,6 +199,15 @@ RBench.run(TIMES) do
   report "Resource#destroy" do
     dm { Exhibit.first.destroy }
     ar { ARExhibit.first.destroy }
+  end
+
+  report "Model.transaction" do
+    dm { Exhibit.transaction do
+      Exhibit.new
+    end }
+    ar { ARExhibit.transaction do
+      ARExhibit.new
+    end }
   end
 
   summary "Total"

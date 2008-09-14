@@ -190,7 +190,7 @@ module DataMapper
       @includes = normalize_includes(@includes)
 
       # treat all non-options as conditions
-      (options.keys - OPTIONS - OPTIONS.map { |option| option.to_s }).each do |k|
+      (options.keys - OPTIONS).each do |k|
         append_condition(k, options[k])
       end
 
@@ -218,53 +218,50 @@ module DataMapper
 
     # validate the options
     def assert_valid_options(options)
-      # validate the reload option and unique option
-      ([ :reload, :unique ] & options.keys).each do |attribute|
-        if options[attribute] != true && options[attribute] != false
-          raise ArgumentError, "+options[:#{attribute}]+ must be true or false, but was #{options[attribute].inspect}", caller(2)
-        end
-      end
+      # [DB] This might look more ugly now, but it's 2x as fast as the old code
+      # [DB] This is one of the heavy spots for Query.new I found during profiling.
+      options.each_pair do |attribute, value|
 
-      # validate the offset and limit options
-      ([ :offset, :limit ] & options.keys).each do |attribute|
-        value = options[attribute]
-        assert_kind_of "options[:#{attribute}]", value, Integer
-      end
-
-      if options.has_key?(:offset) && options[:offset] < 0
-        raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{options[:offset].inspect}", caller(2)
-      end
-
-      if options.has_key?(:limit)  && options[:limit] < 1
-        raise ArgumentError, "+options[:limit]+ must be greater than or equal to 1, but was #{options[:limit].inspect}", caller(2)
-      end
-
-      # validate the order, fields, links, includes and conditions options
-      ([ :order, :fields, :links, :includes ] & options.keys).each do |attribute|
-        value = options[attribute]
-        assert_kind_of "options[:#{attribute}]", value, Array
-
-        if value.empty?
-          if attribute == :fields
-            if options[:unique] == false
-              raise ArgumentError, '+options[:fields]+ cannot be empty if +options[:unique] is false', caller(2)
-            end
-          elsif attribute == :order
-            if options[:fields] && options[:fields].any? { |p| !p.kind_of?(Operator) }
-              raise ArgumentError, '+options[:order]+ cannot be empty if +options[:fields] contains a non-operator', caller(2)
-            end
-          else
-            raise ArgumentError, "+options[:#{attribute}]+ cannot be empty", caller(2)
+        # validate the reload option and unique option
+        if [:reload, :unique].include? attribute
+          if value != true && value != false
+            raise ArgumentError, "+options[:#{attribute}]+ must be true or false, but was #{value.inspect}", caller(2)
           end
-        end
-      end
 
-      if options.has_key?(:conditions)
-        value = options[:conditions]
-        assert_kind_of 'options[:conditions]', value, Hash, Array
+        # validate the offset and limit options
+        elsif [:offset, :limit].include? attribute
+          assert_kind_of "options[:#{attribute}]", value, Integer
+          if attribute == :offset && value < 0
+            raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{value.inspect}", caller(2)
+          elsif attribute == :limit && value < 1
+            raise ArgumentError, "+options[:limit]+ must be greater than or equal to 1, but was #{options[:limit].inspect}", caller(2)
+          end
 
-        if value.empty?
-          raise ArgumentError, '+options[:conditions]+ cannot be empty', caller(2)
+        # validate the :order, :fields, :links and :includes options
+        elsif [ :order, :fields, :links, :includes ].include? attribute
+          assert_kind_of "options[:#{attribute}]", value, Array
+
+          if value.empty?
+            if attribute == :fields
+              if options[:unique] == false
+                raise ArgumentError, '+options[:fields]+ cannot be empty if +options[:unique] is false', caller(2)
+              end
+            elsif attribute == :order
+              if options[:fields] && options[:fields].any? { |p| !p.kind_of?(Operator) }
+                raise ArgumentError, '+options[:order]+ cannot be empty if +options[:fields] contains a non-operator', caller(2)
+              end
+            else
+              raise ArgumentError, "+options[:#{attribute}]+ cannot be empty", caller(2)
+            end
+          end
+
+        # validates the :conditions option
+        elsif :conditions == attribute
+          assert_kind_of 'options[:conditions]', value, Hash, Array
+
+          if value.empty?
+            raise ArgumentError, '+options[:conditions]+ cannot be empty', caller(2)
+          end
         end
       end
     end

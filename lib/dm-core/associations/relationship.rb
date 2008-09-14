@@ -157,14 +157,14 @@ module DataMapper
       end
 
       # @api private
-      def with_repository(object = nil, &block)
+      def with_repository(object = nil)
         other_model = object.model == child_model ? parent_model : child_model if object.respond_to?(:model)
         other_model = object       == child_model ? parent_model : child_model if object.kind_of?(DataMapper::Resource)
 
         if other_model && other_model.repository == object.repository && object.repository.name != @repository_name
-          object.repository.scope(&block)
+          object.repository.scope { |block_args| yield(*block_args) }
         else
-          repository(@repository_name, &block)
+          repository(@repository_name) { |block_args| yield(*block_args) }
         end
       end
 

@@ -133,8 +133,8 @@ module DataMapper
     case uri_or_options
       when Hash
         adapter_name = uri_or_options[:adapter].to_s
-      when String, Addressable::URI
-        uri_or_options = Addressable::URI.parse(uri_or_options) if uri_or_options.kind_of?(String)
+      when String, DataObjects::URI, Addressable::URI
+        uri_or_options = DataObjects::URI.parse(uri_or_options) if uri_or_options.kind_of?(String)
         adapter_name = uri_or_options.scheme
     end
 
@@ -169,26 +169,19 @@ module DataMapper
   # @param [Symbol] args the name of a repository to act within or return, :default is default
   # @yield [Proc] (optional) block to execute within the context of the named repository
   # @demo spec/integration/repository_spec.rb
-  def self.repository(*args, &block) # :yields: current_context
-    if args.size > 1
-      raise ArgumentError, "Can only pass in one optional argument, but passed in #{args.size} arguments", caller
-    end
-
-    if args.any? && !args.first.kind_of?(Symbol)
-      raise ArgumentError, "First optional argument must be a Symbol, but was #{args.first.inspect}", caller
-    end
-
-    name = args.first
-
+  def self.repository(name = nil) # :yields: current_context
     current_repository = if name
+      raise ArgumentError, "First optional argument must be a Symbol, but was #{args.first.inspect}" unless name.is_a?(Symbol)
       Repository.context.detect { |r| r.name == name } || Repository.new(name)
     else
       Repository.context.last || Repository.new(Repository.default_name)
     end
 
-    return current_repository unless block_given?
-
-    current_repository.scope(&block)
+    if block_given?
+      current_repository.scope { |*block_args| yield(*block_args) }
+    else
+      current_repository
+    end
   end
 
   # A logger should always be present. Lets be consistent with DO

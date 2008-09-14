@@ -432,13 +432,6 @@ module DataMapper
       new_value = typecast(value)
       old_value = get!(resource)
 
-      # skip setting the property if the new value is equal
-      # to the old value, and the old value was defined
-      # ---
-      # [YK] Why bother? Does this change the result at all?
-      # ---
-      # return if new_value == old_value && resource.attribute_loaded?(name)
-
       set_original_value(resource, old_value)
 
       set!(resource, new_value)

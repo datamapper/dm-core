@@ -13,12 +13,12 @@ module DataMapper
     # In fact, it just calls #link with the given arguments at the end of the
     # constructor.
     #
-    def initialize(*things, &block)
+    def initialize(*things)
       @transaction_primitives = {}
       @state = :none
       @adapters = {}
       link(*things)
-      commit(&block) if block_given?
+      commit { |*block_args| yield(*block_args) } if block_given?
     end
 
     #
@@ -39,7 +39,7 @@ module DataMapper
     #   within this transaction. The transaction will begin and commit around
     #   the block, and rollback if an exception is raised.
     #
-    def link(*things, &block)
+    def link(*things)
       raise "Illegal state for link: #{@state}" unless @state == :none
       things.each do |thing|
         if thing.is_a?(Array)
@@ -56,7 +56,7 @@ module DataMapper
           raise "Unknown argument to #{self}#link: #{thing.inspect}"
         end
       end
-      return commit(&block) if block_given?
+      return commit { |*block_args| yield(*block_args) } if block_given?
       return self
     end
 
@@ -83,12 +83,12 @@ module DataMapper
     #   If no block is given, it will simply commit any changes made since the
     #   Transaction did #begin.
     #
-    def commit(&block)
+    def commit
       if block_given?
         raise "Illegal state for commit with block: #{@state}" unless @state == :none
         begin
           self.begin
-          rval = within(&block)
+          rval = within { |*block_args| yield(*block_args) }
           self.commit if @state == :begin
           return rval
         rescue Exception => e
@@ -128,7 +128,7 @@ module DataMapper
     #   adapter it is associated with, and it will ensures that it will pop the
     #   Transaction away again after the block is finished.
     #
-    def within(&block)
+    def within
       raise "No block provided" unless block_given?
       raise "Illegal state for within: #{@state}" unless @state == :begin
       @adapters.each do |adapter, state|

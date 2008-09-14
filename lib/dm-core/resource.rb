@@ -588,7 +588,7 @@ module DataMapper
         raise IncompleteResourceError, "#{model.name} must have a key."
       end
 
-      class << self; @_valid_model = true; end
+      self.class.instance_variable_set("@_valid_model", true)
     end
 
     # TODO document
@@ -627,8 +627,8 @@ module DataMapper
       # @api public
       #
       # TODO: move to dm-more/dm-transactions
-      def transaction(&block)
-        model.transaction(&block)
+      def transaction
+        model.transaction { |*block_args| yield(*block_args) }
       end
     end # module Transaction
 

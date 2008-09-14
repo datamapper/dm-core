@@ -86,7 +86,7 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def without_notices(&block)
+          def without_notices
             # execute the block with NOTICE messages disabled
             begin
               execute('SET client_min_messages = warning')

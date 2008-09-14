@@ -116,7 +116,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
       adapter.uri.should ==
-        Addressable::URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
+        DataObjects::URI.parse("mysql://me:mypass@davidleal.com:5000/you_can_call_me_al?socket=nosock")
     end
 
     it 'should transform a minimal options hash into a URI' do
@@ -126,12 +126,12 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       }
 
       adapter = DataMapper::Adapters::DataObjectsAdapter.new(:spec, options)
-      adapter.uri.should == Addressable::URI.parse("mysql:you_can_call_me_al")
+      adapter.uri.should == DataObjects::URI.parse("mysql:you_can_call_me_al")
     end
 
     it 'should accept the uri when no overrides exist' do
       uri = Addressable::URI.parse("protocol:///")
-      DataMapper::Adapters::DataObjectsAdapter.new(:spec, uri).uri.should == uri
+      DataMapper::Adapters::DataObjectsAdapter.new(:spec, uri).uri.should == DataObjects::URI.parse(uri)
     end
   end
 

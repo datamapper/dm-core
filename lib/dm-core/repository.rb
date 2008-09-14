@@ -33,11 +33,11 @@ module DataMapper
     end
 
     def identity_map(model)
-      @identity_maps[model]
+      @identity_maps[model] ||= IdentityMap.new
     end
 
     # TODO: spec this
-    def scope(&block)
+    def scope
       Repository.context << self
 
       begin
@@ -97,7 +97,7 @@ module DataMapper
       assert_kind_of 'name', name, Symbol
 
       @name          = name
-      @identity_maps = Hash.new { |h,model| h[model] = IdentityMap.new }
+      @identity_maps = {}
     end
 
     # TODO: move to dm-more/dm-migrations

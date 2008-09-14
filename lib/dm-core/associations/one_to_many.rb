@@ -132,7 +132,7 @@ module DataMapper
           orphan_resource(super)
         end
 
-        def delete(resource, &block)
+        def delete(resource)
           assert_mutable
           orphan_resource(super)
         end

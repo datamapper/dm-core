@@ -8,6 +8,7 @@ module DataMapper
     end
 
     def []=(name, property)
+      @key, @defaults = nil
       if existing_property = detect { |p| p.name == name }
         property.hash
         @entries[@entries.index(existing_property)] = property
@@ -22,10 +23,12 @@ module DataMapper
     end
 
     def slice(*names)
+      @key, @defaults = nil
       @property_for.values_at(*names)
     end
 
     def add(*properties)
+      @key, @defaults = nil
       @entries.push(*properties)
       properties.each { |property| property.hash }
       self
@@ -47,11 +50,11 @@ module DataMapper
     end
 
     def defaults
-      reject { |property| property.lazy? }
+      @defaults ||= reject { |property| property.lazy? }
     end
 
     def key
-      select { |property| property.key? }
+      @key ||= select { |property| property.key? }
     end
 
     def indexes
@@ -132,6 +135,7 @@ module DataMapper
     end
 
     def initialize_copy(orig)
+      @key, @defaults = nil
       @entries = orig.entries.dup
       @property_for = hash_for_property_for
     end

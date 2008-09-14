@@ -102,13 +102,17 @@ module DataMapper
     #   if given a block, otherwise the requested repository.
     #-
     # @api public
-    def repository(name = nil, &block)
+    def repository(name = nil)
       #
       # There has been a couple of different strategies here, but me (zond) and dkubb are at least
       # united in the concept of explicitness over implicitness. That is - the explicit wish of the
       # caller (+name+) should be given more priority than the implicit wish of the caller (Repository.context.last).
       #
-      DataMapper.repository(name || repository_name, &block)
+      if block_given?
+        DataMapper.repository(name || repository_name) { |*block_args| yield(*block_args) }
+      else
+        DataMapper.repository(name || repository_name)
+      end
     end
 
     ##
@@ -219,7 +223,8 @@ module DataMapper
     end
 
     def default_order(repository_name = default_repository_name)
-      key(repository_name).map { |property| Query::Direction.new(property) }
+      @default_order ||= {}
+      @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
     end
 
     def get(*key)
@@ -451,8 +456,8 @@ module DataMapper
       # @api public
       #
       # TODO: move to dm-more/dm-transactions
-      def transaction(&block)
-        DataMapper::Transaction.new(self, &block)
+      def transaction
+        DataMapper::Transaction.new(self) { |block_args| yield(*block_args) }
       end
     end # module Transaction
 
