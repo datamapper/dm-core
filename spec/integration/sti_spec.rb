@@ -204,5 +204,27 @@ if HAS_SQLITE3
         SpaceWestern.properties[:title].should_not be_nil
       end
     end
+
+    describe "with a child class" do
+      before :all do
+        Book.auto_migrate!(:sqlite3)
+        repository(:sqlite3) do
+          ShortStory.create(
+            :title => "The Science of Happiness",
+            :isbn => "129038",
+            :moral => "Bullshit might get you to the top, but it won't keep you there.")
+        end
+      end
+
+      it "should be able to access the properties from the parent collection" do
+        repository(:sqlite3) do
+          Book.all.each do |book|
+            book.title.should_not be_nil
+            book.isbn.should_not be_nil
+            book.moral.should_not be_nil
+          end
+        end
+      end
+    end
   end
 end

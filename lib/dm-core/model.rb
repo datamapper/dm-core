@@ -309,7 +309,7 @@ module DataMapper
       repository = query.repository
       model      = self
 
-      if inheritance_property_index = query.inheritance_property_index(repository)
+      if inheritance_property_index = query.inheritance_property_index
         model = values.at(inheritance_property_index) || model
       end
 

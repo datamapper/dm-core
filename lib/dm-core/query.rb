@@ -100,8 +100,10 @@ module DataMapper
     end
 
     # TODO: spec this
-    def inheritance_property_index(repository)
-      fields.index(model.inheritance_property(repository.name))
+    def inheritance_property_index
+      if inheritance_property = fields.detect { |property| property.type == DataMapper::Types::Discriminator }
+        fields.index(inheritance_property)
+      end
     end
 
     # TODO: spec this
