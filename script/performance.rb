@@ -43,7 +43,7 @@ DataMapper::Logger.new(log_dir / 'dm.log', :off)
 adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 if configuration_options[:adapter]
-  sqlfile = File.join(File.dirname(__FILE__),'..','tmp','perf.sql')
+  sqlfile = File.join(File.dirname(__FILE__),'..','tmp','performance.sql')
   mysql_bin = %w[mysql mysql5].select{|bin| `which #{bin}`.length > 0 }
   mysqldump_bin = %w[mysqldump mysqldump5].select{|bin| `which #{bin}`.length > 0 }
 end
@@ -55,6 +55,15 @@ ActiveRecord::Base.establish_connection(configuration_options)
 
 class ARExhibit < ActiveRecord::Base #:nodoc:
   set_table_name 'exhibits'
+  
+  belongs_to :user, :class_name => 'ARUser', :foreign_key => 'user_id'
+end
+
+class ARUser < ActiveRecord::Base #:nodoc:
+  set_table_name 'users'
+  
+  has_many :exhibits, :foreign_key => 'user_id'
+  
 end
 
 ARExhibit.find_by_sql('SELECT 1')
@@ -67,7 +76,20 @@ class Exhibit
   property :zoo_id,     Integer
   property :notes,      Text, :lazy => true
   property :created_on, Date
+  
+  belongs_to :user
 #  property :updated_at, DateTime
+end
+
+class User
+  include DataMapper::Resource
+  
+  property :id,    Serial
+  property :name,  String
+  property :email, String
+  property :about, Text, :lazy => true
+  property :created_on, Date
+  
 end
 
 touch_attributes = lambda do |exhibits|
@@ -75,7 +97,16 @@ touch_attributes = lambda do |exhibits|
     exhibit.id
     exhibit.name
     exhibit.created_on
-#    exhibit.updated_at
+  end
+end
+
+touch_relationships = lambda do |exhibits|
+  [*exhibits].each do |exhibit|
+    exhibit.id
+    exhibit.name
+    exhibit.created_on
+    exhibit.user
+    exhibit.user.name if exhibit.user
   end
 end
 
@@ -87,28 +118,50 @@ if sqlfile && File.exists?(sqlfile)
   #adapter.execute("LOAD DATA LOCAL INFILE '#{sqlfile}' INTO TABLE exhibits")
   `#{mysql_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
 else
-
+  
+  puts "Generating data for benchmarking..."
+  
+  User.auto_migrate!
   Exhibit.auto_migrate!
-
+  
+  users = []
   exhibits = []
+  
   # pre-compute the insert statements and fake data compilation,
   # so the benchmarks below show the actual runtime for the execute
   # method, minus the setup steps
-  10_000.times do
+  
+  # Using the same paragraph for all exhibits because it is very slow
+  # to generate unique paragraphs for all exhibits.
+  paragraph = Faker::Lorem.paragraphs.join($/)
+  
+  10_000.times do |i|
+    users << [
+      'INSERT INTO `users` (`name`,`email`,`created_on`) VALUES (?, ?, ?)',
+      Faker::Name.name,
+      Faker::Internet.email,
+      Date.today
+    ]
+  
     exhibits << [
-      'INSERT INTO `exhibits` (`name`, `zoo_id`, `notes`, `created_on`) VALUES (?, ?, ?, ?)',
+      'INSERT INTO `exhibits` (`name`, `zoo_id`, `user_id`, `notes`, `created_on`) VALUES (?, ?, ?, ?, ?)',
       Faker::Company.name,
+      i,
       rand(10).ceil,
-      Faker::Lorem.paragraphs.join($/),
+      paragraph,#Faker::Lorem.paragraphs.join($/),
       Date.today
     ]
   end
+  
+  puts "Inserting 10,000 users..."  
+  10_000.times { |i| adapter.execute(*users.at(i)) }
+  puts "Inserting 10,000 exhibits..."  
   10_000.times { |i| adapter.execute(*exhibits.at(i)) }
 
   if sqlfile
     answer = nil
     until answer && answer[/^$|y|yes|n|no/]
-      print("Would you like to dump data into tmp/perf.sql (for faster setup)? [Yn]");
+      print("Would you like to dump data into tmp/performance.sql (for faster setup)? [Yn]");
       STDOUT.flush
       answer = gets
     end
@@ -128,6 +181,16 @@ TIMES = ENV['x'] ? ENV['x'].to_i : 10_000
 puts "You can specify how many times you want to run the benchmarks with rake:perf x=(number)"
 puts "Some tasks will be run 10 and 1000 times less than (number)"
 puts "Benchmarks will now run #{TIMES} times"
+# Inform about slow benchmark
+answer = nil
+until answer && answer[/^$|y|yes|n|no/]
+  print("A slow benchmark exposing problems with SEL is newly added. It takes approx. 20s\n");
+  print("you have scheduled it to run #{TIMES / 100} times.\nWould you still include the particular benchmark? [Yn]")
+  STDOUT.flush
+  answer = gets
+end
+run_rel_bench = answer[/^$|y|yes/] ? true : false
+
 
 RBench.run(TIMES) do
 
@@ -162,15 +225,20 @@ RBench.run(TIMES) do
     ar { touch_attributes[ARExhibit.first] }
   end
 
-  report "Model.all limit(100)", TIMES / 10 do
+  report "Model.all limit(100)", (TIMES / 10.0).ceil do
     dm { touch_attributes[Exhibit.all(:limit => 100)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
   end
 
-  report "Model.all limit(10,000)", TIMES / 1000 do
+  report "Model.all limit(10,000)", (TIMES / 1000.0).ceil do
     dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
   end
+  
+  report "Model.all limit(100) with relationship", (TIMES / 100.0).ceil do
+    dm { touch_relationships[Exhibit.all(:limit => 100)] }
+    ar { touch_relationships[ARExhibit.all(:limit => 100, :include => [:user])] }
+  end if run_rel_bench
 
   create_exhibit = {
     :name       => Faker::Company.name,
