@@ -27,6 +27,11 @@ module DataMapper
       @property_for.values_at(*names)
     end
 
+    def clear
+      @key, @defaults = nil
+      @entries.clear
+    end
+
     def add(*properties)
       @key, @defaults = nil
       @entries.push(*properties)
