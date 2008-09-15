@@ -543,7 +543,7 @@ module DataMapper
     # @api private
     def orphan_resource(resource)
       return unless resource
-      resource.collection = nil if resource.collection == self
+      resource.collection = nil if resource.collection.object_id == self.object_id
       @cache.delete(resource.key)
       resource
     end
