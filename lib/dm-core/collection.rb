@@ -52,8 +52,8 @@ module DataMapper
     def get(*key)
       key = model.typecast_key(key)
       if loaded?
-        # loop over the collection to find the matching resource
-        detect { |resource| resource.key == key }
+        # find indexed resource (create index first if it does not exist)
+        (@index||=map{|r| [r.key,r]}.to_hash)[key]
       elsif query.limit || query.offset > 0
         # current query is exclusive, find resource within the set
 
@@ -533,6 +533,7 @@ module DataMapper
     def relate_resource(resource)
       return unless resource
       resource.collection = self
+      wipe_index
       resource
     end
 
@@ -541,6 +542,7 @@ module DataMapper
     def orphan_resource(resource)
       return unless resource
       resource.collection = nil if resource.collection == self
+      wipe_index
       resource
     end
 
@@ -577,6 +579,10 @@ module DataMapper
     # @api private
     def identity_map
       repository.identity_map(model)
+    end
+    
+    def wipe_index
+      @index = nil
     end
 
     ##
