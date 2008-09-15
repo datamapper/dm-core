@@ -71,10 +71,6 @@ module DataMapper
       index_hash
     end
 
-    def inheritance_property
-      detect { |property| property.type == DataMapper::Types::Discriminator }
-    end
-
     def get(resource)
       map { |property| property.get(resource) }
     end

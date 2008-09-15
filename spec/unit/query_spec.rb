@@ -482,6 +482,47 @@ describe DataMapper::Query do
       @query.reverse!.object_id.should == @query.object_id
     end
   end
+
+  describe 'inheritance properties' do
+    before(:each) do
+      class Parent
+        include DataMapper::Resource
+        property :id, Serial
+        property :type, Discriminator
+      end
+      @query = DataMapper::Query.new(@repository, Parent)
+      @other_query = DataMapper::Query.new(@repository, Article)
+    end
+
+    it 'should provide #inheritance_property' do
+      @query.should respond_to(:inheritance_property)
+    end
+
+    describe '#inheritance_property' do
+      it 'should return a Property object if there is a Discriminator field' do
+        @query.inheritance_property.should be_kind_of(DataMapper::Property)
+        @query.inheritance_property.name.should == :type
+        @query.inheritance_property.type.should == DM::Discriminator
+      end
+
+      it 'should return nil if there is no Discriminator field' do
+        @other_query.inheritance_property.should be_nil
+      end
+    end
+
+    it 'should provide #inheritance_property_index' do
+      @query.should respond_to(:inheritance_property_index)
+    end
+
+    describe '#inheritance_property_index' do
+      it 'should return integer index if there is a Discriminator field' do
+        @query.inheritance_property_index.should be_kind_of(Integer)
+        @query.inheritance_property_index.should == 1
+      end
+
+      it 'should return nil if there is no Discriminator field'
+    end
+  end
 end
 
 describe DataMapper::Query::Operator do

@@ -147,22 +147,6 @@ describe 'DataMapper::Model' do
     end
   end
 
-  it 'should provide #inheritance_property' do
-    ModelSpec::Resource.should respond_to(:inheritance_property)
-  end
-
-  describe '#inheritance_property' do
-    it 'should return a Property object' do
-      ModelSpec::Resource.inheritance_property(:legacy).should be_kind_of(DataMapper::Property)
-      ModelSpec::Resource.inheritance_property(:legacy).name.should == :type
-      ModelSpec::Resource.inheritance_property(:legacy).type.should == DM::Discriminator
-    end
-
-    it 'should use default repository when not passed any arguments' do
-      ModelSpec::Resource.inheritance_property.object_id.should == ModelSpec::Resource.inheritance_property(:default).object_id
-    end
-  end
-
   it 'should provide #get' do
     ModelSpec::Resource.should respond_to(:get)
   end

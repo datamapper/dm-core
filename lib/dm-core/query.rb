@@ -99,11 +99,12 @@ module DataMapper
       bind_values
     end
 
-    # TODO: spec this
+    def inheritance_property
+      fields.detect { |property| property.type == DataMapper::Types::Discriminator }
+    end
+
     def inheritance_property_index
-      if inheritance_property = fields.detect { |property| property.type == DataMapper::Types::Discriminator }
-        fields.index(inheritance_property)
-      end
+      fields.index(inheritance_property)
     end
 
     # TODO: spec this

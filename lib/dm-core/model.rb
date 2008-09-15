@@ -218,10 +218,6 @@ module DataMapper
       @properties[repository_name].key
     end
 
-    def inheritance_property(repository_name = default_repository_name)
-      @properties[repository_name].inheritance_property
-    end
-
     def default_order(repository_name = default_repository_name)
       @default_order ||= {}
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
