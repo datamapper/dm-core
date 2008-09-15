@@ -182,14 +182,14 @@ puts "You can specify how many times you want to run the benchmarks with rake:pe
 puts "Some tasks will be run 10 and 1000 times less than (number)"
 puts "Benchmarks will now run #{TIMES} times"
 # Inform about slow benchmark
-answer = nil
-until answer && answer[/^$|y|yes|n|no/]
-  print("A slow benchmark exposing problems with SEL is newly added. It takes approx. 20s\n");
-  print("you have scheduled it to run #{TIMES / 100} times.\nWould you still include the particular benchmark? [Yn]")
-  STDOUT.flush
-  answer = gets
-end
-run_rel_bench = answer[/^$|y|yes/] ? true : false
+# answer = nil
+# until answer && answer[/^$|y|yes|n|no/]
+#   print("A slow benchmark exposing problems with SEL is newly added. It takes approx. 20s\n");
+#   print("you have scheduled it to run #{TIMES / 100} times.\nWould you still include the particular benchmark? [Yn]")
+#   STDOUT.flush
+#   answer = gets
+# end
+# run_rel_bench = answer[/^$|y|yes/] ? true : false
 
 
 RBench.run(TIMES) do
@@ -230,15 +230,15 @@ RBench.run(TIMES) do
     ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
   end
   
+  report "Model.all limit(100) with relationship", (TIMES / 10.0).ceil do
+    dm { touch_relationships[Exhibit.all(:limit => 100)] }
+    ar { touch_relationships[ARExhibit.all(:limit => 100, :include => [:user])] }
+  end
+  
   report "Model.all limit(10,000)", (TIMES / 1000.0).ceil do
     dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
   end
-  
-  report "Model.all limit(100) with relationship", (TIMES / 100.0).ceil do
-    dm { touch_relationships[Exhibit.all(:limit => 1000)] }
-    ar { touch_relationships[ARExhibit.all(:limit => 1000, :include => [:user])] }
-  end # if run_rel_bench
 
   create_exhibit = {
     :name       => Faker::Company.name,

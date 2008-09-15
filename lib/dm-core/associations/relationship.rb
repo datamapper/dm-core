@@ -129,8 +129,8 @@ module DataMapper
         return nil unless child_value.nitems == child_value.size
 
         with_repository(parent || parent_model) do
-          parent_identity_map = (parent || parent_model).repository.identity_map(parent_model)
-          child_identity_map  = child.repository.identity_map(child_model)
+          parent_identity_map = (parent || parent_model).repository.identity_map(parent_model.base_model)
+          child_identity_map  = child.repository.identity_map(child_model.base_model)
 
           if parent = parent_identity_map[child_value]
             return parent
@@ -149,7 +149,8 @@ module DataMapper
           unless collection.empty?
             collection.send(:lazy_load)
             children.each do |c|
-              c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
+              p = parent_identity_map[child_key.get(c)] || collection.get(*child_key.get(c))
+              c.send(association_accessor).instance_variable_set(:@parent, p)
             end
             child.send(association_accessor).instance_variable_get(:@parent)
           end
