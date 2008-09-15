@@ -24,7 +24,7 @@ end
 
 describe DataMapper::PropertySet do
   before :each do
-    @properties = Icon.properties(:default)
+    @properties = Icon.properties(:default).dup
   end
 
   it "#slice should find properties" do
@@ -33,6 +33,13 @@ describe DataMapper::PropertySet do
 
   it "#select should find properties" do
     @properties.select { |property| property.primitive == Integer }.should have(3).entries
+  end
+
+  it "#clear should clear out set" do
+    @properties.clear
+    @properties.key.should == []
+    @properties.defaults.should == []
+    @properties.length.should == 0
   end
 
   it "#[] should find properties by name (Symbol or String)" do

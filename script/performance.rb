@@ -74,6 +74,7 @@ class Exhibit
   property :id,         Serial
   property :name,       String
   property :zoo_id,     Integer
+  property :user_id,    Integer
   property :notes,      Text, :lazy => true
   property :created_on, Date
   
@@ -106,7 +107,6 @@ touch_relationships = lambda do |exhibits|
     exhibit.name
     exhibit.created_on
     exhibit.user
-    exhibit.user.name if exhibit.user
   end
 end
 
@@ -146,8 +146,8 @@ else
     exhibits << [
       'INSERT INTO `exhibits` (`name`, `zoo_id`, `user_id`, `notes`, `created_on`) VALUES (?, ?, ?, ?, ?)',
       Faker::Company.name,
-      i,
       rand(10).ceil,
+      i,
       paragraph,#Faker::Lorem.paragraphs.join($/),
       Date.today
     ]
@@ -169,7 +169,7 @@ else
     if answer[/^$|y|yes/]
       File.makedirs(File.dirname(sqlfile))
       #adapter.execute("SELECT * INTO OUTFILE '#{sqlfile}' FROM exhibits;")
-      `#{mysqldump_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} exhibits > #{sqlfile}`
+      `#{mysqldump_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} exhibits users > #{sqlfile}`
       puts "File saved\n"
     end
   end
@@ -203,42 +203,42 @@ RBench.run(TIMES) do
     dm { Exhibit.new }
     ar { ARExhibit.new }
   end
-
+  
   report "Model.new (setting attributes)" do
     attrs = {:name => 'sam', :zoo_id => 1}
     dm { Exhibit.new(attrs) }
     ar { ARExhibit.new(attrs) }
   end
-
+  
   report "Model.get specific (not cached)" do
     dm { touch_attributes[Exhibit.get(1)] }
     ActiveRecord::Base.uncached { ar { touch_attributes[ARExhibit.find(1)] } }
   end
-
+  
   report "Model.get specific (cached)" do
     Exhibit.repository(:default) { dm { touch_attributes[Exhibit.get(1)]    } }
     ActiveRecord::Base.cache    { ar { touch_attributes[ARExhibit.find(1)] } }
   end
-
+  
   report "Model.first" do
     dm { touch_attributes[Exhibit.first]   }
     ar { touch_attributes[ARExhibit.first] }
   end
-
+  
   report "Model.all limit(100)", (TIMES / 10.0).ceil do
     dm { touch_attributes[Exhibit.all(:limit => 100)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
   end
-
+  
   report "Model.all limit(10,000)", (TIMES / 1000.0).ceil do
     dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
   end
   
   report "Model.all limit(100) with relationship", (TIMES / 100.0).ceil do
-    dm { touch_relationships[Exhibit.all(:limit => 100)] }
-    ar { touch_relationships[ARExhibit.all(:limit => 100, :include => [:user])] }
-  end if run_rel_bench
+    dm { touch_relationships[Exhibit.all(:limit => 1000)] }
+    ar { touch_relationships[ARExhibit.all(:limit => 1000, :include => [:user])] }
+  end # if run_rel_bench
 
   create_exhibit = {
     :name       => Faker::Company.name,
@@ -251,24 +251,24 @@ RBench.run(TIMES) do
     dm { Exhibit.create(create_exhibit)   }
     ar { ARExhibit.create(create_exhibit) }
   end
-
+  
   report "Resource#attributes" do
     attrs_first  = {:name => 'sam', :zoo_id => 1}
     attrs_second = {:name => 'tom', :zoo_id => 1}
     dm { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
     ar { e = ARExhibit.new(attrs_first); e.attributes = attrs_second }
   end
-
+  
   report "Resource#update" do
     dm { e = Exhibit.get(1); e.name = 'bob'; e.save   }
     ar { e = ARExhibit.find(1); e.name = 'bob'; e.save  }
   end
-
+  
   report "Resource#destroy" do
     dm { Exhibit.first.destroy }
     ar { ARExhibit.first.destroy }
   end
-
+  
   report "Model.transaction" do
     dm { Exhibit.transaction do
       Exhibit.new
@@ -284,5 +284,6 @@ end
 
 connection = adapter.send(:create_connection)
 command = connection.create_command("DROP TABLE exhibits")
+command = connection.create_command("DROP TABLE users")
 command.execute_non_query rescue nil
 connection.close
