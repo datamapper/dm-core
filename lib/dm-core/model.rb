@@ -29,15 +29,15 @@ module DataMapper
     end
 
     def self.extended(model)
-      model.instance_variable_set(:@storage_names, Hash.new { |h,k| h[k] = repository(k).adapter.resource_naming_convention.call(model.send(:default_storage_name)) })
-      model.instance_variable_set(:@properties,       Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
-      model.instance_variable_set(:@field_naming_conventions, Hash.new { |h,k| h[k] = repository(k).adapter.field_naming_convention })
+      model.instance_variable_set(:@storage_names, {})
+      model.instance_variable_set(:@properties,    {})
+      model.instance_variable_set(:@field_naming_conventions, {})
       extra_extensions.each { |extension| model.extend(extension) }
     end
 
     def inherited(target)
       target.instance_variable_set(:@storage_names,       @storage_names.dup)
-      target.instance_variable_set(:@properties,          Hash.new { |h,k| h[k] = k == Repository.default_name ? PropertySet.new : h[Repository.default_name].dup })
+      target.instance_variable_set(:@properties,          {})
       target.instance_variable_set(:@base_model,          self.base_model)
       target.instance_variable_set(:@paranoid_properties, @paranoid_properties)
       target.instance_variable_set(:@field_naming_conventions,  @field_naming_conventions.dup)
@@ -58,12 +58,13 @@ module DataMapper
       end
 
       if @relationships
-        duped_relationships = Hash.new { |h,k| h[k] = {} }
+        duped_relationships = {}
         @relationships.each do |repository_name,relationships|
           relationships.each do |name, relationship|
             dup = relationship.dup
             dup.instance_variable_set(:@child_model, target) if dup.instance_variable_get(:@child_model) == self
             dup.instance_variable_set(:@parent_model, target) if dup.instance_variable_get(:@parent_model) == self
+            duped_relationships[repository_name] ||= {}
             duped_relationships[repository_name][name] = dup
           end
         end
@@ -120,7 +121,7 @@ module DataMapper
     #
     # @return <String> the storage name (IE table name, for database stores) associated with this resource in the given repository
     def storage_name(repository_name = default_repository_name)
-      @storage_names[repository_name]
+      @storage_names[repository_name] ||= repository(repository_name).adapter.resource_naming_convention.call(base_model.send(:default_storage_name))
     end
 
     ##
@@ -134,9 +135,9 @@ module DataMapper
     ##
     # The field naming conventions for this resource across all repositories.
     #
-    # @return <Hash(Symbol => String)> All available field naming conventions
-    def field_naming_conventions
-      @field_naming_conventions
+    # @return <String> The naming convention for the given repository
+    def field_naming_convention(repository_name = default_storage_name)
+      @field_naming_conventions[repository_name] ||= repository(repository_name).adapter.field_naming_convention
     end
 
     ##
@@ -152,7 +153,7 @@ module DataMapper
       create_property_getter(property)
       create_property_setter(property)
 
-      @properties[repository_name][property.name] = property
+      properties(repository_name)[property.name] = property
 
       # Add property to the other mappings as well if this is for the default
       # repository.
@@ -172,7 +173,7 @@ module DataMapper
         context = :default if context == true
 
         Array(context).each do |item|
-          @properties[repository_name].lazy_context(item) << name
+          properties(repository_name).lazy_context(item) << name
         end
       end
 
@@ -194,11 +195,11 @@ module DataMapper
     end
 
     def properties(repository_name = default_repository_name)
-      @properties[repository_name]
+      @properties[repository_name] ||= repository_name == Repository.default_name ? PropertySet.new : properties(Repository.default_name).dup
     end
 
     def eager_properties(repository_name = default_repository_name)
-      @properties[repository_name].defaults
+      properties(repository_name).defaults
     end
 
     # @api private
@@ -215,7 +216,7 @@ module DataMapper
     end
 
     def key(repository_name = default_repository_name)
-      @properties[repository_name].key
+      properties(repository_name).key
     end
 
     def default_order(repository_name = default_repository_name)

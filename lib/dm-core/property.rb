@@ -302,7 +302,7 @@ module DataMapper
     # -
     # @api semi-public
     def field(repository_name = nil)
-      @field  || fields[repository_name]
+      @field || @fields[repository_name] ||= self.model.field_naming_convention(repository_name).call(self)
     end
 
     def unique
@@ -558,6 +558,7 @@ module DataMapper
       @index        = @options.fetch(:index,        false)
       @unique_index = @options.fetch(:unique_index, false)
       @lazy         = @options.fetch(:lazy,         @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
+      @fields       = {}
 
       @track = @options.fetch(:track) do
         if @custom && @type.respond_to?(:track) && @type.track
@@ -596,10 +597,6 @@ module DataMapper
 
       @model.auto_generate_validations(self)    if @model.respond_to?(:auto_generate_validations)
       @model.property_serialization_setup(self) if @model.respond_to?(:property_serialization_setup)
-    end
-
-    def fields
-      @fields ||= Hash.new { |h,k| h[k] = self.model.field_naming_conventions[k].call(self) }
     end
 
     def determine_visibility # :nodoc:

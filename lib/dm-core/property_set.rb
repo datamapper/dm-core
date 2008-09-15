@@ -92,7 +92,7 @@ module DataMapper
     end
 
     def lazy_context(name)
-      lazy_contexts[name]
+      lazy_contexts[name] ||= []
     end
 
     def lazy_load_context(names)
@@ -146,7 +146,7 @@ module DataMapper
     end
 
     def lazy_contexts
-      @lazy_contexts ||= Hash.new { |h,context| h[context] = [] }
+      @lazy_contexts ||= {}
     end
 
     def parse_index(index, property, index_hash)
