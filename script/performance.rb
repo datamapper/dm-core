@@ -169,7 +169,7 @@ else
     if answer[/^$|y|yes/]
       File.makedirs(File.dirname(sqlfile))
       #adapter.execute("SELECT * INTO OUTFILE '#{sqlfile}' FROM exhibits;")
-      `#{mysqldump_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} exhibits > #{sqlfile}`
+      `#{mysqldump_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} exhibits users > #{sqlfile}`
       puts "File saved\n"
     end
   end
