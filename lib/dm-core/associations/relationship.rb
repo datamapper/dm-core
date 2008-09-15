@@ -149,8 +149,7 @@ module DataMapper
           unless collection.empty?
             collection.send(:lazy_load)
             children.each do |c|
-              p = parent_identity_map[child_key.get(c)] || collection.get(*child_key.get(c))
-              c.send(association_accessor).instance_variable_set(:@parent, p)
+              c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
             end
             child.send(association_accessor).instance_variable_get(:@parent)
           end
