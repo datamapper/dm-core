@@ -74,18 +74,18 @@ module DataMapper
 
       # @api private
       def get_children(parent, options = {}, finder = :all, *args)
-        bind_values   = parent_key.get(parent)
+        bind_values   = [parent_key.get(parent)]
         parent_values = bind_values.dup
 
         with_repository(child_model) do |r|
           parent_identity_map = parent.repository.identity_map(parent_model)
           child_identity_map  = r.identity_map(child_model)
 
-          query_values = parent_identity_map.keys.flatten
-          query_values.reject! { |k| child_identity_map[[k]] }
-
+          query_values = parent_identity_map.keys
+          query_values.reject! { |k| child_identity_map[k] }
+          
           bind_values = query_values unless query_values.empty?
-          query = child_key.map { |k| [ k, bind_values ] }.to_hash
+          query = child_key.zip(bind_values.transpose).to_hash
 
           collection = child_model.send(finder, *(args.dup << @query.merge(options).merge(query)))
           return collection unless collection.kind_of?(Collection) && collection.any?
@@ -149,6 +149,9 @@ module DataMapper
           collection = parent_model.send(:all, query)
           unless collection.empty?
             collection.send(:lazy_load)
+            
+            return collection.get(*child_value) if !child.respond_to?(association_accessor)
+            
             children.each do |c|
               c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
             end
