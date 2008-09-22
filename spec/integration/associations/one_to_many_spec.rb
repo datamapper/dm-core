@@ -139,12 +139,27 @@ describe "OneToMany" do
   end
 
   describe "STI" do
-    it "should work" do
+    it "should work for child.parent" do
       repository(ADAPTER) do
         Player.create(:name => "Barry Bonds", :team => BaseballTeam.first)
       end
       repository(ADAPTER) do
         Player.first.team.should == BaseballTeam.first
+      end
+    end
+    it "should work for parent.children" do
+      repository(ADAPTER) do
+        team = BaseballTeam.first
+        team.players.each{|p| p.should be_an_instance_of(Player)}
+      end
+    end
+  end
+  
+  describe "alone" do
+    it "should work for parent.children without any parents in IM" do
+      repository(ADAPTER) do
+        team = BaseballTeam.first
+        team.players.each{|p| p.should be_an_instance_of(Player)}
       end
     end
   end
