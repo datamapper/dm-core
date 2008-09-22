@@ -20,10 +20,6 @@ namespace :ci do
       t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
       t.rcov_opts << '--only-uncovered'
     end
-  end
-
-  task :spec do
-    Rake::Task["ci:spec:unit"].invoke
     mv ROOT + "coverage", ROOT + "ci/coverage"
   end
 
