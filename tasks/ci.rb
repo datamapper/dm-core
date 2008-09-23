@@ -20,7 +20,6 @@ namespace :ci do
       t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
       t.rcov_opts << '--only-uncovered'
     end
-    mv ROOT + "coverage", ROOT + "ci/coverage"
   end
 
   task :saikuro => :prepare do
