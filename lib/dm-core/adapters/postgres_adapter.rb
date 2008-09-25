@@ -176,7 +176,6 @@ module DataMapper
               tm.map(DateTime).to('TIMESTAMP')
               tm.map(Integer).to('INT4')
               tm.map(Float).to('FLOAT8')
-              tm.map(::DataMapper::Types::UUID).to('UUID')
             end
           end
         end # module ClassMethods
