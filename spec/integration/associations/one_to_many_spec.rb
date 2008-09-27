@@ -102,6 +102,22 @@ describe "OneToMany" do
       end
     end
   end
+  
+  describe "parent initialized child" do
+    before(:each) do
+      @ajax = Team.create
+      @vandesar = @ajax.players.new
+      @vandesar.save
+    end
+
+    it "child association should return parent" do
+      @vandesar.team.should == @ajax
+    end
+
+    it "parent association should return children" do
+      @ajax.players.should == [@vandesar]
+    end
+  end
 
   it "unsaved parent model should accept array of hashes for association" do
     players = [{ :name => "Brett Favre" }, { :name => "Reggie White" }]
