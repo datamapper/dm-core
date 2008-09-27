@@ -154,6 +154,7 @@ module DataMapper
       create_property_setter(property)
 
       properties(repository_name)[property.name] = property
+      @_valid_relations = false
 
       # Add property to the other mappings as well if this is for the default
       # repository.
@@ -195,6 +196,20 @@ module DataMapper
     end
 
     def properties(repository_name = default_repository_name)
+      # We need to check whether all relations are already set up.
+      # If this isn't the case, we try to reload them here
+      if !@_valid_relations && respond_to?(:many_to_one_relationships)
+        @_valid_relations = true
+        begin
+          many_to_one_relationships.each do |r|
+            r.child_key
+          end
+        rescue NameError
+          # Apparently not all relations are loaded,
+          # so we will try again later on
+          @_valid_relations = false
+        end
+      end
       @properties[repository_name] ||= repository_name == Repository.default_name ? PropertySet.new : properties(Repository.default_name).dup
     end
 

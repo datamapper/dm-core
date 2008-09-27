@@ -45,8 +45,8 @@ module DataMapper
     end
 
     def relationships(repository_name = default_repository_name)
-      @relationships ||= Hash.new { |h,k| h[k] = k == Repository.default_name ? {} : h[Repository.default_name].dup }
-      @relationships[repository_name]
+      @relationships ||= {}
+      @relationships[repository_name] ||= repository_name == Repository.default_name ? {} : relationships(Repository.default_name).dup
     end
 
     def n
@@ -145,6 +145,7 @@ module DataMapper
     #
     # @api public
     def belongs_to(name, options={})
+      @_valid_relations = false
       relationship = ManyToOne.setup(name, self, options)
       # Please leave this in - I will release contextual serialization soon
       # which requires this -- guyvdb

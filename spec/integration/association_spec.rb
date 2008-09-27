@@ -302,6 +302,18 @@ if ADAPTER
         area.should respond_to(:machine=)
       end
 
+      it 'should create the foreign key property immediately' do
+        class Duck
+          include DataMapper::Resource
+          property :id, Serial
+          belongs_to :sky
+        end
+        Duck.properties.slice(:sky_id).compact.should_not be_empty
+        duck = Duck.new
+        duck.should respond_to(:sky_id)
+        duck.should respond_to(:sky_id=)
+      end
+
       it 'should load without the parent'
 
       it 'should allow substituting the parent' do
@@ -331,7 +343,7 @@ if ADAPTER
             end
           end
 
-          FlightlessBirds::Ostrich.properties.slice(:sky_id).should_not be_empty
+          FlightlessBirds::Ostrich.properties(ADAPTER).slice(:sky_id).compact.should_not be_empty
         end
       end
 
