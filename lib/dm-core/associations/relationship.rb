@@ -83,16 +83,20 @@ module DataMapper
 
           query_values = parent_identity_map.keys
           query_values.reject! { |k| child_identity_map[k] }
-          
+
           bind_values = query_values unless query_values.empty?
           query = child_key.zip(bind_values.transpose).to_hash
 
           collection = child_model.send(finder, *(args.dup << @query.merge(options).merge(query)))
+
           return collection unless collection.kind_of?(Collection) && collection.any?
 
-          grouped_collection = Hash.new { |h,k| h[k] = [] }
+          grouped_collection = {}
           collection.each do |resource|
-            grouped_collection[get_parent(resource, parent)] << resource
+            child_value = child_key.get(resource)
+            parent_obj = parent_identity_map[child_value]
+            grouped_collection[parent_obj] ||= []
+            grouped_collection[parent_obj] << resource
           end
 
           association_accessor = "#{self.name}_association"
@@ -149,9 +153,6 @@ module DataMapper
           collection = parent_model.send(:all, query)
           unless collection.empty?
             collection.send(:lazy_load)
-            
-            return collection.get(*child_value) if !child.respond_to?(association_accessor)
-            
             children.each do |c|
               c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
             end

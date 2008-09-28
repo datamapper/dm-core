@@ -102,7 +102,7 @@ describe "OneToMany" do
       end
     end
   end
-  
+
   describe "parent initialized child" do
     before(:each) do
       @ajax = Team.create
@@ -155,22 +155,28 @@ describe "OneToMany" do
   end
 
   describe "STI" do
-    it "should work for child.parent" do
+    before(:all) do
       repository(ADAPTER) do
-        Player.create(:name => "Barry Bonds", :team => BaseballTeam.first)
-      end
-      repository(ADAPTER) do
-        Player.first.team.should == BaseballTeam.first
+        @player = Player.create(:name => "Barry Bonds", :team => BaseballTeam.first)
       end
     end
+
+    it "should work for child.parent" do
+      repository(ADAPTER) do
+        @player.team.should == BaseballTeam.first
+      end
+    end
+
     it "should work for parent.children" do
       repository(ADAPTER) do
         team = BaseballTeam.first
+
+        team.players.size.should > 0
         team.players.each{|p| p.should be_an_instance_of(Player)}
       end
     end
   end
-  
+
   describe "alone" do
     it "should work for parent.children without any parents in IM" do
       repository(ADAPTER) do
