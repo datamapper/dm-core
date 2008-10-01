@@ -48,7 +48,7 @@ module DataMapper
         opts[:mutable]                  =   true
 
         names        = [ opts[:child_model], opts[:parent_model].name ].sort
-        model_name   = names.join
+        model_name   = names.join.gsub("::", "")
         storage_name = Extlib::Inflection.tableize(Extlib::Inflection.pluralize(names[0]) + names[1])
 
         opts[:near_relationship_name] = Extlib::Inflection.tableize(model_name).to_sym
