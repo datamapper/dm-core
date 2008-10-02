@@ -168,7 +168,7 @@ module DataMapper
     end
 
     ##
-    # Simulates Array#at and returns the entrie at that index.
+    # Simulates Array#at and returns the entry at that index.
     # Also accepts negative indexes and appropriate reverses
     # the order of the query
     #
