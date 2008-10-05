@@ -195,49 +195,49 @@ puts "Benchmarks will now run #{TIMES} times"
 RBench.run(TIMES) do
 
   column :times
-  column :dm, :title => "DM #{DataMapper::VERSION}"
   column :ar, :title => "AR 2.1"
-  column :diff, :compare => [:dm,:ar]
+  column :dm, :title => "DM #{DataMapper::VERSION}"
+  column :diff, :compare => [:ar,:dm]
 
   report "Model.new (instantiation)" do
-    dm { Exhibit.new }
     ar { ARExhibit.new }
+    dm { Exhibit.new }
   end
 
   report "Model.new (setting attributes)" do
     attrs = {:name => 'sam', :zoo_id => 1}
-    dm { Exhibit.new(attrs) }
     ar { ARExhibit.new(attrs) }
+    dm { Exhibit.new(attrs) }
   end
 
   report "Model.get specific (not cached)" do
-    dm { touch_attributes[Exhibit.get(1)] }
     ActiveRecord::Base.uncached { ar { touch_attributes[ARExhibit.find(1)] } }
+    dm { touch_attributes[Exhibit.get(1)] }
   end
 
   report "Model.get specific (cached)" do
-    Exhibit.repository(:default) { dm { touch_attributes[Exhibit.get(1)]    } }
     ActiveRecord::Base.cache    { ar { touch_attributes[ARExhibit.find(1)] } }
+    Exhibit.repository(:default) { dm { touch_attributes[Exhibit.get(1)] } }
   end
 
   report "Model.first" do
-    dm { touch_attributes[Exhibit.first]   }
     ar { touch_attributes[ARExhibit.first] }
+    dm { touch_attributes[Exhibit.first] }
   end
 
   report "Model.all limit(100)", (TIMES / 10.0).ceil do
-    dm { touch_attributes[Exhibit.all(:limit => 100)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
+    dm { touch_attributes[Exhibit.all(:limit => 100)] }
   end
 
   report "Model.all limit(100) with relationship", (TIMES / 10.0).ceil do
-    dm { touch_relationships[Exhibit.all(:limit => 100)] }
     ar { touch_relationships[ARExhibit.all(:limit => 100, :include => [:user])] }
+    dm { touch_relationships[Exhibit.all(:limit => 100)] }
   end
 
   report "Model.all limit(10,000)", (TIMES / 1000.0).ceil do
-    dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
+    dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
   end
 
   create_exhibit = {
@@ -248,38 +248,33 @@ RBench.run(TIMES) do
   }
 
   report "Model.create" do
-    dm { Exhibit.create(create_exhibit)   }
     ar { ARExhibit.create(create_exhibit) }
+    dm { Exhibit.create(create_exhibit) }
   end
 
   report "Resource#attributes" do
     attrs_first  = {:name => 'sam', :zoo_id => 1}
     attrs_second = {:name => 'tom', :zoo_id => 1}
-    dm { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
     ar { e = ARExhibit.new(attrs_first); e.attributes = attrs_second }
+    dm { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
   end
 
   report "Resource#update" do
-    dm { e = Exhibit.get(1); e.name = 'bob'; e.save   }
-    ar { e = ARExhibit.find(1); e.name = 'bob'; e.save  }
+    ar { e = ARExhibit.find(1); e.name = 'bob'; e.save }
+    dm { e = Exhibit.get(1); e.name = 'bob'; e.save }
   end
 
   report "Resource#destroy" do
-    dm { Exhibit.first.destroy }
     ar { ARExhibit.first.destroy }
+    dm { Exhibit.first.destroy }
   end
 
   report "Model.transaction" do
-    dm { Exhibit.transaction do
-      Exhibit.new
-    end }
-    ar { ARExhibit.transaction do
-      ARExhibit.new
-    end }
+    ar { ARExhibit.transaction { ARExhibit.new } }
+    dm { Exhibit.transaction { Exhibit.new } }
   end
 
   summary "Total"
-
 end
 
 connection = adapter.send(:create_connection)
