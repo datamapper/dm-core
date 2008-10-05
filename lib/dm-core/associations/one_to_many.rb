@@ -155,7 +155,7 @@ module DataMapper
           resource = children.respond_to?(:build) ? super(attributes) : new_child(attributes)
           resource
         end
-        
+
         def new(attributes = {})
           assert_mutable
           raise UnsavedParentError, 'You cannot intialize until the parent is saved' if @parent.new_record?

@@ -55,15 +55,15 @@ ActiveRecord::Base.establish_connection(configuration_options)
 
 class ARExhibit < ActiveRecord::Base #:nodoc:
   set_table_name 'exhibits'
-  
+
   belongs_to :user, :class_name => 'ARUser', :foreign_key => 'user_id'
 end
 
 class ARUser < ActiveRecord::Base #:nodoc:
   set_table_name 'users'
-  
+
   has_many :exhibits, :foreign_key => 'user_id'
-  
+
 end
 
 ARExhibit.find_by_sql('SELECT 1')
@@ -77,20 +77,20 @@ class Exhibit
   property :user_id,    Integer
   property :notes,      Text, :lazy => true
   property :created_on, Date
-  
+
   belongs_to :user
 #  property :updated_at, DateTime
 end
 
 class User
   include DataMapper::Resource
-  
+
   property :id,    Serial
   property :name,  String
   property :email, String
   property :about, Text, :lazy => true
   property :created_on, Date
-  
+
 end
 
 touch_attributes = lambda do |exhibits|
@@ -118,23 +118,23 @@ if sqlfile && File.exists?(sqlfile)
   #adapter.execute("LOAD DATA LOCAL INFILE '#{sqlfile}' INTO TABLE exhibits")
   `#{mysql_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
 else
-  
+
   puts "Generating data for benchmarking..."
-  
+
   User.auto_migrate!
   Exhibit.auto_migrate!
-  
+
   users = []
   exhibits = []
-  
+
   # pre-compute the insert statements and fake data compilation,
   # so the benchmarks below show the actual runtime for the execute
   # method, minus the setup steps
-  
+
   # Using the same paragraph for all exhibits because it is very slow
   # to generate unique paragraphs for all exhibits.
   paragraph = Faker::Lorem.paragraphs.join($/)
-  
+
   10_000.times do |i|
     users << [
       'INSERT INTO `users` (`name`,`email`,`created_on`) VALUES (?, ?, ?)',
@@ -142,7 +142,7 @@ else
       Faker::Internet.email,
       Date.today
     ]
-  
+
     exhibits << [
       'INSERT INTO `exhibits` (`name`, `zoo_id`, `user_id`, `notes`, `created_on`) VALUES (?, ?, ?, ?, ?)',
       Faker::Company.name,
@@ -152,10 +152,10 @@ else
       Date.today
     ]
   end
-  
-  puts "Inserting 10,000 users..."  
+
+  puts "Inserting 10,000 users..."
   10_000.times { |i| adapter.execute(*users.at(i)) }
-  puts "Inserting 10,000 exhibits..."  
+  puts "Inserting 10,000 exhibits..."
   10_000.times { |i| adapter.execute(*exhibits.at(i)) }
 
   if sqlfile
@@ -203,38 +203,38 @@ RBench.run(TIMES) do
     dm { Exhibit.new }
     ar { ARExhibit.new }
   end
-  
+
   report "Model.new (setting attributes)" do
     attrs = {:name => 'sam', :zoo_id => 1}
     dm { Exhibit.new(attrs) }
     ar { ARExhibit.new(attrs) }
   end
-  
+
   report "Model.get specific (not cached)" do
     dm { touch_attributes[Exhibit.get(1)] }
     ActiveRecord::Base.uncached { ar { touch_attributes[ARExhibit.find(1)] } }
   end
-  
+
   report "Model.get specific (cached)" do
     Exhibit.repository(:default) { dm { touch_attributes[Exhibit.get(1)]    } }
     ActiveRecord::Base.cache    { ar { touch_attributes[ARExhibit.find(1)] } }
   end
-  
+
   report "Model.first" do
     dm { touch_attributes[Exhibit.first]   }
     ar { touch_attributes[ARExhibit.first] }
   end
-  
+
   report "Model.all limit(100)", (TIMES / 10.0).ceil do
     dm { touch_attributes[Exhibit.all(:limit => 100)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
   end
-  
+
   report "Model.all limit(100) with relationship", (TIMES / 10.0).ceil do
     dm { touch_relationships[Exhibit.all(:limit => 100)] }
     ar { touch_relationships[ARExhibit.all(:limit => 100, :include => [:user])] }
   end
-  
+
   report "Model.all limit(10,000)", (TIMES / 1000.0).ceil do
     dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
     ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
@@ -251,24 +251,24 @@ RBench.run(TIMES) do
     dm { Exhibit.create(create_exhibit)   }
     ar { ARExhibit.create(create_exhibit) }
   end
-  
+
   report "Resource#attributes" do
     attrs_first  = {:name => 'sam', :zoo_id => 1}
     attrs_second = {:name => 'tom', :zoo_id => 1}
     dm { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
     ar { e = ARExhibit.new(attrs_first); e.attributes = attrs_second }
   end
-  
+
   report "Resource#update" do
     dm { e = Exhibit.get(1); e.name = 'bob'; e.save   }
     ar { e = ARExhibit.find(1); e.name = 'bob'; e.save  }
   end
-  
+
   report "Resource#destroy" do
     dm { Exhibit.first.destroy }
     ar { ARExhibit.first.destroy }
   end
-  
+
   report "Model.transaction" do
     dm { Exhibit.transaction do
       Exhibit.new

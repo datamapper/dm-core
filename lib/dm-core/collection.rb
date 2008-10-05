@@ -582,7 +582,7 @@ module DataMapper
     def identity_map
       repository.identity_map(model)
     end
-    
+
     ##
     # @api private
     def set_relative_position(query)
