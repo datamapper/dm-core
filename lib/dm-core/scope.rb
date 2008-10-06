@@ -5,8 +5,8 @@ module DataMapper
     # @api private
     def default_scope(repository_name = nil)
       repository_name = self.default_repository_name if repository_name == :default || repository_name.nil?
-      @default_scope ||= Hash.new{|h,k| h[k] = {}}
-      @default_scope[repository_name]
+      @default_scope ||= {}
+      @default_scope[repository_name] ||= {}
     end
 
     # @api private
@@ -44,8 +44,8 @@ module DataMapper
 
     # @api private
     def scope_stack
-      scope_stack_for = Thread.current[:dm_scope_stack] ||= Hash.new { |h,model| h[model] = [] }
-      scope_stack_for[self]
+      scope_stack_for = Thread.current[:dm_scope_stack] ||= {}
+      scope_stack_for[self] ||= []
     end
 
     # @api private

@@ -46,12 +46,7 @@ module DataMapper
         @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Field::Underscored
 
-        @transactions = Hash.new do |hash, key|
-          hash.delete_if do |k, v|
-            !k.respond_to?(:alive?) || !k.alive?
-          end
-          hash[key] = []
-        end
+        @transactions = {}
       end
 
       # TODO: move to dm-more/dm-migrations
@@ -144,7 +139,7 @@ module DataMapper
         #
         # TODO: move to dm-more/dm-transaction
         def push_transaction(transaction)
-          @transactions[Thread.current] << transaction
+          transactions(Thread.current) << transaction
         end
 
         #
@@ -156,7 +151,7 @@ module DataMapper
         #
         # TODO: move to dm-more/dm-transaction
         def pop_transaction
-          @transactions[Thread.current].pop
+          transactions(Thread.current).pop
         end
 
         #
@@ -169,7 +164,7 @@ module DataMapper
         #
         # TODO: move to dm-more/dm-transaction
         def current_transaction
-          @transactions[Thread.current].last
+          transactions(Thread.current).last
         end
 
         #
@@ -194,6 +189,18 @@ module DataMapper
         def transaction_primitive
           raise NotImplementedError
         end
+
+        private
+        def transactions(thread)
+          unless @transactions[thread]
+            @transactions.delete_if do |key, value|
+              !key.respond_to?(:alive?) || !key.alive?
+            end
+            @transactions[thread] = []
+          end
+          @transactions[thread]
+        end
+
       end
 
       include Transaction

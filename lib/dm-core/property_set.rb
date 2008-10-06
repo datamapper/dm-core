@@ -4,7 +4,7 @@ module DataMapper
     include Enumerable
 
     def [](name)
-      @property_for[name] || raise(ArgumentError, "Unknown property '#{name}'", caller)
+      property_for(name) || raise(ArgumentError, "Unknown property '#{name}'", caller)
     end
 
     def []=(name, property)
@@ -19,12 +19,14 @@ module DataMapper
     end
 
     def has_property?(name)
-      !!@property_for[name]
+      !!property_for(name)
     end
 
     def slice(*names)
       @key, @defaults = nil
-      @property_for.values_at(*names)
+      names.map do |name|
+        property_for(name)
+      end
     end
 
     def clear
@@ -132,22 +134,13 @@ module DataMapper
       assert_kind_of 'properties', properties, Enumerable
 
       @entries = properties
-      @property_for = hash_for_property_for
+      @property_for = {}
     end
 
     def initialize_copy(orig)
       @key, @defaults = nil
       @entries = orig.entries.dup
-      @property_for = hash_for_property_for
-    end
-
-    def hash_for_property_for
-      Hash.new do |h,k|
-        ksym = k.to_sym
-        if property = detect { |property| property.name == ksym }
-          h[ksym] = h[k.to_s] = property
-        end
-      end
+      @property_for = {}
     end
 
     def lazy_contexts
@@ -163,5 +156,14 @@ module DataMapper
       when Enumerable then index.each { |idx| parse_index(idx, property, index_hash) }
       end
     end
+
+    def property_for(name)
+      unless @property_for[name]
+        property = detect { |property| property.name == name.to_sym }
+        @property_for[name.to_s] = @property_for[name.to_sym] = property if property
+      end
+      @property_for[name]
+    end
+
   end # class PropertySet
 end # module DataMapper

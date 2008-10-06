@@ -5,7 +5,7 @@ module DataMapper
   class IdentityMap
     # Get a resource from the IdentityMap
     def get(key)
-      @cache[key]
+      @cache[key] || (@second_level_cache && @second_level_cache.get(key))
     end
 
     alias [] get
@@ -27,11 +27,8 @@ module DataMapper
     private
 
     def initialize(second_level_cache = nil)
-      @cache = if @second_level_cache = second_level_cache
-        Hash.new { |h,key| h[key] = @second_level_cache.get(key) }
-      else
-        Hash.new
-      end
+      @cache = {}
+      @second_level_cache = second_level_cache
     end
 
     def cache

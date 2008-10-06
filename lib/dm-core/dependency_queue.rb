@@ -6,10 +6,11 @@ module DataMapper
   #
   class DependencyQueue
     def initialize
-      @dependencies = Hash.new { |h,k| h[k] = [] }
+      @dependencies = {}
     end
 
     def add(class_name, &callback)
+      @dependencies[class_name] ||= []
       @dependencies[class_name] << callback
       resolve!
     end

@@ -464,10 +464,11 @@ module DataMapper
 
       # build an index of conditions by the property and operator to
       # avoid nested looping
-      conditions_index = Hash.new { |h,k| h[k] = {} }
+      conditions_index = {}
       @conditions.each do |condition|
         operator, property = *condition
         next if :raw == operator
+        conditions_index[property] ||= {}
         conditions_index[property][operator] = condition
       end
 
@@ -477,6 +478,7 @@ module DataMapper
         other_operator, other_property, other_bind_value = *other_condition
 
         unless :raw == other_operator
+          conditions_index[other_property] ||= {}
           if condition = conditions_index[other_property][other_operator]
             operator, property, bind_value = *condition
 

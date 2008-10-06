@@ -6,18 +6,6 @@ describe "DataMapper::DependencyQueue" do
     @dependencies = @q.instance_variable_get("@dependencies")
   end
 
-  describe "#initialize" do
-    describe "@dependencies" do
-      it "should be a hash after initialize" do
-        @dependencies.should be_a_kind_of(Hash)
-      end
-
-      it "should set value to [] when new key is accessed" do
-        @dependencies['New Key'].should == []
-      end
-    end
-  end
-
   describe "#add" do
     it "should store the supplied callback in @dependencies" do
       @q.add('MissingConstant') { true }
