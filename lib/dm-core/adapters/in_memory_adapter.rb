@@ -14,6 +14,18 @@ module DataMapper
         end.size # just return the number of records
       end
 
+      def update(attributes, query)
+        simple_attributes = {}
+        attributes.each do |k,v|
+          simple_attributes[k.name.to_sym] = v
+        end
+
+        records_to_update = read(query)
+        records_to_update.each do |record|
+          record.attributes = simple_attributes
+        end.size
+      end
+
       def read_one(query)
         read(query).first
       end
@@ -22,7 +34,14 @@ module DataMapper
         read(query)
       end
 
-      require 'pp'
+      def delete(query)
+        records_to_delete = read(query)
+
+        records_to_delete.each do |r|
+          @records[query.model].delete_at(@records[query.model].index(r))
+        end
+      end
+
       def read(query)
         model = query.model
 

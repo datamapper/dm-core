@@ -41,6 +41,17 @@ describe DataMapper::Adapters::InMemoryAdapter do
     Heffalump.all(:striped => true).should == [@heff1]
   end
 
+  it 'should be able to update an object' do
+    @heff1.num_spots = 10
+    @heff1.save
+    Heffalump.get('Black').num_spots.should == 10
+  end
+
+  it 'should be able to destroy an object' do
+    @heff1.destroy
+    Heffalump.all.size.should == 1
+  end
+
   describe '#boolean_and' do
     before do
       @adapter = DataMapper.repository(:inmem).adapter
