@@ -67,7 +67,7 @@ module DataMapper
           EOS
 
           names.each do |n|
-            model.belongs_to(Extlib::Inflection.underscore(n).to_sym)
+            model.belongs_to(Extlib::Inflection.underscore(n).gsub("/", "_").to_sym, :class_name => n)
           end
 
           Object.const_set(model_name, model)

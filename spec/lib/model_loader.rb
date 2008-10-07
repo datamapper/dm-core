@@ -81,7 +81,16 @@ module ModelLoader
 
     def remove_model(klass)
       DataMapper::Resource.descendants.delete(klass)
-      Object.module_eval { remove_const klass.to_s }
+      # Check to see if the model is living inside a module
+      klass_name = klass.to_s
+      if klass_name.index("::")
+        mod = klass_name.match(/(\S+)::/)[1]
+        child_class = klass_name.match(/\S+::(\S+)/)[1]
+        
+        Object.const_get(mod).module_eval { remove_const child_class }
+      else
+        Object.module_eval { remove_const klass.to_s }
+      end
     end
   end
 end
