@@ -13,6 +13,7 @@ lib/dm-core.rb
 lib/dm-core/adapters.rb
 lib/dm-core/adapters/abstract_adapter.rb
 lib/dm-core/adapters/data_objects_adapter.rb
+lib/dm-core/adapters/in_memory_adapter.rb
 lib/dm-core/adapters/mysql_adapter.rb
 lib/dm-core/adapters/postgres_adapter.rb
 lib/dm-core/adapters/sqlite3_adapter.rb
@@ -86,6 +87,7 @@ spec/lib/logging_helper.rb
 spec/lib/mock_adapter.rb
 spec/lib/model_loader.rb
 spec/lib/publicize_methods.rb
+spec/models/content.rb
 spec/models/vehicles.rb
 spec/models/zoo.rb
 spec/spec.opts
@@ -93,6 +95,7 @@ spec/spec_helper.rb
 spec/unit/adapters/abstract_adapter_spec.rb
 spec/unit/adapters/adapter_shared_spec.rb
 spec/unit/adapters/data_objects_adapter_spec.rb
+spec/unit/adapters/in_memory_adapter_spec.rb
 spec/unit/adapters/postgres_adapter_spec.rb
 spec/unit/associations/many_to_many_spec.rb
 spec/unit/associations/many_to_one_spec.rb
