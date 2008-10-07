@@ -51,23 +51,4 @@ describe DataMapper::Adapters::InMemoryAdapter do
     @heff1.destroy
     Heffalump.all.size.should == 1
   end
-
-  describe '#boolean_and' do
-    before do
-      @adapter = DataMapper.repository(:inmem).adapter
-    end
-
-    it 'should be true when every element is true' do
-      @adapter.boolean_and(true, true, true).should be_true
-    end
-
-    it 'should be false if any element is false' do
-      @adapter.boolean_and(true, false, true).should be_false
-    end
-
-  end
-
-
-
-
 end

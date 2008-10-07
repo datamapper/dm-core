@@ -1,76 +1,68 @@
 module DataMapper
   module Adapters
     class InMemoryAdapter < AbstractAdapter
-
       def initialize(name, uri_or_options)
-
         @records = Hash.new { |hash,model| hash[model] = Array.new }
       end
 
       def create(resources)
         resources.each do |resource|
-          model = resource.model
-          @records[model] << resource
+          @records[resource.model] << resource
         end.size # just return the number of records
       end
 
       def update(attributes, query)
-        simple_attributes = {}
-        attributes.each do |k,v|
-          simple_attributes[k.name.to_sym] = v
-        end
-
-        records_to_update = read(query)
-        records_to_update.each do |record|
-          record.attributes = simple_attributes
+        read_many(query).each do |resource|
+          attributes.each do |property,value|
+            property.set!(resource, value)
+          end
         end.size
       end
 
       def read_one(query)
-        read(query).first
+        read(query, query.model, false)
       end
 
       def read_many(query)
-        read(query)
-      end
-
-      def delete(query)
-        records_to_delete = read(query)
-
-        records_to_delete.each do |r|
-          @records[query.model].delete_at(@records[query.model].index(r))
+        Collection.new(query) do |set|
+          read(query, set, true)
         end
       end
 
-      def read(query)
-        model = query.model
+      def delete(query)
+        records = @records[query.model]
 
-        # Iterate over the records for this model, and #select
+        read_many(query).each do |resource|
+          records.delete(resource)
+        end.size
+      end
+
+      private
+
+      def read(query, set, many = true)
+        model      = query.model
+        conditions = query.conditions
+
+        match_with = many ? :select : :detect
+
+        # Iterate over the records for this model, and return
         # the ones that match the conditions
-        set = @records[model].select do |r|
-          boolean_and(*query.conditions.map do |c|
-            val = r.attributes[c[1].name.to_sym]
-            case c[0]
-            when :eql
-              val == c[2]
-            # TODO: Things other than :eql
+        result = @records[model].send(match_with) do |resource|
+          conditions.all? do |tuple|
+            operator, property, bind_value = *tuple
+            value = property.get!(resource)
+            case operator
+              when :eql then value == bind_value
+              # TODO: Things other than :eql
             end
-          end)
+          end
         end
 
         # TODO Sort
 
         # TODO Limit
 
-        set
-      end
-
-      # Returns true if every value given is true
-      def boolean_and(*arr)
-        arr.each do |v|
-          return false unless v
-        end
-        true
+        many ? set.replace(result) : result
       end
     end
   end
