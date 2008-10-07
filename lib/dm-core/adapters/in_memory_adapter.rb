@@ -59,7 +59,7 @@ module DataMapper
         end
 
         # TODO Sort
-        
+
         # TODO Limit
 
         set
@@ -75,5 +75,3 @@ module DataMapper
     end
   end
 end
-
-

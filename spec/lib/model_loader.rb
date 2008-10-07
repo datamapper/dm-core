@@ -86,7 +86,7 @@ module ModelLoader
       if klass_name.index("::")
         mod = klass_name.match(/(\S+)::/)[1]
         child_class = klass_name.match(/\S+::(\S+)/)[1]
-        
+
         Object.const_get(mod).module_eval { remove_const child_class }
       else
         Object.module_eval { remove_const klass.to_s }

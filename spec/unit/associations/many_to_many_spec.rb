@@ -11,7 +11,7 @@ describe DataMapper::Associations::ManyToMany do
       end
     end.should_not raise_error
   end
-  
+
   it 'should handle models inside modules' do
     lambda do
       module Content
@@ -25,7 +25,7 @@ describe DataMapper::Associations::ManyToMany do
       end
     end.should_not raise_error
   end
-  
+
 end
 
 describe DataMapper::Associations::ManyToMany::Proxy do
