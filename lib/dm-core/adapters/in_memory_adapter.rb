@@ -50,19 +50,37 @@ module DataMapper
         result = @records[model].send(match_with) do |resource|
           conditions.all? do |tuple|
             operator, property, bind_value = *tuple
+
             value = property.get!(resource)
+
             case operator
-              when :eql then value == bind_value
-              # TODO: Things other than :eql
+              when :eql, :in then equality_comparison(bind_value, value)
+              when :not      then !equality_comparison(bind_value, value)
+              when :like     then Regexp.new(bind_value) =~ value
+              when :gt       then !value.nil? && value >  bind_value
+              when :gte      then !value.nil? && value >= bind_value
+              when :lt       then !value.nil? && value <  bind_value
+              when :lte      then !value.nil? && value <= bind_value
+              else raise "Invalid query operator: #{operator.inspect}"
             end
           end
         end
+
+        return result unless many
 
         # TODO Sort
 
         # TODO Limit
 
-        many ? set.replace(result) : result
+        set.replace(result)
+      end
+
+      def equality_comparison(bind_value, value)
+        case bind_value
+          when Array, Range then bind_value.include?(value)
+          when NilClass     then value.nil?
+          else                   bind_value == value
+        end
       end
     end
   end
