@@ -115,6 +115,7 @@ describe DataMapper::Resource do
       property :victories,  Integer
     end
 
+    Fruit.auto_migrate!
     Planet.auto_migrate!
     Cyclist.auto_migrate!
   end
@@ -173,9 +174,17 @@ describe DataMapper::Resource do
         resource.should be_new_record
         resource.model.key.any? { |p| p.serial? }.should be_false
 
-        @adapter.should_not_receive(:create)
-
         resource.save.should be_false
+      end
+
+      it 'should return true even if the object is not dirty' do
+        resource = Cyclist.new
+        resource.victories = "0 victories"
+        resource.save.should be_true
+
+        resource.should_not be_dirty
+        resource.should_not be_new_record
+        resource.save.should be_true
       end
 
       describe 'for integer fields' do

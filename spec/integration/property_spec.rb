@@ -61,7 +61,7 @@ if ADAPTER
           jon.original_values[:location].should == 'dallas'
 
           jon.dirty?.should be_false
-          jon.save.should be_false
+          jon.save.should be_true
 
           jon.location.upcase!
           jon.location.should == 'DALLAS'
@@ -115,10 +115,10 @@ if ADAPTER
           tim = Actor.first(:name => 'tim')
           tim.notes # make sure they're loaded...
           tim.dirty?.should be_false
-          tim.save.should be_false
+          tim.save.should be_true
           tim.notes = "Testing"
           tim.dirty?.should be_true
-          tim.save
+          tim.save.should be_true
         end
         repository(ADAPTER) do
           tim = Actor.first(:name => 'tim')

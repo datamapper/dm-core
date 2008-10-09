@@ -277,9 +277,7 @@ module DataMapper
       associations_saved = false
       child_associations.each { |a| associations_saved |= a.save }
 
-      saved = if dirty? || (new_record? && key_properties.any? { |p| p.serial? })
-        new_record? ? create : update
-      end
+      saved = new_record? ? create : update
 
       if saved
         original_values.clear
@@ -546,6 +544,8 @@ module DataMapper
 
     # Needs to be a protected method so that it is hookable
     def create
+      # Can't create a resource that is not dirty and doesn't have serial keys
+      return false if new_record? && !dirty? && !model.key.any? { |p| p.serial? }
       # set defaults for new resource
       properties.each do |property|
         next if attribute_loaded?(property.name)
