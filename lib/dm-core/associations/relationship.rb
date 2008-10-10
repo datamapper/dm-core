@@ -74,8 +74,8 @@ module DataMapper
 
       # @api private
       def get_children(parent, options = {}, finder = :all, *args)
-        bind_values   = [parent_key.get(parent)]
-        parent_values = bind_values.dup
+        parent_value = parent_key.get(parent)
+        bind_values  = [ parent_value ]
 
         with_repository(child_model) do |r|
           parent_identity_map = parent.repository.identity_map(parent_model)
@@ -116,14 +116,14 @@ module DataMapper
             parents_children = Collection.new(query)
             children.each { |child| parents_children.send(:add, child) }
 
-            if parent_key.get(parent) == parent_values
+            if parent_key.get(parent) == parent_value
               ret = parents_children
             else
               association.instance_variable_set(:@children, parents_children)
             end
           end
 
-          ret || child_model.send(finder, *(args.dup << @query.merge(options).merge(child_key.zip(parent_values).to_hash)))
+          ret || child_model.send(finder, *(args.dup << @query.merge(options).merge(child_key.zip([ parent_value ]).to_hash)))
         end
       end
 
