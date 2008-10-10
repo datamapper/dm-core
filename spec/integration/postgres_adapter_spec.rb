@@ -127,7 +127,7 @@ if HAS_POSTGRES
 
         class Voyager
           include DataMapper::Resource
-          storage_names[:postgres] = 'sattellites.voyagers'
+          storage_names[:postgres] = 'voyagers'
 
           property :id, Serial
           property :age, Integer

@@ -64,8 +64,12 @@ describe "Strategic Eager Loading" do
       zoos = Zoo.all.entries # load all zoos
       dallas = zoos.find { |z| z.name == 'Dallas Zoo' }
 
-      dallas.exhibits.entries # load all exhibits for zoos in identity_map
-      dallas.exhibits.size.should == 1
+      logger do |log|
+        dallas.exhibits.entries # load all exhibits for zoos in identity_map
+        dallas.exhibits.size.should == 1
+        log.readlines.size.should == 1
+      end
+
       repository.identity_map(Zoo).keys.sort.should == zoo_ids
       repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
 
@@ -88,18 +92,21 @@ describe "Strategic Eager Loading" do
       dallas = Zoo.all.entries.find { |z| z.name == 'Dallas Zoo' }
       exhibits = dallas.exhibits.entries # load all exhibits
 
+      reptiles, primates = nil, nil
+
       logger do |log|
         reptiles = dallas.exhibits(:name => 'Reptiles')
         reptiles.size.should == 1
+        log.readlines.size.should == 1
+      end
 
+      logger do |log|
         primates = dallas.exhibits(:name => 'Primates')
         primates.size.should == 1
-        primates.should_not == reptiles
-
-        # This is not the way to check this
-        # Fails after fixing relationship query-building
-        # log.readlines.size.should == 2
+        log.readlines.size.should == 1
       end
+
+      primates.should_not == reptiles
     end
   end
 
@@ -111,7 +118,12 @@ describe "Strategic Eager Loading" do
     repository(ADAPTER) do
       animals = Animal.all.entries
       bear = animals.find { |a| a.name == 'Brown Bear' }
-      bear.exhibit
+
+      logger do |log|
+        bear.exhibit
+        log.readlines.size.should == 1
+      end
+
       repository.identity_map(Animal).keys.sort.should == animal_ids
       repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
     end
@@ -126,6 +138,7 @@ describe "Strategic Eager Loading" do
         animal.exhibit # load exhibit from IM
         log.readlines.should be_empty
       end
+
       repository.identity_map(Exhibit).keys.should == [exhibit.key]
     end
   end
