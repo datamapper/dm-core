@@ -309,8 +309,8 @@ module DataMapper
     # TODO SPEC
     def copy(source, destination, query = {})
       repository(destination) do
-        repository(source).read_many(query).each do |resource|
-          self.create(resource)
+        repository(source).read_many(scoped_query(query)).each do |resource|
+          self.create(resource.attributes)
         end
       end
     end
