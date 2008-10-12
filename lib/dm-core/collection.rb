@@ -169,9 +169,6 @@ module DataMapper
     # Also accepts negative indexes and appropriate reverses
     # the order of the query
     #
-    # @calls Collection#first
-    # @calls Collection#last
-    #
     # @api public
     def at(offset)
       return super if loaded?
@@ -195,8 +192,6 @@ module DataMapper
     #
     # @raise [ArgumentError] "arguments may be 1 or 2 Integers,
     #   or 1 Range object, was: #{args.inspect}"
-    #
-    # @alias []
     #
     # @api public
     def slice(*args)
