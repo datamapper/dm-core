@@ -5,7 +5,9 @@ module DataMapper
     attr_reader :query
 
     ##
-    # @return [Repository] the repository the collection is
+    # The associated Repository.
+    #
+    # @return [DataMapper::Repository] the repository the collection is
     #   associated with
     #
     # @api public
