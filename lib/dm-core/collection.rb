@@ -214,7 +214,7 @@ module DataMapper
     alias [] slice
 
     ##
-    # Return the Collection sorted in Reverse.
+    # Return the Collection sorted in reverse.
     #
     # @return [DataMapper::Collection]
     #
