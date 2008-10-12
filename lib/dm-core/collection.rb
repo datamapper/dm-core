@@ -240,6 +240,8 @@ module DataMapper
     end
 
     ##
+    # Append one or more Resources to the Collection.
+    #
     # @see Array#push
     #
     # @api public
