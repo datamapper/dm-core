@@ -151,8 +151,6 @@ module DataMapper
     # supply a conditions hash, or a Query object, the
     # internal query is scoped and a new collection is returned
     #
-    # @calls Collection#first
-    #
     # @api public
     def last(*args)
       return super if loaded? && args.empty?
