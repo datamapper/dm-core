@@ -42,13 +42,13 @@ module DataMapper
     end
 
     ##
-    # retrieves an entry out of the collection's entry by key
+    # Lookup a Resource from the Collection by key
     #
     # @param [DataMapper::Types::*, ...] key keys which uniquely
     #   identify a resource in the collection
     #
     # @return [DataMapper::Resource, NilClass] the resource which
-    #   has the supplied keys
+    #   matches the supplied key
     #
     # @api public
     def get(*key)
