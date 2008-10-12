@@ -78,15 +78,12 @@ module DataMapper
     end
 
     ##
-    # retrieves an entry out of the collection's entry by key,
-    # raising an exception if the object cannot be found
+    # Lookup a Resource from the Collection by key, raising an exception if not found
     #
     # @param [DataMapper::Types::*, ...] key keys which uniquely
     #   identify a resource in the collection
     #
-    # @calls DataMapper::Collection#get
-    #
-    # @raise [ObjectNotFoundError] "Could not find #{model.name} with key #{key.inspect} in collection"
+    # @raise [ObjectNotFoundError] Object could not be found by key
     #
     # @api public
     def get!(*key)
