@@ -268,6 +268,10 @@ module DataMapper
     end
 
     ##
+    # Replace the Resources within the Collection.
+    #
+    # @return [DataMapper::Collection] self
+    #
     # @see Array#replace
     #
     # @api public
