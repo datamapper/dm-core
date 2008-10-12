@@ -28,13 +28,11 @@ module DataMapper
     end
 
     ##
-    # reloads the entries associated with this collection
+    # Reload the Collection from the data source.
     #
-    # @param [DataMapper::Query] query (optional) additional query
-    #   to scope by.  Use this if you want to query a collections result
-    #   set
+    # @param [DataMapper::Query] query further restrict results with query
     #
-    # @see DataMapper::Collection#all
+    # @return [DataMapper::Collection] self
     #
     # @api public
     def reload(query = {})
