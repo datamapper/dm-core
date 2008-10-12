@@ -12,8 +12,8 @@ Dir[DataMapper.root / 'spec' / 'lib' / '*.rb'].each do |file|
 end
 
 # setup mock adapters
-DataMapper.setup(:default, "sqlite3::memory:")
-DataMapper.setup(:default2, "sqlite3::memory:")
+DataMapper.setup(:default, :adapter => :in_memory)
+DataMapper.setup(:default2, :adapter => :in_memory)
 
 [ :mock, :legacy, :west_coast, :east_coast ].each do |repository_name|
   DataMapper.setup(repository_name, "mock://localhost/#{repository_name}")
@@ -35,7 +35,6 @@ def setup_adapter(name, default_uri)
   rescue Exception => e
     if name.to_s == ENV['ADAPTER']
       Object.const_set('ADAPTER', nil)
-      warn "Could not load #{name} adapter: #{e}"
     end
     false
   end
@@ -43,6 +42,7 @@ end
 
 ENV['ADAPTER'] ||= 'sqlite3'
 
+HAS_DO       = DataMapper::Adapters.const_defined?("DataObjectsAdapter")
 HAS_SQLITE3  = setup_adapter(:sqlite3,  'sqlite3::memory:')
 HAS_MYSQL    = setup_adapter(:mysql,    'mysql://localhost/dm_core_test')
 HAS_POSTGRES = setup_adapter(:postgres, 'postgres://postgres@localhost/dm_core_test')

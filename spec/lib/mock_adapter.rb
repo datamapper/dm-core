@@ -1,6 +1,6 @@
 module DataMapper
   module Adapters
-    class MockAdapter < DataMapper::Adapters::DataObjectsAdapter
+    class MockAdapter < DataMapper::Adapters::AbstractAdapter
 
       def create(resources)
         1

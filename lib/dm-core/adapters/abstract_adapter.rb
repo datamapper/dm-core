@@ -38,7 +38,7 @@ module DataMapper
       # connection string for configuration.
       def initialize(name, uri_or_options)
         assert_kind_of 'name',           name,           Symbol
-        assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, DataObjects::URI, Hash, String
+        assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String #, DataObjects::URI
 
         @name = name
         @uri  = normalize_uri(uri_or_options)

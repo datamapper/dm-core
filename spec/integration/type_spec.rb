@@ -1,8 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-gem 'fastercsv', '>=1.2.3'
-require 'fastercsv'
-
 if ADAPTER
   module TypeTests
     class Impostor < DataMapper::Type
