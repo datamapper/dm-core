@@ -195,6 +195,12 @@ module DataMapper
       [ repository ].to_set + @properties.keys.collect { |repository_name| DataMapper.repository(repository_name) }
     end
 
+    # Get a list of all properties that have been defined on a model
+    #
+    # @param repostiory_name<[Symbol, String]> The name of the repository to use.
+    #                                          Uses the default repository if none
+    #                                          is specified.
+    # @return [Array] A list of Property's
     def properties(repository_name = default_repository_name)
       # We need to check whether all relations are already set up.
       # If this isn't the case, we try to reload them here
@@ -239,20 +245,61 @@ module DataMapper
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
     end
 
+    # Grab a single record by its key. Supports natural and composite key 
+    # lookups as well.
+    #
+    #   Zoo.get(1)                # get the zoo with primary key of 1.
+    #   Zoo.get!(1)               # Or get! if you want an ObjectNotFoundError on failure
+    #   Zoo.get('DFW')            # wow, support for natural primary keys
+    #   Zoo.get('Metro', 'DFW')   # more wow, composite key look-up
+    #
+    # @param *key<Object>         
+    #   The primary key or keys to use for lookup
+    # @return <DataMapper::Resource> 
+    #   A single model that was found
     def get(*key)
       key = typecast_key(key)
       repository.identity_map(self).get(key) || first(to_query(repository, key))
     end
 
+    # Grab a single record just like #get, but raise an ObjectNotFoundError 
+    # if the record doesn't exist.
+    #
+    # @param *key<Object>         
+    #   The primary key or keys to use for lookup
+    # @return <DataMapper::Resource> 
+    #   A single model that was found
+    # @raise <ObjectNotFoundError>
+    #   The record was not found
     def get!(*key)
       get(*key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key #{key.inspect}")
     end
 
+    # Find a set of records matching an optional set of conditions. Additionally, 
+    # specify the order that the records are return.
+    #
+    #   Zoo.all                         # all zoos
+    #   Zoo.all(:open => true)          # all zoos that are open
+    #   Zoo.all(:opened_on => (s..e))   # all zoos that opened on a date in the date-range
+    #   Zoo.all(:order => [:tiger_count.desc])  # Ordered by tiger_count
+    #
+    # @param query<Hash>
+    #   A hash describing the conditions and order for the query
+    # @return <DataMapper::Collection>
+    #   A set of records found 
+    # @see DataMapper::Collection
     def all(query = {})
       query = scoped_query(query)
       query.repository.read_many(query)
     end
 
+    # Performs a query just like #all, however, only return the first
+    # record found, rather than a collection
+    #
+    # @param query<Hash>
+    #   A hash describing the conditions and order for the query
+    # @return <DataMapper::Resource>
+    #   The first record found by the query
     def first(*args)
       query = args.last.respond_to?(:merge) ? args.pop : {}
       query = scoped_query(query.merge(:limit => args.first || 1))
@@ -264,11 +311,21 @@ module DataMapper
       end
     end
 
+    # Deprecated alias for #get!
     def [](*key)
       warn("#{name}[] is deprecated. Use #{name}.get! instead.")
       get!(*key)
     end
 
+    # find the #first record by a query, or #create one by attributes
+    # if it doesn't exist
+    #
+    # @param query<Hash>
+    #   The query to be used so search
+    # @param attributes<Hash>
+    #   The attributes to be used to create the record of none is found.
+    # @see #first
+    # @see #create
     def first_or_create(query, attributes = {})
       first(query) || begin
         resource = allocate
@@ -306,7 +363,7 @@ module DataMapper
       resource
     end
 
-    # TODO SPEC
+    # Copy a set of records from one repository to another.
     def copy(source, destination, query = {})
       repository(destination) do
         repository(source).read_many(scoped_query(query)).each do |resource|
@@ -315,8 +372,7 @@ module DataMapper
       end
     end
 
-    # @api private
-    # TODO: spec this
+    # @api plugin
     def load(values, query)
       repository = query.repository
       model      = self
@@ -360,31 +416,34 @@ module DataMapper
       resource
     end
 
-    # TODO: spec this
+    # @api private
     def to_query(repository, key, query = {})
       conditions = Hash[ *self.key(repository_name).zip(key).flatten ]
       Query.new(repository, self, query.merge(conditions))
     end
 
+    # @api private
     def typecast_key(key)
       self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
     end
 
+    # @api plugin
     def default_repository_name
       Repository.default_name
     end
 
+    # @api plugin
     def paranoid_properties
       @paranoid_properties ||= {}
       @paranoid_properties
     end
 
-    private
-
+    # @api private
     def default_storage_name
       self.name
     end
 
+    # @api private
     def scoped_query(query = self.query)
       assert_kind_of 'query', query, Query, Hash
 
@@ -403,11 +462,13 @@ module DataMapper
       end
     end
 
+    # @api private
     def set_paranoid_property(name, &block)
       self.paranoid_properties[name] = block
     end
 
     # defines the getter for the property
+    # @api private
     def create_property_getter(property)
       class_eval <<-EOS, __FILE__, __LINE__
         #{property.reader_visibility}
@@ -425,6 +486,7 @@ module DataMapper
     end
 
     # defines the setter for the property
+    # @api private
     def create_property_setter(property)
       unless instance_methods.include?("#{property.name}=")
         class_eval <<-EOS, __FILE__, __LINE__
@@ -436,6 +498,7 @@ module DataMapper
       end
     end
 
+    # @api private
     def relationships(*args)
       # DO NOT REMOVE!
       # method_missing depends on these existing. Without this stub,
@@ -443,6 +506,7 @@ module DataMapper
       raise NotImplementedError.new
     end
 
+    # @api private
     def method_missing(method, *args, &block)
       if relationship = self.relationships(repository_name)[method]
         klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
