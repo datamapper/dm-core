@@ -242,6 +242,8 @@ module DataMapper
     ##
     # Append one or more Resources to the Collection.
     #
+    # @return [DataMapper::Collection] self
+    #
     # @see Array#push
     #
     # @api public
