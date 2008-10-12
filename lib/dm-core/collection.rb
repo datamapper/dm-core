@@ -16,9 +16,11 @@ module DataMapper
     end
 
     ##
-    # loads the entries for the collection. Used by the
-    # adapters to load the instances of the declared
-    # model for this collection's query.
+    # Load each Resource in the Collection.
+    #
+    # @param [Enumerable] values the values for the Resource
+    #
+    # @return [DataMapper::Resource] the loaded Resource
     #
     # @api private
     def load(values)
