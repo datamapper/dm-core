@@ -214,11 +214,11 @@ module DataMapper
     alias [] slice
 
     ##
+    # Return the Collection sorted in Reverse.
     #
-    # @return [DataMapper::Collection] a new collection whose
-    #   query is sorted in the reverse
+    # @return [DataMapper::Collection]
     #
-    # @see Array#reverse, DataMapper#all, DataMapper::Query#reverse
+    # @see Array#reverse, DataMapper#all
     #
     # @api public
     def reverse
