@@ -5,7 +5,7 @@ module DataMapper
       extend Assertions
 
       # Setup many to many relationship between two models
-      # -
+      #
       # @api private
       def self.setup(name, model, options = {})
         assert_kind_of 'name',    name,    Symbol

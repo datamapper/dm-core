@@ -21,4 +21,3 @@ end
 ].each do |adapter|
   try_loading(dir / adapter)
 end
-

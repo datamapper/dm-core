@@ -18,7 +18,7 @@ module DataMapper
     # @return [TrueClass, FalseClass] whether or not the inclusions have been
     #   successfully appended to the list
     # @return <TrueClass, FalseClass>
-    #-
+    #
     # @api public
     def self.append_inclusions(*inclusions)
       extra_inclusions.concat inclusions
@@ -32,7 +32,6 @@ module DataMapper
     # When Resource is included in a class this method makes sure
     # it gets all the methods
     #
-    # -
     # @api private
     def self.included(model)
       model.extend Model
@@ -59,7 +58,6 @@ module DataMapper
     #
     #   DataMapper::Resource.descendants.to_a.first == Foo
     #
-    # -
     # @api semipublic
     def self.descendants
       @descendants ||= Set.new
@@ -100,7 +98,6 @@ module DataMapper
     #     end
     #   end
     #
-    # -
     # @api semipublic
     def attribute_get(name)
       properties[name].get(self)
@@ -141,7 +138,6 @@ module DataMapper
     #     end
     #   end
     #
-    # -
     # @api semipublic
     def attribute_set(name, value)
       properties[name].set(self, value)
@@ -155,7 +151,6 @@ module DataMapper
     # ==== Returns
     # <True>:: the outcome of the comparison as a boolean
     #
-    # -
     # @api public
     def eql?(other)
       return true if object_id == other.object_id
@@ -176,7 +171,6 @@ module DataMapper
     # ==== Returns
     # <Integer>:: the hash value of the resource
     #
-    # -
     # @api public
     def hash
       model.hash + key.hash
@@ -192,7 +186,6 @@ module DataMapper
     # >> Foo.new
     # => #<Foo name=nil updated_at=nil created_at=nil id=nil>
     #
-    # -
     # @api public
     def inspect
       attrs = []
@@ -239,7 +232,6 @@ module DataMapper
     # ==== Returns
     # <Array[Key], Key> key or keys
     #
-    # --
     # @api public
     def id
       key = self.key
@@ -267,7 +259,6 @@ module DataMapper
     #
     # @see DataMapper::Repository#save
     #
-    # --
     # #public
     def save(context = :default)
       # Takes a context, but does nothing with it. This is to maintain the
@@ -295,7 +286,6 @@ module DataMapper
     # ==== Returns
     # <True, False>:: results of the destruction
     #
-    # --
     # @api public
     def destroy
       return false if new_record?
@@ -325,7 +315,6 @@ module DataMapper
     #
     #   Foo.new.attribute_loaded?(:description) # will return false
     #
-    # --
     # @api public
     def attribute_loaded?(name)
       instance_variable_defined?(properties[name].instance_variable_name)
@@ -347,7 +336,6 @@ module DataMapper
     #
     #   Foo.new.loaded_attributes # returns [:name]
     #
-    # --
     # @api public
     def loaded_attributes
       properties.map{|p| p.name if attribute_loaded?(p.name)}.compact
@@ -358,7 +346,6 @@ module DataMapper
     # ==== Returns
     # Hash:: original values of properties
     #
-    # --
     # @api public
     def original_values
       @original_values ||= {}
@@ -369,7 +356,6 @@ module DataMapper
     # ==== Returns
     # Hash:: attributes that have been marked dirty
     #
-    # --
     # @api private
     def dirty_attributes
       dirty_attributes = {}
@@ -399,7 +385,6 @@ module DataMapper
     # ==== Returns
     # True:: returns if class is dirty
     #
-    # --
     # @api public
     def dirty?
       dirty_attributes.any?
@@ -413,7 +398,6 @@ module DataMapper
     # ==== Returns
     # True:: returns if attribute is dirty
     #
-    # --
     # @api public
     def attribute_dirty?(name)
       dirty_attributes.has_key?(properties[name])
@@ -430,7 +414,6 @@ module DataMapper
     # ==== Returns
     # self:: returns the class itself
     #
-    # --
     # @api public
     def reload
       unless new_record?
@@ -449,7 +432,6 @@ module DataMapper
     # ==== Returns
     # self:: returns the class itself
     #
-    # --
     # @api public
     def reload_attributes(*attributes)
       unless attributes.empty? || new_record?
@@ -464,7 +446,6 @@ module DataMapper
     # ==== Returns
     # True:: status if the model is new
     #
-    # --
     # @api public
     def new_record?
       !defined?(@new_record) || @new_record
@@ -475,7 +456,6 @@ module DataMapper
     # ==== Returns
     # Hash[<Symbol>]:: All the (non)-lazy attributes
     #
-    # --
     # @api public
     def attributes
       properties.map do |p|
@@ -488,7 +468,6 @@ module DataMapper
     # ==== Parameters
     # value_hash <Hash[<Symbol>]>::
     #
-    # --
     # @api public
     def attributes=(values_hash)
       values_hash.each_pair do |k,v|
@@ -511,7 +490,6 @@ module DataMapper
     # ==== Returns
     # <TrueClass, FalseClass> if model got saved or not
     #
-    #-
     # @api public
     def update_attributes(hash, *update_only)
       unless hash.is_a?(Hash)
@@ -592,12 +570,14 @@ module DataMapper
     end
 
     # TODO document
+    #
     # @api semipublic
     def attribute_get!(name)
       properties[name].get!(self)
     end
 
     # TODO document
+    #
     # @api semipublic
     def attribute_set!(name, value)
       properties[name].set!(self, value)
@@ -623,7 +603,7 @@ module DataMapper
       # <DataMapper::Adapters::Transaction>::
       #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
       #   of the class of this DataMapper::Resource added.
-      #-
+      #
       # @api public
       #
       # TODO: move to dm-more/dm-transactions
