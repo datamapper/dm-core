@@ -494,16 +494,12 @@ module DataMapper
 
     protected
 
-    ##
-    # @api private
     def model
       query.model
     end
 
     private
 
-    ##
-    # @api public
     def initialize(query, &block)
       assert_kind_of 'query', query, Query
 
@@ -521,15 +517,11 @@ module DataMapper
       load_with(&block)
     end
 
-    ##
-    # @api private
     def add(resource)
       query.add_reversed? ? unshift(resource) : push(resource)
       resource
     end
 
-    ##
-    # @api private
     def relate_resource(resource)
       return unless resource
       resource.collection = self
@@ -537,8 +529,6 @@ module DataMapper
       resource
     end
 
-    ##
-    # @api private
     def orphan_resource(resource)
       return unless resource
       resource.collection = nil if resource.collection.object_id == self.object_id
@@ -546,8 +536,6 @@ module DataMapper
       resource
     end
 
-    ##
-    # @api private
     def scoped_query(query = self.query)
       assert_kind_of 'query', query, Query, Hash
 
@@ -568,21 +556,15 @@ module DataMapper
       self.query.merge(query)
     end
 
-    ##
-    # @api private
     def keys
       keys = map {|r| r.key }
       keys.any? ? @key_properties.zip(keys.transpose).to_hash : {}
     end
 
-    ##
-    # @api private
     def identity_map
       repository.identity_map(model)
     end
 
-    ##
-    # @api private
     def set_relative_position(query)
       return if query == self.query
 
@@ -608,8 +590,6 @@ module DataMapper
       query.update(:limit => last_pos - first_pos) if last_pos
     end
 
-    ##
-    # @api private
     def method_missing(method, *args, &block)
       if model.public_methods(false).include?(method.to_s)
         model.send(:with_scope, query) do
