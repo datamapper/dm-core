@@ -17,8 +17,6 @@ module DataMapper
     #   successfully appended to the list
     #
     # @api public
-    #
-    # TODO: Move this do DataMapper::Model when DataMapper::Model is created
     def self.append_extensions(*extensions)
       extra_extensions.concat extensions
       true

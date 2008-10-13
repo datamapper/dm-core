@@ -7,10 +7,6 @@ describe DataMapper::Adapters::InMemoryAdapter do
     class Heffalump
       include DataMapper::Resource
 
-      def self.default_repository_name
-        :inmem
-      end
-
       property :color,      String, :key => true # TODO: Drop the 'must have a key' limitation
       property :num_spots,  Integer
       property :striped,    Boolean
