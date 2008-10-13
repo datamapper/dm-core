@@ -650,7 +650,6 @@ module DataMapper
     #     selected_county], :properties => MyClass.property[:id],
     #     :repository => :county_repo)
     #
-    # -
     # @api public
     def find_by_sql(*args)
       sql = nil

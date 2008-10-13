@@ -15,7 +15,7 @@ module DataMapper
     #
     # @return [TrueClass, FalseClass] whether or not the inclusions have been
     #   successfully appended to the list
-    #-
+    #
     # @api public
     #
     # TODO: Move this do DataMapper::Model when DataMapper::Model is created
@@ -101,7 +101,7 @@ module DataMapper
     #
     # @return <Object, DataMapper::Respository> whatever the block returns,
     #   if given a block, otherwise the requested repository.
-    #-
+    #
     # @api public
     def repository(name = nil)
       #
@@ -245,7 +245,7 @@ module DataMapper
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
     end
 
-    # Grab a single record by its key. Supports natural and composite key 
+    # Grab a single record by its key. Supports natural and composite key
     # lookups as well.
     #
     #   Zoo.get(1)                # get the zoo with primary key of 1.
@@ -253,21 +253,21 @@ module DataMapper
     #   Zoo.get('DFW')            # wow, support for natural primary keys
     #   Zoo.get('Metro', 'DFW')   # more wow, composite key look-up
     #
-    # @param *key<Object>         
+    # @param *key<Object>
     #   The primary key or keys to use for lookup
-    # @return <DataMapper::Resource> 
+    # @return <DataMapper::Resource>
     #   A single model that was found
     def get(*key)
       key = typecast_key(key)
       repository.identity_map(self).get(key) || first(to_query(repository, key))
     end
 
-    # Grab a single record just like #get, but raise an ObjectNotFoundError 
+    # Grab a single record just like #get, but raise an ObjectNotFoundError
     # if the record doesn't exist.
     #
-    # @param *key<Object>         
+    # @param *key<Object>
     #   The primary key or keys to use for lookup
-    # @return <DataMapper::Resource> 
+    # @return <DataMapper::Resource>
     #   A single model that was found
     # @raise <ObjectNotFoundError>
     #   The record was not found
@@ -275,7 +275,7 @@ module DataMapper
       get(*key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key #{key.inspect}")
     end
 
-    # Find a set of records matching an optional set of conditions. Additionally, 
+    # Find a set of records matching an optional set of conditions. Additionally,
     # specify the order that the records are return.
     #
     #   Zoo.all                         # all zoos
@@ -286,7 +286,7 @@ module DataMapper
     # @param query<Hash>
     #   A hash describing the conditions and order for the query
     # @return <DataMapper::Collection>
-    #   A set of records found 
+    #   A set of records found
     # @see DataMapper::Collection
     def all(query = {})
       query = scoped_query(query)
@@ -372,7 +372,7 @@ module DataMapper
       end
     end
 
-    # @api plugin
+    # @api semipublic
     def load(values, query)
       repository = query.repository
       model      = self
@@ -427,12 +427,12 @@ module DataMapper
       self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
     end
 
-    # @api plugin
+    # @api semipublic
     def default_repository_name
       Repository.default_name
     end
 
-    # @api plugin
+    # @api semipublic
     def paranoid_properties
       @paranoid_properties ||= {}
       @paranoid_properties
@@ -468,6 +468,7 @@ module DataMapper
     end
 
     # defines the getter for the property
+    #
     # @api private
     def create_property_getter(property)
       class_eval <<-EOS, __FILE__, __LINE__
@@ -486,6 +487,7 @@ module DataMapper
     end
 
     # defines the setter for the property
+    #
     # @api private
     def create_property_setter(property)
       unless instance_methods.include?("#{property.name}=")
@@ -528,7 +530,7 @@ module DataMapper
       # @return <DataMapper::Adapters::Transaction
       #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
       #   of the class of this DataMapper::Resource added.
-      #-
+      #
       # @api public
       #
       # TODO: move to dm-more/dm-transactions

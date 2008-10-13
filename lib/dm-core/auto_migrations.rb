@@ -8,6 +8,8 @@ module DataMapper
     # REPEAT: THIS IS DESTRUCTIVE
     #
     # @param Symbol repository_name the repository to be migrated
+    #
+    # @api public
     def self.auto_migrate(repository_name = nil, *descendants)
       auto_migrate_down(repository_name, *descendants)
       auto_migrate_up(repository_name, *descendants)
@@ -18,7 +20,7 @@ module DataMapper
     # REPEAT: THIS IS DESTRUCTIVE
     #
     # @param Symbol repository_name the repository to be migrated
-    # @calls DataMapper::Resource#auto_migrate_down!
+    #
     # @api private
     def self.auto_migrate_down(repository_name = nil, *descendants)
       descendants = DataMapper::Resource.descendants.to_a if descendants.empty?
@@ -31,7 +33,7 @@ module DataMapper
     # Automigrates the data-store up
     #
     # @param Symbol repository_name the repository to be migrated
-    # @calls DataMapper::Resource#auto_migrate_up!
+    #
     # @api private
     def self.auto_migrate_up(repository_name = nil, *descendants)
       descendants = DataMapper::Resource.descendants.to_a if descendants.empty?
@@ -45,7 +47,8 @@ module DataMapper
     # preserving data already in the data-store
     #
     # @param Symbol repository_name the repository to be migrated
-    # @calls DataMapper::Resource#auto_upgrade!
+    #
+    # @api public
     def self.auto_upgrade(repository_name = nil)
       DataMapper::Resource.descendants.each do |model|
         model.auto_upgrade!(repository_name)
@@ -70,6 +73,7 @@ module DataMapper
     # REPEAT: THIS IS DESTRUCTIVE
     #
     # @param Symbol repository_name the repository to be migrated
+    #
     # @api private
     def auto_migrate_down!(repository_name = self.repository_name)
       # repository_name ||= default_repository_name
@@ -86,6 +90,7 @@ module DataMapper
     # Auto migrates the data-store to match the model
     #
     # @param Symbol repository_name the repository to be migrated
+    #
     # @api private
     def auto_migrate_up!(repository_name = self.repository_name)
       if self.superclass != Object

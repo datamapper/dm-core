@@ -299,8 +299,8 @@ module DataMapper
     # Supplies the field in the data-store which the property corresponds to
     #
     # @return <String> name of field in data-store
-    # -
-    # @api semi-public
+    #
+    # @api semipublic
     def field(repository_name = nil)
       @field || @fields[repository_name] ||= self.model.field_naming_convention(repository_name).call(self)
     end
@@ -343,7 +343,7 @@ module DataMapper
     #
     # @return <TrueClass, FalseClass> whether or not the property is to be
     #   lazy-loaded
-    # -
+    #
     # @api public
     def lazy?
       @lazy
@@ -353,7 +353,7 @@ module DataMapper
     #
     # @return <TrueClass, FalseClass> whether the property is a key or a part of
     #   a key
-    #-
+    #
     # @api public
     def key?
       @key
@@ -362,7 +362,7 @@ module DataMapper
     # Returns whether or not the property is "serial" (auto-incrementing)
     #
     # @return <TrueClass, FalseClass> whether or not the property is "serial"
-    #-
+    #
     # @api public
     def serial?
       @serial
@@ -371,7 +371,7 @@ module DataMapper
     # Returns whether or not the property can accept 'nil' as it's value
     #
     # @return <TrueClass, FalseClass> whether or not the property can accept 'nil'
-    #-
+    #
     # @api public
     def nullable?
       @nullable
@@ -384,7 +384,7 @@ module DataMapper
     # Provides a standardized getter method for the property
     #
     # @raise <ArgumentError> "+resource+ should be a DataMapper::Resource, but was ...."
-    #-
+    #
     # @api private
     def get(resource)
       lazy_load(resource)
@@ -418,7 +418,7 @@ module DataMapper
     # Provides a standardized setter method for the property
     #
     # @raise <ArgumentError> "+resource+ should be a DataMapper::Resource, but was ...."
-    #-
+    #
     # @api private
     def set(resource, value)
       # [YK] We previously checked for new_record? here, but lazy loading
@@ -442,7 +442,7 @@ module DataMapper
     end
 
     # Loads lazy columns when get or set is called.
-    #-
+    #
     # @api private
     def lazy_load(resource)
       # It is faster to bail out at at a new_record? rather than to process
@@ -459,7 +459,7 @@ module DataMapper
     #
     # @return <TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Time
     #   Class> the primitive data-type, defaults to TrueClass
-    #-
+    #
     # @api private
     def typecast(value)
       return type.typecast(value, self) if type.respond_to?(:typecast)

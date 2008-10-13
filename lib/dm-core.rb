@@ -124,7 +124,6 @@ module DataMapper
   #   but was..." indicates that connection information could not be gleaned
   #   from the given uri_or_options<Hash, Addressable::URI, String>
   #
-  # -
   # @api public
   def self.setup(name, uri_or_options)
     assert_kind_of 'name',           name,           Symbol
