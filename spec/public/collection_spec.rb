@@ -32,23 +32,23 @@ describe DataMapper::Collection do
 
   describe '#load' do
     before do
-      @loaded = @articles.load(%w[ Title ])
+      @resource = @articles.load(%w[ Title ])
     end
 
     it 'should return a Resource' do
-      @loaded.should be_kind_of(DataMapper::Resource)
+      @resource.should be_kind_of(DataMapper::Resource)
     end
 
     it 'should return the initialized Resource' do
-      @loaded.should == @model.new(:title => 'Title')
+      @resource.should == @model.new(:title => 'Title')
     end
 
-    it 'should initialize a Resource and add to the Collection' do
-      @articles.should include(@loaded)
+    it 'should add the Resource to the Collection' do
+      @articles.should include(@resource)
     end
 
-    it 'should update the Resource to reference the Collection' do
-      @loaded.collection.object_id.should == @articles.object_id
+    it 'should set the Resource to reference the Collection' do
+      @resource.collection.object_id.should == @articles.object_id
     end
   end
 
