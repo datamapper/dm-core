@@ -16,7 +16,10 @@ module DataMapper
     end
 
     ##
-    # Load each Resource in the Collection.
+    # Initialize a Resource and add to the Collection.
+    #
+    # This should load a Resouce, add it to the Collection and update the
+    # Resource to reference the Collection.
     #
     # @param [Enumerable] values the values for the Resource
     #

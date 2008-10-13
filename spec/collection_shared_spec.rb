@@ -4,13 +4,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'spec_helper'))
 
 describe 'A Collection', :shared => true do
   before do
-    %w[ @repository @model @other @article @new_article @articles @other_articles ].each do |ivar|
+    %w[ @article_repository @model @other @article @new_article @articles @other_articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
   end
 
   after do
-    @model.all.destroy!
+    @articles.dup.destroy!
   end
 
   describe '#<<' do
@@ -81,7 +81,7 @@ describe 'A Collection', :shared => true do
 
         describe 'limitless collections' do
           before do
-            query = DataMapper::Query.new(@repository, @model)
+            query = DataMapper::Query.new(@article_repository, @model)
             @unlimited = DataMapper::Collection.new(query) {}
           end
 
@@ -161,7 +161,7 @@ describe 'A Collection', :shared => true do
 
   describe '#collect!' do
     it 'should update the collection inline' do
-      @articles.collect! { |article| :other_value }.should == [ :other_value ]
+      @articles.collect! { |article| @model.new(:title => 'other') }.should == [ @model.new(:title => 'other') ]
     end
 
     it 'should return self' do
@@ -195,8 +195,8 @@ describe 'A Collection', :shared => true do
 
 # TODO: refactor to not use mocks
 #    it 'should not append the resource if it was not saved' do
-#      @repository.should_receive(:create).and_return(false)
-#      @model.should_receive(:repository).at_least(:once).and_return(@repository)
+#      @article_repository.should_receive(:create).and_return(false)
+#      @model.should_receive(:repository).at_least(:once).and_return(@article_repository)
 #
 #      article = @articles.create
 #      article.should be_new_record
@@ -450,9 +450,9 @@ describe 'A Collection', :shared => true do
 #  describe '#load' do
 #    it 'should load resources from the identity map when possible' do
 #      @steve.collection = nil
-#      @repository.identity_map(@model).should_receive(:get).with([ @steve.id ]).and_return(@steve)
+#      @article_repository.identity_map(@model).should_receive(:get).with([ @steve.id ]).and_return(@steve)
 #
-#      collection = @repository.read_many(@query.merge(:id => @steve.id))
+#      collection = @article_repository.read_many(@query.merge(:id => @steve.id))
 #
 #      collection.size.should == 1
 #      collection.map { |r| r.object_id }.should == [ @steve.object_id ]
@@ -575,7 +575,7 @@ describe 'A Collection', :shared => true do
 #    it 'should reload lazily initialized fields' do
 #      pending 'Move to unit specs'
 #
-#      @repository.should_receive(:all) do |model,query|
+#      @article_repository.should_receive(:all) do |model,query|
 #        model.should == @model
 #
 #        query.should be_instance_of(DataMapper::Query)
@@ -807,7 +807,7 @@ describe 'A Collection', :shared => true do
 
     it 'should not update loaded resources unless forced' do
       pending 'Fix in-memory adapter to return copies of data'
-      @repository.scope do
+      @article_repository.scope do
         articles = @articles.reload
         article  = articles.first
 
@@ -820,7 +820,7 @@ describe 'A Collection', :shared => true do
     end
 
     it 'should update loaded resources if forced' do
-      @repository.scope do |r|
+      @article_repository.scope do |r|
         articles = @articles.reload
         article  = @model.first(:title => 'Sample Article')
 
@@ -835,7 +835,7 @@ describe 'A Collection', :shared => true do
         collection.query.conditions.detect { |c| c[0] == :eql && c[1].name == name }[2]
       end
 
-      @repository.scope do
+      @article_repository.scope do
         articles = @articles.all(:title => 'Sample Article')
         get_condition.call(articles, :title).should == 'Sample Article'
         articles.length.should == 1
