@@ -3,13 +3,13 @@ task :spec    => 'dm:spec'
 task :rcov    => 'dm:rcov'
 
 namespace :spec do
-  task :unit        => 'dm:spec:unit'
-  task :integration => 'dm:spec:integration'
+  task :public     => 'dm:spec:public'
+  task :semipublic => 'dm:spec:semipublic'
 end
 
 namespace :rcov do
-  task :unit        => 'dm:rcov:unit'
-  task :integration => 'dm:rcov:integration'
+  task :public     => 'dm:rcov:public'
+  task :semipublic => 'dm:rcov:semipublic'
 end
 
 namespace :dm do
@@ -25,9 +25,9 @@ namespace :dm do
     end
   end
 
-  unit_specs        = ROOT + 'spec/unit/**/*_spec.rb'
-  integration_specs = ROOT + 'spec/integration/**/*_spec.rb'
-  all_specs         = ROOT + 'spec/**/*_spec.rb'
+  public_specs     = ROOT + 'spec/public/**/*_spec.rb'
+  semipublic_specs = ROOT + 'spec/semipublic/**/*_spec.rb'
+  all_specs        = ROOT + 'spec/**/*_spec.rb'
 
   desc "Run all specifications"
   run_spec('spec', all_specs, false)
@@ -36,19 +36,19 @@ namespace :dm do
   run_spec('rcov', all_specs, true)
 
   namespace :spec do
-    desc "Run unit specifications"
-    run_spec('unit', unit_specs, false)
+    desc "Run public specifications"
+    run_spec('public', public_specs, false)
 
-    desc "Run integration specifications"
-    run_spec('integration', integration_specs, false)
+    desc "Run semipublic specifications"
+    run_spec('semipublic', semipublic_specs, false)
   end
 
   namespace :rcov do
-    desc "Run unit specifications with rcov"
-    run_spec('unit', unit_specs, true)
+    desc "Run public specifications with rcov"
+    run_spec('public', public_specs, true)
 
-    desc "Run integration specifications with rcov"
-    run_spec('integration', integration_specs, true)
+    desc "Run semipublic specifications with rcov"
+    run_spec('semipublic', semipublic_specs, true)
   end
 
   desc "Run all comparisons with ActiveRecord"
