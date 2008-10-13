@@ -17,6 +17,10 @@ describe DataMapper::Adapters::InMemoryAdapter do
     @heff3 = Heffalump.create(:color => 'Blue',  :num_spots => nil, :striped => false)
   end
 
+  after do
+    Heffalump.all.destroy!
+  end
+
   it 'should successfully save an object' do
     @heff1.new_record?.should be_false
   end
