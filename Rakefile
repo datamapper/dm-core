@@ -14,7 +14,7 @@ EMAIL  = "ssmoot@gmail.com"
 GEM_NAME = "dm-core"
 GEM_VERSION = DataMapper::VERSION
 GEM_DEPENDENCIES = ["data_objects", ">=0.9.5"], ["extlib", ">=0.9.5"],
-                   ["rspec", ">=1.1.3"], ["addressable", ">=1.0.4"]
+                   ["rspec", ">=1.1.8"], ["addressable", ">=1.0.4"]
 
 
 PROJECT_NAME = "datamapper"
