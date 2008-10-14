@@ -517,21 +517,43 @@ describe 'A Collection', :shared => true do
     @articles.should respond_to(:get!)
   end
 
-#  describe '#get!' do
-#    it 'should find a resource in a collection by key' do
-#      article = @articles.get!(*@new_article.key)
-#      article.should be_kind_of(DataMapper::Resource)
-#      article.id.should == @new_article.id
-#    end
-#
-#    it 'should raise an exception if the resource is not found' do
-#      @query.update(:offset => 0, :limit => 3)
-#      @david = Zebra.create(:name => 'David', :age => 15,  :notes => 'Albino')
-#      lambda {
-#        @articles.get!(@david.key)
-#      }.should raise_error(DataMapper::ObjectNotFoundError)
-#    end
-#  end
+  describe '#get!' do
+    describe 'with a key to a Resource within the Collection' do
+      before do
+        @return = @resource = @articles.get!(1)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be matching Resource in the Collection' do
+        @resource.should == @article
+      end
+    end
+
+    describe 'with a key to a Resource not within the Collection' do
+      it 'should raise an exception' do
+        lambda {
+          @articles.get!(99)
+        }.should raise_error(DataMapper::ObjectNotFoundError)
+      end
+    end
+
+    describe 'with a key not typecast' do
+      before do
+        @return = @resource = @articles.get!('1')
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be matching Resource in the Collection' do
+        @resource.should == @article
+      end
+    end
+  end
 
   it 'should respond to #insert' do
     @articles.should respond_to(:insert)
