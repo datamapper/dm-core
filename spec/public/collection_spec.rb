@@ -14,9 +14,8 @@ describe DataMapper::Collection do
     @article_repository = repository(:default)
     @model              = Article
 
-    @article     = @model.create(:title => 'Sample Article', :content => 'Sample')
-    @other       = @model.create(:title => 'Other Article', :content => 'Other')
-    @new_article = @model.new(:title => 'New Article', :content => 'Sample')
+    @article = @model.create(:title => 'Sample Article', :content => 'Sample')
+    @other   = @model.create(:title => 'Other Article', :content => 'Other')
 
     @articles       = @model.all(:title => 'Sample Article')
     @other_articles = @model.all(:title => 'Other Article')
@@ -32,15 +31,19 @@ describe DataMapper::Collection do
 
   describe '#load' do
     before do
-      @resource = @articles.load(%w[ Title ])
+      @return = @resource = @articles.load(%w[ Title ])
     end
 
     it 'should return a Resource' do
-      @resource.should be_kind_of(DataMapper::Resource)
+      @return.should be_kind_of(DataMapper::Resource)
     end
 
-    it 'should return the initialized Resource' do
+    it 'should be an initialized Resource' do
       @resource.should == @model.new(:title => 'Title')
+    end
+
+    it 'should not be a new Resource' do
+      @resource.should_not be_new_record
     end
 
     it 'should add the Resource to the Collection' do
@@ -58,15 +61,15 @@ describe DataMapper::Collection do
 
   describe '#query' do
     before do
-      @query = @articles.query
+      @return = @articles.query
     end
 
     it 'should return a Query' do
-      @query.should be_kind_of(DataMapper::Query)
+      @return.should be_kind_of(DataMapper::Query)
     end
 
     it 'should return the associated Query' do
-      @query.should == @articles_query
+      @return.should == @articles_query
     end
   end
 
@@ -76,15 +79,15 @@ describe DataMapper::Collection do
 
   describe '#repository' do
     before do
-      @repository = @articles.repository
+      @return = @repository = @articles.repository
     end
 
     it 'should return a Repository' do
-      @repository.should be_kind_of(DataMapper::Repository)
+      @return.should be_kind_of(DataMapper::Repository)
     end
 
     it 'should return the associated Repository' do
-      @repository.should == @article_repository
+      @return.should == @article_repository
     end
   end
 end

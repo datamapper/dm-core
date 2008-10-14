@@ -4,7 +4,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'spec_helper'))
 
 describe 'A Collection', :shared => true do
   before do
-    %w[ @article_repository @model @other @article @new_article @articles @other_articles ].each do |ivar|
+    %w[ @article_repository @model @other @article @articles @other_articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
   end
@@ -13,187 +13,294 @@ describe 'A Collection', :shared => true do
     @articles.dup.destroy!
   end
 
+  it 'should respond to #<<' do
+    @articles.should respond_to(:<<)
+  end
+
   describe '#<<' do
-    it 'should append the resource onto the collection' do
-      @articles << @new_article
-      @articles.last.should == @new_article
+    before do
+      @resource = @model.new(:title => 'Title')
+      @return = @articles << @resource
     end
 
-    it 'should relate each new resource to the collection' do
-      # resource is orphaned
-      @new_article.collection.object_id.should_not == @articles.object_id
-
-      @articles << @new_article
-
-      # resource is related
-      @new_article.collection.object_id.should == @articles.object_id
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
     end
 
     it 'should return self' do
-      @articles.<<(@new_article).object_id.should == @articles.object_id
+      @return.object_id.should == @articles.object_id
     end
+
+    it 'should append the Resource to the Collection' do
+      @articles.last.object_id.should == @resource.object_id
+    end
+
+    it 'should relate the Resource to the Collection' do
+      @resource.collection.object_id.should == @articles.object_id
+    end
+  end
+
+  it 'should respond to #all' do
+    @articles.should respond_to(:all)
   end
 
   describe '#all' do
     describe 'with no arguments' do
+      before do
+        @return = @articles.all
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
       it 'should return self' do
-        @articles.object_id.should == @articles.object_id
+        @return.object_id.should == @articles.object_id
       end
-    end
 
-    describe 'with query arguments' do
-      describe 'should return a Collection' do
+      describe 'the query' do
         before do
-          @articles = @articles.all(:limit => 10, :offset => 10)
+          @query = @return.query
         end
 
-        it 'has an offset equal to 10' do
-          @articles.all.query.offset.should == 10
+        it 'should have an offset equal to 0' do
+          @query.offset.should == 0
         end
 
-        it 'has a cumulative offset equal to 11 when passed an offset of 1' do
-          @articles.all(:offset => 1).query.offset.should == 11
-        end
-
-        it 'has a cumulative offset equal to 19 when passed an offset of 9' do
-          @articles.all(:offset => 9).query.offset.should == 19
-        end
-
-        it 'is empty when passed an offset that is out of range' do
-          pending do
-            empty_collection = @articles.all(:offset => 10)
-            empty_collection.should == []
-            empty_collection.should be_loaded
-          end
-        end
-
-        it 'has an limit equal to 10' do
-          @articles.all.query.limit.should == 10
-        end
-
-        it 'has a limit equal to 5' do
-          @articles.all(:limit => 5).query.limit.should == 5
-        end
-
-        it 'has a limit equal to 10 if passed a limit greater than 10' do
-          @articles.all(:limit => 11).query.limit.should == 10
-        end
-
-        describe 'limitless collections' do
-          before do
-            query = DataMapper::Query.new(@article_repository, @model)
-            @unlimited = DataMapper::Collection.new(query) {}
-          end
-
-          it 'has a nil limit' do
-            @unlimited.query.limit.should be_nil
-          end
-
-          it 'has a limit equal to 1000 when passed a limit of 1000' do
-            @unlimited.all(:limit => 1000).query.limit.should == 1000
-          end
+        it 'should have a limit equal to nil' do
+          @query.limit.should be_nil
         end
       end
     end
+
+    describe 'with arguments' do
+      before do
+        @return = @articles.all(:limit => 10, :offset => 10)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return a new Collection' do
+        @return.object_id.should_not == @articles.object_id
+      end
+
+      describe 'the query' do
+        before do
+          @query = @return.query
+        end
+
+        it 'should have an offset equal to 10' do
+          @query.offset.should == 10
+        end
+
+        it 'should have a limit equal to 10' do
+          @query.limit.should == 10
+        end
+
+        it 'should have a cumulative offset equal to 11 when all passed an offset of 1' do
+          @return.all(:offset => 1).query.offset.should == 11
+        end
+
+        it 'should have a cumulative offset equal to 19 when all passed an offset of 9' do
+          @return.all(:offset => 9).query.offset.should == 19
+        end
+
+        it 'should have a cumulative limit equal to 10 when all passed a limit greater than 10' do
+          @return.all(:limit => 11).query.limit.should == 10
+        end
+      end
+
+      it 'is empty when passed an offset that is out of range' do
+        pending do
+          empty_collection = @return.all(:offset => 10)
+          empty_collection.should == []
+          empty_collection.should be_loaded
+        end
+      end
+    end
+  end
+
+  it 'should respond to #at' do
+    @articles.should respond_to(:at)
   end
 
   describe '#at' do
-    it 'should return the resource by offset' do
-      @articles.at(0).id.should == @article.id
+    describe 'with positive offset' do
+      before do
+        @return = @resource = @articles.at(0)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should return the Resource by offset' do
+        @return.key.should == @article.key
+      end
     end
 
-    it 'should return a Resource' do
-      @articles.at(0).should be_kind_of(DataMapper::Resource)
-    end
+    describe 'with negative offset' do
+      before do
+        @return = @resource = @articles.at(-1)
+      end
 
-    it 'should return a Resource when using a negative index' do
-      article_at = @articles.at(-1)
-      article_at.should be_kind_of(DataMapper::Resource)
-      article_at.id.should == @article.id
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should return the Resource by offset' do
+        @return.key.should == @article.key
+      end
     end
+  end
+
+  it 'should respond to #build' do
+    @articles.should respond_to(:build)
   end
 
   describe '#build' do
-    it 'should build a new resource' do
-      article = @articles.build(@new_article.attributes)
-      article.should be_kind_of(@model)
-      article.should be_new_record
+    before do
+      @return = @resource = @articles.build(:content => 'Content')
     end
 
-    it 'should append the new resource to the collection' do
-      article = @articles.build(@new_article.attributes)
-      article.should be_new_record
-      article.collection.object_id.should == @articles.object_id
-      @articles.should include(article)
+    it 'should return a Resource' do
+      @return.should be_kind_of(DataMapper::Resource)
+    end
+
+    it 'should be a Resource with expected attributes' do
+      @resource.attributes.only(:content).should == { :content => 'Content' }
+    end
+
+    it 'should be a new Resource' do
+      @resource.should be_new_record
+    end
+
+    it 'should append the Resource to the Collection' do
+      @articles.last.object_id.should == @resource.object_id
     end
 
     it 'should use the query conditions to set default values' do
-      @articles.query.update(@new_article.attributes)
-
-      article = @articles.build
-      article.attributes.except(:site_id).should == @new_article.attributes.except(:site_id)
+      @resource.attributes.only(:title).should == { :title => 'Sample Article' }
     end
+  end
+
+  it 'should respond to #clear' do
+    @articles.should respond_to(:clear)
   end
 
   describe '#clear' do
-    it 'should make the collection empty' do
-      @articles.should_not be_empty
-      @articles.clear
+    before do
+      @resources = @articles.entries
+      @return = @articles.clear
+    end
+
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
+
+    it 'should return self' do
+      @return.object_id.should == @articles.object_id
+    end
+
+    it 'should make the Collection empty' do
       @articles.should be_empty
     end
 
-    it 'should orphan the resource from the collection' do
-      entries = @articles.entries
-
-      # resources are related
-      entries.each { |r| r.collection.object_id.should == @articles.object_id }
-
-      @articles.clear
-
-      # resources are orphaned
-      entries.each { |r| r.collection.object_id.should_not == @articles.object_id }
+    it 'should orphan each removed Resource from the Collection' do
+      @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
     end
+  end
 
-    it 'should return self' do
-      @articles.clear.object_id.should == @articles.object_id
-    end
+  it 'should respond to #collect!' do
+    @articles.should respond_to(:collect!)
   end
 
   describe '#collect!' do
-    it 'should update the collection inline' do
-      @articles.collect! { |article| @model.new(:title => 'other') }.should == [ @model.new(:title => 'other') ]
+    before do
+      @resources = @articles.entries
+      @return = @articles.collect! { |r| @model.new(:title => 'Title') }
+    end
+
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
     end
 
     it 'should return self' do
-      @articles.collect! { |article| article }.object_id.should == @articles.object_id
+      @return.object_id.should == @articles.object_id
     end
+
+    it 'should update the Collection inline' do
+      @articles.should == [ @model.new(:title => 'Title') ]
+    end
+
+    it 'should orphan each replaced Resource from the Collection' do
+      pending do
+        @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+      end
+    end
+  end
+
+  it 'should respond to #concat' do
+    @articles.should respond_to(:concat)
   end
 
   describe '#concat' do
-    it 'should concatenate the two collections' do
-      @articles.concat(@other_articles).should == [ @article, @other ]
+    before do
+      @resources = @other_articles.entries
+      @return = @articles.concat(@other_articles)
+    end
+
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
     end
 
     it 'should return self' do
-      @articles.concat(@other_articles).object_id.should == @articles.object_id
+      @return.object_id.should == @articles.object_id
+    end
+
+    it 'should concatenate the two collections' do
+      @return.should == [ @article, @other ]
+    end
+
+    it 'should relate each concatenated Resource from the Collection' do
+      pending do
+        @resources.each { |r| r.collection.object_id.should == @articles.object_id }
+      end
     end
   end
 
+  it 'should respond to #create' do
+    @articles.should respond_to(:create)
+  end
+
   describe '#create' do
-    it 'should create a new resource' do
-      article = @articles.create(@new_article.attributes)
-      article.should be_kind_of(@model)
-      article.should_not be_new_record
+    before do
+      @return = @resource = @articles.create(:content => 'Content')
     end
 
-    it 'should append the new resource to the collection' do
-      article = @articles.create(@new_article.attributes)
-      article.should_not be_new_record
-      article.collection.object_id.should == @articles.object_id
-      @articles.should include(article)
+    it 'should return a Resource' do
+      @return.should be_kind_of(DataMapper::Resource)
     end
 
-# TODO: refactor to not use mocks
+    it 'should be a Resource with expected attributes' do
+      @resource.attributes.only(:content).should == { :content => 'Content' }
+    end
+
+    it 'should be a saved Resource' do
+      @resource.should_not be_new_record
+    end
+
+    it 'should append the Resource to the Collection' do
+      @articles.last.object_id.should == @resource.object_id
+    end
+
+    it 'should use the query conditions to set default values' do
+      @resource.attributes.only(:title).should == { :title => 'Sample Article' }
+    end
+
+# XXX: how can this be refactored without a mock that fails?
 #    it 'should not append the resource if it was not saved' do
 #      @article_repository.should_receive(:create).and_return(false)
 #      @model.should_receive(:repository).at_least(:once).and_return(@article_repository)
@@ -204,167 +311,164 @@ describe 'A Collection', :shared => true do
 #      article.collection.object_id.should_not == @articles.object_id
 #      @articles.should_not include(article)
 #    end
+  end
 
-    it 'should use the query conditions to set default values' do
-      @articles.query.update(@new_article.attributes)
-
-      article = @articles.create
-      article.attributes.except(:id, :site_id).should == @new_article.attributes.except(:id, :site_id)
-    end
+  it 'should respond to #delete' do
+    @articles.should respond_to(:delete)
   end
 
   describe '#delete' do
-    it 'should delete the matching resource' do
-      @articles.should have(1).entries
-      @articles.delete(@article)
-      @articles.should be_empty
+    describe 'with a Resource within the Collection' do
+      before do
+        @return = @resource = @articles.delete(@article)
+      end
+
+      it 'should return a DataMapper::Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be the expected Resource' do
+        @resource.should == @article  # may be different object_id depending on the Adapter
+      end
+
+      it 'should orphan the Resource' do
+        @resource.collection.object_id.should_not == @articles.object_id
+      end
     end
 
-    it 'should orphan the resource from the collection' do
-      articles = @article.collection
-      articles.delete(@article)
-      @article.collection.object_id.should_not == articles.object_id
-    end
+    describe 'with a Resource not within the Collection' do
+      before do
+        @return = @articles.delete(@other)
+      end
 
-    it 'should return a Resource' do
-      article = @articles.delete(@article)
-
-      article.should be_kind_of(DataMapper::Resource)
-      article.object_id.should == @article.object_id
+      it 'should return nil' do
+        @return.should be_nil
+      end
     end
   end
 
+  it 'should respond to #delete_at' do
+    @articles.should respond_to(:delete_at)
+  end
+
   describe '#delete_at' do
-    it 'should delete the resource by index' do
-      @articles.should have(1).entries
-      @articles.delete_at(0)
-      @articles.should be_empty
+    describe 'with an index within the Collection' do
+      before do
+        @return = @resource = @articles.delete_at(0)
+      end
+
+      it 'should return a DataMapper::Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be the expected Resource' do
+        @resource.should == @article  # may be different object_id depending on the Adapter
+      end
+
+      it 'should orphan the Resource' do
+        @resource.collection.object_id.should_not == @articles.object_id
+      end
     end
 
-    it 'should orphan the resource from the collection' do
-      articles = @article.collection
-      articles.delete_at(0)
-      @article.collection.object_id.should_not == articles.object_id
+    describe 'with an index not within the Collection' do
+      before do
+        @return = @articles.delete_at(1)
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
+      end
     end
+  end
 
-    it 'should return a Resource' do
-      articles = @article.collection
-
-      article = articles.delete_at(0)
-
-      article.should be_kind_of(DataMapper::Resource)
-      article.object_id.should == @article.object_id
-    end
+  it 'should respond to #destroy!' do
+    @articles.should respond_to(:destroy!)
   end
 
   describe '#destroy!' do
     before do
-      @titles = [ @article.title ]
+      @return = @articles.destroy!
     end
 
-    it 'should destroy the resources in the collection' do
-      @articles.map { |r| r.id }.should == @titles
-      @articles.destroy!
-      @model.all(:title => @titles).should == []
+    it 'should return true' do
+      @return.should be_true
+    end
+
+    it 'should remove the resources from the datasource' do
+      @model.all(:title => 'Sample Article').should be_empty
     end
 
     it 'should clear the collection' do
-      @articles.map { |r| r.id }.should == @titles
-      @articles.destroy!
-      @articles.should == []
+      @articles.should be_empty
     end
 
-    it 'should return true if successful' do
-      @articles.destroy!.should == true
-    end
+    it 'should skip foreign key validation'
   end
 
-  describe '#each' do
-    it 'should yield to each resource in the collection' do
-      articles = []
-      @articles.each { |article| articles << article }
-      articles.should == @articles
-    end
-
-    it 'should return self' do
-      @articles.each { |article| }.object_id.should == @articles.object_id
-    end
-  end
-
-  describe '#each_index' do
-    it 'should yield to the index of each resource in the collection' do
-      indexes = []
-      @articles.each_index { |index| indexes << index }
-      indexes.should == [ 0 ]
-    end
-
-    it 'should return self' do
-      @articles.each_index { |index| }.object_id.should == @articles.object_id
-    end
-  end
-
-  describe '#eql?' do
-    it 'should return true if for the same collection' do
-      @articles.object_id.should == @articles.object_id
-      @articles.should be_eql(@articles)
-    end
-
-    it 'should return true for duplicate collections' do
-      dup = @articles.dup
-      dup.object_id.should_not == @articles.object_id
-      dup.should be_eql(@articles)
-    end
-
-    it 'should return false for different collections' do
-      @articles.should_not be_eql(@other_articles)
-    end
-  end
-
-  describe '#fetch' do
-    it 'should return the expected resource' do
-      @articles.fetch(0).should == @article
-    end
-
-    it 'should return a Resource' do
-      @articles.fetch(0).should be_kind_of(DataMapper::Resource)
-    end
+  it 'should respond to #first' do
+    @articles.should respond_to(:first)
   end
 
   describe '#first' do
     describe 'with no arguments' do
-      it 'should return the first resource' do
-        @articles.first.id.should == @article.id
+      before do
+        @return = @resource = @articles.first
       end
 
       it 'should return a Resource' do
-        @articles.first.should be_kind_of(DataMapper::Resource)
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be first Resource in the Collection' do
+        @resource.should == @article
       end
     end
 
     describe 'with limit specified' do
-      it 'should return the first N resources' do
-        @articles.first(1).should == [ @article ]
-      end
-
-      it 'should order based on the model defaults' do
-        order = @articles.first(1).query.order
-        order.size.should == 1
-        order.first.property.should == @model.properties[:title]
-        order.first.direction.should == :asc
+      before do
+        @return = @collection = @articles.first(1)
       end
 
       it 'should return a Collection' do
-        @articles.first(1).should be_kind_of(DataMapper::Collection)
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should be the first N Resources in the Collection' do
+        @collection.should == [ @article ]
+      end
+    end
+
+    describe 'with query specified' do
+      before do
+        @return = @resource = @articles.first(:content => 'Sample')
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should should be the first Resource in the Collection matching the query' do
+        @resource.should == @article
+      end
+    end
+
+    describe 'with limit and query specified' do
+      before do
+        @return = @collection =  @articles.first(1, :content => 'Sample')
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should be the first N Resources in the Collection matching the query' do
+        @collection.should == [ @article ]
       end
     end
   end
 
-  describe '#freeze' do
-    it 'should freeze the collection' do
-      @articles.should_not be_frozen
-      @articles.freeze
-      @articles.should be_frozen
-    end
+  it 'should respond to #get' do
+    @articles.should respond_to(:get)
   end
 
 #  describe '#get' do
@@ -386,7 +490,11 @@ describe 'A Collection', :shared => true do
 #      @articles.get(@david.key).should be_nil
 #    end
 #  end
-#
+
+  it 'should respond to #get!' do
+    @articles.should respond_to(:get!)
+  end
+
 #  describe '#get!' do
 #    it 'should find a resource in a collection by key' do
 #      article = @articles.get!(*@new_article.key)
@@ -402,13 +510,21 @@ describe 'A Collection', :shared => true do
 #      }.should raise_error(DataMapper::ObjectNotFoundError)
 #    end
 #  end
-#
+
+  it 'should respond to #insert' do
+    @articles.should respond_to(:insert)
+  end
+
 #  describe '#insert' do
 #    it 'should return self' do
 #      @articles.insert(1, @steve).object_id.should == @articles.object_id
 #    end
 #  end
-#
+
+  it 'should respond to #last' do
+    @articles.should respond_to(:last)
+  end
+
 #  describe '#last' do
 #    describe 'with no arguments' do
 #      it 'should return a Resource' do
@@ -446,7 +562,11 @@ describe 'A Collection', :shared => true do
 #      end
 #    end
 #  end
-#
+
+  it 'should respond to #load' do
+    @articles.should respond_to(:load)
+  end
+
 #  describe '#load' do
 #    it 'should load resources from the identity map when possible' do
 #      @steve.collection = nil
@@ -464,21 +584,11 @@ describe 'A Collection', :shared => true do
 #      @articles.load([ @steve.id, @steve.name, @steve.age ]).should be_kind_of(DataMapper::Resource)
 #    end
 #  end
-#
-#  describe '#loaded?' do
-#    if loaded
-#      it 'should return true for an initialized collection' do
-#        @articles.should be_loaded
-#      end
-#    else
-#      it 'should return false for an uninitialized collection' do
-#        @articles.should_not be_loaded
-#        @articles.to_a  # load collection
-#        @articles.should be_loaded
-#      end
-#    end
-#  end
-#
+
+  it 'should respond to #pop' do
+    @articles.should respond_to(:pop)
+  end
+
 #  describe '#pop' do
 #    it 'should orphan the resource from the collection' do
 #      collection = @steve.collection
@@ -498,18 +608,11 @@ describe 'A Collection', :shared => true do
 #      @articles.pop.key.should == @steve.key
 #    end
 #  end
-#
-#  describe '#properties' do
-#    it 'should return a PropertySet' do
-#      @articles.properties.should be_kind_of(DataMapper::PropertySet)
-#    end
-#
-#    it 'should contain same properties as query.fields' do
-#      properties = @articles.properties
-#      properties.entries.should == @articles.query.fields
-#    end
-#  end
-#
+
+  it 'should respond to #push' do
+    @articles.should respond_to(:push)
+  end
+
 #  describe '#push' do
 #    it 'should relate each new resource to the collection' do
 #      # resource is orphaned
@@ -525,32 +628,11 @@ describe 'A Collection', :shared => true do
 #      @articles.push(@steve).object_id.should == @articles.object_id
 #    end
 #  end
-#
-#  describe '#relationships' do
-#    it 'should return a Hash' do
-#      @articles.relationships.should be_kind_of(Hash)
-#    end
-#
-#    it 'should contain same properties as query.model.relationships' do
-#      relationships = @articles.relationships
-#      relationships.should == @articles.query.model.relationships
-#    end
-#  end
-#
-#  describe '#reject' do
-#    it 'should return a Collection with resources that did not match the block' do
-#      rejected = @articles.reject { |article| false }
-#      rejected.class.should == Array
-#      rejected.should == [ @new_article, @bessie, @steve ]
-#    end
-#
-#    it 'should return an empty Array if resources matched the block' do
-#      rejected = @articles.reject { |article| true }
-#      rejected.class.should == Array
-#      rejected.should == []
-#    end
-#  end
-#
+
+  it 'should respond to #reject!' do
+    @articles.should respond_to(:reject!)
+  end
+
 #  describe '#reject!' do
 #    it 'should return self if resources matched the block' do
 #      @articles.reject! { |article| true }.object_id.should == @articles.object_id
@@ -560,7 +642,11 @@ describe 'A Collection', :shared => true do
 #      @articles.reject! { |article| false }.should be_nil
 #    end
 #  end
-#
+
+  it 'should respond to #reload' do
+    @articles.should respond_to(:reload)
+  end
+
 #  describe '#reload' do
 #    it 'should return self' do
 #      @articles.reload.object_id.should == @articles.object_id
@@ -594,7 +680,11 @@ describe 'A Collection', :shared => true do
 #      @articles.reload
 #    end
 #  end
-#
+
+  it 'should respond to #replace' do
+    @articles.should respond_to(:replace)
+  end
+
 #  describe '#replace' do
 #    it "should orphan each existing resource from the collection if loaded?" do
 #      entries = @articles.entries
@@ -628,7 +718,11 @@ describe 'A Collection', :shared => true do
 #      @articles.object_id.should_not == @other_articles.object_id
 #    end
 #  end
-#
+
+  it 'should respond to #reverse' do
+    @articles.should respond_to(:reverse)
+  end
+
 #  describe '#reverse' do
 #    [ true, false ].each do |loaded|
 #      describe "on a collection where loaded? == #{loaded}" do
@@ -649,33 +743,11 @@ describe 'A Collection', :shared => true do
 #      end
 #    end
 #  end
-#
-#  describe '#reverse!' do
-#    it 'should return self' do
-#      @articles.reverse!.object_id.should == @articles.object_id
-#    end
-#  end
-#
-#  describe '#reverse_each' do
-#    it 'should return self' do
-#      @articles.reverse_each { |article| }.object_id.should == @articles.object_id
-#    end
-#  end
-#
-#  describe '#select' do
-#    it 'should return an Array with resources that matched the block' do
-#      selected = @articles.select { |article| true }
-#      selected.class.should == Array
-#      selected.should == @articles
-#    end
-#
-#    it 'should return an empty Array if no resources matched the block' do
-#      selected = @articles.select { |article| false }
-#      selected.class.should == Array
-#      selected.should == []
-#    end
-#  end
-#
+
+  it 'should respond to #shift' do
+    @articles.should respond_to(:shift)
+  end
+
 #  describe '#shift' do
 #    it 'should orphan the resource from the collection' do
 #      collection = @new_article.collection
@@ -695,9 +767,13 @@ describe 'A Collection', :shared => true do
 #      @articles.shift.key.should == @new_article.key
 #    end
 #  end
-#
-#  [ :slice, :[] ].each do |method|
-#    describe '#slice' do
+
+  [ :slice, :[] ].each do |method|
+    it "should respond to ##{method}" do
+      @articles.should respond_to(method)
+    end
+
+#    describe "##{method}" do
 #      describe 'with an index' do
 #        it 'should return a Resource' do
 #          resource = @articles.send(method, 0)
@@ -726,8 +802,12 @@ describe 'A Collection', :shared => true do
 #        end
 #      end
 #    end
-#  end
-#
+  end
+
+  it 'should respond to #slice!' do
+    @articles.should respond_to(:slice)
+  end
+
 #  describe '#slice!' do
 #    describe 'with an index' do
 #      it 'should return a Resource' do
@@ -755,20 +835,21 @@ describe 'A Collection', :shared => true do
 #      end
 #    end
 #  end
-#
-#  describe '#sort' do
-#    it 'should return an Array' do
-#      sorted = @articles.sort { |a,b| a.age <=> b.age }
-#      sorted.class.should == Array
-#    end
-#  end
-#
+
+  it 'should respond to #sort!' do
+    @articles.should respond_to(:sort!)
+  end
+
 #  describe '#sort!' do
 #    it 'should return self' do
 #      @articles.sort! { |a,b| 0 }.object_id.should == @articles.object_id
 #    end
 #  end
-#
+
+  it 'should respond to #unshift' do
+    @articles.should respond_to(:unshift)
+  end
+
 #  describe '#unshift' do
 #    it 'should relate each new resource to the collection' do
 #      # resource is orphaned
@@ -785,11 +866,11 @@ describe 'A Collection', :shared => true do
 #    end
 #  end
 
-  describe '#update' do
-    it 'should be awesome'
+  it 'should respond to #update!' do
+    @articles.should respond_to(:update!)
   end
 
-  describe '#update!' do
+#  describe '#update!' do
 #    it 'should update the resources in the collection' do
 #      pending do
 #        # this will not pass with new update!
@@ -804,69 +885,45 @@ describe 'A Collection', :shared => true do
 #        @articles.map { |r| r.name }.should == %w[ John ] * 3
 #      end
 #    end
-
-    it 'should not update loaded resources unless forced' do
-      pending 'Fix in-memory adapter to return copies of data'
-      @article_repository.scope do
-        articles = @articles.reload
-        article  = articles.first
-
-        article.title.should == 'Sample Article'
-
-        articles.update!(:title => 'Updated Article')
-
-        article.title.should == 'Sample Article'
-      end
-    end
-
-    it 'should update loaded resources if forced' do
-      @article_repository.scope do |r|
-        articles = @articles.reload
-        article  = @model.first(:title => 'Sample Article')
-
-        articles.update!({ :title => 'Updated Article' }, true)
-
-        article.title.should == 'Updated Article'
-      end
-    end
-
-    it 'should update collection-query when updating' do
-      get_condition = lambda do |collection,name|
-        collection.query.conditions.detect { |c| c[0] == :eql && c[1].name == name }[2]
-      end
-
-      @article_repository.scope do
-        articles = @articles.all(:title => 'Sample Article')
-        get_condition.call(articles, :title).should == 'Sample Article'
-        articles.length.should == 1
-        articles.update!(:title => 'Updated Article')
-        articles.length.should == 1
-        get_condition.call(articles, :title).should == 'Updated Article'
-      end
-    end
-  end
-
-#  describe '#keys' do
-#    it 'should return a hash of keys' do
-#      keys = @articles.send(:keys)
-#      keys.length.should == 1
-#      keys.each{|property,values| values.should == [1,2,3]}
+#
+#    it 'should not update loaded resources unless forced' do
+#      pending 'Fix in-memory adapter to return copies of data'
+#      @article_repository.scope do
+#        articles = @articles.reload
+#        article  = articles.first
+#
+#        article.title.should == 'Sample Article'
+#
+#        articles.update!(:title => 'Updated Article')
+#
+#        article.title.should == 'Sample Article'
+#      end
 #    end
 #
-#    it 'should return an empty hash if collection is empty' do
-#      keys = Zebra.all(:id.gt => 10000).send(:keys)
-#      keys.should == {}
-#    end
-#  end
+#    it 'should update loaded resources if forced' do
+#      @article_repository.scope do |r|
+#        articles = @articles.reload
+#        article  = @model.first(:title => 'Sample Article')
 #
-#  describe '#values_at' do
-#    it 'should return an Array' do
-#      values = @articles.values_at(0)
-#      values.class.should == Array
+#        articles.update!({ :title => 'Updated Article' }, true)
+#
+#        article.title.should == 'Updated Article'
+#      end
 #    end
 #
-#    it 'should return an Array of the resources at the index' do
-#      @articles.values_at(0).entries.map { |r| r.id }.should == [ @new_article.id ]
+#    it 'should update collection-query when updating' do
+#      get_condition = lambda do |collection,name|
+#        collection.query.conditions.detect { |c| c[0] == :eql && c[1].name == name }[2]
+#      end
+#
+#      @article_repository.scope do
+#        articles = @articles.all(:title => 'Sample Article')
+#        get_condition.call(articles, :title).should == 'Sample Article'
+#        articles.length.should == 1
+#        articles.update!(:title => 'Updated Article')
+#        articles.length.should == 1
+#        get_condition.call(articles, :title).should == 'Updated Article'
+#      end
 #    end
 #  end
 end

@@ -22,7 +22,7 @@ Autotest.add_hook :initialize do |at|
     filename
   end
 
-  # when a collection shared spec is update, make sure all dependent specs pass
+  # when the collection shared spec is update, make sure all dependent specs pass
   at.add_mapping %r{\Aspec/collection_shared_spec\.rb\z} do
     at.files_matching %r{\Aspec/#{spec_folders}/collection_spec\.rb\z}
   end
