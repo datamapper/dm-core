@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Model do
   before do
-    # class EmptyModel 
+    # class EmptyModel
     #   include DataMapper::Resource
 
     #   property :id, Integer, :key => true
@@ -17,7 +17,7 @@ describe DataMapper::Model do
     end
 
     it "should append the module given when DM::Model is extended" do
-      class ExtendMe 
+      class ExtendMe
         include DataMapper::Resource
         property :id, Integer, :key => true
       end
@@ -26,6 +26,6 @@ describe DataMapper::Model do
     end
 
   end
-  
+
 
 end
