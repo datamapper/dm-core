@@ -455,17 +455,26 @@ module DataMapper
       return loaded? ? changes == size : changes > 0
     end
 
-    # TODO: document
+    ##
+    # Remove all Resources from the datasource (TODO)
+    #
+    # This performs a deletion of each Resource in the Collection from
+    # the datasource and clears the Collection.
+    #
+    # @return [TrueClass, FalseClass]
+    #   TrueClass indicates that all entries were affected
+    #   FalseClass indicates that not all entries were affected
+    #
     # @api public
     def destroy
       raise NotImplementedError, 'destroy *with* validations has not be written yet, try destroy!'
     end
 
     ##
-    # Remove all Resources from the datasource without any validation.
+    # Remove all Resources from the datasource without any validation
     #
     # This performs a deletion of each Resource in the Collection from
-    # the datasource, clears the Collection while skipping any foreign
+    # the datasource and clears the Collection while skipping foreign
     # key validation (TODO).
     #
     # @return [TrueClass, FalseClass]

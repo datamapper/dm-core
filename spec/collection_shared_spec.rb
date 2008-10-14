@@ -359,6 +359,30 @@ describe 'A Collection', :shared => true do
     end
   end
 
+  it 'should respond to #destroy' do
+    @articles.should respond_to(:destroy)
+  end
+
+  describe '#destroy' do
+    before do
+      pending do
+        @return = @articles.destroy
+      end
+    end
+
+    it 'should return true' do
+      @return.should be_true
+    end
+
+    it 'should remove the resources from the datasource' do
+      @model.all(:title => 'Sample Article').should be_empty
+    end
+
+    it 'should clear the collection' do
+      @articles.should be_empty
+    end
+  end
+
   it 'should respond to #destroy!' do
     @articles.should respond_to(:destroy!)
   end
