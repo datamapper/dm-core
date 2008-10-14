@@ -93,7 +93,7 @@ module DataMapper
 
         # limit the results
         if query.limit || query.offset > 0
-          results = results[query.offset, query.limit]
+          results = results[query.offset, query.limit || results.size]
         end
 
         properties = query.fields
