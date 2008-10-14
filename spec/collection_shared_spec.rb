@@ -525,43 +525,63 @@ describe 'A Collection', :shared => true do
     @articles.should respond_to(:last)
   end
 
-#  describe '#last' do
-#    describe 'with no arguments' do
-#      it 'should return a Resource' do
-#        last = @articles.last
-#        last.should_not be_nil
-#        last.should be_kind_of(DataMapper::Resource)
-#        last.id.should == @steve.id
-#      end
-#    end
-#
-#    describe 'with limit specified' do
-#      it 'should return a Collection' do
-#        collection = @articles.last(2)
-#
-#        collection.should be_kind_of(DataMapper::Collection)
-#        collection.object_id.should_not == @articles.object_id
-#
-#        collection.query.order.size.should == 1
-#        collection.query.order.first.property.should == @model.properties[:id]
-#        collection.query.order.first.direction.should == :desc
-#
-#        collection.query.offset.should == 0
-#        collection.query.limit.should == 2
-#
-#        collection.length.should == 2
-#
-#        collection.entries.map { |r| r.id }.should == [ @bessie.id, @steve.id ]
-#      end
-#
-#      it 'should return a Collection if limit is 1' do
-#        collection = @articles.last(1)
-#
-#        collection.class.should == DataMapper::Collection  # should be_kind_of(DataMapper::Collection)
-#        collection.object_id.should_not == @articles.object_id
-#      end
-#    end
-#  end
+  describe '#last' do
+    describe 'with no arguments' do
+      before do
+        @return = @resource = @articles.last
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be last Resource in the Collection' do
+        @resource.should == @article
+      end
+    end
+
+    describe 'with limit specified' do
+      before do
+        @return = @collection = @articles.last(1)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should be the last N Resources in the Collection' do
+        @collection.should == [ @article ]
+      end
+    end
+
+    describe 'with query specified' do
+      before do
+        @return = @resource = @articles.last(:content => 'Sample')
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should should be the last Resource in the Collection matching the query' do
+        @resource.should == @article
+      end
+    end
+
+    describe 'with limit and query specified' do
+      before do
+        @return = @collection =  @articles.last(1, :content => 'Sample')
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should be the last N Resources in the Collection matching the query' do
+        @collection.should == [ @article ]
+      end
+    end
+  end
 
   it 'should respond to #load' do
     @articles.should respond_to(:load)

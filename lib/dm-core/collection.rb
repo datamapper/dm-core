@@ -154,12 +154,21 @@ module DataMapper
     end
 
     ##
-    # Simulates Array#last by returning the last entry (when
-    # there are no arguments), or transforming the Collection's
-    # query by reversing the declared order, and applying
-    # :limit => n when you supply an Integer.  If you
-    # supply a conditions hash, or a Query object, the
-    # internal query is scoped and a new collection is returned
+    # Return the last Resource or the last N Resources in the Collection with an optional query
+    #
+    # When there are no arguments, return the last Resource in the
+    # Collection.  When the first argument is an Integer, return a
+    # Collection containing the last N Resources.  When the last
+    # (optional) argument is a Hash scope the results to the query.
+    #
+    # @param [Integer] limit (optional) limit the returned Collection
+    #   to a specific number of entries
+    # @param [Hash] query (optional) scope the returned Resource or
+    #   Collection to the supplied query
+    #
+    # @return [DataMapper::Resource, DataMapper::Collection] The
+    #   last resource in the entries of this collection, or
+    #   a new collection whose query has been merged
     #
     # @api public
     def last(*args)
