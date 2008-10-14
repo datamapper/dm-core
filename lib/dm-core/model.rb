@@ -234,6 +234,10 @@ module DataMapper
       properties(repository_name).key
     end
 
+    def inheritance_property(repository_name = default_repository_name)
+      @properties[repository_name].detect { |property| property.type == DataMapper::Types::Discriminator }
+    end
+
     def default_order(repository_name = default_repository_name)
       @default_order ||= {}
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }

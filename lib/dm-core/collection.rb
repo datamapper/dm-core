@@ -35,7 +35,9 @@ module DataMapper
     # @api public
     def reload(query = {})
       @query = scoped_query(query)
-      @query.update(:fields => @query.fields | @key_properties)
+      inheritance_property  = model.base_model.inheritance_property
+      fields  = (@key_properties | [inheritance_property]).compact
+      @query.update(:fields => @query.fields | fields)
       replace(all(:reload => true))
     end
 

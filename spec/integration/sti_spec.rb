@@ -14,6 +14,7 @@ if HAS_SQLITE3
         property :id,       Serial
         property :title,    String,     :nullable => false
         property :isbn,     Integer,    :nullable => false
+        property :content,  Text
         property :class_type, Discriminator
       end
 
@@ -223,6 +224,47 @@ if HAS_SQLITE3
             book.isbn.should_not be_nil
             book.moral.should_not be_nil
           end
+        end
+      end
+    end
+
+    describe "with lazy property" do
+      before :all do
+        Book.auto_migrate!(:sqlite3)
+        repository(:sqlite3) do
+          ShortStory.create(
+            :title => "The Science of Happiness",
+            :isbn => "129038",
+            :content => <<-HERE,
+This doesn’t feel like a normal academic conference. True, the three-day Positive Psychology Summit i
+HERE
+            :moral => "Bullshit might get you to the top, but it won't keep you there.")
+            ShortStory.create(
+              :title => "Blank as white paper",
+              :isbn => "129039",
+              :content => '',
+              :moral => "none.")
+        end
+      end
+
+      it "should be able to access the properties from the parent collection" do
+        repository(:sqlite3) do
+          books = Book.all
+
+          books.each do |book|
+            book.title.should_not be_nil
+            book.isbn.should_not be_nil
+            book.moral.should_not be_nil
+          end
+
+          books[0].content
+
+          books.each do |book|
+            book.title.should_not be_nil
+            book.isbn.should_not be_nil
+            book.moral.should_not be_nil
+          end
+
         end
       end
     end
