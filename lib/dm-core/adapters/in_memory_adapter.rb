@@ -118,7 +118,7 @@ module DataMapper
       # TODO: document
       # @api private
       def sorted_results(results, order, repository_name)
-        # get the field if it's sorted in descending/ascending order
+        # get each field and if it's sorted in descending/ascending order
         field_order = field_order(order, repository_name)
 
         # sort results by each field

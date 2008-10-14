@@ -170,7 +170,7 @@ describe 'A Collection', :shared => true do
 
   describe '#clear' do
     before do
-      @resources = @articles.entries
+      @entries = @articles.entries
       @return = @articles.clear
     end
 
@@ -186,8 +186,8 @@ describe 'A Collection', :shared => true do
       @articles.should be_empty
     end
 
-    it 'should orphan each removed Resource from the Collection' do
-      @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+    it 'should orphan each entry in the Collection' do
+      @entries.each { |r| r.collection.object_id.should_not == @articles.object_id }
     end
   end
 
@@ -197,7 +197,7 @@ describe 'A Collection', :shared => true do
 
   describe '#collect!' do
     before do
-      @resources = @articles.entries
+      @entries = @articles.entries
       @return = @articles.collect! { |r| @model.new(:title => 'Title') }
     end
 
@@ -213,9 +213,9 @@ describe 'A Collection', :shared => true do
       @articles.should == [ @model.new(:title => 'Title') ]
     end
 
-    it 'should orphan each replaced Resource from the Collection' do
+    it 'should orphan each replaced entry in the Collection' do
       pending do
-        @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+        @entries.each { |r| r.collection.object_id.should_not == @articles.object_id }
       end
     end
   end
@@ -669,39 +669,57 @@ describe 'A Collection', :shared => true do
     @articles.should respond_to(:reload)
   end
 
-#  describe '#reload' do
-#    it 'should return self' do
-#      @articles.reload.object_id.should == @articles.object_id
-#    end
-#
-#    it 'should replace the collection' do
-#      original = @articles.dup
-#      @articles.reload.should == @articles
-#      @articles.should == original
-#    end
-#
-#    it 'should reload lazily initialized fields' do
-#      pending 'Move to unit specs'
-#
-#      @article_repository.should_receive(:all) do |model,query|
-#        model.should == @model
-#
-#        query.should be_instance_of(DataMapper::Query)
-#        query.reload.should     == true
-#        query.offset.should     == 0
-#        query.limit.should      == 10
-#        query.order.should      == []
-#        query.fields.should     == @model.properties.defaults
-#        query.links.should      == []
-#        query.includes.should   == []
-#        query.conditions.should == [ [ :eql, @model.properties[:id], [ 1, 2, 3 ] ] ]
-#
-#        @articles
-#      end
-#
-#      @articles.reload
-#    end
-#  end
+  describe '#reload' do
+    describe 'with no arguments' do
+      before do
+        @entries = @articles.entries
+        @return = @collection = @articles.reload
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return self' do
+        @return.object_id.should == @articles.object_id
+      end
+
+      it 'should update the Collection' do
+        pending 'Fix problem with Identity Map of original Query being used automatically' do
+          @articles.each_with_index { |r,i| r.object_id.should_not == @entries[i].object_id }
+        end
+      end
+
+      it 'should have non-lazy query fields loaded' do
+        @return.each { |r| { :title => true, :content => false }.each { |a,c| r.attribute_loaded?(a).should == c } }
+      end
+    end
+
+    describe 'with query' do
+      before do
+        @entries = @articles.entries
+        @return = @collection = @articles.reload(:fields => [ :title, :content ])
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return self' do
+        @return.object_id.should == @articles.object_id
+      end
+
+      it 'should update the Collection' do
+        pending 'Fix problem with Identity Map of original Query being used automatically' do
+          @articles.each_with_index { |r,i| r.object_id.should_not == @entries[i].object_id }
+        end
+      end
+
+      it 'should have all query fields loaded' do
+        @return.each { |r| { :title => true, :content => true }.each { |a,c| r.attribute_loaded?(a).should == c } }
+      end
+    end
+  end
 
   it 'should respond to #replace' do
     @articles.should respond_to(:replace)
@@ -909,7 +927,7 @@ describe 'A Collection', :shared => true do
 #    end
 #
 #    it 'should not update loaded resources unless forced' do
-#      pending 'Fix in-memory adapter to return copies of data'
+#      pending 'Fix problem with Identity Map of original Query being used automatically'
 #      @article_repository.scope do
 #        articles = @articles.reload
 #        article  = articles.first
