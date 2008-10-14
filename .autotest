@@ -1,24 +1,29 @@
 Autotest.add_hook :initialize do |at|
-  ignore = %w[ .git burn www log plugins script tasks bin CHANGELOG FAQ MIT-LICENSE PERFORMANCE QUICKLINKS README ]
-
-  ignore.each do |exception|
+  %w[ .git burn www log plugins script tasks bin CHANGELOG FAQ MIT-LICENSE PERFORMANCE QUICKLINKS README ].each do |exception|
     at.add_exception(exception)
   end
 
   at.clear_mappings
 
-  # when a spec is updated, make sure it passes
-  at.add_mapping %r{\Aspec/(.+)_spec\.rb\z} do |filename,_|
-    filename
-  end
+  spec_folders = /(?:semi)?public/
 
-  # when a file is updated, make sure it's associated public and semipublic specs pass
+  # when a file is updated, make sure it's dependent public and semipublic specs pass
   at.add_mapping %r{\Alib/dm\-core/(.+)\.rb\z} do |_,match|
-    at.files_matching %r{\Aspec/(?:semi)?public/#{match[1]}_spec\.rb\z}
+    at.files_matching %r{\Aspec/#{spec_folders}/#{match[1]}_spec\.rb\z}
   end
 
   # when the spec configuration changes make sure all specs pass
   at.add_mapping %r{\Aspec/spec_helper\.rb\z} do
     at.files_matching %r{\Aspec/.+_spec\.rb\z}
+  end
+
+  # when a spec is updated, make sure it passes
+  at.add_mapping %r{\Aspec/#{spec_folders}/(.+)_spec\.rb\z} do |filename,_|
+    filename
+  end
+
+  # when a collection shared spec is update, make sure all dependent specs pass
+  at.add_mapping %r{\Aspec/collection_shared_spec\.rb\z} do
+    at.files_matching %r{\Aspec/#{spec_folders}/collection_spec\.rb\z}
   end
 end
