@@ -2,12 +2,18 @@ module DataMapper
   class Collection < LazyArray
     include Assertions
 
+    ##
+    # The Query scope
+    #
+    # @return [DataMapper::Query] the Query the Collection is scoped with
+    #
+    # @api public
     attr_reader :query
 
     ##
-    # The associated Repository.
+    # The associated Repository
     #
-    # @return [DataMapper::Repository] the repository the Collection is
+    # @return [DataMapper::Repository] the Repository the Collection is
     #   associated with
     #
     # @api public
@@ -16,7 +22,7 @@ module DataMapper
     end
 
     ##
-    # Initialize a Resource and add it to the Collection.
+    # Initialize a Resource and add it to the Collection
     #
     # This should load a Resource, add it to the Collection and relate
     # the it to the Collection.
@@ -31,7 +37,7 @@ module DataMapper
     end
 
     ##
-    # Reload the Collection from the data source.
+    # Reload the Collection from the data source
     #
     # @param [Hash] query further restrict results with query
     #
@@ -45,7 +51,7 @@ module DataMapper
     end
 
     ##
-    # Lookup a Resource from the Collection by key
+    # Lookup a Resource in the Collection by key
     #
     # @param [Array] key keys which uniquely identify a resource in the
     #   Collection
@@ -81,7 +87,7 @@ module DataMapper
     end
 
     ##
-    # Lookup a Resource from the Collection by key, raising an exception if not found
+    # Lookup a Resource in the Collection by key, raising an exception if not found
     #
     # @param [Array] key keys which uniquely identify a resource in the
     #   Collection
@@ -97,14 +103,11 @@ module DataMapper
     end
 
     ##
-    # Further refines a collection's conditions.  #all provides an
-    # interface which simulates a database view.
+    # Return a Collection scoped by the query
     #
-    # @param [Hash] query parameters for
-    #   an query within the results of the original query.
+    # @param [Hash] (optional) query parameters to scope results with
     #
-    # @return [DataMapper::Collection] a collection whose query is the result
-    #   of a merge
+    # @return [DataMapper::Collection] a Collection scoped by the query
     #
     # @api public
     def all(query = {})
@@ -192,6 +195,7 @@ module DataMapper
     #   matches the supplied offset
     #
     # @api public
+    # TODO: rename param "index" to match Array docs
     def at(offset)
       return super if loaded?
       offset >= 0 ? first(:offset => offset) : last(:offset => offset.abs - 1)
@@ -236,7 +240,7 @@ module DataMapper
     alias [] slice
 
     ##
-    # Return the Collection sorted in reverse.
+    # Return the Collection sorted in reverse
     #
     # @return [DataMapper::Collection]
     #
@@ -246,7 +250,7 @@ module DataMapper
     end
 
     ##
-    # Append one Resource to the Collection.
+    # Append one Resource to the Collection
     #
     # This should append a Resource to the Collection and relate it
     # to the Collection.
@@ -261,7 +265,7 @@ module DataMapper
     end
 
     ##
-    # Append one or more Resources to the Collection.
+    # Append one or more Resources to the Collection
     #
     # This should append one or more Resources to the Collection and
     # relate each to the Collection.
@@ -276,7 +280,7 @@ module DataMapper
     end
 
     ##
-    # Prepend one or more Resources to the Collection.
+    # Prepend one or more Resources to the Collection
     #
     # @return [DataMapper::Collection] self
     #
@@ -288,7 +292,7 @@ module DataMapper
     end
 
     ##
-    # Replace the Resources within the Collection.
+    # Replace the Resources within the Collection
     #
     # @return [DataMapper::Collection] self
     #
@@ -302,18 +306,20 @@ module DataMapper
       self
     end
 
+    # TODO: document
     # @api public
     def pop
       orphan_resource(super)
     end
 
+    # TODO: document
     # @api public
     def shift
       orphan_resource(super)
     end
 
     ##
-    # Remove Resource from the Collection.
+    # Remove Resource from the Collection
     #
     # This should remove an included Resource from the Collection and
     # orphan it from the Collection.  If the Resource is within the
@@ -349,7 +355,7 @@ module DataMapper
     end
 
     ##
-    # Makes the Collection empty.
+    # Makes the Collection empty
     #
     # This should make the Collection empty, and orphan each removed
     # Resource from the Collection.
@@ -366,7 +372,7 @@ module DataMapper
     end
 
     ##
-    # Builds a new Resource and appends it to the Collection.
+    # Builds a new Resource and appends it to the Collection
     #
     # @param [Hash] attributes attributes which
     #   the new resource should have.
@@ -383,7 +389,7 @@ module DataMapper
     end
 
     ##
-    # Creates a new Resource, saves it, and appends it to the Collection.
+    # Creates a new Resource, saves it, and appends it to the Collection
     #
     # @param [Hash] attributes attributes which
     #   the new resource should have.
@@ -399,13 +405,15 @@ module DataMapper
       end
     end
 
+    # TODO: document
+    # @api public
     def update(attributes = {}, preload = false)
       raise NotImplementedError, 'update *with* validations has not be written yet, try update!'
     end
 
     ##
     # batch updates the entries belongs to this collection, and skip
-    # validations for all resources.
+    # validations for all resources
     #
     #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
@@ -447,6 +455,8 @@ module DataMapper
       return loaded? ? changes == size : changes > 0
     end
 
+    # TODO: document
+    # @api public
     def destroy
       raise NotImplementedError, 'destroy *with* validations has not be written yet, try destroy!'
     end
@@ -455,7 +465,7 @@ module DataMapper
     # Remove all Resources from the datasource without any validation.
     #
     # This performs a deletion of each Resource in the Collection from
-    # the datasource, clears the Collection while skipping any forien
+    # the datasource, clears the Collection while skipping any foreign
     # key validation (TODO).
     #
     # @return [TrueClass, FalseClass]
@@ -543,12 +553,16 @@ module DataMapper
 
     protected
 
+    # TODO: document
+    # @api semipublic
     def model
       query.model
     end
 
     private
 
+    # TODO: document
+    # @api public
     def initialize(query, &block)
       assert_kind_of 'query', query, Query
 
@@ -566,11 +580,15 @@ module DataMapper
       load_with(&block)
     end
 
+    # TODO: document
+    # @api private
     def add(resource)
       query.add_reversed? ? unshift(resource) : push(resource)
       resource
     end
 
+    # TODO: document
+    # @api private
     def relate_resource(resource)
       return unless resource
       resource.collection = self
@@ -578,6 +596,8 @@ module DataMapper
       resource
     end
 
+    # TODO: document
+    # @api private
     def orphan_resource(resource)
       return unless resource
       resource.collection = nil if resource.collection.object_id == self.object_id
@@ -608,15 +628,21 @@ module DataMapper
       self.query.merge(query)
     end
 
+    # TODO: document
+    # @api private
     def keys
       keys = map {|r| r.key }
       keys.any? ? @key_properties.zip(keys.transpose).to_hash : {}
     end
 
+    # TODO: document
+    # @api private
     def identity_map
       repository.identity_map(model)
     end
 
+    # TODO: document
+    # @api private
     def set_relative_position(query)
       return if query == self.query
 
@@ -642,6 +668,9 @@ module DataMapper
       query.update(:limit => last_pos - first_pos) if last_pos
     end
 
+    # TODO: document
+    # @api public
+    # TODO: split up each logic branch into a separate method
     def method_missing(method, *args, &block)
       if model.public_methods(false).include?(method.to_s)
         model.send(:with_scope, query) do
