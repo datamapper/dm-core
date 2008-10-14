@@ -7,14 +7,15 @@ describe DataMapper::Adapters::InMemoryAdapter do
     class Heffalump
       include DataMapper::Resource
 
-      property :color,      String, :key => true # TODO: Drop the 'must have a key' limitation
+      property :id,         Serial
+      property :color,      String
       property :num_spots,  Integer
       property :striped,    Boolean
     end
 
-    @heff1 = Heffalump.create(:color => 'Black', :num_spots => 0,   :striped => true)
-    @heff2 = Heffalump.create(:color => 'Brown', :num_spots => 25,  :striped => false)
-    @heff3 = Heffalump.create(:color => 'Blue',  :num_spots => nil, :striped => false)
+    @heff1 = Heffalump.create(:color => 'Black',     :num_spots => 0,   :striped => true)
+    @heff2 = Heffalump.create(:color => 'Brown',     :num_spots => 25,  :striped => false)
+    @heff3 = Heffalump.create(:color => 'Dark Blue', :num_spots => nil, :striped => false)
   end
 
   after do
@@ -26,7 +27,7 @@ describe DataMapper::Adapters::InMemoryAdapter do
   end
 
   it 'should be able to get the object' do
-    Heffalump.get('Black').should == @heff1
+    Heffalump.get(1).should == @heff1
   end
 
   it 'should be able to get all the objects' do
@@ -85,10 +86,18 @@ describe DataMapper::Adapters::InMemoryAdapter do
     Heffalump.all(:num_spots.lte => 0).should == [@heff1]
   end
 
+  it 'should be able to order the objects' do
+    Heffalump.all(:order => [ :color.desc ]).should == [@heff3, @heff2, @heff1]
+  end
+
+  it 'should be able to limit the objects' do
+    Heffalump.all(:limit => 2).should == [@heff1, @heff2]
+  end
+
   it 'should be able to update an object' do
     @heff1.num_spots = 10
     @heff1.save
-    Heffalump.get('Black').num_spots.should == 10
+    Heffalump.get(1).num_spots.should == 10
   end
 
   it 'should be able to destroy an object' do
