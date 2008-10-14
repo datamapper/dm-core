@@ -442,6 +442,7 @@ module DataMapper
     end
 
     # @api private
+    # TODO: move the logic to create relative query into DataMapper::Query
     def scoped_query(query = self.query)
       assert_kind_of 'query', query, Query, Hash
 

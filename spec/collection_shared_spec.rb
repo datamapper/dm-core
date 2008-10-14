@@ -73,7 +73,7 @@ describe 'A Collection', :shared => true do
       end
     end
 
-    describe 'with arguments' do
+    describe 'with query' do
       before do
         @return = @articles.all(:limit => 10, :offset => 10)
       end
@@ -86,30 +86,8 @@ describe 'A Collection', :shared => true do
         @return.object_id.should_not == @articles.object_id
       end
 
-      describe 'the query' do
-        before do
-          @query = @return.query
-        end
-
-        it 'should have an offset equal to 10' do
-          @query.offset.should == 10
-        end
-
-        it 'should have a limit equal to 10' do
-          @query.limit.should == 10
-        end
-
-        it 'should have a cumulative offset equal to 11 when all passed an offset of 1' do
-          @return.all(:offset => 1).query.offset.should == 11
-        end
-
-        it 'should have a cumulative offset equal to 19 when all passed an offset of 9' do
-          @return.all(:offset => 9).query.offset.should == 19
-        end
-
-        it 'should have a cumulative limit equal to 10 when all passed a limit greater than 10' do
-          @return.all(:limit => 11).query.limit.should == 10
-        end
+      it 'should have a different query than original Collection' do
+        @return.query.should_not == @articles.query
       end
 
       it 'is empty when passed an offset that is out of range' do
