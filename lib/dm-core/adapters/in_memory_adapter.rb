@@ -96,6 +96,8 @@ module DataMapper
           results = results[query.offset, query.limit || results.size]
         end
 
+        return if results.empty?
+
         properties = query.fields
 
         # load a Resource for each result

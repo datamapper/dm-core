@@ -7,7 +7,8 @@ describe DataMapper::Collection do
     class Article
       include DataMapper::Resource
 
-      property :title,   String, :key => true
+      property :id,      Serial
+      property :title,   String
       property :content, Text
     end
 
@@ -25,13 +26,15 @@ describe DataMapper::Collection do
 
   it_should_behave_like 'A Collection'
 
+  # TODO: move to semipublic specs
   it 'should respond to #load' do
     @articles.should respond_to(:load)
   end
 
+  # TODO: move to semipublic specs
   describe '#load' do
     before do
-      @return = @resource = @articles.load(%w[ Title ])
+      @return = @resource = @articles.load([ 1, 'Title' ])
     end
 
     it 'should return a Resource' do
@@ -39,7 +42,7 @@ describe DataMapper::Collection do
     end
 
     it 'should be an initialized Resource' do
-      @resource.should == @model.new(:title => 'Title')
+      @resource.should == @model.new(:id => 1, :title => 'Title')
     end
 
     it 'should not be a new Resource' do

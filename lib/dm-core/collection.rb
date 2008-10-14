@@ -53,6 +53,9 @@ module DataMapper
     ##
     # Lookup a Resource in the Collection by key
     #
+    # This looksup a Resource by key, typecasting the key to the
+    # proper object if necessary.
+    #
     # @param [Array] key keys which uniquely identify a resource in the
     #   Collection
     #
@@ -88,6 +91,9 @@ module DataMapper
 
     ##
     # Lookup a Resource in the Collection by key, raising an exception if not found
+    #
+    # This looksup a Resource by key, typecasting the key to the
+    # proper object if necessary.
     #
     # @param [Array] key keys which uniquely identify a resource in the
     #   Collection

@@ -473,25 +473,45 @@ describe 'A Collection', :shared => true do
     @articles.should respond_to(:get)
   end
 
-#  describe '#get' do
-#    it 'should find a resource in a collection by key' do
-#      article = @articles.get(*@new_article.key)
-#      article.should be_kind_of(DataMapper::Resource)
-#      article.id.should == @new_article.id
-#    end
-#
-#    it "should find a resource in a collection by typecasting the key" do
-#      article = @articles.get(@new_article.key.to_s)
-#      article.should be_kind_of(DataMapper::Resource)
-#      article.id.should == @new_article.id
-#    end
-#
-#    it 'should not find a resource not in the collection' do
-#      @query.update(:offset => 0, :limit => 3)
-#      @david = Zebra.create(:name => 'David', :age => 15,  :notes => 'Albino')
-#      @articles.get(@david.key).should be_nil
-#    end
-#  end
+  describe '#get' do
+    describe 'with a key to a Resource within the Collection' do
+      before do
+        @return = @resource = @articles.get(1)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be matching Resource in the Collection' do
+        @resource.should == @article
+      end
+    end
+
+    describe 'with a key to a Resource not within the Collection' do
+      before do
+        @return = @articles.get(99)
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
+      end
+    end
+
+    describe 'with a key not typecast' do
+      before do
+        @return = @resource = @articles.get('1')
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be matching Resource in the Collection' do
+        @resource.should == @article
+      end
+    end
+  end
 
   it 'should respond to #get!' do
     @articles.should respond_to(:get!)
