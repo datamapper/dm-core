@@ -432,6 +432,7 @@ module DataMapper
     #   FalseClass indicates that some entries were affected
     #
     # @api public
+    # TODO: make it so the Collection is always reloaded after update
     def update!(attributes = {}, reload = false)
       # TODO: delegate to Model.update
       return true if attributes.empty?

@@ -930,60 +930,17 @@ describe 'A Collection', :shared => true do
     @articles.should respond_to(:update!)
   end
 
-#  describe '#update!' do
-#    it 'should update the resources in the collection' do
-#      pending do
-#        # this will not pass with new update!
-#        # update! should never loop through and set attributes
-#        # even if it is loaded, and it will not reload the
-#        # changed objects (even with reload=true, as objects
-#        # are created is not in any identity map)
-#        names = [ @new_article.name, @bessie.name, @steve.name ]
-#        @articles.map { |r| r.name }.should == names
-#        @articles.update!(:name => 'John')
-#        @articles.map { |r| r.name }.should_not == names
-#        @articles.map { |r| r.name }.should == %w[ John ] * 3
-#      end
-#    end
-#
-#    it 'should not update loaded resources unless forced' do
-#      pending 'Fix problem with Identity Map of original Query being used automatically'
-#      @article_repository.scope do
-#        articles = @articles.reload
-#        article  = articles.first
-#
-#        article.title.should == 'Sample Article'
-#
-#        articles.update!(:title => 'Updated Article')
-#
-#        article.title.should == 'Sample Article'
-#      end
-#    end
-#
-#    it 'should update loaded resources if forced' do
-#      @article_repository.scope do |r|
-#        articles = @articles.reload
-#        article  = @model.first(:title => 'Sample Article')
-#
-#        articles.update!({ :title => 'Updated Article' }, true)
-#
-#        article.title.should == 'Updated Article'
-#      end
-#    end
-#
-#    it 'should update collection-query when updating' do
-#      get_condition = lambda do |collection,name|
-#        collection.query.conditions.detect { |c| c[0] == :eql && c[1].name == name }[2]
-#      end
-#
-#      @article_repository.scope do
-#        articles = @articles.all(:title => 'Sample Article')
-#        get_condition.call(articles, :title).should == 'Sample Article'
-#        articles.length.should == 1
-#        articles.update!(:title => 'Updated Article')
-#        articles.length.should == 1
-#        get_condition.call(articles, :title).should == 'Updated Article'
-#      end
-#    end
-#  end
+  describe '#update!' do
+    describe 'when Collection changed' do
+      it 'should return true'
+
+      it 'should update attributes of all Resources'
+    end
+
+    describe 'when Collection not changed' do
+      it 'should return false'
+
+      it 'should not update attributes of any Resource'
+    end
+  end
 end
