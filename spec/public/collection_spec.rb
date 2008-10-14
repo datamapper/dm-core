@@ -57,40 +57,4 @@ describe DataMapper::Collection do
       @resource.collection.object_id.should == @articles.object_id
     end
   end
-
-  it 'should respond to #query' do
-    @articles.should respond_to(:query)
-  end
-
-  describe '#query' do
-    before do
-      @return = @articles.query
-    end
-
-    it 'should return a Query' do
-      @return.should be_kind_of(DataMapper::Query)
-    end
-
-    it 'should return the associated Query' do
-      @return.should == @articles_query
-    end
-  end
-
-  it 'should respond to #repository' do
-    @articles.should respond_to(:repository)
-  end
-
-  describe '#repository' do
-    before do
-      @return = @repository = @articles.repository
-    end
-
-    it 'should return a Repository' do
-      @return.should be_kind_of(DataMapper::Repository)
-    end
-
-    it 'should return the associated Repository' do
-      @return.should == @article_repository
-    end
-  end
 end

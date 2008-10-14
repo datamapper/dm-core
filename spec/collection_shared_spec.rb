@@ -627,28 +627,6 @@ describe 'A Collection', :shared => true do
     end
   end
 
-  it 'should respond to #load' do
-    @articles.should respond_to(:load)
-  end
-
-#  describe '#load' do
-#    it 'should load resources from the identity map when possible' do
-#      @steve.collection = nil
-#      @article_repository.identity_map(@model).should_receive(:get).with([ @steve.id ]).and_return(@steve)
-#
-#      collection = @article_repository.read_many(@query.merge(:id => @steve.id))
-#
-#      collection.size.should == 1
-#      collection.map { |r| r.object_id }.should == [ @steve.object_id ]
-#
-#      @steve.collection.object_id.should == collection.object_id
-#    end
-#
-#    it 'should return a Resource' do
-#      @articles.load([ @steve.id, @steve.name, @steve.age ]).should be_kind_of(DataMapper::Resource)
-#    end
-#  end
-
   it 'should respond to #pop' do
     @articles.should respond_to(:pop)
   end

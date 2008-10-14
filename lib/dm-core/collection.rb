@@ -7,7 +7,7 @@ module DataMapper
     #
     # @return [DataMapper::Query] the Query the Collection is scoped with
     #
-    # @api public
+    # @api semipublic
     attr_reader :query
 
     ##
@@ -16,7 +16,7 @@ module DataMapper
     # @return [DataMapper::Repository] the Repository the Collection is
     #   associated with
     #
-    # @api public
+    # @api semipublic
     def repository
       query.repository
     end
@@ -31,7 +31,7 @@ module DataMapper
     #
     # @return [DataMapper::Resource] the loaded Resource
     #
-    # @api private
+    # @api semipublic
     def load(values)
       add(model.load(values, query))
     end
