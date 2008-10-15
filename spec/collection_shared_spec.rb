@@ -870,23 +870,43 @@ share_examples_for 'A Collection' do
 
   describe '#sort!' do
     describe 'without a block' do
-      it 'should return a Collection'
+      before do
+        pending 'add Resource#<=>' do
+          @return = @other_articles.push(*@articles).sort!
+        end
+      end
 
-      it 'should return self'
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
 
-      it 'should sort the Collection using default sort'
+      it 'should return self' do
+        @return.object_id.should == @articles.object_id
+      end
 
-      it 'should modify the Collection inline'
+      it 'should modify and sort the Collection using default sort order' do
+        @articles.should == [ @article, @other ]
+      end
     end
 
     describe 'with a block' do
-      it 'should return a Collection'
+      before do
+        pending 'add Resource#<=>' do
+          @return = @articles.push(*@other_articles).sort! { |a,b| b <=> a }
+        end
+      end
 
-      it 'should return self'
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
 
-      it 'should sort the Resources using supplied block'
+      it 'should return self' do
+        @return.object_id.should == @articles.object_id
+      end
 
-      it 'should modify the Collection inline'
+      it 'should modify and sort the Collection using supplied block' do
+        @articles.should == [ @other, @article ]
+      end
     end
   end
 
