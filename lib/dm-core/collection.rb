@@ -180,6 +180,7 @@ module DataMapper
     #   a new collection whose query has been merged
     #
     # @api public
+    # TODO: fix gaurd clause to match first()'s
     def last(*args)
       return super if loaded? && args.empty?
 

@@ -637,59 +637,67 @@ share_examples_for 'A Collection' do
     @articles.should respond_to(:pop)
   end
 
-#  describe '#pop' do
-#    it 'should orphan the resource from the collection' do
-#      collection = @steve.collection
-#
-#      # resource is related
-#      @steve.collection.object_id.should == collection.object_id
-#
-#      collection.should have(1).entries
-#      collection.pop.object_id.should == @steve.object_id
-#      collection.should be_empty
-#
-#      # resource is orphaned
-#      @steve.collection.object_id.should_not == collection.object_id
-#    end
-#
-#    it 'should return a Resource' do
-#      @articles.pop.key.should == @steve.key
-#    end
-#  end
+  describe '#pop' do
+    it 'should return a Resource'
+
+    it 'should be the last Resource in Collection'
+
+    it 'should remove the Resource from the Collection'
+
+    it 'should orphan the Resource'
+  end
 
   it 'should respond to #push' do
     @articles.should respond_to(:push)
   end
 
-#  describe '#push' do
-#    it 'should relate each new resource to the collection' do
-#      # resource is orphaned
-#      @new_article.collection.object_id.should_not == @articles.object_id
-#
-#      @articles.push(@new_article)
-#
-#      # resource is related
-#      @new_article.collection.object_id.should == @articles.object_id
-#    end
-#
-#    it 'should return self' do
-#      @articles.push(@steve).object_id.should == @articles.object_id
-#    end
-#  end
+  describe '#push' do
+    before do
+      @resources = [ @model.new(:title => 'Title 1'), @model.new(:title => 'Title 2') ]
+      @return = @articles.push(*@resources)
+      @articles.freeze
+    end
 
-  it 'should respond to #reject!' do
-    @articles.should respond_to(:reject!)
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
+
+    it 'should return self' do
+      @return.object_id.should == @articles.object_id
+    end
+
+    it 'should append the Resources to the Collection' do
+      pending 'fix Collection#last to delegate to super the same as Collection#first' do
+        @articles.last(2).should == @resources
+      end
+    end
+
+    it 'should relate the Resource to the Collection' do
+      @resources.each { |r| r.collection.object_id.should == @articles.object_id }
+    end
   end
 
-#  describe '#reject!' do
-#    it 'should return self if resources matched the block' do
-#      @articles.reject! { |article| true }.object_id.should == @articles.object_id
-#    end
-#
-#    it 'should return nil if no resources matched the block' do
-#      @articles.reject! { |article| false }.should be_nil
-#    end
-#  end
+  [ :delete_if, :reject! ].each do |method|
+    it "should respond to ##{method}" do
+      @articles.should respond_to(method)
+    end
+
+    describe "##{method}" do
+      describe 'with a block that matches a Resource in the Collection' do
+        it 'should return a Collection'
+
+        it 'should return self'
+
+        it 'should remove the rejected Resources from the Collection'
+
+        it 'should orphan the Resources'
+      end
+
+      describe 'with a block that does not match a Resource in the Collection' do
+        it 'should return nil'
+      end
+    end
+  end
 
   it 'should respond to #reload' do
     @articles.should respond_to(:reload)
