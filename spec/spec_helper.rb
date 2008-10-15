@@ -5,9 +5,7 @@ require 'pathname'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 require SPEC_ROOT.parent + 'lib/dm-core'
-
-# setup mock testing adapter
-DataMapper.setup(:default, :adapter => :in_memory)
+require File.join(SPEC_ROOT, "/lib/adapter_helpers")
 
 # These environment variables will override the default connection string:
 #   MYSQL_SPEC_URI
@@ -16,25 +14,40 @@ DataMapper.setup(:default, :adapter => :in_memory)
 #
 # For example, in the bash shell, you might use:
 #   export MYSQL_SPEC_URI="mysql://localhost/dm_core_test?socket=/opt/local/var/run/mysql5/mysqld.sock"
-#
-def setup_adapter(name, default_uri)
+
+ENV['ADAPTERS'] ||= 'sqlite3'
+# ENV['ADAPTERS'] ||= 'sqlite3_fs'
+
+HAS_DO   = DataMapper::Adapters.const_defined?("DataObjectsAdapter")
+ADAPTERS = {
+  "sqlite3"    => 'sqlite3::memory:',
+  "sqlite3_fs" => "sqlite3://#{SPEC_ROOT}/db/primary.db",
+  "mysql"      => 'mysql://localhost/dm_core_test',
+  "postgres"   => 'postgres://postgres@localhost/dm_core_test'
+}
+ALTERNATE = {
+  # "sqlite3"  => 'sqlite3::memory:',
+  "sqlite3_fs" => "sqlite3://#{SPEC_ROOT}/db/secondary.db",
+  "mysql"      => 'mysql://localhost/dm_core_test2',
+  "postgres"   => 'postgres://postgres@localhost/dm_core_test2'
+}
+
+ADAPTERS.each do |adapter, default|
+  connection_string = ENV["#{adapter.to_s.upcase}_SPEC_URI"] || default
   begin
-    DataMapper.setup(name, ENV["#{name.to_s.upcase}_SPEC_URI"] || default_uri)
-    Object.const_set('ADAPTER', ENV['ADAPTER'].to_sym) if name.to_s == ENV['ADAPTER']
-    true
+    DataMapper.setup(adapter.to_sym, connection_string)
   rescue Exception => e
-    if name.to_s == ENV['ADAPTER']
-      Object.const_set('ADAPTER', nil)
-    end
-    false
+    ADAPTERS.delete(adapter)
   end
 end
 
-ENV['ADAPTER'] ||= 'sqlite3'
-
-HAS_DO       = DataMapper::Adapters.const_defined?("DataObjectsAdapter")
-HAS_SQLITE3  = setup_adapter(:sqlite3,  'sqlite3::memory:')
-HAS_MYSQL    = setup_adapter(:mysql,    'mysql://localhost/dm_core_test')
-HAS_POSTGRES = setup_adapter(:postgres, 'postgres://postgres@localhost/dm_core_test')
+# DataMapper.setup(:default, ADAPTERS[ENV['ADAPTERS']])
 
 DataMapper::Logger.new(nil, :debug)
+
+Spec::Runner.configure do |config|
+  config.include(DataMapper::Spec)
+  config.after(:each) do
+    DataMapper::Resource.descendants.clear
+  end
+end
