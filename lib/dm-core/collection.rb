@@ -446,6 +446,7 @@ module DataMapper
     #
     # @api public
     # TODO: make it so the Collection is always reloaded after update
+    # TODO: make it so update! returns true always
     def update!(attributes = {}, reload = false)
       # TODO: delegate to Model.update
       return true if attributes.empty?

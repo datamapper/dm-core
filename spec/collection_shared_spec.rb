@@ -309,7 +309,9 @@ share_examples_for 'A Collection' do
         @resource.should == @article  # may be different object_id depending on the Adapter
       end
 
-      it 'should remove the Resource from the Collection'
+      it 'should remove the Resource from the Collection' do
+        @articles.should_not include(@resource)
+      end
 
       it 'should orphan the Resource' do
         @resource.collection.object_id.should_not == @articles.object_id
@@ -920,16 +922,22 @@ share_examples_for 'A Collection' do
   end
 
   describe '#update' do
-    describe 'when Collection changed' do
-      it 'should return true'
-
-      it 'should update attributes of all Resources'
+    before do
+      pending do
+        @return = @articles.update(:title => 'Updated Title')
+      end
     end
 
-    describe 'when Collection not changed' do
-      it 'should return false'
+    it 'should return true' do
+      @return.should be_true
+    end
 
-      it 'should not update attributes of any Resource'
+    it 'should update attributes of all Resources' do
+      @articles.each { |r| r.title.should == 'Updated Title' }
+    end
+
+    it 'should persist the changes' do
+      @article.reload.title.should == 'Updated Title'
     end
   end
 
@@ -938,18 +946,26 @@ share_examples_for 'A Collection' do
   end
 
   describe '#update!' do
-    describe 'when Collection changed' do
-      it 'should return true'
-
-      it 'should bypass validation'
-
-      it 'should update attributes of all Resources'
+    before do
+      @return = @articles.update!(:title => 'Updated Title')
     end
 
-    describe 'when Collection not changed' do
-      it 'should return false'
+    it 'should return true' do
+      @return.should be_true
+    end
 
-      it 'should not update attributes of any Resource'
+    it 'should bypass validation' do
+      pending 'not sure how to best spec this'
+    end
+
+    it 'should update attributes of all Resources' do
+      pending do
+        @articles.each { |r| r.title.should == 'Updated Title' }
+      end
+    end
+
+    it 'should persist the changes' do
+      @article.reload.title.should == 'Updated Title'
     end
   end
 end
