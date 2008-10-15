@@ -877,21 +877,29 @@ share_examples_for 'A Collection' do
     @articles.should respond_to(:unshift)
   end
 
-#  describe '#unshift' do
-#    it 'should relate each new resource to the collection' do
-#      # resource is orphaned
-#      @new_article.collection.object_id.should_not == @articles.object_id
-#
-#      @articles.unshift(@new_article)
-#
-#      # resource is related
-#      @new_article.collection.object_id.should == @articles.object_id
-#    end
-#
-#    it 'should return self' do
-#      @articles.unshift(@steve).object_id.should == @articles.object_id
-#    end
-#  end
+  describe '#unshift' do
+    before do
+      @resources = [ @model.new(:title => 'Title 1'), @model.new(:title => 'Title 2') ]
+      @return = @articles.unshift(*@resources)
+      @articles.freeze
+    end
+
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
+
+    it 'should return self' do
+      @return.object_id.should == @articles.object_id
+    end
+
+    it 'should prepend the Resources to the Collection' do
+      @articles.first(2).should == @resources
+    end
+
+    it 'should relate the Resource to the Collection' do
+      @resources.each { |r| r.collection.object_id.should == @articles.object_id }
+    end
+  end
 
   it 'should respond to #update' do
     @articles.should respond_to(:update)
