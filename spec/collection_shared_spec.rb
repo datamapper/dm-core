@@ -655,7 +655,6 @@ share_examples_for 'A Collection' do
     before do
       @resources = [ @model.new(:title => 'Title 1'), @model.new(:title => 'Title 2') ]
       @return = @articles.push(*@resources)
-      @articles.freeze
     end
 
     it 'should return a Collection' do
@@ -835,43 +834,63 @@ share_examples_for 'A Collection' do
     @articles.should respond_to(:slice)
   end
 
-#  describe '#slice!' do
-#    describe 'with an index' do
-#      it 'should return a Resource' do
-#        resource = @articles.slice!(0)
-#        resource.should be_kind_of(DataMapper::Resource)
-#      end
-#    end
-#
-#    describe 'with a start and length' do
-#      it 'should return an Array' do
-#        sliced = @articles.slice!(0, 1)
-#        sliced.class.should == Array
-#        sliced.map { |r| r.id }.should == [ @new_article.id ]
-#      end
-#    end
-#
-#    describe 'with a Range' do
-#      it 'should return a Collection' do
-#        sliced = @articles.slice(0..1)
-#        sliced.should be_kind_of(DataMapper::Collection)
-#        sliced.object_id.should_not == @articles.object_id
-#        sliced.length.should == 2
-#        sliced[0].id.should == @new_article.id
-#        sliced[1].id.should == @bessie.id
-#      end
-#    end
-#  end
+  describe '#slice!' do
+    describe 'with an index' do
+      it 'should return a Resource'
+
+      it 'should return expected Resource'
+
+      it 'should remove the Resource from the Collection'
+
+      it 'should orphan the Resource'
+    end
+
+    describe 'with an offset and length' do
+      it 'should return a Collection'
+
+      it 'should return the matching Resources in Collection'
+
+      it 'should remove the Resources from the Collection'
+
+      it 'should orphan the Resources'
+    end
+
+    describe 'with a range' do
+      it 'should return a Collection'
+
+      it 'should return expect Resources in Collection'
+
+      it 'should remove the matching Resources from the Collection'
+
+      it 'should orphan the Resources'
+    end
+  end
 
   it 'should respond to #sort!' do
     @articles.should respond_to(:sort!)
   end
 
-#  describe '#sort!' do
-#    it 'should return self' do
-#      @articles.sort! { |a,b| 0 }.object_id.should == @articles.object_id
-#    end
-#  end
+  describe '#sort!' do
+    describe 'without a block' do
+      it 'should return a Collection'
+
+      it 'should return self'
+
+      it 'should sort the Collection using default sort'
+
+      it 'should modify the Collection inline'
+    end
+
+    describe 'with a block' do
+      it 'should return a Collection'
+
+      it 'should return self'
+
+      it 'should sort the Resources using supplied block'
+
+      it 'should modify the Collection inline'
+    end
+  end
 
   it 'should respond to #unshift' do
     @articles.should respond_to(:unshift)
@@ -881,7 +900,6 @@ share_examples_for 'A Collection' do
     before do
       @resources = [ @model.new(:title => 'Title 1'), @model.new(:title => 'Title 2') ]
       @return = @articles.unshift(*@resources)
-      @articles.freeze
     end
 
     it 'should return a Collection' do
