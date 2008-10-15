@@ -411,15 +411,27 @@ module DataMapper
       end
     end
 
-    # TODO: document
+    ##
+    # Update every Resource in the Collection (TODO)
+    #
+    #   Person.all(:age.gte => 21).update!(:allow_beer => true)
+    #
+    # @param [Hash] attributes attributes to update
+    # @param [FalseClass, TrueClass] reload if set to true, collection
+    #   will have loaded resources reflect updates.
+    #
+    # @return [TrueClass, FalseClass]
+    #   TrueClass indicates that all entries were affected
+    #   FalseClass indicates that some entries were affected
+    #
     # @api public
+    # TODO: make it so the Collection is always reloaded after update
     def update(attributes = {}, preload = false)
       raise NotImplementedError, 'update *with* validations has not be written yet, try update!'
     end
 
     ##
-    # batch updates the entries belongs to this collection, and skip
-    # validations for all resources
+    # Update every Resource in the Collection bypassing validation
     #
     #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
@@ -478,7 +490,7 @@ module DataMapper
     end
 
     ##
-    # Remove all Resources from the datasource without any validation
+    # Remove all Resources from the datasource bypassing validation
     #
     # This performs a deletion of each Resource in the Collection from
     # the datasource and clears the Collection while skipping foreign

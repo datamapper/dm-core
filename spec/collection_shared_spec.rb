@@ -404,7 +404,7 @@ describe 'A Collection', :shared => true do
       @articles.should be_empty
     end
 
-    it 'should skip foreign key validation'
+    it 'should bypass validation'
   end
 
   it 'should respond to #first' do
@@ -926,6 +926,24 @@ describe 'A Collection', :shared => true do
 #    end
 #  end
 
+  it 'should respond to #update' do
+    @articles.should respond_to(:update)
+  end
+
+  describe '#update' do
+    describe 'when Collection changed' do
+      it 'should return true'
+
+      it 'should update attributes of all Resources'
+    end
+
+    describe 'when Collection not changed' do
+      it 'should return false'
+
+      it 'should not update attributes of any Resource'
+    end
+  end
+
   it 'should respond to #update!' do
     @articles.should respond_to(:update!)
   end
@@ -933,6 +951,8 @@ describe 'A Collection', :shared => true do
   describe '#update!' do
     describe 'when Collection changed' do
       it 'should return true'
+
+      it 'should bypass validation'
 
       it 'should update attributes of all Resources'
     end
