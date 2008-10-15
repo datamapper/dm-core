@@ -759,88 +759,41 @@ share_examples_for 'A Collection' do
     @articles.should respond_to(:replace)
   end
 
-#  describe '#replace' do
-#    it "should orphan each existing resource from the collection if loaded?" do
-#      entries = @articles.entries
-#
-#      # resources are related
-#      entries.each { |r| r.collection.object_id.should == @articles.object_id }
-#
-#      @articles.should have(3).entries
-#      @articles.replace([]).object_id.should == @articles.object_id
-#      @articles.should be_empty
-#
-#      # resources are orphaned
-#      entries.each { |r| r.collection.object_id.should_not == @articles.object_id }
-#    end
-#
-#    it 'should relate each new resource to the collection' do
-#      # resource is orphaned
-#      @new_article.collection.object_id.should_not == @articles.object_id
-#
-#      @articles.replace([ @new_article ])
-#
-#      # resource is related
-#      @new_article.collection.object_id.should == @articles.object_id
-#    end
-#
-#    it 'should replace the contents of the collection' do
-#      other = [ @new_article ]
-#      @articles.should_not == other
-#      @articles.replace(other)
-#      @articles.should == other
-#      @articles.object_id.should_not == @other_articles.object_id
-#    end
-#  end
+  describe '#replace' do
+    it 'should return a Collection'
+
+    it 'should return self'
+
+    it 'should update the Collection with new Resources'
+
+    it 'should relate each Resource added to the Collection'
+
+    it 'should orphan each Resource removed from the Collection'
+  end
 
   it 'should respond to #reverse' do
     @articles.should respond_to(:reverse)
   end
 
-#  describe '#reverse' do
-#    [ true, false ].each do |loaded|
-#      describe "on a collection where loaded? == #{loaded}" do
-#        before do
-#          @articles.to_a if loaded
-#        end
-#
-#        it 'should return a Collection with reversed entries' do
-#          reversed = @articles.reverse
-#          reversed.should be_kind_of(DataMapper::Collection)
-#          reversed.object_id.should_not == @articles.object_id
-#          reversed.entries.should == @articles.entries.reverse
-#
-#          reversed.query.order.size.should == 1
-#          reversed.query.order.first.property.should == @model.properties[:id]
-#          reversed.query.order.first.direction.should == :desc
-#        end
-#      end
-#    end
-#  end
+  describe '#reverse' do
+    it 'should return a Collection'
+
+    it 'should return a Collection with reversed entries'
+  end
 
   it 'should respond to #shift' do
     @articles.should respond_to(:shift)
   end
 
-#  describe '#shift' do
-#    it 'should orphan the resource from the collection' do
-#      collection = @new_article.collection
-#
-#      # resource is related
-#      @new_article.collection.object_id.should == collection.object_id
-#
-#      collection.should have(1).entries
-#      collection.shift.object_id.should == @new_article.object_id
-#      collection.should be_empty
-#
-#      # resource is orphaned
-#      @new_article.collection.object_id.should_not == collection.object_id
-#    end
-#
-#    it 'should return a Resource' do
-#      @articles.shift.key.should == @new_article.key
-#    end
-#  end
+  describe '#shift' do
+    it 'should return a Resource'
+
+    it 'should be the first Resource in the Collection'
+
+    it 'should remove the Resource from the Collection'
+
+    it 'should orphan the Resource'
+  end
 
   [ :slice, :[] ].each do |method|
     it "should respond to ##{method}" do
