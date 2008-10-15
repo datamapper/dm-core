@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'spec_helper'))
 
 # TODO: test all instance methods when collection is loaded and not loaded
 
-describe 'A Collection', :shared => true do
+share_examples_for 'A Collection' do
   before do
     %w[ @article_repository @model @other @article @articles @other_articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
@@ -309,6 +309,8 @@ describe 'A Collection', :shared => true do
         @resource.should == @article  # may be different object_id depending on the Adapter
       end
 
+      it 'should remove the Resource from the Collection'
+
       it 'should orphan the Resource' do
         @resource.collection.object_id.should_not == @articles.object_id
       end
@@ -342,6 +344,8 @@ describe 'A Collection', :shared => true do
       it 'should be the expected Resource' do
         @resource.should == @article  # may be different object_id depending on the Adapter
       end
+
+      it 'should remove the Resource from the Collection'
 
       it 'should orphan the Resource' do
         @resource.collection.object_id.should_not == @articles.object_id
@@ -559,11 +563,13 @@ describe 'A Collection', :shared => true do
     @articles.should respond_to(:insert)
   end
 
-#  describe '#insert' do
-#    it 'should return self' do
-#      @articles.insert(1, @steve).object_id.should == @articles.object_id
-#    end
-#  end
+  describe '#insert' do
+    it 'should return a Collection'
+
+    it 'should return self'
+
+    it 'should insert one or more Resources at a given index'
+  end
 
   it 'should respond to #last' do
     @articles.should respond_to(:last)
