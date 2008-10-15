@@ -1,4 +1,13 @@
 module DataMapper
+  # Collection class represents a collection of objects
+  # fetched from some repository
+  # that you can operate on pretty much like you do
+  # with regular arrays.
+  #
+  # Collection uses lazy loading where possible. Collection
+  # instances are usually returned by all method:
+  #
+  # Company.all returns a collection
   class Collection < LazyArray
     include Assertions
 
