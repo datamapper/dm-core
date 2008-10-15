@@ -363,6 +363,28 @@ share_examples_for 'A Collection' do
     end
   end
 
+  [ :delete_if, :reject! ].each do |method|
+    it "should respond to ##{method}" do
+      @articles.should respond_to(method)
+    end
+
+    describe "##{method}" do
+      describe 'with a block that matches a Resource in the Collection' do
+        it 'should return a Collection'
+
+        it 'should return self'
+
+        it 'should remove the rejected Resources from the Collection'
+
+        it 'should orphan the Resources'
+      end
+
+      describe 'with a block that does not match a Resource in the Collection' do
+        it 'should return nil'
+      end
+    end
+  end
+
   it 'should respond to #destroy' do
     @articles.should respond_to(:destroy)
   end
@@ -673,28 +695,6 @@ share_examples_for 'A Collection' do
 
     it 'should relate the Resource to the Collection' do
       @resources.each { |r| r.collection.object_id.should == @articles.object_id }
-    end
-  end
-
-  [ :delete_if, :reject! ].each do |method|
-    it "should respond to ##{method}" do
-      @articles.should respond_to(method)
-    end
-
-    describe "##{method}" do
-      describe 'with a block that matches a Resource in the Collection' do
-        it 'should return a Collection'
-
-        it 'should return self'
-
-        it 'should remove the rejected Resources from the Collection'
-
-        it 'should orphan the Resources'
-      end
-
-      describe 'with a block that does not match a Resource in the Collection' do
-        it 'should return nil'
-      end
     end
   end
 
