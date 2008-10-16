@@ -7,7 +7,10 @@ SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 require SPEC_ROOT.parent + 'lib/dm-core'
 require File.join(SPEC_ROOT, "/lib/adapter_helpers")
 
-ENV['ADAPTERS'] ||= 'sqlite3'
+# create sqlite3_fs directory if it doesn't exist
+SPEC_ROOT.join('db').mkpath
+
+ENV['ADAPTERS'] ||= 'in_memory'
 
 HAS_DO   = DataMapper::Adapters.const_defined?('DataObjectsAdapter')
 ADAPTERS = {
