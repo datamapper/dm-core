@@ -1,5 +1,3 @@
-require File.expand_path(File.join(File.dirname(__FILE__), 'spec_helper'))
-
 # TODO: test all instance methods when collection is loaded and not loaded
 
 share_examples_for 'A Collection' do

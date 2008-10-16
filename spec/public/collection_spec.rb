@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'collection_shared_spec'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'collection_shared_spec'))
 
 describe DataMapper::Collection do
   before do
