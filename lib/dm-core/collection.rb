@@ -540,7 +540,8 @@ module DataMapper
     end
 
     ##
-    # @return [DataMapper::Relationship] The model's relationships
+    # @return [Hash] The model's relationships, mapping the name to the
+    #   DataMapper::Associations::Relationship object
     #
     # @api semipublic
     def relationships
@@ -548,7 +549,7 @@ module DataMapper
     end
 
     ##
-    # default values to use when creating a Resource within the Collection
+    # Default values to use when creating a Resource
     #
     # @return [Hash] The default attributes for DataMapper::Collection#create
     #
@@ -587,7 +588,7 @@ module DataMapper
     protected
 
     # TODO: document
-    # @api semipublic
+    # @api private
     def model
       query.model
     end

@@ -12,10 +12,13 @@ describe DataMapper::Collection do
         property :content, Text
       end
 
-      @model = Article
+      @article_repository = repository(:default)
+      @model              = Article
 
       @article  = @model.create(:title => 'Sample Article', :content => 'Sample')
       @articles = @model.all(:title => 'Sample Article')
+
+      @articles_query = DataMapper::Query.new(@article_repository, @model, :title => 'Sample Article')
     end
 
     it 'should respond to #default_attributes' do
@@ -23,7 +26,17 @@ describe DataMapper::Collection do
     end
 
     describe '#default_attributes' do
-      it 'should have specs'
+      before do
+        @return = @articles.default_attributes
+      end
+
+      it 'should return a Hash' do
+        @return.should be_kind_of(Hash)
+      end
+
+      it 'should return expected values' do
+        @return.should == { :title => 'Sample Article' }
+      end
     end
 
     it 'should respond to #load' do
@@ -56,20 +69,22 @@ describe DataMapper::Collection do
       end
     end
 
-    it 'should respond to #model' do
-      @articles.should respond_to(:model)
-    end
-
-    describe '#model' do
-      it 'should have specs'
-    end
-
     it 'should respond to #properties' do
       @articles.should respond_to(:properties)
     end
 
     describe '#properties' do
-      it 'should have specs'
+      before do
+        @return = @properties = @articles.properties
+      end
+
+      it 'should return a PropertySet' do
+        @return.should be_kind_of(DataMapper::PropertySet)
+      end
+
+      it 'should be expected properties' do
+        @properties.to_a.should == @articles_query.fields
+      end
     end
 
     it 'should respond to #query' do
@@ -77,7 +92,17 @@ describe DataMapper::Collection do
     end
 
     describe '#query' do
-      it 'should have specs'
+      before do
+        @return = @articles.query
+      end
+
+      it 'should return a Query' do
+        @return.should be_kind_of(DataMapper::Query)
+      end
+
+      it 'should return expected Query' do
+        @return.should == @articles_query
+      end
     end
 
     it 'should respond to #relationships' do
@@ -85,7 +110,17 @@ describe DataMapper::Collection do
     end
 
     describe '#relationships' do
-      it 'should have specs'
+      before do
+        @return = @relationships = @articles.relationships
+      end
+
+      it 'should return a Hash' do
+        @return.should be_kind_of(Hash)
+      end
+
+      it 'should return expected Hash' do
+        @return.should == @model.relationships(@article_repository.name)
+      end
     end
 
     it 'should respond to #repository' do
@@ -93,7 +128,17 @@ describe DataMapper::Collection do
     end
 
     describe '#repository' do
-      it 'should have specs'
+      before do
+        @return = @repository = @articles.repository
+      end
+
+      it 'should return a Repository' do
+        @return.should be_kind_of(DataMapper::Repository)
+      end
+
+      it 'should be expected Repository' do
+        @repository.should == @article_repository
+      end
     end
   end
 end

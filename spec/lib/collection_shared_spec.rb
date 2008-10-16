@@ -2,7 +2,7 @@
 
 share_examples_for 'A Collection' do
   before do
-    %w[ @article_repository @model @other @article @articles @other_articles ].each do |ivar|
+    %w[ @model @article @other @articles @other_articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
   end
