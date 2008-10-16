@@ -576,6 +576,36 @@ share_examples_for 'A Collection' do
         @resource.should == @article
       end
     end
+
+    describe 'with a key to a Resource within a Collection using a limit' do
+      before do
+        @articles = Article.all(:limit => 1)
+        @return = @resource = @articles.get(1)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be matching Resource in the Collection' do
+        @resource.should == @article
+      end
+    end
+
+    describe 'with a key to a Resource within a Collection using an offset' do
+      before do
+        @articles = Article.all(:offset => 1, :limit => 1)
+        @return = @resource = @articles.get(2)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be matching Resource in the Collection' do
+        @resource.should == @other
+      end
+    end
   end
 
   it 'should respond to #get!' do
