@@ -140,7 +140,7 @@ module DataMapper
     # @param name [Symbol] The name that the association will be referenced by
     # @see #has
     #
-    # @return [DataMapper::Association::ManyToOne] The association created
+    # @return [DataMapper::Association::Relationship] The association created
     #   should not be accessed directly
     #
     # @api public

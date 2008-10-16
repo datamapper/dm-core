@@ -5,18 +5,12 @@ describe DataMapper::Associations do
     class Car
       include DataMapper::Resource
       property :id, Serial
-
-      has 1, :engine
     end
-
+    
     class Engine
       include DataMapper::Resource
       property :id, Serial
-
-      belongs_to :car
     end
-    
-    @relationship = Car.relationships[:engine]
   end
   
   it "should respond to #has" do
@@ -24,35 +18,37 @@ describe DataMapper::Associations do
   end
   
   describe "#has" do
+    before(:each) do
+      @relationship = Car.has(1, :engine)
+    end
+    
     it "should return a DataMapper::Associations::Relationship" do
-      @relationship.should be_an_instance_of(DataMapper::Associations::Relationship)
+      @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+    end
+    
+    it "should raise an ArgumentError if the cardinality is not understood" do
+      lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
     end
       
     describe "1" do
-      it "should be a OneToOne relationship"
+      it "should create a relationship with the child model" do
+        @relationship.child_model.should == Engine
+      end
     end
       
     describe "n" do
       before(:each) do
-        class Car
-          include DataMapper::Resource
-          property :id, Serial
-
-          has n, :doors
-        end
-        
         class Door
           include DataMapper::Resource
           property :id, Serial
-
-          belongs_to :car
         end
         
-        @car = Car.new
-        @relationship = Car.relationships[:doors]
+        @relationship = Car.has(n, :doors)
       end
       
-      it "return a OneToMany relationship"
+      it "should return a relationship with the child model" do
+        @relationship.child_model.should == Door
+      end
     end
   end
   
@@ -61,5 +57,16 @@ describe DataMapper::Associations do
   end
   
   describe "#belongs_to" do
+    before(:each) do
+      @relationship = Engine.belongs_to(:car)
+    end
+    
+    it "should return a new relationship" do
+      @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+    end
+    
+    it "should create a relationship with Car" do
+      @relationship.parent_model.should == Car
+    end
   end
 end
