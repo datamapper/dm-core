@@ -57,6 +57,33 @@ describe DataMapper::Associations do
       it "should return a relationship with the child model" do
         @relationship.child_model.should == Door
       end
+    
+      describe "through" do
+        before(:each) do
+          class Car
+            include DataMapper::Resource
+            property :id, Serial
+          
+            has n, :doors
+          end
+        
+          class Door
+            include DataMapper::Resource
+            property :id, Serial
+          end
+        
+          class Window
+            include DataMapper::Resource
+            property :id, Serial
+          end
+        
+          @relationship = Car.has(n, :windows, :through => :doors)
+        end
+      
+        it "should return the new relationship" do
+          @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+        end
+      end
     end
   end
   
@@ -73,7 +100,7 @@ describe DataMapper::Associations do
       @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
     end
     
-    it "should return a relationship with the parent model" do
+    it "should return the relationship with the parent model" do
       @relationship.parent_model.should == Car
     end
   end

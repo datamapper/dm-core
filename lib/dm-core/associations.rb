@@ -173,7 +173,6 @@ module DataMapper
           unless name.keys.size == 1
             raise ArgumentError, "name must have only one key, but had #{name.keys.size}", caller(2)
           end
-
           { :name => name.keys.first, :through => name.values.first }
         when Symbol
           { :name => name }
