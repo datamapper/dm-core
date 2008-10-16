@@ -28,14 +28,6 @@ describe DataMapper::Associations do
   end
   
   describe "#has" do
-    before do
-      @relationship = Car.has(1, :engine)
-    end
-    
-    it "should return a DataMapper::Associations::Relationship" do
-      @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
-    end
-    
     it "should raise an ArgumentError if the cardinality is not understood" do
       lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
     end
@@ -49,17 +41,39 @@ describe DataMapper::Associations do
     end
     
     describe "1" do
+      before do
+        @relationship = Car.has(1, :engine)
+      end
+
+      it "should return a DataMapper::Associations::Relationship" do
+        @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+      end
+      
       it "should return a relationship with the child model" do
         @relationship.child_model.should == Engine
       end
     end
+    
+    describe "n..n" do
+      before do
+        @relationship = Car.has(1..4, :doors)
+      end
       
+      it "should create a new relationship" do
+        @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+      end
+      
+      it "should be a relationship with the child model" do
+        @relationship.child_model.should == Door
+      end
+    end
+    
     describe "n" do
       before do
         @relationship = Car.has(n, :doors)
       end
       
-      it "should return a relationship with the child model" do
+      it "should be a relationship with the child model" do
         @relationship.child_model.should == Door
       end
     
@@ -68,7 +82,7 @@ describe DataMapper::Associations do
           @relationship = Car.has(n, :windows, :through => :doors)
         end
         
-        it "should return the new relationship" do
+        it "should return a new relationship" do
           @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
         end
       end
