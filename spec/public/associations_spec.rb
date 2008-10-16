@@ -28,6 +28,14 @@ describe DataMapper::Associations do
   end
 
   describe "#has" do
+    before do
+      class Car
+        def self.warn
+          # silence warnings
+        end
+      end
+    end
+
     def n
       Car.n
     end
