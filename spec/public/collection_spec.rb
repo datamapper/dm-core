@@ -129,6 +129,14 @@ describe DataMapper::Collection do
           end
         end
       end
+
+      describe 'with unknown method' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.unknown
+          }.should raise_error(NoMethodError)
+        end
+      end
     end
 
     it_should_behave_like 'A Collection'

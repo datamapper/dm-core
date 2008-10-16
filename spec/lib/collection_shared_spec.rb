@@ -1022,6 +1022,14 @@ share_examples_for 'A Collection' do
         end
 
       end
+
+      describe 'with invalid arguments' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.send(method, Object.new)
+          }.should raise_error(ArgumentError)
+        end
+      end
     end
   end
 
