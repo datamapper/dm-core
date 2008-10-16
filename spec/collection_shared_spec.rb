@@ -264,17 +264,9 @@ share_examples_for 'A Collection' do
       @resource.attributes.only(:title).should == { :title => 'Sample Article' }
     end
 
-# XXX: how can this be refactored without a mock that fails?
-#    it 'should not append the resource if it was not saved' do
-#      @article_repository.should_receive(:create).and_return(false)
-#      @model.should_receive(:repository).at_least(:once).and_return(@article_repository)
-#
-#      article = @articles.create
-#      article.should be_new_record
-#
-#      article.collection.object_id.should_not == @articles.object_id
-#      @articles.should_not include(article)
-#    end
+    it 'should not append a Resource if create fails' do
+      pending 'TODO: not sure how to best spec this'
+    end
   end
 
   it 'should respond to #delete' do
