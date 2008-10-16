@@ -720,7 +720,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should append the Resources to the Collection' do
-      pending 'fix Collection#last to delegate to super the same as Collection#first' do
+      pending 'TODO: fix Collection#last to delegate to super the same as Collection#first' do
         @articles.last(2).should == @resources
       end
     end
@@ -796,7 +796,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update the Collection' do
-        pending 'Fix problem with Identity Map of original Query being used automatically' do
+        pending 'TODO: Fix problem with Identity Map of original Query being used automatically' do
           @articles.each_with_index { |r,i| r.object_id.should_not == @entries[i].object_id }
         end
       end
@@ -821,7 +821,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update the Collection' do
-        pending 'Fix problem with Identity Map of original Query being used automatically' do
+        pending 'TODO: Fix problem with Identity Map of original Query being used automatically' do
           @articles.each_with_index { |r,i| r.object_id.should_not == @entries[i].object_id }
         end
       end
@@ -947,7 +947,7 @@ share_examples_for 'A Collection' do
   describe '#sort!' do
     describe 'without a block' do
       before do
-        pending 'add Resource#<=>' do
+        pending 'TODO: add Resource#<=>' do
           @return = @other_articles.push(*@articles).sort!
         end
       end
@@ -967,7 +967,7 @@ share_examples_for 'A Collection' do
 
     describe 'with a block' do
       before do
-        pending 'add Resource#<=>' do
+        pending 'TODO: add Resource#<=>' do
           @return = @articles.push(*@other_articles).sort! { |a,b| b <=> a }
         end
       end
@@ -1051,7 +1051,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should bypass validation' do
-      pending 'not sure how to best spec this'
+      pending 'TODO: not sure how to best spec this'
     end
 
     it 'should update attributes of all Resources' do
