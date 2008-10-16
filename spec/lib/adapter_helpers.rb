@@ -60,8 +60,6 @@ module DataMapper::Spec
       end
 
       yield
-    rescue Gem::LoadError
-      # do nothing for now
     end
   end
 end
