@@ -716,13 +716,26 @@ share_examples_for 'A Collection' do
   end
 
   describe '#pop' do
-    it 'should return a Resource'
+    before do
+      @articles.unshift(*@other_articles)
+      @return = @resource = @articles.pop
+    end
 
-    it 'should be the last Resource in Collection'
+    it 'should return a Resource' do
+      @return.should be_kind_of(DataMapper::Resource)
+    end
 
-    it 'should remove the Resource from the Collection'
+    it 'should be the last Resource in the Collection' do
+      @resource.should == @article
+    end
 
-    it 'should orphan the Resource'
+    it 'should remove the Resource from the Collection' do
+      @articles.should_not include(@resource)
+    end
+
+    it 'should orphan the Resource' do
+      @resource.collection.object_id.should_not == @articles.object_id
+    end
   end
 
   it 'should respond to #push' do
@@ -901,6 +914,7 @@ share_examples_for 'A Collection' do
 
   describe '#shift' do
     before do
+      @articles.push(*@other_articles)
       @return = @resource = @articles.shift
     end
 
