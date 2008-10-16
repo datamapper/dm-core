@@ -163,7 +163,7 @@ module DataMapper
     # { :min => x, :max => y } hash.
     #
     # @raise [ArgumentError] if name is a hash with more than one key
-    # 
+    #
     # @api private
     def extract_throughness(name)
       assert_kind_of 'name', name, Hash, Symbol
