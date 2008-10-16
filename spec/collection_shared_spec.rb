@@ -875,15 +875,30 @@ share_examples_for 'A Collection' do
   end
 
   describe '#replace' do
-    it 'should return a Collection'
+    before do
+      @resources = @articles.entries
+      @return = @articles.replace(@other_articles)
+    end
 
-    it 'should return self'
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
 
-    it 'should update the Collection with new Resources'
+    it 'should return self' do
+      @return.object_id.should == @articles.object_id
+    end
 
-    it 'should relate each Resource added to the Collection'
+    it 'should update the Collection with new Resources' do
+      @articles.should == @other_articles
+    end
 
-    it 'should orphan each Resource removed from the Collection'
+    it 'should relate each Resource added to the Collection' do
+      @articles.each { |r| r.collection.object_id.should == @articles.object_id }
+    end
+
+    it 'should orphan each Resource removed from the Collection' do
+      @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+    end
   end
 
   it 'should respond to #reverse' do
