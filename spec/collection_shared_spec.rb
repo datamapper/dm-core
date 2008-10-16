@@ -306,7 +306,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should be the expected Resource' do
-        @resource.should == @article  # may be different object_id depending on the Adapter
+        @resource.should == @article
       end
 
       it 'should remove the Resource from the Collection' do
@@ -344,10 +344,12 @@ share_examples_for 'A Collection' do
       end
 
       it 'should be the expected Resource' do
-        @resource.should == @article  # may be different object_id depending on the Adapter
+        @resource.should == @article
       end
 
-      it 'should remove the Resource from the Collection'
+      it 'should remove the Resource from the Collection' do
+        @articles.should_not include(@resource)
+      end
 
       it 'should orphan the Resource' do
         @resource.collection.object_id.should_not == @articles.object_id
@@ -365,24 +367,52 @@ share_examples_for 'A Collection' do
     end
   end
 
-  [ :delete_if, :reject! ].each do |method|
-    it "should respond to ##{method}" do
-      @articles.should respond_to(method)
-    end
+  it 'should respond to #delete_if' do
+    @articles.should respond_to(:delete_if)
+  end
 
-    describe "##{method}" do
-      describe 'with a block that matches a Resource in the Collection' do
-        it 'should return a Collection'
-
-        it 'should return self'
-
-        it 'should remove the rejected Resources from the Collection'
-
-        it 'should orphan the Resources'
+  describe '#delete_if' do
+    describe 'with a block that matches a Resource in the Collection' do
+      before do
+        @resources = @articles.entries
+        @return = @articles.delete_if { true }
       end
 
-      describe 'with a block that does not match a Resource in the Collection' do
-        it 'should return nil'
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return self' do
+        @return.object_id.should == @articles.object_id
+      end
+
+      it 'should remove the rejected Resources from the Collection' do
+        @resources.each { |r| @articles.should_not include(r) }
+      end
+
+      it 'should orphan the Resources' do
+        pending do
+          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+        end
+      end
+    end
+
+    describe 'with a block that does not match a Resource in the Collection' do
+      before do
+        @resources = @articles.entries
+        @return = @articles.delete_if { false }
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return self' do
+        @return.object_id.should == @articles.object_id
+      end
+
+      it 'should not modify the Collection' do
+        @articles.should == @resources
       end
     end
   end
@@ -697,6 +727,52 @@ share_examples_for 'A Collection' do
 
     it 'should relate the Resource to the Collection' do
       @resources.each { |r| r.collection.object_id.should == @articles.object_id }
+    end
+  end
+
+  it 'should respond to #reject!' do
+    @articles.should respond_to(:reject!)
+  end
+
+  describe '#reject!' do
+    describe 'with a block that matches a Resource in the Collection' do
+      before do
+        @resources = @articles.entries
+        @return = @articles.reject! { true }
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return self' do
+        @return.object_id.should == @articles.object_id
+      end
+
+      it 'should remove the rejected Resources from the Collection' do
+        @resources.each { |r| @articles.should_not include(r) }
+      end
+
+      it 'should orphan the Resources' do
+        pending do
+          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+        end
+      end
+    end
+
+    describe 'with a block that does not match a Resource in the Collection' do
+      before do
+        @resources = @articles.entries
+        @return = @articles.reject! { false }
+      end
+
+      it 'should return nil' do
+        @return.should == nil
+      end
+
+      it 'should not modify the Collection' do
+        @articles.should == @resources
+      end
     end
   end
 
