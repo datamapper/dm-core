@@ -884,27 +884,64 @@ share_examples_for 'A Collection' do
 
     describe "##{method}" do
       describe 'with an index' do
-        it 'should return a Resource'
+        before do
+          @return = @resource = @articles.send(method, 0)
+        end
 
-        it 'should return expected Resource'
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
 
-        it 'should orphan the Resource'
+        it 'should return expected Resource' do
+          @return.should == @article
+        end
+
+        it 'should orphan the Resource' do
+          @resource.collection.object_id.should_not == @articles.object_id
+        end
       end
 
       describe 'with an offset and length' do
-        it 'should return a Collection'
+        before do
+          @resources = @articles.entries
+          @return = @articles.send(method, 0, 1)
+        end
 
-        it 'should return the matching Resources in Collection'
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
 
-        it 'should orphan the Resources'
+        it 'should return the matching Resources in Collection' do
+          @return.should == @resources
+        end
+
+        it 'should orphan the Resources' do
+          pending do
+            @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+          end
+        end
       end
 
       describe 'with a range' do
-        it 'should return a Collection'
+        before do
+          @resources = @articles.entries
+          @return = @articles.send(method, 0..0)
+        end
 
-        it 'should return expect Resources in Collection'
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
 
-        it 'should orphan the Resources'
+        it 'should return the matching Resources in Collection' do
+          @return.should == @resources
+        end
+
+        it 'should orphan the Resources' do
+          pending do
+            @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+          end
+        end
+
       end
     end
   end
