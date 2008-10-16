@@ -67,7 +67,9 @@ module DataMapper
       key = model.typecast_key(key)
       if loaded?
         # find indexed resource (create index first if it does not exist)
-        each {|r| @cache[r.key] = r } if @cache.empty?
+        if @cache.empty?
+          each { |r| @cache[r.key] = r }
+        end
         @cache[key]
       elsif query.limit || query.offset > 0
         # current query is exclusive, find resource within the set
@@ -121,7 +123,9 @@ module DataMapper
     # @api public
     def all(query = {})
       # TODO: this shouldn't be a kicker if scoped_query() is called
-      return self if query.kind_of?(Hash) ? query.empty? : query == self.query
+      if query.kind_of?(Hash) ? query.empty? : query == self.query
+        return self
+      end
       query = scoped_query(query)
       query.repository.read_many(query)
     end
@@ -183,9 +187,15 @@ module DataMapper
     #   a new collection whose query has been merged
     #
     # @api public
-    # TODO: fix gaurd clause to match first()'s
     def last(*args)
-      return super if loaded? && args.empty?
+      if loaded?
+        if args.empty?
+          return super
+        elsif args.size == 1 && args.first.kind_of?(Integer)
+          limit = args.shift
+          return self.class.new(scoped_query(:limit => limit).reverse) { |c| c.replace(super(limit)) }
+        end
+      end
 
       reversed = reverse
 
@@ -199,16 +209,17 @@ module DataMapper
     ##
     # Lookup a Resource from the Collection by index
     #
-    # @param [Integer] offset index of the Resource in the Collection
+    # @param [Integer] index index of the Resource in the Collection
     #
     # @return [DataMapper::Resource, NilClass] the Resource which
     #   matches the supplied offset
     #
     # @api public
-    # TODO: rename param "index" to match Array docs
-    def at(offset)
-      return super if loaded?
-      offset >= 0 ? first(:offset => offset) : last(:offset => offset.abs - 1)
+    def at(index)
+      if loaded?
+        return super
+      end
+      index >= 0 ? first(:offset => index) : last(:offset => index.abs - 1)
     end
 
     ##
@@ -231,7 +242,9 @@ module DataMapper
     #
     # @api public
     def slice(*args)
-      return at(args.first) if args.size == 1 && args.first.kind_of?(Integer)
+      if args.size == 1 && args.first.kind_of?(Integer)
+        return at(args.first)
+      end
 
       if args.size == 2 && args.first.kind_of?(Integer) && args.last.kind_of?(Integer)
         offset, limit = args
@@ -256,7 +269,10 @@ module DataMapper
     #
     # @api public
     def reverse
-      all(self.query.reverse)
+      if loaded?
+        return self.class.new(query.reverse) { |c| c.replace(super) }
+      end
+      all(query.reverse)
     end
 
     ##
@@ -392,7 +408,7 @@ module DataMapper
     # @api public
     def build(attributes = {})
       repository.scope do
-        resource = model.new(default_attributes.merge(attributes))
+        resource = model.new(default_attributes.update(attributes))
         self << resource
         resource
       end
@@ -409,7 +425,7 @@ module DataMapper
     # @api public
     def create(attributes = {})
       repository.scope do
-        resource = model.create(default_attributes.merge(attributes))
+        resource = model.create(default_attributes.update(attributes))
         self << resource unless resource.new_record?
         resource
       end
@@ -452,12 +468,16 @@ module DataMapper
     # TODO: make it so update! returns true always
     def update!(attributes = {}, reload = false)
       # TODO: delegate to Model.update
-      return true if attributes.empty?
+      if attributes.empty?
+        return true
+      end
 
       dirty_attributes = {}
 
       model.properties(repository.name).slice(*attributes.keys).each do |property|
-        dirty_attributes[property] = attributes[property.name] if property
+        if property
+          dirty_attributes[property] = attributes[property.name]
+        end
       end
 
       # this should never be done on update! even if collection is loaded. or?
@@ -470,7 +490,7 @@ module DataMapper
 
       if identity_map.any? && reload
         reload_query = @key_properties.zip(identity_map.keys.transpose).to_hash
-        model.all(reload_query.merge(attributes)).reload(:fields => attributes.keys)
+        model.all(reload_query.update(attributes)).reload(:fields => attributes.keys)
       end
 
       # this should return true if there are any changes at all. as it skips validations
@@ -634,7 +654,9 @@ module DataMapper
     # @api private
     def orphan_resource(resource)
       return unless resource
-      resource.collection = nil if resource.collection.object_id == self.object_id
+      if resource.collection.object_id == self.object_id
+        resource.collection = nil
+      end
       @cache.delete(resource.key)
       resource
     end
@@ -645,9 +667,13 @@ module DataMapper
     def scoped_query(query = self.query)
       assert_kind_of 'query', query, Query, Hash
 
-      query.update(keys) if loaded?
+      if loaded?
+        query.update(keys)
+      end
 
-      return self.query if query == self.query
+      if query == self.query
+        return self.query
+      end
 
       query = if query.kind_of?(Hash)
         Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, model, query)
@@ -678,15 +704,25 @@ module DataMapper
     # TODO: document
     # @api private
     def set_relative_position(query)
-      return if query == self.query
+      if query == self.query
+        return
+      end
 
       if query.offset == 0
-        return if !query.limit.nil? && !self.query.limit.nil? && query.limit <= self.query.limit
-        return if  query.limit.nil? &&  self.query.limit.nil?
+        if !query.limit.nil? && !self.query.limit.nil? && query.limit <= self.query.limit
+          return
+        end
+
+        if query.limit.nil? &&  self.query.limit.nil?
+          return
+        end
       end
 
       first_pos = self.query.offset + query.offset
-      last_pos  = self.query.offset + self.query.limit if self.query.limit
+
+      if self.query.limit
+        last_pos  = self.query.offset + self.query.limit
+      end
 
       if limit = query.limit
         if last_pos.nil? || first_pos + limit < last_pos
@@ -699,7 +735,9 @@ module DataMapper
       end
 
       query.update(:offset => first_pos)
-      query.update(:limit => last_pos - first_pos) if last_pos
+      if last_pos
+        query.update(:limit => last_pos - first_pos)
+      end
     end
 
     # TODO: document
@@ -719,7 +757,9 @@ module DataMapper
         query = Query.new(repository, klass)
         query.conditions.push(*self.query.conditions)
         query.update(relationship.query)
-        query.update(args.pop) if args.last.kind_of?(Hash)
+        if args.last.kind_of?(Hash)
+          query.update(args.pop)
+        end
 
         query.update(
           :fields => klass.properties(repository.name).defaults,

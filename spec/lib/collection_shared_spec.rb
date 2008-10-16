@@ -607,7 +607,7 @@ share_examples_for 'A Collection' do
       it 'should raise an exception' do
         lambda {
           @articles.get!(99)
-        }.should raise_error(DataMapper::ObjectNotFoundError)
+        }.should raise_error(DataMapper::ObjectNotFoundError, 'Could not find Article with key [99] in collection')
       end
     end
 
@@ -763,10 +763,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should append the Resources to the Collection' do
-      pending 'TODO: fix Collection#last to delegate to super the same as Collection#first' do
-        @articles.last(2).should == @resources
-        #@articles.should == [ @article ] + @resources
-      end
+      @articles.should == [ @article ] + @resources
     end
 
     it 'should relate the Resources to the Collection' do
@@ -923,9 +920,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return a Collection with reversed entries' do
-      pending 'TODO: Collection#reverse should not delegate to all when loaded? == true' do
-        @return.should == @resources.reverse
-      end
+      @return.should == @resources.reverse
     end
   end
 
@@ -1178,7 +1173,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should prepend the Resources to the Collection' do
-      @articles.first(2).should == @resources
+      @articles.should == @resources + [ @article ]
     end
 
     it 'should relate the Resources to the Collection' do
