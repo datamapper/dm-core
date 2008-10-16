@@ -373,7 +373,7 @@ share_examples_for 'A Collection' do
 
   describe '#delete_if' do
     before do
-      pending 'Needs extlib > 0.9.7' unless LazyArray.instance_methods(false).include?('delete_if')
+      pending 'Needs extlib > 0.9.7' unless LazyArray::RETURN_SELF.include?(:delete_if)
     end
 
     describe 'with a block that matches a Resource in the Collection' do
