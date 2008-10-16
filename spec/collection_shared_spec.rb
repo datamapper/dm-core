@@ -2,6 +2,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), 'spec_helper'))
 
 # TODO: test all instance methods when collection is loaded and not loaded
 
+def meets_gem_dependency(name, dep)
+  gem(name, dep)
+  true
+rescue Gem::LoadError
+  false
+end
+
 share_examples_for 'A Collection' do
   before do
     %w[ @article_repository @model @other @article @articles @other_articles ].each do |ivar|
@@ -379,10 +386,12 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return a Collection' do
+        pending 'Needs extlib > 0.9.7' unless meets_gem_dependency('extlib', '> 0.9.7')
         @return.should be_kind_of(DataMapper::Collection)
       end
 
       it 'should return self' do
+        pending 'Needs extlib > 0.9.7' unless meets_gem_dependency('extlib', '> 0.9.7')
         @return.object_id.should == @articles.object_id
       end
 
@@ -404,10 +413,12 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return a Collection' do
+        pending 'Needs extlib > 0.9.7' unless meets_gem_dependency('extlib', '> 0.9.7')
         @return.should be_kind_of(DataMapper::Collection)
       end
 
       it 'should return self' do
+        pending 'Needs extlib > 0.9.7' unless meets_gem_dependency('extlib', '> 0.9.7')
         @return.object_id.should == @articles.object_id
       end
 
