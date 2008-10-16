@@ -10,6 +10,9 @@ describe DataMapper::Collection do
       property :id,      Serial
       property :title,   String
       property :content, Text
+
+      belongs_to :original, :class_name => 'Article'
+      has n, :revisions, :class_name => 'Article'
     end
 
     @model = Article
@@ -68,6 +71,62 @@ describe DataMapper::Collection do
 
         it 'should lazy load when a kicker is called' do
           @collection.entries.should == [ @model.new(:id => 99, :title => 'Sample Article') ]
+        end
+      end
+    end
+
+    it 'should respond to model methods with #method_missing' do
+      @articles.should respond_to(:base_model)
+    end
+
+    it 'should respond to belongs_to relationship methods with #method_missing' do
+      @articles.should respond_to(:original)
+    end
+
+    it 'should respond to has relationship methods with #method_missing' do
+      @articles.should respond_to(:revisions)
+    end
+
+    describe '#method_missing' do
+      describe 'with public model method' do
+        before do
+          @return = @articles.base_model
+        end
+
+        it 'should return expected object' do
+          @return.should == @model
+        end
+      end
+
+      describe 'with belongs_to relationship method' do
+        before do
+          @return = @collection = @articles.original
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          pending 'TODO: fix logic to return correct entries' do
+            @collection.should == []
+          end
+        end
+      end
+
+      describe 'with has relationship method' do
+        before do
+          @return = @articles.revisions
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          pending 'TODO: fix logic to return correct entries' do
+            @collection.should == []
+          end
         end
       end
     end
