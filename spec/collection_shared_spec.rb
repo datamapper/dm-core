@@ -91,7 +91,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'is empty when passed an offset that is out of range' do
-        pending do
+        pending 'TODO: handle out of range offsets in Collection' do
           empty_collection = @return.all(:offset => 10)
           empty_collection.should == []
           empty_collection.should be_loaded
@@ -214,7 +214,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should orphan each replaced entry in the Collection' do
-      pending do
+      pending 'TODO: implement DataMapper::Collection#collect!' do
         @entries.each { |r| r.collection.object_id.should_not == @articles.object_id }
       end
     end
@@ -243,7 +243,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should relate each concatenated Resource from the Collection' do
-      pending do
+      pending 'TODO: implement DataMapper::Collection#concat' do
         @resources.each { |r| r.collection.object_id.should == @articles.object_id }
       end
     end
@@ -395,7 +395,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resources' do
-        pending do
+        pending 'TODO: implement DataMapper::Collection#delete_if' do
           @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
         end
       end
@@ -428,7 +428,7 @@ share_examples_for 'A Collection' do
 
   describe '#destroy' do
     before do
-      pending do
+      pending 'TODO: implement DataMapper::Collection#destroy' do
         @return = @articles.destroy
       end
     end
@@ -673,7 +673,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      pending do
+      pending 'TODO: implement DataMapper::Collection#insert' do
         @resources.each { |r| r.collection.object_id.should == @articles.object_id }
       end
     end
@@ -822,7 +822,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resources' do
-        pending do
+        pending 'TODO: implement DataMapper::Collection#reject!' do
           @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
         end
       end
@@ -1019,7 +1019,7 @@ share_examples_for 'A Collection' do
         end
 
         it 'should orphan the Resources' do
-          pending do
+          pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
             @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
           end
         end
@@ -1040,7 +1040,7 @@ share_examples_for 'A Collection' do
         end
 
         it 'should orphan the Resources' do
-          pending do
+          pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
             @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
           end
         end
@@ -1072,7 +1072,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resource' do
-        pending do
+        pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
           @resource.collection.object_id.should_not == @articles.object_id
         end
       end
@@ -1097,7 +1097,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resources' do
-        pending do
+        pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
           @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
         end
       end
@@ -1122,7 +1122,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resources' do
-        pending do
+        pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
           @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
         end
       end
@@ -1136,7 +1136,7 @@ share_examples_for 'A Collection' do
   describe '#sort!' do
     describe 'without a block' do
       before do
-        pending 'TODO: add Resource#<=>' do
+        pending 'TODO: implement DataMapper::Resource#<=>' do
           @return = @other_articles.push(*@articles).sort!
         end
       end
@@ -1156,7 +1156,7 @@ share_examples_for 'A Collection' do
 
     describe 'with a block' do
       before do
-        pending 'TODO: add Resource#<=>' do
+        pending 'TODO: implement DataMapper::Resource#<=>' do
           @return = @articles.push(*@other_articles).sort! { |a,b| b <=> a }
         end
       end
@@ -1208,7 +1208,7 @@ share_examples_for 'A Collection' do
 
   describe '#update' do
     before do
-      pending do
+      pending 'TODO: implement DataMapper::Collection#update' do
         @return = @articles.update(:title => 'Updated Title')
       end
     end
@@ -1244,7 +1244,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should update attributes of all Resources' do
-      pending do
+      pending 'TODO: make sure the resources are updated if loaded' do
         @articles.each { |r| r.title.should == 'Updated Title' }
       end
     end
