@@ -28,6 +28,10 @@ describe DataMapper::Associations do
   end
 
   describe "#has" do
+    def n
+      Car.n
+    end
+
     it "should raise an ArgumentError if the cardinality is not understood" do
       lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
     end
