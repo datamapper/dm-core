@@ -1,11 +1,11 @@
 module DataMapper::Spec
-      
+
   def self.included(receiver)
     receiver.extend AdapterHelpers
   end
-  
+
   module AdapterHelpers
-    
+
     def with_adapters(*adapters, &block)
       adapters = get_adapters(*adapters)
 
@@ -47,13 +47,13 @@ module DataMapper::Spec
       # adapters, but I'm too tired to finish it up
       before(:each) do
         if @adapter == 'mysql'
-           DataMapper.setup(:alternate, ALTERNATE['postgres']) 
+           DataMapper.setup(:alternate, ALTERNATE['postgres'])
         else
           DataMapper.setup(:alternate, ALTERNATE['mysql'])
         end
         repository(:alternate) { DataMapper.auto_migrate! }
       end
-      
+
       yield
     end
   end
