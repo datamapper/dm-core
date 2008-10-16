@@ -14,7 +14,12 @@ module DataMapper::Spec
           before(:each) do
             @adapter = adapter
             DataMapper.setup(:default, connection_uri)
-            DataMapper.auto_migrate!
+
+            begin
+              DataMapper.auto_migrate!
+            rescue NotImplementedError
+              # do nothing when not supported
+            end
           end
 
           block.call(adapter)
