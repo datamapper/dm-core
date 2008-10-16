@@ -11,6 +11,16 @@ describe DataMapper::Associations do
       include DataMapper::Resource
       property :id, Serial
     end
+    
+    class Door
+      include DataMapper::Resource
+      property :id, Serial
+    end
+    
+    class Window
+      include DataMapper::Resource
+      property :id, Serial
+    end
   end
   
   it "should respond to #has" do
@@ -18,7 +28,7 @@ describe DataMapper::Associations do
   end
   
   describe "#has" do
-    before(:each) do
+    before do
       @relationship = Car.has(1, :engine)
     end
     
@@ -45,12 +55,7 @@ describe DataMapper::Associations do
     end
       
     describe "n" do
-      before(:each) do
-        class Door
-          include DataMapper::Resource
-          property :id, Serial
-        end
-        
+      before do
         @relationship = Car.has(n, :doors)
       end
       
@@ -59,27 +64,10 @@ describe DataMapper::Associations do
       end
     
       describe "through" do
-        before(:each) do
-          class Car
-            include DataMapper::Resource
-            property :id, Serial
-          
-            has n, :doors
-          end
-        
-          class Door
-            include DataMapper::Resource
-            property :id, Serial
-          end
-        
-          class Window
-            include DataMapper::Resource
-            property :id, Serial
-          end
-        
+        before do
           @relationship = Car.has(n, :windows, :through => :doors)
         end
-      
+        
         it "should return the new relationship" do
           @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
         end
@@ -92,7 +80,7 @@ describe DataMapper::Associations do
   end
   
   describe "#belongs_to" do
-    before(:each) do
+    before do
       @relationship = Engine.belongs_to(:car)
     end
     
