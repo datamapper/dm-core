@@ -2,22 +2,19 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'collection_shared_spec'))
 
 describe DataMapper::Collection do
-  before do
-    Object.send(:remove_const, :Article) if defined?(Article)
-    class Article
-      include DataMapper::Resource
-
-      property :id,      Serial
-      property :title,   String
-      property :content, Text
-    end
-
-    @model = Article
-  end
-
   with_adapters do
     before do
+      Object.send(:remove_const, :Article) if defined?(Article)
+      class Article
+        include DataMapper::Resource
+
+        property :id,      Serial
+        property :title,   String
+        property :content, Text
+      end
+
       @article_repository = repository(:default)
+      @model              = Article
 
       @article = @model.create(:title => 'Sample Article', :content => 'Sample')
       @other   = @model.create(:title => 'Other Article', :content => 'Other')
