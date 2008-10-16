@@ -78,6 +78,16 @@ describe DataMapper::Associations do
       it "should be a relationship with the child model" do
         @relationship.child_model.should == Door
       end
+
+      describe "through" do
+        before do
+          @relationship = Car.has(1..4, :windows, :through => :doors)
+        end
+
+        it "should return a new relationship" do
+          @relationship.should be_a_kind_of(DataMapper::Associations::RelationshipChain)
+        end
+      end
     end
 
     describe "n" do
@@ -95,7 +105,7 @@ describe DataMapper::Associations do
         end
 
         it "should return a new relationship" do
-          @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+          @relationship.should be_a_kind_of(DataMapper::Associations::RelationshipChain)
         end
       end
     end
