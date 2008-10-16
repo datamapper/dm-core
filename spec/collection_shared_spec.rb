@@ -878,9 +878,21 @@ share_examples_for 'A Collection' do
   end
 
   describe '#reverse' do
-    it 'should return a Collection'
+    before do
+      @articles.push(*@other_articles)
+      @resources = @articles.entries
+      @return = @articles.reverse
+    end
 
-    it 'should return a Collection with reversed entries'
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
+
+    it 'should return a Collection with reversed entries' do
+      pending 'TODO: Collection#reverse should not delegate to all when loaded? == true' do
+        @return.should == @resources.reverse
+      end
+    end
   end
 
   it 'should respond to #shift' do
