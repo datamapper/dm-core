@@ -915,33 +915,77 @@ share_examples_for 'A Collection' do
 
   describe '#slice!' do
     describe 'with an index' do
-      it 'should return a Resource'
+      before do
+        @return = @resource = @articles.slice!(0)
+      end
 
-      it 'should return expected Resource'
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
 
-      it 'should remove the Resource from the Collection'
+      it 'should return expected Resource' do
+        @return.should == @article
+      end
 
-      it 'should orphan the Resource'
+      it 'should remove the Resource from the Collection' do
+        @articles.should_not include(@resource)
+      end
+
+      it 'should orphan the Resource' do
+        pending do
+          @resource.collection.object_id.should_not == @articles.object_id
+        end
+      end
     end
 
     describe 'with an offset and length' do
-      it 'should return a Collection'
+      before do
+        @resources = @articles.entries
+        @return = @articles.slice!(0, 1)
+      end
 
-      it 'should return the matching Resources in Collection'
+      it 'should return an Array' do
+        @return.should be_kind_of(Array)
+      end
 
-      it 'should remove the Resources from the Collection'
+      it 'should return the matching Resources in Collection' do
+        @return.should == @resources
+      end
 
-      it 'should orphan the Resources'
+      it 'should remove the Resources from the Collection' do
+        @resources.each { |r| @articles.should_not include(r) }
+      end
+
+      it 'should orphan the Resources' do
+        pending do
+          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+        end
+      end
     end
 
     describe 'with a range' do
-      it 'should return a Collection'
+      before do
+        @resources = @articles.entries
+        @return = @articles.slice!(0..0)
+      end
 
-      it 'should return expect Resources in Collection'
+      it 'should return an Array' do
+        @return.should be_kind_of(Array)
+      end
 
-      it 'should remove the matching Resources from the Collection'
+      it 'should return the matching Resources in Collection' do
+        @return.should == @resources
+      end
 
-      it 'should orphan the Resources'
+      it 'should remove the Resources from the Collection' do
+        @resources.each { |r| @articles.should_not include(r) }
+      end
+
+      it 'should orphan the Resources' do
+        pending do
+          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+        end
+      end
     end
   end
 
