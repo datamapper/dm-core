@@ -158,6 +158,13 @@ module DataMapper
 
     private
 
+    ##
+    # A support method form converting Integer, Range or Infinity values into a
+    # { :min => x, :max => y } hash.
+    #
+    # @raise [ArgumentError] if name is a hash with more than one key
+    # 
+    # @api private
     def extract_throughness(name)
       assert_kind_of 'name', name, Hash, Symbol
 
@@ -173,8 +180,11 @@ module DataMapper
       end
     end
 
+    ##
     # A support method form converting Integer, Range or Infinity values into a
     # { :min => x, :max => y } hash.
+    #
+    # @raise [ArgumentError] if constraints[:min] is larger than constraints[:max]
     #
     # @api private
     def extract_min_max(constraints)
