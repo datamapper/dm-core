@@ -6,7 +6,7 @@ module DataMapper::Spec
 
   module AdapterHelpers
 
-    def with_adapters(*adapters, &block)
+    def with_adapters(*adapters)
       adapters = get_adapters(*adapters)
 
       adapters.each do |adapter, connection_uri|
@@ -22,7 +22,7 @@ module DataMapper::Spec
             end
           end
 
-          block.call(adapter)
+          yield adapter
         end
       end
     end
@@ -37,10 +37,10 @@ module DataMapper::Spec
       end
     end
 
-    def with_adapter_spec_wrapper(adapters, current, &block)
+    def with_adapter_spec_wrapper(adapters, current)
       if adapters.keys.length > 1
         describe("with #{current}") do
-          block.call
+          yield
         end
       else
         yield
@@ -60,6 +60,8 @@ module DataMapper::Spec
       end
 
       yield
+    rescue Gem::LoadError
+      # do nothing for now
     end
   end
 end
