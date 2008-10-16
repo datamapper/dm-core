@@ -109,7 +109,10 @@ module DataMapper
     end
 
     ##
-    # Return a Collection scoped by the query
+    # Return a new Collection scoped by the query
+    #
+    # This returns a new Collection scoped relative to the current
+    # Collection.
     #
     # @param [Hash] (optional) query parameters to scope results with
     #

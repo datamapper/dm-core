@@ -31,7 +31,7 @@ share_examples_for 'A Collection' do
       @return.object_id.should == @articles.object_id
     end
 
-    it 'should append the Resource to the Collection' do
+    it 'should append one Resource to the Collection' do
       @articles.last.object_id.should == @resource.object_id
     end
 
@@ -57,23 +57,9 @@ share_examples_for 'A Collection' do
       it 'should return self' do
         @return.object_id.should == @articles.object_id
       end
-
-      describe 'the query' do
-        before do
-          @query = @return.query
-        end
-
-        it 'should have an offset equal to 0' do
-          @query.offset.should == 0
-        end
-
-        it 'should have a limit equal to nil' do
-          @query.limit.should be_nil
-        end
-      end
     end
 
-    describe 'with query' do
+    describe 'with a query' do
       before do
         @return = @articles.all(:limit => 10, :offset => 10)
       end
@@ -114,7 +100,7 @@ share_examples_for 'A Collection' do
         @return.should be_kind_of(DataMapper::Resource)
       end
 
-      it 'should return the Resource by offset' do
+      it 'should lookup the Resource by offset' do
         @return.key.should == @article.key
       end
     end
@@ -505,7 +491,7 @@ share_examples_for 'A Collection' do
       end
     end
 
-    describe 'with query specified' do
+    describe 'with a query' do
       before do
         @return = @resource = @articles.first(:content => 'Sample')
       end
@@ -712,7 +698,7 @@ share_examples_for 'A Collection' do
       end
     end
 
-    describe 'with query specified' do
+    describe 'with a query' do
       before do
         @return = @resource = @articles.last(:content => 'Sample')
       end
@@ -793,7 +779,7 @@ share_examples_for 'A Collection' do
       end
     end
 
-    it 'should relate the Resource to the Collection' do
+    it 'should relate the Resources to the Collection' do
       @resources.each { |r| r.collection.object_id.should == @articles.object_id }
     end
   end
@@ -874,7 +860,7 @@ share_examples_for 'A Collection' do
       end
     end
 
-    describe 'with query' do
+    describe 'with a query' do
       before do
         @entries = @articles.entries
         @return = @collection = @articles.reload(:fields => [ :title, :content ])
@@ -1197,7 +1183,7 @@ share_examples_for 'A Collection' do
       @articles.first(2).should == @resources
     end
 
-    it 'should relate the Resource to the Collection' do
+    it 'should relate the Resources to the Collection' do
       @resources.each { |r| r.collection.object_id.should == @articles.object_id }
     end
   end
