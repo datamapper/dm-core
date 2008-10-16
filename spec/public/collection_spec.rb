@@ -26,37 +26,5 @@ describe DataMapper::Collection do
     end
 
     it_should_behave_like 'A Collection'
-
-    # TODO: move to semipublic specs
-    it 'should respond to #load' do
-      @articles.should respond_to(:load)
-    end
-
-    # TODO: move to semipublic specs
-    describe '#load' do
-      before do
-        @return = @resource = @articles.load([ 1, 'Title' ])
-      end
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should be an initialized Resource' do
-        @resource.should == @model.new(:id => 1, :title => 'Title')
-      end
-
-      it 'should not be a new Resource' do
-        @resource.should_not be_new_record
-      end
-
-      it 'should add the Resource to the Collection' do
-        @articles.should include(@resource)
-      end
-
-      it 'should set the Resource to reference the Collection' do
-        @resource.collection.object_id.should == @articles.object_id
-      end
-    end
   end
 end
