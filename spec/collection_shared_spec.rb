@@ -467,7 +467,9 @@ share_examples_for 'A Collection' do
       @articles.should be_empty
     end
 
-    it 'should bypass validation'
+    it 'should bypass validation' do
+      pending 'TODO: not sure how to best spec this'
+    end
   end
 
   it 'should respond to #first' do
@@ -623,11 +625,28 @@ share_examples_for 'A Collection' do
   end
 
   describe '#insert' do
-    it 'should return a Collection'
+    before do
+      @resources = @other_articles
+      @return = @articles.insert(0, *@resources)
+    end
 
-    it 'should return self'
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
 
-    it 'should insert one or more Resources at a given index'
+    it 'should return self' do
+      @return.object_id.should == @articles.object_id
+    end
+
+    it 'should insert one or more Resources at a given index' do
+      @articles.should == @resources + [ @article ]
+    end
+
+    it 'should relate the Resources to the Collection' do
+      pending do
+        @resources.each { |r| r.collection.object_id.should == @articles.object_id }
+      end
+    end
   end
 
   it 'should respond to #last' do
@@ -727,6 +746,7 @@ share_examples_for 'A Collection' do
     it 'should append the Resources to the Collection' do
       pending 'TODO: fix Collection#last to delegate to super the same as Collection#first' do
         @articles.last(2).should == @resources
+        #@articles.should == [ @article ] + @resources
       end
     end
 
