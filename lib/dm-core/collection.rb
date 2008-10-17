@@ -66,10 +66,7 @@ module DataMapper
     def get(*key)
       key = model.typecast_key(key)
       if loaded?
-        # find indexed resource (create index first if it does not exist)
-        if @cache.empty?
-          each { |r| @cache[r.key] = r }
-        end
+        # find indexed resource
         @cache[key]
       elsif query.limit || query.offset > 0
         # current query is exclusive, find resource within the set
