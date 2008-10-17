@@ -300,9 +300,8 @@ module DataMapper
     #
     # @api public
     def <<(resource)
-      super
       relate_resource(resource)
-      self
+      super
     end
 
     # TODO: document
