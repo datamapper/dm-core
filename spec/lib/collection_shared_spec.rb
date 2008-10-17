@@ -192,9 +192,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should orphan each replaced entry in the Collection' do
-      pending 'TODO: implement DataMapper::Collection#collect!' do
-        @entries.each { |r| r.collection.object_id.should_not == @articles.object_id }
-      end
+      @entries.each { |r| r.collection.object_id.should_not == @articles.object_id }
     end
   end
 
@@ -221,9 +219,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should relate each concatenated Resource from the Collection' do
-      pending 'TODO: implement DataMapper::Collection#concat' do
-        @resources.each { |r| r.collection.object_id.should == @articles.object_id }
-      end
+      @resources.each { |r| r.collection.object_id.should == @articles.object_id }
     end
   end
 
@@ -365,9 +361,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resources' do
-        pending 'TODO: implement DataMapper::Collection#delete_if' do
-          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
-        end
+        @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
       end
     end
 
@@ -659,9 +653,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      pending 'TODO: implement DataMapper::Collection#insert' do
-        @resources.each { |r| r.collection.object_id.should == @articles.object_id }
-      end
+      @resources.each { |r| r.collection.object_id.should == @articles.object_id }
     end
   end
 
@@ -822,9 +814,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resources' do
-        pending 'TODO: implement DataMapper::Collection#reject!' do
-          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
-        end
+        @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
       end
     end
 

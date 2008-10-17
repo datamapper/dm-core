@@ -284,6 +284,12 @@ module DataMapper
       end
     end
 
+    # TODO: document
+    # @api public
+    def collect!
+      super { |r| relate_resource(yield(orphan_resource(r))) }
+    end
+
     ##
     # Append one Resource to the Collection
     #
@@ -299,6 +305,20 @@ module DataMapper
       self
     end
 
+    # TODO: document
+    # @api public
+    def concat(resources)
+      resources.each { |r| relate_resource(r) }
+      super
+    end
+
+    # TODO: document
+    # @api public
+    def insert(index, *resources)
+      resources.each { |r| relate_resource(r) }
+      super
+    end
+
     ##
     # Append one or more Resources to the Collection
     #
@@ -309,9 +329,8 @@ module DataMapper
     #
     # @api public
     def push(*resources)
+      resources.each { |r| relate_resource(r) }
       super
-      resources.each { |resource| relate_resource(resource) }
-      self
     end
 
     ##
@@ -321,9 +340,8 @@ module DataMapper
     #
     # @api public
     def unshift(*resources)
+      resources.each { |r| relate_resource(r) }
       super
-      resources.each { |resource| relate_resource(resource) }
-      self
     end
 
     ##
@@ -334,11 +352,10 @@ module DataMapper
     # @api public
     def replace(other)
       if loaded?
-        each { |resource| orphan_resource(resource) }
+        each { |r| orphan_resource(r) }
       end
+      other.each { |r| relate_resource(r) }
       super
-      other.each { |resource| relate_resource(resource) }
-      self
     end
 
     # TODO: document
@@ -389,6 +406,18 @@ module DataMapper
       orphan_resource(super)
     end
 
+    # TODO: document
+    # @api public
+    def delete_if
+      super { |r| yield(r) && orphan_resource(r) }
+    end
+
+    # TODO: document
+    # @api public
+    def reject!
+      super { |r| yield(r) && orphan_resource(r) }
+    end
+
     ##
     # Makes the Collection empty
     #
@@ -400,10 +429,9 @@ module DataMapper
     # @api public
     def clear
       if loaded?
-        each { |resource| orphan_resource(resource) }
+        each { |r| orphan_resource(r) }
       end
       super
-      self
     end
 
     ##
@@ -481,7 +509,7 @@ module DataMapper
         changed = repository.update(dirty_attributes, scoped_query)
 
         if loaded? && changed > 0
-          each { |resource| resource.attributes = attributes }
+          each { |r| r.attributes = attributes }
         end
       end
 
@@ -520,15 +548,15 @@ module DataMapper
       deleted = repository.delete(scoped_query)
 
       if loaded? && deleted > 0
-        each do |resource|
+        each do |r|
           # TODO: move this logic to a semipublic method in Resource
-          resource.instance_variable_set(:@new_record, true)
-          identity_map.delete(resource.key)
-          resource.dirty_attributes.clear
+          r.instance_variable_set(:@new_record, true)
+          identity_map.delete(r.key)
+          r.dirty_attributes.clear
 
           model.properties(repository.name).each do |property|
-            next unless resource.attribute_loaded?(property.name)
-            resource.dirty_attributes[property] = property.get(resource)
+            next unless r.attribute_loaded?(property.name)
+            r.dirty_attributes[property] = property.get(r)
           end
         end
       end
@@ -677,7 +705,7 @@ module DataMapper
     # TODO: document
     # @api private
     def keys
-      keys = map {|r| r.key }
+      keys = map { |r| r.key }
       keys.any? ? @key_properties.zip(keys.transpose).to_hash : {}
     end
 
