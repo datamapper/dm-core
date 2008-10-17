@@ -21,10 +21,10 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'collect
       before do
         @article_repository = repository(:default)
         @model              = Article
-        @articles_query     = DataMapper::Query.new(repository(:default), @model, :title => 'Sample Article')
+        @articles_query     = DataMapper::Query.new(@article_repository, @model, :title => 'Sample Article')
 
         @article = @model.create(:title => 'Sample Article', :content => 'Sample')
-        @other   = @model.create(:title => 'Other Article', :content => 'Other')
+        @other   = @model.create(:title => 'Other Article',  :content => 'Other')
 
         @articles       = @model.all(@articles_query)
         @other_articles = @model.all(:title => 'Other Article')
