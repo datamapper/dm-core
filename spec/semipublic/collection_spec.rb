@@ -3,17 +3,21 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 # run the specs once with a loaded collection and once not
 [ false, true ].each do |loaded|
   describe DataMapper::Collection do
+
+    # define the model prior to with_adapters
+    before do
+      Object.send(:remove_const, :Article) if defined?(Article)
+      class Article
+        include DataMapper::Resource
+
+        property :id,      Serial
+        property :title,   String
+        property :content, Text
+      end
+    end
+
     with_adapters do
       before do
-        Object.send(:remove_const, :Article) if defined?(Article)
-        class Article
-          include DataMapper::Resource
-
-          property :id,      Serial
-          property :title,   String
-          property :content, Text
-        end
-
         @article_repository = repository(:default)
         @model              = Article
         @articles_query     = DataMapper::Query.new(@article_repository, @model, :title => 'Sample Article')
