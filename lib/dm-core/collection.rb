@@ -121,10 +121,11 @@ module DataMapper
     def all(query = {})
       # TODO: this shouldn't be a kicker if scoped_query() is called
       if query.kind_of?(Hash) ? query.empty? : query == self.query
-        return self
+        self
+      else
+        query = scoped_query(query)
+        query.repository.read_many(query)
       end
-      query = scoped_query(query)
-      query.repository.read_many(query)
     end
 
     ##
@@ -147,22 +148,24 @@ module DataMapper
     # @api public
     def first(*args)
       # TODO: this shouldn't be a kicker if scoped_query() is called
-      if loaded?
-        if args.empty?
-          return super
-        elsif args.size == 1 && args.first.kind_of?(Integer)
-          limit = args.shift
-          return self.class.new(scoped_query(:limit => limit)) { |c| c.replace(super(limit)) }
-        end
+
+      if loaded? && args.empty?
+        return relate_resource(super)
       end
 
-      query = args.last.respond_to?(:merge) ? args.pop : {}
-      query = scoped_query(query.merge(:limit => args.first || 1))
+      limit = if args.first.kind_of?(Integer)
+        args.first
+      end
 
-      if args.any?
-        query.repository.read_many(query)
+      query = args.last.respond_to?(:merge) ? args.last : {}
+      query = scoped_query(query.merge(:limit => limit || 1))
+
+      if limit.nil?
+        relate_resource(query.repository.read_one(query))
+      elsif loaded? && args.size == 1
+        self.class.new(query) { |c| c.replace(super(limit)) }
       else
-        query.repository.read_one(query)
+        query.repository.read_many(query)
       end
     end
 
@@ -185,22 +188,27 @@ module DataMapper
     #
     # @api public
     def last(*args)
-      if loaded?
-        if args.empty?
-          return super
-        elsif args.size == 1 && args.first.kind_of?(Integer)
-          limit = args.shift
-          return self.class.new(scoped_query(:limit => limit).reverse) { |c| c.replace(super(limit)) }
-        end
+      if loaded? && args.empty?
+        return relate_resource(super)
       end
 
-      reversed = reverse
+      limit = if args.first.kind_of?(Integer)
+        args.first
+      end
 
-      # tell the Collection to reverse the order of the
-      # results coming out of the adapter
-      reversed.query.add_reversed = !query.add_reversed?
+      query = args.last.respond_to?(:merge) ? args.last : {}
+      query = scoped_query(query.merge(:limit => limit || 1)).reverse
 
-      reversed.first(*args)
+      # tell the Query to prepend each result from the adapter
+      query.update(:add_reversed => !query.add_reversed?)
+
+      if limit.nil?
+        relate_resource(query.repository.read_one(query))
+      elsif loaded? && args.size == 1
+        self.class.new(query) { |c| c.replace(super(limit)) }
+      else
+        query.repository.read_many(query)
+      end
     end
 
     ##
@@ -215,8 +223,11 @@ module DataMapper
     def at(index)
       if loaded?
         return super
+      elsif index >= 0
+        first(:offset => index)
+      else
+        last(:offset => index.abs - 1)
       end
-      index >= 0 ? first(:offset => index) : last(:offset => index.abs - 1)
     end
 
     ##
@@ -267,9 +278,10 @@ module DataMapper
     # @api public
     def reverse
       if loaded?
-        return self.class.new(query.reverse) { |c| c.replace(super) }
+        self.class.new(query.reverse) { |c| c.replace(super) }
+      else
+        all(query.reverse)
       end
-      all(query.reverse)
     end
 
     ##
@@ -434,16 +446,13 @@ module DataMapper
     #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
     # @param [Hash] attributes attributes to update
-    # @param [FalseClass, TrueClass] reload if set to true, collection
-    #   will have loaded resources reflect updates.
     #
     # @return [TrueClass, FalseClass]
     #   TrueClass indicates that all entries were affected
     #   FalseClass indicates that some entries were affected
     #
     # @api public
-    # TODO: make it so the Collection is always reloaded after update
-    def update(attributes = {}, preload = false)
+    def update(attributes = {})
       raise NotImplementedError, 'update *with* validations has not be written yet, try update!'
     end
 
@@ -453,47 +462,30 @@ module DataMapper
     #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
     # @param [Hash] attributes attributes to update
-    # @param [FalseClass, TrueClass] reload if set to true, collection
-    #   will have loaded resources reflect updates.
     #
     # @return [TrueClass, FalseClass]
     #   TrueClass indicates that all entries were affected
     #   FalseClass indicates that some entries were affected
     #
     # @api public
-    # TODO: make it so the Collection is always reloaded after update
-    # TODO: make it so update! returns true always
-    def update!(attributes = {}, reload = false)
+    def update!(attributes = {})
       # TODO: delegate to Model.update
-      if attributes.empty?
-        return true
-      end
+      unless attributes.empty?
+        dirty_attributes = {}
 
-      dirty_attributes = {}
-
-      model.properties(repository.name).slice(*attributes.keys).each do |property|
-        if property
+        model.properties(repository.name).each do |property|
+          next unless attributes.has_key?(property.name)
           dirty_attributes[property] = attributes[property.name]
+        end
+
+        changed = repository.update(dirty_attributes, scoped_query)
+
+        if loaded? && changed > 0
+          each { |resource| resource.attributes = attributes }
         end
       end
 
-      # this should never be done on update! even if collection is loaded. or?
-      # each { |resource| resource.attributes = attributes } if loaded?
-
-      changes = repository.update(dirty_attributes, scoped_query)
-
-      # need to decide if this should be done in update!
-      query.update(attributes)
-
-      if identity_map.any? && reload
-        reload_query = @key_properties.zip(identity_map.keys.transpose).to_hash
-        model.all(reload_query.update(attributes)).reload(:fields => attributes.keys)
-      end
-
-      # this should return true if there are any changes at all. as it skips validations
-      # the only way it could be fewer changes is if some resources already was updated.
-      # that should not return false? true = 'now all objects have these new values'
-      return loaded? ? changes == size : changes > 0
+      true
     end
 
     ##
@@ -525,10 +517,11 @@ module DataMapper
     # @api public
     def destroy!
       # TODO: delegate to Model.destroy
-      if loaded?
-        return false unless repository.delete(scoped_query) == size
+      deleted = repository.delete(scoped_query)
 
+      if loaded? && deleted > 0
         each do |resource|
+          # TODO: move this logic to a semipublic method in Resource
           resource.instance_variable_set(:@new_record, true)
           identity_map.delete(resource.key)
           resource.dirty_attributes.clear
@@ -538,8 +531,6 @@ module DataMapper
             resource.dirty_attributes[property] = property.get(resource)
           end
         end
-      else
-        return false unless repository.delete(scoped_query) > 0
       end
 
       clear
@@ -668,14 +659,12 @@ module DataMapper
         query.update(keys)
       end
 
-      if query == self.query
-        return self.query
+      if query.kind_of?(Hash)
+        query = Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, model, query)
       end
 
-      query = if query.kind_of?(Hash)
-        Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, model, query)
-      else
-        query
+      if query == self.query
+        return self.query
       end
 
       if query.limit || query.offset > 0
@@ -701,10 +690,6 @@ module DataMapper
     # TODO: document
     # @api private
     def set_relative_position(query)
-      if query == self.query
-        return
-      end
-
       if query.offset == 0
         if !query.limit.nil? && !self.query.limit.nil? && query.limit <= self.query.limit
           return
