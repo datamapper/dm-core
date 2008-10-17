@@ -1,24 +1,23 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'collection_shared_spec'))
 
+# run the specs once with a loaded collection and once not
 [ false, true ].each do |loaded|
   describe DataMapper::Collection do
-    before do
-      Object.send(:remove_const, :Article) if defined?(Article)
-      class Article
-        include DataMapper::Resource
-
-        property :id,      Serial
-        property :title,   String
-        property :content, Text
-
-        belongs_to :original, :class_name => 'Article'
-        has n, :revisions, :class_name => 'Article'
-      end
-    end
-
     with_adapters do
       before do
+        Object.send(:remove_const, :Article) if defined?(Article)
+        class Article
+          include DataMapper::Resource
+
+          property :id,      Serial
+          property :title,   String
+          property :content, Text
+
+          belongs_to :original, :class_name => 'Article'
+          has n, :revisions, :class_name => 'Article'
+        end
+
         @article_repository = repository(:default)
         @model              = Article
         @articles_query     = DataMapper::Query.new(@article_repository, @model, :title => 'Sample Article')
@@ -29,8 +28,11 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'collect
         @articles       = @model.all(@articles_query)
         @other_articles = @model.all(:title => 'Other Article')
 
-        # run the specs once with a loaded collection and once not
         @articles.entries if loaded
+      end
+
+      after do
+        @articles.dup.destroy!
       end
 
       it 'should respond to .new' do

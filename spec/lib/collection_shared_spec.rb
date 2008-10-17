@@ -5,10 +5,6 @@ share_examples_for 'A Collection' do
     end
   end
 
-  after do
-    @articles.dup.destroy!
-  end
-
   it 'should respond to #<<' do
     @articles.should respond_to(:<<)
   end
