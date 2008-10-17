@@ -46,7 +46,7 @@ module DataMapper
     # @api public
     def reload(query = {})
       @query = scoped_query(query)
-      @query.update(:fields => @query.fields | @key_properties)
+      @query.update(:fields => @query.fields | model.key(repository.name))
       replace(all(:reload => true))
     end
 
@@ -597,7 +597,7 @@ module DataMapper
         next unless operator == :eql &&
           property.kind_of?(DataMapper::Property) &&
           ![ Array, Range ].any? { |k| bind_value.kind_of?(k) }
-          !@key_properties.include?(property)
+          !model.key(repository.name).include?(property)
 
         default_attributes[property.name] = bind_value
       end
@@ -646,9 +646,8 @@ module DataMapper
         block = lambda {}
       end
 
-      @query          = query
-      @key_properties = model.key(repository.name)
-      @cache          = {}
+      @query = query
+      @cache = {}
 
       super()
 
@@ -711,7 +710,7 @@ module DataMapper
     # @api private
     def keys
       keys = map { |r| r.key }
-      keys.any? ? @key_properties.zip(keys.transpose).to_hash : {}
+      keys.any? ? model.key(repository.name).zip(keys.transpose).to_hash : {}
     end
 
     # TODO: document

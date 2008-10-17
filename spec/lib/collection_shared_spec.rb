@@ -20,7 +20,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.equal?(@articles).should be_true
+      @return.should be_equal(@articles)
     end
 
     it 'should append one Resource to the Collection' do
@@ -47,7 +47,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.equal?(@articles).should be_true
+        @return.should be_equal(@articles)
       end
     end
 
@@ -157,7 +157,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.equal?(@articles).should be_true
+      @return.should be_equal(@articles)
     end
 
     it 'should make the Collection empty' do
@@ -184,7 +184,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.equal?(@articles).should be_true
+      @return.should be_equal(@articles)
     end
 
     it 'should update the Collection inline' do
@@ -211,7 +211,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.equal?(@articles).should be_true
+      @return.should be_equal(@articles)
     end
 
     it 'should concatenate the two collections' do
@@ -353,7 +353,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.equal?(@articles).should be_true
+        @return.should be_equal(@articles)
       end
 
       it 'should remove the Resources from the Collection' do
@@ -377,7 +377,7 @@ share_examples_for 'A Collection' do
 
       it 'should return self' do
 
-        @return.equal?(@articles).should be_true
+        @return.should be_equal(@articles)
       end
 
       it 'should not modify the Collection' do
@@ -645,7 +645,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.equal?(@articles).should be_true
+      @return.should be_equal(@articles)
     end
 
     it 'should insert one or more Resources at a given index' do
@@ -778,7 +778,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.equal?(@articles).should be_true
+      @return.should be_equal(@articles)
     end
 
     it 'should append the Resources to the Collection' do
@@ -806,7 +806,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.equal?(@articles).should be_true
+        @return.should be_equal(@articles)
       end
 
       it 'should remove the Resources from the Collection' do
@@ -850,7 +850,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.equal?(@articles).should be_true
+        @return.should be_equal(@articles)
       end
 
       it 'should update the Collection' do
@@ -875,7 +875,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.equal?(@articles).should be_true
+        @return.should be_equal(@articles)
       end
 
       it 'should update the Collection' do
@@ -905,7 +905,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.equal?(@articles).should be_true
+      @return.should be_equal(@articles)
     end
 
     it 'should update the Collection with new Resources' do
@@ -1136,7 +1136,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.equal?(@articles).should be_true
+        @return.should be_equal(@articles)
       end
 
       it 'should modify and sort the Collection using default sort order' do
@@ -1156,7 +1156,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.equal?(@articles).should be_true
+        @return.should be_equal(@articles)
       end
 
       it 'should modify and sort the Collection using supplied block' do
@@ -1180,7 +1180,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.equal?(@articles).should be_true
+      @return.should be_equal(@articles)
     end
 
     it 'should prepend the Resources to the Collection' do
