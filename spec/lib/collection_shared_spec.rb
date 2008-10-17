@@ -20,15 +20,15 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.object_id.should == @articles.object_id
+      @return.equal?(@articles).should be_true
     end
 
     it 'should append one Resource to the Collection' do
-      @articles.last.object_id.should == @resource.object_id
+      @articles.last.should be_equal(@resource)
     end
 
     it 'should relate the Resource to the Collection' do
-      @resource.collection.object_id.should == @articles.object_id
+      @resource.collection.should be_equal(@articles)
     end
   end
 
@@ -47,7 +47,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.object_id.should == @articles.object_id
+        @return.equal?(@articles).should be_true
       end
     end
 
@@ -61,7 +61,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return a new Collection' do
-        @return.object_id.should_not == @articles.object_id
+        @return.should_not be_equal(@articles)
       end
 
       it 'should have a different query than original Collection' do
@@ -106,7 +106,7 @@ share_examples_for 'A Collection' do
         @return.should be_kind_of(DataMapper::Resource)
       end
 
-      it 'should return the Resource by offset' do
+      it 'should return the expected Resource' do
         @return.key.should == @article.key
       end
     end
@@ -134,7 +134,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should append the Resource to the Collection' do
-      @articles.last.object_id.should == @resource.object_id
+      @articles.last.should be_equal(@resource)
     end
 
     it 'should use the query conditions to set default values' do
@@ -148,7 +148,7 @@ share_examples_for 'A Collection' do
 
   describe '#clear' do
     before do
-      @entries = @articles.entries
+      @resources = @articles.entries
       @return = @articles.clear
     end
 
@@ -157,15 +157,15 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.object_id.should == @articles.object_id
+      @return.equal?(@articles).should be_true
     end
 
     it 'should make the Collection empty' do
       @articles.should be_empty
     end
 
-    it 'should orphan each entry in the Collection' do
-      @entries.each { |r| r.collection.object_id.should_not == @articles.object_id }
+    it 'should orphan the Resources' do
+      @resources.each { |r| r.collection.should_not be_equal(@articles) }
     end
   end
 
@@ -175,7 +175,7 @@ share_examples_for 'A Collection' do
 
   describe '#collect!' do
     before do
-      @entries = @articles.entries
+      @resources = @articles.entries
       @return = @articles.collect! { |r| @model.new(:title => 'Title') }
     end
 
@@ -184,15 +184,15 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.object_id.should == @articles.object_id
+      @return.equal?(@articles).should be_true
     end
 
     it 'should update the Collection inline' do
       @articles.should == [ @model.new(:title => 'Title') ]
     end
 
-    it 'should orphan each replaced entry in the Collection' do
-      @entries.each { |r| r.collection.object_id.should_not == @articles.object_id }
+    it 'should orphan each replaced Resource in the Collection' do
+      @resources.each { |r| r.collection.should_not be_equal(@articles) }
     end
   end
 
@@ -211,15 +211,15 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.object_id.should == @articles.object_id
+      @return.equal?(@articles).should be_true
     end
 
     it 'should concatenate the two collections' do
       @return.should == [ @article, @other ]
     end
 
-    it 'should relate each concatenated Resource from the Collection' do
-      @resources.each { |r| r.collection.object_id.should == @articles.object_id }
+    it 'should relate each Resource to the Collection' do
+      @resources.each { |r| r.collection.should be_equal(@articles) }
     end
   end
 
@@ -245,7 +245,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should append the Resource to the Collection' do
-      @articles.last.object_id.should == @resource.object_id
+      @articles.last.should be_equal(@resource)
     end
 
     it 'should use the query conditions to set default values' do
@@ -280,7 +280,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resource' do
-        @resource.collection.object_id.should_not == @articles.object_id
+        @resource.collection.should_not be_equal(@articles)
       end
     end
 
@@ -318,7 +318,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resource' do
-        @resource.collection.object_id.should_not == @articles.object_id
+        @resource.collection.should_not be_equal(@articles)
       end
     end
 
@@ -353,15 +353,15 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.object_id.should == @articles.object_id
+        @return.equal?(@articles).should be_true
       end
 
-      it 'should remove the rejected Resources from the Collection' do
+      it 'should remove the Resources from the Collection' do
         @resources.each { |r| @articles.should_not include(r) }
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -377,7 +377,7 @@ share_examples_for 'A Collection' do
 
       it 'should return self' do
 
-        @return.object_id.should == @articles.object_id
+        @return.equal?(@articles).should be_true
       end
 
       it 'should not modify the Collection' do
@@ -401,7 +401,7 @@ share_examples_for 'A Collection' do
       @return.should be_true
     end
 
-    it 'should remove the resources from the datasource' do
+    it 'should remove the Resources from the datasource' do
       @model.all(:title => 'Sample Article').should be_empty
     end
 
@@ -423,7 +423,7 @@ share_examples_for 'A Collection' do
       @return.should be_true
     end
 
-    it 'should remove the resources from the datasource' do
+    it 'should remove the Resources from the datasource' do
       @model.all(:title => 'Sample Article').should be_empty
     end
 
@@ -455,7 +455,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should relate the Resource to the Collection' do
-        @resource.collection.object_id.should == @articles.object_id
+        @resource.collection.should be_equal(@articles)
       end
     end
 
@@ -473,13 +473,13 @@ share_examples_for 'A Collection' do
       end
 
       it 'should relate the Resource to the Collection' do
-        @resource.collection.object_id.should == @articles.object_id
+        @resource.collection.should be_equal(@articles)
       end
     end
 
     describe 'with limit specified' do
       before do
-        @return = @collection = @articles.first(1)
+        @return = @resources = @articles.first(1)
       end
 
       it 'should return a Collection' do
@@ -487,17 +487,17 @@ share_examples_for 'A Collection' do
       end
 
       it 'should be the first N Resources in the Collection' do
-        @collection.should == [ @article ]
+        @resources.should == [ @article ]
       end
 
-      it 'should orphan the Resources from the Collection' do
-        @collection.each { |r| r.collection.object_id.should_not == @articles.object_id }
+      it 'should orphan the Resources' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
       end
     end
 
     describe 'with limit and query specified' do
       before do
-        @return = @collection = @articles.first(1, :content => 'Sample')
+        @return = @resources = @articles.first(1, :content => 'Sample')
       end
 
       it 'should return a Collection' do
@@ -505,11 +505,11 @@ share_examples_for 'A Collection' do
       end
 
       it 'should be the first N Resources in the Collection matching the query' do
-        @collection.should == [ @article ]
+        @resources.should == [ @article ]
       end
 
-      it 'should orphan the Resources from the Collection' do
-        @collection.each { |r| r.collection.object_id.should_not == @articles.object_id }
+      it 'should orphan the Resources' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
       end
     end
   end
@@ -645,7 +645,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.object_id.should == @articles.object_id
+      @return.equal?(@articles).should be_true
     end
 
     it 'should insert one or more Resources at a given index' do
@@ -653,7 +653,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      @resources.each { |r| r.collection.object_id.should == @articles.object_id }
+      @resources.each { |r| r.collection.should be_equal(@articles) }
     end
   end
 
@@ -676,7 +676,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should relate the Resource to the Collection' do
-        @resource.collection.object_id.should == @articles.object_id
+        @resource.collection.should be_equal(@articles)
       end
     end
 
@@ -694,13 +694,13 @@ share_examples_for 'A Collection' do
       end
 
       it 'should relate the Resource to the Collection' do
-        @resource.collection.object_id.should == @articles.object_id
+        @resource.collection.should be_equal(@articles)
       end
     end
 
     describe 'with limit specified' do
       before do
-        @return = @collection = @articles.last(1)
+        @return = @resources = @articles.last(1)
       end
 
       it 'should return a Collection' do
@@ -708,17 +708,17 @@ share_examples_for 'A Collection' do
       end
 
       it 'should be the last N Resources in the Collection' do
-        @collection.should == [ @article ]
+        @resources.should == [ @article ]
       end
 
-      it 'should orphan the Resources from the Collection' do
-        @collection.each { |r| r.collection.object_id.should_not == @articles.object_id }
+      it 'should orphan the Resources' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
       end
     end
 
     describe 'with limit and query specified' do
       before do
-        @return = @collection = @articles.last(1, :content => 'Sample')
+        @return = @resources = @articles.last(1, :content => 'Sample')
       end
 
       it 'should return a Collection' do
@@ -726,11 +726,11 @@ share_examples_for 'A Collection' do
       end
 
       it 'should be the last N Resources in the Collection matching the query' do
-        @collection.should == [ @article ]
+        @resources.should == [ @article ]
       end
 
-      it 'should orphan the Resources from the Collection' do
-        @collection.each { |r| r.collection.object_id.should_not == @articles.object_id }
+      it 'should orphan the Resources' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
       end
     end
   end
@@ -759,7 +759,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should orphan the Resource' do
-      @resource.collection.object_id.should_not == @articles.object_id
+      @resource.collection.should_not be_equal(@articles)
     end
   end
 
@@ -778,7 +778,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.object_id.should == @articles.object_id
+      @return.equal?(@articles).should be_true
     end
 
     it 'should append the Resources to the Collection' do
@@ -786,7 +786,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      @resources.each { |r| r.collection.object_id.should == @articles.object_id }
+      @resources.each { |r| r.collection.should be_equal(@articles) }
     end
   end
 
@@ -806,15 +806,15 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.object_id.should == @articles.object_id
+        @return.equal?(@articles).should be_true
       end
 
-      it 'should remove the rejected Resources from the Collection' do
+      it 'should remove the Resources from the Collection' do
         @resources.each { |r| @articles.should_not include(r) }
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -841,7 +841,7 @@ share_examples_for 'A Collection' do
   describe '#reload' do
     describe 'with no arguments' do
       before do
-        @entries = @articles.entries
+        @resources = @articles.entries
         @return = @collection = @articles.reload
       end
 
@@ -850,12 +850,12 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.object_id.should == @articles.object_id
+        @return.equal?(@articles).should be_true
       end
 
       it 'should update the Collection' do
         pending 'TODO: Fix problem with Identity Map of original Query being used automatically' do
-          @articles.each_with_index { |r,i| r.object_id.should_not == @entries[i].object_id }
+          @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
         end
       end
 
@@ -866,7 +866,7 @@ share_examples_for 'A Collection' do
 
     describe 'with a query' do
       before do
-        @entries = @articles.entries
+        @resources = @articles.entries
         @return = @collection = @articles.reload(:fields => [ :title, :content ])
       end
 
@@ -875,12 +875,12 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.object_id.should == @articles.object_id
+        @return.equal?(@articles).should be_true
       end
 
       it 'should update the Collection' do
         pending 'TODO: Fix problem with Identity Map of original Query being used automatically' do
-          @articles.each_with_index { |r,i| r.object_id.should_not == @entries[i].object_id }
+          @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
         end
       end
 
@@ -905,7 +905,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.object_id.should == @articles.object_id
+      @return.equal?(@articles).should be_true
     end
 
     it 'should update the Collection with new Resources' do
@@ -913,11 +913,11 @@ share_examples_for 'A Collection' do
     end
 
     it 'should relate each Resource added to the Collection' do
-      @articles.each { |r| r.collection.object_id.should == @articles.object_id }
+      @articles.each { |r| r.collection.should be_equal(@articles) }
     end
 
     it 'should orphan each Resource removed from the Collection' do
-      @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+      @resources.each { |r| r.collection.should_not be_equal(@articles) }
     end
   end
 
@@ -965,7 +965,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should orphan the Resource' do
-      @resource.collection.object_id.should_not == @articles.object_id
+      @resource.collection.should_not be_equal(@articles)
     end
   end
 
@@ -989,7 +989,7 @@ share_examples_for 'A Collection' do
         end
 
         it 'should relate the Resource to the Collection' do
-          @resource.collection.object_id.should == @articles.object_id
+          @resource.collection.should be_equal(@articles)
         end
       end
 
@@ -1002,12 +1002,12 @@ share_examples_for 'A Collection' do
           @return.should be_kind_of(DataMapper::Collection)
         end
 
-        it 'should return the matching Resources in Collection' do
+        it 'should return the expected Resource' do
           @return.should == [ @article ]
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
         end
       end
 
@@ -1020,12 +1020,12 @@ share_examples_for 'A Collection' do
           @return.should be_kind_of(DataMapper::Collection)
         end
 
-        it 'should return the matching Resources in Collection' do
+        it 'should return the expected Resource' do
           @return.should == [ @article ]
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
         end
       end
 
@@ -1063,7 +1063,7 @@ share_examples_for 'A Collection' do
 
       it 'should orphan the Resource' do
         pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
-          @resource.collection.object_id.should_not == @articles.object_id
+          @resource.collection.should_not be_equal(@articles)
         end
       end
     end
@@ -1078,7 +1078,7 @@ share_examples_for 'A Collection' do
         @return.should be_kind_of(Array)
       end
 
-      it 'should return the matching Resources in Collection' do
+      it 'should return the expected Resource' do
         @return.should == @resources
       end
 
@@ -1088,7 +1088,7 @@ share_examples_for 'A Collection' do
 
       it 'should orphan the Resources' do
         pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
-          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
         end
       end
     end
@@ -1103,7 +1103,7 @@ share_examples_for 'A Collection' do
         @return.should be_kind_of(Array)
       end
 
-      it 'should return the matching Resources in Collection' do
+      it 'should return the expected Resource' do
         @return.should == @resources
       end
 
@@ -1113,7 +1113,7 @@ share_examples_for 'A Collection' do
 
       it 'should orphan the Resources' do
         pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
-          @resources.each { |r| r.collection.object_id.should_not == @articles.object_id }
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
         end
       end
     end
@@ -1136,7 +1136,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.object_id.should == @articles.object_id
+        @return.equal?(@articles).should be_true
       end
 
       it 'should modify and sort the Collection using default sort order' do
@@ -1156,7 +1156,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return self' do
-        @return.object_id.should == @articles.object_id
+        @return.equal?(@articles).should be_true
       end
 
       it 'should modify and sort the Collection using supplied block' do
@@ -1180,7 +1180,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return self' do
-      @return.object_id.should == @articles.object_id
+      @return.equal?(@articles).should be_true
     end
 
     it 'should prepend the Resources to the Collection' do
@@ -1188,7 +1188,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      @resources.each { |r| r.collection.object_id.should == @articles.object_id }
+      @resources.each { |r| r.collection.should be_equal(@articles) }
     end
   end
 

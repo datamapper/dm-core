@@ -620,6 +620,12 @@ module DataMapper
       super || model.public_methods(false).include?(method.to_s) || relationships.has_key?(method)
     end
 
+    # TODO: document
+    # @api public
+    def equal?(other)
+      object_id == other.object_id
+    end
+
     protected
 
     # TODO: document
@@ -744,6 +750,7 @@ module DataMapper
       end
 
       query.update(:offset => first_pos)
+
       if last_pos
         query.update(:limit => last_pos - first_pos)
       end

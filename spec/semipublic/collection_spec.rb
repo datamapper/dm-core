@@ -73,7 +73,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
 
         it 'should set the Resource to reference the Collection' do
-          @resource.collection.object_id.should == @articles.object_id
+          @resource.collection.should be_equal(@articles)
         end
       end
 
