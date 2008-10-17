@@ -44,10 +44,6 @@ describe DataMapper::Associations do
       lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
     end
 
-    it "should raise an ArgumentError if the name argument has more than one key" do
-      lambda { Car.has(n, :doors => :windows, :wipers => :windows) }.should raise_error(ArgumentError)
-    end
-
     it "should raise an ArgumentError if the minimum constraint is larger than the maximum" do
       lambda { Car.has(3..1, :doors) }.should raise_error(ArgumentError)
     end

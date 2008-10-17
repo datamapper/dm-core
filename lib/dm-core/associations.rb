@@ -17,20 +17,20 @@ module DataMapper
     class UnsavedParentError < RuntimeError
     end
 
+    ##
     # Returns all relationships that are many-to-one for this model.
     #
     # Used to find the relationships that require properties in any Repository.
     #
-    # Example:
-    # class Plur
-    #   include DataMapper::Resource
-    #   def self.default_repository_name
-    #     :plur_db
-    #   end
-    #   repository(:plupp_db) do
-    #     has 1, :plupp
-    #   end
-    # end
+    #  class Plur
+    #    include DataMapper::Resource
+    #    def self.default_repository_name
+    #      :plur_db
+    #    end
+    #    repository(:plupp_db) do
+    #      has 1, :plupp
+    #    end
+    #  end
     #
     # This resource has a many-to-one to the Plupp resource residing in the :plupp_db repository,
     # but the Plur resource needs the plupp_id property no matter what repository itself lives in,
@@ -57,19 +57,13 @@ module DataMapper
     # A shorthand, clear syntax for defining one-to-one, one-to-many and
     # many-to-many resource relationships.
     #
-    # @example [Usage]
-    #   * has 1, :friend                          # one friend
-    #   * has n, :friends                         # many friends
-    #   * has 1..3, :friends
-    #                         # many friends (at least 1, at most 3)
-    #   * has 3, :friends
-    #                         # many friends (exactly 3)
-    #   * has 1, :friend, :class_name => 'User'
-    #                         # one friend with the class name User
-    #   * has 3, :friends, :through => :friendships
-    #                         # many friends through the friendships relationship
-    #   * has n, :friendships => :friends
-    #                         # identical to above example
+    #  * has 1,    :friend    # one friend
+    #  * has n,    :friends   # many friends
+    #  * has 1..3, :friends   # many friends (at least 1, at most 3)
+    #  * has 3,    :friends   # many friends (exactly 3)
+    #  * has 1,    :friend,  :class_name => 'User'       # one friend with the class name User
+    #  * has 3,    :friends, :through    => :friendships # many friends through the friendships relationship
+    #  * has n,    :friendships => :friends              # identical to above example
     #
     # @param cardinality [Integer, Range, Infinity]
     #   cardinality that defines the association type and constraints
@@ -92,19 +86,10 @@ module DataMapper
     #
     # @api public
     def has(cardinality, name, options = {})
-
-      # NOTE: the reason for this fix is that with the ability to pass in two
-      # hashes into has() there might be instances where people attempt to
-      # pass in the options into the name part and not know why things aren't
-      # working for them.
-      if name.kind_of?(Hash)
-        name_through, through = name.keys.first, name.values.first
-        cardinality_string = cardinality.to_s == 'Infinity' ? 'n' : cardinality.inspect
-        warn("In #{self.name} 'has #{cardinality_string}, #{name_through.inspect} => #{through.inspect}' is deprecated. Use 'has #{cardinality_string}, #{name_through.inspect}, :through => #{through.inspect}' instead")
-      end
+      assert_kind_of 'name', name, Symbol
 
       options = options.merge(extract_min_max(cardinality))
-      options = options.merge(extract_throughness(name))
+      options = options.merge({ :name => name })
 
       # do not remove this. There is alot of confusion on people's
       # part about what the first argument to has() is.  For the record it
@@ -133,9 +118,8 @@ module DataMapper
     ##
     # A shorthand, clear syntax for defining many-to-one resource relationships.
     #
-    # @example [Usage]
-    #   * belongs_to :user                          # many_to_one, :friend
-    #   * belongs_to :friend, :class_name => 'User'  # many_to_one :friends
+    #  * belongs_to :user                          # many_to_one, :friend
+    #  * belongs_to :friend, :class_name => 'User'  # many_to_one :friends
     #
     # @param name [Symbol] The name that the association will be referenced by
     # @see #has
@@ -157,27 +141,6 @@ module DataMapper
     end
 
     private
-
-    ##
-    # A support method form converting Integer, Range or Infinity values into a
-    # { :min => x, :max => y } hash.
-    #
-    # @raise [ArgumentError] if name is a hash with more than one key
-    #
-    # @api private
-    def extract_throughness(name)
-      assert_kind_of 'name', name, Hash, Symbol
-
-      case name
-        when Hash
-          unless name.keys.size == 1
-            raise ArgumentError, "name must have only one key, but had #{name.keys.size}", caller(2)
-          end
-          { :name => name.keys.first, :through => name.values.first }
-        when Symbol
-          { :name => name }
-      end
-    end
 
     ##
     # A support method form converting Integer, Range or Infinity values into a
