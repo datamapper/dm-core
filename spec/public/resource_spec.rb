@@ -21,7 +21,7 @@ describe DataMapper::Resource do
       end
     end
 
-  with_adapters do
+  supported_by :all do
 
     describe "#eql?" do
 
@@ -48,7 +48,6 @@ describe DataMapper::Resource do
 
       with_alternate do
         it "should be true when they are instances from different repositories, but the keys and attributes are the same" do
-          pending
           user  = User.create(:name => "Bill", :id => 5)
           other = repository(:alternate) { User.create(:name => "Bill", :id => 5) }
           user.should be_eql(other)

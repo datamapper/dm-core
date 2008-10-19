@@ -20,7 +20,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'collect
       end
     end
 
-    with_adapters do
+    supported_by :all do
       before do
         @article_repository = repository(:default)
         @model              = Article

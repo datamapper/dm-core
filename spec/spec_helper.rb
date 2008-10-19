@@ -13,15 +13,20 @@ SPEC_ROOT.join('db').mkpath
 ENV['ADAPTERS'] ||= 'in_memory'
 
 HAS_DO   = DataMapper::Adapters.const_defined?('DataObjectsAdapter')
-ADAPTERS = {
+
+ADAPTERS = []
+
+PRIMARY = {
   'in_memory'  => { :adapter => :in_memory },
   'sqlite3'    => 'sqlite3::memory:',
   'sqlite3_fs' => "sqlite3://#{SPEC_ROOT}/db/primary.db",
   'mysql'      => 'mysql://localhost/dm_core_test',
   'postgres'   => 'postgres://postgres@localhost/dm_core_test'
 }
+
 ALTERNATE = {
-  # 'sqlite3'  => 'sqlite3::memory:',
+  'in_memory'  => 'sqlite3::memory',
+  'sqlite3'    => "sqlite3://#{SPEC_ROOT}/db/alternate.db",
   'sqlite3_fs' => "sqlite3://#{SPEC_ROOT}/db/secondary.db",
   'mysql'      => 'mysql://localhost/dm_core_test2',
   'postgres'   => 'postgres://postgres@localhost/dm_core_test2'
@@ -34,13 +39,21 @@ ALTERNATE = {
 #
 # For example, in the bash shell, you might use:
 #   export MYSQL_SPEC_URI="mysql://localhost/dm_core_test?socket=/opt/local/var/run/mysql5/mysqld.sock"
-ADAPTERS.each do |adapter, default|
-  connection_string = ENV["#{adapter.to_s.upcase}_SPEC_URI"] || default
-  begin
-    DataMapper.setup(adapter.to_sym, connection_string)
-  rescue Exception => e
-    ADAPTERS.delete(adapter)
+
+if ENV['ADAPTERS'].strip.upcase == 'ALL'
+  # If the specs are set to run with all the adapters, then let's loop
+  # through everything and see which adapters are available
+  PRIMARY.each do |adapter, default|
+    connection_string = ENV["#{adapter.to_s.upcase}_SPEC_URI"] || default
+    begin
+      DataMapper.setup(adapter.to_sym, connection_string)
+      ADAPTERS << adapter
+    rescue Exception => e
+      # nothing here
+    end
   end
+else
+  ADAPTERS.concat ENV['ADAPTERS'].split(/\s+/).map{ |a| a.strip }
 end
 
 DataMapper::Logger.new(nil, :debug)
