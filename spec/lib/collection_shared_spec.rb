@@ -1062,9 +1062,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resource' do
-        pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
-          @resource.collection.should_not be_equal(@articles)
-        end
+        @resource.collection.should_not be_equal(@articles)
       end
     end
 
@@ -1087,9 +1085,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resources' do
-        pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
-          @resources.each { |r| r.collection.should_not be_equal(@articles) }
-        end
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -1112,9 +1108,39 @@ share_examples_for 'A Collection' do
       end
 
       it 'should orphan the Resources' do
-        pending 'TODO: fix bug causing sliced Resources to hold references to original Collection' do
-          @resources.each { |r| r.collection.should_not be_equal(@articles) }
-        end
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
+    end
+
+    describe 'with an index not within the Collection' do
+      before do
+        @return = @articles.slice!(1)
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
+      end
+    end
+
+    describe 'with an offset and length not within the Collection' do
+      before do
+        # NOTE: Array#slice!(1, 1) returns [], but should be nil.  possible ruby bug?
+        @return = @articles.slice!(2, 2)
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
+      end
+    end
+
+    describe 'with a range not within the Collection' do
+      before do
+        # NOTE: Array#slice!(1..1) returns [], but should be nil.  possible ruby bug?
+        @return = @articles.slice!(2..2)
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
       end
     end
   end

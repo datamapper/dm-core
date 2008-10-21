@@ -280,6 +280,17 @@ module DataMapper
 
     alias [] slice
 
+    # TODO: document
+    # @api public
+    def slice!(*args)
+      orphaned = super
+      if orphaned.respond_to?(:each)
+        orphaned.each { |r| orphan_resource(r) }
+      else
+        orphan_resource(orphaned)
+      end
+    end
+
     ##
     # Return the Collection sorted in reverse
     #
