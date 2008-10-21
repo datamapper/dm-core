@@ -57,6 +57,11 @@ module DataMapper
       repository_name = repository.name
       @query = scoped_query(query)
       @query.update(:fields => @query.fields | model.key(repository_name))
+
+      # specify a Repository to ensure the Identity Map from the existing
+      # query's Repository isn't used, and the resources are reloaded
+      # properly.
+      # TODO: update Query#update to overwrite it's @repository with the "other" repository
       replace(all(:repository => Repository.new(repository_name), :reload => true))
     end
 
