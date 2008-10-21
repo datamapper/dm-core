@@ -38,7 +38,7 @@ module DataMapper::Spec
       end
     end
     
-    def with_alternate
+    def with_alternate_adapter
       adapters = AdapterHelpers.current_adapters.last
       
       ALTERNATE.only(*adapters).each do |adapter, connection_uri|
