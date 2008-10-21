@@ -5,7 +5,7 @@ module DataMapper::Spec
   end
 
   module AdapterHelpers
-    
+
     def self.current_adapters
       @current_adapters ||= []
     end
@@ -16,11 +16,11 @@ module DataMapper::Spec
       PRIMARY.only(*adapters).each do |adapter, connection_uri|
         # keep track of the current adapters
         AdapterHelpers.current_adapters << adapters
-        
+
         message = "with #{adapter}" if adapters.length > 1
-        
+
         with_adapter_spec_wrapper(message) do
-          
+
           before(:each) do
             DataMapper.setup(:default, connection_uri)
 
@@ -33,28 +33,28 @@ module DataMapper::Spec
 
           yield adapter
         end
-        
+
         AdapterHelpers.current_adapters.pop
       end
     end
-    
+
     def with_alternate_adapter
       adapters = AdapterHelpers.current_adapters.last
-      
+
       ALTERNATE.only(*adapters).each do |adapter, connection_uri|
         message = "and #{adapter}" if adapters.length > 1
         with_adapter_spec_wrapper(message) do
-          
+
           before(:each) do
             DataMapper.setup(:alternate, connection_uri)
-        
+
             begin
               DataMapper.auto_migrate!(:alternate)
             rescue NotImplementedError
               # do nothing when not supported
             end
           end
-        
+
           yield adapter
         end
       end
