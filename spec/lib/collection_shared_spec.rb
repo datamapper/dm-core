@@ -854,7 +854,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update the Collection' do
-        pending 'TODO: Fix problem with Identity Map of original Query being used automatically' do
+        pending 'TODO: Fix Query#update to copy other.repository to @repository' do
           @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
         end
       end
@@ -879,7 +879,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update the Collection' do
-        pending 'TODO: Fix problem with Identity Map of original Query being used automatically' do
+        pending 'TODO: Fix Query#update to copy other.repository to @repository' do
           @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
         end
       end
@@ -1212,7 +1212,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should persist the changes' do
-      @article.reload.title.should == 'Updated Title'
+      @model.get(*@article.key).title.should == 'Updated Title'
     end
   end
 
@@ -1249,7 +1249,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should persist the changes' do
-        @article.reload.title.should == 'Updated Title'
+        @model.get(*@article.key).title.should == 'Updated Title'
       end
     end
   end

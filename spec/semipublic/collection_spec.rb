@@ -109,7 +109,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
 
         it 'should return expected Query' do
-          @return.should == @articles_query
+          pending 'TODO: Fix Model.all to not unecessarily create Query copies' do
+            @return.should be_equal(@articles_query)
+          end
         end
       end
 
@@ -127,7 +129,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
 
         it 'should return expected Hash' do
-          @return.should == @model.relationships(@article_repository.name)
+          @return.should be_equal(@model.relationships(@article_repository.name))
         end
       end
 

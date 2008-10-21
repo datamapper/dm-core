@@ -54,9 +54,10 @@ module DataMapper
     #
     # @api public
     def reload(query = {})
+      repository_name = repository.name
       @query = scoped_query(query)
-      @query.update(:fields => @query.fields | model.key(repository.name))
-      replace(all(:reload => true))
+      @query.update(:fields => @query.fields | model.key(repository_name))
+      replace(all(:repository => Repository.new(repository_name), :reload => true))
     end
 
     ##
@@ -127,9 +128,9 @@ module DataMapper
     # @return [DataMapper::Collection] a Collection scoped by the query
     #
     # @api public
-    def all(query = {})
+    def all(query = nil)
       # TODO: this shouldn't be a kicker if scoped_query() is called
-      if query.kind_of?(Hash) ? query.empty? : query == self.query
+      if query.nil? || query == self.query
         self
       else
         query = scoped_query(query)
@@ -635,6 +636,17 @@ module DataMapper
       object_id == other.object_id
     end
 
+    # TODO: document
+    # @api private
+    def keys
+      if empty?
+        {}
+      else
+        keys = map { |r| r.key }
+        model.key(repository.name).zip(keys.transpose).to_hash
+      end
+    end
+
     protected
 
     # TODO: document
@@ -647,20 +659,18 @@ module DataMapper
 
     # TODO: document
     # @api public
-    def initialize(query, &block)
+    def initialize(query)
       assert_kind_of 'query', query, Query
-
-      unless block_given?
-        # It can be helpful (relationship.rb: 112-13, used for SEL) to have a non-lazy Collection.
-        block = lambda {}
-      end
 
       @query = query
       @cache = {}
 
       super()
 
-      load_with(&block)
+      load_with do |c|
+        yield(c) if block_given?
+        c.query.update(c.keys)
+      end
     end
 
     # TODO: document
@@ -696,16 +706,17 @@ module DataMapper
     def scoped_query(query = self.query)
       assert_kind_of 'query', query, Query, Hash
 
-      if loaded?
-        query.update(keys)
-      end
-
       if query.kind_of?(Hash)
-        query = Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, model, query)
+        repository = if query.has_key?(:repository)
+          query.delete(:repository)
+        else
+          self.repository
+        end
+        query = Query.new(repository, model, query)
       end
 
       if query == self.query
-        return self.query
+        return query
       end
 
       if query.limit || query.offset > 0
@@ -713,13 +724,6 @@ module DataMapper
       end
 
       self.query.merge(query)
-    end
-
-    # TODO: document
-    # @api private
-    def keys
-      keys = map { |r| r.key }
-      keys.any? ? model.key(repository.name).zip(keys.transpose).to_hash : {}
     end
 
     # TODO: document
