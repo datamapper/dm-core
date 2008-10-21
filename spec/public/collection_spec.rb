@@ -123,17 +123,35 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'collect
         end
 
         describe 'with has relationship method' do
-          before do
-            @return = @articles.revisions
+          describe 'with no arguments' do
+            before do
+              @return = @articles.revisions
+            end
+
+            it 'should return a Collection' do
+              @return.should be_kind_of(DataMapper::Collection)
+            end
+
+            it 'should return expected Collection' do
+              pending 'TODO: fix logic to return correct entries' do
+                @collection.should == []
+              end
+            end
           end
 
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
+          describe 'with arguments' do
+            before do
+              @return = @articles.revisions(:fields => [ :id ])
+            end
 
-          it 'should return expected Collection' do
-            pending 'TODO: fix logic to return correct entries' do
-              @collection.should == []
+            it 'should return a Collection' do
+              @return.should be_kind_of(DataMapper::Collection)
+            end
+
+            it 'should return expected Collection' do
+              pending 'TODO: fix logic to return correct entries' do
+                @collection.should == []
+              end
             end
           end
         end

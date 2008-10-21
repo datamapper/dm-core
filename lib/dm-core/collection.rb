@@ -731,20 +731,14 @@ module DataMapper
     # TODO: document
     # @api private
     def set_relative_position(query)
-      if query.offset == 0
-        if !query.limit.nil? && !self.query.limit.nil? && query.limit <= self.query.limit
-          return
-        end
-
-        if query.limit.nil? &&  self.query.limit.nil?
-          return
-        end
+      if query.offset == 0 && query.limit && self.query.limit && query.limit <= self.query.limit
+        return
       end
 
       first_pos = self.query.offset + query.offset
 
       if self.query.limit
-        last_pos  = self.query.offset + self.query.limit
+        last_pos = self.query.offset + self.query.limit
       end
 
       if limit = query.limit

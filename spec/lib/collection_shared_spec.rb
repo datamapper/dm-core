@@ -53,7 +53,7 @@ share_examples_for 'A Collection' do
 
     describe 'with a query' do
       before do
-        @return = @articles.all(:limit => 10, :offset => 10)
+        @return = @articles.all(:limit => 10).all(:limit => 1)
       end
 
       it 'should return a Collection' do
