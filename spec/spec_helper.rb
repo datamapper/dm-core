@@ -25,8 +25,8 @@ PRIMARY = {
 }
 
 ALTERNATE = {
-  'in_memory'  => 'sqlite3::memory:',
-  'sqlite3'    => "sqlite3://#{SPEC_ROOT}/db/alternate.db",
+  'in_memory'  => { :adapter => :in_memory },
+  'sqlite3'    => "sqlite3::memory:",
   'sqlite3_fs' => "sqlite3://#{SPEC_ROOT}/db/secondary.db",
   'mysql'      => 'mysql://localhost/dm_core_test2',
   'postgres'   => 'postgres://postgres@localhost/dm_core_test2'
