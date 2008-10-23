@@ -36,7 +36,7 @@ if HAS_POSTGRES
       end
 
       it 'should check to make sure the sequences exist' do
-        statement = %q[SELECT COUNT(*) FROM "pg_class" WHERE "relkind" = 'S' AND "relname" = ?]
+        statement = %q[SELECT COUNT(*) FROM "information_schema"."sequences" WHERE "sequence_name" = ? AND "sequence_schema" = current_schema()]
         @adapter.should_receive(:query).with(statement, 'models_property_seq').and_return([ 0 ])
         @adapter.upgrade_model_storage(@repository, @model)
       end
@@ -78,7 +78,7 @@ if HAS_POSTGRES
       end
 
       it 'should check to make sure the sequences exist' do
-        statement = %q[SELECT COUNT(*) FROM "pg_class" WHERE "relkind" = 'S' AND "relname" = ?]
+        statement = %q[SELECT COUNT(*) FROM "information_schema"."sequences" WHERE "sequence_name" = ? AND "sequence_schema" = current_schema()]
         @adapter.should_receive(:query).with(statement, 'models_property_seq').and_return([ 0 ])
         @adapter.create_model_storage(@repository, @model)
       end

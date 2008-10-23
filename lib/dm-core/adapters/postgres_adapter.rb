@@ -32,11 +32,10 @@ module DataMapper
         def field_exists?(storage_name, column_name)
           statement = <<-EOS.compress_lines
             SELECT COUNT(*)
-            FROM "pg_class"
-            JOIN "pg_attribute" ON "pg_class"."oid" = "pg_attribute"."attrelid"
-            WHERE "pg_attribute"."attname" = ?
-            AND "pg_class"."relname" = ?
-            AND "pg_attribute"."attnum" >= 0
+            FROM "information_schema"."columns"
+            WHERE "table_name" = ?
+            AND "column_name" = ?
+            AND "table_schema" = current_schema()
           EOS
 
           query(statement, column_name, storage_name).first > 0
@@ -112,8 +111,9 @@ module DataMapper
           def sequence_exists?(repository, property)
             statement = <<-EOS.compress_lines
               SELECT COUNT(*)
-              FROM "pg_class"
-              WHERE "relkind" = 'S' AND "relname" = ?
+              FROM "information_schema"."sequences"
+              WHERE "sequence_name" = ?
+              AND "sequence_schema" = current_schema()
             EOS
 
             query(statement, sequence_name(repository, property)).first > 0
