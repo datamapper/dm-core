@@ -198,8 +198,8 @@ module DataMapper
           super
         end
 
-        def reload
-          @children = nil
+        def reload(query = {})
+          children.reload(query)
           self
         end
 

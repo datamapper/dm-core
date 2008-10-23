@@ -841,11 +841,6 @@ share_examples_for 'A Collection' do
   end
 
   describe '#reload' do
-    before do
-      skip_class = DataMapper::Associations::OneToMany::Proxy
-      pending "TODO: update #{skip_class}#reload to accept arguments" if @articles.kind_of?(skip_class)
-    end
-
     describe 'with no arguments' do
       before do
         @resources = @articles.entries
