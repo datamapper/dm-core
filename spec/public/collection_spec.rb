@@ -1,5 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'collection_shared_spec'))
+require SPEC_ROOT + 'lib/collection_shared_spec'
 
 # run the specs once with a loaded collection and once not
 [ false, true ].each do |loaded|

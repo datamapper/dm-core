@@ -473,6 +473,8 @@ share_examples_for 'A Collection' do
       end
 
       it 'should relate the Resource to the Collection' do
+        skip_class = DataMapper::Associations::OneToMany::Proxy
+        pending "TODO: update #{skip_class}#first to relate the resource to the Proxy not the underlying Collection" if @articles.kind_of?(skip_class)
         @resource.collection.should be_equal(@articles)
       end
     end
@@ -839,6 +841,11 @@ share_examples_for 'A Collection' do
   end
 
   describe '#reload' do
+    before do
+      skip_class = DataMapper::Associations::OneToMany::Proxy
+      pending "TODO: update #{skip_class}#reload to accept arguments" if @articles.kind_of?(skip_class)
+    end
+
     describe 'with no arguments' do
       before do
         @resources = @articles.entries

@@ -5,7 +5,7 @@ require 'pathname'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 require SPEC_ROOT.parent + 'lib/dm-core'
-require File.join(SPEC_ROOT, "/lib/adapter_helpers")
+require SPEC_ROOT + 'lib/adapter_helpers'
 
 # create sqlite3_fs directory if it doesn't exist
 SPEC_ROOT.join('db').mkpath
