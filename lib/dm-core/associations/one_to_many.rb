@@ -91,7 +91,9 @@ module DataMapper
 
         def <<(resource)
           assert_mutable
-          return self if !resource.new_record? && self.include?(resource)
+          if !resource.new_record? && self.include?(resource)
+            return self
+          end
           super
           relate_resource(resource)
           self
@@ -158,7 +160,9 @@ module DataMapper
 
         def new(attributes = {})
           assert_mutable
-          raise UnsavedParentError, 'You cannot intialize until the parent is saved' if @parent.new_record?
+          if @parent.new_record?
+            raise UnsavedParentError, 'You cannot intialize until the parent is saved'
+          end
           attributes = default_attributes.merge(attributes)
           resource = children.respond_to?(:new) ? super(attributes) : @relationship.child_model.new(attributes)
           self << resource
@@ -167,7 +171,9 @@ module DataMapper
 
         def create(attributes = {})
           assert_mutable
-          raise UnsavedParentError, 'You cannot create until the parent is saved' if @parent.new_record?
+          if @parent.new_record?
+            raise UnsavedParentError, 'You cannot create until the parent is saved'
+          end
           attributes = default_attributes.merge(attributes)
           resource = children.respond_to?(:create) ? super(attributes) : @relationship.child_model.create(attributes)
           self << resource
@@ -176,25 +182,33 @@ module DataMapper
 
         def update(attributes = {})
           assert_mutable
-          raise UnsavedParentError, 'You cannot mass-update until the parent is saved' if @parent.new_record?
+          if @parent.new_record?
+            raise UnsavedParentError, 'You cannot mass-update until the parent is saved'
+          end
           super
         end
 
         def update!(attributes = {})
           assert_mutable
-          raise UnsavedParentError, 'You cannot mass-update without validations until the parent is saved' if @parent.new_record?
+          if @parent.new_record?
+            raise UnsavedParentError, 'You cannot mass-update without validations until the parent is saved'
+          end
           super
         end
 
         def destroy
           assert_mutable
-          raise UnsavedParentError, 'You cannot mass-delete until the parent is saved' if @parent.new_record?
+          if @parent.new_record?
+            raise UnsavedParentError, 'You cannot mass-delete until the parent is saved'
+          end
           super
         end
 
         def destroy!
           assert_mutable
-          raise UnsavedParentError, 'You cannot mass-delete without validations until the parent is saved' if @parent.new_record?
+          if @parent.new_record?
+            raise UnsavedParentError, 'You cannot mass-delete without validations until the parent is saved'
+          end
           super
         end
 
@@ -204,7 +218,9 @@ module DataMapper
         end
 
         def save
-          return true if children.frozen?
+          if children.frozen?
+            return true
+          end
 
           # save every resource in the collection
           each { |resource| save_resource(resource) }
@@ -214,7 +230,9 @@ module DataMapper
             begin
               save_resource(resource, nil)
             rescue
-              children << resource unless children.frozen? || children.include?(resource)
+              unless children.frozen? || children.include?(resource)
+                children << resource
+              end
               raise
             end
           end
@@ -252,14 +270,18 @@ module DataMapper
         end
 
         def assert_mutable
-          raise ImmutableAssociationError, 'You can not modify this association' if children.frozen?
+          if children.frozen?
+            raise ImmutableAssociationError, 'You can not modify this association'
+          end
         end
 
         def default_attributes
           default_attributes = {}
 
           @relationship.query.each do |attribute, value|
-            next if Query::OPTIONS.include?(attribute) || attribute.kind_of?(Query::Operator)
+            if Query::OPTIONS.include?(attribute) || attribute.kind_of?(Query::Operator)
+              next
+            end
             default_attributes[attribute] = value
           end
 
@@ -272,7 +294,9 @@ module DataMapper
 
         def add_default_association_values(resource)
           default_attributes.each do |attribute, value|
-            next if !resource.respond_to?("#{attribute}=") || resource.attribute_loaded?(attribute)
+            if !resource.respond_to?("#{attribute}=") || resource.attribute_loaded?(attribute)
+              next
+            end
             resource.send("#{attribute}=", value)
           end
         end
@@ -306,9 +330,13 @@ module DataMapper
         end
 
         def method_missing(method, *args, &block)
-          results = children.__send__(method, *args, &block) if children.respond_to?(method)
+          results = if children.respond_to?(method)
+            children.__send__(method, *args, &block)
+          end
 
-          return self if LazyArray::RETURN_SELF.include?(method) && results.kind_of?(Array)
+          if LazyArray::RETURN_SELF.include?(method) && results.kind_of?(Array)
+            return self
+          end
 
           results
         end
