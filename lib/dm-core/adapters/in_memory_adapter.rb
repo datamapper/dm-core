@@ -1,7 +1,7 @@
 module DataMapper
   module Adapters
     # This is probably the simplest functional adapter possible. It simply
-    # stores and queries from a hash containing the model classes as keys, 
+    # stores and queries from a hash containing the model classes as keys,
     # and an array of records. It is not persitent whatsoever; when the ruby
     # process finishes, everything that was stored it lost. However, it doesn't
     # require any other external libraries, such as data_objects, so it is ideal
@@ -12,13 +12,13 @@ module DataMapper
       ##
       # Used by DataMapper to put records into a data-store: "INSERT" in SQL-speak.
       # It takes an array of the resources (model instances) to be saved. Resources
-      # each have a key that can be used to quickly look them up later without 
+      # each have a key that can be used to quickly look them up later without
       # searching, if the adapter supports it.
       #
       # @param [Array] resources
-      #   The set of resources (model instances) 
+      #   The set of resources (model instances)
       #
-      # @return [Integer] 
+      # @return [Integer]
       #   The number of records that were actually saved into the data-store
       #
       # @api semipublic
@@ -35,9 +35,9 @@ module DataMapper
         end.size # just return the number of records
       end
 
-      ## 
+      ##
       # Used by DataMapper to update the attributes on existing records in a
-      # data-store: "UPDATE" in SQL-speak. It takes a hash of the attributes 
+      # data-store: "UPDATE" in SQL-speak. It takes a hash of the attributes
       # to update with, as well as a query object that specifies which resources
       # should be updated.
       #
@@ -59,7 +59,7 @@ module DataMapper
         end.size
       end
 
-      ## 
+      ##
       # Look up a single record from the data-store. "SELECT ... LIMIT 1" in SQL.
       # Used by Model#get to find a record by its identifier(s), and Model#first
       # to find a single record by some search query.
@@ -76,9 +76,9 @@ module DataMapper
         read(query, query.model, false)
       end
 
-      ## 
+      ##
       # Looks up a collection of records from the data-store: "SELECT" in SQL.
-      # Used by Model#all to search for a set of records; that set is in a 
+      # Used by Model#all to search for a set of records; that set is in a
       # DataMapper::Collection object.
       #
       # @param [DataMapper::Query] query
@@ -100,7 +100,7 @@ module DataMapper
       # @param [DataMapper::Query] query
       #   The query used to locate the resources to be deleted.
       #
-      # @return [Integer] 
+      # @return [Integer]
       #   The number of records that were deleted.
       #
       # @api semipublic
@@ -117,14 +117,14 @@ module DataMapper
       ##
       # Make a new instance of the adapter. The @records ivar is the 'data-store'
       # for this adapter. It is not shared amongst multiple incarnations of this
-      # adapter, eg DataMapper.setup(:default, :adapter => :in_memory); 
+      # adapter, eg DataMapper.setup(:default, :adapter => :in_memory);
       # DataMapper.setup(:alternate, :adapter => :in_memory) do not share the
       # data-store between them.
       #
       # @param <String, Symbol> name
       #   The name of the DataMapper::Repository using this adapter.
       # @param <String, Hash> uri_or_options
-      #   The connection uri string, or a hash of options to set up 
+      #   The connection uri string, or a hash of options to set up
       #   the adapter
       #
       # @api semipublic
@@ -139,9 +139,9 @@ module DataMapper
       #
       # This is the normal way of parsing the DataMapper::Query object into
       # a set of conditions. This particular one translates it into ruby code
-      # that can be performed on ruby objects. It can be reused in most other 
-      # adapters, however, if the adapter has its own native query language, 
-      # such as SQL, an adapter developer is probably better using this as an 
+      # that can be performed on ruby objects. It can be reused in most other
+      # adapters, however, if the adapter has its own native query language,
+      # such as SQL, an adapter developer is probably better using this as an
       # example of how to parse the DataMapper::Query object.
       #
       # @api private
