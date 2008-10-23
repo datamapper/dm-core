@@ -74,11 +74,15 @@ module DataMapper
 
         instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not instance_variable_set instance_variable_get ].include?(m) }
 
+        # TODO: document
+        # @api public
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def all(query = {})
           query.empty? ? self : @relationship.get_children(@parent, query)
         end
 
+        # TODO: document
+        # @api public
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def first(*args)
           if args.last.respond_to?(:merge)
@@ -89,6 +93,8 @@ module DataMapper
           end
         end
 
+        # TODO: document
+        # @api public
         def <<(resource)
           assert_mutable
           # TODO: remove this block because it should be possible to
@@ -101,6 +107,8 @@ module DataMapper
           self
         end
 
+        # TODO: document
+        # @api public
         def push(*resources)
           assert_mutable
 # NOTE: Array#reject does not modify the Array, so this is a noop
@@ -110,6 +118,8 @@ module DataMapper
           self
         end
 
+        # TODO: document
+        # @api public
         def unshift(*resources)
           assert_mutable
 # NOTE: Array#reject does not modify the Array, so this is a noop
@@ -119,6 +129,8 @@ module DataMapper
           self
         end
 
+        # TODO: document
+        # @api public
         def replace(other)
           assert_mutable
           each { |resource| orphan_resource(resource) }
@@ -128,26 +140,36 @@ module DataMapper
           self
         end
 
+        # TODO: document
+        # @api public
         def pop
           assert_mutable
           orphan_resource(super)
         end
 
+        # TODO: document
+        # @api public
         def shift
           assert_mutable
           orphan_resource(super)
         end
 
+        # TODO: document
+        # @api public
         def delete(resource)
           assert_mutable
           orphan_resource(super)
         end
 
+        # TODO: document
+        # @api public
         def delete_at(index)
           assert_mutable
           orphan_resource(super)
         end
 
+        # TODO: document
+        # @api public
         def clear
           assert_mutable
           each { |resource| orphan_resource(resource) }
@@ -155,6 +177,8 @@ module DataMapper
           self
         end
 
+        # TODO: document
+        # @api public
         def build(attributes = {})
           assert_mutable
           attributes = default_attributes.merge(attributes)
@@ -162,6 +186,8 @@ module DataMapper
           resource
         end
 
+        # TODO: document
+        # @api public
         def new(attributes = {})
           assert_mutable
           if @parent.new_record?
@@ -173,6 +199,8 @@ module DataMapper
           resource
         end
 
+        # TODO: document
+        # @api public
         def create(attributes = {})
           assert_mutable
           if @parent.new_record?
@@ -184,6 +212,8 @@ module DataMapper
           resource
         end
 
+        # TODO: document
+        # @api public
         def update(attributes = {})
           assert_mutable
           if @parent.new_record?
@@ -192,6 +222,8 @@ module DataMapper
           super
         end
 
+        # TODO: document
+        # @api public
         def update!(attributes = {})
           assert_mutable
           if @parent.new_record?
@@ -200,6 +232,8 @@ module DataMapper
           super
         end
 
+        # TODO: document
+        # @api public
         def destroy
           assert_mutable
           if @parent.new_record?
@@ -208,6 +242,8 @@ module DataMapper
           super
         end
 
+        # TODO: document
+        # @api public
         def destroy!
           assert_mutable
           if @parent.new_record?
@@ -216,11 +252,15 @@ module DataMapper
           super
         end
 
+        # TODO: document
+        # @api public
         def reload(query = {})
           children.reload(query)
           self
         end
 
+        # TODO: document
+        # @api semipublic
         def save
           if children.frozen?
             return true
@@ -234,6 +274,9 @@ module DataMapper
             begin
               save_resource(resource, nil)
             rescue
+              # TODO: remove children_frozen? below once save() is specced
+              # because the guard clause at the beginning should make it
+              # impossible for this to ever return true
               unless children.frozen? || children.include?(resource)
                 children << resource
               end
@@ -250,16 +293,22 @@ module DataMapper
           true
         end
 
+        # TODO: document
+        # @api public
         def kind_of?(klass)
           super || children.kind_of?(klass)
         end
 
+        # TODO: document
+        # @api public
         def respond_to?(method, include_private = false)
           super || children.respond_to?(method, include_private)
         end
 
         private
 
+        # TODO: document
+        # @api public
         def initialize(relationship, parent)
           assert_kind_of 'relationship', relationship, Relationship
           assert_kind_of 'parent',       parent,       Resource
@@ -269,16 +318,22 @@ module DataMapper
           @orphans      = []
         end
 
+        # TODO: document
+        # @api private
         def children
           @children ||= @relationship.get_children(@parent)
         end
 
+        # TODO: document
+        # @api private
         def assert_mutable
           if children.frozen?
             raise ImmutableAssociationError, 'You can not modify this association'
           end
         end
 
+        # TODO: document
+        # @api private
         def default_attributes
           default_attributes = {}
 
@@ -296,6 +351,8 @@ module DataMapper
           default_attributes
         end
 
+        # TODO: document
+        # @api private
         def add_default_association_values(resource)
           default_attributes.each do |attribute, value|
             if !resource.respond_to?("#{attribute}=") || resource.attribute_loaded?(attribute)
@@ -305,10 +362,14 @@ module DataMapper
           end
         end
 
+        # TODO: document
+        # @api private
         def new_child(attributes)
           @relationship.child_model.new(default_attributes.merge(attributes))
         end
 
+        # TODO: document
+        # @api private
         def relate_resource(resource)
           assert_mutable
           add_default_association_values(resource)
@@ -316,23 +377,32 @@ module DataMapper
           resource
         end
 
+        # TODO: document
+        # @api private
         def orphan_resource(resource)
           assert_mutable
           @orphans << resource
           resource
         end
 
+        # TODO: document
+        # @api private
         def save_resource(resource, parent = @parent)
           @relationship.with_repository(resource) do |r|
             if parent.nil? && resource.model.respond_to?(:many_to_many)
               resource.destroy
             else
+              # TODO: move the attach_parent call to relate_resource and orphan_resource
+              # once save() is totally speced.  I believe the resource's FK values should
+              # be updated immediately rather than waiting until save() is executed
               @relationship.attach_parent(resource, parent)
               resource.save
             end
           end
         end
 
+        # TODO: document
+        # @api private
         def method_missing(method, *args, &block)
           results = if children.respond_to?(method)
             children.__send__(method, *args, &block)
