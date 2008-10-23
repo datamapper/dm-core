@@ -91,6 +91,8 @@ module DataMapper
 
         def <<(resource)
           assert_mutable
+          # TODO: remove this block because it should be possible to
+          # move a child from one association to another.
           if !resource.new_record? && self.include?(resource)
             return self
           end
@@ -101,7 +103,8 @@ module DataMapper
 
         def push(*resources)
           assert_mutable
-          resources.reject { |resource| !resource.new_record? && self.include?(resource) }
+# NOTE: Array#reject does not modify the Array, so this is a noop
+#          resources.reject { |resource| !resource.new_record? && self.include?(resource) }
           super
           resources.each { |resource| relate_resource(resource) }
           self
@@ -109,7 +112,8 @@ module DataMapper
 
         def unshift(*resources)
           assert_mutable
-          resources.reject { |resource| !resource.new_record? && self.include?(resource) }
+# NOTE: Array#reject does not modify the Array, so this is a noop
+#          resources.reject { |resource| !resource.new_record? && self.include?(resource) }
           super
           resources.each { |resource| relate_resource(resource) }
           self
