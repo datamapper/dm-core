@@ -39,7 +39,10 @@ class EveryType
 end
 
 module Publications
-  class ShortStoryCollection
+  class StoryCollection
+  end
+
+  class ShortStoryCollection < StoryCollection
     include DataMapper::Resource
     property :serial, Serial
     property :date,   Date,    :nullable => false, :default => TODAY, :index => :date_date_time
@@ -153,6 +156,10 @@ if HAS_SQLITE3
         end
       end
 
+      it 'should handle a model which inherits from a regular object' do
+        lambda { Publications::ShortStoryCollection.auto_migrate!(:sqlite3) }.should_not raise_error
+      end
+
       it 'should escape a namespaced model' do
         Publications::ShortStoryCollection.auto_migrate!(:sqlite3).should be_true
         @adapter.query('SELECT "name" FROM "sqlite_master" WHERE type = ?', 'table').should include('publications_short_story_collections')
@@ -257,6 +264,10 @@ if HAS_MYSQL
           @index_list[3].Key_name.should == 'index_every_types_date_time'
           @index_list[3].Non_unique.should == 1
         end
+      end
+
+      it 'should handle a model which inherits from a regular object' do
+        lambda { Publications::ShortStoryCollection.auto_migrate!(:mysql) }.should_not raise_error
       end
 
       it 'should escape a namespaced model' do
@@ -387,6 +398,10 @@ if HAS_POSTGRES
 
       it 'should have 4 indexes: 2 non-unique index, 2 unique index' do
         pending 'TODO'
+      end
+
+      it 'should handle a model which inherits from a regular object' do
+        lambda { Publications::ShortStoryCollection.auto_migrate!(:postgres) }.should_not raise_error
       end
 
       it 'should escape a namespaced model' do

@@ -73,12 +73,8 @@ module DataMapper
     # @api private
     def auto_migrate_down!(repository_name = self.repository_name)
       # repository_name ||= default_repository_name
-      if self.superclass != Object
-        self.superclass.auto_migrate!(repository_name)
-      else
-        repository(repository_name) do |r|
-          r.adapter.destroy_model_storage(r, self)
-        end
+      repository(repository_name) do |r|
+        r.adapter.destroy_model_storage(r, self.base_model)
       end
     end
 
@@ -88,12 +84,8 @@ module DataMapper
     # @param Symbol repository_name the repository to be migrated
     # @api private
     def auto_migrate_up!(repository_name = self.repository_name)
-      if self.superclass != Object
-        self.superclass.auto_migrate!(repository_name)
-      else
-        repository(repository_name) do |r|
-          r.adapter.create_model_storage(r, self)
-        end
+      repository(repository_name) do |r|
+        r.adapter.create_model_storage(r, self.base_model)
       end
     end
 
