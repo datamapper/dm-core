@@ -19,6 +19,30 @@ describe DataMapper::Resource do
         property :name, String, :key => true
         property :age,  Integer
       end
+      
+      Object.send(:remove_const, :Article) if defined?(Article)
+      class Article
+        include DataMapper::Resource
+        
+        property :id,   String
+        property :body, Text
+      end
+      
+      Object.send(:remove_const, :Comment) if defined?(Comment)
+      class Comment
+        include DataMapper::Resource
+        
+        property :id,   Serial
+        property :body, Text
+      end
+      
+      Object.send(:remove_const, :Authorship) if defined?(Authorship)
+      class Authorship
+        include DataMapper::Resource
+        
+        property :user_id,    Integer, :key => true
+        property :article_id, Integer, :key => true
+      end
     end
 
   supported_by :all do
@@ -142,6 +166,8 @@ describe DataMapper::Resource do
             User.create(:name => "carl").repository.should == repository(:alternate)
             User.get("carl").repository.should             == repository(:alternate)
           end
+          
+          repository(:alternate) { User.get("carl") }.repository.should == repository(:alternate)
         end
       end
 
@@ -149,11 +175,31 @@ describe DataMapper::Resource do
 
     describe "#id" do
 
-      it "should return the value of the id property if there is one"
-      it "should return the value of the key if it is a single column key"
-      it "should return nil if the key is a multi column key"
-      it "should return nil if there is no key"
+      it "should return the value of the id property if there is one" do
+        Comment.create(:body => "Hello").id.should == 1
+      end
+      
+      it "should return the value of the key if it is a single column key" do
+        User.create(:name => "carl").id.should == "carl"
+      end
+      
+      it "should return nil if the key is a multi column key" do
+        Authorship.create(:user_id => 1, :article_id => 1).id.should be_nil
+      end
 
+    end
+    
+    describe "#readonly" do
+      
+      it "should return false when the resource can be written to" do
+        User.create(:name => "carl").should_not be_readonly
+      end
+      
+      it "should be able to switch a resource to read only" do
+        user = User.create(:name => "carl")
+        user.readonly!
+        user.should be_readonly
+      end
     end
 
   end
