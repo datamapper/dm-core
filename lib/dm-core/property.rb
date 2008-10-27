@@ -13,8 +13,8 @@ module DataMapper
   # repository/database.
   #
   # If you are coming to DataMapper from another ORM framework, such as
-  # ActiveRecord, this is a fundamental difference in thinking. However, there
-  # are several advantages to defining your properties in your models:
+  # ActiveRecord, this may be a fundamental difference in thinking to you. 
+  # However, there are several advantages to defining your properties in your models:
   #
   # * information about your model is centralized in one place: rather than
   #   having to dig out migrations, xml or other configuration files.
@@ -140,14 +140,14 @@ module DataMapper
   #
   # Example:
   #
-  #   Widget[1].components
+  #   Widget.get(1).components
   #     # loads when the post object is pulled from database, by default
   #
-  #   Widget[1].components.first.body
+  #   Widget.get(1).components.first.body
   #     # loads the values for the body property on all objects in the
   #     # association, rather than just this one.
   #
-  #   Widget[1].components.first.comment
+  #   Widget.get(1).components.first.comment
   #     # loads both comment and author for all objects in the association
   #     # since they are both in the :detailed context
   #
@@ -165,9 +165,9 @@ module DataMapper
   # keys. When a property is declared as a natural key, accessing the object
   # using the indexer syntax <tt>Class[key]</tt> remains valid.
   #
-  #   User[1]
+  #   User.get(1)
   #      # when :id is the primary key on the users table
-  #   User['bill']
+  #   User.get('bill')
   #      # when :name is the primary (natural) key on the users table
   #
   # == Indeces
@@ -283,14 +283,17 @@ module DataMapper
       DataMapper::Types::Serial
     ]
 
+    # Properties of these types are immutable, that is,
+    # cannot be changed
     IMMUTABLE_TYPES = [ TrueClass, Float, Integer, BigDecimal]
 
+    # Possible :visibility option values
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
 
-    DEFAULT_LENGTH    = 50
-    DEFAULT_PRECISION = 10
+    DEFAULT_LENGTH           = 50
+    DEFAULT_PRECISION        = 10
     DEFAULT_SCALE_BIGDECIMAL = 0
-    DEFAULT_SCALE_FLOAT = nil
+    DEFAULT_SCALE_FLOAT      = nil
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
@@ -305,10 +308,18 @@ module DataMapper
       @field || @fields[repository_name] ||= self.model.field_naming_convention(repository_name).call(self)
     end
 
+    # Returns true if property has uniq key. Serial properties and
+    # keys are unique by default.
+    #
+    # @return <Boolean> true if property has uniq index defined, false otherwise
+    #
+    # @api public
     def unique
       @unique ||= @options.fetch(:unique, @serial || @key || false)
     end
 
+    # Returns universal unique property identifier.
+    # Calculated as sum of hashes of model and property name.
     def hash
       if @custom && !@bound
         @type.bind(self)
@@ -318,6 +329,9 @@ module DataMapper
       return @model.hash + @name.hash
     end
 
+    # Returns equality of properties. Properties are
+    # comparable only if their models are equal and
+    # both properties has the same name.
     def eql?(o)
       if o.is_a?(Property)
         return o.model == @model && o.name == @name
@@ -326,15 +340,32 @@ module DataMapper
       end
     end
 
+    # Returns maximum property length (if applicable).
+    # This usually only makes sense when property is of
+    # type Range or custom type.
+    #
+    # @return <Integer, NilClass>
+    # @api    semipublic 
     def length
       @length.is_a?(Range) ? @length.max : @length
     end
     alias size length
 
+    # Returns index name if property has index.
+    #
+    # @return <String> index name if property has index defined, false otherwise
+    #
+    # @api public
     def index
       @index
     end
 
+    # Returns true if property has unique index. Serial properties and
+    # keys are unique by default.
+    #
+    # @return <Boolean> true if property has unique index defined, false otherwise
+    #
+    # @api public
     def unique_index
       @unique_index
     end
@@ -377,6 +408,11 @@ module DataMapper
       @nullable
     end
 
+    # Returns whether or not the property is custom (not provided by dm-core)
+    #
+    # @return <TrueClass, FalseClass> whether or not the property is custom
+    #
+    # @api public
     def custom?
       @custom
     end
@@ -403,6 +439,13 @@ module DataMapper
       value
     end
 
+    # Bypases resource loading and returns value of
+    # @ivar on the object directly.
+    #
+    # Keep in mind this method is not safe and should be
+    # used with care.
+    #
+    # @api private    
     def get!(resource)
       resource.instance_variable_get(instance_variable_name)
     end
@@ -437,6 +480,13 @@ module DataMapper
       set!(resource, new_value)
     end
 
+    # Bypases resource loading and sets value on
+    # @ivar of the object directly.
+    #
+    # Keep in mind this method is not safe and should be
+    # used with care.
+    #
+    # @api private
     def set!(resource, value)
       resource.instance_variable_set(instance_variable_name, value)
     end
