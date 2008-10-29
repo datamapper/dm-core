@@ -193,8 +193,7 @@ module DataMapper
           if @parent.new_record?
             raise UnsavedParentError, 'You cannot intialize until the parent is saved'
           end
-          attributes = default_attributes.merge(attributes)
-          resource = children.respond_to?(:new) ? super(attributes) : @relationship.child_model.new(attributes)
+          resource = new_child(attributes)
           self << resource
           resource
         end
