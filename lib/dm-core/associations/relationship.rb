@@ -84,12 +84,17 @@ module DataMapper
           query_values = parent_identity_map.keys
           query_values.reject! { |k| child_identity_map[k] }
 
-          bind_values = query_values unless query_values.empty?
+          unless query_values.empty?
+            bind_values = query_values
+          end
+
           query = child_key.zip(bind_values.transpose).to_hash
 
           collection = child_model.send(finder, *(args.dup << @query.merge(options).merge(query)))
 
-          return collection unless collection.kind_of?(Collection) && collection.any?
+          unless collection.kind_of?(Collection) && collection.any?
+            return collection
+          end
 
           grouped_collection = {}
           collection.each do |resource|
@@ -103,8 +108,6 @@ module DataMapper
 
           ret = nil
           grouped_collection.each do |parent, children|
-            association = parent.send(association_accessor)
-
             query = collection.query.dup
             query.conditions.map! do |operator, property, bind_value|
               if operator != :raw && child_key.has_property?(property.name)
@@ -113,24 +116,30 @@ module DataMapper
               [ operator, property, bind_value ]
             end
 
-            parents_children = Collection.new(query)
-            children.each { |child| parents_children.send(:add, child) }
+            parents_children = collection.class.new(query).replace(children)
 
             if parent_key.get(parent) == parent_value
               ret = parents_children
             else
+              association = parent.send(association_accessor)
               association.instance_variable_set(:@children, parents_children)
             end
           end
 
-          ret || child_model.send(finder, *(args.dup << @query.merge(options).merge(child_key.zip([ parent_value ]).to_hash)))
+          if ret
+            return ret
+          end
+
+          child_model.send(finder, *(args.dup << @query.merge(options).merge(child_key.zip([ parent_value ]).to_hash)))
         end
       end
 
       # @api private
       def get_parent(child, parent = nil)
         child_value = child_key.get(child)
-        return nil unless child_value.nitems == child_value.size
+        unless child_value.nitems == child_value.size
+          return nil
+        end
 
         with_repository(parent || parent_model) do
           parent_identity_map = (parent || parent_model).repository.identity_map(parent_model.base_model)
@@ -141,12 +150,18 @@ module DataMapper
           end
 
           children = child_identity_map.values
-          children << child unless child_identity_map[child.key]
+
+          unless child_identity_map[child.key]
+            children << child
+          end
 
           bind_values = children.map { |c| child_key.get(c) }.uniq
           query_values = bind_values.reject { |k| parent_identity_map[k] }
 
-          bind_values = query_values unless query_values.empty?
+          unless query_values.empty?
+            bind_values = query_values
+          end
+
           query = parent_key.zip(bind_values.transpose).to_hash
           association_accessor = "#{self.name}_association"
 
@@ -163,8 +178,15 @@ module DataMapper
 
       # @api private
       def with_repository(object = nil)
-        other_model = object.model == child_model ? parent_model : child_model if object.respond_to?(:model)
-        other_model = object       == child_model ? parent_model : child_model if object.kind_of?(DataMapper::Resource)
+        other_model = nil
+
+        if object.respond_to?(:model)
+          other_model = object.model == child_model ? parent_model : child_model
+        end
+
+        if object.kind_of?(DataMapper::Resource)
+          other_model = object == child_model ? parent_model : child_model
+        end
 
         if other_model && other_model.repository == object.repository && object.repository.name != @repository_name
           object.repository.scope { |block_args| yield(*block_args) }
