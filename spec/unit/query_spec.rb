@@ -219,6 +219,17 @@ describe DataMapper::Query do
       @query.update(other).should == @query
     end
 
+    it "should merge #fields if :fields != model.properties.defaults" do
+      other = DataMapper::Query.new(@repository, Article, :fields => [ :blog_id ])
+      @query.update(other).fields.should == Article.properties.slice(:id, :author, :blog_id)
+    end
+
+    it "should replace #fields if fields == model.properties.defaults" do
+      query = DataMapper::Query.new(@repository, Article, :fields => Article.properties.defaults.map { |property| property.name })
+      other = DataMapper::Query.new(@repository, Article, :fields => [ :blog_id ])
+      query.update(other).fields.should == Article.properties.slice(:blog_id)
+    end
+
     describe 'should overwrite the attribute' do
       it '#reload? with other reload?' do
         other = DataMapper::Query.new(@repository, Article, :reload => true)
@@ -301,11 +312,6 @@ describe DataMapper::Query do
           other = DataMapper::Query.new(@repository, Article, attribute => [ :stub, :other, :new ])
           @query.update(other).send(attribute).should == [ :stub, :other, :new ]
         end
-      end
-
-      it "#fields with other fields unique values" do
-        other = DataMapper::Query.new(@repository, Article, :fields => [ :blog_id ])
-        @query.update(other).fields.should == Article.properties.slice(:blog_id)
       end
 
       it '#conditions with other conditions when they are unique' do
