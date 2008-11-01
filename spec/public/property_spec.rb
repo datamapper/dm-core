@@ -17,39 +17,39 @@ describe "Resource" do
   end
 
   describe "#hash" do
-    
+
   end
 
   describe "#equal?" do
-    
+
   end
 
   describe "#length" do
-    
+
   end
 
   describe "#index" do
-    
+
   end
 
   describe "#unique_index" do
-    
+
   end
 
   describe "#lazy?" do
-    
+
   end
 
   describe "#key?" do
-    
+
   end
 
   describe "#serial?" do
-    
+
   end
 
   describe "#nullable?" do
-    
+
   end
 
   describe "#custom?" do

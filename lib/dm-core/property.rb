@@ -13,7 +13,7 @@ module DataMapper
   # repository/database.
   #
   # If you are coming to DataMapper from another ORM framework, such as
-  # ActiveRecord, this may be a fundamental difference in thinking to you. 
+  # ActiveRecord, this may be a fundamental difference in thinking to you.
   # However, there are several advantages to defining your properties in your models:
   #
   # * information about your model is centralized in one place: rather than
@@ -345,7 +345,7 @@ module DataMapper
     # type Range or custom type.
     #
     # @return <Integer, NilClass>
-    # @api    semipublic 
+    # @api    semipublic
     def length
       @length.is_a?(Range) ? @length.max : @length
     end
@@ -445,7 +445,7 @@ module DataMapper
     # Keep in mind this method is not safe and should be
     # used with care.
     #
-    # @api private    
+    # @api private
     def get!(resource)
       resource.instance_variable_get(instance_variable_name)
     end
