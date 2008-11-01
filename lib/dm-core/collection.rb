@@ -683,9 +683,8 @@ module DataMapper
 
       super()
 
-      load_with do |c|
-        yield(c) if block_given?
-        c.query.update(c.keys)
+      if block_given?
+        load_with { |c| yield(c) }
       end
     end
 
