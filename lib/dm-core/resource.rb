@@ -252,10 +252,14 @@ module DataMapper
       @readonly == true
     end
 
-    # save the instance to the data-store
+    # Save the instance to the data-store
+    # This also saves all dirty objects that are
+    # part of a has n relationship.
+    #
+    # It only returns true if all saves are successful
     #
     # ==== Returns
-    # <True, False>:: results of the save
+    # <True, False>:: results of the save(s)
     #
     # @see DataMapper::Repository#save
     #

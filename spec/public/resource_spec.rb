@@ -1,4 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
+require SPEC_ROOT + 'lib/resource_shared_spec'
 
 describe DataMapper::Resource do
 
@@ -9,6 +10,8 @@ describe DataMapper::Resource do
 
         property :name, String, :key => true
         property :age,  Integer
+
+        has n, :comments
       end
 
       # This is a special class that needs to be an exact copy of User
@@ -34,6 +37,8 @@ describe DataMapper::Resource do
 
         property :id,   Serial
         property :body, Text
+
+        belongs_to :user
       end
 
       Object.send(:remove_const, :Authorship) if defined?(Authorship)
@@ -46,6 +51,16 @@ describe DataMapper::Resource do
     end
 
   supported_by :all do
+
+    before do
+      @model       = User
+      @child_model = Comment
+      @user        = @model.create(:name => 'dbussink', :age => 25)
+    end
+
+    after do
+      @user.destroy
+    end
 
     # All methods that provide equality comparisons of some sort
     # should satisfy the following specs.
@@ -201,6 +216,8 @@ describe DataMapper::Resource do
         user.should be_readonly
       end
     end
+
+    it_should_behave_like 'A Resource'
 
   end
 
