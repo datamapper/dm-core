@@ -120,13 +120,37 @@ share_examples_for 'A Resource' do
 
     describe 'with a new parent object' do
 
-      it 'should raise an exception when saving the resource'
+      before do
+        @first_comment      = Comment.new(:body => "DM is great!")
+        @first_comment.user = @model.new(:name => 'dkubb')
+      end
+
+      it 'should raise an exception when saving the resource' do
+        pending "it should raise an exception when a parent is not persisted"
+        lambda { @first_comment.save }.should raise_error
+      end
 
     end
 
     describe 'with a dirty parent object' do
 
-      it 'should still have a dirty parent object after saving'
+      before do
+        @first_comment      = @user.comments.new(:body => "DM is great!")
+        @user.name = 'dbussink-the-second'
+        @return = @first_comment.save
+      end
+
+      it 'should succesfully save the object' do
+        @return.should be_true
+      end
+
+      it 'should still have a dirty user object' do
+        @user.should be_dirty
+      end
+
+      it 'should not have persisted the changes' do
+        @user.attributes.should_not == @model.get(*@user.key).attributes
+      end
 
     end
 
