@@ -166,6 +166,8 @@ module DataMapper
 
       if loaded? && args.empty?
         return relate_resource(super)
+      elsif !loaded? && !args.last.respond_to?(:merge) && lazy_possible?(head, *args)
+        return head.first(*args)
       end
 
       limit = if args.first.kind_of?(Integer)
@@ -205,6 +207,8 @@ module DataMapper
     def last(*args)
       if loaded? && args.empty?
         return relate_resource(super)
+      elsif !loaded? && !args.last.respond_to?(:merge) && lazy_possible?(tail, *args)
+        return tail.last(*args)
       end
 
       limit = if args.first.kind_of?(Integer)
@@ -289,6 +293,9 @@ module DataMapper
     # @api public
     def slice!(*args)
       orphaned = super
+
+      # Workaround for Ruby <= 1.8.6
+      compact! if RUBY_VERSION <= "1.8.6"
       if orphaned.respond_to?(:each)
         orphaned.each { |r| orphan_resource(r) }
       else
