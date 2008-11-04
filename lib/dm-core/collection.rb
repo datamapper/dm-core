@@ -166,7 +166,7 @@ module DataMapper
 
       if loaded? && args.empty?
         return relate_resource(super)
-      elsif !loaded? && !args.last.respond_to?(:merge) && lazy_possible?(head, *args)
+      elsif !args.last.respond_to?(:merge) && lazy_possible?(head, *args)
         return head.first(*args)
       end
 
@@ -207,7 +207,7 @@ module DataMapper
     def last(*args)
       if loaded? && args.empty?
         return relate_resource(super)
-      elsif !loaded? && !args.last.respond_to?(:merge) && lazy_possible?(tail, *args)
+      elsif !args.last.respond_to?(:merge) && lazy_possible?(tail, *args)
         return tail.last(*args)
       end
 
