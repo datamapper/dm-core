@@ -1,4 +1,8 @@
 module DataMapper
+  
+  # Query class represents a query which will be run against the data-store.
+  # Generally Query objects can be found inside Collection objects.
+  #
   class Query
     include Assertions
 
@@ -10,18 +14,42 @@ module DataMapper
     attr_writer :add_reversed
     alias add_reversed? add_reversed
 
+    ##
+    # indicates if the result set of the query should replace 
+    # the cached results already in the Identity Map.  
+    # 
+    # With @reload set to true, the query results are used to update/overwrite 
+    # attributes of objects a previous query already loaded.
+    # 
+    # @return [TrueClass, FalseClass]
+    # @api semipublic
     def reload?
       @reload
     end
 
+    ##
+    # @return [TrueClass, FalseClass]
+    #   
+    # @api semipublic
     def unique?
       @unique
     end
 
+    ##
+    # reverses the sort order
+    # 
+    # @return [DataMapper::Query] new reversed duplicate of itself
+    # 
+    # @api public
     def reverse
       dup.reverse!
     end
 
+    ##
+    # reverses the sort order 
+    # 
+    # @return [DataMapper::Query] self
+    # 
     def reverse!
       # reverse the sort order
       update(:order => self.order.map { |o| o.reverse })
@@ -29,6 +57,13 @@ module DataMapper
       self
     end
 
+    ##
+    # updates the query object with additional conditions, ordering, or 
+    # options
+    # 
+    # @param [DataMapper::Query, Hash] conditions, orders, and other options 
+    # 
+    # @api public
     def update(other)
       assert_kind_of 'other', other, self.class, Hash
 
@@ -60,10 +95,21 @@ module DataMapper
       self
     end
 
+    ##
+    # Similar to Query#update, but acts on a duplicate.
+    # 
+    # @return [DataMapper::Query] updated duplicate of original query
+    # @api public
     def merge(other)
       dup.update(other)
     end
 
+    ##
+    # Compares two Query objects by asserting that their conditions, sort 
+    # ordering, and options are the same
+    # 
+    # @return [TrueClass, FalseClass]
+    # @api semipublic
     def ==(other)
       return true if super
       return false unless other.kind_of?(self.class)
@@ -85,6 +131,7 @@ module DataMapper
 
     alias eql? ==
 
+    # @api private
     def bind_values
       bind_values = []
       conditions.each do |tuple|
@@ -99,6 +146,14 @@ module DataMapper
       bind_values
     end
 
+    ##
+    # returns the property (if any) used to indicate the class which
+    # the results should be instantiated as; the Discriminator property
+    # declared on the model
+    # 
+    # @return [DataMapper::Property, NilClass] The Discriminator property 
+    #   declared on the model
+    # @api semi-public
     def inheritance_property
       fields.detect { |property| property.type == DataMapper::Types::Discriminator }
     end
@@ -107,6 +162,9 @@ module DataMapper
       fields.index(inheritance_property)
     end
 
+    ##
+    # 
+    # @param [DataMapper::Repository] the repository to act on
     # TODO: spec this
     def key_property_indexes(repository)
       if (key_property_indexes = model.key(repository.name).map { |property| fields.index(property) }).all?
@@ -114,10 +172,14 @@ module DataMapper
       end
     end
 
+    ##
     # find the point in self.conditions where the sub select tuple is
     # located. Delete the tuple and add value.conditions. value must be a
     # <DM::Query>
+    # 
+    # @param [DataMapper::Query] value The query object to split up
     #
+    # @api semipublic
     def merge_subquery(operator, property, value)
       assert_kind_of 'value', value, self.class
 
