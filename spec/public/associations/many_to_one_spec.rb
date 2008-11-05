@@ -3,7 +3,7 @@ require SPEC_ROOT + 'lib/resource_shared_spec'
 
 # TODO: test loaded and unloaded behavior
 
-describe DataMapper::Associations::OneToMany::Proxy do
+describe DataMapper::Associations::ManyToOne::Proxy do
 
   # define the model prior to with_adapters
   before do

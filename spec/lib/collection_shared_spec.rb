@@ -118,6 +118,8 @@ share_examples_for 'A Collection' do
 
   describe '#build' do
     before do
+      skip_class = DataMapper::Associations::ManyToMany::Proxy
+      pending "TODO: implement #{skip_class}#build" if @articles.kind_of?(skip_class)
       @return = @resource = @articles.build(:content => 'Content')
     end
 
@@ -229,6 +231,8 @@ share_examples_for 'A Collection' do
 
   describe '#create' do
     before do
+      skip_class = DataMapper::Associations::ManyToMany::Proxy
+      pending "TODO: implement #{skip_class}#create" if @articles.kind_of?(skip_class)
       @return = @resource = @articles.create(:content => 'Content')
     end
 
@@ -413,6 +417,8 @@ share_examples_for 'A Collection' do
 
   describe '#destroy!' do
     before do
+      skip_class = DataMapper::Associations::ManyToMany::Proxy
+      pending "TODO: override #{skip_class}#destroy! from the OneToMany proxy" if @articles.kind_of?(skip_class)
       @return = @articles.destroy!
     end
 
@@ -440,6 +446,8 @@ share_examples_for 'A Collection' do
   describe '#first' do
     describe 'with no arguments' do
       before do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending "TODO: #{skip_class}#first needs love" if @articles.kind_of?(skip_class)
         @return = @resource = @articles.first
       end
 
@@ -458,6 +466,8 @@ share_examples_for 'A Collection' do
 
     describe 'with a query' do
       before do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending "TODO: #{skip_class}#first needs love" if @articles.kind_of?(skip_class)
         @return = @resource = @articles.first(:content => 'Sample')
       end
 
@@ -478,6 +488,8 @@ share_examples_for 'A Collection' do
 
     describe 'with limit specified' do
       before do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending "TODO: #{skip_class}#first needs love" if @articles.kind_of?(skip_class)
         @return = @resources = @articles.first(1)
       end
 
@@ -496,6 +508,8 @@ share_examples_for 'A Collection' do
 
     describe 'with limit and query specified' do
       before do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending "TODO: #{skip_class}#first needs love" if @articles.kind_of?(skip_class)
         @return = @resources = @articles.first(1, :content => 'Sample')
       end
 
@@ -681,6 +695,8 @@ share_examples_for 'A Collection' do
 
     describe 'with a query' do
       before do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending "TODO: #{skip_class}#last needs love" if @articles.kind_of?(skip_class)
         @return = @resource = @articles.last(:content => 'Sample')
       end
 
@@ -725,6 +741,8 @@ share_examples_for 'A Collection' do
       end
 
       it 'should be the last N Resources in the Collection matching the query' do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending "TODO: #{skip_class}#last needs love" if @articles.kind_of?(skip_class)
         @resources.should == [ @article ]
       end
 
@@ -853,9 +871,8 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update the Collection' do
-        pending 'TODO: Fix Query#update to copy other.repository to @repository' do
-          @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
-        end
+        pending "TODO: Fix Query#update to copy other.repository to @repository"
+        @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
       end
 
       it 'should have non-lazy query fields loaded' do
@@ -878,9 +895,8 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update the Collection' do
-        pending 'TODO: Fix Query#update to copy other.repository to @repository' do
-          @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
-        end
+        pending "TODO: Fix Query#update to copy other.repository to @repository"
+        @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
       end
 
       it 'should have all query fields loaded' do
@@ -1002,6 +1018,8 @@ share_examples_for 'A Collection' do
         end
 
         it 'should return the expected Resource' do
+          skip_class = DataMapper::Associations::ManyToMany::Proxy
+          pending "TODO: override #{skip_class}#slice" if @articles.kind_of?(skip_class)
           @return.should == [ @article ]
         end
 
@@ -1020,6 +1038,8 @@ share_examples_for 'A Collection' do
         end
 
         it 'should return the expected Resource' do
+          skip_class = DataMapper::Associations::ManyToMany::Proxy
+          pending "TODO: override #{skip_class}#slice" if @articles.kind_of?(skip_class)
           @return.should == [ @article ]
         end
 
@@ -1258,6 +1278,8 @@ share_examples_for 'A Collection' do
 
     describe 'with arguments' do
       before do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending "TODO: implement #{skip_class}#update!" if @articles.kind_of?(skip_class)
         @return = @articles.update!(:title => 'Updated Title')
       end
 

@@ -11,7 +11,7 @@ Writing Specs
   = DO:
   
   * Write more specs for error conditions than clean conditions.
-  * Write specs with readability in mind. Somebody knew to DataMapper should be
+  * Write specs with readability in mind. Somebody new to DataMapper should be
     able to read specs to learn how something works.
   * Use existing models that are part of a metaphor.
   * Nest describe blocks (2 or 3 levels deep is probably fine).
