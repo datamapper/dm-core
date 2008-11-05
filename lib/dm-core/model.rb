@@ -309,12 +309,6 @@ module DataMapper
       end
     end
 
-    # Deprecated alias for #get!
-    def [](*key)
-      warn("#{name}[] is deprecated. Use #{name}.get! instead.")
-      get!(*key)
-    end
-
     # find the #first record by a query, or #create one by attributes
     # if it doesn't exist
     #
@@ -348,16 +342,6 @@ module DataMapper
     def create(attributes = {})
       resource = new(attributes)
       resource.save
-      resource
-    end
-
-    ##
-    # This method is deprecated, and will be removed from dm-core.
-    #
-    def create!(attributes = {})
-      warn("Model#create! is deprecated. It is moving to dm-validations, and will be used to create a record without validations")
-      resource = create(attributes)
-      raise PersistenceError, "Resource not saved: :new_record => #{resource.new_record?}, :dirty_attributes => #{resource.dirty_attributes.inspect}" if resource.new_record?
       resource
     end
 
