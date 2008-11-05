@@ -30,9 +30,9 @@ describe DataMapper::Associations::OneToMany::Proxy do
 
   supported_by :all do
     before do
-      @comment     = Comment.create(:body => "Cool spec", 
+      @comment     = Comment.create(:body => "Cool spec",
                                     :user => User.create(:name => 'dbussink', :age => 25))
-      
+
       @user        = @comment.user
       @model       = User
       @child_model = Comment

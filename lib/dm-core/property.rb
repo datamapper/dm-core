@@ -13,8 +13,8 @@ module DataMapper
   # repository/database.
   #
   # If you are coming to DataMapper from another ORM framework, such as
-  # ActiveRecord, this may be a fundamental difference in thinking to you. 
-  # However, there are several advantages to defining your properties in your 
+  # ActiveRecord, this may be a fundamental difference in thinking to you.
+  # However, there are several advantages to defining your properties in your
   # models:
   #
   # * information about your model is centralized in one place: rather than
@@ -22,7 +22,7 @@ module DataMapper
   # * having information centralized in your models, encourages you and the
   #   developers on your team to take a model-centric view of development.
   # * it provides the ability to use Ruby's access control functions.
-  # * and, because DataMapper only cares about properties explicitly defined 
+  # * and, because DataMapper only cares about properties explicitly defined
   # in
   #   your models, DataMapper plays well with legacy databases, and shares
   #   databases easily with other applications.
