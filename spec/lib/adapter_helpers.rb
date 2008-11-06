@@ -18,7 +18,9 @@ module DataMapper::Spec
         with_adapter_spec_wrapper(message) do
 
           before(:each) do
-            DataMapper.setup(:default, connection_uri)
+            # store these in instance vars for the shared adapter specs
+            @adapter = DataMapper.setup(:default, connection_uri)
+            @repository = repository(:default)
 
             @repository = repository(:default)
             @adapter    = @repository.adapter

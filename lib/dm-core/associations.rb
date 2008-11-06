@@ -63,7 +63,6 @@ module DataMapper
     #  * has 3,    :friends   # many friends (exactly 3)
     #  * has 1,    :friend,  :class_name => 'User'       # one friend with the class name User
     #  * has 3,    :friends, :through    => :friendships # many friends through the friendships relationship
-    #  * has n,    :friendships => :friends              # identical to above example
     #
     # @param cardinality [Integer, Range, Infinity]
     #   cardinality that defines the association type and constraints
@@ -118,7 +117,7 @@ module DataMapper
     ##
     # A shorthand, clear syntax for defining many-to-one resource relationships.
     #
-    #  * belongs_to :user                          # many_to_one, :friend
+    #  * belongs_to :user                           # many_to_one, :friend
     #  * belongs_to :friend, :class_name => 'User'  # many_to_one :friends
     #
     # @param name [Symbol] The name that the association will be referenced by

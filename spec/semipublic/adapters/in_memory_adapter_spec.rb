@@ -1,4 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', "..", 'spec_helper'))
+require SPEC_ROOT + 'lib/adapter_shared_spec'
 
 describe DataMapper::Adapters::InMemoryAdapter do
   supported_by :in_memory do
@@ -15,10 +16,15 @@ describe DataMapper::Adapters::InMemoryAdapter do
       @heff1 = Heffalump.create(:color => 'Black',     :num_spots => 0,   :striped => true)
       @heff2 = Heffalump.create(:color => 'Brown',     :num_spots => 25,  :striped => false)
       @heff3 = Heffalump.create(:color => 'Dark Blue', :num_spots => nil, :striped => false)
+      
+      @model = Heffalump
+      @property = @model.color
+      @resource = Heffalump.new(:color => "Mauve")
     end
 
     after do
-      Heffalump.all.destroy!
+      # Commenting this out, this wasn't working with shared adapter spec -- dph
+      # Heffalump.all.destroy!
     end
 
     it 'should successfully save an object' do
@@ -107,5 +113,7 @@ describe DataMapper::Adapters::InMemoryAdapter do
       @heff1.destroy
       Heffalump.all.size.should == 2
     end
+    
+    it_should_behave_like 'An Adapter'
   end
 end
