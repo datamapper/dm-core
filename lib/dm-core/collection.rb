@@ -466,7 +466,13 @@ module DataMapper
       orphan_resource(super)
     end
 
-    # TODO: document
+    ##
+    # Deletes every Resource for which block evaluates to true.
+    #
+    # @yield [DataMapper::Resource] Each resource in the collection
+    #
+    # @return [DataMapper::Collection] self
+    #
     # @api public
     def delete_if
       super { |r| yield(r) && orphan_resource(r) }
