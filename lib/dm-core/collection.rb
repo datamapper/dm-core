@@ -297,16 +297,36 @@ module DataMapper
 
     alias [] slice
 
-    # TODO: document
+    ##
+    # Deletes and Returns the Resources given by an index or a Range
+    #
+    # @param [Integer, Array(Integer), Range] args the offset,
+    # offset and limit, or range indicating offsets and limits
+    #
+    # @return [DataMapper::Resource, DataMapper::Collection, NilClass]
+    #   The entry which resides at that offset and limit, a new
+    #   Collection object with the set limits and offset, or nil if
+    #   the index is out of range.
+    #
     # @api public
     def slice!(*args)
+      # lazy load the collection, and remove the matching entries
       orphaned = super
 
       # Workaround for Ruby <= 1.8.6
       compact! if RUBY_VERSION <= '1.8.6'
 
       if orphaned.kind_of?(Array)
-        orphaned.each { |r| orphan_resource(r) }
+        if args.size == 2 && args.first.kind_of?(Integer) && args.last.kind_of?(Integer)
+          offset, limit = args
+        elsif args.size == 1 && args.first.kind_of?(Range)
+          range  = args.first
+          offset = range.first
+          limit  = range.last - offset
+          limit += 1 unless range.exclude_end?
+        end
+
+        self.class.new(scoped_query(:offset => offset, :limit => limit), orphaned)
       else
         orphan_resource(orphaned)
       end

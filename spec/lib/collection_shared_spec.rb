@@ -1191,8 +1191,8 @@ share_examples_for 'A Collection' do
         @return = @articles.slice!(0, 1)
       end
 
-      it 'should return an Array' do
-        @return.should be_kind_of(Array)
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
       end
 
       it 'should return the expected Resource' do
@@ -1214,8 +1214,8 @@ share_examples_for 'A Collection' do
         @return = @articles.slice!(0..0)
       end
 
-      it 'should return an Array' do
-        @return.should be_kind_of(Array)
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
       end
 
       it 'should return the expected Resource' do
