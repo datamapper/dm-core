@@ -373,7 +373,14 @@ module DataMapper
       super
     end
 
-    # TODO: document
+    ##
+    # Inserts the Resources before the Resource at the index (which may be negative).
+    #
+    # @param [Integer] index The index to insert the Resources before
+    # @param [Enumerable] *resources The Resources to insert
+    #
+    # @return [DataMapper::Collection] self
+    #
     # @api public
     def insert(index, *resources)
       resources.each { |r| relate_resource(r) }
@@ -386,6 +393,8 @@ module DataMapper
     # This should append one or more Resources to the Collection and
     # relate each to the Collection.
     #
+    # @param [Enumerable] *resources The Resources to append
+    #
     # @return [DataMapper::Collection] self
     #
     # @api public
@@ -396,6 +405,11 @@ module DataMapper
 
     ##
     # Prepend one or more Resources to the Collection
+    #
+    # This should prepend one or more Resources to the Collection and
+    # relate each to the Collection.
+    #
+    # @param [Enumerable] *resources The Resources to prepend
     #
     # @return [DataMapper::Collection] self
     #
@@ -714,7 +728,6 @@ module DataMapper
     # Initializes a new DataMapper::Collection identified by the query.
     #
     # @param [DataMapper::Query] query Scope the results of the Collection
-    #
     # @param [Enumerable] resources (optional) A list of resources to
     #   initialize the Collection with
     #
