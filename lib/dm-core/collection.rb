@@ -71,7 +71,7 @@ module DataMapper
     # This looksup a Resource by key, typecasting the key to the
     # proper object if necessary.
     #
-    # @param [Array] key keys which uniquely identify a resource in the
+    # @param [Array] *key keys which uniquely identify a resource in the
     #   Collection
     #
     # @return [DataMapper::Resource, NilClass] the Resource which
@@ -109,7 +109,7 @@ module DataMapper
     # This looksup a Resource by key, typecasting the key to the
     # proper object if necessary.
     #
-    # @param [Array] key keys which uniquely identify a resource in the
+    # @param [Array] *key keys which uniquely identify a resource in the
     #   Collection
     #
     # @return [DataMapper::Resource, NilClass] the Resource which
@@ -134,7 +134,6 @@ module DataMapper
     #
     # @api public
     def all(query = nil)
-      # TODO: this shouldn't be a kicker if scoped_query() is called
       if query.nil? || query == self.query
         self
       else
@@ -266,7 +265,7 @@ module DataMapper
     # and the max minues the offset is used as the limit.
     #
     # @param [Integer, Array(Integer), Range] args the offset,
-    # offset and limit, or range indicating offsets and limits
+    #   offset and limit, or range indicating offsets and limits
     #
     # @return [DataMapper::Resource, DataMapper::Collection]
     #   The entry which resides at that offset and limit,
@@ -301,7 +300,7 @@ module DataMapper
     # Deletes and Returns the Resources given by an index or a Range
     #
     # @param [Integer, Array(Integer), Range] args the offset,
-    # offset and limit, or range indicating offsets and limits
+    #   offset and limit, or range indicating offsets and limits
     #
     # @return [DataMapper::Resource, DataMapper::Collection, NilClass]
     #   The entry which resides at that offset and limit, a new
@@ -583,11 +582,9 @@ module DataMapper
     #
     #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
-    # @param [Hash] attributes attributes to update
+    # @param [Hash] attributes attributes to update with
     #
-    # @return [TrueClass, FalseClass]
-    #   TrueClass indicates that all entries were affected
-    #   FalseClass indicates that some entries were affected
+    # @return [TrueClass, FalseClass] true if all Resources were updated
     #
     # @api public
     def update(attributes = {})
@@ -601,9 +598,7 @@ module DataMapper
     #
     # @param [Hash] attributes attributes to update
     #
-    # @return [TrueClass, FalseClass]
-    #   TrueClass indicates that all entries were affected
-    #   FalseClass indicates that some entries were affected
+    # @return [TrueClass, FalseClass] true if all Resources were updated
     #
     # @api public
     def update!(attributes = {})
@@ -655,7 +650,7 @@ module DataMapper
         each do |r|
           # TODO: move this logic to a semipublic method in Resource
           r.instance_variable_set(:@new_record, true)
-          identity_map.delete(r.key)
+          repository.identity_map(model).delete(r.key)
           r.dirty_attributes.clear
 
           model.properties(repository.name).each do |property|
@@ -717,12 +712,10 @@ module DataMapper
     # check to see if collection can respond to the method
     #
     # @param [Symbol] method  method to check in the object
-    # @param [FalseClass, TrueClass] include_private  if set to true,
+    # @param [FalseClass, TrueClass] include_private if set to true,
     #   collection will check private methods
     #
-    # @return [TrueClass, FalseClass]
-    #   TrueClass indicates the method can be responded to by the Collection
-    #   FalseClass indicates the method can not be responded to by the Collection
+    # @return [TrueClass, FalseClass] true if method can be responded to
     #
     # @api public
     def respond_to?(method, include_private = false)
@@ -776,14 +769,30 @@ module DataMapper
       end
     end
 
-    # TODO: document
+    ##
+    # Adds a Resource to the Collection
+    #
+    # @param [DataMapper::Resource] resource The Resource to add
+    #
+    # @return [DataMapper::Resource] The Resource that was added
+    #
     # @api private
     def add(resource)
       query.add_reversed? ? unshift(resource) : push(resource)
       resource
     end
 
-    # TODO: document
+    ##
+    # Relates a Resource to the Collection
+    #
+    # This is used by SEL related code to reload a Resource and the
+    # Collection it belongs to.
+    #
+    # @param [DataMapper::Resource] resource The Resource to relate
+    #
+    # @return [DataMapper::Resource,NilClass] The Resource that was
+    #   related or nil if a nil resource was provided
+    #
     # @api private
     def relate_resource(resource)
       return unless resource
@@ -792,7 +801,17 @@ module DataMapper
       resource
     end
 
-    # TODO: document
+    ##
+    # Orphans a Resource from the Collection
+    #
+    # Removes the association between the Resource and Collection so that
+    # SEL related code will not load the Collection.
+    #
+    # @param [DataMapper::Resource] resource The Resource to orphan
+    #
+    # @return [DataMapper::Resource,NilClass] The Resource that was
+    #   orphaned or nil if a nil resource was provided
+    #
     # @api private
     def orphan_resource(resource)
       return unless resource
@@ -803,9 +822,8 @@ module DataMapper
       resource
     end
 
-    # TODO: document
-    # @api private
     # TODO: move the logic to create relative query into DataMapper::Query
+    # @api private
     def scoped_query(query = self.query)
       assert_kind_of 'query', query, Query, Hash
 
@@ -829,13 +847,7 @@ module DataMapper
       self.query.merge(query)
     end
 
-    # TODO: document
-    # @api private
-    def identity_map
-      repository.identity_map(model)
-    end
-
-    # TODO: document
+    # TODO: move the logic to create relative query into DataMapper::Query
     # @api private
     def set_relative_position(query)
       if query.offset == 0 && query.limit && self.query.limit && query.limit <= self.query.limit
