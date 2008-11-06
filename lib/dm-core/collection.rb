@@ -80,9 +80,10 @@ module DataMapper
     # @api public
     def get(*key)
       key = model.typecast_key(key)
-      if loaded?
-        # find indexed resource
-        @cache[key]
+
+      if resource = @cache[key]
+        # find cached resource
+        resource
       elsif query.limit || query.offset > 0
         # current query is exclusive, find resource within the set
 
