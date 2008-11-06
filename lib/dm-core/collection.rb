@@ -317,9 +317,9 @@ module DataMapper
       compact! if RUBY_VERSION <= '1.8.6'
 
       if orphaned.kind_of?(Array)
-        if args.size == 2 && args.first.kind_of?(Integer) && args.last.kind_of?(Integer)
+        if args.size == 2
           offset, limit = args
-        elsif args.size == 1 && args.first.kind_of?(Range)
+        else
           range  = args.first
           offset = range.first
           limit  = range.last - offset
