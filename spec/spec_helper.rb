@@ -5,7 +5,7 @@ require 'pathname'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 require SPEC_ROOT.parent + 'lib/dm-core'
-require SPEC_ROOT + 'lib/adapter_helpers'
+Pathname.glob(SPEC_ROOT + 'lib/**/*.rb').each { |f| require f }
 
 # create sqlite3_fs directory if it doesn't exist
 SPEC_ROOT.join('db').mkpath
@@ -26,7 +26,7 @@ PRIMARY = {
 
 ALTERNATE = {
   'in_memory'  => { :adapter => :in_memory },
-  'sqlite3'    => "sqlite3::memory:",
+  'sqlite3'    => { :adapter => :in_memory },  # use an in-memory DB for the alternate because SQLite3 cannot have more than one in-memory DB at once
   'sqlite3_fs' => "sqlite3://#{SPEC_ROOT}/db/secondary.db",
   'mysql'      => 'mysql://localhost/dm_core_test2',
   'postgres'   => 'postgres://postgres@localhost/dm_core_test2'
@@ -59,7 +59,8 @@ end
 DataMapper::Logger.new(nil, :debug)
 
 Spec::Runner.configure do |config|
-  config.include(DataMapper::Spec)
+  config.extend(DataMapper::Spec::AdapterHelpers)
+  config.include(DataMapper::Spec::PendingHelpers)
   config.after(:each) do
     DataMapper::Resource.descendants.clear
   end

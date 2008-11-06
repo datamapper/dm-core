@@ -1,9 +1,5 @@
 module DataMapper::Spec
 
-  def self.included(receiver)
-    receiver.extend AdapterHelpers
-  end
-
   module AdapterHelpers
 
     def self.current_adapters
@@ -23,6 +19,9 @@ module DataMapper::Spec
 
           before(:each) do
             DataMapper.setup(:default, connection_uri)
+
+            @repository = repository(:default)
+            @adapter    = @repository.adapter
 
             begin
               DataMapper.auto_migrate!

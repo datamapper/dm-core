@@ -117,7 +117,7 @@ describe DataMapper::Resource do
       it_should_provide_equality :==
 
       it "should be true when they are instances of different classes and the attributes are the same" do
-        pending "FIX ME" do
+        pending do
           User.new(:name => "John", :age => 10).should    == Clone.new(:name => "John", :age => 10)
           User.create(:name => "John", :age => 10).should == Clone.create(:name => "John", :age => 10)
         end
@@ -134,7 +134,7 @@ describe DataMapper::Resource do
       it_should_provide_equality :===
 
       it "should be true when they are instances of different classes and the attributes are the same" do
-        pending "FIX ME" do
+        pending do
           User.new(:name => "John", :age => 10).should    === Clone.new(:name => "John", :age => 10)
           User.create(:name => "John", :age => 10).should === Clone.create(:name => "John", :age => 10)
         end

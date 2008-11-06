@@ -2,21 +2,25 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Associations do
   before do
+    Object.send(:remove_const, :Car) if defined?(Car)
     class Car
       include DataMapper::Resource
       property :id, Serial
     end
 
+    Object.send(:remove_const, :Engine) if defined?(Engine)
     class Engine
       include DataMapper::Resource
       property :id, Serial
     end
 
+    Object.send(:remove_const, :Door) if defined?(Door)
     class Door
       include DataMapper::Resource
       property :id, Serial
     end
 
+    Object.send(:remove_const, :Window) if defined?(Window)
     class Window
       include DataMapper::Resource
       property :id, Serial
@@ -93,9 +97,11 @@ describe DataMapper::Associations do
 
     describe "#belongs_to" do
       before do
-        @relationship = Engine.belongs_to(:car)
+        @relationship       = Engine.belongs_to(:car)
         @other_relationship = Car.has(Car.n, :engines)
-        @engine       = Engine.new
+        @engine             = Engine.new
+
+        DataMapper.auto_migrate!
       end
 
       it 'should add the car setter' do
@@ -127,8 +133,9 @@ describe DataMapper::Associations do
         end
 
         it 'should add the engine object to the car' do
-          pending "Changing a belongs_to parent should add the object to the correct association"
-          @car.engines.should include(@engine)
+          pending "Changing a belongs_to parent should add the object to the correct association" do
+            @car.engines.should include(@engine)
+          end
         end
 
       end
@@ -162,8 +169,9 @@ describe DataMapper::Associations do
         end
 
         it 'should add the engine to the car' do
-          pending "Changing a belongs_to parent should add the object to the correct association"
-          @car2.engines.should include(@engine)
+          pending "Changing a belongs_to parent should add the object to the correct association" do
+            @car2.engines.should include(@engine)
+          end
         end
 
       end
@@ -178,8 +186,9 @@ describe DataMapper::Associations do
         end
 
         it 'should also change the foreign key' do
-          pending "a change to the foreign key should also change the related object"
-          @engine.car.should eql(@car2)
+          pending "a change to the foreign key should also change the related object" do
+            @engine.car.should eql(@car2)
+          end
         end
 
         it 'should add the engine to the car' do

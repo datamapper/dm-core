@@ -32,8 +32,9 @@ share_examples_for 'A Resource' do
 
       it 'should actually store the changes to persistent storage' do
         skip_class = DataMapper::Associations::ManyToOne::Proxy
-        pending "TODO: update #{skip_class}#save to actually save the object" if @user.kind_of?(skip_class)
-        @user.attributes.should == @model.get(*@user.key).attributes
+        pending_if "TODO: update #{skip_class}#save to actually save the object", @user.kind_of?(skip_class) do
+          @user.attributes.should == @model.get(*@user.key).attributes
+        end
       end
     end
 
@@ -44,8 +45,9 @@ share_examples_for 'A Resource' do
       end
 
       it 'should not save an invalid resource' do
-        pending "it raises an exception when trying to save a non serial nil key"
-        @user.save.should be_false
+        pending "it raises an exception when trying to save a non serial nil key" do
+          @user.save.should be_false
+        end
       end
 
     end
@@ -65,8 +67,9 @@ share_examples_for 'A Resource' do
 
       it 'should save the first resource created through build' do
         skip_class = DataMapper::Associations::ManyToOne::Proxy
-        pending "TODO: update #{skip_class}#save to actually save the object" if @user.kind_of?(skip_class)
-        @first_comment.new_record?.should be_false
+        pending_if "TODO: update #{skip_class}#save to actually save the object", @user.kind_of?(skip_class) do
+          @first_comment.new_record?.should be_false
+        end
       end
 
       it 'should save the correct foreign key for the first resource' do
@@ -74,8 +77,9 @@ share_examples_for 'A Resource' do
       end
 
       it 'should save the second resource created through the constructor' do
-        pending "Changing a belongs_to parent should add the object to the correct association"
-        @second_comment.new_record?.should be_false
+        pending "Changing a belongs_to parent should add the object to the correct association" do
+          @second_comment.new_record?.should be_false
+        end
       end
 
       it 'should save the correct foreign key for the second resource' do
@@ -83,8 +87,9 @@ share_examples_for 'A Resource' do
       end
 
       it 'should create 2 extra resources in persistent storage' do
-        pending "Changing a belongs_to parent should add the object to the correct association"
-        @user.comments.size.should == @initial_comments + 2
+        pending "Changing a belongs_to parent should add the object to the correct association" do
+          @user.comments.size.should == @initial_comments + 2
+        end
       end
 
     end
@@ -108,8 +113,9 @@ share_examples_for 'A Resource' do
 
       it 'should have saved the first child resource' do
         skip_class = DataMapper::Associations::ManyToOne::Proxy
-        pending "TODO: update #{skip_class}#save to actually save the object" if @user.kind_of?(skip_class)
-        @first_comment.should_not be_dirty
+        pending_if "TODO: update #{skip_class}#save to actually save the object", @user.kind_of?(skip_class) do
+          @first_comment.should_not be_dirty
+        end
       end
 
       it 'should not have saved the second child resource' do
@@ -126,8 +132,9 @@ share_examples_for 'A Resource' do
       end
 
       it 'should raise an exception when saving the resource' do
-        pending "it should raise an exception when a parent is not persisted"
-        lambda { @first_comment.save }.should raise_error
+        pending "it should raise an exception when a parent is not persisted" do
+          lambda { @first_comment.save }.should raise_error
+        end
       end
 
     end
@@ -174,8 +181,9 @@ share_examples_for 'A Resource' do
       end
 
       it 'should freeze the destoyed resource' do
-        pending "it freezes resources when destroying them"
-        @resource.should be_frozen
+        pending "it freezes resources when destroying them" do
+          @resource.should be_frozen
+        end
       end
 
       it 'should not be able to remove an already removed resource' do
