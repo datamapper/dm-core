@@ -81,6 +81,24 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
             @collection.entries.should == [ @model.new(:id => 99, :title => 'Sample Article') ]
           end
         end
+
+        describe 'with no block', 'with resources' do
+          before do
+            @return = @collection = DataMapper::Collection.new(@articles_query, [ @article ])
+          end
+
+          it 'should return a Collection' do
+            @return.should be_kind_of(DataMapper::Collection)
+          end
+
+          it 'should be loaded' do
+            @return.should be_loaded
+          end
+
+          it 'should contain the article' do
+            @collection.should == [ @article ]
+          end
+        end
       end
 
       it 'should respond to model methods with #method_missing' do

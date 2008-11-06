@@ -173,13 +173,13 @@ module DataMapper
 
       if !with_query && lazy_possible?(head, *args)
         if limit
-          self.class.new(query) { |c| c.replace(head.first(limit)) }
+          self.class.new(query, head.first(limit))
         else
           relate_resource(head.first)
         end
       elsif !with_query && loaded?
         if limit
-          self.class.new(query) { |c| c.replace(super(limit)) }
+          self.class.new(query, super(limit))
         else
           relate_resource(super)
         end
@@ -225,13 +225,13 @@ module DataMapper
 
       if !with_query && lazy_possible?(tail, *args)
         if limit
-          self.class.new(query) { |c| c.replace(tail.last(limit)) }
+          self.class.new(query, tail.last(limit))
         else
           relate_resource(tail.last)
         end
       elsif !with_query && loaded?
         if limit
-          self.class.new(query) { |c| c.replace(super(limit)) }
+          self.class.new(query, super(limit))
         else
           relate_resource(super)
         end
@@ -325,7 +325,7 @@ module DataMapper
     # @api public
     def reverse
       if loaded?
-        self.class.new(query.reverse) { |c| c.replace(super) }
+        self.class.new(query.reverse, super)
       else
         all(query.reverse)
       end
@@ -714,10 +714,13 @@ module DataMapper
     #
     # @param [DataMapper::Query] query Scope the results of the Collection
     #
+    # @param [Enumerable] resources (optional) A list of resources to
+    #   initialize the Collection with
+    #
     # @return [DataMapper::Collection] self
     #
     # @api public
-    def initialize(query)
+    def initialize(query, resources = [])
       assert_kind_of 'query', query, Query
 
       @query = query
@@ -725,7 +728,9 @@ module DataMapper
 
       super()
 
-      if block_given?
+      if resources.any?
+        replace(resources)
+      elsif block_given?
         load_with { |c| yield(c) }
       end
     end
