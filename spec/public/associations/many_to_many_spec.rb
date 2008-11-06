@@ -39,7 +39,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
 
       @author1  = Author.create(:name => 'Dan Kubb')
       @author2  = Author.create(:name => 'Lawrence Pit')
-      
+
       #ArticleAuthor.create(:article_id => @article.id, :author_id => @author1.id)
       @author1.articles << @article
 
