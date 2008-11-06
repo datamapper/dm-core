@@ -162,11 +162,8 @@ module DataMapper
     #
     # @api public
     def first(*args)
+      limit      = args.first if args.first.kind_of?(Integer)
       with_query = args.last.respond_to?(:merge)
-
-      limit = if args.first.kind_of?(Integer)
-        args.first
-      end
 
       query = with_query ? args.last : {}
       query = scoped_query(query.merge(:limit => limit || 1))
@@ -211,11 +208,8 @@ module DataMapper
     #
     # @api public
     def last(*args)
+      limit      = args.first if args.first.kind_of?(Integer)
       with_query = args.last.respond_to?(:merge)
-
-      limit = if args.first.kind_of?(Integer)
-        args.first
-      end
 
       query = with_query ? args.last : {}
       query = scoped_query(query.merge(:limit => limit || 1)).reverse
