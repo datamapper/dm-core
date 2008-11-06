@@ -687,7 +687,13 @@ module DataMapper
       super || model.public_methods(false).include?(method.to_s) || relationships.has_key?(method)
     end
 
-    # TODO: document
+    ##
+    # Returns true if the other object is identical to self
+    #
+    # @param [DataMapper::Collection] other Another Collection obejct
+    #
+    # @return [TrueClass, FalseClass] true if the obejcts are identical
+    #
     # @api public
     def equal?(other)
       object_id == other.object_id
