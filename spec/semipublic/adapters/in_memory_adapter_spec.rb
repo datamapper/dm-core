@@ -85,7 +85,11 @@ describe DataMapper::Adapters::InMemoryAdapter do
       Heffalump.all(:num_spots.lte => 0).should == [@heff1]
     end
 
-    it 'should be able to order the objects' do
+    it 'should be able to order the objects ascending' do
+      Heffalump.all(:order => [ :color ]).should == [@heff1, @heff2, @heff3]
+    end
+
+    it 'should be able to order the objects descending' do
       Heffalump.all(:order => [ :color.desc ]).should == [@heff3, @heff2, @heff1]
     end
 

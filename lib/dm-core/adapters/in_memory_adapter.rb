@@ -32,7 +32,9 @@ module DataMapper
           end
 
           @records[resource.model][resource.key] = resource.dirty_attributes.map { |p,v| [ p.field(repository_name), v ] }.to_hash
-        end.size # just return the number of records
+        end
+
+        resources.size
       end
 
       ##
@@ -54,9 +56,11 @@ module DataMapper
         records         = @records[query.model]
         attributes      = attributes.map { |p,v| [ p.field(repository_name), v ] }.to_hash
 
-        read_many(query).each do |resource|
+        resources = read_many(query).each do |resource|
           records[resource.key].update(attributes)
-        end.size
+        end
+
+        resources.size
       end
 
       ##
@@ -107,9 +111,11 @@ module DataMapper
       def delete(query)
         records = @records[query.model]
 
-        read_many(query).each do |resource|
+        resources = read_many(query).each do |resource|
           records.delete(resource.key)
-        end.size
+        end
+
+        resources.size
       end
 
       private
@@ -194,7 +200,6 @@ module DataMapper
       def equality_comparison(bind_value, value)
         case bind_value
           when Array, Range then bind_value.include?(value)
-          when NilClass     then value.nil?
           else                   bind_value == value
         end
       end
@@ -220,17 +225,7 @@ module DataMapper
       # @api private
       def field_order(order, repository_name)
         order.map do |item|
-          property, descending = nil, false
-
-          case item
-            when Property
-              property = item
-            when Query::Direction
-              property  = item.property
-              descending = true if item.direction == :desc
-          end
-
-          [ property.field(repository_name), descending ]
+          [ item.property.field(repository_name), item.direction == :desc ]
         end
       end
     end

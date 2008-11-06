@@ -101,7 +101,9 @@ describe DataMapper::Associations do
         @other_relationship = Car.has(Car.n, :engines)
         @engine             = Engine.new
 
-        DataMapper.auto_migrate!
+        unless @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+          DataMapper.auto_migrate!
+        end
       end
 
       it 'should add the car setter' do
