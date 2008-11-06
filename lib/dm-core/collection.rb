@@ -12,7 +12,7 @@ module DataMapper
     include Assertions
 
     ##
-    # The Query scope
+    # Returns the Query the Collection is scoped with
     #
     # @return [DataMapper::Query] the Query the Collection is scoped with
     #
@@ -20,7 +20,7 @@ module DataMapper
     attr_reader :query
 
     ##
-    # The associated Repository
+    # Returns the Repository
     #
     # @return [DataMapper::Repository] the Repository the Collection is
     #   associated with
@@ -31,7 +31,7 @@ module DataMapper
     end
 
     ##
-    # Initialize a Resource and add it to the Collection
+    # Initializes a Resource and adds it to the Collection
     #
     # This should load a Resource, add it to the Collection and relate
     # the it to the Collection.
@@ -46,7 +46,7 @@ module DataMapper
     end
 
     ##
-    # Reload the Collection from the data source
+    # Reloads the Collection from the repository
     #
     # @param [Hash] query further restrict results with query
     #
@@ -496,7 +496,14 @@ module DataMapper
       super { |r| yield(r) && orphan_resource(r) }
     end
 
-    # TODO: document
+    ##
+    # Deletes every Resource for which block evaluates to true.
+    #
+    # @yield [DataMapper::Resource] Each resource in the Collection
+    #
+    # @return [DataMapper::Collection,NilClass] self or nil if no
+    #   resources removed
+    #
     # @api public
     def reject!
       super { |r| yield(r) && orphan_resource(r) }
