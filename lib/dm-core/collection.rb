@@ -422,6 +422,8 @@ module DataMapper
     ##
     # Replace the Resources within the Collection
     #
+    # @param [Enumerable] other The list of other Resources to replace with
+    #
     # @return [DataMapper::Collection] self
     #
     # @api public
@@ -433,13 +435,20 @@ module DataMapper
       super
     end
 
-    # TODO: document
+    ##
+    # Removes and returns the last Resource in the Collection
+    #
+    # @return [DataMapper::Resource] the last Resource in the Collection
+    #
     # @api public
     def pop
       orphan_resource(super)
     end
 
-    # TODO: document
+    # Removes and returns the first Resource in the Collection
+    #
+    # @return [DataMapper::Resource] the first Resource in the Collection
+    #
     # @api public
     def shift
       orphan_resource(super)
@@ -484,7 +493,7 @@ module DataMapper
     ##
     # Deletes every Resource for which block evaluates to true.
     #
-    # @yield [DataMapper::Resource] Each resource in the collection
+    # @yield [DataMapper::Resource] Each resource in the Collection
     #
     # @return [DataMapper::Collection] self
     #
@@ -500,10 +509,9 @@ module DataMapper
     end
 
     ##
-    # Makes the Collection empty
+    # Removes all Resources from the Collection
     #
-    # This should make the Collection empty, and orphan each removed
-    # Resource from the Collection.
+    # This should remove and orphan each Resource from the Collection.
     #
     # @return [DataMapper::Collection] self
     #
@@ -578,7 +586,6 @@ module DataMapper
     #
     # @api public
     def update!(attributes = {})
-      # TODO: delegate to Model.update
       unless attributes.empty?
         dirty_attributes = {}
 
@@ -598,14 +605,12 @@ module DataMapper
     end
 
     ##
-    # Remove all Resources from the datasource (TODO)
+    # Remove all Resources from the repository (TODO)
     #
     # This performs a deletion of each Resource in the Collection from
-    # the datasource and clears the Collection.
+    # the repository and clears the Collection.
     #
-    # @return [TrueClass, FalseClass]
-    #   TrueClass indicates that all entries were affected
-    #   FalseClass indicates that not all entries were affected
+    # @return [TrueClass, FalseClass] true if all Resources were deleted
     #
     # @api public
     def destroy
@@ -613,19 +618,16 @@ module DataMapper
     end
 
     ##
-    # Remove all Resources from the datasource bypassing validation
+    # Remove all Resources from the repository bypassing validation
     #
     # This performs a deletion of each Resource in the Collection from
-    # the datasource and clears the Collection while skipping foreign
+    # the repository and clears the Collection while skipping foreign
     # key validation (TODO).
     #
-    # @return [TrueClass, FalseClass]
-    #   TrueClass indicates that all entries were affected
-    #   FalseClass indicates that not all entries were affected
+    # @return [TrueClass, FalseClass] true if all Resources were deleted
     #
     # @api public
     def destroy!
-      # TODO: delegate to Model.destroy
       deleted = repository.delete(scoped_query)
 
       if loaded? && deleted > 0
@@ -648,6 +650,8 @@ module DataMapper
     end
 
     ##
+    # Returns the PropertySet representing the fields in the Collection scope
+    #
     # @return [DataMapper::PropertySet] The set of properties this
     #   query will be retrieving
     #
@@ -657,6 +661,8 @@ module DataMapper
     end
 
     ##
+    # Returns the Relationships for the Collection's Model
+    #
     # @return [Hash] The model's relationships, mapping the name to the
     #   DataMapper::Associations::Relationship object
     #
@@ -705,9 +711,9 @@ module DataMapper
     ##
     # Returns true if the other object is identical to self
     #
-    # @param [DataMapper::Collection] other Another Collection obejct
+    # @param [DataMapper::Collection] other Another Collection object
     #
-    # @return [TrueClass, FalseClass] true if the obejcts are identical
+    # @return [TrueClass, FalseClass] true if the objects are identical
     #
     # @api public
     def equal?(other)
