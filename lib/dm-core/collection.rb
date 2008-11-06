@@ -123,7 +123,7 @@ module DataMapper
     end
 
     ##
-    # Return a new Collection scoped by the query
+    # Returns a new Collection scoped by the query
     #
     # This returns a new Collection scoped relative to the current
     # Collection.
@@ -359,7 +359,13 @@ module DataMapper
       super
     end
 
-    # TODO: document
+    ##
+    # Appends the resources to self
+    #
+    # @param [Enumerable] resources The resources to append to the collection
+    #
+    # @return [DataMapper::Collection] self
+    #
     # @api public
     def concat(resources)
       resources.each { |r| relate_resource(r) }
@@ -639,7 +645,7 @@ module DataMapper
     end
 
     ##
-    # Default values to use when creating a Resource
+    # Returns default values to initialize new Resources in the Collection
     #
     # @return [Hash] The default attributes for DataMapper::Collection#create
     #
