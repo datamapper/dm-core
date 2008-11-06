@@ -331,7 +331,13 @@ module DataMapper
       end
     end
 
-    # TODO: document
+    ##
+    # Invoke the block for each resource and replace it the return value
+    #
+    # @yield [DataMapper::Resource] Each resource in the collection
+    #
+    # @return [DataMapper::Collection] self
+    #
     # @api public
     def collect!
       super { |r| relate_resource(yield(orphan_resource(r))) }
