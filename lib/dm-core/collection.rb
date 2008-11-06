@@ -1,13 +1,13 @@
 module DataMapper
-  # Collection class represents a collection of objects
-  # fetched from some repository
-  # that you can operate on pretty much like you do
-  # with regular arrays.
+  # The Collection class represents a list of resources persisted in
+  # a repository and identified by a query.
   #
-  # Collection uses lazy loading where possible. Collection
-  # instances are usually returned by all method:
+  # A Collection should act like an Array in every way, except that
+  # it will attempt to defer loading until the results from the
+  # repository are needed.
   #
-  # Company.all returns a collection
+  # A Collection is typically returned by the DataMapper::Model#all
+  # method.
   class Collection < LazyArray
     include Assertions
 
@@ -683,7 +683,13 @@ module DataMapper
 
     private
 
-    # TODO: document
+    ##
+    # Initializes a new DataMapper::Collection identified by the query.
+    #
+    # @param [DataMapper::Query] query Scope the results of the Collection
+    #
+    # @return [DataMapper::Collection] self
+    #
     # @api public
     def initialize(query)
       assert_kind_of 'query', query, Query
@@ -787,10 +793,24 @@ module DataMapper
       end
     end
 
-    # TODO: document
+    ##
+    # Delegates to Model, Relationships or the superclass (LazyArray)
+    #
+    # When this receives a method that belongs to the Model the
+    # Collection is scoped to, it will execute the method within the
+    # same scope as the Collection and return the results.
+    #
+    # When this receives a method that is a relationship the Model has
+    # defined, it will execute the association method within the same
+    # scope as the Collection and return the results.
+    #
+    # Otherwise this method will delegate to a method in the superclass
+    # (LazyArray) and return the results.
+    #
     # @api public
-    # TODO: split up each logic branch into a separate method
     def method_missing(method, *args, &block)
+      # TODO: split up each logic branch into a separate method
+
       if model.public_methods(false).include?(method.to_s)
         model.send(:with_scope, query) do
           model.send(method, *args, &block)
