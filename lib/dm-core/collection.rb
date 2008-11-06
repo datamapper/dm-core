@@ -162,27 +162,33 @@ module DataMapper
     #
     # @api public
     def first(*args)
-      # TODO: this shouldn't be a kicker if scoped_query() is called
-
-      if loaded? && args.empty?
-        return relate_resource(super)
-      elsif !args.last.respond_to?(:merge) && lazy_possible?(head, *args)
-        return head.first(*args)
-      end
+      with_query = args.last.respond_to?(:merge)
 
       limit = if args.first.kind_of?(Integer)
         args.first
       end
 
-      query = args.last.respond_to?(:merge) ? args.last : {}
+      query = with_query ? args.last : {}
       query = scoped_query(query.merge(:limit => limit || 1))
 
-      if limit.nil?
-        relate_resource(query.repository.read_one(query))
-      elsif loaded? && args.size == 1
-        self.class.new(query) { |c| c.replace(super(limit)) }
+      if !with_query && lazy_possible?(head, *args)
+        if limit
+          self.class.new(query) { |c| c.replace(head.first(limit)) }
+        else
+          relate_resource(head.first)
+        end
+      elsif !with_query && loaded?
+        if limit
+          self.class.new(query) { |c| c.replace(super(limit)) }
+        else
+          relate_resource(super)
+        end
       else
-        query.repository.read_many(query)
+        if limit
+          query.repository.read_many(query)
+        else
+          relate_resource(query.repository.read_one(query))
+        end
       end
     end
 
@@ -205,28 +211,36 @@ module DataMapper
     #
     # @api public
     def last(*args)
-      if loaded? && args.empty?
-        return relate_resource(super)
-      elsif !args.last.respond_to?(:merge) && lazy_possible?(tail, *args)
-        return tail.last(*args)
-      end
+      with_query = args.last.respond_to?(:merge)
 
       limit = if args.first.kind_of?(Integer)
         args.first
       end
 
-      query = args.last.respond_to?(:merge) ? args.last : {}
+      query = with_query ? args.last : {}
       query = scoped_query(query.merge(:limit => limit || 1)).reverse
 
       # tell the Query to prepend each result from the adapter
       query.update(:add_reversed => !query.add_reversed?)
 
-      if limit.nil?
-        relate_resource(query.repository.read_one(query))
-      elsif loaded? && args.size == 1
-        self.class.new(query) { |c| c.replace(super(limit)) }
+      if !with_query && lazy_possible?(tail, *args)
+        if limit
+          self.class.new(query) { |c| c.replace(tail.last(limit)) }
+        else
+          relate_resource(tail.last)
+        end
+      elsif !with_query && loaded?
+        if limit
+          self.class.new(query) { |c| c.replace(super(limit)) }
+        else
+          relate_resource(super)
+        end
       else
-        query.repository.read_many(query)
+        if limit
+          query.repository.read_many(query)
+        else
+          relate_resource(query.repository.read_one(query))
+        end
       end
     end
 
@@ -657,17 +671,6 @@ module DataMapper
     # @api public
     def equal?(other)
       object_id == other.object_id
-    end
-
-    # TODO: document
-    # @api private
-    def keys
-      if empty?
-        {}
-      else
-        keys = map { |r| r.key }
-        model.key(repository.name).zip(keys.transpose).to_hash
-      end
     end
 
     protected

@@ -467,6 +467,25 @@ share_examples_for 'A Collection' do
       end
     end
 
+    describe 'with no arguments', 'after prepending to the collection' do
+      before do
+        @articles.unshift(@other)
+        @return = @resource = @articles.first
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be first Resource in the Collection' do
+        @resource.should be_equal(@other)
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @resource.collection.should be_equal(@articles)
+      end
+    end
+
     describe 'with a query' do
       before do
         @skip_class = DataMapper::Associations::ManyToMany::Proxy
@@ -504,6 +523,25 @@ share_examples_for 'A Collection' do
 
       it 'should be the first N Resources in the Collection' do
         @resources.should == [ @article ]
+      end
+
+      it 'should orphan the Resources' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
+    end
+
+    describe 'with limit specified', 'after prepending to the collection' do
+      before do
+        @articles.unshift(@other)
+        @return = @resources = @articles.first(1)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should be the first N Resources in the Collection' do
+        @resources.should == [ @other ]
       end
 
       it 'should orphan the Resources' do
@@ -699,6 +737,25 @@ share_examples_for 'A Collection' do
       end
     end
 
+    describe 'with no arguments', 'after prepending to the collection' do
+      before do
+        @articles.push(@other)
+        @return = @resource = @articles.last
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be last Resource in the Collection' do
+        @resource.should be_equal(@other)
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @resource.collection.should be_equal(@articles)
+      end
+    end
+
     describe 'with a query' do
       before do
         @skip_class = DataMapper::Associations::ManyToMany::Proxy
@@ -735,6 +792,25 @@ share_examples_for 'A Collection' do
 
       it 'should be the last N Resources in the Collection' do
         @resources.should == [ @article ]
+      end
+
+      it 'should orphan the Resources' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
+    end
+
+    describe 'with limit specified', 'after prepending to the collection' do
+      before do
+        @articles.push(@other)
+        @return = @resources = @articles.last(1)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should be the last N Resources in the Collection' do
+        @resources.should == [ @other ]
       end
 
       it 'should orphan the Resources' do
