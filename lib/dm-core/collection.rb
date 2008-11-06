@@ -893,34 +893,49 @@ module DataMapper
     #
     # @api public
     def method_missing(method, *args, &block)
-      # TODO: split up each logic branch into a separate method
-
       if model.public_methods(false).include?(method.to_s)
-        model.send(:with_scope, query) do
-          model.send(method, *args, &block)
-        end
+        delegate_to_model(method, *args, &block)
       elsif relationship = relationships[method]
-        klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
-
-        # TODO: when self.query includes an offset/limit use it as a
-        # subquery to scope the results rather than a join
-
-        query = Query.new(repository, klass)
-        query.conditions.push(*self.query.conditions)
-        query.update(relationship.query)
-        if args.last.kind_of?(Hash)
-          query.update(args.pop)
-        end
-
-        query.update(
-          :fields => klass.properties(repository.name).defaults,
-          :links  => [ relationship ] + self.query.links
-        )
-
-        klass.all(query, &block)
+        delegate_to_relationship(relationship, *args)
       else
         super
       end
+    end
+
+    ##
+    # Delegate the method to the Model
+    #
+    # @api private
+    def delegate_to_model(method, *args, &block)
+      model.send(:with_scope, query) do
+        model.send(method, *args, &block)
+      end
+    end
+
+    ##
+    # Delegate the method to the Relationship
+    #
+    # @return [DataMapper::Collection] the associated Resources
+    #
+    def delegate_to_relationship(relationship, *args)
+      klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
+
+      # TODO: when self.query includes an offset/limit use it as a
+      # subquery to scope the results rather than a join
+
+      query = Query.new(repository, klass)
+      query.conditions.push(*self.query.conditions)
+      query.update(relationship.query)
+      if args.last.kind_of?(Hash)
+        query.update(args.pop)
+      end
+
+      query.update(
+        :fields => klass.properties(repository.name).defaults,
+        :links  => [ relationship ] + self.query.links
+      )
+
+      klass.all(query)
     end
   end # class Collection
 end # module DataMapper
