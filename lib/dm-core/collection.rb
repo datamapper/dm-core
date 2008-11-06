@@ -309,7 +309,8 @@ module DataMapper
       orphaned = super
 
       # Workaround for Ruby <= 1.8.6
-      compact! if RUBY_VERSION <= "1.8.6"
+      compact! if RUBY_VERSION <= '1.8.6'
+
       if orphaned.kind_of?(Array)
         orphaned.each { |r| orphan_resource(r) }
       else
