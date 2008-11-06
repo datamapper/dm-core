@@ -21,10 +21,12 @@ Pretty profound impact. If you run the following code in ActiveRecord you'll
 see all <tt>false</tt> results. Do the same in DataMapper and it's
 <tt>true</tt> all the way down.
 
-  @parent = Tree.find(:first, :conditions => ['name = ?', 'bob'])
+  repository do
+    @parent = Tree.find(:first, :conditions => ['name = ?', 'bob'])
 
-  @parent.children.each do |child|
-    puts @parent.object_id == child.parent.object_id
+    @parent.children.each do |child|
+      puts @parent.object_id == child.parent.object_id
+    end
   end
 
 This makes DataMapper faster and allocate less resources to get things done.
@@ -42,9 +44,11 @@ You can also configure which strategy you'd like to use to track dirtiness.
 
 Ready for something amazing? The following example executes only two queries.
 
-  zoos = Zoo.all
-  first = zoos.first
-  first.exhibits  # Loads the exhibits for all the Zoo objects in the zoos variable.
+  repository do
+    zoos = Zoo.all
+    first = zoos.first
+    first.exhibits  # Loads the exhibits for all the Zoo objects in the zoos variable.
+  end
 
 Pretty impressive huh? The idea is that you aren't going to load a set of
 objects and use only an association in just one of them. This should hold up
@@ -79,9 +83,11 @@ Plus, lazy-loading of text fields happens automatically and intelligently when
 working with associations.  The following only issues 2 queries to load up all
 of the notes fields on each animal:
 
-  animals = Animal.all
-  animals.each do |pet|
-    pet.notes
+  repository do
+    animals = Animal.all
+    animals.each do |pet|
+      pet.notes
+    end
   end
 
 == Plays Well With Others
