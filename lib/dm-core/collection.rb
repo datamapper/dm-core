@@ -337,6 +337,8 @@ module DataMapper
       super { |r| relate_resource(yield(orphan_resource(r))) }
     end
 
+    alias map! collect!
+
     ##
     # Append one Resource to the Collection
     #

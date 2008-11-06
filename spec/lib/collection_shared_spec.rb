@@ -172,30 +172,32 @@ share_examples_for 'A Collection' do
     end
   end
 
-  it 'should respond to #collect!' do
-    @articles.should respond_to(:collect!)
-  end
-
-  describe '#collect!' do
-    before do
-      @resources = @articles.entries
-      @return = @articles.collect! { |r| @model.new(:title => 'Title') }
+  [ :collect!, :map! ].each do |method|
+    it "should respond to ##{method}" do
+      @articles.should respond_to(method)
     end
 
-    it 'should return a Collection' do
-      @return.should be_kind_of(DataMapper::Collection)
-    end
+    describe "##{method}" do
+      before do
+        @resources = @articles.entries
+        @return = @articles.send(method) { |r| @model.new(:title => 'Title') }
+      end
 
-    it 'should return self' do
-      @return.should be_equal(@articles)
-    end
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
 
-    it 'should update the Collection inline' do
-      @articles.should == [ @model.new(:title => 'Title') ]
-    end
+      it 'should return self' do
+        @return.should be_equal(@articles)
+      end
 
-    it 'should orphan each replaced Resource in the Collection' do
-      @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      it 'should update the Collection inline' do
+        @articles.should == [ @model.new(:title => 'Title') ]
+      end
+
+      it 'should orphan each replaced Resource in the Collection' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
     end
   end
 
