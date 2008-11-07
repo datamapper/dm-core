@@ -94,6 +94,16 @@ describe DataMapper::Associations::OneToMany::Proxy do
       end
     end
 
+    describe '#build' do
+      before do
+        @resource = @author.articles.build
+      end
+
+      it 'should associate the Resource to the Collection' do
+        @resource.author.should == @author
+      end
+    end
+
     describe '#collect!' do
       describe 'when provided a Resource belonging to another association' do
         before do

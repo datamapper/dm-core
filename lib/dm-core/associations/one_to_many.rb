@@ -139,7 +139,7 @@ module DataMapper
           each { |r| orphan_resource(r) }
           other = other.map do |r|
             if r.kind_of?(Hash)
-              new_child(r)
+              build(r)
             else
               r
             end
@@ -195,7 +195,7 @@ module DataMapper
           attributes = default_attributes.merge(attributes)
 
           if children.respond_to?(:build)
-            super(attributes)
+            relate_resource(super(attributes))
           else
             # XXX: move to ManyToMany::Proxy?
             # FIXME: This should probably use << to append the resource
@@ -306,7 +306,7 @@ module DataMapper
           each { |r| save_resource(r) }
 
           # save orphaned resources
-          @orphans.each { |r| save_resource(r, nil) }
+          @orphans.each { |r| save_resource(r) }
 
           # XXX: move to ManyToMany::Proxy?
           if children.kind_of?(Array) && !children.frozen?
@@ -367,6 +367,7 @@ module DataMapper
             default_attributes[attribute] = value
           end
 
+          # TODO: remove this if ManyToMany::Proxy does not need it
           @relationship.child_key.zip(@relationship.parent_key.get(@parent)) do |property,value|
             default_attributes[property.name] = value
           end
@@ -376,7 +377,7 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def add_default_association_values(resource)
+        def add_default_association_values(resource)  # XXX: move to ManyToMany::Proxy?
           default_attributes.each do |attribute, value|
             if !resource.respond_to?("#{attribute}=") || resource.attribute_loaded?(attribute)
               next
@@ -394,7 +395,7 @@ module DataMapper
         # TODO: document
         # @api private
         def relate_resource(resource)
-          add_default_association_values(resource)
+          @relationship.attach_parent(resource, @parent)
           @orphans.delete(resource)
           resource
         end
@@ -402,22 +403,20 @@ module DataMapper
         # TODO: document
         # @api private
         def orphan_resource(resource)
+          return unless resource
+          @relationship.attach_parent(resource, nil)
           @orphans << resource
           resource
         end
 
         # TODO: document
         # @api private
-        def save_resource(resource, parent = @parent)
+        def save_resource(resource)
           @relationship.with_repository(resource) do
-            if parent.nil? && resource.model.respond_to?(:many_to_many)
+            if @relationship.child_key.get(resource).nil? && resource.model.respond_to?(:many_to_many)
               # XXX: move to ManyToMany::Proxy?
               resource.destroy
             else
-              # TODO: move the attach_parent call to relate_resource and orphan_resource
-              # once save() is totally speced.  I believe the resource's FK values should
-              # be updated immediately rather than waiting until save() is executed
-              @relationship.attach_parent(resource, parent)
               resource.save
             end
           end

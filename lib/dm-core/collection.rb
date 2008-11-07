@@ -554,15 +554,14 @@ module DataMapper
     #
     # @api public
     def build(attributes = {})
-      repository.scope do
-        resource = model.new(default_attributes.update(attributes))
-        self << resource
-        resource
-      end
+      resource = repository.scope { model.new(default_attributes.update(attributes)) }
+      self << resource
+      resource
     end
 
     ##
     # Creates a new Resource, saves it, and appends it to the Collection
+    # if it was successfully saved.
     #
     # @param [Hash] attributes attributes which
     #   the new resource should have.
@@ -571,11 +570,9 @@ module DataMapper
     #
     # @api public
     def create(attributes = {})
-      repository.scope do
-        resource = model.create(default_attributes.update(attributes))
-        self << resource unless resource.new_record?
-        resource
-      end
+      resource = repository.scope { model.create(default_attributes.update(attributes)) }
+      self << resource unless resource.new_record?
+      resource
     end
 
     ##
