@@ -133,6 +133,39 @@ describe DataMapper::Associations::OneToMany::Proxy do
       end
     end
 
+    describe '#create' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.sample_articles.create
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before creating a Resource')
+        end
+      end
+    end
+
+    describe '#destroy' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.sample_articles.destroy
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the association')
+        end
+      end
+    end
+
+    describe '#destroy!' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.sample_articles.destroy!
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the association without validation')
+        end
+      end
+    end
+
     describe '#insert' do
       describe 'when provided a Resource belonging to another association' do
         before do
@@ -242,6 +275,28 @@ describe DataMapper::Associations::OneToMany::Proxy do
         end
 
         it_should_behave_like 'It can transfer a Resource from another association'
+      end
+    end
+
+    describe '#update' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.sample_articles.update(:title => 'New Title')
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the association')
+        end
+      end
+    end
+
+    describe '#update!' do
+      describe 'when the parent is not saved' do
+        it 'should raise an exception' do
+          author = Author.new(:name => 'Dan Kubb')
+          lambda {
+            author.sample_articles.update!(:title => 'New Title')
+          }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the association without validation')
+        end
       end
     end
   end

@@ -191,12 +191,14 @@ module DataMapper
         def build(attributes = {})
           assert_mutable  # XXX: move to ManyToMany::Proxy?
 
-          attributes = default_attributes.merge(attributes)  # TODO: test moving this into the "else" branch below
+          # TODO: test moving this into the "else" branch below
+          attributes = default_attributes.merge(attributes)
 
           if children.respond_to?(:build)
             super(attributes)
           else
             # XXX: move to ManyToMany::Proxy?
+            # FIXME: This should probably use << to append the resource
             new_child(attributes)
           end
         end
@@ -209,7 +211,7 @@ module DataMapper
           assert_mutable  # XXX: move to ManyToMany::Proxy?
 
           if @parent.new_record?
-            raise UnsavedParentError, 'You cannot initialize until the parent is saved'
+            raise UnsavedParentError, 'The parent must be saved before initializing a Resource'
           end
 
           resource = new_child(attributes)
@@ -223,7 +225,7 @@ module DataMapper
           assert_mutable  # XXX: move to ManyToMany::Proxy?
 
           if @parent.new_record?
-            raise UnsavedParentError, 'You cannot create until the parent is saved'
+            raise UnsavedParentError, 'The parent must be saved before creating a Resource'
           end
 
           attributes = default_attributes.merge(attributes)
@@ -242,9 +244,11 @@ module DataMapper
         # @api public
         def update(attributes = {})
           assert_mutable  # XXX: move to ManyToMany::Proxy?
+
           if @parent.new_record?
-            raise UnsavedParentError, 'You cannot mass-update until the parent is saved'
+            raise UnsavedParentError, 'The parent must be saved before mass-updating the association'
           end
+
           super
         end
 
@@ -252,9 +256,11 @@ module DataMapper
         # @api public
         def update!(attributes = {})
           assert_mutable  # XXX: move to ManyToMany::Proxy?
+
           if @parent.new_record?
-            raise UnsavedParentError, 'You cannot mass-update without validations until the parent is saved'
+            raise UnsavedParentError, 'The parent must be saved before mass-updating the association without validation'
           end
+
           super
         end
 
@@ -262,9 +268,11 @@ module DataMapper
         # @api public
         def destroy
           assert_mutable  # XXX: move to ManyToMany::Proxy?
+
           if @parent.new_record?
-            raise UnsavedParentError, 'You cannot mass-delete until the parent is saved'
+            raise UnsavedParentError, 'The parent must be saved before mass-deleting the association'
           end
+
           super
         end
 
@@ -272,9 +280,11 @@ module DataMapper
         # @api public
         def destroy!
           assert_mutable  # XXX: move to ManyToMany::Proxy?
+
           if @parent.new_record?
-            raise UnsavedParentError, 'You cannot mass-delete without validations until the parent is saved'
+            raise UnsavedParentError, 'The parent must be saved before mass-deleting the association without validation'
           end
+
           super
         end
 
