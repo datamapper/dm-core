@@ -24,7 +24,7 @@ share_examples_for 'An Adapter' do
   end
   
   it "should respond to update" do
-    @adapter.should respond_to(:read_one)
+    @adapter.should respond_to(:update)
   end
   
   describe "#update" do
