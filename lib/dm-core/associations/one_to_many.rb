@@ -409,7 +409,6 @@ module DataMapper
         # TODO: document
         # @api private
         def relate_resource(resource)
-          assert_mutable  # XXX: move to ManyToMany::Proxy?
           add_default_association_values(resource)
           @orphans.delete(resource)
           resource
@@ -418,7 +417,6 @@ module DataMapper
         # TODO: document
         # @api private
         def orphan_resource(resource)
-          assert_mutable  # XXX: move to ManyToMany::Proxy?
           @orphans << resource
           resource
         end
