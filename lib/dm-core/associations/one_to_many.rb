@@ -325,7 +325,7 @@ module DataMapper
         # TODO: document
         # @api public
         def respond_to?(method, include_private = false)
-          super || children.respond_to?(method, include_private)
+          super || children.respond_to?(method)
         end
 
         private

@@ -699,7 +699,7 @@ module DataMapper
     #
     # @api public
     def respond_to?(method, include_private = false)
-      super || model.public_methods(false).include?(method.to_s) || relationships.has_key?(method)
+      super || model.respond_to?(method) || relationships.has_key?(method)
     end
 
     ##
@@ -894,7 +894,7 @@ module DataMapper
     #
     # @api public
     def method_missing(method, *args, &block)
-      if model.public_methods(false).include?(method.to_s)
+      if model.respond_to?(method)
         delegate_to_model(method, *args, &block)
       elsif relationship = relationships[method]
         delegate_to_relationship(relationship, *args)
