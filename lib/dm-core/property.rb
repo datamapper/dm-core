@@ -40,7 +40,8 @@ module DataMapper
   #        # Default value for new records is false
   #   end
   #
-  # By default, DataMapper supports the following primitive types:
+  # By default, DataMapper supports the following primitive (Ruby) types
+  # also called core types:
   #
   # * TrueClass, Boolean
   # * String (default length is 50)
@@ -53,6 +54,8 @@ module DataMapper
   # * Time
   # * Object (marshalled out during serialization)
   # * Class (datastore primitive is the same as String. Used for Inheritance)
+  #
+  # Other types are known as custom types.
   #
   # For more information about available Types, see DataMapper::Type
   #
@@ -241,6 +244,66 @@ module DataMapper
   # As an alternative to extraneous has_one relationships, consider using an
   # EmbeddedValue.
   #
+  # == Property options reference
+  #
+  #  :accessor            if false, neither reader nor writer methods are
+  #                       created for this property
+  #
+  #  :reader              if false, reader method is not created for this property
+  #
+  #  :writer              if false, writer method is not created for this property
+  #
+  #  :lazy                if true, property value is only loaded when on first read
+  #                       if false, property value is always loaded
+  #                       if a symbol, property value is loaded with other properties
+  #                       in the same group
+  #
+  #  :default             default value of this property
+  #
+  #  :nullable            if true, property may have a nil value on save
+  #
+  #  :key                 name of the key associated with this property.
+  #
+  #  :serial              if true, field value is auto incrementing
+  #
+  #  :field               field in the data-store which the property corresponds to
+  #
+  #  :size                field size. Usually makes sense for properties of type String.
+  #
+  #  :length              alias for :length option
+  #
+  #  :format              format for autovalidation. Use with dm-validations plugin.
+  #
+  #  :index               if true, index is created for the property. If a Symbol, index
+  #                       is named after Symbol value instead of being based on property name.
+  #
+  #  :unique_index        true specifies that index on this property should be unique
+  #
+  #  :check               [MK] looks like this one is never used across -core and -more and should be removed
+  #
+  #  :ordinal             [MK] looks like this one is never used across -core and -more and should be removed
+  #
+  #  :auto_validation     if true, automatic validation is performed on the property
+  #
+  #  :validates           validation context. Use together with dm-validations.
+  #
+  #  :unique              if true, property column is unique. Properties of type Serial
+  #                       are unique by default.
+  #
+  #  :track               property tracking strategy. Can be one of :get, :hash or :set.
+  #                       :hash means that object hash is taken to figure out if property
+  #                       value has changed (property is "dirty")
+  #
+  #  :precision           Indicates the number of significant digits. Usually only makes sense
+  #                       for float type properties. Must be >= scale option value. Default is 10.
+  #
+  #  :scale               The number of significant digits to the right of the decimal point.
+  #                       Only makes sense for float type properties. Must be > 0.
+  #                       Default is nil for Float type and 10 for BigDecimal type.
+  #
+  #  All other keys you pass to +property+ method are stored and available
+  #  as options[:extra_keys].
+  #
   # == Misc. Notes
   # * Properties declared as strings will default to a length of 50, rather than
   #   255 (typical max varchar column size).  To overload the default, pass
@@ -294,7 +357,9 @@ module DataMapper
 
     DEFAULT_LENGTH           = 50
     DEFAULT_PRECISION        = 10
+    # Default scale for properties of BigDecimal type
     DEFAULT_SCALE_BIGDECIMAL = 0
+    # Default scalr for properties of type Float
     DEFAULT_SCALE_FLOAT      = nil
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
@@ -303,7 +368,7 @@ module DataMapper
 
     # Supplies the field in the data-store which the property corresponds to
     #
-    # @return <String> name of field in data-store
+    # @return [String] name of field in data-store
     #
     # @api semipublic
     def field(repository_name = nil)
@@ -313,7 +378,7 @@ module DataMapper
     # Returns true if property has uniq key. Serial properties and
     # keys are unique by default.
     #
-    # @return <Boolean> true if property has uniq index defined, false otherwise
+    # @return [Boolean] true if property has uniq index defined, false otherwise
     #
     # @api public
     def unique
@@ -322,6 +387,9 @@ module DataMapper
 
     # Returns universal unique property identifier.
     # Calculated as sum of hashes of model and property name.
+    #
+    # @return [Fixnum] A hash value for this object.
+    # @api public
     def hash
       if @custom && !@bound
         @type.bind(self)
@@ -334,6 +402,9 @@ module DataMapper
     # Returns equality of properties. Properties are
     # comparable only if their models are equal and
     # both properties has the same name.
+    #
+    # @return     [TrueClass, FalseClass]   Result of equality comparison.
+    # @api public
     def eql?(o)
       if o.is_a?(Property)
         return o.model == @model && o.name == @name
@@ -347,7 +418,7 @@ module DataMapper
     # type Range or custom type.
     #
     # @return <Integer, NilClass>
-    # @api    semipublic
+    # @api semipublic
     def length
       @length.is_a?(Range) ? @length.max : @length
     end
@@ -355,7 +426,7 @@ module DataMapper
 
     # Returns index name if property has index.
     #
-    # @return <String> index name if property has index defined, false otherwise
+    # @return [String] index name if property has index defined, false otherwise
     #
     # @api public
     def index
@@ -365,7 +436,7 @@ module DataMapper
     # Returns true if property has unique index. Serial properties and
     # keys are unique by default.
     #
-    # @return <Boolean> true if property has unique index defined, false otherwise
+    # @return [Boolean] true if property has unique index defined, false otherwise
     #
     # @api public
     def unique_index
@@ -374,7 +445,7 @@ module DataMapper
 
     # Returns whether or not the property is to be lazy-loaded
     #
-    # @return <TrueClass, FalseClass> whether or not the property is to be
+    # @return [TrueClass, FalseClass] whether or not the property is to be
     #   lazy-loaded
     #
     # @api public
@@ -384,7 +455,7 @@ module DataMapper
 
     # Returns whether or not the property is a key or a part of a key
     #
-    # @return <TrueClass, FalseClass> whether the property is a key or a part of
+    # @return [TrueClass, FalseClass] whether the property is a key or a part of
     #   a key
     #
     # @api public
@@ -394,7 +465,7 @@ module DataMapper
 
     # Returns whether or not the property is "serial" (auto-incrementing)
     #
-    # @return <TrueClass, FalseClass> whether or not the property is "serial"
+    # @return [TrueClass, FalseClass] whether or not the property is "serial"
     #
     # @api public
     def serial?
@@ -403,7 +474,7 @@ module DataMapper
 
     # Returns whether or not the property can accept 'nil' as it's value
     #
-    # @return <TrueClass, FalseClass> whether or not the property can accept 'nil'
+    # @return [TrueClass, FalseClass] whether or not the property can accept 'nil'
     #
     # @api public
     def nullable?
@@ -412,7 +483,7 @@ module DataMapper
 
     # Returns whether or not the property is custom (not provided by dm-core)
     #
-    # @return <TrueClass, FalseClass> whether or not the property is custom
+    # @return [TrueClass, FalseClass] whether or not the property is custom
     #
     # @api public
     def custom?
@@ -431,8 +502,6 @@ module DataMapper
 
       set_original_value(resource, value)
 
-      # [YK] Why did we previously care whether options[:default] is nil.
-      # The default value of nil will be applied either way
       if value.nil? && resource.new_record? && !resource.attribute_loaded?(name)
         value = default_for(resource)
         set(resource, value)
@@ -452,6 +521,14 @@ module DataMapper
       resource.instance_variable_get(instance_variable_name)
     end
 
+    # Sets original value of the property on given resource.
+    # When property is set on DataMapper resource instance,
+    # original value is preserved. This makes possible to
+    # track dirty attributes and save only those really changed,
+    # and avoid extra queries to the data source in certain
+    # situations.
+    #
+    # @api private
     def set_original_value(resource, val)
       unless resource.original_values.key?(name)
         val = val.try_dup
@@ -507,7 +584,23 @@ module DataMapper
       resource.send(:lazy_load, contexts)
     end
 
-    # typecasts values into a primitive
+    # typecasts values into a primitive (Ruby class that backs DataMapper property type).
+    # If property type can handle typecasting, it is delegated. How typecasting is
+    # perfomed, depends on the primitive of the type.
+    #
+    # If type's primitive is a TrueClass, values of 1, t and true are casted to true.
+    #
+    # For String primitive, +to_s+ is called on value.
+    #
+    # For Float primitive, +to_f+ is called on value.
+    #
+    # For Integer primitive, +to_i+ is called on value but only if value is an integer
+    # (decimal or binary), otherwise nil is returned. This is so because "junk".to_i
+    # returns 0.
+    #
+    # Properties of type with BigDecimal primitive use +BigDecimal(value)+ for casting.
+    # Casting to DateTime, Time and Date can handle both hashes with keys like :day or
+    # :hour and strings in format methods like Time.parse can handle.
     #
     # @return <TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Time
     #   Class> the primitive data-type, defaults to TrueClass
@@ -529,10 +622,6 @@ module DataMapper
           # these two alternatives:
           # * Integer(value) rescue nil
           # * Integer(value_to_s =~ /(\d+)/ ? $1 : value_to_s) rescue nil
-          #
-          # [YK] The previous implementation used a rescue. Why use a rescue
-          # when the list of cases where a valid string other than "0" could
-          # produce 0 is known?
           value_to_i = value.to_i
           if value_to_i == 0
             value.to_s =~ /^(0x|0b)?0+/ ? 0 : nil
@@ -552,14 +641,31 @@ module DataMapper
       end
     end
 
+    # Returns a default value of the
+    # property for given resource.
+    #
+    # When default value is a callable object,
+    # it is called with resource and property passed
+    # as arguments.
+    #
+    # @api semipublic
     def default_for(resource)
       @default.respond_to?(:call) ? @default.call(resource, self) : @default
     end
 
+    # Returns given value unchanged for core types and
+    # uses +dump+ method of the property type for custom types.
+    #
+    # @api semipublic
     def value(val)
       custom? ? self.type.dump(val, self) : val
     end
 
+    # Returns a Concise string representation of the property instance.
+    #
+    # @return [String] Concise string representation of the property instance.
+    #
+    # @api public
     def inspect
       "#<Property:#{@model}:#{@name}>"
     end
@@ -647,11 +753,16 @@ module DataMapper
 
       determine_visibility
 
+      # comes from dm-validations
       @model.auto_generate_validations(self)    if @model.respond_to?(:auto_generate_validations)
       @model.property_serialization_setup(self) if @model.respond_to?(:property_serialization_setup)
     end
 
-    def determine_visibility # :nodoc:
+    # Assert given visibility value is supported.
+    #
+    # @return   NilClass   nil
+    # @api private
+    def determine_visibility
       @reader_visibility = @options[:reader] || @options[:accessor] || :public
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
 
@@ -660,7 +771,11 @@ module DataMapper
       end
     end
 
-    # Typecasts an arbitrary value to a DateTime
+    # Typecasts an arbitrary value to a DateTime.
+    # Handles both Hashes and DateTime instances.
+    #
+    # @return [DateTime] Value type casted to DateTime
+    # @api private
     def typecast_to_datetime(value)
       case value
       when Hash then typecast_hash_to_datetime(value)
@@ -669,6 +784,10 @@ module DataMapper
     end
 
     # Typecasts an arbitrary value to a Date
+    # Handles both Hashes and Date instances.
+    #
+    # @return [Date] Value type casted to Date
+    # @api private
     def typecast_to_date(value)
       case value
       when Hash then typecast_hash_to_date(value)
@@ -677,6 +796,10 @@ module DataMapper
     end
 
     # Typecasts an arbitrary value to a Time
+    # Handles both Hashes and Time instances.
+    #
+    # @return [Time] Value type casted to Time
+    # @api private
     def typecast_to_time(value)
       case value
       when Hash then typecast_hash_to_time(value)
@@ -684,6 +807,10 @@ module DataMapper
       end
     end
 
+    # Creates a DateTime instance from a Hash with keys :year, :month, :day, :hour, :min, :sec
+    #
+    # @return [DateTime] Value constructed from a Hash.
+    # @api private
     def typecast_hash_to_datetime(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
       DateTime.new(*args)
@@ -692,6 +819,10 @@ module DataMapper
       DateTime.new(t.year, t.month, t.day, t.hour, t.min, t.sec)
     end
 
+    # Creates a Date instance from a Hash with keys :year, :month, :day
+    #
+    # @return [Date] Value constructed from a Hash.
+    # @api private
     def typecast_hash_to_date(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day)
       Date.new(*args)
@@ -700,13 +831,20 @@ module DataMapper
       Date.new(t.year, t.month, t.day)
     end
 
+    # Creates a Time instance from a Hash with keys :year, :month, :day, :hour, :min, :sec
+    #
+    # @return [Time] Value constructed from a Hash.
+    # @api private
     def typecast_hash_to_time(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
       Time.local(*args)
     end
 
     # Extracts the given args from the hash. If a value does not exist, it
-    # uses the value of Time.now
+    # uses the value of Time.now.
+    #
+    # @return [Array] Extracted values
+    # @api private
     def extract_time_args_from_hash(hash, *args)
       now = Time.now
       args.map { |arg| hash[arg] || hash[arg.to_s] || now.send(arg) }
