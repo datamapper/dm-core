@@ -689,27 +689,6 @@ module DataMapper
     end
 
     ##
-    # Returns default values to initialize new Resources in the Collection
-    #
-    # @return [Hash] The default attributes for DataMapper::Collection#create
-    #
-    # @api semipublic
-    def default_attributes
-      default_attributes = {}
-      query.conditions.each do |tuple|
-        operator, property, bind_value = *tuple
-
-        next unless operator == :eql &&
-          property.kind_of?(DataMapper::Property) &&
-          ![ Array, Range ].any? { |k| bind_value.kind_of?(k) }
-          !model.key(repository.name).include?(property)
-
-        default_attributes[property.name] = bind_value
-      end
-      default_attributes
-    end
-
-    ##
     # check to see if collection can respond to the method
     #
     # @param [Symbol] method  method to check in the object
@@ -768,6 +747,27 @@ module DataMapper
       elsif block_given?
         load_with { |c| yield(c) }
       end
+    end
+
+    ##
+    # Returns default values to initialize new Resources in the Collection
+    #
+    # @return [Hash] The default attributes for DataMapper::Collection#create
+    #
+    # @api private
+    def default_attributes
+      default_attributes = {}
+      query.conditions.each do |tuple|
+        operator, property, bind_value = *tuple
+
+        next unless operator == :eql &&
+          property.kind_of?(DataMapper::Property) &&
+          ![ Array, Range ].any? { |k| bind_value.kind_of?(k) }
+          !model.key(repository.name).include?(property)
+
+        default_attributes[property.name] = bind_value
+      end
+      default_attributes
     end
 
     ##

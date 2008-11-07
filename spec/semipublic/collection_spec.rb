@@ -29,24 +29,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         @articles.entries if loaded
       end
 
-      it 'should respond to #default_attributes' do
-        @articles.should respond_to(:default_attributes)
-      end
-
-      describe '#default_attributes' do
-        before do
-          @return = @articles.default_attributes
-        end
-
-        it 'should return a Hash' do
-          @return.should be_kind_of(Hash)
-        end
-
-        it 'should return expected values' do
-          @return.should == { :title => 'Sample Article' }
-        end
-      end
-
       it 'should respond to #load' do
         @articles.should respond_to(:load)
       end
