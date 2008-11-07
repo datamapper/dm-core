@@ -19,7 +19,6 @@ share_examples_for 'It can transfer a Resource from another association' do
   end
 end
 
-
 # TODO: test loaded and unloaded behavior
 
 describe DataMapper::Associations::OneToMany::Proxy do
@@ -33,10 +32,12 @@ describe DataMapper::Associations::OneToMany::Proxy do
       property :id,   Serial
       property :name, String
 
+      has n, :articles
+
       # TODO: move conditions down to before block once author.articles(query)
       # returns a OneToMany::Proxy object (and not Collection as it does now)
-      has n, :sample_articles, :title => 'Sample Article', :class_name => 'Article'
-      has n, :other_articles,  :title => 'Other Article',  :class_name => 'Article'
+      has n, :sample_articles, :title.eql => 'Sample Article', :class_name => 'Article'
+      has n, :other_articles,  :title     => 'Other Article',  :class_name => 'Article'
     end
 
     Object.send(:remove_const, :Article) if defined?(Article)
@@ -67,7 +68,7 @@ describe DataMapper::Associations::OneToMany::Proxy do
     end
 
     after do
-      @articles.dup.destroy!
+      @author.articles.destroy!
       @author.destroy
     end
 
@@ -296,6 +297,48 @@ describe DataMapper::Associations::OneToMany::Proxy do
           lambda {
             author.sample_articles.update!(:title => 'New Title')
           }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the association without validation')
+        end
+      end
+    end
+
+    it 'should respond to #save' do
+      @articles.should respond_to(:save)
+    end
+
+    describe '#save' do
+      describe 'when Resources are not saved' do
+        before do
+          @articles = @author.articles
+          @articles.build(:title => 'New Article', :content => 'New Article')
+          @return = @articles.save
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+
+        it 'should save each Resource' do
+          @articles.each { |r| r.should_not be_new_record }
+        end
+      end
+
+      describe 'when Resources have been orphaned' do
+        before do
+          @resources = @articles.entries
+          @articles.replace([])
+          @return = @articles.save
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+
+        it 'should orphan each Resource' do
+          @resources.each { |r| r.author.should be_nil }
+        end
+
+        it 'should save each orphaned Resource' do
+          @resources.each { |r| r.reload.author.should be_nil }
         end
       end
     end

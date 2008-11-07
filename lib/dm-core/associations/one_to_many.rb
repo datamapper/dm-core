@@ -298,7 +298,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def save
-          if children.frozen?
+          if children.frozen?  # XXX: move to ManyToMany::Proxy?
             return true
           end
 
@@ -322,8 +322,7 @@ module DataMapper
             end
           end
 
-          # FIXME: remove when RelationshipChain#get_children can return a Collection
-          # place the children into a Collection if not already
+          # XXX: move to ManyToMany::Proxy?
           if children.kind_of?(Array) && !children.frozen?
             @children = @relationship.get_children(@parent).replace(children)
           end
