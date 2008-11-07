@@ -173,7 +173,7 @@ module DataMapper
   #      # when :name is the primary (natural) key on the users table
   #
   # == Indices
-  # You can add indeces for your properties by using the <tt>:index</tt>
+  # You can add indices for your properties by using the <tt>:index</tt>
   # option. If you use <tt>true</tt> as the option value, the index will be
   # automatically named. If you want to name the index yourself, use a symbol
   # as the value.
@@ -181,7 +181,7 @@ module DataMapper
   #   property :last_name,  String, :index => true
   #   property :first_name, String, :index => :name
   #
-  # You can create multi-column composite indeces by using the same symbol in
+  # You can create multi-column composite indices by using the same symbol in
   # all the columns belonging to the index. The columns will appear in the
   # index in the order they are declared.
   #
@@ -189,7 +189,7 @@ module DataMapper
   #   property :first_name, String, :index => :name
   #      # => index on (last_name, first_name)
   #
-  # If you want to make the indeces unique, use <tt>:unique_index</tt> instead
+  # If you want to make the indices unique, use <tt>:unique_index</tt> instead
   # of <tt>:index</tt>
   #
   # == Inferred Validations
