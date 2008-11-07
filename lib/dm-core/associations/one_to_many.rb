@@ -101,11 +101,14 @@ module DataMapper
         # @api public
         def <<(resource)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
-          # TODO: remove this block because it should be possible to
-          # move a child from one association to another.
-          if !resource.new_record? && self.include?(resource)
+
+          # FIXME: figure out why the following code is depended on my
+          # ManyToMany::Proxy.  Commenting it out causes it's specs to fail.
+          # This code should be removed.
+          if !resource.new_record? && include?(resource)
             return self
           end
+
           super
           relate_resource(resource)
           self
@@ -187,7 +190,9 @@ module DataMapper
         # @api public
         def build(attributes = {})
           assert_mutable  # XXX: move to ManyToMany::Proxy?
+
           attributes = default_attributes.merge(attributes)  # TODO: test moving this into the "else" branch below
+
           if children.respond_to?(:build)
             super(attributes)
           else
@@ -200,10 +205,13 @@ module DataMapper
         # @deprecated
         def new(attributes = {})
           warn "#{self.class}#new is deprecated, use #{self.class}#build instead"
+
           assert_mutable  # XXX: move to ManyToMany::Proxy?
+
           if @parent.new_record?
-            raise UnsavedParentError, 'You cannot intialize until the parent is saved'
+            raise UnsavedParentError, 'You cannot initialize until the parent is saved'
           end
+
           resource = new_child(attributes)
           self << resource
           resource
@@ -213,18 +221,21 @@ module DataMapper
         # @api public
         def create(attributes = {})
           assert_mutable  # XXX: move to ManyToMany::Proxy?
+
           if @parent.new_record?
             raise UnsavedParentError, 'You cannot create until the parent is saved'
           end
+
           attributes = default_attributes.merge(attributes)
-          resource = if children.respond_to?(:create)
+
+          if children.respond_to?(:create)
             super(attributes)
           else
             # XXX: move to ManyToMany::Proxy?
-            @relationship.child_model.create(attributes)
+            resource = @relationship.child_model.create(attributes)
+            self << resource unless resource.new_record?
+            resource
           end
-          self << resource  # XXX: does this result in the resource being appended twice?
-          resource
         end
 
         # TODO: document

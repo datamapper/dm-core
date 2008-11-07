@@ -142,7 +142,7 @@ share_examples_for 'A Resource' do
     describe 'with a dirty parent object' do
 
       before do
-        @first_comment      = @user.comments.new(:body => "DM is great!")
+        @first_comment = @user.comments.build(:body => "DM is great!")
         @user.name = 'dbussink-the-second'
         @return = @first_comment.save
       end
