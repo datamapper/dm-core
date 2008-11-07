@@ -172,7 +172,7 @@ module DataMapper
   #   User.get('bill')
   #      # when :name is the primary (natural) key on the users table
   #
-  # == Indeces
+  # == Indices
   # You can add indeces for your properties by using the <tt>:index</tt>
   # option. If you use <tt>true</tt> as the option value, the index will be
   # automatically named. If you want to name the index yourself, use a symbol
