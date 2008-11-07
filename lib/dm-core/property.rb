@@ -43,7 +43,7 @@ module DataMapper
   # By default, DataMapper supports the following primitive types:
   #
   # * TrueClass, Boolean
-  # * String
+  # * String (note: default length is 50!)
   # * Text (limit of 65k characters by default)
   # * Float
   # * Integer
