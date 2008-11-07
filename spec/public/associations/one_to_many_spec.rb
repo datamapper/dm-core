@@ -53,5 +53,35 @@ describe DataMapper::Associations::OneToMany::Proxy do
     end
 
     it_should_behave_like 'A Collection'
+
+    describe '#replace' do
+      # TODO: update Collection#replace to handle this use case
+      describe 'when provided an Array of Hashes' do
+        before do
+          @hash = { :title => 'Hash Article', :content => 'From Hash' }.freeze
+          @return = @articles.replace([ @hash ])
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return self' do
+          @return.should be_equal(@articles)
+        end
+
+        it 'should initialize a Resource' do
+          @return.first.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should be a new Resource' do
+          @return.first.should be_new_record
+        end
+
+        it 'should be a Resource with attributes matching the Hash' do
+          @return.first.attributes.only(*@hash.keys).should == @hash
+        end
+      end
+    end
   end
 end
