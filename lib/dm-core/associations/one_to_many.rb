@@ -115,10 +115,8 @@ module DataMapper
         # @api public
         def push(*resources)
           assert_mutable
-# NOTE: Array#reject does not modify the Array, so this is a noop
-#          resources.reject { |resource| !resource.new_record? && self.include?(resource) }
           super
-          resources.each { |resource| relate_resource(resource) }
+          resources.each { |r| relate_resource(r) }
           self
         end
 
@@ -126,10 +124,8 @@ module DataMapper
         # @api public
         def unshift(*resources)
           assert_mutable
-# NOTE: Array#reject does not modify the Array, so this is a noop
-#          resources.reject { |resource| !resource.new_record? && self.include?(resource) }
           super
-          resources.each { |resource| relate_resource(resource) }
+          resources.each { |r| relate_resource(r) }
           self
         end
 
@@ -137,16 +133,16 @@ module DataMapper
         # @api public
         def replace(other)
           assert_mutable
-          each { |resource| orphan_resource(resource) }
-          other = other.map do |resource|
-            if resource.kind_of?(Hash)
-              new_child(resource)
+          each { |r| orphan_resource(r) }
+          other = other.map do |r|
+            if r.kind_of?(Hash)
+              new_child(r)
             else
-              resource
+              r
             end
           end
           super
-          other.each { |resource| relate_resource(resource) }
+          other.each { |r| relate_resource(r) }
           self
         end
 
@@ -182,7 +178,7 @@ module DataMapper
         # @api public
         def clear
           assert_mutable
-          each { |resource| orphan_resource(resource) }
+          each { |r| orphan_resource(r) }
           super
           self
         end
@@ -283,18 +279,18 @@ module DataMapper
           end
 
           # save every resource in the collection
-          each { |resource| save_resource(resource) }
+          each { |r| save_resource(r) }
 
           # save orphan resources
-          @orphans.each do |resource|
+          @orphans.each do |r|
             begin
-              save_resource(resource, nil)
+              save_resource(r, nil)
             rescue
               # TODO: remove children_frozen? below once save() is specced
               # because the guard clause at the beginning should make it
               # impossible for this to ever return true
-              unless children.frozen? || children.include?(resource)
-                children << resource
+              unless children.frozen? || children.include?(r)
+                children << r
               end
               raise
             end
@@ -404,7 +400,7 @@ module DataMapper
         # TODO: document
         # @api private
         def save_resource(resource, parent = @parent)
-          @relationship.with_repository(resource) do |r|
+          @relationship.with_repository(resource) do
             if parent.nil? && resource.model.respond_to?(:many_to_many)
               resource.destroy
             else
