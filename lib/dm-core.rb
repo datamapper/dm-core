@@ -142,8 +142,8 @@ module DataMapper
     unless Adapters::const_defined?(class_name)
       lib_name = "#{Extlib::Inflection.underscore(adapter_name)}_adapter"
       begin
-        w00t = root / 'lib' / 'dm-core' / 'adapters' / lib_name
-        require w00t
+        adapter_file = root / 'lib' / 'dm-core' / 'adapters' / lib_name
+        require adapter_file
       rescue LoadError => e
         begin
           require lib_name
