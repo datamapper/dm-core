@@ -19,6 +19,7 @@ module DataMapper
   #
   # * information about your model is centralized in one place: rather than
   #   having to dig out migrations, xml or other configuration files.
+  # * use of mixins can be applied to model properties: better code reuse
   # * having information centralized in your models, encourages you and the
   #   developers on your team to take a model-centric view of development.
   # * it provides the ability to use Ruby's access control functions.

@@ -142,7 +142,8 @@ module DataMapper
     unless Adapters::const_defined?(class_name)
       lib_name = "#{Extlib::Inflection.underscore(adapter_name)}_adapter"
       begin
-        require root / 'lib' / 'dm-core' / 'adapters' / lib_name
+        w00t = root / 'lib' / 'dm-core' / 'adapters' / lib_name
+        require w00t
       rescue LoadError => e
         begin
           require lib_name
@@ -152,7 +153,6 @@ module DataMapper
         end
       end
     end
-
     Repository.adapters[name] = Adapters::const_get(class_name).new(name, uri_or_options)
   end
 

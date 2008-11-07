@@ -6,7 +6,9 @@ module DataMapper
   # and therefore is responsible for providing those methods.
   #
   # To see complete list of supported types, see documentation for
-  # DataMapper::Property::TYPES
+  # DataMapper::Property::TYPES. dm-types library provides less common
+  # types such as ip address, uuid, json, yaml, uri, slug, version,
+  # file path, bcrypt hash and so forth.
   #
   # == Defining new Types
   # To define a new type, subclass DataMapper::Type, pick ruby primitive, and

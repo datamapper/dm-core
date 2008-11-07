@@ -49,7 +49,7 @@ if ENV['ADAPTERS'].strip.upcase == 'ALL'
       DataMapper.setup(adapter.to_sym, connection_string)
       ADAPTERS << adapter
     rescue Exception => e
-      # nothing here
+      puts "Could not connect to the database using #{connection_string}"
     end
   end
 else
