@@ -16,7 +16,7 @@ describe DataMapper::Adapters::InMemoryAdapter do
       @heff1 = Heffalump.create(:color => 'Black',     :num_spots => 0,   :striped => true)
       @heff2 = Heffalump.create(:color => 'Brown',     :num_spots => 25,  :striped => false)
       @heff3 = Heffalump.create(:color => 'Dark Blue', :num_spots => nil, :striped => false)
-      
+
       @model = Heffalump
       @property = @model.color
       @resource = Heffalump.new(:color => "Mauve")
@@ -113,7 +113,7 @@ describe DataMapper::Adapters::InMemoryAdapter do
       @heff1.destroy
       Heffalump.all.size.should == 2
     end
-    
+
     it_should_behave_like 'An Adapter'
   end
 end
