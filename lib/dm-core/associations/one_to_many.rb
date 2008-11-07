@@ -76,6 +76,13 @@ module DataMapper
 
         # TODO: document
         # @api public
+        def reload(query = {})
+          children.reload(query)
+          self
+        end
+
+        # TODO: document
+        # @api public
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def all(query = {})
           if query.empty?
@@ -97,6 +104,16 @@ module DataMapper
           end
         end
 
+        # TODO: add #last
+
+        # TODO: add #slice (returns a wrapped OneToMany::Proxy object)
+
+        # TODO: add #slice!
+
+        # TODO: add #collect!
+
+        # TODO: alias #map! to #collect!
+
         # TODO: document
         # @api public
         def <<(resource)
@@ -109,17 +126,21 @@ module DataMapper
             return self
           end
 
-          super
           relate_resource(resource)
+          super
           self
         end
+
+        # TODO: add #concat
+
+        # TODO: add #insert
 
         # TODO: document
         # @api public
         def push(*resources)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
-          super
           resources.each { |r| relate_resource(r) }
+          super
           self
         end
 
@@ -127,8 +148,8 @@ module DataMapper
         # @api public
         def unshift(*resources)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
-          super
           resources.each { |r| relate_resource(r) }
+          super
           self
         end
 
@@ -137,15 +158,14 @@ module DataMapper
         def replace(other)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
           each { |r| orphan_resource(r) }
-          other = other.map do |r|
+          other.map! do |r|
             if r.kind_of?(Hash)
               build(r)
             else
-              r
+              relate_resource(r)
             end
           end
           super
-          other.each { |r| relate_resource(r) }
           self
         end
 
@@ -176,6 +196,10 @@ module DataMapper
           assert_mutable  # XXX: move to ManyToMany::Proxy?
           orphan_resource(super)
         end
+
+        # TODO: add #delete_if
+
+        # TODO: add #reject!
 
         # TODO: document
         # @api public
@@ -286,13 +310,6 @@ module DataMapper
           end
 
           super
-        end
-
-        # TODO: document
-        # @api public
-        def reload(query = {})
-          children.reload(query)
-          self
         end
 
         # TODO: document
