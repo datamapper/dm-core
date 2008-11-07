@@ -78,7 +78,11 @@ module DataMapper
         # @api public
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def all(query = {})
-          query.empty? ? self : @relationship.get_children(@parent, query)
+          if query.empty?
+            self
+          else
+            @relationship.get_children(@parent, query)
+          end
         end
 
         # TODO: document
@@ -134,7 +138,13 @@ module DataMapper
         def replace(other)
           assert_mutable
           each { |resource| orphan_resource(resource) }
-          other = other.map { |resource| resource.kind_of?(Hash) ? new_child(resource) : resource }
+          other = other.map do |resource|
+            if resource.kind_of?(Hash)
+              new_child(resource)
+            else
+              resource
+            end
+          end
           super
           other.each { |resource| relate_resource(resource) }
           self
@@ -182,8 +192,11 @@ module DataMapper
         def build(attributes = {})
           assert_mutable
           attributes = default_attributes.merge(attributes)
-          resource = children.respond_to?(:build) ? super(attributes) : new_child(attributes)
-          resource
+          if children.respond_to?(:build)
+            super(attributes)
+          else
+            new_child(attributes)
+          end
         end
 
         # TODO: document
@@ -206,7 +219,11 @@ module DataMapper
             raise UnsavedParentError, 'You cannot create until the parent is saved'
           end
           attributes = default_attributes.merge(attributes)
-          resource = children.respond_to?(:create) ? super(attributes) : @relationship.child_model.create(attributes)
+          resource = if children.respond_to?(:create)
+            super(attributes)
+          else
+            @relationship.child_model.create(attributes)
+          end
           self << resource
           resource
         end
