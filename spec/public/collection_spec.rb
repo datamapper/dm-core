@@ -101,20 +101,20 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
         end
       end
 
-      it 'should respond to model methods with #method_missing' do
+      it 'should respond to a public model method with #method_missing' do
         @articles.should respond_to(:base_model)
       end
 
-      it 'should respond to belongs_to relationship methods with #method_missing' do
+      it 'should respond to a belongs_to relationship method with #method_missing' do
         @articles.should respond_to(:original)
       end
 
-      it 'should respond to has relationship methods with #method_missing' do
+      it 'should respond to a has relationship method with #method_missing' do
         @articles.should respond_to(:revisions)
       end
 
       describe '#method_missing' do
-        describe 'with public model method' do
+        describe 'with a public model method' do
           before do
             @return = @articles.base_model
           end
@@ -124,7 +124,7 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
           end
         end
 
-        describe 'with belongs_to relationship method' do
+        describe 'with a belongs_to relationship method' do
           before do
             @return = @collection = @articles.original
           end
@@ -140,7 +140,7 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
           end
         end
 
-        describe 'with has relationship method' do
+        describe 'with a has relationship method' do
           describe 'with no arguments' do
             before do
               @return = @articles.revisions
@@ -174,7 +174,7 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
           end
         end
 
-        describe 'with unknown method' do
+        describe 'with an unknown method' do
           it 'should raise an exception' do
             lambda {
               @articles.unknown

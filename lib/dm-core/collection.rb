@@ -908,7 +908,7 @@ module DataMapper
     #
     # @api private
     def delegate_to_model(method, *args, &block)
-      model.send(:with_scope, query) do
+      model.__send__(:with_scope, query) do
         model.send(method, *args, &block)
       end
     end

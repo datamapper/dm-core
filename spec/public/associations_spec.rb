@@ -194,7 +194,9 @@ describe DataMapper::Associations do
         end
 
         it 'should add the engine to the car' do
-          @car2.engines.include(@engine)
+          pending "a change to the foreign key should also change the related object" do
+            @car2.engines.should include(@engine)
+          end
         end
 
       end

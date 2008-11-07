@@ -187,6 +187,30 @@ describe DataMapper::Associations::OneToMany::Proxy do
       end
     end
 
+    it 'should respond to a public collection method with #method_missing' do
+      @articles.respond_to?(:to_a)
+    end
+
+    describe '#method_missing' do
+      describe 'with a public collection method' do
+        before do
+          @return = @articles.to_a
+        end
+
+        it 'should return expected object' do
+          @return.should == @articles
+        end
+      end
+
+      describe 'with unknown method' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.unknown
+          }.should raise_error(NoMethodError)
+        end
+      end
+    end
+
     describe '#push' do
       describe 'when provided a Resource belonging to another association' do
         before do

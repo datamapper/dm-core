@@ -305,22 +305,8 @@ module DataMapper
           # save every resource in the collection
           each { |r| save_resource(r) }
 
-          # save orphan resources
-          @orphans.each do |r|
-            # XXX: this begin/rescue block is dumb.  nowhere else do we attempt
-            # to rescue similar errors.  try to remove this block
-            begin
-              save_resource(r, nil)
-            rescue
-              # TODO: remove children_frozen? below once save() is specced
-              # because the guard clause at the beginning should make it
-              # impossible for this to ever return true
-              unless children.frozen? || children.include?(r)
-                children << r
-              end
-              raise
-            end
-          end
+          # save orphaned resources
+          @orphans.each { |r| save_resource(r, nil) }
 
           # XXX: move to ManyToMany::Proxy?
           if children.kind_of?(Array) && !children.frozen?
@@ -438,11 +424,19 @@ module DataMapper
         end
 
         # TODO: document
-        # @api private
+        # @api public
         def method_missing(method, *args, &block)
-          results = if children.respond_to?(method)
-            children.__send__(method, *args, &block)
+          if children.respond_to?(method)
+            delegate_to_children(method, *args, &block)
+          else
+            super
           end
+        end
+
+        # TODO: document
+        # @api private
+        def delegate_to_children(method, *args, &block)
+          results = children.__send__(method, *args, &block)
 
           if LazyArray::RETURN_SELF.include?(method) && results.kind_of?(Array)
             return self
