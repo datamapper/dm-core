@@ -191,13 +191,16 @@ module DataMapper
           if children.respond_to?(:build)
             super(attributes)
           else
+            # XXX: I think this code can only be reached in many-to-many
+            #      associations.  this should be pushed to ManyToMany::Proxy#build
             new_child(attributes)
           end
         end
 
-        # TODO: document
         # @api public
+        # @deprecated
         def new(attributes = {})
+          warn "#{self.class}#new is deprecated, use #{self.class}#build instead"
           assert_mutable
           if @parent.new_record?
             raise UnsavedParentError, 'You cannot intialize until the parent is saved'
