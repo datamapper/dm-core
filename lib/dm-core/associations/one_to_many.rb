@@ -100,7 +100,7 @@ module DataMapper
         # TODO: document
         # @api public
         def <<(resource)
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           # TODO: remove this block because it should be possible to
           # move a child from one association to another.
           if !resource.new_record? && self.include?(resource)
@@ -114,7 +114,7 @@ module DataMapper
         # TODO: document
         # @api public
         def push(*resources)
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           super
           resources.each { |r| relate_resource(r) }
           self
@@ -123,7 +123,7 @@ module DataMapper
         # TODO: document
         # @api public
         def unshift(*resources)
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           super
           resources.each { |r| relate_resource(r) }
           self
@@ -132,7 +132,7 @@ module DataMapper
         # TODO: document
         # @api public
         def replace(other)
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           each { |r| orphan_resource(r) }
           other = other.map do |r|
             if r.kind_of?(Hash)
@@ -149,35 +149,35 @@ module DataMapper
         # TODO: document
         # @api public
         def pop
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           orphan_resource(super)
         end
 
         # TODO: document
         # @api public
         def shift
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           orphan_resource(super)
         end
 
         # TODO: document
         # @api public
         def delete(resource)
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           orphan_resource(super)
         end
 
         # TODO: document
         # @api public
         def delete_at(index)
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           orphan_resource(super)
         end
 
         # TODO: document
         # @api public
         def clear
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           each { |r| orphan_resource(r) }
           super
           self
@@ -186,13 +186,12 @@ module DataMapper
         # TODO: document
         # @api public
         def build(attributes = {})
-          assert_mutable
-          attributes = default_attributes.merge(attributes)
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
+          attributes = default_attributes.merge(attributes)  # TODO: test moving this into the "else" branch below
           if children.respond_to?(:build)
             super(attributes)
           else
-            # XXX: I think this code can only be reached in many-to-many
-            #      associations.  this should be pushed to ManyToMany::Proxy#build
+            # XXX: move to ManyToMany::Proxy?
             new_child(attributes)
           end
         end
@@ -201,7 +200,7 @@ module DataMapper
         # @deprecated
         def new(attributes = {})
           warn "#{self.class}#new is deprecated, use #{self.class}#build instead"
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           if @parent.new_record?
             raise UnsavedParentError, 'You cannot intialize until the parent is saved'
           end
@@ -213,7 +212,7 @@ module DataMapper
         # TODO: document
         # @api public
         def create(attributes = {})
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           if @parent.new_record?
             raise UnsavedParentError, 'You cannot create until the parent is saved'
           end
@@ -221,16 +220,17 @@ module DataMapper
           resource = if children.respond_to?(:create)
             super(attributes)
           else
+            # XXX: move to ManyToMany::Proxy?
             @relationship.child_model.create(attributes)
           end
-          self << resource
+          self << resource  # XXX: does this result in the resource being appended twice?
           resource
         end
 
         # TODO: document
         # @api public
         def update(attributes = {})
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           if @parent.new_record?
             raise UnsavedParentError, 'You cannot mass-update until the parent is saved'
           end
@@ -240,7 +240,7 @@ module DataMapper
         # TODO: document
         # @api public
         def update!(attributes = {})
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           if @parent.new_record?
             raise UnsavedParentError, 'You cannot mass-update without validations until the parent is saved'
           end
@@ -250,7 +250,7 @@ module DataMapper
         # TODO: document
         # @api public
         def destroy
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           if @parent.new_record?
             raise UnsavedParentError, 'You cannot mass-delete until the parent is saved'
           end
@@ -260,7 +260,7 @@ module DataMapper
         # TODO: document
         # @api public
         def destroy!
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           if @parent.new_record?
             raise UnsavedParentError, 'You cannot mass-delete without validations until the parent is saved'
           end
@@ -286,6 +286,8 @@ module DataMapper
 
           # save orphan resources
           @orphans.each do |r|
+            # XXX: this begin/rescue block is dumb.  nowhere else do we attempt
+            # to rescue similar errors.  try to remove this block
             begin
               save_resource(r, nil)
             rescue
@@ -341,7 +343,7 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def assert_mutable
+        def assert_mutable  # XXX: move to ManyToMany::Proxy?
           if children.frozen?
             raise ImmutableAssociationError, 'You can not modify this association'
           end
@@ -386,7 +388,7 @@ module DataMapper
         # TODO: document
         # @api private
         def relate_resource(resource)
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           add_default_association_values(resource)
           @orphans.delete(resource)
           resource
@@ -395,7 +397,7 @@ module DataMapper
         # TODO: document
         # @api private
         def orphan_resource(resource)
-          assert_mutable
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
           @orphans << resource
           resource
         end
@@ -405,6 +407,7 @@ module DataMapper
         def save_resource(resource, parent = @parent)
           @relationship.with_repository(resource) do
             if parent.nil? && resource.model.respond_to?(:many_to_many)
+              # XXX: move to ManyToMany::Proxy?
               resource.destroy
             else
               # TODO: move the attach_parent call to relate_resource and orphan_resource
