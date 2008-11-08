@@ -53,16 +53,24 @@ module DataMapper
     # @return [DataMapper::Collection] self
     #
     # @api public
-    def reload(query = {})
+    def reload(query = nil)
+      if query.kind_of?(Hash) && query.any?
+        @query = Query.new(repository, model, query_to_hash(self.query).merge(query))
+      elsif query.kind_of?(Query)
+        @query = query
+      end
+
       repository_name = repository.name
-      @query = scoped_query(query)
+
+      # update query fields to always include the model key
       @query.update(:fields => @query.fields | model.key(repository_name))
 
-      # specify a Repository to ensure the Identity Map from the existing
-      # query's Repository isn't used, and the resources are reloaded
-      # properly.
-      # TODO: update Query#update to overwrite it's @repository with the "other" repository
-      replace(all(:repository => Repository.new(repository_name), :reload => true))
+      # specify the Query explicitly so that Collection#all does not
+      # perform a relative query
+      query = Query.new(repository, model, query_to_hash(self.query).update(:reload => true))
+
+      # load a collection and replace the current collection with the results
+      replace(all(query))
     end
 
     ##
@@ -135,10 +143,11 @@ module DataMapper
     #
     # @api public
     def all(query = nil)
-      if query.nil? || query == self.query
+      query = scoped_query(query)
+
+      if query == self.query
         self
       else
-        query = scoped_query(query)
         query.repository.read_many(query)
       end
     end
@@ -162,6 +171,8 @@ module DataMapper
     #
     # @api public
     def first(*args)
+      # TODO: can this use the logic in slice instead?
+
       limit      = args.first if args.first.kind_of?(Integer)
       with_query = args.last.respond_to?(:merge)
 
@@ -208,6 +219,8 @@ module DataMapper
     #
     # @api public
     def last(*args)
+      # TODO: can this use the logic in slice instead?
+
       limit      = args.first if args.first.kind_of?(Integer)
       with_query = args.last.respond_to?(:merge)
 
@@ -281,6 +294,7 @@ module DataMapper
         return at(args.first)
       end
 
+      # TODO: refactor this with code in #slice!
       if args.size == 2 && args.first.kind_of?(Integer) && args.last.kind_of?(Integer)
         offset, limit = args
       elsif args.size == 1 && args.first.kind_of?(Range)
@@ -317,6 +331,7 @@ module DataMapper
       compact! if RUBY_VERSION <= '1.8.6'
 
       if orphaned.kind_of?(Array)
+        # TODO: refactor this with code in #slice
         if args.size == 2
           offset, limit = args
         else
@@ -326,7 +341,16 @@ module DataMapper
           limit += 1 unless range.exclude_end?
         end
 
-        self.class.new(scoped_query(:offset => offset, :limit => limit), orphaned)
+        query = if offset < 0
+          query = scoped_query(:offset => (limit + offset).abs, :limit => limit).reverse
+
+          # tell the Query to prepend each result from the adapter
+          query.update(:add_reversed => !query.add_reversed?)
+        else
+          scoped_query(:offset => offset, :limit => limit)
+        end
+
+        self.class.new(query, orphaned)
       else
         orphan_resource(orphaned)
       end
@@ -781,6 +805,22 @@ module DataMapper
     end
 
     ##
+    # Lazy loads the Collection from the repository
+    #
+    # This lazy loads from the repository and removes duplicate
+    # entries that have already been prepended and appended.
+    #
+    # @api private
+    def do_load
+      super
+
+      # remove duplicates from @array that are already at known
+      # locations within the collection
+      @array -= head
+      @array -= tail
+    end
+
+    ##
     # Relates a Resource to the Collection
     #
     # This is used by SEL related code to reload a Resource and the
@@ -793,7 +833,7 @@ module DataMapper
     #
     # @api private
     def relate_resource(resource)
-      return unless resource
+      return if resource.nil?
       resource.collection = self
       @cache[resource.key] = resource
       resource
@@ -812,7 +852,7 @@ module DataMapper
     #
     # @api private
     def orphan_resource(resource)
-      return unless resource
+      return if resource.nil?
       if resource.collection.object_id == self.object_id
         resource.collection = nil
       end
@@ -822,57 +862,112 @@ module DataMapper
 
     # TODO: move the logic to create relative query into DataMapper::Query
     # @api private
-    def scoped_query(query = self.query)
-      assert_kind_of 'query', query, Query, Hash
+    def scoped_query(query = nil)
+      assert_kind_of 'query', query, Query, Hash if query
 
-      if query.kind_of?(Hash)
-        repository = if query.has_key?(:repository)
-          query.delete(:repository)
-        else
-          self.repository
-        end
-        query = Query.new(repository, model, query)
+      # a nil query, or an empty Hash signal that we want to use the
+      # same scope as is currently in effect
+      if query.nil? || (query.kind_of?(Hash) && query.empty?)
+        return self.query
       end
 
-      if query == self.query
+      # a Query object signals that we want to use an absolute query
+      if query.kind_of?(Query)
         return query
       end
 
-      if query.limit || query.offset > 0
-        set_relative_position(query)
+      # use current query scope to start
+      relative_query = query_to_hash(self.query)
+
+      # merge in query to further scope the results
+      relative_query.update(query)
+
+      # use the repository if explicitly specified, otherwise use the current scope's repository
+      repository = relative_query.delete(:repository) || self.repository
+
+      # figure out the offset and limit relative to the current query
+      if relative_query[:offset] > 0 || relative_query[:limit]
+        offset, limit = get_relative_position(*relative_query.values_at(:offset, :limit))
+
+        relative_query.update(:offset => offset)
+
+        if limit
+          relative_query.update(:limit => limit)
+        end
       end
 
-      self.query.merge(query)
+      Query.new(repository, model, relative_query)
     end
 
     # TODO: move the logic to create relative query into DataMapper::Query
     # @api private
-    def set_relative_position(query)
-      if query.offset == 0 && query.limit && self.query.limit && query.limit <= self.query.limit
-        return
+    def get_relative_position(offset, limit)
+      if self.query.limit.nil? && self.query.offset == 0
+        # original query is unbounded, do nothing
+        return offset, limit
+      elsif offset == 0 && limit && self.query.limit && limit <= self.query.limit
+        # new query is subset of original query, do nothing
+        return offset, limit
       end
 
-      first_pos = self.query.offset + query.offset
+      # find the relative offset
+      first_pos = self.query.offset + offset
 
+      # find the absolute last position (if any)
       if self.query.limit
         last_pos = self.query.offset + self.query.limit
       end
 
-      if limit = query.limit
-        if last_pos.nil? || first_pos + limit < last_pos
-          last_pos = first_pos + limit
-        end
+      # if a limit was specified, and there is no last position, or
+      # the relative limit is within range, narrow the window
+      if limit && (last_pos.nil? || first_pos + limit < last_pos)
+        last_pos = first_pos + limit
       end
 
+      # the last position is below the relative offset then the
+      # query cannot be satisfied. throw an exception
       if last_pos && first_pos >= last_pos
         raise 'outside range'  # TODO: raise a proper exception object
       end
 
-      query.update(:offset => first_pos)
+      return first_pos, last_pos ? last_pos - first_pos : nil
+    end
 
-      if last_pos
-        query.update(:limit => last_pos - first_pos)
+    # TODO: move this to Query#to_hash
+    # @api private
+    def query_to_hash(query)
+      hash = {
+        :reload       => query.reload?,
+        :unique       => query.unique?,
+        :offset       => query.offset,
+        :order        => query.order,
+        :add_reversed => query.add_reversed?,
+        :fields       => query.fields,
+      }
+
+      hash[:limit]    = query.limit    unless query.limit    == nil
+      hash[:links]    = query.links    unless query.links    == []
+      hash[:includes] = query.includes unless query.includes == []
+
+      conditions  = {}
+      raw_queries = []
+      bind_values = []
+
+      query.conditions.each do |condition|
+        if condition[0] == :raw
+          raw_queries << condition[1]
+          bind_values << condition[2]
+        else
+          operator, property, bind_value = condition
+          conditions[Query::Operator.new(property, operator)] = bind_value
+        end
       end
+
+      if raw_queries.any?
+        hash[:conditions] = [ raw_queries.join(' ') ].concat(bind_values)
+      end
+
+      hash.update(conditions)
     end
 
     ##

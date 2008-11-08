@@ -93,8 +93,8 @@ module DataMapper
       #
       # @api semipublic
       def read_many(query)
-        Collection.new(query) do |set|
-          read(query, set, true)
+        Collection.new(query) do |collection|
+          read(query, collection, true)
         end
       end
 
@@ -151,7 +151,7 @@ module DataMapper
       # example of how to parse the DataMapper::Query object.
       #
       # @api private
-      def read(query, set, many = true)
+      def read(query, collection, many = true)
         repository_name = query.repository.name
         conditions      = query.conditions
 
@@ -179,19 +179,23 @@ module DataMapper
           results = sorted_results(results, query.order, repository_name)
         end
 
+        # if the requested resource is outside the range of available
+        # records return nil
+        if query.offset >= results.size
+          return
+        end
+
         # limit the results
         if query.limit || query.offset > 0
           results = results[query.offset, query.limit || results.size]
         end
-
-        return if results.empty?
 
         properties = query.fields
 
         # load a Resource for each result
         results.each do |attributes|
           values = properties.map { |p| attributes[p.field(repository_name)] }
-          many ? set.load(values) : (break set.load(values, query))
+          many ? collection.load(values) : (break collection.load(values, query))
         end
       end
 

@@ -409,7 +409,7 @@ module DataMapper
 
     def collection
       @collection ||= if query = to_query
-        Collection.new(query) { |c| c << self }
+        Collection.new(query, [ self ])
       end
     end
 

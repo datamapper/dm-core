@@ -22,9 +22,6 @@ module DataMapper::Spec
             @adapter = DataMapper.setup(:default, connection_uri)
             @repository = repository(:default)
 
-            @repository = repository(:default)
-            @adapter    = @repository.adapter
-
             begin
               DataMapper.auto_migrate!
             rescue NotImplementedError

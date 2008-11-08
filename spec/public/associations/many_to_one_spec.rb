@@ -38,11 +38,6 @@ describe DataMapper::Associations::ManyToOne::Proxy do
       @child_model = Comment
     end
 
-    after do
-      @comment.destroy
-      @user.destroy
-    end
-
     it_should_behave_like 'A Resource'
   end
 end

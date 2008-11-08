@@ -1,3 +1,5 @@
 --colour
 --loadby random
---format progress
+--require spec/lib/rspec_immediate_feedback_formatter.rb
+--format Spec::Runner::Formatter::ImmediateFeedbackFormatter
+--backtrace

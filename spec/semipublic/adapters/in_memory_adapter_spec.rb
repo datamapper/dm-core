@@ -22,11 +22,6 @@ describe DataMapper::Adapters::InMemoryAdapter do
       @resource = Heffalump.new(:color => "Mauve")
     end
 
-    after do
-      # Commenting this out, this wasn't working with shared adapter spec -- dph
-      # Heffalump.all.destroy!
-    end
-
     it 'should successfully save an object' do
       @heff1.new_record?.should be_false
     end

@@ -30,7 +30,7 @@ share_examples_for 'An Adapter' do
   describe "#update" do
     before do
       @resource.save
-      @return = @adapter.update({@property => "red"}, DataMapper::Query.new(@repository, @model, :id => @resource.id))
+      @return = @adapter.update({@property => "red"}, DataMapper::Query.new(@repository, @model, @model.key.zip(@resource.key).to_hash))
     end
 
     it "should return the number of records that were updated" do

@@ -58,10 +58,6 @@ describe DataMapper::Resource do
       @user        = @model.create(:name => 'dbussink', :age => 25)
     end
 
-    after do
-      @user.destroy
-    end
-
     # All methods that provide equality comparisons of some sort
     # should satisfy the following specs.
     def self.it_should_provide_equality(method)

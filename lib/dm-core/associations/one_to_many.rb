@@ -420,7 +420,7 @@ module DataMapper
         # TODO: document
         # @api private
         def orphan_resource(resource)
-          return unless resource
+          return if resource.nil?
           @relationship.attach_parent(resource, nil)
           @orphans << resource
           resource

@@ -465,11 +465,15 @@ module DataMapper
         when Operator
           operator = clause.operator
           return if operator == :not && bind_value == []
-          if clause.target.is_a?(Symbol)
-            @properties[clause.target]
+          # FIXME: this code duplicates conditions in this method.  Try
+          # to refactor out the common code.
+          if clause.target.is_a?(Property)
+            clause.target
           elsif clause.target.is_a?(Query::Path)
             validate_query_path_links(clause.target)
             clause.target
+          elsif clause.target.is_a?(Symbol)
+            @properties[clause.target]
           end
         when Symbol
           @properties[clause]

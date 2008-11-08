@@ -47,10 +47,6 @@ describe DataMapper::Associations::ManyToMany::Proxy do
       @other_articles = [@other]
     end
 
-    after do
-      [@article, @other, @author1, @author2].each {|o| o.destroy}
-    end
-
     it_should_behave_like 'A Collection'
   end
 end

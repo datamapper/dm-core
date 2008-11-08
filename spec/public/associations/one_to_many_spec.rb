@@ -67,11 +67,6 @@ describe DataMapper::Associations::OneToMany::Proxy do
       @other_articles = @author.other_articles
     end
 
-    after do
-      @author.articles.destroy!
-      @author.destroy
-    end
-
     it_should_behave_like 'A Collection'
 
     describe '#<<' do

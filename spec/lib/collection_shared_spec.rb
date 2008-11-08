@@ -39,7 +39,8 @@ share_examples_for 'A Collection' do
   describe '#all' do
     describe 'with no arguments' do
       before do
-        @return = @articles.all
+        @copy = @articles.dup
+        @return = @resources = @articles.all
       end
 
       it 'should return a Collection' do
@@ -49,11 +50,33 @@ share_examples_for 'A Collection' do
       it 'should return self' do
         @return.should be_equal(@articles)
       end
+
+      it 'should be expected Resources' do
+        @resources.should == [ @article ]
+      end
+
+      it 'should have the same query as original Collection' do
+        @return.query.should be_equal(@articles.query)
+      end
+
+      it 'should scope the Collection' do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending_if "TODO: implement #{skip_class}#build", @articles.kind_of?(skip_class) do
+          @resources.reload.should == @copy.entries
+        end
+      end
     end
 
     describe 'with a query' do
       before do
-        @return = @articles.all(:limit => 10).all(:limit => 1)
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
+          @new = @articles.create(:content => 'Newish Article')
+          # search for the first 10 articles, then take the first 5, and then finally take the
+          # second article from the remainder
+          @copy = @articles.dup
+          @return = @articles.all(:limit => 10).all(:limit => 5).all(:limit => 1, :offset => 1)
+        end
       end
 
       it 'should return a Collection' do
@@ -64,16 +87,67 @@ share_examples_for 'A Collection' do
         @return.should_not be_equal(@articles)
       end
 
+      it 'should return expected Resources' do
+        @return.should == [ @new ]
+      end
+
       it 'should have a different query than original Collection' do
         @return.query.should_not == @articles.query
       end
 
-      it 'is empty when passed an offset that is out of range' do
-        pending 'TODO: handle out of range offsets in Collection' do
-          empty_collection = @return.all(:offset => 10)
-          empty_collection.should == []
-          empty_collection.should be_loaded
+      it 'should scope the Collection' do
+        @return.reload.should == @copy.entries.first(10).first(5)[1, 1]
+      end
+    end
+
+    describe 'with a query using raw conditions' do
+      before do
+        unless @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+          skip_class = DataMapper::Associations::ManyToMany::Proxy
+          pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
+            @new = @articles.create(:content => 'New Article')
+            @copy = @articles.dup
+            @return = @articles.all(:conditions => [ 'content = ?', 'New Article' ])
+          end
         end
+      end
+
+      it 'should return a Collection' do
+        unless @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+      end
+
+      it 'should return a new Collection' do
+        unless @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+          @return.should_not be_equal(@articles)
+        end
+      end
+
+      it 'should return expected Resources' do
+        unless @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+          @return.should == [ @new ]
+        end
+      end
+
+      it 'should have a different query than original Collection' do
+        unless @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+          @return.query.should_not == @articles.query
+        end
+      end
+
+      it 'should scope the Collection' do
+        unless @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+          @return.reload.should == @copy.entries.select { |a| a.content == 'New Article' }.first(1)
+        end
+      end
+    end
+
+    describe 'with a query that is out of range' do
+      it 'should raise an exception' do
+        lambda {
+          @articles.all(:limit => 10).all(:offset => 10)
+        }.should raise_error(RuntimeError, 'outside range')
       end
     end
   end
@@ -179,7 +253,7 @@ share_examples_for 'A Collection' do
 
     describe "##{method}" do
       before do
-        @resources = @articles.entries
+        @resources = @articles.dup.entries
         @return = @articles.send(method) { |r| @model.new(:title => 'Title') }
       end
 
@@ -207,7 +281,6 @@ share_examples_for 'A Collection' do
 
   describe '#concat' do
     before do
-      @resources = @other_articles.entries
       @return = @articles.concat(@other_articles)
     end
 
@@ -224,7 +297,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should relate each Resource to the Collection' do
-      @resources.each { |r| r.collection.should be_equal(@articles) }
+      @other_articles.each { |r| r.collection.should be_equal(@articles) }
     end
   end
 
@@ -235,7 +308,7 @@ share_examples_for 'A Collection' do
   describe '#create' do
     before do
       skip_class = DataMapper::Associations::ManyToMany::Proxy
-      pending_if "TODO: implement #{skip_class}#create", @articles.kind_of?(skip_class) do
+      pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
         @return = @resource = @articles.create(:content => 'Content')
       end
     end
@@ -349,7 +422,7 @@ share_examples_for 'A Collection' do
 
     describe 'with a block that matches a Resource in the Collection' do
       before do
-        @resources = @articles.entries
+        @resources = @articles.dup.entries
         @return = @articles.delete_if { true }
       end
 
@@ -372,7 +445,7 @@ share_examples_for 'A Collection' do
 
     describe 'with a block that does not match a Resource in the Collection' do
       before do
-        @resources = @articles.entries
+        @resources = @articles.dup.entries
         @return = @articles.delete_if { false }
       end
 
@@ -422,7 +495,7 @@ share_examples_for 'A Collection' do
   describe '#destroy!' do
     before do
       @skip_class = DataMapper::Associations::ManyToMany::Proxy
-      pending_if "TODO: override #{@skip_class}#destroy! from the OneToMany proxy", @articles.kind_of?(@skip_class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+      pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
         @return = @articles.destroy!
       end
     end
@@ -432,7 +505,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should remove the Resources from the datasource' do
-      pending_if "TODO: override #{@skip_class}#destroy! from the OneToMany proxy", @articles.kind_of?(@skip_class) do
+      pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) do
         @model.all(:title => 'Sample Article').should be_empty
       end
     end
@@ -453,6 +526,7 @@ share_examples_for 'A Collection' do
   describe '#first' do
     describe 'with no arguments' do
       before do
+        @copy = @articles.dup
         @return = @resource = @articles.first
       end
 
@@ -460,8 +534,12 @@ share_examples_for 'A Collection' do
         @return.should be_kind_of(DataMapper::Resource)
       end
 
-      it 'should be first Resource in the Collection' do
+      it 'should return expected Resource' do
         @resource.should == @article
+      end
+
+      it 'should be first Resource in the Collection' do
+        @resource.should == @copy.entries.first
       end
 
       it 'should relate the Resource to the Collection' do
@@ -471,16 +549,20 @@ share_examples_for 'A Collection' do
 
     describe 'with no arguments', 'after prepending to the collection' do
       before do
-        @articles.unshift(@other)
-        @return = @resource = @articles.first
+        @copy = @articles.dup
+        @return = @resource = @articles.unshift(@other).first
       end
 
       it 'should return a Resource' do
         @return.should be_kind_of(DataMapper::Resource)
       end
 
-      it 'should be first Resource in the Collection' do
+      it 'should return expected Resource' do
         @resource.should be_equal(@other)
+      end
+
+      it 'should be first Resource in the Collection' do
+        @resource.should be_equal(@copy.entries.unshift(@other).first)
       end
 
       it 'should relate the Resource to the Collection' do
@@ -495,13 +577,13 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return a Resource' do
-        pending_if "TODO: #{@skip_class}#first needs love", @articles.kind_of?(@skip_class) do
+        pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) do
           @return.should be_kind_of(DataMapper::Resource)
         end
       end
 
       it 'should should be the first Resource in the Collection matching the query' do
-        pending_if "TODO: #{@skip_class}#first needs love", @articles.kind_of?(@skip_class) do
+        pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) do
           @resource.should == @article
         end
       end
@@ -516,6 +598,7 @@ share_examples_for 'A Collection' do
 
     describe 'with limit specified' do
       before do
+        @copy = @articles.dup
         @return = @resources = @articles.first(1)
       end
 
@@ -523,8 +606,12 @@ share_examples_for 'A Collection' do
         @return.should be_kind_of(DataMapper::Collection)
       end
 
-      it 'should be the first N Resources in the Collection' do
+      it 'should be the expected Collection' do
         @resources.should == [ @article ]
+      end
+
+      it 'should be the first N Resources in the Collection' do
+        @resources.should == @copy.entries.first(1)
       end
 
       it 'should orphan the Resources' do
@@ -534,16 +621,20 @@ share_examples_for 'A Collection' do
 
     describe 'with limit specified', 'after prepending to the collection' do
       before do
-        @articles.unshift(@other)
-        @return = @resources = @articles.first(1)
+        @copy = @articles.dup
+        @return = @resources = @articles.unshift(@other).first(1)
       end
 
       it 'should return a Collection' do
         @return.should be_kind_of(DataMapper::Collection)
       end
 
-      it 'should be the first N Resources in the Collection' do
+      it 'should be the expected Collection' do
         @resources.should == [ @other ]
+      end
+
+      it 'should be the first N Resources in the Collection' do
+        @resources.should == @copy.entries.unshift(@other).first(1)
       end
 
       it 'should orphan the Resources' do
@@ -562,7 +653,7 @@ share_examples_for 'A Collection' do
 
       it 'should be the first N Resources in the Collection matching the query' do
         skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: #{skip_class}#first needs love", @articles.kind_of?(skip_class) do
+        pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
           @resources.should == [ @article ]
         end
       end
@@ -723,6 +814,7 @@ share_examples_for 'A Collection' do
   describe '#last' do
     describe 'with no arguments' do
       before do
+        @copy = @articles.dup
         @return = @resource = @articles.last
       end
 
@@ -730,8 +822,12 @@ share_examples_for 'A Collection' do
         @return.should be_kind_of(DataMapper::Resource)
       end
 
-      it 'should be last Resource in the Collection' do
+      it 'should return expected Resource' do
         @resource.should == @article
+      end
+
+      it 'should be last Resource in the Collection' do
+        @resource.should == @copy.entries.last
       end
 
       it 'should relate the Resource to the Collection' do
@@ -739,18 +835,22 @@ share_examples_for 'A Collection' do
       end
     end
 
-    describe 'with no arguments', 'after prepending to the collection' do
+    describe 'with no arguments', 'after appending to the collection' do
       before do
-        @articles.push(@other)
-        @return = @resource = @articles.last
+        @copy = @articles.dup
+        @return = @resource = @articles.push(@other).last
       end
 
       it 'should return a Resource' do
         @return.should be_kind_of(DataMapper::Resource)
       end
 
-      it 'should be last Resource in the Collection' do
+      it 'should return expected Resource' do
         @resource.should be_equal(@other)
+      end
+
+      it 'should be last Resource in the Collection' do
+        @resource.should be_equal(@copy.entries.push(@other).last)
       end
 
       it 'should relate the Resource to the Collection' do
@@ -760,24 +860,26 @@ share_examples_for 'A Collection' do
 
     describe 'with a query' do
       before do
-        @skip_class = DataMapper::Associations::ManyToMany::Proxy
         @return = @resource = @articles.last(:content => 'Sample')
       end
 
       it 'should return a Resource' do
-        pending_if "TODO: #{@skip_class}#last needs love", @articles.kind_of?(@skip_class) do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
           @return.should be_kind_of(DataMapper::Resource)
         end
       end
 
       it 'should should be the last Resource in the Collection matching the query' do
-        pending_if "TODO: #{@skip_class}#last needs love", @articles.kind_of?(@skip_class) do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
           @resource.should == @article
         end
       end
 
       it 'should relate the Resource to the Collection' do
-        pending_if "TODO: #{@skip_class}#last needs love", @articles.kind_of?(@skip_class) do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
           @resource.collection.should be_equal(@articles)
         end
       end
@@ -785,6 +887,7 @@ share_examples_for 'A Collection' do
 
     describe 'with limit specified' do
       before do
+        @copy = @articles.dup
         @return = @resources = @articles.last(1)
       end
 
@@ -792,8 +895,12 @@ share_examples_for 'A Collection' do
         @return.should be_kind_of(DataMapper::Collection)
       end
 
-      it 'should be the last N Resources in the Collection' do
+      it 'should be the expected Collection' do
         @resources.should == [ @article ]
+      end
+
+      it 'should be the last N Resources in the Collection' do
+        @resources.should == @copy.entries.last(1)
       end
 
       it 'should orphan the Resources' do
@@ -801,18 +908,22 @@ share_examples_for 'A Collection' do
       end
     end
 
-    describe 'with limit specified', 'after prepending to the collection' do
+    describe 'with limit specified', 'after appending to the collection' do
       before do
-        @articles.push(@other)
-        @return = @resources = @articles.last(1)
+        @copy = @articles.dup
+        @return = @resources = @articles.push(@other).last(1)
       end
 
       it 'should return a Collection' do
         @return.should be_kind_of(DataMapper::Collection)
       end
 
-      it 'should be the last N Resources in the Collection' do
+      it 'should be the expected Collection' do
         @resources.should == [ @other ]
+      end
+
+      it 'should be the last N Resources in the Collection' do
+        @resources.should == @copy.entries.push(@other).last(1)
       end
 
       it 'should orphan the Resources' do
@@ -831,7 +942,7 @@ share_examples_for 'A Collection' do
 
       it 'should be the last N Resources in the Collection matching the query' do
         skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: #{skip_class}#last needs love", @articles.kind_of?(skip_class) do
+        pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
           @resources.should == [ @article ]
         end
       end
@@ -904,7 +1015,7 @@ share_examples_for 'A Collection' do
   describe '#reject!' do
     describe 'with a block that matches a Resource in the Collection' do
       before do
-        @resources = @articles.entries
+        @resources = @articles.dup.entries
         @return = @articles.reject! { true }
       end
 
@@ -927,7 +1038,7 @@ share_examples_for 'A Collection' do
 
     describe 'with a block that does not match a Resource in the Collection' do
       before do
-        @resources = @articles.entries
+        @resources = @articles.dup.entries
         @return = @articles.reject! { false }
       end
 
@@ -948,7 +1059,7 @@ share_examples_for 'A Collection' do
   describe '#reload' do
     describe 'with no arguments' do
       before do
-        @resources = @articles.entries
+        @resources = @articles.dup.entries
         @return = @collection = @articles.reload
       end
 
@@ -960,24 +1071,15 @@ share_examples_for 'A Collection' do
         @return.should be_equal(@articles)
       end
 
-      it 'should update the Collection' do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: Fix #{skip_class}#reload", @articles.kind_of?(skip_class) do
-          pending "TODO: Fix Query#update to copy other.repository to @repository" do
-            @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
-          end
-        end
-      end
-
       it 'should have non-lazy query fields loaded' do
         @return.each { |r| { :title => true, :content => false }.each { |a,c| r.attribute_loaded?(a).should == c } }
       end
     end
 
-    describe 'with a query' do
+    describe 'with a Hash query' do
       before do
-        @resources = @articles.entries
-        @return = @collection = @articles.reload(:fields => [ :title, :content ])
+        @resources = @articles.dup.entries
+        @return = @collection = @articles.reload(:fields => [ :content ])  # :title is a default field
       end
 
       it 'should return a Collection' do
@@ -988,17 +1090,28 @@ share_examples_for 'A Collection' do
         @return.should be_equal(@articles)
       end
 
-      it 'should update the Collection' do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: Fix #{skip_class}#reload", @articles.kind_of?(skip_class) do
-          pending "TODO: Fix Query#update to copy other.repository to @repository" do
-            @articles.each_with_index { |r,i| r.should_not be_equal(@resources[i]) }
-          end
-        end
+      it 'should have all query fields loaded' do
+        @return.each { |r| { :title => true, :content => true }.each { |a,c| r.attribute_loaded?(a).should == c } }
+      end
+    end
+
+    describe 'with a Query' do
+      before do
+        @resources = @articles.dup.entries
+        @query = DataMapper::Query.new(@repository, @model, :fields => [ :content ])
+        @return = @collection = @articles.reload(@query)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return self' do
+        @return.should be_equal(@articles)
       end
 
       it 'should have all query fields loaded' do
-        @return.each { |r| { :title => true, :content => true }.each { |a,c| r.attribute_loaded?(a).should == c } }
+        @return.each { |r| { :title => false, :content => true }.each { |a,c| r.attribute_loaded?(a).should == c } }
       end
     end
   end
@@ -1009,7 +1122,7 @@ share_examples_for 'A Collection' do
 
   describe '#replace' do
     before do
-      @resources = @articles.entries
+      @resources = @articles.dup.entries
       @return = @articles.replace(@other_articles)
     end
 
@@ -1117,7 +1230,7 @@ share_examples_for 'A Collection' do
 
         it 'should return the expected Resource' do
           skip_class = DataMapper::Associations::ManyToMany::Proxy
-          pending_if "TODO: override #{skip_class}#slice", @articles.kind_of?(skip_class) do
+          pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
             @return.should == [ @article ]
           end
         end
@@ -1138,7 +1251,7 @@ share_examples_for 'A Collection' do
 
         it 'should return the expected Resource' do
           skip_class = DataMapper::Associations::ManyToMany::Proxy
-          pending_if "TODO: override #{skip_class}#slice", @articles.kind_of?(skip_class) do
+          pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
             @return.should == [ @article ]
           end
         end
@@ -1163,8 +1276,16 @@ share_examples_for 'A Collection' do
   end
 
   describe '#slice!' do
-    describe 'with an index' do
+    before do
+      skip_class = DataMapper::Associations::ManyToMany::Proxy
+      pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
+        1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
+      end
+    end
+
+    describe 'with a positive index' do
       before do
+        @copy = @articles.dup
         @return = @resource = @articles.slice!(0)
       end
 
@@ -1173,7 +1294,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return expected Resource' do
-        @return.should == @article
+        @return.should == @copy.entries.slice!(0)
       end
 
       it 'should remove the Resource from the Collection' do
@@ -1185,10 +1306,10 @@ share_examples_for 'A Collection' do
       end
     end
 
-    describe 'with an offset and length' do
+    describe 'with a positive offset and length' do
       before do
-        @resources = @articles.entries
-        @return = @articles.slice!(0, 1)
+        @copy = @articles.dup
+        @return = @resources = @articles.slice!(5, 5)
       end
 
       it 'should return a Collection' do
@@ -1196,7 +1317,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return the expected Resource' do
-        @return.should == @resources
+        @return.should == @copy.entries.slice!(5, 5)
       end
 
       it 'should remove the Resources from the Collection' do
@@ -1205,21 +1326,25 @@ share_examples_for 'A Collection' do
 
       it 'should orphan the Resources' do
         @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
+
+      it 'should scope the Collection' do
+        @resources.reload.should == @copy.entries.slice!(5, 5)
       end
     end
 
-    describe 'with a range' do
+    describe 'with a positive range' do
       before do
-        @resources = @articles.entries
-        @return = @articles.slice!(0..0)
+        @copy = @articles.dup
+        @return = @resources = @articles.slice!(5..10)
       end
 
       it 'should return a Collection' do
         @return.should be_kind_of(DataMapper::Collection)
       end
 
-      it 'should return the expected Resource' do
-        @return.should == @resources
+      it 'should return the expected Resources' do
+        @return.should == @copy.entries.slice!(5..10)
       end
 
       it 'should remove the Resources from the Collection' do
@@ -1228,12 +1353,93 @@ share_examples_for 'A Collection' do
 
       it 'should orphan the Resources' do
         @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
+
+      it 'should scope the Collection' do
+        @resources.reload.should == @copy.entries.slice!(5..10)
+      end
+    end
+
+    describe 'with a negative index' do
+      before do
+        @copy = @articles.dup
+        @return = @resource = @articles.slice!(-1)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should return expected Resource' do
+        @return.should == @copy.entries.slice!(-1)
+      end
+
+      it 'should remove the Resource from the Collection' do
+        @articles.should_not include(@resource)
+      end
+
+      it 'should orphan the Resource' do
+        @resource.collection.should_not be_equal(@articles)
+      end
+    end
+
+    describe 'with a negative offset and length' do
+      before do
+        @copy = @articles.dup
+        @return = @resources = @articles.slice!(-5, 5)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return the expected Resources' do
+        @return.should == @copy.entries.slice!(-5, 5)
+      end
+
+      it 'should remove the Resources from the Collection' do
+        @resources.each { |r| @articles.should_not include(r) }
+      end
+
+      it 'should orphan the Resources' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
+
+      it 'should scope the Collection' do
+        @resources.reload.should == @copy.entries.slice!(-5, 5)
+      end
+    end
+
+    describe 'with a negative range' do
+      before do
+        @copy = @articles.dup
+        @return = @resources = @articles.slice!(-5..-2)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return the expected Resources' do
+        @return.should == @copy.entries.slice!(-5..-2)
+      end
+
+      it 'should remove the Resources from the Collection' do
+        @resources.each { |r| @articles.should_not include(r) }
+      end
+
+      it 'should orphan the Resources' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
+
+      it 'should scope the Collection' do
+        @resources.reload.should == @copy.entries.slice!(-5..-2)
       end
     end
 
     describe 'with an index not within the Collection' do
       before do
-        @return = @articles.slice!(1)
+        @return = @articles.slice!(12)
       end
 
       it 'should return nil' do
@@ -1243,8 +1449,7 @@ share_examples_for 'A Collection' do
 
     describe 'with an offset and length not within the Collection' do
       before do
-        # NOTE: Array#slice!(1, 1) returns [], but should be nil.  possible ruby bug?
-        @return = @articles.slice!(2, 2)
+        @return = @articles.slice!(12, 1)
       end
 
       it 'should return nil' do
@@ -1254,11 +1459,10 @@ share_examples_for 'A Collection' do
 
     describe 'with a range not within the Collection' do
       before do
-        # NOTE: Array#slice!(1..1) returns [], but should be nil.  possible ruby bug?
-        @return = @articles.slice!(2..2)
+        @return = @articles.slice!(12..13)
       end
 
-      it 'should return nil' do
+      it "should return nil" do
         @return.should be_nil
       end
     end

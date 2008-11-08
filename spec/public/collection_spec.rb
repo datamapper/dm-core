@@ -4,6 +4,9 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
 # run the specs once with a loaded collection and once not
 [ false, true ].each do |loaded|
   describe DataMapper::Collection do
+    before do
+      @loaded = loaded
+    end
 
     # define the model prior to with_adapters
     before do
@@ -32,11 +35,7 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
         @articles       = @model.all(@articles_query)
         @other_articles = @model.all(:title => 'Other Article')
 
-        @articles.entries if loaded
-      end
-
-      after do
-        @articles.dup.destroy!
+        @articles.entries if @loaded
       end
 
       it 'should respond to .new' do
