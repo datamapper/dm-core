@@ -181,7 +181,7 @@ module DataMapper
 
         # if the requested resource is outside the range of available
         # records return nil
-        if query.offset >= results.size
+        if query.offset > results.size - 1
           return
         end
 

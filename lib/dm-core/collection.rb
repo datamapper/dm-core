@@ -266,11 +266,17 @@ module DataMapper
       if loaded?
         return super
       elsif index >= 0
-        # TODO: use head if possible
-        first(:offset => index)
+        if index > head.size - 1
+          first(:offset => index)
+        else
+          head.at(index)
+        end
       else
-        # TODO: use tail if possible
-        last(:offset => index.abs - 1)
+        if index.abs > tail.size
+          last(:offset => index.abs - 1)
+        else
+          tail.at(index)
+        end
       end
     end
 
