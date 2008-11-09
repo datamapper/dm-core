@@ -179,18 +179,11 @@ module DataMapper
       query = with_query ? args.last : {}
       query = scoped_query(query.merge(:limit => limit || 1))
 
-      if !with_query && loaded?
+      if !with_query && (loaded? || lazy_possible?(head, *args))
         if limit
           self.class.new(query, super(limit))
         else
           relate_resource(super)
-        end
-      elsif !with_query && lazy_possible?(head, *args)
-        # TODO: update to use LazyArray#first and remove this branch
-        if limit
-          self.class.new(query, head.first(limit))
-        else
-          relate_resource(head.first)
         end
       else
         if limit
@@ -231,18 +224,11 @@ module DataMapper
       # tell the Query to prepend each result from the adapter
       query.update(:add_reversed => !query.add_reversed?)
 
-      if !with_query && loaded?
+      if !with_query && (loaded? || lazy_possible?(tail, *args))
         if limit
           self.class.new(query, super(limit))
         else
           relate_resource(super)
-        end
-      elsif !with_query && lazy_possible?(tail, *args)
-        # TODO: update to use LazyArray#last and remove this branch
-        if limit
-          self.class.new(query, tail.last(limit))
-        else
-          relate_resource(tail.last)
         end
       else
         if limit
@@ -263,19 +249,20 @@ module DataMapper
     #
     # @api public
     def at(index)
+      # TODO: try to delegate to LazyArray#at instead of using head.at and tail.at directly
       if loaded?
         return super
       elsif index >= 0
-        if index > head.size - 1
-          first(:offset => index)
-        else
+        if lazy_possible?(head, index + 1)
           head.at(index)
+        else
+          first(:offset => index)
         end
       else
-        if index.abs > tail.size
-          last(:offset => index.abs - 1)
-        else
+        if lazy_possible?(tail, index.abs)
           tail.at(index)
+        else
+          last(:offset => index.abs - 1)
         end
       end
     end
@@ -324,6 +311,8 @@ module DataMapper
       else
         scoped_query(:offset => offset, :limit => limit)
       end
+
+      # TODO: update to handle head/tail
 
       # NOTE: when the collection is not loaded we can't know ahead of
       # time how many entries it will contain.  If the arguments turn out

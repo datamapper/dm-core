@@ -40,7 +40,7 @@ ALTERNATE = {
 # For example, in the bash shell, you might use:
 #   export MYSQL_SPEC_URI="mysql://localhost/dm_core_test?socket=/opt/local/var/run/mysql5/mysqld.sock"
 
-adapters = ENV['ADAPTERS'].split(' ').map { |a| a.strip.downcase }
+adapters = ENV['ADAPTERS'].split(' ').map { |a| a.strip.downcase }.uniq
 adapters = PRIMARY.keys if adapters.include?('all')
 
 PRIMARY.only(*adapters).each do |adapter, default|
