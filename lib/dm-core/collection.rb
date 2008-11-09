@@ -194,7 +194,7 @@ module DataMapper
         end
       else
         if limit
-          query.repository.read_many(query)
+          all(query)
         else
           relate_resource(query.repository.read_one(query))
         end
@@ -246,7 +246,7 @@ module DataMapper
         end
       else
         if limit
-          query.repository.read_many(query)
+          all(query)
         else
           relate_resource(query.repository.read_one(query))
         end
