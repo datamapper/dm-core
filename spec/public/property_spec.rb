@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe "Resource" do
   before(:each) do
-    Object.send(:remove_const, Track) if defined?(Track)
+    Object.send(:remove_const, :Track) if defined?(Track)
 
     class Track
       include DataMapper::Resource
