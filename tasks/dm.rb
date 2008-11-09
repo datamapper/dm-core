@@ -16,7 +16,7 @@ namespace :dm do
   def run_spec(name, files, rcov)
     Spec::Rake::SpecTask.new(name) do |t|
       ENV['ADAPTERS'] ||= 'all'
-      t.spec_opts << '--colour' << '--loadby' << 'random'
+      t.spec_opts << '--options' << ROOT + 'spec/spec.opts'
       t.spec_files = Pathname.glob(ENV['FILES'] || files.to_s)
       t.rcov = rcov
       t.rcov_opts << '--exclude' << 'spec,environment.rb'

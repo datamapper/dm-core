@@ -44,7 +44,7 @@ module Spec
 
         def example_pending(*)
           super
-          output.print yellow('.')
+          output.print yellow('*')
           output.flush
         end
       end

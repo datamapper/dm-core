@@ -3,7 +3,7 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
 
 # run the specs once with a loaded collection and once not
 [ false, true ].each do |loaded|
-  describe DataMapper::Collection do
+  describe 'Collections' do
     before do
       @loaded = loaded
     end
