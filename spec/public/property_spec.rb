@@ -5,7 +5,6 @@ describe DataMapper::Property do
   # define the model prior to with_adapters
   before do
     Object.send(:remove_const, :Track) if defined?(Track)
-
     class Track
       include DataMapper::Resource
 

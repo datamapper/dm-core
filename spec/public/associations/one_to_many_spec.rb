@@ -1,5 +1,4 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
-require SPEC_ROOT + 'lib/collection_shared_spec'
 
 share_examples_for 'It can transfer a Resource from another association' do
   before do

@@ -12,7 +12,7 @@ SPEC_ROOT.join('db').mkpath
 
 ENV['ADAPTERS'] ||= 'in_memory'
 
-HAS_DO   = DataMapper::Adapters.const_defined?('DataObjectsAdapter')
+HAS_DO = DataMapper::Adapters.const_defined?('DataObjectsAdapter')
 
 ADAPTERS = []
 
@@ -40,21 +40,22 @@ ALTERNATE = {
 # For example, in the bash shell, you might use:
 #   export MYSQL_SPEC_URI="mysql://localhost/dm_core_test?socket=/opt/local/var/run/mysql5/mysqld.sock"
 
-if ENV['ADAPTERS'].strip.upcase == 'ALL'
-  # If the specs are set to run with all the adapters, then let's loop
-  # through everything and see which adapters are available
-  PRIMARY.each do |adapter, default|
-    connection_string = ENV["#{adapter.to_s.upcase}_SPEC_URI"] || default
-    begin
-      DataMapper.setup(adapter.to_sym, connection_string)
-      ADAPTERS << adapter
-    rescue Exception => e
-      puts "Could not connect to the database using #{connection_string}"
-    end
+adapters = ENV['ADAPTERS'].split(' ').map { |a| a.strip.downcase }
+adapters = PRIMARY.keys if adapters.include?('all')
+
+PRIMARY.only(*adapters).each do |adapter, default|
+  connection_string = ENV["#{adapter.upcase}_SPEC_URI"] || default
+  begin
+    DataMapper.setup(adapter.to_sym, connection_string)
+    ADAPTERS << adapter
+    PRIMARY[adapter] = connection_string  # ensure *_SPEC_URI is saved
+  rescue Exception => e
+    puts "Could not connect to the database using #{connection_string}"
   end
-else
-  ADAPTERS.concat ENV['ADAPTERS'].split(/\s+/).map{ |a| a.strip }
 end
+
+ADAPTERS.freeze
+PRIMARY.freeze
 
 DataMapper::Logger.new(nil, :debug)
 

@@ -13,10 +13,10 @@ describe DataMapper::Model do
     before do
       module Extender; def foobar; end; end
       DataMapper::Model.append_extensions(Extender)
-
     end
 
     it "should append the module given when DM::Model is extended" do
+      Object.send(:remove_const, :ExtendMe) if defined?(ExtendMe)
       class ExtendMe
         include DataMapper::Resource
         property :id, Integer, :key => true
@@ -24,7 +24,6 @@ describe DataMapper::Model do
 
       ExtendMe.should respond_to(:foobar)
     end
-
   end
 
 

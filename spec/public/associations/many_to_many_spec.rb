@@ -1,5 +1,4 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
-require SPEC_ROOT + 'lib/collection_shared_spec'
 
 # TODO: test loaded and unloaded behavior
 
