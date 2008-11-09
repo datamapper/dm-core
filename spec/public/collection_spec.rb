@@ -8,7 +8,7 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
       @loaded = loaded
     end
 
-    # define the model prior to with_adapters
+    # define the model prior to supported_by block
     before do
       Object.send(:remove_const, :Article) if defined?(Article)
       class Article
@@ -43,25 +43,7 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
       end
 
       describe '.new' do
-        describe 'with no block' do
-          before do
-            @return = @collection = DataMapper::Collection.new(@articles_query)
-          end
-
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
-
-          it 'should not be loaded' do
-            @return.should_not be_loaded
-          end
-
-          it 'should be empty when a kicker is called' do
-            @collection.entries.should be_empty
-          end
-        end
-
-        describe 'with a block' do
+        describe 'with a block', 'and no resources' do
           before do
             @return = @collection = DataMapper::Collection.new(@articles_query) do |c|
               c.load([ 99, 'Sample Article' ])
@@ -81,7 +63,7 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
           end
         end
 
-        describe 'with no block', 'with resources' do
+        describe 'with no block', 'and resources' do
           before do
             @return = @collection = DataMapper::Collection.new(@articles_query, [ @article ])
           end
@@ -96,6 +78,14 @@ require SPEC_ROOT + 'lib/collection_shared_spec'
 
           it 'should contain the article' do
             @collection.should == [ @article ]
+          end
+        end
+
+        describe 'with no block', 'and no resources' do
+          it 'should raise an exception' do
+            lambda {
+              DataMapper::Collection.new(@articles_query)
+            }.should raise_error(ArgumentError)
           end
         end
       end

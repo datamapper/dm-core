@@ -179,17 +179,18 @@ module DataMapper
       query = with_query ? args.last : {}
       query = scoped_query(query.merge(:limit => limit || 1))
 
-      if !with_query && lazy_possible?(head, *args)
-        if limit
-          self.class.new(query, head.first(limit))
-        else
-          relate_resource(head.first)
-        end
-      elsif !with_query && loaded?
+      if !with_query && loaded?
         if limit
           self.class.new(query, super(limit))
         else
           relate_resource(super)
+        end
+      elsif !with_query && lazy_possible?(head, *args)
+        # TODO: update to use LazyArray#first and remove this branch
+        if limit
+          self.class.new(query, head.first(limit))
+        else
+          relate_resource(head.first)
         end
       else
         if limit
@@ -230,17 +231,18 @@ module DataMapper
       # tell the Query to prepend each result from the adapter
       query.update(:add_reversed => !query.add_reversed?)
 
-      if !with_query && lazy_possible?(tail, *args)
-        if limit
-          self.class.new(query, tail.last(limit))
-        else
-          relate_resource(tail.last)
-        end
-      elsif !with_query && loaded?
+      if !with_query && loaded?
         if limit
           self.class.new(query, super(limit))
         else
           relate_resource(super)
+        end
+      elsif !with_query && lazy_possible?(tail, *args)
+        # TODO: update to use LazyArray#last and remove this branch
+        if limit
+          self.class.new(query, tail.last(limit))
+        else
+          relate_resource(tail.last)
         end
       else
         if limit
@@ -264,8 +266,10 @@ module DataMapper
       if loaded?
         return super
       elsif index >= 0
+        # TODO: use head if possible
         first(:offset => index)
       else
+        # TODO: use tail if possible
         last(:offset => index.abs - 1)
       end
     end
@@ -306,7 +310,29 @@ module DataMapper
         raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}", caller
       end
 
-      all(:offset => offset, :limit => limit)
+      query = if offset < 0
+        query = scoped_query(:offset => (limit + offset).abs, :limit => limit).reverse
+
+        # tell the Query to prepend each result from the adapter
+        query.update(:add_reversed => !query.add_reversed?)
+      else
+        scoped_query(:offset => offset, :limit => limit)
+      end
+
+      # NOTE: when the collection is not loaded we can't know ahead of
+      # time how many entries it will contain.  If the arguments turn out
+      # to be out of range later the best we can do is return an empty
+      # Collection.  This differs from Array#slice where an out of range
+      # argument will return nil.
+      #
+      # In order to maintain a consistent API, slice with out of range
+      # arguments will always return an empty Collection being returned.
+
+      if loaded? && sliced = super
+        self.class.new(query, sliced)
+      else
+        all(query)
+      end
     end
 
     alias [] slice
@@ -755,18 +781,21 @@ module DataMapper
     # @return [DataMapper::Collection] self
     #
     # @api public
-    def initialize(query, resources = [])
-      assert_kind_of 'query', query, Query
+    def initialize(query, resources = nil)
+      assert_kind_of 'query',     query,     Query
+      assert_kind_of 'resources', resources, Array if resources
 
       @query = query
       @cache = {}
 
       super()
 
-      if resources.any?
+      if !resources.nil?
         replace(resources)
       elsif block_given?
         load_with { |c| yield(c) }
+      else
+        raise ArgumentError, 'must provide either a list of Resources or a block'
       end
     end
 

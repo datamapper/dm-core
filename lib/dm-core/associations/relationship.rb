@@ -116,7 +116,7 @@ module DataMapper
               [ operator, property, bind_value ]
             end
 
-            parents_children = collection.class.new(query).replace(children)
+            parents_children = collection.class.new(query, children)
 
             if parent_key.get(parent) == parent_value
               ret = parents_children

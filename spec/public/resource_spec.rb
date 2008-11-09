@@ -3,55 +3,54 @@ require SPEC_ROOT + 'lib/resource_shared_spec'
 
 describe DataMapper::Resource do
 
-    before(:each) do
-      Object.send(:remove_const, :User) if defined?(User)
-      class User
-        include DataMapper::Resource
+  before do
+    Object.send(:remove_const, :User) if defined?(User)
+    class User
+      include DataMapper::Resource
 
-        property :name, String, :key => true
-        property :age,  Integer
+      property :name, String, :key => true
+      property :age,  Integer
 
-        has n, :comments
-      end
-
-      # This is a special class that needs to be an exact copy of User
-      Object.send(:remove_const, :Clone) if defined?(Clone)
-      class Clone
-        include DataMapper::Resource
-
-        property :name, String, :key => true
-        property :age,  Integer
-      end
-
-      Object.send(:remove_const, :Article) if defined?(Article)
-      class Article
-        include DataMapper::Resource
-
-        property :id,   String
-        property :body, Text
-      end
-
-      Object.send(:remove_const, :Comment) if defined?(Comment)
-      class Comment
-        include DataMapper::Resource
-
-        property :id,   Serial
-        property :body, Text
-
-        belongs_to :user
-      end
-
-      Object.send(:remove_const, :Authorship) if defined?(Authorship)
-      class Authorship
-        include DataMapper::Resource
-
-        property :user_id,    Integer, :key => true
-        property :article_id, Integer, :key => true
-      end
+      has n, :comments
     end
 
-  supported_by :all do
+    # This is a special class that needs to be an exact copy of User
+    Object.send(:remove_const, :Clone) if defined?(Clone)
+    class Clone
+      include DataMapper::Resource
 
+      property :name, String, :key => true
+      property :age,  Integer
+    end
+
+    Object.send(:remove_const, :Article) if defined?(Article)
+    class Article
+      include DataMapper::Resource
+
+      property :id,   String
+      property :body, Text
+    end
+
+    Object.send(:remove_const, :Comment) if defined?(Comment)
+    class Comment
+      include DataMapper::Resource
+
+      property :id,   Serial
+      property :body, Text
+
+      belongs_to :user
+    end
+
+    Object.send(:remove_const, :Authorship) if defined?(Authorship)
+    class Authorship
+      include DataMapper::Resource
+
+      property :user_id,    Integer, :key => true
+      property :article_id, Integer, :key => true
+    end
+  end
+
+  supported_by :all do
     before do
       @model       = User
       @child_model = Comment

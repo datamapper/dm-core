@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-describe 'Properties' do
+describe DataMapper::Property do
 
   # define the model prior to with_adapters
   before do
@@ -11,7 +11,7 @@ describe 'Properties' do
 
       property :id,     Serial
       property :artist, String
-      property :title,  String, :field => :name
+      property :title,  String, :field => 'name'
       property :album,  String
     end
   end

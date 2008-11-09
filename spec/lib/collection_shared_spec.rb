@@ -1201,8 +1201,16 @@ share_examples_for 'A Collection' do
     end
 
     describe "##{method}" do
-      describe 'with an index' do
+      before do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
+          1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
+        end
+      end
+
+      describe 'with a positive index' do
         before do
+          @copy = @articles.dup
           @return = @resource = @articles.send(method, 0)
         end
 
@@ -1211,7 +1219,11 @@ share_examples_for 'A Collection' do
         end
 
         it 'should return expected Resource' do
-          @return.should == @article
+          @return.should == @copy.entries.send(method, 0)
+        end
+
+        it 'should not remove the Resource from the Collection' do
+          @articles.should include(@resource)
         end
 
         it 'should relate the Resource to the Collection' do
@@ -1219,9 +1231,10 @@ share_examples_for 'A Collection' do
         end
       end
 
-      describe 'with an offset and length' do
+      describe 'with a positive offset and length' do
         before do
-          @return = @resources = @articles.send(method, 0, 1)
+          @copy = @articles.dup
+          @return = @resources = @articles.send(method, 5, 5)
         end
 
         it 'should return a Collection' do
@@ -1229,42 +1242,176 @@ share_examples_for 'A Collection' do
         end
 
         it 'should return the expected Resource' do
-          skip_class = DataMapper::Associations::ManyToMany::Proxy
-          pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
-            @return.should == [ @article ]
-          end
+          @return.should == @copy.entries.send(method, 5, 5)
+        end
+
+        it 'should not remove the Resources from the Collection' do
+          @resources.each { |r| @articles.should include(r) }
         end
 
         it 'should orphan the Resources' do
           @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        end
+
+        it 'should scope the Collection' do
+          @resources.reload.should == @copy.entries.send(method, 5, 5)
         end
       end
 
-      describe 'with a range' do
+      describe 'with a positive range' do
         before do
-          @return = @resources = @articles.send(method, 0..0)
+          @copy = @articles.dup
+          @return = @resources = @articles.send(method, 5..10)
         end
 
         it 'should return a Collection' do
           @return.should be_kind_of(DataMapper::Collection)
         end
 
-        it 'should return the expected Resource' do
-          skip_class = DataMapper::Associations::ManyToMany::Proxy
-          pending_if "TODO: fix in #{skip_class}", @articles.kind_of?(skip_class) do
-            @return.should == [ @article ]
-          end
+        it 'should return the expected Resources' do
+          @return.should == @copy.entries.send(method, 5..10)
+        end
+
+        it 'should not remove the Resources from the Collection' do
+          @resources.each { |r| @articles.should include(r) }
         end
 
         it 'should orphan the Resources' do
           @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        end
+
+        it 'should scope the Collection' do
+          @resources.reload.should == @copy.entries.send(method, 5..10)
+        end
+      end
+
+      describe 'with a negative index' do
+        before do
+          @copy = @articles.dup
+          @return = @resource = @articles.send(method, -1)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return expected Resource' do
+          @return.should == @copy.entries.send(method, -1)
+        end
+
+        it 'should not remove the Resource from the Collection' do
+          @articles.should include(@resource)
+        end
+
+        it 'should relate the Resource to the Collection' do
+          @resource.collection.should be_equal(@articles)
+        end
+      end
+
+      describe 'with a negative offset and length' do
+        before do
+          @copy = @articles.dup
+          @return = @resources = @articles.send(method, -5, 5)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return the expected Resources' do
+          @return.should == @copy.entries.send(method, -5, 5)
+        end
+
+        it 'should not remove the Resources from the Collection' do
+          @resources.each { |r| @articles.should include(r) }
+        end
+
+        it 'should orphan the Resources' do
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        end
+
+        it 'should scope the Collection' do
+          @resources.reload.should == @copy.entries.send(method, -5, 5)
+        end
+      end
+
+      describe 'with a negative range' do
+        before do
+          @copy = @articles.dup
+          @return = @resources = @articles.send(method, -5..-2)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return the expected Resources' do
+          @return.to_a.should == @copy.entries.send(method, -5..-2)
+        end
+
+        it 'should not remove the Resources from the Collection' do
+          @resources.each { |r| @articles.should include(r) }
+        end
+
+        it 'should orphan the Resources' do
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        end
+
+        it 'should scope the Collection' do
+          @resources.reload.should == @copy.entries.send(method, -5..-2)
+        end
+      end
+
+      describe 'with an index not within the Collection' do
+        before do
+          @return = @articles.send(method, 12)
+        end
+
+        it 'should return nil' do
+          @return.should be_nil
+        end
+      end
+
+      describe 'with an offset and length not within the Collection' do
+        before do
+          @return = @articles.send(method, 12, 1)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return an empty Collection' do
+          @return.should be_empty
+        end
+      end
+
+      describe 'with a range not within the Collection' do
+        before do
+          @return = @articles.send(method, 12..13)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return an empty Collection' do
+          @return.should be_empty
         end
       end
 
       describe 'with invalid arguments' do
         it 'should raise an exception' do
           lambda {
-            @articles.send(method, Object.new)
+            @articles.send(method, 1, 1, 1)
+          }.should raise_error(ArgumentError)
+        end
+      end
+
+      describe 'with no arguments' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.slice!
           }.should raise_error(ArgumentError)
         end
       end
@@ -1462,8 +1609,24 @@ share_examples_for 'A Collection' do
         @return = @articles.slice!(12..13)
       end
 
-      it "should return nil" do
+      it 'should return nil' do
         @return.should be_nil
+      end
+    end
+
+    describe 'with invalid arguments' do
+      it 'should raise an exception' do
+        lambda {
+          @articles.slice!(1, 1, 1)
+        }.should raise_error(ArgumentError)
+      end
+    end
+
+    describe 'with no arguments' do
+      it 'should raise an exception' do
+        lambda {
+          @articles.slice!
+        }.should raise_error(ArgumentError)
       end
     end
   end
