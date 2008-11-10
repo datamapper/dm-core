@@ -108,7 +108,7 @@ module DataMapper
         get(*key)
       else
         # current query is all inclusive, lookup using normal approach
-        first(model.to_query(repository, key))
+        first(model.key(repository.name).zip(key).to_hash)
       end
     end
 

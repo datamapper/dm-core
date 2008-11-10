@@ -404,7 +404,7 @@ module DataMapper
       Query.new(repository, self, query.merge(conditions))
     end
 
-    # @api private
+    # @api semipublic
     def typecast_key(key)
       self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
     end
