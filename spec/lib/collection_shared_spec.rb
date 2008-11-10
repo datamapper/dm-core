@@ -765,7 +765,7 @@ share_examples_for 'A Collection' do
 
     describe 'with a key to a Resource not within the Collection' do
       before do
-        @return = @articles.get(99)
+        @return = @articles.get(*@other.key)
       end
 
       it 'should return nil' do
