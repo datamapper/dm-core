@@ -60,10 +60,8 @@ module DataMapper
         @query = query
       end
 
-      repository_name = repository.name
-
       # update query fields to always include the model key
-      @query.update(:fields => @query.fields | model.key(repository_name))
+      @query.update(:fields => @query.fields | model.key(repository.name))
 
       # specify the Query explicitly so that Collection#all does not
       # perform a relative query
