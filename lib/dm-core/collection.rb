@@ -275,7 +275,7 @@ module DataMapper
     # If you provide a range, the min is used as the offset
     # and the max minues the offset is used as the limit.
     #
-    # @param [Integer, Array(Integer), Range] args the offset,
+    # @param [Integer, Array(Integer), Range] *args the offset,
     #   offset and limit, or range indicating offsets and limits
     #
     # @return [DataMapper::Resource, DataMapper::Collection]
@@ -287,20 +287,10 @@ module DataMapper
     #
     # @api public
     def slice(*args)
-      if args.size == 1 && args.first.kind_of?(Integer)
-        return at(args.first)
-      end
+      offset, limit = extract_slice_arguments(*args)
 
-      # TODO: refactor this with code in #slice!
-      if args.size == 2 && args.first.kind_of?(Integer) && args.last.kind_of?(Integer)
-        offset, limit = args
-      elsif args.size == 1 && args.first.kind_of?(Range)
-        range  = args.first
-        offset = range.first
-        limit  = range.last - offset
-        limit += 1 unless range.exclude_end?
-      else
-        raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}", caller
+      if limit.nil?
+        return at(args.first)
       end
 
       query = if offset < 0
@@ -335,7 +325,7 @@ module DataMapper
     ##
     # Deletes and Returns the Resources given by an index or a Range
     #
-    # @param [Integer, Array(Integer), Range] args the offset,
+    # @param [Integer, Array(Integer), Range] *args the offset,
     #   offset and limit, or range indicating offsets and limits
     #
     # @return [DataMapper::Resource, DataMapper::Collection, NilClass]
@@ -351,30 +341,22 @@ module DataMapper
       # Workaround for Ruby <= 1.8.6
       compact! if RUBY_VERSION <= '1.8.6'
 
-      if orphaned.kind_of?(Array)
-        # TODO: refactor this with code in #slice
-        if args.size == 2
-          offset, limit = args
-        else
-          range  = args.first
-          offset = range.first
-          limit  = range.last - offset
-          limit += 1 unless range.exclude_end?
-        end
-
-        query = if offset < 0
-          query = scoped_query(:offset => (limit + offset).abs, :limit => limit).reverse
-
-          # tell the Query to prepend each result from the adapter
-          query.update(:add_reversed => !query.add_reversed?)
-        else
-          scoped_query(:offset => offset, :limit => limit)
-        end
-
-        self.class.new(query, orphaned)
-      else
-        orphan_resource(orphaned)
+      unless orphaned.kind_of?(Array)
+        return orphan_resource(orphaned)
       end
+
+      offset, limit = extract_slice_arguments(*args)
+
+      query = if offset < 0
+        query = scoped_query(:offset => (limit + offset).abs, :limit => limit).reverse
+
+        # tell the Query to prepend each result from the adapter
+        query.update(:add_reversed => !query.add_reversed?)
+      else
+        scoped_query(:offset => offset, :limit => limit)
+      end
+
+      self.class.new(query, orphaned)
     end
 
     ##
@@ -992,6 +974,35 @@ module DataMapper
       end
 
       hash.update(conditions)
+    end
+
+    ##
+    # Extract arguments for #slice an #slice! and return offset and limit
+    #
+    # @param [Integer, Array(Integer), Range] *args the offset,
+    #   offset and limit, or range indicating offsets and limits
+    #
+    # @return [Integer] the offset
+    # @return [Integer,NilClass] the limit, if any
+    #
+    # @api private
+    def extract_slice_arguments(*args)
+      first_arg, second_arg = args
+
+      if args.size == 2 && first_arg.kind_of?(Integer) && second_arg.kind_of?(Integer)
+        return first_arg, second_arg
+      elsif args.size == 1
+        if first_arg.kind_of?(Integer)
+          return first_arg
+        elsif first_arg.kind_of?(Range)
+          offset = first_arg.first
+          limit  = first_arg.last - offset
+          limit += 1 unless first_arg.exclude_end?
+          return offset, limit
+        end
+      end
+
+      raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}", caller(1)
     end
 
     ##
