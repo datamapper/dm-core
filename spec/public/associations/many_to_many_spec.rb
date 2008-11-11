@@ -4,7 +4,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
 describe DataMapper::Associations::ManyToMany::Proxy do
 
-  # define the model prior to with_adapters
+  # define the model prior to supported_by
   before do
     Object.send(:remove_const, :Author) if defined?(Author)
     class Author

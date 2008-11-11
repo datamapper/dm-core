@@ -4,7 +4,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 [ false, true ].each do |loaded|
   describe DataMapper::Collection do
 
-    # define the model prior to with_adapters
+    # define the model prior to supported_by
     before do
       Object.send(:remove_const, :Article) if defined?(Article)
       class Article

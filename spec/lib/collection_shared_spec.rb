@@ -604,9 +604,12 @@ share_examples_for 'A Collection' do
   end
 
   describe '#first' do
+    before do
+      @copy = @articles.dup
+    end
+
     describe 'with no arguments' do
       before do
-        @copy = @articles.dup
         @return = @resource = @articles.first
       end
 
@@ -629,7 +632,6 @@ share_examples_for 'A Collection' do
 
     describe 'with no arguments', 'after prepending to the collection' do
       before do
-        @copy = @articles.dup
         @return = @resource = @articles.unshift(@other).first
       end
 
@@ -678,7 +680,6 @@ share_examples_for 'A Collection' do
 
     describe 'with limit specified' do
       before do
-        @copy = @articles.dup
         @return = @resources = @articles.first(1)
       end
 
@@ -701,7 +702,6 @@ share_examples_for 'A Collection' do
 
     describe 'with limit specified', 'after prepending to the collection' do
       before do
-        @copy = @articles.dup
         @return = @resources = @articles.unshift(@other).first(1)
       end
 
@@ -892,9 +892,12 @@ share_examples_for 'A Collection' do
   end
 
   describe '#last' do
+    before do
+      @copy = @articles.dup
+    end
+
     describe 'with no arguments' do
       before do
-        @copy = @articles.dup
         @return = @resource = @articles.last
       end
 
@@ -917,7 +920,6 @@ share_examples_for 'A Collection' do
 
     describe 'with no arguments', 'after appending to the collection' do
       before do
-        @copy = @articles.dup
         @return = @resource = @articles.push(@other).last
       end
 
@@ -967,7 +969,6 @@ share_examples_for 'A Collection' do
 
     describe 'with limit specified' do
       before do
-        @copy = @articles.dup
         @return = @resources = @articles.last(1)
       end
 
@@ -990,7 +991,6 @@ share_examples_for 'A Collection' do
 
     describe 'with limit specified', 'after appending to the collection' do
       before do
-        @copy = @articles.dup
         @return = @resources = @articles.push(@other).last(1)
       end
 
@@ -1286,11 +1286,12 @@ share_examples_for 'A Collection' do
         pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
           1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
         end
+
+        @copy = @articles.dup
       end
 
       describe 'with a positive index' do
         before do
-          @copy = @articles.dup
           @return = @resource = @articles.send(method, 0)
         end
 
@@ -1313,7 +1314,6 @@ share_examples_for 'A Collection' do
 
       describe 'with a positive offset and length' do
         before do
-          @copy = @articles.dup
           @return = @resources = @articles.send(method, 5, 5)
         end
 
@@ -1340,7 +1340,6 @@ share_examples_for 'A Collection' do
 
       describe 'with a positive range' do
         before do
-          @copy = @articles.dup
           @return = @resources = @articles.send(method, 5..10)
         end
 
@@ -1367,7 +1366,6 @@ share_examples_for 'A Collection' do
 
       describe 'with a negative index' do
         before do
-          @copy = @articles.dup
           @return = @resource = @articles.send(method, -1)
         end
 
@@ -1390,7 +1388,6 @@ share_examples_for 'A Collection' do
 
       describe 'with a negative offset and length' do
         before do
-          @copy = @articles.dup
           @return = @resources = @articles.send(method, -5, 5)
         end
 
@@ -1417,7 +1414,6 @@ share_examples_for 'A Collection' do
 
       describe 'with a negative range' do
         before do
-          @copy = @articles.dup
           @return = @resources = @articles.send(method, -5..-2)
         end
 
@@ -1491,7 +1487,7 @@ share_examples_for 'A Collection' do
       describe 'with no arguments' do
         it 'should raise an exception' do
           lambda {
-            @articles.slice!
+            @articles.send(method)
           }.should raise_error(ArgumentError)
         end
       end
@@ -1508,11 +1504,12 @@ share_examples_for 'A Collection' do
       pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
         1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
       end
+
+      @copy = @articles.dup
     end
 
     describe 'with a positive index' do
       before do
-        @copy = @articles.dup
         @return = @resource = @articles.slice!(0)
       end
 
@@ -1535,7 +1532,6 @@ share_examples_for 'A Collection' do
 
     describe 'with a positive offset and length' do
       before do
-        @copy = @articles.dup
         @return = @resources = @articles.slice!(5, 5)
       end
 
@@ -1562,7 +1558,6 @@ share_examples_for 'A Collection' do
 
     describe 'with a positive range' do
       before do
-        @copy = @articles.dup
         @return = @resources = @articles.slice!(5..10)
       end
 
@@ -1589,7 +1584,6 @@ share_examples_for 'A Collection' do
 
     describe 'with a negative index' do
       before do
-        @copy = @articles.dup
         @return = @resource = @articles.slice!(-1)
       end
 
@@ -1612,7 +1606,6 @@ share_examples_for 'A Collection' do
 
     describe 'with a negative offset and length' do
       before do
-        @copy = @articles.dup
         @return = @resources = @articles.slice!(-5, 5)
       end
 
@@ -1639,7 +1632,6 @@ share_examples_for 'A Collection' do
 
     describe 'with a negative range' do
       before do
-        @copy = @articles.dup
         @return = @resources = @articles.slice!(-5..-2)
       end
 
@@ -1707,6 +1699,234 @@ share_examples_for 'A Collection' do
         lambda {
           @articles.slice!
         }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
+  [ :splice, :[]= ].each do |method|
+    it "should respond to ##{method}" do
+      @articles.should respond_to(method)
+    end
+
+    describe "##{method}" do
+      before do
+        skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+          1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
+        end
+
+        @copy = @articles.dup
+        @new = @model.new(:content => 'New Article')
+      end
+
+      describe 'with a positive index and a Resource' do
+        before do
+          @original = @articles[1]
+          @return = @resource = @articles.send(method, 1, @new)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return expected Resource' do
+          @return.should be_equal(@new)
+        end
+
+        it 'should return the same as Array#[]=' do
+          @return.should == @copy.entries[1] = @new
+        end
+
+        it 'should include the Resource in the Collection' do
+          @articles.should include(@resource)
+        end
+
+        it 'should relate the Resource to the Collection' do
+          @resource.collection.should be_equal(@articles)
+        end
+
+        it 'should orphan the original Resource' do
+          @original.collection.should_not be_equal(@articles)
+        end
+      end
+
+      describe 'with a positive offset and length and a Resource' do
+        before do
+          @original = @articles[2]
+          @return = @resource = @articles.send(method, 2, 1, @new)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return the expected Resource' do
+          @return.should be_equal(@new)
+        end
+
+        it 'should return the same as Array#[]=' do
+          @return.should == @copy.entries[2, 1] = @new
+        end
+
+        it 'should include the Resource in the Collection' do
+          @articles.should include(@resource)
+        end
+
+        it 'should orphan the original Resource' do
+          @original.collection.should_not be_equal(@articles)
+        end
+      end
+
+      describe 'with a positive range and a Resource' do
+        before do
+          @original = @articles[2]
+          @return = @resource = @articles.send(method, 2..3, @new)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return the expected Resources' do
+          @return.should be_equal(@new)
+        end
+
+        it 'should return the same as Array#[]=' do
+          @return.should == @copy.entries[2..3] = @new
+        end
+
+        it 'should include the Resource in the Collection' do
+          @articles.should include(@resource)
+        end
+
+        it 'should orphan the original Resource' do
+          @original.collection.should_not be_equal(@articles)
+        end
+      end
+
+      describe 'with a negative index and a Resource' do
+        before do
+          @original = @articles[-1]
+          @return = @resource = @articles.send(method, -1, @new)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return expected Resource' do
+          @return.should be_equal(@new)
+        end
+
+        it 'should return the same as Array#[]=' do
+          @return.should == @copy.entries[-1] = @new
+        end
+
+        it 'should include the Resource in the Collection' do
+          @articles.should include(@resource)
+        end
+
+        it 'should relate the Resource to the Collection' do
+          @resource.collection.should be_equal(@articles)
+        end
+
+        it 'should orphan the original Resource' do
+          @original.collection.should_not be_equal(@articles)
+        end
+      end
+
+      describe 'with a negative offset and length and a Resource' do
+        before do
+          @original = @articles[-2]
+          @return = @resource = @articles.send(method, -2, 1, @new)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return the expected Resource' do
+          @return.should be_equal(@new)
+        end
+
+        it 'should return the same as Array#[]=' do
+          @return.should == @copy.entries[-2, 1] = @new
+        end
+
+        it 'should include the Resource in the Collection' do
+          @articles.should include(@resource)
+        end
+
+        it 'should orphan the original Resource' do
+          @original.collection.should_not be_equal(@articles)
+        end
+      end
+
+      describe 'with a negative range and a Resource' do
+        before do
+          @original = @articles[-2]
+          @return = @resource = @articles.send(method, -3..-2, @new)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return the expected Resources' do
+          @return.should be_equal(@new)
+        end
+
+        it 'should return the same as Array#[]=' do
+          @return.should == @copy.entries[-3..-2] = @new
+        end
+
+        it 'should include the Resource in the Collection' do
+          @articles.should include(@resource)
+        end
+
+        it 'should orphan the original Resource' do
+          @original.collection.should_not be_equal(@articles)
+        end
+      end
+
+      describe 'with an index not within the Collection' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.send(method, 12, @new)
+          }.should raise_error(RangeError, 'index 12 out of Collection')
+        end
+      end
+
+      describe 'with an offset and length not within the Collection' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.send(method, 12, 1, @new)
+          }.should raise_error(RangeError, 'index 12 out of Collection')
+        end
+      end
+
+      describe 'with a range not within the Collection' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.send(method, 12..13, @new)
+          }.should raise_error(RangeError, '12..13 out of range')
+        end
+      end
+
+      describe 'with invalid arguments' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.send(method, 1)
+          }.should raise_error(ArgumentError)
+        end
+      end
+
+      describe 'with no arguments' do
+        it 'should raise an exception' do
+          lambda {
+            @articles.send(method)
+          }.should raise_error(ArgumentError)
+        end
       end
     end
   end

@@ -36,7 +36,7 @@ module DataMapper
     # This should load a Resource, add it to the Collection and relate
     # the it to the Collection.
     #
-    # @param [Array] values the values for the Resource
+    # @param [Enumerable] values the values for the Resource
     #
     # @return [DataMapper::Resource] the loaded Resource
     #
@@ -77,7 +77,7 @@ module DataMapper
     # This looksup a Resource by key, typecasting the key to the
     # proper object if necessary.
     #
-    # @param [Array] *key keys which uniquely identify a resource in the
+    # @param [Enumerable] *key keys which uniquely identify a resource in the
     #   Collection
     #
     # @return [DataMapper::Resource, NilClass] the Resource which
@@ -116,7 +116,7 @@ module DataMapper
     # This looksup a Resource by key, typecasting the key to the
     # proper object if necessary.
     #
-    # @param [Array] *key keys which uniquely identify a resource in the
+    # @param [Enumerable] *key keys which uniquely identify a resource in the
     #   Collection
     #
     # @return [DataMapper::Resource, NilClass] the Resource which
@@ -249,7 +249,7 @@ module DataMapper
     def at(index)
       # TODO: try to delegate to LazyArray#at instead of using head.at and tail.at directly
       if loaded?
-        return super
+        super
       elsif index >= 0
         if lazy_possible?(head, index + 1)
           head.at(index)
@@ -266,6 +266,16 @@ module DataMapper
     end
 
     ##
+    # Access LazyArray#slice directly
+    #
+    # Collection#[]= uses this to bypass Collection#slice and access
+    # the resources directly so that it can orphan them properly.
+    #
+    # @api private
+    alias super_slice slice
+    private :super_slice
+
+    ##
     # Simulates Array#slice and returns a new Collection
     # whose query has a new offset or limit according to the
     # arguments provided.
@@ -274,7 +284,7 @@ module DataMapper
     # and the max minues the offset is used as the limit.
     #
     # @param [Integer, Array(Integer), Range] *args the offset,
-    #   offset and limit, or range indicating offsets and limits
+    #   offset and limit, or range indicating first and last position
     #
     # @return [DataMapper::Resource, DataMapper::Collection]
     #   The entry which resides at that offset and limit,
@@ -288,7 +298,7 @@ module DataMapper
       offset, limit = extract_slice_arguments(*args)
 
       if limit.nil?
-        return at(args.first)
+        return at(offset)
       end
 
       query = if offset < 0
@@ -324,7 +334,7 @@ module DataMapper
     # Deletes and Returns the Resources given by an index or a Range
     #
     # @param [Integer, Array(Integer), Range] *args the offset,
-    #   offset and limit, or range indicating offsets and limits
+    #   offset and limit, or range indicating first and last position
     #
     # @return [DataMapper::Resource, DataMapper::Collection, NilClass]
     #   The entry which resides at that offset and limit, a new
@@ -356,6 +366,58 @@ module DataMapper
 
       self.class.new(query, orphaned)
     end
+
+    ##
+    # Splice a list of Resources at a given index or range
+    #
+    # When nil is provided instead of a Resource or a list of Resources
+    # this will remove all of the Resources at the specified position.
+    #
+    # @param [Integer, Array(Integer), Range] *args the offset,
+    #   offset and limit, or range indicating first and last position.
+    #   The last argument may be a Resource, a list of Resources or
+    #   nil.
+    #
+    # @return [DataMapper::Resource, Enumerable, NilClass] the Resource,
+    #   list of Resources that was spliced into the Collection will be
+    #   returned.  If nil was used to delete the entries, then it will
+    #   return nil.
+    #
+    # @api public
+    def []=(*args)
+      offset, limit = extract_slice_arguments(*args[0..-2])
+
+      limit ||= 1
+
+      # orphan resources being replaced
+      orphan_resources(super_slice(offset, limit))
+
+      spliced = if loaded?
+        super
+      elsif offset >= 0
+        if lazy_possible?(head, offset + limit)
+          head.[]=(*args)
+        else
+          super
+        end
+      else
+        if lazy_possible?(tail, offset.abs)
+          tail.[]=(*args)
+        else
+          super
+        end
+      end
+
+      # ensure the the splicing did not result in nil entries
+      assert_valid_entries(args.first)
+
+      relate_resources(spliced)
+
+      # return value for []= will be last argument provided.  Ruby
+      # handles this automatically and there is no way to override it.
+    end
+
+    alias splice []=
 
     ##
     # Return the Collection sorted in reverse
@@ -408,7 +470,7 @@ module DataMapper
     #
     # @api public
     def concat(resources)
-      resources.each { |r| relate_resource(r) }
+      relate_resources(resources)
       super
     end
 
@@ -422,7 +484,7 @@ module DataMapper
     #
     # @api public
     def insert(index, *resources)
-      resources.each { |r| relate_resource(r) }
+      relate_resources(resources)
       super
     end
 
@@ -438,7 +500,7 @@ module DataMapper
     #
     # @api public
     def push(*resources)
-      resources.each { |r| relate_resource(r) }
+      relate_resources(resources)
       super
     end
 
@@ -454,7 +516,7 @@ module DataMapper
     #
     # @api public
     def unshift(*resources)
-      resources.each { |r| relate_resource(r) }
+      relate_resources(resources)
       super
     end
 
@@ -468,9 +530,9 @@ module DataMapper
     # @api public
     def replace(other)
       if loaded?
-        each { |r| orphan_resource(r) }
+        orphan_resources(self)
       end
-      other.each { |r| relate_resource(r) }
+      relate_resources(other)
       super
     end
 
@@ -738,7 +800,12 @@ module DataMapper
 
     protected
 
-    # TODO: document
+    ##
+    # Returns the Model
+    #
+    # @return [DataMapper::Model] the Model the Collection is
+    #   associated with
+    #
     # @api private
     def model
       query.model
@@ -844,6 +911,20 @@ module DataMapper
     end
 
     ##
+    # Relate an list of Resources to the Collection
+    #
+    # @param [Enumerable] resources The list of Resources to relate
+    #
+    # @api private
+    def relate_resources(resources)
+      if resources.kind_of?(Array)
+        resources.each { |r| relate_resource(r) }
+      else
+        relate_resource(resources)
+      end
+    end
+
+    ##
     # Orphans a Resource from the Collection
     #
     # Removes the association between the Resource and Collection so that
@@ -862,6 +943,20 @@ module DataMapper
       end
       @cache.delete(resource.key)
       resource
+    end
+
+    ##
+    # Orphan an list of Resources from the Collection
+    #
+    # @param [Enumerable] resources The list of Resources to orphan
+    #
+    # @api private
+    def orphan_resources(resources)
+      if resources.kind_of?(Array)
+        resources.each { |r| orphan_resource(r) }
+      else
+        orphan_resource(resources)
+      end
     end
 
     # TODO: move the logic to create relative query into DataMapper::Query
@@ -978,7 +1073,7 @@ module DataMapper
     # Extract arguments for #slice an #slice! and return offset and limit
     #
     # @param [Integer, Array(Integer), Range] *args the offset,
-    #   offset and limit, or range indicating offsets and limits
+    #   offset and limit, or range indicating first and last position
     #
     # @return [Integer] the offset
     # @return [Integer,NilClass] the limit, if any
@@ -1001,6 +1096,27 @@ module DataMapper
       end
 
       raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}", caller(1)
+    end
+
+    ##
+    # Raise an exception if the Collection contains any nil entries
+    #
+    # @param [Integer] offset the offset to display in the exception message
+    #
+    # @api private
+    def assert_valid_entries(offset_or_range)
+      if loaded?
+        return if nitems == size
+      else
+        return if head.nitems == head.size && tail.nitems == tail.size
+      end
+
+      message = case offset_or_range
+        when Integer then "index #{offset_or_range} out of Collection"
+        when Range   then "#{offset_or_range} out of range"
+      end
+
+      raise RangeError, message
     end
 
     ##

@@ -22,7 +22,7 @@ end
 
 describe DataMapper::Associations::OneToMany::Proxy do
 
-  # define the model prior to with_adapters
+  # define the model prior to supported_by
   before do
     Object.send(:remove_const, :Author) if defined?(Author)
     class Author
