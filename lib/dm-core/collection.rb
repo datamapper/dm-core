@@ -416,7 +416,7 @@ module DataMapper
       end
 
       # ensure the the splicing did not result in nil entries
-      assert_valid_entries(args.first)
+      assert_valid_index(args.first)
 
       relate_resources(spliced)
 
@@ -1113,16 +1113,16 @@ module DataMapper
     # @param [Integer] offset the offset to display in the exception message
     #
     # @api private
-    def assert_valid_entries(offset_or_range)
+    def assert_valid_index(index_or_range)
       if loaded?
         return if nitems == size
       else
         return if head.nitems == head.size && tail.nitems == tail.size
       end
 
-      message = case offset_or_range
-        when Integer then "index #{offset_or_range} out of Collection"
-        when Range   then "#{offset_or_range} out of range"
+      message = case index_or_range
+        when Integer then "index #{index_or_range} out of Collection"
+        when Range   then "#{index_or_range} out of range"
       end
 
       raise RangeError, message
