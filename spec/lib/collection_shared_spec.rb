@@ -5,33 +5,6 @@ share_examples_for 'A Collection' do
     end
   end
 
-  it 'should respond to #<<' do
-    @articles.should respond_to(:<<)
-  end
-
-  describe '#<<' do
-    before do
-      @resource = @model.new(:title => 'Title')
-      @return = @articles << @resource
-    end
-
-    it 'should return a Collection' do
-      @return.should be_kind_of(DataMapper::Collection)
-    end
-
-    it 'should return self' do
-      @return.should be_equal(@articles)
-    end
-
-    it 'should append one Resource to the Collection' do
-      @articles.last.should be_equal(@resource)
-    end
-
-    it 'should relate the Resource to the Collection' do
-      @resource.collection.should be_equal(@articles)
-    end
-  end
-
   it 'should respond to #all' do
     @articles.should respond_to(:all)
   end
@@ -148,6 +121,35 @@ share_examples_for 'A Collection' do
         lambda {
           @articles.all(:limit => 10).all(:offset => 10)
         }.should raise_error(RuntimeError, 'outside range')
+      end
+    end
+  end
+
+  [ :append, :<< ].each do |method|
+    it "should respond to ##{method}" do
+      @articles.should respond_to(method)
+    end
+
+    describe "##{method}" do
+      before do
+        @resource = @model.new(:title => 'Title')
+        @return = @articles.send(method, @resource)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return self' do
+        @return.should be_equal(@articles)
+      end
+
+      it 'should append one Resource to the Collection' do
+        @articles.last.should be_equal(@resource)
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @resource.collection.should be_equal(@articles)
       end
     end
   end

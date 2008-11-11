@@ -60,6 +60,8 @@ module DataMapper
         @query = query
       end
 
+      # XXX: when not loaded, should the behavior change?
+
       # update query fields to always include the model key
       @query.update(:fields => @query.fields | model.key(repository.name))
 
@@ -248,6 +250,7 @@ module DataMapper
     # @api public
     def at(index)
       # TODO: try to delegate to LazyArray#at instead of using head.at and tail.at directly
+
       if loaded?
         super
       elsif index >= 0
@@ -272,8 +275,8 @@ module DataMapper
     # the resources directly so that it can orphan them properly.
     #
     # @api private
-    alias super_slice slice
-    private :super_slice
+    alias superclass_slice slice
+    private :superclass_slice
 
     ##
     # Simulates Array#slice and returns a new Collection
@@ -295,6 +298,8 @@ module DataMapper
     #
     # @api public
     def slice(*args)
+      # TODO: update to use head/tail when possible
+
       offset, limit = extract_slice_arguments(*args)
 
       if limit.nil?
@@ -309,8 +314,6 @@ module DataMapper
       else
         scoped_query(:offset => offset, :limit => limit)
       end
-
-      # TODO: update to handle head/tail
 
       # NOTE: when the collection is not loaded we can't know ahead of
       # time how many entries it will contain.  If the arguments turn out
@@ -343,6 +346,8 @@ module DataMapper
     #
     # @api public
     def slice!(*args)
+      # TODO: update to use head/tail when possible
+
       # lazy load the collection, and remove the matching entries
       orphaned = super
 
@@ -385,12 +390,14 @@ module DataMapper
     #
     # @api public
     def []=(*args)
+      # TODO: try to delegate to LazyArray#[]= instead of using head.at and tail.at directly
+
       offset, limit = extract_slice_arguments(*args[0..-2])
 
       limit ||= 1
 
       # orphan resources being replaced
-      orphan_resources(super_slice(offset, limit))
+      orphan_resources(superclass_slice(offset, limit))
 
       spliced = if loaded?
         super
@@ -461,6 +468,8 @@ module DataMapper
       super
     end
 
+    alias append <<
+
     ##
     # Appends the resources to self
     #
@@ -470,20 +479,6 @@ module DataMapper
     #
     # @api public
     def concat(resources)
-      relate_resources(resources)
-      super
-    end
-
-    ##
-    # Inserts the Resources before the Resource at the index (which may be negative).
-    #
-    # @param [Integer] index The index to insert the Resources before
-    # @param [Enumerable] *resources The Resources to insert
-    #
-    # @return [DataMapper::Collection] self
-    #
-    # @api public
-    def insert(index, *resources)
       relate_resources(resources)
       super
     end
@@ -521,18 +516,16 @@ module DataMapper
     end
 
     ##
-    # Replace the Resources within the Collection
+    # Inserts the Resources before the Resource at the index (which may be negative).
     #
-    # @param [Enumerable] other The list of other Resources to replace with
+    # @param [Integer] index The index to insert the Resources before
+    # @param [Enumerable] *resources The Resources to insert
     #
     # @return [DataMapper::Collection] self
     #
     # @api public
-    def replace(other)
-      if loaded?
-        orphan_resources(self)
-      end
-      relate_resources(other)
+    def insert(index, *resources)
+      relate_resources(resources)
       super
     end
 
@@ -614,6 +607,22 @@ module DataMapper
     # @api public
     def reject!
       super { |r| yield(r) && orphan_resource(r) }
+    end
+
+    ##
+    # Replace the Resources within the Collection
+    #
+    # @param [Enumerable] other The list of other Resources to replace with
+    #
+    # @return [DataMapper::Collection] self
+    #
+    # @api public
+    def replace(other)
+      if loaded?
+        orphan_resources(self)
+      end
+      relate_resources(other)
+      super
     end
 
     ##
