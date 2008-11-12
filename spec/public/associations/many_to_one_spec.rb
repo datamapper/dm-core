@@ -12,8 +12,17 @@ describe DataMapper::Associations::ManyToOne::Proxy do
 
       property :name, String, :key => true
       property :age,  Integer
+      property :description, Text
 
       has n, :comments
+    end
+
+    Object.send(:remove_const, :Clone) if defined?(Clone)
+    class Clone
+      include DataMapper::Resource
+
+      property :name, String, :key => true
+      property :age,  Integer
     end
 
     Object.send(:remove_const, :Comment) if defined?(Comment)
@@ -30,7 +39,7 @@ describe DataMapper::Associations::ManyToOne::Proxy do
   supported_by :all do
     before do
       @comment     = Comment.create(:body => "Cool spec",
-                                    :user => User.create(:name => 'dbussink', :age => 25))
+                                    :user => User.create(:name => 'dbussink', :age => 25, :description => "Test"))
 
       @user        = @comment.user
       @model       = User

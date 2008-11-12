@@ -209,4 +209,160 @@ share_examples_for 'A Resource' do
     end
 
   end
+
+  [ :==, :eql? ].each do |method|
+
+    it { @user.should respond_to(method) }
+
+    describe "##{method}" do
+
+      it "should be true when they are the same objects" do
+        @user.send(method, @user).should be_true
+      end
+
+      it "should be true when all the attributes are the same" do
+        @user.send(method, @model.get(@user.key)).should be_true
+      end
+
+      it "should be true when all the attributes are the same even if one has not been persisted" do
+        @model.get(@user.key).send(method, @model.new(:name => "dbussink", :age => 25, :description => "Test")).should be_true
+      end
+
+      it "should not be true when the attributes differ even if the keys are the same" do
+        @user.age = 20
+        @user.send(method, @model.get(@user.key)).should be_false
+      end
+
+      with_alternate_adapter do
+        it "should be true when they are instances from different repositories, but the keys and attributes are the same" do
+          @other = repository(:alternate) { @model.create(:name => "dbussink", :age => 25, :description => "Test") }
+          @user.send(method, @other).should be_true
+        end
+      end
+
+    end
+
+  end
+
+  it { @user.should respond_to(:hash) }
+
+  describe '#hash' do
+
+    describe 'on two equal unsaved objects' do
+
+      before do
+        @user1 = User.new(:name => 'dbussink', :age => 50)
+        @user2 = User.new(:name => 'dbussink', :age => 50)
+      end
+
+      it { @user1.hash.should eql(@user2.hash) }
+
+    end
+
+    describe 'on two equal objects with a different object id' do
+
+      before { @user2 = User.get("dbussink") }
+
+      it { @user.object_id.should_not eql(@user2.object_id) }
+
+      it { @user.hash.should eql(@user2.hash) }
+
+    end
+
+
+    describe 'on two different objects of the same type' do
+
+      before { @user2 = User.create(:name => "dkubb", :age => 25) }
+
+      it { @user.hash.should_not eql(@user2.hash) }
+
+    end
+
+    describe 'on two different types with the same key' do
+
+      before { @user2 = Clone.create(:name => "dbussink", :age => 25) }
+
+      it { @user.hash.should_not eql(@user2.hash) }
+
+    end
+
+  end
+
+  it { @user.should respond_to(:inspect) }
+
+  describe '#inspect' do
+
+    before do
+      @user = @model.get(@user.key)
+      @inspected = @user.inspect
+    end
+
+    it { @inspected.should match(/^#<User/) }
+
+    it { @inspected.should match(/name="dbussink"/) }
+
+    it { @inspected.should match(/age=25/) }
+
+    it { @inspected.should match(/description=<not loaded>/) }
+
+  end
+
+  it { @user.should respond_to(:repository) }
+
+  it { @user.should respond_to(:key) }
+
+  it { @user.should respond_to(:reload) }
+
+  it { @user.should respond_to(:attributes) }
+
+  it { @user.should respond_to(:attributes=) }
+
+  it { @user.should respond_to(:new_record?) }
+
+  describe '#new_record?' do
+
+    describe 'on an existing record' do
+
+      it { @user.should_not be_new_record }
+
+    end
+
+    describe 'on a new record' do
+
+      before { @user = User.new }
+
+      it { @user.should be_new_record }
+
+    end
+
+  end
+
+  it 'should respond to #dirty?'
+
+  describe '#dirty' do
+
+    describe 'on a non-dirty record' do
+
+      it { @user.should_not be_dirty }
+
+    end
+
+    describe 'on a dirty record' do
+
+      before { @user.age = 100 }
+
+      it { @user.should be_dirty }
+
+    end
+
+    describe 'on a new record' do
+
+      before { @user = User.new }
+
+      it { @user.should be_dirty }
+
+    end
+
+  end
+
 end

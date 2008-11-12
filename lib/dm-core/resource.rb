@@ -19,12 +19,14 @@ module DataMapper
     #   successfully appended to the list
     # @return <TrueClass, FalseClass>
     #
-    # @api public
+    # @api semipublic
     def self.append_inclusions(*inclusions)
       extra_inclusions.concat inclusions
       true
     end
 
+    # The current registered extra inclusions
+    # @api private
     def self.extra_inclusions
       @extra_inclusions ||= []
     end
@@ -155,10 +157,12 @@ module DataMapper
     def eql?(other)
       return true if object_id == other.object_id
       return false unless other.kind_of?(model)
-      return true if repository == other.repository && key == other.key
+      return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
 
       properties.each do |property|
-        return false if property.get!(self) != property.get!(other)
+        if property.get(self) != property.get(other)
+          return false
+        end
       end
 
       true
@@ -234,10 +238,21 @@ module DataMapper
     #
     # @api public
     def id
+      message = "#{self.class.to_s}#id is deprecated. Either use #{self.class.to_s}#key to retrieve the key(s) or use "
+      message << "one of " if key.size > 1
+      message << key_properties.map {|property| "#{self.class.to_s}##{property.name.to_s}" }.join(", ")
+      warn(message)
+
       key = self.key
       key.first if key.size == 1
     end
 
+    # Retrieve the key(s) for this resource
+    #
+    # ==== Returns
+    # <Array[Key]> the key(s) identifying this resource
+    #
+    # @api public
     def key
       key_properties.map do |property|
         original_values[property.name] || property.get!(self)
@@ -391,7 +406,7 @@ module DataMapper
     #
     # @api public
     def dirty?
-      dirty_attributes.any?
+      new_record? || dirty_attributes.any?
     end
 
     # Checks if the attribute is dirty

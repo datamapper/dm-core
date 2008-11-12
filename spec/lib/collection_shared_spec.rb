@@ -473,7 +473,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should be the expected Resource' do
-        @resource.should == @article
+        @resource.key.should == @article.key
       end
 
       it 'should remove the Resource from the Collection' do
@@ -1265,7 +1265,7 @@ share_examples_for 'A Collection' do
     end
 
     it 'should be the first Resource in the Collection' do
-      @resource.should == @article
+      @resource.key.should == @article.key
     end
 
     it 'should remove the Resource from the Collection' do

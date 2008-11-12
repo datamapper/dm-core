@@ -9,6 +9,7 @@ describe DataMapper::Resource do
 
       property :name, String, :key => true
       property :age,  Integer
+      property :description, Text, :lazy => true
 
       has n, :comments
     end
@@ -53,7 +54,7 @@ describe DataMapper::Resource do
     before do
       @model       = User
       @child_model = Comment
-      @user        = @model.create(:name => 'dbussink', :age => 25)
+      @user        = @model.create(:name => 'dbussink', :age => 25, :description => "Test")
     end
 
     # All methods that provide equality comparisons of some sort
@@ -76,11 +77,9 @@ describe DataMapper::Resource do
       end
 
       it "should not be true when the attributes differ even if the keys are the same" do
-        pending do
-          user = User.create(:name => "Bill", :age => 10)
-          user.age = 20
-          user.send(method, User.get("Bill")).should be_false
-        end
+        user = User.create(:name => "Bill", :age => 10)
+        user.age = 20
+        user.send(method, User.get("Bill")).should be_false
       end
 
       with_alternate_adapter do
