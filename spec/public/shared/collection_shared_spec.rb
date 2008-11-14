@@ -579,7 +579,9 @@ share_examples_for 'A Collection' do
     end
 
     it 'should return true' do
-      @return.should be_true
+      pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) do
+        @return.should be_true
+      end
     end
 
     it 'should remove the Resources from the datasource' do
@@ -2002,7 +2004,9 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return true' do
-        @return.should be_true
+        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+          @return.should be_true
+        end
       end
 
       it 'should bypass validation' do
@@ -2010,9 +2014,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
-          @articles.each { |r| r.title.should == 'Updated Title' }
-        end
+        @articles.each { |r| r.title.should == 'Updated Title' }
       end
 
       it 'should persist the changes' do
