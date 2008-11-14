@@ -590,7 +590,7 @@ module DataMapper
     # @api public
     def clear
       if loaded?
-        each { |r| orphan_resource(r) }
+        orphan_resources(self)
       end
       super
     end
