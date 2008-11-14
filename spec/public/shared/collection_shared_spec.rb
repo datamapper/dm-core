@@ -1949,22 +1949,32 @@ share_examples_for 'A Collection' do
   end
 
   describe '#update' do
-    before do
-      pending 'TODO: implement DataMapper::Collection#update' do
-        @return = @articles.update(:title => 'Updated Title')
+    describe 'with no arguments' do
+      before do
+        @return = @articles.update
+      end
+
+      it 'should return false' do
+        @return.should be_false
       end
     end
 
-    it 'should return true' do
-      @return.should be_true
-    end
+    describe 'with arguments' do
+      before do
+        @return = @articles.update(:title => 'Updated Title')
+      end
 
-    it 'should update attributes of all Resources' do
-      @articles.each { |r| r.title.should == 'Updated Title' }
-    end
+      it 'should return true' do
+        @return.should be_true
+      end
 
-    it 'should persist the changes' do
-      @model.get(*@article.key).title.should == 'Updated Title'
+      it 'should update attributes of all Resources' do
+        @articles.each { |r| r.title.should == 'Updated Title' }
+      end
+
+      it 'should persist the changes' do
+        @model.get(*@article.key).title.should == 'Updated Title'
+      end
     end
   end
 
@@ -1978,8 +1988,8 @@ share_examples_for 'A Collection' do
         @return = @articles.update!
       end
 
-      it 'should return true' do
-        @return.should be_true
+      it 'should return false' do
+        @return.should be_false
       end
     end
 

@@ -623,7 +623,7 @@ module DataMapper
     end
 
     ##
-    # Update every Resource in the Collection (TODO)
+    # Update every Resource in the Collection
     #
     #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
@@ -633,7 +633,11 @@ module DataMapper
     #
     # @api public
     def update(attributes = {})
-      raise NotImplementedError, 'update *with* validations has not be written yet, try update!'
+      if attributes.empty?
+        false
+      else
+        all? { |r| r.update_attributes(attributes) }
+      end
     end
 
     ##
@@ -647,7 +651,9 @@ module DataMapper
     #
     # @api public
     def update!(attributes = {})
-      unless attributes.empty?
+      if attributes.empty?
+        false
+      else
         dirty_attributes = {}
 
         model.properties(repository.name).each do |property|
@@ -655,14 +661,15 @@ module DataMapper
           dirty_attributes[property] = attributes[property.name]
         end
 
-        changed = repository.update(dirty_attributes, scoped_query)
+        resources_updated = repository.update(dirty_attributes, scoped_query)
 
-        if loaded? && changed > 0
+        if loaded?
           each { |r| r.attributes = attributes }
+          resources_updated == size
+        else
+          true
         end
       end
-
-      true
     end
 
     ##
@@ -675,9 +682,9 @@ module DataMapper
     #
     # @api public
     def destroy
-      destroyed = all? { |r| r.destroy }
+      all_destroyed = all? { |r| r.destroy }
       clear
-      destroyed
+      all_destroyed
     end
 
     ##
@@ -693,7 +700,7 @@ module DataMapper
     def destroy!
       resources_destroyed = repository.delete(scoped_query)
 
-      if loaded? && resources_destroyed > 0
+      all_destroyed = if loaded?
         each do |r|
           # TODO: move this logic to a semipublic method in Resource
           r.instance_variable_set(:@new_record, true)
@@ -705,11 +712,15 @@ module DataMapper
             r.dirty_attributes[property] = property.get(r)
           end
         end
+
+        resources_destroyed == size
+      else
+        true
       end
 
       clear
 
-      true
+      all_destroyed
     end
 
     ##
