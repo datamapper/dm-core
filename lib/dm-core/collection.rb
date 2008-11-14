@@ -666,7 +666,7 @@ module DataMapper
     end
 
     ##
-    # Remove all Resources from the repository (TODO)
+    # Remove all Resources from the repository
     #
     # This performs a deletion of each Resource in the Collection from
     # the repository and clears the Collection.
@@ -675,7 +675,9 @@ module DataMapper
     #
     # @api public
     def destroy
-      raise NotImplementedError, 'destroy *with* validations has not be written yet, try destroy!'
+      destroyed = all? { |r| r.destroy }
+      clear
+      destroyed
     end
 
     ##
@@ -683,20 +685,15 @@ module DataMapper
     #
     # This performs a deletion of each Resource in the Collection from
     # the repository and clears the Collection while skipping foreign
-    # key validation (TODO).
+    # key validation.
     #
     # @return [TrueClass, FalseClass] true if all Resources were deleted
     #
     # @api public
     def destroy!
-      deleted = repository.delete(scoped_query)
+      resources_destroyed = repository.delete(scoped_query)
 
-      if loaded? && deleted > 0
-        # TODO: should this delete all the entries?  In the case where the
-        # collection is not loaded, when it is asked to lazy-load it will
-        # be empty, so perhaps this should have the same end result if
-        # loaded
-
+      if loaded? && resources_destroyed > 0
         each do |r|
           # TODO: move this logic to a semipublic method in Resource
           r.instance_variable_set(:@new_record, true)

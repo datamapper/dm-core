@@ -550,9 +550,7 @@ share_examples_for 'A Collection' do
 
   describe '#destroy' do
     before do
-      pending 'TODO: implement DataMapper::Collection#destroy' do
-        @return = @articles.destroy
-      end
+      @return = @articles.destroy
     end
 
     it 'should return true' do
