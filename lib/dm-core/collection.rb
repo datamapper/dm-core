@@ -177,8 +177,6 @@ module DataMapper
     #
     # @api public
     def first(*args)
-      # TODO: can this use the logic in slice instead?
-
       limit      = args.first if args.first.kind_of?(Integer)
       with_query = args.last.respond_to?(:merge)
 
@@ -219,8 +217,6 @@ module DataMapper
     #
     # @api public
     def last(*args)
-      # TODO: can this use the logic in slice instead?
-
       limit      = args.first if args.first.kind_of?(Integer)
       with_query = args.last.respond_to?(:merge)
 
