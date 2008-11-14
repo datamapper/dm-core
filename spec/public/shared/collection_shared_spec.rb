@@ -1,3 +1,12 @@
+module CollectionSharedSpec
+  module GroupMethods
+    def self.extended(base)
+      base.class_inheritable_accessor :loaded
+      base.loaded = false
+    end
+  end
+end
+
 share_examples_for 'A Collection' do
   before do
     %w[ @model @article @other @articles @other_articles ].each do |ivar|
@@ -176,11 +185,11 @@ share_examples_for 'A Collection' do
         @resource.collection.should be_equal(@articles)
       end
 
-      it 'should be a kicker' do
-        unless @loaded
-          skip_class = DataMapper::Collection
-          pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
-            @articles.should be_loaded
+      unless loaded
+        it 'should not be a kicker' do
+          skip = [ DataMapper::Associations::OneToMany::Proxy, DataMapper::Associations::ManyToMany::Proxy ]
+          pending_if "TODO: fix in #{@articles.class}", skip.any? { |c| @articles.class == c } do
+            @articles.should_not be_loaded
           end
         end
       end
@@ -203,8 +212,8 @@ share_examples_for 'A Collection' do
         @resource.collection.should be_equal(@articles)
       end
 
-      it 'should not be a kicker' do
-        unless @loaded
+      unless loaded
+        it 'should not be a kicker' do
           skip = [ DataMapper::Associations::OneToMany::Proxy, DataMapper::Associations::ManyToMany::Proxy ]
           pending_if "TODO: fix in #{@articles.class}", skip.any? { |c| @articles.class == c } do
             @articles.should_not be_loaded
@@ -230,11 +239,11 @@ share_examples_for 'A Collection' do
         @resource.collection.should be_equal(@articles)
       end
 
-      it 'should be a kicker' do
-        unless @loaded
-          skip_class = DataMapper::Collection
-          pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
-            @articles.should be_loaded
+      unless loaded
+        it 'should not be a kicker' do
+          skip = [ DataMapper::Associations::OneToMany::Proxy, DataMapper::Associations::ManyToMany::Proxy ]
+          pending_if "TODO: fix in #{@articles.class}", skip.any? { |c| @articles.class == c } do
+            @articles.should_not be_loaded
           end
         end
       end
@@ -257,8 +266,8 @@ share_examples_for 'A Collection' do
         @resource.collection.should be_equal(@articles)
       end
 
-      it 'should not be a kicker' do
-        unless @loaded
+      unless loaded
+        it 'should not be a kicker' do
           skip = [ DataMapper::Associations::OneToMany::Proxy, DataMapper::Associations::ManyToMany::Proxy ]
           pending_if "TODO: fix in #{@articles.class}", skip.any? { |c| @articles.class == c } do
             @articles.should_not be_loaded
@@ -1029,6 +1038,89 @@ share_examples_for 'A Collection' do
 
       it 'should orphan the Resources' do
         @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
+    end
+  end
+
+  it 'should respond to a public model method with #method_missing' do
+    @articles.should respond_to(:base_model)
+  end
+
+  it 'should respond to a belongs_to relationship method with #method_missing' do
+    @articles.should respond_to(:original)
+  end
+
+  it 'should respond to a has relationship method with #method_missing' do
+    @articles.should respond_to(:revisions)
+  end
+
+  describe '#method_missing' do
+    describe 'with a public model method' do
+      before do
+        @return = @articles.base_model
+      end
+
+      it 'should return expected object' do
+        @return.should == @model
+      end
+    end
+
+    describe 'with a belongs_to relationship method' do
+      before do
+        @return = @collection = @articles.original
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return expected Collection' do
+        skip = [ DataMapper::Collection, DataMapper::Associations::OneToMany::Proxy ]
+        pending_if 'TODO: fix logic to return correct entries', skip.any? { |c| @articles.class == c } do
+          @collection.should == []
+        end
+      end
+    end
+
+    describe 'with a has relationship method' do
+      describe 'with no arguments' do
+        before do
+          @return = @articles.revisions
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          pending 'TODO: fix logic to return correct entries' do
+            @collection.should == []
+          end
+        end
+      end
+
+      describe 'with arguments' do
+        before do
+          @return = @articles.revisions(:fields => [ :id ])
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          pending 'TODO: fix logic to return correct entries' do
+            @collection.should == []
+          end
+        end
+      end
+    end
+
+    describe 'with an unknown method' do
+      it 'should raise an exception' do
+        lambda {
+          @articles.unknown
+        }.should raise_error(NoMethodError)
       end
     end
   end

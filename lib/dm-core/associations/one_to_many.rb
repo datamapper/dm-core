@@ -442,16 +442,6 @@ module DataMapper
         # TODO: document
         # @api public
         def method_missing(method, *args, &block)
-          if children.respond_to?(method)
-            delegate_to_children(method, *args, &block)
-          else
-            super
-          end
-        end
-
-        # TODO: document
-        # @api private
-        def delegate_to_children(method, *args, &block)
           results = children.__send__(method, *args, &block)
 
           if LazyArray::RETURN_SELF.include?(method) && results.kind_of?(Array)

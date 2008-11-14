@@ -251,7 +251,7 @@ module DataMapper
     #
     # @api public
     def at(offset)
-      if loaded? || lazy_possible?(*offset >= 0 ? [ head, offset + 1 ] : [ tail, offset.abs ])
+      if loaded? || (offset >= 0 ? lazy_possible?(head, offset + 1) : lazy_possible?(tail, offset.abs))
         super
       elsif offset >= 0
         first(:offset => offset)
@@ -795,7 +795,7 @@ module DataMapper
     #
     # @return [DataMapper::Collection] self
     #
-    # @api public
+    # @api semipublic
     def initialize(query, resources = nil)
       assert_kind_of 'query',     query,     Query
       assert_kind_of 'resources', resources, Array if resources
