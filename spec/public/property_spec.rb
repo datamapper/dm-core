@@ -5,19 +5,32 @@ describe DataMapper::Property do
   # define the model prior to supported_by
   before do
     Object.send(:remove_const, :Track) if defined?(Track)
+    Object.send(:remove_const, :Image) if defined?(Image)
     class Track
       include DataMapper::Resource
 
-      property :id,     Serial
-      property :artist, String
-      property :title,  String, :field => 'name'
-      property :album,  String
+      property :id,               Serial
+      property :artist,           String, :lazy => false, :index => :artist_album
+      property :title,            String, :field => "name", :index => true
+      property :album,            String, :index => :artist_album
+      property :musicbrainz_hash, String, :unique => true, :unique_index => true
+    end
+
+    class Image
+      include DataMapper::Resource
+
+      property :md5hash,      String, :key => true, :length => 32
+      property :title,        String, :nullable => false, :unique => true
+      property :description,  Text,   :length => 1..1024, :lazy => true
+
     end
   end
 
   supported_by :all do
     describe "#field" do
-      it "returns @field value if it is present"
+      it "returns @field value if it is present" do
+        Track.properties[:title].field.should eql("name")
+      end
 
       it 'returns field for specific repository when it is present'
 
@@ -25,69 +38,121 @@ describe DataMapper::Property do
     end
 
     describe "#unique" do
-      it "is true for fields that explicitly given uniq index"
+      it "is true for fields that explicitly given uniq index" do
+        Track.properties[:musicbrainz_hash].unique.should be_true
+      end
 
-      it "is true for serial fields"
+      it "is true for serial fields" do
+        Track.properties[:title].unique.should be_true
+      end
 
-      it "is true for keys"
+      it "is true for keys" do
+        Image.properties[:md5hash].unique.should be_true
+      end
     end
 
     describe "#hash" do
       it 'triggers binding of unbound custom types'
 
-      it 'concats hashes of model name and property name'
+      it 'concats hashes of model name and property name' do
+        Track.properties[:id].hash.should eql(Track.hash + :id.hash)
+      end
     end
 
     describe "#equal?" do
-      it 'is true for properties with the same model and name'
+      it 'is true for properties with the same model and name' do
+        Track.properties[:title].should eql(Track.properties[:title])
+      end
 
-      it 'is false for properties of different models'
 
-      it 'is false for properties with different names'
+      it 'is false for properties of different models' do
+        Track.properties[:title].should_not eql(Image.properties[:title])
+      end
+
+      it 'is false for properties with different names' do
+        Track.properties[:title].should_not eql(Track.properties[:id])
+      end
     end
 
     describe "#length" do
-      it 'returns upper bound for Range values'
+      it 'returns upper bound for Range values' do
+        Image.properties[:description].length.should be(1024)
+      end
 
-      it 'returns value as is for integer values'
+      it 'returns value as is for integer values' do
+        Image.properties[:md5hash].length.should be(32)
+      end
     end
 
     describe "#index" do
-      it 'returns index name when property has an index'
+      it 'returns true when property has an index' do
+        Track.properties[:title].index.should be_true
+      end
 
-      it 'returns nil when property has no index'
+      it 'returns index name when property has a named index' do
+        Track.properties[:album].index.should eql(:artist_album)
+      end
+
+      it 'returns nil when property has no index' do
+        Track.properties[:musicbrainz_hash].index.should be_nil
+      end
     end
 
     describe "#unique_index" do
-      it 'returns true when property has unique index'
+      it 'returns true when property has unique index' do
+        Track.properties[:musicbrainz_hash].unique_index.should be_true
+      end
 
-      it 'returns false when property has no unique index'
+      it 'returns false when property has no unique index' do
+        Image.properties[:title].unique_index.should be_false
+      end
     end
 
     describe "#lazy?" do
-      it 'returns true when property is lazy loaded'
+      it 'returns true when property is lazy loaded' do
+        Image.properties[:description].lazy?.should be_true
+      end
 
-      it 'returns false when property is not lazy loaded'
+      it 'returns false when property is not lazy loaded' do
+        Track.properties[:artist].lazy?.should be_false
+      end
     end
 
     describe "#key?" do
-      it 'returns true when property is a key'
+      describe 'returns true when property is a ' do
+        it "serial key" do
+          Track.properties[:id].key?.should be_true
+        end
+        it "natural key" do
+          Image.properties[:md5hash].key?.should be_true
+        end
+      end
 
       it 'returns true when property is a part of composite key'
 
-      it 'returns false when property does not relate to a key'
+      it 'returns false when property does not relate to a key' do
+        Track.properties[:title].key?.should be_false
+      end
     end
 
     describe "#serial?" do
-      it 'returns true when property is serial (auto incrementing)'
+      it 'returns true when property is serial (auto incrementing)' do
+        Track.properties[:id].serial?.should be_true
+      end
 
-      it 'returns false when property is NOT serial (auto incrementing)'
+      it 'returns false when property is NOT serial (auto incrementing)' do
+        Image.properties[:md5hash].serial?.should be_false
+      end
     end
 
     describe "#nullable?" do
-      it 'returns true when property can accept nil as its value'
+      it 'returns true when property can accept nil as its value' do
+        Track.properties[:artist].nullable?.should be_true
+      end
 
-      it 'returns false when property nil value is prohibited for this property'
+      it 'returns false when property nil value is prohibited for this property' do
+        Image.properties[:title].nullable?.should be_false
+      end
     end
 
     describe "#custom?" do
