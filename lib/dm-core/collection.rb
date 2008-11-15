@@ -183,7 +183,7 @@ module DataMapper
       query = with_query ? args.last : {}
       query = scoped_query(query.merge(:limit => limit || 1))
 
-      if !with_query && (loaded? || lazy_possible?(head, *args))
+      if !with_query && (loaded? || lazy_possible?(head, limit || 1))
         if limit
           self.class.new(query, super(limit))
         else
@@ -226,7 +226,7 @@ module DataMapper
       # tell the Query to prepend each result from the adapter
       query.update(:add_reversed => !query.add_reversed?)
 
-      if !with_query && (loaded? || lazy_possible?(tail, *args))
+      if !with_query && (loaded? || lazy_possible?(tail, limit || 1))
         if limit
           self.class.new(query, super(limit))
         else
