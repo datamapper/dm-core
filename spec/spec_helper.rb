@@ -5,7 +5,7 @@ require 'pathname'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 require SPEC_ROOT.parent + 'lib/dm-core'
-Pathname.glob(SPEC_ROOT + '{lib,*/shared}/**/*.rb').each { |f| require f }
+Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |f| require f }
 
 # create sqlite3_fs directory if it doesn't exist
 SPEC_ROOT.join('db').mkpath

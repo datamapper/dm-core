@@ -639,7 +639,7 @@ module DataMapper
     class Path
       include Assertions
 
-   %w[ id type ].each { |m| undef_method m }
+      (%w[ id type ] & public_instance_methods(false).map { |m| m.to_s }).each { |m| undef_method m }
 
       attr_reader :relationships, :model, :property, :operator
 
