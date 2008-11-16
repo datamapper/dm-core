@@ -20,7 +20,7 @@ end
 
 # run the specs once with a loaded association and once not
 [ false, true ].each do |loaded|
-  describe DataMapper::Associations::OneToMany::Proxy do
+  describe 'One to Many Associations' do
     extend CollectionSharedSpec::GroupMethods
 
     self.loaded = loaded

@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
 # TODO: test loaded and unloaded behavior
 
-describe DataMapper::Associations::ManyToOne::Proxy do
+describe 'Many to One Associations' do
 
   # define the model prior to with_adapters
   before do
