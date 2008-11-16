@@ -240,9 +240,9 @@ describe DataMapper::Transaction do
         @transaction_primitive.should_receive(:begin)
         @transaction_primitive.should_receive(:rollback)
         @transaction_primitive.should_receive(:close)
-        p = Proc.new do raise "test exception, never mind me" end
-        @transaction.should_receive(:within).with(&p)
-        lambda do @transaction.commit(&p) end.should raise_error(Exception, /test exception, never mind me/)
+        p = Proc.new do end
+        @transaction.should_receive(:within).with(&p).and_raise(Exception.new('test exception, never mind me'))
+        lambda { @transaction.commit(&p) }.should raise_error(Exception, /test exception, never mind me/)
       end
     end
   end
@@ -280,8 +280,8 @@ describe DataMapper::Transaction do
   describe "#method_missing" do
     before :each do
       @transaction = DataMapper::Transaction.new(@adapter, @repository)
-      @adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::AnyArgsConstraint).and_return(false)
-      @adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::NoArgsConstraint).and_return(false)
+      @adapter.should_receive(:is_a?).any_number_of_times.with(any_args).and_return(false)
+      @adapter.should_receive(:is_a?).any_number_of_times.with(no_args).and_return(false)
       @adapter.should_receive(:is_a?).any_number_of_times.with(Regexp).and_return(false)
     end
     it "should delegate calls to [a method we have]_if_[state](adapter) to [a method we have](adapter) if state of adapter is [state]" do
@@ -326,11 +326,11 @@ describe DataMapper::Transaction do
   describe "#each_adapter" do
     before :each do
       @transaction = DataMapper::Transaction.new(@adapter, @repository)
-      @adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::AnyArgsConstraint).and_return(false)
-      @adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::NoArgsConstraint).and_return(false)
+      @adapter.should_receive(:is_a?).any_number_of_times.with(any_args).and_return(false)
+      @adapter.should_receive(:is_a?).any_number_of_times.with(no_args).and_return(false)
       @adapter.should_receive(:is_a?).any_number_of_times.with(Regexp).and_return(false)
-      @repository_adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::AnyArgsConstraint).and_return(false)
-      @repository_adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::NoArgsConstraint).and_return(false)
+      @repository_adapter.should_receive(:is_a?).any_number_of_times.with(any_args).and_return(false)
+      @repository_adapter.should_receive(:is_a?).any_number_of_times.with(no_args).and_return(false)
       @repository_adapter.should_receive(:is_a?).any_number_of_times.with(Regexp).and_return(false)
     end
     it "should send the first argument to itself once for each adapter" do
@@ -386,8 +386,8 @@ describe DataMapper::Transaction do
   describe "#do_adapter" do
     before :each do
       @transaction = DataMapper::Transaction.new(@adapter, @repository)
-      @adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::AnyArgsConstraint).and_return(false)
-      @adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::NoArgsConstraint).and_return(false)
+      @adapter.should_receive(:is_a?).any_number_of_times.with(any_args).and_return(false)
+      @adapter.should_receive(:is_a?).any_number_of_times.with(no_args).and_return(false)
       @adapter.should_receive(:is_a?).any_number_of_times.with(Regexp).and_return(false)
     end
     it "should raise if there is no connection for the adapter" do
@@ -447,8 +447,8 @@ describe DataMapper::Transaction do
       @other_adapter = mock("adapter")
       @other_adapter.should_receive(:is_a?).any_number_of_times.with(Array).and_return(false)
       @other_adapter.should_receive(:is_a?).any_number_of_times.with(DataMapper::Adapters::AbstractAdapter).and_return(true)
-      @other_adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::AnyArgsConstraint).and_return(false)
-      @other_adapter.should_receive(:is_a?).any_number_of_times.with(Spec::Mocks::NoArgsConstraint).and_return(false)
+      @other_adapter.should_receive(:is_a?).any_number_of_times.with(any_args).and_return(false)
+      @other_adapter.should_receive(:is_a?).any_number_of_times.with(no_args).and_return(false)
       @other_adapter.should_receive(:is_a?).any_number_of_times.with(Regexp).and_return(false)
       @transaction = DataMapper::Transaction.new(@other_adapter)
     end

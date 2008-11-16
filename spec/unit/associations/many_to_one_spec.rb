@@ -19,7 +19,7 @@ describe DataMapper::Associations::ManyToOne::Proxy do
 
   before do
     @child        = mock('child', :kind_of? => true)
-    @parent       = mock('parent')
+    @parent       = mock('parent', :nil? => false, :new_record? => false)
     @relationship = mock('relationship', :kind_of? => true, :get_parent => @parent, :attach_parent => nil)
     @association  = DataMapper::Associations::ManyToOne::Proxy.new(@relationship, @child)
 
@@ -62,7 +62,7 @@ describe DataMapper::Associations::ManyToOne::Proxy do
   describe '#save' do
     describe 'when the parent is nil' do
       before do
-        @parent.should_receive(:nil?).with(no_args).and_return(true)
+        @parent.stub!(:nil?).and_return(true)
       end
 
       it 'should not save the parent' do

@@ -125,16 +125,18 @@ module DataMapper
           return uri_or_options
         end
 
-        adapter  = uri_or_options.delete(:adapter).to_s
-        user     = uri_or_options.delete(:username)
-        password = uri_or_options.delete(:password)
-        host     = uri_or_options.delete(:host)
-        port     = uri_or_options.delete(:port)
-        database = uri_or_options.delete(:database)
-        query    = uri_or_options.to_a.map { |pair| pair * '=' } * '&'
-        query    = nil if query == ''
+        query = uri_or_options.except(:adapter, :username, :password, :host, :port, :database).map { |pair| pair.join('=') }.join('&')
+        query = nil if query.blank?
 
-        return DataObjects::URI.parse(Addressable::URI.new(adapter, user, password, host, port, database, query, nil))
+        return DataObjects::URI.parse(Addressable::URI.new(
+          :scheme   => uri_or_options[:adapter].to_s,
+          :user     => uri_or_options[:username],
+          :password => uri_or_options[:password],
+          :host     => uri_or_options[:host],
+          :port     => uri_or_options[:port],
+          :path     => uri_or_options[:database],
+          :query    => query
+        ))
       end
 
       # TODO: clean up once transaction related methods move to dm-more/dm-transactions
