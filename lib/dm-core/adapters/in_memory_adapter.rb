@@ -26,12 +26,16 @@ module DataMapper
         repository_name = self.name
 
         resources.each do |resource|
+          records = model_records(resource.model)
+
           # TODO: make a model.identity_field method
-          if identity_field = resource.model.key(repository.name).detect { |p| p.serial? }
-            identity_field.set!(resource, @records[resource.model].size.succ)
+          if identity_field = resource.model.key(repository_name).detect { |p| p.serial? }
+            identity_field.set!(resource, records.size.succ)
           end
 
-          @records[resource.model][resource.key] = resource.dirty_attributes.map { |p,v| [ p.field(repository_name), v ] }.to_hash
+          # copy the userspace Resource so that if we call #update we
+          # don't silently change the data in userspace
+          records[resource.key] = resource.dup
         end
 
         resources.size
@@ -52,12 +56,11 @@ module DataMapper
       #
       # @api semipublic
       def update(attributes, query)
-        repository_name = query.repository.name
-        records         = @records[query.model]
-        attributes      = attributes.map { |p,v| [ p.field(repository_name), v ] }.to_hash
+        records = model_records(query.model)
 
-        resources = read_many(query).each do |resource|
-          records[resource.key].update(attributes)
+        resources = read_many(query).each do |r|
+          resource = records[r.key]
+          attributes.each { |p,v| p.set!(resource, v) }
         end
 
         resources.size
@@ -109,19 +112,14 @@ module DataMapper
       #
       # @api semipublic
       def delete(query)
-        records = @records[query.model]
-
-        resources = read_many(query).each do |resource|
-          records.delete(resource.key)
-        end
-
-        resources.size
+        records = model_records(query.model)
+        read_many(query).each { |r| records.delete(r.key) }.size
       end
 
       private
 
       ##
-      # Make a new instance of the adapter. The @records ivar is the 'data-store'
+      # Make a new instance of the adapter. The @model_records ivar is the 'data-store'
       # for this adapter. It is not shared amongst multiple incarnations of this
       # adapter, eg DataMapper.setup(:default, :adapter => :in_memory);
       # DataMapper.setup(:alternate, :adapter => :in_memory) do not share the
@@ -136,7 +134,7 @@ module DataMapper
       # @api semipublic
       def initialize(name, uri_or_options)
         super
-        @records = Hash.new { |hash,model| hash[model] = {} }
+        @model_records = {}
       end
 
       ##
@@ -152,15 +150,14 @@ module DataMapper
       #
       # @api private
       def read(query, collection, many = true)
-        repository_name = query.repository.name
-        conditions      = query.conditions
+        conditions = query.conditions
 
         # find all matching records
-        results = @records[query.model].values.select do |attributes|
-          conditions.all? do |tuple|
-            operator, property, bind_value = *tuple
+        resources = model_records(query.model).values.select do |resource|
+          conditions.all? do |condition|
+            operator, property, bind_value = *condition
 
-            value = attributes[property.field(repository_name)]
+            value = property.get!(resource)
 
             case operator
               when :eql, :in then equality_comparison(bind_value, value)
@@ -174,27 +171,28 @@ module DataMapper
           end
         end
 
-        # sort the results
-        if query.order.any?
-          results = sorted_results(results, query.order, repository_name)
-        end
-
         # if the requested resource is outside the range of available
-        # records return nil
-        if query.offset > results.size - 1
+        # resources return nil
+        if query.offset > resources.size - 1
           return
         end
 
-        # limit the results
+        # sort the resources
+        if query.order.any?
+          resources = sorted_resources(resources, query.order)
+        end
+
+        # limit the resources
         if query.limit || query.offset > 0
-          results = results[query.offset, query.limit || results.size]
+          resources = resources[query.offset, query.limit || resources.size]
         end
 
         properties = query.fields
 
         # load a Resource for each result
-        results.each do |attributes|
-          values = properties.map { |p| attributes[p.field(repository_name)] }
+        resources.each do |resource|
+          # copy the value from the InMemoryAdapter Resource
+          values = properties.map { |p| p.get!(resource) }
           many ? collection.load(values) : (break collection.load(values, query))
         end
       end
@@ -210,16 +208,16 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def sorted_results(results, order, repository_name)
-        # get each field and if it's sorted in descending/ascending order
-        field_order = field_order(order, repository_name)
+      def sorted_resources(resources, order)
+        sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
 
-        # sort results by each field
-        results.sort do |a,b|
+        # sort resources by each property
+        resources.sort do |a,b|
           cmp = 0
-          field_order.each do |(field,descending)|
-            cmp = descending ? b[field] <=> a[field] : a[field] <=> b[field]
+          sort_order.each do |(property,descending)|
+            cmp = property.get!(a) <=> property.get!(b)
             next if cmp == 0
+            cmp *= -1 if descending
           end
           cmp
         end
@@ -227,10 +225,8 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def field_order(order, repository_name)
-        order.map do |item|
-          [ item.property.field(repository_name), item.direction == :desc ]
-        end
+      def model_records(model)
+        @model_records[model] ||= {}
       end
     end
   end
