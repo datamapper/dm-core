@@ -629,14 +629,14 @@ module DataMapper
     #
     # @param [Hash] attributes attributes to update with
     #
-    # @return [TrueClass, FalseClass] true if all Resources were updated
+    # @return [TrueClass, FalseClass] true if successful
     #
     # @api public
     def update(attributes = {})
       if attributes.empty?
         false
       else
-        all? { |r| r.update_attributes(attributes) }
+        any? { |r| r.update_attributes(attributes) }
       end
     end
 
@@ -647,7 +647,7 @@ module DataMapper
     #
     # @param [Hash] attributes attributes to update
     #
-    # @return [TrueClass, FalseClass] true if all Resources were updated
+    # @return [TrueClass, FalseClass] true if successful
     #
     # @api public
     def update!(attributes = {})
@@ -661,13 +661,13 @@ module DataMapper
           dirty_attributes[property] = attributes[property.name]
         end
 
-        resources_updated = repository.update(dirty_attributes, scoped_query)
-
-        if loaded?
-          each { |r| r.attributes = attributes }
-          resources_updated == size
-        else
+        if repository.update(dirty_attributes, query) > 0
+          if loaded?
+            each { |r| r.attributes = attributes }
+          end
           true
+        else
+          false
         end
       end
     end
@@ -678,13 +678,16 @@ module DataMapper
     # This performs a deletion of each Resource in the Collection from
     # the repository and clears the Collection.
     #
-    # @return [TrueClass, FalseClass] true if all Resources were deleted
+    # @return [TrueClass, FalseClass] true if successful
     #
     # @api public
     def destroy
-      all_destroyed = all? { |r| r.destroy }
-      clear
-      all_destroyed
+      if any? { |r| r.destroy }
+        clear
+        true
+      else
+        false
+      end
     end
 
     ##
@@ -694,33 +697,31 @@ module DataMapper
     # the repository and clears the Collection while skipping foreign
     # key validation.
     #
-    # @return [TrueClass, FalseClass] true if all Resources were deleted
+    # @return [TrueClass, FalseClass] true if successful
     #
     # @api public
     def destroy!
-      resources_destroyed = repository.delete(scoped_query)
+      if repository.delete(query) > 0
+        if loaded?
+          each do |r|
+            # TODO: move this logic to a semipublic method in Resource
+            r.instance_variable_set(:@new_record, true)
+            repository.identity_map(model).delete(r.key)
+            r.dirty_attributes.clear
 
-      all_destroyed = if loaded?
-        each do |r|
-          # TODO: move this logic to a semipublic method in Resource
-          r.instance_variable_set(:@new_record, true)
-          repository.identity_map(model).delete(r.key)
-          r.dirty_attributes.clear
-
-          model.properties(repository.name).each do |property|
-            next unless r.attribute_loaded?(property.name)
-            r.dirty_attributes[property] = property.get(r)
+            model.properties(repository.name).each do |property|
+              next unless r.attribute_loaded?(property.name)
+              r.dirty_attributes[property] = property.get(r)
+            end
           end
         end
 
-        resources_destroyed == size
-      else
+        clear
+
         true
+      else
+        false
       end
-
-      clear
-
-      all_destroyed
     end
 
     ##
