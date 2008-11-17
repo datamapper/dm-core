@@ -35,6 +35,7 @@ module DataMapper
     # it gets all the methods
     #
     # @api private
+    # TODO: move logic to Model#extended
     def self.included(model)
       model.extend Model
       model.extend ClassMethods if defined?(ClassMethods)
@@ -68,8 +69,12 @@ module DataMapper
     # +---------------
     # Instance methods
 
+    # TODO: document
+    # @api private
     attr_writer :collection
 
+    # TODO: document
+    # @api public
     alias model class
 
     # returns the value of the attribute. Do not read from instance variables directly,
@@ -100,7 +105,7 @@ module DataMapper
     #     end
     #   end
     #
-    # @api semipublic
+    # @api public
     def attribute_get(name)
       properties[name].get(self)
     end
@@ -140,7 +145,7 @@ module DataMapper
     #     end
     #   end
     #
-    # @api semipublic
+    # @api public
     def attribute_set(name, value)
       properties[name].set(self, value)
     end
@@ -212,7 +217,7 @@ module DataMapper
     # ==== Returns
     # <Repository>:: the respository this resource belongs to in the context of a collection OR in the class's context
     #
-    # @api public
+    # @api semipublic
     def repository
       @repository || model.repository
     end
@@ -232,10 +237,14 @@ module DataMapper
       end
     end
 
+    # TODO: remove in favor of using #freeze
+    # @api private
     def readonly!
       @readonly = true
     end
 
+    # TODO: remove in favor of using #frozen?
+    # @api private
     def readonly?
       @readonly == true
     end
@@ -307,7 +316,7 @@ module DataMapper
     #
     #   Foo.new.attribute_loaded?(:description) # will return false
     #
-    # @api public
+    # @api private
     def attribute_loaded?(name)
       instance_variable_defined?(properties[name].instance_variable_name)
     end
@@ -328,7 +337,7 @@ module DataMapper
     #
     #   Foo.new.loaded_attributes # returns [:name]
     #
-    # @api public
+    # @api private
     def loaded_attributes
       properties.map{|p| p.name if attribute_loaded?(p.name)}.compact
     end
@@ -338,7 +347,7 @@ module DataMapper
     # ==== Returns
     # Hash:: original values of properties
     #
-    # @api public
+    # @api semipublic
     def original_values
       @original_values ||= {}
     end
@@ -348,7 +357,7 @@ module DataMapper
     # ==== Returns
     # Hash:: attributes that have been marked dirty
     #
-    # @api private
+    # @api semipublic
     def dirty_attributes
       dirty_attributes = {}
       properties       = self.properties
@@ -395,6 +404,8 @@ module DataMapper
       new_record? || dirty_attributes.has_key?(properties[name])
     end
 
+    # TODO: document
+    # @api private
     def collection
       @collection ||= if query = to_query
         Collection.new(query, [ self ])
@@ -424,7 +435,7 @@ module DataMapper
     # ==== Returns
     # self:: returns the class itself
     #
-    # @api public
+    # @api private
     def reload_attributes(*attributes)
       unless attributes.empty? || new_record?
         collection.reload(:fields => attributes)
@@ -483,6 +494,7 @@ module DataMapper
     # <TrueClass, FalseClass> if model got saved or not
     #
     # @api public
+    # TODO: deprecate and rename #update
     def update_attributes(hash, *update_only)
       unless hash.is_a?(Hash)
         raise ArgumentError, "Expecting the first parameter of " +
@@ -493,26 +505,35 @@ module DataMapper
       save
     end
 
-    # TODO: add docs
+    # TODO: document
+    # @api private
     def to_query(query = {})
       model.to_query(repository, key, query) unless new_record?
     end
 
     protected
 
+    # TODO: document
+    # @api private
     def properties
       model.properties(repository.name)
     end
 
+    # TODO: document
+    # @api private
     def key_properties
       model.key(repository.name)
     end
 
+    # TODO: document
+    # @api private
     def relationships
       model.relationships(repository.name)
     end
 
     # Needs to be a protected method so that it is hookable
+    # TODO: document
+    # @api public
     def create
       # Can't create a resource that is not dirty and doesn't have serial keys
       return false if new_record? && !dirty? && !model.key.any? { |p| p.serial? }
@@ -533,6 +554,8 @@ module DataMapper
     end
 
     # Needs to be a protected method so that it is hookable
+    # TODO: document
+    # @api public
     def update
       dirty_attributes = self.dirty_attributes
       return true if dirty_attributes.empty?
@@ -541,11 +564,15 @@ module DataMapper
 
     private
 
+    # TODO: document
+    # @api public
     def initialize(attributes = {}) # :nodoc:
       assert_valid_model
       self.attributes = attributes
     end
 
+    # TODO: move to Model#assert_valid
+    # @private
     def assert_valid_model # :nodoc:
       return if self.class._valid_model
       properties = self.properties
@@ -561,28 +588,32 @@ module DataMapper
       self.class.instance_variable_set("@_valid_model", true)
     end
 
-    # TODO document
-    #
-    # @api semipublic
+    # TODO: document
+    # @api private
     def attribute_get!(name)
       properties[name].get!(self)
     end
 
-    # TODO document
-    #
-    # @api semipublic
+    # TODO: document
+    # @api private
     def attribute_set!(name, value)
       properties[name].set!(self, value)
     end
 
+    # TODO: document
+    # @api private
     def lazy_load(name)
       reload_attributes(*properties.lazy_load_context(name) - loaded_attributes)
     end
 
+    # TODO: document
+    # @api private
     def child_associations
       @child_associations ||= []
     end
 
+    # TODO: document
+    # @api private
     def parent_associations
       @parent_associations ||= []
     end

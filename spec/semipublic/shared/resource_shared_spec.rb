@@ -5,27 +5,9 @@ share_examples_for 'A semipublic Resource' do
     end
   end
 
-  it { @user.should respond_to(:attribute_get) }
-
-  describe '#attribute_get' do
-
-    it { @user.attribute_get(:name).should == 'dbussink' }
-
-  end
-
-  it { @user.should respond_to(:attribute_set) }
-
-  describe '#attribute_set' do
-
-    before { @user.attribute_set(:name, 'dkubb') }
-
-    it { @user.name.should == 'dkubb' }
-
-  end
-
   it { @user.should respond_to(:dirty?) }
 
-  describe '#dirty' do
+  describe '#dirty?' do
 
     describe 'on a non-dirty record' do
 
@@ -53,7 +35,7 @@ share_examples_for 'A semipublic Resource' do
 
   it { @user.should respond_to(:attribute_dirty?) }
 
-  describe '#attribute_dirty' do
+  describe '#attribute_dirty?' do
 
     describe 'on a non-dirty record' do
 
@@ -119,6 +101,50 @@ share_examples_for 'A semipublic Resource' do
 
       it { @user.hash.should_not eql(@user2.hash) }
 
+    end
+
+  end
+
+  it { @user.should respond_to(:repository) }
+
+  describe "#repository" do
+
+    before(:each) do
+      Object.send(:remove_const, :Statistic) if defined?(Statistic)
+      class Statistic
+        include DataMapper::Resource
+
+        def self.default_repository_name ; :alternate ; end
+
+        property :id,    Serial
+        property :name,  String
+        property :value, Integer
+      end
+    end
+
+    with_alternate_adapter do
+      it "should return the default adapter when nothing is specified" do
+        User.create(:name => "carl").repository.should == repository(:default)
+        User.new.repository.should                     == repository(:default)
+        User.get("carl").repository.should             == repository(:default)
+      end
+
+      it "should return the default repository for the model" do
+        statistic = Statistic.create(:name => "visits", :value => 2)
+        statistic.repository.should        == repository(:alternate)
+        Statistic.new.repository.should    == repository(:alternate)
+        Statistic.get(1).repository.should == repository(:alternate)
+      end
+
+      it "should return the repository defined by the current context" do
+        repository(:alternate) do
+          User.new.repository.should                     == repository(:alternate)
+          User.create(:name => "carl").repository.should == repository(:alternate)
+          User.get("carl").repository.should             == repository(:alternate)
+        end
+
+        repository(:alternate) { User.get("carl") }.repository.should == repository(:alternate)
+      end
     end
 
   end

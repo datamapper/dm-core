@@ -5,6 +5,24 @@ share_examples_for 'A public Resource' do
     end
   end
 
+  it { @user.should respond_to(:attribute_get) }
+
+  describe '#attribute_get' do
+
+    it { @user.attribute_get(:name).should == 'dbussink' }
+
+  end
+
+  it { @user.should respond_to(:attribute_set) }
+
+  describe '#attribute_set' do
+
+    before { @user.attribute_set(:name, 'dkubb') }
+
+    it { @user.name.should == 'dkubb' }
+
+  end
+
   it { @user.should respond_to(:save) }
 
   describe '#save' do
@@ -304,7 +322,7 @@ share_examples_for 'A public Resource' do
 
   it { @user.should respond_to(:attributes=) }
 
-  describe '#attributes' do
+  describe '#attributes=' do
 
     before do
       @user.attributes = {:name => 'dkubb', :age => 30}
