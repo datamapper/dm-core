@@ -175,7 +175,7 @@ module DataMapper
     # ==== Returns
     # <Integer>:: the hash value of the resource
     #
-    # @api public
+    # @api semipublic
     def hash
       model.hash + key.hash
     end
@@ -377,7 +377,7 @@ module DataMapper
     # ==== Returns
     # True:: returns if class is dirty
     #
-    # @api public
+    # @api semipublic
     def dirty?
       new_record? || dirty_attributes.any?
     end
@@ -390,7 +390,7 @@ module DataMapper
     # ==== Returns
     # True:: returns if attribute is dirty
     #
-    # @api public
+    # @api semipublic
     def attribute_dirty?(name)
       new_record? || dirty_attributes.has_key?(properties[name])
     end

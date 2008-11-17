@@ -46,6 +46,6 @@ describe 'Many to One Associations' do
       @child_model = Comment
     end
 
-    it_should_behave_like 'A public Resource'
+    it_should_behave_like 'A semipublic Resource'
   end
 end

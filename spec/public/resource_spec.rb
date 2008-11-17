@@ -112,7 +112,7 @@ describe DataMapper::Resource do
       end
     end
 
-    it_should_behave_like 'A Resource'
+    it_should_behave_like 'A public Resource'
 
   end
 
