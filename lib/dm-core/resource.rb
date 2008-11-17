@@ -247,7 +247,10 @@ module DataMapper
       key.first if key.size == 1
     end
 
-    # Retrieve the key(s) for this resource
+    # Retrieve the key(s) for this resource.
+    # This always returns the persisted key value,
+    # even if the key is changed and not yet persisted.
+    # This is done so all relations still work.
     #
     # ==== Returns
     # <Array[Key]> the key(s) identifying this resource
@@ -419,7 +422,7 @@ module DataMapper
     #
     # @api public
     def attribute_dirty?(name)
-      dirty_attributes.has_key?(properties[name])
+      new_record? || dirty_attributes.has_key?(properties[name])
     end
 
     def collection

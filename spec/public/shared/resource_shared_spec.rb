@@ -196,12 +196,6 @@ share_examples_for 'A Resource' do
 
     end
 
-    describe 'with a belongs_to relation resource' do
-
-      it 'should be destroyed'
-
-    end
-
     describe 'with has relationship resources' do
 
       it 'should raise an exception'
@@ -210,7 +204,7 @@ share_examples_for 'A Resource' do
 
   end
 
-  [ :==, :eql? ].each do |method|
+  [ :==, :eql?, :=== ].each do |method|
 
     it { @user.should respond_to(method) }
 
@@ -311,11 +305,64 @@ share_examples_for 'A Resource' do
 
   it { @user.should respond_to(:key) }
 
+  describe '#key' do
+
+    before do
+      @key = @user.key
+      @user.name = 'dkubb'
+    end
+
+    it { @key.should be_kind_of(Array) }
+
+    it 'should always return the key value persisted in the back end' do
+      @key.first.should eql("dbussink")
+    end
+
+    it { @user.key.should eql(@key) }
+
+  end
+
   it { @user.should respond_to(:reload) }
+
+  describe '#reload' do
+
+    before do
+      @user.name = 'dkubb'
+      @user.reload
+    end
+
+    it { @user.name.should eql("dbussink")}
+
+    it 'should also reload previously loaded attributes' do
+      @user.attribute_loaded?(:description).should be_true
+    end
+
+  end
 
   it { @user.should respond_to(:attributes) }
 
+  describe '#attributes' do
+
+    it { @user.attributes.should == {:name => 'dbussink', :description => "Test", :age => 25} }
+
+  end
+
   it { @user.should respond_to(:attributes=) }
+
+  describe '#attributes' do
+
+    before do
+      @user.attributes = {:name => 'dkubb', :age => 30}
+    end
+
+    it { @user.name.should == "dkubb" }
+    it { @user.age.should == 30 }
+
+    it 'should raise an exception if an non-existent attribute is set' do
+      lambda { @user.attributes = {:nonexistent => 'value'} }.should raise_error
+    end
+
+  end
 
   it { @user.should respond_to(:new_record?) }
 
@@ -361,6 +408,59 @@ share_examples_for 'A Resource' do
 
       it { @user.should be_dirty }
 
+    end
+
+  end
+
+  it 'should respond to #attribute_dirty?'
+
+  describe '#attribute_dirty' do
+
+    describe 'on a non-dirty record' do
+
+      it { @user.attribute_dirty?(:age).should be_false }
+
+    end
+
+    describe 'on a dirty record' do
+
+      before { @user.age = 100 }
+
+      it { @user.attribute_dirty?(:age).should be_true }
+
+    end
+
+    describe 'on a new record' do
+
+      before { @user = User.new }
+
+      it { @user.attribute_dirty?(:age).should be_true }
+
+    end
+
+  end
+
+  describe 'invalid resources' do
+
+    before do
+      Object.send(:remove_const, :EmptyObject) if defined?(EmptyObject)
+      class EmptyObject
+        include DataMapper::Resource
+      end
+
+      Object.send(:remove_const, :KeylessObject) if defined?(KeylessObject)
+      class KeylessObject
+        include DataMapper::Resource
+        property :name, String
+      end
+    end
+
+    it 'should raise an error for a resource without attributes' do
+      lambda { EmptyObject.new }.should raise_error
+    end
+
+    it 'should raise an error for a resource without a key' do
+      lambda { KeylessObject.new }.should raise_error
     end
 
   end
