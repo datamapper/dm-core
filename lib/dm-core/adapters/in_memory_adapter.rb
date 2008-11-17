@@ -125,9 +125,9 @@ module DataMapper
       # DataMapper.setup(:alternate, :adapter => :in_memory) do not share the
       # data-store between them.
       #
-      # @param <String, Symbol> name
+      # @param [String, Symbol] name
       #   The name of the DataMapper::Repository using this adapter.
-      # @param <String, Hash> uri_or_options
+      # @param [String, Hash] uri_or_options
       #   The connection uri string, or a hash of options to set up
       #   the adapter
       #
@@ -138,9 +138,6 @@ module DataMapper
       end
 
       ##
-      # #TODO: Extract this into its own module, so it can be re-used in all
-      #        adapters that don't have a native query language
-      #
       # This is the normal way of parsing the DataMapper::Query object into
       # a set of conditions. This particular one translates it into ruby code
       # that can be performed on ruby objects. It can be reused in most other
@@ -148,8 +145,21 @@ module DataMapper
       # such as SQL, an adapter developer is probably better using this as an
       # example of how to parse the DataMapper::Query object.
       #
+      # @param [DataMapper::Query] query
+      #   The query to be used to seach for the resources
+      # @param [DataMapper::Collection,DataMapper::Model] container
+      #   The Collection or Model to load the Resource with
+      # @param [TrueClass,FalseClass] many
+      #   True if more than one Resource should be returned
+      #
+      # @return [DataMapper::Resource,DataMapper::Collection]
+      #   A Collection of all the resources or a Resource found by the query.
+      #
       # @api private
-      def read(query, collection, many = true)
+      def read(query, container, many = true)
+        # TODO: Extract this into its own module, so it can be re-used in all
+        # adapters that don't have a native query language
+
         conditions = query.conditions
 
         # find all matching records
@@ -193,11 +203,21 @@ module DataMapper
         resources.each do |resource|
           # copy the value from the InMemoryAdapter Resource
           values = properties.map { |p| p.get!(resource) }
-          many ? collection.load(values) : (break collection.load(values, query))
+          many ? container.load(values) : (break container.load(values, query))
         end
       end
 
-      # TODO: document
+      ##
+      # Compares two values and returns true if they are equal
+      #
+      # @param [Object] bind_value
+      #   The value we are comparing against
+      # @param [Object] value
+      #   The value we are comparing with
+      #
+      # @return [TrueClass,FalseClass]
+      #   Returns true if the values are equal
+      #
       # @api private
       def equality_comparison(bind_value, value)
         case bind_value
@@ -206,7 +226,18 @@ module DataMapper
         end
       end
 
-      # TODO: document
+      ##
+      # Sorts a list of Resources by a given order
+      #
+      # @param [Enumerable] resources
+      #   A list of Resources to sort
+      # @param [Enumberable(DataMapper::Query::Direction)] order
+      #   A list of Direction objects specifying which propert and
+      #   direction to sort by.
+      #
+      # @return [Enumerable]
+      #   The sorted Resources
+      #
       # @api private
       def sorted_resources(resources, order)
         sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
@@ -223,7 +254,16 @@ module DataMapper
         end
       end
 
-      # TODO: document
+      ##
+      # Returns the records for a given Model
+      #
+      # @param [DataMapper::Model] model
+      #   A model to retrieve the records for
+      #
+      # @return [Hash]
+      #   The Hash of records where the key is the Resource key and
+      #   the value is a Resource object
+      #
       # @api private
       def model_records(model)
         @model_records[model] ||= {}
