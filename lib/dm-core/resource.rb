@@ -207,18 +207,6 @@ module DataMapper
       "#<#{model.name} #{attrs * ' '}>"
     end
 
-    # TODO docs
-    def pretty_print(pp)
-      pp.group(1, "#<#{model.name}", ">") do
-        pp.breakable
-        pp.seplist(attributes.to_a) do |k_v|
-          pp.text k_v[0].to_s
-          pp.text " = "
-          pp.pp k_v[1]
-        end
-      end
-    end
-
     ##
     #
     # ==== Returns
@@ -227,24 +215,6 @@ module DataMapper
     # @api public
     def repository
       @repository || model.repository
-    end
-
-    # default id method to return the resource id when there is a
-    # single key, and the model was defined with a primary key named
-    # something other than id
-    #
-    # ==== Returns
-    # <Array[Key], Key> key or keys
-    #
-    # @api public
-    def id
-      message = "#{self.class.to_s}#id is deprecated. Either use #{self.class.to_s}#key to retrieve the key(s) or use "
-      message << "one of " if key.size > 1
-      message << key_properties.map {|property| "#{self.class.to_s}##{property.name.to_s}" }.join(", ")
-      warn(message)
-
-      key = self.key
-      key.first if key.size == 1
     end
 
     # Retrieve the key(s) for this resource.

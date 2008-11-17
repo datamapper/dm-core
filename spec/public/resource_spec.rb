@@ -99,22 +99,6 @@ describe DataMapper::Resource do
 
     end
 
-    describe "#id" do
-
-      it "should return the value of the id property if there is one" do
-        Comment.create(:body => "Hello").id.should == 1
-      end
-
-      it "should return the value of the key if it is a single column key" do
-        User.create(:name => "carl").id.should == "carl"
-      end
-
-      it "should return nil if the key is a multi column key" do
-        Authorship.create(:user_id => 1, :article_id => 1).id.should be_nil
-      end
-
-    end
-
     describe "#readonly" do
 
       it "should return false when the resource can be written to" do
