@@ -1769,7 +1769,10 @@ share_examples_for 'A Collection' do
   describe '#sort!' do
     describe 'without a block' do
       before do
-        pending 'TODO: implement DataMapper::Resource#<=>' do
+        # NOTE: DataMapper::Resource#<=> should use the Model#default_order to determine the
+        # sort order for the Resource instances.  It should use the same approach as
+        # InMemoryAdapter#sorted_results
+        pending 'TODO: implement DataMapper::Resource#<=>, and include Comparable in DataMapper::Resource' do
           @return = @other_articles.push(*@articles).sort!
         end
       end
