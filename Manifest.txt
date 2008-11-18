@@ -1,4 +1,5 @@
 .autotest
+.gitignore
 CONTRIBUTING
 FAQ
 History.txt
@@ -9,6 +10,7 @@ README.txt
 Rakefile
 SPECS
 TODO
+dm-core.gemspec
 lib/dm-core.rb
 lib/dm-core/adapters.rb
 lib/dm-core/adapters/abstract_adapter.rb
