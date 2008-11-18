@@ -362,7 +362,7 @@ module DataMapper
 
     # TODO: spec this
     def to_query(repository, key, query = {})
-      conditions = Hash[ *self.key(repository_name).zip(key).flatten ]
+      conditions = Hash[ *self.key(repository.name).zip(key).flatten ]
       Query.new(repository, self, query.merge(conditions))
     end
 
