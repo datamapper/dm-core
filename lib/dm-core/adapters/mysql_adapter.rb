@@ -1,4 +1,4 @@
-gem 'do_mysql', '>=0.9.7'
+gem 'do_mysql', '~>0.9.7'
 require 'do_mysql'
 
 module DataMapper

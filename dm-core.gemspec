@@ -22,19 +22,19 @@ Gem::Specification.new do |s|
     s.specification_version = 2
 
     if current_version >= 3 then
-      s.add_runtime_dependency(%q<data_objects>, [">= 0.9.7"])
-      s.add_runtime_dependency(%q<extlib>, [">= 0.9.8"])
+      s.add_runtime_dependency(%q<data_objects>, ["~> 0.9.7"])
+      s.add_runtime_dependency(%q<extlib>, ["~> 0.9.8"])
       s.add_runtime_dependency(%q<rspec>, [">= 1.1.3"])
       s.add_runtime_dependency(%q<addressable>, ["~> 2.0"])
     else
-      s.add_dependency(%q<data_objects>, [">= 0.9.7"])
-      s.add_dependency(%q<extlib>, [">= 0.9.8"])
+      s.add_dependency(%q<data_objects>, ["~> 0.9.7"])
+      s.add_dependency(%q<extlib>, ["~> 0.9.8"])
       s.add_dependency(%q<rspec>, [">= 1.1.3"])
       s.add_dependency(%q<addressable>, ["~> 2.0"])
     end
   else
-    s.add_dependency(%q<data_objects>, [">= 0.9.7"])
-    s.add_dependency(%q<extlib>, [">= 0.9.8"])
+    s.add_dependency(%q<data_objects>, ["~> 0.9.7"])
+    s.add_dependency(%q<extlib>, ["~> 0.9.8"])
     s.add_dependency(%q<rspec>, [">= 1.1.3"])
     s.add_dependency(%q<addressable>, ["~> 2.0"])
   end
