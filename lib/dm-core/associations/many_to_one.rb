@@ -56,11 +56,6 @@ module DataMapper
           self
         end
 
-        def reload
-          @parent = nil
-          self
-        end
-
         def kind_of?(klass)
           super || parent.kind_of?(klass)
         end
