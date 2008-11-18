@@ -29,10 +29,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should actually store the changes to persistent storage' do
-        skip_class = DataMapper::Associations::ManyToOne::Proxy
-        pending_if "TODO: update #{skip_class}#save to actually save the object", @user.kind_of?(skip_class) do
-          @user.attributes.should == @model.get(*@user.key).attributes
-        end
+        @user.attributes.should == @model.get(*@user.key).attributes
       end
     end
 
@@ -64,10 +61,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should save the first resource created through build' do
-        skip_class = DataMapper::Associations::ManyToOne::Proxy
-        pending_if "TODO: update #{skip_class}#save to actually save the object", @user.kind_of?(skip_class) do
-          @first_comment.new_record?.should be_false
-        end
+        @first_comment.new_record?.should be_false
       end
 
       it 'should save the correct foreign key for the first resource' do
@@ -110,10 +104,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should have saved the first child resource' do
-        skip_class = DataMapper::Associations::ManyToOne::Proxy
-        pending_if "TODO: update #{skip_class}#save to actually save the object", @user.kind_of?(skip_class) do
-          @first_comment.should_not be_dirty
-        end
+        @first_comment.should_not be_dirty
       end
 
       it 'should not have saved the second child resource' do

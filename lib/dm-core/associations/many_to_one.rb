@@ -56,17 +56,6 @@ module DataMapper
           self
         end
 
-        def save
-          return false if @parent.nil?
-          return true  unless parent.new_record?
-
-          @relationship.with_repository(parent) do
-            result = parent.save
-            @relationship.child_key.set(@child, @relationship.parent_key.get(parent)) if result
-            result
-          end
-        end
-
         def reload
           @parent = nil
           self
