@@ -592,18 +592,6 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def attribute_get!(name)
-      properties[name].get!(self)
-    end
-
-    # TODO: document
-    # @api private
-    def attribute_set!(name, value)
-      properties[name].set!(self, value)
-    end
-
-    # TODO: document
-    # @api private
     def lazy_load(name)
       reload_attributes(*properties.lazy_load_context(name) - loaded_attributes)
     end
