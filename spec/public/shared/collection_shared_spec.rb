@@ -755,6 +755,11 @@ share_examples_for 'A Collection' do
     end
   end
 
+  it 'should respond to #first_or_create' do
+    pending 'TODO: add Collection#first_or_create'
+    @articles.should respond_to(:first_or_create)
+  end
+
   it 'should respond to #get' do
     @articles.should respond_to(:get)
   end
