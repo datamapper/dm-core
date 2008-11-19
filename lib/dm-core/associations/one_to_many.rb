@@ -266,7 +266,7 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def update(attributes = {})
+        def update(attributes = {}, *allowed)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
 
           if @parent.new_record?
@@ -278,7 +278,7 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def update!(attributes = {})
+        def update!(attributes = {}, *allowed)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
 
           if @parent.new_record?

@@ -2059,9 +2059,10 @@ share_examples_for 'A Collection' do
       end
     end
 
-    describe 'with arguments' do
+    describe 'with attributes' do
       before do
-        @return = @articles.update(:title => 'Updated Title')
+        @attributes = { :title => 'Updated Title' }
+        @return = @articles.update(@attributes)
       end
 
       it 'should return true' do
@@ -2069,11 +2070,58 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @articles.each { |r| r.title.should == 'Updated Title' }
+        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
       end
 
       it 'should persist the changes' do
-        @model.get(*@article.key).title.should == 'Updated Title'
+        resource = @model.get(*@article.key)
+        @attributes.each { |k,v| resource.send(k).should == v }
+      end
+    end
+
+    describe 'with attributes and allowed properties' do
+      before do
+        @attributes = { :title => 'Updated Title' }
+        @allowed = [ :title ]
+        @return = @articles.update(@attributes, *@allowed)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+
+      it 'should update allowed attributes of all Resources' do
+        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
+      end
+
+      it 'should persist the changed attributes' do
+        resource = @model.get(*@article.key)
+        @attributes.each { |k,v| resource.send(k).should == v }
+      end
+    end
+
+    describe 'with attributes and allowed properties not matching the attributes' do
+      before do
+        @attributes = { :title => 'Updated Title', :content => 'Updated Content' }
+        @allowed = [ :title ]
+        @return = @articles.update(@attributes, *@allowed)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+
+      it 'should update allowed attributes of all Resources' do
+        @attributes.only(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should == v } }
+      end
+
+      it 'should not update disallowed attributes of any Resources' do
+        @attributes.except(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should_not == v } }
+      end
+
+      it 'should persist the changed attributes' do
+        resource = @model.get(*@article.key)
+        @attributes.only(*@allowed).each { |k,v| resource.send(k).should == v }
       end
     end
   end
@@ -2093,7 +2141,7 @@ share_examples_for 'A Collection' do
       end
     end
 
-    describe 'with arguments' do
+    describe 'with attributes' do
       before do
         @skip_class = DataMapper::Associations::ManyToMany::Proxy
         pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
@@ -2120,6 +2168,78 @@ share_examples_for 'A Collection' do
       it 'should persist the changes' do
         pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
           @model.get(*@article.key).title.should == 'Updated Title'
+        end
+      end
+    end
+
+    describe 'with attributes and allowed properties' do
+      before do
+        @skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+          @attributes = { :title => 'Updated Title' }
+          @allowed = [ :title ]
+          @return = @articles.update!(@attributes, *@allowed)
+        end
+      end
+
+      it 'should return true' do
+        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+          @return.should be_true
+        end
+      end
+
+      it 'should bypass validation' do
+        pending 'TODO: not sure how to best spec this'
+      end
+
+      it 'should update allowed attributes of all Resources' do
+        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
+          @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
+        end
+      end
+
+      it 'should persist the changes' do
+        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
+          resource = @model.get(*@article.key)
+          @attributes.each { |k,v| resource.send(k).should == v }
+        end
+      end
+    end
+
+    describe 'with attributes and allowed properties not matching the attributes' do
+      before do
+        @skip_class = DataMapper::Associations::ManyToMany::Proxy
+        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+          @attributes = { :title => 'Updated Title', :content => 'Updated Content' }
+          @allowed = [ :title ]
+          @return = @articles.update!(@attributes, *@allowed)
+        end
+      end
+
+      it 'should return true' do
+        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+          @return.should be_true
+        end
+      end
+
+      it 'should bypass validation' do
+        pending 'TODO: not sure how to best spec this'
+      end
+
+      it 'should update allowed attributes of all Resources' do
+        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
+          @attributes.only(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should == v } }
+        end
+      end
+
+      it 'should not update disallowed attributes of any Resources' do
+        @attributes.except(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should_not == v } }
+      end
+
+      it 'should persist the changes' do
+        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
+          resource = @model.get(*@article.key)
+          @attributes.only(*@allowed).each { |k,v| resource.send(k).should == v }
         end
       end
     end
