@@ -634,11 +634,8 @@ module DataMapper
     #
     # @api public
     def update(attributes = {}, *allowed)
-      unless attributes.empty?
-        each { |r| r.update(attributes, *allowed) }
-      end
-
-      true
+      attributes = attributes.only(*allowed) if allowed.any?
+      attributes.empty? || all? { |r| r.update(attributes, *allowed) }
     end
 
     ##
