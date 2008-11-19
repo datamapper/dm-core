@@ -634,11 +634,11 @@ module DataMapper
     #
     # @api public
     def update(attributes = {}, *allowed)
-      if attributes.empty?
-        true
-      else
-        any? { |r| r.update(attributes, *allowed) }
+      unless attributes.empty?
+        each { |r| r.update(attributes, *allowed) }
       end
+
+      true
     end
 
     ##
@@ -653,12 +653,9 @@ module DataMapper
     #
     # @api public
     def update!(attributes = {}, *allowed)
-      if attributes.empty?
-        true
-      else
-        # if allowed specified only update those attributes
-        attributes = attributes.only(*allowed) if allowed.any?
+      attributes = attributes.only(*allowed) if allowed.any?
 
+      unless attributes.empty?
         dirty_attributes = {}
 
         model.properties(repository.name).each do |property|
@@ -666,15 +663,14 @@ module DataMapper
           dirty_attributes[property] = attributes[property.name]
         end
 
-        if repository.update(dirty_attributes, query) > 0
-          if loaded?
-            each { |r| r.attributes = attributes }
-          end
-          true
-        else
-          false
+        repository.update(dirty_attributes, query)
+
+        if loaded?
+          each { |r| r.attributes = attributes }
         end
       end
+
+      true
     end
 
     ##
@@ -687,7 +683,7 @@ module DataMapper
     #
     # @api public
     def destroy
-      if any? { |r| r.destroy }
+      if all? { |r| r.destroy }
         clear
         true
       else
@@ -706,27 +702,29 @@ module DataMapper
     #
     # @api public
     def destroy!
-      if repository.delete(query) > 0
-        if loaded?
-          each do |r|
-            # TODO: move this logic to a semipublic method in Resource
-            r.instance_variable_set(:@new_record, true)
-            repository.identity_map(model).delete(r.key)
-            r.dirty_attributes.clear
+      destroyed = repository.delete(query)
 
-            model.properties(repository.name).each do |property|
-              next unless r.attribute_loaded?(property.name)
-              r.dirty_attributes[property] = property.get(r)
-            end
+      if destroyed == 0 || (loaded? && destroyed != size)
+        return false
+      end
+
+      if loaded?
+        each do |r|
+          # TODO: move this logic to a semipublic method in Resource
+          r.instance_variable_set(:@new_record, true)
+          repository.identity_map(model).delete(r.key)
+          r.dirty_attributes.clear
+
+          model.properties(repository.name).each do |property|
+            next unless r.attribute_loaded?(property.name)
+            r.dirty_attributes[property] = property.get(r)
           end
         end
 
         clear
-
-        true
-      else
-        false
       end
+
+      true
     end
 
     ##

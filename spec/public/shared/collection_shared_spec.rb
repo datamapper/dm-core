@@ -2150,9 +2150,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return true' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
-          @return.should be_true
-        end
+        @return.should be_true
       end
 
       it 'should bypass validation' do
@@ -2160,9 +2158,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
-          @articles.each { |r| r.title.should == 'Updated Title' }
-        end
+        @articles.each { |r| r.title.should == 'Updated Title' }
       end
 
       it 'should persist the changes' do
@@ -2183,9 +2179,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return true' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
-          @return.should be_true
-        end
+        @return.should be_true
       end
 
       it 'should bypass validation' do
@@ -2193,9 +2187,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update allowed attributes of all Resources' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
-          @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
-        end
+        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
       end
 
       it 'should persist the changes' do
@@ -2217,9 +2209,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should return true' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
-          @return.should be_true
-        end
+        @return.should be_true
       end
 
       it 'should bypass validation' do
@@ -2227,9 +2217,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should update allowed attributes of all Resources' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
-          @attributes.only(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should == v } }
-        end
+        @attributes.only(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should == v } }
       end
 
       it 'should not update disallowed attributes of any Resources' do

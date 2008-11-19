@@ -508,7 +508,6 @@ module DataMapper
     def update(attributes = {}, *allowed)
       assert_kind_of 'attributes', attributes, Hash
 
-      # if allowed specified only update those attributes
       self.attributes = allowed.any? ? attributes.only(*allowed) : attributes
 
       dirty_attributes = self.dirty_attributes
