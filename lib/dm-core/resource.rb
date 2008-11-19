@@ -163,13 +163,7 @@ module DataMapper
       return true if object_id == other.object_id
       return false unless other.kind_of?(model)
       return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
-
-      properties.each do |property|
-        if property.get(self) != property.get(other)
-          return false
-        end
-      end
-
+      return false if properties.any? { |p| p.get(self) != p.get(other) }
       true
     end
 
