@@ -461,9 +461,11 @@ module DataMapper
     #
     # @api public
     def attributes
-      properties.map do |p|
-        [p.name, send(p.getter)] if p.reader_visibility == :public
-      end.compact.to_hash
+      attributes = {}
+      properties.each do |p|
+        attributes[p.name] = send(p.getter) if p.reader_visibility == :public
+      end
+      attributes
     end
 
     # Mass assign of attributes
