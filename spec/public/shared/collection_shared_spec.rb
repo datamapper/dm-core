@@ -2054,8 +2054,8 @@ share_examples_for 'A Collection' do
         @return = @articles.update
       end
 
-      it 'should return false' do
-        @return.should be_false
+      it 'should return true' do
+        @return.should be_true
       end
     end
 
@@ -2088,8 +2088,8 @@ share_examples_for 'A Collection' do
         @return = @articles.update!
       end
 
-      it 'should return false' do
-        @return.should be_false
+      it 'should return true' do
+        @return.should be_true
       end
     end
 

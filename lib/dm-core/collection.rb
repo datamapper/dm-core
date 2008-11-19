@@ -634,9 +634,9 @@ module DataMapper
     # @api public
     def update(attributes = {})
       if attributes.empty?
-        false
+        true
       else
-        any? { |r| r.update_attributes(attributes) }
+        any? { |r| r.update(attributes) }
       end
     end
 
@@ -652,7 +652,7 @@ module DataMapper
     # @api public
     def update!(attributes = {})
       if attributes.empty?
-        false
+        true
       else
         dirty_attributes = {}
 

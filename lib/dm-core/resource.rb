@@ -474,37 +474,50 @@ module DataMapper
     # value_hash <Hash[<Symbol>]>::
     #
     # @api public
-    def attributes=(values_hash)
-      values_hash.each_pair do |k,v|
-        setter = "#{k.to_s.sub(/\?\z/, '')}="
+    def attributes=(attributes)
+      attributes.each do |name,value|
+        name   = name.to_s.sub(/\?\z/, '')
+        setter = "#{name}="
 
         if respond_to?(setter)
-          send(setter, v)
+          send(setter, value)
         else
-          raise NameError, "#{setter} is not a public property"
+          raise NameError, "#{name} is not a public property"
         end
       end
     end
 
+    # @api public
+    def update_attributes(*args)
+      warn "#{self.class}#update_attributes is deprecated, use #{self.class}#update instead"
+      update(*args)
+    end
+
+    ##
     # Updates attributes and saves model
     #
-    # ==== Parameters
-    # attributes<Hash> Attributes to be updated
-    # keys<Symbol, String, Array> keys of Hash to update (others won't be updated)
+    # @param [Hash] attributes
+    #   attributes to be updated
+    # @param [Array] allowed (optional)
+    #   list of attributes to update
     #
-    # ==== Returns
-    # <TrueClass, FalseClass> if model got saved or not
+    # @return [TrueClass, FalseClass]
+    #   true if resource and storage state match
     #
     # @api public
-    # TODO: deprecate and rename #update
-    def update_attributes(hash, *update_only)
-      unless hash.is_a?(Hash)
-        raise ArgumentError, "Expecting the first parameter of " +
-          "update_attributes to be a hash; got #{hash.inspect}"
+    def update(attributes = {}, *allowed)
+      assert_kind_of 'attributes', attributes, Hash
+
+      # if allowed specified only update those attributes
+      self.attributes = allowed.any? ? attributes.only(*allowed) : attributes
+
+      dirty_attributes = self.dirty_attributes
+
+      if dirty_attributes.empty?
+        true
+      else
+        repository.update(dirty_attributes, to_query) == 1
       end
-      loop_thru = update_only.empty? ? hash.keys : update_only
-      loop_thru.each { |attr|  send("#{attr}=", hash[attr]) }
-      save
     end
 
     # TODO: document
@@ -553,15 +566,6 @@ module DataMapper
       repository.identity_map(model).set(key, self)
 
       true
-    end
-
-    # Needs to be a protected method so that it is hookable
-    # TODO: document
-    # @api public
-    def update
-      dirty_attributes = self.dirty_attributes
-      return true if dirty_attributes.empty?
-      repository.update(dirty_attributes, to_query) == 1
     end
 
     private
