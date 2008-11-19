@@ -15,24 +15,19 @@ module DataMapper
 
         model.class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
-            #{name}_association.nil? ? nil : #{name}_association
+            return @#{name} if defined?(@#{name})
+            @#{name} = #{name}_relationship.get_parent(self)
           end
 
           def #{name}=(parent)
-            #{name}_association.replace(parent)
+            #{name}_relationship.attach_parent(self, parent)
+            @#{name} = parent
           end
 
           private
 
-          def #{name}_association
-            @#{name}_association ||= begin
-              unless relationship = model.relationships(#{repository_name.inspect})[:#{name}]
-                raise ArgumentError, "Relationship #{name.inspect} does not exist in \#{model}"
-              end
-              association = Proxy.new(relationship, self)
-              child_associations << association
-              association
-            end
+          def #{name}_relationship
+            model.relationships(#{repository_name.inspect})[#{name.inspect}]
           end
         EOS
 
@@ -44,48 +39,6 @@ module DataMapper
           options
         )
       end
-
-      class Proxy
-        include Assertions
-
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not instance_variable_set instance_variable_get ].include?(m.to_s) }
-
-        def replace(parent)
-          @parent = parent
-          @relationship.attach_parent(@child, @parent)
-          self
-        end
-
-        def kind_of?(klass)
-          super || parent.kind_of?(klass)
-        end
-
-        def respond_to?(method, include_private = false)
-          super || parent.respond_to?(method, include_private)
-        end
-
-        def instance_variable_get(variable)
-          super || parent.instance_variable_get(variable)
-        end
-
-        private
-
-        def initialize(relationship, child)
-          assert_kind_of 'relationship', relationship, Relationship
-          assert_kind_of 'child',        child,        Resource
-
-          @relationship = relationship
-          @child        = child
-        end
-
-        def parent
-          @parent ||= @relationship.get_parent(@child)
-        end
-
-        def method_missing(method, *args, &block)
-          parent.__send__(method, *args, &block)
-        end
-      end # class Proxy
     end # module ManyToOne
   end # module Associations
 end # module DataMapper

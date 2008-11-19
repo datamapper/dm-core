@@ -104,7 +104,7 @@ module DataMapper
             grouped_collection[parent_obj] << resource
           end
 
-          association_accessor = "#{self.name}_association"
+          association_accessor = self.name
 
           ret = nil
           grouped_collection.each do |parent, children|
@@ -163,7 +163,7 @@ module DataMapper
           end
 
           query = parent_key.zip(bind_values.transpose).to_hash
-          association_accessor = "#{self.name}_association"
+          association_accessor = self.name
 
           collection = parent_model.send(:all, query)
           unless collection.empty?

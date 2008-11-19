@@ -25,10 +25,8 @@ module DataMapper
           private
 
           def #{name}_association
-            @#{name}_association ||= begin
-              unless relationship = model.relationships(#{repository_name.inspect})[:#{name}]
-                raise ArgumentError, "Relationship #{name.inspect} does not exist in \#{model}"
-              end
+            @#{name} ||= begin
+              relationship = model.relationships(#{repository_name.inspect})[#{name.inspect}]
               association = Associations::OneToMany::Proxy.new(relationship, self)
               parent_associations << association
               association
