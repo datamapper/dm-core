@@ -266,20 +266,13 @@ module DataMapper
       # same API through out all of dm-more. dm-validations requires a
       # context to be passed
 
-      associations_saved = false
-      child_associations.each { |a| associations_saved |= a.save }
-
       saved = new_record? ? create : update
 
       if saved
         original_values.clear
       end
 
-      parent_associations.each { |a| associations_saved |= a.save }
-
-      # We should return true if the model (or any of its associations)
-      # were saved.
-      (saved | associations_saved) == true
+      parent_associations.all? { |a| a.save }
     end
 
     # destroy the instance, remove it from the repository
