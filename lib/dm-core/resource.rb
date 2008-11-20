@@ -312,6 +312,7 @@ module DataMapper
     #
     # @return [Array<Symbol>]
     #   names of attributes that have been loaded
+    #
     # @api private
     def loaded_attributes
       properties.map{|p| p.name if attribute_loaded?(p.name)}.compact
