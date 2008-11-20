@@ -54,6 +54,11 @@ module DataMapper
     ##
     # Reloads the Collection from the repository
     #
+    #   cars_from_91 = Cars.all(:year_manufactured.eql => 1991)
+    #   cars_from_91.first.year = 2001  # note: not saved
+    #   cars_from_91.reload
+    #   cars_from_91.first.year         #=> 1991
+    #
     # @param [Hash] query further restrict results with query
     #
     # @return [DataMapper::Collection] self
@@ -84,6 +89,10 @@ module DataMapper
     #
     # This looksup a Resource by key, typecasting the key to the
     # proper object if necessary.
+    #
+    #   toyotas = Cars.all(:manufacturer => "Toyota")
+    #   toyo = Cars.first(:manufacturer => "Toyota")
+    #   toyotas.get(toyo.id) == toyo                  #=> true
     #
     # @param [Enumerable] *key keys which uniquely identify a resource in the
     #   Collection
@@ -142,6 +151,11 @@ module DataMapper
     #
     # This returns a new Collection scoped relative to the current
     # Collection.
+    #
+    #   cars_from_91 = Cars.all(:year_manufactured.eql => 1991)
+    #   toyotas_91 = cars_from_91.all(:manufacturer => "Toyota")
+    #   toyotas_91.all? { |c| c.year_manufactured == 1991 }       #=> true
+    #   toyotas_91.all? { |c| c.manufacturer == "Toyota" }        #=> true
     #
     # @param [Hash] (optional) query parameters to scope results with
     #
@@ -410,10 +424,7 @@ module DataMapper
     alias map! collect!
 
     ##
-    # Append one Resource to the Collection
-    #
-    # This should append a Resource to the Collection and relate it
-    # to the Collection.
+    # Append one Resource to the Collection and relate it
     #
     # @return [DataMapper::Collection] self
     #
