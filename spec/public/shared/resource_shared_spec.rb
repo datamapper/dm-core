@@ -168,6 +168,31 @@ share_examples_for 'A public Resource' do
 
     end
 
+    describe 'with a new object and new relations' do
+
+      before do
+        @article = Article.new(:body => "Main")
+        @paragraph = @article.paragraphs.new(:text => "Content")
+        @article.save
+      end
+
+      it { @article.should_not be_dirty }
+      it { @paragraph.should_not be_dirty }
+
+      it 'should set the related object' do
+        pending 'saving a new object should set the child key' do
+          @paragraph.article.should == @article
+        end
+      end
+
+      it 'should set the foreign key properly' do
+        pending 'saving a new object should set the child key' do
+          @paragraph.article_id.should == @article.id
+        end
+      end
+
+    end
+
   end
 
   it { @user.should respond_to(:destroy) }

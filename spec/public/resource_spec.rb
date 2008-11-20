@@ -27,8 +27,10 @@ describe DataMapper::Resource do
     class Article
       include DataMapper::Resource
 
-      property :id,   String
+      property :id,   Serial
       property :body, Text
+
+      has n, :paragraphs
     end
 
     Object.send(:remove_const, :Comment) if defined?(Comment)
@@ -41,12 +43,14 @@ describe DataMapper::Resource do
       belongs_to :user
     end
 
-    Object.send(:remove_const, :Authorship) if defined?(Authorship)
-    class Authorship
+    Object.send(:remove_const, :Paragraph) if defined?(Paragraph)
+    class Paragraph
       include DataMapper::Resource
 
-      property :user_id,    Integer, :key => true
-      property :article_id, Integer, :key => true
+      property :id,    Integer, :key => true
+      property :text,  String
+
+      belongs_to :article
     end
   end
 
