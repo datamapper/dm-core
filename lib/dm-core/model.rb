@@ -22,10 +22,14 @@ module DataMapper
       true
     end
 
+    # TODO: document
+    # @api private
     def self.extra_extensions
       @extra_extensions ||= []
     end
 
+    # TODO: document
+    # @api private
     def self.extended(model)
       model.instance_variable_set(:@storage_names, {})
       model.instance_variable_set(:@properties,    {})
@@ -33,6 +37,8 @@ module DataMapper
       extra_extensions.each { |extension| model.extend(extension) }
     end
 
+    # TODO: document
+    # @api private
     def inherited(target)
       target.instance_variable_set(:@storage_names,       @storage_names.dup)
       target.instance_variable_set(:@properties,          {})
@@ -70,6 +76,8 @@ module DataMapper
       end
     end
 
+    # TODO: document
+    # @api semipublic
     def self.new(storage_name, &block)
       model = Class.new
       model.send(:include, Resource)
@@ -82,10 +90,14 @@ module DataMapper
       model
     end
 
+    # TODO: document
+    # @api private
     def base_model
       @base_model ||= self
     end
 
+    # TODO: document
+    # @api private
     def repository_name
       Repository.context.any? ? Repository.context.last.name : default_repository_name
     end
@@ -118,6 +130,8 @@ module DataMapper
     # the name of the storage recepticle for this resource.  IE. table name, for database stores
     #
     # @return <String> the storage name (IE table name, for database stores) associated with this resource in the given repository
+    #
+    # @api public
     def storage_name(repository_name = default_repository_name)
       @storage_names[repository_name] ||= repository(repository_name).adapter.resource_naming_convention.call(base_model.send(:default_storage_name))
     end
@@ -126,6 +140,8 @@ module DataMapper
     # the names of the storage recepticles for this resource across all repositories
     #
     # @return <Hash(Symbol => String)> All available names of storage recepticles
+    #
+    # @api public
     def storage_names
       @storage_names
     end
@@ -134,6 +150,8 @@ module DataMapper
     # The field naming conventions for this resource across all repositories.
     #
     # @return <String> The naming convention for the given repository
+    #
+    # @api private
     def field_naming_convention(repository_name = default_storage_name)
       @field_naming_conventions[repository_name] ||= repository(repository_name).adapter.field_naming_convention
     end
@@ -145,6 +163,8 @@ module DataMapper
     # @param <Type> type the type to define this property ass
     # @param <Hash(Symbol => String)> options a hash of available options
     # @see DataMapper::Property
+    #
+    # @api private
     def property(name, type, options = {})
       property = Property.new(self, name, type, options)
 
@@ -189,6 +209,8 @@ module DataMapper
       property
     end
 
+    # TODO: document
+    # @api private
     def repositories
       [ repository ].to_set + @properties.keys.collect { |repository_name| DataMapper.repository(repository_name) }
     end
@@ -199,6 +221,8 @@ module DataMapper
     #                                          Uses the default repository if none
     #                                          is specified.
     # @return [Array] A list of Property's
+    #
+    # @api public
     def properties(repository_name = default_repository_name)
       # We need to check whether all relations are already set up.
       # If this isn't the case, we try to reload them here
@@ -217,10 +241,13 @@ module DataMapper
       @properties[repository_name] ||= repository_name == Repository.default_name ? PropertySet.new : properties(Repository.default_name).dup
     end
 
+    # TODO: document
+    # @api private
     def eager_properties(repository_name = default_repository_name)
       properties(repository_name).defaults
     end
 
+    # TODO: document
     # @api private
     def properties_with_subclasses(repository_name = default_repository_name)
       properties = PropertySet.new
@@ -234,10 +261,14 @@ module DataMapper
       properties
     end
 
+    # TODO: document
+    # @api semipublic
     def key(repository_name = default_repository_name)
       properties(repository_name).key
     end
 
+    # TODO: document
+    # @api private
     def default_order(repository_name = default_repository_name)
       @default_order ||= {}
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
@@ -255,6 +286,8 @@ module DataMapper
     #   The primary key or keys to use for lookup
     # @return <DataMapper::Resource>
     #   A single model that was found
+    #
+    # @api public
     def get(*key)
       key = typecast_key(key)
       repository.identity_map(self).get(key) || first(to_query(repository, key))
@@ -269,6 +302,8 @@ module DataMapper
     #   A single model that was found
     # @raise <ObjectNotFoundError>
     #   The record was not found
+    #
+    # @api public
     def get!(*key)
       get(*key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key #{key.inspect}")
     end
@@ -286,6 +321,8 @@ module DataMapper
     # @return <DataMapper::Collection>
     #   A set of records found
     # @see DataMapper::Collection
+    #
+    # @api public
     def all(query = {})
       query = scoped_query(query)
       query.repository.read_many(query)
@@ -298,6 +335,8 @@ module DataMapper
     #   A hash describing the conditions and order for the query
     # @return <DataMapper::Resource>
     #   The first record found by the query
+    #
+    # @api public
     def first(*args)
       query = args.last.respond_to?(:merge) ? args.pop : {}
       query = scoped_query(query.merge(:limit => args.first || 1))
@@ -318,6 +357,8 @@ module DataMapper
     #   The attributes to be used to create the record of none is found.
     # @see #first
     # @see #create
+    #
+    # @api public
     def first_or_create(query, attributes = {})
       first(query) || begin
         resource = allocate
@@ -339,13 +380,18 @@ module DataMapper
     # Create an instance of Resource with the given attributes
     #
     # @param <Hash(Symbol => Object)> attributes hash of attributes to set
+    #
+    # @api public
     def create(attributes = {})
       resource = new(attributes)
       resource.save
       resource
     end
 
+    ##
     # Copy a set of records from one repository to another.
+    #
+    # @api public
     def copy(source, destination, query = {})
       repository(destination) do
         repository(source).read_many(scoped_query(query)).each do |resource|
@@ -354,6 +400,7 @@ module DataMapper
       end
     end
 
+    # TODO: document
     # @api semipublic
     def load(values, query)
       repository = query.repository
@@ -398,28 +445,33 @@ module DataMapper
       resource
     end
 
+    # TODO: document
     # @api private
     def to_query(repository, key, query = {})
       conditions = Hash[ *self.key(repository_name).zip(key).flatten ]
       Query.new(repository, self, query.merge(conditions))
     end
 
+    # TODO: document
     # @api semipublic
     def typecast_key(key)
       self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
     end
 
+    # TODO: document
     # @api semipublic
     def default_repository_name
       Repository.default_name
     end
 
+    # TODO: document
     # @api semipublic
     def paranoid_properties
       @paranoid_properties ||= {}
       @paranoid_properties
     end
 
+    # TODO: document
     # @api private
     def default_storage_name
       self.name
@@ -445,6 +497,7 @@ module DataMapper
       end
     end
 
+    # TODO: document
     # @api private
     def set_paranoid_property(name, &block)
       self.paranoid_properties[name] = block
@@ -483,6 +536,7 @@ module DataMapper
       end
     end
 
+    # TODO: document
     # @api private
     def relationships(*args)
       # DO NOT REMOVE!
@@ -491,6 +545,7 @@ module DataMapper
       raise NotImplementedError.new
     end
 
+    # TODO: document
     # @api private
     def method_missing(method, *args, &block)
       if relationship = self.relationships(repository_name)[method]
