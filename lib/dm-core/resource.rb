@@ -5,7 +5,6 @@ module DataMapper
     include Assertions
 
     ##
-    #
     # Appends a module for inclusion into the model class after
     # DataMapper::Resource.
     #
@@ -17,7 +16,6 @@ module DataMapper
     #
     # @return [TrueClass, FalseClass] whether or not the inclusions have been
     #   successfully appended to the list
-    # @return <TrueClass, FalseClass>
     #
     # @api semipublic
     def self.append_inclusions(*inclusions)
@@ -48,18 +46,17 @@ module DataMapper
       end
     end
 
+    ##
     # Return all classes that include the DataMapper::Resource module
-    #
-    # ==== Returns
-    # Set:: a set containing the including classes
-    #
-    # ==== Example
     #
     #   Class Foo
     #     include DataMapper::Resource
     #   end
     #
-    #   DataMapper::Resource.descendants.to_a.first == Foo
+    #   DataMapper::Resource.descendants.to_a.first   #=> Foo
+    #
+    # @return
+    #   [Set] Set containing the including classes
     #
     # @api semipublic
     def self.descendants
@@ -77,17 +74,12 @@ module DataMapper
     # @api public
     alias model class
 
-    # returns the value of the attribute. Do not read from instance variables directly,
-    # but use this method. This method handels the lazy loading the attribute and returning
-    # of defaults if nessesary.
-    #
-    # ==== Parameters
-    # name<Symbol>:: name attribute to lookup
-    #
-    # ==== Returns
-    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
-    #
-    # ==== Example
+    ##
+    # Returns the value of the attribute. 
+    # 
+    # Do not read from instance variables directly, but use this method.
+    # This method handles lazy loading the attribute and returning of
+    # defaults if nessesary.
     #
     #   Class Foo
     #     include DataMapper::Resource
@@ -105,6 +97,13 @@ module DataMapper
     #     end
     #   end
     #
+    # @param
+    #    [Symbol] name name of attribute to retrieve
+    #
+    # @return
+    #   [Object] the value stored at that given attribute,
+    #   nil if none, and default if necessary
+    #
     # @api public
     def attribute_get(name)
       properties[name].get(self)
@@ -113,17 +112,8 @@ module DataMapper
     # sets the value of the attribute and marks the attribute as dirty
     # if it has been changed so that it may be saved. Do not set from
     # instance variables directly, but use this method. This method
-    # handels the lazy loading the property and returning of defaults
+    # handles the lazy loading the property and returning of defaults
     # if nessesary.
-    #
-    # ==== Parameters
-    # name<Symbol>:: name attribute to set
-    # value<Type>:: value to store at that location
-    #
-    # ==== Returns
-    # <Types>:: the value stored at that given attribute, nil if none, and default if necessary
-    #
-    # ==== Example
     #
     #   Class Foo
     #     include DataMapper::Resource
@@ -145,6 +135,14 @@ module DataMapper
     #     end
     #   end
     #
+    # @param
+    #   [Symbol] name name of attribute to set
+    #   [Object] value value to store at that location
+    #
+    # @return
+    #   [Object] the value stored at that given attribute,
+    #   nil if none, and default if necessary
+    #
     # @api public
     def attribute_set(name, value)
       properties[name].set(self, value)
@@ -152,11 +150,11 @@ module DataMapper
 
     # Compares if its the same object or if attributes are equal
     #
-    # ==== Parameters
-    # other<Object>:: Object to compare to
+    # @param
+    #   [Object] other Object to compare to
     #
-    # ==== Returns
-    # <True>:: the outcome of the comparison as a boolean
+    # @return
+    #   [TrueClass, FalseClass] the outcome of the comparison as a boolean
     #
     # @api public
     def eql?(other)
@@ -195,8 +193,8 @@ module DataMapper
 
     # Computes a hash for the resource
     #
-    # ==== Returns
-    # <Integer>:: the hash value of the resource
+    # @return
+    #   [Integer] the hash value of the resource
     #
     # @api semipublic
     def hash
@@ -205,13 +203,10 @@ module DataMapper
 
     # Inspection of the class name and the attributes
     #
-    # ==== Returns
-    # <String>:: with the class name, attributes with their values
-    #
-    # ==== Example
-    #
-    # >> Foo.new
-    # => #<Foo name=nil updated_at=nil created_at=nil id=nil>
+    #   Foo.new   #=> #<Foo name=nil updated_at=nil created_at=nil id=nil>
+    # 
+    # @return
+    #   [String] with the class name, attributes with their values
     #
     # @api public
     def inspect
@@ -232,7 +227,7 @@ module DataMapper
 
     ##
     #
-    # ==== Returns
+    # @return
     # <Repository>:: the respository this resource belongs to in the context of a collection OR in the class's context
     #
     # @api semipublic
@@ -245,7 +240,7 @@ module DataMapper
     # even if the key is changed and not yet persisted.
     # This is done so all relations still work.
     #
-    # ==== Returns
+    # @return
     # <Array[Key]> the key(s) identifying this resource
     #
     # @api public
@@ -275,7 +270,7 @@ module DataMapper
     # fetches all the names of the attributes that have been loaded,
     # even if they are lazy but have been called
     #
-    # ==== Returns
+    # @return
     # Array[<Symbol>]:: names of attributes that have been loaded
     #
     # ==== Example
@@ -295,7 +290,7 @@ module DataMapper
 
     # set of original values of properties
     #
-    # ==== Returns
+    # @return
     # Hash:: original values of properties
     #
     # @api semipublic
@@ -305,7 +300,7 @@ module DataMapper
 
     # Hash of attributes that have been marked dirty
     #
-    # ==== Returns
+    # @return
     # Hash:: attributes that have been marked dirty
     #
     # @api semipublic
@@ -334,7 +329,7 @@ module DataMapper
 
     # Checks if the class is dirty
     #
-    # ==== Returns
+    # @return
     # True:: returns if class is dirty
     #
     # @api semipublic
@@ -346,10 +341,10 @@ module DataMapper
 
     # Checks if the attribute is dirty
     #
-    # ==== Parameters
-    # name<Symbol>:: name of attribute
+    # @param
+    #   name<Symbol>:: name of attribute
     #
-    # ==== Returns
+    # @return
     # True:: returns if attribute is dirty
     #
     # @api semipublic
@@ -367,7 +362,7 @@ module DataMapper
 
     # Reload association and all child association
     #
-    # ==== Returns
+    # @return
     # self:: returns the class itself
     #
     # @api public
@@ -382,10 +377,10 @@ module DataMapper
 
     # Reload specific attributes
     #
-    # ==== Parameters
-    # *attributes<Array[<Symbol>]>:: name of attribute
+    # @param
+    #   *attributes<Array[<Symbol>]>:: name of attribute
     #
-    # ==== Returns
+    # @return
     # self:: returns the class itself
     #
     # @api private
@@ -399,7 +394,7 @@ module DataMapper
 
     # Checks if the model has been saved
     #
-    # ==== Returns
+    # @return
     # True:: status if the model is new
     #
     # @api public
@@ -409,7 +404,7 @@ module DataMapper
 
     # all the attributes of the model
     #
-    # ==== Returns
+    # @return
     # Hash[<Symbol>]:: All the (non)-lazy attributes
     #
     # @api public
@@ -423,8 +418,8 @@ module DataMapper
 
     # Mass assign of attributes
     #
-    # ==== Parameters
-    # value_hash <Hash[<Symbol>]>::
+    # @param
+    #   value_hash <Hash[<Symbol>]>::
     #
     # @api public
     def attributes=(attributes)
@@ -481,7 +476,7 @@ module DataMapper
     #
     # It only returns true if all saves are successful
     #
-    # ==== Returns
+    # @return
     # <True, False>:: results of the save(s)
     #
     # @see DataMapper::Repository#save
@@ -503,7 +498,7 @@ module DataMapper
 
     # destroy the instance, remove it from the repository
     #
-    # ==== Returns
+    # @return
     # <True, False>:: results of the destruction
     #
     # @api public
@@ -587,7 +582,7 @@ module DataMapper
     end
 
     # TODO: move to Model#assert_valid
-    # @private
+    # @api private
     def assert_valid_model # :nodoc:
       return if self.class._valid_model
       properties = self.properties
@@ -625,7 +620,7 @@ module DataMapper
     module Transaction
       # Produce a new Transaction for the class of this Resource
       #
-      # ==== Returns
+      # @return
       # <DataMapper::Adapters::Transaction>::
       #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
       #   of the class of this DataMapper::Resource added.
