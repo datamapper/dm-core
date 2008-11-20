@@ -112,7 +112,7 @@ module DataMapper
     # @return <Object, DataMapper::Respository> whatever the block returns,
     #   if given a block, otherwise the requested repository.
     #
-    # @api public
+    # @api private
     def repository(name = nil)
       #
       # There has been a couple of different strategies here, but me (zond) and dkubb are at least
@@ -164,7 +164,7 @@ module DataMapper
     # @param <Hash(Symbol => String)> options a hash of available options
     # @see DataMapper::Property
     #
-    # @api private
+    # @api public
     def property(name, type, options = {})
       property = Property.new(self, name, type, options)
 
@@ -262,7 +262,7 @@ module DataMapper
     end
 
     # TODO: document
-    # @api semipublic
+    # @api public
     def key(repository_name = default_repository_name)
       properties(repository_name).key
     end
@@ -347,6 +347,8 @@ module DataMapper
         query.repository.read_one(query)
       end
     end
+
+    # TODO: add #last
 
     # find the #first record by a query, or #create one by attributes
     # if it doesn't exist
@@ -453,7 +455,7 @@ module DataMapper
     end
 
     # TODO: document
-    # @api semipublic
+    # @api private
     def typecast_key(key)
       self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
     end
@@ -462,13 +464,6 @@ module DataMapper
     # @api semipublic
     def default_repository_name
       Repository.default_name
-    end
-
-    # TODO: document
-    # @api semipublic
-    def paranoid_properties
-      @paranoid_properties ||= {}
-      @paranoid_properties
     end
 
     # TODO: document
@@ -495,6 +490,13 @@ module DataMapper
       else
         merge_with_default_scope(query)
       end
+    end
+
+    # TODO: document
+    # @api private
+    def paranoid_properties
+      @paranoid_properties ||= {}
+      @paranoid_properties
     end
 
     # TODO: document
@@ -537,7 +539,7 @@ module DataMapper
     end
 
     # TODO: document
-    # @api private
+    # @api semipublic
     def relationships(*args)
       # DO NOT REMOVE!
       # method_missing depends on these existing. Without this stub,
@@ -546,7 +548,7 @@ module DataMapper
     end
 
     # TODO: document
-    # @api private
+    # @api public
     def method_missing(method, *args, &block)
       if relationship = self.relationships(repository_name)[method]
         klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
