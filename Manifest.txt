@@ -1,4 +1,6 @@
 .autotest
+.gitignore
+.yardoc
 CONTRIBUTING
 FAQ
 History.txt
@@ -64,10 +66,7 @@ script/all
 script/performance.rb
 script/profile.rb
 spec/lib/adapter_helpers.rb
-spec/lib/adapter_shared_spec.rb
-spec/lib/collection_shared_spec.rb
 spec/lib/pending_helpers.rb
-spec/lib/resource_shared_spec.rb
 spec/lib/rspec_immediate_feedback_formatter.rb
 spec/public/associations/many_to_many_spec.rb
 spec/public/associations/many_to_one_spec.rb
@@ -77,9 +76,15 @@ spec/public/collection_spec.rb
 spec/public/model_spec.rb
 spec/public/property_spec.rb
 spec/public/resource_spec.rb
+spec/public/shared/collection_shared_spec.rb
+spec/public/shared/resource_shared_spec.rb
 spec/semipublic/adapters/in_memory_adapter_spec.rb
+spec/semipublic/associations/many_to_one_spec.rb
 spec/semipublic/associations_spec.rb
 spec/semipublic/collection_spec.rb
+spec/semipublic/resource_spec.rb
+spec/semipublic/shared/adapter_shared_spec.rb
+spec/semipublic/shared/resource_shared_spec.rb
 spec/spec.opts
 spec/spec_helper.rb
 tasks/ci.rb
