@@ -2,6 +2,21 @@ require 'set'
 
 module DataMapper
   module Model
+
+    # TODO: document
+    # @api semipublic
+    def self.new(storage_name, &block)
+      model = Class.new
+      model.send(:include, Resource)
+      model.class_eval <<-EOS, __FILE__, __LINE__
+        def self.default_storage_name
+          #{Extlib::Inflection.classify(storage_name).inspect}
+        end
+      EOS
+      model.instance_eval(&block) if block_given?
+      model
+    end
+
     ##
     #
     # Extends the model with this module after DataMapper::Resource has been
@@ -16,7 +31,7 @@ module DataMapper
     # @return [TrueClass, FalseClass] whether or not the inclusions have been
     #   successfully appended to the list
     #
-    # @api public
+    # @api semipublic
     def self.append_extensions(*extensions)
       extra_extensions.concat extensions
       true
@@ -76,56 +91,6 @@ module DataMapper
       end
     end
 
-    # TODO: document
-    # @api semipublic
-    def self.new(storage_name, &block)
-      model = Class.new
-      model.send(:include, Resource)
-      model.class_eval <<-EOS, __FILE__, __LINE__
-        def self.default_storage_name
-          #{Extlib::Inflection.classify(storage_name).inspect}
-        end
-      EOS
-      model.instance_eval(&block) if block_given?
-      model
-    end
-
-    # TODO: document
-    # @api private
-    def base_model
-      @base_model ||= self
-    end
-
-    # TODO: document
-    # @api private
-    def repository_name
-      Repository.context.any? ? Repository.context.last.name : default_repository_name
-    end
-
-    ##
-    # Get the repository with a given name, or the default one for the current
-    # context, or the default one for this class.
-    #
-    # @param name<Symbol>   the name of the repository wanted
-    # @param block<Block>   block to execute with the fetched repository as parameter
-    #
-    # @return <Object, DataMapper::Respository> whatever the block returns,
-    #   if given a block, otherwise the requested repository.
-    #
-    # @api private
-    def repository(name = nil)
-      #
-      # There has been a couple of different strategies here, but me (zond) and dkubb are at least
-      # united in the concept of explicitness over implicitness. That is - the explicit wish of the
-      # caller (+name+) should be given more priority than the implicit wish of the caller (Repository.context.last).
-      #
-      if block_given?
-        DataMapper.repository(name || repository_name) { |*block_args| yield(*block_args) }
-      else
-        DataMapper.repository(name || repository_name)
-      end
-    end
-
     ##
     # the name of the storage recepticle for this resource.  IE. table name, for database stores
     #
@@ -151,7 +116,7 @@ module DataMapper
     #
     # @return <String> The naming convention for the given repository
     #
-    # @api private
+    # @api public
     def field_naming_convention(repository_name = default_storage_name)
       @field_naming_conventions[repository_name] ||= repository(repository_name).adapter.field_naming_convention
     end
@@ -209,12 +174,6 @@ module DataMapper
       property
     end
 
-    # TODO: document
-    # @api private
-    def repositories
-      [ repository ].to_set + @properties.keys.collect { |repository_name| DataMapper.repository(repository_name) }
-    end
-
     # Get a list of all properties that have been defined on a model
     #
     # @param repostiory_name<[Symbol, String]> The name of the repository to use.
@@ -242,36 +201,9 @@ module DataMapper
     end
 
     # TODO: document
-    # @api private
-    def eager_properties(repository_name = default_repository_name)
-      properties(repository_name).defaults
-    end
-
-    # TODO: document
-    # @api private
-    def properties_with_subclasses(repository_name = default_repository_name)
-      properties = PropertySet.new
-      ([ self ].to_set + (respond_to?(:descendants) ? descendants : [])).each do |model|
-        model.relationships(repository_name).each_value { |relationship| relationship.child_key }
-        model.many_to_one_relationships.each do |relationship| relationship.child_key end
-        model.properties(repository_name).each do |property|
-          properties << property unless properties.has_property?(property.name)
-        end
-      end
-      properties
-    end
-
-    # TODO: document
     # @api public
     def key(repository_name = default_repository_name)
       properties(repository_name).key
-    end
-
-    # TODO: document
-    # @api private
-    def default_order(repository_name = default_repository_name)
-      @default_order ||= {}
-      @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
     end
 
     # Grab a single record by its key. Supports natural and composite key
@@ -448,16 +380,18 @@ module DataMapper
     end
 
     # TODO: document
-    # @api private
-    def to_query(repository, key, query = {})
-      conditions = Hash[ *self.key(repository_name).zip(key).flatten ]
-      Query.new(repository, self, query.merge(conditions))
+    # @api semipublic
+    def base_model
+      @base_model ||= self
     end
 
     # TODO: document
-    # @api private
-    def typecast_key(key)
-      self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
+    # @api semipublic
+    def relationships(*args)
+      # DO NOT REMOVE!
+      # method_missing depends on these existing. Without this stub,
+      # a missing module can cause misleading recursive errors.
+      raise NotImplementedError.new
     end
 
     # TODO: document
@@ -468,28 +402,65 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def default_storage_name
-      self.name
+    def default_order(repository_name = default_repository_name)
+      @default_order ||= {}
+      @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
     end
 
+    ##
+    # Get the repository with a given name, or the default one for the current
+    # context, or the default one for this class.
+    #
+    # @param name<Symbol>   the name of the repository wanted
+    # @param block<Block>   block to execute with the fetched repository as parameter
+    #
+    # @return <Object, DataMapper::Respository> whatever the block returns,
+    #   if given a block, otherwise the requested repository.
+    #
     # @api private
-    # TODO: move the logic to create relative query into DataMapper::Query
-    def scoped_query(query = self.query)
-      assert_kind_of 'query', query, Query, Hash
-
-      return self.query if query == self.query
-
-      query = if query.kind_of?(Hash)
-        Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, self, query)
+    def repository(name = nil)
+      #
+      # There has been a couple of different strategies here, but me (zond) and dkubb are at least
+      # united in the concept of explicitness over implicitness. That is - the explicit wish of the
+      # caller (+name+) should be given more priority than the implicit wish of the caller (Repository.context.last).
+      #
+      if block_given?
+        DataMapper.repository(name || repository_name) { |*block_args| yield(*block_args) }
       else
-        query
+        DataMapper.repository(name || repository_name)
       end
+    end
 
-      if self.query
-        self.query.merge(query)
-      else
-        merge_with_default_scope(query)
+    # TODO: document
+    # @api private
+    def repository_name
+      Repository.context.any? ? Repository.context.last.name : default_repository_name
+    end
+
+    # TODO: document
+    # @api private
+    def repositories
+      [ repository ].to_set + @properties.keys.collect { |repository_name| DataMapper.repository(repository_name) }
+    end
+
+    # TODO: document
+    # @api private
+    def eager_properties(repository_name = default_repository_name)
+      properties(repository_name).defaults
+    end
+
+    # TODO: document
+    # @api private
+    def properties_with_subclasses(repository_name = default_repository_name)
+      properties = PropertySet.new
+      ([ self ].to_set + (respond_to?(:descendants) ? descendants : [])).each do |model|
+        model.relationships(repository_name).each_value { |relationship| relationship.child_key }
+        model.many_to_one_relationships.each do |relationship| relationship.child_key end
+        model.properties(repository_name).each do |property|
+          properties << property unless properties.has_property?(property.name)
+        end
       end
+      properties
     end
 
     # TODO: document
@@ -503,6 +474,27 @@ module DataMapper
     # @api private
     def set_paranoid_property(name, &block)
       self.paranoid_properties[name] = block
+    end
+
+    # TODO: document
+    # @api private
+    def typecast_key(key)
+      self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
+    end
+
+    # TODO: document
+    # @api private
+    def to_query(repository, key, query = {})
+      conditions = Hash[ *self.key(repository_name).zip(key).flatten ]
+      Query.new(repository, self, query.merge(conditions))
+    end
+
+    private
+
+    # TODO: document
+    # @api private
+    def default_storage_name
+      self.name
     end
 
     # defines the getter for the property
@@ -538,13 +530,24 @@ module DataMapper
       end
     end
 
-    # TODO: document
-    # @api semipublic
-    def relationships(*args)
-      # DO NOT REMOVE!
-      # method_missing depends on these existing. Without this stub,
-      # a missing module can cause misleading recursive errors.
-      raise NotImplementedError.new
+    # @api private
+    # TODO: move the logic to create relative query into DataMapper::Query
+    def scoped_query(query = self.query)
+      assert_kind_of 'query', query, Query, Hash
+
+      return self.query if query == self.query
+
+      query = if query.kind_of?(Hash)
+        Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, self, query)
+      else
+        query
+      end
+
+      if self.query
+        self.query.merge(query)
+      else
+        merge_with_default_scope(query)
+      end
     end
 
     # TODO: document
