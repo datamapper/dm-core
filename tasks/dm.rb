@@ -1,3 +1,6 @@
+require 'spec/rake/spectask'
+require 'spec/rake/verify_rcov'
+
 task :default => 'dm:spec'
 task :spec    => 'dm:spec'
 task :rcov    => 'dm:rcov'
@@ -12,6 +15,11 @@ namespace :rcov do
   task :semipublic => 'dm:rcov:semipublic'
 end
 
+RCov::VerifyTask.new(:verify_rcov => :rcov) do |t|
+  t.threshold = 87.4 # Make sure you have rcov 0.7 or higher!
+end
+
+# TODO: remove the "dm" namespace
 namespace :dm do
   def run_spec(name, files, rcov)
     Spec::Rake::SpecTask.new(name) do |t|
