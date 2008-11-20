@@ -158,7 +158,7 @@ module DataMapper
           each { |r| orphan_resource(r) }
           other.map! do |r|
             if r.kind_of?(Hash)
-              build(r)
+              new(r)
             else
               relate_resource(r)
             end
@@ -208,37 +208,28 @@ module DataMapper
           self
         end
 
+        # @api public
+        # @deprecated
+        def build(*args)
+          warn "#{self.class}#build is deprecated, use #{self.class}#new instead"
+          new(*args)
+        end
+
         # TODO: document
         # @api public
-        def build(attributes = {})
+        def new(attributes = {})
           assert_mutable  # XXX: move to ManyToMany::Proxy?
 
           # TODO: test moving this into the "else" branch below
           attributes = default_attributes.merge(attributes)
 
-          if children.respond_to?(:build)
+          if children.respond_to?(:new)
             relate_resource(super(attributes))
           else
             # XXX: move to ManyToMany::Proxy?
             # FIXME: This should probably use << to append the resource
             new_child(attributes)
           end
-        end
-
-        # @api public
-        # @deprecated
-        def new(attributes = {})
-          warn "#{self.class}#new is deprecated, use #{self.class}#build instead"
-
-          assert_mutable  # XXX: move to ManyToMany::Proxy?
-
-          if @parent.new_record?
-            raise UnsavedParentError, 'The parent must be saved before initializing a Resource'
-          end
-
-          resource = new_child(attributes)
-          self << resource
-          resource
         end
 
         # TODO: document

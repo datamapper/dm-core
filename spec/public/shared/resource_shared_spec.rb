@@ -69,7 +69,7 @@ share_examples_for 'A public Resource' do
 
       before do
         @initial_comments = @user.comments.size
-        @first_comment    = @user.comments.build(:body => "DM is great!")
+        @first_comment    = @user.comments.new(:body => "DM is great!")
         @second_comment   = @child_model.new(:user => @user, :body => "is it really?")
         @return           = @user.save
       end
@@ -78,7 +78,7 @@ share_examples_for 'A public Resource' do
         @return.should be_true
       end
 
-      it 'should save the first resource created through build' do
+      it 'should save the first resource created through new' do
         @first_comment.new_record?.should be_false
       end
 
@@ -149,7 +149,7 @@ share_examples_for 'A public Resource' do
     describe 'with a dirty parent object' do
 
       before do
-        @first_comment = @user.comments.build(:body => "DM is great!")
+        @first_comment = @user.comments.new(:body => "DM is great!")
         @user.name = 'dbussink-the-second'
         @return = @first_comment.save
       end

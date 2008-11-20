@@ -591,8 +591,15 @@ module DataMapper
       super
     end
 
+    # @api public
+    # @deprecated
+    def build(*args)
+      warn "#{self.class}#build is deprecated, use #{self.class}#new instead"
+      new(*args)
+    end
+
     ##
-    # Builds a new Resource and appends it to the Collection
+    # Initializes a Resource and appends it to the Collection
     #
     # @param [Hash] attributes attributes which
     #   the new resource should have.
@@ -600,7 +607,7 @@ module DataMapper
     # @return [DataMapper::Resource] a new Resource
     #
     # @api public
-    def build(attributes = {})
+    def new(attributes = {})
       resource = repository.scope { model.new(default_attributes.update(attributes)) }
       self << resource
       resource

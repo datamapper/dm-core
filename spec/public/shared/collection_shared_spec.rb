@@ -72,7 +72,7 @@ share_examples_for 'A Collection' do
 
       it 'should scope the Collection' do
         skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: implement #{skip_class}#build", @articles.class == skip_class do
+        pending_if "TODO: implement #{skip_class}#new", @articles.class == skip_class do
           @resources.reload.should == @copy.entries
         end
       end
@@ -274,39 +274,6 @@ share_examples_for 'A Collection' do
           end
         end
       end
-    end
-  end
-
-  it 'should respond to #build' do
-    @articles.should respond_to(:build)
-  end
-
-  describe '#build' do
-    before do
-      skip_class = DataMapper::Associations::ManyToMany::Proxy
-      pending_if "TODO: implement #{skip_class}#build", @articles.class == skip_class do
-        @return = @resource = @articles.build(:content => 'Content')
-      end
-    end
-
-    it 'should return a Resource' do
-      @return.should be_kind_of(DataMapper::Resource)
-    end
-
-    it 'should be a Resource with expected attributes' do
-      @resource.attributes.only(:content).should == { :content => 'Content' }
-    end
-
-    it 'should be a new Resource' do
-      @resource.should be_new_record
-    end
-
-    it 'should append the Resource to the Collection' do
-      @articles.last.should be_equal(@resource)
-    end
-
-    it 'should use the query conditions to set default values' do
-      @resource.attributes.only(:title).should == { :title => 'Sample Article' }
     end
   end
 
@@ -1130,6 +1097,39 @@ share_examples_for 'A Collection' do
           @articles.unknown
         }.should raise_error(NoMethodError)
       end
+    end
+  end
+
+  it 'should respond to #new' do
+    @articles.should respond_to(:new)
+  end
+
+  describe '#new' do
+    before do
+      skip_class = DataMapper::Associations::ManyToMany::Proxy
+      pending_if "TODO: implement #{skip_class}#new", @articles.class == skip_class do
+        @return = @resource = @articles.new(:content => 'Content')
+      end
+    end
+
+    it 'should return a Resource' do
+      @return.should be_kind_of(DataMapper::Resource)
+    end
+
+    it 'should be a Resource with expected attributes' do
+      @resource.attributes.only(:content).should == { :content => 'Content' }
+    end
+
+    it 'should be a new Resource' do
+      @resource.should be_new_record
+    end
+
+    it 'should append the Resource to the Collection' do
+      @articles.last.should be_equal(@resource)
+    end
+
+    it 'should use the query conditions to set default values' do
+      @resource.attributes.only(:title).should == { :title => 'Sample Article' }
     end
   end
 

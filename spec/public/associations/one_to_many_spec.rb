@@ -91,16 +91,6 @@ end
         end
       end
 
-      describe '#build' do
-        before do
-          @resource = @author.articles.build
-        end
-
-        it 'should associate the Resource to the Collection' do
-          @resource.author.should == @author
-        end
-      end
-
       describe '#collect!' do
         describe 'when provided a Resource belonging to another association' do
           before do
@@ -215,6 +205,16 @@ end
               @articles.unknown
             }.should raise_error(NoMethodError)
           end
+        end
+      end
+
+      describe '#new' do
+        before do
+          @resource = @author.articles.new
+        end
+
+        it 'should associate the Resource to the Collection' do
+          @resource.author.should == @author
         end
       end
 
@@ -340,7 +340,7 @@ end
         describe 'when Resources are not saved' do
           before do
             @articles = @author.articles
-            @articles.build(:title => 'New Article', :content => 'New Article')
+            @articles.new(:title => 'New Article', :content => 'New Article')
             @return = @articles.save
           end
 
