@@ -54,7 +54,8 @@ module DataMapper
     #
     #   DataMapper::Resource.descendants.to_a.first   #=> Foo
     #
-    # @return [Set] Set containing the including classes
+    # @return [Set]
+    #   Set containing the including classes
     #
     # @api semipublic
     def self.descendants
@@ -134,11 +135,14 @@ module DataMapper
     #     end
     #   end
     #
-    # @param [Symbol] name   name of attribute to set
-    # @param [Object] value  value to store
+    # @param [Symbol] name
+    #   name of attribute to set
+    # @param [Object] value
+    #   value to store
     #
-    # @return [Object] the value stored at that given attribute,
-    #   nil if none, and default if necessary
+    # @return [Object]
+    #   the value stored at that given attribute, nil if none,
+    #   and default if necessary
     #
     # @api public
     def attribute_set(name, value)
@@ -156,11 +160,11 @@ module DataMapper
     # or rather is it to check class equality? eg.,
     #   return false unless other.class == model
     #
-    # @param
-    #   [Object] other  Object to compare to
+    # @param [Object] other
+    #   Object to compare to
     #
-    # @return
-    #   [TrueClass, FalseClass] the outcome of the comparison as a boolean
+    # @return [TrueClass, FalseClass]
+    #   the outcome of the comparison as a boolean
     #
     # @api public
     def eql?(other)
@@ -199,8 +203,8 @@ module DataMapper
 
     # Computes a hash for the resource
     #
-    # @return
-    #   [Integer] the hash value of the resource
+    # @return [Integer]
+    #   the hash value of the resource
     #
     # @api semipublic
     def hash
@@ -212,8 +216,8 @@ module DataMapper
     #
     #   Foo.new   #=> #<Foo name=nil updated_at=nil created_at=nil id=nil>
     # 
-    # @return
-    #   [String] Human-readable representation of this Resource instance
+    # @return [String]
+    #   Human-readable representation of this Resource instance
     #
     # @api public
     def inspect
@@ -252,8 +256,8 @@ module DataMapper
     # even if the key is changed and not yet persisted.
     # This is done so all relations still work.
     #
-    # @return
-    #   [Array<Key>] the key(s) identifying this resource
+    # @return [Array<Key>]
+    #   the key(s) identifying this resource
     #
     # @api public
     def key
@@ -290,7 +294,8 @@ module DataMapper
     ##
     # Destroy the instance, remove it from the repository
     #
-    # @return [TrueClass, FalseClass] true if resource was destroyed
+    # @return [TrueClass, FalseClass]
+    #   true if resource was destroyed
     #
     # @api public
     def destroy
@@ -313,7 +318,8 @@ module DataMapper
     #
     #   Foo.new.attribute_loaded?(:description)   #=> false
     #
-    # @return [TrueClass, FalseClass] true if ivar +name+ has been loaded
+    # @return [TrueClass, FalseClass]
+    #   true if ivar +name+ has been loaded
     # @api private
     def attribute_loaded?(name)
       instance_variable_defined?(properties[name].instance_variable_name)
@@ -331,16 +337,18 @@ module DataMapper
     #
     #   Foo.new.loaded_attributes   #=>  [:name]
     #
-    # @return [Array<Symbol>] names of attributes that have been loaded
+    # @return [Array<Symbol>]
+    #   names of attributes that have been loaded
     # @api private
     def loaded_attributes
       properties.map{|p| p.name if attribute_loaded?(p.name)}.compact
     end
 
     ##
-    # Set of original values of properties
+    # Hash of original values of attributes that have unsaved changes
     #
-    # @return [Hash] original values of properties
+    # @return [Hash]
+    #   original values of attributes that have unsaved changes
     #
     # @api semipublic
     def original_values
@@ -350,7 +358,8 @@ module DataMapper
     ##
     # Hash of attributes that have unsaved changes
     #
-    # @return [Hash] attributes that have unsaved changes
+    # @return [Hash]
+    #   attributes that have unsaved changes
     #
     # @api semipublic
     def dirty_attributes
@@ -392,9 +401,11 @@ module DataMapper
     ##
     # Checks if an attribute has unsaved changes
     #
-    # @param [Symbol] name name of attribute
+    # @param [Symbol] name
+    #   name of attribute to check for unsaved changes
     #
-    # @return [TrueClass, FalseClass] true if attribute has unsaved changes
+    # @return [TrueClass, FalseClass]
+    #   true if attribute has unsaved changes
     #
     # @api semipublic
     def attribute_dirty?(name)
@@ -402,7 +413,8 @@ module DataMapper
     end
 
     # Gets a Collection with the current Resource instance as its only member
-    # @return [DataMapper::Collection, FalseClass] false if this is a new record,
+    # @return [DataMapper::Collection, FalseClass]
+    #   false if this is a new record,
     #   otherwise a Collection with self as its only member
     # @api private
     def collection
@@ -414,7 +426,8 @@ module DataMapper
     ##
     # Reloads association and all child association
     #
-    # @return [Resource] the receiver, the current Resource instance
+    # @return [Resource]
+    #   the receiver, the current Resource instance
     #
     # @api public
     def reload
@@ -429,9 +442,11 @@ module DataMapper
     ##
     # Reloads specified attributes
     #
-    # @param [Array<Symbol>] attributes names of attribute(s) to reload
+    # @param [Array<Symbol>] attributes
+    #   name(s) of attribute(s) to reload
     #
-    # @return [Resource] the receiver, the current Resource instance
+    # @return [Resource]
+    #   the receiver, the current Resource instance
     #
     # @api private
     def reload_attributes(*attributes)
@@ -474,7 +489,8 @@ module DataMapper
     # @param [Hash] attributes
     #   names and values of attributes to assign
     # 
-    # @return [Hash] 
+    # @return [Hash]
+    #   names and values of attributes assigned
     #
     # @api public
     def attributes=(attributes)
