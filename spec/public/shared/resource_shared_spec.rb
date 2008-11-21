@@ -66,6 +66,179 @@ share_examples_for 'A public Resource' do
 
   end
 
+  it { @user.should respond_to(:attributes) }
+
+  describe '#attributes' do
+
+    it { @user.attributes.should == {:name => 'dbussink', :description => "Test", :age => 25} }
+
+  end
+
+  it { @user.should respond_to(:attributes=) }
+
+  describe '#attributes=' do
+
+    before do
+      @user.attributes = {:name => 'dkubb', :age => 30}
+    end
+
+    it { @user.name.should == "dkubb" }
+    it { @user.age.should == 30 }
+
+    it 'should raise an exception if an non-existent attribute is set' do
+      lambda { @user.attributes = {:nonexistent => 'value'} }.should raise_error
+    end
+
+  end
+
+  it { @user.should respond_to(:destroy) }
+
+  describe '#destroy' do
+
+    describe 'on a single object' do
+
+      before do
+        @resource = @model.create(:name => "hacker", :age => 20)
+        @return = @resource.destroy
+      end
+
+      it 'should successfully remove a resource' do
+        @return.should be_true
+      end
+
+      it 'should freeze the destoyed resource' do
+        pending "it freezes resources when destroying them" do
+          @resource.should be_frozen
+        end
+      end
+
+      it 'should not be able to remove an already removed resource' do
+        @resource.destroy.should be_false
+      end
+
+      it 'should remove object from persitent storage' do
+        @model.get(*@resource.key).should be_nil
+      end
+
+    end
+
+    describe 'with has relationship resources' do
+
+      it 'should raise an exception'
+
+    end
+
+  end
+
+  [ :eql?, :==, :=== ].each do |method|
+
+    it { @user.should respond_to(method) }
+
+    describe "##{method}" do
+
+      it "should be true when they are the same objects" do
+        @user.send(method, @user).should be_true
+      end
+
+      it "should be true when all the attributes are the same" do
+        @user.send(method, @model.get(@user.key)).should be_true
+      end
+
+      it "should be true when all the attributes are the same even if one has not been persisted" do
+        @model.get(@user.key).send(method, @model.new(:name => "dbussink", :age => 25, :description => "Test")).should be_true
+      end
+
+      it "should not be true when the attributes differ even if the keys are the same" do
+        @user.age = 20
+        @user.send(method, @model.get(@user.key)).should be_false
+      end
+
+      with_alternate_adapter do
+        it "should be true when they are instances from different repositories, but the keys and attributes are the same" do
+          @other = repository(:alternate) { @model.create(:name => "dbussink", :age => 25, :description => "Test") }
+          @user.send(method, @other).should be_true
+        end
+      end
+
+    end
+
+  end
+
+  it { @user.should respond_to(:inspect) }
+
+  describe '#inspect' do
+
+    before do
+      @user = @model.get(@user.key)
+      @inspected = @user.inspect
+    end
+
+    it { @inspected.should match(/^#<User/) }
+
+    it { @inspected.should match(/name="dbussink"/) }
+
+    it { @inspected.should match(/age=25/) }
+
+    it { @inspected.should match(/description=<not loaded>/) }
+
+  end
+
+  it { @user.should respond_to(:key) }
+
+  describe '#key' do
+
+    before do
+      @key = @user.key
+      @user.name = 'dkubb'
+    end
+
+    it { @key.should be_kind_of(Array) }
+
+    it 'should always return the key value persisted in the back end' do
+      @key.first.should eql("dbussink")
+    end
+
+    it { @user.key.should eql(@key) }
+
+  end
+
+  it { @user.should respond_to(:new_record?) }
+
+  describe '#new_record?' do
+
+    describe 'on an existing record' do
+
+      it { @user.should_not be_new_record }
+
+    end
+
+    describe 'on a new record' do
+
+      before { @user = User.new }
+
+      it { @user.should be_new_record }
+
+    end
+
+  end
+
+  it { @user.should respond_to(:reload) }
+
+  describe '#reload' do
+
+    before do
+      @user.name = 'dkubb'
+      @user.reload
+    end
+
+    it { @user.name.should eql("dbussink")}
+
+    it 'should also reload previously loaded attributes' do
+      @user.attribute_loaded?(:description).should be_true
+    end
+
+  end
+
   it { @user.should respond_to(:save) }
 
   describe '#save' do
@@ -229,181 +402,6 @@ share_examples_for 'A public Resource' do
           @paragraph.article_id.should == @article.id
         end
       end
-
-    end
-
-  end
-
-  it { @user.should respond_to(:destroy) }
-
-  describe '#destroy' do
-
-    describe 'on a single object' do
-
-      before do
-        @resource = @model.create(:name => "hacker", :age => 20)
-        @return = @resource.destroy
-      end
-
-      it 'should successfully remove a resource' do
-        @return.should be_true
-      end
-
-      it 'should freeze the destoyed resource' do
-        pending "it freezes resources when destroying them" do
-          @resource.should be_frozen
-        end
-      end
-
-      it 'should not be able to remove an already removed resource' do
-        @resource.destroy.should be_false
-      end
-
-      it 'should remove object from persitent storage' do
-        @model.get(*@resource.key).should be_nil
-      end
-
-    end
-
-    describe 'with has relationship resources' do
-
-      it 'should raise an exception'
-
-    end
-
-  end
-
-  [ :eql?, :==, :=== ].each do |method|
-
-    it { @user.should respond_to(method) }
-
-    describe "##{method}" do
-
-      it "should be true when they are the same objects" do
-        @user.send(method, @user).should be_true
-      end
-
-      it "should be true when all the attributes are the same" do
-        @user.send(method, @model.get(@user.key)).should be_true
-      end
-
-      it "should be true when all the attributes are the same even if one has not been persisted" do
-        @model.get(@user.key).send(method, @model.new(:name => "dbussink", :age => 25, :description => "Test")).should be_true
-      end
-
-      it "should not be true when the attributes differ even if the keys are the same" do
-        @user.age = 20
-        @user.send(method, @model.get(@user.key)).should be_false
-      end
-
-      with_alternate_adapter do
-        it "should be true when they are instances from different repositories, but the keys and attributes are the same" do
-          @other = repository(:alternate) { @model.create(:name => "dbussink", :age => 25, :description => "Test") }
-          @user.send(method, @other).should be_true
-        end
-      end
-
-    end
-
-  end
-
-  it { @user.should respond_to(:inspect) }
-
-  describe '#inspect' do
-
-    before do
-      @user = @model.get(@user.key)
-      @inspected = @user.inspect
-    end
-
-    it { @inspected.should match(/^#<User/) }
-
-    it { @inspected.should match(/name="dbussink"/) }
-
-    it { @inspected.should match(/age=25/) }
-
-    it { @inspected.should match(/description=<not loaded>/) }
-
-  end
-
-  it { @user.should respond_to(:repository) }
-
-  it { @user.should respond_to(:key) }
-
-  describe '#key' do
-
-    before do
-      @key = @user.key
-      @user.name = 'dkubb'
-    end
-
-    it { @key.should be_kind_of(Array) }
-
-    it 'should always return the key value persisted in the back end' do
-      @key.first.should eql("dbussink")
-    end
-
-    it { @user.key.should eql(@key) }
-
-  end
-
-  it { @user.should respond_to(:reload) }
-
-  describe '#reload' do
-
-    before do
-      @user.name = 'dkubb'
-      @user.reload
-    end
-
-    it { @user.name.should eql("dbussink")}
-
-    it 'should also reload previously loaded attributes' do
-      @user.attribute_loaded?(:description).should be_true
-    end
-
-  end
-
-  it { @user.should respond_to(:attributes) }
-
-  describe '#attributes' do
-
-    it { @user.attributes.should == {:name => 'dbussink', :description => "Test", :age => 25} }
-
-  end
-
-  it { @user.should respond_to(:attributes=) }
-
-  describe '#attributes=' do
-
-    before do
-      @user.attributes = {:name => 'dkubb', :age => 30}
-    end
-
-    it { @user.name.should == "dkubb" }
-    it { @user.age.should == 30 }
-
-    it 'should raise an exception if an non-existent attribute is set' do
-      lambda { @user.attributes = {:nonexistent => 'value'} }.should raise_error
-    end
-
-  end
-
-  it { @user.should respond_to(:new_record?) }
-
-  describe '#new_record?' do
-
-    describe 'on an existing record' do
-
-      it { @user.should_not be_new_record }
-
-    end
-
-    describe 'on a new record' do
-
-      before { @user = User.new }
-
-      it { @user.should be_new_record }
 
     end
 
