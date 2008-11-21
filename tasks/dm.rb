@@ -16,7 +16,7 @@ namespace :rcov do
 end
 
 RCov::VerifyTask.new(:verify_rcov => :rcov) do |t|
-  t.threshold = 87.4 # Make sure you have rcov 0.7 or higher!
+  t.threshold = 87.8 # Make sure you have rcov 0.7 or higher!
 end
 
 # TODO: remove the "dm" namespace
