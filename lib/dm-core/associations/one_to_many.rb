@@ -104,13 +104,21 @@ module DataMapper
 
         # TODO: add #last
 
+        def at(offset)
+          relate_resource(super)
+        end
+
         # TODO: add #slice (returns a wrapped OneToMany::Proxy object)
 
         # TODO: add #slice!
 
-        # TODO: add #collect!
+        # TODO: document
+        # @api public
+        def collect!
+          super { |r| relate_resource(yield(orphan_resource(r))) }
+        end
 
-        # TODO: alias #map! to #collect!
+        alias map! collect!
 
         # TODO: document
         # @api public
@@ -129,9 +137,12 @@ module DataMapper
           self
         end
 
-        # TODO: add #concat
-
-        # TODO: add #insert
+        # TODO: document
+        # @api public
+        def concat(resources)
+          relate_resources(resources)
+          super
+        end
 
         # TODO: document
         # @api public
@@ -153,13 +164,9 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def replace(other)
-          assert_mutable  # XXX: move to ManyToMany::Proxy?
-          orphan_resources(self)
-          other.map! { |r| r.kind_of?(Hash) ? new(r) : r }
+        def insert(offset, *resources)
+          relate_resources(resources)
           super
-          relate_resources(other)
-          self
         end
 
         # TODO: document
@@ -190,9 +197,28 @@ module DataMapper
           orphan_resource(super)
         end
 
-        # TODO: add #delete_if
+        # TODO: document
+        # @api public
+        def delete_if
+          super { |r| yield(r) && orphan_resource(r) }
+        end
 
-        # TODO: add #reject!
+        # TODO: document
+        # @api public
+        def reject!
+          super { |r| yield(r) && orphan_resource(r) }
+        end
+
+        # TODO: document
+        # @api public
+        def replace(other)
+          assert_mutable  # XXX: move to ManyToMany::Proxy?
+          orphan_resources(self)
+          other.map! { |r| r.kind_of?(Hash) ? new(r) : r }
+          super
+          relate_resources(other)
+          self
+        end
 
         # TODO: document
         # @api public
@@ -440,7 +466,6 @@ module DataMapper
             orphan_resource(resources)
           end
         end
-
 
         # TODO: document
         # @api private
