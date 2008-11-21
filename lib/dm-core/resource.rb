@@ -518,7 +518,7 @@ module DataMapper
 
       if dirty_attributes.empty?
         true
-      elsif dirty_attributes.only(*model.key).values.any? { |v| v.nil? }
+      elsif dirty_attributes.only(*model.key).values.any? { |v| v.blank? }
         false
       else
         repository.update(dirty_attributes, to_query) == 1
