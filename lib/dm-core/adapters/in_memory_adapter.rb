@@ -247,8 +247,8 @@ module DataMapper
           cmp = 0
           sort_order.each do |(property,descending)|
             cmp = property.get!(a) <=> property.get!(b)
-            next if cmp == 0
             cmp *= -1 if descending
+            break if cmp != 0
           end
           cmp
         end

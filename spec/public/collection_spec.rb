@@ -3,11 +3,10 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 # run the specs once with a loaded collection and once not
 [ false, true ].each do |loaded|
   describe DataMapper::Collection do
-    extend CollectionSharedSpec::GroupMethods
+    extend DataMapper::Spec::CollectionHelpers::GroupMethods
 
     self.loaded = loaded
 
-    # define the model prior to supported_by block
     before do
       Object.send(:remove_const, :Article) if defined?(Article)
       class Article
@@ -37,7 +36,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         @articles.entries if loaded
       end
 
-      it_should_behave_like 'A Collection'
+      it_should_behave_like 'A public Collection'
     end
   end
 end

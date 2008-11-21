@@ -1,28 +1,16 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-# TODO: test loaded and unloaded behavior
-
 describe 'Many to One Associations' do
-
-  # define the model prior to with_adapters
   before do
     Object.send(:remove_const, :User) if defined?(User)
     class User
       include DataMapper::Resource
 
-      property :name, String, :key => true
-      property :age,  Integer
+      property :name,        String, :key => true
+      property :age,         Integer
       property :description, Text
 
       has n, :comments
-    end
-
-    Object.send(:remove_const, :Clone) if defined?(Clone)
-    class Clone
-      include DataMapper::Resource
-
-      property :name, String, :key => true
-      property :age,  Integer
     end
 
     Object.send(:remove_const, :Article) if defined?(Article)
@@ -39,7 +27,7 @@ describe 'Many to One Associations' do
     class Comment
       include DataMapper::Resource
 
-      property :id,      Serial
+      property :id,   Serial
       property :body, Text
 
       belongs_to :user

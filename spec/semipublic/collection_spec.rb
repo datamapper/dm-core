@@ -3,8 +3,10 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 # run the specs once with a loaded collection and once not
 [ false, true ].each do |loaded|
   describe DataMapper::Collection do
+    extend DataMapper::Spec::CollectionHelpers::GroupMethods
 
-    # define the model prior to supported_by
+    self.loaded = loaded
+
     before do
       Object.send(:remove_const, :Article) if defined?(Article)
       class Article

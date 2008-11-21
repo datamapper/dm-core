@@ -5,6 +5,49 @@ share_examples_for 'A public Resource' do
     end
   end
 
+  it { @user.should respond_to(:<=>) }
+
+  describe '#<=>' do
+    describe 'when the default order properties are equal with another resource' do
+      before do
+        @other = User.new(:name => 'dbussink')
+        @return = @user <=> @other
+      end
+
+      it 'should return 0' do
+        @return.should == 0
+      end
+    end
+
+    describe 'when the default order property values are sorted before another resource' do
+      before do
+        @other = User.new(:name => 'c')
+        @return = @user <=> @other
+      end
+
+      it 'should return 1' do
+        @return.should == 1
+      end
+    end
+
+    describe 'when the default order property values are sorted after another resource' do
+      before do
+        @other = User.new(:name => 'e')
+        @return = @user <=> @other
+      end
+
+      it 'should return -1' do
+        @return.should == -1
+      end
+    end
+
+    describe 'when comparing an unrelated type of Object' do
+      it 'should raise an exception' do
+        lambda { @user <=> Comment.new }.should raise_error(ArgumentError, 'Cannot compare a Comment instance with a User instance')
+      end
+    end
+  end
+
   it { @user.should respond_to(:attribute_get) }
 
   describe '#attribute_get' do

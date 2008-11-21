@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 # run the specs once with a loaded association and once not
 [ false, true ].each do |loaded|
   describe 'Many to Many Associations' do
-    extend CollectionSharedSpec::GroupMethods
+    extend DataMapper::Spec::CollectionHelpers::GroupMethods
 
     self.loaded = loaded
 
@@ -51,7 +51,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         @other_articles = [@other]
       end
 
-      it_should_behave_like 'A Collection'
+      it_should_behave_like 'A public Collection'
     end
   end
 end

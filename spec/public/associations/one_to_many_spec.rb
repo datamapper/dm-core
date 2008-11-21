@@ -21,7 +21,7 @@ end
 # run the specs once with a loaded association and once not
 [ false, true ].each do |loaded|
   describe 'One to Many Associations' do
-    extend CollectionSharedSpec::GroupMethods
+    extend DataMapper::Spec::CollectionHelpers::GroupMethods
 
     self.loaded = loaded
 
@@ -69,7 +69,7 @@ end
         @other_articles = @author.other_articles
       end
 
-      it_should_behave_like 'A Collection'
+      it_should_behave_like 'A public Collection'
 
       describe '#<<' do
         describe 'when provided a Resource belonging to another association' do

@@ -168,6 +168,31 @@ module DataMapper
 
     alias == eql?
 
+    ##
+    # Compares two Resources to allow them to be sorted
+    #
+    # @param [DataMapper::Resource] other
+    #   The other Resource to compare with
+    #
+    # @return [Integer]
+    #   Return 0 if Resources should be sorted as the same, -1 if the
+    #   other Resource should be after self, and 1 if the other Resource
+    #   should be before self
+    #
+    # @api public
+    def <=>(other)
+      unless other.kind_of?(model)
+        raise ArgumentError, "Cannot compare a #{other.model} instance with a #{model} instance"
+      end
+      cmp = 0
+      model.default_order(repository.name).map do |i|
+        cmp = i.property.get!(self) <=> i.property.get!(other)
+        cmp *= -1 if i.direction == :desc
+        break if cmp != 0
+      end
+      cmp
+    end
+
     # Computes a hash for the resource
     #
     # ==== Returns

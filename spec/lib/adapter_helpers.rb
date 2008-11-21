@@ -1,7 +1,5 @@
 module DataMapper::Spec
-
   module AdapterHelpers
-
     def self.current_adapters
       @current_adapters ||= []
     end

@@ -1,13 +1,4 @@
-module CollectionSharedSpec
-  module GroupMethods
-    def self.extended(base)
-      base.class_inheritable_accessor :loaded
-      base.loaded = false
-    end
-  end
-end
-
-share_examples_for 'A Collection' do
+share_examples_for 'A public Collection' do
   before do
     %w[ @model @article @other @articles @other_articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
@@ -1774,12 +1765,7 @@ share_examples_for 'A Collection' do
   describe '#sort!' do
     describe 'without a block' do
       before do
-        # NOTE: DataMapper::Resource#<=> should use the Model#default_order to determine the
-        # sort order for the Resource instances.  It should use the same approach as
-        # InMemoryAdapter#sorted_results
-        pending 'TODO: implement DataMapper::Resource#<=>, and include Comparable in DataMapper::Resource' do
-          @return = @other_articles.push(*@articles).sort!
-        end
+        @return = @articles.unshift(@other).sort!
       end
 
       it 'should return a Collection' do
@@ -1797,9 +1783,7 @@ share_examples_for 'A Collection' do
 
     describe 'with a block' do
       before do
-        @new_article = @model.create(:title => 'Sample Article')
-        @articles << @new_article if @articles.loaded?
-        @return = @articles.sort! { |a,b| b.id <=> a.id }
+        @return = @articles.unshift(@other).sort! { |a,b| b.id <=> a.id }
       end
 
       it 'should return a Collection' do
@@ -1811,7 +1795,7 @@ share_examples_for 'A Collection' do
       end
 
       it 'should modify and sort the Collection using supplied block' do
-        @articles.should == [ @new_article, @article ]
+        @articles.should == [ @other, @article ]
       end
     end
   end
