@@ -295,6 +295,7 @@ module DataMapper
     #   true if ivar +name+ has been loaded
     #
     # @return [TrueClass, FalseClass] true if ivar +name+ has been loaded
+    #
     # @api private
     def attribute_loaded?(name)
       instance_variable_defined?(properties[name].instance_variable_name)
@@ -316,6 +317,7 @@ module DataMapper
     #   names of attributes that have been loaded
     #
     # @return [Array<Symbol>] names of attributes that have been loaded
+    #
     # @api private
     def loaded_attributes
       properties.map{|p| p.name if attribute_loaded?(p.name)}.compact
