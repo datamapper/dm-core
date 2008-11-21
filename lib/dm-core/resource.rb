@@ -214,6 +214,7 @@ module DataMapper
       cmp
     end
 
+    ##
     # Computes a hash for the resource
     #
     # @return [Integer]
@@ -293,6 +294,7 @@ module DataMapper
     # @return [TrueClass, FalseClass]
     #   true if ivar +name+ has been loaded
     #
+    # @return [TrueClass, FalseClass] true if ivar +name+ has been loaded
     # @api private
     def attribute_loaded?(name)
       instance_variable_defined?(properties[name].instance_variable_name)
@@ -313,6 +315,7 @@ module DataMapper
     # @return [Array<Symbol>]
     #   names of attributes that have been loaded
     #
+    # @return [Array<Symbol>] names of attributes that have been loaded
     # @api private
     def loaded_attributes
       properties.map{|p| p.name if attribute_loaded?(p.name)}.compact
@@ -388,9 +391,11 @@ module DataMapper
     end
 
     # Gets a Collection with the current Resource instance as its only member
+    #
     # @return [DataMapper::Collection, FalseClass]
     #   false if this is a new record,
     #   otherwise a Collection with self as its only member
+    #
     # @api private
     def collection
       @collection ||= if query = to_query
@@ -449,6 +454,9 @@ module DataMapper
     # @return [Hash]
     #   All the (non)-lazy attributes
     #
+    # @return [Hash]
+    #   All the (non)-lazy attributes
+    # 
     # @api public
     def attributes
       attributes = {}
@@ -560,7 +568,9 @@ module DataMapper
     end
 
     # Gets a Query that will return this Resource instance
+    #
     # @return [Query] Query that will retrieve this Resource instance
+    #
     # @api private
     def to_query(query = {})
       model.to_query(repository, key, query) unless new_record?
