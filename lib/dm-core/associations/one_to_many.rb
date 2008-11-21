@@ -14,7 +14,7 @@ module DataMapper
         repository_name = model.repository.name
 
         model.class_eval <<-EOS, __FILE__, __LINE__
-          def #{name}(query = {})
+          def #{name}(query = nil)
             #{name}_association.all(query)
           end
 
@@ -70,11 +70,11 @@ module DataMapper
       class Proxy
         include Assertions
 
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not instance_variable_set instance_variable_get ].include?(m.to_s) }
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? equal? assert_kind_of should should_not instance_variable_set instance_variable_get ].include?(m.to_s) }
 
         # TODO: document
         # @api public
-        def reload(query = {})
+        def reload(query = nil)
           children.reload(query)
           self
         end
@@ -82,8 +82,8 @@ module DataMapper
         # TODO: document
         # @api public
         # FIXME: remove when RelationshipChain#get_children can return a Collection
-        def all(query = {})
-          if query.empty?
+        def all(query = nil)
+          if query.blank?
             self
           else
             @relationship.get_children(@parent, query)
@@ -124,8 +124,8 @@ module DataMapper
             return self
           end
 
-          relate_resource(resource)
           super
+          relate_resource(resource)
           self
         end
 
@@ -137,8 +137,8 @@ module DataMapper
         # @api public
         def push(*resources)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
-          resources.each { |r| relate_resource(r) }
           super
+          relate_resources(resources)
           self
         end
 
@@ -146,8 +146,8 @@ module DataMapper
         # @api public
         def unshift(*resources)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
-          resources.each { |r| relate_resource(r) }
           super
+          relate_resources(resources)
           self
         end
 
@@ -155,15 +155,10 @@ module DataMapper
         # @api public
         def replace(other)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
-          each { |r| orphan_resource(r) }
-          other.map! do |r|
-            if r.kind_of?(Hash)
-              new(r)
-            else
-              relate_resource(r)
-            end
-          end
+          orphan_resources(self)
+          other.map! { |r| r.kind_of?(Hash) ? new(r) : r }
           super
+          relate_resources(other)
           self
         end
 
@@ -203,7 +198,7 @@ module DataMapper
         # @api public
         def clear
           assert_mutable  # XXX: move to ManyToMany::Proxy?
-          each { |r| orphan_resource(r) }
+          orphan_resources(self)
           super
           self
         end
@@ -401,19 +396,51 @@ module DataMapper
         # TODO: document
         # @api private
         def relate_resource(resource)
+          return if resource.nil?
+
           @relationship.attach_parent(resource, @parent)
-          @orphans.delete(resource)
+
+          unless resource.new_record?
+            @orphans.delete(resource)
+          end
+
           resource
+        end
+
+        # TODO: document
+        # @api private
+        def relate_resources(resources)
+          if resources.kind_of?(Enumerable)
+            resources.each { |r| relate_resource(r) }
+          else
+            relate_resource(resources)
+          end
         end
 
         # TODO: document
         # @api private
         def orphan_resource(resource)
           return if resource.nil?
+
           @relationship.attach_parent(resource, nil)
-          @orphans << resource
+
+          unless resource.new_record?
+            @orphans << resource
+          end
+
           resource
         end
+
+        # TODO: document
+        # @api private
+        def orphan_resources(resources)
+          if resources.kind_of?(Enumerable)
+            resources.each { |r| orphan_resource(r) }
+          else
+            orphan_resource(resources)
+          end
+        end
+
 
         # TODO: document
         # @api private

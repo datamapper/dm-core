@@ -907,7 +907,7 @@ module DataMapper
     def orphan_resource(resource)
       return if resource.nil?
 
-      if resource.collection.object_id == self.object_id
+      if resource.collection.equal?(self)
         resource.collection = nil
       end
 
@@ -940,7 +940,7 @@ module DataMapper
 
       # a nil query, or an empty Hash signal that we want to use the
       # same scope as is currently in effect
-      if query.nil? || (query.kind_of?(Hash) && query.empty?)
+      if query.blank?
         return self.query
       end
 

@@ -35,6 +35,7 @@ dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 require dir / 'support'
 require dir / 'resource'
 require dir / 'model'
+require dir / 'collection'
 
 require dir / 'type'
 require dir / 'type_map'
@@ -53,7 +54,6 @@ require dir / 'repository'
 require dir / 'scope'
 require dir / 'property'
 require dir / 'adapters'
-require dir / 'collection'
 require dir / 'is'
 
 # == Setup and Configuration
