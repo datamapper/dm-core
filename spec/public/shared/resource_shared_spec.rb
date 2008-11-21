@@ -277,7 +277,7 @@ share_examples_for 'A public Resource' do
 
   end
 
-  [ :==, :eql?, :=== ].each do |method|
+  [ :eql?, :==, :=== ].each do |method|
 
     it { @user.should respond_to(method) }
 
