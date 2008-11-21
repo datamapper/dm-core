@@ -516,10 +516,10 @@ module DataMapper
 
       dirty_attributes = self.dirty_attributes
 
-      if dirty_attributes.only(*model.key).any? { |p,v| v.nil? }
-        false
-      elsif dirty_attributes.empty?
+      if dirty_attributes.empty?
         true
+      elsif dirty_attributes.only(*model.key).values.any? { |v| v.nil? }
+        false
       else
         repository.update(dirty_attributes, to_query) == 1
       end
