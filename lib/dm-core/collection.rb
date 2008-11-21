@@ -812,9 +812,11 @@ module DataMapper
       end
     end
 
-    # TODO: document
+    ##
+    # Copies the original Collection state
+    #
     # @api private
-    def initialize_copy(other)
+    def initialize_copy(original)
       super
       @query   = @query.dup
       @cache   = @cache.dup
