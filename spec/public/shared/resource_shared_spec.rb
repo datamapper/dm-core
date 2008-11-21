@@ -95,17 +95,13 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'on a dirty invalid object' do
-
       before do
         @user.name = nil
       end
 
       it 'should not save an invalid resource' do
-        pending "it raises an exception when trying to save a non serial nil key" do
-          @user.save.should be_false
-        end
+        @user.save.should be_false
       end
-
     end
 
     describe 'with new resources in a has relationship' do

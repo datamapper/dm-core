@@ -290,7 +290,7 @@ module DataMapper
         original_values.clear
       end
 
-      parent_associations.all? { |a| a.save }
+      saved && parent_associations.all? { |a| a.save }
     end
 
     # destroy the instance, remove it from the repository
@@ -516,7 +516,9 @@ module DataMapper
 
       dirty_attributes = self.dirty_attributes
 
-      if dirty_attributes.empty?
+      if dirty_attributes.only(*model.key).any? { |p,v| v.nil? }
+        false
+      elsif dirty_attributes.empty?
         true
       else
         repository.update(dirty_attributes, to_query) == 1
@@ -548,6 +550,7 @@ module DataMapper
     def create
       # Can't create a resource that is not dirty and doesn't have serial keys
       return false if new_record? && !dirty? && !model.key.any? { |p| p.serial? }
+
       # set defaults for new resource
       properties.each do |property|
         next if attribute_loaded?(property.name)
