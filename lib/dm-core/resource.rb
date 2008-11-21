@@ -303,14 +303,7 @@ module DataMapper
       return false if new_record?
       return false unless repository.delete(to_query)
 
-      @new_record = true
-      repository.identity_map(model).delete(key)
-      original_values.clear
-
-      properties.each do |property|
-        # We'll set the original value to nil as if we had a new record
-        original_values[property.name] = nil if attribute_loaded?(property.name)
-      end
+      reset
 
       true
     end
@@ -536,25 +529,18 @@ module DataMapper
       model.to_query(repository, key, query) unless new_record?
     end
 
+    ##
+    # Reset the Resource to a similar state as a new record
+    #
+    # @api private
+    def reset
+      @new_record = true
+      repository.identity_map(model).delete(key)
+      original_values.clear
+      loaded_attributes.each { |n| original_values[n] = nil }
+    end
+
     protected
-
-    # TODO: document
-    # @api private
-    def properties
-      model.properties(repository.name)
-    end
-
-    # TODO: document
-    # @api private
-    def key_properties
-      model.key(repository.name)
-    end
-
-    # TODO: document
-    # @api private
-    def relationships
-      model.relationships(repository.name)
-    end
 
     # Needs to be a protected method so that it is hookable
     # TODO: document
@@ -576,6 +562,24 @@ module DataMapper
       repository.identity_map(model).set(key, self)
 
       true
+    end
+
+    # TODO: document
+    # @api private
+    def properties
+      model.properties(repository.name)
+    end
+
+    # TODO: document
+    # @api private
+    def key_properties
+      model.key(repository.name)
+    end
+
+    # TODO: document
+    # @api private
+    def relationships
+      model.relationships(repository.name)
     end
 
     private

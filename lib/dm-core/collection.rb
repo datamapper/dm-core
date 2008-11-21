@@ -713,18 +713,7 @@ module DataMapper
       end
 
       if loaded?
-        each do |r|
-          # TODO: move this logic to a semipublic method in Resource
-          r.instance_variable_set(:@new_record, true)
-          repository.identity_map(model).delete(r.key)
-          r.dirty_attributes.clear
-
-          model.properties(repository.name).each do |property|
-            next unless r.attribute_loaded?(property.name)
-            r.dirty_attributes[property] = property.get(r)
-          end
-        end
-
+        each { |r| r.reset }
         clear
       end
 
