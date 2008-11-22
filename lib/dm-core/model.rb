@@ -206,6 +206,12 @@ module DataMapper
       properties(repository_name).key
     end
 
+    # TODO: document
+    # @api public
+    def identity_field(repository_name = default_repository_name)
+      key(repository_name).detect { |p| p.serial? }
+    end
+
     # Grab a single record by its key. Supports natural and composite key
     # lookups as well.
     #

@@ -26,16 +26,15 @@ module DataMapper
         repository_name = self.name
 
         resources.each do |resource|
-          records = model_records(resource.model)
+          identity_map = identity_map(resource.model)
 
-          # TODO: make a model.identity_field method
-          if identity_field = resource.model.key(repository_name).detect { |p| p.serial? }
-            identity_field.set!(resource, records.size.succ)
+          if identity_field = resource.model.identity_field(repository_name)
+            identity_field.set!(resource, identity_map.size.succ)
           end
 
           # copy the userspace Resource so that if we call #update we
           # don't silently change the data in userspace
-          records[resource.key] = resource.dup
+          identity_map[resource.key] = resource.dup
         end
 
         resources.size
@@ -56,10 +55,10 @@ module DataMapper
       #
       # @api semipublic
       def update(attributes, query)
-        records = model_records(query.model)
+        identity_map = identity_map(query.model)
 
         resources = read_many(query).each do |r|
-          resource = records[r.key]
+          resource = identity_map[r.key]
           attributes.each { |p,v| p.set!(resource, v) }
         end
 
@@ -112,8 +111,8 @@ module DataMapper
       #
       # @api semipublic
       def delete(query)
-        records = model_records(query.model)
-        read_many(query).each { |r| records.delete(r.key) }.size
+        identity_map = identity_map(query.model)
+        read_many(query).each { |r| identity_map.delete(r.key) }.size
       end
 
       private
@@ -134,7 +133,7 @@ module DataMapper
       # @api semipublic
       def initialize(name, uri_or_options)
         super
-        @model_records = {}
+        @identity_maps = {}
       end
 
       ##
@@ -163,7 +162,7 @@ module DataMapper
         conditions = query.conditions
 
         # find all matching records
-        resources = model_records(query.model).values.select do |resource|
+        resources = identity_map(query.model).values.select do |resource|
           conditions.all? do |condition|
             operator, property, bind_value = *condition
 
@@ -255,18 +254,17 @@ module DataMapper
       end
 
       ##
-      # Returns the records for a given Model
+      # Returns the Identity Map for a given Model
       #
       # @param [DataMapper::Model] model
-      #   A model to retrieve the records for
+      #   A model to retrieve the Identity Map for
       #
-      # @return [Hash]
-      #   The Hash of records where the key is the Resource key and
-      #   the value is a Resource object
+      # @return [DataMapper::IdentityMap]
+      #   The Identity Map of Resources
       #
       # @api private
-      def model_records(model)
-        @model_records[model] ||= {}
+      def identity_map(model)
+        @identity_maps[model] ||= IdentityMap.new
       end
     end
   end
