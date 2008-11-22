@@ -862,6 +862,26 @@ share_examples_for 'A public Collection' do
     end
   end
 
+  it { @articles.should respond_to(:last) }
+
+  describe '#inspect' do
+
+    before do
+      @copy = @articles.dup
+      @copy << Article.new(:title => "Other Article")
+      @inspected = @copy.inspect
+    end
+
+    it { @inspected.should match(/^\[.*\]$/) }
+
+    it { @inspected.should match(/id=1/) }
+    it { @inspected.should match(/id=nil/) }
+
+    it { @inspected.should match(/title=\"Sample Article\"/) }
+    it { @inspected.should match(/title=\"Other Article\"/) }
+
+  end
+
   it 'should respond to #last' do
     @articles.should respond_to(:last)
   end

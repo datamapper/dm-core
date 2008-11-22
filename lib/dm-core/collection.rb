@@ -767,6 +767,17 @@ module DataMapper
       object_id == other.object_id
     end
 
+    ##
+    # Inspection of this collection, shows all elements contained in it
+    #
+    # ==== Returns
+    # <String>:: Inspection of all the resources in the collection
+    #
+    # @api public
+    def inspect
+      "[" << map {|r| r.inspect }.join(", ") << "]"
+    end
+
     protected
 
     ##
