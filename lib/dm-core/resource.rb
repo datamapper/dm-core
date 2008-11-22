@@ -486,7 +486,8 @@ module DataMapper
         if respond_to?(setter)
           send(setter, value)
         else
-          raise NameError, "#{name} is not a public property"
+          # FIXME: should this raise an exception?  why not just warn and skip setting it?
+          raise NameError, "#{name} is not a public property in #{model}"
         end
       end
     end

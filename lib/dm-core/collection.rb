@@ -642,7 +642,8 @@ module DataMapper
     # @api public
     def update(attributes = {}, *allowed)
       attributes = attributes.only(*allowed) if allowed.any?
-      attributes.empty? || all? { |r| r.update(attributes, *allowed) }
+      dirty_attributes = model.new(attributes).dirty_attributes
+      dirty_attributes.empty? || all? { |r| r.update(attributes, *allowed) }
     end
 
     ##
@@ -659,22 +660,22 @@ module DataMapper
     def update!(attributes = {}, *allowed)
       attributes = attributes.only(*allowed) if allowed.any?
 
-      unless attributes.empty?
-        dirty_attributes = {}
+      dirty_attributes = model.new(attributes).dirty_attributes
 
-        model.properties(repository.name).each do |property|
-          next unless attributes.has_key?(property.name)
-          dirty_attributes[property] = attributes[property.name]
-        end
-
-        repository.update(dirty_attributes, query)
+      if dirty_attributes.empty?
+        true
+      elsif dirty_attributes.only(*model.key).values.any? { |v| v.blank? }
+        false
+      else
+        updated = repository.update(dirty_attributes, query)
 
         if loaded?
           each { |r| r.attributes = attributes }
+          updated == size
+        else
+          true
         end
       end
-
-      true
     end
 
     ##
@@ -708,16 +709,14 @@ module DataMapper
     def destroy!
       destroyed = repository.delete(query)
 
-      if destroyed == 0 || (loaded? && destroyed != size)
-        return false
-      end
-
       if loaded?
         each { |r| r.reset }
+        size = self.size
         clear
+        destroyed == size
+      else
+        true
       end
-
-      true
     end
 
     ##

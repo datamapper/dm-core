@@ -78,11 +78,11 @@ describe DataMapper::Property do
 
     describe "#length" do
       it 'returns upper bound for Range values' do
-        Image.properties[:description].length.should be(1024)
+        Image.properties[:description].length.should eql(1024)
       end
 
       it 'returns value as is for integer values' do
-        Image.properties[:md5hash].length.should be(32)
+        Image.properties[:md5hash].length.should eql(32)
       end
     end
 

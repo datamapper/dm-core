@@ -195,11 +195,6 @@ module DataMapper
         end
       end
 
-      # @api private
-      def attach_parent(child, parent)
-        child_key.set(child, parent && parent_key.get(parent))
-      end
-
       private
 
       # +child_model_name and child_properties refers to the FK, parent_model_name

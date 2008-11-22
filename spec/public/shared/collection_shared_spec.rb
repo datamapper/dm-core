@@ -62,8 +62,8 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should scope the Collection' do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: implement #{skip_class}#new", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @resources.reload.should == @copy.entries
         end
       end
@@ -71,8 +71,8 @@ share_examples_for 'A public Collection' do
 
     describe 'with a query' do
       before do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @new = @articles.create(:content => 'Newish Article')
           # search for the first 10 articles, then take the first 5, and then finally take the
           # second article from the remainder
@@ -539,28 +539,28 @@ share_examples_for 'A public Collection' do
 
   describe '#destroy!' do
     before do
-      @skip_class = DataMapper::Associations::ManyToMany::Proxy
-      pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+      skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+      pending_if 'TODO: fix', skip.include?(@articles.class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
         @return = @articles.destroy!
       end
     end
 
     it 'should return true' do
-      pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) do
+      skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+      pending_if 'TODO: fix', skip.include?(@articles.class) do
         @return.should be_true
       end
     end
 
     it 'should remove the Resources from the datasource' do
-      pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) do
+      skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+      pending_if 'TODO: fix', skip.include?(@articles.class) do
         @model.all(:title => 'Sample Article').should be_empty
       end
     end
 
     it 'should clear the collection' do
-      pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) do
-        @articles.should be_empty
-      end
+      @articles.should be_empty
     end
 
     it 'should bypass validation' do
@@ -623,18 +623,19 @@ share_examples_for 'A public Collection' do
 
     describe 'with a query' do
       before do
-        @skip_class = DataMapper::Associations::ManyToMany::Proxy
         @return = @resource = @articles.first(:content => 'Sample')
       end
 
       it 'should return a Resource' do
-        pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @return.should be_kind_of(DataMapper::Resource)
         end
       end
 
       it 'should should be the first Resource in the Collection matching the query' do
-        pending_if "TODO: fix in #{@skip_class}", @articles.kind_of?(@skip_class) do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @resource.should == @article
         end
       end
@@ -2113,6 +2114,26 @@ share_examples_for 'A public Collection' do
         @attributes.only(*@allowed).each { |k,v| resource.send(k).should == v }
       end
     end
+
+    describe 'with attributes where one is a parent association' do
+      before do
+        @attributes = { :original => @other }
+        @return = @articles.update(@attributes)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+
+      it 'should update attributes of all Resources' do
+        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
+      end
+
+      it 'should persist the changes' do
+        resource = @model.get(*@article.key)
+        @attributes.each { |k,v| resource.send(k).should == v }
+      end
+    end
   end
 
   it 'should respond to #update!' do
@@ -2132,14 +2153,18 @@ share_examples_for 'A public Collection' do
 
     describe 'with attributes' do
       before do
-        @skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
-          @return = @articles.update!(:title => 'Updated Title')
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+          @attributes = { :title => 'Updated Title' }
+          @return = @articles.update!(@attributes)
         end
       end
 
       it 'should return true' do
-        @return.should be_true
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
+          @return.should be_true
+        end
       end
 
       it 'should bypass validation' do
@@ -2147,20 +2172,22 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @articles.each { |r| r.title.should == 'Updated Title' }
+        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
       end
 
       it 'should persist the changes' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
-          @model.get(*@article.key).title.should == 'Updated Title'
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
+          resource = @model.get(*@article.key)
+          @attributes.each { |k,v| resource.send(k).should == v }
         end
       end
     end
 
     describe 'with attributes and allowed properties' do
       before do
-        @skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
           @attributes = { :title => 'Updated Title' }
           @allowed = [ :title ]
           @return = @articles.update!(@attributes, *@allowed)
@@ -2168,7 +2195,10 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return true' do
-        @return.should be_true
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
+          @return.should be_true
+        end
       end
 
       it 'should bypass validation' do
@@ -2180,7 +2210,8 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should persist the changes' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           resource = @model.get(*@article.key)
           @attributes.each { |k,v| resource.send(k).should == v }
         end
@@ -2189,8 +2220,8 @@ share_examples_for 'A public Collection' do
 
     describe 'with attributes and allowed properties not matching the attributes' do
       before do
-        @skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
           @attributes = { :title => 'Updated Title', :content => 'Updated Content' }
           @allowed = [ :title ]
           @return = @articles.update!(@attributes, *@allowed)
@@ -2198,7 +2229,10 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return true' do
-        @return.should be_true
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
+          @return.should be_true
+        end
       end
 
       it 'should bypass validation' do
@@ -2214,9 +2248,42 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should persist the changes' do
-        pending_if "TODO: implement #{@skip_class}#update!", @articles.kind_of?(@skip_class) do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           resource = @model.get(*@article.key)
           @attributes.only(*@allowed).each { |k,v| resource.send(k).should == v }
+        end
+      end
+    end
+
+    describe 'with attributes where one is a parent association' do
+      before do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) && !@adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
+          @attributes = { :original => @other }
+          @return = @articles.update!(@attributes)
+        end
+      end
+
+      it 'should return true' do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
+          @return.should be_true
+        end
+      end
+
+      it 'should update attributes of all Resources' do
+        skip = [ DataMapper::Collection ]
+        pending_if 'TODO: fix bug with IdentityMap and InMemoryAdapter', skip.include?(@articles.class) && !@articles.loaded? do
+          @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
+        end
+      end
+
+      it 'should persist the changes' do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
+          resource = @model.get(*@article.key)
+          @attributes.each { |k,v| resource.send(k).should == v }
         end
       end
     end

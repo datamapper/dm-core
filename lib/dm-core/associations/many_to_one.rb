@@ -20,7 +20,8 @@ module DataMapper
           end
 
           def #{name}=(parent)
-            #{name}_relationship.attach_parent(self, parent)
+            parent_key = #{name}_relationship.parent_key.get(parent) unless parent.nil?
+            #{name}_relationship.child_key.set(self, parent_key)
             @#{name} = parent
           end
 

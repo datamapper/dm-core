@@ -8,7 +8,6 @@ module DataMapper
       ]
 
       undef_method :get_parent
-      undef_method :attach_parent
 
       # @api private
       def child_model

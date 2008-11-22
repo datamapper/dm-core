@@ -424,7 +424,8 @@ module DataMapper
         def relate_resource(resource)
           return if resource.nil?
 
-          @relationship.attach_parent(resource, @parent)
+          parent_key = @relationship.parent_key.get(@parent)
+          @relationship.child_key.set(resource, parent_key)
 
           unless resource.new_record?
             @orphans.delete(resource)
@@ -448,7 +449,7 @@ module DataMapper
         def orphan_resource(resource)
           return if resource.nil?
 
-          @relationship.attach_parent(resource, nil)
+          @relationship.child_key.set(resource, nil)
 
           unless resource.new_record?
             @orphans << resource
