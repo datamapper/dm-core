@@ -222,7 +222,7 @@ module DataMapper
     # @api public
     def get(*key)
       key = typecast_key(key)
-      repository.identity_map(self).get(key) || first(to_query(repository, key))
+      repository.identity_map(self)[key] || first(to_query(repository, key))
     end
 
     # Grab a single record just like #get, but raise an ObjectNotFoundError
@@ -348,12 +348,10 @@ module DataMapper
         key_values   = values.values_at(*key_property_indexes)
         identity_map = repository.identity_map(model)
 
-        if resource = identity_map.get(key_values)
-          return resource unless query.reload?
-        else
+        resource = identity_map[key_values] ||= begin
           resource = model.allocate
           resource.instance_variable_set(:@repository, repository)
-          identity_map.set(key_values, resource)
+          resource
         end
       else
         resource = model.allocate
@@ -363,6 +361,8 @@ module DataMapper
       resource.instance_variable_set(:@new_record, false)
 
       query.fields.zip(values) do |property,value|
+        next if query.reload? == false && resource.attribute_loaded?(property.name)
+
         value = property.custom? ? property.type.load(value, property) : property.typecast(value)
         property.set!(resource, value)
 

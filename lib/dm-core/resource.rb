@@ -563,7 +563,7 @@ module DataMapper
       @repository = repository
       @new_record = false
 
-      repository.identity_map(model).set(key, self)
+      repository.identity_map(model)[key] = self
 
       true
     end
