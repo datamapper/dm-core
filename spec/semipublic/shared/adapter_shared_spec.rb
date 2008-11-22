@@ -7,9 +7,7 @@ share_examples_for 'An Adapter' do
     @resource = @model.new(:color => "Mauve")
   end
 
-  it "should respond to create" do
-    @adapter.should respond_to(:create)
-  end
+  it { @adapter.should respond_to(:create) }
 
   describe "#create" do
     before do
@@ -25,9 +23,7 @@ share_examples_for 'An Adapter' do
     end
   end
 
-  it "should respond to update" do
-    @adapter.should respond_to(:update)
-  end
+  it { @adapter.should respond_to(:update) }
 
   describe "#update" do
     before do
@@ -44,9 +40,7 @@ share_examples_for 'An Adapter' do
     end
   end
 
-  it "should respond to read_one" do
-    @adapter.should respond_to(:read_one)
-  end
+  it { @adapter.should respond_to(:read_one) }
 
   describe "#read_one" do
     before do
@@ -63,9 +57,7 @@ share_examples_for 'An Adapter' do
     end
   end
 
-  it "should respond to read_many" do
-    @adapter.should respond_to(:read_many)
-  end
+  it { @adapter.should respond_to(:read_many) }
 
   describe "#read_many" do
     before do
@@ -82,9 +74,7 @@ share_examples_for 'An Adapter' do
     end
   end
 
-  it "should respond to delete" do
-    @adapter.should respond_to(:delete)
-  end
+  it { @adapter.should respond_to(:delete) }
 
   describe "#delete" do
     before do

@@ -31,9 +31,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         @articles.entries if loaded
       end
 
-      it 'should respond to .new' do
-        DataMapper::Collection.should respond_to(:new)
-      end
+      it { DataMapper::Collection.should respond_to(:new) }
 
       describe '.new' do
         describe 'with a block', 'and no resources' do
@@ -83,9 +81,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
       end
 
-      it 'should respond to #load' do
-        @articles.should respond_to(:load)
-      end
+      it { @articles.should respond_to(:load) }
 
       describe '#load' do
         before do
@@ -113,9 +109,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
       end
 
-      it 'should respond to #properties' do
-        @articles.should respond_to(:properties)
-      end
+      it { @articles.should respond_to(:properties) }
 
       describe '#properties' do
         before do
@@ -131,9 +125,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
       end
 
-      it 'should respond to #query' do
-        @articles.should respond_to(:query)
-      end
+      it { @articles.should respond_to(:query) }
 
       describe '#query' do
         before do
@@ -151,9 +143,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
       end
 
-      it 'should respond to #relationships' do
-        @articles.should respond_to(:relationships)
-      end
+      it { @articles.should respond_to(:relationships) }
 
       describe '#relationships' do
         before do
@@ -169,9 +159,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
       end
 
-      it 'should respond to #repository' do
-        @articles.should respond_to(:repository)
-      end
+      it { @articles.should respond_to(:repository) }
 
       describe '#repository' do
         before do

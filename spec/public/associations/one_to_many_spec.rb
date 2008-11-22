@@ -332,9 +332,7 @@ end
         end
       end
 
-      it 'should respond to #save' do
-        @articles.should respond_to(:save)
-      end
+      it { @articles.should respond_to(:save) }
 
       describe '#save' do
         describe 'when Resources are not saved' do

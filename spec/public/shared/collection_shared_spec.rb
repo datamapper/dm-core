@@ -6,9 +6,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :add, :<< ].each do |method|
-    it "should respond to ##{method}" do
-      @articles.should respond_to(method)
-    end
+    it { @articles.should respond_to(method) }
 
     describe "##{method}" do
       before do
@@ -34,9 +32,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #all' do
-    @articles.should respond_to(:all)
-  end
+  it { @articles.should respond_to(:all) }
 
   describe '#all' do
     describe 'with no arguments' do
@@ -154,9 +150,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #at' do
-    @articles.should respond_to(:at)
-  end
+  it { @articles.should respond_to(:at) }
 
   describe '#at' do
     describe 'with positive offset' do
@@ -268,9 +262,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #clear' do
-    @articles.should respond_to(:clear)
-  end
+  it { @articles.should respond_to(:clear) }
 
   describe '#clear' do
     before do
@@ -296,9 +288,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :collect!, :map! ].each do |method|
-    it "should respond to ##{method}" do
-      @articles.should respond_to(method)
-    end
+    it { @articles.should respond_to(method) }
 
     describe "##{method}" do
       before do
@@ -324,9 +314,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #concat' do
-    @articles.should respond_to(:concat)
-  end
+  it { @articles.should respond_to(:concat) }
 
   describe '#concat' do
     before do
@@ -350,9 +338,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #create' do
-    @articles.should respond_to(:create)
-  end
+  it { @articles.should respond_to(:create) }
 
   describe '#create' do
     before do
@@ -387,9 +373,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #delete' do
-    @articles.should respond_to(:delete)
-  end
+  it { @articles.should respond_to(:delete) }
 
   describe '#delete' do
     describe 'with a Resource within the Collection' do
@@ -425,9 +409,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #delete_at' do
-    @articles.should respond_to(:delete_at)
-  end
+  it { @articles.should respond_to(:delete_at) }
 
   describe '#delete_at' do
     describe 'with an offset within the Collection' do
@@ -463,9 +445,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #delete_if' do
-    @articles.should respond_to(:delete_if)
-  end
+  it { @articles.should respond_to(:delete_if) }
 
   describe '#delete_if' do
     describe 'with a block that matches a Resource in the Collection' do
@@ -511,9 +491,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #destroy' do
-    @articles.should respond_to(:destroy)
-  end
+  it { @articles.should respond_to(:destroy) }
 
   describe '#destroy' do
     before do
@@ -533,9 +511,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #destroy!' do
-    @articles.should respond_to(:destroy!)
-  end
+  it { @articles.should respond_to(:destroy!) }
 
   describe '#destroy!' do
     before do
@@ -568,9 +544,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #first' do
-    @articles.should respond_to(:first)
-  end
+  it { @articles.should respond_to(:first) }
 
   describe '#first' do
     before do
@@ -719,9 +693,7 @@ share_examples_for 'A public Collection' do
     @articles.should respond_to(:first_or_create)
   end
 
-  it 'should respond to #get' do
-    @articles.should respond_to(:get)
-  end
+  it { @articles.should respond_to(:get) }
 
   describe '#get' do
     describe 'with a key to a Resource within the Collection' do
@@ -793,9 +765,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #get!' do
-    @articles.should respond_to(:get!)
-  end
+  it { @articles.should respond_to(:get!) }
 
   describe '#get!' do
     describe 'with a key to a Resource within the Collection' do
@@ -835,9 +805,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #insert' do
-    @articles.should respond_to(:insert)
-  end
+  it { @articles.should respond_to(:insert) }
 
   describe '#insert' do
     before do
@@ -882,9 +850,7 @@ share_examples_for 'A public Collection' do
 
   end
 
-  it 'should respond to #last' do
-    @articles.should respond_to(:last)
-  end
+  it { @articles.should respond_to(:last) }
 
   describe '#last' do
     before do
@@ -1112,9 +1078,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #new' do
-    @articles.should respond_to(:new)
-  end
+  it { @articles.should respond_to(:new) }
 
   describe '#new' do
     before do
@@ -1145,9 +1109,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #pop' do
-    @articles.should respond_to(:pop)
-  end
+  it { @articles.should respond_to(:pop) }
 
   describe '#pop' do
     before do
@@ -1173,9 +1135,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #push' do
-    @articles.should respond_to(:push)
-  end
+  it { @articles.should respond_to(:push) }
 
   describe '#push' do
     before do
@@ -1200,9 +1160,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #reject!' do
-    @articles.should respond_to(:reject!)
-  end
+  it { @articles.should respond_to(:reject!) }
 
   describe '#reject!' do
     describe 'with a block that matches a Resource in the Collection' do
@@ -1244,9 +1202,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #reload' do
-    @articles.should respond_to(:reload)
-  end
+  it { @articles.should respond_to(:reload) }
 
   describe '#reload' do
     describe 'with no arguments' do
@@ -1308,9 +1264,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #replace' do
-    @articles.should respond_to(:replace)
-  end
+  it { @articles.should respond_to(:replace) }
 
   describe '#replace' do
     before do
@@ -1339,9 +1293,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #reverse' do
-    @articles.should respond_to(:reverse)
-  end
+  it { @articles.should respond_to(:reverse) }
 
   describe '#reverse' do
     before do
@@ -1359,9 +1311,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #shift' do
-    @articles.should respond_to(:shift)
-  end
+  it { @articles.should respond_to(:shift) }
 
   describe '#shift' do
     before do
@@ -1388,9 +1338,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :slice, :[] ].each do |method|
-    it "should respond to ##{method}" do
-      @articles.should respond_to(method)
-    end
+    it { @articles.should respond_to(method) }
 
     describe "##{method}" do
       before do
@@ -1582,9 +1530,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #slice!' do
-    @articles.should respond_to(:slice)
-  end
+  it { @articles.should respond_to(:slice) }
 
   describe '#slice!' do
     before do
@@ -1779,9 +1725,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #sort!' do
-    @articles.should respond_to(:sort!)
-  end
+  it { @articles.should respond_to(:sort!) }
 
   describe '#sort!' do
     describe 'without a block' do
@@ -1822,9 +1766,7 @@ share_examples_for 'A public Collection' do
   end
 
   [ :splice, :[]= ].each do |method|
-    it "should respond to ##{method}" do
-      @articles.should respond_to(method)
-    end
+    it { @articles.should respond_to(method) }
 
     describe "##{method}" do
       before do
@@ -2027,9 +1969,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #unshift' do
-    @articles.should respond_to(:unshift)
-  end
+  it { @articles.should respond_to(:unshift) }
 
   describe '#unshift' do
     before do
@@ -2054,9 +1994,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #update' do
-    @articles.should respond_to(:update)
-  end
+  it { @articles.should respond_to(:update) }
 
   describe '#update' do
     describe 'with no arguments' do
@@ -2156,9 +2094,7 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #update!' do
-    @articles.should respond_to(:update!)
-  end
+  it { @articles.should respond_to(:update!) }
 
   describe '#update!' do
     describe 'with no arguments' do

@@ -29,10 +29,7 @@ describe DataMapper::Associations do
 
   supported_by :all do
 
-
-    it "should respond to #has" do
-      Car.should respond_to(:has)
-    end
+    it { Car.should respond_to(:has) }
 
     describe "#has" do
 
@@ -91,9 +88,7 @@ describe DataMapper::Associations do
       end
     end
 
-    it "should respond to #belongs_to" do
-      Engine.should respond_to(:belongs_to)
-    end
+    it { Engine.should respond_to(:belongs_to) }
 
     describe "#belongs_to" do
       before do
@@ -106,12 +101,12 @@ describe DataMapper::Associations do
         end
       end
 
-      it 'should add the car setter' do
-        @engine.should respond_to(:car=)
-      end
-
       it 'should add the car getter' do
         @engine.should respond_to(:car)
+      end
+
+      it 'should add the car setter' do
+        @engine.should respond_to(:car=)
       end
 
       it 'should add the car_id foreign key setter' do
