@@ -862,23 +862,23 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:last) }
+  it { @articles.should respond_to(:inspect) }
 
   describe '#inspect' do
 
     before do
       @copy = @articles.dup
       @copy << Article.new(:title => "Other Article")
-      @inspected = @copy.inspect
+      @return = @copy.inspect
     end
 
-    it { @inspected.should match(/^\[.*\]$/) }
+    it { @return.should match(/\A\[.*\]\z/) }
 
-    it { @inspected.should match(/id=1/) }
-    it { @inspected.should match(/id=nil/) }
+    it { @return.should match(/\bid=1\b/) }
+    it { @return.should match(/\bid=nil\b/) }
 
-    it { @inspected.should match(/title=\"Sample Article\"/) }
-    it { @inspected.should match(/title=\"Other Article\"/) }
+    it { @return.should match(/\btitle=\"Sample Article\"\s/) }
+    it { @return.should match(/\btitle=\"Other Article\"\s/) }
 
   end
 
