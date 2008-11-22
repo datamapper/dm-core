@@ -330,17 +330,25 @@ module DataMapper
           end
 
           # save every resource in the collection
-          each { |r| save_resource(r) }
+          all_saved = (@orphans + self).all? do |resource|
+            @relationship.with_repository(resource) do
+              if @relationship.child_key.get(resource).nil? && resource.model.respond_to?(:many_to_many)
+                # XXX: move to ManyToMany::Proxy?
+                resource.destroy
+              else
+                resource.save
+              end
+            end
+          end
 
-          # save orphaned resources
-          @orphans.each { |r| save_resource(r) }
+          @orphans.clear
 
           # XXX: move to ManyToMany::Proxy?
-          if children.kind_of?(Array) && !children.frozen?
+          if children.kind_of?(Array)
             @children = @relationship.get_children(@parent).replace(children)
           end
 
-          true
+          all_saved
         end
 
         # TODO: document
@@ -465,19 +473,6 @@ module DataMapper
             resources.each { |r| orphan_resource(r) }
           else
             orphan_resource(resources)
-          end
-        end
-
-        # TODO: document
-        # @api private
-        def save_resource(resource)
-          @relationship.with_repository(resource) do
-            if @relationship.child_key.get(resource).nil? && resource.model.respond_to?(:many_to_many)
-              # XXX: move to ManyToMany::Proxy?
-              resource.destroy
-            else
-              resource.save
-            end
           end
         end
 
