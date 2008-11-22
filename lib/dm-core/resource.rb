@@ -255,59 +255,6 @@ module DataMapper
       end
     end
 
-    # TODO: remove in favor of using #freeze
-    # @api private
-    def readonly!
-      @readonly = true
-    end
-
-    # TODO: remove in favor of using #frozen?
-    # @api private
-    def readonly?
-      @readonly == true
-    end
-
-    # Save the instance to the data-store
-    # This also saves all dirty objects that are
-    # part of a has n relationship.
-    #
-    # It only returns true if all saves are successful
-    #
-    # ==== Returns
-    # <True, False>:: results of the save(s)
-    #
-    # @see DataMapper::Repository#save
-    #
-    # #public
-    def save(context = :default)
-      # Takes a context, but does nothing with it. This is to maintain the
-      # same API through out all of dm-more. dm-validations requires a
-      # context to be passed
-
-      unless saved = new_record? ? create : update
-        return false
-      end
-
-      original_values.clear
-
-      parent_associations.all? { |a| a.save }
-    end
-
-    # destroy the instance, remove it from the repository
-    #
-    # ==== Returns
-    # <True, False>:: results of the destruction
-    #
-    # @api public
-    def destroy
-      return false if new_record?
-      return false unless repository.delete(to_query)
-
-      reset
-
-      true
-    end
-
     # Checks if the attribute has been loaded
     #
     # ==== Example
@@ -524,6 +471,47 @@ module DataMapper
       else
         repository.update(dirty_attributes, to_query) == 1
       end
+    end
+
+    # Save the instance to the data-store
+    # This also saves all dirty objects that are
+    # part of a has n relationship.
+    #
+    # It only returns true if all saves are successful
+    #
+    # ==== Returns
+    # <True, False>:: results of the save(s)
+    #
+    # @see DataMapper::Repository#save
+    #
+    # #public
+    def save(context = :default)
+      # Takes a context, but does nothing with it. This is to maintain the
+      # same API through out all of dm-more. dm-validations requires a
+      # context to be passed
+
+      unless saved = new_record? ? create : update
+        return false
+      end
+
+      original_values.clear
+
+      parent_associations.all? { |a| a.save }
+    end
+
+    # destroy the instance, remove it from the repository
+    #
+    # ==== Returns
+    # <True, False>:: results of the destruction
+    #
+    # @api public
+    def destroy
+      return false if new_record?
+      return false unless repository.delete(to_query)
+
+      reset
+
+      true
     end
 
     # TODO: document
