@@ -318,9 +318,9 @@ module DataMapper
         new_value = property.get!(self)
 
         dirty = case property.track
-        when :hash then old_value != new_value.hash
-        else
-          property.value(old_value) != property.value(new_value)
+          when :hash then old_value != new_value.hash
+          else
+            property.value(old_value) != property.value(new_value)
         end
 
         if dirty
