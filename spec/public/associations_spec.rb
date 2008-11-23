@@ -2,25 +2,21 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Associations do
   before do
-    Object.send(:remove_const, :Car) if defined?(Car)
     class Car
       include DataMapper::Resource
       property :id, Serial
     end
 
-    Object.send(:remove_const, :Engine) if defined?(Engine)
     class Engine
       include DataMapper::Resource
       property :id, Serial
     end
 
-    Object.send(:remove_const, :Door) if defined?(Door)
     class Door
       include DataMapper::Resource
       property :id, Serial
     end
 
-    Object.send(:remove_const, :Window) if defined?(Window)
     class Window
       include DataMapper::Resource
       property :id, Serial

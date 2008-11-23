@@ -8,7 +8,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
     self.loaded = loaded
 
     before do
-      Object.send(:remove_const, :Article) if defined?(Article)
       class Article
         include DataMapper::Resource
 

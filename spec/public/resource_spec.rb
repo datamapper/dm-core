@@ -2,7 +2,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Resource do
   before do
-    Object.send(:remove_const, :User) if defined?(User)
     class User
       include DataMapper::Resource
 
@@ -13,7 +12,6 @@ describe DataMapper::Resource do
       has n, :comments
     end
 
-    Object.send(:remove_const, :Article) if defined?(Article)
     class Article
       include DataMapper::Resource
 
@@ -23,7 +21,6 @@ describe DataMapper::Resource do
       has n, :paragraphs
     end
 
-    Object.send(:remove_const, :Comment) if defined?(Comment)
     class Comment
       include DataMapper::Resource
 
@@ -33,7 +30,6 @@ describe DataMapper::Resource do
       belongs_to :user
     end
 
-    Object.send(:remove_const, :Paragraph) if defined?(Paragraph)
     class Paragraph
       include DataMapper::Resource
 

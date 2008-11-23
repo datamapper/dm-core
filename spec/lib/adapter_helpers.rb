@@ -15,13 +15,23 @@ module DataMapper::Spec
 
         with_adapter_spec_wrapper(message) do
 
-          before(:each) do
+          before do
             # store these in instance vars for the shared adapter specs
             @adapter = DataMapper.setup(:default, connection_uri)
-            @repository = repository(:default)
+            @repository = repository(@adapter.name)
 
+            # create all tables and constraints before each spec
             begin
-              DataMapper.auto_migrate!
+              DataMapper.auto_migrate!(@adapter.name)
+            rescue NotImplementedError
+              # do nothing when not supported
+            end
+          end
+
+          after do
+            # remove all tables and constraints after each spec
+            begin
+              DataMapper::AutoMigrator.auto_migrate_down(@adapter.name)
             rescue NotImplementedError
               # do nothing when not supported
             end
@@ -41,11 +51,21 @@ module DataMapper::Spec
         message = "and #{adapter}" if adapters.length > 1
         with_adapter_spec_wrapper(message) do
 
-          before(:each) do
-            DataMapper.setup(:alternate, connection_uri)
+          before do
+            @alternate_adapter = DataMapper.setup(:alternate, connection_uri)
 
+            # create all tables and constraints before each spec
             begin
-              DataMapper.auto_migrate!(:alternate)
+              DataMapper.auto_migrate!(@alternate_adapter.name)
+            rescue NotImplementedError
+              # do nothing when not supported
+            end
+          end
+
+          after do
+            # remove all tables and constraints after each spec
+            begin
+              DataMapper::AutoMigrator.auto_migrate_down(@alternate_adapter.name)
             rescue NotImplementedError
               # do nothing when not supported
             end
@@ -58,7 +78,7 @@ module DataMapper::Spec
 
     def get_adapters(*adapters)
       adapters.map! { |a| a.to_s }
-      adapters = ADAPTERS if adapters.first == "all"
+      adapters = ADAPTERS if adapters.include?('all')
       ADAPTERS & adapters
     end
 

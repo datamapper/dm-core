@@ -1,6 +1,6 @@
 share_examples_for 'A semipublic Resource' do
   before do
-    %w[ @model @user @child_model ].each do |ivar|
+    %w[ @model @user ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
   end
@@ -110,7 +110,6 @@ share_examples_for 'A semipublic Resource' do
   describe "#repository" do
 
     before(:each) do
-      Object.send(:remove_const, :Statistic) if defined?(Statistic)
       class Statistic
         include DataMapper::Resource
 

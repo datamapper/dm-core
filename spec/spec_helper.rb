@@ -63,6 +63,12 @@ Spec::Runner.configure do |config|
   config.extend(DataMapper::Spec::AdapterHelpers)
   config.include(DataMapper::Spec::PendingHelpers)
   config.after(:each) do
-    DataMapper::Resource.descendants.clear
+    # clear out models
+    descendants = DataMapper::Resource.descendants.dup.to_a
+    while model = descendants.shift
+      descendants.concat(model.descendants) if model.respond_to?(:descendants)
+      Object.send(:remove_const, model.name.to_sym)
+      DataMapper::Resource.descendants.delete(model)
+    end
   end
 end

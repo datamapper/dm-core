@@ -410,12 +410,10 @@ share_examples_for 'A public Resource' do
   describe 'invalid resources' do
 
     before do
-      Object.send(:remove_const, :EmptyObject) if defined?(EmptyObject)
       class EmptyObject
         include DataMapper::Resource
       end
 
-      Object.send(:remove_const, :KeylessObject) if defined?(KeylessObject)
       class KeylessObject
         include DataMapper::Resource
         property :name, String

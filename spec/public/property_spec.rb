@@ -4,8 +4,6 @@ describe DataMapper::Property do
 
   # define the model prior to supported_by
   before do
-    Object.send(:remove_const, :Track) if defined?(Track)
-    Object.send(:remove_const, :Image) if defined?(Image)
     class Track
       include DataMapper::Resource
 

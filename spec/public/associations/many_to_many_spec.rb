@@ -9,7 +9,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
     # define the model prior to supported_by
     before do
-      Object.send(:remove_const, :Author) if defined?(Author)
       class Author
         include DataMapper::Resource
 
@@ -19,7 +18,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         has n, :articles, :through => Resource
       end
 
-      Object.send(:remove_const, :Article) if defined?(Article)
       class Article
         include DataMapper::Resource
 

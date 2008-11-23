@@ -27,7 +27,6 @@ end
 
     # define the model prior to supported_by
     before do
-      Object.send(:remove_const, :Author) if defined?(Author)
       class Author
         include DataMapper::Resource
 
@@ -42,7 +41,6 @@ end
         has n, :other_articles,  :title     => 'Other Article',  :class_name => 'Article'
       end
 
-      Object.send(:remove_const, :Article) if defined?(Article)
       class Article
         include DataMapper::Resource
 

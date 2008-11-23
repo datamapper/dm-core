@@ -2230,7 +2230,7 @@ share_examples_for 'A public Collection' do
 
       it 'should update attributes of all Resources' do
         skip = [ DataMapper::Collection ]
-        pending_if 'TODO: fix bug with IdentityMap and InMemoryAdapter', skip.include?(@articles.class) && !@articles.loaded? do
+        pending_if 'TODO: fix bug with IdentityMap and InMemoryAdapter', skip.include?(@articles.class) && !@articles.loaded? && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) do
           @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
         end
       end
