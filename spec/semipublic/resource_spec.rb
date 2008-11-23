@@ -14,8 +14,24 @@ describe DataMapper::Resource do
     class Clone
       include DataMapper::Resource
 
-      property :name, String, :key => true
-      property :age,  Integer
+      property :name,        String, :key => true
+      property :age,         Integer
+      property :description, Text
+    end
+
+    class Comment
+      include DataMapper::Resource
+
+      property :id,   Serial
+      property :body, Text
+
+      belongs_to :user
+    end
+
+    class Default
+      include DataMapper::Resource
+
+      property :name, String, :key => true, :default => 'a default value'
     end
   end
 

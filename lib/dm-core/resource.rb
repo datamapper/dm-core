@@ -339,7 +339,9 @@ module DataMapper
     #
     # @api semipublic
     def dirty?
-      new_record? || dirty_attributes.any?
+      return true if dirty_attributes.any?
+      return false unless new_record?
+      model.identity_field || properties.any? { |p| !p.default_for(self).nil? }
     end
 
     # Checks if the attribute is dirty
@@ -538,7 +540,7 @@ module DataMapper
     # @api public
     def create
       # Can't create a resource that is not dirty and doesn't have serial keys
-      return false if new_record? && !dirty? && !model.key.any? { |p| p.serial? }
+      return false if new_record? && !dirty?
 
       # set defaults for new resource
       properties.each do |property|

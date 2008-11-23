@@ -23,13 +23,30 @@ share_examples_for 'A semipublic Resource' do
 
     end
 
-    describe 'on a new record' do
+    describe 'on a new record, with no attributes, no default attributes, and no identity field' do
 
       before { @user = User.new }
 
-      it { @user.should be_dirty }
+      it { @user.should_not be_dirty }
 
     end
+
+    describe 'on a new record, with no attributes, no default attributes, and an identity field' do
+
+      before { @comment = Comment.new }
+
+      it { @comment.should be_dirty }
+
+    end
+
+    describe 'on a new record, with no attributes, default attributes, and no identity field' do
+
+      before { @default = Default.new }
+
+      it { @default.should be_dirty }
+
+    end
+
 
   end
 
