@@ -300,20 +300,7 @@ module DataMapper
     #
     # @api public
     def first_or_create(query, attributes = {})
-      first(query) || begin
-        resource = allocate
-        query = query.dup
-
-        properties(repository_name).key.each do |property|
-          if value = query.delete(property.name)
-            resource.send("#{property.name}=", value)
-          end
-        end
-
-        resource.attributes = query.merge(attributes)
-        resource.save
-        resource
-      end
+      first(query) || create(query.merge(attributes))
     end
 
     ##
