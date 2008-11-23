@@ -352,7 +352,7 @@ module DataMapper
     #
     # @api semipublic
     def attribute_dirty?(name)
-      new_record? || dirty_attributes.has_key?(properties[name])
+      dirty_attributes.has_key?(properties[name])
     end
 
     # TODO: document

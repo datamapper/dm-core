@@ -55,7 +55,7 @@ share_examples_for 'A semipublic Resource' do
 
       before { @user = User.new }
 
-      it { @user.attribute_dirty?(:age).should be_true }
+      it { @user.attribute_dirty?(:age).should be_false }
 
     end
 
