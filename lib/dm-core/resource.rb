@@ -518,13 +518,13 @@ module DataMapper
       # same API through out all of dm-more. dm-validations requires a
       # context to be passed
 
-      saved = new_record? ? create : update
-
-      if saved
-        original_values.clear
+      unless saved = new_record? ? create : update
+        return false
       end
 
-      saved && parent_associations.all? { |a| a.save }
+      original_values.clear
+
+      parent_associations.all? { |a| a.save }
     end
 
     ##
