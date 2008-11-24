@@ -94,7 +94,9 @@ module DataMapper
         # @api public
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def first(*args)
-          if args.last.respond_to?(:merge)
+          last_arg = args.last
+
+          if last_arg.respond_to?(:merge) && !last_arg.blank?
             query = args.pop
             @relationship.get_children(@parent, query, :first, *args)
           else

@@ -177,17 +177,19 @@ module DataMapper
     #
     # @api public
     def first(*args)
-      limit      = args.first if args.first.kind_of?(Integer)
-      with_query = args.last.respond_to?(:merge)
+      last_arg = args.last
 
-      query = with_query ? args.last : {}
+      limit      = args.first if args.first.kind_of?(Integer)
+      with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
+
+      query = with_query ? last_arg : {}
       query = scoped_query(query.merge(:limit => limit || 1))
 
       if !with_query && (loaded? || lazy_possible?(head, limit || 1))
         if limit
           self.class.new(query, super(limit))
         else
-          super
+          super()
         end
       else
         if limit
@@ -217,10 +219,12 @@ module DataMapper
     #
     # @api public
     def last(*args)
-      limit      = args.first if args.first.kind_of?(Integer)
-      with_query = args.last.respond_to?(:merge)
+      last_arg = args.last
 
-      query = with_query ? args.last : {}
+      limit      = args.first if args.first.kind_of?(Integer)
+      with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
+
+      query = with_query ? last_arg : {}
       query = scoped_query(query.merge(:limit => limit || 1)).reverse
 
       # tell the Query to prepend each result from the adapter
@@ -230,7 +234,7 @@ module DataMapper
         if limit
           self.class.new(query, super(limit))
         else
-          super
+          super()
         end
       else
         if limit

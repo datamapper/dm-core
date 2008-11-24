@@ -81,8 +81,10 @@ module DataMapper
           parent_identity_map = parent.repository.identity_map(parent_model)
           child_identity_map  = r.identity_map(child_model)
 
-          query_values = parent_identity_map.keys
-          query_values.reject! { |k| child_identity_map[k] }
+          # Keys should be sorted so they are in the same order given
+          # the same keys.  This will allow server side caches to more
+          # effectively reuse cached results.
+          query_values = (parent_identity_map.keys - child_identity_map.keys).sort
 
           unless query_values.empty?
             bind_values = query_values

@@ -595,6 +595,50 @@ share_examples_for 'A public Collection' do
       end
     end
 
+    describe 'with empty query' do
+      before do
+        @return = @resource = @articles.first({})
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should return expected Resource' do
+        @resource.should == @article
+      end
+
+      it 'should be first Resource in the Collection' do
+        @resource.should == @copy.entries.first
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @resource.collection.should be_equal(@articles)
+      end
+    end
+
+    describe 'with empty query', 'after prepending to the collection' do
+      before do
+        @return = @resource = @articles.unshift(@other).first({})
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should return expected Resource' do
+        @resource.should be_equal(@other)
+      end
+
+      it 'should be first Resource in the Collection' do
+        @resource.should be_equal(@copy.entries.unshift(@other).first)
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @resource.collection.should be_equal(@articles)
+      end
+    end
+
     describe 'with a query' do
       before do
         @return = @resource = @articles.first(:content => 'Sample')
