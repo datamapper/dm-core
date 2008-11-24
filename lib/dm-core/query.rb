@@ -63,6 +63,8 @@ module DataMapper
     #
     # @param [DataMapper::Query, Hash] conditions, orders, and other options
     #
+    # @return [DataMapper::Query] the receiver
+    #
     # @api public
     def update(other)
       assert_kind_of 'other', other, self.class, Hash
@@ -98,6 +100,7 @@ module DataMapper
     ##
     # Similar to Query#update, but acts on a duplicate.
     #
+    # @param [DataMapper::Query, Hash] other other query to merge with
     # @return [DataMapper::Query] updated duplicate of original query
     # @api public
     def merge(other)
@@ -163,8 +166,10 @@ module DataMapper
     end
 
     ##
-    #
+    # Get the indices of key properties for this Query's model in its Repository
+    # 
     # @param [DataMapper::Repository] the repository to act on
+    # @api private
     # TODO: spec this
     def key_property_indexes(repository)
       if (key_property_indexes = model.key(repository.name).map { |property| fields.index(property) }).all?
@@ -177,7 +182,11 @@ module DataMapper
     # located. Delete the tuple and add value.conditions. value must be a
     # <DM::Query>
     #
-    # @param [DataMapper::Query] value The query object to split up
+    # @param [DataMapper::Operator] operator
+    # @param [DataMapper::Property] property
+    # @param [DataMapper::Query]    value The query object to split up
+    # 
+    # @return [Array<Tuple<DataMapper::Query::Operator, DataMapper::Property, DataMapper::Query>>]
     #
     # @api semipublic
     def merge_subquery(operator, property, value)
@@ -282,6 +291,9 @@ module DataMapper
     end
 
     # validate the options
+    # @param [#each_pair] options the options to validate
+    # @raise [ArgumentError] if any pairs in +options+ are invalid options
+    # @api private
     def assert_valid_options(options)
       # [DB] This might look more ugly now, but it's 2x as fast as the old code
       # [DB] This is one of the heavy spots for Query.new I found during profiling.
@@ -332,6 +344,10 @@ module DataMapper
     end
 
     # validate other DM::Query or Hash object
+    # @param [Object] other object whose validity is under test
+    # @raise [ArgumentError]
+    #   if +other+ is a DM::Query, but has a different repository or model
+    # @api private
     def assert_valid_other(other)
       return unless  other.kind_of?(self.class)
 
@@ -436,7 +452,10 @@ module DataMapper
       end
     end
 
-    # normalize includes to DM::Query::Path
+    # normalize includes to DM::Query::Path (no-op)
+    # @param [Array<DataMapper::Query::Path>] includes normalized includes for this query
+    # @return [Array<DataMapper::Query::Path>]
+    # @api private
     def normalize_includes(includes)
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
       # NOTE: :includes can only be and array of DM::Query::Path objects now. This method
@@ -452,6 +471,10 @@ module DataMapper
       end
     end
 
+    # Append conditions to this Query
+    # @param [Symbol, String, Property, Query::Path, Operator] clause
+    # @param [Object] bind_value
+    # @api private
     def append_condition(clause, bind_value)
       operator = :eql
       bind_value = bind_value.call if bind_value.is_a?(Proc)
