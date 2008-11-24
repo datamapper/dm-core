@@ -267,47 +267,6 @@ module DataMapper
     end
 
     ##
-    # Save the instance and associated children to the data-store.
-    # 
-    # This saves all children in a has n relationship (if they're dirty).
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if Resource instance and all associations were saved
-    #
-    # @see DataMapper::Repository#save
-    #
-    # @api public
-    def save(context = :default)
-      # Takes a context, but does nothing with it. This is to maintain the
-      # same API through out all of dm-more. dm-validations requires a
-      # context to be passed
-
-      saved = new_record? ? create : update
-
-      if saved
-        original_values.clear
-      end
-
-      saved && parent_associations.all? { |a| a.save }
-    end
-
-    ##
-    # Destroy the instance, remove it from the repository
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if resource was destroyed
-    #
-    # @api public
-    def destroy
-      return false if new_record?
-      return false unless repository.delete(to_query)
-
-      reset
-
-      true
-    end
-
-    ##
     # Checks if an attribute has been loaded from the repository
     #
     #   class Foo
@@ -541,6 +500,47 @@ module DataMapper
       else
         repository.update(dirty_attributes, to_query) == 1
       end
+    end
+
+    ##
+    # Save the instance and associated children to the data-store.
+    # 
+    # This saves all children in a has n relationship (if they're dirty).
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if Resource instance and all associations were saved
+    #
+    # @see DataMapper::Repository#save
+    #
+    # @api public
+    def save(context = :default)
+      # Takes a context, but does nothing with it. This is to maintain the
+      # same API through out all of dm-more. dm-validations requires a
+      # context to be passed
+
+      saved = new_record? ? create : update
+
+      if saved
+        original_values.clear
+      end
+
+      saved && parent_associations.all? { |a| a.save }
+    end
+
+    ##
+    # Destroy the instance, remove it from the repository
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if resource was destroyed
+    #
+    # @api public
+    def destroy
+      return false if new_record?
+      return false unless repository.delete(to_query)
+
+      reset
+
+      true
     end
 
     # Gets a Query that will return this Resource instance
