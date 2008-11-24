@@ -524,7 +524,7 @@ module DataMapper
     #
     # Keep in mind this method is not safe and should be
     # used with care.
-    # 
+    #
     # @param [DataMapper::Resource] resource
     #   model instance for which this property is to be unsafely loaded
     #
@@ -546,7 +546,7 @@ module DataMapper
     #   model instance for which to set the original value
     # @param [Object]               val
     #   value to set as original value for this property in +resource+
-    # 
+    #
     # @api private
     def set_original_value(resource, val)
       unless resource.original_values.key?(name)
@@ -562,10 +562,10 @@ module DataMapper
     #   model instance for which this property is to be set
     # @param [Object]               value
     #   value to which value of this property will be set for +resource+
-    # 
+    #
     # @return [Object]
     #   +value+ after being typecasted according to this property's primitive
-    # 
+    #
     # @raise [ArgumentError] "+resource+ should be a DataMapper::Resource, but was ...."
     #
     # @api private
@@ -591,12 +591,12 @@ module DataMapper
     #
     # Keep in mind this method is not safe and should be
     # used with care.
-    # 
+    #
     # @param [DataMapper::Resource] resource
     #   the model instance for which to unsafely set the value of this property
     # @param [Object]               value
     #   the value to which this property should be unsafely set for +resource+
-    # 
+    #
     # @return [Object]
     #   +value+, the value to which this property was unsafely set for +resource+
     #
@@ -639,7 +639,7 @@ module DataMapper
     #
     # @param [#to_s, #to_f, #to_i] value
     #   the value to be typecast to this property's primitive
-    # 
+    #
     # @return [TrueClass, String, Float, Integer, BigDecimal, DateTime, Date,
     #   Time, Class] the primitive data-type, defaults to TrueClass
     #
@@ -685,10 +685,10 @@ module DataMapper
     # When default value is a callable object,
     # it is called with resource and property passed
     # as arguments.
-    # 
+    #
     # @param [DataMapper::Resource] resource
     #   the model instance for which the default is to be set
-    # 
+    #
     # @return [Object]
     #   the default value of this property for +resource+
     #
@@ -702,10 +702,10 @@ module DataMapper
     #
     # @param [Object] val
     #   the value to be converted into a storeable (ie., primitive) value
-    # 
+    #
     # @return [Object]
     #   the primitive value to be stored in the repository for +val+
-    # 
+    #
     # @api semipublic
     def value(val)
       custom? ? self.type.dump(val, self) : val
@@ -826,7 +826,7 @@ module DataMapper
     #
     # @param [Hash, #to_s] value
     #   value to be typecast to DateTime
-    # 
+    #
     # @return [DateTime] Value type casted to DateTime
     # @api private
     def typecast_to_datetime(value)
@@ -841,7 +841,7 @@ module DataMapper
     #
     # @param [Hash, #to_s] value
     #   value to be typecast to Date
-    # 
+    #
     # @return [Date] Value type casted to Date
     # @api private
     def typecast_to_date(value)
@@ -856,7 +856,7 @@ module DataMapper
     #
     # @param [Hash, #to_s] value
     #   value to be typecast to Time
-    # 
+    #
     # @return [Time] Value type casted to Time
     # @api private
     def typecast_to_time(value)
@@ -870,7 +870,7 @@ module DataMapper
     #
     # @param [Hash] hash
     #   hash to be typecast to DateTime
-    # 
+    #
     # @return [DateTime] Value constructed from a Hash.
     # @api private
     def typecast_hash_to_datetime(hash)
@@ -885,7 +885,7 @@ module DataMapper
     #
     # @param [Hash] hash
     #   hash to be typecast to Date
-    # 
+    #
     # @return [Date] Value constructed from a Hash.
     # @api private
     def typecast_hash_to_date(hash)
@@ -900,7 +900,7 @@ module DataMapper
     #
     # @param [Hash] hash
     #   hash to be typecast to Time
-    # 
+    #
     # @return [Time] Value constructed from a Hash.
     # @api private
     def typecast_hash_to_time(hash)
@@ -915,7 +915,7 @@ module DataMapper
     #   hash to extract time args from
     # @param [Hash] args
     #   time args to extract from +hash+
-    # 
+    #
     # @return [Array] Extracted values
     # @api private
     def extract_time_args_from_hash(hash, *args)

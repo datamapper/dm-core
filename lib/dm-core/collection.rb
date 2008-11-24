@@ -428,7 +428,7 @@ module DataMapper
     #
     # @param [DataMapper::Resource] resource
     #   the resource to add to this collection
-    # 
+    #
     # @return [DataMapper::Collection] self
     #
     # @api public

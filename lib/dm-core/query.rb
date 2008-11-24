@@ -167,7 +167,7 @@ module DataMapper
 
     ##
     # Get the indices of key properties for this Query's model in its Repository
-    # 
+    #
     # @param [DataMapper::Repository] the repository to act on
     # @api private
     # TODO: spec this
@@ -185,7 +185,7 @@ module DataMapper
     # @param [DataMapper::Operator] operator
     # @param [DataMapper::Property] property
     # @param [DataMapper::Query]    value The query object to split up
-    # 
+    #
     # @return [Array<Tuple<DataMapper::Query::Operator, DataMapper::Property, DataMapper::Query>>]
     #
     # @api semipublic

@@ -30,7 +30,7 @@ module DataMapper
     attr_reader :name
 
     # Get the adapter for this repository
-    # 
+    #
     # Lazy loads adapter setup from registered adapters
     # @return [DataMapper::Adapters::AbstractAdapter]
     #   the adapter for this repository
@@ -50,10 +50,10 @@ module DataMapper
 
     ##
     # Get the identity for a particular model within this repository.
-    # 
+    #
     # If one doesn't yet exist, create a new default in-memory IdentityMap
     # for the requested model.
-    # 
+    #
     # TODO: allow setting default secondary IdentityMap (eg., Memcache, I hope)
     def identity_map(model)
       @identity_maps[model] ||= IdentityMap.new
@@ -106,7 +106,7 @@ module DataMapper
 
     ##
     # Update the attributes of one or more resource instances
-    # 
+    #
     # @param [Hash<DataMapper::Property => Object>] attributes
     #   hash of attribute values to set, keyed by Property
     # @param [DataMapper::Query] query specifies which records are to be updated
@@ -118,7 +118,7 @@ module DataMapper
 
     ##
     # Delete one or more resource instances
-    # 
+    #
     # @param [DataMapper::Query] query specifies which records are to be deleted
     # @return [Integer] the number of records deleted
     # @see DataMapper::Query
@@ -129,7 +129,7 @@ module DataMapper
     ##
     # Test whether this repository equals +other+. Repositories are equal if
     # they have the same name.
-    # 
+    #
     # @param [Object] other object to be compared to self
     # @return [TrueClass, FalseClass] whether self equals +other+
     # @api semipublic

@@ -74,8 +74,8 @@ module DataMapper
     alias model class
 
     ##
-    # Returns the value of the attribute. 
-    # 
+    # Returns the value of the attribute.
+    #
     # Do not read from instance variables directly, but use this method.
     # This method handles lazy loading the attribute and returning of
     # defaults if nessesary.
@@ -215,7 +215,7 @@ module DataMapper
     # Get a Human-readable representation of this Resource instance
     #
     #   Foo.new   #=> #<Foo name=nil updated_at=nil created_at=nil id=nil>
-    # 
+    #
     # @return [String]
     #   Human-readable representation of this Resource instance
     #
@@ -251,7 +251,7 @@ module DataMapper
 
     ##
     # Retrieve the key(s) for this resource.
-    # 
+    #
     # This always returns the persisted key value,
     # even if the key is changed and not yet persisted.
     # This is done so all relations still work.
@@ -432,7 +432,7 @@ module DataMapper
     #
     # @return [Hash]
     #   All the (non)-lazy attributes
-    # 
+    #
     # @api public
     def attributes
       attributes = {}
@@ -447,7 +447,7 @@ module DataMapper
     #
     # @param [Hash] attributes
     #   names and values of attributes to assign
-    # 
+    #
     # @return [Hash]
     #   names and values of attributes assigned
     #
@@ -468,9 +468,9 @@ module DataMapper
 
     ##
     # Deprecated API for updating attributes and saving Resource
-    # 
+    #
     # @see #update
-    # 
+    #
     # @api public
     def update_attributes(*args)
       warn "#{self.class}#update_attributes is deprecated, use #{self.class}#update instead"
@@ -504,7 +504,7 @@ module DataMapper
 
     ##
     # Save the instance and associated children to the data-store.
-    # 
+    #
     # This saves all children in a has n relationship (if they're dirty).
     #
     # @return [TrueClass, FalseClass]
@@ -568,10 +568,10 @@ module DataMapper
     # setting default values for any unset properties
     #
     # Needs to be a protected method so that it is hookable
-    # 
+    #
     # @return [TrueClass, FalseClass]
     #   true if the receiver was successfully created
-    # 
+    #
     # @api public
     def create
       # Can't create a resource that is not dirty and doesn't have serial keys
@@ -617,13 +617,13 @@ module DataMapper
 
     ##
     # Initialize a new instance of this Resource using the provided values
-    # 
+    #
     # @param  [Hash]  attributes
     #   attribute values to use for the new instance
-    # 
+    #
     # @return [Resource]
     #   the newly initialized resource instance
-    # 
+    #
     # @api public
     def initialize(attributes = {}) # :nodoc:
       assert_valid_model
