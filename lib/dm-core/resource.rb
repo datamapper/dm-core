@@ -168,7 +168,7 @@ module DataMapper
     #
     # @api public
     def eql?(other)
-      return true if object_id == other.object_id
+      return true if equal?(other)
       return false unless other.kind_of?(model)
       return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
       properties.all? { |p| p.get(self) == p.get(other) }
