@@ -5,6 +5,92 @@ share_examples_for 'A public Resource' do
     end
   end
 
+  [ :==, :=== ].each do |method|
+    it { @user.should respond_to(method) }
+
+    describe "##{method}" do
+      describe 'when comparing to the same object' do
+        before do
+          @other  = @user
+          @return = @user.send(method, @other)
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+      end
+
+      describe 'when comparing to an object that does not respond to model' do
+        before do
+          @other  = Object.new
+          @return = @user.send(method, @other)
+        end
+
+        it 'should return false' do
+          @return.should be_false
+        end
+      end
+
+      describe 'when comparing to a resource with the same properties, but the model is a subclass' do
+        before do
+          @other  = Author.new(@user.attributes)
+          @return = @user.send(method, @other)
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+      end
+
+      describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
+        before do
+          @other  = @model.get(@user.key)
+          @return = @user.send(method, @other)
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+      end
+
+      describe 'when comparing to a resource with the same repository, key but either self or the other resource is dirty' do
+        before do
+          @user.age = 20
+          @other  = @model.get(@user.key)
+          @return = @user.send(method, @other)
+        end
+
+        it 'should return false' do
+          @return.should be_false
+        end
+      end
+
+      describe 'when comparing to a resource with the same properties' do
+        before do
+          @other  = @model.new(@user.attributes)
+          @return = @user.send(method, @other)
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+      end
+
+      with_alternate_adapter do
+        describe 'when comparing to a resource with a different repository, but the same properties' do
+          before do
+            @other = repository(:alternate) { @model.create(@user.attributes) }
+            @return = @user.send(method, @other)
+          end
+
+          it 'should return true' do
+            @return.should be_true
+          end
+        end
+      end
+    end
+  end
+
   it { @user.should respond_to(:<=>) }
 
   describe '#<=>' do
@@ -130,38 +216,88 @@ share_examples_for 'A public Resource' do
 
   end
 
-  [ :eql?, :==, :=== ].each do |method|
+  it { @user.should respond_to(:eql?) }
 
-    it { @user.should respond_to(method) }
-
-    describe "##{method}" do
-
-      it "should be true when they are the same objects" do
-        @user.send(method, @user).should be_true
+  describe '#eql?' do
+    describe 'when comparing to the same object' do
+      before do
+        @other  = @user
+        @return = @user.eql?(@other)
       end
 
-      it "should be true when all the attributes are the same" do
-        @user.send(method, @model.get(@user.key)).should be_true
+      it 'should return true' do
+        @return.should be_true
       end
-
-      it "should be true when all the attributes are the same even if one has not been persisted" do
-        @model.get(@user.key).send(method, @model.new(:name => "dbussink", :age => 25, :description => "Test")).should be_true
-      end
-
-      it "should not be true when the attributes differ even if the keys are the same" do
-        @user.age = 20
-        @user.send(method, @model.get(@user.key)).should be_false
-      end
-
-      with_alternate_adapter do
-        it "should be true when they are instances from different repositories, but the keys and attributes are the same" do
-          @other = repository(:alternate) { @model.create(:name => "dbussink", :age => 25, :description => "Test") }
-          @user.send(method, @other).should be_true
-        end
-      end
-
     end
 
+    describe 'when comparing to an object that does not respond to model' do
+      before do
+        @other  = Object.new
+        @return = @user.eql?(@other)
+      end
+
+      it 'should return false' do
+        @return.should be_false
+      end
+    end
+
+    describe 'when comparing to a resource with the same properties, but the model is a subclass' do
+      before do
+        @other  = Author.new(@user.attributes)
+        @return = @user.eql?(@other)
+      end
+
+      it 'should return false' do
+        @return.should be_false
+      end
+    end
+
+    describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
+      before do
+        @other  = @model.get(@user.key)
+        @return = @user.eql?(@other)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+    end
+
+    describe 'when comparing to a resource with the same repository, key but either self or the other resource is dirty' do
+      before do
+        @user.age = 20
+        @other  = @model.get(@user.key)
+        @return = @user.eql?(@other)
+      end
+
+      it 'should return false' do
+        @return.should be_false
+      end
+    end
+
+    describe 'when comparing to a resource with the same properties' do
+      before do
+        @other  = @model.new(@user.attributes)
+        @return = @user.eql?(@other)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+    end
+
+    with_alternate_adapter do
+      describe 'when comparing to a resource with a different repository, but the same properties' do
+        before do
+          @other = repository(:alternate) { @model.create(@user.attributes) }
+          @return = @user.eql?(@other)
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+      end
+    end
   end
 
   it { @user.should respond_to(:inspect) }

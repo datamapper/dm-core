@@ -150,18 +150,14 @@ module DataMapper
     end
 
     ##
-    # Tests equality of +other+ with receiver
-    # Receiver is equal to +other+ if they are the same object (identity)
-    # or if they are both of the same class and all of their attributes are equal
+    # Tests the equality with another Resource
     #
-    # XXX:
-    # Is the intention to check inheritance (as it is currently):
-    #   return false unless other.kind_of?(model)
-    # or rather is it to check class equality? eg.,
-    #   return false unless other.class == model
+    # Resource is equal to +other+ if they are the same object (identity)
+    # or if they are both of the *same model* and all of their attributes
+    # are equal
     #
-    # @param [Object] other
-    #   Object to compare to
+    # @param [DataMapper::Resource] other
+    #   Resource to compare to
     #
     # @return [TrueClass, FalseClass]
     #   the outcome of the comparison as a boolean
@@ -169,12 +165,35 @@ module DataMapper
     # @api public
     def eql?(other)
       return true if equal?(other)
-      return false unless other.kind_of?(model)
+      return false unless other.respond_to?(:model) && model.equal?(other.model)
       return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
+      # TODO: figure out an approach that will only compare loaded
+      # attributes to avoid unecessary lazy loading
       properties.all? { |p| p.get(self) == p.get(other) }
     end
 
-    alias == eql?
+    ##
+    # Tests the equality with another Resource
+    #
+    # Resource is equal to +other+ if they are the same object (identity)
+    # or if they are both of the *same base model* and all of their attributes
+    # are equal
+    #
+    # @param [DataMapper::Resource] other
+    #   Resource to compare to
+    #
+    # @return [TrueClass, FalseClass]
+    #   the outcome of the comparison as a boolean
+    #
+    # @api public
+    def ==(other)
+      return true if equal?(other)
+      return false unless other.respond_to?(:model) && model.base_model.equal?(other.model.base_model)
+      return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
+      # TODO: figure out an approach that will only compare loaded
+      # attributes to avoid unecessary lazy loading
+      properties.all? { |p| p.get(self) == p.get(other) }
+    end
 
     ##
     # Compares two Resources to allow them to be sorted
@@ -353,8 +372,9 @@ module DataMapper
     # @api semipublic
     def dirty?
       return true if dirty_attributes.any?
-      return false unless new_record?
-      model.identity_field || properties.any? { |p| !p.default_for(self).nil? }
+      if new_record?
+        model.identity_field || properties.any? { |p| !p.default_for(self).nil? }
+      end
     end
 
     ##

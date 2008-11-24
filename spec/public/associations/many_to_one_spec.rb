@@ -12,6 +12,8 @@ describe 'Many to One Associations' do
       has n, :comments
     end
 
+    class Author < User; end
+
     class Article
       include DataMapper::Resource
 
@@ -38,6 +40,11 @@ describe 'Many to One Associations' do
 
       belongs_to :article
     end
+  end
+
+  after do
+    # FIXME: should not need to clear STI models explicitly
+    Object.send(:remove_const, :Author) if defined?(Author)
   end
 
   supported_by :all do

@@ -186,10 +186,6 @@ module DataMapper
           other_model = object.model == child_model ? parent_model : child_model
         end
 
-        if object.kind_of?(DataMapper::Resource)
-          other_model = object == child_model ? parent_model : child_model
-        end
-
         if other_model && other_model.repository == object.repository && object.repository.name != @repository_name
           object.repository.scope { |block_args| yield(*block_args) }
         else
