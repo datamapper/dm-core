@@ -61,25 +61,34 @@ describe DataMapper::Associations do
         describe "through" do
           before do
             @relationship = Car.has(1..4, :windows, :through => :doors)
+            @car          = Car.new
           end
 
-          it 'should add the windows getter'
+          it 'should add the windows getter' do
+            @car.should respond_to(:windows)
+          end
         end
       end
 
       describe "n" do
         before do
           @relationship = Car.has(n, :doors)
+          @car          = Car.new
         end
 
-        it 'should add the doors getter'
+        it 'should add the doors getter' do
+          @car.should respond_to(:doors)
+        end
 
         describe "through" do
           before do
             @relationship = Car.has(n, :windows, :through => :doors)
+            @car          = Car.new
           end
 
-          it 'should add the windows getter'
+          it 'should add the windows getter' do
+            @car.should respond_to(:windows)
+          end
         end
       end
     end
