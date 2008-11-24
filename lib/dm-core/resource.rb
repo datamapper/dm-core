@@ -404,7 +404,7 @@ module DataMapper
     #
     # @api public
     def new_record?
-      !defined?(@new_record) || @new_record
+      @new_record == true
     end
 
     # all the attributes of the model
@@ -582,6 +582,7 @@ module DataMapper
     # @api public
     def initialize(attributes = {}) # :nodoc:
       assert_valid_model
+      @new_record = true
       self.attributes = attributes
     end
 
