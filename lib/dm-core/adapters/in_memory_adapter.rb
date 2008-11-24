@@ -2,7 +2,7 @@ module DataMapper
   module Adapters
     # This is probably the simplest functional adapter possible. It simply
     # stores and queries from a hash containing the model classes as keys,
-    # and an array of records. It is not persitent whatsoever; when the ruby
+    # and an array of records. It is not persistent whatsoever; when the Ruby
     # process finishes, everything that was stored it lost. However, it doesn't
     # require any other external libraries, such as data_objects, so it is ideal
     # for writing specs against. It also serves as an excellent example for
@@ -15,7 +15,7 @@ module DataMapper
       # each have a key that can be used to quickly look them up later without
       # searching, if the adapter supports it.
       #
-      # @param [Array] resources
+      # @param [Array<DataMapper::Resource>] resources
       #   The set of resources (model instances)
       #
       # @return [Integer]
@@ -51,7 +51,8 @@ module DataMapper
       # @param [DataMapper::Query] query
       #   The query that should be used to find the resource(s) to update.
       #
-      # @return [Integer] the number of records that were successfully updated
+      # @return [Integer]
+      #   the number of records that were successfully updated
       #
       # @api semipublic
       def update(attributes, query)

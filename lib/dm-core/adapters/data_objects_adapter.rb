@@ -10,6 +10,18 @@ module DataMapper
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
+      ##
+      # For each model instance in resources, issues an SQL INSERT
+      # (or equivalent) statement to create a new record in the data store for
+      # the instance
+      #
+      # @param [Array] resources
+      #   The set of resources (model instances)
+      #
+      # @return [Integer]
+      #   The number of records that were actually saved into the data-store
+      #
+      # @api semipublic
       def create(resources)
         created = 0
         resources.each do |resource|
@@ -191,7 +203,7 @@ module DataMapper
         end
       end
 
-      # This model is just for organization. The methods are included into the
+      # This module is just for organization. The methods are included into the
       # Adapter below.
       module SQL
         private

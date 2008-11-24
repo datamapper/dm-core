@@ -51,26 +51,30 @@ module DataMapper
 
       # TODO: move to dm-more/dm-migrations
       module Migration
-        #
+        ##
         # Returns whether the storage_name exists.
         #
-        # @param storage_name<String> a String defining the name of a storage,
-        #   for example a table name.
+        # @param [String] storage_name
+        #   a String defining the name of a storage, for example a table name.
         #
-        # @return <Boolean> true if the storage exists
+        # @return [TrueClass, FalseClass]
+        #   true if the storage exists
         #
         # TODO: move to dm-more/dm-migrations (if possible)
         def storage_exists?(storage_name)
           raise NotImplementedError
         end
 
-        #
+        ##
         # Returns whether the field exists.
         #
-        # @param storage_name<String> a String defining the name of a storage, for example a table name.
-        # @param field_name<String> a String defining the name of a field, for example a column name.
+        # @param [String] storage_name
+        #   a String defining the name of a storage, for example a table name.
+        # @param [String] field_name
+        #   a String defining the name of a field, for example a column name.
         #
-        # @return <Boolean> true if the field exists.
+        # @return [TrueClass, FalseClass]
+        #   true if the field exists.
         #
         # TODO: move to dm-more/dm-migrations (if possible)
         def field_exists?(storage_name, field_name)
@@ -113,9 +117,11 @@ module DataMapper
         end
 
         module ClassMethods
+          ##
           # Default TypeMap for all adapters.
           #
-          # @return <DataMapper::TypeMap> default TypeMap
+          # @return [DataMapper::TypeMap]
+          #   default TypeMap
           #
           # TODO: move to dm-more/dm-migrations
           def type_map
@@ -129,60 +135,67 @@ module DataMapper
 
       # TODO: move to dm-more/dm-transaction
       module Transaction
-        #
+        ##
         # Pushes the given Transaction onto the per thread Transaction stack so
         # that everything done by this Adapter is done within the context of said
         # Transaction.
         #
-        # @param transaction<DataMapper::Transaction> a Transaction to be the
-        #   'current' transaction until popped.
+        # @param [DataMapper::Transaction] transaction
+        #   a Transaction to be the 'current' transaction until popped.
+        # 
+        # @return [Array<DataMapper::Transaction>]
+        #   the stack of active transactions for the current thread
         #
         # TODO: move to dm-more/dm-transaction
         def push_transaction(transaction)
           transactions(Thread.current) << transaction
         end
 
-        #
+        ##
         # Pop the 'current' Transaction from the per thread Transaction stack so
         # that everything done by this Adapter is no longer necessarily within the
         # context of said Transaction.
         #
-        # @return <DataMapper::Transaction> the former 'current' transaction.
+        # @return [DataMapper::Transaction]
+        #   the former 'current' transaction.
         #
         # TODO: move to dm-more/dm-transaction
         def pop_transaction
           transactions(Thread.current).pop
         end
 
-        #
+        ##
         # Retrieve the current transaction for this Adapter.
         #
         # Everything done by this Adapter is done within the context of this
         # Transaction.
         #
-        # @return <DataMapper::Transaction> the 'current' transaction for this Adapter.
+        # @return [DataMapper::Transaction]
+        #   the 'current' transaction for this Adapter.
         #
         # TODO: move to dm-more/dm-transaction
         def current_transaction
           transactions(Thread.current).last
         end
 
-        #
+        ##
         # Returns whether we are within a Transaction.
         #
-        # @return <Boolean> whether we are within a Transaction.
+        # @return [TrueClass, FalseClass]
+        #   whether we are within a Transaction.
         #
         # TODO: move to dm-more/dm-transaction
         def within_transaction?
           !current_transaction.nil?
         end
 
-        #
+        ##
         # Produces a fresh transaction primitive for this Adapter
         #
         # Used by DataMapper::Transaction to perform its various tasks.
         #
-        # @return <Object> a new Object that responds to :close, :begin, :commit,
+        # @return [Object]
+        #   a new Object that responds to :close, :begin, :commit,
         #   :rollback, :rollback_prepared and :prepare
         #
         # TODO: move to dm-more/dm-transaction (if possible)
