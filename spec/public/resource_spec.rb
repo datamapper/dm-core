@@ -8,6 +8,7 @@ describe DataMapper::Resource do
       property :name,        String, :key => true
       property :age,         Integer
       property :description, Text
+      property :admin,       Boolean, :default => false, :accessor => :private
 
       has n, :comments
     end

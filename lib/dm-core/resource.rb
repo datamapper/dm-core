@@ -298,6 +298,7 @@ module DataMapper
     #
     # @return [TrueClass, FalseClass]
     #   true if ivar +name+ has been loaded
+    #
     # @api private
     def attribute_loaded?(name)
       instance_variable_defined?(properties[name].instance_variable_name)
@@ -456,8 +457,9 @@ module DataMapper
     # @api public
     def attributes
       attributes = {}
-      properties.each do |p|
-        attributes[p.name] = send(p.getter) if p.reader_visibility == :public
+      properties.each do |property|
+        next unless public_method?(getter = property.getter)
+        attributes[property.name] = send(getter)
       end
       attributes
     end
@@ -474,14 +476,11 @@ module DataMapper
     # @api public
     def attributes=(attributes)
       attributes.each do |name,value|
-        name   = name.to_s.sub(/\?\z/, '')
-        setter = "#{name}="
-
-        if respond_to?(setter)
+        name = name.to_s.sub(/\?\z/, '')
+        if public_method?(setter = "#{name}=")
           send(setter, value)
         else
-          # FIXME: should this raise an exception?  why not just warn and skip setting it?
-          raise NameError, "#{name} is not a public property in #{model}"
+          raise ArgumentError, "The property '#{name}' is not accessible in #{self.class}"
         end
       end
     end
@@ -509,8 +508,10 @@ module DataMapper
     def update(attributes = {}, *allowed)
       assert_kind_of 'attributes', attributes, Hash
 
+      # filter out only allowed attributes
       self.attributes = allowed.any? ? attributes.only(*allowed) : attributes
 
+      # retrieve the attributes that need to be persisted
       dirty_attributes = self.dirty_attributes
 
       if dirty_attributes.empty?
@@ -684,6 +685,20 @@ module DataMapper
     # @api private
     def parent_associations
       @parent_associations ||= []
+    end
+
+    ##
+    # Return true if the accesor or mutator is publicly accessible
+    #
+    # @param [String,Symbol] method
+    #   The name of accessor or mutator to test
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the accessor or mutator is public
+    #
+    # @api private
+    def public_method?(method)
+      model.public_method_defined?(method)
     end
 
     # TODO: move to dm-more/dm-transactions

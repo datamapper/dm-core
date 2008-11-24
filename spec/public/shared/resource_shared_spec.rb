@@ -163,18 +163,23 @@ share_examples_for 'A public Resource' do
   it { @user.should respond_to(:attributes=) }
 
   describe '#attributes=' do
+    describe 'when a public mutator is specified' do
+      before do
+        @user.attributes = {:name => 'dkubb'}
+      end
 
-    before do
-      @user.attributes = {:name => 'dkubb', :age => 30}
+      it 'should set the value' do
+        @user.name.should eql('dkubb')
+      end
     end
 
-    it { @user.name.should == "dkubb" }
-    it { @user.age.should == 30 }
-
-    it 'should raise an exception if an non-existent attribute is set' do
-      lambda { @user.attributes = {:nonexistent => 'value'} }.should raise_error
+    describe 'when a non-public mutator is specified' do
+      it 'should raise an exception' do
+        lambda {
+          @user.attributes = { :admin => true }
+        }.should raise_error(ArgumentError, 'The property \'admin\' is not accessible in User')
+      end
     end
-
   end
 
   it { @user.should respond_to(:destroy) }
