@@ -35,8 +35,8 @@ module DataMapper
     # @return [DataMapper::Adapters::AbstractAdapter]
     #   the adapter for this repository
     # @raise [ArgumentError]
-    #   if there is no adapter registered for a repository with name +@name+
-    # @api ???
+    #   if there is no adapter registered for a repository named +name+
+    # @api semipublic
     def adapter
       # Make adapter instantiation lazy so we can defer repository setup until it's actually
       # needed. Do not remove this code.
