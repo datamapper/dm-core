@@ -166,10 +166,7 @@ module DataMapper
     def eql?(other)
       return true if equal?(other)
       return false unless other.respond_to?(:model) && model.equal?(other.model)
-      return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
-      # TODO: figure out an approach that will only compare loaded
-      # attributes to avoid unecessary lazy loading
-      properties.all? { |p| p.get(self) == p.get(other) }
+      eql_attributes?(other)
     end
 
     ##
@@ -189,10 +186,7 @@ module DataMapper
     def ==(other)
       return true if equal?(other)
       return false unless other.respond_to?(:model) && model.base_model.equal?(other.model.base_model)
-      return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
-      # TODO: figure out an approach that will only compare loaded
-      # attributes to avoid unecessary lazy loading
-      properties.all? { |p| p.get(self) == p.get(other) }
+      eql_attributes?(other)
     end
 
     ##
@@ -699,6 +693,16 @@ module DataMapper
     # @api private
     def public_method?(method)
       model.public_method_defined?(method)
+    end
+
+    ##
+    # Return true if the other resource's attribtues are equ
+    #
+    def eql_attributes?(other)
+      return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
+      # TODO: figure out an approach that will only compare loaded
+      # attributes to avoid unecessary lazy loading
+      properties.all? { |p| p.get(self) == p.get(other) }
     end
 
     # TODO: move to dm-more/dm-transactions
