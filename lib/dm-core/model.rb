@@ -3,7 +3,19 @@ require 'set'
 module DataMapper
   module Model
 
-    # TODO: document
+    ##
+    # Creates a new Model class with default_storage_name +storage_name+
+    # 
+    # If a block is passed, it will be eval'd in the context of the new Model
+    # 
+    # @param [#to_s] storage_name
+    #   the default_storage name to use for the new Model class
+    # @param [Proc] block
+    #   a block that will be eval'd in the context of the new Model class
+    # 
+    # @return [DataMapper::Model]
+    #   the newly created Model class
+    # 
     # @api semipublic
     def self.new(storage_name, &block)
       model = Class.new
@@ -18,18 +30,17 @@ module DataMapper
     end
 
     ##
-    #
     # Extends the model with this module after DataMapper::Resource has been
     # included.
     #
     # This is a useful way to extend DataMapper::Model while
     # still retaining a self.extended method.
     #
-    # @param [Module] extensions the module that is to be extend the model after
-    #   after DataMapper::Model
+    # @param [Module] extensions
+    #   the module that is to be extend the model after after DataMapper::Model
     #
-    # @return [TrueClass, FalseClass] whether or not the inclusions have been
-    #   successfully appended to the list
+    # @return [TrueClass, FalseClass]
+    #   whether or not the inclusions have been successfully appended to the list
     #
     # @api semipublic
     def self.append_extensions(*extensions)
@@ -92,9 +103,12 @@ module DataMapper
     end
 
     ##
-    # the name of the storage recepticle for this resource.  IE. table name, for database stores
+    # Gets the name of the storage receptacle for this resource in the given
+    # Repository (ie., table name, for database stores).
     #
-    # @return <String> the storage name (IE table name, for database stores) associated with this resource in the given repository
+    # @return [String]
+    #   the storage name (IE table name, for database stores) associated with
+    #   this resource in the given repository
     #
     # @api public
     def storage_name(repository_name = default_repository_name)
@@ -102,9 +116,10 @@ module DataMapper
     end
 
     ##
-    # the names of the storage recepticles for this resource across all repositories
+    # the names of the storage receptacles for this resource across all repositories
     #
-    # @return <Hash(Symbol => String)> All available names of storage recepticles
+    # @return [Hash(Symbol => String)]
+    #   All available names of storage recepticles
     #
     # @api public
     def storage_names
@@ -112,9 +127,14 @@ module DataMapper
     end
 
     ##
-    # The field naming conventions for this resource across all repositories.
+    # Gets the field naming conventions for this resource in the given Repository
     #
-    # @return <String> The naming convention for the given repository
+    # @param [String, Symbol] repository_name
+    #   the name of the Repository for which the field naming convention
+    #   will be retrieved
+    #
+    # @return [#call]
+    #   The naming convention for the given Repository
     #
     # @api public
     def field_naming_convention(repository_name = default_storage_name)
@@ -122,11 +142,18 @@ module DataMapper
     end
 
     ##
-    # defines a property on the resource
+    # Defines a Property on the Resource
     #
-    # @param <Symbol> name the name for which to call this property
-    # @param <Type> type the type to define this property ass
-    # @param <Hash(Symbol => String)> options a hash of available options
+    # @param [Symbol] name
+    #   the name for which to call this property
+    # @param [DataMapper::Type] type
+    #   the type to define this property ass
+    # @param [Hash(Symbol => String)] options
+    #   a hash of available options
+    # 
+    # @return [DataMapper::Property]
+    #   the created Property
+    # 
     # @see DataMapper::Property
     #
     # @api public
@@ -174,12 +201,16 @@ module DataMapper
       property
     end
 
-    # Get a list of all properties that have been defined on a model
+    ##
+    # Gets a list of all properties that have been defined on this Model in
+    # the requested repository
     #
-    # @param repostiory_name<[Symbol, String]> The name of the repository to use.
-    #                                          Uses the default repository if none
-    #                                          is specified.
-    # @return [Array] A list of Property's
+    # @param [Symbol, String] repository_name
+    #   The name of the repository to use. Uses the default Repository
+    #   if none is specified.
+    # 
+    # @return [Array]
+    #   A list of Properties defined on this Model in the given Repository
     #
     # @api public
     def properties(repository_name = default_repository_name)
@@ -200,7 +231,15 @@ module DataMapper
       @properties[repository_name] ||= repository_name == Repository.default_name ? PropertySet.new : properties(Repository.default_name).dup
     end
 
-    # TODO: document
+    ##
+    # Gets the list of key fields for this Model in +repository_name+
+    # 
+    # @param [String] repository_name
+    #   The name of the Repository for which the key is to be reported
+    # 
+    # @return [Array]
+    #   The list of key fields for this Model in +repository_name+
+    # 
     # @api public
     def key(repository_name = default_repository_name)
       properties(repository_name).key
@@ -212,6 +251,7 @@ module DataMapper
       key(repository_name).detect { |p| p.serial? }
     end
 
+    ##
     # Grab a single record by its key. Supports natural and composite key
     # lookups as well.
     #
@@ -220,10 +260,13 @@ module DataMapper
     #   Zoo.get('DFW')            # wow, support for natural primary keys
     #   Zoo.get('Metro', 'DFW')   # more wow, composite key look-up
     #
-    # @param *key<Object>
+    # @param [Object] *key
     #   The primary key or keys to use for lookup
-    # @return <DataMapper::Resource>
+    # 
+    # @return [DataMapper::Resource]
     #   A single model that was found
+    # @return [NilClass]
+    #   If no instance was found matching +key+
     #
     # @api public
     def get(*key)
@@ -231,14 +274,15 @@ module DataMapper
       repository.identity_map(self)[key] || first(to_query(repository, key))
     end
 
+    ##
     # Grab a single record just like #get, but raise an ObjectNotFoundError
     # if the record doesn't exist.
     #
-    # @param *key<Object>
+    # @param [Object] *key
     #   The primary key or keys to use for lookup
-    # @return <DataMapper::Resource>
+    # @return [DataMapper::Resource]
     #   A single model that was found
-    # @raise <ObjectNotFoundError>
+    # @raise [ObjectNotFoundError]
     #   The record was not found
     #
     # @api public
@@ -246,6 +290,7 @@ module DataMapper
       get(*key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key #{key.inspect}")
     end
 
+    ##
     # Find a set of records matching an optional set of conditions. Additionally,
     # specify the order that the records are return.
     #
@@ -254,10 +299,10 @@ module DataMapper
     #   Zoo.all(:opened_on => (s..e))   # all zoos that opened on a date in the date-range
     #   Zoo.all(:order => [:tiger_count.desc])  # Ordered by tiger_count
     #
-    # @param query<Hash>
+    # @param [Hash] query
     #   A hash describing the conditions and order for the query
-    # @return <DataMapper::Collection>
-    #   A set of records found
+    # @return [DataMapper::Collection]
+    #   A set of records found matching the conditions in +query+
     # @see DataMapper::Collection
     #
     # @api public
@@ -266,12 +311,13 @@ module DataMapper
       query.repository.read_many(query)
     end
 
+    ##
     # Performs a query just like #all, however, only return the first
     # record found, rather than a collection
     #
-    # @param query<Hash>
+    # @param [Hash] query
     #   A hash describing the conditions and order for the query
-    # @return <DataMapper::Resource>
+    # @return [DataMapper::Resource]
     #   The first record found by the query
     #
     # @api public
@@ -288,13 +334,16 @@ module DataMapper
 
     # TODO: add #last
 
-    # find the #first record by a query, or #create one by attributes
-    # if it doesn't exist
+    ##
+    # Finds the #first record by a query, or #create one by attributes
+    # if none was found
     #
-    # @param query<Hash>
+    # @param [Hash] query
     #   The query to be used so search
-    # @param attributes<Hash>
+    # @param [Hash] attributes
     #   The attributes to be used to create the record of none is found.
+    # @return [DataMapper::Resource]
+    #   The instance found by +query+, or created with +attributes+ if none found
     # @see #first
     # @see #create
     #
@@ -306,7 +355,11 @@ module DataMapper
     ##
     # Create an instance of Resource with the given attributes
     #
-    # @param <Hash(Symbol => Object)> attributes hash of attributes to set
+    # @param [Hash(Symbol => Object)] attributes
+    #   hash of attributes to set
+    # 
+    # @return [DataMapper::Resource]
+    #   the newly created (and saved) Resource instance
     #
     # @api public
     def create(attributes = {})
@@ -317,6 +370,17 @@ module DataMapper
 
     ##
     # Copy a set of records from one repository to another.
+    # 
+    # @param [String] source
+    #   The name of the Repository the resources should be copied _from_
+    # @param [String] destination
+    #   The name of the Repository the resources should be copied _to_
+    # @param [Hash] query
+    #   The conditions with which to find the records to copy. These
+    #   conditions are merged with Model.query
+    # 
+    # @return [DataMapper::Collection]
+    #   A Collection of the Resource instances copied in the operation
     #
     # @api public
     def copy(source, destination, query = {})
@@ -327,7 +391,16 @@ module DataMapper
       end
     end
 
-    # TODO: document
+    ##
+    # Loads an instance of this Model, taking into account IdentityMap lookup,
+    # inheritance columns(s) and Property typecasting.
+    # 
+    # @param [Array(Object)] values
+    #   an Array of values to load as the instance's values
+    # 
+    # @return [DataMapper::Resource]
+    #   the loaded Resource instance
+    # 
     # @api semipublic
     def load(values, query)
       repository = query.repository
@@ -407,11 +480,14 @@ module DataMapper
     # Get the repository with a given name, or the default one for the current
     # context, or the default one for this class.
     #
-    # @param name<Symbol>   the name of the repository wanted
-    # @param block<Block>   block to execute with the fetched repository as parameter
+    # @param [Symbol] name
+    #   the name of the repository wanted
+    # @param [Block] block
+    #   block to execute with the fetched repository as parameter
     #
-    # @return <Object, DataMapper::Respository> whatever the block returns,
-    #   if given a block, otherwise the requested repository.
+    # @return [Object, DataMapper::Respository]
+    #   whatever the block returns, if given a block,
+    #   otherwise the requested repository.
     #
     # @api private
     def repository(name = nil)
@@ -427,13 +503,27 @@ module DataMapper
       end
     end
 
-    # TODO: document
+    # Get the current +repository_name+ for this Model.
+    # 
+    # If there are any Repository contexts, the name of the last one will
+    # be returned, else the +default_repository_name+ of this model will be
+    # 
+    # @return [String]
+    #   the current repository name to use for this Model
+    # 
     # @api private
     def repository_name
       Repository.context.any? ? Repository.context.last.name : default_repository_name
     end
 
     # TODO: document
+    # Gets the current Set of repositories for which
+    # this Model has been defined (beyond default)
+    # 
+    # @return [Set]
+    #   The Set of repositories for which this Model
+    #   has been defined (beyond default)
+    #
     # @api private
     def repositories
       [ repository ].to_set + @properties.keys.collect { |repository_name| DataMapper.repository(repository_name) }
@@ -534,7 +624,7 @@ module DataMapper
       return self.query if query == self.query
 
       query = if query.kind_of?(Hash)
-        Query.new(query.has_key?(:repository) ? query.delete(:repository) : self.repository, self, query)
+        Query.new(query.delete(:repository) || self.repository, self, query)
       else
         query
       end
