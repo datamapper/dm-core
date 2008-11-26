@@ -4,7 +4,7 @@ module DataMapper
     include Enumerable
 
     def [](name)
-      property_for(name) || raise(ArgumentError, "Unknown property '#{name}'", caller)
+      property_for(name)
     end
 
     def []=(name, property)
