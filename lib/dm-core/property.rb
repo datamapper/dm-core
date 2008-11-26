@@ -383,7 +383,8 @@ module DataMapper
     # Returns true if property has uniq key. Serial properties and
     # keys are unique by default.
     #
-    # @return [Boolean] true if property has uniq index defined, false otherwise
+    # @return [TrueClass, FalseClass]
+    #   true if property has uniq index defined, false otherwise
     #
     # @api public
     def unique
@@ -393,7 +394,8 @@ module DataMapper
     # Returns universal unique property identifier.
     # Calculated as sum of hashes of model and property name.
     #
-    # @return [Fixnum] A hash value for this object.
+    # @return [Integer]
+    #   A hash value for this object.
     # @api public
     def hash
       if @custom && !@bound
@@ -408,8 +410,12 @@ module DataMapper
     # comparable only if their models are equal and
     # both properties has the same name.
     #
-    # @param      [Object]        o         the object to compare self to
-    # @return     [TrueClass, FalseClass]   Result of equality comparison.
+    # @param [Object] o
+    #   the object to compare self to
+    # 
+    # @return [TrueClass, FalseClass]
+    #   Result of equality comparison.
+    # 
     # @api public
     def eql?(o)
       if o.is_a?(Property)
@@ -423,7 +429,9 @@ module DataMapper
     # This usually only makes sense when property is of
     # type Range or custom type.
     #
-    # @return [Integer, NilClass] the maximum length of this property
+    # @return [Integer, NilClass]
+    #   the maximum length of this property
+    # 
     # @api semipublic
     def length
       @length.is_a?(Range) ? @length.max : @length
@@ -432,7 +440,10 @@ module DataMapper
 
     # Returns index name if property has index.
     #
-    # @return [String] index name if property has index defined, false otherwise
+    # @return [String]
+    #   index name if property has index defined
+    # @return [FalseClass]
+    #   this property has no index defined
     #
     # @api public
     def index
@@ -442,7 +453,8 @@ module DataMapper
     # Returns true if property has unique index. Serial properties and
     # keys are unique by default.
     #
-    # @return [TrueClass, FalseClass] true if property has unique index defined, false otherwise
+    # @return [TrueClass, FalseClass]
+    #   true if property has unique index defined, false otherwise
     #
     # @api public
     def unique_index
@@ -451,7 +463,8 @@ module DataMapper
 
     # Returns whether or not the property is to be lazy-loaded
     #
-    # @return [TrueClass, FalseClass] true if the property is to be lazy-loaded
+    # @return [TrueClass, FalseClass]
+    #   true if the property is to be lazy-loaded
     #
     # @api public
     def lazy?
@@ -460,7 +473,8 @@ module DataMapper
 
     # Returns whether or not the property is a key or a part of a key
     #
-    # @return [TrueClass, FalseClass] true if the property is a key or a part of a key
+    # @return [TrueClass, FalseClass]
+    #   true if the property is a key or a part of a key
     #
     # @api public
     def key?
@@ -469,7 +483,8 @@ module DataMapper
 
     # Returns whether or not the property is "serial" (auto-incrementing)
     #
-    # @return [TrueClass, FalseClass] whether or not the property is "serial"
+    # @return [TrueClass, FalseClass]
+    #   whether or not the property is "serial"
     #
     # @api public
     def serial?
@@ -478,7 +493,8 @@ module DataMapper
 
     # Returns whether or not the property can accept 'nil' as it's value
     #
-    # @return [TrueClass, FalseClass] whether or not the property can accept 'nil'
+    # @return [TrueClass, FalseClass]
+    #   whether or not the property can accept 'nil'
     #
     # @api public
     def nullable?
@@ -487,19 +503,21 @@ module DataMapper
 
     # Returns whether or not the property is custom (not provided by dm-core)
     #
-    # @return [TrueClass, FalseClass] whether or not the property is custom
+    # @return [TrueClass, FalseClass]
+    #   whether or not the property is custom
     #
     # @api public
     def custom?
       @custom
     end
 
-    # Provides a standardized getter method for the property
+    # Standardized getter method for the property
     #
     # @param [DataMapper::Resource] resource
     #   model instance for which this property is to be loaded
     #
-    # @return [Object] the value of this property for the provided instance
+    # @return [Object]
+    #   the value of this property for the provided instance
     #
     # @raise [ArgumentError] "+resource+ should be a DataMapper::Resource, but was ...."
     #
@@ -528,7 +546,8 @@ module DataMapper
     # @param [DataMapper::Resource] resource
     #   model instance for which this property is to be unsafely loaded
     #
-    # @return [Object] current @ivar value of this property in +resource+
+    # @return [Object]
+    #   current @ivar value of this property in +resource+
     #
     # @api private
     def get!(resource)
@@ -544,8 +563,13 @@ module DataMapper
     #
     # @param [DataMapper::Resource] resource
     #   model instance for which to set the original value
-    # @param [Object]               val
+    # @param [Object] val
     #   value to set as original value for this property in +resource+
+    #
+    # @return [NilClass]
+    #   if +resource.original_values+ has a key with same name as this property
+    # @return [Object]
+    #   if original_value was set, +val+ is returned
     #
     # @api private
     def set_original_value(resource, val)
@@ -560,7 +584,7 @@ module DataMapper
     #
     # @param [DataMapper::Resource] resource
     #   model instance for which this property is to be set
-    # @param [Object]               value
+    # @param [Object] value
     #   value to which value of this property will be set for +resource+
     #
     # @return [Object]
@@ -594,7 +618,7 @@ module DataMapper
     #
     # @param [DataMapper::Resource] resource
     #   the model instance for which to unsafely set the value of this property
-    # @param [Object]               value
+    # @param [Object] value
     #   the value to which this property should be unsafely set for +resource+
     #
     # @return [Object]
@@ -619,9 +643,9 @@ module DataMapper
       resource.send(:lazy_load, contexts)
     end
 
-    # typecasts values into a primitive (Ruby class that backs DataMapper property type).
-    # If property type can handle typecasting, it is delegated. How typecasting is
-    # perfomed, depends on the primitive of the type.
+    # typecasts values into a primitive (Ruby class that backs DataMapper
+    # property type). If property type can handle typecasting, it is delegated.
+    # How typecasting is perfomed, depends on the primitive of the type.
     #
     # If type's primitive is a TrueClass, values of 1, t and true are casted to true.
     #
@@ -639,9 +663,9 @@ module DataMapper
     #
     # @param [#to_s, #to_f, #to_i] value
     #   the value to be typecast to this property's primitive
-    #
-    # @return [TrueClass, String, Float, Integer, BigDecimal, DateTime, Date,
-    #   Time, Class] the primitive data-type, defaults to TrueClass
+    # 
+    # @return [TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Time, Class]
+    #   The typecasted +value+
     #
     # @api private
     def typecast(value)
@@ -713,7 +737,8 @@ module DataMapper
 
     # Returns a concise string representation of the property instance.
     #
-    # @return [String] Concise string representation of the property instance.
+    # @return [String]
+    #   Concise string representation of the property instance.
     #
     # @api public
     def inspect
@@ -809,8 +834,11 @@ module DataMapper
     end
 
     # Assert given visibility value is supported.
-    #
-    # @return   [NilClass]   nil
+    # 
+    # Will raise ArgumentError if this Property's reader and writer
+    # visibilities are not included in VISIBILITY_OPTIONS.
+    # @return [NilClass]
+    # @raise [ArgumentError] "property visibility must be :public, :protected, or :private"
     # @api private
     def determine_visibility
       @reader_visibility = @options[:reader] || @options[:accessor] || :public
@@ -827,7 +855,9 @@ module DataMapper
     # @param [Hash, #to_s] value
     #   value to be typecast to DateTime
     #
-    # @return [DateTime] Value type casted to DateTime
+    # @return [DateTime]
+    #   Value type casted to DateTime
+    #
     # @api private
     def typecast_to_datetime(value)
       case value
@@ -841,8 +871,10 @@ module DataMapper
     #
     # @param [Hash, #to_s] value
     #   value to be typecast to Date
+    # 
+    # @return [Date]
+    #   Value type casted to Date
     #
-    # @return [Date] Value type casted to Date
     # @api private
     def typecast_to_date(value)
       case value
@@ -855,9 +887,13 @@ module DataMapper
     # Handles both Hashes and Time instances.
     #
     # @param [Hash, #to_s] value
-    #   value to be typecast to Time
+    #   value to be typecast to Time. Hash objects will be passed to
+    #   #typecast_hash_to_time, anything else will have
+    #   +Time.parse(value.to_s)+ called
+    # 
+    # @return [Time]
+    #   +value+ typecasted to Time
     #
-    # @return [Time] Value type casted to Time
     # @api private
     def typecast_to_time(value)
       case value
@@ -866,12 +902,15 @@ module DataMapper
       end
     end
 
-    # Creates a DateTime instance from a Hash with keys :year, :month, :day, :hour, :min, :sec
+    # Creates a DateTime instance from a Hash with keys :year, :month, :day,
+    # :hour, :min, :sec
     #
     # @param [Hash] hash
     #   hash to be typecast to DateTime
+    # 
+    # @return [DateTime]
+    #   DateTime object constructed from a Hash.
     #
-    # @return [DateTime] Value constructed from a Hash.
     # @api private
     def typecast_hash_to_datetime(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
@@ -885,8 +924,10 @@ module DataMapper
     #
     # @param [Hash] hash
     #   hash to be typecast to Date
+    # 
+    # @return [Date]
+    #   Date object constructed from a Hash.
     #
-    # @return [Date] Value constructed from a Hash.
     # @api private
     def typecast_hash_to_date(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day)
@@ -896,12 +937,15 @@ module DataMapper
       Date.new(t.year, t.month, t.day)
     end
 
-    # Creates a Time instance from a Hash with keys :year, :month, :day, :hour, :min, :sec
+    # Creates a Time instance from a Hash with keys :year, :month, :day,
+    # :hour, :min, :sec
     #
     # @param [Hash] hash
     #   hash to be typecast to Time
+    # 
+    # @return [Time]
+    #   Time object constructed from a Hash.
     #
-    # @return [Time] Value constructed from a Hash.
     # @api private
     def typecast_hash_to_time(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
@@ -915,8 +959,10 @@ module DataMapper
     #   hash to extract time args from
     # @param [Hash] args
     #   time args to extract from +hash+
+    # 
+    # @return [Array]
+    #   Extracted values
     #
-    # @return [Array] Extracted values
     # @api private
     def extract_time_args_from_hash(hash, *args)
       now = Time.now
