@@ -1495,8 +1495,8 @@ share_examples_for 'A public Collection' do
       before do
         skip = [ DataMapper::Associations::ManyToMany::Proxy ]
         pending_if 'TODO: fix', skip.include?(@articles.class) do
-          @hash = { :title => 'Hash Article', :content => 'From Hash' }.freeze
-          @return = @articles.replace([ @hash ])
+          @array = [ { :title => 'Hash Article', :content => 'From Hash' } ].freeze
+          @return = @articles.replace(@array)
         end
       end
 
@@ -1517,7 +1517,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be a Resource with attributes matching the Hash' do
-        @return.first.attributes.only(*@hash.keys).should == @hash
+        @return.first.attributes.only(*@array.first.keys).should == @array.first
       end
     end
   end
