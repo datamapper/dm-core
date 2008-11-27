@@ -617,6 +617,38 @@ module DataMapper
     end
 
     ##
+    # Finds the first Resource by conditions, or initializes a new
+    # Resource with the attributes if none found
+    #
+    # @param [Hash] conditions
+    #   The conditions to be used to search
+    # @param [Hash] attributes
+    #   The attributes to be used to create the record of none is found.
+    # @return [DataMapper::Resource]
+    #   The instance found by +query+, or created with +attributes+ if none found
+    #
+    # @api public
+    def first_or_new(conditions, attributes = {})
+      first(conditions) || new(conditions.merge(attributes))
+    end
+
+    ##
+    # Finds the first Resource by conditions, or creates a new
+    # Resource with the attributes if none found
+    #
+    # @param [Hash] conditions
+    #   The conditions to be used to search
+    # @param [Hash] attributes
+    #   The attributes to be used to create the record of none is found.
+    # @return [DataMapper::Resource]
+    #   The instance found by +query+, or created with +attributes+ if none found
+    #
+    # @api public
+    def first_or_create(conditions, attributes = {})
+      first(conditions) || create(conditions.merge(attributes))
+    end
+
+    ##
     # Initializes a Resource and appends it to the Collection
     #
     # @param [Hash] attributes attributes which

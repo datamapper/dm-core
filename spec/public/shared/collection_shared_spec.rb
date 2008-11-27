@@ -732,9 +732,104 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it 'should respond to #first_or_create' do
-    pending 'TODO: add Collection#first_or_create'
-    @articles.should respond_to(:first_or_create)
+  it { @articles.should respond_to(:first_or_create) }
+
+  describe '#first_or_create' do
+    describe 'with conditions that find an existing Resource' do
+      before do
+        @return = @resource = @articles.first_or_create(@article.attributes)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be expected Resource' do
+        @resource.should == @article
+      end
+
+      it 'should be a saved Resource' do
+        @resource.should_not be_new_record
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @resource.collection.should be_equal(@articles)
+      end
+    end
+
+    describe 'with conditions that do not find an existing Resource' do
+      before do
+        @conditions = { :content => 'Unknown Content' }
+        @attributes = {}
+        @return = @resource = @articles.first_or_create(@conditions, @attributes)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be expected Resource' do
+        @resource.attributes.only(:title, :content).should == { :title => 'Sample Article', :content => 'Unknown Content' }
+      end
+
+      it 'should be a saved Resource' do
+        @resource.should_not be_new_record
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @resource.collection.should be_equal(@articles)
+      end
+    end
+  end
+
+  it { @articles.should respond_to(:first_or_new) }
+
+  describe '#first_or_new' do
+    describe 'with conditions that find an existing Resource' do
+      before do
+        @return = @resource = @articles.first_or_new(@article.attributes)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be expected Resource' do
+        @resource.should == @article
+      end
+
+      it 'should be a saved Resource' do
+        @resource.should_not be_new_record
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @resource.collection.should be_equal(@articles)
+      end
+    end
+
+    describe 'with conditions that do not find an existing Resource' do
+      before do
+        @conditions = { :content => 'Unknown Content' }
+        @attributes = {}
+        @return = @resource = @articles.first_or_new(@conditions, @attributes)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be expected Resource' do
+        @resource.attributes.only(:title, :content).should == { :title => 'Sample Article', :content => 'Unknown Content' }
+      end
+
+      it 'should not be a saved Resource' do
+        @resource.should be_new_record
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @resource.collection.should be_equal(@articles)
+      end
+    end
   end
 
   it { @articles.should respond_to(:get) }
