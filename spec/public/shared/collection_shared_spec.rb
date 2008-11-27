@@ -1464,29 +1464,61 @@ share_examples_for 'A public Collection' do
   it { @articles.should respond_to(:replace) }
 
   describe '#replace' do
-    before do
-      @resources = @articles.dup.entries
-      @return = @articles.replace(@other_articles)
+    describe 'when provided an Array of Resources' do
+      before do
+        @resources = @articles.dup.entries
+        @return = @articles.replace(@other_articles)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return self' do
+        @return.should be_equal(@articles)
+      end
+
+      it 'should update the Collection with new Resources' do
+        @articles.should == @other_articles
+      end
+
+      it 'should relate each Resource added to the Collection' do
+        @articles.each { |r| r.collection.should be_equal(@articles) }
+      end
+
+      it 'should orphan each Resource removed from the Collection' do
+        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      end
     end
 
-    it 'should return a Collection' do
-      @return.should be_kind_of(DataMapper::Collection)
-    end
+    describe 'when provided an Array of Hashes' do
+      before do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
+          @hash = { :title => 'Hash Article', :content => 'From Hash' }.freeze
+          @return = @articles.replace([ @hash ])
+        end
+      end
 
-    it 'should return self' do
-      @return.should be_equal(@articles)
-    end
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
 
-    it 'should update the Collection with new Resources' do
-      @articles.should == @other_articles
-    end
+      it 'should return self' do
+        @return.should be_equal(@articles)
+      end
 
-    it 'should relate each Resource added to the Collection' do
-      @articles.each { |r| r.collection.should be_equal(@articles) }
-    end
+      it 'should initialize a Resource' do
+        @return.first.should be_kind_of(DataMapper::Resource)
+      end
 
-    it 'should orphan each Resource removed from the Collection' do
-      @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      it 'should be a new Resource' do
+        @return.first.should be_new_record
+      end
+
+      it 'should be a Resource with attributes matching the Hash' do
+        @return.first.attributes.only(*@hash.keys).should == @hash
+      end
     end
   end
 

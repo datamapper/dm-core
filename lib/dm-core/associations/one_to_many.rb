@@ -223,7 +223,6 @@ module DataMapper
         def replace(other)
           assert_mutable  # XXX: move to ManyToMany::Proxy?
           orphan_resources(self)
-          other.map! { |r| r.kind_of?(Hash) ? new(r) : r }
           super
           relate_resources(other)
           self

@@ -590,6 +590,7 @@ module DataMapper
       if loaded?
         orphan_resources(self)
       end
+      other.map! { |r| r.kind_of?(Hash) ? new(r) : r }
       relate_resources(other)
       super
     end
