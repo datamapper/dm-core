@@ -1112,7 +1112,7 @@ module DataMapper
     def method_missing(method, *args, &block)
       if model.respond_to?(method)
         delegate_to_model(method, *args, &block)
-      elsif relationship = relationships[method]
+      elsif relationship = relationships[method] || relationships[method.to_s.singular.to_sym]
         delegate_to_relationship(relationship, *args)
       else
         super
@@ -1135,24 +1135,27 @@ module DataMapper
     # @return [DataMapper::Collection] the associated Resources
     #
     def delegate_to_relationship(relationship, *args)
-      klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
+      target_class = model == relationship.child_model ? relationship.parent_model : relationship.child_model
+      target_key   = model == relationship.child_model ? relationship.child_key    : relationship.parent_key
 
       # TODO: when self.query includes an offset/limit use it as a
       # subquery to scope the results rather than a join
 
-      query = Query.new(repository, klass)
-      query.conditions.push(*self.query.conditions)
+      keys  = map { |r| r.key }
+      query = Query.new(repository, target_class, target_key.zip(keys.transpose).to_hash)
+
       query.update(relationship.query)
+
       if args.last.kind_of?(Hash)
         query.update(args.pop)
       end
 
       query.update(
-        :fields => klass.properties(repository.name).defaults,
+        :fields => target_class.properties(repository.name).defaults,
         :links  => [ relationship ] + self.query.links
       )
 
-      klass.all(query)
+      target_class.all(query)
     end
   end # class Collection
 end # module DataMapper

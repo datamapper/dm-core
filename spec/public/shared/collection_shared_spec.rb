@@ -1170,7 +1170,6 @@ share_examples_for 'A public Collection' do
 
     describe 'with a belongs_to relationship method' do
       before do
-        pending 'TODO: fix for Many To Many' if @articles.class == DataMapper::Associations::ManyToMany::Proxy
         @return = @collection = @articles.original
       end
 
@@ -1179,10 +1178,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return expected Collection' do
-        skip = [ DataMapper::Collection, DataMapper::Associations::OneToMany::Proxy ]
-        pending_if 'TODO: fix logic to return correct entries', skip.any? { |c| @articles.class == c } do
-          @collection.should == []
-        end
+        @collection.should == []
       end
     end
 
