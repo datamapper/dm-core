@@ -32,13 +32,20 @@ module DataMapper
           end
         EOS
 
-        model.relationships(repository_name)[name] = Relationship.new(
+        relationship = model.relationships(repository_name)[name] = Relationship.new(
           name,
           repository_name,
           model,
           options[:class_name] || Extlib::Inflection.classify(name),
           options
         )
+
+        # FIXME: temporary until the Relationship.new API is refactored to
+        # accept type as the first argument, and RelationshipChain has been
+        # removed
+        relationship.type = self
+
+        relationship
       end
     end # module ManyToOne
   end # module Associations

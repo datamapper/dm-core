@@ -1,6 +1,6 @@
 share_examples_for 'A public Collection' do
   before do
-    %w[ @model @article @other @articles @other_articles ].each do |ivar|
+    %w[ @model @article @other @original @articles @other_articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
   end
@@ -69,7 +69,7 @@ share_examples_for 'A public Collection' do
       before do
         skip = [ DataMapper::Associations::ManyToMany::Proxy ]
         pending_if 'TODO: fix', skip.include?(@articles.class) do
-          @new = @articles.create(:content => 'Newish Article')
+          @new = @articles.create(:content => 'New Article')
           # search for the first 10 articles, then take the first 5, and then finally take the
           # second article from the remainder
           @copy = @articles.dup
@@ -101,8 +101,8 @@ share_examples_for 'A public Collection' do
     describe 'with a query using raw conditions' do
       before do
         unless @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
-          skip_class = DataMapper::Associations::ManyToMany::Proxy
-          pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+          skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+          pending_if 'TODO: fix', skip.include?(@articles.class) do
             @new = @articles.create(:content => 'New Article')
             @copy = @articles.dup
             @return = @articles.all(:conditions => [ 'content = ?', 'New Article' ])
@@ -342,8 +342,8 @@ share_examples_for 'A public Collection' do
 
   describe '#create' do
     before do
-      skip_class = DataMapper::Associations::ManyToMany::Proxy
-      pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+      skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+      pending_if 'TODO: fix', skip.include?(@articles.class) do
         @return = @resource = @articles.create(:content => 'Content')
       end
     end
@@ -720,8 +720,8 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be the first N Resources in the Collection matching the query' do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @resources.should == [ @article ]
         end
       end
@@ -737,8 +737,8 @@ share_examples_for 'A public Collection' do
   describe '#first_or_create' do
     describe 'with conditions that find an existing Resource' do
       before do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @return = @resource = @articles.first_or_create(@article.attributes)
         end
       end
@@ -762,8 +762,8 @@ share_examples_for 'A public Collection' do
 
     describe 'with conditions that do not find an existing Resource' do
       before do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @conditions = { :content => 'Unknown Content' }
           @attributes = {}
           @return = @resource = @articles.first_or_create(@conditions, @attributes)
@@ -793,8 +793,8 @@ share_examples_for 'A public Collection' do
   describe '#first_or_new' do
     describe 'with conditions that find an existing Resource' do
       before do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @return = @resource = @articles.first_or_new(@article.attributes)
         end
       end
@@ -818,8 +818,8 @@ share_examples_for 'A public Collection' do
 
     describe 'with conditions that do not find an existing Resource' do
       before do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @conditions = { :content => 'Unknown Content' }
           @attributes = {}
           @return = @resource = @articles.first_or_new(@conditions, @attributes)
@@ -849,7 +849,7 @@ share_examples_for 'A public Collection' do
   describe '#get' do
     describe 'with a key to a Resource within the Collection' do
       before do
-        @return = @resource = @articles.get(1)
+        @return = @resource = @articles.get(*@article.key)
       end
 
       it 'should return a Resource' do
@@ -873,7 +873,7 @@ share_examples_for 'A public Collection' do
 
     describe 'with a key not typecast' do
       before do
-        @return = @resource = @articles.get('1')
+        @return = @resource = @articles.get(*@article.key.map { |v| v.to_s })
       end
 
       it 'should return a Resource' do
@@ -887,8 +887,11 @@ share_examples_for 'A public Collection' do
 
     describe 'with a key to a Resource within a Collection using a limit' do
       before do
-        @articles = Article.all(:limit => 1)
-        @return = @resource = @articles.get(1)
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending 'TODO: fix' if skip.include?(@articles.class)
+
+        @articles = @articles.all(:limit => 1)
+        @return = @resource = @articles.get(*@article.key)
       end
 
       it 'should return a Resource' do
@@ -902,8 +905,12 @@ share_examples_for 'A public Collection' do
 
     describe 'with a key to a Resource within a Collection using an offset' do
       before do
-        @articles = Article.all(:offset => 1, :limit => 1)
-        @return = @resource = @articles.get(2)
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending 'TODO: fix' if skip.include?(@articles.class)
+
+        @new = @articles.create(:content => 'New Article')
+        @articles = @articles.all(:offset => 1, :limit => 1)
+        @return = @resource = @articles.get(*@new.key)
       end
 
       it 'should return a Resource' do
@@ -911,7 +918,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be matching Resource in the Collection' do
-        @resource.should == @other
+        @resource.should == @new
       end
     end
   end
@@ -921,7 +928,7 @@ share_examples_for 'A public Collection' do
   describe '#get!' do
     describe 'with a key to a Resource within the Collection' do
       before do
-        @return = @resource = @articles.get!(1)
+        @return = @resource = @articles.get!(*@article.key)
       end
 
       it 'should return a Resource' do
@@ -937,13 +944,13 @@ share_examples_for 'A public Collection' do
       it 'should raise an exception' do
         lambda {
           @articles.get!(99)
-        }.should raise_error(DataMapper::ObjectNotFoundError, 'Could not find Article with key [99] in collection')
+        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@model} with key [99] in collection")
       end
     end
 
     describe 'with a key not typecast' do
       before do
-        @return = @resource = @articles.get!('1')
+        @return = @resource = @articles.get!(*@article.key.map { |v| v.to_s })
       end
 
       it 'should return a Resource' do
@@ -952,6 +959,43 @@ share_examples_for 'A public Collection' do
 
       it 'should be matching Resource in the Collection' do
         @resource.should == @article
+      end
+    end
+
+    describe 'with a key to a Resource within a Collection using a limit' do
+      before do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending 'TODO: fix' if skip.include?(@articles.class)
+
+        @articles = @articles.all(:limit => 1)
+        @return = @resource = @articles.get!(*@article.key)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be matching Resource in the Collection' do
+        @resource.should == @article
+      end
+    end
+
+    describe 'with a key to a Resource within a Collection using an offset' do
+      before do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending 'TODO: fix' if skip.include?(@articles.class)
+
+        @new = @articles.create(:content => 'New Article')
+        @articles = @articles.all(:offset => 1, :limit => 1)
+        @return = @resource = @articles.get!(*@new.key)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be matching Resource in the Collection' do
+        @resource.should == @new
       end
     end
   end
@@ -987,13 +1031,13 @@ share_examples_for 'A public Collection' do
 
     before do
       @copy = @articles.dup
-      @copy << Article.new(:title => "Other Article")
+      @copy << @model.new(:title => 'Other Article')
       @return = @copy.inspect
     end
 
     it { @return.should match(/\A\[.*\]\z/) }
 
-    it { @return.should match(/\bid=1\b/) }
+    it { @return.should match(/\bid=#{@article.id}\b/) }
     it { @return.should match(/\bid=nil\b/) }
 
     it { @return.should match(/\btitle=\"Sample Article\"\s/) }
@@ -1058,22 +1102,22 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return a Resource' do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @return.should be_kind_of(DataMapper::Resource)
         end
       end
 
       it 'should should be the last Resource in the Collection matching the query' do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @resource.should == @article
         end
       end
 
       it 'should relate the Resource to the Collection' do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @resource.collection.should be_equal(@articles)
         end
       end
@@ -1133,8 +1177,8 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be the last N Resources in the Collection matching the query' do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           @resources.should == [ @article ]
         end
       end
@@ -1170,7 +1214,7 @@ share_examples_for 'A public Collection' do
 
     describe 'with a belongs_to relationship method' do
       before do
-        @return = @collection = @articles.original
+        @return = @collection = @articles.originals
       end
 
       it 'should return a Collection' do
@@ -1178,14 +1222,20 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return expected Collection' do
-        @collection.should == []
+        @collection.should == [ @original ]
       end
     end
 
     describe 'with a has relationship method' do
+      before do
+        # associate the article with children
+        @article.revisions << @other
+        @article.save
+      end
+
       describe 'with no arguments' do
         before do
-          @return = @articles.revisions
+          @return = @collection = @articles.revisions
         end
 
         it 'should return a Collection' do
@@ -1193,15 +1243,13 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          pending 'TODO: fix logic to return correct entries' do
-            @collection.should == []
-          end
+          @collection.should == [ @other ]
         end
       end
 
       describe 'with arguments' do
         before do
-          @return = @articles.revisions(:fields => [ :id ])
+          @return = @collection = @articles.revisions(:fields => [ :id ])
         end
 
         it 'should return a Collection' do
@@ -1209,9 +1257,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          pending 'TODO: fix logic to return correct entries' do
-            @collection.should == []
-          end
+          @collection.should == [ @other ]
+        end
+
+        it 'should affect the query used to load the Collection' do
+          @collection.each { |r| { :id => true, :title => false, :content => false }.each { |a,c| r.attribute_loaded?(a).should == c } }
         end
       end
     end
@@ -1229,8 +1279,8 @@ share_examples_for 'A public Collection' do
 
   describe '#new' do
     before do
-      skip_class = DataMapper::Associations::ManyToMany::Proxy
-      pending_if "TODO: implement #{skip_class}#new", @articles.class == skip_class do
+      skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+      pending_if 'TODO: fix', skip.include?(@articles.class) do
         @return = @resource = @articles.new(:content => 'Content')
       end
     end
@@ -1489,8 +1539,8 @@ share_examples_for 'A public Collection' do
 
     describe "##{method}" do
       before do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
         end
 
@@ -1681,8 +1731,8 @@ share_examples_for 'A public Collection' do
 
   describe '#slice!' do
     before do
-      skip_class = DataMapper::Associations::ManyToMany::Proxy
-      pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+      skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+      pending_if 'TODO: fix', skip.include?(@articles.class) do
         1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
       end
 
@@ -1917,8 +1967,8 @@ share_examples_for 'A public Collection' do
 
     describe "##{method}" do
       before do
-        skip_class = DataMapper::Associations::ManyToMany::Proxy
-        pending_if "TODO: fix in #{@articles.class}", @articles.class == skip_class do
+        skip = [ DataMapper::Associations::ManyToMany::Proxy ]
+        pending_if 'TODO: fix', skip.include?(@articles.class) do
           orphans = (1..10).map do |n|
             @articles.create(:content => "Article #{n}")
             @articles.pop  # remove the article from the tail

@@ -34,7 +34,7 @@ module DataMapper
           end
         EOS
 
-        model.relationships(repository_name)[name] = if options.has_key?(:through)
+        relationship = model.relationships(repository_name)[name] = if options.has_key?(:through)
           opts = options.dup
 
           if opts.key?(:class_name) && !opts.key?(:child_key)
@@ -61,6 +61,13 @@ module DataMapper
             options
           )
         end
+
+        # FIXME: temporary until the Relationship.new API is refactored to
+        # accept type as the first argument, and RelationshipChain has been
+        # removed
+        relationship.type = self
+
+        relationship
       end
 
       # TODO: look at making this inherit from Collection.  The API is

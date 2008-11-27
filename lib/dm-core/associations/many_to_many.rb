@@ -71,6 +71,11 @@ module DataMapper
           Object.const_set(model_name, model)
         end
 
+        # FIXME: temporary until the Relationship.new API is refactored to
+        # accept type as the first argument, and RelationshipChain has been
+        # removed
+        relationship.type = self
+
         relationship
       end
 

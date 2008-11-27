@@ -52,16 +52,17 @@ end
         belongs_to :original, :class_name => 'Article'
         has n, :revisions, :class_name => 'Article'
       end
+
+      @model = Article
     end
 
     supported_by :all do
       before do
-        @article_repository = repository(:default)
-        @model              = Article
-
         @author  = Author.create(:name => 'Dan Kubb')
-        @article = @model.create(:title => 'Sample Article', :content => 'Sample', :author => @author)
-        @other   = @model.create(:title => 'Other Article',  :content => 'Other',  :author => @author)
+
+        @original = @model.create(:title => 'Original Article')
+        @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :author => @author, :original => @original)
+        @other    = @model.create(:title => 'Other Article',  :content => 'Other',  :author => @author)
 
         @articles       = @author.sample_articles
         @other_articles = @author.other_articles

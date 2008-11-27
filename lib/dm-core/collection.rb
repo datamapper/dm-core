@@ -107,7 +107,7 @@ module DataMapper
       if resource = @cache[key]
         # find cached resource
         resource
-      elsif query.limit || query.offset > 0
+      elsif !loaded? && (query.limit || query.offset > 0)
         # current query is exclusive, find resource within the set
 
         # TODO: use a subquery to retrieve the Collection and then match
@@ -120,7 +120,7 @@ module DataMapper
 
         # use the brute force approach until subquery lookups work
         lazy_load
-        get(*key)
+        @cache[key]
       else
         # current query is all inclusive, lookup using normal approach
         first(model.key(repository.name).zip(key).to_hash)
@@ -1135,14 +1135,23 @@ module DataMapper
     # @return [DataMapper::Collection] the associated Resources
     #
     def delegate_to_relationship(relationship, *args)
-      target_class = model == relationship.child_model ? relationship.parent_model : relationship.child_model
-      target_key   = model == relationship.child_model ? relationship.child_key    : relationship.parent_key
+      target_class, target_key, source_key = nil, nil, nil
+
+      if relationship.type == Associations::ManyToOne
+        target_class = relationship.parent_model
+        target_key   = relationship.parent_key
+        source_key   = relationship.child_key
+      else
+        target_class = relationship.child_model
+        target_key   = relationship.child_key
+        source_key   = relationship.parent_key
+      end
 
       # TODO: when self.query includes an offset/limit use it as a
       # subquery to scope the results rather than a join
 
-      keys  = map { |r| r.key }
-      query = Query.new(repository, target_class, target_key.zip(keys.transpose).to_hash)
+      values = map { |r| source_key.get(r) }
+      query  = Query.new(repository, target_class, target_key.zip(values.transpose).to_hash)
 
       query.update(relationship.query)
 
@@ -1150,10 +1159,7 @@ module DataMapper
         query.update(args.pop)
       end
 
-      query.update(
-        :fields => target_class.properties(repository.name).defaults,
-        :links  => [ relationship ] + self.query.links
-      )
+      query.update(:links => [ relationship ] + self.query.links)
 
       target_class.all(query)
     end

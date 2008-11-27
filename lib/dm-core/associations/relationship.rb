@@ -7,6 +7,7 @@ module DataMapper
 
       # @api private
       attr_reader :name, :options, :query
+      attr_accessor :type
 
       # @api private
       def child_key

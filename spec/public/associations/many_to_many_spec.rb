@@ -16,6 +16,11 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         property :name, String
 
         has n, :articles, :through => Resource
+
+        # TODO: move conditions down to before block once author.articles(query)
+        # returns a OneToMany::Proxy object (and not Collection as it does now)
+        has n, :sample_articles, :title.eql => 'Sample Article', :class_name => 'Article', :through => Resource
+        has n, :other_articles,  :title     => 'Other Article',  :class_name => 'Article', :through => Resource
       end
 
       class Article
@@ -29,24 +34,27 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         belongs_to :original, :class_name => 'Article'
         has n, :revisions, :class_name => 'Article'
       end
+
+      @model = Article
     end
 
     supported_by :all do
       before do
-        @article_repository = repository(:default)
-        @model              = Article
+        @author1 = Author.create(:name => 'Dan Kubb')
+        @author2 = Author.create(:name => 'Lawrence Pit')
 
-        @article = @model.create(:title => 'Sample Article', :content => 'Sample')
-        @other   = @model.create(:title => 'Other Article',  :content => 'Other')
-
-        @author1  = Author.create(:name => 'Dan Kubb')
-        @author2  = Author.create(:name => 'Lawrence Pit')
+        @original = @model.create(:title => 'Original Article')
+        @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
+        @other    = @model.create(:title => 'Other Article',  :content => 'Other')
 
         #ArticleAuthor.create(:article_id => @article.id, :author_id => @author1.id)
-        @author1.articles << @article
+        #ArticleAuthor.create(:article_id => @other.id,   :author_id => @author1.id)
 
-        @articles       = @author1.articles
-        @other_articles = [@other]
+        @author1.sample_articles << @article
+        @author1.other_articles  << @other
+
+        @articles       = @author1.sample_articles
+        @other_articles = @author1.other_articles
       end
 
       it_should_behave_like 'A public Collection'

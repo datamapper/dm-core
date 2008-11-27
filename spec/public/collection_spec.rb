@@ -18,18 +18,17 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         belongs_to :original, :class_name => 'Article'
         has n, :revisions, :class_name => 'Article'
       end
+
+      @model = Article
     end
 
     supported_by :all do
       before do
-        @article_repository = repository(:default)
-        @model              = Article
-        @articles_query     = DataMapper::Query.new(@article_repository, @model, :title => 'Sample Article')
+        @original = @model.create(:title => 'Original Article')
+        @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
+        @other    = @model.create(:title => 'Other Article',  :content => 'Other')
 
-        @article = @model.create(:title => 'Sample Article', :content => 'Sample')
-        @other   = @model.create(:title => 'Other Article',  :content => 'Other')
-
-        @articles       = @model.all(@articles_query)
+        @articles       = @model.all(:title => 'Sample Article')
         @other_articles = @model.all(:title => 'Other Article')
 
         @articles.entries if loaded
