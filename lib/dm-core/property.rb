@@ -412,10 +412,10 @@ module DataMapper
     #
     # @param [Object] o
     #   the object to compare self to
-    # 
+    #
     # @return [TrueClass, FalseClass]
     #   Result of equality comparison.
-    # 
+    #
     # @api public
     def eql?(o)
       if o.is_a?(Property)
@@ -431,7 +431,7 @@ module DataMapper
     #
     # @return [Integer, NilClass]
     #   the maximum length of this property
-    # 
+    #
     # @api semipublic
     def length
       @length.is_a?(Range) ? @length.max : @length
@@ -663,7 +663,7 @@ module DataMapper
     #
     # @param [#to_s, #to_f, #to_i] value
     #   the value to be typecast to this property's primitive
-    # 
+    #
     # @return [TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Time, Class]
     #   The typecasted +value+
     #
@@ -834,7 +834,7 @@ module DataMapper
     end
 
     # Assert given visibility value is supported.
-    # 
+    #
     # Will raise ArgumentError if this Property's reader and writer
     # visibilities are not included in VISIBILITY_OPTIONS.
     # @return [NilClass]
@@ -871,7 +871,7 @@ module DataMapper
     #
     # @param [Hash, #to_s] value
     #   value to be typecast to Date
-    # 
+    #
     # @return [Date]
     #   Value type casted to Date
     #
@@ -890,7 +890,7 @@ module DataMapper
     #   value to be typecast to Time. Hash objects will be passed to
     #   #typecast_hash_to_time, anything else will have
     #   +Time.parse(value.to_s)+ called
-    # 
+    #
     # @return [Time]
     #   +value+ typecasted to Time
     #
@@ -907,7 +907,7 @@ module DataMapper
     #
     # @param [Hash] hash
     #   hash to be typecast to DateTime
-    # 
+    #
     # @return [DateTime]
     #   DateTime object constructed from a Hash.
     #
@@ -924,7 +924,7 @@ module DataMapper
     #
     # @param [Hash] hash
     #   hash to be typecast to Date
-    # 
+    #
     # @return [Date]
     #   Date object constructed from a Hash.
     #
@@ -942,7 +942,7 @@ module DataMapper
     #
     # @param [Hash] hash
     #   hash to be typecast to Time
-    # 
+    #
     # @return [Time]
     #   Time object constructed from a Hash.
     #
@@ -959,7 +959,7 @@ module DataMapper
     #   hash to extract time args from
     # @param [Hash] args
     #   time args to extract from +hash+
-    # 
+    #
     # @return [Array]
     #   Extracted values
     #

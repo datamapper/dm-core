@@ -458,7 +458,7 @@ module DataMapper
     #
     # @return [Hash]
     #   All the (non)-lazy attributes
-    # 
+    #
     # @api public
     def attributes
       attributes = {}

@@ -5,17 +5,17 @@ module DataMapper
 
     ##
     # Creates a new Model class with default_storage_name +storage_name+
-    # 
+    #
     # If a block is passed, it will be eval'd in the context of the new Model
-    # 
+    #
     # @param [#to_s] storage_name
     #   the default_storage name to use for the new Model class
     # @param [Proc] block
     #   a block that will be eval'd in the context of the new Model class
-    # 
+    #
     # @return [DataMapper::Model]
     #   the newly created Model class
-    # 
+    #
     # @api semipublic
     def self.new(storage_name, &block)
       model = Class.new
@@ -150,10 +150,10 @@ module DataMapper
     #   the type to define this property ass
     # @param [Hash(Symbol => String)] options
     #   a hash of available options
-    # 
+    #
     # @return [DataMapper::Property]
     #   the created Property
-    # 
+    #
     # @see DataMapper::Property
     #
     # @api public
@@ -208,7 +208,7 @@ module DataMapper
     # @param [Symbol, String] repository_name
     #   The name of the repository to use. Uses the default Repository
     #   if none is specified.
-    # 
+    #
     # @return [Array]
     #   A list of Properties defined on this Model in the given Repository
     #
@@ -233,13 +233,13 @@ module DataMapper
 
     ##
     # Gets the list of key fields for this Model in +repository_name+
-    # 
+    #
     # @param [String] repository_name
     #   The name of the Repository for which the key is to be reported
-    # 
+    #
     # @return [Array]
     #   The list of key fields for this Model in +repository_name+
-    # 
+    #
     # @api public
     def key(repository_name = default_repository_name)
       properties(repository_name).key
@@ -262,7 +262,7 @@ module DataMapper
     #
     # @param [Object] *key
     #   The primary key or keys to use for lookup
-    # 
+    #
     # @return [DataMapper::Resource]
     #   A single model that was found
     # @return [NilClass]
@@ -357,7 +357,7 @@ module DataMapper
     #
     # @param [Hash(Symbol => Object)] attributes
     #   hash of attributes to set
-    # 
+    #
     # @return [DataMapper::Resource]
     #   the newly created (and saved) Resource instance
     #
@@ -370,7 +370,7 @@ module DataMapper
 
     ##
     # Copy a set of records from one repository to another.
-    # 
+    #
     # @param [String] source
     #   The name of the Repository the resources should be copied _from_
     # @param [String] destination
@@ -378,7 +378,7 @@ module DataMapper
     # @param [Hash] query
     #   The conditions with which to find the records to copy. These
     #   conditions are merged with Model.query
-    # 
+    #
     # @return [DataMapper::Collection]
     #   A Collection of the Resource instances copied in the operation
     #
@@ -394,13 +394,13 @@ module DataMapper
     ##
     # Loads an instance of this Model, taking into account IdentityMap lookup,
     # inheritance columns(s) and Property typecasting.
-    # 
+    #
     # @param [Array(Object)] values
     #   an Array of values to load as the instance's values
-    # 
+    #
     # @return [DataMapper::Resource]
     #   the loaded Resource instance
-    # 
+    #
     # @api semipublic
     def load(values, query)
       repository = query.repository
@@ -504,13 +504,13 @@ module DataMapper
     end
 
     # Get the current +repository_name+ for this Model.
-    # 
+    #
     # If there are any Repository contexts, the name of the last one will
     # be returned, else the +default_repository_name+ of this model will be
-    # 
+    #
     # @return [String]
     #   the current repository name to use for this Model
-    # 
+    #
     # @api private
     def repository_name
       Repository.context.any? ? Repository.context.last.name : default_repository_name
@@ -519,7 +519,7 @@ module DataMapper
     # TODO: document
     # Gets the current Set of repositories for which
     # this Model has been defined (beyond default)
-    # 
+    #
     # @return [Set]
     #   The Set of repositories for which this Model
     #   has been defined (beyond default)
