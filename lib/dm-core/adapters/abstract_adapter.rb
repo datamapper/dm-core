@@ -143,7 +143,7 @@ module DataMapper
         # @param [DataMapper::Transaction] transaction
         #   a Transaction to be the 'current' transaction until popped.
         #
-        # @return [Array<DataMapper::Transaction>]
+        # @return [Array(DataMapper::Transaction)]
         #   the stack of active transactions for the current thread
         #
         # TODO: move to dm-more/dm-transaction

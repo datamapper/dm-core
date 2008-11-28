@@ -73,7 +73,7 @@ module DataMapper
     ##
     # Create one or more resource instances in this repository.
     #
-    # @param [Array<DataMapper::Resource>] resources
+    # @param [Enumerable(DataMapper::Resource)] resources
     #   The list of resources (model instances) to create
     # @return [Integer]
     #   The number of records that were actually saved into the data-store

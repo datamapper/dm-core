@@ -183,10 +183,13 @@ module DataMapper
     # <DM::Query>
     #
     # @param [DataMapper::Operator] operator
+    #   Identifies the position in +self+ at which the subquery sould be merged
     # @param [DataMapper::Property] property
-    # @param [DataMapper::Query]    value The query object to split up
+    #   Identifies the position in +self+ at which the subquery sould be merged
+    # @param [DataMapper::Query] value
+    #   The query object to merge into +self+
     #
-    # @return [Array<Tuple<DataMapper::Query::Operator, DataMapper::Property, DataMapper::Query>>]
+    # @return [Array(Tuple<Query::Operator, Property, Object>)]
     #
     # @api semipublic
     def merge_subquery(operator, property, value)
@@ -453,8 +456,8 @@ module DataMapper
     end
 
     # normalize includes to DM::Query::Path (no-op)
-    # @param [Array<DataMapper::Query::Path>] includes normalized includes for this query
-    # @return [Array<DataMapper::Query::Path>]
+    # @param [Enumerable(DataMapper::Query::Path)] includes normalized includes for this query
+    # @return [Enumerable(DataMapper::Query::Path)]
     # @api private
     def normalize_includes(includes)
       # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path

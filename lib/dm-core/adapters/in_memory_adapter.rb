@@ -15,7 +15,7 @@ module DataMapper
       # each have a key that can be used to quickly look them up later without
       # searching, if the adapter supports it.
       #
-      # @param [Array<DataMapper::Resource>] resources
+      # @param [Enumerable(DataMapper::Resource)] resources
       #   The set of resources (model instances)
       #
       # @return [Integer]

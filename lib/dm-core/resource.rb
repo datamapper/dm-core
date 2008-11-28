@@ -270,7 +270,7 @@ module DataMapper
     # even if the key is changed and not yet persisted.
     # This is done so all relations still work.
     #
-    # @return [Array<Key>]
+    # @return [Array(Key)]
     #   the key(s) identifying this resource
     #
     # @api public
@@ -313,7 +313,7 @@ module DataMapper
     #
     #   Foo.new.loaded_attributes   #=>  [:name]
     #
-    # @return [Array<Symbol>]
+    # @return [Array(Symbol)]
     #   names of attributes that have been loaded
     #
     # @return [Array<Symbol>] names of attributes that have been loaded
@@ -424,7 +424,7 @@ module DataMapper
     ##
     # Reloads specified attributes
     #
-    # @param [Array<Symbol>] attributes
+    # @param [Enumerable(Symbol)] attributes
     #   name(s) of attribute(s) to reload
     #
     # @return [Resource]
@@ -622,20 +622,30 @@ module DataMapper
     end
 
     # Gets this instance's Model's properties
-    # @return [Array<Property>] list of this instance's Model's properties
+    #
+    # @return [Array(Property)]
+    #   List of this Resource's Model's properties
+    #
     # @api private
     def properties
       model.properties(repository.name)
     end
 
-    # TODO: document
+    # Gets the properties which comprise the key for this Resource
+    #
+    # @return [Array(Property)]
+    #   List of the properties which comprise the key for this Resource
+    #
     # @api private
     def key_properties
       model.key(repository.name)
     end
 
     # Gets this instance's Model's relationships
-    # @return [Array<Relationship>] list of this instance's Model's Relationships
+    #
+    # @return [Array(Associations::Relationship)]
+    #   List of this instance's Model's Relationships
+    #
     # @api private
     def relationships
       model.relationships(repository.name)
@@ -695,13 +705,13 @@ module DataMapper
     end
 
     ##
-    # Return true if the accesor or mutator is publicly accessible
+    # Return true if the accesor or mutator +method+ is publicly accessible
     #
-    # @param [String,Symbol] method
+    # @param [String, Symbol] method
     #   The name of accessor or mutator to test
     #
     # @return [TrueClass, FalseClass]
-    #   true if the accessor or mutator is public
+    #   true if the accessor or mutator +method+ is public
     #
     # @api private
     def public_method?(method)
@@ -709,7 +719,13 @@ module DataMapper
     end
 
     ##
-    # Return true if the other resource's attribtues are equ
+    # Return true if +other+'s attribtues are equal to +self+'s
+    #
+    # @param [Resource] other
+    #   The Resource whose attributes are to be compared with +self+'s
+    #
+    # @return [TrueClass, FalseClass]
+    #   The result of the comparison of +other+'s attributes with +self+'s
     #
     def eql_attributes?(other)
       return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
