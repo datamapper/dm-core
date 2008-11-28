@@ -25,7 +25,7 @@ module DataMapper
           private
 
           # the 2 methods below should go into resource and should call 
-          # associations[name].set(resource, association) (or something similar)
+          # associations[name].set(resource, association_value) (or something similar)
           def association_set(name, parent)
             r = model.relationships(#{repository_name.inspect})[name]
             parent_key = r.parent_key.get(parent) unless parent.nil?
