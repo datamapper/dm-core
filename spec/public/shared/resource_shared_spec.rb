@@ -533,17 +533,12 @@ share_examples_for 'A public Resource' do
       it { @paragraph.should_not be_dirty }
 
       it 'should set the related object' do
-        pending 'saving a new object should set the child key' do
-          @paragraph.article.should == @article
-        end
+        @paragraph.article.should == @article
       end
 
       it 'should set the foreign key properly' do
-        pending 'saving a new object should set the child key' do
-          @paragraph.article_id.should == @article.id
-        end
+        @paragraph.article_id.should == @article.id
       end
-
     end
 
   end

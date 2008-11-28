@@ -340,7 +340,10 @@ module DataMapper
           # save every resource in the collection
           all_saved = (@orphans + self).all? do |resource|
             @relationship.with_repository(resource) do
-              if @relationship.child_key.get(resource).nil? && resource.model.respond_to?(:many_to_many)
+              if resource.new_record?
+                @relationship.child_key.set(resource, @parent.key)
+                resource.save
+              elsif @relationship.child_key.get(resource).nil? && resource.model.respond_to?(:many_to_many)
                 # XXX: move to ManyToMany::Proxy?
                 resource.destroy
               else
