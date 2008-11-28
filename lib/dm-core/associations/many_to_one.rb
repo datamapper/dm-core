@@ -34,9 +34,10 @@ module DataMapper
           end
           
           def association_get(name)
+            r = model.relationships(#{repository_name.inspect})[name]
             instance_variable_get("@\#{name}") || 
-              instance_variable_set("@\#{name}", model.relationships[name].get_parent(self))
-            @#{name} ||= #{name}_relationship.get_parent(self)
+              instance_variable_set("@\#{name}", r.get_parent(self))
+            @#{name} ||= r.get_parent(self)
           end
         EOS
 
