@@ -112,7 +112,7 @@ module DataMapper
   # Setups up a connection to a data-store
   #
   # @param Symbol name a name for the context, defaults to :default
-  # @param [Hash{Symbol => String}, Addressable::URI, String] uri_or_options
+  # @param [Hash(Symbol => String), Addressable::URI, String] uri_or_options
   #   connection information
   #
   # @return Repository the resulting setup repository

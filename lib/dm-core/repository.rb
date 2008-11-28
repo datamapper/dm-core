@@ -8,7 +8,7 @@ module DataMapper
     # Get the list of adapters registered for all Repositories,
     # keyed by repository name.
     #
-    # @return [Hash<Symbol => DataMapper::Adapters::AbstractAdapter>]
+    # @return [Hash(Symbol => DataMapper::Adapters::AbstractAdapter)]
     #   the adapters registered for all Repositories
     def self.adapters
       @adapters
@@ -16,6 +16,9 @@ module DataMapper
 
     ##
     # Get the stack of current repository contexts
+    #
+    # @return [Array]
+    #   List of Repository contexts for the current Thread
     def self.context
       Thread.current[:dm_repository_contexts] ||= []
     end
@@ -32,10 +35,13 @@ module DataMapper
     # Get the adapter for this repository
     #
     # Lazy loads adapter setup from registered adapters
+    #
     # @return [DataMapper::Adapters::AbstractAdapter]
     #   the adapter for this repository
+    #
     # @raise [ArgumentError]
-    #   if there is no adapter registered for a repository named +name+
+    #   if there is no adapter registered for a repository named +@name+
+    #
     # @api semipublic
     def adapter
       # Make adapter instantiation lazy so we can defer repository setup until it's actually
@@ -54,12 +60,23 @@ module DataMapper
     # If one doesn't yet exist, create a new default in-memory IdentityMap
     # for the requested model.
     #
+    # @param [DataMapper::Model] model
+    #   Model whose identity map should be returned
+    #
+    # @return [DataMapper::IdentityMap]
+    #   The IdentityMap for +model+ in this Repository
+    #
     # TODO: allow setting default secondary IdentityMap (eg., Memcache, I hope)
     def identity_map(model)
       @identity_maps[model] ||= IdentityMap.new
     end
 
     # TODO: spec this
+    #
+    # Executes a block in the scope of this Repository
+    #
+    # @yield [self] block to execute in the scope of this Repository
+    # @yieldparam [DataMapper::Repository] +self+, the current Repository
     def scope
       Repository.context << self
 
@@ -75,8 +92,10 @@ module DataMapper
     #
     # @param [Enumerable(DataMapper::Resource)] resources
     #   The list of resources (model instances) to create
+    #
     # @return [Integer]
     #   The number of records that were actually saved into the data-store
+    #
     # @api semipublic
     def create(resources)
       adapter.create(resources)
@@ -85,9 +104,14 @@ module DataMapper
     ##
     # retrieve a collection of results of a query
     #
-    # @param [Query] query composition of the query to perform
-    # @return [DataMapper::Collection] result set of the query
-    # @return [NilClass] no object could be found which matches that query
+    # @param [Query] query
+    #   composition of the query to perform
+    #
+    # @return [DataMapper::Collection]
+    #   Result set of the query
+    # @return [NilClass]
+    #   No object could be found which matches that query
+    #
     # @see DataMapper::Query
     def read_many(query)
       adapter.read_many(query)
@@ -96,9 +120,14 @@ module DataMapper
     ##
     # retrieve a single resource instance by a query
     #
-    # @param [DataMapper::Query] query composition of the query to perform
-    # @return [DataMapper::Resource] the first retrieved instance which matches the query
-    # @return [NilClass] no object could be found which matches that query
+    # @param [DataMapper::Query] query
+    #   composition of the query to perform
+    #
+    # @return [DataMapper::Resource]
+    #   The first retrieved instance which matches the query
+    # @return [NilClass]
+    #   No object could be found which matches that query
+    #
     # @see DataMapper::Query
     def read_one(query)
       adapter.read_one(query)
@@ -107,10 +136,14 @@ module DataMapper
     ##
     # Update the attributes of one or more resource instances
     #
-    # @param [Hash<DataMapper::Property => Object>] attributes
+    # @param [Hash(DataMapper::Property => Object)] attributes
     #   hash of attribute values to set, keyed by Property
-    # @param [DataMapper::Query] query specifies which records are to be updated
-    # @return [Integer] the number of records updated
+    # @param [DataMapper::Query] query
+    #   specifies which records are to be updated
+    #
+    # @return [Integer]
+    #   the number of records updated
+    #
     # @see DataMapper::Query
     def update(attributes, query)
       adapter.update(attributes, query)
@@ -119,8 +152,10 @@ module DataMapper
     ##
     # Delete one or more resource instances
     #
-    # @param [DataMapper::Query] query specifies which records are to be deleted
-    # @return [Integer] the number of records deleted
+    # @param [DataMapper::Query] query
+    #   specifies which records are to be deleted
+    # @return [Integer]
+    #   the number of records deleted
     # @see DataMapper::Query
     def delete(query)
       adapter.delete(query)
@@ -130,8 +165,12 @@ module DataMapper
     # Test whether this repository equals +other+. Repositories are equal if
     # they have the same name.
     #
-    # @param [Object] other object to be compared to self
-    # @return [TrueClass, FalseClass] whether self equals +other+
+    # @param [Object] other
+    #   object to be compared to self
+    #
+    # @return [TrueClass, FalseClass]
+    #   whether self equals +other+
+    #
     # @api semipublic
     def eql?(other)
       return true if super
@@ -202,9 +241,9 @@ module DataMapper
       ##
       # Produce a new Transaction for this Repository
       #
-      #
-      # @return <DataMapper::Adapters::Transaction> a new Transaction (in state
-      #   :none) that can be used to execute code #with_transaction
+      # @return [DataMapper::Adapters::Transaction]
+      #   a new Transaction (in state :none) that can be used
+      #   to execute code #with_transaction
       #
       # TODO: move to dm-more/dm-transactions
       def transaction

@@ -37,7 +37,8 @@ module DataMapper
     # still retaining a self.extended method.
     #
     # @param [Module] extensions
-    #   the module that is to be extend the model after after DataMapper::Model
+    #   List of modules that will extend the model after it is
+    #   extended by DataMapper::Model
     #
     # @return [TrueClass, FalseClass]
     #   whether or not the inclusions have been successfully appended to the list
@@ -107,7 +108,7 @@ module DataMapper
     # Repository (ie., table name, for database stores).
     #
     # @return [String]
-    #   the storage name (IE table name, for database stores) associated with
+    #   the storage name (ie., table name, for database stores) associated with
     #   this resource in the given repository
     #
     # @api public
