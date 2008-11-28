@@ -231,8 +231,8 @@ module DataMapper
       #
       # @param [Enumerable] resources
       #   A list of Resources to sort
-      # @param [Enumberable(DataMapper::Query::Direction)] order
-      #   A list of Direction objects specifying which propert and
+      # @param [Enumerable(Query::Direction)] order
+      #   A list of Direction objects specifying which property and
       #   direction to sort by.
       #
       # @return [Enumerable]
