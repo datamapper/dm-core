@@ -21,6 +21,12 @@ if ADAPTER
       lambda { @zoo.destroy.should be_true }.should_not raise_error
     end
 
+    it 'should not overwrite attributes when lazy loading' do
+      zoo = Zoo.first
+      zoo.name = 'San Diego'
+      lambda { zoo.description }.should_not change(zoo, :name)
+    end
+
     describe '#attribute_get' do
       it 'should provide #attribute_get' do
         Zoo.new.should respond_to(:attribute_get)
