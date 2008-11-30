@@ -198,7 +198,7 @@ module DataMapper
       attrs = []
 
       properties.each do |property|
-        value = if property.lazy? && !attribute_loaded?(property.name) && !new_record?
+        value = if !attribute_loaded?(property.name) && !new_record?
           '<not loaded>'
         else
           send(property.getter).inspect
