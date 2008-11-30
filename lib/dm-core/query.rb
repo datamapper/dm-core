@@ -573,7 +573,7 @@ module DataMapper
     class Path
       include Assertions
 
-   %w[ id type ].each { |m| undef_method m }
+      instance_methods.each { |m| undef_method m if %w[ id type ].include?(m.to_s) }
 
       attr_reader :relationships, :model, :property, :operator
 

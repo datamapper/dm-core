@@ -30,6 +30,13 @@ describe DataMapper::Associations::ManyToOne::Proxy do
     @association.should respond_to(:replace)
   end
 
+  describe '#class' do
+    it 'should be forwarded to parent' do
+      @parent.should_receive(:class).and_return(Manufacturer)
+      @association.class.should == Manufacturer
+    end
+  end
+
   describe '#replace' do
     before do
       @other = mock('other parent')
