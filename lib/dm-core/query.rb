@@ -51,10 +51,9 @@ module DataMapper
       @limit        = other.limit         unless other.limit         == nil
       @order        = other.order         unless other.order         == model.default_order
       @add_reversed = other.add_reversed? unless other.add_reversed? == false
+      @fields       = other.fields        unless other.fields        == @properties.defaults
       @links        = other.links         unless other.links         == []
       @includes     = other.includes      unless other.includes      == []
-
-      @fields == @properties.defaults ? @fields = other.fields : @fields |= other.fields
 
       update_conditions(other)
 
