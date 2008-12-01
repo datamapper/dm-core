@@ -24,7 +24,7 @@ module DataMapper
 
           private
 
-          # the 2 methods below should go into resource and should call 
+          # the 2 methods below should go into resource and should call
           # associations[name].set(resource, association_value) (or something similar)
           def association_set(name, parent)
             r = model.relationships(#{repository_name.inspect})[name]
@@ -32,10 +32,10 @@ module DataMapper
             r.child_key.set(self, parent_key)
             instance_variable_set("@\#{name}", parent)
           end
-          
+
           def association_get(name)
             r = model.relationships(#{repository_name.inspect})[name]
-            instance_variable_get("@\#{name}") || 
+            instance_variable_get("@\#{name}") ||
               instance_variable_set("@\#{name}", r.get_parent(self))
             @#{name} ||= r.get_parent(self)
           end
