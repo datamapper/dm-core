@@ -102,6 +102,8 @@ module DataMapper
     #
     # @api public
     def get(*key)
+      return if key.blank?
+
       key = model.typecast_key(key)
 
       if resource = @cache[key]

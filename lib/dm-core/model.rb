@@ -270,6 +270,7 @@ module DataMapper
     #
     # @api public
     def get(*key)
+      return if key.blank?
       key = typecast_key(key)
       repository.identity_map(self)[key] || first(to_query(repository, key))
     end
@@ -579,7 +580,7 @@ module DataMapper
     # TODO: document
     # @api private
     def typecast_key(key)
-      self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
+      self.key(repository_name).zip(key).map { |p,v| p.typecast(v) }
     end
 
     # TODO: document

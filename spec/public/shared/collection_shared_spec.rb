@@ -921,6 +921,28 @@ share_examples_for 'A public Collection' do
         @resource.should == @new
       end
     end
+
+    describe 'with a key that is nil' do
+      before do
+        @key    = nil
+        @return = @resource = @articles.get(@key)
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
+      end
+    end
+
+    describe 'with a key that is an empty String' do
+      before do
+        @key    = ''
+        @return = @resource = @articles.get(@key)
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
+      end
+    end
   end
 
   it { @articles.should respond_to(:get!) }
@@ -996,6 +1018,30 @@ share_examples_for 'A public Collection' do
 
       it 'should be matching Resource in the Collection' do
         @resource.should == @new
+      end
+    end
+
+    describe 'with a key that is nil' do
+      before do
+        @key = nil
+      end
+
+      it 'should raise an exception' do
+        lambda {
+          @articles.get!(nil)
+        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@model} with key [#{@key.inspect}] in collection")
+      end
+    end
+
+    describe 'with a key that is an empty String' do
+      before do
+        @key = ''
+      end
+
+      it 'should raise an exception' do
+        lambda {
+          @articles.get!(@key)
+        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@model} with key [#{@key.inspect}] in collection")
       end
     end
   end
@@ -1402,7 +1448,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return nil' do
-        @return.should == nil
+        @return.should be_nil
       end
 
       it 'should not modify the Collection' do
