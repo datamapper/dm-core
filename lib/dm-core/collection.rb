@@ -102,9 +102,8 @@ module DataMapper
     #
     # @api public
     def get(*key)
-      return if key.blank?
-
       key = model.typecast_key(key)
+      return if key.any? { |v| v.blank? }
 
       if resource = @cache[key]
         # find cached resource

@@ -270,8 +270,8 @@ module DataMapper
     #
     # @api public
     def get(*key)
-      return if key.blank?
       key = typecast_key(key)
+      return if key.any? { |v| v.blank? }
       repository.identity_map(self)[key] || first(to_query(repository, key))
     end
 

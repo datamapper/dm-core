@@ -686,7 +686,7 @@ module DataMapper
           # * Integer(value_to_s =~ /(\d+)/ ? $1 : value_to_s) rescue nil
           value_to_i = value.to_i
           if value_to_i == 0
-            value.to_s =~ /^(0x|0b)?0+/ ? 0 : nil
+            value.to_s =~ /\A(0x|0b)?0+\z/ ? 0 : nil
           else
             value_to_i
           end
