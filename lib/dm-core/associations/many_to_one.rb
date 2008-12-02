@@ -15,29 +15,20 @@ module DataMapper
 
         model.class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
-            association_get(:#{name})
+            return @#{name} if defined?(@#{name})
+            @#{name} = #{name}_relationship.get_parent(self)
           end
 
           def #{name}=(parent)
-            association_set(:#{name}, parent)
+            parent_key = #{name}_relationship.parent_key.get(parent) unless parent.nil?
+            #{name}_relationship.child_key.set(self, parent_key)
+            @#{name} = parent
           end
 
           private
 
-          # the 2 methods below should go into resource and should call
-          # associations[name].set(resource, association_value) (or something similar)
-          def association_set(name, parent)
-            r = model.relationships(#{repository_name.inspect})[name]
-            parent_key = r.parent_key.get(parent) unless parent.nil?
-            r.child_key.set(self, parent_key)
-            instance_variable_set("@\#{name}", parent)
-          end
-
-          def association_get(name)
-            r = model.relationships(#{repository_name.inspect})[name]
-            instance_variable_get("@\#{name}") ||
-              instance_variable_set("@\#{name}", r.get_parent(self))
-            @#{name} ||= r.get_parent(self)
+          def #{name}_relationship
+            model.relationships(#{repository_name.inspect})[#{name.inspect}]
           end
         EOS
 
