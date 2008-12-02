@@ -7,6 +7,7 @@ class Zoo
   property :inception,    DateTime
   property :open,         Boolean,  :default => false
   property :size,         Integer
+  property :mission,      Text, :writer => :protected
 
   has n, :animals
 

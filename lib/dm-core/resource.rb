@@ -491,13 +491,13 @@ module DataMapper
     # --
     # @api public
     def attributes=(values_hash)
-      values_hash.each_pair do |k,v|
-        setter = "#{k.to_s.sub(/\?\z/, '')}="
+      values_hash.each do |name, value|
+        name = name.to_s.sub(/\?\z/, '')
 
-        if respond_to?(setter)
-          send(setter, v)
+        if self.class.public_method_defined?(setter = "#{name}=")
+          send(setter, value)
         else
-          raise NameError, "#{setter} is not a public property"
+          raise ArgumentError, "The property '#{name}' is not a public property."
         end
       end
     end

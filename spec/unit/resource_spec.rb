@@ -11,7 +11,7 @@ describe DataMapper::Resource do
       zoo.description = "This is a pretty awesome zoo"
       zoo.attributes.should == {
         :name => "San Francisco", :description => "This is a pretty awesome zoo",
-        :id => nil, :inception => nil, :open => false, :size => nil
+        :id => nil, :inception => nil, :open => false, :size => nil, :mission => nil
       }
     end
 
@@ -21,6 +21,20 @@ describe DataMapper::Resource do
 
     it 'should not include private attributes' do
       Species.new.attributes.should == { :id => nil, :name => nil }
+    end
+  end
+
+  describe "#attributes=" do
+    before(:each) do
+      @zoo = Zoo.new(:name => "San Francisco", :size => 10)
+      @zoo.attributes = {:size => 12 }
+    end
+    it "should change a public property" do
+      @zoo.size.should == 12
+    end
+    it "should raise when attempting to change a property with a non-public writer" do
+      lambda { @zoo.attributes = {:mission => "Just keep some odd
+        critters, y'know?" } }.should raise_error
     end
   end
 
@@ -348,7 +362,7 @@ describe DataMapper::Resource do
   it "should not be able to set private attributes" do
     lambda {
       jupiter = Planet.new({ :core => "Molten Metal" })
-    }.should raise_error(NameError)
+    }.should raise_error(ArgumentError)
   end
 
   it "should not mark attributes dirty if they are similar after update" do
