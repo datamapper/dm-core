@@ -1,4 +1,4 @@
-gem 'do_sqlite3', '~>0.9.7'
+gem 'do_sqlite3', '~>0.9.9'
 require 'do_sqlite3'
 
 module DataMapper
@@ -49,10 +49,10 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def create_table_statement(repository, model)
+          def create_table_statement(repository, model, properties)
             statement = <<-EOS.compress_lines
               CREATE TABLE #{quote_table_name(model.storage_name(repository.name))}
-              (#{model.properties_with_subclasses(repository.name).map { |p| property_schema_statement(property_schema_hash(repository, p)) } * ', '}
+              (#{properties.map { |p| property_schema_statement(property_schema_hash(repository, p)) } * ', '}
             EOS
 
             # skip adding the primary key if one of the columns is serial.  In

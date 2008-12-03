@@ -36,8 +36,8 @@ describe DataMapper::Resource do
     class Paragraph
       include DataMapper::Resource
 
-      property :id,    Integer, :key => true
-      property :text,  String
+      property :id,   Serial
+      property :text, String
 
       belongs_to :article
     end

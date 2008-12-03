@@ -1,4 +1,4 @@
-gem 'do_mysql', '~>0.9.7'
+gem 'do_mysql', '~>0.9.9'
 require 'do_mysql'
 
 module DataMapper
@@ -13,13 +13,21 @@ module DataMapper
           false
         end
 
-        def quote_table_name(table_name)
-          "`#{table_name.gsub('`', '``')}`"
+        def escape_name(name)
+          name.gsub('`', '``')
         end
 
-        def quote_column_name(column_name)
-          "`#{column_name.gsub('`', '``')}`"
+        def quote_name(name)
+          escape_name(name).split('.').map { |part| "`#{part}`" }.join('.')
         end
+
+        # TODO: once the driver's quoting methods become public, have
+        # this method delegate to them instead
+        alias quote_table_name quote_name
+
+        # TODO: once the driver's quoting methods become public, have
+        # this method delegate to them instead
+        alias quote_column_name quote_name
 
         def quote_column_value(column_value)
           case column_value
@@ -37,33 +45,19 @@ module DataMapper
       module Migration
         # TODO: move to dm-more/dm-migrations (if possible)
         def storage_exists?(storage_name)
-          statement = <<-EOS.compress_lines
-            SELECT COUNT(*)
-            FROM `information_schema`.`tables`
-            WHERE `table_type` = 'BASE TABLE'
-            AND `table_schema` = ?
-            AND `table_name` = ?
-          EOS
-
-          query(statement, db_name, storage_name).first > 0
+          query('SHOW TABLES LIKE ?', storage_name).first == storage_name
         end
 
         # TODO: move to dm-more/dm-migrations (if possible)
         def field_exists?(storage_name, field_name)
-          statement = <<-EOS.compress_lines
-            SELECT COUNT(*)
-            FROM `information_schema`.`columns`
-            WHERE `table_schema` = ?
-            AND `table_name` = ?
-            AND `column_name` = ?
-          EOS
-
-          query(statement, db_name, storage_name, field_name).first > 0
+          return false unless storage_exists?(storage_name)
+          result = query("SHOW COLUMNS FROM #{quote_table_name(storage_name)} LIKE ?", field_name).first
+          result ? result.field == field_name : false
         end
 
         private
 
-        # TODO: move to dm-more/dm-migrations (if possible)
+        # TODO: move to dm-more/dm-migrations (not necessary in dm-core any longer)
         def db_name
           @uri.path.split('/').last
         end
@@ -77,7 +71,7 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def create_table_statement(repository, model)
+          def create_table_statement(repository, model, properties)
             "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
           end
 
@@ -107,7 +101,8 @@ module DataMapper
 
           # TODO: move to dm-more/dm-migrations
           def show_variable(name)
-            query('SHOW VARIABLES WHERE `variable_name` = ?', name).first.value rescue nil
+            result = query('SHOW VARIABLES LIKE ?', name).first
+            result ? result.value : nil
           end
         end # module SQL
 

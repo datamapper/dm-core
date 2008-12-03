@@ -1,4 +1,4 @@
-gem 'data_objects', '~>0.9.7'
+gem 'data_objects', '~>0.9.9'
 require 'data_objects'
 
 module DataMapper
@@ -394,17 +394,21 @@ module DataMapper
           end
         end
 
-        # TODO: once the driver's quoting methods become public, have
-        # this method delegate to them instead
-        def quote_table_name(table_name)
-          table_name.gsub('"', '""').split('.').map { |part| "\"#{part}\"" } * '.'
+        def escape_name(name)
+          name.gsub('"', '""')
+        end
+
+        def quote_name(name)
+          escape_name(name).split('.').map { |part| "\"#{part}\"" }.join('.')
         end
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
-        def quote_column_name(column_name)
-          "\"#{column_name.gsub('"', '""')}\""
-        end
+        alias quote_table_name quote_name
+
+        # TODO: once the driver's quoting methods become public, have
+        # this method delegate to them instead
+        alias quote_column_name quote_name
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
@@ -463,9 +467,13 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def create_model_storage(repository, model)
-          return false if storage_exists?(model.storage_name(repository.name))
+          repository_name = repository.name
+          properties      = model.properties_with_subclasses(repository_name)
 
-          execute(create_table_statement(repository, model))
+          return false if storage_exists?(model.storage_name(repository_name))
+          return false if properties.empty?
+
+          execute(create_table_statement(repository, model, properties))
 
           (create_index_statements(repository, model) + create_unique_index_statements(repository, model)).each do |sql|
             execute(sql)
@@ -502,12 +510,12 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def create_table_statement(repository, model)
+          def create_table_statement(repository, model, properties)
             repository_name = repository.name
 
             statement = <<-EOS.compress_lines
               CREATE TABLE #{quote_table_name(model.storage_name(repository_name))}
-              (#{model.properties_with_subclasses(repository_name).map { |p| property_schema_statement(property_schema_hash(repository, p)) } * ', '}
+              (#{properties.map { |p| property_schema_statement(property_schema_hash(repository, p)) } * ', '}
             EOS
 
             if (key = model.key(repository_name)).any?

@@ -1,4 +1,4 @@
-gem 'do_postgres', '~>0.9.7'
+gem 'do_postgres', '~>0.9.9'
 require 'do_postgres'
 
 module DataMapper
@@ -21,8 +21,8 @@ module DataMapper
           statement = <<-EOS.compress_lines
             SELECT COUNT(*)
             FROM "information_schema"."columns"
-            WHERE "table_name" = ?
-            AND "table_schema" = current_schema()
+            WHERE "table_schema" = current_schema()
+            AND "table_name" = ?
           EOS
 
           query(statement, storage_name).first > 0
