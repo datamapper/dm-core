@@ -52,7 +52,7 @@ module DataMapper
 
     ##
     # Reloads the Collection from the repository.
-    # 
+    #
     # If +query+ is provided, updates this Collection's query with its conditions
     #
     #   cars_from_91 = Cars.all(:year_manufactured.eql => 1991)
@@ -164,9 +164,9 @@ module DataMapper
     #   toyotas_91.all? { |c| c.year_manufactured == 1991 }       #=> true
     #   toyotas_91.all? { |c| c.manufacturer == "Toyota" }        #=> true
     #
-    # If +query+ is a Hash, results will be found by merging +query+ with this Collection's query. 
+    # If +query+ is a Hash, results will be found by merging +query+ with this Collection's query.
     # If +query+ is a Query, results will be found using +query+ as an absolute query.
-    #   
+    #
     # @param [Hash, Query] query (optional)
     #   parameters to scope results with.
     #
