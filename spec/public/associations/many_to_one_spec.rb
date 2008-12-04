@@ -15,15 +15,6 @@ describe 'Many to One Associations' do
 
     class Author < User; end
 
-    class Article
-      include DataMapper::Resource
-
-      property :id,   Serial
-      property :body, Text
-
-      has n, :paragraphs
-    end
-
     class Comment
       include DataMapper::Resource
 
@@ -31,6 +22,15 @@ describe 'Many to One Associations' do
       property :body, Text
 
       belongs_to :user
+    end
+
+    class Article
+      include DataMapper::Resource
+
+      property :id,   Serial
+      property :body, Text
+
+      has n, :paragraphs
     end
 
     class Paragraph

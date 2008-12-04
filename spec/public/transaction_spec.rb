@@ -3,7 +3,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 describe DataMapper::Resource, "Transactions" do
 
   before do
-    Object.send(:remove_const, :User) if defined?(User)
     class User
       include DataMapper::Resource
 
@@ -14,7 +13,8 @@ describe DataMapper::Resource, "Transactions" do
       has n, :comments
     end
 
-    Object.send(:remove_const, :Comment) if defined?(Comment)
+    class Author < User; end
+
     class Comment
       include DataMapper::Resource
 
@@ -23,10 +23,33 @@ describe DataMapper::Resource, "Transactions" do
 
       belongs_to :user
     end
+
+    class Article
+      include DataMapper::Resource
+
+      property :id,   Serial
+      property :body, Text
+
+      has n, :paragraphs
+    end
+
+    class Paragraph
+      include DataMapper::Resource
+
+      property :id,   Serial
+      property :text, String
+
+      belongs_to :article
+    end
+  end
+
+  after do
+    # FIXME: should not need to clear STI models explicitly
+    Object.send(:remove_const, :Author) if defined?(Author)
   end
 
   supported_by :postgres, :mysql do
-    before(:each) do
+    before do
       # --- Temporary private api use to get around rspec limitations ---
       repository(:default) do
         transaction = DataMapper::Transaction.new(repository)
