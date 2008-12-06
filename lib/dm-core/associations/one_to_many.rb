@@ -306,11 +306,8 @@ module DataMapper
         end
 
         def method_missing(method, *args, &block)
-          results = children.__send__(method, *args, &block) if children.respond_to?(method)
-
-          return self if LazyArray::RETURN_SELF.include?(method) && results.kind_of?(Array)
-
-          results
+          results = children.send(method, *args, &block)
+          results.equal?(children) ? self : results
         end
       end # class Proxy
     end # module OneToMany
