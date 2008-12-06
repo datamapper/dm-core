@@ -26,7 +26,7 @@ require 'extlib/inflection'
 begin
   gem 'fastthread', '~>1.0.1'
   require 'fastthread'
-rescue Gem::LoadError
+rescue LoadError
   # fastthread not installed
 end
 
