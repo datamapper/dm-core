@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-gem 'fastercsv', '>=1.2.3'
+gem 'fastercsv', '~>1.4.0'
 require 'fastercsv'
 
 if ADAPTER

@@ -4,10 +4,10 @@ require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
 
 require 'rubygems'
 
-gem 'ruby-prof', '>=0.6.0'
+gem 'ruby-prof', '~>0.7.1'
 require 'ruby-prof'
 
-gem 'faker', '>=0.3.1'
+gem 'faker', '~>0.3.1'
 require 'faker'
 
 OUTPUT = DataMapper.root / 'profile_results.txt'

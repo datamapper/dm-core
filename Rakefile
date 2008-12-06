@@ -13,9 +13,9 @@ AUTHOR = "Sam Smoot"
 EMAIL  = "ssmoot@gmail.com"
 GEM_NAME = "dm-core"
 GEM_VERSION = DataMapper::VERSION
-GEM_DEPENDENCIES = ["data_objects", "~>0.9.7"], ["extlib", "~>0.9.8"],
-                   ["rspec", ">=1.1.3"], ["addressable", "~>2.0"]
-
+GEM_DEPENDENCIES = ["data_objects", "~>0.9.9"],
+                   ["extlib", "~>0.9.9"],
+                   ["addressable", "~>2.0.1"]
 
 PROJECT_NAME = "datamapper"
 PROJECT_DESCRIPTION = "Faster, Better, Simpler."

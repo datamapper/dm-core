@@ -11,22 +11,22 @@
 
 require 'date'
 require 'pathname'
+require 'rubygems'
 require 'set'
 require 'time'
 require 'yaml'
 
-require 'rubygems'
-
-gem 'addressable', '~>2.0'
+gem 'addressable', '~>2.0.1'
 require 'addressable/uri'
 
-gem 'extlib', '~>0.9.8'
+gem 'extlib', '~>0.9.9'
 require 'extlib'
-require "extlib/inflection"
+require 'extlib/inflection'
 
 begin
+  gem 'fastthread', '~>1.0.1'
   require 'fastthread'
-rescue LoadError
+rescue Gem::LoadError
   # fastthread not installed
 end
 
