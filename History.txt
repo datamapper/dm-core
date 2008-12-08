@@ -1,6 +1,6 @@
 === 0.9.8 / 2008-12-07
 
-* 1 minor enhancement:
+* 3 minor enhancement:
 
   * Updated Resource#inspect to not lazy-load unloaded attributes.
   * Updated ManyToOne::Proxy to delegate #class to parent.  This will
