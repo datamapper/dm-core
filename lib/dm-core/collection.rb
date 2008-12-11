@@ -9,8 +9,6 @@ module DataMapper
   # A Collection is typically returned by the DataMapper::Model#all
   # method.
   class Collection < LazyArray
-    include Assertions
-
     ##
     # Returns the Query the Collection is scoped with
     #
@@ -28,26 +26,6 @@ module DataMapper
     # @api semipublic
     def repository
       query.repository
-    end
-
-    ##
-    # Initializes a Resource and adds it to the Collection
-    #
-    # This should load a Resource, then add and relate it to the Collection.
-    #
-    # @param [Enumerable] values the values for the Resource
-    #
-    # @return [DataMapper::Resource] the loaded Resource
-    #
-    # @api semipublic
-    def load(values)
-      resource = model.load(values, query)
-
-      unless (head && head.include?(resource)) || (tail && tail.include?(resource)) || @orphans.include?(resource)
-        query.add_reversed? ? unshift(resource) : push(resource)
-      end
-
-      resource
     end
 
     ##
@@ -180,7 +158,7 @@ module DataMapper
       if query == self.query
         self
       else
-        query.repository.read_many(query)
+        self.class.new(query)
       end
     end
 
@@ -901,21 +879,25 @@ module DataMapper
     #
     # @api semipublic
     def initialize(query, resources = nil)
-      assert_kind_of 'query',     query,     Query
-      assert_kind_of 'resources', resources, Array if resources
-
       @query   = query
       @cache   = {}
       @orphans = Set.new
 
       super()
 
-      if !resources.nil?
+      if resources
         replace(resources)
-      elsif block_given?
-        load_with { |c| yield(c) }
       else
-        raise ArgumentError, 'must provide either a list of Resources or a block'
+        query = query.dup  # FIXME: why is this necessary?
+        load_with do |c|
+          resources = query.repository.read_many(query)
+
+          resources -= c.head if c.head
+          resources -= c.tail if c.tail
+          resources -= c.instance_variable_get(:@orphans).to_a
+
+          query.add_reversed? ? c.unshift(*resources.reverse) : c.push(*resources)
+        end
       end
     end
 
@@ -1042,8 +1024,6 @@ module DataMapper
     # TODO: move the logic to create relative query into DataMapper::Query
     # @api private
     def scoped_query(query = nil)
-      assert_kind_of 'query', query, Query, Hash if query
-
       # a nil query, or an empty Hash signal that we want to use the
       # same scope as is currently in effect
       if query.blank?

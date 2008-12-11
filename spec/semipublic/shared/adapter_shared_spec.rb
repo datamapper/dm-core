@@ -65,8 +65,8 @@ share_examples_for 'An Adapter' do
       @return = @adapter.read_many(DataMapper::Query.new(@repository, @model, :id => @resource.id))
     end
 
-    it "should return a DataMapper::Collection" do
-      @return.should be_a_kind_of(DataMapper::Collection)
+    it "should return an Array" do
+      @return.should be_a_kind_of(Array)
     end
 
     it "should return the requested resource" do

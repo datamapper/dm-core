@@ -48,23 +48,24 @@ module DataMapper
       end
 
       def read_many(query)
-        Collection.new(query) do |collection|
-          with_connection do |connection|
-            command = connection.create_command(read_statement(query))
-            command.set_types(query.fields.map { |p| p.primitive })
+        with_connection do |connection|
+          command = connection.create_command(read_statement(query))
+          command.set_types(query.fields.map { |p| p.primitive })
 
-            begin
-              bind_values = query.bind_values.map do |v|
-                v == [] ? [nil] : v
-              end
-              reader = command.execute_reader(*bind_values)
+          begin
+            bind_values = query.bind_values.map { |v| v == [] ? [nil] : v }
+            reader      = command.execute_reader(*bind_values)
 
-              while(reader.next!)
-                collection.load(reader.values)
-              end
-            ensure
-              reader.close if reader
+            model     = query.model
+            resources = []
+
+            while(reader.next!)
+              resources << model.load(reader.values, query)
             end
+
+            resources
+          ensure
+            reader.close if reader
           end
         end
       end

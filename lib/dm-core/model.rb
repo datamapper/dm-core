@@ -309,8 +309,7 @@ module DataMapper
     #
     # @api public
     def all(query = {})
-      query = scoped_query(query)
-      query.repository.read_many(query)
+      Collection.new(scoped_query(query))
     end
 
     ##
@@ -328,7 +327,7 @@ module DataMapper
       query = scoped_query(query.merge(:limit => args.first || 1))
 
       if args.any?
-        query.repository.read_many(query)
+        Collection.new(query)
       else
         query.repository.read_one(query)
       end
@@ -401,7 +400,8 @@ module DataMapper
     # @api public
     def copy(source, destination, query = {})
       repository(destination) do
-        repository(source).read_many(scoped_query(query)).each do |resource|
+        query = scoped_query(query.merge(:repository => source))
+        Collection.new(query).each do |resource|
           self.create(resource.attributes)
         end
       end

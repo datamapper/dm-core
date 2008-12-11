@@ -33,27 +33,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
       it { DataMapper::Collection.should respond_to(:new) }
 
       describe '.new' do
-        describe 'with a block', 'and no resources' do
-          before do
-            @return = @collection = DataMapper::Collection.new(@articles_query) do |c|
-              c.load([ 99, 'Sample Article' ])
-            end
-          end
-
-          it 'should return a Collection' do
-            @return.should be_kind_of(DataMapper::Collection)
-          end
-
-          it 'should not be loaded' do
-            @return.should_not be_loaded
-          end
-
-          it 'should lazy load when a kicker is called' do
-            @collection.entries.should == [ @model.new(:id => 99, :title => 'Sample Article') ]
-          end
-        end
-
-        describe 'with no block', 'and resources' do
+        describe 'with resources' do
           before do
             @return = @collection = DataMapper::Collection.new(@articles_query, [ @article ])
           end
@@ -71,40 +51,22 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
           end
         end
 
-        describe 'with no block', 'and no resources' do
-          it 'should raise an exception' do
-            lambda {
-              DataMapper::Collection.new(@articles_query)
-            }.should raise_error(ArgumentError)
+        describe 'with no resources' do
+          before do
+            @return = @collection = DataMapper::Collection.new(@articles_query)
           end
-        end
-      end
 
-      it { @articles.should respond_to(:load) }
+          it 'should return a Collection' do
+            @return.should be_kind_of(DataMapper::Collection)
+          end
 
-      describe '#load' do
-        before do
-          @return = @resource = @articles.load([ 99, 'Title' ])
-        end
+          it 'should not be loaded' do
+            @return.should_not be_loaded
+          end
 
-        it 'should return a Resource' do
-          @return.should be_kind_of(DataMapper::Resource)
-        end
-
-        it 'should be an initialized Resource' do
-          @resource.should == @model.new(:id => 99, :title => 'Title')
-        end
-
-        it 'should not be a new Resource' do
-          @resource.should_not be_new_record
-        end
-
-        it 'should add the Resource to the Collection' do
-          @articles.should include(@resource)
-        end
-
-        it 'should set the Resource to reference the Collection' do
-          @resource.collection.should be_equal(@articles)
+          it 'should contain the article' do
+            @collection.should == [ @article ]
+          end
         end
       end
 

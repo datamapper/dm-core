@@ -91,14 +91,12 @@ module DataMapper
       # @param [DataMapper::Query] query
       #   The query to be used to seach for the resources
       #
-      # @return [DataMapper::Collection]
-      #   A collection of all the resources found by the query.
+      # @return [Array]
+      #   An Array of all the resources found by the query.
       #
       # @api semipublic
       def read_many(query)
-        Collection.new(query) do |collection|
-          read(query, collection, true)
-        end
+        read(query, query.model, true)
       end
 
       ##
@@ -147,8 +145,8 @@ module DataMapper
       #
       # @param [DataMapper::Query] query
       #   The query to be used to seach for the resources
-      # @param [DataMapper::Collection,DataMapper::Model] container
-      #   The Collection or Model to load the Resource with
+      # @param [DataMapper::Collection,DataMapper::Model] model
+      #   The Model to load the Resource with
       # @param [TrueClass,FalseClass] many
       #   True if more than one Resource should be returned
       #
@@ -156,7 +154,7 @@ module DataMapper
       #   A Collection of all the resources or a Resource found by the query.
       #
       # @api private
-      def read(query, container, many = true)
+      def read(query, model, many = true)
         # TODO: Extract this into its own module, so it can be re-used in all
         # adapters that don't have a native query language
 
@@ -182,9 +180,9 @@ module DataMapper
         end
 
         # if the requested resource is outside the range of available
-        # resources return nil
+        # resources return
         if query.offset > resources.size - 1
-          return
+          return many ? [] : nil
         end
 
         # sort the resources
@@ -199,12 +197,13 @@ module DataMapper
 
         properties = query.fields
 
-        # load a Resource for each result
-        resources.each do |resource|
-          # copy the value from the InMemoryAdapter Resource
+        # copy the value from each InMemoryAdapter Resource
+        resources = resources.map do |resource|
           values = properties.map { |p| p.get!(resource) }
-          many ? container.load(values) : (break container.load(values, query))
+          model.load(values, query)
         end
+
+        many ? resources : resources.first
       end
 
       ##
