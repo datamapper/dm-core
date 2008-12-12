@@ -878,7 +878,11 @@ module DataMapper
     # @return [DataMapper::Collection] self
     #
     # @api semipublic
-    def initialize(query, resources = nil)
+    def initialize(query, resources = nil, &block)
+      if block_given?
+        warn "#{self.class}#new with a block is deprecated"
+      end
+
       @query   = query
       @cache   = {}
       @orphans = Set.new
@@ -889,7 +893,7 @@ module DataMapper
         replace(resources)
       else
         query = query.dup  # FIXME: why is this necessary?
-        load_with do |c|
+        block ||= lambda do |c|
           resources = query.repository.read_many(query)
 
           resources -= c.head if c.head
@@ -898,6 +902,7 @@ module DataMapper
 
           query.add_reversed? ? c.unshift(*resources.reverse) : c.push(*resources)
         end
+        load_with(&block)
       end
     end
 
