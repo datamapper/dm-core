@@ -41,6 +41,9 @@ describe DataMapper::Resource do
 
       belongs_to :article
     end
+
+    @model       = User
+    @child_model = Comment
   end
 
   after do
@@ -50,9 +53,9 @@ describe DataMapper::Resource do
 
   supported_by :all do
     before do
-      @model       = User
-      @child_model = Comment
-      @user        = @model.create(:name => 'dbussink', :age => 25, :description => "Test")
+      user = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')
+
+      @user = @model.get(*user.key)
     end
 
     it_should_behave_like 'A public Resource'

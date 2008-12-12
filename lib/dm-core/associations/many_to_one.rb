@@ -16,12 +16,28 @@ module DataMapper
         model.class_eval <<-EOS, __FILE__, __LINE__
           def #{name}
             return @#{name} if defined?(@#{name})
-            @#{name} = #{name}_relationship.get_parent(self)
+
+            relationship = #{name}_relationship
+
+            values = relationship.child_key.get(self)
+
+            @#{name} = if values.any? { |v| v.blank? }
+              nil
+            else
+              repository = DataMapper.repository(relationship.repository_name)
+              model      = relationship.parent_model
+              conditions = relationship.query.merge(relationship.parent_key.zip(values).to_hash)
+
+              query = Query.new(repository, model, conditions)
+
+              model.first(query)
+            end
           end
 
           def #{name}=(parent)
-            parent_key = #{name}_relationship.parent_key.get(parent) unless parent.nil?
-            #{name}_relationship.child_key.set(self, parent_key)
+            relationship = #{name}_relationship
+            values = relationship.parent_key.get(parent) unless parent.nil?
+            relationship.child_key.set(self, values)
             @#{name} = parent
           end
 

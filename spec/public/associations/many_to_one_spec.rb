@@ -41,6 +41,9 @@ describe 'Many to One Associations' do
 
       belongs_to :article
     end
+
+    @model       = User
+    @child_model = Comment
   end
 
   after do
@@ -50,12 +53,11 @@ describe 'Many to One Associations' do
 
   supported_by :all do
     before do
-      @comment     = Comment.create(:body => "Cool spec",
-                                    :user => User.create(:name => 'dbussink', :age => 25, :description => "Test"))
+      user    = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')
+      comment = @child_model.create(:body => 'Cool spec', :user => user)
 
+      @comment     = @child_model.get(*comment.key)
       @user        = @comment.user
-      @model       = User
-      @child_model = Comment
     end
 
     it_should_behave_like 'A public Resource'

@@ -28,7 +28,7 @@ module DataMapper
             @#{name} ||= begin
               relationship = model.relationships(#{repository_name.inspect})[#{name.inspect}]
               association = Associations::OneToMany::Proxy.new(relationship, self)
-              parent_associations << association
+              child_associations << association
               association
             end
           end

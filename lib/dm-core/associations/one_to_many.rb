@@ -38,6 +38,11 @@ module DataMapper
               # translate those to child_key/parent_key inside the adapter,
               # allowing adapters that don't join on PK/FK to work too.
 
+              # FIXME: what if the parent key is not set yet, and the collection is
+              # intialized below with the nil parent key in the query.  When you
+              # save the parent and then reload the association, it will probably
+              # not be found.  Test this.
+
               repository = DataMapper.repository(relationship.repository_name)
               model      = relationship.child_model
               conditions = relationship.query.merge(relationship.child_key.zip(relationship.parent_key.get(self)).to_hash)
@@ -49,7 +54,7 @@ module DataMapper
               association.relationship = relationship
               association.parent       = self
 
-              parent_associations << association
+              child_associations << association
 
               association
             end

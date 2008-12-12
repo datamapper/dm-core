@@ -415,7 +415,7 @@ module DataMapper
     def reload
       unless new_record?
         reload_attributes(*loaded_attributes)
-        (parent_associations + child_associations).each { |association| association.reload }
+        child_associations.each { |a| a.reload }
       end
 
       self
@@ -550,7 +550,7 @@ module DataMapper
 
       original_values.clear
 
-      parent_associations.all? { |a| a.save }
+      child_associations.all? { |a| a.save }
     end
 
     ##
@@ -696,12 +696,6 @@ module DataMapper
     # @api private
     def child_associations
       @child_associations ||= []
-    end
-
-    # TODO: document
-    # @api private
-    def parent_associations
-      @parent_associations ||= []
     end
 
     ##

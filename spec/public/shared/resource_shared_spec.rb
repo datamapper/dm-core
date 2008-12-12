@@ -369,6 +369,7 @@ share_examples_for 'A public Resource' do
 
     before do
       @user.name = 'dkubb'
+      @user.description = 'test'
       @user.reload
     end
 

@@ -8,6 +8,21 @@ module DataMapper
       attr_reader :name, :options, :query, :repository_name
       attr_accessor :type
 
+      # TODO: document
+      # @api private
+      def child_model
+        @child_model = if Class === @child_model
+          @child_model
+        elsif Class === @parent_model
+          @parent_model.find_const(@child_model)
+        else
+          Object.find_const(@child_model)
+        end
+      rescue NameError
+        raise NameError, "Cannot find the child_model #{@child_model} for #{@parent_model}"
+      end
+
+      # TODO: document
       # @api private
       def child_key
         @child_key ||= begin
@@ -29,12 +44,6 @@ module DataMapper
                   options[option] = parent_property.send(option)
                 end
 
-                # NOTE: hack to make each many to many child_key a true key,
-                # until I can figure out a better place for this check
-                if child_model.respond_to?(:many_to_many)
-                  options[:key] = true
-                end
-
                 child_model.property(property_name, parent_property.primitive, options)
               end
             end
@@ -43,6 +52,21 @@ module DataMapper
         end
       end
 
+      # TODO: document
+      # @api private
+      def parent_model
+        @parent_model = if Class === @parent_model
+          @parent_model
+        elsif Class === @child_model
+          @child_model.find_const(@parent_model)
+        else
+          Object.find_const(@parent_model)
+        end
+      rescue NameError
+        raise NameError, "Cannot find the parent_model #{@parent_model} for #{@child_model}"
+      end
+
+      # TODO: document
       # @api private
       def parent_key
         @parent_key ||= begin
@@ -55,141 +79,6 @@ module DataMapper
             end
           end
           PropertySet.new(parent_key)
-        end
-      end
-
-      # @api private
-      def parent_model
-        Class === @parent_model ? @parent_model : (Class === @child_model ? @child_model.find_const(@parent_model) : Object.find_const(@parent_model))
-      rescue NameError
-        raise NameError, "Cannot find the parent_model #{@parent_model} for #{@child_model}"
-      end
-
-      # @api private
-      def child_model
-        Class === @child_model ? @child_model : (Class === @parent_model ? @parent_model.find_const(@child_model) : Object.find_const(@child_model))
-      rescue NameError
-        raise NameError, "Cannot find the child_model #{@child_model} for #{@parent_model}"
-      end
-
-      # @api private
-      def get_children(parent, options = {}, finder = :all, *args)
-        parent_value = parent_key.get(parent)
-        bind_values  = [ parent_value ]
-
-        with_repository(child_model) do |r|
-          parent_identity_map = parent.repository.identity_map(parent_model)
-          child_identity_map  = r.identity_map(child_model)
-
-          # Keys should be sorted so they are in the same order given
-          # the same keys.  This will allow server side caches to more
-          # effectively reuse cached results.
-          query_values = (parent_identity_map.keys - child_identity_map.keys).sort
-
-          unless query_values.empty?
-            bind_values = query_values
-          end
-
-          query = child_key.zip(bind_values.transpose).to_hash
-
-          collection = child_model.send(finder, *(args.dup << @query.merge(options).merge(query)))
-
-          unless collection.kind_of?(Collection) && collection.any?
-            return collection
-          end
-
-          grouped_collection = {}
-          collection.each do |resource|
-            child_value = child_key.get(resource)
-            parent_obj = parent_identity_map[child_value]
-            grouped_collection[parent_obj] ||= []
-            grouped_collection[parent_obj] << resource
-          end
-
-          association_accessor = self.name
-
-          ret = nil
-          grouped_collection.each do |parent, children|
-            query = collection.query.dup
-            query.conditions.map! do |operator, property, bind_value|
-              if operator != :raw && child_key.has_property?(property.name)
-                bind_value = *children.map { |child| property.get(child) }.uniq
-              end
-              [ operator, property, bind_value ]
-            end
-
-            parents_children = collection.class.new(query, children)
-
-            if parent_key.get(parent) == parent_value
-              ret = parents_children
-            else
-              association = parent.send(association_accessor)
-              association.instance_variable_set(:@children, parents_children)
-            end
-          end
-
-          if ret
-            return ret
-          end
-
-          child_model.send(finder, *(args.dup << @query.merge(options).merge(child_key.zip([ parent_value ]).to_hash)))
-        end
-      end
-
-      # @api private
-      def get_parent(child, parent = nil)
-        child_value = child_key.get(child)
-        unless child_value.nitems == child_value.size
-          return nil
-        end
-
-        with_repository(parent || parent_model) do
-          parent_identity_map = (parent || parent_model).repository.identity_map(parent_model.base_model)
-          child_identity_map  = child.repository.identity_map(child_model.base_model)
-
-          if parent = parent_identity_map[child_value]
-            return parent
-          end
-
-          children = child_identity_map.values
-
-          unless child_identity_map[child.key]
-            children << child
-          end
-
-          bind_values = children.map { |c| child_key.get(c) }.uniq
-          query_values = bind_values.reject { |k| parent_identity_map[k] }
-
-          unless query_values.empty?
-            bind_values = query_values
-          end
-
-          query = parent_key.zip(bind_values.transpose).to_hash
-          association_accessor = self.name
-
-          collection = parent_model.send(:all, query)
-          unless collection.empty?
-            collection.send(:lazy_load)
-            children.each do |c|
-              c.send(association_accessor).instance_variable_set(:@parent, collection.get(*child_key.get(c)))
-            end
-            child.send(association_accessor).instance_variable_get(:@parent)
-          end
-        end
-      end
-
-      # @api private
-      def with_repository(object = nil)
-        other_model = nil
-
-        if object.respond_to?(:model)
-          other_model = object.model == child_model ? parent_model : child_model
-        end
-
-        if other_model && other_model.repository == object.repository && object.repository.name != @repository_name
-          object.repository.scope { |block_args| yield(*block_args) }
-        else
-          repository(@repository_name) { |block_args| yield(*block_args) }
         end
       end
 
@@ -217,9 +106,9 @@ module DataMapper
         @repository_name   = repository_name
         @child_model       = child_model
         @child_properties  = child_properties   # may be nil
-        @query             = options.reject { |k,v| OPTIONS.include?(k) }
         @parent_model      = parent_model
         @parent_properties = parent_properties  # may be nil
+        @query             = options.reject { |k,v| OPTIONS.include?(k) }
         @options           = options
 
         # attempt to load the child_key if the parent and child model constants are defined
