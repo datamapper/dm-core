@@ -849,7 +849,7 @@ module DataMapper
     #
     # @api public
     def inspect
-      "[" << map {|r| r.inspect }.join(", ") << "]"
+      "[#{map { |r| r.inspect }.join(', ')}]"
     end
 
     protected
