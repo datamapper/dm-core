@@ -9,8 +9,7 @@ module DataMapper
   module Associations
     include Assertions
 
-    class UnsavedParentError < RuntimeError
-    end
+    class UnsavedParentError < RuntimeError; end
 
     ##
     # Returns all relationships that are many-to-one for this model.
