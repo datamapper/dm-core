@@ -222,7 +222,7 @@ module DataMapper
     #
     # @api semipublic
     def hash
-      model.hash + key.hash
+      key.hash
     end
 
     ##
@@ -728,10 +728,15 @@ module DataMapper
     #   The result of the comparison of +other+'s attributes with +self+'s
     #
     def eql_attributes?(other)
-      return true if repository == other.repository && key == other.key && !dirty? && !other.dirty?
-      # TODO: figure out an approach that will only compare loaded
-      # attributes to avoid unecessary lazy loading
-      properties.all? { |p| p.get(self) == p.get(other) }
+      return false if key != other.key
+      return true if repository == other.repository && !dirty? && !other.dirty?
+
+      loaded, not_loaded = properties.partition do |property|
+        attribute_loaded?(property.name) && other.attribute_loaded?(property.name)
+      end
+
+      # check all loaded properties, and then all unloaded properties
+      (loaded + not_loaded).all? { |p| p.get(self) == p.get(other) }
     end
 
     # TODO: move to dm-more/dm-transactions

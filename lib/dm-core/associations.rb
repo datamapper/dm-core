@@ -1,18 +1,13 @@
 dir = Pathname(__FILE__).dirname.expand_path / 'associations'
 
 require dir / 'relationship'
-require dir / 'relationship_chain'
-require dir / 'many_to_many'
-require dir / 'many_to_one'
 require dir / 'one_to_many'
 require dir / 'one_to_one'
+require dir / 'many_to_one'
 
 module DataMapper
   module Associations
     include Assertions
-
-    class ImmutableAssociationError < RuntimeError
-    end
 
     class UnsavedParentError < RuntimeError
     end
@@ -88,7 +83,6 @@ module DataMapper
       assert_kind_of 'name', name, Symbol
 
       options = options.merge(extract_min_max(cardinality))
-      options = options.merge({ :name => name })
 
       # do not remove this. There is alot of confusion on people's
       # part about what the first argument to has() is.  For the record it
@@ -101,17 +95,16 @@ module DataMapper
         raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller
       end
 
-      klass = options[:max] == 1 ? OneToOne : OneToMany
-      klass = ManyToMany if options[:through] == DataMapper::Resource
-      relationship = klass.setup(options.delete(:name), self, options)
+      klass = if options.key?(:through)
+        raise ArgumentError, ':through not supported until Many To Many associations are rebuilt', caller
+        ManyToMany
+      elsif options[:max] > 1
+        OneToMany
+      else
+        OneToOne
+      end
 
-      # Please leave this in - I will release contextual serialization soon
-      # which requires this -- guyvdb
-      # TODO convert this to a hook in the plugin once hooks work on class
-      # methods
-      self.init_has_relationship_for_serialization(relationship) if self.respond_to?(:init_has_relationship_for_serialization)
-
-      relationship
+      klass.setup(name, self, options)
     end
 
     ##
@@ -128,15 +121,12 @@ module DataMapper
     #
     # @api public
     def belongs_to(name, options={})
-      @_valid_relations = false
-      relationship = ManyToOne.setup(name, self, options)
-      # Please leave this in - I will release contextual serialization soon
-      # which requires this -- guyvdb
-      # TODO convert this to a hook in the plugin once hooks work on class
-      # methods
-      self.init_belongs_relationship_for_serialization(relationship) if self.respond_to?(:init_belongs_relationship_for_serialization)
+      if options.key?(:through)
+        raise ArgumentError, ':through not supported by belongs_to yet'
+      end
 
-      relationship
+      @_valid_relations = false
+      ManyToOne.setup(name, self, options)
     end
 
     private

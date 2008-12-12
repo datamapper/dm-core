@@ -60,8 +60,10 @@ describe DataMapper::Associations do
 
         describe "through" do
           before do
-            @relationship = Car.has(1..4, :windows, :through => :doors)
-            @car          = Car.new
+            pending do
+              @relationship = Car.has(1..4, :windows, :through => :doors)
+              @car          = Car.new
+            end
           end
 
           it 'should add the windows getter' do
@@ -82,8 +84,10 @@ describe DataMapper::Associations do
 
         describe "through" do
           before do
-            @relationship = Car.has(n, :windows, :through => :doors)
-            @car          = Car.new
+            pending do
+              @relationship = Car.has(n, :windows, :through => :doors)
+              @car          = Car.new
+            end
           end
 
           it 'should add the windows getter' do

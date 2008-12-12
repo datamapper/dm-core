@@ -5,8 +5,7 @@ module DataMapper
 
       OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max, :through ]
 
-      # @api private
-      attr_reader :name, :options, :query
+      attr_reader :name, :options, :query, :repository_name
       attr_accessor :type
 
       # @api private

@@ -116,7 +116,7 @@ share_examples_for 'A semipublic Resource' do
 
       before { @user2 = Clone.create(:name => "dbussink", :age => 25) }
 
-      it { @user.hash.should_not eql(@user2.hash) }
+      it { @user.hash.should eql(@user2.hash) }
 
     end
 

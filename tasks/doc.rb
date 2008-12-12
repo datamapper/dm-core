@@ -11,9 +11,8 @@ begin
   require 'yard'
 
   YARD::Rake::YardocTask.new("yardoc") do |t|
-    t.options << '--protected'
-    # t.options << '-q'
-    # t.files << '...anyglobshere...'
+    t.files   << 'lib/**/*.rb' << 'CONTRIBUTING' << 'History.txt'
+    t.readme = 'README.txt'
   end
 rescue Exception
   # yard not installed

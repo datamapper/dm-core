@@ -372,7 +372,7 @@ share_examples_for 'A public Resource' do
       @user.reload
     end
 
-    it { @user.name.should eql("dbussink")}
+    it { @user.name.should eql('dbussink') }
 
     it 'should also reload previously loaded attributes' do
       @user.attribute_loaded?(:description).should be_true
@@ -404,7 +404,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should actually store the changes to persistent storage' do
-        @user.attributes.should == @model.get(*@user.key).attributes
+        @user.attributes.should == @user.reload.attributes
       end
     end
 

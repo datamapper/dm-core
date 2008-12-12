@@ -79,7 +79,7 @@ module DataMapper
     end
 
     def get(resource)
-      map { |property| property.get(resource) }
+      map { |p| p.get(resource) }
     end
 
     def set(resource, values)
@@ -87,7 +87,7 @@ module DataMapper
         raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller
       end
 
-      each_with_index { |property,i| property.set(resource, values.nil? ? nil : values[i]) }
+      zip(values) { |p,v| p.set(resource, v) }
     end
 
     def property_contexts(name)

@@ -302,46 +302,6 @@ end
           end
         end
       end
-
-      it { @articles.should respond_to(:save) }
-
-      describe '#save' do
-        describe 'when Resources are not saved' do
-          before do
-            @articles = @author.articles
-            @articles.new(:title => 'New Article', :content => 'New Article')
-            @return = @articles.save
-          end
-
-          it 'should return true' do
-            @return.should be_true
-          end
-
-          it 'should save each Resource' do
-            @articles.each { |r| r.should_not be_new_record }
-          end
-        end
-
-        describe 'when Resources have been orphaned' do
-          before do
-            @resources = @articles.entries
-            @articles.replace([])
-            @return = @articles.save
-          end
-
-          it 'should return true' do
-            @return.should be_true
-          end
-
-          it 'should orphan each Resource' do
-            @resources.each { |r| r.author.should be_nil }
-          end
-
-          it 'should save each orphaned Resource' do
-            @resources.each { |r| r.reload.author.should be_nil }
-          end
-        end
-      end
     end
   end
 end

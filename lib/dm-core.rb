@@ -32,6 +32,7 @@ end
 
 dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
+require dir / 'version'
 require dir / 'support'
 require dir / 'resource'
 require dir / 'model'

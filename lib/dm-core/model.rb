@@ -442,7 +442,7 @@ module DataMapper
       resource.instance_variable_set(:@new_record, false)
 
       query.fields.zip(values) do |property,value|
-        next if query.reload? == false && resource.attribute_loaded?(property.name)
+        next if !query.reload? && resource.attribute_loaded?(property.name)
 
         value = property.custom? ? property.type.load(value, property) : property.typecast(value)
         property.set!(resource, value)

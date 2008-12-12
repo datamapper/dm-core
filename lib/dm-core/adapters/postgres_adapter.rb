@@ -173,9 +173,10 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def type_map
             @type_map ||= TypeMap.new(super) do |tm|
+              tm.map(Integer).to('INTEGER')
+              tm.map(BigDecimal).to('NUMERIC').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE_BIGDECIMAL)
+              tm.map(Float).to('DOUBLE PRECISION')
               tm.map(DateTime).to('TIMESTAMP')
-              tm.map(Integer).to('INT4')
-              tm.map(Float).to('FLOAT8')
             end
           end
         end # module ClassMethods

@@ -54,7 +54,9 @@ module DataMapper
       # XXX: when not loaded, should the behavior change?
 
       # update query fields to always include the model key
-      @query.update(:fields => @query.fields | model.key(repository.name))
+      @query.update(:fields => model.key(repository.name) | @query.fields)
+
+      # FIXME: is it possible to wipe out the Collection and have it be lazy loaded on demand?
 
       # specify the Query explicitly so that Collection#all does not
       # perform a relative query
@@ -158,7 +160,7 @@ module DataMapper
       if query == self.query
         self
       else
-        self.class.new(query)
+        new_collection(query)
       end
     end
 
@@ -191,7 +193,7 @@ module DataMapper
 
       if !with_query && (loaded? || lazy_possible?(head, limit || 1))
         if limit
-          self.class.new(query, super(limit))
+          new_collection(query, super(limit))
         else
           super()
         end
@@ -236,7 +238,7 @@ module DataMapper
 
       if !with_query && (loaded? || lazy_possible?(tail, limit || 1))
         if limit
-          self.class.new(query, super(limit))
+          new_collection(query, super(limit))
         else
           super()
         end
@@ -319,7 +321,7 @@ module DataMapper
       end
 
       if sliced = super
-        self.class.new(query, sliced)
+        new_collection(query, sliced)
       else
         nil
       end
@@ -362,7 +364,7 @@ module DataMapper
         query.update(:add_reversed => !query.add_reversed?)
       end
 
-      self.class.new(query, orphaned)
+      new_collection(query, orphaned)
     end
 
     ##
@@ -747,6 +749,29 @@ module DataMapper
     end
 
     ##
+    # Save every Resource in the Collection
+    #
+    # @return [TrueClass, FalseClass] true if successful
+    #
+    # @api public
+    def save
+      resources = if loaded?
+        entries
+      else
+        head + tail
+      end
+
+      # FIXME: remove this once the mutator on the child side
+      # is used to store the reference to the parent.
+      relate_resources(resources)
+
+      resources.concat(@orphans.to_a)
+      @orphans.clear
+
+      resources.all? { |r| r.save }
+    end
+
+    ##
     # Remove all Resources from the repository with callbacks & validation
     #
     # This performs a deletion of each Resource in the Collection from
@@ -915,6 +940,17 @@ module DataMapper
       @query   = @query.dup
       @cache   = @cache.dup
       @orphans = @orphans.dup
+    end
+
+    ##
+    # Initializes a new Collection
+    #
+    # @return [DataMapper::Collection]
+    #   A new Collection object
+    #
+    # @api private
+    def new_collection(query, resources = nil, &block)
+      self.class.new(query, resources, &block)
     end
 
     ##

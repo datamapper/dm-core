@@ -34,25 +34,13 @@ module DataMapper
           end
         EOS
 
-        relationship = model.relationships(repository_name)[name] = if options.has_key?(:through)
-          RelationshipChain.new(
-            :child_model              => options.fetch(:class_name, Extlib::Inflection.classify(name)),
-            :parent_model             => model,
-            :repository_name          => repository_name,
-            :near_relationship_name   => options[:through],
-            :remote_relationship_name => options.fetch(:remote_name, name),
-            :parent_key               => options[:parent_key],
-            :child_key                => options[:child_key]
-          )
-        else
-          Relationship.new(
-            name,
-            repository_name,
-            options.fetch(:class_name, Extlib::Inflection.classify(name)),
-            model,
-            options
-          )
-        end
+        relationship = model.relationships(repository_name)[name] = Relationship.new(
+          name,
+          repository_name,
+          options[:class_name] || Extlib::Inflection.classify(name),
+          model,
+          options
+        )
 
         # FIXME: temporary until the Relationship.new API is refactored to
         # accept type as the first argument, and RelationshipChain has been
