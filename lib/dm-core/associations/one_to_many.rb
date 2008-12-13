@@ -39,7 +39,7 @@ module DataMapper
               # allowing adapters that don't join on PK/FK to work too.
 
               # FIXME: what if the parent key is not set yet, and the collection is
-              # intialized below with the nil parent key in the query.  When you
+              # initialized below with the nil parent key in the query?  When you
               # save the parent and then reload the association, it will probably
               # not be found.  Test this.
 
@@ -184,6 +184,8 @@ module DataMapper
           super
         end
 
+        # TODO: document
+        # @api private
         def assert_parent_saved(message)
           if @parent.new_record?
             raise UnsavedParentError, message
