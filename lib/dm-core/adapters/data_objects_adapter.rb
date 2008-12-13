@@ -228,9 +228,9 @@ module DataMapper
             statement << 'DEFAULT VALUES'
           else
             statement << <<-EOS.compress_lines
-              (#{properties.map { |p| quote_column_name(p.field(repository.name)) } * ', '})
+              (#{properties.map { |p| quote_column_name(p.field(repository.name)) }.join(', ')})
               VALUES
-              (#{(['?'] * properties.size) * ', '})
+              (#{(['?'] * properties.size).join(', ')})
             EOS
           end
 
@@ -264,7 +264,7 @@ module DataMapper
         end
 
         def set_statement(repository, properties)
-          properties.map { |p| "#{quote_column_name(p.field(repository.name))} = ?" } * ', '
+          properties.map { |p| "#{quote_column_name(p.field(repository.name))} = ?" }.join(', ')
         end
 
         def delete_statement(query)
@@ -275,7 +275,7 @@ module DataMapper
 
         def fields_statement(query)
           qualify = query.links.any?
-          query.fields.map { |p| property_to_column_name(query.repository, p, qualify) } * ', '
+          query.fields.map { |p| property_to_column_name(query.repository, p, qualify) }.join(', ')
         end
 
         def links_statement(query)
@@ -293,26 +293,26 @@ module DataMapper
 
             statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
               condition_statement(query, :eql, parent_property, child_property)
-            end * ' AND '
+            end.join(' AND ')
           end
 
           statement
         end
 
         def conditions_statement(query)
-          query.conditions.map { |o,p,b| condition_statement(query, o, p, b) } * ' AND '
+          query.conditions.map { |o,p,b| condition_statement(query, o, p, b) }.join(' AND ')
         end
 
         def group_by_statement(query)
           repository = query.repository
           qualify    = query.links.any?
-          query.fields.select { |p| p.kind_of?(Property) }.map { |p| property_to_column_name(repository, p, qualify) } * ', '
+          query.fields.select { |p| p.kind_of?(Property) }.map { |p| property_to_column_name(repository, p, qualify) }.join(', ')
         end
 
         def order_statement(query)
           repository = query.repository
           qualify    = query.links.any?
-          query.order.map { |i| order_column(repository, i, qualify) } * ', '
+          query.order.map { |i| order_column(repository, i, qualify) }.join(', ')
         end
 
         def order_column(repository, item, qualify)
@@ -347,7 +347,7 @@ module DataMapper
             # [].all? is always true
             elsif condition.kind_of?(Array) && condition.any? && condition.all? { |p| p.kind_of?(Property) }
               property_values = condition.map { |p| property_to_column_name(query.repository, p, qualify) }
-              "(#{property_values * ', '})"
+              "(#{property_values.join(', ')})"
             else
               '?'
             end
@@ -364,7 +364,7 @@ module DataMapper
             else raise "Invalid query operator: #{operator.inspect}"
           end
 
-          "(" + (conditions * " #{comparison} ") + ")"
+          conditions.join(" #{comparison} ")
         end
 
         def equality_operator(operand)
@@ -516,11 +516,11 @@ module DataMapper
 
             statement = <<-EOS.compress_lines
               CREATE TABLE #{quote_table_name(model.storage_name(repository_name))}
-              (#{properties.map { |p| property_schema_statement(property_schema_hash(repository, p)) } * ', '}
+              (#{properties.map { |p| property_schema_statement(property_schema_hash(repository, p)) }.join(', ')}
             EOS
 
             if (key = model.key(repository_name)).any?
-              statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field(repository_name)) } * ', '})"
+              statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field(repository_name)) }.join(', ')})"
             end
 
             statement << ')'
@@ -538,7 +538,7 @@ module DataMapper
             model.properties(repository.name).indexes.map do |index_name, fields|
               <<-EOS.compress_lines
                 CREATE INDEX #{quote_column_name("index_#{table_name}_#{index_name}")} ON
-                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ', '})
+                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) }.join(', ')})
               EOS
             end
           end
@@ -549,7 +549,7 @@ module DataMapper
             model.properties(repository.name).unique_indexes.map do |index_name, fields|
               <<-EOS.compress_lines
                 CREATE UNIQUE INDEX #{quote_column_name("unique_index_#{table_name}_#{index_name}")} ON
-                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) } * ', '})
+                #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) }.join(', ')})
               EOS
             end
           end
@@ -590,7 +590,7 @@ module DataMapper
             statement << " #{schema[:primitive]}"
 
             if schema[:precision] && schema[:scale]
-              statement << "(#{[ :precision, :scale ].map { |k| quote_column_value(schema[k]) } * ','})"
+              statement << "(#{[ :precision, :scale ].map { |k| quote_column_value(schema[k]) }.join(',')})"
             elsif schema[:size]
               statement << "(#{quote_column_value(schema[:size])})"
             end

@@ -52,7 +52,7 @@ module DataMapper
           def create_table_statement(repository, model, properties)
             statement = <<-EOS.compress_lines
               CREATE TABLE #{quote_table_name(model.storage_name(repository.name))}
-              (#{properties.map { |p| property_schema_statement(property_schema_hash(repository, p)) } * ', '}
+              (#{properties.map { |p| property_schema_statement(property_schema_hash(repository, p)) }.join(', ')}
             EOS
 
             # skip adding the primary key if one of the columns is serial.  In
@@ -60,7 +60,7 @@ module DataMapper
             # been defined
             unless model.properties(repository.name).any? { |p| p.serial? }
               if (key = model.properties(repository.name).key).any?
-                statement << ", PRIMARY KEY(#{key.map { |p| quote_column_name(p.field(repository.name)) } * ', '})"
+                statement << ", PRIMARY KEY(#{key.map { |p| quote_column_name(p.field(repository.name)) }.join(', ')})"
               end
             end
 
