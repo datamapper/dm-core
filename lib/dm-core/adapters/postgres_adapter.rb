@@ -80,15 +80,6 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def property_schema_statement(schema)
-            if schema[:serial?]
-              "#{quote_column_name(schema[:name])} SERIAL"
-            else
-              super
-            end
-          end
-
-          # TODO: move to dm-more/dm-migrations
           def property_schema_hash(repository, property)
             schema = super
 
@@ -100,6 +91,10 @@ module DataMapper
             if property.primitive == Float
               schema.delete(:precision)
               schema.delete(:scale)
+            end
+
+            if schema[:serial?]
+              schema[:primitive] = 'SERIAL'
             end
 
             schema
