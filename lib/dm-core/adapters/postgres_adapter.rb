@@ -44,38 +44,21 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def upgrade_model_storage(repository, model)
-          add_sequences(repository, model)
-          super
+          without_notices { super }
         end
 
         # TODO: move to dm-more/dm-migrations
         def create_model_storage(repository, model)
-          add_sequences(repository, model)
           without_notices { super }
         end
 
         # TODO: move to dm-more/dm-migrations
         def destroy_model_storage(repository, model)
           return true unless storage_exists?(model.storage_name(repository.name))
-          success = without_notices { super }
-          model.properties(repository.name).each do |property|
-            drop_sequence(repository, property) if property.serial?
-          end
-          success
+          without_notices { super }
         end
 
         protected
-
-        # TODO: move to dm-more/dm-migrations
-        def create_sequence(repository, property)
-          return if sequence_exists?(repository, property)
-          execute(create_sequence_statement(repository, property))
-        end
-
-        # TODO: move to dm-more/dm-migrations
-        def drop_sequence(repository, property)
-          without_notices { execute(drop_sequence_statement(repository, property)) }
-        end
 
         module SQL
           private
@@ -97,57 +80,17 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def add_sequences(repository, model)
-            model.properties(repository.name).each do |property|
-              create_sequence(repository, property) if property.serial?
-            end
-          end
-
-          # TODO: move to dm-more/dm-migrations
-          def sequence_name(repository, property)
-            "#{property.model.storage_name(repository.name)}_#{property.field(repository.name)}_seq"
-          end
-
-          # TODO: move to dm-more/dm-migrations
-          def sequence_exists?(repository, property)
-            statement = <<-EOS.compress_lines
-              SELECT COUNT(*)
-              FROM "pg_class"
-              WHERE "relkind" = 'S' AND "relname" = ?
-            EOS
-
-            query(statement, sequence_name(repository, property)).first > 0
-          end
-
-          # TODO: move to dm-more/dm-migrations
-          def create_sequence_statement(repository, property)
-            "CREATE SEQUENCE #{quote_column_name(sequence_name(repository, property))}"
-          end
-
-          # TODO: move to dm-more/dm-migrations
-          def drop_sequence_statement(repository, property)
-            "DROP SEQUENCE IF EXISTS #{quote_column_name(sequence_name(repository, property))}"
-          end
-
-          # TODO: move to dm-more/dm-migrations
           def property_schema_statement(schema)
-            statement = super
-
-            if schema.has_key?(:sequence_name)
-              statement << " DEFAULT nextval('#{schema[:sequence_name]}') NOT NULL"
+            if schema[:serial?]
+              "#{quote_column_name(schema[:name])} SERIAL"
+            else
+              super
             end
-
-            statement
           end
 
           # TODO: move to dm-more/dm-migrations
           def property_schema_hash(repository, property)
             schema = super
-
-            if property.serial?
-              schema.delete(:default)  # the sequence will be the default
-              schema[:sequence_name] = sequence_name(repository, property)
-            end
 
             # TODO: see if TypeMap can be updated to set specific attributes to nil
             # for different adapters.  precision/scale are perfect examples for
