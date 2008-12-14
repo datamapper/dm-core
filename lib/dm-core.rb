@@ -209,8 +209,4 @@ module DataMapper
   def self.prepare(*args, &blk)
     yield repository(*args)
   end
-
-  def self.dependency_queue
-    @dependency_queue ||= DependencyQueue.new
-  end
 end

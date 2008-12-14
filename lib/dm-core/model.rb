@@ -595,6 +595,19 @@ module DataMapper
 
     # TODO: document
     # @api private
+    def const_missing(name)
+      if name == :DM
+        warn "#{name} prefix deprecated and no longer necessary"
+        self
+      elsif DataMapper::Types.const_defined?(name)
+        DataMapper::Types.const_get(name)
+      else
+        super
+      end
+    end
+
+    # TODO: document
+    # @api private
     def default_storage_name
       self.name
     end

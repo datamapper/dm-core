@@ -752,16 +752,6 @@ module DataMapper
       assert_kind_of 'name',  name,  Symbol
       assert_kind_of 'type',  type,  Class
 
-      if Fixnum == type
-        # It was decided that Integer is a more expressively names class to
-        # use instead of Fixnum.  Fixnum only represents smaller numbers,
-        # so there was some confusion over whether or not it would also
-        # work with Bignum too (it will).  Any Integer, which includes
-        # Fixnum and Bignum, can be stored in this property.
-        warn "#{type} properties are deprecated.  Please use Integer instead"
-        type = Integer
-      end
-
       unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
         raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}", caller
       end

@@ -626,15 +626,14 @@ module DataMapper
               tm.map(Integer).to('INT')
               tm.map(String).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
               tm.map(Class).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
-              tm.map(DM::Discriminator).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
               tm.map(BigDecimal).to('DECIMAL').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE_BIGDECIMAL)
               tm.map(Float).to('FLOAT').with(:precision => Property::DEFAULT_PRECISION)
               tm.map(DateTime).to('DATETIME')
               tm.map(Date).to('DATE')
               tm.map(Time).to('TIMESTAMP')
               tm.map(TrueClass).to('BOOLEAN')
-              tm.map(DM::Object).to('TEXT')
-              tm.map(DM::Text).to('TEXT')
+              tm.map(DataMapper::Types::Object).to('TEXT')
+              tm.map(DataMapper::Types::Text).to('TEXT')
             end
           end
         end # module ClassMethods
