@@ -71,8 +71,7 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def property_schema_statement(schema)
             statement = super
-            # in SQLite3, the primary key is auto-incrementing
-            statement << ' PRIMARY KEY' if supports_serial? && schema[:serial?]
+            statement << ' PRIMARY KEY AUTOINCREMENT' if supports_serial? && schema[:serial?]
             statement
           end
 
