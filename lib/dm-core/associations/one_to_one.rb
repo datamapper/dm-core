@@ -47,6 +47,10 @@ module DataMapper
               model      = relationship.child_model
               conditions = relationship.query.merge(relationship.child_key.zip(relationship.parent_key.get(self)).to_hash)
 
+              if relationship.max.kind_of?(Integer)
+                conditions.update(:limit => relationship.max)
+              end
+
               query = Query.new(repository, model, conditions)
 
               association = OneToMany::Collection.new(query)
@@ -67,16 +71,17 @@ module DataMapper
           parent_repository_name,
           options.delete(:class_name) || Extlib::Inflection.camelize(name),
           model,
-          options.merge(:max => 1)
+          options
         )
-
-        # FIXME: temporary until the Relationship.new API is refactored to
-        # accept type as the first argument, and RelationshipChain has been
-        # removed
-        relationship.type = self
 
         relationship
       end
+
+      class Relationship < DataMapper::Associations::Relationship
+        def max
+          1
+        end
+      end # module Relationship
     end # module HasOne
   end # module Associations
 end # module DataMapper

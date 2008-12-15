@@ -59,16 +59,17 @@ module DataMapper
           options.key?(:repository) ? options.delete(:repository).name : child_repository_name,
           model,
           options.delete(:class_name) || Extlib::Inflection.camelize(name),
-          options.merge(:max => 1)
+          options
         )
-
-        # FIXME: temporary until the Relationship.new API is refactored to
-        # accept type as the first argument, and RelationshipChain has been
-        # removed
-        relationship.type = self
 
         relationship
       end
+
+      class Relationship < DataMapper::Associations::Relationship
+        def max
+          1
+        end
+      end # module Relationship
     end # module ManyToOne
   end # module Associations
 end # module DataMapper

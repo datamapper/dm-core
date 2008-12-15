@@ -1211,33 +1211,36 @@ module DataMapper
     # @return [DataMapper::Collection] the associated Resources
     #
     def delegate_to_relationship(relationship, *args)
-      target_class, target_key, source_key = nil, nil, nil
+      target_repository, target_model, target_key, source_key = nil, nil, nil
 
-      if relationship.type == Associations::ManyToOne
-        target_class = relationship.parent_model
-        target_key   = relationship.parent_key
-        source_key   = relationship.child_key
+      if relationship.kind_of?(Associations::ManyToOne::Relationship)
+        target_repository_name = relationship.parent_repository_name
+        target_model           = relationship.parent_model
+        target_key             = relationship.parent_key
+        source_key             = relationship.child_key
       else
-        target_class = relationship.child_model
-        target_key   = relationship.child_key
-        source_key   = relationship.parent_key
+        target_repository_name = relationship.child_repository_name
+        target_model           = relationship.child_model
+        target_key             = relationship.child_key
+        source_key             = relationship.parent_key
       end
 
       # TODO: when self.query includes an offset/limit use it as a
       # subquery to scope the results rather than a join
 
       values = map { |r| source_key.get(r) }
-      query  = Query.new(repository, target_class, target_key.zip(values.transpose).to_hash)
 
-      query.update(relationship.query)
+      repository = DataMapper.repository(target_repository_name)
+      conditions = relationship.query.dup
 
       if args.last.kind_of?(Hash)
-        query.update(args.pop)
+        conditions.update(args.pop)
       end
 
-      query.update(:links => [ relationship ] + self.query.links)
+      conditions.update(target_key.zip(values.transpose).to_hash)
+      conditions.update(:links => [ relationship ] + self.query.links)
 
-      target_class.all(query)
+      target_model.all(Query.new(repository, target_model, conditions))
     end
   end # class Collection
 end # module DataMapper

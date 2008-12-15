@@ -5,7 +5,7 @@ module DataMapper
 
       OPTIONS = [ :min, :max, :through ].freeze
 
-      attr_reader :name, :options, :query, :child_repository_name, :parent_repository_name
+      attr_reader :name, :query, :child_repository_name, :parent_repository_name, *OPTIONS
       attr_accessor :type
 
       # TODO: document
@@ -96,7 +96,9 @@ module DataMapper
         @child_repository_name  = child_repository_name
         @parent_repository_name = parent_repository_name
         @query                  = options.reject { |k,v| OPTIONS.include?(k) }
-        @options                = options
+        @min                    = options[:min] || 0
+        @max                    = options[:max]
+        @through                = options[:through]
 
         case child_model
           when Model  then @child_model      = child_model

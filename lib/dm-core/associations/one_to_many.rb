@@ -47,6 +47,10 @@ module DataMapper
               model      = relationship.child_model
               conditions = relationship.query.merge(relationship.child_key.zip(relationship.parent_key.get(self)).to_hash)
 
+              if relationship.max.kind_of?(Integer)
+                conditions.update(:limit => relationship.max)
+              end
+
               query = Query.new(repository, model, conditions)
 
               association = OneToMany::Collection.new(query)
@@ -70,13 +74,11 @@ module DataMapper
           options
         )
 
-        # FIXME: temporary until the Relationship.new API is refactored to
-        # accept type as the first argument, and RelationshipChain has been
-        # removed
-        relationship.type = self
-
         relationship
       end
+
+      class Relationship < DataMapper::Associations::Relationship
+      end # module Relationship
 
       class Collection < DataMapper::Collection
         attr_writer :relationship, :parent
