@@ -3,9 +3,9 @@ module DataMapper
     class Relationship
       include Assertions
 
-      OPTIONS = [ :class_name, :child_key, :parent_key, :min, :max, :through ]
+      OPTIONS = [ :min, :max, :through ].freeze
 
-      attr_reader :name, :options, :query, :repository_name
+      attr_reader :name, :options, :query, :child_repository_name, :parent_repository_name
       attr_accessor :type
 
       # TODO: document
@@ -24,28 +24,29 @@ module DataMapper
       # @api private
       def child_key
         @child_key ||= begin
-          child_key = nil
-          child_model.repository.scope do |r|
-            model_properties = child_model.properties(r.name)
+          model_properties = child_model.properties(@child_repository_name)
 
-            child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
-              # TODO: use something similar to DM::NamingConventions to determine the property name
-              parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
-              property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
+          child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
+            # TODO: use something similar to DM::NamingConventions to determine the property name
+            parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
+            property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
 
-              if model_properties.has_property?(property_name)
-                model_properties[property_name]
-              else
-                options = {}
+            if model_properties.has_property?(property_name)
+              model_properties[property_name]
+            else
+              options = {}
 
-                [ :length, :precision, :scale ].each do |option|
-                  options[option] = parent_property.send(option)
-                end
+              [ :length, :precision, :scale ].each do |option|
+                options[option] = parent_property.send(option)
+              end
 
+              # create the property within the correct repository
+              DataMapper.repository(@child_repository_name) do
                 child_model.property(property_name, parent_property.primitive, options)
               end
             end
           end
+
           PropertySet.new(child_key)
         end
       end
@@ -66,42 +67,36 @@ module DataMapper
       # @api private
       def parent_key
         @parent_key ||= begin
-          parent_key = nil
-          parent_model.repository.scope do |r|
-            parent_key = if @parent_properties
-              parent_model.properties(r.name).slice(*@parent_properties)
-            else
-              parent_model.key
-            end
+          parent_key = if @parent_properties
+            parent_model.properties(@parent_repository_name).slice(*@parent_properties)
+          else
+            parent_model.key(@parent_repository_name)
           end
+
           PropertySet.new(parent_key)
         end
       end
 
       private
 
-      # +child_model_name and child_properties refers to the FK, parent_model_name
-      # and parent_properties refer to the PK.  For more information:
-      # http://edocs.bea.com/kodo/docs41/full/html/jdo_overview_mapping_join.html
-      # I wash my hands of it!
-      def initialize(name, repository_name, child_model, parent_model, options = {})
-        assert_kind_of 'name',            name,            Symbol
-        assert_kind_of 'repository_name', repository_name, Symbol
+      def initialize(name, child_repository_name, parent_repository_name, child_model, parent_model, options = {})
+        assert_kind_of 'name',                   name,                   Symbol
+        assert_kind_of 'child_repository_name',  child_repository_name,  Symbol
+        assert_kind_of 'parent_repository_name', parent_repository_name, Symbol
 
-        if child_properties = options[:child_key]
-          assert_kind_of 'options[:child_key]', child_properties, Array
+        if @child_properties = options.delete(:child_key)
+          assert_kind_of 'options[:child_key]', @child_properties, Array
         end
 
-        if parent_properties = options[:parent_key]
-          assert_kind_of 'options[:parent_key]', parent_properties, Array
+        if @parent_properties = options.delete(:parent_key)
+          assert_kind_of 'options[:parent_key]', @parent_properties, Array
         end
 
-        @name              = name
-        @repository_name   = repository_name
-        @child_properties  = child_properties   # may be nil
-        @parent_properties = parent_properties  # may be nil
-        @query             = options.reject { |k,v| OPTIONS.include?(k) }
-        @options           = options
+        @name                   = name
+        @child_repository_name  = child_repository_name
+        @parent_repository_name = parent_repository_name
+        @query                  = options.reject { |k,v| OPTIONS.include?(k) }
+        @options                = options
 
         case child_model
           when Model  then @child_model      = child_model
@@ -118,7 +113,7 @@ module DataMapper
         end
 
         # attempt to load the child_key if the parent and child model constants are defined
-        if @parent_model && @child_model
+        if @child_model && @parent_model
           child_key
         end
       end

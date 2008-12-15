@@ -11,7 +11,7 @@ module DataMapper
         assert_kind_of 'model',   model,   Model
         assert_kind_of 'options', options, Hash
 
-        repository_name = model.repository.name
+        child_repository_name = model.repository.name
 
         model.class_eval <<-EOS, __FILE__, __LINE__
 
@@ -29,7 +29,7 @@ module DataMapper
             @#{name} = if values.any? { |v| v.blank? }
               nil
             else
-              repository = DataMapper.repository(relationship.repository_name)
+              repository = DataMapper.repository(relationship.parent_repository_name)
               model      = relationship.parent_model
               conditions = relationship.query.merge(relationship.parent_key.zip(values).to_hash)
 
@@ -49,15 +49,16 @@ module DataMapper
           private
 
           def #{name}_relationship
-            model.relationships(#{repository_name.inspect})[#{name.inspect}]
+            model.relationships(#{child_repository_name.inspect})[#{name.inspect}]
           end
         EOS
 
-        relationship = model.relationships(repository_name)[name] = Relationship.new(
+        relationship = model.relationships(child_repository_name)[name] = Relationship.new(
           name,
-          repository_name,
+          child_repository_name,
+          options.key?(:repository) ? options.delete(:repository).name : child_repository_name,
           model,
-          options[:class_name] || Extlib::Inflection.classify(name),
+          options.delete(:class_name) || Extlib::Inflection.camelize(name),
           options
         )
 

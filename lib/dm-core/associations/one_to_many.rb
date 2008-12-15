@@ -11,7 +11,7 @@ module DataMapper
         assert_kind_of 'model',   model,   Model
         assert_kind_of 'options', options, Hash
 
-        repository_name = model.repository.name
+        parent_repository_name = model.repository.name
 
         model.class_eval <<-EOS, __FILE__, __LINE__
           def #{name}(query = nil)
@@ -31,7 +31,7 @@ module DataMapper
               # was in effect when it was defined.  Instead it should determine the
               # repo currently in-scope, and use the association for it.
 
-              relationship = model.relationships(#{repository_name.inspect})[#{name.inspect}]
+              relationship = model.relationships(#{parent_repository_name.inspect})[#{name.inspect}]
 
               # TODO: do not build the query with child_key/parent_key.. use
               # child_accessor/parent_accessor.  The query should be able to
@@ -43,7 +43,7 @@ module DataMapper
               # save the parent and then reload the association, it will probably
               # not be found.  Test this.
 
-              repository = DataMapper.repository(relationship.repository_name)
+              repository = DataMapper.repository(relationship.child_repository_name)
               model      = relationship.child_model
               conditions = relationship.query.merge(relationship.child_key.zip(relationship.parent_key.get(self)).to_hash)
 
@@ -61,10 +61,11 @@ module DataMapper
           end
         EOS
 
-        relationship = model.relationships(repository_name)[name] = Relationship.new(
+        relationship = model.relationships(parent_repository_name)[name] = Relationship.new(
           name,
-          repository_name,
-          options[:class_name] || Extlib::Inflection.classify(name),
+          options.key?(:repository) ? options.delete(:repository).name : parent_repository_name,
+          parent_repository_name,
+          options.delete(:class_name) || Extlib::Inflection.camelize(name.to_s.singular),
           model,
           options
         )
