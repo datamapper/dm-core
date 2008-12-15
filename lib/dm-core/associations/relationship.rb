@@ -11,15 +11,13 @@ module DataMapper
       # TODO: document
       # @api private
       def child_model
-        @child_model = if Class === @child_model
-          @child_model
-        elsif Class === @parent_model
-          @parent_model.find_const(@child_model)
-        else
-          Object.find_const(@child_model)
+        @child_model ||= begin
+          (@parent_model || Object).find_const(@child_model_name)
+        rescue
+          raise NameError, "Cannot find the child_model #{@child_model_name} for #{@parent_model || @parent_model_name}"
+        ensure
+          remove_instance_variable(:@child_model_name)
         end
-      rescue NameError
-        raise NameError, "Cannot find the child_model #{@child_model} for #{@parent_model}"
       end
 
       # TODO: document
@@ -55,15 +53,13 @@ module DataMapper
       # TODO: document
       # @api private
       def parent_model
-        @parent_model = if Class === @parent_model
-          @parent_model
-        elsif Class === @child_model
-          @child_model.find_const(@parent_model)
-        else
-          Object.find_const(@parent_model)
+        @parent_model ||= begin
+          (@child_model || Object).find_const(@parent_model_name)
+        rescue
+          raise NameError, "Cannot find the parent_model #{@parent_model_name} for #{@child_model || @child_model_name}"
+        ensure
+          remove_instance_variable(:@parent_model_name)
         end
-      rescue NameError
-        raise NameError, "Cannot find the parent_model #{@parent_model} for #{@child_model}"
       end
 
       # TODO: document
@@ -91,8 +87,6 @@ module DataMapper
       def initialize(name, repository_name, child_model, parent_model, options = {})
         assert_kind_of 'name',            name,            Symbol
         assert_kind_of 'repository_name', repository_name, Symbol
-        assert_kind_of 'child_model',     child_model,     String, Class
-        assert_kind_of 'parent_model',    parent_model,    String, Class
 
         if child_properties = options[:child_key]
           assert_kind_of 'options[:child_key]', child_properties, Array
@@ -104,23 +98,29 @@ module DataMapper
 
         @name              = name
         @repository_name   = repository_name
-        @child_model       = child_model
         @child_properties  = child_properties   # may be nil
-        @parent_model      = parent_model
         @parent_properties = parent_properties  # may be nil
         @query             = options.reject { |k,v| OPTIONS.include?(k) }
         @options           = options
 
+        case child_model
+          when Model  then @child_model      = child_model
+          when String then @child_model_name = child_model
+          else
+            raise ArgumentError, "+child_model+ must be a String or Model, but was: #{child_model.class}"
+        end
+
+        case parent_model
+          when Model  then @parent_model      = parent_model
+          when String then @parent_model_name = parent_model
+          else
+            raise ArgumentError, "+parent_model+ must be a String or Model, but was: #{parent_model.class}"
+        end
+
         # attempt to load the child_key if the parent and child model constants are defined
-        if model_defined?(@child_model) && model_defined?(@parent_model)
+        if @parent_model && @child_model
           child_key
         end
-      end
-
-      # @api private
-      def model_defined?(model)
-        # TODO: figure out other ways to see if the model is loaded
-        model.kind_of?(Class)
       end
     end # class Relationship
   end # module Associations

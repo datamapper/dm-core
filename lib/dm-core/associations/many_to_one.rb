@@ -14,6 +14,11 @@ module DataMapper
         repository_name = model.repository.name
 
         model.class_eval <<-EOS, __FILE__, __LINE__
+
+          # FIXME: if the accessor is used, caching nil in the ivar
+          # and then the FK(s) are set, the cache in the accessor should
+          # be cleared.
+
           def #{name}
             return @#{name} if defined?(@#{name})
 
