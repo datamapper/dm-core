@@ -22,7 +22,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         has n, :articles, :through => Resource
 
         # TODO: move conditions down to before block once author.articles(query)
-        # returns a OneToMany::Proxy object (and not Collection as it does now)
+        # returns a ManyToMany::Collection object
         has n, :sample_articles, :title.eql => 'Sample Article', :class_name => 'Article', :through => Resource
         has n, :other_articles,  :title     => 'Other Article',  :class_name => 'Article', :through => Resource
       end
@@ -44,21 +44,14 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
     supported_by :all do
       before do
-        @author1 = Author.create(:name => 'Dan Kubb')
-        @author2 = Author.create(:name => 'Lawrence Pit')
+        @author = Author.create(:name => 'Dan Kubb')
 
-        @original = @model.create(:title => 'Original Article')
-        @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
-        @other    = @model.create(:title => 'Other Article',  :content => 'Other')
+        @original = @author.articles.create(:title => 'Original Article')
+        @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
+        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
 
-        #ArticleAuthor.create(:article_id => @article.id, :author_id => @author1.id)
-        #ArticleAuthor.create(:article_id => @other.id,   :author_id => @author1.id)
-
-        @author1.sample_articles << @article
-        @author1.other_articles  << @other
-
-        @articles       = @author1.sample_articles
-        @other_articles = @author1.other_articles
+        @articles       = @author.articles(:title.eql => 'Sample Article')
+        @other_articles = @author.articles(:title     => 'Other Article')
       end
 
       it_should_behave_like 'A public Collection'

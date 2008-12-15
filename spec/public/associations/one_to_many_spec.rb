@@ -34,11 +34,6 @@ end
         property :name, String
 
         has n, :articles
-
-        # TODO: move conditions down to before block once author.articles(query)
-        # returns a OneToMany::Proxy object (and not Collection as it does now)
-        has n, :sample_articles, :title.eql => 'Sample Article', :class_name => 'Article'
-        has n, :other_articles,  :title     => 'Other Article',  :class_name => 'Article'
       end
 
       class Article
@@ -60,12 +55,12 @@ end
       before do
         @author  = Author.create(:name => 'Dan Kubb')
 
-        @original = @model.create(:title => 'Original Article')
-        @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :author => @author, :original => @original)
-        @other    = @model.create(:title => 'Other Article',  :content => 'Other',  :author => @author)
+        @original = @author.articles.create(:title => 'Original Article')
+        @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
+        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
 
-        @articles       = @author.sample_articles
-        @other_articles = @author.other_articles
+        @articles       = @author.articles(:title.eql => 'Sample Article')
+        @other_articles = @author.articles(:title     => 'Other Article')
       end
 
       it_should_behave_like 'A public Collection'
@@ -135,7 +130,7 @@ end
           it 'should raise an exception' do
             author = Author.new(:name => 'Dan Kubb')
             lambda {
-              author.sample_articles.create
+              author.articles.create
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before creating a Resource')
           end
         end
@@ -146,7 +141,7 @@ end
           it 'should raise an exception' do
             author = Author.new(:name => 'Dan Kubb')
             lambda {
-              author.sample_articles.destroy
+              author.articles.destroy
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the association')
           end
         end
@@ -157,7 +152,7 @@ end
           it 'should raise an exception' do
             author = Author.new(:name => 'Dan Kubb')
             lambda {
-              author.sample_articles.destroy!
+              author.articles.destroy!
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the association without validation')
           end
         end
@@ -286,7 +281,7 @@ end
           it 'should raise an exception' do
             author = Author.new(:name => 'Dan Kubb')
             lambda {
-              author.sample_articles.update(:title => 'New Title')
+              author.articles.update(:title => 'New Title')
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the association')
           end
         end
@@ -297,7 +292,7 @@ end
           it 'should raise an exception' do
             author = Author.new(:name => 'Dan Kubb')
             lambda {
-              author.sample_articles.update!(:title => 'New Title')
+              author.articles.update!(:title => 'New Title')
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the association without validation')
           end
         end

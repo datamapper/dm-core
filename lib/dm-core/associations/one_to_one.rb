@@ -49,7 +49,7 @@ module DataMapper
 
               query = Query.new(repository, model, conditions)
 
-              association = Associations::OneToMany::Proxy.new(query)
+              association = OneToMany::Collection.new(query)
 
               association.relationship = relationship
               association.parent       = self
@@ -67,7 +67,7 @@ module DataMapper
           parent_repository_name,
           options.delete(:class_name) || Extlib::Inflection.camelize(name),
           model,
-          options
+          options.merge(:max => 1)
         )
 
         # FIXME: temporary until the Relationship.new API is refactored to

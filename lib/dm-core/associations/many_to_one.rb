@@ -59,7 +59,7 @@ module DataMapper
           options.key?(:repository) ? options.delete(:repository).name : child_repository_name,
           model,
           options.delete(:class_name) || Extlib::Inflection.camelize(name),
-          options
+          options.merge(:max => 1)
         )
 
         # FIXME: temporary until the Relationship.new API is refactored to

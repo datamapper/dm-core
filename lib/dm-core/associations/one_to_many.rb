@@ -49,7 +49,7 @@ module DataMapper
 
               query = Query.new(repository, model, conditions)
 
-              association = Proxy.new(query)
+              association = OneToMany::Collection.new(query)
 
               association.relationship = relationship
               association.parent       = self
@@ -78,7 +78,7 @@ module DataMapper
         relationship
       end
 
-      class Proxy < Collection
+      class Collection < DataMapper::Collection
         attr_writer :relationship, :parent
 
         def reload(query = nil)
@@ -192,7 +192,7 @@ module DataMapper
             raise UnsavedParentError, message
           end
         end
-      end # class Proxy
+      end # class Collection
     end # module OneToMany
   end # module Associations
 end # module DataMapper
