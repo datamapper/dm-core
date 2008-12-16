@@ -1,4 +1,6 @@
 module Kernel
+  private
+
   # Delegates to DataMapper::repository.
   # Will not overwrite if a method of the same name is pre-defined.
   def repository(*args)
