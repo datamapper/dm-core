@@ -330,13 +330,10 @@ module DataMapper
       :validates, :unique, :track, :precision, :scale
     ]
 
-    # FIXME: can we pull the keys from
-    # DataMapper::Adapters::DataObjectsAdapter::TYPES
-    # for this?
+    # TODO: rename PRIMITIVES, and freeze this
     TYPES = [
       TrueClass,
       String,
-      DataMapper::Types::Text,
       Float,
       Integer,
       BigDecimal,
@@ -345,13 +342,11 @@ module DataMapper
       Time,
       Object,
       Class,
-      DataMapper::Types::Discriminator,
-      DataMapper::Types::Serial
     ]
 
     # Properties of these types are immutable, that is,
     # cannot be changed
-    IMMUTABLE_TYPES = [ TrueClass, Float, Integer, BigDecimal]
+    IMMUTABLE_TYPES = [ TrueClass, Float, Integer, BigDecimal ]
 
     # Possible :visibility option values
     VISIBILITY_OPTIONS = [ :public, :protected, :private ]
@@ -752,8 +747,17 @@ module DataMapper
       assert_kind_of 'name',  name,  Symbol
       assert_kind_of 'type',  type,  Class
 
+      if TrueClass == type
+        warn "#{type} is deprecated, use Boolean instead"
+        type = DataMapper::Types::Boolean
+      end
+
+      if klass = DataMapper::Types.find_const(type.name)
+        type = klass
+      end
+
       unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
-        raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type: #{TYPES * ', '}", caller
+        raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type", caller
       end
 
       @extra_options = {}

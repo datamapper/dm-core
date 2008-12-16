@@ -599,18 +599,6 @@ module DataMapper
             statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
             statement
           end
-
-          # TODO: move to dm-more/dm-migrations
-          def relationship_schema_hash(relationship)
-            identifier, relationship = relationship
-
-            self.class.type_map[Integer].merge(:name => "#{identifier}_id") if identifier == relationship.name
-          end
-
-          # TODO: move to dm-more/dm-migrations
-          def relationship_schema_statement(hash)
-            property_schema_statement(hash) unless hash.nil?
-          end
         end # module SQL
 
         include SQL
