@@ -114,7 +114,6 @@ module DataMapper
               tm.map(Integer).to('INTEGER')
               tm.map(BigDecimal).to('NUMERIC').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE_BIGDECIMAL)
               tm.map(Float).to('DOUBLE PRECISION')
-              tm.map(DateTime).to('TIMESTAMP')
             end
           end
         end # module ClassMethods

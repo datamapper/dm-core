@@ -119,6 +119,8 @@ module DataMapper
               tm.map(Integer).to('INT').with(:size => 11)
               tm.map(TrueClass).to('TINYINT').with(:size => 1)  # TODO: map this to a BIT or CHAR(0) field?
               tm.map(Object).to('TEXT')
+              tm.map(DateTime).to('DATETIME')
+              tm.map(Time).to('DATETIME')
             end
           end
         end # module ClassMethods
