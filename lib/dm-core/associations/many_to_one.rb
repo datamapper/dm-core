@@ -66,8 +66,11 @@ module DataMapper
       end
 
       class Relationship < DataMapper::Associations::Relationship
-        def max
-          1
+        private
+
+        def initialize(*)
+          super
+          @max = 1
         end
       end # module Relationship
     end # module ManyToOne

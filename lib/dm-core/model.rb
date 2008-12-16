@@ -532,7 +532,6 @@ module DataMapper
       Repository.context.any? ? Repository.context.last.name : default_repository_name
     end
 
-    # TODO: document
     # Gets the current Set of repositories for which
     # this Model has been defined (beyond default)
     #
@@ -542,7 +541,7 @@ module DataMapper
     #
     # @api private
     def repositories
-      [ repository ].to_set + @properties.keys.collect { |repository_name| DataMapper.repository(repository_name) }
+      [ repository ].to_set + @properties.keys.map { |r| DataMapper.repository(r) }
     end
 
     # TODO: document

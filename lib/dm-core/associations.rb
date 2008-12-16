@@ -153,8 +153,7 @@ module DataMapper
           { :min => 0, :max => n }
       end
     end
+
+    Model.append_extensions self
   end # module Associations
-
-  Model.append_extensions DataMapper::Associations
-
 end # module DataMapper
