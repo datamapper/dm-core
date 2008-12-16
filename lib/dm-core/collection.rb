@@ -89,7 +89,7 @@ module DataMapper
       key = model.typecast_key(key)
       return if key.any? { |v| v.blank? }
 
-      if resource = @cache[key]
+      if resource = @identity_map[key]
         # find cached resource
         resource
       elsif !loaded? && (query.limit || query.offset > 0)
@@ -105,7 +105,7 @@ module DataMapper
 
         # use the brute force approach until subquery lookups work
         lazy_load
-        @cache[key]
+        @identity_map[key]
       else
         # current query is all inclusive, lookup using normal approach
         first(model.key(repository.name).zip(key).to_hash)
@@ -908,9 +908,9 @@ module DataMapper
         warn "#{self.class}#new with a block is deprecated"
       end
 
-      @query   = query
-      @cache   = {}
-      @orphans = Set.new
+      @query        = query
+      @identity_map = IdentityMap.new
+      @orphans      = Set.new
 
       super()
 
@@ -937,9 +937,9 @@ module DataMapper
     # @api private
     def initialize_copy(original)
       super
-      @query   = @query.dup
-      @cache   = @cache.dup
-      @orphans = @orphans.dup
+      @query        = @query.dup
+      @identity_map = @identity_map.dup
+      @orphans      = @orphans.dup
     end
 
     ##
@@ -995,7 +995,7 @@ module DataMapper
       resource.collection = self
 
       unless resource.new_record?
-        @cache[resource.key] = resource
+        @identity_map[resource.key] = resource
         @orphans.delete(resource)
       end
 
@@ -1040,7 +1040,7 @@ module DataMapper
       end
 
       unless resource.new_record?
-        @cache.delete(resource.key)
+        @identity_map.delete(resource.key)
         @orphans << resource
       end
 
