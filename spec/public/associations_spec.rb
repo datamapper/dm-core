@@ -24,65 +24,79 @@ describe DataMapper::Associations do
   end
 
   supported_by :all do
-
     it { Car.should respond_to(:has) }
 
-    describe "#has" do
-
+    describe '#has' do
       def n
         Car.n
       end
 
-      it "should raise an ArgumentError if the cardinality is not understood" do
+      it 'should raise an ArgumentError if the cardinality is not understood' do
         lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
       end
 
-      it "should raise an ArgumentError if the minimum constraint is larger than the maximum" do
+      it 'should raise an ArgumentError if the minimum constraint is larger than the maximum' do
         lambda { Car.has(3..1, :doors) }.should raise_error(ArgumentError)
       end
 
-      describe "1" do
+      describe '1' do
         before do
           @relationship = Car.has(1, :engine)
+          @car = Car.new
         end
 
-        it 'should add the engine setter'
-        it 'should add the engine getter'
+        it 'should add the accessor' do
+          @car.should respond_to(:engine)
+        end
 
+        it 'should add the mutator' do
+          @car.should respond_to(:engine=)
+        end
       end
 
-      describe "n..n" do
+      describe 'n..n' do
         before do
           @relationship = Car.has(1..4, :doors)
+          @car = Car.new
         end
 
-        it 'should add the doors getter'
+        it 'should add the accessor' do
+          @car.should respond_to(:doors)
+        end
 
-        describe "through" do
-          before do
-            pending do
-              @relationship = Car.has(1..4, :windows, :through => :doors)
-              @car          = Car.new
-            end
-          end
-
-          it 'should add the windows getter' do
-            @car.should respond_to(:windows)
-          end
+        it 'should add the mutator' do
+          @car.should respond_to(:doors=)
         end
       end
 
-      describe "n" do
+      describe 'n..n through' do
+        before do
+          pending do
+            @relationship = Car.has(1..4, :windows, :through => :doors)
+            @car = Car.new
+          end
+        end
+
+        it 'should add the accessor' do
+          @car.should respond_to(:windows)
+        end
+
+        it 'should add the mutator' do
+          @car.should respond_to(:windows=)
+        end
+      end
+
+      describe 'n' do
         before do
           @relationship = Car.has(n, :doors)
           @car          = Car.new
         end
 
-        it 'should add the doors getter' do
+        it 'should add the accessor' do
           @car.should respond_to(:doors)
         end
 
-        describe "through" do
+        describe 'and through option' do
           before do
             pending do
               @relationship = Car.has(n, :windows, :through => :doors)
@@ -99,7 +113,7 @@ describe DataMapper::Associations do
 
     it { Engine.should respond_to(:belongs_to) }
 
-    describe "#belongs_to" do
+    describe '#belongs_to' do
       before do
         @relationship       = Engine.belongs_to(:car)
         @other_relationship = Car.has(Car.n, :engines)
@@ -110,24 +124,51 @@ describe DataMapper::Associations do
         end
       end
 
-      it 'should add the car getter' do
+      it 'should add the accessor' do
         @engine.should respond_to(:car)
       end
 
-      it 'should add the car setter' do
+      it 'should add the mutator' do
         @engine.should respond_to(:car=)
       end
 
-      it 'should add the car_id foreign key setter' do
-        @engine.should respond_to(:car_id=)
-      end
-
-      it 'should add the car_id foreign key getter' do
+      it 'should add the child key accessor' do
         @engine.should respond_to(:car_id)
       end
 
-      describe 'changing the parent resource' do
+      it 'should add the child key mutator' do
+        @engine.should respond_to(:car_id=)
+      end
 
+      describe 'querying for a parent resource' do
+        before do
+          @car = Car.create
+          @engine = Engine.create(:car => @car)
+          @resource = @engine.car(:id => @car.id)
+        end
+
+        it 'should return a Resource' do
+          @resource.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return expected Resource' do
+          @resource.should eql(@car)
+        end
+      end
+
+      describe 'querying for a parent resource that does not exist' do
+        before do
+          @car = Car.create
+          @engine = Engine.create(:car => @car)
+          @resource = @engine.car(:id.not => @car.id)
+        end
+
+        it 'should return nil' do
+          @resource.should be_nil
+        end
+      end
+
+      describe 'changing the parent resource' do
         before do
           @car = Car.create
           @engine = Engine.new
@@ -139,15 +180,13 @@ describe DataMapper::Associations do
         end
 
         it 'should add the engine object to the car' do
-          pending "Changing a belongs_to parent should add the object to the correct association" do
+          pending 'Changing a belongs_to parent should add the object to the correct association' do
             @car.engines.should include(@engine)
           end
         end
-
       end
 
       describe 'changing the parent foreign key' do
-
         before do
           @car = Car.create
 
@@ -158,11 +197,9 @@ describe DataMapper::Associations do
         it 'should set the associated resource' do
           @engine.car.should eql(@car)
         end
-
       end
 
       describe 'changing an existing resource through the relation' do
-
         before do
           @car1 = Car.create
           @car2 = Car.create
@@ -175,15 +212,13 @@ describe DataMapper::Associations do
         end
 
         it 'should add the engine to the car' do
-          pending "Changing a belongs_to parent should add the object to the correct association" do
+          pending 'Changing a belongs_to parent should add the object to the correct association' do
             @car2.engines.should include(@engine)
           end
         end
-
       end
 
       describe 'changing an existing resource through the relation' do
-
         before do
           @car1 = Car.create
           @car2 = Car.create
@@ -192,17 +227,16 @@ describe DataMapper::Associations do
         end
 
         it 'should also change the foreign key' do
-          pending "a change to the foreign key should also change the related object" do
+          pending 'a change to the foreign key should also change the related object' do
             @engine.car.should eql(@car2)
           end
         end
 
         it 'should add the engine to the car' do
-          pending "a change to the foreign key should also change the related object" do
+          pending 'a change to the foreign key should also change the related object' do
             @car2.engines.should include(@engine)
           end
         end
-
       end
     end
   end

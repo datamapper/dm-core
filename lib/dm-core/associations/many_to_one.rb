@@ -19,24 +19,39 @@ module DataMapper
           # and then the FK(s) are set, the cache in the accessor should
           # be cleared.
 
-          def #{name}
-            return @#{name} if defined?(@#{name})
+          def #{name}(query = nil)
+            # TODO: when Resource can be matched against conditions,
+            # query for the parent, cache it in the ivar, and then
+            # return it if it matches the conditions (or nil if not).
+            # Use similar behavior when the ivar is cached.
+
+            return @#{name} if query.nil? && defined?(@#{name})
 
             relationship = #{name}_relationship
 
             values = relationship.child_key.get(self)
 
-            @#{name} = if values.any? { |v| v.blank? }
+            resource = if values.any? { |v| v.blank? }
               nil
             else
               repository = DataMapper.repository(relationship.parent_repository_name)
               model      = relationship.parent_model
               conditions = relationship.query.merge(relationship.parent_key.zip(values).to_hash)
 
+              if query
+                conditions.update(query)
+              end
+
               query = Query.new(repository, model, conditions)
 
               model.first(query)
             end
+
+            if query.nil?
+              @#{name} = resource
+            end
+
+            resource
           end
 
           def #{name}=(parent)
