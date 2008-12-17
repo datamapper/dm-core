@@ -1210,7 +1210,7 @@ module DataMapper
     #
     # @return [DataMapper::Collection] the associated Resources
     #
-    def delegate_to_relationship(relationship, *args)
+    def delegate_to_relationship(relationship, query = nil)
       target_repository, target_model, target_key, source_key = nil, nil, nil
 
       if relationship.kind_of?(Associations::ManyToOne::Relationship)
@@ -1233,8 +1233,8 @@ module DataMapper
       repository = DataMapper.repository(target_repository_name)
       conditions = relationship.query.dup
 
-      if args.last.kind_of?(Hash)
-        conditions.update(args.pop)
+      if query
+        conditions.update(query)
       end
 
       conditions.update(target_key.zip(values.transpose).to_hash)
