@@ -752,8 +752,10 @@ module DataMapper
         type = DataMapper::Types::Boolean
       end
 
-      if klass = DataMapper::Types.find_const(type.name)
-        type = klass
+      begin
+        type = DataMapper::Types.find_const(type.name)
+      rescue NameError
+        nil
       end
 
       unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
@@ -802,8 +804,7 @@ module DataMapper
         @precision = @options.fetch(:precision, DEFAULT_PRECISION)
 
         default_scale = (Float == @primitive) ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL
-        @scale     = @options.fetch(:scale, default_scale)
-        # @scale     = @options.fetch(:scale, DEFAULT_SCALE_BIGDECIMAL)
+        @scale = @options.fetch(:scale, default_scale)
 
         unless @precision > 0
           raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"

@@ -6,18 +6,13 @@ module DataMapper
       OPTIONS = [ :min, :max, :through ].freeze
 
       attr_reader :name, :query, :child_repository_name, :parent_repository_name, *OPTIONS
-      attr_accessor :type
 
       # TODO: document
       # @api private
       def child_model
-        @child_model ||= begin
-          (@parent_model || Object).find_const(@child_model_name)
-        rescue
-          raise NameError, "Cannot find the child_model #{@child_model_name} for #{@parent_model || @parent_model_name}"
-        ensure
-          remove_instance_variable(:@child_model_name)
-        end
+        @child_model ||= (@parent_model || Object).find_const(@child_model_name)
+      rescue NameError
+        raise NameError, "Cannot find the child_model #{@child_model_name} for #{@parent_model || @parent_model_name}"
       end
 
       # TODO: document
@@ -54,13 +49,9 @@ module DataMapper
       # TODO: document
       # @api private
       def parent_model
-        @parent_model ||= begin
-          (@child_model || Object).find_const(@parent_model_name)
-        rescue
-          raise NameError, "Cannot find the parent_model #{@parent_model_name} for #{@child_model || @child_model_name}"
-        ensure
-          remove_instance_variable(:@parent_model_name)
-        end
+        @parent_model ||= (@child_model || Object).find_const(@parent_model_name)
+      rescue NameError
+        raise NameError, "Cannot find the parent_model #{@parent_model_name} for #{@child_model || @child_model_name}"
       end
 
       # TODO: document
@@ -112,11 +103,6 @@ module DataMapper
           when String then @parent_model_name = parent_model
           else
             raise ArgumentError, "+parent_model+ must be a String or Model, but was: #{parent_model.class}"
-        end
-
-        # attempt to load the child_key if the parent and child model constants are defined
-        if @child_model && @parent_model
-          child_key
         end
       end
     end # class Relationship
