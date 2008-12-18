@@ -194,7 +194,7 @@ if ADAPTER
       end
     end
 
-    describe "paranoid types across repositories" do
+    describe "paranoid types in non-default repositories" do
       before(:all) do
         DataMapper::Repository.adapters[:alternate_paranoid] = repository(ADAPTER).adapter.dup
 
@@ -266,6 +266,52 @@ if ADAPTER
           orange.deleted_at.should be_a_kind_of(DateTime)
         end
       end
+    end
+
+      describe "paranoid types with other properties in non-default repositories" do
+        before(:all) do
+          DataMapper::Repository.adapters[:alternate_paranoid] = repository(ADAPTER).adapter.dup
+
+          Object.send(:remove_const, :Orange) if defined?(Orange)
+          class Orange
+            include DataMapper::Resource
+
+            def self.default_repository_name
+              ADAPTER
+            end
+
+            property :id, Serial
+            property :color, String
+
+            property :deleted,    DataMapper::Types::ParanoidBoolean
+            property :deleted_at, DataMapper::Types::ParanoidDateTime
+
+            repository(:alternate_paranoid) do
+              property :shape, String
+            end
+          end
+
+          repository(:alternate_paranoid){Orange.auto_migrate!}
+        end
+
+        it "should set default_scope for :default" do
+          Orange.default_scope(:default).should == { :deleted_at => nil, :deleted => false }
+        end
+
+        it "should respect default_scope for :default repository" do
+          Orange.all.query.conditions.should == [[:eql, Orange.properties[:deleted_at], nil], [:eql, Orange.properties[:deleted], false]]
+        end
+
+        it "should not set default_scope for :alternate_paranoid" do
+          Orange.default_scope(:alternate_paranoid).should == {}
+        end
+
+        it "should respect default_scope for :alternate_paranoid" do
+          repository(:alternate_paranoid) do
+            Orange.all.query.conditions.should == []
+          end
+        end
+
     end
   end
 end
