@@ -3,9 +3,9 @@ module DataMapper
     class Relationship
       include Assertions
 
-      OPTIONS = [ :min, :max, :through ].freeze
+      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :through ].freeze
 
-      attr_reader :name, :query, :child_repository_name, :parent_repository_name, *OPTIONS
+      attr_reader :name, :query, *OPTIONS
 
       # TODO: document
       # @api private
@@ -70,41 +70,37 @@ module DataMapper
 
       private
 
-      # TODO: change the arguments to match those passed in via belongs_to() and has()
-      def initialize(name, child_repository_name, parent_repository_name, child_model, parent_model, options = {})
-        assert_kind_of 'name',                   name,                   Symbol
-        assert_kind_of 'child_repository_name',  child_repository_name,  Symbol
-        assert_kind_of 'parent_repository_name', parent_repository_name, Symbol
+      def initialize(name, child_model, parent_model, options = {})
+        assert_kind_of 'name',         name,         Symbol
+        assert_kind_of 'child_model',  child_model,  Model, String
+        assert_kind_of 'parent_model', parent_model, Model, String
+        assert_kind_of 'options',      options,      Hash
 
-        if @child_properties = options.delete(:child_key)
-          assert_kind_of 'options[:child_key]', @child_properties, Array
-        end
+        assert_kind_of 'options[:child_repository_name]',  options[:child_repository_name],  Symbol
+        assert_kind_of 'options[:parent_repository_name]', options[:parent_repository_name], Symbol
 
-        if @parent_properties = options.delete(:parent_key)
-          assert_kind_of 'options[:parent_key]', @parent_properties, Array
-        end
-
-        @name                   = name
-        @child_repository_name  = child_repository_name
-        @parent_repository_name = parent_repository_name
-        @query                  = options.reject { |k,v| OPTIONS.include?(k) }
-        @min                    = options[:min] || 0
-        @max                    = options[:max]
-        @through                = options[:through]
+        assert_kind_of 'options[:child_key]',  options[:child_key],  Array, NilClass
+        assert_kind_of 'options[:parent_key]', options[:parent_key], Array, NilClass
 
         case child_model
           when Model  then @child_model      = child_model
           when String then @child_model_name = child_model
-          else
-            raise ArgumentError, "+child_model+ must be a String or Model, but was: #{child_model.class}"
         end
 
         case parent_model
           when Model  then @parent_model      = parent_model
           when String then @parent_model_name = parent_model
-          else
-            raise ArgumentError, "+parent_model+ must be a String or Model, but was: #{parent_model.class}"
         end
+
+        @name                   = name
+        @child_repository_name  = options[:child_repository_name]
+        @parent_repository_name = options[:parent_repository_name]
+        @child_properties       = options[:child_key]
+        @parent_properties      = options[:parent_key]
+        @min                    = options[:min] || 0
+        @max                    = options[:max]
+        @through                = options[:through]
+        @query                  = options.reject { |k,v| OPTIONS.include?(k) }
 
         create_helper
         create_accessor

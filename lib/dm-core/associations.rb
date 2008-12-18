@@ -55,8 +55,8 @@ module DataMapper
     #  * has n,    :friends   # many friends
     #  * has 1..3, :friends   # many friends (at least 1, at most 3)
     #  * has 3,    :friends   # many friends (exactly 3)
-    #  * has 1,    :friend,  :class_name => 'User'       # one friend with the class name User
-    #  * has 3,    :friends, :through    => :friendships # many friends through the friendships relationship
+    #  * has 1,    :friend,  :class   => 'User'       # one friend with the class User
+    #  * has 3,    :friends, :through => :friendships # many friends through the friendships relationship
     #
     # @param cardinality [Integer, Range, Infinity]
     #   cardinality that defines the association type and constraints
@@ -65,7 +65,7 @@ module DataMapper
     #
     # @option :through[Symbol]  A association that this join should go through to form
     #       a many-to-many association
-    # @option :class_name[String] The name of the class to associate with, if omitted
+    # @option :class[String] The name of the class to associate with, if omitted
     #       then the association name is assumed to match the class name
     # @option :remote_name[Symbol] In the case of a :through option being present, the
     #       name of the relationship on the other end of the :through-relationship
@@ -83,34 +83,30 @@ module DataMapper
 
       options = options.merge(extract_min_max(cardinality))
 
-      # do not remove this. There is alot of confusion on people's
-      # part about what the first argument to has() is.  For the record it
-      # is the min cardinality and max cardinality of the association.
-      # simply put, it constraints the number of resources that will be
-      # returned by the association.  It is not, as has been assumed,
-      # the number of results on the left and right hand side of the
-      # reltionship.
-      if options[:min] == n && options[:max] == n
-        raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller
-      end
+      options[:child_repository_name]  = options.delete(:repository) if options.key?(:repository)
+      options[:parent_repository_name] = repository.name
+
+      # TODO: remove this once Relationships can have relative repositories
+      options[:child_repository_name] ||= options[:parent_repository_name]
+
+      assert_valid_options(options)
 
       klass = if options.key?(:through)
-        raise ArgumentError, ':through not supported until Many To Many associations are rebuilt', caller
-        ManyToMany
+        ManyToMany::Relationship
       elsif options[:max] > 1
-        OneToMany
+        OneToMany::Relationship
       else
-        OneToOne
+        OneToOne::Relationship
       end
 
-      klass.setup(name, self, options)
+      relationships(repository.name)[name] = klass.new(name, options.delete(:class), self, options)
     end
 
     ##
     # A shorthand, clear syntax for defining many-to-one resource relationships.
     #
-    #  * belongs_to :user                           # many_to_one, :friend
-    #  * belongs_to :friend, :class_name => 'User'  # many_to_one :friends
+    #  * belongs_to :user                      # many_to_one, :friend
+    #  * belongs_to :friend, :class => 'User'  # many_to_one :friends
     #
     # @param name [Symbol] The name that the association will be referenced by
     # @see #has
@@ -119,13 +115,18 @@ module DataMapper
     #   should not be accessed directly
     #
     # @api public
-    def belongs_to(name, options={})
-      if options.key?(:through)
-        raise ArgumentError, ':through not supported by belongs_to yet'
-      end
-
+    def belongs_to(name, options = {})
       @_valid_relations = false
-      ManyToOne.setup(name, self, options)
+
+      assert_valid_options(options)
+
+      options[:child_repository_name]  = repository.name
+      options[:parent_repository_name] = options.delete(:repository) if options.key?(:repository)
+
+      # TODO: remove this once Relationships can have relative repositories
+      options[:parent_repository_name] ||= options[:child_repository_name]
+
+      relationships(repository.name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:class), options)
     end
 
     private
@@ -151,6 +152,32 @@ module DataMapper
           { :min => constraints.first, :max => constraints.last }
         when n
           { :min => 0, :max => n }
+      end
+    end
+
+    def assert_valid_options(options)
+      if options.key?(:through)
+        raise ArgumentError, ':through not supported yet'
+      end
+
+      if class_name = options.delete(:class_name)
+        warn "+options[:class_name]+ is deprecated, use :class instead"
+        options[:class] = class_name
+      end
+
+      if (repository = options[:repository]).kind_of?(Repository)
+        options[:repository] = repository.name
+      end
+
+      # do not remove this. There is alot of confusion on people's
+      # part about what the first argument to has() is.  For the record it
+      # is the min cardinality and max cardinality of the association.
+      # simply put, it constraints the number of resources that will be
+      # returned by the association.  It is not, as has been assumed,
+      # the number of results on the left and right hand side of the
+      # reltionship.
+      if options[:min] == n && options[:max] == n
+        raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller
       end
     end
 

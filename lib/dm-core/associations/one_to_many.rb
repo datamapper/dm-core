@@ -1,34 +1,12 @@
 module DataMapper
   module Associations
     module OneToMany
-      extend Assertions
-
-      # Setup one to many relationship between two models
-      #
-      # @api private
-      def self.setup(name, model, options = {})
-        assert_kind_of 'name',    name,    Symbol
-        assert_kind_of 'model',   model,   Model
-        assert_kind_of 'options', options, Hash
-
-        if repository = options.delete(:repository)
-          warn "+options[:repository]+ deprecated, specify :repository_name instead"
-          options[:repository_name] = repository.name
+      class Relationship < DataMapper::Associations::Relationship
+        def initialize(name, child_model, parent_model, options = {})
+          child_model ||= Extlib::Inflection.camelize(name.to_s.singular)
+          super
         end
 
-        parent_repository_name = model.repository.name
-
-        model.relationships(parent_repository_name)[name] = Relationship.new(
-          name,
-          options.delete(:repository_name) || parent_repository_name,
-          parent_repository_name,
-          options.delete(:class_name) || Extlib::Inflection.camelize(name.to_s.singular),
-          model,
-          options
-        )
-      end
-
-      class Relationship < DataMapper::Associations::Relationship
         def create_helper
           return if parent_model.instance_methods(false).include?("#{name}_helper")
           parent_model.class_eval <<-EOS, __FILE__, __LINE__
@@ -94,7 +72,7 @@ module DataMapper
             end
           EOS
         end
-      end # module Relationship
+      end # class Relationship
 
       class Collection < DataMapper::Collection
         attr_writer :relationship, :parent

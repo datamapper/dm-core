@@ -23,8 +23,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
         # TODO: move conditions down to before block once author.articles(query)
         # returns a ManyToMany::Collection object
-        has n, :sample_articles, :title.eql => 'Sample Article', :class_name => 'Article', :through => Resource
-        has n, :other_articles,  :title     => 'Other Article',  :class_name => 'Article', :through => Resource
+        has n, :sample_articles, :title.eql => 'Sample Article', :class => 'Article', :through => Resource
+        has n, :other_articles,  :title     => 'Other Article',  :class => 'Article', :through => Resource
       end
 
       class Article
@@ -35,8 +35,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         property :content, Text
 
         has n, :authors, :through => Resource
-        belongs_to :original, :class_name => 'Article'
-        has n, :revisions, :class_name => 'Article'
+        belongs_to :original, :class => self
+        has n, :revisions,    :class => self
       end
 
       @model = Article
