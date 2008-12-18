@@ -2,11 +2,17 @@ module DataMapper
   module Associations
     module OneToMany
       class Relationship < DataMapper::Associations::Relationship
+        private
+
+        # TODO: document
+        # @api semipublic
         def initialize(name, child_model, parent_model, options = {})
           child_model ||= Extlib::Inflection.camelize(name.to_s.singular)
           super
         end
 
+        # TODO: document
+        # @api semipublic
         def create_helper
           return if parent_model.instance_methods(false).include?("#{name}_helper")
           parent_model.class_eval <<-EOS, __FILE__, __LINE__
@@ -53,6 +59,8 @@ module DataMapper
           EOS
         end
 
+        # TODO: document
+        # @api semipublic
         def create_accessor
           return if parent_model.instance_methods(false).include?(name)
           parent_model.class_eval <<-EOS, __FILE__, __LINE__
@@ -63,6 +71,8 @@ module DataMapper
           EOS
         end
 
+        # TODO: document
+        # @api semipublic
         def create_mutator
           return if parent_model.instance_methods(false).include?("#{name}=")
           parent_model.class_eval <<-EOS, __FILE__, __LINE__

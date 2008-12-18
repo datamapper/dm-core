@@ -83,13 +83,15 @@ module DataMapper
 
       options = options.merge(extract_min_max(cardinality))
 
+      assert_valid_options(options)
+
+      parent_repository_name = repository.name
+
       options[:child_repository_name]  = options.delete(:repository) if options.key?(:repository)
-      options[:parent_repository_name] = repository.name
+      options[:parent_repository_name] = parent_repository_name
 
       # TODO: remove this once Relationships can have relative repositories
       options[:child_repository_name] ||= options[:parent_repository_name]
-
-      assert_valid_options(options)
 
       klass = if options.key?(:through)
         ManyToMany::Relationship
@@ -99,7 +101,7 @@ module DataMapper
         OneToOne::Relationship
       end
 
-      relationships(repository.name)[name] = klass.new(name, options.delete(:class), self, options)
+      relationships(parent_repository_name)[name] = klass.new(name, options.delete(:class), self, options)
     end
 
     ##
@@ -116,17 +118,19 @@ module DataMapper
     #
     # @api public
     def belongs_to(name, options = {})
-      @_valid_relations = false
-
       assert_valid_options(options)
 
-      options[:child_repository_name]  = repository.name
+      @_valid_relations = false
+
+      child_repository_name = repository.name
+
+      options[:child_repository_name]  = child_repository_name
       options[:parent_repository_name] = options.delete(:repository) if options.key?(:repository)
 
       # TODO: remove this once Relationships can have relative repositories
       options[:parent_repository_name] ||= options[:child_repository_name]
 
-      relationships(repository.name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:class), options)
+      relationships(child_repository_name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:class), options)
     end
 
     private
@@ -155,6 +159,8 @@ module DataMapper
       end
     end
 
+    # TODO: document
+    # @api private
     def assert_valid_options(options)
       if options.key?(:through)
         raise ArgumentError, ':through not supported yet'

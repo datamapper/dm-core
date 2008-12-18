@@ -5,10 +5,12 @@ module DataMapper
 
       OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :through ].freeze
 
+      # TODO: document
+      # @api semipublic
       attr_reader :name, :query, *OPTIONS
 
       # TODO: document
-      # @api private
+      # @api semipublic
       def child_model
         @child_model ||= (@parent_model || Object).find_const(@child_model_name)
       rescue NameError
@@ -16,7 +18,7 @@ module DataMapper
       end
 
       # TODO: document
-      # @api private
+      # @api semipublic
       def child_key
         @child_key ||= begin
           model_properties = child_model.properties(@child_repository_name)
@@ -47,7 +49,7 @@ module DataMapper
       end
 
       # TODO: document
-      # @api private
+      # @api semipublic
       def parent_model
         @parent_model ||= (@child_model || Object).find_const(@parent_model_name)
       rescue NameError
@@ -55,7 +57,7 @@ module DataMapper
       end
 
       # TODO: document
-      # @api private
+      # @api semipublic
       def parent_key
         @parent_key ||= begin
           parent_key = if @parent_properties
@@ -70,6 +72,8 @@ module DataMapper
 
       private
 
+      # TODO: document
+      # @api semipublic
       def initialize(name, child_model, parent_model, options = {})
         assert_kind_of 'name',         name,         Symbol
         assert_kind_of 'child_model',  child_model,  Model, String

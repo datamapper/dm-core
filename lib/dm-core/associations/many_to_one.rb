@@ -4,12 +4,16 @@ module DataMapper
       class Relationship < DataMapper::Associations::Relationship
         private
 
+        # TODO: document
+        # @api semipublic
         def initialize(name, child_model, parent_model, options = {})
           parent_model ||= Extlib::Inflection.camelize(name)
           options[:max] = 1
           super
         end
 
+        # TODO: document
+        # @api semipublic
         def create_helper
           return if child_model.instance_methods(false).include?("#{name}_helper")
           child_model.class_eval <<-EOS, __FILE__, __LINE__
@@ -50,6 +54,8 @@ module DataMapper
           EOS
         end
 
+        # TODO: document
+        # @api semipublic
         def create_accessor
           return if child_model.instance_methods(false).include?(name)
           child_model.class_eval <<-EOS, __FILE__, __LINE__
@@ -65,6 +71,8 @@ module DataMapper
           EOS
         end
 
+        # TODO: document
+        # @api semipublic
         def create_mutator
           return if child_model.instance_methods(false).include?("#{name}=")
           child_model.class_eval <<-EOS, __FILE__, __LINE__
