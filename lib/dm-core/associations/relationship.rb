@@ -70,6 +70,7 @@ module DataMapper
 
       private
 
+      # TODO: change the arguments to match those passed in via belongs_to() and has()
       def initialize(name, child_repository_name, parent_repository_name, child_model, parent_model, options = {})
         assert_kind_of 'name',                   name,                   Symbol
         assert_kind_of 'child_repository_name',  child_repository_name,  Symbol
@@ -104,6 +105,10 @@ module DataMapper
           else
             raise ArgumentError, "+parent_model+ must be a String or Model, but was: #{parent_model.class}"
         end
+
+        create_helper
+        create_accessor
+        create_mutator
       end
     end # class Relationship
   end # module Associations

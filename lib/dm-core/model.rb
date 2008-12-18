@@ -161,9 +161,6 @@ module DataMapper
     def property(name, type, options = {})
       property = Property.new(self, name, type, options)
 
-      create_property_getter(property)
-      create_property_setter(property)
-
       properties(repository_name)[property.name] = property
       @_valid_relations = false
 
@@ -609,39 +606,6 @@ module DataMapper
     # @api private
     def default_storage_name
       self.name
-    end
-
-    # defines the getter for the property
-    #
-    # @api private
-    def create_property_getter(property)
-      class_eval <<-EOS, __FILE__, __LINE__
-        #{property.reader_visibility}
-        def #{property.getter}
-          attribute_get(#{property.name.inspect})
-        end
-      EOS
-
-      if property.primitive == TrueClass && !instance_methods.include?(property.name.to_s)
-        class_eval <<-EOS, __FILE__, __LINE__
-          #{property.reader_visibility}
-          alias #{property.name} #{property.getter}
-        EOS
-      end
-    end
-
-    # defines the setter for the property
-    #
-    # @api private
-    def create_property_setter(property)
-      unless instance_methods.include?("#{property.name}=")
-        class_eval <<-EOS, __FILE__, __LINE__
-          #{property.writer_visibility}
-          def #{property.name}=(value)
-            attribute_set(#{property.name.inspect}, value)
-          end
-        EOS
-      end
     end
 
     # @api private

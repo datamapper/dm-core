@@ -820,10 +820,11 @@ module DataMapper
       end
 
       determine_visibility
+      create_accessor
+      create_mutator
 
       # comes from dm-validations
-      @model.auto_generate_validations(self)    if @model.respond_to?(:auto_generate_validations)
-      @model.property_serialization_setup(self) if @model.respond_to?(:property_serialization_setup)
+      @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
     end
 
     # Assert given visibility value is supported.
@@ -840,6 +841,40 @@ module DataMapper
       unless VISIBILITY_OPTIONS.include?(@reader_visibility) && VISIBILITY_OPTIONS.include?(@writer_visibility)
         raise ArgumentError, 'property visibility must be :public, :protected, or :private', caller(2)
       end
+    end
+
+    # defines the getter for the property
+    #
+    # @api private
+    def create_accessor
+      unless model.instance_methods(false).include?(getter)
+        model.class_eval <<-EOS, __FILE__, __LINE__
+          #{reader_visibility}
+          def #{getter}
+            attribute_get(#{name.inspect})
+          end
+        EOS
+      end
+
+      if primitive == TrueClass && !model.instance_methods(false).include?(name)
+        model.class_eval <<-EOS, __FILE__, __LINE__
+          #{reader_visibility}
+          alias #{name} #{getter}
+        EOS
+      end
+    end
+
+    # defines the setter for the property
+    #
+    # @api private
+    def create_mutator
+      return if model.instance_methods(false).include?("#{name}=")
+      model.class_eval <<-EOS, __FILE__, __LINE__
+        #{writer_visibility}
+        def #{name}=(value)
+          attribute_set(#{name.inspect}, value)
+        end
+      EOS
     end
 
     # Typecasts an arbitrary value to a DateTime.
