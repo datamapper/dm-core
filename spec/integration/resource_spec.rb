@@ -190,127 +190,127 @@ end
 
 # ---------- Old specs... BOOOOOOOOOO ---------------
 if ADAPTER
-  class Orange
-    include DataMapper::Resource
-
-    def self.default_repository_name
-      ADAPTER
-    end
-
-    property :name, String, :key => true
-    property :color, String
-  end
-
-  class Apple
-    include DataMapper::Resource
-
-    def self.default_repository_name
-      ADAPTER
-    end
-
-    property :id, Serial
-    property :color, String, :default => 'green', :nullable => true
-  end
-
-  class FortunePig
-    include DataMapper::Resource
-
-    def self.default_repository_name
-      ADAPTER
-    end
-
-    property :id, Serial
-    property :name, String
-
-    def to_s
-      name
-    end
-
-    after :create do
-      @created_id = self.id
-    end
-
-    after :save do
-      @save_id = self.id
-    end
-  end
-
-  class Car
-    include DataMapper::Resource
-
-    def self.default_repository_name
-      ADAPTER
-    end
-
-    property :brand, String, :key => true
-    property :color, String
-    property :created_on, Date
-    property :touched_on, Date
-    property :updated_on, Date
-
-    before :save do
-      self.touched_on = Date.today
-    end
-
-    before :create do
-      self.created_on = Date.today
-    end
-
-    before :update do
-      self.updated_on = Date.today
-    end
-  end
-
-  class Male
-    include DataMapper::Resource
-
-    def self.default_repository_name
-      ADAPTER
-    end
-
-    property :id, Serial
-    property :name, String
-    property :iq, Integer, :default => 100
-    property :type, Discriminator
-    property :data, Object
-
-    def iq=(i)
-      attribute_set(:iq, i - 1)
-    end
-  end
-
-  class Bully < Male; end
-
-  class Mugger < Bully; end
-
-  class Maniac < Bully; end
-
-  class Psycho < Maniac; end
-
-  class Geek < Male
-    property :awkward, Boolean, :default => true
-
-    def iq=(i)
-      attribute_set(:iq, i + 30)
-    end
-  end
-
-  class Flanimal
-    include DataMapper::Resource
-
-    def self.default_repository_name
-      ADAPTER
-    end
-
-    property :id, Serial
-    property :type, Discriminator
-    property :name, String
-  end
-
-  class Sprog < Flanimal; end
-
   describe "DataMapper::Resource with #{ADAPTER}" do
     before :all do
+      class Orange
+        include DataMapper::Resource
+
+        def self.default_repository_name
+          ADAPTER
+        end
+
+        property :name, String, :key => true
+        property :color, String
+      end
+
+      class Apple
+        include DataMapper::Resource
+
+        def self.default_repository_name
+          ADAPTER
+        end
+
+        property :id, Serial
+        property :color, String, :default => 'green', :nullable => true
+      end
+
+      class FortunePig
+        include DataMapper::Resource
+
+        def self.default_repository_name
+          ADAPTER
+        end
+
+        property :id, Serial
+        property :name, String
+
+        def to_s
+          name
+        end
+
+        after :create do
+          @created_id = self.id
+        end
+
+        after :save do
+          @save_id = self.id
+        end
+      end
+
+      class Car
+        include DataMapper::Resource
+
+        def self.default_repository_name
+          ADAPTER
+        end
+
+        property :brand, String, :key => true
+        property :color, String
+        property :created_on, Date
+        property :touched_on, Date
+        property :updated_on, Date
+
+        before :save do
+          self.touched_on = Date.today
+        end
+
+        before :create do
+          self.created_on = Date.today
+        end
+
+        before :update do
+          self.updated_on = Date.today
+        end
+      end
+
+      class Male
+        include DataMapper::Resource
+
+        def self.default_repository_name
+          ADAPTER
+        end
+
+        property :id, Serial
+        property :name, String
+        property :iq, Integer, :default => 100
+        property :type, Discriminator
+        property :data, Object
+
+        def iq=(i)
+          attribute_set(:iq, i - 1)
+        end
+      end
+
+      class Bully < Male; end
+
+      class Mugger < Bully; end
+
+      class Maniac < Bully; end
+
+      class Psycho < Maniac; end
+
+      class Geek < Male
+        property :awkward, Boolean, :default => true
+
+        def iq=(i)
+          attribute_set(:iq, i + 30)
+        end
+      end
+
+      class Flanimal
+        include DataMapper::Resource
+
+        def self.default_repository_name
+          ADAPTER
+        end
+
+        property :id, Serial
+        property :type, Discriminator
+        property :name, String
+      end
+
+      class Sprog < Flanimal; end
+
       Orange.auto_migrate!(ADAPTER)
       Apple.auto_migrate!(ADAPTER)
       FortunePig.auto_migrate!(ADAPTER)
