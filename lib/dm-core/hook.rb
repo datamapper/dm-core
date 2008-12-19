@@ -6,6 +6,7 @@ module DataMapper
         register_instance_hooks :save, :create, :update, :destroy
       EOS
     end
+
+    DataMapper::Resource.append_inclusions self
   end
-  DataMapper::Resource.append_inclusions Hook
 end # module DataMapper
