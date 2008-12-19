@@ -107,8 +107,8 @@ module DataMapper
     ##
     # A shorthand, clear syntax for defining many-to-one resource relationships.
     #
-    #  * belongs_to :user                      # many_to_one, :friend
-    #  * belongs_to :friend, :class => 'User'  # many_to_one :friends
+    #  * belongs_to :user                      # many to one user
+    #  * belongs_to :friend, :class => 'User'  # many to one friend
     #
     # @param name [Symbol] The name that the association will be referenced by
     # @see #has

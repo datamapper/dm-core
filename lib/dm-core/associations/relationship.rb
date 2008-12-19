@@ -104,7 +104,7 @@ module DataMapper
         @min                    = options[:min] || 0
         @max                    = options[:max]
         @through                = options[:through]
-        @query                  = options.reject { |k,v| OPTIONS.include?(k) }
+        @query                  = options.except(*OPTIONS)
 
         create_helper
         create_accessor
