@@ -149,6 +149,11 @@ module DataMapper
 
     # Compares if its the same object or if attributes are equal
     #
+    # The comparaison is 
+    #  * false if object not from same repository
+    #  * false if object has no all same properties
+    #
+    #
     # ==== Parameters
     # other<Object>:: Object to compare to
     #
@@ -160,11 +165,12 @@ module DataMapper
     def eql?(other)
       return true if object_id == other.object_id
       return false unless other.kind_of?(model)
-      return true if repository == other.repository && key == other.key
 
       properties.each do |property|
         return false if property.get!(self) != property.get!(other)
       end
+
+      return true if repository == other.repository && key == other.key
 
       true
     end

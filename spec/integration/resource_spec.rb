@@ -9,6 +9,7 @@ if ADAPTER
   describe "DataMapper::Resource with #{ADAPTER}" do
 
     load_models_for_metaphor :zoo
+    load_models_for_metaphor :content
 
     before(:each) do
       DataMapper.auto_migrate!(ADAPTER)
@@ -59,12 +60,39 @@ if ADAPTER
     end
 
     describe '#eql?' do
-      it "should return true if the objects are the same instances"
-      it "should return false if the other object is not an instance of the same model"
-      it "should return false if the other object is a different class"
+
+      it "should return true if the objects are the same instances" do
+        z = Zoo.first
+        z2 = z
+        z.should be_eql(z2)
+      end
+
+      it "should return false if the other object is not an instance of the same model" do
+        z = Zoo.first
+        z2 = Zoo.create(:name => 'New York')
+        z.should_not be_eql(z2)
+      end
+
+      it "should return false if the other object is a different class" do
+        z = Zoo.first
+        o = Content::Dialect.first
+        z.should_not be_eql(o)
+      end
+
       it "should return true if the repositories are the same and the primary key is the same"
-      it "should return true if all the properties are the same"
-      it "should return false if any of the properties are different"
+      it "should return false if the repository is not the same and the primary key is the same"
+
+      it "should return true if all the properties are the same" do
+        z = Zoo.first
+        z2 = Zoo.new(z.attributes.delete_if{|key, value| key == :mission})
+        z.should be_eql(z2)
+      end
+
+      it "should return false if any of the properties are different" do
+        z = Zoo.first
+        z2 = Zoo.new(z.attributes.delete_if{|key, value| key == :mission}.merge(:description => 'impressive'))
+        z.should_not be_eql(z2)
+      end
     end
 
     describe '#hash' do
