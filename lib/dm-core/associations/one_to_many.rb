@@ -101,14 +101,14 @@ module DataMapper
         # TODO: document
         # @api public
         def replace(other)
-          lazy_load  # lazy load so that it is always orphaned
+          lazy_load  # lazy load so that children are always orphaned
           super
         end
 
         # TODO: document
         # @api public
         def clear
-          lazy_load  # lazy load so that it is always orphaned
+          lazy_load  # lazy load so that children are always orphaned
           super
         end
 

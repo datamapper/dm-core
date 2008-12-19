@@ -21,21 +21,17 @@ module DataMapper
       # @api semipublic
       def child_key
         @child_key ||= begin
-          model_properties = child_model.properties(@child_repository_name)
+          properties = child_model.properties(@child_repository_name)
 
           child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
-            # TODO: use something similar to DM::NamingConventions to determine the property name
-            parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
-            property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
+            property_name ||= begin
+              # TODO: use something similar to DM::NamingConventions to determine the property name
+              parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
+              "#{parent_name}_#{parent_property.name}".to_sym
+            end
 
-            if model_properties.has_property?(property_name)
-              model_properties[property_name]
-            else
-              options = {}
-
-              [ :length, :precision, :scale ].each do |option|
-                options[option] = parent_property.send(option)
-              end
+            properties[property_name] || begin
+              options = [ :length, :precision, :scale ].map { |o| [ o, parent_property.send(o) ] }.to_hash
 
               # create the property within the correct repository
               DataMapper.repository(@child_repository_name) do
@@ -109,6 +105,24 @@ module DataMapper
         create_helper
         create_accessor
         create_mutator
+      end
+
+      # TODO: document
+      # @api semipublic
+      def create_helper
+        raise NotImplementedError
+      end
+
+      # TODO: document
+      # @api semipublic
+      def create_accessor
+        raise NotImplementedError
+      end
+
+      # TODO: document
+      # @api semipublic
+      def create_mutator
+        raise NotImplementedError
       end
     end # class Relationship
   end # module Associations
