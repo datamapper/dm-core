@@ -134,11 +134,11 @@ share_examples_for 'An Adapter' do
 
     describe "like" do
       it 'should be able to search for objects that match value' do
-        @model.all(@string_property.name.like => 'ed').should include(@red)
+        @model.all(@string_property.name.like => /ed/).should include(@red)
       end
 
       it "should not search for objects that don't match the value" do
-        @model.all(@string_property.name.like => 'blak').should_not include(@red)
+        @model.all(@string_property.name.like => /blak/).should_not include(@red)
       end
     end
 

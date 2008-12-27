@@ -37,6 +37,14 @@ module DataMapper
               super
           end
         end
+
+        def like_operator(operand)
+          case operand
+            when Regexp       then 'REGEXP'
+            else                   'LIKE'
+          end
+        end
+
       end #module SQL
 
       include SQL

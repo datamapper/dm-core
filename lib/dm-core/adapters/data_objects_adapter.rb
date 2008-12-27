@@ -356,7 +356,7 @@ module DataMapper
           comparison = case operator
             when :eql, :in then equality_operator(right_condition)
             when :not      then inequality_operator(right_condition)
-            when :like     then 'LIKE'
+            when :like     then like_operator(right_condition)
             when :gt       then '>'
             when :gte      then '>='
             when :lt       then '<'
@@ -382,6 +382,13 @@ module DataMapper
             when Range        then 'NOT BETWEEN'
             when NilClass     then 'IS NOT'
             else                   '<>'
+          end
+        end
+
+        def like_operator(operand)
+          case operand
+            when Regexp       then '~'
+            else                   'LIKE'
           end
         end
 
