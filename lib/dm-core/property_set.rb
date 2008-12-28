@@ -1,6 +1,6 @@
 module DataMapper
   class PropertySet
-    include Assertions
+    include Extlib::Assertions
     include Enumerable
 
     def [](name)

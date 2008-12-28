@@ -31,83 +31,96 @@ describe DataMapper::Associations do
         Car.n
       end
 
-      it 'should raise an ArgumentError if the cardinality is not understood' do
-        lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
-      end
-
-      it 'should raise an ArgumentError if the minimum constraint is larger than the maximum' do
-        lambda { Car.has(3..1, :doors) }.should raise_error(ArgumentError)
-      end
-
       describe '1' do
         before do
-          @relationship = Car.has(1, :engine)
+          Car.has(1, :engine)
           @car = Car.new
         end
 
-        it 'should add the accessor' do
+        it 'should create the accessor' do
           @car.should respond_to(:engine)
         end
 
-        it 'should add the mutator' do
+        it 'should create the mutator' do
           @car.should respond_to(:engine=)
         end
       end
 
       describe 'n..n' do
         before do
-          @relationship = Car.has(1..4, :doors)
+          Car.has(1..4, :doors)
           @car = Car.new
         end
 
-        it 'should add the accessor' do
+        it 'should create the accessor' do
           @car.should respond_to(:doors)
         end
 
-        it 'should add the mutator' do
+        it 'should create the mutator' do
           @car.should respond_to(:doors=)
         end
       end
 
       describe 'n..n through' do
         before do
+          Door.has(1, :window)
+          Car.has(1..4, :doors)
+
           pending do
-            @relationship = Car.has(1..4, :windows, :through => :doors)
+            Car.has(1..4, :windows, :through => :doors)
             @car = Car.new
           end
         end
 
-        it 'should add the accessor' do
+        it 'should create the accessor' do
           @car.should respond_to(:windows)
         end
 
-        it 'should add the mutator' do
+        it 'should create the mutator' do
           @car.should respond_to(:windows=)
         end
       end
 
       describe 'n' do
         before do
-          @relationship = Car.has(n, :doors)
-          @car          = Car.new
+          Car.has(n, :doors)
+          @car = Car.new
         end
 
-        it 'should add the accessor' do
+        it 'should create the accessor' do
           @car.should respond_to(:doors)
         end
 
-        describe 'and through option' do
-          before do
-            pending do
-              @relationship = Car.has(n, :windows, :through => :doors)
-              @car          = Car.new
-            end
-          end
+        it 'should create the mutator' do
+          @car.should respond_to(:doors=)
+        end
+      end
 
-          it 'should add the windows getter' do
-            @car.should respond_to(:windows)
+      describe 'n through' do
+        before do
+          Car.has(n, :doors)
+
+          pending do
+            Car.has(n, :windows, :through => :doors)
+            @car = Car.new
           end
         end
+
+        it 'should create the accessor' do
+          @car.should respond_to(:windows)
+        end
+
+        it 'should create the mutator' do
+          @car.should respond_to(:windows=)
+        end
+      end
+
+      it 'should raise an exception if the cardinality is not understood' do
+        lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
+      end
+
+      it 'should raise an exception if the minimum constraint is larger than the maximum' do
+        lambda { Car.has(2..1, :doors) }.should raise_error(ArgumentError)
       end
     end
 
@@ -115,31 +128,28 @@ describe DataMapper::Associations do
 
     describe '#belongs_to' do
       before do
-        @relationship       = Engine.belongs_to(:car)
-        @other_relationship = Car.has(Car.n, :engines)
-        @engine             = Engine.new
-
-        unless @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
-          DataMapper.auto_migrate!
-        end
+        Engine.belongs_to(:car)
+        Car.has(Car.n, :engines)
+        @engine = Engine.new
       end
 
-      it 'should add the accessor' do
+      it 'should create the accessor' do
         @engine.should respond_to(:car)
       end
 
-      it 'should add the mutator' do
+      it 'should create the mutator' do
         @engine.should respond_to(:car=)
       end
 
-      it 'should add the child key accessor' do
+      it 'should create the child key accessor' do
         @engine.should respond_to(:car_id)
       end
 
-      it 'should add the child key mutator' do
+      it 'should create the child key mutator' do
         @engine.should respond_to(:car_id=)
       end
 
+      # TODO: move the "querying" specs to the ManyToOne specs
       describe 'querying for a parent resource' do
         before do
           @car = Car.create

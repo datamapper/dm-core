@@ -103,7 +103,7 @@ require dir / 'is'
 # see DataMapper::Logger for more information.
 #
 module DataMapper
-  extend Assertions
+  extend Extlib::Assertions
 
   def self.root
     @root ||= Pathname(__FILE__).dirname.parent.expand_path

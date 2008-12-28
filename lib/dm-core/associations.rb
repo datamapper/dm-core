@@ -4,10 +4,11 @@ require dir / 'relationship'
 require dir / 'one_to_many'
 require dir / 'one_to_one'
 require dir / 'many_to_one'
+require dir / 'many_to_many'
 
 module DataMapper
   module Associations
-    include Assertions
+    include Extlib::Assertions
 
     class UnsavedParentError < RuntimeError; end
 
@@ -162,17 +163,8 @@ module DataMapper
     # TODO: document
     # @api private
     def assert_valid_options(options)
-      if options.key?(:through)
-        raise ArgumentError, ':through not supported yet'
-      end
-
-      if class_name = options.delete(:class_name)
-        warn "+options[:class_name]+ is deprecated, use :class instead"
-        options[:class] = class_name
-      end
-
-      if (repository = options[:repository]).kind_of?(Repository)
-        options[:repository] = repository.name
+      if (through = options[:through]) && through != Resource && !through.kind_of?(Symbol) && !through.kind_of?(Relationship)
+        raise ArgumentError, "+options[:through] must be Resource or a Symbol, but was #{through.class}"
       end
 
       # do not remove this. There is alot of confusion on people's
@@ -184,6 +176,21 @@ module DataMapper
       # reltionship.
       if options[:min] == n && options[:max] == n
         raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller
+      end
+
+      if options.key?(:limit)
+        raise ArgumentError, '+options[:limit]+ should not be specified on a relationship'
+      elsif (max = options[:max]) && max != n
+        options[:limit] = max
+      end
+
+      if class_name = options.delete(:class_name)
+        warn "+options[:class_name]+ is deprecated, use :class instead"
+        options[:class] = class_name
+      end
+
+      if (repository = options[:repository]).kind_of?(Repository)
+        options[:repository] = repository.name
       end
     end
 

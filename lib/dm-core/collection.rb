@@ -1238,7 +1238,7 @@ module DataMapper
       end
 
       conditions.update(target_key.zip(values.transpose).to_hash)
-      conditions.update(:links => [ relationship ] + self.query.links)
+      conditions.update(:links => self.query.links.dup << relationship)
 
       target_model.all(Query.new(repository, target_model, conditions))
     end

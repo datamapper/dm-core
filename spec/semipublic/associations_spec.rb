@@ -23,87 +23,100 @@ describe DataMapper::Associations do
     end
   end
 
-  describe "#has" do
-
+  describe '#has' do
     def n
       Car.n
     end
 
-    describe "1" do
+    describe '1' do
       before do
         @relationship = Car.has(1, :engine)
       end
 
-      it "should return a DataMapper::Associations::Relationship" do
-        @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+      it 'should return a Relationship' do
+        @relationship.should be_a_kind_of(DataMapper::Associations::OneToOne::Relationship)
       end
 
-      it "should return a relationship with the child model" do
+      it 'should return a Relationship with the child model' do
         @relationship.child_model.should == Engine
       end
     end
 
-    describe "n..n" do
+    describe 'n..n' do
       before do
         @relationship = Car.has(1..4, :doors)
       end
 
-      it "should create a new relationship" do
-        @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+      it 'should return a Relationship' do
+        @relationship.should be_a_kind_of(DataMapper::Associations::OneToMany::Relationship)
       end
 
-      it "should be a relationship with the child model" do
+      it 'should return a Relationship with the child model' do
         @relationship.child_model.should == Door
       end
+    end
 
-      describe "through" do
-        before do
-          pending do
-            @relationship = Car.has(1..4, :windows, :through => :doors)
-          end
-        end
+    describe 'n..n through' do
+      before do
+        Door.has(1, :window)
+        Car.has(1..4, :doors)
 
-        it "should return a new relationship" do
-          @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+        @relationship = Car.has(1..4, :windows, :through => :doors)
+      end
+
+      it 'should return a Relationship' do
+        @relationship.should be_a_kind_of(DataMapper::Associations::ManyToMany::Relationship)
+      end
+
+      it 'should return a Relationship with the child model' do
+        pending do
+          @relationship.child_model.should == Window
         end
       end
     end
 
-    describe "n" do
+    describe 'n' do
       before do
         @relationship = Car.has(n, :doors)
       end
 
-      it "should be a relationship with the child model" do
-        @relationship.child_model.should == Door
+      it 'should return a Relationship' do
+        @relationship.should be_a_kind_of(DataMapper::Associations::OneToMany::Relationship)
       end
 
-      describe "through" do
-        before do
-          pending do
-            @relationship = Car.has(n, :windows, :through => :doors)
-          end
-        end
+      it 'should return a Relationship with the child model' do
+        @relationship.child_model.should == Door
+      end
+    end
 
-        it "should return a new relationship" do
-          @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
-        end
+    describe 'n through' do
+      before do
+        Door.has(n, :windows)
+        Car.has(n, :doors)
+        @relationship = Car.has(n, :windows, :through => :doors)
+      end
+
+      it 'should return a Relationship' do
+        @relationship.should be_a_kind_of(DataMapper::Associations::ManyToMany::Relationship)
+      end
+
+      it 'should return a Relationship with the child model' do
+        @relationship.child_model.should == Window
       end
     end
   end
 
-  describe "#belongs_to" do
+  describe '#belongs_to' do
     before do
       @relationship = Engine.belongs_to(:car)
     end
 
-    it "should return a new relationship" do
-      @relationship.should be_a_kind_of(DataMapper::Associations::Relationship)
+    it 'should return a Relationship' do
+      @relationship.should be_a_kind_of(DataMapper::Associations::ManyToOne::Relationship)
     end
 
-    it "should return the relationship with the parent model" do
+    it 'should return a Relationship with the parent model' do
       @relationship.parent_model.should == Car
     end
-
   end
 end

@@ -2,7 +2,7 @@ require 'set'
 
 module DataMapper
   module Resource
-    include Assertions
+    include Extlib::Assertions
 
     ##
     # Appends a module for inclusion into the model class after
@@ -516,16 +516,7 @@ module DataMapper
       # filter out only allowed attributes
       self.attributes = allowed.any? ? attributes.only(*allowed) : attributes
 
-      # retrieve the attributes that need to be persisted
-      dirty_attributes = self.dirty_attributes
-
-      if dirty_attributes.empty?
-        true
-      elsif dirty_attributes.only(*model.key).values.any? { |v| v.blank? }
-        false
-      else
-        repository.update(dirty_attributes, to_query) == 1
-      end
+      _update
     end
 
     ##
@@ -544,7 +535,7 @@ module DataMapper
       # same API through out all of dm-more. dm-validations requires a
       # context to be passed
 
-      unless saved = new_record? ? create : update
+      unless saved = new_record? ? _create : _update
         return false
       end
 
@@ -600,8 +591,8 @@ module DataMapper
     # @return [TrueClass, FalseClass]
     #   true if the receiver was successfully created
     #
-    # @api public
-    def create
+    # @api semipublic
+    def _create
       # Can't create a resource that is not dirty and doesn't have serial keys
       return false if new_record? && !dirty?
 
@@ -619,6 +610,21 @@ module DataMapper
       repository.identity_map(model)[key] = self
 
       true
+    end
+
+    # TODO: document
+    # @api semipublic
+    def _update
+      # retrieve the attributes that need to be persisted
+      dirty_attributes = self.dirty_attributes
+
+      if dirty_attributes.empty?
+        true
+      elsif dirty_attributes.only(*model.key).values.any? { |v| v.blank? }
+        false
+      else
+        repository.update(dirty_attributes, to_query) == 1
+      end
     end
 
     # Gets this instance's Model's properties

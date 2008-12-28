@@ -4,7 +4,7 @@ module DataMapper
   # Generally Query objects can be found inside Collection objects.
   #
   class Query
-    include Assertions
+    include Extlib::Assertions
 
     OPTIONS = [
       :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :includes, :conditions, :unique
@@ -603,7 +603,7 @@ module DataMapper
     end
 
     class Direction
-      include Assertions
+      include Extlib::Assertions
 
       attr_reader :property, :direction
 
@@ -638,7 +638,7 @@ module DataMapper
     end # class Direction
 
     class Operator
-      include Assertions
+      include Extlib::Assertions
 
       attr_reader :target, :operator
 
@@ -663,7 +663,7 @@ module DataMapper
     end # class Operator
 
     class Path
-      include Assertions
+      include Extlib::Assertions
 
       (%w[ id type ] & public_instance_methods(false).map { |m| m.to_s }).each { |m| undef_method m }
 
@@ -704,7 +704,7 @@ module DataMapper
       def method_missing(method, *args)
         if relationship = @model.relationships(@repository.name)[method]
           klass = klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
-          return Query::Path.new(@repository, @relationships + [ relationship ], klass)
+          return Query::Path.new(@repository, @relationships.dup << relationship, klass)
         end
 
         if @model.properties(@repository.name)[method]

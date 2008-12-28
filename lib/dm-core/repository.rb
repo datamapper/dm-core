@@ -1,6 +1,6 @@
 module DataMapper
   class Repository
-    include Assertions
+    include Extlib::Assertions
 
     @adapters = {}
 

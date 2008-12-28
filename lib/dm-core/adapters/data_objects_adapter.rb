@@ -555,7 +555,7 @@ module DataMapper
             table_name = model.storage_name(repository.name)
             model.properties(repository.name).unique_indexes.map do |index_name, fields|
               <<-EOS.compress_lines
-                CREATE UNIQUE INDEX #{quote_column_name("unique_index_#{table_name}_#{index_name}")} ON
+                CREATE UNIQUE INDEX #{quote_column_name("unique_#{table_name}_#{index_name}")} ON
                 #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) }.join(', ')})
               EOS
             end

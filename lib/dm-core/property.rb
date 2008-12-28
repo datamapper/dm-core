@@ -315,7 +315,7 @@ module DataMapper
   # * You may declare a Property with the data-type of <tt>Class</tt>.
   #   see SingleTableInheritance for more on how to use <tt>Class</tt> columns.
   class Property
-    include Assertions
+    include Extlib::Assertions
 
     # NOTE: check is only for psql, so maybe the postgres adapter should
     # define its own property options. currently it will produce a warning tho
@@ -760,6 +760,9 @@ module DataMapper
         raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type", caller
       end
 
+      # TODO: remove this and blow up when an option is specified that
+      # is not part of PROPERTY_OPTIONS.  DM::Property subclasses should
+      # decide which extra options they are going to support.
       @extra_options = {}
       (options.keys - PROPERTY_OPTIONS).each do |key|
         @extra_options[key] = options.delete(key)

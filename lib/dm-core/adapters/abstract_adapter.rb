@@ -1,7 +1,7 @@
 module DataMapper
   module Adapters
     class AbstractAdapter
-      include Assertions
+      include Extlib::Assertions
 
       attr_reader :name, :uri
       attr_accessor :resource_naming_convention, :field_naming_convention

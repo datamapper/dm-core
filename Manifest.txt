@@ -20,6 +20,7 @@ lib/dm-core/adapters/mysql_adapter.rb
 lib/dm-core/adapters/postgres_adapter.rb
 lib/dm-core/adapters/sqlite3_adapter.rb
 lib/dm-core/associations.rb
+lib/dm-core/associations/many_to_many.rb
 lib/dm-core/associations/many_to_one.rb
 lib/dm-core/associations/one_to_many.rb
 lib/dm-core/associations/one_to_one.rb
@@ -42,7 +43,6 @@ lib/dm-core/resource.rb
 lib/dm-core/scope.rb
 lib/dm-core/support.rb
 lib/dm-core/support/array.rb
-lib/dm-core/support/assertions.rb
 lib/dm-core/support/errors.rb
 lib/dm-core/support/kernel.rb
 lib/dm-core/support/symbol.rb
