@@ -84,7 +84,7 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def property_schema_hash(property, model)
+          def property_schema_hash(property)
             schema = super
             schema.delete(:default) if schema[:primitive] == 'TEXT'
             schema

@@ -228,14 +228,14 @@ module DataMapper
             statement << 'DEFAULT VALUES'
           else
             statement << <<-EOS.compress_lines
-              (#{properties.map { |p| quote_column_name(p.field(repository.name)) }.join(', ')})
+              (#{properties.map { |p| quote_column_name(p.field) }.join(', ')})
               VALUES
               (#{(['?'] * properties.size).join(', ')})
             EOS
           end
 
           if supports_returning? && identity_field
-            statement << " RETURNING #{quote_column_name(identity_field.field(repository.name))}"
+            statement << " RETURNING #{quote_column_name(identity_field.field)}"
           end
 
           statement
@@ -258,13 +258,13 @@ module DataMapper
 
         def update_statement(properties, query)
           statement = "UPDATE #{quote_table_name(query.model.storage_name(query.repository.name))}"
-          statement << " SET #{set_statement(query.repository, properties)}"
+          statement << " SET #{set_statement(properties)}"
           statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
           statement
         end
 
-        def set_statement(repository, properties)
-          properties.map { |p| "#{quote_column_name(p.field(repository.name))} = ?" }.join(', ')
+        def set_statement(properties)
+          properties.map { |p| "#{quote_column_name(p.field)} = ?" }.join(', ')
         end
 
         def delete_statement(query)
@@ -396,9 +396,9 @@ module DataMapper
           table_name = property.model.storage_name(repository.name) if property && property.respond_to?(:model)
 
           if table_name && qualify
-            "#{quote_table_name(table_name)}.#{quote_column_name(property.field(repository.name))}"
+            "#{quote_table_name(table_name)}.#{quote_column_name(property.field)}"
           else
-            quote_column_name(property.field(repository.name))
+            quote_column_name(property.field)
           end
         end
 
@@ -463,7 +463,7 @@ module DataMapper
           properties = []
 
           model.properties(repository.name).each do |property|
-            schema_hash = property_schema_hash(repository, property)
+            schema_hash = property_schema_hash(property)
             next if field_exists?(table_name, schema_hash[:name])
             statement = alter_table_add_column_statement(table_name, schema_hash)
             execute(statement)
@@ -523,11 +523,11 @@ module DataMapper
 
             statement = <<-EOS.compress_lines
               CREATE TABLE #{quote_table_name(model.storage_name(repository_name))}
-              (#{properties.map { |p| property_schema_statement(property_schema_hash(repository, p)) }.join(', ')}
+              (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')}
             EOS
 
             if (key = model.key(repository_name)).any?
-              statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field(repository_name)) }.join(', ')})"
+              statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field) }.join(', ')})"
             end
 
             statement << ')'
@@ -562,8 +562,9 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def property_schema_hash(repository, property)
-            schema = self.class.type_map[property.type].merge(:name => property.field(repository.name))
+          def property_schema_hash(property)
+            schema = self.class.type_map[property.type].merge(:name => property.field)
+
             # TODO: figure out a way to specify the size not be included, even if
             # a default is defined in the typemap
             #  - use this to make it so all TEXT primitive fields do not have size

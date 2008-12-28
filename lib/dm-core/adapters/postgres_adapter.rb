@@ -80,7 +80,7 @@ module DataMapper
           end
 
           # TODO: move to dm-more/dm-migrations
-          def property_schema_hash(repository, property)
+          def property_schema_hash(property)
             schema = super
 
             # TODO: see if TypeMap can be updated to set specific attributes to nil

@@ -364,26 +364,20 @@ module DataMapper
 
     # Supplies the field in the data-store which the property corresponds to
     #
-    # @param  [String] repository_name
-    #   the name of the data-store in which the field for this property
-    #   should be looked up.
-    #
     # @return [String] name of field in data-store
     #
     # @api semipublic
     def field(repository_name = nil)
       if repository_name
-        # TODO: uncomment once all dm-core and dm-more is tested
-        #warn "Passing in +repository_name+ to #{self.class}#field is deprecated"
+        warn "Passing in +repository_name+ to #{self.class}#field is deprecated: #{caller[0]}"
 
         if repository_name != self.repository_name
           raise ArgumentError, "Mismatching +repository_name+ with #{self.class}#repository_name (#{repository_name.inspect} != #{self.repository_name.inspect})", caller
         end
       end
 
-      repository_name = self.repository_name
-
-      @field || @fields[repository_name] ||= self.model.field_naming_convention(repository_name).call(self)
+      # TODO: set @field when the property is declared in a specific repository
+      @field || self.model.field_naming_convention(self.repository_name).call(self)
     end
 
     # Returns true if property has uniq key. Serial properties and
@@ -394,7 +388,7 @@ module DataMapper
     #
     # @api public
     def unique
-      @unique ||= @options.fetch(:unique, @serial || @key || false)
+      @unique
     end
 
     # Returns universal unique property identifier.
@@ -789,37 +783,32 @@ module DataMapper
       @options                = @custom ? @type.options.merge(options) : options
       @instance_variable_name = "@#{@name}"
 
-      # TODO: This default should move to a DataMapper::Types::Text
-      # Custom-Type and out of Property.
-      @primitive = @options.fetch(:primitive, @type.respond_to?(:primitive) ? @type.primitive : @type)
+      @primitive = @options[:primitive] || (@type.respond_to?(:primitive) ? @type.primitive : @type)
+      @getter    = TrueClass == @primitive ? "#{@name}?".to_sym : @name
+      @field     = @options[:field] || (repository_name == :default ? nil : model.field_naming_convention(repository_name).call(self))
+      @default   = @options[:default]
 
-      @getter       = TrueClass == @primitive ? "#{@name}?".to_sym : @name
-      @field        = @options.fetch(:field,        nil)
       @serial       = @options.fetch(:serial,       false)
       @key          = @options.fetch(:key,          @serial || false)
-      @default      = @options.fetch(:default,      nil)
       @nullable     = @options.fetch(:nullable,     @key == false)
       @index        = @options.fetch(:index,        false)
       @unique_index = @options.fetch(:unique_index, false)
+      @unique       = @options.fetch(:unique,       @serial || @key || false)
       @lazy         = @options.fetch(:lazy,         @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
-      @fields       = {}
 
-      @track = @options.fetch(:track) do
-        if @custom && @type.respond_to?(:track) && @type.track
-          @type.track
-        else
-          IMMUTABLE_TYPES.include?(@primitive) ? :set : :get
-        end
+      @track = @options[:track] || if @custom && @type.respond_to?(:track) && @type.track
+        @type.track
+      else
+        IMMUTABLE_TYPES.include?(@primitive) ? :set : :get
       end
 
       # assign attributes per-type
       if String == @primitive || Class == @primitive
-        @length = @options.fetch(:length, @options.fetch(:size, DEFAULT_LENGTH))
+        @length = @options[:length] || @options[:size] || DEFAULT_LENGTH
       elsif BigDecimal == @primitive || Float == @primitive
-        @precision = @options.fetch(:precision, DEFAULT_PRECISION)
-
-        default_scale = (Float == @primitive) ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL
-        @scale = @options.fetch(:scale, default_scale)
+        @precision    = @options[:precision] || DEFAULT_PRECISION
+        default_scale = Float == @primitive ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL
+        @scale        = @options[:scale] || default_scale
 
         unless @precision > 0
           raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"

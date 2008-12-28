@@ -66,15 +66,13 @@ module DataMapper
 
     def indexes
       index_hash = {}
-      repository_name = repository.name
-      each { |property| parse_index(property.index, property.field(repository_name), index_hash) }
+      each { |p| parse_index(p.index, p.field, index_hash) }
       index_hash
     end
 
     def unique_indexes
       index_hash = {}
-      repository_name = repository.name
-      each { |property| parse_index(property.unique_index, property.field(repository_name), index_hash) }
+      each { |p| parse_index(p.unique_index, p.field, index_hash) }
       index_hash
     end
 
