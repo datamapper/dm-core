@@ -765,7 +765,9 @@ module DataMapper
 
       # if the type can be found within DataMapper::Types then
       # use that class rather than the primitive
-      type = DataMapper::Types.find_const(type.name)
+      unless type.name.blank?
+        type = DataMapper::Types.find_const(type.name)
+      end
 
       unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
         raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type", caller
