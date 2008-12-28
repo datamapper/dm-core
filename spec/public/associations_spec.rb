@@ -23,133 +23,133 @@ describe DataMapper::Associations do
     end
   end
 
-  supported_by :all do
-    it { Car.should respond_to(:has) }
+  def n
+    1.0/0
+  end
 
-    describe '#has' do
-      def n
-        Car.n
-      end
+  it { Car.should respond_to(:has) }
 
-      describe '1' do
-        before do
-          Car.has(1, :engine)
-          @car = Car.new
-        end
-
-        it 'should create the accessor' do
-          @car.should respond_to(:engine)
-        end
-
-        it 'should create the mutator' do
-          @car.should respond_to(:engine=)
-        end
-      end
-
-      describe 'n..n' do
-        before do
-          Car.has(1..4, :doors)
-          @car = Car.new
-        end
-
-        it 'should create the accessor' do
-          @car.should respond_to(:doors)
-        end
-
-        it 'should create the mutator' do
-          @car.should respond_to(:doors=)
-        end
-      end
-
-      describe 'n..n through' do
-        before do
-          Door.has(1, :window)
-          Car.has(1..4, :doors)
-
-          pending do
-            Car.has(1..4, :windows, :through => :doors)
-            @car = Car.new
-          end
-        end
-
-        it 'should create the accessor' do
-          @car.should respond_to(:windows)
-        end
-
-        it 'should create the mutator' do
-          @car.should respond_to(:windows=)
-        end
-      end
-
-      describe 'n' do
-        before do
-          Car.has(n, :doors)
-          @car = Car.new
-        end
-
-        it 'should create the accessor' do
-          @car.should respond_to(:doors)
-        end
-
-        it 'should create the mutator' do
-          @car.should respond_to(:doors=)
-        end
-      end
-
-      describe 'n through' do
-        before do
-          Car.has(n, :doors)
-
-          pending do
-            Car.has(n, :windows, :through => :doors)
-            @car = Car.new
-          end
-        end
-
-        it 'should create the accessor' do
-          @car.should respond_to(:windows)
-        end
-
-        it 'should create the mutator' do
-          @car.should respond_to(:windows=)
-        end
-      end
-
-      it 'should raise an exception if the cardinality is not understood' do
-        lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
-      end
-
-      it 'should raise an exception if the minimum constraint is larger than the maximum' do
-        lambda { Car.has(2..1, :doors) }.should raise_error(ArgumentError)
-      end
-    end
-
-    it { Engine.should respond_to(:belongs_to) }
-
-    describe '#belongs_to' do
+  describe '#has' do
+    describe '1' do
       before do
-        Engine.belongs_to(:car)
-        Car.has(Car.n, :engines)
-        @engine = Engine.new
+        Car.has(1, :engine)
+        @car = Car.new
       end
 
       it 'should create the accessor' do
-        @engine.should respond_to(:car)
+        @car.should respond_to(:engine)
       end
 
       it 'should create the mutator' do
-        @engine.should respond_to(:car=)
+        @car.should respond_to(:engine=)
+      end
+    end
+
+    describe 'n..n' do
+      before do
+        Car.has(1..4, :doors)
+        @car = Car.new
       end
 
-      it 'should create the child key accessor' do
-        @engine.should respond_to(:car_id)
+      it 'should create the accessor' do
+        @car.should respond_to(:doors)
       end
 
-      it 'should create the child key mutator' do
-        @engine.should respond_to(:car_id=)
+      it 'should create the mutator' do
+        @car.should respond_to(:doors=)
+      end
+    end
+
+    describe 'n..n through' do
+      before do
+        Door.has(1, :window)
+        Car.has(1..4, :doors)
+
+        pending do
+          Car.has(1..4, :windows, :through => :doors)
+          @car = Car.new
+        end
       end
 
-      # TODO: move the "querying" specs to the ManyToOne specs
+      it 'should create the accessor' do
+        @car.should respond_to(:windows)
+      end
+
+      it 'should create the mutator' do
+        @car.should respond_to(:windows=)
+      end
+    end
+
+    describe 'n' do
+      before do
+        Car.has(n, :doors)
+        @car = Car.new
+      end
+
+      it 'should create the accessor' do
+        @car.should respond_to(:doors)
+      end
+
+      it 'should create the mutator' do
+        @car.should respond_to(:doors=)
+      end
+    end
+
+    describe 'n through' do
+      before do
+        Car.has(n, :doors)
+
+        pending do
+          Car.has(n, :windows, :through => :doors)
+          @car = Car.new
+        end
+      end
+
+      it 'should create the accessor' do
+        @car.should respond_to(:windows)
+      end
+
+      it 'should create the mutator' do
+        @car.should respond_to(:windows=)
+      end
+    end
+
+    it 'should raise an exception if the cardinality is not understood' do
+      lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
+    end
+
+    it 'should raise an exception if the minimum constraint is larger than the maximum' do
+      lambda { Car.has(2..1, :doors) }.should raise_error(ArgumentError)
+    end
+  end
+
+  it { Engine.should respond_to(:belongs_to) }
+
+  describe '#belongs_to' do
+    before do
+      Engine.belongs_to(:car)
+      Car.has(n, :engines)
+      @engine = Engine.new
+    end
+
+    it 'should create the accessor' do
+      @engine.should respond_to(:car)
+    end
+
+    it 'should create the mutator' do
+      @engine.should respond_to(:car=)
+    end
+
+    it 'should create the child key accessor' do
+      @engine.should respond_to(:car_id)
+    end
+
+    it 'should create the child key mutator' do
+      @engine.should respond_to(:car_id=)
+    end
+
+    # TODO: move the "querying" specs to the ManyToOne specs
+    supported_by :all do
       describe 'querying for a parent resource' do
         before do
           @car = Car.create

@@ -377,7 +377,7 @@ module DataMapper
         #warn "Passing in +repository_name+ to #{self.class}#field is deprecated"
 
         if repository_name != self.repository_name
-          raise ArgumentError "Mismatching +repository_name+ with #{self.class}#repository_name", caller
+          raise ArgumentError, "Mismatching +repository_name+ with #{self.class}#repository_name (#{repository_name.inspect} != #{self.repository_name.inspect})", caller
         end
       end
 
