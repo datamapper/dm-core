@@ -5,15 +5,16 @@ module DataMapper
       lazy      true
 
       def self.bind(property)
-        model = property.model
-        repository = property.repository
+        repository_name = property.repository_name
+        model           = property.model
+        property_name   = property.name
 
-        model.send(:set_paranoid_property, property.name){DateTime.now}
+        model.send(:set_paranoid_property, property_name){DateTime.now}
 
         model.class_eval <<-EOS, __FILE__, __LINE__
 
           def self.with_deleted
-            with_exclusive_scope(#{property.name.inspect}.not => nil) do
+            with_exclusive_scope(#{property_name.inspect}.not => nil) do
               yield
             end
           end
@@ -26,7 +27,7 @@ module DataMapper
           end
         EOS
 
-        model.default_scope(repository.name).update(property.name => nil)
+        model.default_scope(repository_name).update(property_name => nil)
       end
     end # class ParanoidDateTime
   end # module Types

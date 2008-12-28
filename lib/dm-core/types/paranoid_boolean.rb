@@ -6,15 +6,16 @@ module DataMapper
       lazy      true
 
       def self.bind(property)
-        model = property.model
-        repository = property.repository
+        repository_name = property.repository_name
+        model           = property.model
+        property_name   = property.name
 
-        model.send(:set_paranoid_property, property.name){true}
+        model.send(:set_paranoid_property, property_name){true}
 
         model.class_eval <<-EOS, __FILE__, __LINE__
 
           def self.with_deleted
-            with_exclusive_scope(#{property.name.inspect} => true) do
+            with_exclusive_scope(#{property_name.inspect} => true) do
               yield
             end
           end
@@ -27,7 +28,7 @@ module DataMapper
           end
         EOS
 
-        model.default_scope(repository.name).update(property.name => false)
+        model.default_scope(repository_name).update(property_name => false)
       end
     end # class ParanoidBoolean
   end # module Types

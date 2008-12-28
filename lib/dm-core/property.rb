@@ -360,7 +360,7 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
-      :default, :precision, :scale, :track, :extra_options
+      :default, :precision, :scale, :track, :extra_options, :repository_name
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -372,6 +372,17 @@ module DataMapper
     #
     # @api semipublic
     def field(repository_name = nil)
+      if repository_name
+        # TODO: uncomment once all dm-core and dm-more is tested
+        #warn "Passing in +repository_name+ to #{self.class}#field is deprecated"
+
+        if repository_name != self.repository_name
+          raise ArgumentError "Mismatching +repository_name+ with #{self.class}#repository_name", caller
+        end
+      end
+
+      repository_name = self.repository_name
+
       @field || @fields[repository_name] ||= self.model.field_naming_convention(repository_name).call(self)
     end
 
@@ -768,6 +779,7 @@ module DataMapper
         @extra_options[key] = options.delete(key)
       end
 
+      @repository_name        = repository.name
       @model                  = model
       @name                   = name.to_s.sub(/\?$/, '').to_sym
       @type                   = type
