@@ -7,7 +7,11 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      attr_reader :name, :query, *OPTIONS
+      attr_reader :name, :query, :intermediaries, *OPTIONS
+
+      def intermediaries
+        @intermediaries ||= [].freeze
+      end
 
       # TODO: document
       # @api semipublic
@@ -21,9 +25,7 @@ module DataMapper
       # @api semipublic
       def child_key
         @child_key ||= begin
-          properties = child_model.properties(@child_repository_name)
-
-          # TODO: use something similar to DM::NamingConventions to determine the property name
+          properties  = child_model.properties(@child_repository_name)
           parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
 
           child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
@@ -74,19 +76,6 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def initialize(name, child_model, parent_model, options = {})
-        assert_kind_of 'name',         name,         Symbol
-        assert_kind_of 'child_model',  child_model,  Model, String if child_model
-        assert_kind_of 'parent_model', parent_model, Model, String
-        assert_kind_of 'options',      options,      Hash
-
-        assert_kind_of 'options[:child_repository_name]',  options[:child_repository_name],  Symbol
-        assert_kind_of 'options[:parent_repository_name]', options[:parent_repository_name], Symbol
-
-        assert_kind_of 'options[:child_key]',  options[:child_key],  Array, NilClass
-        assert_kind_of 'options[:parent_key]', options[:parent_key], Array, NilClass
-
-        assert_kind_of 'options[:through]', options[:through], Relationship, NilClass
-
         case child_model
           when Model  then @child_model      = child_model
           when String then @child_model_name = child_model.freeze
@@ -102,7 +91,7 @@ module DataMapper
         @parent_repository_name = options[:parent_repository_name]
         @child_properties       = options[:child_key].freeze
         @parent_properties      = options[:parent_key].freeze
-        @min                    = options[:min] || 0
+        @min                    = options[:min]
         @max                    = options[:max]
         @through                = options[:through]
         @query                  = options.except(*OPTIONS).freeze

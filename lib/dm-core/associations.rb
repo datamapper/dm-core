@@ -80,9 +80,12 @@ module DataMapper
     #
     # @api public
     def has(cardinality, name, options = {})
-      assert_kind_of 'name', name, Symbol
+      assert_kind_of 'cardinality', cardinality, Integer, Float, Range
+      assert_kind_of 'name',        name,        Symbol
+      assert_kind_of 'options',     options,     Hash
 
-      options = options.merge(extract_min_max(cardinality))
+      min, max = extract_min_max(cardinality)
+      options = options.merge(:min => min, :max => max)
 
       assert_valid_options(options)
 
@@ -91,7 +94,7 @@ module DataMapper
       options[:child_repository_name]  = options.delete(:repository) if options.key?(:repository)
       options[:parent_repository_name] = parent_repository_name
 
-      # TODO: remove this once Relationships can have relative repositories
+      # TODO: remove this once Relationships can use relative repositories
       options[:child_repository_name] ||= options[:parent_repository_name]
 
       klass = if options.key?(:through)
@@ -102,7 +105,7 @@ module DataMapper
         OneToOne::Relationship
       end
 
-      relationships(parent_repository_name)[name] = klass.new(name, options.delete(:class), self, options)
+      relationships(parent_repository_name)[name] = klass.new(name, options.delete(:class), self, options.freeze)
     end
 
     ##
@@ -119,6 +122,11 @@ module DataMapper
     #
     # @api public
     def belongs_to(name, options = {})
+      assert_kind_of 'name',    name,    Symbol
+      assert_kind_of 'options', options, Hash
+
+      options = options.merge(:min => options[:min] || 0, :max => 1)
+
       assert_valid_options(options)
 
       @_valid_relations = false
@@ -128,69 +136,77 @@ module DataMapper
       options[:child_repository_name]  = child_repository_name
       options[:parent_repository_name] = options.delete(:repository) if options.key?(:repository)
 
-      # TODO: remove this once Relationships can have relative repositories
+      # TODO: remove this once Relationships can use relative repositories
       options[:parent_repository_name] ||= options[:child_repository_name]
 
-      relationships(child_repository_name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:class), options)
+      relationships(child_repository_name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:class), options.freeze)
     end
 
     private
 
     ##
-    # A support method form converting Integer, Range or Infinity values into a
-    # { :min => x, :max => y } hash.
-    #
-    # @raise [ArgumentError] if constraints[:min] is larger than constraints[:max]
+    # A support method for converting Integer, Range or Infinity values into two
+    # values representing the minimum and maximum cardinality of the association
     #
     # @api private
-    def extract_min_max(constraints)
-      assert_kind_of 'constraints', constraints, Integer, Range unless constraints == n
-
-      case constraints
-        when Integer
-          { :min => constraints, :max => constraints }
-        when Range
-          if constraints.first > constraints.last
-            raise ArgumentError, "Constraint min (#{constraints.first}) cannot be larger than the max (#{constraints.last})"
-          end
-
-          { :min => constraints.first, :max => constraints.last }
-        when n
-          { :min => 0, :max => n }
+    def extract_min_max(cardinality)
+      case cardinality
+        when Integer then return cardinality, cardinality
+        when Range   then return cardinality.first, cardinality.last
+        when n       then return 0, n
       end
     end
 
     # TODO: document
     # @api private
     def assert_valid_options(options)
-      if (through = options[:through]) && through != Resource && !through.kind_of?(Symbol) && !through.kind_of?(Relationship)
-        raise ArgumentError, "+options[:through] must be Resource or a Symbol, but was #{through.class}"
+      assert_kind_of 'options[:min]', options[:min], Integer
+      assert_kind_of 'options[:max]', options[:max], Integer, Float
+
+      if options[:min] == n && options[:max] == n
+        raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller(1)
+      elsif options[:min] > options[:max]
+        raise ArgumentError, "Cardinality min (#{options[:min]}) cannot be larger than the max (#{options[:max]})", caller(1)
+      elsif options[:min] < 0
+        raise ArgumentError, "Cardinality min much be greater than or equal to 0, but was #{options[:min]}", caller(1)
+      elsif options[:max] < 1
+        raise ArgumentError, "Cardinality max much be greater than or equal to 1, but was #{options[:max]}", caller(1)
       end
 
-      # do not remove this. There is alot of confusion on people's
-      # part about what the first argument to has() is.  For the record it
-      # is the min cardinality and max cardinality of the association.
-      # simply put, it constraints the number of resources that will be
-      # returned by the association.  It is not, as has been assumed,
-      # the number of results on the left and right hand side of the
-      # reltionship.
-      if options[:min] == n && options[:max] == n
-        raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller
+      if options.key?(:repository)
+        assert_kind_of 'options[:repository]', options[:repository], Repository, Symbol
+
+        if options[:repository].kind_of?(Repository)
+          options[:repository] = options[:repository].name
+        end
+      end
+
+      if options.key?(:class_name)
+        assert_kind_of 'options[:class_name]', options[:class_name], String
+        warn '+options[:class_name]+ is deprecated, use :class instead'
+        options[:class] = options.delete(:class_name)
+      end
+
+      if options.key?(:child_key)
+        assert_kind_of 'options[:child_key]', options[:child_key], Enumerable
+      end
+
+      if options.key?(:parent_key)
+        assert_kind_of 'options[:parent_key]', options[:parent_key], Enumerable
+      end
+
+      if options.key?(:through) && options[:through] != Resource
+        assert_kind_of 'options[:through]', options[:through], Relationship, Symbol, Module
+
+        if (through = options[:through]).kind_of?(Symbol)
+          unless options[:through] = relationships(repository.name)[through]
+            raise ArgumentError, "through refers to an unknown relationship #{through} in #{self} within the #{repository.name} repository"
+          end
+        end
       end
 
       if options.key?(:limit)
-        raise ArgumentError, '+options[:limit]+ should not be specified on a relationship'
-      elsif (max = options[:max]) && max != n
-        options[:limit] = max
-      end
-
-      if class_name = options.delete(:class_name)
-        warn "+options[:class_name]+ is deprecated, use :class instead"
-        options[:class] = class_name
-      end
-
-      if (repository = options[:repository]).kind_of?(Repository)
-        options[:repository] = repository.name
+        raise ArgumentError, '+options[:limit]+ should not be specified on a relationship', caller(1)
       end
     end
 

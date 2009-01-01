@@ -33,6 +33,7 @@ describe DataMapper::Associations do
     describe '1' do
       before do
         Car.has(1, :engine)
+
         @car = Car.new
       end
 
@@ -48,6 +49,7 @@ describe DataMapper::Associations do
     describe 'n..n' do
       before do
         Car.has(1..4, :doors)
+
         @car = Car.new
       end
 
@@ -64,11 +66,9 @@ describe DataMapper::Associations do
       before do
         Door.has(1, :window)
         Car.has(1..4, :doors)
+        Car.has(1..4, :windows, :through => :doors)
 
-        pending do
-          Car.has(1..4, :windows, :through => :doors)
-          @car = Car.new
-        end
+        @car = Car.new
       end
 
       it 'should create the accessor' do
@@ -83,6 +83,7 @@ describe DataMapper::Associations do
     describe 'n' do
       before do
         Car.has(n, :doors)
+
         @car = Car.new
       end
 
@@ -97,12 +98,11 @@ describe DataMapper::Associations do
 
     describe 'n through' do
       before do
+        Door.has(1, :window)
         Car.has(n, :doors)
+        Car.has(n, :windows, :through => :doors)
 
-        pending do
-          Car.has(n, :windows, :through => :doors)
-          @car = Car.new
-        end
+        @car = Car.new
       end
 
       it 'should create the accessor' do
@@ -129,6 +129,7 @@ describe DataMapper::Associations do
     before do
       Engine.belongs_to(:car)
       Car.has(n, :engines)
+
       @engine = Engine.new
     end
 

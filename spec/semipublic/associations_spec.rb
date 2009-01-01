@@ -23,11 +23,11 @@ describe DataMapper::Associations do
     end
   end
 
-  describe '#has' do
-    def n
-      Car.n
-    end
+  def n
+    1.0/0
+  end
 
+  describe '#has' do
     describe '1' do
       before do
         @relationship = Car.has(1, :engine)
@@ -39,6 +39,14 @@ describe DataMapper::Associations do
 
       it 'should return a Relationship with the child model' do
         @relationship.child_model.should == Engine
+      end
+
+      it 'should return a Relationship with a min of 1' do
+        @relationship.min.should == 1
+      end
+
+      it 'should return a Relationship with a max of 1' do
+        @relationship.max.should == 1
       end
     end
 
@@ -53,6 +61,14 @@ describe DataMapper::Associations do
 
       it 'should return a Relationship with the child model' do
         @relationship.child_model.should == Door
+      end
+
+      it 'should return a Relationship with a min of 1' do
+        @relationship.min.should == 1
+      end
+
+      it 'should return a Relationship with a max of 4' do
+        @relationship.max.should == 4
       end
     end
 
@@ -69,9 +85,15 @@ describe DataMapper::Associations do
       end
 
       it 'should return a Relationship with the child model' do
-        pending do
-          @relationship.child_model.should == Window
-        end
+        @relationship.child_model.should == Window
+      end
+
+      it 'should return a Relationship with a min of 1' do
+        @relationship.min.should == 1
+      end
+
+      it 'should return a Relationship with a max of 4' do
+        @relationship.max.should == 4
       end
     end
 
@@ -87,12 +109,21 @@ describe DataMapper::Associations do
       it 'should return a Relationship with the child model' do
         @relationship.child_model.should == Door
       end
+
+      it 'should return a Relationship with a min of 0' do
+        @relationship.min.should == 0
+      end
+
+      it 'should return a Relationship with a max of n' do
+        @relationship.max.should == n
+      end
     end
 
     describe 'n through' do
       before do
-        Door.has(n, :windows)
-        Car.has(n, :doors)
+        Door.has(1, :windows)
+        Car.has(1..4, :doors)
+
         @relationship = Car.has(n, :windows, :through => :doors)
       end
 
@@ -102,6 +133,14 @@ describe DataMapper::Associations do
 
       it 'should return a Relationship with the child model' do
         @relationship.child_model.should == Window
+      end
+
+      it 'should return a Relationship with a min of 0' do
+        @relationship.min.should == 0
+      end
+
+      it 'should return a Relationship with a max of n' do
+        @relationship.max.should == n
       end
     end
   end
@@ -117,6 +156,14 @@ describe DataMapper::Associations do
 
     it 'should return a Relationship with the parent model' do
       @relationship.parent_model.should == Car
+    end
+
+    it 'should return a Relationship with a min of 0' do
+      @relationship.min.should == 0
+    end
+
+    it 'should return a Relationship with a max of 1' do
+      @relationship.max.should == 1
     end
   end
 end

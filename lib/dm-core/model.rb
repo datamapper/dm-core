@@ -8,8 +8,6 @@ module DataMapper
     #
     # If a block is passed, it will be eval'd in the context of the new Model
     #
-    # @param [#to_s] storage_name
-    #   the default_storage name to use for the new Model class
     # @param [Proc] block
     #   a block that will be eval'd in the context of the new Model class
     #
@@ -17,14 +15,26 @@ module DataMapper
     #   the newly created Model class
     #
     # @api semipublic
-    def self.new(storage_name, &block)
+    def self.new(storage_name = nil, &block)
       model = Class.new
-      model.send(:include, Resource)
+
       model.class_eval <<-EOS, __FILE__, __LINE__
-        def self.default_storage_name
-          #{Extlib::Inflection.classify(storage_name).inspect}
+        include DataMapper::Resource
+
+        def self.name
+          to_s
         end
       EOS
+
+      if storage_name
+        warn "Passing in +storage_name+ to #{name}.new is deprecated"
+        model.class_eval <<-EOS, __FILE__, __LINE__
+          def self.default_storage_name
+            #{Extlib::Inflection.classify(storage_name).inspect}
+          end
+        EOS
+      end
+
       model.instance_eval(&block) if block_given?
       model
     end

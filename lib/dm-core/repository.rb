@@ -2,8 +2,6 @@ module DataMapper
   class Repository
     include Extlib::Assertions
 
-    @adapters = {}
-
     ##
     # Get the list of adapters registered for all Repositories,
     # keyed by repository name.
@@ -11,7 +9,7 @@ module DataMapper
     # @return [Hash(Symbol => DataMapper::Adapters::AbstractAdapter)]
     #   the adapters registered for all Repositories
     def self.adapters
-      @adapters
+      @adapters ||= {}
     end
 
     ##
