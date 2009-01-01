@@ -1,7 +1,7 @@
 module DataMapper
   module Associations
     module ManyToMany
-      class Relationship < DataMapper::Associations::Relationship
+      class Relationship < DataMapper::Associations::OneToMany::Relationship
 
         # TODO: document
         # @api semipublic
@@ -56,11 +56,6 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def initialize(name, child_model, parent_model, options = {})
-          child_model ||= Extlib::Inflection.camelize(name.to_s.singular)
-          super
-        end
-
         def create_helper
           # TODO: make sure the proper Query is set up, one that includes all the links
           #   - make sure that all relationships can be intermediaries
@@ -73,33 +68,7 @@ module DataMapper
           parent_model.class_eval <<-EOS, __FILE__, __LINE__
             private
             def #{name}_helper
-              @#{name} ||= begin
-                # TODO: create a ManyToMany::Collection to represent the association
-              end
-            end
-          EOS
-        end
-
-        # TODO: see if code can be shared with OneToMany::Relationship#create_accessor
-        def create_accessor
-          return if parent_model.instance_methods(false).include?(name)
-
-          parent_model.class_eval <<-EOS, __FILE__, __LINE__
-            public  # TODO: make this configurable
-            def #{name}(query = nil)
-              #{name}_helper.all(query)
-            end
-          EOS
-        end
-
-        # TODO: see if code can be shared with OneToMany::Relationship#create_mutator
-        def create_mutator
-          return if parent_model.instance_methods(false).include?("#{name}=")
-
-          parent_model.class_eval <<-EOS, __FILE__, __LINE__
-            public  # TODO: make this configurable
-            def #{name}=(children)
-              #{name}_helper.replace(children)
+              raise NotImplementedError
             end
           EOS
         end

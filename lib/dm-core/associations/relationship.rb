@@ -7,7 +7,7 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      attr_reader :name, :query, :intermediaries, *OPTIONS
+      attr_reader :name, :query, *OPTIONS
 
       def intermediaries
         @intermediaries ||= [].freeze
