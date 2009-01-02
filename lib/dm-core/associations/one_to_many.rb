@@ -2,6 +2,12 @@ module DataMapper
   module Associations
     module OneToMany
       class Relationship < DataMapper::Associations::Relationship
+        # TODO: document
+        # @api semipublic
+        def self.collection_class
+          @collection_class ||= Object.find_const(name[/\A.+::/] << 'Collection')
+        end
+
         private
 
         # TODO: document
@@ -47,7 +53,7 @@ module DataMapper
 
                 query = Query.new(repository, model, conditions)
 
-                association = OneToMany::Collection.new(query)
+                association = relationship.class.collection_class.new(query)
 
                 association.relationship = relationship
                 association.parent       = self

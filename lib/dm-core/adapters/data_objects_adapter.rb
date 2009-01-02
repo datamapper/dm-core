@@ -279,17 +279,17 @@ module DataMapper
         end
 
         def links_statement(query)
-          table_name = query.model.storage_name(query.repository.name)
-
           statement = ''
           query.links.each do |relationship|
-            parent_table_name = relationship.parent_model.storage_name(query.repository.name)
-            child_table_name  = relationship.child_model.storage_name(query.repository.name)
-
-            join_table_name = table_name == parent_table_name ? child_table_name : parent_table_name
+            join_model = case relationship
+              when Associations::ManyToMany::Relationship, Associations::OneToMany::Relationship, Associations::OneToOne::Relationship
+                relationship.parent_model
+              when Associations::ManyToOne::Relationship
+                relationship.child_model
+            end
 
             # We only do INNER JOIN for now
-            statement << " INNER JOIN #{quote_table_name(join_table_name)} ON "
+            statement << " INNER JOIN #{quote_table_name(join_model.storage_name(query.repository.name))} ON "
 
             statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
               condition_statement(query, :eql, parent_property, child_property)

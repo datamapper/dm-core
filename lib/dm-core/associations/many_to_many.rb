@@ -2,7 +2,6 @@ module DataMapper
   module Associations
     module ManyToMany
       class Relationship < DataMapper::Associations::OneToMany::Relationship
-
         # TODO: document
         # @api semipublic
         def through
@@ -30,26 +29,40 @@ module DataMapper
               raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{repository.name} repository"
             end
 
-            [ through, through.intermediaries, target ].flatten.freeze
+            [ through.intermediaries, target ].flatten.freeze
           end
         end
 
         # TODO: document
         # @api semipublic
         def query
-          query = super
+          query = super.dup
 
-          # TODO: figure out a way to make it so that Query uses multiple repositories
+          query[:links] = intermediaries
 
-          #query[:links] ||= []
+          intermediaries.each do |relationship|
+            
+          end
 
-          # TODO: traverse each relationship, and append it onto query[:links]
+          # TODO: make sure the Query merges in the conditions for each intermediary
+          #   - make sure that the conditions are coped to each inermediary's
+          #     child_model when they are Symbols
 
-          # TODO: merge in conditions for each association
-          #   - make sure that each relationships' conditions are factored in,
-          #     which will affect the final outcome.
+          query.freeze
+        end
 
-          query
+        # TODO: document
+        # @api semipublic
+        def child_key
+          @child_key ||= begin
+            child_key = if @child_properties
+              child_model.properties(@child_repository_name).slice(*@child_properties)
+            else
+              child_model.key(@child_repository_name)
+            end
+
+            PropertySet.new(child_key)
+          end
         end
 
         private
@@ -65,10 +78,49 @@ module DataMapper
 
           return if parent_model.instance_methods(false).include?("#{name}_helper")
 
+          # TODO: this is mostly cut/pasted from one-to-many associations.  Refactor
+          # this once it is working properly.
+
           parent_model.class_eval <<-EOS, __FILE__, __LINE__
             private
             def #{name}_helper
-              raise NotImplementedError
+              @#{name} ||= begin
+                # TODO: this seems like a bug.  the first time the association is
+                # loaded it will be using the relationship object from the repo that
+                # was in effect when it was defined.  Instead it should determine the
+                # repo currently in-scope, and use the association for it.
+
+                relationship = model.relationships(#{parent_repository_name.inspect})[#{name.inspect}]
+
+                # TODO: do not build the query with child_key/parent_key.. use
+                # child_accessor/parent_accessor.  The query should be able to
+                # translate those to child_key/parent_key inside the adapter,
+                # allowing adapters that don't join on PK/FK to work too.
+
+                # FIXME: what if the parent key is not set yet, and the collection is
+                # initialized below with the nil parent key in the query?  When you
+                # save the parent and then reload the association, it will probably
+                # not be found.  Test this.
+
+                repository = DataMapper.repository(relationship.child_repository_name)
+                model      = relationship.child_model
+                conditions = relationship.query.merge(relationship.through.child_key.zip(relationship.through.parent_key.get(self)).to_hash)
+
+                if relationship.max.kind_of?(Integer)
+                  conditions.update(:limit => relationship.max)
+                end
+
+                query = Query.new(repository, model, conditions)
+
+                association = relationship.class.collection_class.new(query)
+
+                association.relationship = relationship
+                association.parent       = self
+
+                child_associations << association
+
+                association
+              end
             end
           EOS
         end
@@ -88,8 +140,8 @@ module DataMapper
         # TODO: document
         # @api private
         def join_model_namespace_name
-          child_parts  = child_model.base_model.to_s.split('::')
-          parent_parts = parent_model.base_model.to_s.split('::')
+          child_parts  = child_model.base_model.name.split('::')
+          parent_parts = parent_model.base_model.name.split('::')
 
           name = [ child_parts.pop, parent_parts.pop ].sort.join
 
@@ -108,12 +160,14 @@ module DataMapper
         # @api private
         def join_relationship_name(model, plural = false)
           namespace, name = join_model_namespace_name
-          relationship_name = Extlib::Inflection.underscore(model.base_model.to_s.sub(/\A#{namespace.name}::/, '')).gsub('/', '_')
+          relationship_name = Extlib::Inflection.underscore(model.base_model.name.sub(/\A#{namespace.name}::/, '')).gsub('/', '_')
           (plural ? relationship_name.plural : relationship_name).to_sym
         end
       end # class Relationship
 
       class Collection < DataMapper::Collection
+        attr_writer :relationship, :parent
+
         # TODO: make sure all writers set the values in the intermediary Collections
       end # class Collection
     end # module ManyToMany
