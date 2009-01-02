@@ -38,7 +38,11 @@ module DataMapper
         def query
           query = super.dup
 
-          query[:links] = intermediaries
+          # use all intermediaries, besides "through", in the query links
+          query[:links] = intermediaries[1..-1]
+
+          # TODO: move the logic below inside Query.  It should be
+          # extracting the query conditions from each relationship itself
 
           # merge the conditions from each intermediary into the query
           intermediaries.each do |relationship|
@@ -195,7 +199,54 @@ module DataMapper
       class Collection < DataMapper::Collection
         attr_writer :relationship, :parent
 
-        # TODO: make sure all writers set the values in the intermediary Collections
+        def reload(query = nil)
+          # TODO: remove references to the intermediaries
+          # TODO: reload the collection
+          raise NotImplementedError
+        end
+
+        def replace(other)
+          # TODO: wipe out the intermediaries
+          # TODO: replace the collection with other
+          raise NotImplementedError
+        end
+
+        def clear
+          # TODO: clear the intermediaries
+          # TODO: clear the collection
+          raise NotImplementedError
+        end
+
+        def create(attributes = {})
+          # TODO: create the resources in the intermediaries
+          # TODO: create the resource in the child model
+          raise NotImplementedError
+        end
+
+        def update(attributes = {}, *allowed)
+          # TODO: update the resources in the child model
+          raise NotImplementedError
+        end
+
+        def update!(attributes = {}, *allowed)
+          # TODO: update the resources in the child model
+          #   - consider using a sub-query for this
+          #   - should a sub-query be used for all Collections?
+          raise NotImplementedError
+        end
+
+        def destroy
+          # TODO: destroy the intermediaries
+          # TODO: destroy the resources in the child model
+          raise NotImplementedError
+        end
+
+        def destroy!
+          # TODO: destroy! the intermediaries
+          # TODO: destroy! the resources in the child model
+          raise NotImplementedError
+        end
+
       end # class Collection
     end # module ManyToMany
   end # module Associations

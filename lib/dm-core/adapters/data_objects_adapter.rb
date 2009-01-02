@@ -280,7 +280,7 @@ module DataMapper
 
         def links_statement(query)
           statement = ''
-          query.links.each do |relationship|
+          query.links.reverse_each do |relationship|
             model = case relationship
               when Associations::ManyToMany::Relationship, Associations::OneToMany::Relationship, Associations::OneToOne::Relationship
                 relationship.parent_model
