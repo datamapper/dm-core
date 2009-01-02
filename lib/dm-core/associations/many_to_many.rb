@@ -29,7 +29,7 @@ module DataMapper
               raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{repository.name} repository"
             end
 
-            [ through.intermediaries, target ].flatten.freeze
+            [ through, through.intermediaries, target ].flatten.freeze
           end
         end
 
@@ -40,13 +40,40 @@ module DataMapper
 
           query[:links] = intermediaries
 
+          # merge the conditions from each intermediary into the query
           intermediaries.each do |relationship|
-            
-          end
 
-          # TODO: make sure the Query merges in the conditions for each intermediary
-          #   - make sure that the conditions are coped to each inermediary's
-          #     child_model when they are Symbols
+            # TODO: refactor this with source/target terminology.  Many relationships would
+            # have the child as the target, and the parent as the source, while OneToMany
+            # relationships would be reversed.  This will also clean up code in the DO adapter
+
+            repository_name, model = case relationship
+              when ManyToMany::Relationship, OneToMany::Relationship, OneToOne::Relationship
+                [ relationship.child_repository_name, relationship.child_model ]
+              when ManyToOne::Relationship
+                [ relationship.parent_repository_name, relationship.parent_model ]
+            end
+
+            # TODO: create a semipublic method in Query that normalizes to a Query::Operator
+            # when given a default model.  In the case of Symbol or String, lookup the
+            # property within the default model.  It should recursively unwrap
+            # Query::Operator values and make sure the target is a Property
+            # or a Query::Path object.
+
+            relationship.query.each do |key,value|
+              case key
+                when Symbol, String
+                  query[ model.properties(repository_name)[key] ] = value
+                when Property, Query::Path
+                  query[key] = value
+                when Query::Operator
+                  # TODO: if the key.target is a Property, then do not look it up
+                  query[ key.class.new(model.properties(repository_name)[key.target], key.operator) ] = value
+                else
+                  raise ArgumentError, "#{key.class} not allowed in relationship query"
+              end
+            end
+          end
 
           query.freeze
         end
