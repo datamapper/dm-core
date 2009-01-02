@@ -665,11 +665,13 @@ module DataMapper
     class Path
       include Extlib::Assertions
 
-      (%w[ id type ] & public_instance_methods(false).map { |m| m.to_s }).each { |m| undef_method m }
+      # silence Object deprecation warnings
+      undef_method :id
+      undef_method :type
 
       attr_reader :relationships, :model, :property, :operator
 
-      [ :gt, :gte, :lt, :lte, :not, :eql, :like, :in ].each do |sym|
+      %w[ gt gte lt lte not eql like in ].each do |sym|
         class_eval <<-EOS, __FILE__, __LINE__
           def #{sym}
             Operator.new(self, :#{sym})
