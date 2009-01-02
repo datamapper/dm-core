@@ -16,7 +16,7 @@ module DataMapper
         def create_helper
           return if child_model.instance_methods(false).include?("#{name}_helper")
 
-          child_model.class_eval <<-EOS, __FILE__, __LINE__
+          child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             private
             def #{name}_helper(query = nil)
               # TODO: when Resource can be matched against conditions
@@ -51,7 +51,7 @@ module DataMapper
 
               resource
             end
-          EOS
+          RUBY
         end
 
         # TODO: document
@@ -59,7 +59,7 @@ module DataMapper
         def create_accessor
           return if child_model.instance_methods(false).include?(name)
 
-          child_model.class_eval <<-EOS, __FILE__, __LINE__
+          child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
 
             # FIXME: if the accessor is used, caching nil in the ivar
@@ -69,7 +69,7 @@ module DataMapper
             def #{name}(query = nil)
               #{name}_helper(query)
             end
-          EOS
+          RUBY
         end
 
         # TODO: document
@@ -77,7 +77,7 @@ module DataMapper
         def create_mutator
           return if child_model.instance_methods(false).include?("#{name}=")
 
-          child_model.class_eval <<-EOS, __FILE__, __LINE__
+          child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
             def #{name}=(parent)
               relationship = model.relationships(#{child_repository_name.inspect})[#{name.inspect}]
@@ -85,7 +85,7 @@ module DataMapper
               relationship.child_key.set(self, values)
               @#{name} = parent
             end
-          EOS
+          RUBY
         end
       end # class Relationship
     end # module ManyToOne

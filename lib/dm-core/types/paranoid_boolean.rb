@@ -12,7 +12,7 @@ module DataMapper
 
         model.send(:set_paranoid_property, property_name){true}
 
-        model.class_eval <<-EOS, __FILE__, __LINE__
+        model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
 
           def self.with_deleted
             with_exclusive_scope(#{property_name.inspect} => true) do
@@ -26,7 +26,7 @@ module DataMapper
             end
             save
           end
-        EOS
+        RUBY
 
         model.default_scope(repository_name).update(property_name => false)
       end

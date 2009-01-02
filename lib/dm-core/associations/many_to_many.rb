@@ -112,7 +112,7 @@ module DataMapper
           # TODO: this is mostly cut/pasted from one-to-many associations.  Refactor
           # this once it is working properly.
 
-          parent_model.class_eval <<-EOS, __FILE__, __LINE__
+          parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             private
             def #{name}_helper
               @#{name} ||= begin
@@ -153,7 +153,7 @@ module DataMapper
                 association
               end
             end
-          EOS
+          RUBY
         end
 
         # TODO: document

@@ -9,7 +9,7 @@ module DataMapper
       def self.bind(property)
         model = property.model
 
-        model.class_eval <<-EOS, __FILE__, __LINE__
+        model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def self.descendants
             (@descendants ||= []).uniq!
             @descendants
@@ -27,7 +27,7 @@ module DataMapper
             descendants << target
             superclass.propagate_descendants(target) if superclass.respond_to?(:propagate_descendants)
           end
-        EOS
+        RUBY
       end
     end # class Discriminator
   end # module Types

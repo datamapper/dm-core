@@ -25,7 +25,7 @@ module DataMapper
         def create_helper
           return if parent_model.instance_methods(false).include?("#{name}_helper")
 
-          parent_model.class_eval <<-EOS, __FILE__, __LINE__
+          parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             private
             def #{name}_helper
               @#{name} ||= begin
@@ -66,7 +66,7 @@ module DataMapper
                 association
               end
             end
-          EOS
+          RUBY
         end
 
         # TODO: document
@@ -74,12 +74,12 @@ module DataMapper
         def create_accessor
           return if parent_model.instance_methods(false).include?(name)
 
-          parent_model.class_eval <<-EOS, __FILE__, __LINE__
+          parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
             def #{name}
               #{name}_helper.first
             end
-          EOS
+          RUBY
         end
 
         # TODO: document
@@ -87,12 +87,12 @@ module DataMapper
         def create_mutator
           return if parent_model.instance_methods(false).include?("#{name}=")
 
-          parent_model.class_eval <<-EOS, __FILE__, __LINE__
+          parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
             def #{name}=(child_resource)
               #{name}_helper.replace(child_resource.nil? ? [] : [ child_resource ])
             end
-          EOS
+          RUBY
         end
       end # class Relationship
     end # module HasOne

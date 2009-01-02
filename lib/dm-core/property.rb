@@ -854,19 +854,19 @@ module DataMapper
     # @api private
     def create_accessor
       unless model.instance_methods(false).include?(getter)
-        model.class_eval <<-EOS, __FILE__, __LINE__
+        model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
           def #{getter}
             attribute_get(#{name.inspect})
           end
-        EOS
+        RUBY
       end
 
       if primitive == TrueClass && !model.instance_methods(false).include?(name)
-        model.class_eval <<-EOS, __FILE__, __LINE__
+        model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
           alias #{name} #{getter}
-        EOS
+        RUBY
       end
     end
 
@@ -875,12 +875,12 @@ module DataMapper
     # @api private
     def create_mutator
       return if model.instance_methods(false).include?("#{name}=")
-      model.class_eval <<-EOS, __FILE__, __LINE__
+      model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         #{writer_visibility}
         def #{name}=(value)
           attribute_set(#{name.inspect}, value)
         end
-      EOS
+      RUBY
     end
 
     # Typecasts an arbitrary value to a DateTime.

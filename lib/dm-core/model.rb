@@ -18,21 +18,21 @@ module DataMapper
     def self.new(storage_name = nil, &block)
       model = Class.new
 
-      model.class_eval <<-EOS, __FILE__, __LINE__
+      model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         include DataMapper::Resource
 
         def self.name
           to_s
         end
-      EOS
+      RUBY
 
       if storage_name
         warn "Passing in +storage_name+ to #{name}.new is deprecated"
-        model.class_eval <<-EOS, __FILE__, __LINE__
+        model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def self.default_storage_name
             #{Extlib::Inflection.classify(storage_name).inspect}
           end
-        EOS
+        RUBY
       end
 
       model.instance_eval(&block) if block_given?

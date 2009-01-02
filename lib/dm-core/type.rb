@@ -90,21 +90,21 @@ module DataMapper
 
       # Load DataMapper::Property options
       PROPERTY_OPTIONS.each do |property_option|
-        self.class_eval <<-EOS, __FILE__, __LINE__
+        self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{property_option}(arg = nil)
             return @#{property_option} if arg.nil?
 
             @#{property_option} = arg
           end
-        EOS
+        RUBY
       end
 
       # Create property aliases
       PROPERTY_OPTION_ALIASES.each do |property_option, aliases|
         aliases.each do |ali|
-          self.class_eval <<-EOS, __FILE__, __LINE__
+          self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             alias #{ali} #{property_option}
-          EOS
+          RUBY
         end
       end
 

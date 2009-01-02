@@ -227,11 +227,11 @@ module DataMapper
           if supports_default_values? && properties.empty?
             statement << 'DEFAULT VALUES'
           else
-            statement << <<-EOS.compress_lines
+            statement << <<-SQL.compress_lines
               (#{properties.map { |p| quote_column_name(p.field) }.join(', ')})
               VALUES
               (#{(['?'] * properties.size).join(', ')})
-            EOS
+            SQL
           end
 
           if supports_returning? && identity_field
@@ -521,10 +521,10 @@ module DataMapper
           def create_table_statement(repository, model, properties)
             repository_name = repository.name
 
-            statement = <<-EOS.compress_lines
+            statement = <<-SQL.compress_lines
               CREATE TABLE #{quote_table_name(model.storage_name(repository_name))}
               (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')}
-            EOS
+            SQL
 
             if (key = model.key(repository_name)).any?
               statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field) }.join(', ')})"
@@ -543,10 +543,10 @@ module DataMapper
           def create_index_statements(repository, model)
             table_name = model.storage_name(repository.name)
             model.properties(repository.name).indexes.map do |index_name, fields|
-              <<-EOS.compress_lines
+              <<-SQL.compress_lines
                 CREATE INDEX #{quote_column_name("index_#{table_name}_#{index_name}")} ON
                 #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) }.join(', ')})
-              EOS
+              SQL
             end
           end
 
@@ -554,10 +554,10 @@ module DataMapper
           def create_unique_index_statements(repository, model)
             table_name = model.storage_name(repository.name)
             model.properties(repository.name).unique_indexes.map do |index_name, fields|
-              <<-EOS.compress_lines
+              <<-SQL.compress_lines
                 CREATE UNIQUE INDEX #{quote_column_name("unique_#{table_name}_#{index_name}")} ON
                 #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) }.join(', ')})
-              EOS
+              SQL
             end
           end
 

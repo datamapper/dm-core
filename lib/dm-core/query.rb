@@ -672,11 +672,11 @@ module DataMapper
       attr_reader :relationships, :model, :property, :operator
 
       %w[ gt gte lt lte not eql like in ].each do |sym|
-        class_eval <<-EOS, __FILE__, __LINE__
+        class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{sym}
             Operator.new(self, :#{sym})
           end
-        EOS
+        RUBY
       end
 
       # duck type the DM::Query::Path to act like a DM::Property

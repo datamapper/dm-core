@@ -1,7 +1,7 @@
 module DataMapper
   module Hook
     def self.included(model)
-      model.class_eval <<-EOS, __FILE__, __LINE__
+      model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         include Extlib::Hook
 
         register_instance_hooks :_create, :_update, :destroy
@@ -30,7 +30,7 @@ module DataMapper
             end
           end
         end
-      EOS
+      RUBY
     end
 
     DataMapper::Resource.append_inclusions self
