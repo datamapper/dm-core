@@ -306,11 +306,30 @@ module DataMapper
       resource
     end
 
-    # TODO SPEC
+    ##
+    # Copy a set of records from one repository to another.
+    #
+    # @param [String] source
+    #   The name of the Repository the resources should be copied _from_
+    # @param [String] destination
+    #   The name of the Repository the resources should be copied _to_
+    # @param [Hash] query
+    #   The conditions with which to find the records to copy. These
+    #   conditions are merged with Model.query
+    #
+    # @return [DataMapper::Collection]
+    #   A Collection of the Resource instances created in the operation
+    #
+    # @api public
     def copy(source, destination, query = {})
+
+      # get the list of properties that exist in the source and destination
+      destination_properties = properties(destination)
+      fields = query[:fields] ||= properties(source).select { |p| destination_properties.has_property?(p.name) }
+
       repository(destination) do
-        repository(source).read_many(scoped_query(query)).each do |resource|
-          self.create(resource.attributes)
+        all(query.merge(:repository => repository(source))).map do |resource|
+          create(fields.map { |p| [ p.name, p.get(resource) ] }.to_hash)
         end
       end
     end

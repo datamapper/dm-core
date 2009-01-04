@@ -123,5 +123,75 @@ if ADAPTER
         }.should_not raise_error(NoMethodError)
       end
     end
+
+    it { ModelSpec::STI.should respond_to(:copy) }
+
+    ([ :sqlite3, :mysql, :postgres ] - [ ADAPTER ]).each do |alternate|
+      describe '#copy' do
+        describe 'between identical models' do
+          before do
+            ModelSpec::STI.auto_migrate!(alternate)
+
+            ModelSpec::STI.create(:name => 'Record 1')
+            ModelSpec::STI.create(:name => 'Record 2')
+
+            # copy from the default to the alternate repository
+            @return = @resources = ModelSpec::STI.copy(:default, alternate)
+          end
+
+          it 'should return an Enumerable' do
+            @return.should be_a_kind_of(Enumerable)
+          end
+
+          it 'should return Resources' do
+            @return.each { |r| r.should be_a_kind_of(DataMapper::Resource) }
+          end
+
+          it 'should have each Resource set to the expected Repository' do
+            @resources.each { |r| r.repository.name.should == alternate }
+          end
+
+          it 'should create the Resources in the expected Repository' do
+            ModelSpec::STI.all(:repository => repository(alternate)).should == @resources
+          end
+        end
+
+        describe 'between different models' do
+          before do
+            # add an extra property to the alternate model
+            repository(alternate) do
+              ModelSpec::STI.property :status, String, :default => 'new'
+            end
+
+            ModelSpec::STI.auto_migrate!(alternate)
+
+            # add new resources to the alternate repository
+            repository(alternate) do
+              ModelSpec::STI.create(:name => 'Record 1')
+              ModelSpec::STI.create(:name => 'Record 2')
+            end
+
+            # copy from the alternate to the default repository
+            @return = @resources = ModelSpec::STI.copy(alternate, :default)
+          end
+
+          it 'should return an Enumerable' do
+            @return.should be_a_kind_of(Enumerable)
+          end
+
+          it 'should return Resources' do
+            @return.each { |r| r.should be_a_kind_of(DataMapper::Resource) }
+          end
+
+          it 'should have each Resource set to the expected Repository' do
+            @resources.each { |r| r.repository.name.should == :default }
+          end
+
+          it 'should create the Resources in the expected Repository' do
+            ModelSpec::STI.all.should == @resources
+          end
+        end
+      end
+    end
   end
 end
