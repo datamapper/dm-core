@@ -125,6 +125,14 @@ if ADAPTER
   end
 
   describe DataMapper::Query, "with #{ADAPTER}" do
+    before do
+      @query = DataMapper::Query.new(repository(ADAPTER), QuerySpec::SailBoat)
+    end
+
+    it 'should be serializable with Marshal' do
+      Marshal.load(Marshal.dump(@query)).should == @query
+    end
+
     describe '#unique' do
       include LoggingHelper
 

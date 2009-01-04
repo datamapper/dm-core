@@ -127,6 +127,10 @@ if ADAPTER
       results.first.should == bob
     end
 
+    it 'should be serializable with Marshal' do
+      Marshal.load(Marshal.dump(Zebra.all)).should == Zebra.all
+    end
+
     describe 'model proxying' do
       it 'should delegate to a model method' do
         stripes = @model.first.stripes

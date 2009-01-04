@@ -151,6 +151,55 @@ module DataMapper
       "#<#{self.class.name} #{attrs.map { |(k,v)| "@#{k}=#{v.inspect}" } * ' '}>"
     end
 
+    # TODO: add docs
+    # @api public
+    def to_hash
+      hash = {
+        :reload       => reload?,
+        :unique       => unique?,
+        :offset       => offset,
+        :order        => order,
+        :add_reversed => add_reversed?,
+        :fields       => fields,
+      }
+
+      hash[:limit]    = limit    unless limit    == nil
+      hash[:links]    = links    unless links    == []
+      hash[:includes] = includes unless includes == []
+
+      conditions  = {}
+      raw_queries = []
+      bind_values = []
+
+      conditions.each do |condition|
+        if condition[0] == :raw
+          raw_queries << condition[1]
+          bind_values << condition[2]
+        else
+          operator, property, bind_value = condition
+          conditions[ Query::Operator.new(property, operator) ] = bind_value
+        end
+      end
+
+      if raw_queries.any?
+        hash[:conditions] = [ raw_queries.join(' ') ].concat(bind_values)
+      end
+
+      hash.update(conditions)
+    end
+
+    # TODO: add docs
+    # @api private
+    def _dump(*)
+      Marshal.dump([ repository, model, to_hash ])
+    end
+
+    # TODO: add docs
+    # @api private
+    def self._load(marshalled)
+      new(*Marshal.load(marshalled))
+    end
+
     private
 
     def initialize(repository, model, options = {})

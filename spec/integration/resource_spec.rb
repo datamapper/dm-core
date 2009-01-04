@@ -16,7 +16,11 @@ if ADAPTER
       repository(ADAPTER) { @zoo.save }
     end
 
-  # --- Move somewhere ----
+    it 'should be serializable with Marshal' do
+      Marshal.load(Marshal.dump(@zoo)).should == @zoo
+    end
+
+    # --- Move somewhere ----
     it "should be able to destroy objects" do
       lambda { @zoo.destroy.should be_true }.should_not raise_error
     end

@@ -91,6 +91,14 @@ module DataMapper
       "#<DataMapper::Repository:#{@name}>"
     end
 
+    def _dump(*)
+      name.to_s
+    end
+
+    def self._load(marshalled)
+      new(marshalled.to_sym)
+    end
+
     private
 
     def initialize(name)

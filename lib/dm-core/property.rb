@@ -512,6 +512,19 @@ module DataMapper
       "#<Property:#{@model}:#{@name}>"
     end
 
+    # TODO: add docs
+    # @api private
+    def _dump(*)
+      Marshal.dump([ repository, model, name ])
+    end
+
+    # TODO: add docs
+    # @api private
+    def self._load(marshalled)
+      repository, model, name = Marshal.load(marshalled)
+      model.properties(repository.name)[name]
+    end
+
     private
 
     def initialize(model, name, type, options = {})

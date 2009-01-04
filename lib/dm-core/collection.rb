@@ -494,6 +494,32 @@ module DataMapper
       super || model.public_methods(false).include?(method.to_s) || relationships.has_key?(method)
     end
 
+    # TODO: add docs
+    # @api private
+    def _dump(*)
+      Marshal.dump([ query, to_a ])
+    end
+
+    # TODO: add docs
+    # @api private
+    def self._load(marshalled)
+      query, array = Marshal.load(marshalled)
+
+      # XXX: IMHO it is a code smell to be forced to use allocate
+      # and instance_variable_set to load an object.  You should
+      # be able to use a constructor to provide all the info needed
+      # to initialize an object.  This should be fixed in the edge
+      # branch dkubb/dm-core
+
+      collection = allocate
+      collection.instance_variable_set(:@query,          query)
+      collection.instance_variable_set(:@array,          array)
+      collection.instance_variable_set(:@loaded,         true)
+      collection.instance_variable_set(:@key_properties, collection.send(:model).key(collection.repository.name))
+      collection.instance_variable_set(:@cache,          {})
+      collection
+    end
+
     protected
 
     ##

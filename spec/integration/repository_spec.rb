@@ -21,6 +21,10 @@ if ADAPTER
       @query      = DataMapper::Query.new(@repository, @model)
     end
 
+    it 'should be serializable with Marshal' do
+      Marshal.load(Marshal.dump(@repository)).should == @repository
+    end
+
     it "should throw an exception if the named repository is unknown" do
       r = DataMapper::Repository.new(:completely_bogus)
       lambda { r.adapter }.should raise_error(ArgumentError)

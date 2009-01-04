@@ -3,6 +3,22 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 gem 'fastercsv', '~>1.4.0'
 require 'fastercsv'
 
+describe DataMapper::Property do
+  before do
+    module PropertySpec
+      class Resource
+        include DataMapper::Resource
+      end
+    end
+
+    @property = PropertySpec::Resource.property :id, DM::Serial
+  end
+
+  it 'should be serializable with Marshal' do
+    Marshal.load(Marshal.dump(@property)).should == @property
+  end
+end
+
 if ADAPTER
   describe DataMapper::Property, "with #{ADAPTER}" do
     describe " tracking strategies" do

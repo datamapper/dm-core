@@ -528,6 +528,19 @@ module DataMapper
       model.to_query(repository, key, query) unless new_record?
     end
 
+    # TODO: add docs
+    # @api private
+    def _dump(*)
+      repository_name = repository.name
+      attributes      = {}
+
+      model.properties(repository_name).slice(*loaded_attributes).compact.each do |property|
+        attributes[property.name] = property.get(self) if property.writer_visibility == :public
+      end
+
+      Marshal.dump([ repository_name, attributes ])
+    end
+
     protected
 
     def properties

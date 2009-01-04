@@ -385,6 +385,13 @@ module DataMapper
       Query.new(repository, self, query.merge(conditions))
     end
 
+    # TODO: add docs
+    # @api private
+    def _load(marshalled)
+      repository_name, attributes = Marshal.load(marshalled)
+      repository(repository_name) { new(attributes) }
+    end
+
     def typecast_key(key)
       self.key(repository_name).zip(key).map { |k, v| k.typecast(v) }
     end
