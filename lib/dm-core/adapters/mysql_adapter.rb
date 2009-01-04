@@ -1,4 +1,4 @@
-gem 'do_mysql', '~>0.9.9'
+gem 'do_mysql', '~>0.9.10'
 require 'do_mysql'
 
 module DataMapper
@@ -62,9 +62,8 @@ module DataMapper
 
         private
 
-        # TODO: move to dm-more/dm-migrations (not necessary in dm-core any longer)
-        def db_name
-          @uri.path.split('/').last
+        def schema_name
+          raise NotImplementedError
         end
 
         module SQL
@@ -74,6 +73,19 @@ module DataMapper
           def supports_serial?
             true
           end
+
+          def supports_drop_table_if_exists?
+            true
+          end
+
+          # TODO: move to dm-more/dm-migrations
+          def schema_name
+            # TODO: is there a cleaner way to find out the current DB we are connected to?
+            @uri.path.split('/').last
+          end
+
+          # TODO: update dkubb/dm-more/dm-migrations to use schema_name and remove this
+          alias db_name schema_name
 
           # TODO: move to dm-more/dm-migrations
           def create_table_statement(repository, model, properties)

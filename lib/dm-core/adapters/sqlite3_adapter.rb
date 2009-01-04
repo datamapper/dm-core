@@ -1,4 +1,4 @@
-gem 'do_sqlite3', '~>0.9.9'
+gem 'do_sqlite3', '~>0.9.10'
 require 'do_sqlite3'
 
 module DataMapper
@@ -45,7 +45,11 @@ module DataMapper
 
           # TODO: move to dm-more/dm-migrations
           def supports_serial?
-            sqlite_version >= '3.1.0'
+            @supports_serial ||= sqlite_version >= '3.1.0'
+          end
+
+          def supports_drop_table_if_exists?
+            true
           end
 
           # TODO: move to dm-more/dm-migrations

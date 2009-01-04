@@ -1,4 +1,4 @@
-gem 'data_objects', '~>0.9.9'
+gem 'data_objects', '~>0.9.10'
 require 'data_objects'
 
 module DataMapper
@@ -453,6 +453,32 @@ module DataMapper
 
       # TODO: move to dm-more/dm-migrations
       module Migration
+        # TODO: move to dm-more/dm-migrations (if possible)
+        def storage_exists?(storage_name)
+          statement = <<-SQL.compress_lines
+            SELECT COUNT(*)
+            FROM "information_schema"."tables"
+            WHERE "table_type" = 'BASE TABLE'
+            AND "table_schema" = ?
+            AND "table_name" = ?
+          SQL
+
+          query(statement, schema_name, storage_name).first > 0
+        end
+
+        # TODO: move to dm-more/dm-migrations (if possible)
+        def field_exists?(storage_name, column_name)
+          statement = <<-SQL.compress_lines
+            SELECT COUNT(*)
+            FROM "information_schema"."columns"
+            WHERE "table_schema" = ?
+            AND "table_name" = ?
+            AND "column_name" = ?
+          SQL
+
+          query(statement, schema_name, storage_name, column_name).first > 0
+        end
+
         # TODO: move to dm-more/dm-migrations
         def upgrade_model_storage(repository, model)
           table_name = model.storage_name(repository.name)
@@ -493,6 +519,7 @@ module DataMapper
 
         # TODO: move to dm-more/dm-migrations
         def destroy_model_storage(repository, model)
+          return true unless supports_drop_table_if_exists? || storage_exists?(model.storage_name(repository.name))
           execute(drop_table_statement(repository, model))
           true
         end
@@ -511,6 +538,14 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def supports_serial?
             false
+          end
+
+          def supports_drop_table_if_exists?
+            false
+          end
+
+          def schema_name
+            raise NotImplementedError
           end
 
           # TODO: move to dm-more/dm-migrations
@@ -533,7 +568,11 @@ module DataMapper
 
           # TODO: move to dm-more/dm-migrations
           def drop_table_statement(repository, model)
-            "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(repository.name))}"
+            if supports_drop_table_if_exists?
+              "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(repository.name))}"
+            else
+              "DROP TABLE #{quote_table_name(model.storage_name(repository.name))}"
+            end
           end
 
           # TODO: move to dm-more/dm-migrations

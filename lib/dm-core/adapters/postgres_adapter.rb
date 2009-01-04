@@ -1,4 +1,4 @@
-gem 'do_postgres', '~>0.9.9'
+gem 'do_postgres', '~>0.9.10'
 require 'do_postgres'
 
 module DataMapper
@@ -16,34 +16,10 @@ module DataMapper
 
       # TODO: move to dm-more/dm-migrations (if possible)
       module Migration
-        # TODO: move to dm-more/dm-migrations (if possible)
-        def storage_exists?(storage_name)
-          statement = <<-SQL.compress_lines
-            SELECT COUNT(*)
-            FROM "information_schema"."tables"
-            WHERE "table_schema" = current_schema()
-            AND "table_name" = ?
-          SQL
-
-          query(statement, storage_name).first > 0
-        end
-
-        # TODO: move to dm-more/dm-migrations (if possible)
-        def field_exists?(storage_name, column_name)
-          statement = <<-SQL.compress_lines
-            SELECT COUNT(*)
-            FROM "pg_class"
-            JOIN "pg_attribute" ON "pg_class"."oid" = "pg_attribute"."attrelid"
-            WHERE "pg_attribute"."attname" = ?
-            AND "pg_class"."relname" = ?
-            AND "pg_attribute"."attnum" >= 0
-          SQL
-
-          query(statement, column_name, storage_name).first > 0
-        end
 
         # TODO: move to dm-more/dm-migrations
         def upgrade_model_storage(repository, model)
+          # TODO: test to see if the without_notices wrapper is still needed
           without_notices { super }
         end
 
@@ -52,10 +28,12 @@ module DataMapper
           without_notices { super }
         end
 
-        # TODO: move to dm-more/dm-migrations
         def destroy_model_storage(repository, model)
-          return true unless storage_exists?(model.storage_name(repository.name))
-          without_notices { super }
+          if supports_drop_table_if_exists?
+            without_notices { super }
+          else
+            super
+          end
         end
 
         protected
@@ -63,9 +41,16 @@ module DataMapper
         module SQL
 #          private  ## This cannot be private for current migrations
 
-          # TODO: move to dm-more/dm-migrations
-          def drop_table_statement(repository, model)
-            "DROP TABLE #{quote_table_name(model.storage_name(repository.name))}"
+          def supports_drop_table_if_exists?
+            @supports_drop_table_if_exists ||= postgres_version >= '8.2'
+          end
+
+          def schema_name
+            @schema_name ||= query('SELECT current_schema()').first
+          end
+
+          def postgres_version
+            @postgres_version ||= query('SELECT version()').first.split[1]
           end
 
           # TODO: move to dm-more/dm-migrations
