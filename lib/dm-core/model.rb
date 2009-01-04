@@ -402,14 +402,18 @@ module DataMapper
     #   conditions are merged with Model.query
     #
     # @return [DataMapper::Collection]
-    #   A Collection of the Resource instances copied in the operation
+    #   A Collection of the Resource instances created in the operation
     #
     # @api public
     def copy(source, destination, query = {})
+
+      # get the list of properties that exist in the source and destination
+      destination_properties = properties(destination)
+      fields = query[:fields] ||= properties(source).select { |p| destination_properties.has_property?(p.name) }
+
       repository(destination) do
-        query = scoped_query(query.merge(:repository => source))
-        Collection.new(query).each do |resource|
-          self.create(resource.attributes)
+        all(query.merge(:repository => repository(source))).map do |resource|
+          create(fields.map { |p| [ p.name, p.get(resource) ] }.to_hash)
         end
       end
     end
