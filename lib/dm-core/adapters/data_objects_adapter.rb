@@ -88,12 +88,18 @@ module DataMapper
       end
 
       def update(attributes, query)
+        # TODO: if the query contains any links, a limit or an offset
+        # use a subselect to get the rows to be updated
+
         statement = update_statement(attributes.keys, query)
         bind_values = attributes.values + query.bind_values
         execute(statement, *bind_values).to_i
       end
 
       def delete(query)
+        # TODO: if the query contains any links, a limit or an offset
+        # use a subselect to get the rows to be deleted
+
         statement = delete_statement(query)
         execute(statement, *query.bind_values).to_i
       end

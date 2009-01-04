@@ -230,8 +230,6 @@ module DataMapper
 
         def update!(attributes = {}, *allowed)
           # TODO: update the resources in the child model
-          #   - consider using a sub-query for this
-          #   - should a sub-query be used for all Collections?
           raise NotImplementedError
         end
 
