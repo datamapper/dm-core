@@ -61,7 +61,7 @@ module DataMapper
         protected
 
         module SQL
-          private
+#          private  ## This cannot be private for current migrations
 
           # TODO: move to dm-more/dm-migrations
           def drop_table_statement(repository, model)

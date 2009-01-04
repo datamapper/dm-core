@@ -32,7 +32,7 @@ module DataMapper
           # TODO: make a model.identity_field method
           identity_field = model.key(repository.name).detect { |p| p.serial? }
 
-          statement = create_statement(repository, model, attributes.keys, identity_field)
+          statement = insert_statement(repository, model, attributes.keys, identity_field)
           bind_values = attributes.values
 
           result = execute(statement, *bind_values)
@@ -49,7 +49,7 @@ module DataMapper
 
       def read_many(query)
         with_connection do |connection|
-          command = connection.create_command(read_statement(query))
+          command = connection.create_command(select_statement(query))
           command.set_types(query.fields.map { |p| p.primitive })
 
           begin
@@ -72,7 +72,7 @@ module DataMapper
 
       def read_one(query)
         with_connection do |connection|
-          command = connection.create_command(read_statement(query))
+          command = connection.create_command(select_statement(query))
           command.set_types(query.fields.map { |p| p.primitive })
 
           begin
@@ -113,23 +113,31 @@ module DataMapper
       end
 
       def query(statement, *bind_values)
-        with_reader(statement, bind_values) do |reader|
-          results = []
+        with_connection do |connection|
+          reader = nil
 
-          if (fields = reader.fields).size > 1
-            fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
-            struct = Struct.new(*fields)
+          begin
+            reader = connection.create_command(statement).execute_reader(*bind_values)
 
-            while(reader.next!) do
-              results << struct.new(*reader.values)
+            results = []
+
+            if (fields = reader.fields).size > 1
+              fields = fields.map { |f| Extlib::Inflection.underscore(f).to_sym }
+              struct = Struct.new(*fields)
+
+              while(reader.next!) do
+                results << struct.new(*reader.values)
+              end
+            else
+              while(reader.next!) do
+                results << reader.values.at(0)
+              end
             end
-          else
-            while(reader.next!) do
-              results << reader.values.at(0)
-            end
+
+            results
+          ensure
+            reader.close if reader
           end
-
-          results
         end
       end
 
@@ -171,7 +179,9 @@ module DataMapper
 
       # TODO: clean up once transaction related methods move to dm-more/dm-transactions
       def close_connection(connection)
-        connection.close unless within_transaction? && current_transaction.primitive_for(self).connection == connection
+        unless within_transaction? && current_transaction.primitive_for(self).connection == connection
+          connection.close
+        end
       end
 
       private
@@ -198,18 +208,6 @@ module DataMapper
         end
       end
 
-      def with_reader(statement, bind_values = [])
-        with_connection do |connection|
-          reader = nil
-          begin
-            reader = connection.create_command(statement).execute_reader(*bind_values)
-            return yield(reader)
-          ensure
-            reader.close if reader
-          end
-        end
-      end
-
       # This module is just for organization. The methods are included into the
       # Adapter below.
       module SQL
@@ -227,7 +225,22 @@ module DataMapper
           true
         end
 
-        def create_statement(repository, model, properties, identity_field)
+        def select_statement(query)
+          statement = "SELECT #{columns_statement(query)}"
+          statement << " FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
+          statement << join_statement(query)                        if query.links.any?
+          statement << " WHERE #{where_statement(query)}"       if query.conditions.any?
+          statement << " GROUP BY #{group_by_statement(query)}"      if query.unique? && query.fields.any? { |p| p.kind_of?(Property) }
+          statement << " ORDER BY #{order_by_statement(query)}"      if query.order.any?
+          statement << " LIMIT #{quote_column_value(query.limit)}"   if query.limit
+          statement << " OFFSET #{quote_column_value(query.offset)}" if query.offset && query.offset > 0
+          statement
+        rescue => e
+          DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
+          raise e
+        end
+
+        def insert_statement(repository, model, properties, identity_field)
           statement = "INSERT INTO #{quote_table_name(model.storage_name(repository.name))} "
 
           if supports_default_values? && properties.empty?
@@ -247,45 +260,27 @@ module DataMapper
           statement
         end
 
-        def read_statement(query)
-          statement = "SELECT #{fields_statement(query)}"
-          statement << " FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
-          statement << links_statement(query)                        if query.links.any?
-          statement << " WHERE #{conditions_statement(query)}"       if query.conditions.any?
-          statement << " GROUP BY #{group_by_statement(query)}"      if query.unique? && query.fields.any? { |p| p.kind_of?(Property) }
-          statement << " ORDER BY #{order_statement(query)}"         if query.order.any?
-          statement << " LIMIT #{quote_column_value(query.limit)}"   if query.limit
-          statement << " OFFSET #{quote_column_value(query.offset)}" if query.offset && query.offset > 0
-          statement
-        rescue => e
-          DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
-          raise e
-        end
-
         def update_statement(properties, query)
           statement = "UPDATE #{quote_table_name(query.model.storage_name(query.repository.name))}"
-          statement << " SET #{set_statement(properties)}"
-          statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
+          statement << " SET #{properties.map { |p| "#{quote_column_name(p.field)} = ?" }.join(', ')}"
+          statement << " WHERE #{where_statement(query)}" if query.conditions.any?
           statement
-        end
-
-        def set_statement(properties)
-          properties.map { |p| "#{quote_column_name(p.field)} = ?" }.join(', ')
         end
 
         def delete_statement(query)
           statement = "DELETE FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
-          statement << " WHERE #{conditions_statement(query)}" if query.conditions.any?
+          statement << " WHERE #{where_statement(query)}" if query.conditions.any?
           statement
         end
 
-        def fields_statement(query)
+        def columns_statement(query)
           qualify = query.links.any?
           query.fields.map { |p| property_to_column_name(query.repository, p, qualify) }.join(', ')
         end
 
-        def links_statement(query)
+        def join_statement(query)
           statement = ''
+
           query.links.reverse_each do |relationship|
             model = case relationship
               when Associations::ManyToMany::Relationship, Associations::OneToMany::Relationship, Associations::OneToOne::Relationship
@@ -305,7 +300,7 @@ module DataMapper
           statement
         end
 
-        def conditions_statement(query)
+        def where_statement(query)
           query.conditions.map { |o,p,b| condition_statement(query, o, p, b) }.join(' AND ')
         end
 
@@ -315,26 +310,26 @@ module DataMapper
           query.fields.select { |p| p.kind_of?(Property) }.map { |p| property_to_column_name(repository, p, qualify) }.join(', ')
         end
 
-        def order_statement(query)
+        def order_by_statement(query)
           repository = query.repository
           qualify    = query.links.any?
-          query.order.map { |i| order_column(repository, i, qualify) }.join(', ')
+          query.order.map { |i| order_statement(repository, i, qualify) }.join(', ')
         end
 
-        def order_column(repository, item, qualify)
+        def order_statement(repository, item, qualify)
           property, descending = nil, false
 
           case item
             when Property
               property = item
             when Query::Direction
-              property  = item.property
-              descending = true if item.direction == :desc
+              property   = item.property
+              descending = item.direction == :desc
           end
 
-          order_column = property_to_column_name(repository, property, qualify)
-          order_column << ' DESC' if descending
-          order_column
+          statement = property_to_column_name(repository, property, qualify)
+          statement << ' DESC' if descending
+          statement
         end
 
         def condition_statement(query, operator, left_condition, right_condition)
@@ -348,7 +343,7 @@ module DataMapper
             elsif condition.kind_of?(Query)
               opposite = condition == left_condition ? right_condition : left_condition
               query.merge_subquery(operator, opposite, condition)
-              "(#{read_statement(condition)})"
+              "(#{select_statement(condition)})"
 
             # [].all? is always true
             elsif condition.kind_of?(Array) && condition.any? && condition.all? { |p| p.kind_of?(Property) }
@@ -392,15 +387,15 @@ module DataMapper
         end
 
         def like_operator(operand)
-          case operand
-            when Regexp       then '~'
-            else                   'LIKE'
-          end
+          operand.kind_of?(Regexp) ? '~' : 'LIKE'
         end
 
         def property_to_column_name(repository, property, qualify)
-          table_name = property.model.storage_name(repository.name) if property && property.respond_to?(:model)
+          table_name = if property.respond_to?(:model)
+            property.model.storage_name(repository.name)
+          end
 
+          # XX: if qualify is true, but table_name is nil, should we throw an exception?
           if table_name && qualify
             "#{quote_table_name(table_name)}.#{quote_column_name(property.field)}"
           else
@@ -508,7 +503,7 @@ module DataMapper
         end
 
         module SQL
-          private
+#          private  ## This cannot be private for current migrations
 
           # Adapters that support AUTO INCREMENT fields for CREATE TABLE
           # statements should overwrite this to return true
@@ -529,14 +524,10 @@ module DataMapper
 
             statement = <<-SQL.compress_lines
               CREATE TABLE #{quote_table_name(model.storage_name(repository_name))}
-              (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')}
+              (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')},
+              PRIMARY KEY(#{ properties.key.map { |p| quote_column_name(p.field) }.join(', ')}))
             SQL
 
-            if (key = model.key(repository_name)).any?
-              statement << ", PRIMARY KEY(#{ key.map { |p| quote_column_name(p.field) }.join(', ')})"
-            end
-
-            statement << ')'
             statement
           end
 
@@ -702,7 +693,7 @@ module DataMapper
       raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
 
       if query
-        sql = repository.adapter.send(:read_statement, query)
+        sql = repository.adapter.send(:select_statement, query)
         bind_values = query.bind_values
       end
 

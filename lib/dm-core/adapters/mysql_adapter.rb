@@ -39,10 +39,7 @@ module DataMapper
         end
 
         def like_operator(operand)
-          case operand
-            when Regexp       then 'REGEXP'
-            else                   'LIKE'
-          end
+          operand.kind_of?(Regexp) ? 'REGEXP' : 'LIKE'
         end
 
       end #module SQL
@@ -71,7 +68,7 @@ module DataMapper
         end
 
         module SQL
-          private
+#          private  ## This cannot be private for current migrations
 
           # TODO: move to dm-more/dm-migrations
           def supports_serial?
@@ -86,14 +83,22 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def property_schema_hash(property)
             schema = super
-            schema.delete(:default) if schema[:primitive] == 'TEXT'
+
+            if schema[:primitive] == 'TEXT'
+              schema.delete(:default)
+            end
+
             schema
           end
 
           # TODO: move to dm-more/dm-migrations
           def property_schema_statement(schema)
             statement = super
-            statement << ' AUTO_INCREMENT' if supports_serial? && schema[:serial?]
+
+            if supports_serial? && schema[:serial?]
+              statement << ' AUTO_INCREMENT'
+            end
+
             statement
           end
 

@@ -60,10 +60,8 @@ module DataMapper
             # skip adding the primary key if one of the columns is serial.  In
             # SQLite the serial column must be the primary key, so it has already
             # been defined
-            unless model.properties(repository_name).any? { |p| p.serial? }
-              if (key = model.properties(repository_name).key).any?
-                statement << ", PRIMARY KEY(#{key.map { |p| quote_column_name(p.field) }.join(', ')})"
-              end
+            unless properties.any? { |p| p.serial? }
+              statement << ", PRIMARY KEY(#{properties.key.map { |p| quote_column_name(p.field) }.join(', ')})"
             end
 
             statement << ')'
@@ -73,7 +71,11 @@ module DataMapper
           # TODO: move to dm-more/dm-migrations
           def property_schema_statement(schema)
             statement = super
-            statement << ' PRIMARY KEY AUTOINCREMENT' if supports_serial? && schema[:serial?]
+
+            if supports_serial? && schema[:serial?]
+              statement << ' PRIMARY KEY AUTOINCREMENT'
+            end
+
             statement
           end
 
