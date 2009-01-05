@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe DataMapper::Adapters::PostgresAdapter do
+describe 'DataMapper::Adapters::PostgresAdapter' do
   supported_by :postgres do
     before do
       class Heffalump

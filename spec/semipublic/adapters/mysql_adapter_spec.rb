@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe DataMapper::Adapters::MysqlAdapter do
+describe 'DataMapper::Adapters::MysqlAdapter' do
   supported_by :mysql do
     before do
       class Heffalump
