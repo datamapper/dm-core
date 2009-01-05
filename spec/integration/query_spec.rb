@@ -145,7 +145,7 @@ if ADAPTER
       end
 
       def parse_statement(log)
-        log.readlines.join.chomp.split(' ~ ').last
+        log.readlines.join.chomp.split(' ~ ').last.sub(/\A\(\d+\.\d+\)\s+/, '')
       end
 
       describe 'when true' do
