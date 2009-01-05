@@ -1,3 +1,14 @@
+=== 0.9.9 / 2009-01-04
+
+* 1 minor enhancement:
+
+  * Updated Resource and Collection to be serializable with Marshal
+
+* 1 bug fix:
+
+  * Fixed Model#copy to copy properties that are the same in both
+    repositories.
+
 === 0.9.8 / 2008-12-07
 
 * 3 minor enhancements:
