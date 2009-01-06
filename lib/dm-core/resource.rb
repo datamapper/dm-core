@@ -280,7 +280,7 @@ module DataMapper
     # @api public
     def key
       key_properties.map do |property|
-        original_values[property.name] || property.get!(self)
+        original_values[property] || property.get!(self)
       end
     end
 
@@ -348,15 +348,12 @@ module DataMapper
     #
     # @api semipublic
     def dirty_attributes
-      properties = self.properties
-
       dirty_attributes = {}
 
-      original_values.each do |name,old_value|
-        property  = properties[name]
+      original_values.each do |property,old_value|
         new_value = property.value(property.get!(self))
 
-        next if old_value == new_value
+        next if property.value(old_value) == new_value
 
         dirty_attributes[property] = new_value
       end
@@ -372,9 +369,12 @@ module DataMapper
     #
     # @api semipublic
     def dirty?
-      return true if dirty_attributes.any?
-      if new_record?
+      if dirty_attributes.any?
+        true
+      elsif new_record?
         model.identity_field || properties.any? { |p| p.default? }
+      else
+        false
       end
     end
 

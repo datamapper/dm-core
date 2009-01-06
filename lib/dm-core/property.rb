@@ -559,8 +559,8 @@ module DataMapper
     #
     # @api private
     def set_original_value(resource, value)
-      return if resource.original_values.key?(name)
-      resource.original_values[name] = self.value(value.try_dup)
+      return if resource.original_values.key?(self)
+      resource.original_values[self] = value.try_dup
     end
 
     # Provides a standardized setter method for the property
