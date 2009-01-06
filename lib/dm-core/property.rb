@@ -516,8 +516,7 @@ module DataMapper
     def get(resource)
       if resource.new_record?
         value = get!(resource)
-        return value unless value.nil? && default?
-        set(resource, default_for(resource))
+        value.nil? && default? ? default_for(resource) : value
       else
         lazy_load(resource) unless loaded?(resource)
         get!(resource)
@@ -844,11 +843,11 @@ module DataMapper
     # @api private
     def create_accessor
       unless model.instance_methods(false).include?(getter)
-        # XXX: why not use @#{instance_variable_name} ||= properties[#{name.inspect}].get(self) below?
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
           def #{getter}
-            properties[#{name.inspect}].get(self)
+            return #{instance_variable_name} if instance_variable_defined?(#{instance_variable_name.inspect})
+            #{instance_variable_name} = properties[#{name.inspect}].get(self)
           end
         RUBY
       end
