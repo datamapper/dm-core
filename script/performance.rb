@@ -42,9 +42,9 @@ DataMapper::Logger.new(log_dir / 'dm.log', :off)
 adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 if configuration_options[:adapter]
-  sqlfile = File.join(File.dirname(__FILE__),'..','tmp','performance.sql')
-  mysql_bin = %w[mysql mysql5].select{|bin| `which #{bin}`.length > 0 }
-  mysqldump_bin = %w[mysqldump mysqldump5].select{|bin| `which #{bin}`.length > 0 }
+  sqlfile       = File.join(File.dirname(__FILE__),'..','tmp','performance.sql')
+  mysql_bin     = %w[ mysql mysql5 ].select { |bin| `which #{bin}`.length > 0 }
+  mysqldump_bin = %w[ mysqldump mysqldump5 ].select { |bin| `which #{bin}`.length > 0 }
 end
 
 ActiveRecord::Base.logger = Logger.new(log_dir / 'ar.log')
@@ -109,7 +109,6 @@ touch_relationships = lambda do |exhibits|
   end
 end
 
-
 c = configuration_options
 
 if sqlfile && File.exists?(sqlfile)
@@ -117,7 +116,6 @@ if sqlfile && File.exists?(sqlfile)
   #adapter.execute("LOAD DATA LOCAL INFILE '#{sqlfile}' INTO TABLE exhibits")
   `#{mysql_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
 else
-
   puts 'Generating data for benchmarking...'
 
   User.auto_migrate!
@@ -172,10 +170,9 @@ else
       puts "File saved\n"
     end
   end
-
 end
 
-TIMES = ENV['x'] ? ENV['x'].to_i : 10_000
+TIMES = ENV.key?('x') ? ENV['x'].to_i : 10_000
 
 puts 'You can specify how many times you want to run the benchmarks with rake:perf x=(number)'
 puts 'Some tasks will be run 10 and 1000 times less than (number)'

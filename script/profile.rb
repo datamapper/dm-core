@@ -21,8 +21,23 @@ SOCKET_FILE = Pathname.glob(%w[
   /var/run/mysqld/mysqld.sock
 ]).find { |path| path.socket? }
 
+configuration_options = {
+  :adapter  => 'mysql',
+  :database => 'data_mapper_1',
+  :host     => 'localhost',
+  :username => 'root',
+  :password => '',
+  :socket   => SOCKET_FILE,
+}
+
 DataMapper::Logger.new(DataMapper.root / 'log' / 'dm.log', :debug)
-DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{SOCKET_FILE}")
+DataMapper.setup(:default, configuration_options)
+
+if configuration_options[:adapter]
+  sqlfile       = File.join(File.dirname(__FILE__),'..','tmp','performance.sql')
+  mysql_bin     = %w[ mysql mysql5 ].select { |bin| `which #{bin}`.length > 0 }
+  mysqldump_bin = %w[ mysqldump mysqldump5 ].select { |bin| `which #{bin}`.length > 0 }
+end
 
 class Exhibit
   include DataMapper::Resource
@@ -64,6 +79,68 @@ def profile(&b)
   printer.print(OUTPUT.open('w+'))
 end
 
+c = configuration_options
+
+if sqlfile && File.exists?(sqlfile)
+  puts "Found data-file. Importing from #{sqlfile}"
+  #adapter.execute("LOAD DATA LOCAL INFILE '#{sqlfile}' INTO TABLE exhibits")
+  `#{mysql_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
+else
+  puts 'Generating data for benchmarking...'
+
+  Exhibit.auto_migrate!
+
+  users = []
+  exhibits = []
+
+  # pre-compute the insert statements and fake data compilation,
+  # so the benchmarks below show the actual runtime for the execute
+  # method, minus the setup steps
+
+  # Using the same paragraph for all exhibits because it is very slow
+  # to generate unique paragraphs for all exhibits.
+  paragraph = Faker::Lorem.paragraphs.join($/)
+
+  10_000.times do |i|
+    users << [
+      'INSERT INTO `users` (`name`,`email`,`created_on`) VALUES (?, ?, ?)',
+      Faker::Name.name,
+      Faker::Internet.email,
+      Date.today
+    ]
+
+    exhibits << [
+      'INSERT INTO `exhibits` (`name`, `zoo_id`, `user_id`, `notes`, `created_on`) VALUES (?, ?, ?, ?, ?)',
+      Faker::Company.name,
+      rand(10).ceil,
+      i,
+      paragraph,#Faker::Lorem.paragraphs.join($/),
+      Date.today
+    ]
+  end
+
+  puts 'Inserting 10,000 users...'
+  10_000.times { |i| adapter.execute(*users.at(i)) }
+  puts 'Inserting 10,000 exhibits...'
+  10_000.times { |i| adapter.execute(*exhibits.at(i)) }
+
+  if sqlfile
+    answer = nil
+    until answer && answer[/^$|y|yes|n|no/]
+      print('Would you like to dump data into tmp/performance.sql (for faster setup)? [Yn]');
+      STDOUT.flush
+      answer = gets
+    end
+
+    if answer[/^$|y|yes/]
+      File.makedirs(File.dirname(sqlfile))
+      #adapter.execute("SELECT * INTO OUTFILE '#{sqlfile}' FROM exhibits;")
+      `#{mysqldump_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} exhibits users > #{sqlfile}`
+      puts "File saved\n"
+    end
+  end
+end
+
 TIMES = 10_000
 
 profile do
@@ -85,10 +162,10 @@ profile do
 #  repository(:default) do
 #    TIMES.times { touch_attributes[Exhibit.get(1)] }
 #  end
-
-  puts 'Model.first'
-  TIMES.times { touch_attributes[Exhibit.first] }
-
+#
+#  puts 'Model.first'
+#  TIMES.times { touch_attributes[Exhibit.first] }
+#
 #  puts 'Model.all limit(100)'
 #  (TIMES / 10).ceil.times { touch_attributes[Exhibit.all(:limit => 100)] }
 #
@@ -116,10 +193,10 @@ profile do
 #
 #  puts 'Resource#update'
 #  TIMES.times { e = Exhibit.get(1); e.name = 'bob'; e.save }
-#
-#  puts 'Resource#destroy'
-#  TIMES.times { Exhibit.first.destroy }
-#
+
+  puts 'Resource#destroy'
+  TIMES.times { Exhibit.first.destroy }
+
 #  puts 'Model.transaction'
 #  TIMES.times { Exhibit.transaction { Exhibit.new } }
 end
