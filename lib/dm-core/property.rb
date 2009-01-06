@@ -549,18 +549,20 @@ module DataMapper
     #
     # @param [DataMapper::Resource] resource
     #   model instance for which to set the original value
-    # @param [Object] val
+    # @param [Object] value
     #   value to set as original value for this property in +resource+
-    #
-    # @return [NilClass]
-    #   if +resource.original_values+ has a key with same name as this property
-    # @return [Object]
-    #   if original_value was set, +val+ is returned
     #
     # @api private
     def set_original_value(resource, value)
-      return if resource.original_values.key?(self)
-      resource.original_values[self] = value.try_dup
+      original_values = resource.original_values
+      new_value       = self.value(value)
+
+      if original_values.key?(self)
+        # stop tracking the value if it has not changed
+        original_values.delete(self) if new_value == original_values[self]
+      else
+        original_values[self] = new_value
+      end
     end
 
     # Provides a standardized setter method for the property

@@ -350,12 +350,8 @@ module DataMapper
     def dirty_attributes
       dirty_attributes = {}
 
-      original_values.each do |property,old_value|
-        new_value = property.value(property.get!(self))
-
-        next if property.value(old_value) == new_value
-
-        dirty_attributes[property] = new_value
+      original_values.each_key do |property|
+        dirty_attributes[property] = property.value(property.get!(self))
       end
 
       dirty_attributes
