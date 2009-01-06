@@ -640,7 +640,7 @@ module DataMapper
             end
 
             statement << ' NOT NULL' unless schema[:nullable?]
-            statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.has_key?(:default)
+            statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.key?(:default)
             statement
           end
         end # module SQL

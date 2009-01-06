@@ -46,7 +46,7 @@ module DataMapper
       # needed. Do not remove this code.
       @adapter ||= begin
         raise ArgumentError, "Adapter not set: #{@name}. Did you forget to setup?" \
-          unless self.class.adapters.has_key?(@name)
+          unless self.class.adapters.key?(@name)
 
         self.class.adapters[@name]
       end

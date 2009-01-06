@@ -848,7 +848,7 @@ module DataMapper
     #
     # @api public
     def respond_to?(method, include_private = false)
-      super || model.respond_to?(method) || relationships.has_key?(method)
+      super || model.respond_to?(method) || relationships.key?(method)
     end
 
     ##

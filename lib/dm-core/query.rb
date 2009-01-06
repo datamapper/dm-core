@@ -444,7 +444,7 @@ module DataMapper
           when Symbol, String
             link = link.to_sym if link.kind_of?(String)
 
-            unless model.relationships(@repository.name).has_key?(link)
+            unless model.relationships(@repository.name).key?(link)
               raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship", caller(2)
             end
 

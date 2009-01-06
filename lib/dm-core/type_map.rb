@@ -45,7 +45,7 @@ module DataMapper
     alias [] lookup
 
     def type_mapped?(type)
-      @chains.has_key?(type) || (@parent.nil? ? false : @parent.type_mapped?(type))
+      @chains.key?(type) || (@parent.nil? ? false : @parent.type_mapped?(type))
     end
 
     class TypeChain

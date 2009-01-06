@@ -387,7 +387,7 @@ module DataMapper
     #
     # @api semipublic
     def attribute_dirty?(name)
-      dirty_attributes.has_key?(properties[name])
+      dirty_attributes.key?(properties[name])
     end
 
     # Gets a Collection with the current Resource instance as its only member
