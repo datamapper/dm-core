@@ -125,7 +125,6 @@ module DataMapper
 
     def add_property(property)
       clear_cache
-      property.hash
       @properties[property.name] = property
     end
 

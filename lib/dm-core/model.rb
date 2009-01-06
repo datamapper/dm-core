@@ -454,16 +454,8 @@ module DataMapper
 
       query.fields.zip(values) do |property,value|
         next if !query.reload? && property.loaded?(resource)
-
         value = property.custom? ? property.type.load(value, property) : property.typecast(value)
         property.set!(resource, value)
-
-        case property.track
-          when :hash
-            resource.original_values[property.name] = value.hash unless resource.original_values.has_key?(property.name)
-          when :load
-            resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
-        end
       end
 
       unless key_property_indexes

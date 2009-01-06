@@ -344,18 +344,16 @@ module DataMapper
     #
     # @api semipublic
     def dirty_attributes
-      dirty_attributes = {}
-
       properties = self.properties
 
-      original_values.each do |name,old_value|
-        property = properties[name]
+      dirty_attributes = {}
 
+      original_values.each do |name,old_value|
+        property  = properties[name]
         new_value = property.value(property.get!(self))
 
-        next if old_value == (property.track == :hash ? new_value.hash : new_value)
+        next if old_value == new_value
 
-        property.hash
         dirty_attributes[property] = new_value
       end
 
@@ -575,7 +573,6 @@ module DataMapper
       @new_record = true
       repository.identity_map(model).delete(key)
       original_values.clear
-      loaded_attributes.each { |n| original_values[n] = nil }
     end
 
     protected

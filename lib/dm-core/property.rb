@@ -291,10 +291,6 @@ module DataMapper
   #  :unique              if true, property column is unique. Properties of type Serial
   #                       are unique by default.
   #
-  #  :track               property tracking strategy. Can be one of :get, :hash or :set.
-  #                       :hash means that object hash is taken to figure out if property
-  #                       value has changed (property is "dirty")
-  #
   #  :precision           Indicates the number of significant digits. Usually only makes sense
   #                       for float type properties. Must be >= scale option value. Default is 10.
   #
@@ -327,7 +323,7 @@ module DataMapper
       :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :unique_index, :check, :ordinal, :auto_validation,
-      :validates, :unique, :track, :precision, :scale
+      :validates, :unique, :precision, :scale
     ]
 
     # TODO: rename PRIMITIVES, and freeze this
@@ -360,7 +356,7 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
-      :default, :precision, :scale, :track, :extra_options, :repository_name
+      :default, :precision, :scale, :extra_options, :repository_name
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -398,12 +394,7 @@ module DataMapper
     #   A hash value for this object.
     # @api public
     def hash
-      if @custom && !@bound
-        @type.bind(self)
-        @bound = true
-      end
-
-      return @model.hash + @name.hash
+      @model.hash + @name.hash
     end
 
     # Returns equality of properties. Properties are
@@ -570,7 +561,7 @@ module DataMapper
     # @api private
     def set_original_value(resource, value)
       return if resource.original_values.key?(name)
-      resource.original_values[name] = track == :hash ? value.hash : self.value(value.try_dup)
+      resource.original_values[name] = self.value(value.try_dup)
     end
 
     # Provides a standardized setter method for the property
@@ -797,8 +788,6 @@ module DataMapper
       @unique       = @options.fetch(:unique,       @serial || @key || false)
       @lazy         = @options.fetch(:lazy,         @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
 
-      @track = @options[:track] || @custom && @type.respond_to?(:track) ? @type.track : nil
-
       # assign attributes per-type
       if String == @primitive || Class == @primitive
         @length = @options[:length] || @options[:size] || DEFAULT_LENGTH
@@ -825,6 +814,10 @@ module DataMapper
       determine_visibility
       create_accessor
       create_mutator
+
+      if custom?
+        type.bind(self)
+      end
 
       # comes from dm-validations
       @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
