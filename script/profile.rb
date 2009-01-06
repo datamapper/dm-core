@@ -47,6 +47,15 @@ touch_attributes = lambda do |exhibits|
   end
 end
 
+touch_relationships = lambda do |exhibits|
+  [*exhibits].each do |exhibit|
+    exhibit.id
+    exhibit.name
+    exhibit.created_on
+    exhibit.user
+  end
+end
+
 # RubyProf, making profiling Ruby pretty since 1899!
 def profile(&b)
   result  = RubyProf.profile &b
@@ -55,33 +64,64 @@ def profile(&b)
   printer.print(OUTPUT.open('w+'))
 end
 
+TIMES = 10_000
+
 profile do
-#  10_000.times { touch_attributes[Exhibit.get(1)] }
+#  dm_obj = Exhibit.get(1)
 #
+#  puts 'Model#id'
+#  (TIMES * 100).times { dm_obj.id }
+#
+#  puts 'Model.new (instantiation)'
+#  TIMES.times { Exhibit.new }
+#
+#  puts 'Model.new (setting attributes)'
+#  TIMES.times { Exhibit.new(:name => 'sam', :zoo_id => 1) }
+#
+#  puts 'Model.get specific (not cached)'
+#  TIMES.times { touch_attributes[Exhibit.get(1)] }
+#
+#  puts 'Model.get specific (cached)'
 #  repository(:default) do
-#    10_000.times { touch_attributes[Exhibit.get(1)] }
-#  end
-#
-#  1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
-#
-#  repository(:default) do
-#    1000.times { touch_attributes[Exhibit.all(:limit => 100)] }
-#  end
-#
-#  10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
-#
-#  repository(:default) do
-#    10.times { touch_attributes[Exhibit.all(:limit => 10_000)] }
+#    TIMES.times { touch_attributes[Exhibit.get(1)] }
 #  end
 
-  create_exhibit = {
-    :name       => Faker::Company.name,
-    :zoo_id     => rand(10).ceil,
-    :notes      => Faker::Lorem.paragraphs.join($/),
-    :created_on => Date.today
-  }
+  puts 'Model.first'
+  TIMES.times { touch_attributes[Exhibit.first] }
 
-  1000.times { Exhibit.create(create_exhibit) }
+#  puts 'Model.all limit(100)'
+#  (TIMES / 10).ceil.times { touch_attributes[Exhibit.all(:limit => 100)] }
+#
+#  puts 'Model.all limit(100) with relationship'
+#  (TIMES / 10).ceil.times { touch_relationships[Exhibit.all(:limit => 100)] }
+#
+#  puts 'Model.all limit(10,000)'
+#  (TIMES / 1000).ceil { touch_attributes[Exhibit.all(:limit => 10_000)] }
+#
+#  create_exhibit = {
+#    :name       => Faker::Company.name,
+#    :zoo_id     => rand(10).ceil,
+#    :notes      => Faker::Lorem.paragraphs.join($/),
+#    :created_on => Date.today
+#  }
+#
+#  puts 'Model.create'
+#  TIMES.times { Exhibit.create(create_exhibit) }
+#
+#  attrs_first  = { :name => 'sam', :zoo_id => 1 }
+#  attrs_second = { :name => 'tom', :zoo_id => 1 }
+#
+#  puts 'Resource#attributes='
+#  TIMES.times { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
+#
+#  puts 'Resource#update'
+#  TIMES.times { e = Exhibit.get(1); e.name = 'bob'; e.save }
+#
+#  puts 'Resource#destroy'
+#  TIMES.times { Exhibit.first.destroy }
+#
+#  puts 'Model.transaction'
+#  TIMES.times { Exhibit.transaction { Exhibit.new } }
 end
 
 puts "Done!"

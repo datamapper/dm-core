@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
-require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core', 'version')
 
 require 'ftools'
 require 'rubygems'
@@ -14,7 +13,7 @@ require 'rbench'
 gem 'faker', '~>0.3.1'
 require 'faker'
 
-gem 'activerecord', '~>2.1.0'
+gem 'activerecord', '~>2.2.2'
 require 'active_record'
 
 socket_file = Pathname.glob(%w[
@@ -119,7 +118,7 @@ if sqlfile && File.exists?(sqlfile)
   `#{mysql_bin} -u #{c[:username]} #{"-p#{c[:password]}" unless c[:password].blank?} #{c[:database]} < #{sqlfile}`
 else
 
-  puts "Generating data for benchmarking..."
+  puts 'Generating data for benchmarking...'
 
   User.auto_migrate!
   Exhibit.auto_migrate!
@@ -153,15 +152,15 @@ else
     ]
   end
 
-  puts "Inserting 10,000 users..."
+  puts 'Inserting 10,000 users...'
   10_000.times { |i| adapter.execute(*users.at(i)) }
-  puts "Inserting 10,000 exhibits..."
+  puts 'Inserting 10,000 exhibits...'
   10_000.times { |i| adapter.execute(*exhibits.at(i)) }
 
   if sqlfile
     answer = nil
     until answer && answer[/^$|y|yes|n|no/]
-      print("Would you like to dump data into tmp/performance.sql (for faster setup)? [Yn]");
+      print('Would you like to dump data into tmp/performance.sql (for faster setup)? [Yn]');
       STDOUT.flush
       answer = gets
     end
@@ -178,8 +177,8 @@ end
 
 TIMES = ENV['x'] ? ENV['x'].to_i : 10_000
 
-puts "You can specify how many times you want to run the benchmarks with rake:perf x=(number)"
-puts "Some tasks will be run 10 and 1000 times less than (number)"
+puts 'You can specify how many times you want to run the benchmarks with rake:perf x=(number)'
+puts 'Some tasks will be run 10 and 1000 times less than (number)'
 puts "Benchmarks will now run #{TIMES} times"
 # Inform about slow benchmark
 # answer = nil
@@ -195,47 +194,55 @@ puts "Benchmarks will now run #{TIMES} times"
 RBench.run(TIMES) do
 
   column :times
-  column :ar, :title => "AR 2.1"
+  column :ar, :title => 'AR 2.2.2'
   column :dm, :title => "DM #{DataMapper::VERSION}"
   column :diff, :compare => [:ar,:dm]
 
-  report "Model.new (instantiation)" do
+  report 'Model#id', (TIMES * 100).ceil do
+    ar_obj = ARExhibit.find(1)
+    dm_obj = Exhibit.get(1)
+
+    ar { ar_obj.id }
+    dm { dm_obj.id }
+  end
+
+  report 'Model.new (instantiation)' do
     ar { ARExhibit.new }
     dm { Exhibit.new }
   end
 
-  report "Model.new (setting attributes)" do
-    attrs = {:name => 'sam', :zoo_id => 1}
+  report 'Model.new (setting attributes)' do
+    attrs = { :name => 'sam', :zoo_id => 1 }
     ar { ARExhibit.new(attrs) }
     dm { Exhibit.new(attrs) }
   end
 
-  report "Model.get specific (not cached)" do
+  report 'Model.get specific (not cached)' do
     ActiveRecord::Base.uncached { ar { touch_attributes[ARExhibit.find(1)] } }
     dm { touch_attributes[Exhibit.get(1)] }
   end
 
-  report "Model.get specific (cached)" do
-    ActiveRecord::Base.cache    { ar { touch_attributes[ARExhibit.find(1)] } }
+  report 'Model.get specific (cached)' do
+    ActiveRecord::Base.cache     { ar { touch_attributes[ARExhibit.find(1)] } }
     Exhibit.repository(:default) { dm { touch_attributes[Exhibit.get(1)] } }
   end
 
-  report "Model.first" do
+  report 'Model.first' do
     ar { touch_attributes[ARExhibit.first] }
     dm { touch_attributes[Exhibit.first] }
   end
 
-  report "Model.all limit(100)", (TIMES / 10.0).ceil do
+  report 'Model.all limit(100)', (TIMES / 10).ceil do
     ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
     dm { touch_attributes[Exhibit.all(:limit => 100)] }
   end
 
-  report "Model.all limit(100) with relationship", (TIMES / 10.0).ceil do
+  report 'Model.all limit(100) with relationship', (TIMES / 10).ceil do
     ar { touch_relationships[ARExhibit.all(:limit => 100, :include => [:user])] }
     dm { touch_relationships[Exhibit.all(:limit => 100)] }
   end
 
-  report "Model.all limit(10,000)", (TIMES / 1000.0).ceil do
+  report 'Model.all limit(10,000)', (TIMES / 1000).ceil do
     ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
     dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
   end
@@ -247,38 +254,38 @@ RBench.run(TIMES) do
     :created_on => Date.today
   }
 
-  report "Model.create" do
+  report 'Model.create' do
     ar { ARExhibit.create(create_exhibit) }
     dm { Exhibit.create(create_exhibit) }
   end
 
-  report "Resource#attributes" do
-    attrs_first  = {:name => 'sam', :zoo_id => 1}
-    attrs_second = {:name => 'tom', :zoo_id => 1}
+  report 'Resource#attributes=' do
+    attrs_first  = { :name => 'sam', :zoo_id => 1 }
+    attrs_second = { :name => 'tom', :zoo_id => 1 }
     ar { e = ARExhibit.new(attrs_first); e.attributes = attrs_second }
     dm { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
   end
 
-  report "Resource#update" do
+  report 'Resource#update' do
     ar { e = ARExhibit.find(1); e.name = 'bob'; e.save }
     dm { e = Exhibit.get(1); e.name = 'bob'; e.save }
   end
 
-  report "Resource#destroy" do
+  report 'Resource#destroy' do
     ar { ARExhibit.first.destroy }
     dm { Exhibit.first.destroy }
   end
 
-  report "Model.transaction" do
+  report 'Model.transaction' do
     ar { ARExhibit.transaction { ARExhibit.new } }
     dm { Exhibit.transaction { Exhibit.new } }
   end
 
-  summary "Total"
+  summary 'Total'
 end
 
 connection = adapter.send(:create_connection)
-command = connection.create_command("DROP TABLE exhibits")
-command = connection.create_command("DROP TABLE users")
+command = connection.create_command('DROP TABLE exhibits')
+command = connection.create_command('DROP TABLE users')
 command.execute_non_query rescue nil
 connection.close
