@@ -237,6 +237,7 @@ RBench.run(TIMES) do
     dm { touch_attributes[Exhibit.all(:limit => 100)] }
   end
 
+  # NOTE: this will run slow until SEL is added back into dm-core
   report 'Model.all limit(100) with relationship', (TIMES / 10).ceil do
     ar { touch_relationships[ARExhibit.all(:limit => 100, :include => [:user])] }
     dm { touch_relationships[Exhibit.all(:limit => 100)] }
