@@ -324,7 +324,9 @@ module DataMapper
     #
     # @api private
     def loaded_attributes
-      properties.map{|p| p.name if p.loaded?(self)}.compact
+      loaded_attributes = properties.map { |p| p.name if p.loaded?(self) }
+      loaded_attributes.compact!
+      loaded_attributes
     end
 
     ##
