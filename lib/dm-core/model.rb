@@ -453,18 +453,16 @@ module DataMapper
       resource.instance_variable_set(:@new_record, false)
 
       query.fields.zip(values) do |property,value|
-        next if !query.reload? && resource.attribute_loaded?(property.name)
+        next if !query.reload? && property.loaded?(resource)
 
         value = property.custom? ? property.type.load(value, property) : property.typecast(value)
         property.set!(resource, value)
 
-        if track = property.track
-          case track
-            when :hash
-              resource.original_values[property.name] = value.dup.hash unless resource.original_values.has_key?(property.name) rescue value.hash
-            when :load
-              resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
-          end
+        case property.track
+          when :hash
+            resource.original_values[property.name] = value.hash unless resource.original_values.has_key?(property.name)
+          when :load
+            resource.original_values[property.name] = value unless resource.original_values.has_key?(property.name)
         end
       end
 

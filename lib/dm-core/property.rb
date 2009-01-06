@@ -523,18 +523,14 @@ module DataMapper
     #
     # @api private
     def get(resource)
-      lazy_load(resource)
-
-      value = get!(resource)
-
-      set_original_value(resource, value)
-
-      if value.nil? && resource.new_record? && !resource.attribute_loaded?(name)
-        value = default_for(resource)
-        set(resource, value)
+      if resource.new_record?
+        value = get!(resource)
+        return value unless value.nil? && default?
+        set(resource, default_for(resource))
+      else
+        lazy_load(resource) unless loaded?(resource)
+        get!(resource)
       end
-
-      value
     end
 
     # Bypases resource loading and returns value of
@@ -572,12 +568,9 @@ module DataMapper
     #   if original_value was set, +val+ is returned
     #
     # @api private
-    def set_original_value(resource, val)
-      unless resource.original_values.key?(name)
-        val = val.try_dup
-        val = val.hash if track == :hash
-        resource.original_values[name] = val
-      end
+    def set_original_value(resource, value)
+      return if resource.original_values.key?(name)
+      resource.original_values[name] = track == :hash ? value.hash : self.value(value.try_dup)
     end
 
     # Provides a standardized setter method for the property
@@ -594,20 +587,8 @@ module DataMapper
     #
     # @api private
     def set(resource, value)
-      # [YK] We previously checked for new_record? here, but lazy loading
-      # is blocked anyway if we're in a new record by by
-      # Resource#reload_attributes. This may eventually be useful for
-      # optimizing, but let's (a) benchmark it first, and (b) do
-      # whatever refactoring is necessary, which will benefit from the
-      # centralize checking
-      lazy_load(resource)
-
-      new_value = typecast(value)
-      old_value = get!(resource)
-
-      set_original_value(resource, old_value)
-
-      set!(resource, new_value)
+      set_original_value(resource, get!(resource))
+      set!(resource, typecast(value))
     end
 
     # Bypases resource loading and sets value on
@@ -629,13 +610,23 @@ module DataMapper
       resource.instance_variable_set(instance_variable_name, value)
     end
 
+    # Check if the attribute corresponding to the property is loaded
+    #
+    # @param [DataMapper::Resource] resource
+    #   model instance for which the attribute is to be tested
+    #
+    # @return [TrueClass,FalseClass]
+    #   true if the attribute is loaded in the resource
+    #
+    # @api private
+    def loaded?(resource)
+      resource.instance_variable_defined?(instance_variable_name)
+    end
+
     # Loads lazy columns when get or set is called.
     #
     # @api private
     def lazy_load(resource)
-      # It is faster to bail out at at a new_record? rather than to process
-      # which properties would be loaded and then not load them.
-      return if resource.new_record? || resource.attribute_loaded?(name)
       # If we're trying to load a lazy property, load it. Otherwise, lazy-load
       # any properties that should be eager-loaded but were not included
       # in the original :fields list
@@ -721,6 +712,16 @@ module DataMapper
       @default.respond_to?(:call) ? @default.call(resource, self) : @default
     end
 
+    # Returns true if the property has a default value
+    #
+    # @return [TrueClass,FalseClass]
+    #   true if the property has a default value
+    #
+    # @api semipublic
+    def default?
+      @options.key?(:default)
+    end
+
     # Returns given value unchanged for core types and
     # uses +dump+ method of the property type for custom types.
     #
@@ -731,8 +732,8 @@ module DataMapper
     #   the primitive value to be stored in the repository for +val+
     #
     # @api semipublic
-    def value(val)
-      custom? ? self.type.dump(val, self) : val
+    def value(value)
+      custom? ? self.type.dump(value, self) : value
     end
 
     # Returns a concise string representation of the property instance.
@@ -796,11 +797,7 @@ module DataMapper
       @unique       = @options.fetch(:unique,       @serial || @key || false)
       @lazy         = @options.fetch(:lazy,         @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
 
-      @track = @options[:track] || if @custom && @type.respond_to?(:track) && @type.track
-        @type.track
-      else
-        IMMUTABLE_TYPES.include?(@primitive) ? :set : :get
-      end
+      @track = @options[:track] || @custom && @type.respond_to?(:track) ? @type.track : nil
 
       # assign attributes per-type
       if String == @primitive || Class == @primitive

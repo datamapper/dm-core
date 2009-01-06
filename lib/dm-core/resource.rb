@@ -235,10 +235,12 @@ module DataMapper
     #
     # @api public
     def inspect
+      new_record = new_record?
+
       attrs = []
 
       properties.each do |property|
-        value = if property.lazy? && !attribute_loaded?(property.name) && !new_record?
+        value = if !property.loaded?(self) && !new_record
           '<not loaded>'
         else
           send(property.getter).inspect
@@ -298,7 +300,7 @@ module DataMapper
     #
     # @api private
     def attribute_loaded?(name)
-      instance_variable_defined?(properties[name].instance_variable_name)
+      properties[name].loaded?(self)
     end
 
     ##
@@ -320,7 +322,7 @@ module DataMapper
     #
     # @api private
     def loaded_attributes
-      properties.map{|p| p.name if attribute_loaded?(p.name)}.compact
+      properties.map{|p| p.name if p.loaded?(self)}.compact
     end
 
     ##
@@ -343,22 +345,18 @@ module DataMapper
     # @api semipublic
     def dirty_attributes
       dirty_attributes = {}
-      properties       = self.properties
 
-      original_values.each do |name, old_value|
-        property  = properties[name]
-        new_value = property.get!(self)
+      properties = self.properties
 
-        dirty = case property.track
-          when :hash then old_value != new_value.hash
-          else
-            property.value(old_value) != property.value(new_value)
-        end
+      original_values.each do |name,old_value|
+        property = properties[name]
 
-        if dirty
-          property.hash
-          dirty_attributes[property] = property.value(new_value)
-        end
+        new_value = property.value(property.get!(self))
+
+        next if old_value == (property.track == :hash ? new_value.hash : new_value)
+
+        property.hash
+        dirty_attributes[property] = new_value
       end
 
       dirty_attributes
@@ -374,7 +372,7 @@ module DataMapper
     def dirty?
       return true if dirty_attributes.any?
       if new_record?
-        model.identity_field || properties.any? { |p| !p.default_for(self).nil? }
+        model.identity_field || properties.any? { |p| p.default? }
       end
     end
 
@@ -598,7 +596,7 @@ module DataMapper
 
       # set defaults for new resource
       properties.each do |property|
-        next if attribute_loaded?(property.name)
+        next if property.loaded?(self)
         property.set(self, property.default_for(self))
       end
 
@@ -732,7 +730,7 @@ module DataMapper
       return true if repository == other.repository && !dirty? && !other.dirty?
 
       loaded, not_loaded = properties.partition do |property|
-        attribute_loaded?(property.name) && other.attribute_loaded?(property.name)
+        property.loaded?(self) && property.loaded?(other)
       end
 
       # check all loaded properties, and then all unloaded properties
