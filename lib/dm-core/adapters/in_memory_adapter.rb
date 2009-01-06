@@ -80,7 +80,7 @@ module DataMapper
       #
       # @api semipublic
       def read_one(query)
-        read(query, query.model, false)
+        read_many(query).first
       end
 
       ##
@@ -96,7 +96,57 @@ module DataMapper
       #
       # @api semipublic
       def read_many(query)
-        read(query, query.model, true)
+        # TODO: Extract this into its own module, so it can be re-used in all
+        # adapters that don't have a native query language
+
+        model      = query.model
+        fields     = query.fields
+        conditions = query.conditions
+        offset     = query.offset
+        limit      = query.limit
+        order      = query.order
+
+        resources = []
+
+        # find all matching records
+        identity_map(model).each_value do |resource|
+          resources << resource if conditions.all? do |condition|
+            operator, property, bind_value = *condition
+
+            value = property.get!(resource)
+
+            case operator
+              when :eql, :in then equality_comparison(bind_value, value)
+              when :not      then !equality_comparison(bind_value, value)
+              when :like     then Regexp.new(bind_value) =~ value
+              when :gt       then !value.nil? && value >  bind_value
+              when :gte      then !value.nil? && value >= bind_value
+              when :lt       then !value.nil? && value <  bind_value
+              when :lte      then !value.nil? && value <= bind_value
+            end
+          end
+        end
+
+        size = resources.size
+
+        # if the requested resource is outside the range of available
+        # resources return
+        if offset > size - 1
+          return []
+        end
+
+        # sort the resources
+        sort_resources(resources, order)
+
+        # limit the resources
+        unless (limit.nil? || limit == size) && offset == 0
+          resources = resources[offset, limit || size]
+        end
+
+        # copy the value from each InMemoryAdapter Resource
+        resources.map! do |resource|
+          model.load(fields.map { |p| p.get!(resource) }, query)
+        end
       end
 
       ##
@@ -136,77 +186,6 @@ module DataMapper
       end
 
       ##
-      # This is the normal way of parsing the DataMapper::Query object into
-      # a set of conditions. This particular one translates it into ruby code
-      # that can be performed on ruby objects. It can be reused in most other
-      # adapters, however, if the adapter has its own native query language,
-      # such as SQL, an adapter developer is probably better using this as an
-      # example of how to parse the DataMapper::Query object.
-      #
-      # @param [DataMapper::Query] query
-      #   The query to be used to seach for the resources
-      # @param [DataMapper::Collection,DataMapper::Model] model
-      #   The Model to load the Resource with
-      # @param [TrueClass,FalseClass] many
-      #   True if more than one Resource should be returned
-      #
-      # @return [DataMapper::Resource,DataMapper::Collection]
-      #   A Collection of all the resources or a Resource found by the query.
-      #
-      # @api private
-      def read(query, model, many = true)
-        # TODO: Extract this into its own module, so it can be re-used in all
-        # adapters that don't have a native query language
-
-        conditions = query.conditions
-
-        # find all matching records
-        resources = identity_map(query.model).values.select do |resource|
-          conditions.all? do |condition|
-            operator, property, bind_value = *condition
-
-            value = property.get!(resource)
-
-            case operator
-              when :eql, :in then equality_comparison(bind_value, value)
-              when :not      then !equality_comparison(bind_value, value)
-              when :like     then Regexp.new(bind_value) =~ value
-              when :gt       then !value.nil? && value >  bind_value
-              when :gte      then !value.nil? && value >= bind_value
-              when :lt       then !value.nil? && value <  bind_value
-              when :lte      then !value.nil? && value <= bind_value
-            end
-          end
-        end
-
-        # if the requested resource is outside the range of available
-        # resources return
-        if query.offset > resources.size - 1
-          return many ? [] : nil
-        end
-
-        # sort the resources
-        if query.order.any?
-          resources = sorted_resources(resources, query.order)
-        end
-
-        # limit the resources
-        if query.limit || query.offset > 0
-          resources = resources[query.offset, query.limit || resources.size]
-        end
-
-        properties = query.fields
-
-        # copy the value from each InMemoryAdapter Resource
-        resources = resources.map do |resource|
-          values = properties.map { |p| p.get!(resource) }
-          model.load(values, query)
-        end
-
-        many ? resources : resources.first
-      end
-
-      ##
       # Compares two values and returns true if they are equal
       #
       # @param [Object] bind_value
@@ -238,11 +217,11 @@ module DataMapper
       #   The sorted Resources
       #
       # @api private
-      def sorted_resources(resources, order)
+      def sort_resources(resources, order)
         sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
 
         # sort resources by each property
-        resources.sort do |a,b|
+        resources.sort! do |a,b|
           cmp = 0
           sort_order.each do |(property,descending)|
             cmp = property.get!(a) <=> property.get!(b)
