@@ -195,7 +195,7 @@ module DataMapper
           return if resource.nil?
 
           # TODO: should just set the resource parent to nil using the mutator
-          @relationship.child_key.set(resource, nil)
+          @relationship.child_key.set(resource, [])
 
           super
         end

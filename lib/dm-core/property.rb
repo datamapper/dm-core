@@ -854,10 +854,11 @@ module DataMapper
     # @api private
     def create_accessor
       unless model.instance_methods(false).include?(getter)
+        # XXX: why not use @#{instance_variable_name} ||= properties[#{name.inspect}].get(self) below?
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
           def #{getter}
-            attribute_get(#{name.inspect})
+            properties[#{name.inspect}].get(self)
           end
         RUBY
       end
@@ -878,7 +879,7 @@ module DataMapper
       model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         #{writer_visibility}
         def #{name}=(value)
-          attribute_set(#{name.inspect}, value)
+          properties[#{name.inspect}].set(self, value)
         end
       RUBY
     end

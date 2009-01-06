@@ -1,67 +1,56 @@
 module DataMapper
-  class PropertySet
-    include Extlib::Assertions
-    include Enumerable
-
+  class PropertySet < Array
     def [](name)
-      property_for(name)
+      @properties[name]
     end
 
     def []=(name, property)
-      @key, @defaults = nil
-      if existing_property = detect { |p| p.name == name }
-        property.hash
-        @entries[@entries.index(existing_property)] = property
+      if named?(name)
+        add_property(property)
+        super(index(property), property)
       else
-        add(property)
-      end
-      property
-    end
-
-    def has_property?(name)
-      !!property_for(name)
-    end
-
-    def slice(*names)
-      @key, @defaults = nil
-      names.map do |name|
-        property_for(name)
+        self << property
       end
     end
+
+    def named?(name)
+      @properties.key?(name)
+    end
+
+     # TODO: deprecate has_property?
+    alias has_property? named?
+
+    def values_at(*names)
+      @properties.values_at(*names)
+    end
+
+    # TODO: deprecate slice
+    alias slice values_at
 
     def clear
-      @key, @defaults = nil
-      @entries.clear
+      clear_cache
+      @properties.clear
+      super
     end
 
-    def add(*properties)
-      @key, @defaults = nil
-      @entries.push(*properties)
-      properties.each { |property| property.hash }
-      self
+    def <<(property)
+      add_property(property)
+      super
     end
 
-    alias << add
+    # TODO: deprecate add
+    alias add <<
 
-    def length
-      @entries.length
-    end
-
-    def empty?
-      @entries.empty?
-    end
-
-    def each
-      @entries.each { |property| yield property }
-      self
+    def include?(property)
+      named?(property.name)
     end
 
     def defaults
-      @defaults ||= reject { |property| property.lazy? }
+      @defaults ||= reject { |p| p.lazy? }
     end
 
     def key
-      @key ||= select { |property| property.key? }
+      @key ||= select { |p| p.key? }
     end
 
     def indexes
@@ -81,10 +70,6 @@ module DataMapper
     end
 
     def set(resource, values)
-      if values.kind_of?(Array) && values.length != length
-        raise ArgumentError, "+values+ must have a length of #{length}, but has #{values.length}", caller
-      end
-
       zip(values) { |p,v| p.set(resource, v) }
     end
 
@@ -119,7 +104,7 @@ module DataMapper
     end
 
     def to_query(bind_values)
-      Hash[ *zip(bind_values).flatten ]
+      zip(bind_values).to_hash
     end
 
     def inspect
@@ -128,17 +113,24 @@ module DataMapper
 
     private
 
-    def initialize(properties = [])
-      assert_kind_of 'properties', properties, Enumerable
-
-      @entries = properties
-      @property_for = {}
+    def initialize(*)
+      super
+      @properties = map { |p| [ p.name, p ] }.to_hash
     end
 
-    def initialize_copy(orig)
-      @key, @defaults = nil
-      @entries = orig.entries.dup
-      @property_for = {}
+    def initialize_copy(*)
+      super
+      @properties = @properties.dup
+    end
+
+    def add_property(property)
+      clear_cache
+      property.hash
+      @properties[property.name] = property
+    end
+
+    def clear_cache
+      @defaults, @key = nil
     end
 
     def lazy_contexts
@@ -147,21 +139,14 @@ module DataMapper
 
     def parse_index(index, property, index_hash)
       case index
-      when true then index_hash[property] = [property]
-      when Symbol
-        index_hash[index.to_s] ||= []
-        index_hash[index.to_s] << property
-      when Enumerable then index.each { |idx| parse_index(idx, property, index_hash) }
+        when true
+          index_hash[property] = [ property ]
+        when Symbol
+          index_hash[index] ||= []
+          index_hash[index] << property
+        when Enumerable
+          index.each { |idx| parse_index(idx, property, index_hash) }
       end
     end
-
-    def property_for(name)
-      unless @property_for[name]
-        property = detect { |property| property.name == name.to_sym }
-        @property_for[name.to_s] = @property_for[name.to_sym] = property if property
-      end
-      @property_for[name]
-    end
-
   end # class PropertySet
 end # module DataMapper

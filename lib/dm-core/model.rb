@@ -92,7 +92,7 @@ module DataMapper
       @properties.each do |repository_name,properties|
         repository(repository_name) do
           properties.each do |property|
-            next if target.properties(repository_name).has_property?(property.name)
+            next if target.properties(repository_name).include?(property)
             target.property(property.name, property.type, property.options.dup)
           end
         end
@@ -179,7 +179,7 @@ module DataMapper
       if repository_name == default_repository_name
         @properties.each_pair do |repository_name, properties|
           next if repository_name == default_repository_name
-          properties << property unless properties.has_property?(property.name)
+          properties << property unless properties.include?(property)
         end
       end
 
@@ -201,7 +201,7 @@ module DataMapper
       # the parent
       if respond_to?(:descendants)
         descendants.each do |model|
-          next if model.properties(repository_name).has_property?(name)
+          next if model.properties(repository_name).named?(name)
           model.property(name, type, options)
         end
       end
@@ -409,7 +409,7 @@ module DataMapper
 
       # get the list of properties that exist in the source and destination
       destination_properties = properties(destination)
-      fields = query[:fields] ||= properties(source).select { |p| destination_properties.has_property?(p.name) }
+      fields = query[:fields] ||= properties(source).select { |p| destination_properties.include?(p) }
 
       repository(destination) do
         all(query.merge(:repository => repository(source))).map do |resource|
@@ -569,7 +569,7 @@ module DataMapper
         model.relationships(repository_name).each_value { |relationship| relationship.child_key }
         model.many_to_one_relationships.each { |relationship| relationship.child_key }
         model.properties(repository_name).each do |property|
-          properties << property unless properties.has_property?(property.name)
+          properties << property unless properties.include?(property)
         end
       end
       properties
