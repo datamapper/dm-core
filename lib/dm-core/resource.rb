@@ -550,12 +550,12 @@ module DataMapper
     #
     # @api public
     def destroy
-      return false if new_record?
-      return false unless repository.delete(to_query)
-
-      reset
-
-      true
+      if !new_record? && repository.delete(to_query) == 1
+        reset
+        true
+      else
+        false
+      end
     end
 
     # Gets a Query that will return this Resource instance
