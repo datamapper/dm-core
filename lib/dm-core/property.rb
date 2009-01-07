@@ -741,9 +741,12 @@ module DataMapper
     private
 
     def initialize(model, name, type, options = {})
-      assert_kind_of 'model', model, Model
-      assert_kind_of 'name',  name,  Symbol
-      assert_kind_of 'type',  type,  Class
+      assert_kind_of 'model',   model,   Model
+      assert_kind_of 'name',    name,    Symbol
+      assert_kind_of 'type',    type,    Class
+      assert_kind_of 'options', options, Hash
+
+      assert_valid_options(options)
 
       if TrueClass == type
         warn "#{type} is deprecated, use Boolean instead"
@@ -768,7 +771,7 @@ module DataMapper
       @options                = @custom ? @type.options.merge(options) : options
       @instance_variable_name = "@#{@name}"
 
-      @primitive = @options[:primitive] || (@type.respond_to?(:primitive) ? @type.primitive : @type)
+      @primitive = @type.respond_to?(:primitive) ? @type.primitive : @type
       @getter    = TrueClass == @primitive ? "#{@name}?".to_sym : @name
       @field     = @options[:field] || (repository_name == :default ? nil : model.field_naming_convention(repository_name).call(self))
       @default   = @options[:default]
@@ -786,8 +789,7 @@ module DataMapper
         @length = @options[:length] || @options[:size] || DEFAULT_LENGTH
       elsif BigDecimal == @primitive || Float == @primitive
         @precision    = @options[:precision] || DEFAULT_PRECISION
-        default_scale = Float == @primitive ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL
-        @scale        = @options[:scale] || default_scale
+        @scale        = @options[:scale]     || (Float == @primitive ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL)
 
         unless @precision > 0
           raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"
@@ -816,6 +818,45 @@ module DataMapper
       @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
     end
 
+    def assert_valid_options(options)
+      if (unknown = options.keys - PROPERTY_OPTIONS).any?
+        raise ArgumentError, "options #{unknown.join(' and ')} are unknown", caller(1)
+      end
+
+      options.each do |key,value|
+        case key
+          when :field
+            assert_kind_of "options[#{key.inspect}]", value, String
+
+          when :default
+            if value.nil?
+              raise ArgumentError, "options[#{key.inspect}] must not be nil", caller(1)
+            end
+
+          when :serial, :key, :nullable, :unique, :lazy, :auto_validation
+            unless value == true || value == false
+              raise ArgumentError, "options[#{key.inspect}] must not be either true or false", caller(1)
+            end
+
+          when :index, :unique_index
+            assert_kind_of "options[#{key.inspect}]", value, Symbol, Array, TrueClass
+
+          when :length
+            assert_kind_of "options[#{key.inspect}]", value, Range, Integer
+
+          when :size, :precision, :scale
+            assert_kind_of "options[#{key.inspect}]", value, Integer
+
+          when :reader, :writer, :accessor
+            assert_kind_of "options[#{key.inspect}]", value, Symbol
+
+            unless VISIBILITY_OPTIONS.include?(value)
+              raise ArgumentError, "options[#{key.inspect}] must be #{VISIBILITY_OPTIONS.join(' or ')}", caller(1)
+            end
+        end
+      end
+    end
+
     # Assert given visibility value is supported.
     #
     # Will raise ArgumentError if this Property's reader and writer
@@ -826,10 +867,6 @@ module DataMapper
     def determine_visibility
       @reader_visibility = @options[:reader] || @options[:accessor] || :public
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
-
-      unless VISIBILITY_OPTIONS.include?(@reader_visibility) && VISIBILITY_OPTIONS.include?(@writer_visibility)
-        raise ArgumentError, 'property visibility must be :public, :protected, or :private', caller(2)
-      end
     end
 
     # defines the getter for the property

@@ -143,7 +143,7 @@ module DataMapper
         when Symbol
           index_hash[index] ||= []
           index_hash[index] << property
-        when Enumerable
+        when Array
           index.each { |idx| parse_index(idx, property, index_hash) }
       end
     end

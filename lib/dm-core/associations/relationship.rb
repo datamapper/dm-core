@@ -34,8 +34,10 @@ module DataMapper
             properties[property_name] || begin
               options = { :index => parent_name.to_sym }
 
-              [ :length, :precision, :scale ].each do |option|
-                options[option] = parent_property.send(option)
+              [ :length, :size, :precision, :scale ].each do |option|
+                if parent_property.options.key?(option)
+                  options[option] = parent_property.options[option]
+                end
               end
 
               # create the property within the correct repository
