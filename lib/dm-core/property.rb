@@ -356,7 +356,7 @@ module DataMapper
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :getter, :options,
-      :default, :precision, :scale, :extra_options, :repository_name
+      :default, :precision, :scale, :repository_name
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -758,14 +758,6 @@ module DataMapper
 
       unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
         raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type", caller
-      end
-
-      # TODO: remove this and blow up when an option is specified that
-      # is not part of PROPERTY_OPTIONS.  DM::Property subclasses should
-      # decide which extra options they are going to support.
-      @extra_options = {}
-      (options.keys - PROPERTY_OPTIONS).each do |key|
-        @extra_options[key] = options.delete(key)
       end
 
       @repository_name        = repository.name
