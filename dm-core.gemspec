@@ -1,4 +1,3 @@
-(in /Users/dankubb/Programming/ruby/open-source/dm/dm-core)
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|

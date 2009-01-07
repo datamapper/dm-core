@@ -522,7 +522,12 @@ module DataMapper
 
       bind_value = dump_custom_value(property, bind_value)
 
-      @conditions << [ operator, property, bind_value ]
+      if bind_value.kind_of?(Range) && bind_value.r.exclude_end? == false
+        @conditions << [ :gte, property, bind_value.first ]
+        @conditions << [ :lt,  property, bind_value.last  ]
+      else
+        @conditions << [ operator, property, bind_value ]
+      end
     end
 
     def dump_custom_value(property_or_path, bind_value)
