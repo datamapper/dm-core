@@ -654,7 +654,7 @@ module DataMapper
           #
           # TODO: move to dm-more/dm-migrations
           def type_map
-            @type_map ||= TypeMap.new(super) do |tm|
+            @type_map ||= TypeMap.new do |tm|
               tm.map(Integer).to('INT')
               tm.map(String).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
               tm.map(Class).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
@@ -673,6 +673,91 @@ module DataMapper
 
       include Migration
       extend Migration::ClassMethods
+
+      # TODO: move to dm-more/dm-transaction
+      module Transaction
+        ##
+        # Pushes the given Transaction onto the per thread Transaction stack so
+        # that everything done by this Adapter is done within the context of said
+        # Transaction.
+        #
+        # @param [DataMapper::Transaction] transaction
+        #   a Transaction to be the 'current' transaction until popped.
+        #
+        # @return [Array(DataMapper::Transaction)]
+        #   the stack of active transactions for the current thread
+        #
+        # TODO: move to dm-more/dm-transaction
+        def push_transaction(transaction)
+          transactions(Thread.current) << transaction
+        end
+
+        ##
+        # Pop the 'current' Transaction from the per thread Transaction stack so
+        # that everything done by this Adapter is no longer necessarily within the
+        # context of said Transaction.
+        #
+        # @return [DataMapper::Transaction]
+        #   the former 'current' transaction.
+        #
+        # TODO: move to dm-more/dm-transaction
+        def pop_transaction
+          transactions(Thread.current).pop
+        end
+
+        ##
+        # Retrieve the current transaction for this Adapter.
+        #
+        # Everything done by this Adapter is done within the context of this
+        # Transaction.
+        #
+        # @return [DataMapper::Transaction]
+        #   the 'current' transaction for this Adapter.
+        #
+        # TODO: move to dm-more/dm-transaction
+        def current_transaction
+          transactions(Thread.current).last
+        end
+
+        ##
+        # Returns whether we are within a Transaction.
+        #
+        # @return [TrueClass, FalseClass]
+        #   whether we are within a Transaction.
+        #
+        # TODO: move to dm-more/dm-transaction
+        def within_transaction?
+          !current_transaction.nil?
+        end
+
+        ##
+        # Produces a fresh transaction primitive for this Adapter
+        #
+        # Used by DataMapper::Transaction to perform its various tasks.
+        #
+        # @return [Object]
+        #   a new Object that responds to :close, :begin, :commit,
+        #   :rollback, :rollback_prepared and :prepare
+        #
+        # TODO: move to dm-more/dm-transaction (if possible)
+        def transaction_primitive
+          raise NotImplementedError
+        end
+
+        private
+
+        def transactions(thread)
+          unless @transactions[thread]
+            @transactions.delete_if do |key, value|
+              !key.respond_to?(:alive?) || !key.alive?
+            end
+            @transactions[thread] = []
+          end
+          @transactions[thread]
+        end
+      end
+
+      include Transaction
     end # class DataObjectsAdapter
   end # module Adapters
 

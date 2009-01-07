@@ -195,16 +195,6 @@ module DataMapper
 
     # TODO: move to dm-more/dm-migrations
     module Migration
-      # TODO: move to dm-more/dm-migrations
-      def map(*args)
-        type_map.map(*args)
-      end
-
-      # TODO: move to dm-more/dm-migrations
-      def type_map
-        @type_map ||= TypeMap.new(adapter.class.type_map)
-      end
-
       ##
       # Determine whether a particular named storage exists in this repository
       #
