@@ -531,14 +531,13 @@ module DataMapper
     # TODO: add docs
     # @api private
     def _dump(*)
-      repository_name = repository.name
-      attributes      = {}
+      ivars = {}
 
-      model.properties(repository_name).slice(*loaded_attributes).compact.each do |property|
-        attributes[property.name] = property.get(self) if property.writer_visibility == :public
+      (instance_variables - %w[ @child_associations @parent_associations @collection ]).each do |name|
+        ivars[name] = instance_variable_get(name)
       end
 
-      Marshal.dump([ repository_name, attributes ])
+      Marshal.dump(ivars)
     end
 
     protected

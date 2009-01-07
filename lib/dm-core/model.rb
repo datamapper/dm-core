@@ -388,8 +388,9 @@ module DataMapper
     # TODO: add docs
     # @api private
     def _load(marshalled)
-      repository_name, attributes = Marshal.load(marshalled)
-      repository(repository_name) { new(attributes) }
+      resource = allocate
+      Marshal.load(marshalled).each { |kv| resource.instance_variable_set(*kv) }
+      resource
     end
 
     def typecast_key(key)
