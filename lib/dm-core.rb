@@ -40,7 +40,6 @@ require dir / 'collection'
 require dir / 'support'
 
 require dir / 'type'
-require dir / 'type_map'
 require dir / 'types'
 require dir / 'associations'
 require dir / 'auto_migrations'

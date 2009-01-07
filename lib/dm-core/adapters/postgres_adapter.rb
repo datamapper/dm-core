@@ -89,17 +89,20 @@ module DataMapper
         include SQL
 
         module ClassMethods
-          # TypeMap for PostgreSQL databases.
+          # Types for PostgreSQL databases.
           #
-          # @return <DataMapper::TypeMap> default TypeMap for PostgreSQL databases.
+          # @return [Hash] types for PostgreSQL databases.
           #
           # TODO: move to dm-more/dm-migrations
           def type_map
-            @type_map ||= TypeMap.new(super) do |tm|
-              tm.map(Integer).to('INTEGER')
-              tm.map(BigDecimal).to('NUMERIC').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE_BIGDECIMAL)
-              tm.map(Float).to('DOUBLE PRECISION')
-            end
+            precision = Property::DEFAULT_PRECISION
+            scale     = Property::DEFAULT_SCALE_BIGDECIMAL
+
+            @type_map ||= super.merge(
+              Integer    => { :primitive => 'INTEGER'                                           },
+              BigDecimal => { :primitive => 'NUMERIC', :precision => precision, :scale => scale },
+              Float      => { :primitive => 'DOUBLE PRECISION'                                  }
+            )
           end
         end # module ClassMethods
       end # module Migration

@@ -207,11 +207,6 @@ module DataMapper
       end
 
       # TODO: move to dm-more/dm-migrations
-      def migrate!
-        Migrator.migrate(name)
-      end
-
-      # TODO: move to dm-more/dm-migrations
       def auto_migrate!
         AutoMigrator.auto_migrate(name)
       end

@@ -599,7 +599,7 @@ module DataMapper
 
           # TODO: move to dm-more/dm-migrations
           def property_schema_hash(property)
-            schema = self.class.type_map[property.type].merge(:name => property.field)
+            schema = (self.class.type_map[property.type] || self.class.type_map[property.primitive]).merge(:name => property.field)
 
             # TODO: figure out a way to specify the size not be included, even if
             # a default is defined in the typemap
@@ -648,25 +648,29 @@ module DataMapper
         include SQL
 
         module ClassMethods
-          # Default TypeMap for all data object based adapters.
+          # Default types for all data object based adapters.
           #
-          # @return <DataMapper::TypeMap> default TypeMap for data objects adapters.
+          # @return [Hash] default types for data objects adapters.
           #
           # TODO: move to dm-more/dm-migrations
           def type_map
-            @type_map ||= TypeMap.new do |tm|
-              tm.map(Integer).to('INT')
-              tm.map(String).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
-              tm.map(Class).to('VARCHAR').with(:size => Property::DEFAULT_LENGTH)
-              tm.map(BigDecimal).to('DECIMAL').with(:precision => Property::DEFAULT_PRECISION, :scale => Property::DEFAULT_SCALE_BIGDECIMAL)
-              tm.map(Float).to('FLOAT').with(:precision => Property::DEFAULT_PRECISION)
-              tm.map(DateTime).to('TIMESTAMP')
-              tm.map(Date).to('DATE')
-              tm.map(Time).to('TIMESTAMP')
-              tm.map(TrueClass).to('BOOLEAN')
-              tm.map(DataMapper::Types::Object).to('TEXT')
-              tm.map(DataMapper::Types::Text).to('TEXT')
-            end
+            size      = Property::DEFAULT_LENGTH
+            precision = Property::DEFAULT_PRECISION
+            scale     = Property::DEFAULT_SCALE_BIGDECIMAL
+
+            @type_map ||= {
+              Integer                   => { :primitive => 'INT'                                               },
+              String                    => { :primitive => 'VARCHAR', :size => size                            },
+              Class                     => { :primitive => 'VARCHAR', :size => size                            },
+              BigDecimal                => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
+              Float                     => { :primitive => 'FLOAT',   :precision => precision                  },
+              DateTime                  => { :primitive => 'TIMESTAMP'                                         },
+              Date                      => { :primitive => 'DATE'                                              },
+              Time                      => { :primitive => 'TIMESTAMP'                                         },
+              TrueClass                 => { :primitive => 'BOOLEAN'                                           },
+              DataMapper::Types::Object => { :primitive => 'TEXT'                                              },
+              DataMapper::Types::Text   => { :primitive => 'TEXT'                                              },
+            }.freeze
           end
         end # module ClassMethods
       end # module Migration

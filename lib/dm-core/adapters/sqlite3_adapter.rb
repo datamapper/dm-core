@@ -92,16 +92,16 @@ module DataMapper
         include SQL
 
         module ClassMethods
-          # TypeMap for SQLite 3 databases.
+          # Types for SQLite 3 databases.
           #
-          # @return <DataMapper::TypeMap> default TypeMap for SQLite 3 databases.
+          # @return [Hash] types for SQLite 3 databases.
           #
           # TODO: move to dm-more/dm-migrations
           def type_map
-            @type_map ||= TypeMap.new(super) do |tm|
-              tm.map(Integer).to('INTEGER')
-              tm.map(Class).to('VARCHAR')
-            end
+            @type_map ||= super.merge(
+              Integer => { :primitive => 'INTEGER' },
+              Class   => { :primitive => 'VARCHAR' }
+            )
           end
         end # module ClassMethods
       end # module Migration

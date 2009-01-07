@@ -134,19 +134,19 @@ module DataMapper
         include SQL
 
         module ClassMethods
-          # TypeMap for MySql databases.
+          # Types for MySQL databases.
           #
-          # @return <DataMapper::TypeMap> default TypeMap for MySql databases.
+          # @return [Hash] types for MySQL databases.
           #
           # TODO: move to dm-more/dm-migrations
           def type_map
-            @type_map ||= TypeMap.new(super) do |tm|
-              tm.map(Integer).to('INT').with(:size => 11)
-              tm.map(TrueClass).to('TINYINT').with(:size => 1)  # TODO: map this to a BIT or CHAR(0) field?
-              tm.map(Object).to('TEXT')
-              tm.map(DateTime).to('DATETIME')
-              tm.map(Time).to('DATETIME')
-            end
+            @type_map ||= super.merge(
+              Integer   => { :primitive => 'INT',     :size => 11 },
+              TrueClass => { :primitive => 'TINYINT', :size => 1  },  # TODO: map this to a BIT or CHAR(0) field?
+              Object    => { :primitive => 'TEXT'                 },
+              DateTime  => { :primitive => 'DATETIME'             },
+              Time      => { :primitive => 'DATETIME'             }
+            )
           end
         end # module ClassMethods
       end # module Migration

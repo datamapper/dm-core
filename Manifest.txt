@@ -48,7 +48,6 @@ lib/dm-core/support/kernel.rb
 lib/dm-core/support/symbol.rb
 lib/dm-core/transaction.rb
 lib/dm-core/type.rb
-lib/dm-core/type_map.rb
 lib/dm-core/types.rb
 lib/dm-core/types/boolean.rb
 lib/dm-core/types/discriminator.rb
