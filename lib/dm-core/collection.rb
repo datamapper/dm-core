@@ -1145,9 +1145,8 @@ module DataMapper
         :fields       => query.fields,
       }
 
-      hash[:limit]    = query.limit    unless query.limit    == nil
-      hash[:links]    = query.links    unless query.links    == []
-      hash[:includes] = query.includes unless query.includes == []
+      hash[:limit] = query.limit unless query.limit == nil
+      hash[:links] = query.links unless query.links == []
 
       conditions  = {}
       raw_queries = []

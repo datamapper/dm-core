@@ -7,10 +7,10 @@ module DataMapper
     include Extlib::Assertions
 
     OPTIONS = [
-      :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :includes, :conditions, :unique
+      :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions, :unique
     ]
 
-    attr_reader :repository, :model, *OPTIONS - [ :reload, :unique ]
+    attr_reader :repository, :model, *OPTIONS - [ :reload, :unique, :includes ]
     attr_writer :add_reversed
     alias add_reversed? add_reversed
 
@@ -90,7 +90,6 @@ module DataMapper
       @add_reversed = other.add_reversed? unless other.add_reversed? == false
       @fields       = other.fields        unless other.fields        == @properties.defaults
       @links        = other.links         unless other.links         == []
-      @includes     = other.includes      unless other.includes      == []
 
       update_conditions(other)
 
@@ -128,7 +127,6 @@ module DataMapper
       @add_reversed == other.add_reversed? &&
       @fields       == other.fields        &&  # TODO: sort this so even if the order is different, it is equal
       @links        == other.links         &&  # TODO: sort this so even if the order is different, it is equal
-      @includes     == other.includes      &&  # TODO: sort this so even if the order is different, it is equal
       @conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash } == other.conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash }
     end
 
@@ -163,7 +161,7 @@ module DataMapper
     #
     # @return [DataMapper::Property, NilClass] The Discriminator property
     #   declared on the model
-    # @api semi-public
+    # @api semipublic
     def inheritance_property
       fields.detect { |property| property.type == DataMapper::Types::Discriminator }
     end
@@ -179,9 +177,7 @@ module DataMapper
     # @api private
     # TODO: spec this
     def key_property_indexes(repository)
-      if (key_property_indexes = model.key(repository.name).map { |property| fields.index(property) }).all?
-        key_property_indexes
-      end
+      model.key(repository.name).map { |property| fields.index(property) }
     end
 
     ##
@@ -239,7 +235,8 @@ module DataMapper
       assert_kind_of 'model',      model,      Model
       assert_kind_of 'options',    options,    Hash
 
-      options.each { |k,v| options[k] = v.call if v.kind_of? Proc } if options.kind_of? Hash
+      # XXX: what is the reason for this?
+      options.each { |k,v| options[k] = v.call if v.kind_of?(Proc) }
 
       assert_valid_options(options)
 
@@ -255,12 +252,7 @@ module DataMapper
       @add_reversed = options.fetch :add_reversed, false  # must be true or false
       @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
-      @includes     = options.fetch :includes,     []     # must be an Array of DM::Query::Path
       @conditions   = []                                  # must be an Array of triplets (or pairs when passing in raw String queries)
-
-      # normalize order and fields
-      @order  = normalize_order(@order)
-      @fields = normalize_fields(@fields)
 
       # XXX: should I validate that each property in @order corresponds
       # to something in @fields?  Many DB engines require they match,
@@ -268,10 +260,9 @@ module DataMapper
       # important that you sort on it, but not important enough to
       # return.
 
-      # normalize links and includes.
-      # NOTE: this must be done after order and fields
-      @links    = normalize_links(@links)
-      @includes = normalize_includes(@includes)
+      normalize_order
+      normalize_fields
+      normalize_links
 
       # treat all non-options as conditions
       (options.keys - OPTIONS).each do |k|
@@ -308,47 +299,53 @@ module DataMapper
       # [DB] This might look more ugly now, but it's 2x as fast as the old code
       # [DB] This is one of the heavy spots for Query.new I found during profiling.
       options.each do |attribute, value|
-
-        # validate the reload option and unique option
-        if [:reload, :unique].include? attribute
-          if value != true && value != false
-            raise ArgumentError, "+options[:#{attribute}]+ must be true or false, but was #{value.inspect}", caller(2)
-          end
-
-        # validate the offset and limit options
-        elsif [:offset, :limit].include? attribute
-          assert_kind_of "options[:#{attribute}]", value, Integer
-          if attribute == :offset && value < 0
-            raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{value.inspect}", caller(2)
-          elsif attribute == :limit && value < 1
-            raise ArgumentError, "+options[:limit]+ must be greater than or equal to 1, but was #{options[:limit].inspect}", caller(2)
-          end
-
-        # validate the :order, :fields, :links and :includes options
-        elsif [ :order, :fields, :links, :includes ].include? attribute
-          assert_kind_of "options[:#{attribute}]", value, Array
-
-          if value.empty?
-            if attribute == :fields
-              if options[:unique] == false
-                raise ArgumentError, '+options[:fields]+ cannot be empty if +options[:unique] is false', caller(2)
-              end
-            elsif attribute == :order
-              if options[:fields] && options[:fields].any? { |p| !p.kind_of?(Operator) }
-                raise ArgumentError, '+options[:order]+ cannot be empty if +options[:fields] contains a non-operator', caller(2)
-              end
-            else
-              raise ArgumentError, "+options[:#{attribute}]+ cannot be empty", caller(2)
+        case attribute
+          when :reload, :unique
+            if value != true && value != false
+              raise ArgumentError, "+options[:#{attribute}]+ must be true or false, but was #{value.inspect}", caller(2)
             end
-          end
 
-        # validates the :conditions option
-        elsif :conditions == attribute
-          assert_kind_of 'options[:conditions]', value, Hash, Array
+          when :offset
+            assert_kind_of 'options[:offset]', value, Integer
 
-          if value.empty?
-            raise ArgumentError, '+options[:conditions]+ cannot be empty', caller(2)
-          end
+            unless value >= 0
+              raise ArgumentError, "+options[:offset]+ must be greater than or equal to 0, but was #{value.inspect}", caller(2)
+            end
+
+          when :limit
+            assert_kind_of 'options[:limit]', value, Integer
+
+            unless value >= 1
+              raise ArgumentError, "+options[:limit]+ must be greater than or equal to 1, but was #{value.inspect}", caller(2)
+            end
+
+          when :fields
+            assert_kind_of 'options[:fields]', value, Array
+
+            if value.empty? && options[:unique] == false
+              raise ArgumentError, '+options[:fields]+ cannot be empty if +options[:unique] is false', caller(2)
+            end
+
+          when :order
+            assert_kind_of 'options[:order]', value, Array
+
+            if value.empty? && options.key?(:fields) && options[:fields].any? { |p| !p.kind_of?(Operator) }
+              raise ArgumentError, '+options[:order]+ cannot be empty if +options[:fields] contains a non-operator', caller(2)
+            end
+
+          when :links
+            assert_kind_of 'options[:links]', value, Array
+
+            if value.empty?
+              raise ArgumentError, '+options[:links]+ cannot be empty', caller(2)
+            end
+
+          when :conditions
+            assert_kind_of 'options[:conditions]', value, Hash, Array
+
+            if value.empty?
+              raise ArgumentError, '+options[:conditions]+ cannot be empty', caller(2)
+            end
         end
       end
     end
@@ -359,7 +356,7 @@ module DataMapper
     #   if +other+ is a DM::Query, but has a different repository or model
     # @api private
     def assert_valid_other(other)
-      return unless  other.kind_of?(self.class)
+      return unless other.kind_of?(Query)
 
       unless other.repository == repository
         raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}", caller(2)
@@ -371,11 +368,11 @@ module DataMapper
     end
 
     # normalize order elements to DM::Query::Direction
-    def normalize_order(order)
-      order.map do |order_by|
-        case order_by
+    def normalize_order
+      @order.map! do |order|
+        case order
           when Direction
-            # NOTE: The property is available via order_by.property
+            # NOTE: The property is available via order.property
             # TODO: if the Property's model doesn't match
             # self.model, append the property's model to @links
             # eg:
@@ -383,7 +380,7 @@ module DataMapper
             #  @links << discover_path_for_property(property)
             #end
 
-            order_by
+            order
           when Property
             # TODO: if the Property's model doesn't match
             # self.model, append the property's model to @links
@@ -392,29 +389,29 @@ module DataMapper
             #  @links << discover_path_for_property(property)
             #end
 
-            Direction.new(order_by)
+            Direction.new(order)
           when Operator
-            property = @properties[order_by.target]
-            Direction.new(property, order_by.operator)
+            property = @properties[order.target]
+            Direction.new(property, order.operator)
           when Symbol, String
-            property = @properties[order_by]
+            property = @properties[order]
 
             if property.nil?
-              raise ArgumentError, "+options[:order]+ entry #{order_by} does not map to a DataMapper::Property", caller(2)
+              raise ArgumentError, "+options[:order]+ entry #{order} does not map to a DataMapper::Property", caller(2)
             end
 
             Direction.new(property)
           else
-            raise ArgumentError, "+options[:order]+ entry #{order_by.inspect} not supported", caller(2)
+            raise ArgumentError, "+options[:order]+ entry #{order.inspect} not supported", caller(2)
         end
       end
     end
 
     # normalize fields to DM::Property
-    def normalize_fields(fields)
-      # TODO: return a PropertySet
+    def normalize_fields
+      # TODO: make @fields a PropertySet
       # TODO: raise an exception if the property is not available in the repository
-      fields.map do |field|
+      @fields.map! do |field|
         case field
           when Property, Operator
             # TODO: if the Property's model doesn't match
@@ -439,45 +436,30 @@ module DataMapper
     end
 
     # normalize links to DM::Query::Path
-    def normalize_links(links)
-      # XXX: this should normalize to DM::Query::Path, not DM::Association::Relationship
-      # because a link may be more than one-hop-away from the source.  A DM::Query::Path
-      # should include an Array of Relationship objects that trace the "path" between
-      # the source and the target.
-      links.map do |link|
+    def normalize_links
+      @links.map! do |link|
         case link
           when Associations::Relationship
             link
           when Symbol, String
-            link = link.to_sym if link.kind_of?(String)
+            link = link.to_sym
 
-            unless model.relationships(@repository.name).key?(link)
+            unless relationship = model.relationships(@repository.name).key?(link)
               raise ArgumentError, "+options[:links]+ entry #{link} does not map to a DataMapper::Associations::Relationship", caller(2)
             end
 
-            model.relationships(@repository.name)[link]
+            relationship
           else
             raise ArgumentError, "+options[:links]+ entry #{link.inspect} not supported", caller(2)
         end
       end
     end
 
-    # normalize includes to DM::Query::Path (no-op)
-    # @param [Enumerable(DataMapper::Query::Path)] includes normalized includes for this query
-    # @return [Enumerable(DataMapper::Query::Path)]
-    # @api private
-    def normalize_includes(includes)
-      # TODO: normalize Array of Symbol, String, DM::Property 1-jump-away or DM::Query::Path
-      # NOTE: :includes can only be and array of DM::Query::Path objects now. This method
-      #       can go away after review of what has been done.
-      includes
-    end
-
-    # validate that all the links or includes are present for the given DM::Query::Path
+    # validate that all the links are present for the given DM::Query::Path
     #
     def validate_query_path_links(path)
       path.relationships.map do |relationship|
-        @links << relationship unless (@links.include?(relationship) || @includes.include?(relationship))
+        @links << relationship unless @links.include?(relationship)
       end
     end
 
@@ -534,29 +516,18 @@ module DataMapper
 
     def dump_custom_value(property_or_path, bind_value)
       case property_or_path
-      when DataMapper::Query::Path
-        dump_custom_value(property_or_path.property, bind_value)
-      when Property
-        if property_or_path.custom?
-          property_or_path.type.dump(bind_value, property_or_path)
+        when DataMapper::Query::Path
+          dump_custom_value(property_or_path.property, bind_value)
+        when Property
+          if property_or_path.custom?
+            property_or_path.type.dump(bind_value, property_or_path)
+          else
+            bind_value
+          end
         else
           bind_value
-        end
-      else
-        bind_value
       end
     end
-
-    # TODO: check for other mutually exclusive operator + property
-    # combinations.  For example if self's conditions were
-    # [ :gt, :amount, 5 ] and the other's condition is [ :lt, :amount, 2 ]
-    # there is a conflict.  When in conflict the other's conditions
-    # overwrites self's conditions.
-
-    # TODO: Another condition is when the other condition operator is
-    # eql, this should over-write all the like,range and list operators
-    # for the same property, since we are now looking for an exact match.
-    # Vice versa, passing in eql should overwrite all of those operators.
 
     def update_conditions(other)
       @conditions = @conditions.dup
@@ -608,121 +579,11 @@ module DataMapper
 
       @conditions
     end
-
-    class Direction
-      include Extlib::Assertions
-
-      attr_reader :property, :direction
-
-      def ==(other)
-        return true if super
-        hash == other.hash
-      end
-
-      alias eql? ==
-
-      def hash
-        @property.hash + @direction.hash
-      end
-
-      def reverse
-        self.class.new(@property, @direction == :asc ? :desc : :asc)
-      end
-
-      def inspect
-        "#<#{self.class.name} #{@property.inspect} #{@direction}>"
-      end
-
-      private
-
-      def initialize(property, direction = :asc)
-        assert_kind_of 'property',  property,  Property
-        assert_kind_of 'direction', direction, Symbol
-
-        @property  = property
-        @direction = direction
-      end
-    end # class Direction
-
-    class Operator
-      include Extlib::Assertions
-
-      attr_reader :target, :operator
-
-      def to_sym
-        @property_name
-      end
-
-      def ==(other)
-        return true if super
-        return false unless other.kind_of?(self.class)
-        @operator == other.operator && @target == other.target
-      end
-
-      private
-
-      def initialize(target, operator)
-        assert_kind_of 'operator', operator, Symbol
-
-        @target   = target
-        @operator = operator
-      end
-    end # class Operator
-
-    class Path
-      include Extlib::Assertions
-
-      # silence Object deprecation warnings
-      undef_method :id
-      undef_method :type
-
-      attr_reader :relationships, :model, :property, :operator
-
-      %w[ gt gte lt lte not eql like in ].each do |sym|
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{sym}
-            Operator.new(self, :#{sym})
-          end
-        RUBY
-      end
-
-      # duck type the DM::Query::Path to act like a DM::Property
-      def field(*args)
-        @property ? @property.field(*args) : nil
-      end
-
-      # more duck typing
-      def to_sym
-        @property ? @property.name.to_sym : @model.storage_name(@repository).to_sym
-      end
-
-      private
-
-      def initialize(repository, relationships, model, property_name = nil)
-        assert_kind_of 'repository',    repository,    Repository
-        assert_kind_of 'relationships', relationships, Array
-        assert_kind_of 'model',         model,         Model
-        assert_kind_of 'property_name', property_name, Symbol unless property_name.nil?
-
-        @repository    = repository
-        @relationships = relationships
-        @model         = model
-        @property      = @model.properties(@repository.name)[property_name] if property_name
-      end
-
-      def method_missing(method, *args)
-        if relationship = @model.relationships(@repository.name)[method]
-          klass = klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
-          return Query::Path.new(@repository, @relationships.dup << relationship, klass)
-        end
-
-        if @model.properties(@repository.name)[method]
-          @property = @model.properties(@repository.name)[method] unless @property
-          return self
-        end
-
-        raise NoMethodError, "undefined property or association `#{method}' on #{@model}"
-      end
-    end # class Path
   end # class Query
 end # module DataMapper
+
+dir = Pathname(__FILE__).dirname.expand_path / 'query'
+
+require dir / 'direction'
+require dir / 'operator'
+require dir / 'path'
