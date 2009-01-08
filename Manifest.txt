@@ -34,6 +34,9 @@ lib/dm-core/model/scope.rb
 lib/dm-core/property.rb
 lib/dm-core/property_set.rb
 lib/dm-core/query.rb
+lib/dm-core/query/direction.rb
+lib/dm-core/query/operator.rb
+lib/dm-core/query/path.rb
 lib/dm-core/repository.rb
 lib/dm-core/resource.rb
 lib/dm-core/support.rb
