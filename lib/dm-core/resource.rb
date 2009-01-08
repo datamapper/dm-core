@@ -533,8 +533,9 @@ module DataMapper
     def _dump(*)
       ivars = {}
 
-      (instance_variables - %w[ @child_associations @parent_associations @collection ]).each do |name|
-        ivars[name] = instance_variable_get(name)
+      (loaded_attributes + [ :new_record, :original_values, :readonly, :repository ]).each do |name|
+        key = "@#{name}"
+        ivars[key] = instance_variable_get(key)
       end
 
       Marshal.dump(ivars)
