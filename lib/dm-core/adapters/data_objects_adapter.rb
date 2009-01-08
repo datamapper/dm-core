@@ -545,7 +545,16 @@ module DataMapper
           true
         end
 
-        # TODO: move to dm-more/dm-transactions
+        ##
+        # Produces a fresh transaction primitive for this Adapter
+        #
+        # Used by DataMapper::Transaction to perform its various tasks.
+        #
+        # @return [Object]
+        #   a new Object that responds to :close, :begin, :commit,
+        #   :rollback, :rollback_prepared and :prepare
+        #
+        # TODO: move to dm-more/dm-transaction (if possible)
         def transaction_primitive
           DataObjects::Transaction.create_for_uri(@uri)
         end
@@ -753,20 +762,6 @@ module DataMapper
         # TODO: move to dm-more/dm-transaction
         def within_transaction?
           !current_transaction.nil?
-        end
-
-        ##
-        # Produces a fresh transaction primitive for this Adapter
-        #
-        # Used by DataMapper::Transaction to perform its various tasks.
-        #
-        # @return [Object]
-        #   a new Object that responds to :close, :begin, :commit,
-        #   :rollback, :rollback_prepared and :prepare
-        #
-        # TODO: move to dm-more/dm-transaction (if possible)
-        def transaction_primitive
-          raise NotImplementedError
         end
 
         private
