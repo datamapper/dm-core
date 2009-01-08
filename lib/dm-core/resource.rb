@@ -593,7 +593,7 @@ module DataMapper
 
       # set defaults for new resource
       properties.each do |property|
-        next if property.loaded?(self)
+        next unless property.default? && !property.loaded?(self)
         property.set(self, property.default_for(self))
       end
 
