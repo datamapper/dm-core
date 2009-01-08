@@ -450,10 +450,10 @@ module DataMapper
       resource.instance_variable_set(:@repository, repository)
       resource.instance_variable_set(:@new_record, false)
 
-      reload = query.reload?
+      no_reload = !query.reload?
 
       query.fields.zip(values) do |property,value|
-        next if !reload && property.loaded?(resource)
+        next if no_reload && property.loaded?(resource)
 
         if property.custom?
           value = property.type.load(value, property)

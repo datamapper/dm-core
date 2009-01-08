@@ -226,14 +226,18 @@ module DataMapper
         end
 
         def select_statement(query)
-          statement = "SELECT #{columns_statement(query)}"
+          fields = query.fields
+          limit  = query.limit
+          offset = query.offset
+
+          statement = "SELECT #{columns_statement(query, fields)}"
           statement << " FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
-          statement << join_statement(query)                         if query.links.any?
-          statement << " WHERE #{where_statement(query)}"            if query.conditions.any?
-          statement << " GROUP BY #{group_by_statement(query)}"      if query.unique? && query.fields.any? { |p| p.kind_of?(Property) }
-          statement << " ORDER BY #{order_by_statement(query)}"      if query.order.any?
-          statement << " LIMIT #{quote_column_value(query.limit)}"   if query.limit
-          statement << " OFFSET #{quote_column_value(query.offset)}" if query.offset && query.offset > 0
+          statement << join_statement(query)                             if query.links.any?
+          statement << " WHERE #{where_statement(query)}"                if query.conditions.any?
+          statement << " GROUP BY #{columns_statement(query, group_by)}" if query.unique? && (group_by = fields.select { |p| p.kind_of?(Property) }).any?
+          statement << " ORDER BY #{order_by_statement(query)}"          if query.order.any?
+          statement << " LIMIT #{quote_column_value(limit)}"             if limit
+          statement << " OFFSET #{quote_column_value(offset)}"           if offset && offset > 0
           statement
         rescue => e
           DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
@@ -273,11 +277,11 @@ module DataMapper
           statement
         end
 
-        def columns_statement(query)
-          qualify    = query.links.any?
+        def columns_statement(query, properties)
           repository = query.repository
+          qualify    = query.links.any?
 
-          query.fields.map { |p| property_to_column_name(repository, p, qualify) }.join(', ')
+          properties.map { |p| property_to_column_name(repository, p, qualify) }.join(', ')
         end
 
         def join_statement(query)
@@ -325,15 +329,6 @@ module DataMapper
               condition_statement(query, operator, property, bind_value)
             end
           end.join(' AND ')
-        end
-
-        def group_by_statement(query)
-          repository = query.repository
-          qualify    = query.links.any?
-
-          properties = query.fields.select { |p| p.kind_of?(Property) }
-          properties.map! { |p| property_to_column_name(repository, p, qualify) }
-          properties.join(', ')
         end
 
         def order_by_statement(query)
