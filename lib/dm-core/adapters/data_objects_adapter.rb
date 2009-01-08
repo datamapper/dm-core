@@ -274,8 +274,10 @@ module DataMapper
         end
 
         def columns_statement(query)
-          qualify = query.links.any?
-          query.fields.map { |p| property_to_column_name(query.repository, p, qualify) }.join(', ')
+          qualify    = query.links.any?
+          repository = query.repository
+
+          query.fields.map { |p| property_to_column_name(repository, p, qualify) }.join(', ')
         end
 
         def join_statement(query)
@@ -328,51 +330,53 @@ module DataMapper
         def group_by_statement(query)
           repository = query.repository
           qualify    = query.links.any?
-          query.fields.select { |p| p.kind_of?(Property) }.map { |p| property_to_column_name(repository, p, qualify) }.join(', ')
+
+          properties = query.fields.select { |p| p.kind_of?(Property) }
+          properties.map! { |p| property_to_column_name(repository, p, qualify) }
+          properties.join(', ')
         end
 
         def order_by_statement(query)
           repository = query.repository
           qualify    = query.links.any?
+
           query.order.map { |i| order_statement(repository, i, qualify) }.join(', ')
         end
 
         def order_statement(repository, item, qualify)
-          property, descending = nil, false
-
           case item
             when Property
-              property = item
-            when Query::Direction
-              property   = item.property
-              descending = item.direction == :desc
-          end
+              property_to_column_name(repository, item, qualify)
 
-          statement = property_to_column_name(repository, property, qualify)
-          statement << ' DESC' if descending
-          statement
+            when Query::Direction
+              statement = property_to_column_name(repository, item.property, qualify)
+              statement << ' DESC' if item.direction == :desc
+              statement
+          end
         end
 
         def condition_statement(query, operator, left_condition, right_condition)
           return left_condition if operator == :raw
 
-          qualify = query.links.any?
+          repository = query.repository
+          qualify    = query.links.any?
 
           conditions = [ left_condition, right_condition ].map do |condition|
-            if condition.kind_of?(Property) || condition.kind_of?(Query::Path)
-              property_to_column_name(query.repository, condition, qualify)
-            elsif condition.kind_of?(Query)
-              opposite = condition == left_condition ? right_condition : left_condition
-              query.merge_subquery(operator, opposite, condition)
-              "(#{select_statement(condition)})"
+            case condition
+              when Property, Query::Path
+                property_to_column_name(repository, condition, qualify)
 
-            # [].all? is always true
-            elsif condition.kind_of?(Array) && condition.any? && condition.all? { |p| p.kind_of?(Property) }
-              property_values = condition.map { |p| property_to_column_name(query.repository, p, qualify) }
-              "(#{property_values.join(', ')})"
-            else
-              '?'
-            end
+              when Query
+                opposite = condition == left_condition ? right_condition : left_condition
+                query.merge_subquery(operator, opposite, condition)
+                "(#{select_statement(condition)})"
+
+              when Array
+                if condition.any? && condition.all? { |p| p.kind_of?(Property) }
+                  property_values = condition.map { |p| property_to_column_name(repository, p, qualify) }
+                  "(#{property_values.join(', ')})"
+                end
+            end || '?'
           end
 
           comparison = case operator

@@ -439,27 +439,34 @@ module DataMapper
       end
 
       resource = if (key_property_indexes = query.key_property_indexes(repository)).any?
-        key_values   = values.values_at(*key_property_indexes)
         identity_map = repository.identity_map(model)
+        key_values   = values.values_at(*key_property_indexes)
 
-        identity_map[key_values] ||= begin
-          resource = model.allocate
-          resource.instance_variable_set(:@repository, repository)
-          resource
-        end
+        identity_map[key_values] ||= model.allocate
       else
         model.allocate
       end
 
+      resource.instance_variable_set(:@repository, repository)
       resource.instance_variable_set(:@new_record, false)
 
+      reload = query.reload?
+
       query.fields.zip(values) do |property,value|
-        next if !query.reload? && property.loaded?(resource)
-        value = property.custom? ? property.type.load(value, property) : property.typecast(value)
+        next if !reload && property.loaded?(resource)
+
+        if property.custom?
+          value = property.type.load(value, property)
+        #else
+          # DK: commenting this out for now because the values should
+          # be coming back from the data source typecasted properly
+          #value = property.typecast(value)
+        end
+
         property.set!(resource, value)
       end
 
-      unless key_property_indexes
+      if key_property_indexes.empty?
         resource.freeze
       end
 
