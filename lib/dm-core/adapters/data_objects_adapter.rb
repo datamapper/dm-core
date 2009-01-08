@@ -228,8 +228,8 @@ module DataMapper
         def select_statement(query)
           statement = "SELECT #{columns_statement(query)}"
           statement << " FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
-          statement << join_statement(query)                        if query.links.any?
-          statement << " WHERE #{where_statement(query)}"       if query.conditions.any?
+          statement << join_statement(query)                         if query.links.any?
+          statement << " WHERE #{where_statement(query)}"            if query.conditions.any?
           statement << " GROUP BY #{group_by_statement(query)}"      if query.unique? && query.fields.any? { |p| p.kind_of?(Property) }
           statement << " ORDER BY #{order_by_statement(query)}"      if query.order.any?
           statement << " LIMIT #{quote_column_value(query.limit)}"   if query.limit
@@ -301,7 +301,28 @@ module DataMapper
         end
 
         def where_statement(query)
-          query.conditions.map { |o,p,b| condition_statement(query, o, p, b) }.join(' AND ')
+          query.conditions.map do |operator,property,bind_value|
+            # handle exclusive range conditions
+            if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
+              if operator == :eql
+                gte_condition = condition_statement(query, :gte, property, bind_value.first)
+                lt_condition  = condition_statement(query, :lt,  property, bind_value.last)
+
+                "#{gte_condition} AND #{lt_condition}"
+              else
+                lt_condition  = condition_statement(query, :lt,  property, bind_value.first)
+                gte_condition = condition_statement(query, :gte, property, bind_value.last)
+
+                statement = ''
+                statement << '(' if query.conditions.size > 1
+                statement << "#{lt_condition} OR #{gte_condition}"
+                statement << ')' if query.conditions.size > 1
+                statement
+              end
+            else
+              condition_statement(query, operator, property, bind_value)
+            end
+          end.join(' AND ')
         end
 
         def group_by_statement(query)

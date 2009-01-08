@@ -20,6 +20,7 @@ class Symbol
   end
 
   def eql
+    warn "explicit use of 'eql' operator is deprecated"
     DataMapper::Query::Operator.new(self, :eql)
   end
 
@@ -28,6 +29,7 @@ class Symbol
   end
 
   def in
+    warn "explicit use of 'in' operator is deprecated"
     DataMapper::Query::Operator.new(self, :in)
   end
 

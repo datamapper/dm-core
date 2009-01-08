@@ -23,8 +23,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
         # TODO: move conditions down to before block once author.articles(query)
         # returns a ManyToMany::Collection object
-        has n, :sample_articles, :title.eql => 'Sample Article', :class => 'Article', :through => Resource
-        has n, :other_articles,  :title     => 'Other Article',  :class => 'Article', :through => Resource
+        has n, :sample_articles, :title => 'Sample Article', :class => 'Article', :through => Resource
+        has n, :other_articles,  :title => 'Other Article',  :class => 'Article', :through => Resource
       end
 
       class Article
@@ -50,8 +50,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
         @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
 
-        @articles       = @author.articles(:title.eql => 'Sample Article')
-        @other_articles = @author.articles(:title     => 'Other Article')
+        @articles       = @author.articles(:title => 'Sample Article')
+        @other_articles = @author.articles(:title => 'Other Article')
       end
 
       it_should_behave_like 'A public Collection'

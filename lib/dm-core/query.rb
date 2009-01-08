@@ -137,15 +137,22 @@ module DataMapper
     # @api private
     def bind_values
       bind_values = []
+
       conditions.each do |tuple|
         next if tuple.size == 2
         operator, property, bind_value = *tuple
+
         if :raw == operator
           bind_values.push(*bind_value)
         else
-          bind_values << bind_value
+          if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
+            bind_values.push(bind_value.first, bind_value.last)
+          else
+            bind_values << bind_value
+          end
         end
       end
+
       bind_values
     end
 
@@ -522,12 +529,7 @@ module DataMapper
 
       bind_value = dump_custom_value(property, bind_value)
 
-      if bind_value.kind_of?(Range) && bind_value.r.exclude_end? == false
-        @conditions << [ :gte, property, bind_value.first ]
-        @conditions << [ :lt,  property, bind_value.last  ]
-      else
-        @conditions << [ operator, property, bind_value ]
-      end
+      @conditions << [ operator, property, bind_value ]
     end
 
     def dump_custom_value(property_or_path, bind_value)
