@@ -62,24 +62,9 @@ class ARUser < ActiveRecord::Base #:nodoc:
   set_table_name 'users'
 
   has_many :exhibits, :foreign_key => 'user_id'
-
 end
 
 ARExhibit.find_by_sql('SELECT 1')
-
-class Exhibit
-  include DataMapper::Resource
-
-  property :id,         Serial
-  property :name,       String
-  property :zoo_id,     Integer
-  property :user_id,    Integer
-  property :notes,      Text, :lazy => true
-  property :created_on, Date
-
-  belongs_to :user
-#  property :updated_at, DateTime
-end
 
 class User
   include DataMapper::Resource
@@ -90,17 +75,35 @@ class User
   property :about, Text, :lazy => true
   property :created_on, Date
 
+  auto_migrate!
 end
 
-touch_attributes = lambda do |exhibits|
+class Exhibit
+  include DataMapper::Resource
+
+  property :id,         Serial
+  property :name,       String
+  property :zoo_id,     Integer
+  property :user_id,    Integer
+  property :notes,      Text, :lazy => true
+  property :created_on, Date
+#  property :updated_at, DateTime
+
+  belongs_to :user
+
+  auto_migrate!
+end
+
+def touch_attributes(exhibits)
   [*exhibits].each do |exhibit|
     exhibit.id
     exhibit.name
     exhibit.created_on
+    exhibit.updated_at
   end
 end
 
-touch_relationships = lambda do |exhibits|
+def touch_relationships(exhibits)
   [*exhibits].each do |exhibit|
     exhibit.id
     exhibit.name
@@ -118,42 +121,31 @@ if sqlfile && File.exists?(sqlfile)
 else
   puts 'Generating data for benchmarking...'
 
-  User.auto_migrate!
-  Exhibit.auto_migrate!
-
-  users = []
-  exhibits = []
-
   # pre-compute the insert statements and fake data compilation,
   # so the benchmarks below show the actual runtime for the execute
   # method, minus the setup steps
 
   # Using the same paragraph for all exhibits because it is very slow
   # to generate unique paragraphs for all exhibits.
-  paragraph = Faker::Lorem.paragraphs.join($/)
+  notes = Faker::Lorem.paragraphs.join($/)
+  today = Date.today
 
+  puts 'Inserting 10,000 users and exhibits...'
   10_000.times do |i|
-    users << [
-      'INSERT INTO `users` (`name`,`email`,`created_on`) VALUES (?, ?, ?)',
-      Faker::Name.name,
-      Faker::Internet.email,
-      Date.today
-    ]
+    user = User.create(
+      :created_on => today,
+      :name       => Faker::Name.name,
+      :email      => Faker::Internet.email
+    )
 
-    exhibits << [
-      'INSERT INTO `exhibits` (`name`, `zoo_id`, `user_id`, `notes`, `created_on`) VALUES (?, ?, ?, ?, ?)',
-      Faker::Company.name,
-      rand(10).ceil,
-      i,
-      paragraph,#Faker::Lorem.paragraphs.join($/),
-      Date.today
-    ]
+    Exhibit.create(
+      :created_on => today,
+      :name       => Faker::Company.name,
+      :user       => user,
+      :notes      => notes,
+      :zoo_id     => rand(10).ceil
+    )
   end
-
-  puts 'Inserting 10,000 users...'
-  10_000.times { |i| adapter.execute(*users.at(i)) }
-  puts 'Inserting 10,000 exhibits...'
-  10_000.times { |i| adapter.execute(*exhibits.at(i)) }
 
   if sqlfile
     answer = nil
@@ -215,37 +207,37 @@ RBench.run(TIMES) do
   end
 
   report 'Model.get specific (not cached)' do
-    ActiveRecord::Base.uncached { ar { touch_attributes[ARExhibit.find(1)] } }
-    dm { touch_attributes[Exhibit.get(1)] }
+    ActiveRecord::Base.uncached { ar { touch_attributes(ARExhibit.find(1)] } }
+    dm { touch_attributes(Exhibit.get(1)] }
   end
 
   report 'Model.get specific (cached)' do
-    ActiveRecord::Base.cache     { ar { touch_attributes[ARExhibit.find(1)] } }
-    Exhibit.repository(:default) { dm { touch_attributes[Exhibit.get(1)] } }
+    ActiveRecord::Base.cache     { ar { touch_attributes(ARExhibit.find(1)] } }
+    Exhibit.repository(:default) { dm { touch_attributes(Exhibit.get(1)] } }
   end
 
   report 'Model.first' do
-    ar { touch_attributes[ARExhibit.first] }
-    dm { touch_attributes[Exhibit.first] }
+    ar { touch_attributes(ARExhibit.first] }
+    dm { touch_attributes(Exhibit.first] }
   end
 
   report 'Model.all limit(100)', (TIMES / 10).ceil do
-    ar { touch_attributes[ARExhibit.find(:all, :limit => 100)] }
-    dm { touch_attributes[Exhibit.all(:limit => 100)] }
+    ar { touch_attributes(ARExhibit.find(:all, :limit => 100)) }
+    dm { touch_attributes(Exhibit.all(:limit => 100)) }
   end
 
   # NOTE: this will run slow until SEL is added back into dm-core
   report 'Model.all limit(100) with relationship', (TIMES / 10).ceil do
-    ar { touch_relationships[ARExhibit.all(:limit => 100, :include => [:user])] }
-    dm { touch_relationships[Exhibit.all(:limit => 100)] }
+    ar { touch_relationships(ARExhibit.all(:limit => 100, :include => [:user])) }
+    dm { touch_relationships(Exhibit.all(:limit => 100)) }
   end
 
   report 'Model.all limit(10,000)', (TIMES / 1000).ceil do
-    ar { touch_attributes[ARExhibit.find(:all, :limit => 10_000)] }
-    dm { touch_attributes[Exhibit.all(:limit => 10_000)] }
+    ar { touch_attributes(ARExhibit.find(:all, :limit => 10_000)) }
+    dm { touch_attributes(Exhibit.all(:limit => 10_000)) }
   end
 
-  create_exhibit = {
+  exhibit = {
     :name       => Faker::Company.name,
     :zoo_id     => rand(10).ceil,
     :notes      => Faker::Lorem.paragraphs.join($/),
@@ -253,8 +245,8 @@ RBench.run(TIMES) do
   }
 
   report 'Model.create' do
-    ar { ARExhibit.create(create_exhibit) }
-    dm { Exhibit.create(create_exhibit) }
+    ar { ARExhibit.create(exhibit) }
+    dm { Exhibit.create(exhibit) }
   end
 
   report 'Resource#attributes=' do

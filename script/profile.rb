@@ -2,6 +2,7 @@
 
 require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
 
+require 'ftools'
 require 'rubygems'
 
 gem 'ruby-prof', '~>0.7.0'
@@ -31,12 +32,24 @@ configuration_options = {
 }
 
 DataMapper::Logger.new(DataMapper.root / 'log' / 'dm.log', :debug)
-DataMapper.setup(:default, configuration_options)
+adapter = DataMapper.setup(:default, configuration_options)
 
 if configuration_options[:adapter]
   sqlfile       = File.join(File.dirname(__FILE__),'..','tmp','performance.sql')
   mysql_bin     = %w[ mysql mysql5 ].select { |bin| `which #{bin}`.length > 0 }
   mysqldump_bin = %w[ mysqldump mysqldump5 ].select { |bin| `which #{bin}`.length > 0 }
+end
+
+class User
+  include DataMapper::Resource
+
+  property :id,    Serial
+  property :name,  String
+  property :email, String
+  property :about, Text, :lazy => true
+  property :created_on, Date
+
+  auto_migrate!
 end
 
 class Exhibit
@@ -45,15 +58,17 @@ class Exhibit
   property :id,         Serial
   property :name,       String
   property :zoo_id,     Integer
+  property :user_id,    Integer
   property :notes,      Text, :lazy => true
   property :created_on, Date
 #  property :updated_at, DateTime
 
+  belongs_to :user
+
   auto_migrate!
-  create  # create one row for testing
 end
 
-touch_attributes = lambda do |exhibits|
+def touch_attributes(exhibits)
   [*exhibits].each do |exhibit|
     exhibit.id
     exhibit.name
@@ -62,7 +77,7 @@ touch_attributes = lambda do |exhibits|
   end
 end
 
-touch_relationships = lambda do |exhibits|
+def touch_relationships(exhibits)
   [*exhibits].each do |exhibit|
     exhibit.id
     exhibit.name
@@ -88,41 +103,31 @@ if sqlfile && File.exists?(sqlfile)
 else
   puts 'Generating data for benchmarking...'
 
-  Exhibit.auto_migrate!
-
-  users = []
-  exhibits = []
-
   # pre-compute the insert statements and fake data compilation,
   # so the benchmarks below show the actual runtime for the execute
   # method, minus the setup steps
 
   # Using the same paragraph for all exhibits because it is very slow
   # to generate unique paragraphs for all exhibits.
-  paragraph = Faker::Lorem.paragraphs.join($/)
+  notes = Faker::Lorem.paragraphs.join($/)
+  today = Date.today
 
+  puts 'Inserting 10,000 users and exhibits...'
   10_000.times do |i|
-    users << [
-      'INSERT INTO `users` (`name`,`email`,`created_on`) VALUES (?, ?, ?)',
-      Faker::Name.name,
-      Faker::Internet.email,
-      Date.today
-    ]
+    user = User.create(
+      :created_on => today,
+      :name       => Faker::Name.name,
+      :email      => Faker::Internet.email
+    )
 
-    exhibits << [
-      'INSERT INTO `exhibits` (`name`, `zoo_id`, `user_id`, `notes`, `created_on`) VALUES (?, ?, ?, ?, ?)',
-      Faker::Company.name,
-      rand(10).ceil,
-      i,
-      paragraph,#Faker::Lorem.paragraphs.join($/),
-      Date.today
-    ]
+    Exhibit.create(
+      :created_on => today,
+      :name       => Faker::Company.name,
+      :user       => user,
+      :notes      => notes,
+      :zoo_id     => rand(10).ceil
+    )
   end
-
-  puts 'Inserting 10,000 users...'
-  10_000.times { |i| adapter.execute(*users.at(i)) }
-  puts 'Inserting 10,000 exhibits...'
-  10_000.times { |i| adapter.execute(*exhibits.at(i)) }
 
   if sqlfile
     answer = nil
@@ -156,26 +161,26 @@ profile do
 #  TIMES.times { Exhibit.new(:name => 'sam', :zoo_id => 1) }
 #
 #  puts 'Model.get specific (not cached)'
-#  TIMES.times { touch_attributes[Exhibit.get(1)] }
+#  TIMES.times { touch_attributes(Exhibit.get(1)) }
 #
 #  puts 'Model.get specific (cached)'
 #  repository(:default) do
-#    TIMES.times { touch_attributes[Exhibit.get(1)] }
+#    TIMES.times { touch_attributes(Exhibit.get(1)) }
 #  end
 #
 #  puts 'Model.first'
-#  TIMES.times { touch_attributes[Exhibit.first] }
+#  TIMES.times { touch_attributes(Exhibit.first) }
 #
 #  puts 'Model.all limit(100)'
-#  (TIMES / 10).ceil.times { touch_attributes[Exhibit.all(:limit => 100)] }
+#  (TIMES / 10).ceil.times { touch_attributes(Exhibit.all(:limit => 100)) }
 #
 #  puts 'Model.all limit(100) with relationship'
-#  (TIMES / 10).ceil.times { touch_relationships[Exhibit.all(:limit => 100)] }
+#  (TIMES / 10).ceil.times { touch_relationships(Exhibit.all(:limit => 100)) }
 #
 #  puts 'Model.all limit(10,000)'
-#  (TIMES / 1000).ceil { touch_attributes[Exhibit.all(:limit => 10_000)] }
+#  (TIMES / 1000).ceil { touch_attributes(Exhibit.all(:limit => 10_000)) }
 #
-#  create_exhibit = {
+#  exhibit = {
 #    :name       => Faker::Company.name,
 #    :zoo_id     => rand(10).ceil,
 #    :notes      => Faker::Lorem.paragraphs.join($/),
@@ -183,7 +188,7 @@ profile do
 #  }
 #
 #  puts 'Model.create'
-#  TIMES.times { Exhibit.create(create_exhibit) }
+#  TIMES.times { Exhibit.create(exhibit) }
 #
 #  attrs_first  = { :name => 'sam', :zoo_id => 1 }
 #  attrs_second = { :name => 'tom', :zoo_id => 1 }
@@ -195,7 +200,7 @@ profile do
 #  TIMES.times { e = Exhibit.get(1); e.name = 'bob'; e.save }
 
   puts 'Resource#destroy'
-  TIMES.times { Exhibit.first.destroy }
+  TIMES.times { |i| Exhibit.first.destroy }
 
 #  puts 'Model.transaction'
 #  TIMES.times { Exhibit.transaction { Exhibit.new } }
