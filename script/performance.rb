@@ -94,17 +94,16 @@ class Exhibit
   auto_migrate!
 end
 
-def touch_attributes(exhibits)
-  [*exhibits].each do |exhibit|
+def touch_attributes(*exhibits)
+  exhibits.flatten.each do |exhibit|
     exhibit.id
     exhibit.name
     exhibit.created_on
-    exhibit.updated_at
   end
 end
 
-def touch_relationships(exhibits)
-  [*exhibits].each do |exhibit|
+def touch_relationships(*exhibits)
+  exhibits.flatten.each do |exhibit|
     exhibit.id
     exhibit.name
     exhibit.created_on
@@ -207,18 +206,18 @@ RBench.run(TIMES) do
   end
 
   report 'Model.get specific (not cached)' do
-    ActiveRecord::Base.uncached { ar { touch_attributes(ARExhibit.find(1)] } }
-    dm { touch_attributes(Exhibit.get(1)] }
+    ActiveRecord::Base.uncached { ar { touch_attributes(ARExhibit.find(1)) } }
+    dm { touch_attributes(Exhibit.get(1)) }
   end
 
   report 'Model.get specific (cached)' do
-    ActiveRecord::Base.cache     { ar { touch_attributes(ARExhibit.find(1)] } }
-    Exhibit.repository(:default) { dm { touch_attributes(Exhibit.get(1)] } }
+    ActiveRecord::Base.cache     { ar { touch_attributes(ARExhibit.find(1)) } }
+    Exhibit.repository(:default) { dm { touch_attributes(Exhibit.get(1)) } }
   end
 
   report 'Model.first' do
-    ar { touch_attributes(ARExhibit.first] }
-    dm { touch_attributes(Exhibit.first] }
+    ar { touch_attributes(ARExhibit.first) }
+    dm { touch_attributes(Exhibit.first) }
   end
 
   report 'Model.all limit(100)', (TIMES / 10).ceil do

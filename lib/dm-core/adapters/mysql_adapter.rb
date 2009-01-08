@@ -18,7 +18,11 @@ module DataMapper
         end
 
         def quote_name(name)
-          escape_name(name).split('.').map { |part| "`#{part}`" }.join('.')
+          if name.include?('.')
+            escape_name(name).split('.').map { |part| "`#{part}`" }.join('.')
+          else
+            escape_name(name)
+          end
         end
 
         # TODO: once the driver's quoting methods become public, have

@@ -210,7 +210,7 @@ module DataMapper
     # in the API:
     #  :fatal, :error, :warn, :info, :debug
     #  :off only gets a off? method
-    LEVELS.each_pair do |name, number|
+    LEVELS.each do |name, number|
       unless name.to_s == 'off'
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           # DOC

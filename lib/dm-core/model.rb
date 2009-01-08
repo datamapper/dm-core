@@ -30,7 +30,7 @@ module DataMapper
         warn "Passing in +storage_name+ to #{name}.new is deprecated"
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def self.default_storage_name
-            #{Extlib::Inflection.classify(storage_name).inspect}
+            #{Extlib::Inflection.classify(storage_name).inspect}.freeze
           end
         RUBY
       end
@@ -123,7 +123,7 @@ module DataMapper
     #
     # @api public
     def storage_name(repository_name = default_repository_name)
-      @storage_names[repository_name] ||= repository(repository_name).adapter.resource_naming_convention.call(base_model.send(:default_storage_name))
+      @storage_names[repository_name] ||= repository(repository_name).adapter.resource_naming_convention.call(base_model.send(:default_storage_name)).freeze
     end
 
     ##
@@ -177,7 +177,7 @@ module DataMapper
       # Add property to the other mappings as well if this is for the default
       # repository.
       if repository_name == default_repository_name
-        @properties.each_pair do |repository_name, properties|
+        @properties.each do |repository_name, properties|
           next if repository_name == default_repository_name
           properties << property unless properties.include?(property)
         end
@@ -280,6 +280,7 @@ module DataMapper
     def get(*key)
       key = typecast_key(key)
       return if key.any? { |v| v.blank? }
+      repository = self.repository
       repository.identity_map(self)[key] || first(to_query(repository, key))
     end
 
@@ -569,13 +570,12 @@ module DataMapper
     # @api private
     def paranoid_properties
       @paranoid_properties ||= {}
-      @paranoid_properties
     end
 
     # TODO: document
     # @api private
     def set_paranoid_property(name, &block)
-      self.paranoid_properties[name] = block
+      paranoid_properties[name] = block
     end
 
     # TODO: document
@@ -586,9 +586,8 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def to_query(repository, key, query = {})
-      conditions = Hash[ *self.key(repository_name).zip(key).flatten ]
-      Query.new(repository, self, query.merge(conditions))
+    def to_query(repository, key)
+      Query.new(repository, self, self.key(repository.name).zip(key).to_hash)
     end
 
     private
@@ -635,6 +634,8 @@ module DataMapper
     # TODO: document
     # @api public
     def method_missing(method, *args, &block)
+      repository_name = self.repository_name
+
       if relationship = self.relationships(repository_name)[method]
         klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
         return DataMapper::Query::Path.new(repository, [ relationship ], klass)

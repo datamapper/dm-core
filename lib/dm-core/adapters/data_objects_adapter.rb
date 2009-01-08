@@ -412,12 +412,8 @@ module DataMapper
         end
 
         def property_to_column_name(repository, property, qualify)
-          table_name = if property.respond_to?(:model)
-            property.model.storage_name(repository.name)
-          end
-
-          # XX: if qualify is true, but table_name is nil, should we throw an exception?
-          if table_name && qualify
+          if qualify
+            table_name = property.model.storage_name(repository.name)
             "#{quote_table_name(table_name)}.#{quote_column_name(property.field)}"
           else
             quote_column_name(property.field)
@@ -429,7 +425,11 @@ module DataMapper
         end
 
         def quote_name(name)
-          escape_name(name).split('.').map { |part| "\"#{part}\"" }.join('.')
+          if name.include?('.')
+            escape_name(name).split('.').map { |part| "\"#{part}\"" }.join('.')
+          else
+            escape_name(name)
+          end
         end
 
         # TODO: once the driver's quoting methods become public, have
@@ -818,14 +818,14 @@ module DataMapper
       do_reload = false
       repository_name = default_repository_name
       args.each do |arg|
-        if arg.is_a?(String)
+        if arg.kind_of?(String)
           sql = arg
-        elsif arg.is_a?(Array)
+        elsif arg.kind_of?(Array)
           sql = arg.first
           bind_values = arg[1..-1]
-        elsif arg.is_a?(DataMapper::Query)
+        elsif arg.kind_of?(DataMapper::Query)
           query = arg
-        elsif arg.is_a?(Hash)
+        elsif arg.kind_of?(Hash)
           repository_name = arg.delete(:repository) if arg.include?(:repository)
           properties = Array(arg.delete(:properties)) if arg.include?(:properties)
           do_reload = arg.delete(:reload) if arg.include?(:reload)
@@ -834,7 +834,7 @@ module DataMapper
       end
 
       repository = repository(repository_name)
-      raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless repository.adapter.is_a?(DataMapper::Adapters::DataObjectsAdapter)
+      raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless repository.adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
 
       if query
         sql = repository.adapter.send(:select_statement, query)

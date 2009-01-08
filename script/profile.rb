@@ -68,17 +68,16 @@ class Exhibit
   auto_migrate!
 end
 
-def touch_attributes(exhibits)
-  [*exhibits].each do |exhibit|
+def touch_attributes(*exhibits)
+  exhibits.flatten.each do |exhibit|
     exhibit.id
     exhibit.name
     exhibit.created_on
-    exhibit.updated_at
   end
 end
 
-def touch_relationships(exhibits)
-  [*exhibits].each do |exhibit|
+def touch_relationships(*exhibits)
+  exhibits.flatten.each do |exhibit|
     exhibit.id
     exhibit.name
     exhibit.created_on
@@ -148,6 +147,8 @@ end
 
 TIMES = 10_000
 
+exhibits = Exhibit.all.to_a
+
 profile do
 #  dm_obj = Exhibit.get(1)
 #
@@ -167,10 +168,10 @@ profile do
 #  repository(:default) do
 #    TIMES.times { touch_attributes(Exhibit.get(1)) }
 #  end
-#
-#  puts 'Model.first'
-#  TIMES.times { touch_attributes(Exhibit.first) }
-#
+
+  puts 'Model.first'
+  TIMES.times { touch_attributes(Exhibit.first) }
+
 #  puts 'Model.all limit(100)'
 #  (TIMES / 10).ceil.times { touch_attributes(Exhibit.all(:limit => 100)) }
 #
@@ -197,11 +198,11 @@ profile do
 #  TIMES.times { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
 #
 #  puts 'Resource#update'
-#  TIMES.times { e = Exhibit.get(1); e.name = 'bob'; e.save }
-
-  puts 'Resource#destroy'
-  TIMES.times { |i| Exhibit.first.destroy }
-
+#  TIMES.times { e = exhibits[i]; e.name = 'bob'; e.save }
+#
+#  puts 'Resource#destroy'
+#  TIMES.times { |i| exhibits[i].destroy }
+#
 #  puts 'Model.transaction'
 #  TIMES.times { Exhibit.transaction { Exhibit.new } }
 end

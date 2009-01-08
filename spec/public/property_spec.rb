@@ -51,14 +51,6 @@ describe DataMapper::Property do
       end
     end
 
-    describe "#hash" do
-      it 'triggers binding of unbound custom types'
-
-      it 'concats hashes of model name and property name' do
-        Track.properties[:id].hash.should eql(Track.hash + :id.hash)
-      end
-    end
-
     describe "#equal?" do
       it 'is true for properties with the same model and name' do
         Track.properties[:title].should eql(Track.properties[:title])

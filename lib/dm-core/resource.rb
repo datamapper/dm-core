@@ -217,17 +217,6 @@ module DataMapper
     end
 
     ##
-    # Computes a hash for the resource
-    #
-    # @return [Integer]
-    #   the hash value of the resource
-    #
-    # @api semipublic
-    def hash
-      key.hash
-    end
-
-    ##
     # Get a Human-readable representation of this Resource instance
     #
     #   Foo.new   #=> #<Foo name=nil updated_at=nil created_at=nil id=nil>
@@ -264,6 +253,7 @@ module DataMapper
     #
     # @api semipublic
     def repository
+      # only set @repository explicitly when persisted
       @repository || model.repository
     end
 
@@ -279,7 +269,7 @@ module DataMapper
     #
     # @api public
     def key
-      key_properties.map do |property|
+      @key ||= model.key(repository.name).map do |property|
         original_values[property] || property.get!(self)
       end
     end
@@ -396,8 +386,8 @@ module DataMapper
     #
     # @api private
     def collection
-      @collection ||= if query = to_query
-        Collection.new(query, [ self ])
+      @collection ||= unless new_record?
+        Collection.new(to_query, [ self ])
       end
     end
 
@@ -477,6 +467,7 @@ module DataMapper
     # @api public
     def attributes=(attributes)
       attributes.each do |name,value|
+        # XXX: is it common to have an attribute with a trailing question mark?
         name = name.to_s.sub(/\?\z/, '')
         if public_method?(setter = "#{name}=")
           send(setter, value)
@@ -561,8 +552,8 @@ module DataMapper
     # @return [Query] Query that will retrieve this Resource instance
     #
     # @api private
-    def to_query(query = {})
-      model.to_query(repository, key, query) unless new_record?
+    def to_query
+      model.to_query(repository, key)
     end
 
     ##
@@ -630,16 +621,6 @@ module DataMapper
     # @api private
     def properties
       model.properties(repository.name)
-    end
-
-    # Gets the properties which comprise the key for this Resource
-    #
-    # @return [Array(Property)]
-    #   List of the properties which comprise the key for this Resource
-    #
-    # @api private
-    def key_properties
-      model.key(repository.name)
     end
 
     # Gets this instance's Model's relationships

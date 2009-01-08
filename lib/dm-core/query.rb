@@ -239,7 +239,7 @@ module DataMapper
       assert_kind_of 'model',      model,      Model
       assert_kind_of 'options',    options,    Hash
 
-      options.each_pair { |k,v| options[k] = v.call if v.is_a? Proc } if options.is_a? Hash
+      options.each { |k,v| options[k] = v.call if v.kind_of? Proc } if options.kind_of? Hash
 
       assert_valid_options(options)
 
@@ -301,13 +301,13 @@ module DataMapper
     end
 
     # validate the options
-    # @param [#each_pair] options the options to validate
+    # @param [#each] options the options to validate
     # @raise [ArgumentError] if any pairs in +options+ are invalid options
     # @api private
     def assert_valid_options(options)
       # [DB] This might look more ugly now, but it's 2x as fast as the old code
       # [DB] This is one of the heavy spots for Query.new I found during profiling.
-      options.each_pair do |attribute, value|
+      options.each do |attribute, value|
 
         # validate the reload option and unique option
         if [:reload, :unique].include? attribute
@@ -487,7 +487,7 @@ module DataMapper
     # @api private
     def append_condition(clause, bind_value)
       operator = :eql
-      bind_value = bind_value.call if bind_value.is_a?(Proc)
+      bind_value = bind_value.call if bind_value.kind_of?(Proc)
 
       property = case clause
         when Property
@@ -500,12 +500,12 @@ module DataMapper
           return if operator == :not && bind_value == []
           # FIXME: this code duplicates conditions in this method.  Try
           # to refactor out the common code.
-          if clause.target.is_a?(Property)
+          if clause.target.kind_of?(Property)
             clause.target
-          elsif clause.target.is_a?(Query::Path)
+          elsif clause.target.kind_of?(Query::Path)
             validate_query_path_links(clause.target)
             clause.target
-          elsif clause.target.is_a?(Symbol)
+          elsif clause.target.kind_of?(Symbol)
             @properties[clause.target]
           end
         when Symbol

@@ -42,15 +42,15 @@ module DataMapper
     def link(*things)
       raise "Illegal state for link: #{@state}" unless @state == :none
       things.each do |thing|
-        if thing.is_a?(Array)
+        if thing.kind_of?(Array)
           link(*thing)
-        elsif thing.is_a?(DataMapper::Adapters::AbstractAdapter)
+        elsif thing.kind_of?(DataMapper::Adapters::AbstractAdapter)
           @adapters[thing] = :none
-        elsif thing.is_a?(DataMapper::Repository)
+        elsif thing.kind_of?(DataMapper::Repository)
           link(thing.adapter)
-        elsif thing.is_a?(Class) && thing.ancestors.include?(DataMapper::Resource)
+        elsif thing.kind_of?(Class) && thing.ancestors.include?(DataMapper::Resource)
           link(*thing.repositories)
-        elsif thing.is_a?(DataMapper::Resource)
+        elsif thing.kind_of?(DataMapper::Resource)
           link(thing.model)
         else
           raise "Unknown argument to #{self}#link: #{thing.inspect}"
@@ -144,7 +144,7 @@ module DataMapper
     end
 
     def method_missing(meth, *args, &block)
-      if args.size == 1 && args.first.is_a?(DataMapper::Adapters::AbstractAdapter)
+      if args.size == 1 && args.first.kind_of?(DataMapper::Adapters::AbstractAdapter)
         if (match = meth.to_s.match(/^(.*)_if_(none|begin|prepare|rollback|commit)$/))
           if self.respond_to?(match[1], true)
             self.send(match[1], args.first) if state_for(args.first).to_s == match[2]

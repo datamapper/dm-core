@@ -372,8 +372,9 @@ module DataMapper
         end
       end
 
-      # TODO: set @field when the property is declared in a specific repository
-      @field || self.model.field_naming_convention(self.repository_name).call(self)
+      # defer setting the field with the adapter specific naming
+      # conventions until after the adapter has been setup
+      @field ||= model.field_naming_convention(repository.name).call(self).freeze
     end
 
     # Returns true if property has uniq key. Serial properties and
@@ -387,33 +388,21 @@ module DataMapper
       @unique
     end
 
-    # Returns universal unique property identifier.
-    # Calculated as sum of hashes of model and property name.
-    #
-    # @return [Integer]
-    #   A hash value for this object.
-    # @api public
-    def hash
-      @model.hash + @name.hash
-    end
-
     # Returns equality of properties. Properties are
     # comparable only if their models are equal and
     # both properties has the same name.
     #
-    # @param [Object] o
+    # @param [Object] other
     #   the object to compare self to
     #
     # @return [TrueClass, FalseClass]
     #   Result of equality comparison.
     #
     # @api public
-    def eql?(o)
-      if o.is_a?(Property)
-        return o.model == @model && o.name == @name
-      else
-        return false
-      end
+    def eql?(other)
+      return true if equal?(other)
+      return false unless other.kind_of?(Property)
+      other.model == @model && other.name == @name
     end
 
     # Returns maximum property length (if applicable).
@@ -425,8 +414,9 @@ module DataMapper
     #
     # @api semipublic
     def length
-      @length.is_a?(Range) ? @length.max : @length
+      @length.kind_of?(Range) ? @length.max : @length
     end
+
     alias size length
 
     # Returns index name if property has index.
@@ -773,7 +763,7 @@ module DataMapper
 
       @primitive = @type.respond_to?(:primitive) ? @type.primitive : @type
       @getter    = TrueClass == @primitive ? "#{@name}?".to_sym : @name
-      @field     = @options[:field] || (repository_name == :default ? nil : model.field_naming_convention(repository_name).call(self))
+      @field     = @options[:field].freeze
       @default   = @options[:default]
 
       @serial       = @options.fetch(:serial,       false)
@@ -788,8 +778,8 @@ module DataMapper
       if String == @primitive || Class == @primitive
         @length = @options[:length] || @options[:size] || DEFAULT_LENGTH
       elsif BigDecimal == @primitive || Float == @primitive
-        @precision    = @options[:precision] || DEFAULT_PRECISION
-        @scale        = @options[:scale]     || (Float == @primitive ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL)
+        @precision = @options[:precision] || DEFAULT_PRECISION
+        @scale     = @options[:scale]     || (Float == @primitive ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL)
 
         unless @precision > 0
           raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"

@@ -78,50 +78,6 @@ share_examples_for 'A semipublic Resource' do
 
   end
 
-  it { @user.should respond_to(:hash) }
-
-  describe '#hash' do
-
-    describe 'on two equal unsaved objects' do
-
-      before do
-        @user1 = User.new(:name => 'dbussink', :age => 50)
-        @user2 = User.new(:name => 'dbussink', :age => 50)
-      end
-
-      it { @user1.hash.should eql(@user2.hash) }
-
-    end
-
-    describe 'on two equal objects with a different object id' do
-
-      before { @user2 = User.get("dbussink") }
-
-      it { @user.object_id.should_not eql(@user2.object_id) }
-
-      it { @user.hash.should eql(@user2.hash) }
-
-    end
-
-
-    describe 'on two different objects of the same type' do
-
-      before { @user2 = User.create(:name => "dkubb", :age => 25) }
-
-      it { @user.hash.should_not eql(@user2.hash) }
-
-    end
-
-    describe 'on two different types with the same key' do
-
-      before { @user2 = Clone.create(:name => "dbussink", :age => 25) }
-
-      it { @user.hash.should eql(@user2.hash) }
-
-    end
-
-  end
-
   it { @user.should respond_to(:repository) }
 
   describe "#repository" do
