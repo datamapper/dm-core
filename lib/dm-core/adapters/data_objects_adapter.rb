@@ -29,8 +29,7 @@ module DataMapper
           model      = resource.model
           attributes = resource.dirty_attributes
 
-          # TODO: make a model.identity_field method
-          identity_field = model.key(repository.name).detect { |p| p.serial? }
+          identity_field = model.identity_field
 
           statement = insert_statement(repository, model, attributes.keys, identity_field)
           bind_values = attributes.values
@@ -53,8 +52,7 @@ module DataMapper
           command.set_types(query.fields.map { |p| p.primitive })
 
           begin
-            bind_values = query.bind_values.map { |v| v == [] ? [nil] : v }
-            reader      = command.execute_reader(*bind_values)
+            reader = command.execute_reader(*query.bind_values)
 
             model     = query.model
             resources = []
@@ -114,8 +112,6 @@ module DataMapper
 
       def query(statement, *bind_values)
         with_connection do |connection|
-          reader = nil
-
           begin
             reader = connection.create_command(statement).execute_reader(*bind_values)
 
@@ -196,7 +192,6 @@ module DataMapper
       end
 
       def with_connection
-        connection = nil
         begin
           connection = create_connection
           return yield(connection)
