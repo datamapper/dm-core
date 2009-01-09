@@ -43,12 +43,18 @@ ALTERNATE = {
 adapters = ENV['ADAPTERS'].split(' ').map { |a| a.strip.downcase }.uniq
 adapters = PRIMARY.keys if adapters.include?('all')
 
-PRIMARY.only(*adapters).each do |adapter, default|
-  connection_string = ENV["#{adapter.upcase}_SPEC_URI"] || default
+PRIMARY.only(*adapters).each do |name, default|
+  connection_string = ENV["#{name.upcase}_SPEC_URI"] || default
   begin
-    DataMapper.setup(adapter.to_sym, connection_string)
-    ADAPTERS << adapter
-    PRIMARY[adapter] = connection_string  # ensure *_SPEC_URI is saved
+    adapter = DataMapper.setup(name.to_sym, connection_string)
+
+    # test the connection if possible
+    if adapter.respond_to?(:query)
+      adapter.query('SELECT 1')
+    end
+
+    ADAPTERS << name
+    PRIMARY[name] = connection_string  # ensure *_SPEC_URI is saved
   rescue Exception => e
     puts "Could not connect to the database using #{connection_string}"
   end
