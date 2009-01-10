@@ -256,6 +256,7 @@ module DataMapper
     # TODO: document
     # @api public
     def identity_field(repository_name = default_repository_name)
+      # XXX: should identity_field be the same thing as key?
       key(repository_name).detect { |p| p.serial? }
     end
 

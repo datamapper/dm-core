@@ -11,8 +11,8 @@ require 'ruby-prof'
 gem 'faker', '~>0.3.1'
 require 'faker'
 
-OUTPUT = DataMapper.root / 'profile_results.txt'
-#OUTPUT = DataMapper.root / 'profile_results.html'
+#OUTPUT = DataMapper.root / 'profile_results.txt'
+OUTPUT = DataMapper.root / 'profile_results.html'
 
 SOCKET_FILE = Pathname.glob(%w[
   /opt/local/var/run/mysql5/mysqld.sock
@@ -88,8 +88,8 @@ end
 # RubyProf, making profiling Ruby pretty since 1899!
 def profile(&b)
   result  = RubyProf.profile &b
-  printer = RubyProf::FlatPrinter.new(result)
-  #printer = RubyProf::GraphHtmlPrinter.new(result)
+  #printer = RubyProf::FlatPrinter.new(result)
+  printer = RubyProf::GraphHtmlPrinter.new(result)
   printer.print(OUTPUT.open('w+'))
 end
 

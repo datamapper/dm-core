@@ -69,20 +69,7 @@ module DataMapper
       end
 
       def read_one(query)
-        with_connection do |connection|
-          command = connection.create_command(select_statement(query))
-          command.set_types(query.fields.map { |p| p.primitive })
-
-          begin
-            reader = command.execute_reader(*query.bind_values)
-
-            if reader.next!
-              query.model.load(reader.values, query)
-            end
-          ensure
-            reader.close if reader
-          end
-        end
+        read_many(query).first
       end
 
       def update(attributes, query)
