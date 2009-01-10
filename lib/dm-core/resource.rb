@@ -533,9 +533,15 @@ module DataMapper
     def _dump(*)
       ivars = {}
 
-      (loaded_attributes + [ :new_record, :original_values, :readonly, :repository ]).each do |name|
-        key = "@#{name}"
-        ivars[key] = instance_variable_get(key)
+      # dump all the loaded properties
+      properties.each do |property|
+        next unless attribute_loaded?(property.name)
+        ivars[property.instance_variable_name] = property.get!(self)
+      end
+
+      # dump ivars used internally
+      %w[ @new_record @original_values @readonly @repository ].each do |name|
+        ivars[name] = instance_variable_get(name)
       end
 
       Marshal.dump(ivars)
