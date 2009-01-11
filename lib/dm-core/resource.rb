@@ -606,12 +606,11 @@ module DataMapper
 
       return true  if dirty_attributes.empty?
       return false if dirty_attributes.only(*model.key).any? { |_,v| v.blank? }
+      return false if repository.update(dirty_attributes, to_query) != 1
 
-      if updated = repository.update(dirty_attributes, to_query) == 1
-        repository.identity_map(model)[key] = self
-      end
+      repository.identity_map(model)[key] = self
 
-      updated
+      true
     end
 
     # Gets this instance's Model's properties
