@@ -810,7 +810,7 @@ module DataMapper
 
     def assert_valid_options(options)
       if (unknown = options.keys - PROPERTY_OPTIONS).any?
-        raise ArgumentError, "options #{unknown.join(' and ')} are unknown", caller(1)
+        raise ArgumentError, "options #{unknown.map { |o| o.inspect }.join(' and ')} are unknown", caller(1)
       end
 
       options.each do |key,value|

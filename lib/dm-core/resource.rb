@@ -604,13 +604,14 @@ module DataMapper
       # retrieve the attributes that need to be persisted
       dirty_attributes = self.dirty_attributes
 
-      if dirty_attributes.empty?
-        true
-      elsif dirty_attributes.only(*model.key).values.any? { |v| v.blank? }
-        false
-      else
-        repository.update(dirty_attributes, to_query) == 1
+      return true  if dirty_attributes.empty?
+      return false if dirty_attributes.only(*model.key).any? { |_,v| v.blank? }
+
+      if updated = repository.update(dirty_attributes, to_query) == 1
+        repository.identity_map(model)[key] = self
       end
+
+      updated
     end
 
     # Gets this instance's Model's properties

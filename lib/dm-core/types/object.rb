@@ -6,7 +6,6 @@ module DataMapper
       primitive String
       size 65535
       lazy true
-      track :hash
 
       def self.typecast(value, property)
         value

@@ -542,6 +542,27 @@ share_examples_for 'A public Resource' do
       end
     end
 
+    describe 'with a dirty object with a changed key' do
+
+      before do
+        @user.name = 'dkubb'
+        @return = @user.save
+      end
+
+      it 'should save a resource succesfully when dirty' do
+        @return.should be_true
+      end
+
+      it 'should actually store the changes to persistent storage' do
+        @user.attributes.should == @user.reload.attributes
+      end
+
+      it 'should update the identity map' do
+        @user.repository.identity_map(@model).key?(%w[ dkubb ])
+      end
+
+    end
+
   end
 
   describe 'invalid resources' do
