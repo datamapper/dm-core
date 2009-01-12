@@ -25,13 +25,12 @@ module DataMapper
       def create(resources)
         created = 0
         resources.each do |resource|
-          repository = resource.repository
           model      = resource.model
           attributes = resource.dirty_attributes
 
           identity_field = model.identity_field
 
-          statement = insert_statement(repository, model, attributes.keys, identity_field)
+          statement = insert_statement(model, attributes.keys, identity_field)
           bind_values = attributes.values
 
           result = execute(statement, *bind_values)
@@ -207,7 +206,7 @@ module DataMapper
           offset = query.offset
 
           statement = "SELECT #{columns_statement(query, fields)}"
-          statement << " FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
+          statement << " FROM #{quote_table_name(query.model.storage_name(name))}"
           statement << join_statement(query)                             if query.links.any?
           statement << " WHERE #{where_statement(query)}"                if query.conditions.any?
           statement << " GROUP BY #{columns_statement(query, group_by)}" if query.unique? && (group_by = fields.select { |p| p.kind_of?(Property) }).any?
@@ -220,8 +219,8 @@ module DataMapper
           raise e
         end
 
-        def insert_statement(repository, model, properties, identity_field)
-          statement = "INSERT INTO #{quote_table_name(model.storage_name(repository.name))} "
+        def insert_statement(model, properties, identity_field)
+          statement = "INSERT INTO #{quote_table_name(model.storage_name(name))} "
 
           if supports_default_values? && properties.empty?
             statement << 'DEFAULT VALUES'
@@ -241,23 +240,22 @@ module DataMapper
         end
 
         def update_statement(properties, query)
-          statement = "UPDATE #{quote_table_name(query.model.storage_name(query.repository.name))}"
+          statement = "UPDATE #{quote_table_name(query.model.storage_name(name))}"
           statement << " SET #{properties.map { |p| "#{quote_column_name(p.field)} = ?" }.join(', ')}"
           statement << " WHERE #{where_statement(query)}" if query.conditions.any?
           statement
         end
 
         def delete_statement(query)
-          statement = "DELETE FROM #{quote_table_name(query.model.storage_name(query.repository.name))}"
+          statement = "DELETE FROM #{quote_table_name(query.model.storage_name(name))}"
           statement << " WHERE #{where_statement(query)}" if query.conditions.any?
           statement
         end
 
         def columns_statement(query, properties)
-          repository = query.repository
-          qualify    = query.links.any?
+          qualify = query.links.any?
 
-          properties.map { |p| property_to_column_name(repository, p, qualify) }.join(', ')
+          properties.map { |p| property_to_column_name(p, qualify) }.join(', ')
         end
 
         def join_statement(query)
@@ -272,7 +270,7 @@ module DataMapper
             end
 
             # We only do INNER JOIN for now
-            statement << " INNER JOIN #{quote_table_name(model.storage_name(query.repository.name))} ON "
+            statement << " INNER JOIN #{quote_table_name(model.storage_name(name))} ON "
 
             statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
               condition_statement(query, :eql, parent_property, child_property)
@@ -308,19 +306,18 @@ module DataMapper
         end
 
         def order_by_statement(query)
-          repository = query.repository
-          qualify    = query.links.any?
+          qualify = query.links.any?
 
-          query.order.map { |i| order_statement(repository, i, qualify) }.join(', ')
+          query.order.map { |i| order_statement(i, qualify) }.join(', ')
         end
 
-        def order_statement(repository, item, qualify)
+        def order_statement(item, qualify)
           case item
             when Property
-              property_to_column_name(repository, item, qualify)
+              property_to_column_name(item, qualify)
 
             when Query::Direction
-              statement = property_to_column_name(repository, item.property, qualify)
+              statement = property_to_column_name(item.property, qualify)
               statement << ' DESC' if item.direction == :desc
               statement
           end
@@ -329,13 +326,12 @@ module DataMapper
         def condition_statement(query, operator, left_condition, right_condition)
           return left_condition if operator == :raw
 
-          repository = query.repository
-          qualify    = query.links.any?
+          qualify = query.links.any?
 
           conditions = [ left_condition, right_condition ].map do |condition|
             case condition
               when Property, Query::Path
-                property_to_column_name(repository, condition, qualify)
+                property_to_column_name(condition, qualify)
 
               when Query
                 opposite = condition == left_condition ? right_condition : left_condition
@@ -344,7 +340,7 @@ module DataMapper
 
               when Array
                 if condition.any? && condition.all? { |p| p.kind_of?(Property) }
-                  property_values = condition.map { |p| property_to_column_name(repository, p, qualify) }
+                  property_values = condition.map { |p| property_to_column_name(p, qualify) }
                   "(#{property_values.join(', ')})"
                 end
             end || '?'
@@ -386,9 +382,9 @@ module DataMapper
           operand.kind_of?(Regexp) ? '~' : 'LIKE'
         end
 
-        def property_to_column_name(repository, property, qualify)
+        def property_to_column_name(property, qualify)
           if qualify
-            table_name = property.model.storage_name(repository.name)
+            table_name = property.model.storage_name(name)
             "#{quote_table_name(table_name)}.#{quote_column_name(property.field)}"
           else
             quote_column_name(property.field)

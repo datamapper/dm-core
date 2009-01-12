@@ -88,45 +88,42 @@ module DataMapper
         query(statement, schema_name, storage_name, column_name).first > 0
       end
 
-      def upgrade_model_storage(repository, model)
-        table_name = model.storage_name(repository.name)
+      def upgrade_model_storage(model)
+        properties = model.properties_with_subclasses(name)
 
-        if success = create_model_storage(repository, model)
-          return model.properties(repository.name)
+        if success = create_model_storage(model)
+          return properties
         end
 
-        properties = []
+        table_name = model.storage_name(name)
 
-        model.properties(repository.name).each do |property|
+        properties.map do |property|
           schema_hash = property_schema_hash(property)
           next if field_exists?(table_name, schema_hash[:name])
           statement = alter_table_add_column_statement(table_name, schema_hash)
           execute(statement)
-          properties << property
-        end
-
-        properties
+          property
+        end.compact
       end
 
-      def create_model_storage(repository, model)
-        repository_name = repository.name
-        properties      = model.properties_with_subclasses(repository_name)
+      def create_model_storage(model)
+        properties = model.properties_with_subclasses(name)
 
-        return false if storage_exists?(model.storage_name(repository_name))
+        return false if storage_exists?(model.storage_name(name))
         return false if properties.empty?
 
-        execute(create_table_statement(repository, model, properties))
+        execute(create_table_statement(model, properties))
 
-        (create_index_statements(repository, model) + create_unique_index_statements(repository, model)).each do |sql|
+        (create_index_statements(model) + create_unique_index_statements(model)).each do |sql|
           execute(sql)
         end
 
         true
       end
 
-      def destroy_model_storage(repository, model)
-        return true unless supports_drop_table_if_exists? || storage_exists?(model.storage_name(repository.name))
-        execute(drop_table_statement(repository, model))
+      def destroy_model_storage(model)
+        return true unless supports_drop_table_if_exists? || storage_exists?(model.storage_name(name))
+        execute(drop_table_statement(model))
         true
       end
 
@@ -152,11 +149,9 @@ module DataMapper
           "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
         end
 
-        def create_table_statement(repository, model, properties)
-          repository_name = repository.name
-
+        def create_table_statement(model, properties)
           statement = <<-SQL.compress_lines
-            CREATE TABLE #{quote_table_name(model.storage_name(repository_name))}
+            CREATE TABLE #{quote_table_name(model.storage_name(name))}
             (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')},
             PRIMARY KEY(#{ properties.key.map { |p| quote_column_name(p.field) }.join(', ')}))
           SQL
@@ -164,17 +159,17 @@ module DataMapper
           statement
         end
 
-        def drop_table_statement(repository, model)
+        def drop_table_statement(model)
           if supports_drop_table_if_exists?
-            "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(repository.name))}"
+            "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
           else
-            "DROP TABLE #{quote_table_name(model.storage_name(repository.name))}"
+            "DROP TABLE #{quote_table_name(model.storage_name(name))}"
           end
         end
 
-        def create_index_statements(repository, model)
-          table_name = model.storage_name(repository.name)
-          model.properties(repository.name).indexes.map do |index_name, fields|
+        def create_index_statements(model)
+          table_name = model.storage_name(name)
+          model.properties(name).indexes.map do |index_name, fields|
             <<-SQL.compress_lines
               CREATE INDEX #{quote_column_name("index_#{table_name}_#{index_name}")} ON
               #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) }.join(', ')})
@@ -182,9 +177,9 @@ module DataMapper
           end
         end
 
-        def create_unique_index_statements(repository, model)
-          table_name = model.storage_name(repository.name)
-          model.properties(repository.name).unique_indexes.map do |index_name, fields|
+        def create_unique_index_statements(model)
+          table_name = model.storage_name(name)
+          model.properties(name).unique_indexes.map do |index_name, fields|
             <<-SQL.compress_lines
               CREATE UNIQUE INDEX #{quote_column_name("unique_#{table_name}_#{index_name}")} ON
               #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) }.join(', ')})
@@ -260,7 +255,6 @@ module DataMapper
       end
 
       def field_exists?(storage_name, field_name)
-        return false unless storage_exists?(storage_name)
         result = query("SHOW COLUMNS FROM #{quote_table_name(storage_name)} LIKE ?", field_name).first
         result ? result.field == field_name : false
       end
@@ -290,7 +284,7 @@ module DataMapper
         # TODO: update dkubb/dm-more/dm-migrations to use schema_name and remove this
         alias db_name schema_name
 
-        def create_table_statement(repository, model, properties)
+        def create_table_statement(model, properties)
           "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
         end
 
@@ -347,16 +341,15 @@ module DataMapper
         )
       end
 
-      def upgrade_model_storage(repository, model)
-        # TODO: test to see if the without_notices wrapper is still needed
+      def upgrade_model_storage(model)
         without_notices { super }
       end
 
-      def create_model_storage(repository, model)
+      def create_model_storage(model)
         without_notices { super }
       end
 
-      def destroy_model_storage(repository, model)
+      def destroy_model_storage(model)
         if supports_drop_table_if_exists?
           without_notices { super }
         else
@@ -453,11 +446,9 @@ module DataMapper
           true
         end
 
-        def create_table_statement(repository, model, properties)
-          repository_name = repository.name
-
+        def create_table_statement(model, properties)
           statement = <<-SQL.compress_lines
-            CREATE TABLE #{quote_table_name(model.storage_name(repository_name))}
+            CREATE TABLE #{quote_table_name(model.storage_name(name))}
             (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')}
           SQL
 
@@ -501,12 +492,22 @@ module DataMapper
       adapter.storage_exists?(storage_name)
     end
 
+    def upgrade_model_storage(model)
+      adapter.upgrade_model_storage(model)
+    end
+
+    def create_model_storage(model)
+      adapter.create_model_storage(model)
+    end
+
+    def destroy_model_storage(model)
+      adapter.destroy_model_storage(model)
+    end
+
     ##
     # Destructively automigrates the data-store to match the model.
     # First migrates all models down and then up.
     # REPEAT: THIS IS DESTRUCTIVE
-    #
-    # @param Symbol repository_name the repository to be migrated
     #
     # @api public
     def auto_migrate!
@@ -517,8 +518,6 @@ module DataMapper
     ##
     # Safely migrates the data-store to match the model
     # preserving data already in the data-store
-    #
-    # @param Symbol repository_name the repository to be migrated
     #
     # @api public
     def auto_upgrade!
@@ -533,8 +532,6 @@ module DataMapper
     # Destructively automigrates the data-store down
     # REPEAT: THIS IS DESTRUCTIVE
     #
-    # @param Symbol repository_name the repository to be migrated
-    #
     # @api private
     def auto_migrate_down
       DataMapper::Resource.descendants.each do |model|
@@ -544,8 +541,6 @@ module DataMapper
 
     ##
     # Automigrates the data-store up
-    #
-    # @param Symbol repository_name the repository to be migrated
     #
     # @api private
     def auto_migrate_up
@@ -581,13 +576,10 @@ module DataMapper
     #
     # @api private
     def auto_migrate_down!(repository_name = self.repository_name)
-      # repository_name ||= default_repository_name
-      if self.superclass != Object
-        self.superclass.auto_migrate!(repository_name)
+      if base_model == self
+        repository(repository_name).destroy_model_storage(self)
       else
-        repository(repository_name) do |r|
-          r.adapter.destroy_model_storage(r, self)
-        end
+        base_model.auto_migrate!(repository_name)
       end
     end
 
@@ -598,12 +590,10 @@ module DataMapper
     #
     # @api private
     def auto_migrate_up!(repository_name = self.repository_name)
-      if self.superclass != Object
-        self.superclass.auto_migrate!(repository_name)
+      if base_model == self
+        repository(repository_name).create_model_storage(self)
       else
-        repository(repository_name) do |r|
-          r.adapter.create_model_storage(r, self)
-        end
+        base_model.auto_migrate!(repository_name)
       end
     end
 
@@ -615,9 +605,7 @@ module DataMapper
     #
     # @api private
     def auto_upgrade!(repository_name = self.repository_name)
-      repository(repository_name) do |r|
-        r.adapter.upgrade_model_storage(r, self)
-      end
+      repository(repository_name).upgrade_model_storage(self)
     end
   end # module Model
 end # module DataMapper

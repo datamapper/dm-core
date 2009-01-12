@@ -23,12 +23,10 @@ module DataMapper
       #
       # @api semipublic
       def create(resources)
-        repository_name = self.name
-
         resources.each do |resource|
           identity_map = identity_map(resource.model)
 
-          if identity_field = resource.model.identity_field(repository_name)
+          if identity_field = resource.model.identity_field(name)
             identity_field.set!(resource, identity_map.size.succ)
           end
 
