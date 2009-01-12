@@ -293,10 +293,12 @@ module DataMapper
                 lt_condition  = condition_statement(query, :lt,  property, bind_value.first)
                 gte_condition = condition_statement(query, :gte, property, bind_value.last)
 
-                statement = ''
-                statement << '(' if query.conditions.size > 1
-                statement << "#{lt_condition} OR #{gte_condition}"
-                statement << ')' if query.conditions.size > 1
+                if query.conditions.size > 1
+                  statement << "(#{lt_condition} OR #{gte_condition})"
+                else
+                  statement << "#{lt_condition} OR #{gte_condition}"
+                end
+
                 statement
               end
             else

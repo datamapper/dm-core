@@ -443,7 +443,7 @@ module DataMapper
         end
 
         def supports_drop_table_if_exists?
-          true
+          @supports_drop_table_if_exists ||= sqlite_version >= '3.3.0'
         end
 
         def create_table_statement(model, properties)
