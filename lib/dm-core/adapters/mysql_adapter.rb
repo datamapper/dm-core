@@ -13,17 +13,15 @@ module DataMapper
           false
         end
 
-        def escape_name(name)
-          name.gsub('`', '``')
-        end
-
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
         def quote_name(name)
-          if name.include?('.')
-            escape_name(name).split('.').map { |part| "`#{part}`" }.join('.')
+          escaped = name.gsub('`', '``')
+
+          if escaped.include?('.')
+            escaped.split('.').map { |part| "`#{part}`" }.join('.')
           else
-            escape_name(name)
+            escaped
           end
         end
 

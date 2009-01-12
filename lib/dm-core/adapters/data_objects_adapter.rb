@@ -393,44 +393,35 @@ module DataMapper
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
-        def escape_name(name)
-          name.gsub('"', '""')
-        end
-
-        # TODO: once the driver's quoting methods become public, have
-        # this method delegate to them instead
         def quote_name(name)
-          if name.include?('.')
-            escape_name(name).split('.').map { |part| "\"#{part}\"" }.join('.')
+          escaped = name.gsub('"', '""')
+
+          if escaped.include?('.')
+            escaped.split('.').map { |part| "\"#{part}\"" }.join('.')
           else
-            escape_name(name)
+            escaped
           end
         end
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
         def quote_value(value)
-          return 'NULL' if value.nil?
-
           case value
             when String
-              if (integer = value.to_i).to_s == value
-                quote_value(integer)
-              elsif (float = value.to_f).to_s == value
-                quote_value(integer)
-              else
-                "'#{value.gsub("'", "''")}'"
-              end
+              "'#{value.gsub("'", "''")}'"
+            when Integer, Float
+              value.to_s
             when DateTime
               quote_value(value.strftime('%Y-%m-%d %H:%M:%S'))
             when Date
               quote_value(value.strftime('%Y-%m-%d'))
             when Time
-              quote_value(value.strftime('%Y-%m-%d %H:%M:%S') + ((value.usec > 0 ? ".#{value.usec.to_s.rjust(6, '0')}" : '')))
-            when Integer, Float
-              value.to_s
+              usec = value.usec
+              quote_value(value.strftime('%Y-%m-%d %H:%M:%S') + ((usec > 0 ? ".#{usec.to_s.rjust(6, '0')}" : '')))
             when BigDecimal
               value.to_s('F')
+            when NilClass
+              'NULL'
             else
               value.to_s
           end
