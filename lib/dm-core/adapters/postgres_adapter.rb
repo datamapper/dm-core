@@ -7,6 +7,9 @@ module DataMapper
       module SQL
         private
 
+        # TODO: if INSERT .. RETURNING is part of the ANSI spec, then
+        # make the default "true" in the DO adapter, and set the other
+        # adapters that don't support it to false
         def supports_returning?
           true
         end
