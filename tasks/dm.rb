@@ -29,6 +29,8 @@ namespace :dm do
       t.rcov = rcov
       t.rcov_opts << '--exclude' << 'spec,environment.rb'
       t.rcov_opts << '--text-summary'
+      t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+      t.rcov_opts << '--only-uncovered'
     end
   end
 

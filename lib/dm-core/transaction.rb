@@ -264,4 +264,4 @@ module DataMapper
     end
 
   end # class Transaction
-end # module DataMapper
+end # module DataMapper
