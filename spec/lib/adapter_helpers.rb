@@ -21,7 +21,7 @@ module DataMapper::Spec
             # create all tables and constraints before each spec
             begin
               DataMapper.auto_migrate!(@adapter.name)
-            rescue NotImplementedError
+            rescue NotImplementedError, NoMethodError
               # do nothing when not supported
             end
           end
@@ -30,7 +30,7 @@ module DataMapper::Spec
             # remove all tables and constraints after each spec
             begin
               DataMapper::AutoMigrator.auto_migrate_down(@adapter.name)
-            rescue NotImplementedError
+            rescue NotImplementedError, NoMethodError
               # do nothing when not supported
             end
           end
@@ -54,7 +54,7 @@ module DataMapper::Spec
             # create all tables and constraints before each spec
             begin
               DataMapper.auto_migrate!(@alternate_adapter.name)
-            rescue NotImplementedError
+            rescue NotImplementedError, NoMethodError
               # do nothing when not supported
             end
           end
@@ -63,7 +63,7 @@ module DataMapper::Spec
             # remove all tables and constraints after each spec
             begin
               DataMapper::AutoMigrator.auto_migrate_down(@alternate_adapter.name)
-            rescue NotImplementedError
+            rescue NotImplementedError, NoMethodError
               # do nothing when not supported
             end
           end

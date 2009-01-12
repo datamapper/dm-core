@@ -655,16 +655,6 @@ module DataMapper
 
       super
     end
-
-    # TODO: move to dm-more/dm-migrations
-    module Migration
-      # TODO: move to dm-more/dm-migrations
-      def storage_exists?(repository_name = default_repository_name)
-        repository(repository_name).storage_exists?(storage_name(repository_name))
-      end
-    end # module Migration
-
-    include Migration
   end # module Model
 end # module DataMapper
 

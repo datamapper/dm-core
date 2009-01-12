@@ -192,31 +192,5 @@ module DataMapper
       @name          = name
       @identity_maps = {}
     end
-
-    # TODO: move to dm-more/dm-migrations
-    module Migration
-      ##
-      # Determine whether a particular named storage exists in this repository
-      #
-      # @param [String] storage_name name of the storage to test for
-      # @return [TrueClass, FalseClass] true if the data-store +storage_name+ exists
-      #
-      # TODO: move to dm-more/dm-migrations
-      def storage_exists?(storage_name)
-        adapter.storage_exists?(storage_name)
-      end
-
-      # TODO: move to dm-more/dm-migrations
-      def auto_migrate!
-        AutoMigrator.auto_migrate(name)
-      end
-
-      # TODO: move to dm-more/dm-migrations
-      def auto_upgrade!
-        AutoMigrator.auto_upgrade(name)
-      end
-    end
-
-    include Migration
   end # class Repository
 end # module DataMapper

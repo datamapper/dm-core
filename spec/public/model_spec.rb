@@ -114,7 +114,7 @@ describe DataMapper::Model do
 
             begin
               Heffalump.auto_migrate!(@alternate_adapter.name)
-            rescue NotImplementedError
+            rescue NotImplementedError, NoMethodError
               # do nothing when not supported
             end
 
