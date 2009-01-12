@@ -15,12 +15,12 @@ module DataMapper::Spec
 
           before do
             # store these in instance vars for the shared adapter specs
-            @adapter = DataMapper.setup(:default, connection_uri)
+            @adapter    = DataMapper.setup(:default, connection_uri)
             @repository = repository(@adapter.name)
 
             # create all tables and constraints before each spec
             begin
-              DataMapper.auto_migrate!(@adapter.name)
+              @repository.auto_migrate!
             rescue NotImplementedError, NoMethodError
               # do nothing when not supported
             end
@@ -29,7 +29,7 @@ module DataMapper::Spec
           after do
             # remove all tables and constraints after each spec
             begin
-              DataMapper::AutoMigrator.auto_migrate_down(@adapter.name)
+              @repository.send(:auto_migrate_down)
             rescue NotImplementedError, NoMethodError
               # do nothing when not supported
             end
@@ -49,11 +49,12 @@ module DataMapper::Spec
         describe("and #{adapter}") do
 
           before do
-            @alternate_adapter = DataMapper.setup(:alternate, connection_uri)
+            @alternate_adapter    = DataMapper.setup(:alternate, connection_uri)
+            @alternate_repository = repository(@alternate_adapter.name)
 
             # create all tables and constraints before each spec
             begin
-              DataMapper.auto_migrate!(@alternate_adapter.name)
+              @alternate_repository.auto_migrate!
             rescue NotImplementedError, NoMethodError
               # do nothing when not supported
             end
@@ -62,7 +63,7 @@ module DataMapper::Spec
           after do
             # remove all tables and constraints after each spec
             begin
-              DataMapper::AutoMigrator.auto_migrate_down(@alternate_adapter.name)
+              @alternate_repository.send(:auto_migrate_down)
             rescue NotImplementedError, NoMethodError
               # do nothing when not supported
             end

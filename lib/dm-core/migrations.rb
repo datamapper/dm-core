@@ -1,60 +1,25 @@
 # TODO: move to dm-more/dm-migrations
 
 module DataMapper
-  class AutoMigrator
-    ##
-    # Destructively automigrates the data-store to match the model.
-    # First migrates all models down and then up.
-    # REPEAT: THIS IS DESTRUCTIVE
-    #
-    # @param Symbol repository_name the repository to be migrated
-    #
-    # @api public
-    def self.auto_migrate(repository_name = nil, *descendants)
-      auto_migrate_down(repository_name, *descendants)
-      auto_migrate_up(repository_name, *descendants)
-    end
+  ##
+  # destructively migrates the repository upwards to match model definitions
+  #
+  # @param [Symbol] name repository to act on, :default is the default
+  def self.migrate!(repository_name = Repository.default_name)
+    repository(repository_name).migrate!
+  end
 
-    ##
-    # Destructively automigrates the data-store down
-    # REPEAT: THIS IS DESTRUCTIVE
-    #
-    # @param Symbol repository_name the repository to be migrated
-    #
-    # @api private
-    def self.auto_migrate_down(repository_name = nil, *descendants)
-      descendants = DataMapper::Resource.descendants.to_a if descendants.empty?
-      descendants.reverse.each do |model|
-        model.auto_migrate_down!(repository_name)
-      end
-    end
+  ##
+  # drops and recreates the repository upwards to match model definitions
+  #
+  # @param [Symbol] name repository to act on, :default is the default
+  def self.auto_migrate!(repository_name = nil)
+    repository(repository_name).auto_migrate
+  end
 
-    ##
-    # Automigrates the data-store up
-    #
-    # @param Symbol repository_name the repository to be migrated
-    #
-    # @api private
-    def self.auto_migrate_up(repository_name = nil, *descendants)
-      descendants = DataMapper::Resource.descendants.to_a if descendants.empty?
-      descendants.each do |model|
-        model.auto_migrate_up!(repository_name)
-      end
-    end
-
-    ##
-    # Safely migrates the data-store to match the model
-    # preserving data already in the data-store
-    #
-    # @param Symbol repository_name the repository to be migrated
-    #
-    # @api public
-    def self.auto_upgrade(repository_name = nil)
-      DataMapper::Resource.descendants.each do |model|
-        model.auto_upgrade!(repository_name)
-      end
-    end
-  end # class AutoMigrator
+  def self.auto_upgrade!(repository_name = nil)
+    repository(repository_name).auto_upgrade
+  end
 
   module Adapters
     class DataObjectsAdapter
@@ -536,12 +501,57 @@ module DataMapper
       adapter.storage_exists?(storage_name)
     end
 
+    ##
+    # Destructively automigrates the data-store to match the model.
+    # First migrates all models down and then up.
+    # REPEAT: THIS IS DESTRUCTIVE
+    #
+    # @param Symbol repository_name the repository to be migrated
+    #
+    # @api public
     def auto_migrate!
-      AutoMigrator.auto_migrate(name)
+      auto_migrate_down
+      auto_migrate_up
     end
 
+    ##
+    # Safely migrates the data-store to match the model
+    # preserving data already in the data-store
+    #
+    # @param Symbol repository_name the repository to be migrated
+    #
+    # @api public
     def auto_upgrade!
-      AutoMigrator.auto_upgrade(name)
+      DataMapper::Resource.descendants.each do |model|
+        model.auto_upgrade!(name)
+      end
+    end
+
+    private
+
+    ##
+    # Destructively automigrates the data-store down
+    # REPEAT: THIS IS DESTRUCTIVE
+    #
+    # @param Symbol repository_name the repository to be migrated
+    #
+    # @api private
+    def auto_migrate_down
+      DataMapper::Resource.descendants.each do |model|
+        model.auto_migrate_down!(name)
+      end
+    end
+
+    ##
+    # Automigrates the data-store up
+    #
+    # @param Symbol repository_name the repository to be migrated
+    #
+    # @api private
+    def auto_migrate_up
+      DataMapper::Resource.descendants.each do |model|
+        model.auto_migrate_up!(name)
+      end
     end
   end # class Repository
 
@@ -555,6 +565,8 @@ module DataMapper
     # REPEAT: THIS IS DESTRUCTIVE
     #
     # @param Symbol repository_name the repository to be migrated
+    #
+    # @api public
     def auto_migrate!(repository_name = self.repository_name)
       auto_migrate_down!(repository_name)
       auto_migrate_up!(repository_name)
@@ -600,6 +612,8 @@ module DataMapper
     # preserving data already in the data-store
     #
     # @param Symbol repository_name the repository to be migrated
+    #
+    # @api private
     def auto_upgrade!(repository_name = self.repository_name)
       repository(repository_name) do |r|
         r.adapter.upgrade_model_storage(r, self)

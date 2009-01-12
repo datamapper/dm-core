@@ -181,26 +181,6 @@ module DataMapper
   # A logger should always be present. Lets be consistent with DO
   Logger.new(nil, :off)
 
-  ##
-  # destructively migrates the repository upwards to match model definitions
-  #
-  # @param [Symbol] name repository to act on, :default is the default
-  def self.migrate!(name = Repository.default_name)
-    repository(name).migrate!
-  end
-
-  ##
-  # drops and recreates the repository upwards to match model definitions
-  #
-  # @param [Symbol] name repository to act on, :default is the default
-  def self.auto_migrate!(repository_name = nil)
-    AutoMigrator.auto_migrate(repository_name)
-  end
-
-  def self.auto_upgrade!(repository_name = nil)
-    AutoMigrator.auto_upgrade(repository_name)
-  end
-
   def self.prepare(*args, &blk)
     yield repository(*args)
   end
