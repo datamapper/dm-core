@@ -50,7 +50,7 @@ require dir / 'property'
 require dir / 'adapters'
 
 require dir / 'transaction'
-require dir / 'auto_migrations'
+require dir / 'migrations'
 
 # == Setup and Configuration
 # DataMapper uses URIs or a connection hash to connect to your data-store.
