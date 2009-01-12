@@ -741,6 +741,9 @@ module DataMapper
       if TrueClass == type
         warn "#{type} is deprecated, use Boolean instead"
         type = DataMapper::Types::Boolean
+      elsif Integer == type && options[:serial]
+        warn "#{type} with explicit :serial option is deprecated, use Serial instead"
+        type = DataMapper::Types::Serial
       end
 
       # if the type can be found within DataMapper::Types then
