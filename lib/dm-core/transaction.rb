@@ -1,4 +1,4 @@
-# TODO: move to dm-more/dm-transactions
+# TODO: move to dm-more/dm-transaction
 
 module DataMapper
   class Transaction
@@ -13,6 +13,7 @@ module DataMapper
     # In fact, it just calls #link with the given arguments at the end of the
     # constructor.
     #
+    # @api public
     def initialize(*things)
       @transaction_primitives = {}
       @state = :none
@@ -39,6 +40,7 @@ module DataMapper
     #   within this transaction. The transaction will begin and commit around
     #   the block, and rollback if an exception is raised.
     #
+    # @api private
     def link(*things)
       raise "Illegal state for link: #{@state}" unless @state == :none
       things.each do |thing|
@@ -65,6 +67,7 @@ module DataMapper
     #
     # Before #begin is called, the transaction is not valid and can not be used.
     #
+    # @api private
     def begin
       raise "Illegal state for begin: #{@state}" unless @state == :none
       each_adapter(:connect_adapter, [:log_fatal_transaction_breakage])
@@ -83,6 +86,7 @@ module DataMapper
     #   If no block is given, it will simply commit any changes made since the
     #   Transaction did #begin.
     #
+    # @api private
     def commit
       if block_given?
         raise "Illegal state for commit with block: #{@state}" unless @state == :none
@@ -109,6 +113,7 @@ module DataMapper
     #
     # Will undo all changes made during the transaction.
     #
+    # @api private
     def rollback
       raise "Illegal state for rollback: #{@state}" unless @state == :begin
       each_adapter(:rollback_adapter_if_begin, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
@@ -128,6 +133,7 @@ module DataMapper
     #   adapter it is associated with, and it will ensures that it will pop the
     #   Transaction away again after the block is finished.
     #
+    # @api private
     def within
       raise "No block provided" unless block_given?
       raise "Illegal state for within: #{@state}" unless @state == :begin
@@ -143,6 +149,7 @@ module DataMapper
       end
     end
 
+    # @api private
     def method_missing(meth, *args, &block)
       if args.size == 1 && args.first.kind_of?(DataMapper::Adapters::AbstractAdapter)
         if (match = meth.to_s.match(/^(.*)_if_(none|begin|prepare|rollback|commit)$/))
@@ -165,6 +172,7 @@ module DataMapper
       end
     end
 
+    # @api private
     def primitive_for(adapter)
       raise "Unknown adapter #{adapter}" unless @adapters.include?(adapter)
       raise "No primitive for #{adapter}" unless @transaction_primitives.include?(adapter)
@@ -173,6 +181,7 @@ module DataMapper
 
     private
 
+    # @api private
     def validate_primitive(primitive)
       [:close, :begin, :prepare, :rollback, :rollback_prepared, :commit].each do |meth|
         raise "Invalid primitive #{primitive}: doesnt respond_to?(#{meth.inspect})" unless primitive.respond_to?(meth)
@@ -180,6 +189,7 @@ module DataMapper
       return primitive
     end
 
+    # @api private
     def each_adapter(method, on_fail)
       begin
         @adapters.each do |adapter, state|
@@ -199,11 +209,13 @@ module DataMapper
       end
     end
 
+    # @api private
     def state_for(adapter)
       raise "Unknown adapter #{adapter}" unless @adapters.include?(adapter)
       @adapters[adapter]
     end
 
+    # @api private
     def do_adapter(adapter, what, prerequisite)
       raise "No primitive for #{adapter}" unless @transaction_primitives.include?(adapter)
       raise "Illegal state for #{what}: #{state_for(adapter)}" unless state_for(adapter) == prerequisite
@@ -212,56 +224,212 @@ module DataMapper
       @adapters[adapter] = what
     end
 
+    # @api private
     def log_fatal_transaction_breakage(adapter)
       DataMapper.logger.fatal("#{self} experienced a totally broken transaction execution. Presenting member #{adapter.inspect}.")
     end
 
+    # @api private
     def connect_adapter(adapter)
       raise "Already a primitive for adapter #{adapter}" unless @transaction_primitives[adapter].nil?
       @transaction_primitives[adapter] = validate_primitive(adapter.transaction_primitive)
     end
 
+    # @api private
     def close_adapter_if_open(adapter)
       if @transaction_primitives.include?(adapter)
         close_adapter(adapter)
       end
     end
 
+    # @api private
     def close_adapter(adapter)
       raise "No primitive for adapter" unless @transaction_primitives.include?(adapter)
       @transaction_primitives[adapter].close
       @transaction_primitives.delete(adapter)
     end
 
+    # @api private
     def begin_adapter(adapter)
       do_adapter(adapter, :begin, :none)
     end
 
+    # @api private
     def prepare_adapter(adapter)
       do_adapter(adapter, :prepare, :begin);
     end
 
+    # @api private
     def commit_adapter(adapter)
       do_adapter(adapter, :commit, :prepare)
     end
 
+    # @api private
     def rollback_adapter(adapter)
       do_adapter(adapter, :rollback, :begin)
     end
 
+    # @api private
     def rollback_prepared_adapter(adapter)
       do_adapter(adapter, :rollback_prepared, :prepare)
     end
 
+    # @api private
     def rollback_prepared_and_close_adapter(adapter)
       rollback_prepared_adapter(adapter)
       close_adapter(adapter)
     end
 
+    # @api private
     def rollback_and_close_adapter(adapter)
       rollback_adapter(adapter)
       close_adapter(adapter)
     end
-
   end # class Transaction
+
+  module Adapters
+    class DataObjectsAdapter
+      ##
+      # Produces a fresh transaction primitive for this Adapter
+      #
+      # Used by DataMapper::Transaction to perform its various tasks.
+      #
+      # @return [Object]
+      #   a new Object that responds to :close, :begin, :commit,
+      #   :rollback, :rollback_prepared and :prepare
+      #
+      # @api semipublic
+      def transaction_primitive
+        DataObjects::Transaction.create_for_uri(@uri)
+      end
+
+      ##
+      # Pushes the given Transaction onto the per thread Transaction stack so
+      # that everything done by this Adapter is done within the context of said
+      # Transaction.
+      #
+      # @param [DataMapper::Transaction] transaction
+      #   a Transaction to be the 'current' transaction until popped.
+      #
+      # @return [Array(DataMapper::Transaction)]
+      #   the stack of active transactions for the current thread
+      #
+      # @api semipublic
+      def push_transaction(transaction)
+        transactions(Thread.current) << transaction
+      end
+
+      ##
+      # Pop the 'current' Transaction from the per thread Transaction stack so
+      # that everything done by this Adapter is no longer necessarily within the
+      # context of said Transaction.
+      #
+      # @return [DataMapper::Transaction]
+      #   the former 'current' transaction.
+      #
+      # @api semipublic
+      def pop_transaction
+        transactions(Thread.current).pop
+      end
+
+      ##
+      # Retrieve the current transaction for this Adapter.
+      #
+      # Everything done by this Adapter is done within the context of this
+      # Transaction.
+      #
+      # @return [DataMapper::Transaction]
+      #   the 'current' transaction for this Adapter.
+      #
+      # @api semipublic
+      def current_transaction
+        transactions(Thread.current).last
+      end
+
+      ##
+      # Returns whether we are within a Transaction.
+      #
+      # @return [TrueClass, FalseClass]
+      #   whether we are within a Transaction.
+      #
+      # @api semipublic
+      def within_transaction?
+        !current_transaction.nil?
+      end
+
+      protected
+
+      # @api semipublic
+      def create_connection
+        if within_transaction?
+          current_transaction.primitive_for(self).connection
+        else
+          # DataObjects::Connection.new(uri) will give you back the right
+          # driver based on the Uri#scheme.
+          DataObjects::Connection.new(@uri)
+        end
+      end
+
+      # @api semipublic
+      def close_connection(connection)
+        unless within_transaction? && current_transaction.primitive_for(self).connection == connection
+          connection.close
+        end
+      end
+
+      private
+
+      def transactions(thread)
+        @transactions ||= {}
+        unless @transactions[thread]
+          @transactions.delete_if do |key, value|
+            !key.respond_to?(:alive?) || !key.alive?
+          end
+          @transactions[thread] = []
+        end
+        @transactions[thread]
+      end
+    end # class DataObjectsAdapter
+  end # module Adapters
+
+  class Repository
+    ##
+    # Produce a new Transaction for this Repository
+    #
+    # @return [DataMapper::Adapters::Transaction]
+    #   a new Transaction (in state :none) that can be used
+    #   to execute code #with_transaction
+    #
+    # @api semipublic
+    def transaction
+      DataMapper::Transaction.new(self)
+    end
+  end # class Repository
+
+  module Model
+    #
+    # Produce a new Transaction for this Resource class
+    #
+    # @return <DataMapper::Adapters::Transaction
+    #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
+    #   of the class of this DataMapper::Resource added.
+    #
+    # @api public
+    def transaction
+      DataMapper::Transaction.new(self) { |block_args| yield(*block_args) }
+    end
+  end # module Model
+
+  module Resource
+    # Produce a new Transaction for the class of this Resource
+    #
+    # @return [DataMapper::Adapters::Transaction]
+    #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
+    #   of the class of this DataMapper::Resource added.
+    #
+    # @api public
+    def transaction
+      model.transaction { |*block_args| yield(*block_args) }
+    end
+  end # module Resource
 end # module DataMapper

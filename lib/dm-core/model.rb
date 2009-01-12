@@ -656,25 +656,6 @@ module DataMapper
       super
     end
 
-    # TODO: move to dm-more/dm-transactions
-    module Transaction
-      #
-      # Produce a new Transaction for this Resource class
-      #
-      # @return <DataMapper::Adapters::Transaction
-      #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
-      #   of the class of this DataMapper::Resource added.
-      #
-      # @api public
-      #
-      # TODO: move to dm-more/dm-transactions
-      def transaction
-        DataMapper::Transaction.new(self) { |block_args| yield(*block_args) }
-      end
-    end # module Transaction
-
-    include Transaction
-
     # TODO: move to dm-more/dm-migrations
     module Migration
       # TODO: move to dm-more/dm-migrations

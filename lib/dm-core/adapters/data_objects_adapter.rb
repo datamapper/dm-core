@@ -149,22 +149,16 @@ module DataMapper
         ))
       end
 
-      # TODO: clean up once transaction related methods move to dm-more/dm-transactions
+      # @api semipublic
       def create_connection
-        if within_transaction?
-          current_transaction.primitive_for(self).connection
-        else
-          # DataObjects::Connection.new(uri) will give you back the right
-          # driver based on the Uri#scheme.
-          DataObjects::Connection.new(@uri)
-        end
+        # DataObjects::Connection.new(uri) will give you back the right
+        # driver based on the Uri#scheme.
+        DataObjects::Connection.new(@uri)
       end
 
-      # TODO: clean up once transaction related methods move to dm-more/dm-transactions
+      # @api semipublic
       def close_connection(connection)
-        unless within_transaction? && current_transaction.primitive_for(self).connection == connection
-          connection.close
-        end
+        connection.close
       end
 
       private
@@ -526,20 +520,6 @@ module DataMapper
           true
         end
 
-        ##
-        # Produces a fresh transaction primitive for this Adapter
-        #
-        # Used by DataMapper::Transaction to perform its various tasks.
-        #
-        # @return [Object]
-        #   a new Object that responds to :close, :begin, :commit,
-        #   :rollback, :rollback_prepared and :prepare
-        #
-        # TODO: move to dm-more/dm-transaction (if possible)
-        def transaction_primitive
-          DataObjects::Transaction.create_for_uri(@uri)
-        end
-
         module SQL
 #          private  ## This cannot be private for current migrations
 
@@ -688,77 +668,6 @@ module DataMapper
 
       include Migration
       extend Migration::ClassMethods
-
-      # TODO: move to dm-more/dm-transaction
-      module Transaction
-        ##
-        # Pushes the given Transaction onto the per thread Transaction stack so
-        # that everything done by this Adapter is done within the context of said
-        # Transaction.
-        #
-        # @param [DataMapper::Transaction] transaction
-        #   a Transaction to be the 'current' transaction until popped.
-        #
-        # @return [Array(DataMapper::Transaction)]
-        #   the stack of active transactions for the current thread
-        #
-        # TODO: move to dm-more/dm-transaction
-        def push_transaction(transaction)
-          transactions(Thread.current) << transaction
-        end
-
-        ##
-        # Pop the 'current' Transaction from the per thread Transaction stack so
-        # that everything done by this Adapter is no longer necessarily within the
-        # context of said Transaction.
-        #
-        # @return [DataMapper::Transaction]
-        #   the former 'current' transaction.
-        #
-        # TODO: move to dm-more/dm-transaction
-        def pop_transaction
-          transactions(Thread.current).pop
-        end
-
-        ##
-        # Retrieve the current transaction for this Adapter.
-        #
-        # Everything done by this Adapter is done within the context of this
-        # Transaction.
-        #
-        # @return [DataMapper::Transaction]
-        #   the 'current' transaction for this Adapter.
-        #
-        # TODO: move to dm-more/dm-transaction
-        def current_transaction
-          transactions(Thread.current).last
-        end
-
-        ##
-        # Returns whether we are within a Transaction.
-        #
-        # @return [TrueClass, FalseClass]
-        #   whether we are within a Transaction.
-        #
-        # TODO: move to dm-more/dm-transaction
-        def within_transaction?
-          !current_transaction.nil?
-        end
-
-        private
-
-        def transactions(thread)
-          unless @transactions[thread]
-            @transactions.delete_if do |key, value|
-              !key.respond_to?(:alive?) || !key.alive?
-            end
-            @transactions[thread] = []
-          end
-          @transactions[thread]
-        end
-      end
-
-      include Transaction
     end # class DataObjectsAdapter
   end # module Adapters
 

@@ -714,23 +714,5 @@ module DataMapper
       # check all loaded properties, and then all unloaded properties
       (loaded + not_loaded).all? { |p| p.get(self) == p.get(other) }
     end
-
-    # TODO: move to dm-more/dm-transactions
-    module Transaction
-      # Produce a new Transaction for the class of this Resource
-      #
-      # @return [DataMapper::Adapters::Transaction]
-      #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
-      #   of the class of this DataMapper::Resource added.
-      #
-      # @api public
-      #
-      # TODO: move to dm-more/dm-transactions
-      def transaction
-        model.transaction { |*block_args| yield(*block_args) }
-      end
-    end # module Transaction
-
-    include Transaction
   end # module Resource
 end # module DataMapper

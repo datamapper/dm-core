@@ -218,22 +218,5 @@ module DataMapper
     end
 
     include Migration
-
-    # TODO: move to dm-more/dm-transactions
-    module Transaction
-      ##
-      # Produce a new Transaction for this Repository
-      #
-      # @return [DataMapper::Adapters::Transaction]
-      #   a new Transaction (in state :none) that can be used
-      #   to execute code #with_transaction
-      #
-      # TODO: move to dm-more/dm-transactions
-      def transaction
-        DataMapper::Transaction.new(self)
-      end
-    end
-
-    include Transaction
   end # class Repository
 end # module DataMapper

@@ -42,15 +42,15 @@ require dir / 'support'
 require dir / 'type'
 require dir / 'types'
 require dir / 'associations'
-require dir / 'auto_migrations'
 require dir / 'identity_map'
 require dir / 'property_set'
 require dir / 'query'
-require dir / 'transaction'
 require dir / 'repository'
 require dir / 'property'
 require dir / 'adapters'
 
+require dir / 'transaction'
+require dir / 'auto_migrations'
 
 # == Setup and Configuration
 # DataMapper uses URIs or a connection hash to connect to your data-store.

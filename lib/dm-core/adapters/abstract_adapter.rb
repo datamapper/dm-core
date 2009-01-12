@@ -45,8 +45,6 @@ module DataMapper
 
         @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Field::Underscored
-
-        @transactions = {}
       end
 
       # TODO: move to dm-more/dm-migrations
