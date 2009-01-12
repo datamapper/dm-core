@@ -206,13 +206,13 @@ module DataMapper
           offset = query.offset
 
           statement = "SELECT #{columns_statement(query, fields)}"
-          statement << " FROM #{quote_table_name(query.model.storage_name(name))}"
+          statement << " FROM #{quote_name(query.model.storage_name(name))}"
           statement << join_statement(query)                             if query.links.any?
           statement << " WHERE #{where_statement(query)}"                if query.conditions.any?
           statement << " GROUP BY #{columns_statement(query, group_by)}" if query.unique? && (group_by = fields.select { |p| p.kind_of?(Property) }).any?
           statement << " ORDER BY #{order_by_statement(query)}"          if query.order.any?
-          statement << " LIMIT #{quote_column_value(limit)}"             if limit
-          statement << " OFFSET #{quote_column_value(offset)}"           if offset && offset > 0
+          statement << " LIMIT #{quote_value(limit)}"                    if limit
+          statement << " OFFSET #{quote_value(offset)}"                  if offset && offset > 0
           statement
         rescue => e
           DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
@@ -220,34 +220,34 @@ module DataMapper
         end
 
         def insert_statement(model, properties, identity_field)
-          statement = "INSERT INTO #{quote_table_name(model.storage_name(name))} "
+          statement = "INSERT INTO #{quote_name(model.storage_name(name))} "
 
           if supports_default_values? && properties.empty?
             statement << 'DEFAULT VALUES'
           else
             statement << <<-SQL.compress_lines
-              (#{properties.map { |p| quote_column_name(p.field) }.join(', ')})
+              (#{properties.map { |p| quote_name(p.field) }.join(', ')})
               VALUES
               (#{(['?'] * properties.size).join(', ')})
             SQL
           end
 
           if supports_returning? && identity_field
-            statement << " RETURNING #{quote_column_name(identity_field.field)}"
+            statement << " RETURNING #{quote_name(identity_field.field)}"
           end
 
           statement
         end
 
         def update_statement(properties, query)
-          statement = "UPDATE #{quote_table_name(query.model.storage_name(name))}"
-          statement << " SET #{properties.map { |p| "#{quote_column_name(p.field)} = ?" }.join(', ')}"
+          statement = "UPDATE #{quote_name(query.model.storage_name(name))}"
+          statement << " SET #{properties.map { |p| "#{quote_name(p.field)} = ?" }.join(', ')}"
           statement << " WHERE #{where_statement(query)}" if query.conditions.any?
           statement
         end
 
         def delete_statement(query)
-          statement = "DELETE FROM #{quote_table_name(query.model.storage_name(name))}"
+          statement = "DELETE FROM #{quote_name(query.model.storage_name(name))}"
           statement << " WHERE #{where_statement(query)}" if query.conditions.any?
           statement
         end
@@ -270,7 +270,7 @@ module DataMapper
             end
 
             # We only do INNER JOIN for now
-            statement << " INNER JOIN #{quote_table_name(model.storage_name(name))} ON "
+            statement << " INNER JOIN #{quote_name(model.storage_name(name))} ON "
 
             statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
               condition_statement(query, :eql, parent_property, child_property)
@@ -294,12 +294,10 @@ module DataMapper
                 gte_condition = condition_statement(query, :gte, property, bind_value.last)
 
                 if query.conditions.size > 1
-                  statement << "(#{lt_condition} OR #{gte_condition})"
+                  "(#{lt_condition} OR #{gte_condition})"
                 else
-                  statement << "#{lt_condition} OR #{gte_condition}"
+                  "#{lt_condition} OR #{gte_condition}"
                 end
-
-                statement
               end
             else
               condition_statement(query, operator, property, bind_value)
@@ -387,16 +385,20 @@ module DataMapper
         def property_to_column_name(property, qualify)
           if qualify
             table_name = property.model.storage_name(name)
-            "#{quote_table_name(table_name)}.#{quote_column_name(property.field)}"
+            "#{quote_name(table_name)}.#{quote_name(property.field)}"
           else
-            quote_column_name(property.field)
+            quote_name(property.field)
           end
         end
 
+        # TODO: once the driver's quoting methods become public, have
+        # this method delegate to them instead
         def escape_name(name)
           name.gsub('"', '""')
         end
 
+        # TODO: once the driver's quoting methods become public, have
+        # this method delegate to them instead
         def quote_name(name)
           if name.include?('.')
             escape_name(name).split('.').map { |part| "\"#{part}\"" }.join('.')
@@ -407,38 +409,30 @@ module DataMapper
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
-        alias quote_table_name quote_name
+        def quote_value(value)
+          return 'NULL' if value.nil?
 
-        # TODO: once the driver's quoting methods become public, have
-        # this method delegate to them instead
-        alias quote_column_name quote_name
-
-        # TODO: once the driver's quoting methods become public, have
-        # this method delegate to them instead
-        def quote_column_value(column_value)
-          return 'NULL' if column_value.nil?
-
-          case column_value
+          case value
             when String
-              if (integer = column_value.to_i).to_s == column_value
-                quote_column_value(integer)
-              elsif (float = column_value.to_f).to_s == column_value
-                quote_column_value(integer)
+              if (integer = value.to_i).to_s == value
+                quote_value(integer)
+              elsif (float = value.to_f).to_s == value
+                quote_value(integer)
               else
-                "'#{column_value.gsub("'", "''")}'"
+                "'#{value.gsub("'", "''")}'"
               end
             when DateTime
-              quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S'))
+              quote_value(value.strftime('%Y-%m-%d %H:%M:%S'))
             when Date
-              quote_column_value(column_value.strftime('%Y-%m-%d'))
+              quote_value(value.strftime('%Y-%m-%d'))
             when Time
-              quote_column_value(column_value.strftime('%Y-%m-%d %H:%M:%S') + ((column_value.usec > 0 ? ".#{column_value.usec.to_s.rjust(6, '0')}" : '')))
+              quote_value(value.strftime('%Y-%m-%d %H:%M:%S') + ((value.usec > 0 ? ".#{value.usec.to_s.rjust(6, '0')}" : '')))
             when Integer, Float
-              column_value.to_s
+              value.to_s
             when BigDecimal
-              column_value.to_s('F')
+              value.to_s('F')
             else
-              column_value.to_s
+              value.to_s
           end
         end
       end #module SQL

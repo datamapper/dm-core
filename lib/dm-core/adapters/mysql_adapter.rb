@@ -17,6 +17,8 @@ module DataMapper
           name.gsub('`', '``')
         end
 
+        # TODO: once the driver's quoting methods become public, have
+        # this method delegate to them instead
         def quote_name(name)
           if name.include?('.')
             escape_name(name).split('.').map { |part| "`#{part}`" }.join('.')
@@ -27,16 +29,10 @@ module DataMapper
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
-        alias quote_table_name quote_name
-
-        # TODO: once the driver's quoting methods become public, have
-        # this method delegate to them instead
-        alias quote_column_name quote_name
-
-        def quote_column_value(column_value)
-          case column_value
-            when TrueClass  then quote_column_value(1)
-            when FalseClass then quote_column_value(0)
+        def quote_value(value)
+          case value
+            when TrueClass  then super(1)
+            when FalseClass then super(0)
             else
               super
           end

@@ -146,14 +146,14 @@ module DataMapper
         end
 
         def alter_table_add_column_statement(table_name, schema_hash)
-          "ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
+          "ALTER TABLE #{quote_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
         end
 
         def create_table_statement(model, properties)
           statement = <<-SQL.compress_lines
-            CREATE TABLE #{quote_table_name(model.storage_name(name))}
+            CREATE TABLE #{quote_name(model.storage_name(name))}
             (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')},
-            PRIMARY KEY(#{ properties.key.map { |p| quote_column_name(p.field) }.join(', ')}))
+            PRIMARY KEY(#{ properties.key.map { |p| quote_name(p.field) }.join(', ')}))
           SQL
 
           statement
@@ -161,9 +161,9 @@ module DataMapper
 
         def drop_table_statement(model)
           if supports_drop_table_if_exists?
-            "DROP TABLE IF EXISTS #{quote_table_name(model.storage_name(name))}"
+            "DROP TABLE IF EXISTS #{quote_name(model.storage_name(name))}"
           else
-            "DROP TABLE #{quote_table_name(model.storage_name(name))}"
+            "DROP TABLE #{quote_name(model.storage_name(name))}"
           end
         end
 
@@ -171,8 +171,8 @@ module DataMapper
           table_name = model.storage_name(name)
           model.properties(name).indexes.map do |index_name, fields|
             <<-SQL.compress_lines
-              CREATE INDEX #{quote_column_name("index_#{table_name}_#{index_name}")} ON
-              #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) }.join(', ')})
+              CREATE INDEX #{quote_name("index_#{table_name}_#{index_name}")} ON
+              #{quote_name(table_name)} (#{fields.map { |f| quote_name(f) }.join(', ')})
             SQL
           end
         end
@@ -181,8 +181,8 @@ module DataMapper
           table_name = model.storage_name(name)
           model.properties(name).unique_indexes.map do |index_name, fields|
             <<-SQL.compress_lines
-              CREATE UNIQUE INDEX #{quote_column_name("unique_#{table_name}_#{index_name}")} ON
-              #{quote_table_name(table_name)} (#{fields.map { |f| quote_column_name(f) }.join(', ')})
+              CREATE UNIQUE INDEX #{quote_name("unique_#{table_name}_#{index_name}")} ON
+              #{quote_name(table_name)} (#{fields.map { |f| quote_name(f) }.join(', ')})
             SQL
           end
         end
@@ -218,17 +218,17 @@ module DataMapper
         end
 
         def property_schema_statement(schema)
-          statement = quote_column_name(schema[:name])
+          statement = quote_name(schema[:name])
           statement << " #{schema[:primitive]}"
 
           if schema[:precision] && schema[:scale]
-            statement << "(#{[ :precision, :scale ].map { |k| quote_column_value(schema[k]) }.join(',')})"
+            statement << "(#{[ :precision, :scale ].map { |k| quote_value(schema[k]) }.join(',')})"
           elsif schema[:size]
-            statement << "(#{quote_column_value(schema[:size])})"
+            statement << "(#{quote_value(schema[:size])})"
           end
 
           statement << ' NOT NULL' unless schema[:nullable?]
-          statement << " DEFAULT #{quote_column_value(schema[:default])}" if schema.key?(:default)
+          statement << " DEFAULT #{quote_value(schema[:default])}" if schema.key?(:default)
           statement
         end
       end # module SQL
@@ -255,7 +255,7 @@ module DataMapper
       end
 
       def field_exists?(storage_name, field_name)
-        result = query("SHOW COLUMNS FROM #{quote_table_name(storage_name)} LIKE ?", field_name).first
+        result = query("SHOW COLUMNS FROM #{quote_name(storage_name)} LIKE ?", field_name).first
         result ? result.field == field_name : false
       end
 
@@ -307,7 +307,6 @@ module DataMapper
 
           statement
         end
-
 
         def character_set
           @character_set ||= show_variable('character_set_connection') || 'utf8'
@@ -448,7 +447,7 @@ module DataMapper
 
         def create_table_statement(model, properties)
           statement = <<-SQL.compress_lines
-            CREATE TABLE #{quote_table_name(model.storage_name(name))}
+            CREATE TABLE #{quote_name(model.storage_name(name))}
             (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')}
           SQL
 
@@ -456,7 +455,7 @@ module DataMapper
           # SQLite the serial column must be the primary key, so it has already
           # been defined
           unless properties.any? { |p| p.serial? }
-            statement << ", PRIMARY KEY(#{properties.key.map { |p| quote_column_name(p.field) }.join(', ')})"
+            statement << ", PRIMARY KEY(#{properties.key.map { |p| quote_name(p.field) }.join(', ')})"
           end
 
           statement << ')'

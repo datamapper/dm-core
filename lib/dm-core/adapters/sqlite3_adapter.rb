@@ -7,10 +7,12 @@ module DataMapper
       module SQL
         private
 
-        def quote_column_value(column_value)
-          case column_value
-            when TrueClass  then quote_column_value('t')
-            when FalseClass then quote_column_value('f')
+        # TODO: once the driver's quoting methods become public, have
+        # this method delegate to them instead
+        def quote_value(value)
+          case value
+            when TrueClass  then super('t')
+            when FalseClass then super('f')
             else
               super
           end
