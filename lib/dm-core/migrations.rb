@@ -58,6 +58,29 @@ module DataMapper
 
   module Adapters
     class DataObjectsAdapter
+      # Default types for all data object based adapters.
+      #
+      # @return [Hash] default types for data objects adapters.
+      def self.type_map
+        size      = Property::DEFAULT_LENGTH
+        precision = Property::DEFAULT_PRECISION
+        scale     = Property::DEFAULT_SCALE_BIGDECIMAL
+
+        @type_map ||= {
+          Integer                   => { :primitive => 'INT'                                               },
+          String                    => { :primitive => 'VARCHAR', :size => size                            },
+          Class                     => { :primitive => 'VARCHAR', :size => size                            },
+          BigDecimal                => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
+          Float                     => { :primitive => 'FLOAT',   :precision => precision                  },
+          DateTime                  => { :primitive => 'TIMESTAMP'                                         },
+          Date                      => { :primitive => 'DATE'                                              },
+          Time                      => { :primitive => 'TIMESTAMP'                                         },
+          TrueClass                 => { :primitive => 'BOOLEAN'                                           },
+          DataMapper::Types::Object => { :primitive => 'TEXT'                                              },
+          DataMapper::Types::Text   => { :primitive => 'TEXT'                                              },
+        }.freeze
+      end
+
       ##
       # Returns whether the storage_name exists.
       #
@@ -251,36 +274,22 @@ module DataMapper
       end # module SQL
 
       include SQL
-
-      module ClassMethods
-        # Default types for all data object based adapters.
-        #
-        # @return [Hash] default types for data objects adapters.
-        def type_map
-          size      = Property::DEFAULT_LENGTH
-          precision = Property::DEFAULT_PRECISION
-          scale     = Property::DEFAULT_SCALE_BIGDECIMAL
-
-          @type_map ||= {
-            Integer                   => { :primitive => 'INT'                                               },
-            String                    => { :primitive => 'VARCHAR', :size => size                            },
-            Class                     => { :primitive => 'VARCHAR', :size => size                            },
-            BigDecimal                => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
-            Float                     => { :primitive => 'FLOAT',   :precision => precision                  },
-            DateTime                  => { :primitive => 'TIMESTAMP'                                         },
-            Date                      => { :primitive => 'DATE'                                              },
-            Time                      => { :primitive => 'TIMESTAMP'                                         },
-            TrueClass                 => { :primitive => 'BOOLEAN'                                           },
-            DataMapper::Types::Object => { :primitive => 'TEXT'                                              },
-            DataMapper::Types::Text   => { :primitive => 'TEXT'                                              },
-          }.freeze
-        end
-      end # module ClassMethods
-
-      extend ClassMethods
     end # class DataObjectsAdapter
 
     class MysqlAdapter < DataObjectsAdapter
+      # Types for MySQL databases.
+      #
+      # @return [Hash] types for MySQL databases.
+      def self.type_map
+        @type_map ||= super.merge(
+          Integer   => { :primitive => 'INT',     :size => 11 },
+          TrueClass => { :primitive => 'TINYINT', :size => 1  },  # TODO: map this to a BIT or CHAR(0) field?
+          Object    => { :primitive => 'TEXT'                 },
+          DateTime  => { :primitive => 'DATETIME'             },
+          Time      => { :primitive => 'DATETIME'             }
+        )
+      end
+
       def storage_exists?(storage_name)
         query('SHOW TABLES LIKE ?', storage_name).first == storage_name
       end
@@ -356,26 +365,23 @@ module DataMapper
       end # module SQL
 
       include SQL
-
-      module ClassMethods
-        # Types for MySQL databases.
-        #
-        # @return [Hash] types for MySQL databases.
-        def type_map
-          @type_map ||= super.merge(
-            Integer   => { :primitive => 'INT',     :size => 11 },
-            TrueClass => { :primitive => 'TINYINT', :size => 1  },  # TODO: map this to a BIT or CHAR(0) field?
-            Object    => { :primitive => 'TEXT'                 },
-            DateTime  => { :primitive => 'DATETIME'             },
-            Time      => { :primitive => 'DATETIME'             }
-          )
-        end
-      end # module ClassMethods
-
-      extend ClassMethods
     end # class MysqlAdapter
 
     class PostgresAdapter < DataObjectsAdapter
+      # Types for PostgreSQL databases.
+      #
+      # @return [Hash] types for PostgreSQL databases.
+      def self.type_map
+        precision = Property::DEFAULT_PRECISION
+        scale     = Property::DEFAULT_SCALE_BIGDECIMAL
+
+        @type_map ||= super.merge(
+          Integer    => { :primitive => 'INTEGER'                                           },
+          BigDecimal => { :primitive => 'NUMERIC', :precision => precision, :scale => scale },
+          Float      => { :primitive => 'DOUBLE PRECISION'                                  }
+        )
+      end
+
       def upgrade_model_storage(repository, model)
         # TODO: test to see if the without_notices wrapper is still needed
         without_notices { super }
@@ -442,27 +448,19 @@ module DataMapper
       end # module SQL
 
       include SQL
-
-      module ClassMethods
-        # Types for PostgreSQL databases.
-        #
-        # @return [Hash] types for PostgreSQL databases.
-        def type_map
-          precision = Property::DEFAULT_PRECISION
-          scale     = Property::DEFAULT_SCALE_BIGDECIMAL
-
-          @type_map ||= super.merge(
-            Integer    => { :primitive => 'INTEGER'                                           },
-            BigDecimal => { :primitive => 'NUMERIC', :precision => precision, :scale => scale },
-            Float      => { :primitive => 'DOUBLE PRECISION'                                  }
-          )
-        end
-      end # module ClassMethods
-
-      extend ClassMethods
     end # class PostgresAdapter
 
     class Sqlite3Adapter < DataObjectsAdapter
+      # Types for SQLite 3 databases.
+      #
+      # @return [Hash] types for SQLite 3 databases.
+      def self.type_map
+        @type_map ||= super.merge(
+          Integer => { :primitive => 'INTEGER' },
+          Class   => { :primitive => 'VARCHAR' }
+        )
+      end
+
       def storage_exists?(storage_name)
         query_table(storage_name).size > 0
       end
@@ -525,20 +523,6 @@ module DataMapper
       end # module SQL
 
       include SQL
-
-      module ClassMethods
-        # Types for SQLite 3 databases.
-        #
-        # @return [Hash] types for SQLite 3 databases.
-        def type_map
-          @type_map ||= super.merge(
-            Integer => { :primitive => 'INTEGER' },
-            Class   => { :primitive => 'VARCHAR' }
-          )
-        end
-      end # module ClassMethods
-
-      extend ClassMethods
     end # class Sqlite3Adapter
   end # module Adapters
 
