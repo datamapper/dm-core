@@ -25,9 +25,9 @@ lib/dm-core/associations/many_to_one.rb
 lib/dm-core/associations/one_to_many.rb
 lib/dm-core/associations/one_to_one.rb
 lib/dm-core/associations/relationship.rb
-lib/dm-core/auto_migrations.rb
 lib/dm-core/collection.rb
 lib/dm-core/identity_map.rb
+lib/dm-core/migrations.rb
 lib/dm-core/model.rb
 lib/dm-core/model/is.rb
 lib/dm-core/model/scope.rb

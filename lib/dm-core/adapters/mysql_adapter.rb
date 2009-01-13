@@ -1,4 +1,6 @@
-gem 'do_mysql', '~>0.9.10'
+require Pathname(__FILE__).dirname.expand_path / 'data_objects_adapter'
+
+gem 'do_mysql', '~>0.9.11'
 require 'do_mysql'
 
 module DataMapper
@@ -39,10 +41,11 @@ module DataMapper
         def like_operator(operand)
           operand.kind_of?(Regexp) ? 'REGEXP' : 'LIKE'
         end
-
       end #module SQL
 
       include SQL
     end # class MysqlAdapter
+
+    const_added(:MysqlAdapter)
   end # module Adapters
 end # module DataMapper

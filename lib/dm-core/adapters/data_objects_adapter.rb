@@ -1,4 +1,4 @@
-gem 'data_objects', '~>0.9.10'
+gem 'data_objects', '~>0.9.11'
 require 'data_objects'
 
 module DataMapper
@@ -146,18 +146,6 @@ module DataMapper
           :path     => uri_or_options[:database],
           :query    => query
         ))
-      end
-
-      # @api semipublic
-      def create_connection
-        # DataObjects::Connection.new(uri) will give you back the right
-        # driver based on the Uri#scheme.
-        DataObjects::Connection.new(@uri)
-      end
-
-      # @api semipublic
-      def close_connection(connection)
-        connection.close
       end
 
       private
@@ -430,6 +418,8 @@ module DataMapper
 
       include SQL
     end # class DataObjectsAdapter
+
+    const_added(:DataObjectsAdapter)
   end # module Adapters
 
   # TODO: move to dm-ar-finders

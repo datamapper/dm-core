@@ -47,8 +47,8 @@ require dir / 'property_set'
 require dir / 'query'
 require dir / 'repository'
 require dir / 'property'
-require dir / 'adapters'
 
+require dir / 'adapters'
 require dir / 'transaction'
 require dir / 'migrations'
 
@@ -124,21 +124,22 @@ module DataMapper
     assert_kind_of 'name',           name,           Symbol
     assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
 
-    case uri_or_options
+    adapter_name = case uri_or_options
+      when Addressable::URI
+        uri_or_options.scheme
       when Hash
-        adapter_name = uri_or_options[:adapter].to_s
-      when String, DataObjects::URI, Addressable::URI
-        uri_or_options = Addressable::URI.parse(uri_or_options) if uri_or_options.kind_of?(String)
-        adapter_name = uri_or_options.scheme
+        uri_or_options[:adapter].to_s
+      when String
+        Addressable::URI.parse(uri_or_options).scheme
     end
 
-    class_name = Extlib::Inflection.classify(adapter_name) + 'Adapter'
+    class_name = (Extlib::Inflection.classify(adapter_name) + 'Adapter').to_sym
 
-    unless Adapters::const_defined?(class_name)
-      lib_name = "#{Extlib::Inflection.underscore(adapter_name)}_adapter"
+    unless Adapters.const_defined?(class_name)
+      lib_name = "#{adapter_name}_adapter"
+
       begin
-        adapter_file = root / 'lib' / 'dm-core' / 'adapters' / lib_name
-        require adapter_file
+        require root / 'lib' / 'dm-core' / 'adapters' / lib_name
       rescue LoadError => e
         begin
           require lib_name
@@ -148,7 +149,8 @@ module DataMapper
         end
       end
     end
-    Repository.adapters[name] = Adapters::const_get(class_name).new(name, uri_or_options)
+
+    Repository.adapters[name] = Adapters.const_get(class_name).new(name, uri_or_options)
   end
 
   ##

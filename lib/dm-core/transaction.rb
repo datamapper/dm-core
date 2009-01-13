@@ -2,7 +2,6 @@
 
 module DataMapper
   class Transaction
-
     attr_reader :transaction_primitives, :adapters, :state
 
     #
@@ -285,10 +284,8 @@ module DataMapper
       rollback_adapter(adapter)
       close_adapter(adapter)
     end
-  end # class Transaction
 
-  module Adapters
-    class DataObjectsAdapter
+    module DataObjectsAdapter
       ##
       # Produces a fresh transaction primitive for this Adapter
       #
@@ -389,47 +386,67 @@ module DataMapper
         end
         @transactions[thread]
       end
-    end # class DataObjectsAdapter
+    end # module DataObjectsAdapter
+
+    module Repository
+      ##
+      # Produce a new Transaction for this Repository
+      #
+      # @return [DataMapper::Adapters::Transaction]
+      #   a new Transaction (in state :none) that can be used
+      #   to execute code #with_transaction
+      #
+      # @api semipublic
+      def transaction
+        DataMapper::Transaction.new(self)
+      end
+    end # module Repository
+
+    module Model
+      #
+      # Produce a new Transaction for this Resource class
+      #
+      # @return <DataMapper::Adapters::Transaction
+      #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
+      #   of the class of this DataMapper::Resource added.
+      #
+      # @api public
+      def transaction
+        DataMapper::Transaction.new(self) { |block_args| yield(*block_args) }
+      end
+    end # module Model
+
+    module Resource
+      # Produce a new Transaction for the class of this Resource
+      #
+      # @return [DataMapper::Adapters::Transaction]
+      #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
+      #   of the class of this DataMapper::Resource added.
+      #
+      # @api public
+      def transaction
+        model.transaction { |*block_args| yield(*block_args) }
+      end
+    end # module Resource
+  end # class Transaction
+
+  module Adapters
+    extendable do
+      def const_added(const_name)
+        base = const_get(const_name)
+
+        case const_name
+          when :DataObjectsAdapter
+            base.send(:include, Transaction.const_get(const_name))
+
+          when :MysqlAdapter, :PostgresAdapter, :Sqlite3Adapter
+            [ :Repository, :Model, :Resource ].each do |name|
+              DataMapper.const_get(name).send(:include, Transaction.const_get(name))
+            end
+        end
+
+        super
+      end
+    end
   end # module Adapters
-
-  class Repository
-    ##
-    # Produce a new Transaction for this Repository
-    #
-    # @return [DataMapper::Adapters::Transaction]
-    #   a new Transaction (in state :none) that can be used
-    #   to execute code #with_transaction
-    #
-    # @api semipublic
-    def transaction
-      DataMapper::Transaction.new(self)
-    end
-  end # class Repository
-
-  module Model
-    #
-    # Produce a new Transaction for this Resource class
-    #
-    # @return <DataMapper::Adapters::Transaction
-    #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
-    #   of the class of this DataMapper::Resource added.
-    #
-    # @api public
-    def transaction
-      DataMapper::Transaction.new(self) { |block_args| yield(*block_args) }
-    end
-  end # module Model
-
-  module Resource
-    # Produce a new Transaction for the class of this Resource
-    #
-    # @return [DataMapper::Adapters::Transaction]
-    #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
-    #   of the class of this DataMapper::Resource added.
-    #
-    # @api public
-    def transaction
-      model.transaction { |*block_args| yield(*block_args) }
-    end
-  end # module Resource
 end # module DataMapper

@@ -21,29 +21,10 @@ module DataMapper
     repository(repository_name).auto_upgrade
   end
 
-  module Adapters
-    class DataObjectsAdapter
-      # Default types for all data object based adapters.
-      #
-      # @return [Hash] default types for data objects adapters.
-      def self.type_map
-        size      = Property::DEFAULT_LENGTH
-        precision = Property::DEFAULT_PRECISION
-        scale     = Property::DEFAULT_SCALE_BIGDECIMAL
-
-        @type_map ||= {
-          Integer                   => { :primitive => 'INT'                                               },
-          String                    => { :primitive => 'VARCHAR', :size => size                            },
-          Class                     => { :primitive => 'VARCHAR', :size => size                            },
-          BigDecimal                => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
-          Float                     => { :primitive => 'FLOAT',   :precision => precision                  },
-          DateTime                  => { :primitive => 'TIMESTAMP'                                         },
-          Date                      => { :primitive => 'DATE'                                              },
-          Time                      => { :primitive => 'TIMESTAMP'                                         },
-          TrueClass                 => { :primitive => 'BOOLEAN'                                           },
-          DataMapper::Types::Object => { :primitive => 'TEXT'                                              },
-          DataMapper::Types::Text   => { :primitive => 'TEXT'                                              },
-        }.freeze
+  module Migrations
+    module DataObjectsAdapter
+      def self.included(base)
+        base.extend ClassMethods
       end
 
       ##
@@ -234,20 +215,36 @@ module DataMapper
       end # module SQL
 
       include SQL
-    end # class DataObjectsAdapter
 
-    class MysqlAdapter < DataObjectsAdapter
-      # Types for MySQL databases.
-      #
-      # @return [Hash] types for MySQL databases.
-      def self.type_map
-        @type_map ||= super.merge(
-          Integer   => { :primitive => 'INT',     :size => 11 },
-          TrueClass => { :primitive => 'TINYINT', :size => 1  },  # TODO: map this to a BIT or CHAR(0) field?
-          Object    => { :primitive => 'TEXT'                 },
-          DateTime  => { :primitive => 'DATETIME'             },
-          Time      => { :primitive => 'DATETIME'             }
-        )
+      module ClassMethods
+        # Default types for all data object based adapters.
+        #
+        # @return [Hash] default types for data objects adapters.
+        def type_map
+          size      = Property::DEFAULT_LENGTH
+          precision = Property::DEFAULT_PRECISION
+          scale     = Property::DEFAULT_SCALE_BIGDECIMAL
+
+          @type_map ||= {
+            Integer                   => { :primitive => 'INT'                                               },
+            String                    => { :primitive => 'VARCHAR', :size => size                            },
+            Class                     => { :primitive => 'VARCHAR', :size => size                            },
+            BigDecimal                => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
+            Float                     => { :primitive => 'FLOAT',   :precision => precision                  },
+            DateTime                  => { :primitive => 'TIMESTAMP'                                         },
+            Date                      => { :primitive => 'DATE'                                              },
+            Time                      => { :primitive => 'TIMESTAMP'                                         },
+            TrueClass                 => { :primitive => 'BOOLEAN'                                           },
+            DataMapper::Types::Object => { :primitive => 'TEXT'                                              },
+            DataMapper::Types::Text   => { :primitive => 'TEXT'                                              },
+          }.freeze
+        end
+      end # module ClassMethods
+    end # module DataObjectsAdapter
+
+    module MysqlAdapter
+      def self.included(base)
+        base.extend ClassMethods
       end
 
       def storage_exists?(storage_name)
@@ -323,21 +320,26 @@ module DataMapper
       end # module SQL
 
       include SQL
-    end # class MysqlAdapter
 
-    class PostgresAdapter < DataObjectsAdapter
-      # Types for PostgreSQL databases.
-      #
-      # @return [Hash] types for PostgreSQL databases.
-      def self.type_map
-        precision = Property::DEFAULT_PRECISION
-        scale     = Property::DEFAULT_SCALE_BIGDECIMAL
+      module ClassMethods
+        # Types for MySQL databases.
+        #
+        # @return [Hash] types for MySQL databases.
+        def type_map
+          @type_map ||= super.merge(
+            Integer   => { :primitive => 'INT',     :size => 11 },
+            TrueClass => { :primitive => 'TINYINT', :size => 1  },  # TODO: map this to a BIT or CHAR(0) field?
+            Object    => { :primitive => 'TEXT'                 },
+            DateTime  => { :primitive => 'DATETIME'             },
+            Time      => { :primitive => 'DATETIME'             }
+          )
+        end
+      end # module ClassMethods
+    end # module MysqlAdapter
 
-        @type_map ||= super.merge(
-          Integer    => { :primitive => 'INTEGER'                                           },
-          BigDecimal => { :primitive => 'NUMERIC', :precision => precision, :scale => scale },
-          Float      => { :primitive => 'DOUBLE PRECISION'                                  }
-        )
+    module PostgresAdapter
+      def self.included(base)
+        base.extend ClassMethods
       end
 
       def upgrade_model_storage(model)
@@ -405,17 +407,27 @@ module DataMapper
       end # module SQL
 
       include SQL
+
+      module ClassMethods
+        # Types for PostgreSQL databases.
+        #
+        # @return [Hash] types for PostgreSQL databases.
+        def type_map
+          precision = Property::DEFAULT_PRECISION
+          scale     = Property::DEFAULT_SCALE_BIGDECIMAL
+
+          @type_map ||= super.merge(
+            Integer    => { :primitive => 'INTEGER'                                           },
+            BigDecimal => { :primitive => 'NUMERIC', :precision => precision, :scale => scale },
+            Float      => { :primitive => 'DOUBLE PRECISION'                                  }
+          )
+        end
+      end # module ClassMethods
     end # class PostgresAdapter
 
-    class Sqlite3Adapter < DataObjectsAdapter
-      # Types for SQLite 3 databases.
-      #
-      # @return [Hash] types for SQLite 3 databases.
-      def self.type_map
-        @type_map ||= super.merge(
-          Integer => { :primitive => 'INTEGER' },
-          Class   => { :primitive => 'VARCHAR' }
-        )
+    module Sqlite3Adapter
+      def self.included(base)
+        base.extend ClassMethods
       end
 
       def storage_exists?(storage_name)
@@ -478,133 +490,167 @@ module DataMapper
       end # module SQL
 
       include SQL
-    end # class Sqlite3Adapter
+
+      module ClassMethods
+        # Types for SQLite 3 databases.
+        #
+        # @return [Hash] types for SQLite 3 databases.
+        def type_map
+          @type_map ||= super.merge(
+            Integer => { :primitive => 'INTEGER' },
+            Class   => { :primitive => 'VARCHAR' }
+          )
+        end
+      end # module ClassMethods
+    end # module Sqlite3Adapter
+
+    module Repository
+      ##
+      # Determine whether a particular named storage exists in this repository
+      #
+      # @param [String] storage_name name of the storage to test for
+      # @return [TrueClass, FalseClass] true if the data-store +storage_name+ exists
+      def storage_exists?(storage_name)
+        adapter.storage_exists?(storage_name)
+      end
+
+      def upgrade_model_storage(model)
+        adapter.upgrade_model_storage(model)
+      end
+
+      def create_model_storage(model)
+        adapter.create_model_storage(model)
+      end
+
+      def destroy_model_storage(model)
+        adapter.destroy_model_storage(model)
+      end
+
+      ##
+      # Destructively automigrates the data-store to match the model.
+      # First migrates all models down and then up.
+      # REPEAT: THIS IS DESTRUCTIVE
+      #
+      # @api public
+      def auto_migrate!
+        auto_migrate_down
+        auto_migrate_up
+      end
+
+      ##
+      # Safely migrates the data-store to match the model
+      # preserving data already in the data-store
+      #
+      # @api public
+      def auto_upgrade!
+        DataMapper::Resource.descendants.each do |model|
+          model.auto_upgrade!(name)
+        end
+      end
+
+      private
+
+      ##
+      # Destructively automigrates the data-store down
+      # REPEAT: THIS IS DESTRUCTIVE
+      #
+      # @api private
+      def auto_migrate_down
+        DataMapper::Resource.descendants.each do |model|
+          model.auto_migrate_down!(name)
+        end
+      end
+
+      ##
+      # Automigrates the data-store up
+      #
+      # @api private
+      def auto_migrate_up
+        DataMapper::Resource.descendants.each do |model|
+          model.auto_migrate_up!(name)
+        end
+      end
+    end # module Repository
+
+    module Model
+      def storage_exists?(repository_name = default_repository_name)
+        repository(repository_name).storage_exists?(storage_name(repository_name))
+      end
+
+      ##
+      # Destructively automigrates the data-store to match the model
+      # REPEAT: THIS IS DESTRUCTIVE
+      #
+      # @param Symbol repository_name the repository to be migrated
+      #
+      # @api public
+      def auto_migrate!(repository_name = self.repository_name)
+        auto_migrate_down!(repository_name)
+        auto_migrate_up!(repository_name)
+      end
+
+      ##
+      # Destructively migrates the data-store down, which basically
+      # deletes all the models.
+      # REPEAT: THIS IS DESTRUCTIVE
+      #
+      # @param Symbol repository_name the repository to be migrated
+      #
+      # @api private
+      def auto_migrate_down!(repository_name = self.repository_name)
+        if base_model == self
+          repository(repository_name).destroy_model_storage(self)
+        else
+          base_model.auto_migrate!(repository_name)
+        end
+      end
+
+      ##
+      # Auto migrates the data-store to match the model
+      #
+      # @param Symbol repository_name the repository to be migrated
+      #
+      # @api private
+      def auto_migrate_up!(repository_name = self.repository_name)
+        if base_model == self
+          repository(repository_name).create_model_storage(self)
+        else
+          base_model.auto_migrate!(repository_name)
+        end
+      end
+
+      ##
+      # Safely migrates the data-store to match the model
+      # preserving data already in the data-store
+      #
+      # @param Symbol repository_name the repository to be migrated
+      #
+      # @api private
+      def auto_upgrade!(repository_name = self.repository_name)
+        repository(repository_name).upgrade_model_storage(self)
+      end
+    end # module Model
+  end
+
+  module Adapters
+    extendable do
+      def const_added(const_name)
+        base = const_get(const_name)
+
+        case const_name
+          when :DataObjectsAdapter
+            base.send(:include, Migrations.const_get(const_name))
+
+          when :MysqlAdapter, :PostgresAdapter, :Sqlite3Adapter
+            base.send(:include, Migrations.const_get(const_name))
+
+            [ :Repository, :Model ].each do |name|
+              DataMapper.const_get(name).send(:include, Migrations.const_get(name))
+            end
+        end
+
+        super
+      end
+    end
   end # module Adapters
-
-  class Repository
-    ##
-    # Determine whether a particular named storage exists in this repository
-    #
-    # @param [String] storage_name name of the storage to test for
-    # @return [TrueClass, FalseClass] true if the data-store +storage_name+ exists
-    def storage_exists?(storage_name)
-      adapter.storage_exists?(storage_name)
-    end
-
-    def upgrade_model_storage(model)
-      adapter.upgrade_model_storage(model)
-    end
-
-    def create_model_storage(model)
-      adapter.create_model_storage(model)
-    end
-
-    def destroy_model_storage(model)
-      adapter.destroy_model_storage(model)
-    end
-
-    ##
-    # Destructively automigrates the data-store to match the model.
-    # First migrates all models down and then up.
-    # REPEAT: THIS IS DESTRUCTIVE
-    #
-    # @api public
-    def auto_migrate!
-      auto_migrate_down
-      auto_migrate_up
-    end
-
-    ##
-    # Safely migrates the data-store to match the model
-    # preserving data already in the data-store
-    #
-    # @api public
-    def auto_upgrade!
-      DataMapper::Resource.descendants.each do |model|
-        model.auto_upgrade!(name)
-      end
-    end
-
-    private
-
-    ##
-    # Destructively automigrates the data-store down
-    # REPEAT: THIS IS DESTRUCTIVE
-    #
-    # @api private
-    def auto_migrate_down
-      DataMapper::Resource.descendants.each do |model|
-        model.auto_migrate_down!(name)
-      end
-    end
-
-    ##
-    # Automigrates the data-store up
-    #
-    # @api private
-    def auto_migrate_up
-      DataMapper::Resource.descendants.each do |model|
-        model.auto_migrate_up!(name)
-      end
-    end
-  end # class Repository
-
-  module Model
-    def storage_exists?(repository_name = default_repository_name)
-      repository(repository_name).storage_exists?(storage_name(repository_name))
-    end
-
-    ##
-    # Destructively automigrates the data-store to match the model
-    # REPEAT: THIS IS DESTRUCTIVE
-    #
-    # @param Symbol repository_name the repository to be migrated
-    #
-    # @api public
-    def auto_migrate!(repository_name = self.repository_name)
-      auto_migrate_down!(repository_name)
-      auto_migrate_up!(repository_name)
-    end
-
-    ##
-    # Destructively migrates the data-store down, which basically
-    # deletes all the models.
-    # REPEAT: THIS IS DESTRUCTIVE
-    #
-    # @param Symbol repository_name the repository to be migrated
-    #
-    # @api private
-    def auto_migrate_down!(repository_name = self.repository_name)
-      if base_model == self
-        repository(repository_name).destroy_model_storage(self)
-      else
-        base_model.auto_migrate!(repository_name)
-      end
-    end
-
-    ##
-    # Auto migrates the data-store to match the model
-    #
-    # @param Symbol repository_name the repository to be migrated
-    #
-    # @api private
-    def auto_migrate_up!(repository_name = self.repository_name)
-      if base_model == self
-        repository(repository_name).create_model_storage(self)
-      else
-        base_model.auto_migrate!(repository_name)
-      end
-    end
-
-    ##
-    # Safely migrates the data-store to match the model
-    # preserving data already in the data-store
-    #
-    # @param Symbol repository_name the repository to be migrated
-    #
-    # @api private
-    def auto_upgrade!(repository_name = self.repository_name)
-      repository(repository_name).upgrade_model_storage(self)
-    end
-  end # module Model
 end # module DataMapper

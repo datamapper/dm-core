@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe DataMapper::Adapters::InMemoryAdapter do
+describe 'DataMapper::Adapters::InMemoryAdapter' do
   supported_by :in_memory do
     before do
       class Heffalump

@@ -243,6 +243,8 @@ module DataMapper
       def identity_map(model)
         @identity_maps[model] ||= IdentityMap.new
       end
-    end
-  end
-end
+    end # class InMemoryAdapter
+
+    const_added(:InMemoryAdapter)
+  end # module Adapters
+end # module DataMapper

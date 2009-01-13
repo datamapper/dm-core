@@ -1,4 +1,6 @@
-gem 'do_postgres', '~>0.9.10'
+require Pathname(__FILE__).dirname.expand_path / 'data_objects_adapter'
+
+gem 'do_postgres', '~>0.9.11'
 require 'do_postgres'
 
 module DataMapper
@@ -14,5 +16,7 @@ module DataMapper
 
       include SQL
     end # class PostgresAdapter
+
+    const_added(:PostgresAdapter)
   end # module Adapters
 end # module DataMapper

@@ -1,9 +1,16 @@
-dir = Pathname(__FILE__).dirname.expand_path / 'adapters'
+require Pathname(__FILE__).dirname.expand_path / 'adapters' / 'abstract_adapter'
 
-%w[ abstract in_memory data_objects sqlite3 mysql postgres ].each do |name|
-  begin
-    require dir / "#{name}_adapter"
-  rescue LoadError
-    # Ignore it
-  end
-end
+module DataMapper
+  module Adapters
+    def self.extendable(&block)
+      mod = Module.new(&block)
+      extend mod
+      mod
+    end
+
+    extendable do
+      def const_added(const_name)
+      end
+    end
+  end # module Adapters
+end # module DataMapper

@@ -1,4 +1,6 @@
-gem 'do_sqlite3', '~>0.9.10'
+require Pathname(__FILE__).dirname.expand_path / 'data_objects_adapter'
+
+gem 'do_sqlite3', '~>0.9.11'
 require 'do_sqlite3'
 
 module DataMapper
@@ -21,5 +23,7 @@ module DataMapper
 
       include SQL
     end # class Sqlite3Adapter
+
+    const_added(:Sqlite3Adapter)
   end # module Adapters
 end # module DataMapper

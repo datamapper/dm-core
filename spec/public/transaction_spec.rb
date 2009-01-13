@@ -99,13 +99,14 @@ describe DataMapper::Resource, "Transactions" do
       end
 
       it "should rollback when an error is thrown in a transaction" do
+        User.all.should have(0).entries
         lambda {
           User.transaction do
             User.create(:name => "carllerche")
             raise "I love coffee"
           end
         }.should raise_error("I love coffee")
-        User.first.should be_nil
+        User.all.should have(0).entries
       end
 
     end
