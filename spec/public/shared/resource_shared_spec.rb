@@ -531,8 +531,8 @@ share_examples_for 'A public Resource' do
     describe 'with a new object and new relations' do
 
       before do
-        pending_if 'TODO: fix for one to one association', (!@user.respond_to?(:paragraphs)) do
-          @article = Article.new(:body => "Main")
+        @article = Article.new(:body => "Main")
+        pending_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
           @paragraph = @article.paragraphs.new(:text => "Content")
           @article.save
         end
