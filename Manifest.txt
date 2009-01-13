@@ -68,6 +68,7 @@ spec/lib/pending_helpers.rb
 spec/lib/rspec_immediate_feedback_formatter.rb
 spec/public/associations/many_to_many_spec.rb
 spec/public/associations/many_to_one_spec.rb
+spec/public/associations/one_to_one_spec.rb
 spec/public/associations/one_to_many_spec.rb
 spec/public/associations_spec.rb
 spec/public/collection_spec.rb
