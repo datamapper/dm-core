@@ -105,9 +105,7 @@ module DataMapper
     #
     # @api public
     def attribute_get(name)
-      property = properties[name]
-      return property.get!(self) if property.loaded?(self)
-      property.set!(self, property.get(self))
+      properties[name].get(self)
     end
 
     ##
