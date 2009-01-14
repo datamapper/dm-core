@@ -91,11 +91,11 @@ module DataMapper
       # Load DataMapper::Property options
       PROPERTY_OPTIONS.each do |property_option|
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{property_option}(arg = nil)
-            return @#{property_option} if arg.nil?
-
-            @#{property_option} = arg
-          end
+          def #{property_option}(arg = nil)         # def unique(arg = nil)
+            return @#{property_option} if arg.nil?  #   return @unique if arg.nil?
+                                                    #
+            @#{property_option} = arg               #   @unique = arg
+          end                                       # end
         RUBY
       end
 
@@ -103,7 +103,7 @@ module DataMapper
       PROPERTY_OPTION_ALIASES.each do |property_option, aliases|
         aliases.each do |ali|
           self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            alias #{ali} #{property_option}
+            alias #{ali} #{property_option}         # alias size length
           RUBY
         end
       end
