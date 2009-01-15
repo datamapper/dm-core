@@ -35,8 +35,16 @@ module DataMapper
     # TODO: move logic to Model#extended
     def self.included(model)
       model.extend Model
-      model.extend ClassMethods if defined?(ClassMethods)
-      model.const_set('Resource', self) unless model.const_defined?('Resource')
+
+      if defined?(ClassMethods)
+        warn "#{ClassMethods} is deprecated, add methods to #{Model} instead"
+        model.extend ClassMethods
+      end
+
+      unless model.const_defined?('Resource')
+        model.const_set('Resource', self)
+      end
+
       extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
       descendants << model
       class << model

@@ -1,27 +1,29 @@
 # TODO: move to dm-more/dm-migrations
 
 module DataMapper
-  ##
-  # destructively migrates the repository upwards to match model definitions
-  #
-  # @param [Symbol] name repository to act on, :default is the default
-  def self.migrate!(repository_name = Repository.default_name)
-    repository(repository_name).migrate!
-  end
-
-  ##
-  # drops and recreates the repository upwards to match model definitions
-  #
-  # @param [Symbol] name repository to act on, :default is the default
-  def self.auto_migrate!(repository_name = nil)
-    repository(repository_name).auto_migrate
-  end
-
-  def self.auto_upgrade!(repository_name = nil)
-    repository(repository_name).auto_upgrade
-  end
-
   module Migrations
+    module SingletonMethods
+      ##
+      # destructively migrates the repository upwards to match model definitions
+      #
+      # @param [Symbol] name repository to act on, :default is the default
+      def migrate!(repository_name = Repository.default_name)
+        repository(repository_name).migrate!
+      end
+
+      ##
+      # drops and recreates the repository upwards to match model definitions
+      #
+      # @param [Symbol] name repository to act on, :default is the default
+      def auto_migrate!(repository_name = nil)
+        repository(repository_name).auto_migrate
+      end
+
+      def auto_upgrade!(repository_name = nil)
+        repository(repository_name).auto_upgrade
+      end
+    end
+
     module DataObjectsAdapter
       def self.included(base)
         base.extend ClassMethods
@@ -641,12 +643,14 @@ module DataMapper
           when :DataObjectsAdapter
             base.send(:include, Migrations.const_get(const_name))
 
-          when :MysqlAdapter, :PostgresAdapter, :Sqlite3Adapter
-            base.send(:include, Migrations.const_get(const_name))
+            DataMapper.extend(Migrations::SingletonMethods)
 
             [ :Repository, :Model ].each do |name|
               DataMapper.const_get(name).send(:include, Migrations.const_get(name))
             end
+
+          when :MysqlAdapter, :PostgresAdapter, :Sqlite3Adapter
+            base.send(:include, Migrations.const_get(const_name))
         end
 
         super
