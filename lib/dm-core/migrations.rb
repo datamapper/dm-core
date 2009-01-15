@@ -7,7 +7,7 @@ module DataMapper
       # destructively migrates the repository upwards to match model definitions
       #
       # @param [Symbol] name repository to act on, :default is the default
-      def migrate!(repository_name = Repository.default_name)
+      def migrate!(repository_name = nil)
         repository(repository_name).migrate!
       end
 
@@ -16,17 +16,23 @@ module DataMapper
       #
       # @param [Symbol] name repository to act on, :default is the default
       def auto_migrate!(repository_name = nil)
-        repository(repository_name).auto_migrate
+        repository(repository_name).auto_migrate!
       end
 
       def auto_upgrade!(repository_name = nil)
-        repository(repository_name).auto_upgrade
+        repository(repository_name).auto_upgrade!
       end
     end
 
     module DataObjectsAdapter
       def self.included(base)
         base.extend ClassMethods
+
+        DataMapper.extend(Migrations::SingletonMethods)
+
+        [ :Repository, :Model ].each do |name|
+          DataMapper.const_get(name).send(:include, Migrations.const_get(name))
+        end
       end
 
       ##
@@ -258,12 +264,6 @@ module DataMapper
         result ? result.field == field_name : false
       end
 
-      private
-
-      def schema_name
-        raise NotImplementedError
-      end
-
       module SQL
 #        private  ## This cannot be private for current migrations
 
@@ -360,8 +360,6 @@ module DataMapper
         end
       end
 
-      protected
-
       module SQL
 #        private  ## This cannot be private for current migrations
 
@@ -425,7 +423,7 @@ module DataMapper
           )
         end
       end # module ClassMethods
-    end # class PostgresAdapter
+    end # module PostgresAdapter
 
     module Sqlite3Adapter
       def self.included(base)
@@ -442,12 +440,6 @@ module DataMapper
         end
       end
 
-      private
-
-      def query_table(table_name)
-        query('PRAGMA table_info(?)', table_name)
-      end
-
       module SQL
 #        private  ## This cannot be private for current migrations
 
@@ -457,6 +449,10 @@ module DataMapper
 
         def supports_drop_table_if_exists?
           @supports_drop_table_if_exists ||= sqlite_version >= '3.3.0'
+        end
+
+        def query_table(table_name)
+          query('PRAGMA table_info(?)', table_name)
         end
 
         def create_table_statement(model, properties)
@@ -535,8 +531,8 @@ module DataMapper
       #
       # @api public
       def auto_migrate!
-        auto_migrate_down
-        auto_migrate_up
+        auto_migrate_down!
+        auto_migrate_up!
       end
 
       ##
@@ -557,7 +553,7 @@ module DataMapper
       # REPEAT: THIS IS DESTRUCTIVE
       #
       # @api private
-      def auto_migrate_down
+      def auto_migrate_down!
         DataMapper::Resource.descendants.each do |model|
           model.auto_migrate_down!(name)
         end
@@ -567,7 +563,7 @@ module DataMapper
       # Automigrates the data-store up
       #
       # @api private
-      def auto_migrate_up
+      def auto_migrate_up!
         DataMapper::Resource.descendants.each do |model|
           model.auto_migrate_up!(name)
         end
@@ -637,20 +633,9 @@ module DataMapper
   module Adapters
     extendable do
       def const_added(const_name)
-        base = const_get(const_name)
-
-        case const_name
-          when :DataObjectsAdapter
-            base.send(:include, Migrations.const_get(const_name))
-
-            DataMapper.extend(Migrations::SingletonMethods)
-
-            [ :Repository, :Model ].each do |name|
-              DataMapper.const_get(name).send(:include, Migrations.const_get(name))
-            end
-
-          when :MysqlAdapter, :PostgresAdapter, :Sqlite3Adapter
-            base.send(:include, Migrations.const_get(const_name))
+        if Migrations.const_defined?(const_name)
+          adapter = const_get(const_name)
+          adapter.send(:include, Migrations.const_get(const_name))
         end
 
         super

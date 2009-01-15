@@ -285,7 +285,13 @@ module DataMapper
       close_adapter(adapter)
     end
 
-    module DataObjectsAdapter
+    module TransactionAdapter
+      def self.included(base)
+        [ :Repository, :Model, :Resource ].each do |name|
+          DataMapper.const_get(name).send(:include, Transaction.const_get(name))
+        end
+      end
+
       ##
       # Produces a fresh transaction primitive for this Adapter
       #
@@ -386,7 +392,10 @@ module DataMapper
         end
         @transactions[thread]
       end
-    end # module DataObjectsAdapter
+    end # module TransactionAdapter
+
+    # alias the MySQL and PostgreSQL adapters to use transactions
+    MysqlAdapter = PostgresAdapter = TransactionAdapter
 
     module Repository
       ##
@@ -433,16 +442,9 @@ module DataMapper
   module Adapters
     extendable do
       def const_added(const_name)
-        base = const_get(const_name)
-
-        case const_name
-          when :DataObjectsAdapter
-            base.send(:include, Transaction.const_get(const_name))
-
-          when :MysqlAdapter, :PostgresAdapter, :Sqlite3Adapter
-            [ :Repository, :Model, :Resource ].each do |name|
-              DataMapper.const_get(name).send(:include, Transaction.const_get(name))
-            end
+        if Transaction.const_defined?(const_name)
+          adapter = const_get(const_name)
+          adapter.send(:include, Transaction.const_get(const_name))
         end
 
         super
