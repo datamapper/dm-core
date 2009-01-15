@@ -105,7 +105,7 @@ describe DataMapper::Model do
         describe 'between different models' do
           before do
             # make sure the default repository is empty
-            Heffalump.all(:repository => repository(:default)).destroy!
+            Heffalump.all(:repository => @repository).destroy!
 
             # add an extra property to the alternate model
             repository(@alternate_adapter.name) do

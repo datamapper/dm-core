@@ -79,7 +79,7 @@ share_examples_for 'A public Resource' do
       with_alternate_adapter do
         describe 'when comparing to a resource with a different repository, but the same properties' do
           before do
-            @other = repository(:alternate) { @model.create(@user.attributes) }
+            @other = @alternate_repository.scope { @model.create(@user.attributes) }
             @return = @user.send(method, @other)
           end
 
@@ -294,7 +294,7 @@ share_examples_for 'A public Resource' do
     with_alternate_adapter do
       describe 'when comparing to a resource with a different repository, but the same properties' do
         before do
-          @other = repository(:alternate) { @model.create(@user.attributes) }
+          @other = @alternate_repository.scope { @model.create(@user.attributes) }
           @return = @user.eql?(@other)
         end
 

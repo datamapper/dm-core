@@ -19,7 +19,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
     supported_by :all do
       before do
-        @article_repository = repository(:default)
+        @article_repository = @repository
         @model              = Article
         @articles_query     = DataMapper::Query.new(@article_repository, @model, :title => 'Sample Article')
 
