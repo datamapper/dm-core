@@ -172,8 +172,14 @@ module DataMapper
     #
     # @api public
     def eql?(other)
-      return true if equal?(other)
-      return false unless other.respond_to?(:model) && model.equal?(other.model)
+      if equal?(other)
+        return true
+      end
+
+      unless other.respond_to?(:model) && model.equal?(other.model)
+        return false
+      end
+
       eql_attributes?(other)
     end
 
@@ -192,8 +198,14 @@ module DataMapper
     #
     # @api public
     def ==(other)
-      return true if equal?(other)
-      return false unless other.respond_to?(:model) && model.base_model.equal?(other.model.base_model)
+      if equal?(other)
+        return true
+      end
+
+      unless other.respond_to?(:model) && model.base_model.equal?(other.model.base_model)
+        return false
+      end
+
       eql_attributes?(other)
     end
 
@@ -455,8 +467,9 @@ module DataMapper
     def attributes
       attributes = {}
       properties.each do |property|
-        next unless public_method?(getter = property.getter)
-        attributes[property.name] = send(getter)
+        if public_method?(getter = property.getter)
+          attributes[property.name] = send(getter)
+        end
       end
       attributes
     end
@@ -586,15 +599,20 @@ module DataMapper
     # @api semipublic
     def _create
       # Can't create a resource that is not dirty and doesn't have serial keys
-      return false if new_record? && !dirty?
+      if new_record? && !dirty?
+        return false
+      end
 
       # set defaults for new resource
       properties.each do |property|
-        next unless property.default? && !property.loaded?(self)
-        property.set(self, property.default_for(self))
+        if property.default? && !property.loaded?(self)
+          property.set(self, property.default_for(self))
+        end
       end
 
-      return false unless repository.create([ self ]) == 1
+      if repository.create([ self ]) != 1
+        return false
+      end
 
       @repository = repository
       @new_record = false
@@ -610,13 +628,17 @@ module DataMapper
       # retrieve the attributes that need to be persisted
       dirty_attributes = self.dirty_attributes
 
-      return true  if dirty_attributes.empty?
-      return false if dirty_attributes.only(*model.key).any? { |_,v| v.blank? }
-      return false if repository.update(dirty_attributes, to_query) != 1
+      if dirty_attributes.empty?
+        true
+      elsif dirty_attributes.only(*model.key).any? { |_,v| v.blank? }
+        false
+      elsif repository.update(dirty_attributes, to_query) != 1
+        false
+      else
+        repository.identity_map(model)[key] = self
 
-      repository.identity_map(model)[key] = self
-
-      true
+        true
+      end
     end
 
     # Gets this instance's Model's properties
@@ -660,7 +682,10 @@ module DataMapper
     # TODO: move to Model#assert_valid
     # @api private
     def assert_valid_model # :nodoc:
-      return if self.class._valid_model
+      if self.class._valid_model
+        return
+      end
+
       properties = self.properties
 
       if properties.empty? && relationships.empty?
@@ -710,8 +735,13 @@ module DataMapper
     #   The result of the comparison of +other+'s attributes with +self+'s
     #
     def eql_attributes?(other)
-      return false if key != other.key
-      return true if repository == other.repository && !dirty? && !other.dirty?
+      if key != other.key
+        return false
+      end
+
+      if repository == other.repository && !dirty? && !other.dirty?
+        return true
+      end
 
       loaded, not_loaded = properties.partition do |property|
         property.loaded?(self) && property.loaded?(other)
