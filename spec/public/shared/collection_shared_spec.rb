@@ -2266,52 +2266,6 @@ share_examples_for 'A public Collection' do
       end
     end
 
-    describe 'with attributes and allowed properties' do
-      before do
-        @attributes = { :title => 'Updated Title' }
-        @allowed = [ :title ]
-        @return = @articles.update(@attributes, *@allowed)
-      end
-
-      it 'should return true' do
-        @return.should be_true
-      end
-
-      it 'should update allowed attributes of all Resources' do
-        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
-      end
-
-      it 'should persist the changed attributes' do
-        resource = @model.get(*@article.key)
-        @attributes.each { |k,v| resource.send(k).should == v }
-      end
-    end
-
-    describe 'with attributes and allowed properties not matching the attributes' do
-      before do
-        @attributes = { :title => 'Updated Title', :content => 'Updated Content' }
-        @allowed = [ :title ]
-        @return = @articles.update(@attributes, *@allowed)
-      end
-
-      it 'should return true' do
-        @return.should be_true
-      end
-
-      it 'should update allowed attributes of all Resources' do
-        @attributes.only(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should == v } }
-      end
-
-      it 'should not update disallowed attributes of any Resources' do
-        @attributes.except(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should_not == v } }
-      end
-
-      it 'should persist the changed attributes' do
-        resource = @model.get(*@article.key)
-        @attributes.only(*@allowed).each { |k,v| resource.send(k).should == v }
-      end
-    end
-
     describe 'with attributes where one is a parent association' do
       before do
         @attributes = { :original => @other }
@@ -2367,60 +2321,6 @@ share_examples_for 'A public Collection' do
       it 'should persist the changes' do
         resource = @model.get(*@article.key)
         @attributes.each { |k,v| resource.send(k).should == v }
-      end
-    end
-
-    describe 'with attributes and allowed properties' do
-      before do
-        @attributes = { :title => 'Updated Title' }
-        @allowed = [ :title ]
-        @return = @articles.update!(@attributes, *@allowed)
-      end
-
-      it 'should return true' do
-        @return.should be_true
-      end
-
-      it 'should bypass validation' do
-        pending 'TODO: not sure how to best spec this'
-      end
-
-      it 'should update allowed attributes of all Resources' do
-        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
-      end
-
-      it 'should persist the changes' do
-        resource = @model.get(*@article.key)
-        @attributes.each { |k,v| resource.send(k).should == v }
-      end
-    end
-
-    describe 'with attributes and allowed properties not matching the attributes' do
-      before do
-        @attributes = { :title => 'Updated Title', :content => 'Updated Content' }
-        @allowed = [ :title ]
-        @return = @articles.update!(@attributes, *@allowed)
-      end
-
-      it 'should return true' do
-        @return.should be_true
-      end
-
-      it 'should bypass validation' do
-        pending 'TODO: not sure how to best spec this'
-      end
-
-      it 'should update allowed attributes of all Resources' do
-        @attributes.only(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should == v } }
-      end
-
-      it 'should not update disallowed attributes of any Resources' do
-        @attributes.except(*@allowed).each { |k,v| @articles.each { |r| r.send(k).should_not == v } }
-      end
-
-      it 'should persist the changes' do
-        resource = @model.get(*@article.key)
-        @attributes.only(*@allowed).each { |k,v| resource.send(k).should == v }
       end
     end
 

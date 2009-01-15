@@ -705,15 +705,13 @@ module DataMapper
     #   Person.all(:age.gte => 21).update(:allow_beer => true)
     #
     # @param [Hash] attributes attributes to update with
-    # @param [Array] allowed allowed attributes to update
     #
     # @return [TrueClass, FalseClass] true if successful
     #
     # @api public
-    def update(attributes = {}, *allowed)
-      attributes = attributes.only(*allowed) if allowed.any?
+    def update(attributes = {})
       dirty_attributes = model.new(attributes).dirty_attributes
-      dirty_attributes.empty? || all? { |r| r.update(attributes, *allowed) }
+      dirty_attributes.empty? || all? { |r| r.update(attributes) }
     end
 
     ##
@@ -722,14 +720,11 @@ module DataMapper
     #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
     # @param [Hash] attributes attributes to update
-    # @param [Array] allowed allowed attributes to update
     #
     # @return [TrueClass, FalseClass] true if successful
     #
     # @api public
-    def update!(attributes = {}, *allowed)
-      attributes = attributes.only(*allowed) if allowed.any?
-
+    def update!(attributes = {})
       dirty_attributes = model.new(attributes).dirty_attributes
 
       if dirty_attributes.empty?

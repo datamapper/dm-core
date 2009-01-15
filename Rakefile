@@ -13,7 +13,7 @@ EMAIL  = "dan.kubb@gmail.com"
 GEM_NAME = "dm-core"
 GEM_VERSION = DataMapper::VERSION
 GEM_DEPENDENCIES = ["data_objects", "~>0.9.11"], ["extlib", "~>0.9.9"],
-                   ["rspec", "~>1.1.11"], ["addressable", "~>2.0"]
+                   ["rspec", "~>1.1.12"], ["addressable", "~>2.0"]
 
 PROJECT_NAME = "datamapper"
 PROJECT_DESCRIPTION = "Faster, Better, Simpler."

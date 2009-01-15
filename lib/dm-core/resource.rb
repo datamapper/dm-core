@@ -502,25 +502,32 @@ module DataMapper
     # @see #update
     #
     # @api public
-    def update_attributes(*args)
+    def update_attributes(attributes = {}, *allowed)
       warn "#{self.class}#update_attributes is deprecated, use #{self.class}#update instead"
-      update(*args)
+
+      if allowed.any?
+        warn "specifying allowed in #{self.class}#update_attributes is deprecated," \
+          'use Hash#only to filter the attributes in the caller'
+        attributes = attributes.only(*allowed)
+      end
+
+      update(attributes, *allowed)
     end
 
     ##
     # Updates attributes and saves this Resource instance
     #
-    # @param  [Hash]  attributes          attributes to be updated
-    # @param  [Array] allowed (optional)  list of attributes to update
+    # @param  [Hash]  attributes
+    #   attributes to be updated
     #
-    # @return [TrueClass, FalseClass]     true if resource and storage state match
+    # @return [TrueClass, FalseClass]
+    #   true if resource and storage state match
     #
     # @api public
-    def update(attributes = {}, *allowed)
+    def update(attributes = {})
       assert_kind_of 'attributes', attributes, Hash
 
-      # filter out only allowed attributes
-      self.attributes = allowed.any? ? attributes.only(*allowed) : attributes
+      self.attributes = attributes
 
       _update
     end
