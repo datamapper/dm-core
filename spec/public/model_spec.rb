@@ -112,10 +112,8 @@ describe DataMapper::Model do
               Heffalump.property :status, String, :default => 'new'
             end
 
-            begin
+            if Heffalump.respond_to?(:auto_migrate!)
               Heffalump.auto_migrate!(@alternate_adapter.name)
-            rescue NotImplementedError, NoMethodError
-              # do nothing when not supported
             end
 
             # add new resources to the alternate repository

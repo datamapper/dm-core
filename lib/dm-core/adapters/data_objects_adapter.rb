@@ -148,6 +148,22 @@ module DataMapper
         ))
       end
 
+      chainable do
+        protected
+
+        # @api semipublic
+        def create_connection
+          # DataObjects::Connection.new(uri) will give you back the right
+          # driver based on the Uri#scheme.
+          DataObjects::Connection.new(@uri)
+        end
+
+        # @api semipublic
+        def close_connection(connection)
+          connection.close
+        end
+      end
+
       private
 
       def initialize(name, uri_or_options)

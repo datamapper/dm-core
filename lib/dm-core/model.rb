@@ -486,7 +486,7 @@ module DataMapper
       # DO NOT REMOVE!
       # method_missing depends on these existing. Without this stub,
       # a missing module can cause misleading recursive errors.
-      raise NotImplementedError.new
+      raise NotImplementedError
     end
 
     # TODO: document

@@ -45,6 +45,7 @@ lib/dm-core/support/errors.rb
 lib/dm-core/support/hook.rb
 lib/dm-core/support/kernel.rb
 lib/dm-core/support/logger.rb
+lib/dm-core/support/module.rb
 lib/dm-core/support/naming_conventions.rb
 lib/dm-core/support/symbol.rb
 lib/dm-core/transaction.rb

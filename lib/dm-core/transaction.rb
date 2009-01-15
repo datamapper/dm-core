@@ -285,7 +285,7 @@ module DataMapper
       close_adapter(adapter)
     end
 
-    module TransactionAdapter
+    module Adapter
       def self.included(base)
         [ :Repository, :Model, :Resource ].each do |name|
           DataMapper.const_get(name).send(:include, Transaction.const_get(name))
@@ -360,23 +360,23 @@ module DataMapper
         !current_transaction.nil?
       end
 
-      protected
+      chainable do
+        protected
 
-      # @api semipublic
-      def create_connection
-        if within_transaction?
-          current_transaction.primitive_for(self).connection
-        else
-          # DataObjects::Connection.new(uri) will give you back the right
-          # driver based on the Uri#scheme.
-          DataObjects::Connection.new(@uri)
+        # @api semipublic
+        def create_connection
+          if within_transaction?
+            current_transaction.primitive_for(self).connection
+          else
+            super
+          end
         end
-      end
 
-      # @api semipublic
-      def close_connection(connection)
-        unless within_transaction? && current_transaction.primitive_for(self).connection == connection
-          connection.close
+        # @api semipublic
+        def close_connection(connection)
+          unless within_transaction? && current_transaction.primitive_for(self).connection == connection
+            super
+          end
         end
       end
 
@@ -392,10 +392,10 @@ module DataMapper
         end
         @transactions[thread]
       end
-    end # module TransactionAdapter
+    end # module Adapter
 
     # alias the MySQL and PostgreSQL adapters to use transactions
-    MysqlAdapter = PostgresAdapter = TransactionAdapter
+    MysqlAdapter = PostgresAdapter = Adapter
 
     module Repository
       ##

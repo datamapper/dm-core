@@ -19,19 +19,15 @@ module DataMapper::Spec
             @repository = repository(@adapter.name)
 
             # create all tables and constraints before each spec
-            begin
+            if @repository.respond_to?(:auto_migrate!)
               @repository.auto_migrate!
-            rescue NotImplementedError, NoMethodError
-              # do nothing when not supported
             end
           end
 
           after do
             # remove all tables and constraints after each spec
-            begin
+            if @repository.respond_to?(:auto_migrate_down)
               @repository.send(:auto_migrate_down)
-            rescue NotImplementedError, NoMethodError
-              # do nothing when not supported
             end
           end
 
@@ -53,19 +49,15 @@ module DataMapper::Spec
             @alternate_repository = repository(@alternate_adapter.name)
 
             # create all tables and constraints before each spec
-            begin
+            if @alternate_repository.respond_to?(:auto_migrate!)
               @alternate_repository.auto_migrate!
-            rescue NotImplementedError, NoMethodError
-              # do nothing when not supported
             end
           end
 
           after do
             # remove all tables and constraints after each spec
-            begin
+            if @alternate_repository.respond_to?(:auto_migrate_down)
               @alternate_repository.send(:auto_migrate_down)
-            rescue NotImplementedError, NoMethodError
-              # do nothing when not supported
             end
           end
 

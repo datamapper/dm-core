@@ -513,15 +513,21 @@ module DataMapper
       end
 
       def upgrade_model_storage(model)
-        adapter.upgrade_model_storage(model)
+        if adapter.respond_to?(:upgrade_model_storage)
+          adapter.upgrade_model_storage(model)
+        end
       end
 
       def create_model_storage(model)
-        adapter.create_model_storage(model)
+        if adapter.respond_to?(:create_model_storage)
+          adapter.create_model_storage(model)
+        end
       end
 
       def destroy_model_storage(model)
-        adapter.destroy_model_storage(model)
+        if adapter.respond_to?(:destroy_model_storage)
+          adapter.destroy_model_storage(model)
+        end
       end
 
       ##
@@ -599,7 +605,7 @@ module DataMapper
         if base_model == self
           repository(repository_name).destroy_model_storage(self)
         else
-          base_model.auto_migrate!(repository_name)
+          base_model.auto_migrate_down!(repository_name)
         end
       end
 
@@ -613,7 +619,7 @@ module DataMapper
         if base_model == self
           repository(repository_name).create_model_storage(self)
         else
-          base_model.auto_migrate!(repository_name)
+          base_model.auto_migrate_up!(repository_name)
         end
       end
 
@@ -625,7 +631,11 @@ module DataMapper
       #
       # @api private
       def auto_upgrade!(repository_name = self.repository_name)
-        repository(repository_name).upgrade_model_storage(self)
+        if base_model == self
+          repository(repository_name).upgrade_model_storage(self)
+        else
+          base_model.auto_upgrade!(self)
+        end
       end
     end # module Model
   end
