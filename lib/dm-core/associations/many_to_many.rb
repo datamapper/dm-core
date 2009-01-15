@@ -233,6 +233,12 @@ module DataMapper
           raise NotImplementedError
         end
 
+        def save
+          # TODO: create the new intermediaries
+          # TODO: destroy the orphaned intermediaries
+          raise NotImplementedError
+        end
+
         def destroy
           # TODO: destroy the intermediaries
           # TODO: destroy the resources in the child model
@@ -245,6 +251,17 @@ module DataMapper
           raise NotImplementedError
         end
 
+        private
+
+        def relate_resource(resource)
+          # TODO: queue up new intermediaries for creation
+          raise NotImplementedError
+        end
+
+        def orphan_resource(resource)
+          # TODO: queue up orphaned intermediaries for destruction
+          raise NotImplementedError
+        end
       end # class Collection
     end # module ManyToMany
   end # module Associations
