@@ -51,10 +51,10 @@ describe DataMapper::Resource, "Transactions" do
   supported_by :postgres, :mysql do
     before do
       # --- Temporary private api use to get around rspec limitations ---
-      repository(:default) do
-        transaction = DataMapper::Transaction.new(repository)
+      @repository.scope do |r|
+        transaction = DataMapper::Transaction.new(r)
         transaction.begin
-        repository.adapter.push_transaction(transaction)
+        r.adapter.push_transaction(transaction)
       end
 
       @model       = User
@@ -63,10 +63,8 @@ describe DataMapper::Resource, "Transactions" do
     end
 
     after do
-      repository = repository(:default)
-      while repository.adapter.current_transaction
-        repository.adapter.current_transaction.rollback
-        repository.adapter.pop_transaction
+      while @repository.adapter.current_transaction
+        @repository.adapter.pop_transaction.rollback
       end
     end
 

@@ -301,7 +301,7 @@ module DataMapper
       #   a new Object that responds to :close, :begin, :commit,
       #   :rollback, :rollback_prepared and :prepare
       #
-      # @api semipublic
+      # @api private
       def transaction_primitive
         DataObjects::Transaction.create_for_uri(@uri)
       end
@@ -317,9 +317,9 @@ module DataMapper
       # @return [Array(DataMapper::Transaction)]
       #   the stack of active transactions for the current thread
       #
-      # @api semipublic
+      # @api private
       def push_transaction(transaction)
-        transactions(Thread.current) << transaction
+        transactions << transaction
       end
 
       ##
@@ -330,9 +330,9 @@ module DataMapper
       # @return [DataMapper::Transaction]
       #   the former 'current' transaction.
       #
-      # @api semipublic
+      # @api private
       def pop_transaction
-        transactions(Thread.current).pop
+        transactions.pop
       end
 
       ##
@@ -344,20 +344,9 @@ module DataMapper
       # @return [DataMapper::Transaction]
       #   the 'current' transaction for this Adapter.
       #
-      # @api semipublic
+      # @api private
       def current_transaction
-        transactions(Thread.current).last
-      end
-
-      ##
-      # Returns whether we are within a Transaction.
-      #
-      # @return [TrueClass, FalseClass]
-      #   whether we are within a Transaction.
-      #
-      # @api semipublic
-      def within_transaction?
-        !current_transaction.nil?
+        transactions.last
       end
 
       chainable do
@@ -365,16 +354,12 @@ module DataMapper
 
         # @api semipublic
         def create_connection
-          if within_transaction?
-            current_transaction.primitive_for(self).connection
-          else
-            super
-          end
+          current_connection || super
         end
 
         # @api semipublic
         def close_connection(connection)
-          unless within_transaction? && current_transaction.primitive_for(self).connection == connection
+          unless current_connection == connection
             super
           end
         end
@@ -382,15 +367,26 @@ module DataMapper
 
       private
 
-      def transactions(thread)
+      # @api private
+      def transactions
         @transactions ||= {}
-        unless @transactions[thread]
-          @transactions.delete_if do |key, value|
-            !key.respond_to?(:alive?) || !key.alive?
-          end
-          @transactions[thread] = []
+        @transactions[Thread.current] ||= begin
+          @transactions.delete_if { |t,_| !t.alive? }
+          []
         end
-        @transactions[thread]
+      end
+
+      ##
+      # Retrieve the current connection for this Adapter.
+      #
+      # @return [DataMapper::Transaction]
+      #   the 'current' connection for this Adapter.
+      #
+      # @api private
+      def current_connection
+        if transaction = current_transaction
+          transaction.primitive_for(self).connection
+        end
       end
     end # module Adapter
 
