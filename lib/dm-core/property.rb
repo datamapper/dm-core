@@ -280,10 +280,6 @@ module DataMapper
   #
   #  :unique_index        true specifies that index on this property should be unique
   #
-  #  :check               [MK] looks like this one is never used across -core and -more and should be removed
-  #
-  #  :ordinal             [MK] looks like this one is never used across -core and -more and should be removed
-  #
   #  :auto_validation     if true, automatic validation is performed on the property
   #
   #  :validates           validation context. Use together with dm-validations.
@@ -322,7 +318,7 @@ module DataMapper
     PROPERTY_OPTIONS = [
       :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-      :format, :index, :unique_index, :check, :ordinal, :auto_validation,
+      :format, :index, :unique_index, :auto_validation,
       :validates, :unique, :precision, :scale
     ]
 
@@ -828,7 +824,7 @@ module DataMapper
 
           when :serial, :key, :nullable, :unique, :lazy, :auto_validation
             unless value == true || value == false
-              raise ArgumentError, "options[#{key.inspect}] must not be either true or false", caller(1)
+              raise ArgumentError, "options[#{key.inspect}] must be either true or false", caller(1)
             end
 
           when :index, :unique_index
