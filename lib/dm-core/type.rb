@@ -39,7 +39,7 @@ module DataMapper
     PROPERTY_OPTIONS = [
       :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-      :format, :index, :unique_index, :check, :ordinal, :auto_validation,
+      :format, :index, :unique_index, :auto_validation,
       :validates, :unique, :precision, :scale
     ]
 
