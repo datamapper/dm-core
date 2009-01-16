@@ -687,7 +687,7 @@ module DataMapper
     #
     # @api semipublic
     def default_for(resource)
-      @default.respond_to?(:call) ? @default.call(resource, self) : @default
+      @default.respond_to?(:call) ? @default.call(resource, self) : @default.try_dup
     end
 
     # Returns true if the property has a default value
