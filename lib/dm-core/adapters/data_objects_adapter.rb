@@ -403,7 +403,7 @@ module DataMapper
           if escaped.include?('.')
             escaped.split('.').map { |part| "\"#{part}\"" }.join('.')
           else
-            escaped
+            "\"#{escaped}\""
           end
         end
 
