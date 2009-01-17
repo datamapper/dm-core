@@ -89,13 +89,8 @@ module DataMapper
 
       assert_valid_options(options)
 
-      parent_repository_name = repository.name
-
-      options[:child_repository_name]  = options.delete(:repository) if options.key?(:repository)
-      options[:parent_repository_name] = parent_repository_name
-
-      # TODO: remove this once Relationships can use relative repositories
-      options[:child_repository_name] ||= options[:parent_repository_name]
+      options[:child_repository_name]  = options.delete(:repository)
+      options[:parent_repository_name] = repository.name
 
       klass = if options.key?(:through)
         ManyToMany::Relationship
@@ -105,7 +100,7 @@ module DataMapper
         OneToOne::Relationship
       end
 
-      relationships(parent_repository_name)[name] = klass.new(name, options.delete(:class), self, options.freeze)
+      relationships(repository.name)[name] = klass.new(name, options.delete(:class), self, options.freeze)
     end
 
     ##
@@ -131,15 +126,10 @@ module DataMapper
 
       @_valid_relations = false
 
-      child_repository_name = repository.name
+      options[:child_repository_name]  = repository.name
+      options[:parent_repository_name] = options.delete(:repository)
 
-      options[:child_repository_name]  = child_repository_name
-      options[:parent_repository_name] = options.delete(:repository) if options.key?(:repository)
-
-      # TODO: remove this once Relationships can use relative repositories
-      options[:parent_repository_name] ||= options[:child_repository_name]
-
-      relationships(child_repository_name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:class), options.freeze)
+      relationships(repository.name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:class), options.freeze)
     end
 
     private

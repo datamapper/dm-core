@@ -107,7 +107,7 @@ module DataMapper
         def target_for(parent_resource)
           # TODO: spec this
           #if parent_resource.new_record?
-          #  # an unsaved parent cannot have any children
+          #  # an unsaved parent cannot be referenced by children
           #  return
           #end
 
@@ -122,14 +122,14 @@ module DataMapper
           #   - make sure that each intermediary can have different conditons that
           #     scope its results
 
-          repository = DataMapper.repository(child_repository_name)
-          conditions = query.merge(through.child_key.zip(through.parent_key.get(parent_resource)).to_hash)
+          repository     = child_repository_name ? DataMapper.repository(child_repository_name) : parent_resource.repository
+          join_condition = query.merge(through.child_key.zip(through.parent_key.get(parent_resource)).to_hash)
 
           if max.kind_of?(Integer)
-            conditions.update(:limit => max)
+            join_condition.update(:limit => max)
           end
 
-          Query.new(repository, child_model, conditions)
+          Query.new(repository, child_model, join_condition)
         end
 
         private
@@ -168,7 +168,7 @@ module DataMapper
         # TODO: document
         # @api private
         def join_relationship_name(model, plural = false)
-          namespace, name = join_model_namespace_name
+          namespace = join_model_namespace_name.first
           relationship_name = Extlib::Inflection.underscore(model.base_model.name.sub(/\A#{namespace.name}::/, '')).gsub('/', '_')
           (plural ? relationship_name.plural : relationship_name).to_sym
         end

@@ -13,7 +13,7 @@ module DataMapper
         def target_for(parent_resource)
           # TODO: spec this
           #if parent_resource.new_record?
-          #  # an unsaved parent cannot have any children
+          #  # an unsaved parent cannot be referenced by children
           #  return
           #end
 
@@ -22,14 +22,14 @@ module DataMapper
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
-          repository = DataMapper.repository(child_repository_name)
-          conditions = query.merge(child_key.zip(parent_key.get(parent_resource)).to_hash)
+          repository    = child_repository_name ? DataMapper.repository(child_repository_name) : parent_resource.repository
+          join_condition = query.merge(child_key.zip(parent_key.get(parent_resource)).to_hash)
 
           if max.kind_of?(Integer)
-            conditions.update(:limit => max)
+            join_condition.update(:limit => max)
           end
 
-          Query.new(repository, child_model, conditions)
+          Query.new(repository, child_model, join_condition)
         end
 
         private

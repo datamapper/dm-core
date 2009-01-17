@@ -8,13 +8,19 @@ module DataMapper
           values = child_key.get(child_resource)
 
           if values.any? { |v| v.blank? }
+            # child must have a valid reference to the parent
             return
           end
 
-          repository = DataMapper.repository(parent_repository_name)
-          conditions = query.merge(parent_key.zip(values).to_hash)
+          # TODO: do not build the query with child_key/parent_key.. use
+          # child_accessor/parent_accessor.  The query should be able to
+          # translate those to child_key/parent_key inside the adapter,
+          # allowing adapters that don't join on PK/FK to work too.
 
-          Query.new(repository, parent_model, conditions)
+          repository     = parent_repository_name ? DataMapper.repository(parent_repository_name) : child_resource.repository
+          join_condition = query.merge(parent_key.zip(values).to_hash)
+
+          Query.new(repository, parent_model, join_condition)
         end
 
         private
