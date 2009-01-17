@@ -2,6 +2,21 @@ module DataMapper
   module Associations
     module ManyToOne
       class Relationship < DataMapper::Associations::Relationship
+        # TODO: document
+        # @api semipublic
+        def target_for(child_resource)
+          values = child_key.get(child_resource)
+
+          if values.any? { |v| v.blank? }
+            return
+          end
+
+          repository = DataMapper.repository(parent_repository_name)
+          conditions = query.merge(parent_key.zip(values).to_hash)
+
+          Query.new(repository, parent_model, conditions)
+        end
+
         private
 
         # TODO: document
@@ -18,38 +33,28 @@ module DataMapper
 
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             private
-            def #{name}_helper(query = nil)
+            def #{name}_helper(conditions = nil)
               # TODO: when Resource can be matched against conditions
               # always set the ivar, but return the resource only if
               # it matches the conditions
 
-              return @#{name} if query.nil? && defined?(@#{name})
+              return @#{name} if conditions.nil? && defined?(@#{name})
 
-              relationship = model.relationships(#{child_repository_name.inspect})[#{name.inspect}]
+              relationship = model.relationships(repository.name)[#{name.inspect}]
 
-              values = relationship.child_key.get(self)
-
-              resource = if values.any? { |v| v.blank? }
-                nil
-              else
-                repository = DataMapper.repository(relationship.parent_repository_name)
-                model      = relationship.parent_model
-                conditions = relationship.query.merge(relationship.parent_key.zip(values).to_hash)
-
-                if query
-                  conditions.update(query)
+              resource = if query = relationship.target_for(self)
+                if conditions
+                  query.update(conditions)
                 end
 
-                query = Query.new(repository, model, conditions)
-
                 model.first(query)
+              else
+                nil
               end
 
-              if query.nil?
-                @#{name} = resource
-              end
+              return if resource.nil?
 
-              resource
+              @#{name} = resource
             end
           RUBY
         end
@@ -80,7 +85,7 @@ module DataMapper
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
             def #{name}=(parent)
-              relationship = model.relationships(#{child_repository_name.inspect})[#{name.inspect}]
+              relationship = model.relationships(repository.name)[#{name.inspect}]
               values = relationship.parent_key.get(parent) unless parent.nil?
               relationship.child_key.set(self, values)
               @#{name} = parent

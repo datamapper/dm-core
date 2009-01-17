@@ -4,6 +4,12 @@ module DataMapper
       class Relationship < DataMapper::Associations::OneToMany::Relationship
         # TODO: document
         # @api semipublic
+        def self.collection_class
+          ManyToMany::Collection
+        end
+
+        # TODO: document
+        # @api semipublic
         def through
           return @through if @through != Resource
 
@@ -96,65 +102,37 @@ module DataMapper
           end
         end
 
-        private
-
         # TODO: document
         # @api semipublic
-        def create_helper
+        def target_for(parent_resource)
+          # TODO: spec this
+          #if parent_resource.new_record?
+          #  # an unsaved parent cannot have any children
+          #  return
+          #end
+
+          # TODO: do not build the query with child_key/parent_key.. use
+          # child_accessor/parent_accessor.  The query should be able to
+          # translate those to child_key/parent_key inside the adapter,
+          # allowing adapters that don't join on PK/FK to work too.
+
           # TODO: make sure the proper Query is set up, one that includes all the links
           #   - make sure that all relationships can be intermediaries
           #   - make sure that each intermediary can be at random repositories
           #   - make sure that each intermediary can have different conditons that
           #     scope its results
 
-          return if parent_model.instance_methods(false).include?("#{name}_helper")
+          repository = DataMapper.repository(child_repository_name)
+          conditions = query.merge(through.child_key.zip(through.parent_key.get(parent_resource)).to_hash)
 
-          # TODO: this is mostly cut/pasted from one-to-many associations.  Refactor
-          # this once it is working properly.
+          if max.kind_of?(Integer)
+            conditions.update(:limit => max)
+          end
 
-          parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            private
-            def #{name}_helper
-              @#{name} ||= begin
-                # TODO: this seems like a bug.  the first time the association is
-                # loaded it will be using the relationship object from the repo that
-                # was in effect when it was defined.  Instead it should determine the
-                # repo currently in-scope, and use the association for it.
-
-                relationship = model.relationships(#{parent_repository_name.inspect})[#{name.inspect}]
-
-                # TODO: do not build the query with child_key/parent_key.. use
-                # child_accessor/parent_accessor.  The query should be able to
-                # translate those to child_key/parent_key inside the adapter,
-                # allowing adapters that don't join on PK/FK to work too.
-
-                # FIXME: what if the parent key is not set yet, and the collection is
-                # initialized below with the nil parent key in the query?  When you
-                # save the parent and then reload the association, it will probably
-                # not be found.  Test this.
-
-                repository = DataMapper.repository(relationship.child_repository_name)
-                model      = relationship.child_model
-                conditions = relationship.query.merge(relationship.through.child_key.zip(relationship.through.parent_key.get(self)).to_hash)
-
-                if relationship.max.kind_of?(Integer)
-                  conditions.update(:limit => relationship.max)
-                end
-
-                query = Query.new(repository, model, conditions)
-
-                association = relationship.class.collection_class.new(query)
-
-                association.relationship = relationship
-                association.parent       = self
-
-                child_associations << association
-
-                association
-              end
-            end
-          RUBY
+          Query.new(repository, child_model, conditions)
         end
+
+        private
 
         # TODO: document
         # @api private

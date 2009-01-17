@@ -4,13 +4,7 @@
 module DataMapper
   module Associations
     module OneToOne
-      class Relationship < DataMapper::Associations::Relationship
-        # TODO: document
-        # @api semipublic
-        def self.collection_class
-          OneToMany::Collection
-        end
-
+      class Relationship < DataMapper::Associations::OneToMany::Relationship
         private
 
         # TODO: document
@@ -18,55 +12,6 @@ module DataMapper
         def initialize(name, child_model, parent_model, options = {})
           child_model ||= Extlib::Inflection.camelize(name)
           super
-        end
-
-        # TODO: document
-        # @api semipublic
-        def create_helper
-          return if parent_model.instance_methods(false).include?("#{name}_helper")
-
-          parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            private
-            def #{name}_helper
-              @#{name} ||= begin
-                # TODO: this seems like a bug.  the first time the association is
-                # loaded it will be using the relationship object from the repo that
-                # was in effect when it was defined.  Instead it should determine the
-                # repo currently in-scope, and use the association for it.
-
-                relationship = model.relationships(#{parent_repository_name.inspect})[#{name.inspect}]
-
-                # TODO: do not build the query with child_key/parent_key.. use
-                # child_accessor/parent_accessor.  The query should be able to
-                # translate those to child_key/parent_key inside the adapter,
-                # allowing adapters that don't join on PK/FK to work too.
-
-                # FIXME: what if the parent key is not set yet, and the collection is
-                # initialized below with the nil parent key in the query?  When you
-                # save the parent and then reload the association, it will probably
-                # not be found.  Test this.
-
-                repository = DataMapper.repository(relationship.child_repository_name)
-                model      = relationship.child_model
-                conditions = relationship.query.merge(relationship.child_key.zip(relationship.parent_key.get(self)).to_hash)
-
-                if relationship.max.kind_of?(Integer)
-                  conditions.update(:limit => relationship.max)
-                end
-
-                query = Query.new(repository, model, conditions)
-
-                association = relationship.class.collection_class.new(query)
-
-                association.relationship = relationship
-                association.parent       = self
-
-                child_associations << association
-
-                association
-              end
-            end
-          RUBY
         end
 
         # TODO: document

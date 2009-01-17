@@ -73,6 +73,12 @@ module DataMapper
         end
       end
 
+      # TODO: document
+      # @api semipublic
+      def target_for(resource)
+        raise NotImplementedError
+      end
+
       private
 
       # TODO: document
