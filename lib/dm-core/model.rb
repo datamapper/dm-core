@@ -439,7 +439,8 @@ module DataMapper
         model = values.at(inheritance_property_index) || model
       end
 
-      key_values = nil
+      identity_map = nil
+      key_values   = nil
 
       resource = if (key_property_indexes = query.key_property_indexes(repository)).any?
         identity_map = repository.identity_map(model)
@@ -467,7 +468,9 @@ module DataMapper
         property.set!(resource, value)
       end
 
-      if key_values
+      if identity_map && key_values
+        # defer setting the IdentityMap so second level caches can
+        # record the state of the resource after loaded
         identity_map[key_values] = resource
       else
         resource.freeze
