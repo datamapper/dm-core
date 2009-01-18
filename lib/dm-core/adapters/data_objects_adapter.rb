@@ -25,15 +25,22 @@ module DataMapper
       def create(resources)
         created = 0
         resources.each do |resource|
-          model      = resource.model
-          attributes = resource.dirty_attributes
-
+          model          = resource.model
           identity_field = model.identity_field
+          attributes     = resource.dirty_attributes
 
-          statement = insert_statement(model, attributes.keys, identity_field)
-          bind_values = attributes.values
+          properties  = []
+          bind_values = []
 
-          result = execute(statement, *bind_values)
+          # make the order of the properties consistent
+          model.properties(name).each do |property|
+            next unless attributes.key?(property)
+            properties  << property
+            bind_values << attributes[property]
+          end
+
+          statement = insert_statement(model, properties, identity_field)
+          result    = execute(statement, *bind_values)
 
           if result.to_i == 1
             if identity_field
@@ -75,8 +82,19 @@ module DataMapper
         # TODO: if the query contains any links, a limit or an offset
         # use a subselect to get the rows to be updated
 
-        statement = update_statement(attributes.keys, query)
-        bind_values = attributes.values + query.bind_values
+        properties  = []
+        bind_values = []
+
+        # make the order of the properties consistent
+        query.model.properties(name).each do |property|
+          next unless attributes.key?(property)
+          properties  << property
+          bind_values << attributes[property]
+        end
+
+        bind_values.concat(query.bind_values)
+
+        statement = update_statement(properties, query)
         execute(statement, *bind_values).to_i
       end
 
