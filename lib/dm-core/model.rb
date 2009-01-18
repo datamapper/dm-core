@@ -222,13 +222,15 @@ module DataMapper
     #
     # @api public
     def properties(repository_name = default_repository_name)
+      assert_kind_of 'repository_name', repository_name, Symbol
+
       # We need to check whether all relations are already set up.
       # If this isn't the case, we try to reload them here
       if !@_valid_relations && respond_to?(:many_to_one_relationships)
         @_valid_relations = true
         begin
           many_to_one_relationships.each do |r|
-            r.child_key
+            r.child_key(repository_name)
           end
         rescue NameError
           # Apparently not all relations are loaded,
@@ -570,8 +572,8 @@ module DataMapper
     def properties_with_subclasses(repository_name = default_repository_name)
       properties = PropertySet.new
       ([ self ].to_set + (respond_to?(:descendants) ? descendants : [])).each do |model|
-        model.relationships(repository_name).each_value { |relationship| relationship.child_key }
-        model.many_to_one_relationships.each { |relationship| relationship.child_key }
+        model.relationships(repository_name).each_value { |relationship| relationship.child_key(repository_name) }
+        model.many_to_one_relationships.each { |relationship| relationship.child_key(repository_name) }
         model.properties(repository_name).each do |property|
           properties << property unless properties.include?(property)
         end

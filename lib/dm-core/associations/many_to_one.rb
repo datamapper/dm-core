@@ -5,7 +5,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def target_for(child_resource)
-          values = child_key.get(child_resource)
+          values = child_key(child_resource.repository.name).get(child_resource)
 
           if values.any? { |v| v.blank? }
             # child must have a valid reference to the parent
@@ -18,7 +18,7 @@ module DataMapper
           # allowing adapters that don't join on PK/FK to work too.
 
           repository     = parent_repository_name ? DataMapper.repository(parent_repository_name) : child_resource.repository
-          join_condition = query.merge(parent_key.zip(values).to_hash)
+          join_condition = query.merge(parent_key(repository.name).zip(values).to_hash)
 
           Query.new(repository, parent_model, join_condition)
         end
@@ -53,7 +53,7 @@ module DataMapper
                   query.update(conditions)
                 end
 
-                model.first(query)
+                query.model.first(query)
               else
                 nil
               end
@@ -92,8 +92,9 @@ module DataMapper
             public  # TODO: make this configurable
             def #{name}=(parent)
               relationship = model.relationships(repository.name)[#{name.inspect}]
-              values = relationship.parent_key.get(parent) unless parent.nil?
-              relationship.child_key.set(self, values)
+              values = relationship.parent_key(repository.name).get(parent) unless parent.nil?
+              repository_name = relationship.child_repository_name || repository.name
+              relationship.child_key(repository_name).set(self, values)
               @#{name} = parent
             end
           RUBY

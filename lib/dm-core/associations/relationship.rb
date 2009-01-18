@@ -23,12 +23,19 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      def child_key
-        @child_key ||= begin
-          properties  = child_model.properties(@child_repository_name)
+      def child_key(repository_name)
+        assert_kind_of 'repository_name', repository_name, Symbol
+
+        child_repository_name  = @child_repository_name  || repository_name
+        parent_repository_name = @parent_repository_name || repository_name
+
+        @child_key ||= {}
+
+        @child_key[child_repository_name] ||= begin
+          properties  = child_model.properties(child_repository_name)
           parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
 
-          child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
+          child_key = parent_key(parent_repository_name).zip(@child_properties || []).map do |parent_property,property_name|
             property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
 
             properties[property_name] || begin
@@ -41,7 +48,7 @@ module DataMapper
               end
 
               # create the property within the correct repository
-              DataMapper.repository(@child_repository_name) do
+              DataMapper.repository(child_repository_name) do
                 child_model.property(property_name, parent_property.primitive, options)
               end
             end
@@ -61,12 +68,18 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      def parent_key
-        @parent_key ||= begin
+      def parent_key(repository_name)
+        assert_kind_of 'repository_name', repository_name, Symbol
+
+        parent_repository_name = @parent_repository_name || repository_name
+
+        @parent_key ||= {}
+
+        @parent_key[parent_repository_name] ||= begin
           parent_key = if @parent_properties
-            parent_model.properties(@parent_repository_name).slice(*@parent_properties)
+            parent_model.properties(parent_repository_name).slice(*@parent_properties)
           else
-            parent_model.key(@parent_repository_name)
+            parent_model.key(parent_repository_name)
           end
 
           PropertySet.new(parent_key)

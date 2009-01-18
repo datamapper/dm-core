@@ -298,7 +298,10 @@ module DataMapper
             # We only do INNER JOIN for now
             statement << " INNER JOIN #{quote_name(model.storage_name(name))} ON "
 
-            statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
+            child_repository_name  = relationship.child_repository_name  || query.repository.name
+            parent_repository_name = relationship.parent_repository_name || query.repository.name
+
+            statement << relationship.parent_key(parent_repository_name).zip(relationship.child_key(child_repository_name)).map do |parent_property,child_property|
               condition_statement(query, :eql, parent_property, child_property)
             end.join(' AND ')
           end

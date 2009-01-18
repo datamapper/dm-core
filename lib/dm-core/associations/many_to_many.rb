@@ -17,8 +17,6 @@ module DataMapper
           # child_model and parent_model constants to be defined, so we
           # can define the join model within their common namespace
 
-          # TODO: pass along more options to relationship
-          # TODO: make sure the property added for belongs_to in the join model is a key
           @through = DataMapper.repository(parent_repository_name) do
             join_model.belongs_to(join_relationship_name(child_model),           :class => child_model)
             parent_model.has(min..max, join_relationship_name(join_model, true), :class => join_model)
@@ -35,7 +33,7 @@ module DataMapper
               raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{repository.name} repository"
             end
 
-            [ through, through.intermediaries, target ].flatten.freeze
+            [ through, target ].map { |r| (i = r.intermediaries).any? ? i : r }.flatten.freeze
           end
         end
 
@@ -43,6 +41,9 @@ module DataMapper
         # @api semipublic
         def query
           query = super.dup
+
+          # make sure results are unique
+          query[:unique] = true
 
           # use all intermediaries, besides "through", in the query links
           query[:links] = intermediaries[1..-1]
@@ -90,12 +91,18 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def child_key
-          @child_key ||= begin
+        def child_key(repository_name)
+          assert_kind_of 'repository_name', repository_name, Symbol
+
+          child_repository_name = @child_repository_name || repository_name
+
+          @child_key ||= {}
+
+          @child_key[child_repository_name] ||= begin
             child_key = if @child_properties
-              child_model.properties(@child_repository_name).slice(*@child_properties)
+              child_model.properties(child_repository_name).slice(*@child_properties)
             else
-              child_model.key(@child_repository_name)
+              child_model.key(child_repository_name)
             end
 
             PropertySet.new(child_key)
@@ -123,7 +130,7 @@ module DataMapper
           #     scope its results
 
           repository     = child_repository_name ? DataMapper.repository(child_repository_name) : parent_resource.repository
-          join_condition = query.merge(through.child_key.zip(through.parent_key.get(parent_resource)).to_hash)
+          join_condition = query.merge(through.child_key(repository.name).zip(through.parent_key(parent_resource.repository.name).get(parent_resource)).to_hash)
 
           if max.kind_of?(Integer)
             join_condition.update(:limit => max)
@@ -182,7 +189,7 @@ module DataMapper
         end
       end # class Relationship
 
-      class Collection < DataMapper::Collection
+      class Collection < DataMapper::Associations::OneToMany::Collection
         attr_writer :relationship, :parent
 
         def reload(query = nil)
@@ -204,9 +211,64 @@ module DataMapper
         end
 
         def create(attributes = {})
-          # TODO: create the resources in the intermediaries
-          # TODO: create the resource in the child model
-          raise NotImplementedError
+          assert_parent_saved 'The parent must be saved before creating a Resource'
+
+          # NOTE: this is ugly as hell. this is a first draft to
+          # try to figure out an approach that will create all the
+          # inermediary records, in the right order, creating
+          # dependencies first.  this should probably be generalized
+          # so that it can also be used with new() and just have
+          # it create new resources that can be saved by iterating
+          # over a list, calling save() on each.
+
+          intermediaries = @relationship.intermediaries.dup
+
+          pivot, prev = [ nil, intermediaries.last ], nil
+
+          intermediaries.each do |relationship|
+            if relationship.kind_of?(ManyToOne::Relationship)
+              break pivot = [ prev, relationship ].compact
+            end
+
+            prev = relationship
+          end
+
+          head, tail = [ @parent ], []
+
+          while intermediaries.any?
+            relationship = if pivot.first == intermediaries.first
+              intermediaries.pop
+            else
+              intermediaries.shift
+            end
+
+            default_attributes = {}
+
+            if relationship.kind_of?(ManyToOne::Relationship)
+              if tail.any?
+                values = relationship.child_key(tail.first.repository.name).get(tail.first)
+                default_attributes.update(relationship.parent_key(relationship.parent_repository_name).zip(values).to_hash)
+              else
+                default_attributes.update(attributes)
+                default_attributes.update(self.send(:default_attributes))
+              end
+
+              tail.unshift(relationship.parent_model.create(default_attributes))
+            else
+              if relationship == pivot.first && pivot.size == 2 && head.any?
+                values = pivot.first.parent_key(head.last.repository.name).get(head.last)
+                default_attributes.update(pivot.first.child_key(repository.name).map { |p| p.name }.zip(values).to_hash)
+
+                values = pivot.last.parent_key(tail.first.repository.name).get(tail.first)
+                default_attributes.update(pivot.last.child_key(repository.name).map { |p| p.name }.zip(values).to_hash)
+              end
+
+              # TODO: make a Relationship#get retrieve the association ivar value
+              head << head.last.send(relationship.name).create(default_attributes)
+            end
+          end
+
+          tail.last
         end
 
         def update(attributes = {}, *allowed)
@@ -241,12 +303,38 @@ module DataMapper
 
         def relate_resource(resource)
           # TODO: queue up new intermediaries for creation
-          raise NotImplementedError
+
+          # TODO: figure out how to DRY this up.  Should we just inherit
+          # from Collection directly, and bypass OneToMany::Collection?
+          return if resource.nil?
+
+          resource.collection = self
+
+          unless resource.new_record?
+            @identity_map[resource.key] = resource
+            @orphans.delete(resource)
+          end
+
+          resource
         end
 
         def orphan_resource(resource)
           # TODO: queue up orphaned intermediaries for destruction
-          raise NotImplementedError
+
+          # TODO: figure out how to DRY this up.  Should we just inherit
+          # from Collection directly, and bypass OneToMany::Collection?
+          return if resource.nil?
+
+          if resource.collection.equal?(self)
+            resource.collection = nil
+          end
+
+          unless resource.new_record?
+            @identity_map.delete(resource.key)
+            @orphans << resource
+          end
+
+          resource
         end
       end # class Collection
     end # module ManyToMany

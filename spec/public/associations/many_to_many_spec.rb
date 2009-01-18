@@ -3,10 +3,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 # run the specs once with a loaded association and once not
 [ false, true ].each do |loaded|
   describe 'Many to Many Associations' do
-    before do
-      pending 'Many To Many Associations needs to be implemented'
-    end
-
     extend DataMapper::Spec::CollectionHelpers::GroupMethods
 
     self.loaded = loaded
@@ -20,11 +16,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         property :name, String
 
         has n, :articles, :through => Resource
-
-        # TODO: move conditions down to before block once author.articles(query)
-        # returns a ManyToMany::Collection object
-        has n, :sample_articles, :title => 'Sample Article', :class => 'Article', :through => Resource
-        has n, :other_articles,  :title => 'Other Article',  :class => 'Article', :through => Resource
       end
 
       class Article
@@ -39,10 +30,21 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         has n, :revisions,    :class => self
       end
 
+      # FIXME: make it so we don't have to "prime" the through association
+      # for the join model to be created by auto_migrate
+      Author.relationships[:articles].through
+      Article.relationships[:authors].through
+
       @model = Article
     end
 
     supported_by :all do
+      before do
+        if @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+          pending 'Many To Many does not work with In-Memory Adapter yet'
+        end
+      end
+
       before do
         @author = Author.create(:name => 'Dan Kubb')
 

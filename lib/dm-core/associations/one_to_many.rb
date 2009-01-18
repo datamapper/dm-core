@@ -22,8 +22,8 @@ module DataMapper
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
-          repository    = child_repository_name ? DataMapper.repository(child_repository_name) : parent_resource.repository
-          join_condition = query.merge(child_key.zip(parent_key.get(parent_resource)).to_hash)
+          repository     = child_repository_name ? DataMapper.repository(child_repository_name) : parent_resource.repository
+          join_condition = query.merge(child_key(repository.name).zip(parent_key(parent_resource.repository.name).get(parent_resource)).to_hash)
 
           if max.kind_of?(Integer)
             join_condition.update(:limit => max)
@@ -100,9 +100,9 @@ module DataMapper
         def reload(query = nil)
           # include the child_key in reloaded records
           fields = if query.kind_of?(Hash) && query.any?
-            query[:fields] = @relationship.child_key.to_a | (query[:fields] || [])
+            query[:fields] = @relationship.child_key(repository.name).to_a | (query[:fields] || [])
           elsif query.kind_of?(Query)
-            query.update(:fields => @relationship.child_key.to_a | query.fields)
+            query.update(:fields => @relationship.child_key(repository.name).to_a | query.fields)
           end
 
           super
@@ -184,8 +184,9 @@ module DataMapper
           #   - this will allow the parent to be saved later and the parent
           #     reference in the child to get an id, and since it is related
           #     to the child, the child will get the correct parent id
-          values = @relationship.parent_key.get(@parent)
-          @relationship.child_key.set(resource, values)
+          repository_name = @relationship.parent_repository_name || repository.name
+          values = @relationship.parent_key(repository_name).get(@parent)
+          @relationship.child_key(repository.name).set(resource, values)
 
           super
         end
@@ -196,7 +197,7 @@ module DataMapper
           return if resource.nil?
 
           # TODO: should just set the resource parent to nil using the mutator
-          @relationship.child_key.set(resource, [])
+          @relationship.child_key(repository.name).set(resource, [])
 
           super
         end
