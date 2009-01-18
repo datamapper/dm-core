@@ -54,14 +54,14 @@ module DataMapper
 
                 query = relationship.target_for(self)
 
-                association = relationship.class.collection_class.new(query)
+                collection = relationship.class.collection_class.new(query)
 
-                association.relationship = relationship
-                association.parent       = self
+                collection.relationship = relationship
+                collection.parent       = self
 
-                child_associations << association
+                child_associations << collection
 
-                association
+                collection
               end
             end
           RUBY
@@ -162,17 +162,17 @@ module DataMapper
         # TODO: document
         # @api private
         def new_collection(query, resources = nil, &block)
-          association = self.class.new(query, &block)
+          collection = self.class.new(query, &block)
 
-          association.relationship = @relationship
-          association.parent       = @parent
+          collection.relationship = @relationship
+          collection.parent       = @parent
 
           # set the resources after the relationship and parent are set
           if resources
-            association.replace(resources)
+            collection.replace(resources)
           end
 
-          association
+          collection
         end
 
         # TODO: document
