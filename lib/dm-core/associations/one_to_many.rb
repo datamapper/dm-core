@@ -132,28 +132,28 @@ module DataMapper
         # TODO: document
         # @api public
         def update(attributes = {}, *allowed)
-          assert_parent_saved 'The parent must be saved before mass-updating the association'
+          assert_parent_saved 'The parent must be saved before mass-updating the collection'
           super
         end
 
         # TODO: document
         # @api public
         def update!(attributes = {}, *allowed)
-          assert_parent_saved 'The parent must be saved before mass-updating the association without validation'
+          assert_parent_saved 'The parent must be saved before mass-updating the collection without validation'
           super
         end
 
         # TODO: document
         # @api public
         def destroy
-          assert_parent_saved 'The parent must be saved before mass-deleting the association'
+          assert_parent_saved 'The parent must be saved before mass-deleting the collection'
           super
         end
 
         # TODO: document
         # @api public
         def destroy!
-          assert_parent_saved 'The parent must be saved before mass-deleting the association without validation'
+          assert_parent_saved 'The parent must be saved before mass-deleting the collection without validation'
           super
         end
 
