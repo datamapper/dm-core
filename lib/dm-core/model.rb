@@ -439,14 +439,14 @@ module DataMapper
         model = values.at(inheritance_property_index) || model
       end
 
+      key_values = nil
+
       resource = if (key_property_indexes = query.key_property_indexes(repository)).any?
         identity_map = repository.identity_map(model)
         key_values   = values.values_at(*key_property_indexes)
 
-        identity_map[key_values] ||= model.allocate
-      else
-        model.allocate
-      end
+        identity_map[key_values]
+      end || model.allocate
 
       resource.instance_variable_set(:@repository, repository)
       resource.instance_variable_set(:@new_record, false)
@@ -467,7 +467,9 @@ module DataMapper
         property.set!(resource, value)
       end
 
-      if key_property_indexes.empty?
+      if key_values
+        identity_map[key_values] = resource
+      else
         resource.freeze
       end
 
