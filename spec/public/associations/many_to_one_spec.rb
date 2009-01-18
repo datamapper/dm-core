@@ -8,8 +8,9 @@ describe 'Many to One Associations' do
       property :name,        String, :key => true
       property :age,         Integer
       property :description, Text
-      property :admin,       Boolean, :default => false, :accessor => :private
+      property :admin,       Boolean, :accessor => :private
 
+      belongs_to :referrer, :class => self, :child_key => [ :referrer_name ]
       has n, :comments
     end
 

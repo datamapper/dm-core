@@ -611,6 +611,8 @@ module DataMapper
       if name == :DM
         warn "#{name} prefix deprecated and no longer necessary"
         self
+      elsif name == :Resource
+        DataMapper::Resource
       elsif DataMapper::Types.const_defined?(name)
         DataMapper::Types.const_get(name)
       else

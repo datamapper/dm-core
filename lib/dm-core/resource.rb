@@ -36,17 +36,10 @@ module DataMapper
     def self.included(model)
       model.extend Model
 
-      if defined?(ClassMethods)
-        warn "#{ClassMethods} is deprecated, add methods to #{Model} instead"
-        model.extend ClassMethods
-      end
-
-      unless model.const_defined?('Resource')
-        model.const_set('Resource', self)
-      end
-
       extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
+
       descendants << model
+
       class << model
         @_valid_model = false
         attr_reader :_valid_model
@@ -552,8 +545,6 @@ module DataMapper
         return false
       end
 
-      original_values.clear
-
       child_associations.all? { |a| a.save }
     end
 
@@ -612,7 +603,7 @@ module DataMapper
 
       # set defaults for new resource
       properties.each do |property|
-        if property.default? && !property.loaded?(self)
+        unless property.serial? || property.loaded?(self)
           property.set(self, property.default_for(self))
         end
       end
@@ -623,6 +614,8 @@ module DataMapper
 
       @repository = repository
       @new_record = false
+
+      original_values.clear
 
       repository.identity_map(model)[key] = self
 
@@ -637,11 +630,13 @@ module DataMapper
 
       if dirty_attributes.empty?
         true
-      elsif dirty_attributes.only(*model.key).any? { |_,v| v.blank? }
+      elsif dirty_attributes.any? { |p,v| !p.nullable? && v.nil? }
         false
       elsif repository.update(dirty_attributes, to_query) != 1
         false
       else
+        original_values.clear
+
         repository.identity_map(model)[key] = self
 
         true
@@ -750,7 +745,9 @@ module DataMapper
         return true
       end
 
-      loaded, not_loaded = properties.partition do |property|
+      # get all the loaded and non-loaded properties that are not keys,
+      # since the key comparison was performed earlier
+      loaded, not_loaded = properties.select { |p| !p.key? }.partition do |property|
         property.loaded?(self) && property.loaded?(other)
       end
 

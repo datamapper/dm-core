@@ -76,26 +76,17 @@ module DataMapper
       # @api public
       def primitive(primitive = nil)
         return @primitive if primitive.nil?
-
-        # TODO: change Integer to be used internally once most in-the-wild code
-        # is updated to use Integer for properties instead of Fixnum, or before
-        # DM 1.0, whichever comes first
-        if Fixnum == primitive
-          warn "#{primitive} properties are deprecated.  Please use Integer instead"
-          primitive = Integer
-        end
-
         @primitive = primitive
       end
 
       # Load DataMapper::Property options
       PROPERTY_OPTIONS.each do |property_option|
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{property_option}(arg = nil)         # def unique(arg = nil)
-            return @#{property_option} if arg.nil?  #   return @unique if arg.nil?
-                                                    #
-            @#{property_option} = arg               #   @unique = arg
-          end                                       # end
+          def #{property_option}(#{property_option} = nil)         # def unique(unique = nil)
+            return @#{property_option} if #{property_option}.nil?  #   return @unique if unique.nil?
+                                                                   #
+            @#{property_option} = #{property_option}               #   @unique = unique
+          end                                                      # end
         RUBY
       end
 

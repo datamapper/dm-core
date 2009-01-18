@@ -729,13 +729,17 @@ module DataMapper
 
       if dirty_attributes.empty?
         true
-      elsif dirty_attributes.only(*model.key).values.any? { |v| v.blank? }
+      elsif dirty_attributes.any? { |p,v| !p.nullable? && v.nil? }
         false
       else
         updated = repository.update(dirty_attributes, query)
 
         if loaded?
-          each { |r| r.attributes = attributes }
+          each do |resource|
+            dirty_attributes.each { |p,v| p.set!(resource, v) }
+            repository.identity_map(model)[resource.key] = resource
+          end
+
           updated == size
         else
           true

@@ -156,7 +156,7 @@ share_examples_for 'A public Resource' do
 
   describe '#attributes' do
 
-    it { @user.attributes.should == {:name => 'dbussink', :description => "Test", :age => 25} }
+    it { @user.attributes.should == {:name => 'dbussink', :description => "Test", :age => 25, :referrer_name => nil} }
 
   end
 
@@ -250,6 +250,17 @@ share_examples_for 'A public Resource' do
       before do
         @other  = Author.new(@user.attributes)
         @return = @user.eql?(@other)
+      end
+
+      it 'should return false' do
+        @return.should be_false
+      end
+    end
+
+    describe 'when comparing to a resource with a different key' do
+      before do
+        @other     = @model.create(:name => 'dkubb', :age => 33)
+        @return    = @user.eql?(@other)
       end
 
       it 'should return false' do
@@ -385,7 +396,20 @@ share_examples_for 'A public Resource' do
 
   describe '#save' do
 
-    describe 'on a not dirty object' do
+    describe 'on a new, not dirty object' do
+
+      before do
+        @user = @model.new
+        @return = @user.save
+      end
+
+      it 'should return false' do
+        @return.should be_false
+      end
+
+    end
+
+    describe 'on a not new, not dirty object' do
 
       it 'should return true even when resource is not dirty' do
         @user.save.should be_true
@@ -393,7 +417,7 @@ share_examples_for 'A public Resource' do
 
     end
 
-    describe 'on a dirty object' do
+    describe 'on a not new, dirty object' do
 
       before do
         @user.age = 26
@@ -571,6 +595,74 @@ share_examples_for 'A public Resource' do
 
     end
 
+  end
+
+  it { @user.should respond_to(:update) }
+
+  describe '#update' do
+    describe 'with no arguments' do
+      before do
+        @return = @user.update
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+    end
+
+    describe 'with attributes' do
+      before do
+        @attributes = { :description => 'Changed' }
+        @return = @user.update(@attributes)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+
+      it 'should update attributes of Resource' do
+        @attributes.each { |k,v| @user.send(k).should == v }
+      end
+
+      it 'should persist the changes' do
+        resource = @model.get(*@user.key)
+        @attributes.each { |k,v| resource.send(k).should == v }
+      end
+    end
+
+    describe 'with attributes where one is a parent association' do
+      before do
+        @attributes = { :referrer => @model.create(:name => 'dkubb', :age => 33) }
+        @return = @user.update(@attributes)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+
+      it 'should update attributes of Resource' do
+        @attributes.each { |k,v| @user.send(k).should == v }
+      end
+
+      it 'should persist the changes' do
+        resource = @model.get(*@user.key)
+        @attributes.each { |k,v| resource.send(k).should == v }
+      end
+    end
+
+    describe 'with attributes where a value is nil for a property that does not allow nil' do
+      before do
+        @return = @user.update(:name => nil)
+      end
+
+      it 'should return false' do
+        @return.should be_false
+      end
+
+      it 'should not persist the changes' do
+        @user.reload.name.should_not be_nil
+      end
+    end
   end
 
   describe 'invalid resources' do
