@@ -4,8 +4,8 @@ module DataMapper
       include Extlib::Assertions
 
       # silence Object deprecation warnings
-      undef_method :id
-      undef_method :type
+      undef_method :id   if method_defined?(:id)
+      undef_method :type if method_defined?(:type)
 
       attr_reader :relationships, :model, :property, :operator
 
