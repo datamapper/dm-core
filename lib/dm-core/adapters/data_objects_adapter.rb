@@ -227,11 +227,15 @@ module DataMapper
           limit  = query.limit
           offset = query.offset
 
+          if query.unique?
+            group_by = fields.select { |p| p.kind_of?(Property) }
+          end
+
           statement = "SELECT #{columns_statement(query, fields)}"
           statement << " FROM #{quote_name(query.model.storage_name(name))}"
           statement << join_statement(query)                             if query.links.any?
           statement << " WHERE #{where_statement(query)}"                if query.conditions.any?
-          statement << " GROUP BY #{columns_statement(query, group_by)}" if query.unique? && (group_by = fields.select { |p| p.kind_of?(Property) }).any?
+          statement << " GROUP BY #{columns_statement(query, group_by)}" if group_by && group_by.any?
           statement << " ORDER BY #{order_by_statement(query)}"          if query.order.any?
           statement << " LIMIT #{quote_value(limit)}"                    if limit
           statement << " OFFSET #{quote_value(offset)}"                  if offset && offset > 0
