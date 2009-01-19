@@ -3,14 +3,14 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 describe DataMapper::Property do
   before :each do
     Object.send(:remove_const, :Zoo) if defined?(Zoo)
-    class Zoo
+    class ::Zoo
       include DataMapper::Resource
 
       property :id, DataMapper::Types::Serial
     end
 
     Object.send(:remove_const, :Name) if defined?(Name)
-    class Name < DataMapper::Type
+    class ::Name < DataMapper::Type
       primitive String
       track :hash
 
@@ -28,7 +28,7 @@ describe DataMapper::Property do
     end
 
     Object.send(:remove_const, :Tomato) if defined?(Tomato)
-    class Tomato
+    class ::Tomato
       include DataMapper::Resource
     end
   end
@@ -429,8 +429,8 @@ describe DataMapper::Property do
         Tomato.class_eval <<-RUBY
           property :botanical_name, String, #{input.inspect}
         RUBY
-        Tomato.send("#{output[0]}_instance_methods").should include("botanical_name")
-        Tomato.send("#{output[1]}_instance_methods").should include("botanical_name=")
+        Tomato.send("#{output[0]}_instance_methods").map { |m| m.to_s }.should include("botanical_name")
+        Tomato.send("#{output[1]}_instance_methods").map { |m| m.to_s }.should include("botanical_name=")
       end
     end
 
@@ -466,7 +466,7 @@ describe DataMapper::Property do
   # end
 
   it "should append ? to TrueClass property reader methods" do
-    class Potato
+    class ::Potato
       include DataMapper::Resource
       property :id, Integer, :key => true
       property :fresh, TrueClass

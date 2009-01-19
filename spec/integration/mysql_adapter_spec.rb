@@ -7,7 +7,7 @@ if HAS_MYSQL
     end
 
     before :all do
-      class Sputnik
+      class ::Sputnik
         include DataMapper::Resource
 
         property :id, Serial

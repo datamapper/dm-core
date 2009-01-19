@@ -48,7 +48,7 @@ module DataMapper
       class Proxy
         include Assertions
 
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ kind_of? respond_to? assert_kind_of should should_not instance_variable_set instance_variable_get ].include?(m.to_s) }
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ object_id kind_of? respond_to? assert_kind_of should should_not instance_variable_set instance_variable_get ].include?(m.to_s) }
 
         def replace(parent)
           @parent = parent

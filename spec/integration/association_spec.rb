@@ -9,7 +9,7 @@ if HAS_SQLITE3
       FileUtils.touch(db2)
       DataMapper.setup(:custom_db1, "sqlite3://#{db1}")
       DataMapper.setup(:custom_db2, "sqlite3://#{db2}")
-      class CustomParent
+      class ::CustomParent
         include DataMapper::Resource
         def self.default_repository_name
           :custom_db1
@@ -20,7 +20,7 @@ if HAS_SQLITE3
           has n, :custom_childs
         end
       end
-      class CustomChild
+      class ::CustomChild
         include DataMapper::Resource
         def self.default_repository_name
           :custom_db2
@@ -70,7 +70,7 @@ end
 
 if ADAPTER
   repository(ADAPTER) do
-    class Machine
+    class ::Machine
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -84,7 +84,7 @@ if ADAPTER
       has n, :fussy_areas, :class_name => 'Area', :rating.gte => 3, :type => 'particular'
     end
 
-    class Area
+    class ::Area
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -99,7 +99,7 @@ if ADAPTER
       belongs_to :machine
     end
 
-    class Pie
+    class ::Pie
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -112,7 +112,7 @@ if ADAPTER
       belongs_to :sky
     end
 
-    class Sky
+    class ::Sky
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -125,7 +125,7 @@ if ADAPTER
       has 1, :pie
     end
 
-    class Ultrahost
+    class ::Ultrahost
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -138,7 +138,7 @@ if ADAPTER
       has n, :ultraslices, :order => [:id.desc]
     end
 
-    class Ultraslice
+    class ::Ultraslice
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -151,7 +151,7 @@ if ADAPTER
       belongs_to :ultrahost
     end
 
-    class Node
+    class ::Node
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -165,7 +165,7 @@ if ADAPTER
       belongs_to :parent, :class_name => 'Node', :child_key => [ :parent_id ]
     end
 
-    class MadeUpThing
+    class ::MadeUpThing
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -178,7 +178,7 @@ if ADAPTER
       belongs_to :machine
     end
 
-    module Models
+    module ::Models
       class Project
         include DataMapper::Resource
 
@@ -220,7 +220,7 @@ if ADAPTER
       end
     end
 
-    class Galaxy
+    class ::Galaxy
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -231,7 +231,7 @@ if ADAPTER
       property :size, Float,  :key => true, :precision => 15, :scale => 6
     end
 
-    class Star
+    class ::Star
       include DataMapper::Resource
 
       def self.default_repository_name
@@ -303,7 +303,7 @@ if ADAPTER
       end
 
       it 'should create the foreign key property immediately' do
-        class Duck
+        class ::Duck
           include DataMapper::Resource
           property :id, Serial
           belongs_to :sky
@@ -334,7 +334,7 @@ if ADAPTER
 
       it '#belongs_to with namespaced models' do
         repository(ADAPTER) do
-          module FlightlessBirds
+          module ::FlightlessBirds
             class Ostrich
               include DataMapper::Resource
               property :id, Serial
@@ -728,7 +728,7 @@ if ADAPTER
     describe 'through-associations' do
       before :all do
         repository(ADAPTER) do
-          module Sweets
+          module ::Sweets
             class Shop
               include DataMapper::Resource
               def self.default_repository_name
@@ -1219,7 +1219,7 @@ if ADAPTER
     if false # Many to many not yet implemented
     describe "many to many associations" do
       before(:all) do
-        class RightItem
+        class ::RightItem
           include DataMapper::Resource
 
           def self.default_repository_name
@@ -1232,7 +1232,7 @@ if ADAPTER
           has n..n, :left_items
         end
 
-        class LeftItem
+        class ::LeftItem
           include DataMapper::Resource
 
           def self.default_repository_name

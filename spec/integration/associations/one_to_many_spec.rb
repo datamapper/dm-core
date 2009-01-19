@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 require 'pp'
 describe "OneToMany" do
   before(:all) do
-    class Team
+    class ::Team
       include DataMapper::Resource
 
       def self.default_repository_name; ADAPTER end
@@ -14,10 +14,10 @@ describe "OneToMany" do
       has n, :players
     end
 
-    class BaseballTeam < Team
+    class ::BaseballTeam < Team
     end
 
-    class Player
+    class ::Player
       include DataMapper::Resource
 
       def self.default_repository_name; ADAPTER end

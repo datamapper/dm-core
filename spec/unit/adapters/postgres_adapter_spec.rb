@@ -25,7 +25,7 @@ if HAS_POSTGRES
         @adapter.stub!(:query).and_return([ 0 ])
 
         @original_method = @adapter.class.superclass.instance_method(:upgrade_model_storage)
-        @adapter.class.superclass.send(:define_method, :upgrade_model_storage) {}
+        @adapter.class.superclass.send(:define_method, :upgrade_model_storage) { |repository, model| }
       end
 
       after do
@@ -49,7 +49,7 @@ if HAS_POSTGRES
 
       it 'should execute the superclass upgrade_model_storage' do
         rv = mock('inside super')
-        @adapter.class.superclass.send(:define_method, :upgrade_model_storage) { rv }
+        @adapter.class.superclass.send(:define_method, :upgrade_model_storage) { |repository, model| rv }
         @adapter.upgrade_model_storage(@repository, @model).should == rv
       end
     end
@@ -91,7 +91,7 @@ if HAS_POSTGRES
 
       it 'should execute the superclass upgrade_model_storage' do
         rv = mock('inside super')
-        @adapter.class.superclass.send(:define_method, :create_table_statement) { rv }
+        @adapter.class.superclass.send(:define_method, :create_table_statement) { |repository, model| rv }
         @adapter.create_table_statement(@repository, @model).should == rv
       end
     end
@@ -117,13 +117,13 @@ if HAS_POSTGRES
 
       it 'should not execute the superclass destroy_model_storage if the storage does not exist' do
         rv = mock('inside super')
-        @adapter.class.superclass.send(:define_method, :destroy_model_storage) { rv }
+        @adapter.class.superclass.send(:define_method, :destroy_model_storage) { |repository, model| rv }
         @adapter.destroy_model_storage(@repository, @model).should_not == rv
       end
 
       it 'should execute the superclass destroy_model_storage if the storage exists' do
         rv = mock('inside super')
-        @adapter.class.superclass.send(:define_method, :destroy_model_storage) { rv }
+        @adapter.class.superclass.send(:define_method, :destroy_model_storage) { |repository, model| rv }
         @adapter.stub!(:storage_exists?).and_return(true)
 
         @adapter.destroy_model_storage(@repository, @model).should == rv

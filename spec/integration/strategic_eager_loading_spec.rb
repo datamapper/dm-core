@@ -4,7 +4,7 @@ describe "Strategic Eager Loading" do
   include LoggingHelper
 
   before :all do
-    class Zoo
+    class ::Zoo
       include DataMapper::Resource
       def self.default_repository_name; ADAPTER end
 
@@ -14,7 +14,7 @@ describe "Strategic Eager Loading" do
       has n, :exhibits
     end
 
-    class Exhibit
+    class ::Exhibit
       include DataMapper::Resource
       def self.default_repository_name; ADAPTER end
 
@@ -26,7 +26,7 @@ describe "Strategic Eager Loading" do
       has n, :animals
     end
 
-    class Animal
+    class ::Animal
       include DataMapper::Resource
       def self.default_repository_name; ADAPTER end
 
@@ -67,11 +67,12 @@ describe "Strategic Eager Loading" do
       logger do |log|
         dallas.exhibits.entries # load all exhibits for zoos in identity_map
         dallas.exhibits.size.should == 1
-        log.readlines.size.should == 1
-      end
 
-      repository.identity_map(Zoo).keys.sort.should == zoo_ids
-      repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
+        log.readlines.size.should == 1
+
+        repository.identity_map(Zoo).keys.sort.should == zoo_ids
+        repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
+      end
 
       logger do |log|
         zoos.each { |zoo| zoo.exhibits.entries } # issues no queries
@@ -97,16 +98,17 @@ describe "Strategic Eager Loading" do
       logger do |log|
         reptiles = dallas.exhibits(:name => 'Reptiles')
         reptiles.size.should == 1
+
         log.readlines.size.should == 1
       end
 
       logger do |log|
         primates = dallas.exhibits(:name => 'Primates')
         primates.size.should == 1
+        primates.should_not == reptiles
+
         log.readlines.size.should == 1
       end
-
-      primates.should_not == reptiles
     end
   end
 
@@ -121,11 +123,12 @@ describe "Strategic Eager Loading" do
 
       logger do |log|
         bear.exhibit
+
+        repository.identity_map(Animal).keys.sort.should == animal_ids
+        repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
+
         log.readlines.size.should == 1
       end
-
-      repository.identity_map(Animal).keys.sort.should == animal_ids
-      repository.identity_map(Exhibit).keys.sort.should == exhibit_ids
     end
   end
 

@@ -8,7 +8,7 @@ SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 require SPEC_ROOT.parent + 'lib/dm-core'
 
 # Load the various helpers for the spec suite
-Dir[DataMapper.root / 'spec' / 'lib' / '*.rb'].each do |file|
+Dir[(DataMapper.root / 'spec' / 'lib' / '*.rb').to_s].each do |file|
   require file
 end
 

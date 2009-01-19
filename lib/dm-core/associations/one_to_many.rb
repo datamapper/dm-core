@@ -72,7 +72,7 @@ module DataMapper
       class Proxy
         include Assertions
 
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class kind_of? respond_to? assert_kind_of should should_not instance_variable_set instance_variable_get ].include?(m.to_s) }
+        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ class object_id kind_of? respond_to? assert_kind_of should should_not instance_variable_set instance_variable_get ].include?(m.to_s) }
 
         # FIXME: remove when RelationshipChain#get_children can return a Collection
         def all(query = {})
@@ -85,14 +85,14 @@ module DataMapper
             query = args.pop
             @relationship.get_children(@parent, query, :first, *args)
           else
-            super
+            children.first(*args)
           end
         end
 
         def <<(resource)
           assert_mutable
           return self if !resource.new_record? && self.include?(resource)
-          super
+          children << resource
           relate_resource(resource)
           self
         end
@@ -100,7 +100,7 @@ module DataMapper
         def push(*resources)
           assert_mutable
           resources.reject { |resource| !resource.new_record? && self.include?(resource) }
-          super
+          children.push(*resources)
           resources.each { |resource| relate_resource(resource) }
           self
         end
@@ -108,7 +108,7 @@ module DataMapper
         def unshift(*resources)
           assert_mutable
           resources.reject { |resource| !resource.new_record? && self.include?(resource) }
-          super
+          children.unshift(*resources)
           resources.each { |resource| relate_resource(resource) }
           self
         end
@@ -117,42 +117,42 @@ module DataMapper
           assert_mutable
           each { |resource| orphan_resource(resource) }
           other = other.map { |resource| resource.kind_of?(Hash) ? new_child(resource) : resource }
-          super
+          children.replace(other)
           other.each { |resource| relate_resource(resource) }
           self
         end
 
         def pop
           assert_mutable
-          orphan_resource(super)
+          orphan_resource(children.pop)
         end
 
         def shift
           assert_mutable
-          orphan_resource(super)
+          orphan_resource(children.shift)
         end
 
         def delete(resource)
           assert_mutable
-          orphan_resource(super)
+          orphan_resource(children.delete(resource))
         end
 
         def delete_at(index)
           assert_mutable
-          orphan_resource(super)
+          orphan_resource(children.delete_at(index))
         end
 
         def clear
           assert_mutable
           each { |resource| orphan_resource(resource) }
-          super
+          children.clear
           self
         end
 
         def build(attributes = {})
           assert_mutable
           attributes = default_attributes.merge(attributes)
-          resource = children.respond_to?(:build) ? super(attributes) : new_child(attributes)
+          resource = children.respond_to?(:build) ? children.build(attributes) : new_child(attributes)
           resource
         end
 
@@ -160,7 +160,7 @@ module DataMapper
           assert_mutable
           raise UnsavedParentError, 'You cannot intialize until the parent is saved' if @parent.new_record?
           attributes = default_attributes.merge(attributes)
-          resource = children.respond_to?(:new) ? super(attributes) : @relationship.child_model.new(attributes)
+          resource = children.respond_to?(:new) ? children.new(attributes) : @relationship.child_model.new(attributes)
           self << resource
           resource
         end
@@ -169,7 +169,7 @@ module DataMapper
           assert_mutable
           raise UnsavedParentError, 'You cannot create until the parent is saved' if @parent.new_record?
           attributes = default_attributes.merge(attributes)
-          resource = children.respond_to?(:create) ? super(attributes) : @relationship.child_model.create(attributes)
+          resource = children.respond_to?(:create) ? children.create(attributes) : @relationship.child_model.create(attributes)
           self << resource
           resource
         end
@@ -177,25 +177,25 @@ module DataMapper
         def update(attributes = {})
           assert_mutable
           raise UnsavedParentError, 'You cannot mass-update until the parent is saved' if @parent.new_record?
-          super
+          children.update(attributes)
         end
 
         def update!(attributes = {})
           assert_mutable
           raise UnsavedParentError, 'You cannot mass-update without validations until the parent is saved' if @parent.new_record?
-          super
+          children.update!(attributes)
         end
 
         def destroy
           assert_mutable
           raise UnsavedParentError, 'You cannot mass-delete until the parent is saved' if @parent.new_record?
-          super
+          children.destroy
         end
 
         def destroy!
           assert_mutable
           raise UnsavedParentError, 'You cannot mass-delete without validations until the parent is saved' if @parent.new_record?
-          super
+          children.destroy!
         end
 
         def reload

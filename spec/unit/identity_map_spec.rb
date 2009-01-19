@@ -2,18 +2,18 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe "DataMapper::IdentityMap" do
   before(:all) do
-    class Cow
+    class ::Cow
       include DataMapper::Resource
       property :id, Integer, :key => true
       property :name, String
     end
 
-    class Chicken
+    class ::Chicken
       include DataMapper::Resource
       property :name, String
     end
 
-    class Pig
+    class ::Pig
       include DataMapper::Resource
       property :id, Integer, :key => true
       property :composite, Integer, :key => true

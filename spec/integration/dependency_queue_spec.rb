@@ -27,7 +27,7 @@ describe "DataMapper::DependencyQueue" do
       before :each do
         @q.add('MissingConstant') { |klass| klass.instance_variable_set("@resolved", true) } # add before MissingConstant is loaded
 
-        class MissingConstant
+        class ::MissingConstant
         end
       end
 

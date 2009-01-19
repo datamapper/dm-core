@@ -58,7 +58,7 @@ if ADAPTER
           step_child = ManyToOneSpec::StepChild.first(:id => @step_child.id)
           logger do |log|
             # should retrieve from the IdentityMap
-            child.parent.object_id.should == parent.object_id
+            child.parent.should equal(parent)
 
             # should retrieve from the datasource
             other = step_child.parent

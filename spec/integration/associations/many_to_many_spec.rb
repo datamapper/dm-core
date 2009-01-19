@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "spec_hel
 
 describe DataMapper::Associations::ManyToMany::Proxy do
   before :all do
-    class Editor
+    class ::Editor
       include DataMapper::Resource
 
       def self.default_repository_name; ADAPTER end
@@ -15,7 +15,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
 
     Object.send(:remove_const, :Book) if defined?(Book)
 
-    class Book
+    class ::Book
       include DataMapper::Resource
 
       def self.default_repository_name; ADAPTER end
@@ -190,7 +190,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
 
   describe "with natural keys" do
     before :all do
-      class Author
+      class ::Author
         include DataMapper::Resource
 
         def self.default_repository_name; ADAPTER end
@@ -200,7 +200,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
         has n, :books, :through => Resource
       end
 
-      class Book
+      class ::Book
         has n, :authors, :through => Resource
       end
     end
@@ -237,7 +237,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
 
   describe "When join model has non-serial (integer) natural keys." do
     before :all do
-      class Tag
+      class ::Tag
         include DataMapper::Resource
 
         def self.default_repository_name; ADAPTER end
@@ -249,7 +249,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
         has n, :books, :through => :book_taggings
       end
 
-      class BookTagging
+      class ::BookTagging
         include DataMapper::Resource
 
         def self.default_repository_name; ADAPTER end
@@ -261,7 +261,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
         belongs_to :tag
       end
 
-      class Book
+      class ::Book
         has n, :book_taggings
         has n, :tags, :through => :book_taggings
       end
@@ -296,7 +296,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
 
   describe "with renamed associations" do
     before :all do
-      class Singer
+      class ::Singer
         include DataMapper::Resource
 
         def self.default_repository_name; ADAPTER end
@@ -307,7 +307,7 @@ describe DataMapper::Associations::ManyToMany::Proxy do
         has n, :tunes, :through => Resource, :class_name => 'Song'
       end
 
-      class Song
+      class ::Song
         include DataMapper::Resource
 
         def self.default_repository_name; ADAPTER end

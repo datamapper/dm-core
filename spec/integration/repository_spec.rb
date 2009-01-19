@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 if ADAPTER
   describe DataMapper::Repository, "with #{ADAPTER}" do
     before :all do
-      class SerialFinderSpec
+      class ::SerialFinderSpec
         include DataMapper::Resource
 
         property :id, Serial

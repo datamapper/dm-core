@@ -6,7 +6,7 @@ describe DataMapper::Associations::ManyToOne do
 
   it 'should allow a declaration' do
     lambda do
-      class Vehicle
+      class ::Vehicle
         belongs_to :manufacturer
       end
     end.should_not raise_error
@@ -102,7 +102,7 @@ describe DataMapper::Associations::ManyToOne::Proxy do
       end
 
       it 'should save the parent' do
-        @relationship.should_receive(:with_repository).and_yield(@repository)
+        @relationship.should_receive(:with_repository).and_yield
         @parent.should_receive(:save).with(no_args)
         @association.save
       end
@@ -112,7 +112,7 @@ describe DataMapper::Associations::ManyToOne::Proxy do
         child_key.should_receive(:set).and_return(true)
         parent_key = mock("parent_key")
         parent_key.should_receive(:get).and_return(1)
-        @relationship.should_receive(:with_repository).and_yield(@repository)
+        @relationship.should_receive(:with_repository).and_yield
         @relationship.should_receive(:child_key).and_return(child_key)
         @relationship.should_receive(:parent_key).and_return(parent_key)
         save_results = mock('save results')

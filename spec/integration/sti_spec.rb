@@ -8,7 +8,7 @@ if HAS_SQLITE3
 
       @property_class = Struct.new(:name, :type, :nullable, :default, :serial)
 
-      class Book
+      class ::Book
         include DataMapper::Resource
 
         property :id,       Serial
@@ -17,23 +17,23 @@ if HAS_SQLITE3
         property :class_type, Discriminator
       end
 
-      class Propaganda < Book
+      class ::Propaganda < Book
         property :marxist,  Boolean,    :nullable => false, :default => false
       end
 
-      class Fiction < Book
+      class ::Fiction < Book
         property :series,   String
       end
 
-      class ShortStory < Fiction
+      class ::ShortStory < Fiction
         property :moral,    String
       end
 
-      class ScienceFiction < Fiction
+      class ::ScienceFiction < Fiction
         property :aliens, Boolean
       end
 
-      class SpaceWestern < ScienceFiction
+      class ::SpaceWestern < ScienceFiction
         property :cowboys, Boolean
       end
     end

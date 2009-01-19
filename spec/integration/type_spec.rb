@@ -1,10 +1,14 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-gem 'fastercsv', '~>1.4.0'
-require 'fastercsv'
+if RUBY_VERSION >= '1.9.0'
+  require 'csv'
+else
+  gem 'fastercsv', '~>1.4.0'
+  require 'fastercsv'
+end
 
 if ADAPTER
-  module TypeTests
+  module ::TypeTests
     class Impostor < DataMapper::Type
       primitive String
     end
@@ -25,7 +29,7 @@ if ADAPTER
     end
   end
 
-  class Lemon
+  class ::Lemon
     include DataMapper::Resource
 
     def self.default_repository_name
@@ -37,7 +41,7 @@ if ADAPTER
     property :deleted_at, DataMapper::Types::ParanoidDateTime
   end
 
-  class Lime
+  class ::Lime
     include DataMapper::Resource
 
     def self.default_repository_name
@@ -199,7 +203,7 @@ if ADAPTER
         DataMapper::Repository.adapters[:alternate_paranoid] = repository(ADAPTER).adapter.dup
 
         Object.send(:remove_const, :Orange) if defined?(Orange)
-        class Orange
+        class ::Orange
           include DataMapper::Resource
 
           def self.default_repository_name

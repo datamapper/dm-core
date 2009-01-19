@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 if ADAPTER
-  module ModelSpec
+  module ::ModelSpec
     class STI
       include DataMapper::Resource
 

@@ -85,11 +85,11 @@ describe DataMapper::Associations::OneToMany do
 
     describe 'proxy accessor' do
       before :all do
-        class User
+        class ::User
           include DataMapper::Resource
         end
 
-        class Order
+        class ::Order
           include DataMapper::Resource
         end
       end

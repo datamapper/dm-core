@@ -1,11 +1,15 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-gem 'fastercsv', '~>1.4.0'
-require 'fastercsv'
+if RUBY_VERSION >= '1.9.0'
+  require 'csv'
+else
+  gem 'fastercsv', '~>1.4.0'
+  require 'fastercsv'
+end
 
 describe DataMapper::Property do
   before do
-    module PropertySpec
+    module ::PropertySpec
       class Resource
         include DataMapper::Resource
       end
@@ -23,7 +27,7 @@ if ADAPTER
   describe DataMapper::Property, "with #{ADAPTER}" do
     describe " tracking strategies" do
       before :all do
-        class Actor
+        class ::Actor
           include DataMapper::Resource
 
           property :id, Serial
@@ -145,7 +149,7 @@ if ADAPTER
 
     describe "lazy loading" do
       before :all do
-        class RowBoat
+        class ::RowBoat
           include DataMapper::Resource
           property :id, Serial
           property :notes, String, :lazy => [:notes]
@@ -198,7 +202,7 @@ if ADAPTER
 
     describe 'defaults' do
       before :all do
-        class Catamaran
+        class ::Catamaran
           include DataMapper::Resource
           property :id, Serial
           property :name, String

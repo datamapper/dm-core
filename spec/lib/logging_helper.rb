@@ -1,18 +1,18 @@
 module LoggingHelper
-  def logger(adapter = ADAPTER, &block)
-    current_adapter = DataObjects.const_get(repository(adapter).adapter.uri.scheme.capitalize)
-    old_logger = current_adapter.logger
+  def logger
+    class << DataMapper.logger
+      attr_writer :log
+    end
 
-    log_path = File.join(SPEC_ROOT, "tmp.log")
-    handle = File.open(log_path, "a+")
-    current_adapter.logger = DataObjects::Logger.new(log_path, 0)
+    old_log = DataMapper.logger.log
+
     begin
-      yield(handle)
+      StringIO.new('') do |io|
+        DataMapper.logger.log = io
+        yield io
+      end
     ensure
-      handle.truncate(0)
-      handle.close
-      current_adapter.logger = old_logger
-      File.delete(log_path)
+      DataMapper.logger.log = old_log
     end
   end
 end

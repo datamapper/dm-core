@@ -8,7 +8,7 @@ if HAS_SQLITE3
 
     describe "auto migrating" do
       before :all do
-        class Sputnik
+        class ::Sputnik
           include DataMapper::Resource
 
           property :id, Serial
@@ -30,7 +30,7 @@ if HAS_SQLITE3
 
     describe "querying metadata" do
       before :all do
-        class Sputnik
+        class ::Sputnik
           include DataMapper::Resource
 
           property :id, Serial
@@ -76,7 +76,7 @@ if HAS_SQLITE3
 
     describe "handling transactions" do
       before :all do
-        class Sputnik
+        class ::Sputnik
           include DataMapper::Resource
 
           property :id, Serial
@@ -108,7 +108,7 @@ if HAS_SQLITE3
 
     describe "reading & writing a database" do
       before :all do
-        class User
+        class ::User
           include DataMapper::Resource
 
           property :id, Serial
@@ -134,7 +134,7 @@ if HAS_SQLITE3
         result.should be_kind_of(Array)
         row = result.first
         row.should be_kind_of(Struct)
-        row.members.should == %w{id name}
+        row.members.map { |m| m.to_s }.should == %w{id name}
 
         row.id.should == 1
         row.name.should == 'Paul'
@@ -153,7 +153,7 @@ if HAS_SQLITE3
 
     describe "CRUD for serial Key" do
       before :all do
-        class VideoGame
+        class ::VideoGame
           include DataMapper::Resource
 
           property :id, Serial
@@ -255,7 +255,7 @@ if HAS_SQLITE3
 
     describe "CRUD for Composite Key" do
       before :all do
-        class BankCustomer
+        class ::BankCustomer
           include DataMapper::Resource
 
           property :bank, String, :key => true

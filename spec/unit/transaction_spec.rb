@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 describe DataMapper::Transaction do
 
   before :all do
-    class Smurf
+    class ::Smurf
       include DataMapper::Resource
       property :id, Integer, :key => true
     end

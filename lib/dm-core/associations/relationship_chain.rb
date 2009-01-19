@@ -60,7 +60,7 @@ module DataMapper
       # @api private
       def links
         if remote_relationship.kind_of?(RelationshipChain)
-          remote_relationship.instance_eval { links } + [remote_relationship.instance_eval { near_relationship } ]
+          remote_relationship.send(:links) + [ remote_relationship.send(:near_relationship) ]
         else
           [ remote_relationship ]
         end

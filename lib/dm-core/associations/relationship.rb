@@ -60,14 +60,16 @@ module DataMapper
 
       # @api private
       def parent_model
-        Class === @parent_model ? @parent_model : (Class === @child_model ? @child_model.find_const(@parent_model) : Object.find_const(@parent_model))
+        return @parent_model if model_defined?(@parent_model)
+        @parent_model = @child_model.find_const(@parent_model)
       rescue NameError
         raise NameError, "Cannot find the parent_model #{@parent_model} for #{@child_model}"
       end
 
       # @api private
       def child_model
-        Class === @child_model ? @child_model : (Class === @parent_model ? @parent_model.find_const(@child_model) : Object.find_const(@child_model))
+        return @child_model if model_defined?(@child_model)
+        @child_model = @parent_model.find_const(@child_model)
       rescue NameError
         raise NameError, "Cannot find the child_model #{@child_model} for #{@parent_model}"
       end
@@ -130,7 +132,7 @@ module DataMapper
       # @api private
       def get_parent(child, parent = nil)
         child_value = child_key.get(child)
-        return nil unless child_value.nitems == child_value.size
+        return nil if child_value.any? { |v| v.nil? }
 
         with_repository(parent || parent_model) do
           parent_identity_map = (parent || parent_model).repository.identity_map(parent_model.base_model)
@@ -189,6 +191,10 @@ module DataMapper
         assert_kind_of 'repository_name', repository_name, Symbol
         assert_kind_of 'child_model',     child_model,     String, Class
         assert_kind_of 'parent_model',    parent_model,    String, Class
+
+        unless model_defined?(child_model) || model_defined?(parent_model)
+          raise 'at least one of child_model and parent_model must be a Model object'
+        end
 
         if child_properties = options[:child_key]
           assert_kind_of 'options[:child_key]', child_properties, Array

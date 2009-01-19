@@ -13,7 +13,7 @@ describe "DataMapper::Associations" do
 
   describe "#many_to_one_relationships" do
     before :all do
-      module MTORelationships
+      module ::MTORelationships
         class A
           include DataMapper::Resource
           def self.default_repository_name
@@ -46,11 +46,11 @@ describe "DataMapper::Associations" do
   end
 
   describe ".relationships" do
-    class B
+    class ::B
       include DataMapper::Resource
     end
 
-    class C
+    class ::C
       include DataMapper::Resource
 
       repository(:mock) do
@@ -58,15 +58,15 @@ describe "DataMapper::Associations" do
       end
     end
 
-    class D
+    class ::D
       include DataMapper::Resource
       has 1, :b
     end
 
-    class E < D
+    class ::E < D
     end
 
-    class F < D
+    class ::F < D
       has 1, :a
     end
 
@@ -92,7 +92,7 @@ describe "DataMapper::Associations" do
 
     it "should allow a declaration" do
       lambda do
-        class Manufacturer
+        class ::Manufacturer
           has 1, :halo_car
         end
       end.should_not raise_error
@@ -100,7 +100,7 @@ describe "DataMapper::Associations" do
 
     it "should not allow a constraint that is not an Integer, Range or Infinity" do
       lambda do
-        class Manufacturer
+        class ::Manufacturer
           has '1', :halo_car
         end
       end.should raise_error(ArgumentError)
@@ -108,7 +108,7 @@ describe "DataMapper::Associations" do
 
     it "should not allow a constraint where the min is larger than the max" do
       lambda do
-        class Manufacturer
+        class ::Manufacturer
           has 1..0, :halo_car
         end
       end.should raise_error(ArgumentError)
@@ -119,7 +119,7 @@ describe "DataMapper::Associations" do
         with(:vehicles, Manufacturer, { :min => 1, :max => 2 }).
         and_return(@relationship)
 
-      class Manufacturer
+      class ::Manufacturer
         has(1..2, :vehicles, :min => 5, :max => 10).should == mock_relationship
       end
     end
@@ -130,7 +130,7 @@ describe "DataMapper::Associations" do
           with(:halo_car, Manufacturer, { :min => 1, :max => 1 }).
           and_return(@relationship)
 
-        class Manufacturer
+        class ::Manufacturer
           has(1, :halo_car).should == mock_relationship
         end
       end
@@ -140,7 +140,7 @@ describe "DataMapper::Associations" do
           with(:halo_car, Manufacturer, { :min => 0, :max => 1 }).
           and_return(@relationship)
 
-        class Manufacturer
+        class ::Manufacturer
           has(0..1, :halo_car).should == mock_relationship
         end
       end
@@ -150,7 +150,7 @@ describe "DataMapper::Associations" do
           with(:halo_car, Manufacturer, { :min => 1, :max => 1, :class_name => 'Car' }).
           and_return(@relationship)
 
-        class Manufacturer
+        class ::Manufacturer
           has(1, :halo_car, :class_name => 'Car').should == mock_relationship
         end
       end
@@ -162,7 +162,7 @@ describe "DataMapper::Associations" do
           with(:vehicles, Manufacturer, { :min => 0, :max => @n }).
           and_return(@relationship)
 
-        class Manufacturer
+        class ::Manufacturer
           has(n, :vehicles).should == mock_relationship
         end
       end
@@ -172,7 +172,7 @@ describe "DataMapper::Associations" do
           with(:vehicles, Manufacturer, { :min => 4, :max => 4 }).
           and_return(@relationship)
 
-        class Manufacturer
+        class ::Manufacturer
           has(4, :vehicles).should == mock_relationship
         end
       end
@@ -182,7 +182,7 @@ describe "DataMapper::Associations" do
           with(:vehicles, Manufacturer, { :min => 2, :max => 4 }).
           and_return(@relationship)
 
-        class Manufacturer
+        class ::Manufacturer
           has(2..4, :vehicles).should == mock_relationship
         end
       end
@@ -192,7 +192,7 @@ describe "DataMapper::Associations" do
           with(:vehicles, Manufacturer, { :min => 1, :max => @n, :class_name => 'Car' }).
           and_return(@relationship)
 
-        class Manufacturer
+        class ::Manufacturer
           has(1..n, :vehicles, :class_name => 'Car').should == mock_relationship
         end
       end
@@ -200,7 +200,7 @@ describe "DataMapper::Associations" do
       # do not remove or change this spec.
       it "should raise an exception when n..n is used for the cardinality" do
         lambda do
-          class Manufacturer
+          class ::Manufacturer
             has n..n, :subsidiaries, :class_name => 'Manufacturer'
           end
         end.should raise_error(ArgumentError)
@@ -211,7 +211,7 @@ describe "DataMapper::Associations" do
           with(:suppliers, Vehicle, { :min => 0, :max => @n, :through => :manufacturers }).
           and_return(@relationship)
 
-        class Vehicle
+        class ::Vehicle
           has(n, :suppliers, :through => :manufacturers).should == mock_relationship
         end
       end
@@ -224,7 +224,7 @@ describe "DataMapper::Associations" do
         with(:vehicle, Manufacturer, {}).
         and_return(@relationship)
 
-      class Manufacturer
+      class ::Manufacturer
         belongs_to(:vehicle).should == mock_relationship
       end
     end
@@ -234,7 +234,7 @@ describe "DataMapper::Associations" do
         with(:vehicle, Manufacturer, { :class_name => 'Car' }).
         and_return(@relationship)
 
-      class Manufacturer
+      class ::Manufacturer
         belongs_to(:vehicle, :class_name => 'Car').should == mock_relationship
       end
     end

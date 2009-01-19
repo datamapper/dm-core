@@ -4,7 +4,7 @@ if ADAPTER
   describe 'through-associations' do
     before :all do
       repository(ADAPTER) do
-        class Tag
+        class ::Tag
           include DataMapper::Resource
           def self.default_repository_name
             ADAPTER
@@ -22,7 +22,7 @@ if ADAPTER
           has n, :posts, :through => :taggings
         end
 
-        class Tagging
+        class ::Tagging
           include DataMapper::Resource
           def self.default_repository_name
             ADAPTER
@@ -35,7 +35,7 @@ if ADAPTER
           belongs_to :tag
         end
 
-        class Post
+        class ::Post
           include DataMapper::Resource
           def self.default_repository_name
             ADAPTER
@@ -61,7 +61,7 @@ if ADAPTER
                  Post.taggings.tag.voided => true
         end
 
-        class Relationship
+        class ::Relationship
           include DataMapper::Resource
           def self.default_repository_name
             ADAPTER

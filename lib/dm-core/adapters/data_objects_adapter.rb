@@ -172,7 +172,7 @@ module DataMapper
           connection = create_connection
           return yield(connection)
         rescue => e
-          DataMapper.logger.error(e)
+          DataMapper.logger.error(e.to_s)
           raise e
         ensure
           close_connection(connection) if connection

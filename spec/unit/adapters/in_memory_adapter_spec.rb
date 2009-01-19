@@ -4,7 +4,7 @@ describe DataMapper::Adapters::InMemoryAdapter do
   before do
     DataMapper.setup(:inmem, :adapter => 'in_memory')
 
-    class Heffalump
+    class ::Heffalump
       include DataMapper::Resource
 
       def self.default_repository_name

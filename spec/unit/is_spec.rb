@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 describe "DataMapper::Is" do
   describe ".is" do
 
-    module DataMapper
+    module ::DataMapper
 
       module Is
         module Example
@@ -32,17 +32,17 @@ describe "DataMapper::Is" do
       end # module Model
     end # module DataMapper
 
-    class House
+    class ::House
       include DataMapper::Resource
     end
 
-    class Cabin
+    class ::Cabin
       include DataMapper::Resource
     end
 
     it "should raise error unless it finds the plugin" do
       lambda do
-        class House
+        class ::House
           is :no_plugin_by_this_name
         end
       end.should raise_error(DataMapper::PluginNotFoundError)
@@ -50,14 +50,14 @@ describe "DataMapper::Is" do
 
     it "should call plugin is_* method" do
       lambda do
-        class House
+        class ::House
           is :example
         end
       end.should_not raise_error
     end
 
     it "should pass through arguments to plugin is_* method" do
-      class House
+      class ::House
         is :example ,:option1 => :ping, :option2 => :pong
       end
 
@@ -68,7 +68,7 @@ describe "DataMapper::Is" do
     it "should not add class_methods before the plugin is activated" do
       Cabin.respond_to?(:example_class_method).should be_false
 
-      class Cabin
+      class ::Cabin
         is :example
       end
 

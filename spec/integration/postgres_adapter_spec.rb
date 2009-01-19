@@ -8,7 +8,7 @@ if HAS_POSTGRES
 
     describe "auto migrating" do
       before :all do
-        class Sputnik
+        class ::Sputnik
           include DataMapper::Resource
 
           property :id, Serial
@@ -32,7 +32,7 @@ if HAS_POSTGRES
     describe '#312' do
       it "should behave sanely for time fields" do
 
-        class Thing
+        class ::Thing
           include DataMapper::Resource
           property :id, Integer, :serial => true
           property :created_at, Time
@@ -57,7 +57,7 @@ if HAS_POSTGRES
 
     describe "querying metadata" do
       before :all do
-        class Sputnik
+        class ::Sputnik
           include DataMapper::Resource
 
           property :id, Serial
@@ -86,7 +86,7 @@ if HAS_POSTGRES
 
     describe "handling transactions" do
       before :all do
-        class Sputnik
+        class ::Sputnik
           include DataMapper::Resource
 
           property :id, Serial
@@ -118,14 +118,14 @@ if HAS_POSTGRES
 
     describe "reading & writing a database" do
       before :all do
-        class User
+        class ::User
           include DataMapper::Resource
 
           property :id, Serial
           property :name, DM::Text
         end
 
-        class Voyager
+        class ::Voyager
           include DataMapper::Resource
           storage_names[:postgres] = 'voyagers'
 
@@ -163,7 +163,7 @@ if HAS_POSTGRES
         result.should be_kind_of(Array)
         row = result.first
         row.should be_kind_of(Struct)
-        row.members.should == %w{id name}
+        row.members.map { |m| m.to_s }.should == %w{id name}
 
         row.id.should == 1
         row.name.should == 'Paul'
@@ -182,7 +182,7 @@ if HAS_POSTGRES
 
     describe "CRUD for serial Key" do
       before :all do
-        class VideoGame
+        class ::VideoGame
           include DataMapper::Resource
 
           property :id, Serial
@@ -282,7 +282,7 @@ if HAS_POSTGRES
 
     describe "CRUD for Composite Key" do
       before :all do
-        class BankCustomer
+        class ::BankCustomer
           include DataMapper::Resource
 
           property :bank, String, :key => true
@@ -376,7 +376,7 @@ if HAS_POSTGRES
 
     describe "Ordering a Query" do
       before :all do
-        class SailBoat
+        class ::SailBoat
           include DataMapper::Resource
           property :id, Serial
           property :name, String
@@ -423,7 +423,7 @@ if HAS_POSTGRES
 
     describe "Lazy Loaded Properties" do
       before :all do
-        class SailBoat
+        class ::SailBoat
           include DataMapper::Resource
           property :id, Serial
           property :notes, String, :lazy => [:notes]
@@ -467,7 +467,7 @@ if HAS_POSTGRES
 
     describe "finders" do
       before :all do
-        class SerialFinderSpec
+        class ::SerialFinderSpec
           include DataMapper::Resource
 
           property :id, Serial
@@ -528,7 +528,7 @@ if HAS_POSTGRES
 
     describe "belongs_to associations" do
       before :all do
-        class Engine
+        class ::Engine
           include DataMapper::Resource
           def self.default_repository_name; :postgres end
 
@@ -536,7 +536,7 @@ if HAS_POSTGRES
           property :name, String
         end
 
-        class Yard
+        class ::Yard
           include DataMapper::Resource
           def self.default_repository_name; :postgres end
 
@@ -617,7 +617,7 @@ if HAS_POSTGRES
 
     describe "has n associations" do
       before :all do
-        class Host
+        class ::Host
           include DataMapper::Resource
           def self.default_repository_name; :postgres end
 
@@ -627,7 +627,7 @@ if HAS_POSTGRES
           has n, :slices
         end
 
-        class Slice
+        class ::Slice
           include DataMapper::Resource
           def self.default_repository_name; :postgres end
 

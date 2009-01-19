@@ -491,7 +491,7 @@ module DataMapper
     #
     # @api public
     def respond_to?(method, include_private = false)
-      super || model.public_methods(false).include?(method.to_s) || relationships.has_key?(method)
+      super || model.public_methods(false).map { |m| m.to_s }.include?(method.to_s) || relationships.has_key?(method)
     end
 
     # TODO: add docs
@@ -537,7 +537,7 @@ module DataMapper
 
       unless block_given?
         # It can be helpful (relationship.rb: 112-13, used for SEL) to have a non-lazy Collection.
-        block = lambda {}
+        block = lambda { |c| }
       end
 
       @query          = query
@@ -639,7 +639,7 @@ module DataMapper
     ##
     # @api private
     def method_missing(method, *args, &block)
-      if model.public_methods(false).include?(method.to_s)
+      if model.public_methods(false).map { |m| m.to_s }.include?(method.to_s)
         model.send(:with_scope, query) do
           model.send(method, *args, &block)
         end

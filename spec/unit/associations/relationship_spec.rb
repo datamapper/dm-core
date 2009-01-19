@@ -8,8 +8,8 @@ describe DataMapper::Associations::Relationship do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
       :mock,
-      'Vehicle',
-      'Manufacturer',
+      Vehicle,
+      Manufacturer,
       { :child_key => [ :manufacturer_id ] }
     )
 
@@ -23,8 +23,8 @@ describe DataMapper::Associations::Relationship do
     belongs_to = DataMapper::Associations::Relationship.new(
       :manufacturer,
       :mock,
-      'Vehicle',
-      'Manufacturer',
+      Vehicle,
+      Manufacturer,
       { :child_key => [ :manufacturer_id ], :parent_key => [ :id ] }
     )
 
@@ -44,8 +44,8 @@ describe DataMapper::Associations::Relationship do
     has_many = DataMapper::Associations::Relationship.new(
       :models,
       :mock,
-      'Vehicle',
-      'Manufacturer',
+      Vehicle,
+      Manufacturer,
       { :child_key => [:model_id] }
     )
 

@@ -60,7 +60,7 @@ end
 describe DataMapper::Resource do
   before(:each) do
     Object.send(:remove_const, :Planet) if defined?(Planet)
-    class Planet
+    class ::Planet
       include DataMapper::Resource
 
       storage_names[:legacy] = "dying_planets"
@@ -86,7 +86,7 @@ describe DataMapper::Resource do
     end
 
     Object.send(:remove_const, :Phone) if defined?(Phone)
-    class Phone
+    class ::Phone
       include DataMapper::Resource
 
       property :name, String, :key => true
@@ -94,7 +94,7 @@ describe DataMapper::Resource do
     end
 
     Object.send(:remove_const, :Fruit) if defined?(Fruit)
-    class Fruit
+    class ::Fruit
       include DataMapper::Resource
 
       property :id, Integer, :key => true
@@ -102,7 +102,7 @@ describe DataMapper::Resource do
     end
 
     Object.send(:remove_const, :Grain) if defined?(Grain)
-    class Grain
+    class ::Grain
       include DataMapper::Resource
 
       property :id, Serial
@@ -110,7 +110,7 @@ describe DataMapper::Resource do
     end
 
     Object.send(:remove_const, :Vegetable) if defined?(Vegetable)
-    class Vegetable
+    class ::Vegetable
       include DataMapper::Resource
 
       property :id, Serial
@@ -118,12 +118,12 @@ describe DataMapper::Resource do
     end
 
     Object.send(:remove_const, :Banana) if defined?(Banana)
-    class Banana < Fruit
+    class ::Banana < Fruit
       property :type, Discriminator
     end
 
     Object.send(:remove_const, :Cyclist) if defined?(Cyclist)
-    class Cyclist
+    class ::Cyclist
       include DataMapper::Resource
       property :id,         Serial
       property :victories,  Integer
@@ -568,7 +568,7 @@ describe DataMapper::Resource do
 
   describe "inheritance" do
     before(:all) do
-      class Media
+      class ::Media
         include DataMapper::Resource
 
         storage_names[:default] = 'media'
@@ -577,7 +577,7 @@ describe DataMapper::Resource do
         property :name, String, :key => true
       end
 
-      class NewsPaper < Media
+      class ::NewsPaper < Media
 
         storage_names[:east_coast] = 'mother'
 
@@ -600,7 +600,7 @@ describe DataMapper::Resource do
 
   describe "Single-table Inheritance" do
     before(:all) do
-      class Plant
+      class ::Plant
         include DataMapper::Resource
 
         property :id, Integer, :key => true
@@ -615,13 +615,13 @@ describe DataMapper::Resource do
         end
       end
 
-      class HousePlant < Plant
+      class ::HousePlant < Plant
         def calculate(int)
           int ** 3
         end
       end
 
-      class PoisonIvy < Plant
+      class ::PoisonIvy < Plant
         def length=(len)
           attribute_set(:length, len - 1)
         end

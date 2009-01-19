@@ -424,8 +424,8 @@ if ADAPTER
         factory = DataMapper::Associations::Relationship.new(
           :factory,
           ADAPTER,
-          'QuerySpec::Vehicle',
-          'QuerySpec::Factory',
+          QuerySpec::Vehicle,
+          QuerySpec::Factory,
           { :child_key => [ :factory_id ], :parent_key => [ :id ] }
         )
         results = repository(ADAPTER) { QuerySpec::Vehicle.all(:links => [ factory ]) }
@@ -446,8 +446,8 @@ if ADAPTER
         region = DataMapper::Associations::Relationship.new(
           :region,
           ADAPTER,
-          'QuerySpec::Factory',
-          'QuerySpec::Region',
+          QuerySpec::Factory,
+          QuerySpec::Region,
           { :child_key => [ :region_id ], :parent_key => [ :id ] }
         )
         results = repository(ADAPTER) { QuerySpec::Vehicle.all(:links => [ 'factory', region ]) }

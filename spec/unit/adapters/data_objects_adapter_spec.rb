@@ -7,7 +7,7 @@ require DataMapper.root / 'spec' / 'unit' / 'adapters' / 'adapter_shared_spec'
 
 describe DataMapper::Adapters::DataObjectsAdapter do
   before :all do
-    class Cheese
+    class ::Cheese
       include DataMapper::Resource
       property :id, Serial
       property :name, String, :nullable => false
@@ -26,7 +26,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
   describe "#find_by_sql" do
 
     before do
-      class Plupp
+      class ::Plupp
         include DataMapper::Resource
         property :id, Integer, :key => true
         property :name, String
@@ -34,7 +34,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
     end
 
     it "should be added to DataMapper::Model" do
-      DataMapper::Model.instance_methods.include?("find_by_sql").should == true
+      DataMapper::Model.instance_methods.map { |m| m.to_s }.include?("find_by_sql").should == true
       Plupp.should respond_to(:find_by_sql)
     end
 
@@ -573,7 +573,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
         result = @adapter.query('SQL STRING')
 
-        result.first.members.should == %w{id user_name age}
+        result.first.members.map { |m| m.to_s }.should == %w[ id user_name age ]
       end
 
       it 'should convert each row into the struct' do

@@ -443,7 +443,7 @@ module DataMapper
         end
       EOS
 
-      if property.primitive == TrueClass && !instance_methods.include?(property.name.to_s)
+      if property.primitive == TrueClass && !instance_methods.map { |m| m.to_s }.include?(property.name.to_s)
         class_eval <<-EOS, __FILE__, __LINE__
           #{property.reader_visibility}
           alias #{property.name} #{property.getter}
@@ -453,7 +453,7 @@ module DataMapper
 
     # defines the setter for the property
     def create_property_setter(property)
-      unless instance_methods.include?("#{property.name}=")
+      unless instance_methods.map { |m| m.to_s }.include?("#{property.name}=")
         class_eval <<-EOS, __FILE__, __LINE__
           #{property.writer_visibility}
           def #{property.name}=(value)

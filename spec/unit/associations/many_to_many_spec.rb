@@ -6,7 +6,7 @@ describe DataMapper::Associations::ManyToMany do
 
   it 'should allow a declaration' do
     lambda do
-      class Supplier
+      class ::Supplier
         has n, :manufacturers, :through => Resource
       end
     end.should_not raise_error
@@ -14,7 +14,7 @@ describe DataMapper::Associations::ManyToMany do
 
   it 'should handle models inside modules' do
     lambda do
-      module Content
+      module ::Content
         class Dialect
           has n, :locales, :through => Resource, :class_name => "Language::Locale"
         end
