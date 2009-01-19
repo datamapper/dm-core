@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 describe 'DataMapper::Adapters::PostgresAdapter' do
   supported_by :postgres do
     before do
-      class Heffalump
+      class ::Heffalump
         include DataMapper::Resource
 
         property :id,         Serial

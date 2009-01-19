@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Resource do
   before do
-    class User
+    class ::User
       include DataMapper::Resource
 
       property :name,        String, :key => true
@@ -14,9 +14,9 @@ describe DataMapper::Resource do
       has n, :comments
     end
 
-    class Author < User; end
+    class ::Author < User; end
 
-    class Comment
+    class ::Comment
       include DataMapper::Resource
 
       property :id,   Serial
@@ -25,7 +25,7 @@ describe DataMapper::Resource do
       belongs_to :user
     end
 
-    class Article
+    class ::Article
       include DataMapper::Resource
 
       property :id,   Serial
@@ -34,7 +34,7 @@ describe DataMapper::Resource do
       has n, :paragraphs
     end
 
-    class Paragraph
+    class ::Paragraph
       include DataMapper::Resource
 
       property :id,   Serial

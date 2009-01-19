@@ -643,9 +643,9 @@ module DataMapper
   module Adapters
     extendable do
       def const_added(const_name)
-        if Migrations.const_defined?(const_name)
+        if DataMapper::Migrations.const_defined?(const_name)
           adapter = const_get(const_name)
-          adapter.send(:include, Migrations.const_get(const_name))
+          adapter.send(:include, DataMapper::Migrations.const_get(const_name))
         end
 
         super

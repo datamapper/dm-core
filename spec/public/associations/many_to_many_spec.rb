@@ -9,7 +9,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
     # define the model prior to supported_by
     before do
-      class Author
+      class ::Author
         include DataMapper::Resource
 
         property :id,   Serial
@@ -18,7 +18,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         has n, :articles, :through => Resource
       end
 
-      class Article
+      class ::Article
         include DataMapper::Resource
 
         property :id,      Serial
@@ -40,7 +40,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
     supported_by :all do
       before do
-        if @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+        if defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
           pending 'Many To Many does not work with In-Memory Adapter yet'
         end
       end

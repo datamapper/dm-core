@@ -1,21 +1,22 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-describe DataMapper::Resource, "Transactions" do
-
+describe DataMapper::Resource, 'Transactions' do
   before do
-    class User
+    class ::User
       include DataMapper::Resource
 
       property :name,        String, :key => true
       property :age,         Integer
       property :description, Text
+      property :admin,       Boolean, :accessor => :private
 
+      belongs_to :referrer, :class => self, :child_key => [ :referrer_name ]
       has n, :comments
     end
 
-    class Author < User; end
+    class ::Author < User; end
 
-    class Comment
+    class ::Comment
       include DataMapper::Resource
 
       property :id,   Serial
@@ -24,7 +25,7 @@ describe DataMapper::Resource, "Transactions" do
       belongs_to :user
     end
 
-    class Article
+    class ::Article
       include DataMapper::Resource
 
       property :id,   Serial
@@ -33,7 +34,7 @@ describe DataMapper::Resource, "Transactions" do
       has n, :paragraphs
     end
 
-    class Paragraph
+    class ::Paragraph
       include DataMapper::Resource
 
       property :id,   Serial

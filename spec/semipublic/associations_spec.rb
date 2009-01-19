@@ -2,22 +2,22 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Associations do
   before do
-    class Car
+    class ::Car
       include DataMapper::Resource
       property :id, Serial
     end
 
-    class Engine
+    class ::Engine
       include DataMapper::Resource
       property :id, Serial
     end
 
-    class Door
+    class ::Door
       include DataMapper::Resource
       property :id, Serial
     end
 
-    class Window
+    class ::Window
       include DataMapper::Resource
       property :id, Serial
     end

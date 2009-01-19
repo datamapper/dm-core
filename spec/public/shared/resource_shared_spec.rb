@@ -44,7 +44,7 @@ share_examples_for 'A public Resource' do
 
       describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
         before do
-          @other  = @model.get(@user.key)
+          @other  = @model.get(*@user.key)
           @return = @user.send(method, @other)
         end
 
@@ -56,7 +56,7 @@ share_examples_for 'A public Resource' do
       describe 'when comparing to a resource with the same repository, key but either self or the other resource is dirty' do
         before do
           @user.age = 20
-          @other  = @model.get(@user.key)
+          @other  = @model.get(*@user.key)
           @return = @user.send(method, @other)
         end
 
@@ -270,7 +270,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
       before do
-        @other  = @model.get(@user.key)
+        @other  = @model.get(*@user.key)
         @return = @user.eql?(@other)
       end
 
@@ -282,7 +282,7 @@ share_examples_for 'A public Resource' do
     describe 'when comparing to a resource with the same repository, key but either self or the other resource is dirty' do
       before do
         @user.age = 20
-        @other  = @model.get(@user.key)
+        @other  = @model.get(*@user.key)
         @return = @user.eql?(@other)
       end
 
@@ -321,7 +321,7 @@ share_examples_for 'A public Resource' do
   describe '#inspect' do
 
     before do
-      @user = @model.get(@user.key)
+      @user = @model.get(*@user.key)
       @inspected = @user.inspect
     end
 
@@ -668,11 +668,11 @@ share_examples_for 'A public Resource' do
   describe 'invalid resources' do
 
     before do
-      class EmptyObject
+      class ::EmptyObject
         include DataMapper::Resource
       end
 
-      class KeylessObject
+      class ::KeylessObject
         include DataMapper::Resource
         property :name, String
       end

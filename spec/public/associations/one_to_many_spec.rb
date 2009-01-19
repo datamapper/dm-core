@@ -27,7 +27,7 @@ end
 
     # define the model prior to supported_by
     before do
-      class Author
+      class ::Author
         include DataMapper::Resource
 
         property :id,   Serial
@@ -36,7 +36,7 @@ end
         has n, :articles
       end
 
-      class Article
+      class ::Article
         include DataMapper::Resource
 
         property :id,      Serial

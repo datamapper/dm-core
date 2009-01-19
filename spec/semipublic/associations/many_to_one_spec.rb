@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
 describe 'Many to One Associations' do
   before do
-    class User
+    class ::User
       include DataMapper::Resource
 
       property :name,        String, :key => true
@@ -13,7 +13,7 @@ describe 'Many to One Associations' do
     end
 
     # This is a special class that needs to be an exact copy of User
-    class Clone
+    class ::Clone
       include DataMapper::Resource
 
       property :name,        String, :key => true
@@ -21,7 +21,7 @@ describe 'Many to One Associations' do
       property :description, Text
     end
 
-    class Comment
+    class ::Comment
       include DataMapper::Resource
 
       property :id,   Serial
@@ -30,7 +30,7 @@ describe 'Many to One Associations' do
       belongs_to :user
     end
 
-    class Default
+    class ::Default
       include DataMapper::Resource
 
       property :name, String, :key => true, :default => 'a default value'

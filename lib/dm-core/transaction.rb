@@ -438,9 +438,9 @@ module DataMapper
   module Adapters
     extendable do
       def const_added(const_name)
-        if Transaction.const_defined?(const_name)
+        if DataMapper::Transaction.const_defined?(const_name)
           adapter = const_get(const_name)
-          adapter.send(:include, Transaction.const_get(const_name))
+          adapter.send(:include, DataMapper::Transaction.const_get(const_name))
         end
 
         super

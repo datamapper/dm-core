@@ -8,7 +8,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
     self.loaded = loaded
 
     before do
-      class Article
+      class ::Article
         include DataMapper::Resource
 
         property :id,      Serial

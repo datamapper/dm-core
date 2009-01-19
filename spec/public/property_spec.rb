@@ -4,7 +4,7 @@ describe DataMapper::Property do
 
   # define the model prior to supported_by
   before do
-    class Track
+    class ::Track
       include DataMapper::Resource
 
       property :id,               Serial
@@ -14,7 +14,7 @@ describe DataMapper::Property do
       property :musicbrainz_hash, String, :unique => true, :unique_index => true
     end
 
-    class Image
+    class ::Image
       include DataMapper::Resource
 
       property :md5hash,      String, :key => true, :length => 32
