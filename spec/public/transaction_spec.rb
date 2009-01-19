@@ -108,6 +108,12 @@ describe DataMapper::Resource, 'Transactions' do
         User.all.should have(0).entries
       end
 
+      it "should return the last statement in the transaction block" do
+        pending 'Transaction is refactored not to use the contructor directly' do
+          User.transaction { 1 }.should == 1
+        end
+      end
+
     end
 
   end
