@@ -13,7 +13,6 @@ Dir[(DataMapper.root / 'spec' / 'lib' / '*.rb').to_s].each do |file|
 end
 
 # setup mock adapters
-DataMapper.setup(:default, "sqlite3::memory:")
 DataMapper.setup(:default2, "sqlite3::memory:")
 
 [ :mock, :legacy, :west_coast, :east_coast ].each do |repository_name|
@@ -30,8 +29,13 @@ end
 #
 def setup_adapter(name, default_uri)
   begin
-    DataMapper.setup(name, ENV["#{name.to_s.upcase}_SPEC_URI"] || default_uri)
-    Object.const_set('ADAPTER', ENV['ADAPTER'].to_sym) if name.to_s == ENV['ADAPTER']
+    adapter = DataMapper.setup(name, ENV["#{name.to_s.upcase}_SPEC_URI"] || default_uri)
+
+    if name.to_s == ENV['ADAPTER']
+      Object.const_set('ADAPTER', ENV['ADAPTER'].to_sym)
+      DataMapper::Repository.adapters[:default] = adapter
+    end
+
     true
   rescue Exception => e
     if name.to_s == ENV['ADAPTER']

@@ -73,7 +73,11 @@ describe DataMapper::Adapters::DataObjectsAdapter do
       end
 
       it "should accept a Query argument with or without options hash" do
-        @connection.should_receive(:create_command).twice.with('SELECT "name" FROM "plupps" WHERE ("name" = ?) ORDER BY "id"').and_return(@command)
+        if ADAPTER == :mysql
+          @connection.should_receive(:create_command).twice.with('SELECT `name` FROM `plupps` WHERE (`name` = ?) ORDER BY `id`').and_return(@command)
+        else
+          @connection.should_receive(:create_command).twice.with('SELECT "name" FROM "plupps" WHERE ("name" = ?) ORDER BY "id"').and_return(@command)
+        end
         @command.should_receive(:execute_reader).twice.with('my pretty plur').and_return(@reader)
         Plupp.should_receive(:repository).any_number_of_times.and_return(@repository)
         Plupp.should_receive(:repository).any_number_of_times.with(:plupp_repo).and_return(@repository)

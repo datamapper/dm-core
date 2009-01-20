@@ -286,7 +286,7 @@ describe DataMapper::Property do
 
   it "should not have key that is lazy" do
     Zoo.class_eval do
-      property :id, DataMapper::Types::Text, :key => true
+      property :id, String, :lazy => true, :key => true
       property :name, String, :lazy => true
     end
     Zoo.auto_migrate!
