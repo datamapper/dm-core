@@ -19,7 +19,7 @@ require 'yaml'
 gem 'addressable', '~>2.0.1'
 require 'addressable/uri'
 
-gem 'extlib', '~>0.9.10'
+gem 'extlib', '~>0.9.11'
 require 'extlib'
 require 'extlib/inflection'
 
