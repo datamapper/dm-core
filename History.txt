@@ -1,3 +1,7 @@
+=== 0.9.11 / not released
+
+  * No changes this version
+
 === 0.9.10 / 2009-01-19
 
 * 1 major enhancement:
