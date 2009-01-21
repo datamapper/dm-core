@@ -149,7 +149,7 @@ module DataMapper
 
     # Compares if its the same object or if attributes are equal
     #
-    # The comparaison is 
+    # The comparaison is
     #  * false if object not from same repository
     #  * false if object has no all same properties
     #
@@ -163,16 +163,25 @@ module DataMapper
     # -
     # @api public
     def eql?(other)
-      return true if object_id == other.object_id
+      return true if equal?(other)
+
+      # two instances for different models cannot be equivalent
       return false unless other.kind_of?(model)
 
-      properties.each do |property|
-        return false if property.get!(self) != property.get!(other)
+      # two instances with different keys cannot be equivalent
+      return false if key != other.key
+
+      # neither object has changed since loaded, so they are equivalent
+      return true if repository == other.repository && !dirty? && !other.dirty?
+
+      # get all the loaded and non-loaded properties that are not keys,
+      # since the key comparison was performed earlier
+      loaded, not_loaded = properties.select { |p| !p.key? }.partition do |property|
+        attribute_loaded?(property.name) && other.attribute_loaded?(property.name)
       end
 
-      return true if repository == other.repository && key == other.key
-
-      true
+      # check all loaded properties, and then all unloaded properties
+      (loaded + not_loaded).all? { |p| p.get(self) == p.get(other) }
     end
 
     alias == eql?
