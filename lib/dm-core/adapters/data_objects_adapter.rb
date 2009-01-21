@@ -1,4 +1,4 @@
-gem 'data_objects', '~>0.9.11'
+gem 'data_objects', '~>0.9.12'
 require 'data_objects'
 
 module DataMapper

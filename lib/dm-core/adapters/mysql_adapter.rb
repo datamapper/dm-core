@@ -1,6 +1,6 @@
 require Pathname(__FILE__).dirname.expand_path / 'data_objects_adapter'
 
-gem 'do_mysql', '~>0.9.11'
+gem 'do_mysql', '~>0.9.12'
 require 'do_mysql'
 
 module DataMapper
