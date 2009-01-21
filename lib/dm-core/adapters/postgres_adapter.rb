@@ -18,27 +18,28 @@ module DataMapper
       module Migration
         # TODO: move to dm-more/dm-migrations (if possible)
         def storage_exists?(storage_name)
-          statement = <<-EOS.compress_lines
+          statement = <<-SQL.compress_lines
             SELECT COUNT(*)
-            FROM "information_schema"."columns"
-            WHERE "table_name" = ?
+            FROM "information_schema"."tables"
+            WHERE "table_type" = 'BASE TABLE'
             AND "table_schema" = current_schema()
-          EOS
+            AND "table_name" = ?
+          SQL
 
           query(statement, storage_name).first > 0
         end
 
         # TODO: move to dm-more/dm-migrations (if possible)
         def field_exists?(storage_name, column_name)
-          statement = <<-EOS.compress_lines
+          statement = <<-SQL.compress_lines
             SELECT COUNT(*)
             FROM "information_schema"."columns"
-            WHERE "table_name" = ?
+            WHERE "table_schema" = current_schema()
+            AND "table_name" = ?
             AND "column_name" = ?
-            AND "table_schema" = current_schema()
-          EOS
+          SQL
 
-          query(statement, column_name, storage_name).first > 0
+          query(statement, storage_name, column_name).first > 0
         end
 
         # TODO: move to dm-more/dm-migrations
