@@ -200,7 +200,7 @@ module DataMapper
 
       new_conditions = []
       conditions.each do |tuple|
-        if tuple.at(0).to_s == operator.to_s && tuple.at(1) == property && tuple.at(2) == value
+        if tuple == [ operator, property, value ]
           value.conditions.each do |subquery_tuple|
             new_conditions << subquery_tuple
           end

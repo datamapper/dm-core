@@ -234,14 +234,14 @@ module DataMapper
 
           qualify = query.links.any?
 
-          statement = "SELECT #{columns_statement(query, fields, qualify)}"
+          statement = "SELECT #{columns_statement(fields, qualify)}"
           statement << " FROM #{quote_name(query.model.storage_name(name))}"
-          statement << join_statement(query, qualify)                             if qualify
-          statement << " WHERE #{where_statement(query, qualify)}"                if query.conditions.any?
-          statement << " GROUP BY #{columns_statement(query, group_by, qualify)}" if group_by && group_by.any?
-          statement << " ORDER BY #{order_by_statement(order, qualify)}"          if order.any?
-          statement << " LIMIT #{quote_value(limit)}"                             if limit
-          statement << " OFFSET #{quote_value(offset)}"                           if offset && offset > 0
+          statement << join_statement(query, qualify)                      if qualify
+          statement << " WHERE #{where_statement(query, qualify)}"         if query.conditions.any?
+          statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
+          statement << " ORDER BY #{order_by_statement(order, qualify)}"   if order && order.any?
+          statement << " LIMIT #{quote_value(limit)}"                      if limit
+          statement << " OFFSET #{quote_value(offset)}"                    if offset && offset > 0
           statement
         rescue => e
           DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
@@ -281,7 +281,7 @@ module DataMapper
           statement
         end
 
-        def columns_statement(query, properties, qualify)
+        def columns_statement(properties, qualify)
           properties.map { |p| property_to_column_name(p, qualify) }.join(', ')
         end
 
@@ -299,8 +299,8 @@ module DataMapper
             # We only do INNER JOIN for now
             statement << " INNER JOIN #{quote_name(model.storage_name(name))} ON "
 
-            child_repository_name  = relationship.child_repository_name  || query.repository.name
-            parent_repository_name = relationship.parent_repository_name || query.repository.name
+            child_repository_name  = relationship.child_repository_name  || name
+            parent_repository_name = relationship.parent_repository_name || name
 
             statement << relationship.parent_key(parent_repository_name).zip(relationship.child_key(child_repository_name)).map do |parent_property,child_property|
               condition_statement(query, :eql, parent_property, child_property, qualify)
@@ -311,7 +311,9 @@ module DataMapper
         end
 
         def where_statement(query, qualify)
-          query.conditions.map do |operator,property,bind_value|
+          conditions = query.conditions
+
+          conditions.map do |operator,property,bind_value|
             # handle exclusive range conditions
             if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
               if operator == :eql
@@ -323,7 +325,7 @@ module DataMapper
                 lt_condition  = condition_statement(query, :lt,  property, bind_value.first, qualify)
                 gte_condition = condition_statement(query, :gte, property, bind_value.last,  qualify)
 
-                if query.conditions.size > 1
+                if conditions.size > 1
                   "(#{lt_condition} OR #{gte_condition})"
                 else
                   "#{lt_condition} OR #{gte_condition}"
@@ -361,7 +363,11 @@ module DataMapper
 
               when Query
                 opposite = condition == left_condition ? right_condition : left_condition
+
+                # XXX: is this subquery merge even necessary?  If not, then the query var
+                # does not need to be passed into this method, nor into the caller methods.
                 query.merge_subquery(operator, opposite, condition)
+
                 "(#{select_statement(condition)})"
 
               when Array
