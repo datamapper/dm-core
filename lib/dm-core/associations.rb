@@ -146,6 +146,13 @@ module DataMapper
     # @api public
     def belongs_to(name, options={})
       @_valid_relations = false
+
+      if options.key?(:class_name) && !options.key?(:child_key)
+        warn "The inferred child_key will changing to be prefixed with the relationship name #{name}. " \
+          "When using :class_name in belongs_to specify the :child_key explicitly to avoid problems." \
+          "#{caller(0)[1]}"
+      end
+
       relationship = ManyToOne.setup(name, self, options)
       # Please leave this in - I will release contextual serialization soon
       # which requires this -- guyvdb

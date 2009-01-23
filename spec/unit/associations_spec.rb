@@ -231,11 +231,11 @@ describe "DataMapper::Associations" do
 
     it "should create a many-to-one association with options" do
       DataMapper::Associations::ManyToOne.should_receive(:setup).
-        with(:vehicle, Manufacturer, { :class_name => 'Car' }).
+        with(:vehicle, Manufacturer, :class_name => 'Car', :child_key => [ :car_id ]).
         and_return(@relationship)
 
       class ::Manufacturer
-        belongs_to(:vehicle, :class_name => 'Car').should == mock_relationship
+        belongs_to(:vehicle, :class_name => 'Car', :child_key => [ :car_id ]).should == mock_relationship
       end
     end
   end
