@@ -54,7 +54,16 @@ module DataMapper
       # XXX: when not loaded, should the behavior change?
 
       # update query fields to always include the model key
-      @query.update(:fields => model.key(repository.name) | @query.fields)
+      fields = model.key(repository.name) | @query.fields
+
+      # always include the discriminator if defined in the model
+      model.properties(repository.name).each do |property|
+        if property.type == DataMapper::Types::Discriminator
+          fields << property
+        end
+      end
+
+      @query.update(:fields => fields)
 
       # FIXME: is it possible to wipe out the Collection and have it be lazy loaded on demand?
 
