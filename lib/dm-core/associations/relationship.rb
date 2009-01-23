@@ -34,25 +34,11 @@ module DataMapper
         @child_key[child_repository_name] ||= begin
           properties = child_model.properties(child_repository_name)
 
-          # TODO: infer the parent_name from the singular relationship name
-          #   - this will remove the artifical constraint where all
-          #     relationships between two models can only use a single
-          #     child key without explicitly defining one
-          #   - this behavior seems to match people's expectations more
-          #     closely
-          #   - show a deprecation warning for a few releases when the
-          #     old parent_name does not match the new parent_name
-          #     and the :child_key option is not specified
-          #   - think about adding this to sam/dm-core so that people
-          #     will be ready for it by the time dkubb/dm-core is ready
-
-          parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
-
           child_key = parent_key(parent_repository_name).zip(@child_properties || []).map do |parent_property,property_name|
-            property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
+            property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
 
             properties[property_name] || begin
-              options = { :index => parent_name.to_sym }
+              options = { :index => property_prefix }
 
               [ :length, :size, :precision, :scale ].each do |option|
                 if parent_property.options.key?(option)
@@ -151,6 +137,12 @@ module DataMapper
       # @api semipublic
       def create_mutator
         raise NotImplementedError
+      end
+
+      # TODO: document
+      # @api private
+      def property_prefix
+        Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.name)).to_sym
       end
     end # class Relationship
   end # module Associations

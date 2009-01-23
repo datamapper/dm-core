@@ -99,6 +99,12 @@ module DataMapper
             end
           RUBY
         end
+
+        # TODO: document
+        # @api private
+        def property_prefix
+          name
+        end
       end # class Relationship
     end # module ManyToOne
   end # module Associations
