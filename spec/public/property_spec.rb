@@ -35,19 +35,19 @@ describe DataMapper::Property do
       it 'sets field value using field naming convention on first reference'
     end
 
-    describe "#unique" do
+    describe "#unique?" do
       it "is true for fields that explicitly given uniq index" do
-        Track.properties[:musicbrainz_hash].unique.should be_true
+        Track.properties[:musicbrainz_hash].unique?.should be_true
       end
 
       it "is true for serial fields" do
         pending do
-          Track.properties[:title].unique.should be_true
+          Track.properties[:title].unique?.should be_true
         end
       end
 
       it "is true for keys" do
-        Image.properties[:md5hash].unique.should be_true
+        Image.properties[:md5hash].unique?.should be_true
       end
     end
 
@@ -86,9 +86,7 @@ describe DataMapper::Property do
       end
 
       it 'returns nil when property has no index' do
-        pending do
-          Track.properties[:musicbrainz_hash].index.should be_nil
-        end
+        Track.properties[:musicbrainz_hash].index.should be_nil
       end
     end
 
@@ -97,8 +95,8 @@ describe DataMapper::Property do
         Track.properties[:musicbrainz_hash].unique_index.should be_true
       end
 
-      it 'returns false when property has no unique index' do
-        Image.properties[:title].unique_index.should be_false
+      it 'returns nil when property has no unique index' do
+        Image.properties[:title].unique_index.should be_nil
       end
     end
 

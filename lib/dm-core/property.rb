@@ -373,15 +373,20 @@ module DataMapper
       @field ||= model.field_naming_convention(repository.name).call(self).freeze
     end
 
-    # Returns true if property has uniq key. Serial properties and
-    # keys are unique by default.
+    # Returns true if property is unique. Serial properties and keys
+    # are unique by default.
     #
     # @return [TrueClass, FalseClass]
     #   true if property has uniq index defined, false otherwise
     #
     # @api public
-    def unique
+    def unique?
       @unique
+    end
+
+    def unique
+      warn "#{self}#unique is deprecated, use #{self}#unique?"
+      unique?
     end
 
     # Returns equality of properties. Properties are
@@ -417,10 +422,11 @@ module DataMapper
 
     # Returns index name if property has index.
     #
-    # @return [String]
-    #   index name if property has index defined
-    # @return [FalseClass]
-    #   this property has no index defined
+    # @return [TrueClass,Symbol,Array,NilClass]
+    #   returns true if property is indexed by itself
+    #   returns a Symbol if the property is indexed with other properties
+    #   returns an Array if the property belongs to multiple indexes
+    #   returns nil if the property does not belong to any indexes
     #
     # @api public
     def index
@@ -430,8 +436,11 @@ module DataMapper
     # Returns true if property has unique index. Serial properties and
     # keys are unique by default.
     #
-    # @return [TrueClass, FalseClass]
-    #   true if property has unique index defined, false otherwise
+    # @return [TrueClass,Symbol,Array,NilClass]
+    #   returns true if property is indexed by itself
+    #   returns a Symbol if the property is indexed with other properties
+    #   returns an Array if the property belongs to multiple indexes
+    #   returns nil if the property does not belong to any indexes
     #
     # @api public
     def unique_index
@@ -768,8 +777,8 @@ module DataMapper
       @serial       = @options.fetch(:serial,       false)
       @key          = @options.fetch(:key,          @serial || false)
       @nullable     = @options.fetch(:nullable,     @key == false)
-      @index        = @options.fetch(:index,        false)
-      @unique_index = @options.fetch(:unique_index, false)
+      @index        = @options.fetch(:index,        nil)
+      @unique_index = @options.fetch(:unique_index, nil)
       @unique       = @options.fetch(:unique,       @serial || @key || false)
       @lazy         = @options.fetch(:lazy,         @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
 
