@@ -1,5 +1,3 @@
-require 'set'
-
 module DataMapper
   module Model
 

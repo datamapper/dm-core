@@ -524,24 +524,22 @@ module DataMapper
         raise ArgumentError, "Clause #{clause.inspect} does not map to a DataMapper::Property", caller(2)
       end
 
-      bind_value = dump_custom_value(property, bind_value)
+      bind_value = normalize_bind_value(property, bind_value)
 
       @conditions << [ operator, property, bind_value ]
     end
 
-    def dump_custom_value(property_or_path, bind_value)
+    def normalize_bind_value(property_or_path, bind_value)
       case property_or_path
         when DataMapper::Query::Path
-          dump_custom_value(property_or_path.property, bind_value)
+          bind_value = normalize_bind_value(property_or_path.property, bind_value)
         when Property
           if property_or_path.custom?
-            property_or_path.type.dump(bind_value, property_or_path)
-          else
-            bind_value
+            bind_value = property_or_path.type.dump(bind_value, property_or_path)
           end
-        else
-          bind_value
       end
+
+      bind_value.kind_of?(Array) && bind_value.size == 1 ? bind_value.first : bind_value
     end
 
     def update_conditions(other)

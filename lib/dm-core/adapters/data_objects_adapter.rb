@@ -236,6 +236,15 @@ module DataMapper
 
           qualify = query.links.any?
 
+          unless (limit && limit > 1) || offset > 0 || qualify
+            unique = query.model.properties.select { |p| p.unique? }.to_set
+
+            if query.conditions.any? { |o,p,b| o == :eql && unique.include?(p) && (!b.kind_of?(Array) || b.size == 1) }
+              order = nil
+              limit = nil
+            end
+          end
+
           statement = "SELECT #{columns_statement(fields, qualify)}"
           statement << " FROM #{quote_name(query.model.storage_name(name))}"
           statement << join_statement(query, qualify)                      if qualify
@@ -243,7 +252,7 @@ module DataMapper
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
           statement << " ORDER BY #{order_by_statement(order, qualify)}"   if order && order.any?
           statement << " LIMIT #{quote_value(limit)}"                      if limit
-          statement << " OFFSET #{quote_value(offset)}"                    if offset && offset > 0
+          statement << " OFFSET #{quote_value(offset)}"                    if limit && offset > 0
           statement
         rescue => e
           DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
@@ -398,7 +407,7 @@ module DataMapper
           case operand
             when Array, Query then 'IN'
             when Range        then 'BETWEEN'
-            when NilClass     then 'IS'
+            when nil          then 'IS'
             else                   '='
           end
         end
@@ -407,7 +416,7 @@ module DataMapper
           case operand
             when Array, Query then 'NOT IN'
             when Range        then 'NOT BETWEEN'
-            when NilClass     then 'IS NOT'
+            when nil          then 'IS NOT'
             else                   '<>'
           end
         end
@@ -454,7 +463,7 @@ module DataMapper
               quote_value(value.strftime('%Y-%m-%d %H:%M:%S') + ((usec > 0 ? ".#{usec.to_s.rjust(6, '0')}" : '')))
             when BigDecimal
               value.to_s('F')
-            when NilClass
+            when nil
               'NULL'
             else
               value.to_s
