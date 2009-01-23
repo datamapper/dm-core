@@ -159,12 +159,20 @@ share_examples_for 'An Adapter' do
     end
 
     describe 'like' do
+      before do
+        @using_sqlite3 = defined?(DataMapper::Adapters::Sqlite3Adapter) && @adapter.kind_of?(DataMapper::Adapters::Sqlite3Adapter)
+      end
+
       it 'should be able to search for objects that match value' do
-        @model.all(@string_property.name.like => /ed/).should include(@red)
+        pending_if 'SQlite3 does not support Regexp values', @using_sqlite3 do
+          @model.all(@string_property.name.like => /ed/).should include(@red)
+        end
       end
 
       it 'should not search for objects that do not match the value' do
-        @model.all(@string_property.name.like => /blak/).should_not include(@red)
+        pending_if 'SQlite3 does not support Regexp values', @using_sqlite3 do
+          @model.all(@string_property.name.like => /blak/).should_not include(@red)
+        end
       end
     end
 

@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe 'DataMapper::Adapters::InMemoryAdapter' do
-  supported_by :in_memory do
+describe 'DataMapper::Adapters::Sqlite3Adapter' do
+  supported_by :sqlite3 do
     before do
       class ::Heffalump
         include DataMapper::Resource
@@ -11,6 +11,8 @@ describe 'DataMapper::Adapters::InMemoryAdapter' do
         property :num_spots, Integer
         property :striped,   Boolean
       end
+
+      Heffalump.auto_migrate!
 
       @heff1 = Heffalump.create(:color => 'Black',     :num_spots => 0,   :striped => true)
       @heff2 = Heffalump.create(:color => 'Brown',     :num_spots => 25,  :striped => false)
