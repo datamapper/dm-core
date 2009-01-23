@@ -15,6 +15,21 @@ module DataMapper
     alias add_reversed? add_reversed
 
     ##
+    # Indicates if the Query contains valid conditions
+    #
+    # This is useful for short-circuiting queries that cannot be satisfied.
+    #
+    # @return [TrueClass, FalseClass]
+    #
+    # @api semipublic
+    def valid?
+      !conditions.any? do |operator, property, bind_value|
+        next if :raw == operator
+        bind_value.kind_of?(Array) && bind_value.empty?
+      end
+    end
+
+    ##
     # indicates if the result set of the query should replace
     # the cached results already in the Identity Map.
     #
@@ -479,7 +494,7 @@ module DataMapper
           clause
         when Operator
           operator = clause.operator
-          return if operator == :not && bind_value == []
+          return if operator == :not && bind_value.kind_of?(Array) && bind_value.empty?
           # FIXME: this code duplicates conditions in this method.  Try
           # to refactor out the common code.
           if clause.target.kind_of?(Property)
