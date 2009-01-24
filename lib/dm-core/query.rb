@@ -541,29 +541,33 @@ module DataMapper
     #   the subject to match
     #
     # @param [Object] bind_value
-    #   the value to match with
+    #   the value to match on
+    #
+    # @param [Symbol] operator
+    #   the operator to match with
+    #
     #
     # @api private
     def append_condition(subject, bind_value, operator = :eql)
       property = case subject
-        when Property
-          subject
-        when Query::Path
-          validate_query_path_links(subject)
-          operator = subject.operator
-          subject.property
-        when Operator
-          return append_condition(subject.target, bind_value, subject.operator)
         when Symbol
           @properties[subject]
+        when Operator
+          return append_condition(subject.target, bind_value, subject.operator)
+        when Property
+          subject
         when String
-          if subject =~ /\w\.\w/
-            query_path = @model
-            subject.split('.').each { |part| query_path = query_path.send(part) }
+          if subject.include?('.')
+            query_path = model
+            subject.split('.').each { |m| query_path = query_path.send(m) }
             return append_condition(query_path, bind_value, operator)
           else
             @properties[subject]
           end
+        when Query::Path
+          validate_query_path_links(subject)
+          operator = subject.operator
+          subject.property
         else
           raise ArgumentError, "Condition type #{subject.inspect} not supported", caller(2)
       end
