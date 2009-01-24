@@ -53,8 +53,6 @@ module DataMapper
       end
 
       def read_many(query)
-        return [] unless query.valid?
-
         with_connection do |connection|
           command = connection.create_command(select_statement(query))
           command.set_types(query.fields.map { |p| p.primitive })

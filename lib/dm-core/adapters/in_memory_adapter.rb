@@ -94,8 +94,6 @@ module DataMapper
       #
       # @api semipublic
       def read_many(query)
-        return [] unless query.valid?
-
         # TODO: Extract this into its own module, so it can be re-used in all
         # adapters that don't have a native query language
 

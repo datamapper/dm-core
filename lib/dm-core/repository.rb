@@ -112,6 +112,7 @@ module DataMapper
     #
     # @see DataMapper::Query
     def read_many(query)
+      return [] unless query.valid?
       adapter.read_many(query)
     end
 
@@ -128,6 +129,7 @@ module DataMapper
     #
     # @see DataMapper::Query
     def read_one(query)
+      return unless query.valid?
       adapter.read_one(query)
     end
 
