@@ -103,10 +103,6 @@ module DataMapper
       result
     end
 
-    def to_query(bind_values)
-      zip(bind_values).to_hash
-    end
-
     def inspect
       '#<PropertySet:{' + map { |property| property.inspect }.join(',') + '}>'
     end
@@ -115,7 +111,7 @@ module DataMapper
 
     def initialize(*)
       super
-      @properties = map { |p| [ p.name, p ] }.to_hash
+      @properties = map { |p| [ p.name, p ] }.to_mash
     end
 
     def initialize_copy(*)

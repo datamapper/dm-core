@@ -372,15 +372,6 @@ module DataMapper
               when Property, Query::Path
                 property_to_column_name(condition, qualify)
 
-              when Query
-                opposite = condition == left_condition ? right_condition : left_condition
-
-                # XXX: is this subquery merge even necessary?  If not, then the query var
-                # does not need to be passed into this method, nor into the caller methods.
-                query.merge_subquery(operator, opposite, condition)
-
-                "(#{select_statement(condition)})"
-
               when Array
                 if condition.any? && condition.all? { |p| p.kind_of?(Property) }
                   property_values = condition.map { |p| property_to_column_name(p, qualify) }

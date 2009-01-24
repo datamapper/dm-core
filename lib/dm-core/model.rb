@@ -442,7 +442,7 @@ module DataMapper
       identity_map = nil
       key_values   = nil
 
-      resource = if (key_property_indexes = query.key_property_indexes(repository)).any?
+      resource = if (key_property_indexes = query.key_property_indexes).any?
         identity_map = repository.identity_map(model)
         key_values   = values.values_at(*key_property_indexes)
 

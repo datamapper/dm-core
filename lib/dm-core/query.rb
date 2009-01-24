@@ -6,12 +6,43 @@ module DataMapper
   class Query
     include Extlib::Assertions
 
-    OPTIONS = [
-      :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions, :unique
-    ]
+    OPTIONS = [ :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions, :unique ].freeze
 
-    attr_reader :repository, :model, *OPTIONS - [ :reload, :unique, :includes ]
-    attr_writer :add_reversed
+    # TODO: document
+    # @api semipublic
+    attr_reader :repository
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :model
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :offset
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :limit
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :order
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :fields
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :links
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :conditions
+
+    # TODO: document
+    # @api private
+    attr_accessor :add_reversed
     alias add_reversed? add_reversed
 
     ##
@@ -20,6 +51,7 @@ module DataMapper
     # This is useful for short-circuiting queries that cannot be satisfied.
     #
     # @return [TrueClass, FalseClass]
+    #   true if the Query is valid, false if not
     #
     # @api semipublic
     def valid?
@@ -30,20 +62,21 @@ module DataMapper
     end
 
     ##
-    # indicates if the result set of the query should replace
-    # the cached results already in the Identity Map.
-    #
-    # With @reload set to true, the query results are used to update/overwrite
-    # attributes of objects a previous query already loaded.
+    # Indicates if the Query results should replace the results in the Identity Map
     #
     # @return [TrueClass, FalseClass]
+    #   true if the results should be reloaded, false if not
+    #
     # @api semipublic
     def reload?
       @reload
     end
 
     ##
+    # Indicates if the Query results should be unique
+    #
     # @return [TrueClass, FalseClass]
+    #   true if the results should be unique, false if not
     #
     # @api semipublic
     def unique?
@@ -51,20 +84,23 @@ module DataMapper
     end
 
     ##
-    # reverses the sort order
+    # Returns a new Query with a reversed order
     #
-    # @return [DataMapper::Query] new reversed duplicate of itself
+    # @return [DataMapper::Query]
+    #   new Query with reversed order
     #
-    # @api public
+    # @api semipublic
     def reverse
       dup.reverse!
     end
 
     ##
-    # reverses the sort order
+    # Reverses the sort order of the Query
     #
-    # @return [DataMapper::Query] self
+    # @return [DataMapper::Query]
+    #   self
     #
+    # @api semipublic
     def reverse!
       # reverse the sort order
       update(:order => self.order.map { |o| o.reverse })
@@ -73,14 +109,15 @@ module DataMapper
     end
 
     ##
-    # updates the query object with additional conditions, ordering, or
-    # options
+    # Updates the Query with another Query or conditions
     #
-    # @param [DataMapper::Query, Hash] conditions, orders, and other options
+    # @param [DataMapper::Query, Hash] other
+    #   other Query or conditions
     #
-    # @return [DataMapper::Query] the receiver
+    # @return [DataMapper::Query]
+    #   self
     #
-    # @api public
+    # @api semipublic
     def update(other)
       assert_kind_of 'other', other, self.class, Hash
 
@@ -92,6 +129,8 @@ module DataMapper
       end
 
       return self if self == other
+
+      reset_memoized_vars
 
       # TODO: update this so if "other" had a value explicitly set
       #       overwrite the attributes in self
@@ -114,22 +153,33 @@ module DataMapper
     ##
     # Similar to Query#update, but acts on a duplicate.
     #
-    # @param [DataMapper::Query, Hash] other other query to merge with
-    # @return [DataMapper::Query] updated duplicate of original query
-    # @api public
+    # @param [DataMapper::Query, Hash] other
+    #   other query to merge with
+    #
+    # @return [DataMapper::Query]
+    #   updated duplicate of original query
+    #
+    # @api semipublic
     def merge(other)
       dup.update(other)
     end
 
     ##
-    # Compares two Query objects by asserting that their conditions, sort
-    # ordering, and options are the same
+    # Compares another Query for equivalency
+    #
+    # @param [DataMapper::Query] other
+    #   the other Query to compare with
     #
     # @return [TrueClass, FalseClass]
+    #   true if they are equivalent, false if not
+    #
     # @api semipublic
     def ==(other)
-      return true if super
-      return false unless other.kind_of?(self.class)
+      return true if equal?(other)
+
+      unless other.class.equal?(self.class)
+        return false unless [ :model, :reload?, :unique?, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions ].all? { |o| other.respond_to?(o) }
+      end
 
       # TODO: add a #hash method, and then use it in the comparison, eg:
       #   return hash == other.hash
@@ -145,87 +195,23 @@ module DataMapper
       @conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash } == other.conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash }
     end
 
+    ##
+    # Compares another Query for equality
+    #
+    # TODO: write this method
+    #
+    # @param [DataMapper::Query] other
+    #   the other Query to compare with
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if they are equal, false if not
+    #
+    # @api semipublic
     alias eql? ==
 
-    # @api private
-    def bind_values
-      bind_values = []
-
-      conditions.each do |tuple|
-        next if tuple.size == 2
-        operator, property, bind_value = *tuple
-
-        if :raw == operator
-          bind_values.push(*bind_value)
-        else
-          if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
-            bind_values.push(bind_value.first, bind_value.last)
-          else
-            bind_values << bind_value
-          end
-        end
-      end
-
-      bind_values
-    end
-
     ##
-    # returns the property (if any) used to indicate the class which
-    # the results should be instantiated as; the Discriminator property
-    # declared on the model
-    #
-    # @return [DataMapper::Property, NilClass] The Discriminator property
-    #   declared on the model
-    # @api semipublic
-    def inheritance_property
-      fields.detect { |property| property.type == DataMapper::Types::Discriminator }
-    end
-
-    def inheritance_property_index
-      fields.index(inheritance_property)
-    end
-
-    ##
-    # Get the indices of key properties for this Query's model in its Repository
-    #
-    # @param [DataMapper::Repository] the repository to act on
-    # @api private
-    # TODO: spec this
-    def key_property_indexes(repository)
-      model.key(repository.name).map { |property| fields.index(property) }
-    end
-
-    ##
-    # find the point in self.conditions where the sub select tuple is
-    # located. Delete the tuple and add value.conditions. value must be a
-    # <DM::Query>
-    #
-    # @param [DataMapper::Operator] operator
-    #   Identifies the position in +self+ at which the subquery sould be merged
-    # @param [DataMapper::Property] property
-    #   Identifies the position in +self+ at which the subquery sould be merged
-    # @param [DataMapper::Query] value
-    #   The query object to merge into +self+
-    #
-    # @return [Array(Tuple<Query::Operator, Property, Object>)]
     #
     # @api semipublic
-    def merge_subquery(operator, property, value)
-      assert_kind_of 'value', value, self.class
-
-      new_conditions = []
-      conditions.each do |tuple|
-        if tuple == [ operator, property, value ]
-          value.conditions.each do |subquery_tuple|
-            new_conditions << subquery_tuple
-          end
-        else
-          new_conditions << tuple
-        end
-      end
-      @conditions = new_conditions
-    end
-
     def inspect
       attrs = [
         [ :repository, repository.name ],
@@ -243,8 +229,67 @@ module DataMapper
       "#<#{self.class.name} #{attrs.map { |(k,v)| "@#{k}=#{v.inspect}" } * ' '}>"
     end
 
+    # TODO: document this
+    # @api private
+    def bind_values
+      @bind_values ||= begin
+        bind_values = []
+
+        conditions.each do |tuple|
+          next if tuple.size == 2
+          operator, property, bind_value = *tuple
+
+          if :raw == operator
+            bind_values.push(*bind_value)
+          else
+            if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
+              bind_values.push(bind_value.first, bind_value.last)
+            else
+              bind_values << bind_value
+            end
+          end
+        end
+
+        bind_values
+      end
+    end
+
+    # TODO: document this
+    # @api private
+    def inheritance_property_index
+      return @inheritance_property_index if defined?(@inheritance_property_index)
+
+      fields.each_with_index do |property,i|
+        if property.type == DataMapper::Types::Discriminator
+          break @inheritance_property_index = i
+        end
+      end
+
+      @inheritance_property_index
+    end
+
+    ##
+    # Get the indices of all keys in fields
+    #
+    # @api private
+    def key_property_indexes
+      @key_property_indexes ||= begin
+        indexes = []
+
+        fields.each_with_index do |property,i|
+          if property.key?
+            indexes << i
+          end
+        end
+
+        indexes
+      end
+    end
+
     private
 
+    # TODO: document this
+    # @api semipublic
     def initialize(repository, model, options = {})
       assert_kind_of 'repository', repository, Repository
       assert_kind_of 'model',      model,      Model
@@ -301,14 +346,18 @@ module DataMapper
       end
     end
 
+    # TODO: document this
+    # @api semipublic
     def initialize_copy(original)
       # deep-copy the condition tuples when copying the object
       @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 
     # validate the options
+    #
     # @param [#each] options the options to validate
     # @raise [ArgumentError] if any pairs in +options+ are invalid options
+    #
     # @api private
     def assert_valid_options(options)
       # [DB] This might look more ugly now, but it's 2x as fast as the old code
@@ -366,9 +415,11 @@ module DataMapper
     end
 
     # validate other DM::Query or Hash object
+    #
     # @param [Object] other object whose validity is under test
     # @raise [ArgumentError]
     #   if +other+ is a DM::Query, but has a different repository or model
+    #
     # @api private
     def assert_valid_other(other)
       return unless other.kind_of?(Query)
@@ -383,6 +434,7 @@ module DataMapper
     end
 
     # normalize order elements to DM::Query::Direction
+    # @api private
     def normalize_order
       @order.map! do |order|
         case order
@@ -423,6 +475,7 @@ module DataMapper
     end
 
     # normalize fields to DM::Property
+    # @api private
     def normalize_fields
       # TODO: make @fields a PropertySet
       # TODO: raise an exception if the property is not available in the repository
@@ -451,6 +504,7 @@ module DataMapper
     end
 
     # normalize links to DM::Query::Path
+    # @api private
     def normalize_links
       @links.map! do |link|
         case link
@@ -470,66 +524,66 @@ module DataMapper
       end
     end
 
-    # validate that all the links are present for the given DM::Query::Path
+    ##
+    # Validate that all the links are present for the Query::Path
     #
+    # @api private
     def validate_query_path_links(path)
       path.relationships.map do |relationship|
         @links << relationship unless @links.include?(relationship)
       end
     end
 
+    ##
     # Append conditions to this Query
-    # @param [Symbol, String, Property, Query::Path, Operator] clause
+    #
+    # @param [Symbol, String, Property, Query::Path, Operator] subject
+    #   the subject to match
+    #
     # @param [Object] bind_value
+    #   the value to match with
+    #
     # @api private
-    def append_condition(clause, bind_value)
-      operator = :eql
-      bind_value = bind_value.call if bind_value.kind_of?(Proc)
-
-      property = case clause
+    def append_condition(subject, bind_value, operator = :eql)
+      property = case subject
         when Property
-          clause
+          subject
         when Query::Path
-          validate_query_path_links(clause)
-          clause
+          validate_query_path_links(subject)
+          operator = subject.operator
+          subject.property
         when Operator
-          operator = clause.operator
-          return if operator == :not && bind_value.kind_of?(Array) && bind_value.empty?
-          # FIXME: this code duplicates conditions in this method.  Try
-          # to refactor out the common code.
-          if clause.target.kind_of?(Property)
-            clause.target
-          elsif clause.target.kind_of?(Query::Path)
-            validate_query_path_links(clause.target)
-            clause.target
-          elsif clause.target.kind_of?(Symbol)
-            @properties[clause.target]
-          end
+          return append_condition(subject.target, bind_value, subject.operator)
         when Symbol
-          @properties[clause]
+          @properties[subject]
         when String
-          if clause =~ /\w\.\w/
+          if subject =~ /\w\.\w/
             query_path = @model
-            clause.split(".").each { |piece| query_path = query_path.send(piece) }
-            append_condition(query_path, bind_value)
-            return
+            subject.split('.').each { |part| query_path = query_path.send(part) }
+            return append_condition(query_path, bind_value, operator)
           else
-            @properties[clause]
+            @properties[subject]
           end
         else
-          raise ArgumentError, "Condition type #{clause.inspect} not supported", caller(2)
+          raise ArgumentError, "Condition type #{subject.inspect} not supported", caller(2)
       end
 
       if property.nil?
-        raise ArgumentError, "Clause #{clause.inspect} does not map to a DataMapper::Property", caller(2)
+        raise ArgumentError, "Clause #{subject.inspect} does not map to a DataMapper::Property", caller(2)
       end
 
       bind_value = normalize_bind_value(property, bind_value)
 
+      return if operator == :not && bind_value.kind_of?(Array) && bind_value.empty?
+
       @conditions << [ operator, property, bind_value ]
     end
 
+    # TODO: document this
+    # @api private
     def normalize_bind_value(property_or_path, bind_value)
+      bind_value = bind_value.call if bind_value.kind_of?(Proc)
+
       case property_or_path
         when DataMapper::Query::Path
           bind_value = normalize_bind_value(property_or_path.property, bind_value)
@@ -542,6 +596,8 @@ module DataMapper
       bind_value.kind_of?(Array) && bind_value.size == 1 ? bind_value.first : bind_value
     end
 
+    # TODO: document this
+    # @api private
     def update_conditions(other)
       @conditions = @conditions.dup
 
@@ -591,6 +647,16 @@ module DataMapper
       end
 
       @conditions
+    end
+
+    # TODO: document this
+    # @api private
+    def reset_memoized_vars
+      @bind_values = @key_property_indexes = nil
+
+      if defined?(@inheritance_property_index)
+        remove_instance_variable(:@inheritance_property_index)
+      end
     end
   end # class Query
 end # module DataMapper

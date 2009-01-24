@@ -10,4 +10,10 @@ class Array
     self.each{ |k,v| h[k] = v }
     h
   end
+
+  def to_mash
+    m = Mash.new
+    self.each{ |k,v| m[k] = v }
+    m
+  end
 end # class Symbol
