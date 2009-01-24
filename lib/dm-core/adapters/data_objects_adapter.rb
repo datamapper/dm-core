@@ -332,13 +332,13 @@ module DataMapper
         def where_statement(conditions, qualify)
           conditions.map do |operator,property,bind_value|
             # handle exclusive range conditions
-            if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
+            if bind_value.kind_of?(Range) && bind_value.exclude_end?
               if operator == :eql
                 gte_condition = condition_statement(:gte, property, bind_value.first, qualify)
                 lt_condition  = condition_statement(:lt,  property, bind_value.last,  qualify)
 
                 "#{gte_condition} AND #{lt_condition}"
-              else
+              elsif operator == :not
                 lt_condition  = condition_statement(:lt,  property, bind_value.first, qualify)
                 gte_condition = condition_statement(:gte, property, bind_value.last,  qualify)
 

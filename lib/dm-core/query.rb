@@ -57,7 +57,11 @@ module DataMapper
     def valid?
       !conditions.any? do |operator, property, bind_value|
         next if :raw == operator
-        bind_value.kind_of?(Array) && bind_value.empty?
+
+        case bind_value
+          when Array then bind_value.empty?
+          when Range then operator != :eql && operator != :in && operator != :not
+        end
       end
     end
 
