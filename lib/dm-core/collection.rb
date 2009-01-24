@@ -53,12 +53,14 @@ module DataMapper
 
       # XXX: when not loaded, should the behavior change?
 
+      repository_name = repository.name
+
       # update query fields to always include the model key
-      fields = model.key(repository.name) | @query.fields
+      fields = model.key(repository_name) | @query.fields
 
       # always include the discriminator if defined in the model
-      model.properties(repository.name).each do |property|
-        if property.type == DataMapper::Types::Discriminator
+      model.properties(repository_name).each do |property|
+        if property.type == Types::Discriminator
           fields << property
         end
       end
