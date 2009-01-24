@@ -260,7 +260,7 @@ module DataMapper
       return @inheritance_property_index if defined?(@inheritance_property_index)
 
       fields.each_with_index do |property,i|
-        if property.type == DataMapper::Types::Discriminator
+        if property.type == Types::Discriminator
           break @inheritance_property_index = i
         end
       end
@@ -589,7 +589,7 @@ module DataMapper
       bind_value = bind_value.call if bind_value.kind_of?(Proc)
 
       case property_or_path
-        when DataMapper::Query::Path
+        when Query::Path
           bind_value = normalize_bind_value(property_or_path.property, bind_value)
         when Property
           if property_or_path.custom?
