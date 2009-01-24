@@ -81,6 +81,7 @@ spec/public/transaction_spec.rb
 spec/semipublic/adapters/in_memory_adapter_spec.rb
 spec/semipublic/adapters/mysql_adapter_spec.rb
 spec/semipublic/adapters/postgres_adapter_spec.rb
+spec/semipublic/adapters/sqlite3_adapter_spec.rb
 spec/semipublic/associations/many_to_one_spec.rb
 spec/semipublic/associations_spec.rb
 spec/semipublic/collection_spec.rb
