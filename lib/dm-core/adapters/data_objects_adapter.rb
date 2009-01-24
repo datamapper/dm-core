@@ -223,16 +223,18 @@ module DataMapper
         end
 
         def select_statement(query)
-          fields = query.fields
-          limit  = query.limit
-          offset = query.offset
-          order  = query.order
-
-          if query.unique?
-            group_by = fields.select { |p| p.kind_of?(Property) }
-          end
+          fields     = query.fields
+          conditions = query.conditions
+          limit      = query.limit
+          offset     = query.offset
+          order      = query.order
+          group_by   = nil
 
           qualify = query.links.any?
+
+          if qualify || query.unique?
+            group_by = fields.select { |p| p.kind_of?(Property) }
+          end
 
           unless (limit && limit > 1) || offset > 0 || qualify
             unique = query.model.properties.select { |p| p.unique? }.to_set
@@ -245,8 +247,8 @@ module DataMapper
 
           statement = "SELECT #{columns_statement(fields, qualify)}"
           statement << " FROM #{quote_name(query.model.storage_name(name))}"
-          statement << join_statement(query, qualify)                      if qualify
-          statement << " WHERE #{where_statement(query, qualify)}"         if query.conditions.any?
+          statement << join_statement(query.links, qualify)                if qualify
+          statement << " WHERE #{where_statement(conditions, qualify)}"    if conditions.any?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
           statement << " ORDER BY #{order_by_statement(order, qualify)}"   if order && order.any?
           statement << " LIMIT #{quote_value(limit)}"                      if limit
@@ -280,13 +282,21 @@ module DataMapper
         def update_statement(properties, query)
           statement = "UPDATE #{quote_name(query.model.storage_name(name))}"
           statement << " SET #{properties.map { |p| "#{quote_name(p.field)} = ?" }.join(', ')}"
-          statement << " WHERE #{where_statement(query, query.links.any?)}" if query.conditions.any?
+
+          if (conditions = query.conditions).any?
+            statement << " WHERE #{where_statement(conditions, query.links.any?)}"
+          end
+
           statement
         end
 
         def delete_statement(query)
           statement = "DELETE FROM #{quote_name(query.model.storage_name(name))}"
-          statement << " WHERE #{where_statement(query, query.links.any?)}" if query.conditions.any?
+
+          if (conditions = query.conditions).any?
+            statement << " WHERE #{where_statement(conditions, query.links.any?)}"
+          end
+
           statement
         end
 
@@ -294,10 +304,10 @@ module DataMapper
           properties.map { |p| property_to_column_name(p, qualify) }.join(', ')
         end
 
-        def join_statement(query, qualify)
+        def join_statement(links, qualify)
           statement = ''
 
-          query.links.reverse_each do |relationship|
+          links.reverse_each do |relationship|
             model = case relationship
               when Associations::ManyToMany::Relationship, Associations::OneToMany::Relationship, Associations::OneToOne::Relationship
                 relationship.parent_model
@@ -312,27 +322,25 @@ module DataMapper
             parent_repository_name = relationship.parent_repository_name || name
 
             statement << relationship.parent_key(parent_repository_name).zip(relationship.child_key(child_repository_name)).map do |parent_property,child_property|
-              condition_statement(query, :eql, parent_property, child_property, qualify)
+              condition_statement(:eql, parent_property, child_property, qualify)
             end.join(' AND ')
           end
 
           statement
         end
 
-        def where_statement(query, qualify)
-          conditions = query.conditions
-
+        def where_statement(conditions, qualify)
           conditions.map do |operator,property,bind_value|
             # handle exclusive range conditions
             if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
               if operator == :eql
-                gte_condition = condition_statement(query, :gte, property, bind_value.first, qualify)
-                lt_condition  = condition_statement(query, :lt,  property, bind_value.last,  qualify)
+                gte_condition = condition_statement(:gte, property, bind_value.first, qualify)
+                lt_condition  = condition_statement(:lt,  property, bind_value.last,  qualify)
 
                 "#{gte_condition} AND #{lt_condition}"
               else
-                lt_condition  = condition_statement(query, :lt,  property, bind_value.first, qualify)
-                gte_condition = condition_statement(query, :gte, property, bind_value.last,  qualify)
+                lt_condition  = condition_statement(:lt,  property, bind_value.first, qualify)
+                gte_condition = condition_statement(:gte, property, bind_value.last,  qualify)
 
                 if conditions.size > 1
                   "(#{lt_condition} OR #{gte_condition})"
@@ -341,7 +349,7 @@ module DataMapper
                 end
               end
             else
-              condition_statement(query, operator, property, bind_value, qualify)
+              condition_statement(operator, property, bind_value, qualify)
             end
           end.join(' AND ')
         end
@@ -362,7 +370,7 @@ module DataMapper
           end
         end
 
-        def condition_statement(query, operator, left_condition, right_condition, qualify)
+        def condition_statement(operator, left_condition, right_condition, qualify)
           return left_condition if operator == :raw
 
           conditions = [ left_condition, right_condition ].map do |condition|

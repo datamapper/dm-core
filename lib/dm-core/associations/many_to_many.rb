@@ -42,9 +42,6 @@ module DataMapper
         def query
           query = super.dup
 
-          # make sure results are unique
-          query[:unique] = true
-
           # use all intermediaries, besides "through", in the query links
           query[:links] = intermediaries[1..-1]
 
