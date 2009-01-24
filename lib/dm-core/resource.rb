@@ -149,17 +149,17 @@ module DataMapper
     end
 
     ##
-    # Tests the equality with another Resource
+    # Compares another Resource for equality
     #
     # Resource is equal to +other+ if they are the same object (identity)
     # or if they are both of the *same model* and all of their attributes
-    # are equal
+    # are equivalent
     #
     # @param [DataMapper::Resource] other
-    #   Resource to compare to
+    #   the other Resource to compare with
     #
     # @return [TrueClass, FalseClass]
-    #   the outcome of the comparison as a boolean
+    #   true if they are equal, false if not
     #
     # @api public
     def eql?(other)
@@ -167,25 +167,25 @@ module DataMapper
         return true
       end
 
-      unless other.respond_to?(:model) && model.equal?(other.model)
+      unless self.class.equal?(other.class)
         return false
       end
 
-      eql_attributes?(other)
+      equivalent_attributes?(other)
     end
 
     ##
-    # Tests the equality with another Resource
+    # Compares another Resource for equivalency
     #
     # Resource is equal to +other+ if they are the same object (identity)
     # or if they are both of the *same base model* and all of their attributes
-    # are equal
+    # are equivalent
     #
     # @param [DataMapper::Resource] other
-    #   Resource to compare to
+    #   the other Resource to compare with
     #
     # @return [TrueClass, FalseClass]
-    #   the outcome of the comparison as a boolean
+    #   true if they are equivalent, false if not
     #
     # @api public
     def ==(other)
@@ -197,7 +197,7 @@ module DataMapper
         return false
       end
 
-      eql_attributes?(other)
+      equivalent_attributes?(other)
     end
 
     ##
@@ -726,7 +726,7 @@ module DataMapper
     end
 
     ##
-    # Return true if +other+'s attribtues are equal to +self+'s
+    # Return true if +other+'s attribtues are equivalent to +self+'s
     #
     # @param [Resource] other
     #   The Resource whose attributes are to be compared with +self+'s
@@ -734,7 +734,8 @@ module DataMapper
     # @return [TrueClass, FalseClass]
     #   The result of the comparison of +other+'s attributes with +self+'s
     #
-    def eql_attributes?(other)
+    # @api private
+    def equivalent_attributes?(other)
       if key != other.key
         return false
       end
