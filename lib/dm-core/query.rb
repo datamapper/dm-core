@@ -18,18 +18,6 @@ module DataMapper
 
     # TODO: document
     # @api semipublic
-    attr_reader :offset
-
-    # TODO: document
-    # @api semipublic
-    attr_reader :limit
-
-    # TODO: document
-    # @api semipublic
-    attr_reader :order
-
-    # TODO: document
-    # @api semipublic
     attr_reader :fields
 
     # TODO: document
@@ -39,6 +27,18 @@ module DataMapper
     # TODO: document
     # @api semipublic
     attr_reader :conditions
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :offset
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :limit
+
+    # TODO: document
+    # @api semipublic
+    attr_reader :order
 
     # TODO: document
     # @api private
@@ -213,8 +213,43 @@ module DataMapper
     # @api semipublic
     alias eql? ==
 
-    ##
-    #
+    # TODO: document this
+    # @api semipublic
+    def to_hash
+      hash = {
+        :fields       => fields,
+        :order        => order,
+        :offset       => offset,
+        :reload       => reload?,
+        :unique       => unique?,
+        :add_reversed => add_reversed?,
+      }
+
+      hash[:limit] = limit unless limit == nil
+      hash[:links] = links unless links == []
+
+      conditions  = {}
+      raw_queries = []
+      bind_values = []
+
+      self.conditions.each do |tuple|
+        if tuple[0] == :raw
+          raw_queries << tuple[1]
+          bind_values << tuple[2] if tuple.size == 3
+        else
+          operator, property, bind_value = tuple
+          conditions[Query::Operator.new(property, operator)] = bind_value
+        end
+      end
+
+      if raw_queries.any?
+        hash[:conditions] = [ raw_queries.join(' ') ].concat(bind_values)
+      end
+
+      hash.update(conditions)
+    end
+
+    # TODO: document this
     # @api semipublic
     def inspect
       attrs = [
@@ -329,23 +364,15 @@ module DataMapper
       normalize_links
 
       # treat all non-options as conditions
-      (options.keys - OPTIONS).each do |k|
-        append_condition(k, options[k])
-      end
+      options.except(*OPTIONS).each { |kv| append_condition(*kv) }
 
       # parse raw options[:conditions] differently
       if conditions = options[:conditions]
-        if conditions.kind_of?(Hash)
-          conditions.each do |k,v|
-            append_condition(k, v)
-          end
-        elsif conditions.kind_of?(Array)
-          raw_query, *bind_values = conditions
-          @conditions << if bind_values.empty?
-            [ :raw, raw_query ]
-          else
-            [ :raw, raw_query, bind_values ]
-          end
+        case conditions
+          when Hash
+            conditions.each { |kv| append_condition(*kv) }
+          when Array
+            @conditions << [ :raw, *conditions ]
         end
       end
     end
@@ -592,7 +619,9 @@ module DataMapper
     # TODO: document this
     # @api private
     def normalize_bind_value(property_or_path, bind_value)
-      bind_value = bind_value.call if bind_value.kind_of?(Proc)
+      if bind_value.kind_of?(Proc)
+        bind_value = bind_value.call
+      end
 
       case property_or_path
         when Query::Path

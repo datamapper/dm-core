@@ -46,7 +46,7 @@ module DataMapper
     # @api public
     def reload(query = nil)
       if query.kind_of?(Hash) && query.any?
-        @query = Query.new(repository, model, query_to_hash(self.query).merge(query))
+        @query = Query.new(repository, model, self.query.to_hash.update(query))
       elsif query.kind_of?(Query)
         @query = query
       end
@@ -71,7 +71,7 @@ module DataMapper
 
       # specify the Query explicitly so that Collection#all does not
       # perform a relative query
-      query = Query.new(repository, model, query_to_hash(self.query).update(:reload => true))
+      query = Query.new(repository, model, self.query.to_hash.update(:reload => true))
 
       # load a collection and replace the current collection with the results
       replace(all(query))
@@ -1089,7 +1089,7 @@ module DataMapper
       end
 
       # use current query scope to start
-      relative_query = query_to_hash(self.query)
+      relative_query = self.query.to_hash
 
       # merge in query to further scope the results
       relative_query.update(query)
@@ -1143,42 +1143,6 @@ module DataMapper
       end
 
       return first_pos, last_pos ? last_pos - first_pos : nil
-    end
-
-    # TODO: move this to Query#to_hash
-    # @api private
-    def query_to_hash(query)
-      hash = {
-        :reload       => query.reload?,
-        :unique       => query.unique?,
-        :offset       => query.offset,
-        :order        => query.order,
-        :add_reversed => query.add_reversed?,
-        :fields       => query.fields,
-      }
-
-      hash[:limit] = query.limit unless query.limit == nil
-      hash[:links] = query.links unless query.links == []
-
-      conditions  = {}
-      raw_queries = []
-      bind_values = []
-
-      query.conditions.each do |condition|
-        if condition[0] == :raw
-          raw_queries << condition[1]
-          bind_values << condition[2]
-        else
-          operator, property, bind_value = condition
-          conditions[Query::Operator.new(property, operator)] = bind_value
-        end
-      end
-
-      if raw_queries.any?
-        hash[:conditions] = [ raw_queries.join(' ') ].concat(bind_values)
-      end
-
-      hash.update(conditions)
     end
 
     ##
