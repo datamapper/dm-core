@@ -47,6 +47,7 @@ describe DataMapper::Query do
       end
     end
 
+    # TODO: make one valid spec for each type of option
     describe 'with valid options' do
       before do
         @return = @query = DataMapper::Query.new(@repository, @model, @options)
@@ -55,8 +56,6 @@ describe DataMapper::Query do
       it 'should return a Query' do
         @return.should be_kind_of(DataMapper::Query)
       end
-
-      it 'should have specs to make sure each option was set as expected'
     end
 
     describe 'with an invalid repository' do
@@ -75,6 +74,7 @@ describe DataMapper::Query do
       end
     end
 
+    # TODO: make one invalid spec for each type of option and failure scenario
     describe 'with invalid options' do
       it 'should raise an exception' do
         lambda {
