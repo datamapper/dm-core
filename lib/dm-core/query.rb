@@ -8,45 +8,110 @@ module DataMapper
 
     OPTIONS = [ :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions, :unique ].freeze
 
-    # TODO: document
+    ##
+    # Returns the repository
+    #
+    #   TODO: needs example
+    #
+    # @return [DataMapper::Repository]
+    #   the Repository to retrieve results from
+    #
     # @api semipublic
     attr_reader :repository
 
-    # TODO: document
+    ##
+    # Returns the model
+    #
+    #   TODO: needs example
+    #
+    # @return [DataMapper::Model]
+    #   the Model to retrieve results from
+    #
     # @api semipublic
     attr_reader :model
 
-    # TODO: document
+    ##
+    # Returns the fields
+    #
+    #   TODO: needs example
+    #
+    # @return [DataMapper::PropertySet]
+    #   the properties in the Model that will be retrieved
+    #
     # @api semipublic
     attr_reader :fields
 
-    # TODO: document
+    ##
+    # Returns the links
+    #
+    #   TODO: needs example
+    #
+    # @return [Array]
+    #   the relationships that will be used to scope the results
+    #
     # @api semipublic
     attr_reader :links
 
-    # TODO: document
+    ##
+    # Returns the conditions
+    #
+    #   TODO: needs example
+    #
+    # @return [Array]
+    #   the conditions that will be used to scope the results
+    #
     # @api semipublic
     attr_reader :conditions
 
-    # TODO: document
+    ##
+    # Returns the offset
+    #
+    #   TODO: needs example
+    #
+    # @return [Integer]
+    #   the offset of the results
+    #
     # @api semipublic
     attr_reader :offset
 
-    # TODO: document
+    ##
+    # Returns the limit
+    #
+    #   TODO: needs example
+    #
+    # @return [Integer,NilClass]
+    #   the maximum number of results
+    #
     # @api semipublic
     attr_reader :limit
 
-    # TODO: document
+    ##
+    # Returns the order
+    #
+    #   TODO: needs example
+    #
+    # @return [Array]
+    #   the order of results
+    #
     # @api semipublic
     attr_reader :order
 
-    # TODO: document
+    ##
+    # Indicates if each result should be returned in reverse order
+    #
+    #   TODO: needs example
+    #
+    # @return [TrueClass,FalseClass]
+    #   true if the results should be reversed, false if not
+    #
     # @api private
     attr_accessor :add_reversed
     alias add_reversed? add_reversed
 
     ##
     # Indicates if the Query contains valid conditions
+    #
+    #   TODO: needs example
     #
     # This is useful for short-circuiting queries that cannot be satisfied.
     #
@@ -55,6 +120,8 @@ module DataMapper
     #
     # @api semipublic
     def valid?
+      return false if offset > 0 && limit.nil?
+
       !conditions.any? do |operator, property, bind_value|
         next if :raw == operator
 
@@ -68,6 +135,8 @@ module DataMapper
     ##
     # Indicates if the Query results should replace the results in the Identity Map
     #
+    #   TODO: needs example
+    #
     # @return [TrueClass, FalseClass]
     #   true if the results should be reloaded, false if not
     #
@@ -78,6 +147,8 @@ module DataMapper
 
     ##
     # Indicates if the Query results should be unique
+    #
+    #   TODO: needs example
     #
     # @return [TrueClass, FalseClass]
     #   true if the results should be unique, false if not
@@ -90,6 +161,8 @@ module DataMapper
     ##
     # Returns a new Query with a reversed order
     #
+    #   TODO: needs example
+    #
     # @return [DataMapper::Query]
     #   new Query with reversed order
     #
@@ -100,6 +173,8 @@ module DataMapper
 
     ##
     # Reverses the sort order of the Query
+    #
+    #   TODO: needs example
     #
     # @return [DataMapper::Query]
     #   self
@@ -114,6 +189,8 @@ module DataMapper
 
     ##
     # Updates the Query with another Query or conditions
+    #
+    #   TODO: needs example
     #
     # @param [DataMapper::Query, Hash] other
     #   other Query or conditions
@@ -171,6 +248,8 @@ module DataMapper
     ##
     # Compares another Query for equivalency
     #
+    #   TODO: needs example
+    #
     # @param [DataMapper::Query] other
     #   the other Query to compare with
     #
@@ -202,7 +281,7 @@ module DataMapper
     ##
     # Compares another Query for equality
     #
-    # TODO: write this method
+    #   TODO: needs example
     #
     # @param [DataMapper::Query] other
     #   the other Query to compare with
@@ -211,9 +290,12 @@ module DataMapper
     #   true if they are equal, false if not
     #
     # @api semipublic
-    alias eql? ==
+    def eql?(other)
+      raise NotImplementedError, 'TODO: need to write method'
+    end
 
     # TODO: document this
+    #   TODO: needs example
     # @api semipublic
     def to_hash
       hash = {
@@ -250,6 +332,7 @@ module DataMapper
     end
 
     # TODO: document this
+    #   TODO: needs example
     # @api semipublic
     def inspect
       attrs = [
@@ -269,6 +352,7 @@ module DataMapper
     end
 
     # TODO: document this
+    #   TODO: needs example
     # @api private
     def bind_values
       @bind_values ||= begin
@@ -294,6 +378,7 @@ module DataMapper
     end
 
     # TODO: document this
+    #   TODO: needs example
     # @api private
     def inheritance_property_index
       return @inheritance_property_index if defined?(@inheritance_property_index)
@@ -309,6 +394,8 @@ module DataMapper
 
     ##
     # Get the indices of all keys in fields
+    #
+    #   TODO: needs example
     #
     # @api private
     def key_property_indexes
@@ -327,15 +414,25 @@ module DataMapper
 
     private
 
-    # TODO: document this
+    ##
+    # Initializes a Query instance
+    #
+    #   TODO: needs example
+    #
+    # @param [DataMapper::Repository] repository
+    #   the Repository to retrieve results from
+    #
+    # @param [DataMapper::Model] model
+    #   the Model to retrieve results from
+    #
+    # @param [Hash] options
+    #   the conditions and scope
+    #
     # @api semipublic
     def initialize(repository, model, options = {})
       assert_kind_of 'repository', repository, Repository
       assert_kind_of 'model',      model,      Model
       assert_kind_of 'options',    options,    Hash
-
-      # XXX: what is the reason for this?
-      options.each { |k, v| options[k] = v.call if v.kind_of?(Proc) }
 
       assert_valid_options(options)
 
@@ -378,16 +475,23 @@ module DataMapper
     end
 
     # TODO: document this
+    #   TODO: needs example
     # @api semipublic
     def initialize_copy(original)
       # deep-copy the condition tuples when copying the object
       @conditions = original.conditions.map { |tuple| tuple.dup }
     end
 
-    # validate the options
+    ##
+    # Validate the options
     #
-    # @param [#each] options the options to validate
-    # @raise [ArgumentError] if any pairs in +options+ are invalid options
+    #   TODO: needs example
+    #
+    # @param [#each] options
+    #   the options to validate
+    #
+    # @raise [ArgumentError]
+    #   if any pairs in +options+ are invalid options
     #
     # @api private
     def assert_valid_options(options)
@@ -445,9 +549,14 @@ module DataMapper
       end
     end
 
-    # validate other DM::Query or Hash object
     #
-    # @param [Object] other object whose validity is under test
+    # Validate other Query or Hash instance
+    #
+    #   TODO: needs example
+    #
+    # @param [Object] other
+    #   object whose validity is under test
+    #
     # @raise [ArgumentError]
     #   if +other+ is a DM::Query, but has a different repository or model
     #
@@ -464,7 +573,11 @@ module DataMapper
       end
     end
 
-    # normalize order elements to DM::Query::Direction
+    ##
+    # Normalize order elements to Query::Direction instances
+    #
+    #   TODO: needs example
+    #
     # @api private
     def normalize_order
       # TODO: should Query::Path objects be permitted?  If so, then it
@@ -507,10 +620,13 @@ module DataMapper
       end
     end
 
-    # normalize fields to DM::Property
+    ##
+    # Normalize fields to Property instances
+    #
+    #   TODO: needs example
+    #
     # @api private
     def normalize_fields
-      # TODO: make @fields a PropertySet
       # TODO: raise an exception if the property is not available in the repository
       @fields.map! do |field|
         case field
@@ -534,9 +650,17 @@ module DataMapper
             raise ArgumentError, "+options[:fields]+ entry #{field.inspect} not supported", caller(2)
         end
       end
+
+      unless @fields.kind_of?(PropertySet)
+        @fields = PropertySet.new(@fields)
+      end
     end
 
-    # normalize links to DM::Query::Path
+    ##
+    # Normalize links to DM::Query::Path
+    #
+    #   TODO: needs example
+    #
     # @api private
     def normalize_links
       @links.map! do |link|
@@ -560,6 +684,8 @@ module DataMapper
     ##
     # Validate that all the links are present for the Query::Path
     #
+    #   TODO: needs example
+    #
     # @api private
     def validate_query_path_links(path)
       path.relationships.map do |relationship|
@@ -570,6 +696,8 @@ module DataMapper
     ##
     # Append conditions to this Query
     #
+    #   TODO: needs example
+    #
     # @param [Symbol, String, Property, Query::Path, Operator] subject
     #   the subject to match
     #
@@ -578,7 +706,6 @@ module DataMapper
     #
     # @param [Symbol] operator
     #   the operator to match with
-    #
     #
     # @api private
     def append_condition(subject, bind_value, operator = :eql)
@@ -617,6 +744,7 @@ module DataMapper
     end
 
     # TODO: document this
+    #   TODO: needs example
     # @api private
     def normalize_bind_value(property_or_path, bind_value)
       if bind_value.kind_of?(Proc)
@@ -636,6 +764,7 @@ module DataMapper
     end
 
     # TODO: document this
+    #   TODO: needs example
     # @api private
     def update_conditions(other)
       @conditions = @conditions.dup
@@ -689,6 +818,7 @@ module DataMapper
     end
 
     # TODO: document this
+    #   TODO: needs example
     # @api private
     def reset_memoized_vars
       @bind_values = @key_property_indexes = nil

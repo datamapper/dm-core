@@ -45,7 +45,9 @@ module DataMapper
       named?(property.name)
     end
 
+    # TODO: make PropertySet#reject return a PropertySet instance
     def defaults
+      # TODO: return self if none of the properties are lazy
       @defaults ||= reject { |p| p.lazy? }
     end
 

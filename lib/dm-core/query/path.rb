@@ -4,10 +4,12 @@ module DataMapper
       include Extlib::Assertions
 
       # silence Object deprecation warnings
-      undef_method :id   if method_defined?(:id)
-      undef_method :type if method_defined?(:type)
+      [ :id, :type ].each { |m| undef_method m if method_defined?(m) }
 
-      attr_reader :relationships, :model, :property, :operator
+      attr_reader :relationships
+      attr_reader :model
+      attr_reader :property
+      attr_reader :operator
 
       %w[ gt gte lt lte not eql like in ].each do |sym|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -25,7 +27,7 @@ module DataMapper
 
       # more duck typing
       def to_sym
-        @property ? @property.name.to_sym : @model.storage_name(@repository).to_sym
+        @property ? @property.name.to_sym : @model.storage_name(@repository_name).to_sym
       end
 
       private
@@ -34,26 +36,27 @@ module DataMapper
         assert_kind_of 'repository',    repository,    Repository
         assert_kind_of 'relationships', relationships, Array
         assert_kind_of 'model',         model,         Model
-        assert_kind_of 'property_name', property_name, Symbol unless property_name.nil?
+        assert_kind_of 'property_name', property_name, Symbol, NilClass
 
-        @repository    = repository
-        @relationships = relationships
-        @model         = model
-        @property      = @model.properties(@repository.name)[property_name] if property_name
+        @repository_name = repository.name
+        @relationships   = relationships
+        @model           = model
+        @property        = @model.properties(@repository_name)[property_name] if property_name
       end
 
       def method_missing(method, *args)
-        if relationship = @model.relationships(@repository.name)[method]
-          klass = klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
-          return Query::Path.new(@repository, @relationships.dup << relationship, klass)
+        if relationship = @model.relationships(@repository_name)[method]
+          repository = DataMapper.repository(@repository_name)
+          klass      = klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
+          return Query::Path.new(repository, @relationships.dup << relationship, klass)
         end
 
-        if @model.properties(@repository.name)[method]
-          @property = @model.properties(@repository.name)[method] unless @property
+        if @model.properties(@repository_name)[method] && @property.nil?
+          @property = @model.properties(@repository_name)[method]
           return self
         end
 
-        raise NoMethodError, "undefined property or association `#{method}' on #{@model}"
+        raise NoMethodError, "undefined property or association '#{method}' on #{@model}"
       end
     end # class Path
   end # class Query

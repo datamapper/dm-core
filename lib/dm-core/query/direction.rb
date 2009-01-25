@@ -3,17 +3,21 @@ module DataMapper
     class Direction
       include Extlib::Assertions
 
-      attr_reader :property, :direction
+      attr_reader :property
+      attr_reader :direction
 
       def ==(other)
-        return true if super
-        hash == other.hash
+        return true if equal?(other)
+        return false unless other.respond_to?(:property) && other.respond_to?(:direction)
+
+        property == other.property && direction == other.direction
       end
 
-      alias eql? ==
+      def eql?(other)
+        return true if equal?(other)
+        return false unless self.class.equal?(other.class)
 
-      def hash
-        @property.hash + @direction.hash
+        property.eql?(other.property) && direction.eql?(other.direction)
       end
 
       def reverse

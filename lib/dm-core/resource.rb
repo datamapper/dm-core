@@ -171,7 +171,7 @@ module DataMapper
         return false
       end
 
-      equivalent_attributes?(other)
+      cmp_attributes?(other, :eql?)
     end
 
     ##
@@ -197,7 +197,7 @@ module DataMapper
         return false
       end
 
-      equivalent_attributes?(other)
+      cmp_attributes?(other, :==)
     end
 
     ##
@@ -731,16 +731,19 @@ module DataMapper
     # @param [Resource] other
     #   The Resource whose attributes are to be compared with +self+'s
     #
+    # @param [Symbol] operator
+    #   The comparison operator to use to compare the attributes
+    #
     # @return [TrueClass, FalseClass]
     #   The result of the comparison of +other+'s attributes with +self+'s
     #
     # @api private
-    def equivalent_attributes?(other)
-      if key != other.key
+    def cmp_attributes?(other, operator)
+      unless key.send(operator, other.key)
         return false
       end
 
-      if repository == other.repository && !dirty? && !other.dirty?
+      if repository.send(operator, other.repository) && !dirty? && !other.dirty?
         return true
       end
 
@@ -751,7 +754,7 @@ module DataMapper
       end
 
       # check all loaded properties, and then all unloaded properties
-      (loaded + not_loaded).all? { |p| p.get(self) == p.get(other) }
+      (loaded + not_loaded).all? { |p| p.get(self).send(operator, p.get(other)) }
     end
   end # module Resource
 end # module DataMapper
