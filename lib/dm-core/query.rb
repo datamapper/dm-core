@@ -107,7 +107,7 @@ module DataMapper
     # @api semipublic
     def reverse!
       # reverse the sort order
-      update(:order => self.order.map { |o| o.reverse })
+      update(:order => order.map { |o| o.reverse })
 
       self
     end
@@ -265,7 +265,7 @@ module DataMapper
         [ :unique,     unique?         ],
       ]
 
-      "#<#{self.class.name} #{attrs.map { |(k,v)| "@#{k}=#{v.inspect}" } * ' '}>"
+      "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" } * ' '}>"
     end
 
     # TODO: document this
@@ -298,7 +298,7 @@ module DataMapper
     def inheritance_property_index
       return @inheritance_property_index if defined?(@inheritance_property_index)
 
-      fields.each_with_index do |property,i|
+      fields.each_with_index do |property, i|
         if property.type == Types::Discriminator
           break @inheritance_property_index = i
         end
@@ -315,7 +315,7 @@ module DataMapper
       @key_property_indexes ||= begin
         indexes = []
 
-        fields.each_with_index do |property,i|
+        fields.each_with_index do |property, i|
           if property.key?
             indexes << i
           end
@@ -335,7 +335,7 @@ module DataMapper
       assert_kind_of 'options',    options,    Hash
 
       # XXX: what is the reason for this?
-      options.each { |k,v| options[k] = v.call if v.kind_of?(Proc) }
+      options.each { |k, v| options[k] = v.call if v.kind_of?(Proc) }
 
       assert_valid_options(options)
 
