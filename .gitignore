@@ -4,6 +4,7 @@ doc
 cov
 pkg
 .DS_Store
+coverage.html
 coverage/*
 *.db
 spec/integration/*.db*
