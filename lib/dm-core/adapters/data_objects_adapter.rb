@@ -208,6 +208,18 @@ module DataMapper
       # This module is just for organization. The methods are included into the
       # Adapter below.
       module SQL
+
+        # TODO: document this
+        # @api semipublic
+        def property_to_column_name(property, qualify)
+          if qualify
+            table_name = property.model.storage_name(name)
+            "#{quote_name(table_name)}.#{quote_name(property.field)}"
+          else
+            quote_name(property.field)
+          end
+        end
+
         private
 
         # Adapters requiring a RETURNING syntax for INSERT statements
@@ -417,15 +429,6 @@ module DataMapper
 
         def like_operator(operand)
           operand.kind_of?(Regexp) ? '~' : 'LIKE'
-        end
-
-        def property_to_column_name(property, qualify)
-          if qualify
-            table_name = property.model.storage_name(name)
-            "#{quote_name(table_name)}.#{quote_name(property.field)}"
-          else
-            quote_name(property.field)
-          end
         end
 
         # TODO: once the driver's quoting methods become public, have
