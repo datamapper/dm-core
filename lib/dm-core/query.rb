@@ -440,6 +440,8 @@ module DataMapper
     # normalize order elements to DM::Query::Direction
     # @api private
     def normalize_order
+      # TODO: should Query::Path objects be permitted?  If so, then it
+      # should probably be normalized to a Property object
       @order.map! do |order|
         case order
           when Direction

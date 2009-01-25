@@ -254,9 +254,6 @@ module DataMapper
           statement << " LIMIT #{quote_value(limit)}"                      if limit
           statement << " OFFSET #{quote_value(offset)}"                    if limit && offset > 0
           statement
-        rescue => e
-          DataMapper.logger.error("QUERY INVALID: #{query.inspect} (#{e})")
-          raise e
         end
 
         def insert_statement(model, properties, identity_field)
@@ -331,22 +328,27 @@ module DataMapper
 
         def where_statement(conditions, qualify)
           conditions.map do |operator,property,bind_value|
+            # TODO: think about updating Query so that exclusive Range conditions are
+            # transformed into AND or OR conditions like below.  Effectively the logic
+            # below would be moved into Query
+
             # handle exclusive range conditions
             if bind_value.kind_of?(Range) && bind_value.exclude_end?
-              if operator == :eql
-                gte_condition = condition_statement(:gte, property, bind_value.first, qualify)
-                lt_condition  = condition_statement(:lt,  property, bind_value.last,  qualify)
+              case operator
+                when :eql
+                  gte_condition = condition_statement(:gte, property, bind_value.first, qualify)
+                  lt_condition  = condition_statement(:lt,  property, bind_value.last,  qualify)
 
-                "#{gte_condition} AND #{lt_condition}"
-              elsif operator == :not
-                lt_condition  = condition_statement(:lt,  property, bind_value.first, qualify)
-                gte_condition = condition_statement(:gte, property, bind_value.last,  qualify)
+                  "#{gte_condition} AND #{lt_condition}"
+                when :not
+                  lt_condition  = condition_statement(:lt,  property, bind_value.first, qualify)
+                  gte_condition = condition_statement(:gte, property, bind_value.last,  qualify)
 
-                if conditions.size > 1
-                  "(#{lt_condition} OR #{gte_condition})"
-                else
-                  "#{lt_condition} OR #{gte_condition}"
-                end
+                  if conditions.size > 1
+                    "(#{lt_condition} OR #{gte_condition})"
+                  else
+                    "#{lt_condition} OR #{gte_condition}"
+                  end
               end
             else
               condition_statement(operator, property, bind_value, qualify)
@@ -377,13 +379,9 @@ module DataMapper
             case condition
               when Property, Query::Path
                 property_to_column_name(condition, qualify)
-
-              when Array
-                if condition.any? && condition.all? { |p| p.kind_of?(Property) }
-                  property_values = condition.map { |p| property_to_column_name(p, qualify) }
-                  "(#{property_values.join(', ')})"
-                end
-            end || '?'
+              else
+                '?'
+            end
           end
 
           comparison = case operator
@@ -394,7 +392,6 @@ module DataMapper
             when :gte      then '>='
             when :lt       then '<'
             when :lte      then '<='
-            else raise "Invalid query operator: #{operator.inspect}"
           end
 
           conditions.join(" #{comparison} ")
