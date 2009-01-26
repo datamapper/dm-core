@@ -8,7 +8,8 @@ require SPEC_ROOT.parent + 'lib/dm-core'
 Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |f| require f }
 
 # create sqlite3_fs directory if it doesn't exist
-SPEC_ROOT.join('db').mkpath
+sqlite3_db_dir = SPEC_ROOT.join('db')
+sqlite3_db_dir.mkpath
 
 ENV['ADAPTERS'] ||= 'in_memory'
 
@@ -19,15 +20,15 @@ ADAPTERS = []
 PRIMARY = {
   'in_memory'  => { :adapter => :in_memory },
   'sqlite3'    => 'sqlite3::memory:',
-  'sqlite3_fs' => "sqlite3://#{SPEC_ROOT}/db/primary.db",
+#  'sqlite3_fs' => "sqlite3://#{sqlite3_db_dir}/primary.db",
   'mysql'      => 'mysql://localhost/dm_core_test',
   'postgres'   => 'postgres://postgres@localhost/dm_core_test'
 }
 
 ALTERNATE = {
   'in_memory'  => { :adapter => :in_memory },
-  'sqlite3'    => { :adapter => :in_memory },  # use an in-memory DB for the alternate because SQLite3 cannot have more than one in-memory DB at once
-  'sqlite3_fs' => "sqlite3://#{SPEC_ROOT}/db/secondary.db",
+  'sqlite3'    => "sqlite3://#{sqlite3_db_dir}/alternate.db",  # use a FS for the alternate because there can only be one memory db at a time in SQLite3
+#  'sqlite3_fs' => "sqlite3://#{sqlite3_db_dir}/alternate.db",
   'mysql'      => 'mysql://localhost/dm_core_test2',
   'postgres'   => 'postgres://postgres@localhost/dm_core_test2'
 }
