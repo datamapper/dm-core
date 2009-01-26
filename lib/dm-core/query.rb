@@ -120,7 +120,9 @@ module DataMapper
     #
     # @api semipublic
     def valid?
-      return false if offset > 0 && limit.nil?
+      if offset > 0 && limit.nil?
+        return false
+      end
 
       !conditions.any? do |operator, property, bind_value|
         next if :raw == operator
@@ -182,7 +184,7 @@ module DataMapper
     # @api semipublic
     def reverse!
       # reverse the sort order
-      update(:order => order.map { |o| o.reverse })
+      @order.map! { |o| o.reverse }
 
       self
     end
@@ -205,11 +207,15 @@ module DataMapper
       assert_valid_other(other)
 
       if other.kind_of?(Hash)
-        return self if other.empty?
+        if other.empty?
+          return self
+        end
         other = self.class.new(@repository, model, other)
       end
 
-      return self if self == other
+      if self == other
+        return self
+      end
 
       reset_memoized_vars
 
@@ -258,10 +264,14 @@ module DataMapper
     #
     # @api semipublic
     def ==(other)
-      return true if equal?(other)
+      if equal?(other)
+        return true
+      end
 
       unless other.class.equal?(self.class)
-        return false unless [ :model, :reload?, :unique?, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions ].all? { |o| other.respond_to?(o) }
+        unless [ :model, :reload?, :unique?, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions ].all? { |o| other.respond_to?(o) }
+          return false
+        end
       end
 
       # TODO: add a #hash method, and then use it in the comparison, eg:
@@ -381,7 +391,9 @@ module DataMapper
     #   TODO: needs example
     # @api private
     def inheritance_property_index
-      return @inheritance_property_index if defined?(@inheritance_property_index)
+      if defined?(@inheritance_property_index)
+        return @inheritance_property_index
+      end
 
       fields.each_with_index do |property, i|
         if property.type == Types::Discriminator
@@ -562,7 +574,9 @@ module DataMapper
     #
     # @api private
     def assert_valid_other(other)
-      return unless other.kind_of?(Query)
+      unless other.kind_of?(Query)
+        return
+      end
 
       unless other.repository == repository
         raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}", caller(2)
@@ -738,7 +752,9 @@ module DataMapper
 
       bind_value = normalize_bind_value(property, bind_value)
 
-      return if operator == :not && bind_value.kind_of?(Array) && bind_value.empty?
+      if operator == :not && bind_value.kind_of?(Array) && bind_value.empty?
+        return
+      end
 
       @conditions << [ operator, property, bind_value ]
     end
