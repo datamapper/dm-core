@@ -6,8 +6,12 @@ module DataMapper
     # Get the list of adapters registered for all Repositories,
     # keyed by repository name.
     #
+    #   TODO: create example
+    #
     # @return [Hash(Symbol => DataMapper::Adapters::AbstractAdapter)]
     #   the adapters registered for all Repositories
+    #
+    # @api private
     def self.adapters
       @adapters ||= {}
     end
@@ -15,30 +19,43 @@ module DataMapper
     ##
     # Get the stack of current repository contexts
     #
+    #   TODO: create example
+    #
     # @return [Array]
     #   List of Repository contexts for the current Thread
+    #
+    # @api private
     def self.context
       Thread.current[:dm_repository_contexts] ||= []
     end
 
+    ##
     # Get the default name of this Repository
-    # @return [Symbol] the default name of this repository
-    # @api ???
+    #
+    #   TODO: create example
+    #
+    # @return [Symbol]
+    #   the default name of this repository
+    #
+    # @api private
     def self.default_name
       :default
     end
 
     attr_reader :name
 
+    ##
     # Get the adapter for this repository
     #
     # Lazy loads adapter setup from registered adapters
+    #
+    #   TODO: create example
     #
     # @return [DataMapper::Adapters::AbstractAdapter]
     #   the adapter for this repository
     #
     # @raise [ArgumentError]
-    #   if there is no adapter registered for a repository named +@name+
+    #   if there is no adapter registered for a repository named @name
     #
     # @api semipublic
     def adapter
@@ -58,23 +75,31 @@ module DataMapper
     # If one doesn't yet exist, create a new default in-memory IdentityMap
     # for the requested model.
     #
+    #   TODO: create example
+    #
     # @param [DataMapper::Model] model
     #   Model whose identity map should be returned
     #
     # @return [DataMapper::IdentityMap]
-    #   The IdentityMap for +model+ in this Repository
+    #   The IdentityMap for model in this Repository
     #
-    # TODO: allow setting default secondary IdentityMap (eg., Memcache, I hope)
+    # @api private
     def identity_map(model)
       @identity_maps[model] ||= IdentityMap.new
     end
 
-    # TODO: spec this
-    #
+    ##
     # Executes a block in the scope of this Repository
     #
-    # @yield [self] block to execute in the scope of this Repository
-    # @yieldparam [DataMapper::Repository] +self+, the current Repository
+    #   TODO: create example
+    #
+    # @yieldparam [DataMapper::Repository] repository
+    #   yields self within the block
+    #
+    # @yield
+    #   execute block in the scope of this Repository
+    #
+    # @api private
     def scope
       Repository.context << self
 
@@ -88,6 +113,8 @@ module DataMapper
     ##
     # Create one or more resource instances in this repository.
     #
+    #   TODO: create example
+    #
     # @param [Enumerable(DataMapper::Resource)] resources
     #   The list of resources (model instances) to create
     #
@@ -100,34 +127,35 @@ module DataMapper
     end
 
     ##
-    # retrieve a collection of results of a query
+    # Retrieve a collection of results of a query
+    #
+    #   TODO: create example
     #
     # @param [Query] query
     #   composition of the query to perform
     #
-    # @return [DataMapper::Collection]
+    # @return [Array]
     #   Result set of the query
-    # @return [NilClass]
-    #   No object could be found which matches that query
     #
-    # @see DataMapper::Query
+    # @api semipublic
     def read_many(query)
       return [] unless query.valid?
       adapter.read_many(query)
     end
 
     ##
-    # retrieve a single resource instance by a query
+    # Retrieve a single resource instance by a query
+    #
+    #   TODO: create example
     #
     # @param [DataMapper::Query] query
     #   composition of the query to perform
     #
-    # @return [DataMapper::Resource]
-    #   The first retrieved instance which matches the query
-    # @return [NilClass]
-    #   No object could be found which matches that query
+    # @return [DataMapper::Resource,NilClass]
+    #   The first retrieved instance which matches the query, or nil
+    #   if none found
     #
-    # @see DataMapper::Query
+    # @api semipublic
     def read_one(query)
       return unless query.valid?
       adapter.read_one(query)
@@ -135,6 +163,8 @@ module DataMapper
 
     ##
     # Update the attributes of one or more resource instances
+    #
+    #   TODO: create example
     #
     # @param [Hash(DataMapper::Property => Object)] attributes
     #   hash of attribute values to set, keyed by Property
@@ -144,43 +174,56 @@ module DataMapper
     # @return [Integer]
     #   the number of records updated
     #
-    # @see DataMapper::Query
+    # @api semipublic
     def update(attributes, query)
+      return 0 unless query.valid?
       adapter.update(attributes, query)
     end
 
     ##
     # Delete one or more resource instances
     #
+    #   TODO: create example
+    #
     # @param [DataMapper::Query] query
     #   specifies which records are to be deleted
+    #
     # @return [Integer]
     #   the number of records deleted
-    # @see DataMapper::Query
+    #
+    # @api semipublic
     def delete(query)
+      return 0 unless query.valid?
       adapter.delete(query)
     end
 
     ##
-    # Test whether this repository equals +other+. Repositories are equal if
-    # they have the same name.
+    # Tests Equality of Repository objects
+    #
+    #   TODO: create example
     #
     # @param [Object] other
     #   object to be compared to self
     #
     # @return [TrueClass, FalseClass]
-    #   whether self equals +other+
+    #   whether self equals other
     #
     # @api semipublic
     def eql?(other)
-      return true if super
-      name == other.name
+      return true if equal?(other)
+      name.eql?(other.name)
     end
 
     alias == eql?
 
-    # Get a concise, human readalbe representation of this repository
-    # @return [String] concise human readable representation of this repository
+    ##
+    # Return a human readalbe representation of the repository
+    #
+    #   TODO: create example
+    #
+    # @return [String]
+    #   human readable representation of the repository
+    #
     # @api private
     def to_s
       "#<DataMapper::Repository:#{@name}>"
@@ -188,6 +231,15 @@ module DataMapper
 
     private
 
+    ##
+    # Initializes a new Repository
+    #
+    #   TODO: create example
+    #
+    # @param [Symbol] name
+    #   The name of the Repository
+    #
+    # @api semipublic
     def initialize(name)
       assert_kind_of 'name', name, Symbol
 
