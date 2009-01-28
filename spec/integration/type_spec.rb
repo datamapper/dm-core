@@ -1,11 +1,11 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-if RUBY_VERSION >= '1.9.0'
-  require 'csv'
-else
-  gem 'fastercsv', '~>1.4.0'
-  require 'fastercsv'
-end
+# if RUBY_VERSION >= '1.9.0'
+#   require 'csv'
+# else
+#   gem 'fastercsv', '~>1.4.0'
+#   require 'fastercsv'
+# end
 
 if ADAPTER
   module ::TypeTests
