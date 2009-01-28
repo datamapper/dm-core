@@ -171,7 +171,7 @@ module DataMapper
   # @demo spec/integration/repository_spec.rb
   def self.repository(name = nil) # :yields: current_context
     current_repository = if name
-      raise ArgumentError, "First optional argument must be a Symbol, but was #{args.first.inspect}" unless name.is_a?(Symbol)
+      raise ArgumentError, "First optional argument must be a Symbol, but was #{name.inspect}" unless name.is_a?(Symbol)
       Repository.context.detect { |r| r.name == name } || Repository.new(name)
     else
       Repository.context.last || Repository.new(Repository.default_name)
