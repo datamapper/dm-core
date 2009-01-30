@@ -24,7 +24,7 @@ module DataMapper
 
     # @api semipublic
     def with_exclusive_scope(query)
-      query = DataMapper::Query.new(repository, self, query) if query.kind_of?(Hash)
+      query = Query.new(repository, self, query) if query.kind_of?(Hash)
 
       scope_stack << query
 
@@ -39,7 +39,7 @@ module DataMapper
 
     # @api private
     def merge_with_default_scope(query)
-      DataMapper::Query.new(query.repository, query.model, default_scope_for_query(query)).update(query)
+      Query.new(query.repository, query.model, default_scope_for_query(query)).update(query)
     end
 
     # @api private

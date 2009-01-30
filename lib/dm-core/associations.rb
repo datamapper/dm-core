@@ -147,6 +147,9 @@ module DataMapper
     # TODO: document
     # @api private
     def assert_valid_options(options)
+      # TODO: update to match Query#assert_valid_options
+      #   - perform options normalization elsewhere
+
       assert_kind_of 'options[:min]', options[:min], Integer
       assert_kind_of 'options[:max]', options[:max], Integer, Float
 

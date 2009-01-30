@@ -80,6 +80,8 @@ module DataMapper
                 else
                   raise ArgumentError, "#{key.class} not allowed in relationship query"
               end
+
+              # TODO: make sure the model scope is merged into each Query
             end
           end
 

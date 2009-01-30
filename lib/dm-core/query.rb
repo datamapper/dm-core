@@ -6,7 +6,7 @@ module DataMapper
   class Query
     include Extlib::Assertions
 
-    OPTIONS = [ :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions, :unique ].freeze
+    OPTIONS = [ :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions, :unique ].to_set.freeze
 
     ##
     # Returns the repository
@@ -215,28 +215,34 @@ module DataMapper
     def update(other)
       assert_kind_of 'other', other, self.class, Hash
 
-      options = @options.dup
+      reset_memoized_vars
 
       case other
+        when self.class
+          if self == other
+            return self
+          end
+
+          initialize(other.repository, other.model, @options.merge(other.options))
         when Hash
           if other.empty?
             return self
           end
 
-          options.update(other)
-        when self.class
-          assert_valid_other(other)
+          options    = other.dup
+          repository = options.delete(:repository) || self.repository
+          model      = options.delete(:model)      || self.model
 
-          if self == other
-            return self
+          if repository.kind_of?(Symbol)
+            repository = DataMapper.repository(repository)
           end
 
-          options.update(other.options)
+          if model.kind_of?(String)
+            model = Object.find_const(model)
+          end
+
+          initialize(repository, model, @options.merge(options))
       end
-
-      reset_memoized_vars
-
-      initialize(repository, model, options)
 
       self
     end
@@ -265,16 +271,15 @@ module DataMapper
         return dup
       end
 
-      # use the repository if explicitly specified, otherwise use the current scope's repository
-      repository = other.delete(:repository) || self.repository
-      offset     = other.delete(:offset)     || 0
-      limit      = other.delete(:limit)
+      offset = other.delete(:offset) || 0
+      limit  = other.delete(:limit)
 
-      if repository == self.repository && offset == 0 && (limit.nil? || limit == self.limit)
+      if offset == 0 && (limit.nil? || limit == self.limit)
         merge(other)
       else
-        # TODO: when :repository can be specified in the options, just return the sliced Query
-        self.class.new(repository, model, merge(other)[offset, limit].to_hash)
+        # TODO: should I make a slice! method that acts like slice/[], but
+        # does not dup the object?  the following dupes the Query twice
+        merge(other)[offset, limit]
       end
     end
 
@@ -480,10 +485,8 @@ module DataMapper
     #
     # @param [DataMapper::Repository] repository
     #   the Repository to retrieve results from
-    #
     # @param [DataMapper::Model] model
     #   the Model to retrieve results from
-    #
     # @param [Hash] options
     #   the conditions and scope
     #
@@ -495,17 +498,17 @@ module DataMapper
 
       assert_valid_options(options)
 
-      @options = options.freeze
-
       @repository = repository
-      @properties = model.properties(@repository.name)
+      @model      = model
+      @options    = options.freeze
 
-      @model        = model                               # must be Class that includes DM::Resource
+      @properties = @model.properties(@repository.name)
+
       @reload       = options.fetch :reload,       false  # must be true or false
       @unique       = options.fetch :unique,       false  # must be true or false
       @offset       = options.fetch :offset,       0      # must be an Integer greater than or equal to 0
       @limit        = options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
-      @order        = options.fetch :order,        model.default_order(@repository.name)   # must be an Array of Symbol, DM::Query::Direction or DM::Property
+      @order        = options.fetch :order,        @model.default_order(@repository.name)   # must be an Array of Symbol, DM::Query::Direction or DM::Property
       @add_reversed = options.fetch :add_reversed, false  # must be true or false
       @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
@@ -607,28 +610,6 @@ module DataMapper
               raise ArgumentError, '+options[:conditions]+ cannot be empty', caller(2)
             end
         end
-      end
-    end
-
-    #
-    # Validate Query
-    #
-    #   TODO: needs example
-    #
-    # @param [Object] other
-    #   object whose validity is under test
-    #
-    # @raise [ArgumentError]
-    #   if +other+ is a DM::Query, but has a different repository or model
-    #
-    # @api private
-    def assert_valid_other(other)
-      unless other.repository == repository
-        raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}", caller(2)
-      end
-
-      unless other.model == model
-        raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}", caller(2)
       end
     end
 
