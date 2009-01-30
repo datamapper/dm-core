@@ -235,12 +235,12 @@ module DataMapper
     #
     # @api public
     def inspect
-      new_record = new_record?
+      saved = saved?
 
       attrs = []
 
       properties.each do |property|
-        value = if !property.loaded?(self) && !new_record
+        value = if !property.loaded?(self) && saved
           '<not loaded>'
         else
           send(property.getter).inspect
@@ -366,7 +366,7 @@ module DataMapper
     def dirty?
       if dirty_attributes.any?
         true
-      elsif new_record?
+      elsif new?
         model.identity_field || properties.any? { |p| p.default? }
       else
         false
@@ -395,7 +395,7 @@ module DataMapper
     #
     # @api private
     def collection
-      @collection ||= unless new_record?
+      @collection ||= if saved?
         Collection.new(to_query, [ self ])
       end
     end
@@ -408,7 +408,7 @@ module DataMapper
     #
     # @api public
     def reload
-      unless new_record?
+      if saved?
         reload_attributes(*loaded_attributes)
         child_associations.each { |a| a.reload }
       end
@@ -427,7 +427,7 @@ module DataMapper
     #
     # @api private
     def reload_attributes(*attributes)
-      unless attributes.empty? || new_record?
+      unless attributes.empty? || new?
         collection.reload(:fields => attributes)
       end
 
@@ -435,14 +435,34 @@ module DataMapper
     end
 
     ##
+    # Checks if this Resource instance is new
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the resource is new and not saved
+    #
+    # @api public
+    def new?
+      !saved?
+    end
+
+    ##
     # Checks if this Resource instance has been saved
+    #
+    # @deprecated
+    def new_record?
+      warn "#{self.class}#new_record? is deprecated, use #{self.class}#new? instead"
+      new?
+    end
+
+    ##
+    # Checks if this Resource instance is saved
     #
     # @return [TrueClass, FalseClass]
     #   true if the resource has been saved
     #
     # @api public
-    def new_record?
-      @new_record == true
+    def saved?
+      @saved == true
     end
 
     ##
@@ -539,7 +559,7 @@ module DataMapper
       # same API through out all of dm-more. dm-validations requires a
       # context to be passed
 
-      unless saved = new_record? ? _create : _update
+      unless saved = new? ? _create : _update
         return false
       end
 
@@ -554,7 +574,7 @@ module DataMapper
     #
     # @api public
     def destroy
-      if !new_record? && repository.delete(to_query) == 1
+      if saved? && repository.delete(to_query) == 1
         reset
         true
       else
@@ -576,7 +596,7 @@ module DataMapper
     #
     # @api private
     def reset
-      @new_record = true
+      @saved = false
       repository.identity_map(model).delete(key)
       original_values.clear
     end
@@ -595,7 +615,7 @@ module DataMapper
     # @api semipublic
     def _create
       # Can't create a resource that is not dirty and doesn't have serial keys
-      if new_record? && !dirty?
+      if new? && !dirty?
         return false
       end
 
@@ -611,7 +631,7 @@ module DataMapper
       end
 
       @repository = repository
-      @new_record = false
+      @saved      = true
 
       original_values.clear
 
@@ -675,7 +695,7 @@ module DataMapper
     # @api public
     def initialize(attributes = {}) # :nodoc:
       assert_valid_model
-      @new_record = true
+      @saved = false
       self.attributes = attributes
     end
 

@@ -450,7 +450,7 @@ module DataMapper
       end || model.allocate
 
       resource.instance_variable_set(:@repository, repository)
-      resource.instance_variable_set(:@new_record, false)
+      resource.instance_variable_set(:@saved,      true)
 
       no_reload = !query.reload?
 

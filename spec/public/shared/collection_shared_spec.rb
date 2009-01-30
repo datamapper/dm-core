@@ -351,7 +351,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should be a saved Resource' do
-      @resource.should_not be_new_record
+      @resource.should be_saved
     end
 
     it 'should append the Resource to the Collection' do
@@ -744,7 +744,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be a saved Resource' do
-        @resource.should_not be_new_record
+        @resource.should be_saved
       end
 
       it 'should relate the Resource to the Collection' do
@@ -768,7 +768,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be a saved Resource' do
-        @resource.should_not be_new_record
+        @resource.should be_saved
       end
 
       it 'should relate the Resource to the Collection' do
@@ -796,7 +796,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be a saved Resource' do
-        @resource.should_not be_new_record
+        @resource.should be_saved
       end
 
       it 'should relate the Resource to the Collection' do
@@ -820,7 +820,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should not be a saved Resource' do
-        @resource.should be_new_record
+        @resource.should be_new
       end
 
       it 'should relate the Resource to the Collection' do
@@ -1320,7 +1320,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should be a new Resource' do
-      @resource.should be_new_record
+      @resource.should be_new
     end
 
     it 'should append the Resource to the Collection' do
@@ -1564,7 +1564,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be a new Resource' do
-        @return.first.should be_new_record
+        @return.first.should be_new
       end
 
       it 'should be a Resource with attributes matching the Hash' do
@@ -1612,7 +1612,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should save each Resource' do
-        @articles.each { |r| r.should_not be_new_record }
+        @articles.each { |r| r.should be_saved }
       end
     end
 

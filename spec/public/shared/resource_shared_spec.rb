@@ -354,13 +354,13 @@ share_examples_for 'A public Resource' do
 
   end
 
-  it { @user.should respond_to(:new_record?) }
+  it { @user.should respond_to(:new?) }
 
-  describe '#new_record?' do
+  describe '#new?' do
 
     describe 'on an existing record' do
 
-      it { @user.should_not be_new_record }
+      it { @user.should_not be_new }
 
     end
 
@@ -368,7 +368,7 @@ share_examples_for 'A public Resource' do
 
       before { @user = User.new }
 
-      it { @user.should be_new_record }
+      it { @user.should be_new }
 
     end
 
@@ -459,7 +459,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should save the first resource created through new' do
-        @first_comment.new_record?.should be_false
+        @first_comment.new?.should be_false
       end
 
       it 'should save the correct foreign key for the first resource' do
@@ -468,7 +468,7 @@ share_examples_for 'A public Resource' do
 
       it 'should save the second resource created through the constructor' do
         pending "Changing a belongs_to parent should add the object to the correct association" do
-          @second_comment.new_record?.should be_false
+          @second_comment.new?.should be_false
         end
       end
 
@@ -592,6 +592,26 @@ share_examples_for 'A public Resource' do
       it 'should update the identity map' do
         @user.repository.identity_map(@model).key?(%w[ dkubb ])
       end
+
+    end
+
+  end
+
+  it { @user.should respond_to(:saved?) }
+
+  describe '#saved?' do
+
+    describe 'on an existing record' do
+
+      it { @user.should be_saved }
+
+    end
+
+    describe 'on a new record' do
+
+      before { @user = User.new }
+
+      it { @user.should_not be_saved }
 
     end
 

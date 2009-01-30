@@ -12,7 +12,7 @@ module DataMapper
         # @api semipublic
         def target_for(parent_resource)
           # TODO: spec this
-          #if parent_resource.new_record?
+          #if parent_resource.new?
           #  # an unsaved parent cannot be referenced by children
           #  return
           #end
@@ -205,7 +205,7 @@ module DataMapper
         # TODO: document
         # @api private
         def assert_parent_saved(message)
-          if @parent.new_record?
+          if @parent.new?
             raise UnsavedParentError, message
           end
         end

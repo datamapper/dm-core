@@ -509,7 +509,7 @@ module DataMapper
     #
     # @api private
     def get(resource)
-      if resource.new_record?
+      if resource.new?
         value = get!(resource)
         value.nil? && default? ? default_for(resource) : value
       else

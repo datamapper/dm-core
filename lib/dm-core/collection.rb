@@ -706,7 +706,7 @@ module DataMapper
     # @api public
     def create(attributes = {})
       resource = repository.scope { model.create(default_attributes.update(attributes)) }
-      self << resource unless resource.new_record?
+      self << resource if resource.saved?
       resource
     end
 
@@ -1006,7 +1006,7 @@ module DataMapper
 
       resource.collection = self
 
-      unless resource.new_record?
+      if resource.saved?
         @identity_map[resource.key] = resource
         @orphans.delete(resource)
       end
@@ -1051,7 +1051,7 @@ module DataMapper
         resource.collection = nil
       end
 
-      unless resource.new_record?
+      if resource.saved?
         @identity_map.delete(resource.key)
         @orphans << resource
       end

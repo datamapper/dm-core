@@ -22,7 +22,7 @@ describe DataMapper::Model do
     end
 
     it 'should successfully save an object' do
-      @heff1.new_record?.should be_false
+      @heff1.saved?.should be_true
     end
 
     it 'should be able to get the object' do

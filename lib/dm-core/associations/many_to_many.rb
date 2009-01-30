@@ -110,7 +110,7 @@ module DataMapper
         # @api semipublic
         def target_for(parent_resource)
           # TODO: spec this
-          #if parent_resource.new_record?
+          #if parent_resource.new?
           #  # an unsaved parent cannot be referenced by children
           #  return
           #end
@@ -308,7 +308,7 @@ module DataMapper
 
           resource.collection = self
 
-          unless resource.new_record?
+          if resource.saved?
             @identity_map[resource.key] = resource
             @orphans.delete(resource)
           end
@@ -327,7 +327,7 @@ module DataMapper
             resource.collection = nil
           end
 
-          unless resource.new_record?
+          if resource.saved?
             @identity_map.delete(resource.key)
             @orphans << resource
           end

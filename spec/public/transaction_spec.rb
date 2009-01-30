@@ -91,9 +91,9 @@ describe DataMapper::Resource, 'Transactions' do
         end
       end
 
-      it "should not mark persisted resources as new records" do
+      it "should not mark saved resources as new records" do
         User.transaction do
-          User.create(:name => "carllerche").should_not be_new_record
+          User.create(:name => "carllerche").should_not be_new
         end
       end
 
