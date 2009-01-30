@@ -317,8 +317,14 @@ module DataMapper
     # @see DataMapper::Collection
     #
     # @api public
-    def all(query = {})
-      Collection.new(scoped_query(query))
+    def all(query = nil)
+      if query.nil? || (query.kind_of?(Hash) && query.empty?)
+        # TODO: after adding Enumerable methods to Model, try to return self here
+        # TODO: try to simplify self.query to return the default scope instead of nil
+        new_collection(self.query || merge_with_default_scope(Query.new(repository, self)))
+      else
+        new_collection(scoped_query(query))
+      end
     end
 
     ##
@@ -626,23 +632,30 @@ module DataMapper
       self.name
     end
 
+    ##
+    # Initializes a new Collection
+    #
+    # @return [DataMapper::Collection]
+    #   A new Collection object
+    #
+    # @api private
+    def new_collection(query, resources = nil, &block)
+      Collection.new(query, resources, &block)
+    end
+
     # @api private
     # TODO: move the logic to create relative query into DataMapper::Query
-    def scoped_query(query = self.query)
-      assert_kind_of 'query', query, Query, Hash
-
-      return self.query if query == self.query
-
-      query = if query.kind_of?(Hash)
-        Query.new(query.delete(:repository) || self.repository, self, query)
-      else
+    def scoped_query(query)
+      if query.kind_of?(Query)
         query
-      end
-
-      if self.query
-        self.query.merge(query)
       else
-        merge_with_default_scope(query)
+        query = Query.new(query.delete(:repository) || self.repository, self, query)
+
+        if self.query
+          self.query.merge(query)
+        else
+          merge_with_default_scope(query)
+        end
       end
     end
 

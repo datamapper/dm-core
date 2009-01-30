@@ -166,12 +166,11 @@ module DataMapper
     #
     # @api public
     def all(query = nil)
-      query = scoped_query(query)
-
-      if query == self.query
+      if query.nil? || (query.kind_of?(Hash) && query.empty?)
+        # TODO: make this return dup and not self
         self
       else
-        new_collection(query)
+        new_collection(scoped_query(query))
       end
     end
 
@@ -200,7 +199,7 @@ module DataMapper
       with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
 
       query = with_query ? last_arg : {}
-      query = scoped_query(query.merge(:limit => limit || 1))
+      query = self.query.relative(query.merge(:limit => limit || 1))
 
       if !with_query && (loaded? || lazy_possible?(head, limit || 1))
         if limit
@@ -242,7 +241,7 @@ module DataMapper
       with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
 
       query = with_query ? last_arg : {}
-      query = scoped_query(query.merge(:limit => limit || 1)).reverse
+      query = self.query.relative(query.merge(:limit => limit || 1)).reverse
 
       # tell the Query to prepend each result from the adapter
       query.update(:add_reversed => !query.add_reversed?)
@@ -323,9 +322,9 @@ module DataMapper
       end
 
       query = if offset >= 0
-        scoped_query(:offset => offset, :limit => limit)
+        self.query.relative(:offset => offset, :limit => limit)
       else
-        query = scoped_query(:offset => (limit + offset).abs, :limit => limit).reverse
+        query = self.query.relative(:offset => (limit + offset).abs, :limit => limit).reverse
 
         # tell the Query to prepend each result from the adapter
         query.update(:add_reversed => !query.add_reversed?)
@@ -367,9 +366,9 @@ module DataMapper
       offset, limit = extract_slice_arguments(*args)
 
       query = if offset >= 0
-        scoped_query(:offset => offset, :limit => limit)
+        self.query.relative(:offset => offset, :limit => limit)
       else
-        query = scoped_query(:offset => (limit + offset).abs, :limit => limit).reverse
+        query = self.query.relative(:offset => (limit + offset).abs, :limit => limit).reverse
 
         # tell the Query to prepend each result from the adapter
         query.update(:add_reversed => !query.add_reversed?)
@@ -1074,75 +1073,21 @@ module DataMapper
       end
     end
 
-    # TODO: move the logic to create relative query into DataMapper::Query
+    ##
+    # Return the absolute or relative scoped query
+    #
+    # @param [DataMapper::Query,Hash]
+    #
+    # @return [DataMapper::Query]
+    #   the absolute or relative scoped query
+    #
     # @api private
-    def scoped_query(query = nil)
-      # a nil query, or an empty Hash signal that we want to use the
-      # same scope as is currently in effect
-      if query.blank?
-        return self.query
-      end
-
-      # a Query object signals that we want to use an absolute query
+    def scoped_query(query)
       if query.kind_of?(Query)
-        return query
+        query
+      else
+        self.query.relative(query)
       end
-
-      # use current query scope to start
-      relative_query = self.query.to_hash
-
-      # merge in query to further scope the results
-      relative_query.update(query)
-
-      # use the repository if explicitly specified, otherwise use the current scope's repository
-      repository = relative_query.delete(:repository) || self.repository
-
-      # figure out the offset and limit relative to the current query
-      if relative_query[:offset] > 0 || relative_query[:limit]
-        offset, limit = get_relative_position(*relative_query.values_at(:offset, :limit))
-
-        relative_query.update(:offset => offset)
-
-        if limit
-          relative_query.update(:limit => limit)
-        end
-      end
-
-      Query.new(repository, model, relative_query)
-    end
-
-    # TODO: move the logic to create relative query into DataMapper::Query
-    # @api private
-    def get_relative_position(offset, limit)
-      if self.query.limit.nil? && self.query.offset == 0
-        # original query is unbounded, do nothing
-        return offset, limit
-      elsif offset == 0 && limit && self.query.limit && limit <= self.query.limit
-        # new query is subset of original query, do nothing
-        return offset, limit
-      end
-
-      # find the relative offset
-      first_pos = self.query.offset + offset
-
-      # find the absolute last position (if any)
-      if self.query.limit
-        last_pos = self.query.offset + self.query.limit
-      end
-
-      # if a limit was specified, and there is no last position, or
-      # the relative limit is within range, narrow the window
-      if limit && (last_pos.nil? || first_pos + limit < last_pos)
-        last_pos = first_pos + limit
-      end
-
-      # the last position is below the relative offset then the
-      # query cannot be satisfied. throw an exception
-      if last_pos && first_pos >= last_pos
-        raise 'outside range'  # TODO: raise a proper exception object
-      end
-
-      return first_pos, last_pos ? last_pos - first_pos : nil
     end
 
     ##

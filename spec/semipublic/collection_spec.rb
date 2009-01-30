@@ -98,9 +98,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
 
         it 'should return expected Query' do
-          pending 'TODO: Fix Model.all to not unecessarily create Query copies' do
-            @return.should be_equal(@articles_query)
-          end
+          @return.should be_equal(@articles_query)
         end
       end
 

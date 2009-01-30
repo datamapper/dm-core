@@ -29,6 +29,8 @@ module DataMapper
             join_condition.update(:limit => max)
           end
 
+          # TODO: make sure the Model scope is also merged into this
+
           Query.new(repository, child_model, join_condition)
         end
 

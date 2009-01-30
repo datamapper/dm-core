@@ -109,6 +109,17 @@ module DataMapper
     alias add_reversed? add_reversed
 
     ##
+    # Returns the original options
+    #
+    #   TODO: needs example
+    #
+    # @return [Hash]
+    #   the original options
+    #
+    # @api private
+    attr_reader :options
+
+    ##
     # Indicates if the Query contains valid conditions
     #
     #   TODO: needs example
@@ -204,35 +215,28 @@ module DataMapper
     def update(other)
       assert_kind_of 'other', other, self.class, Hash
 
-      assert_valid_other(other)
+      options = @options.dup
 
-      if other.kind_of?(Hash)
-        if other.empty?
-          return self
-        end
-        other = self.class.new(@repository, model, other)
-      end
+      case other
+        when Hash
+          if other.empty?
+            return self
+          end
 
-      if self == other
-        return self
+          options.update(other)
+        when self.class
+          assert_valid_other(other)
+
+          if self == other
+            return self
+          end
+
+          options.update(other.options)
       end
 
       reset_memoized_vars
 
-      # TODO: update this so if "other" had a value explicitly set
-      #       overwrite the attributes in self
-
-      # only overwrite the attributes with non-default values
-      @reload       = other.reload?       unless other.reload?       == false
-      @unique       = other.unique?       unless other.unique?       == false
-      @offset       = other.offset        if other.reload? || other.offset != 0
-      @limit        = other.limit         unless other.limit         == nil
-      @order        = other.order         unless other.order         == model.default_order
-      @add_reversed = other.add_reversed? unless other.add_reversed? == false
-      @fields       = other.fields        unless other.fields        == @properties.defaults
-      @links        = other.links         unless other.links         == []
-
-      update_conditions(other)
+      initialize(repository, model, options)
 
       self
     end
@@ -249,6 +253,29 @@ module DataMapper
     # @api semipublic
     def merge(other)
       dup.update(other)
+    end
+
+    # TODO: document this
+    #   TODO: needs example
+    # @api semipublic
+    def relative(other)
+      assert_kind_of 'other', other, Hash
+
+      if other.empty?
+        return dup
+      end
+
+      # use the repository if explicitly specified, otherwise use the current scope's repository
+      repository = other.delete(:repository) || self.repository
+      offset     = other.delete(:offset)     || 0
+      limit      = other.delete(:limit)
+
+      if repository == self.repository && offset == 0 && (limit.nil? || limit == self.limit)
+        merge(other)
+      else
+        # TODO: when :repository can be specified in the options, just return the sliced Query
+        self.class.new(repository, model, merge(other)[offset, limit].to_hash)
+      end
     end
 
     ##
@@ -269,13 +296,14 @@ module DataMapper
       end
 
       unless other.class.equal?(self.class)
-        unless [ :model, :reload?, :unique?, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions ].all? { |o| other.respond_to?(o) }
+        unless [ :repository, :model, :reload?, :unique?, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions ].all? { |o| other.respond_to?(o) }
           return false
         end
       end
 
       # TODO: add a #hash method, and then use it in the comparison, eg:
       #   return hash == other.hash
+      @repository   == other.repository    &&
       @model        == other.model         &&
       @reload       == other.reload?       &&
       @unique       == other.unique?       &&
@@ -302,6 +330,25 @@ module DataMapper
     # @api semipublic
     def eql?(other)
       raise NotImplementedError, 'TODO: need to write method'
+    end
+
+    # TODO: document this
+    #   TODO: needs example
+    # @api semipublic
+    def [](*args)
+      offset, limit = extract_slice_arguments(*args)
+
+      unless self.limit.nil? && self.offset == 0
+        offset, limit = get_relative_position(offset, limit)
+      end
+
+      options = @options.merge(:offset => offset)
+
+      if limit
+        options[:limit] = limit
+      end
+
+      self.class.new(repository, model, options)
     end
 
     # TODO: document this
@@ -335,7 +382,7 @@ module DataMapper
       end
 
       if raw_queries.any?
-        hash[:conditions] = [ raw_queries.join(' ') ].concat(bind_values)
+        hash[:conditions] = [ raw_queries.map { |q| "(#{q})" }.join(' AND ') ].concat(bind_values)
       end
 
       hash.update(conditions)
@@ -447,6 +494,8 @@ module DataMapper
       assert_kind_of 'options',    options,    Hash
 
       assert_valid_options(options)
+
+      @options = options.freeze
 
       @repository = repository
       @properties = model.properties(@repository.name)
@@ -562,7 +611,7 @@ module DataMapper
     end
 
     #
-    # Validate other Query or Hash instance
+    # Validate Query
     #
     #   TODO: needs example
     #
@@ -574,10 +623,6 @@ module DataMapper
     #
     # @api private
     def assert_valid_other(other)
-      unless other.kind_of?(Query)
-        return
-      end
-
       unless other.repository == repository
         raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}", caller(2)
       end
@@ -782,66 +827,66 @@ module DataMapper
     # TODO: document this
     #   TODO: needs example
     # @api private
-    def update_conditions(other)
-      @conditions = @conditions.dup
-
-      # build an index of conditions by the property and operator to
-      # avoid nested looping
-      conditions_index = {}
-      @conditions.each do |condition|
-        operator, property = *condition
-        next if :raw == operator
-        conditions_index[property] ||= {}
-        conditions_index[property][operator] = condition
-      end
-
-      # loop over each of the other's conditions, and overwrite the
-      # conditions when in conflict
-      other.conditions.each do |other_condition|
-        other_operator, other_property, other_bind_value = *other_condition
-
-        unless :raw == other_operator
-          conditions_index[other_property] ||= {}
-          if condition = conditions_index[other_property][other_operator]
-            operator, property, bind_value = *condition
-
-            next if bind_value == other_bind_value
-
-            # overwrite the bind value in the existing condition
-            condition[2] = case operator
-              when :eql, :like then other_bind_value
-              when :gt,  :gte  then [ bind_value, other_bind_value ].min
-              when :lt,  :lte  then [ bind_value, other_bind_value ].max
-              when :not, :in
-                if bind_value.kind_of?(Array)
-                  bind_value |= other_bind_value
-                elsif other_bind_value.kind_of?(Array)
-                  other_bind_value |= bind_value
-                else
-                  other_bind_value
-                end
-            end
-
-            next  # process the next other condition
-          end
-        end
-
-        # otherwise append the other condition
-        @conditions << other_condition.dup
-      end
-
-      @conditions
-    end
-
-    # TODO: document this
-    #   TODO: needs example
-    # @api private
     def reset_memoized_vars
       @bind_values = @key_property_indexes = nil
 
       if defined?(@inheritance_property_index)
         remove_instance_variable(:@inheritance_property_index)
       end
+    end
+
+    ##
+    # Extract arguments for #[] and return offset and limit
+    #
+    # @param [Array(Integer), Range] *args
+    #   the offset and limit, or range indicating first and last position
+    #
+    # @return [Integer] the offset
+    # @return [Integer,NilClass] the limit
+    #
+    # @api private
+    def extract_slice_arguments(*args)
+      first_arg, second_arg = args
+
+      if args.size == 2 && first_arg.kind_of?(Integer) && (second_arg.kind_of?(Integer) || second_arg.nil?)
+        return first_arg, second_arg
+      elsif args.size == 1
+        if first_arg.kind_of?(Range)
+          index = first_arg.first
+          length  = first_arg.last - index
+          length += 1 unless first_arg.exclude_end?
+          return index, length
+        end
+      end
+
+      raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}", caller(1)
+    end
+
+    # TODO: document this
+    # @api private
+    def get_relative_position(offset, limit)
+
+      # find the relative offset
+      first_pos = self.offset + offset
+
+      # find the absolute last position (if any)
+      last_pos = if self.limit
+        self.offset + self.limit
+      end
+
+      # if a limit was specified, and there is no last position, or
+      # the relative limit is within range, narrow the window
+      if limit && (last_pos.nil? || first_pos + limit < last_pos)
+        last_pos = first_pos + limit
+      end
+
+      # the last position is below the relative offset then the
+      # query cannot be satisfied. throw an exception
+      if last_pos && first_pos >= last_pos
+        raise 'outside range'  # TODO: raise a proper exception object
+      end
+
+      return first_pos, last_pos ? last_pos - first_pos : nil
     end
   end # class Query
 end # module DataMapper
