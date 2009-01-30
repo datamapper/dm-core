@@ -18,8 +18,8 @@ module DataMapper
           # can define the join model within their common namespace
 
           @through = DataMapper.repository(parent_repository_name) do
-            join_model.belongs_to(join_relationship_name(child_model),           :class => child_model)
-            parent_model.has(min..max, join_relationship_name(join_model, true), :class => join_model)
+            join_model.belongs_to(join_relationship_name(child_model),           :model => child_model)
+            parent_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
           end
         end
 

@@ -44,8 +44,8 @@ end
         property :content, Text
 
         belongs_to :author
-        belongs_to :original, :class => self
-        has n, :revisions, :class => self
+        belongs_to :original, :model => self
+        has n, :revisions, :model => self
       end
 
       @model = Article

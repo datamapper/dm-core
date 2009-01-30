@@ -56,7 +56,7 @@ module DataMapper
     #  * has n,    :friends   # many friends
     #  * has 1..3, :friends   # many friends (at least 1, at most 3)
     #  * has 3,    :friends   # many friends (exactly 3)
-    #  * has 1,    :friend,  :class   => 'User'       # one friend with the class User
+    #  * has 1,    :friend,  :model   => 'User'       # one friend with the class User
     #  * has 3,    :friends, :through => :friendships # many friends through the friendships relationship
     #
     # @param cardinality [Integer, Range, Infinity]
@@ -66,11 +66,8 @@ module DataMapper
     #
     # @option :through[Symbol]  A association that this join should go through to form
     #       a many-to-many association
-    # @option :class[String] The name of the class to associate with, if omitted
+    # @option :model[DataMapper::Model,String] The name of the class to associate with, if omitted
     #       then the association name is assumed to match the class name
-    # @option :remote_name[Symbol] In the case of a :through option being present, the
-    #       name of the relationship on the other end of the :through-relationship
-    #       to be linked to this relationship.
     #
     # @return [DataMapper::Association::Relationship] the relationship that was
     #   created to reflect either a one-to-one, one-to-many or many-to-many
@@ -100,14 +97,14 @@ module DataMapper
         OneToOne::Relationship
       end
 
-      relationships(repository.name)[name] = klass.new(name, options.delete(:class), self, options.freeze)
+      relationships(repository.name)[name] = klass.new(name, options.delete(:model), self, options.freeze)
     end
 
     ##
     # A shorthand, clear syntax for defining many-to-one resource relationships.
     #
     #  * belongs_to :user                      # many to one user
-    #  * belongs_to :friend, :class => 'User'  # many to one friend
+    #  * belongs_to :friend, :model => 'User'  # many to one friend
     #
     # @param name [Symbol] The name that the association will be referenced by
     # @see #has
@@ -129,7 +126,7 @@ module DataMapper
       options[:child_repository_name]  = repository.name
       options[:parent_repository_name] = options.delete(:repository)
 
-      relationships(repository.name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:class), options.freeze)
+      relationships(repository.name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:model), options.freeze)
     end
 
     private
@@ -173,8 +170,8 @@ module DataMapper
 
       if options.key?(:class_name)
         assert_kind_of 'options[:class_name]', options[:class_name], String
-        warn '+options[:class_name]+ is deprecated, use :class instead'
-        options[:class] = options.delete(:class_name)
+        warn '+options[:class_name]+ is deprecated, use :model instead'
+        options[:model] = options.delete(:class_name)
       end
 
       if options.key?(:child_key)

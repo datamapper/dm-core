@@ -10,7 +10,7 @@ describe 'One to One Associations' do
       property :description, Text
       property :admin,       Boolean, :accessor => :private
 
-      belongs_to :referrer, :class => self
+      belongs_to :referrer, :model => self
       has 1, :comment
     end
 

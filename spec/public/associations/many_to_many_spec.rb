@@ -26,8 +26,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         property :content, Text
 
         has n, :authors, :through => Resource
-        belongs_to :original, :class => self
-        has n, :revisions,    :class => self
+        belongs_to :original, :model => self
+        has n, :revisions,    :model => self
       end
 
       # FIXME: make it so we don't have to "prime" the through association

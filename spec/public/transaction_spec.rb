@@ -10,7 +10,7 @@ describe DataMapper::Resource, 'Transactions' do
       property :description, Text
       property :admin,       Boolean, :accessor => :private
 
-      belongs_to :referrer, :class => self, :child_key => [ :referrer_name ]
+      belongs_to :referrer, :model => self, :child_key => [ :referrer_name ]
       has n, :comments
     end
 
