@@ -1151,7 +1151,7 @@ module DataMapper
       values = map { |r| source_key.get(r) }
 
       repository = DataMapper.repository(target_repository_name)
-      conditions = relationship.query.dup
+      conditions = relationship.query(repository.name).dup
 
       if query
         conditions.update(query)

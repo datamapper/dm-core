@@ -22,16 +22,18 @@ module DataMapper
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
-          repository     = child_repository_name ? DataMapper.repository(child_repository_name) : parent_resource.repository
-          join_condition = query.merge(child_key(repository.name).zip(parent_key(parent_resource.repository.name).get(parent_resource)).to_hash)
+          parent_repository_name = parent_resource.repository.name
+          child_repository_name  = self.child_repository_name || parent_repository_name
 
-          if max.kind_of?(Integer)
-            join_condition.update(:limit => max)
-          end
+          child_key    = child_key(child_repository_name)
+          parent_value = parent_key(parent_repository_name).get(parent_resource)
+
+          query = self.query(parent_repository_name).dup
+          query.update(child_key.zip(parent_value).to_hash)
 
           # TODO: make sure the Model scope is also merged into this
 
-          Query.new(repository, child_model, join_condition)
+          Query.new(DataMapper.repository(child_repository_name), child_model, query)
         end
 
         private

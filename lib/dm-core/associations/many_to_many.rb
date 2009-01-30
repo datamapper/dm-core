@@ -39,7 +39,7 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def query
+        def query(default_repository_name)
           query = super.dup
 
           # use all intermediaries, besides "through", in the query links
@@ -55,11 +55,15 @@ module DataMapper
             # have the child as the target, and the parent as the source, while OneToMany
             # relationships would be reversed.  This will also clean up code in the DO adapter
 
+            # TODO: the default_repository_name should only be used as the default
+            # for the first relationship in the chain.  Afterwards each relative
+            # relationship should use the prior relationship's repository as the default
+
             repository_name, model = case relationship
               when ManyToMany::Relationship, OneToMany::Relationship, OneToOne::Relationship
-                [ relationship.child_repository_name, relationship.child_model ]
+                [ relationship.child_repository_name || default_repository_name, relationship.child_model ]
               when ManyToOne::Relationship
-                [ relationship.parent_repository_name, relationship.parent_model ]
+                [ relationship.parent_repository_name || default_repository_name, relationship.parent_model ]
             end
 
             # TODO: create a semipublic method in Query that normalizes to a Query::Operator
@@ -68,7 +72,12 @@ module DataMapper
             # Query::Operator values and make sure the target is a Property
             # or a Query::Path object.
 
-            relationship.query.each do |key,value|
+            relationship.query(default_repository_name).each do |key,value|
+              # TODO: figure out how to merge Query options from intermediaries
+              if Query::OPTIONS.include?(key)
+                next  # skip for now
+              end
+
               case key
                 when Symbol, String
                   query[ model.properties(repository_name)[key] ] = value
@@ -80,8 +89,6 @@ module DataMapper
                 else
                   raise ArgumentError, "#{key.class} not allowed in relationship query"
               end
-
-              # TODO: make sure the model scope is merged into each Query
             end
           end
 
@@ -128,14 +135,18 @@ module DataMapper
           #   - make sure that each intermediary can have different conditons that
           #     scope its results
 
-          repository     = child_repository_name ? DataMapper.repository(child_repository_name) : parent_resource.repository
-          join_condition = query.merge(through.child_key(repository.name).zip(through.parent_key(parent_resource.repository.name).get(parent_resource)).to_hash)
+          parent_repository_name = parent_resource.repository.name
+          child_repository_name  = self.child_repository_name || parent_repository_name
 
-          if max.kind_of?(Integer)
-            join_condition.update(:limit => max)
-          end
+          child_key    = through.child_key(child_repository_name)
+          parent_value = through.parent_key(parent_repository_name).get(parent_resource)
 
-          Query.new(repository, child_model, join_condition)
+          query = self.query(parent_repository_name).dup
+          query.update(child_key.zip(parent_value).to_hash)
+
+          # TODO: make sure the Model scope is also merged into this
+
+          Query.new(DataMapper.repository(child_repository_name), child_model, query)
         end
 
         private

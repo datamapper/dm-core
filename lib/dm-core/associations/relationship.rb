@@ -7,7 +7,12 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      attr_reader :name, :query, *OPTIONS
+      attr_reader :name, *OPTIONS
+
+      def query(default_repository_name)
+        # TODO: make sure the model scope is merged in
+        @query
+      end
 
       def intermediaries
         @intermediaries ||= [].freeze
@@ -114,7 +119,14 @@ module DataMapper
         @min                    = options[:min]
         @max                    = options[:max]
         @through                = options[:through]
-        @query                  = options.except(*OPTIONS).freeze
+
+        query = options.except(*OPTIONS)
+
+        if max.kind_of?(Integer)
+          query[:limit] = max
+        end
+
+        @query = query.freeze
 
         create_helper
         create_accessor
