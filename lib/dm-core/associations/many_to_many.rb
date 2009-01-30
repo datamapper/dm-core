@@ -149,7 +149,8 @@ module DataMapper
             model = DataMapper::Model.new do
               # all properties added to the join model are considered a key
               def property(name, type, options = {})
-                options[:key] = true unless options.key?(:key)
+                options[:key] = true
+                options.delete(:index)
                 super
               end
             end

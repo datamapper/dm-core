@@ -83,8 +83,8 @@ module DataMapper
 
       ##
       # Looks up a collection of records from the data-store: "SELECT" in SQL.
-      # Used by Model#all to search for a set of records; that set is in a
-      # DataMapper::Collection object.
+      # Used by Model#all to search for a set of records; that set is in an
+      # Array object.
       #
       # @param [DataMapper::Query] query
       #   The query to be used to seach for the resources

@@ -92,7 +92,7 @@ module DataMapper
             public  # TODO: make this configurable
             def #{name}=(parent)
               relationship = model.relationships(repository.name)[#{name.inspect}]
-              values = relationship.parent_key(repository.name).get(parent) unless parent.nil?
+              values = parent.nil? ? [] : relationship.parent_key(repository.name).get(parent)
               repository_name = relationship.child_repository_name || repository.name
               relationship.child_key(repository_name).set(self, values)
               @#{name} = parent
