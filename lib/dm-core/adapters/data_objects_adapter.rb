@@ -266,14 +266,21 @@ module DataMapper
         end
 
         def links_statement(query)
-          table_name = query.model.storage_name(query.repository.name)
+          table_list = [query.model.storage_name(query.repository.name)]
 
           statement = ''
           query.links.each do |relationship|
             parent_table_name = relationship.parent_model.storage_name(query.repository.name)
             child_table_name  = relationship.child_model.storage_name(query.repository.name)
 
-            join_table_name = table_name == parent_table_name ? child_table_name : parent_table_name
+            join_table_name = if table_list.include?(parent_table_name)
+              child_table_name
+            elsif table_list.include?(child_table_name)
+              parent_table_name
+            else
+              raise ArgumentError "you're trying to join a table with no connection to this query"
+            end
+            table_list << join_table_name
 
             # We only do INNER JOIN for now
             statement << " INNER JOIN #{quote_table_name(join_table_name)} ON "
