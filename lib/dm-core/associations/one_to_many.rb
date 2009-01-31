@@ -54,7 +54,8 @@ module DataMapper
             private
             def #{name}_helper
               @#{name} ||= begin
-                relationship = model.relationships(repository.name)[#{name.inspect}]
+                parent_repository_name = repository.name
+                relationship           = model.relationships(parent_repository_name)[#{name.inspect}]
 
                 query = relationship.target_for(self)
 

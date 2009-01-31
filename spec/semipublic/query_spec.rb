@@ -116,7 +116,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the fields' do
-          @query.fields.should == @model.properties.values_at(*@fields)
+          @query.fields.should == @model.properties.values_at('name')
         end
       end
 
@@ -216,7 +216,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the links' do
-          @query.links.should == @model.relationships.values_at(:referrer)
+          @query.links.should == @model.relationships.values_at('referrer')
         end
       end
 

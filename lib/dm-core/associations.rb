@@ -40,7 +40,7 @@ module DataMapper
     end
 
     def relationships(repository_name = default_repository_name)
-      @relationships ||= {}
+      @relationships ||= Mash.new
       @relationships[repository_name] ||= repository_name == Repository.default_name ? {} : relationships(Repository.default_name).dup
     end
 

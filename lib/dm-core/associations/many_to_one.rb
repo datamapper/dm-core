@@ -50,7 +50,8 @@ module DataMapper
 
               return @#{name} if conditions.nil? && defined?(@#{name})
 
-              relationship = model.relationships(repository.name)[#{name.inspect}]
+              child_repository_name = repository.name
+              relationship          = model.relationships(child_repository_name)[#{name.inspect}]
 
               resource = if query = relationship.target_for(self)
                 if conditions
@@ -95,10 +96,18 @@ module DataMapper
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
             def #{name}=(parent)
-              relationship = model.relationships(repository.name)[#{name.inspect}]
-              values = parent.nil? ? [] : relationship.parent_key(repository.name).get(parent)
-              repository_name = relationship.child_repository_name || repository.name
-              relationship.child_key(repository_name).set(self, values)
+              child_repository_name  = repository.name
+              relationship           = model.relationships(child_repository_name)[#{name.inspect}]
+              parent_repository_name = relationship.parent_repository_name || child_repository_name
+
+              values = if parent.nil?
+                []
+              else
+                relationship.parent_key(parent_repository_name).get(parent)
+              end
+
+              relationship.child_key(child_repository_name).set(self, values)
+
               @#{name} = parent
             end
           RUBY

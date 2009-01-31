@@ -781,7 +781,7 @@ module DataMapper
             link
 
           when Symbol, String
-            @relationships[link.to_sym]
+            @relationships[link]
         end
       end
     end
