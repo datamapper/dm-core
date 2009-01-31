@@ -192,7 +192,7 @@ end
 if ADAPTER
   describe "DataMapper::Resource with #{ADAPTER}" do
     before :all do
-      class Orange
+      class ::Orange
         include DataMapper::Resource
 
         def self.default_repository_name
@@ -203,7 +203,7 @@ if ADAPTER
         property :color, String
       end
 
-      class Apple
+      class ::Apple
         include DataMapper::Resource
 
         def self.default_repository_name
@@ -214,7 +214,7 @@ if ADAPTER
         property :color, String, :default => 'green', :nullable => true
       end
 
-      class FortunePig
+      class ::FortunePig
         include DataMapper::Resource
 
         def self.default_repository_name
@@ -237,7 +237,7 @@ if ADAPTER
         end
       end
 
-      class Car
+      class ::Car
         include DataMapper::Resource
 
         def self.default_repository_name
@@ -263,7 +263,7 @@ if ADAPTER
         end
       end
 
-      class Male
+      class ::Male
         include DataMapper::Resource
 
         def self.default_repository_name
@@ -281,15 +281,15 @@ if ADAPTER
         end
       end
 
-      class Bully < Male; end
+      class ::Bully < Male; end
 
-      class Mugger < Bully; end
+      class ::Mugger < Bully; end
 
-      class Maniac < Bully; end
+      class ::Maniac < Bully; end
 
-      class Psycho < Maniac; end
+      class ::Psycho < Maniac; end
 
-      class Geek < Male
+      class ::Geek < Male
         property :awkward, Boolean, :default => true
 
         def iq=(i)
@@ -297,7 +297,7 @@ if ADAPTER
         end
       end
 
-      class Flanimal
+      class ::Flanimal
         include DataMapper::Resource
 
         def self.default_repository_name
@@ -309,7 +309,7 @@ if ADAPTER
         property :name, String
       end
 
-      class Sprog < Flanimal; end
+      class ::Sprog < Flanimal; end
 
       Orange.auto_migrate!(ADAPTER)
       Apple.auto_migrate!(ADAPTER)

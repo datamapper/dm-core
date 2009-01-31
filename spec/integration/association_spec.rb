@@ -1100,7 +1100,6 @@ if ADAPTER
           customer.name == 'John Johnsen'
         end
         customers.size.should == 1
-        # another example can be found here: http://pastie.textmate.org/private/tt1hf1syfsytyxdgo4qxawﬂ
       end
 
       it 'should return the right children for has n => has 1 relationships' do

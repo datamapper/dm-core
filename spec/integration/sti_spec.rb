@@ -235,15 +235,16 @@ if HAS_SQLITE3
           ShortStory.create(
             :title => "The Science of Happiness",
             :isbn => "129038",
-            :content => <<-HERE,
-This doesn’t feel like a normal academic conference. True, the three-day Positive Psychology Summit i
-HERE
-            :moral => "Bullshit might get you to the top, but it won't keep you there.")
-            ShortStory.create(
-              :title => "Blank as white paper",
-              :isbn => "129039",
-              :content => '',
-              :moral => "none.")
+            :content => 'This doesn\'t feel like a normal academic conference. True, the three-day Positive Psychology Summit i',
+            :moral => "Bullshit might get you to the top, but it won't keep you there."
+          )
+
+          ShortStory.create(
+            :title => "Blank as white paper",
+            :isbn => "129039",
+            :content => '',
+            :moral => "none."
+          )
         end
       end
 
