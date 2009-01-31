@@ -139,7 +139,6 @@ module DataMapper
     #
     # @api semipublic
     def read_many(query)
-      return [] unless query.valid?
       adapter.read_many(query)
     end
 
@@ -157,7 +156,6 @@ module DataMapper
     #
     # @api semipublic
     def read_one(query)
-      return unless query.valid?
       adapter.read_one(query)
     end
 
@@ -176,7 +174,6 @@ module DataMapper
     #
     # @api semipublic
     def update(attributes, query)
-      return 0 unless query.valid?
       adapter.update(attributes, query)
     end
 
@@ -193,7 +190,6 @@ module DataMapper
     #
     # @api semipublic
     def delete(query)
-      return 0 unless query.valid?
       adapter.delete(query)
     end
 

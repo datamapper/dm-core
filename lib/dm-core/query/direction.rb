@@ -21,7 +21,12 @@ module DataMapper
       end
 
       def reverse
-        self.class.new(@property, @direction == :asc ? :desc : :asc)
+        dup.reverse!
+      end
+
+      def reverse!
+        @direction = @direction == :asc ? :desc : :asc
+        self
       end
 
       def inspect
