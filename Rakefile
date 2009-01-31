@@ -13,7 +13,7 @@ AUTHOR = "Dan Kubb"
 EMAIL  = "dan.kubb@gmail.com"
 GEM_NAME = "dm-core"
 GEM_VERSION = DataMapper::VERSION
-GEM_DEPENDENCIES = ["data_objects", "~>0.9.11"],
+GEM_DEPENDENCIES = ["data_objects", "~>0.9.12"],
                    ["extlib", "~>0.9.11"],
                    ["addressable", "~>2.0.1"]
 
