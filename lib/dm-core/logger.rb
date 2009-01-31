@@ -178,7 +178,7 @@ module DataMapper
     #
     def flush
       return unless @buffer.size > 0
-      @log.write_method(@buffer.slice!(0..-1).to_s)
+      @log.write_method(@buffer.slice!(0..-1).join)
     end
 
     # Close and remove the current log object.
