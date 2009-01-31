@@ -6,7 +6,7 @@ module DataMapper
   class Query
     include Extlib::Assertions
 
-    OPTIONS = [ :reload, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions, :unique ].to_set.freeze
+    OPTIONS = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze
 
     ##
     # Returns the repository
@@ -97,18 +97,6 @@ module DataMapper
     attr_reader :order
 
     ##
-    # Indicates if each result should be returned in reverse order
-    #
-    #   TODO: needs example
-    #
-    # @return [TrueClass,FalseClass]
-    #   true if the results should be reversed, false if not
-    #
-    # @api private
-    attr_accessor :add_reversed
-    alias add_reversed? add_reversed
-
-    ##
     # Returns the original options
     #
     #   TODO: needs example
@@ -119,30 +107,32 @@ module DataMapper
     # @api private
     attr_reader :options
 
-    ##
-    # Indicates if the Query contains valid conditions
-    #
-    #   TODO: needs example
-    #
-    # This is useful for short-circuiting queries that cannot be satisfied.
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if the Query is valid, false if not
-    #
-    # @api semipublic
+    # TODO: move these checks inside assert_valid_conditions and blow
+    # up if invalid conditions used
     def valid?
-      if offset > 0 && limit.nil?
-        return false
-      end
-
       !conditions.any? do |operator, property, bind_value|
         next if :raw == operator
 
         case bind_value
-          when Array then bind_value.empty?
-          when Range then operator != :eql && operator != :in && operator != :not
+          when Array
+            bind_value.empty?
+          when Range
+            operator != :eql && operator != :in && operator != :not
         end
       end
+    end
+
+    ##
+    # Indicates if each result should be returned in reverse order
+    #
+    #   TODO: needs example
+    #
+    # @return [TrueClass,FalseClass]
+    #   true if the results should be reversed, false if not
+    #
+    # @api private
+    def add_reversed?
+      @add_reversed
     end
 
     ##
@@ -300,25 +290,11 @@ module DataMapper
         return true
       end
 
-      unless other.class.equal?(self.class)
-        unless [ :repository, :model, :reload?, :unique?, :offset, :limit, :order, :add_reversed, :fields, :links, :conditions ].all? { |o| other.respond_to?(o) }
-          return false
-        end
+      unless other.class.equal?(self.class) || other.respond_to?(:to_hash)
+        return false
       end
 
-      # TODO: add a #hash method, and then use it in the comparison, eg:
-      #   return hash == other.hash
-      @repository   == other.repository    &&
-      @model        == other.model         &&
-      @reload       == other.reload?       &&
-      @unique       == other.unique?       &&
-      @offset       == other.offset        &&
-      @limit        == other.limit         &&
-      @order        == other.order         &&  # order is significant, so do not sort this
-      @add_reversed == other.add_reversed? &&
-      @fields       == other.fields        &&  # TODO: sort this so even if the order is different, it is equal
-      @links        == other.links         &&  # TODO: sort this so even if the order is different, it is equal
-      @conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash } == other.conditions.sort_by { |c| c.at(0).hash + c.at(1).hash + c.at(2).hash }
+      to_hash == other.to_hash
     end
 
     ##
@@ -355,6 +331,8 @@ module DataMapper
 
       self.class.new(repository, model, options)
     end
+
+    alias slice []
 
     # TODO: document this
     #   TODO: needs example
@@ -494,25 +472,27 @@ module DataMapper
     def initialize(repository, model, options = {})
       assert_kind_of 'repository', repository, Repository
       assert_kind_of 'model',      model,      Model
-      assert_kind_of 'options',    options,    Hash
-
-      assert_valid_options(options)
 
       @repository = repository
       @model      = model
       @options    = options.freeze
 
-      @properties = @model.properties(@repository.name)
+      repository_name = repository.name
 
-      @reload       = options.fetch :reload,       false  # must be true or false
-      @unique       = options.fetch :unique,       false  # must be true or false
-      @offset       = options.fetch :offset,       0      # must be an Integer greater than or equal to 0
-      @limit        = options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
-      @order        = options.fetch :order,        @model.default_order(@repository.name)   # must be an Array of Symbol, DM::Query::Direction or DM::Property
-      @add_reversed = options.fetch :add_reversed, false  # must be true or false
+      @properties    = @model.properties(repository_name)
+      @relationships = @model.relationships(repository_name)
+
+      assert_valid_options(@options)
+
       @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
       @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
       @conditions   = []                                  # must be an Array of triplets (or pairs when passing in raw String queries)
+      @offset       = options.fetch :offset,       0      # must be an Integer greater than or equal to 0
+      @limit        = options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
+      @order        = options.fetch :order,        @model.default_order(repository_name)   # must be an Array of Symbol, DM::Query::Direction or DM::Property
+      @unique       = options.fetch :unique,       false  # must be true or false
+      @add_reversed = options.fetch :add_reversed, false  # must be true or false
+      @reload       = options.fetch :reload,       false  # must be true or false
 
       # XXX: should I validate that each property in @order corresponds
       # to something in @fields?  Many DB engines require they match,
@@ -831,13 +811,11 @@ module DataMapper
 
       if args.size == 2 && first_arg.kind_of?(Integer) && (second_arg.kind_of?(Integer) || second_arg.nil?)
         return first_arg, second_arg
-      elsif args.size == 1
-        if first_arg.kind_of?(Range)
-          index = first_arg.first
-          length  = first_arg.last - index
-          length += 1 unless first_arg.exclude_end?
-          return index, length
-        end
+      elsif args.size == 1 && first_arg.kind_of?(Range)
+        offset  = first_arg.first
+        limit   = first_arg.last - offset
+        limit += 1 unless first_arg.exclude_end?
+        return offset, limit
       end
 
       raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}", caller(1)

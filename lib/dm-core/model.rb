@@ -507,7 +507,7 @@ module DataMapper
     end
 
     # TODO: document
-    # @api private
+    # @api semipublic
     def default_order(repository_name = default_repository_name)
       @default_order ||= {}
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }

@@ -17,8 +17,7 @@ def run_spec(name, files, rcov)
     t.rcov_opts << '--text-summary'
     t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
     t.rcov_opts << '--only-uncovered'
-    t.rcov_opts << '--profile'
-    t.rcov_opts << '--output' << ROOT + 'coverage'
+    #t.rcov_opts << '--profile'
   end
 end
 

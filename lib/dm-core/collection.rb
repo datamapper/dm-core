@@ -322,9 +322,9 @@ module DataMapper
       end
 
       query = if offset >= 0
-        self.query.relative(:offset => offset, :limit => limit)
+        self.query[offset, limit]
       else
-        query = self.query.relative(:offset => (limit + offset).abs, :limit => limit).reverse
+        query = self.query[(limit + offset).abs, limit].reverse!
 
         # tell the Query to prepend each result from the adapter
         query.update(:add_reversed => !query.add_reversed?)
@@ -366,9 +366,9 @@ module DataMapper
       offset, limit = extract_slice_arguments(*args)
 
       query = if offset >= 0
-        self.query.relative(:offset => offset, :limit => limit)
+        self.query[offset, limit]
       else
-        query = self.query.relative(:offset => (limit + offset).abs, :limit => limit).reverse
+        query = self.query[(limit + offset).abs, limit].reverse!
 
         # tell the Query to prepend each result from the adapter
         query.update(:add_reversed => !query.add_reversed?)
