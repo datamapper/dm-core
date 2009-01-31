@@ -109,18 +109,18 @@ module DataMapper
 
     # TODO: move these checks inside assert_valid_conditions and blow
     # up if invalid conditions used
-    def valid?
-      !conditions.any? do |operator, property, bind_value|
-        next if :raw == operator
-
-        case bind_value
-          when Array
-            bind_value.empty?
-          when Range
-            operator != :eql && operator != :in && operator != :not
-        end
-      end
-    end
+    #def valid?
+    #  !conditions.any? do |operator, property, bind_value|
+    #    next if :raw == operator
+    #
+    #    case bind_value
+    #      when Array
+    #        bind_value.empty?
+    #      when Range
+    #        operator != :eql && operator != :in && operator != :not
+    #    end
+    #  end
+    #end
 
     ##
     # Indicates if each result should be returned in reverse order
