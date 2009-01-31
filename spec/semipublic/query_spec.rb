@@ -862,7 +862,30 @@ describe DataMapper::Query do
   it { @query.should respond_to(:reverse) }
 
   describe '#reverse' do
-    it 'should be awesome'
+    before do
+      @original = @query
+      @return = @query = @query.reverse
+    end
+
+    it 'should return a Query' do
+      @return.should be_kind_of(DataMapper::Query)
+    end
+
+    it 'should copy the Query' do
+      @query.should_not be_equal(@original)
+    end
+
+    it 'should not rference original order' do
+      @query.order.should_not be_equal(@original.order)
+    end
+
+    it 'should have a reversed order' do
+      @query.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ]
+    end
+
+    it 'should be equivalent, except for order' do
+      @query.to_hash.except(:order).should == @original.to_hash.except(:order)
+    end
   end
 
   it { @query.should respond_to(:reverse!) }
