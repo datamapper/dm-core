@@ -1,5 +1,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
+# TODO: make some of specs for Query.new shared.  the assertions and
+# normalizations should happen for Query#update, Query#relative and
+# Query#merge and should probably be in shared specs
+
 # class methods
 describe DataMapper::Query do
   before do
@@ -108,6 +112,7 @@ describe DataMapper::Query do
       describe 'that is an Array containing a String' do
         before do
           @options[:fields] = [ 'name' ]
+
           @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
@@ -123,6 +128,7 @@ describe DataMapper::Query do
       describe 'that is an Array containing a Property' do
         before do
           @options[:fields] = @model.properties.values_at(:name)
+
           @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
@@ -208,6 +214,7 @@ describe DataMapper::Query do
       describe 'that is an Array containing a String' do
         before do
           @options[:links] = [ 'referrer' ]
+
           @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
@@ -223,6 +230,7 @@ describe DataMapper::Query do
       describe 'that is an Array containing a Relationship' do
         before do
           @options[:links] = @model.relationships.values_at(:referrer)
+
           @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
@@ -308,6 +316,7 @@ describe DataMapper::Query do
       describe 'that is a valid Array' do
         before do
           @options[:conditions] = [ 'name = ?', 'Dan Kubb' ]
+
           @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
@@ -461,6 +470,7 @@ describe DataMapper::Query do
       describe 'that is an Array containing a String' do
         before do
           @options[:order] = [ 'name' ]
+
           @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
@@ -476,6 +486,7 @@ describe DataMapper::Query do
       describe 'that is an Array containing a Property' do
         before do
           @options[:order] = @model.properties.values_at(:name)
+
           @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
@@ -491,6 +502,7 @@ describe DataMapper::Query do
       describe 'that is an Array containing an Operator' do
         before do
           @options[:order] = [ :name.desc ]
+
           @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
@@ -669,6 +681,7 @@ describe DataMapper::Query do
       describe 'that are unknown' do
         before do
           @options.update(@options.delete(:conditions))
+
           @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
@@ -713,12 +726,15 @@ describe DataMapper::Query do
       include DataMapper::Resource
 
       property :name, String, :key => true
+
+      belongs_to :referrer, :model => self
     end
 
     @repository = DataMapper::Repository.new(:default)
     @model      = User
     @options    = {}
     @query      = DataMapper::Query.new(@repository, @model, @options)
+    @original   = @query
   end
 
   it { @query.should respond_to(:==) }
@@ -863,7 +879,6 @@ describe DataMapper::Query do
 
   describe '#reverse' do
     before do
-      @original = @query
       @return = @query = @query.reverse
     end
 
@@ -875,7 +890,8 @@ describe DataMapper::Query do
       @query.should_not be_equal(@original)
     end
 
-    it 'should not rference original order' do
+    # TODO: push this into dup spec
+    it 'should not reference original order' do
       @query.order.should_not be_equal(@original.order)
     end
 
@@ -892,7 +908,6 @@ describe DataMapper::Query do
 
   describe '#reverse!' do
     before do
-      @original = @query
       @return = @query = @query.reverse!
     end
 
@@ -932,6 +947,295 @@ describe DataMapper::Query do
   it { @query.should respond_to(:update) }
 
   describe '#update' do
-    it 'should be awesome'
+    before do
+      @other_options = {
+        :fields       => [ @model.properties[:name] ].freeze,
+        :links        => [ @model.relationships[:referrer] ].freeze,
+        :conditions   => { :name => 'Dan Kubb' }.freeze,
+        :offset       => 1,
+        :limit        => 2,
+        :order        => [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ].freeze,
+        :unique       => true,
+        :add_reversed => true,
+        :reload       => true,
+      }
+    end
+
+    describe 'with a Query' do
+      describe 'that is equivalent' do
+        before do
+          @other = DataMapper::Query.new(@repository, @model)
+
+          @return = @query = @query.update(@other)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+      end
+
+      describe 'using a different repository' do
+        before do
+          @other_repository = DataMapper::Repository.new(:other)
+          @other            = DataMapper::Query.new(@other_repository, @model)
+
+          @return = @query = @query.update(@other)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+
+        it 'should update the repository' do
+          @query.repository.should == @other_repository
+        end
+      end
+
+      describe 'using a different model' do
+        before do
+          class ::Clone
+            include DataMapper::Resource
+
+            property :name, String, :key => true
+          end
+        end
+
+        it 'should raise an exception' do
+          lambda {
+            @query.update(DataMapper::Query.new(@repository, Clone))
+          }.should raise_error(ArgumentError, '+other+ DataMapper::Query must be for the User model, not Clone')
+        end
+      end
+
+      describe 'using different options' do
+        before do
+          @other = DataMapper::Query.new(@repository, @model, @options.update(@other_options))
+
+          @return = @query = @query.update(@other)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+
+        it 'should update the fields' do
+          @query.fields.should == @options[:fields]
+        end
+
+        it 'should update the links' do
+          @query.links.should == @options[:links]
+        end
+
+        it 'should update the conditions' do
+          @query.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+        end
+
+        it 'should update the offset' do
+          @query.offset.should == @options[:offset]
+        end
+
+        it 'should update the limit' do
+          @query.limit.should == @options[:limit]
+        end
+
+        it 'should update the order' do
+          @query.order.should == @options[:order]
+        end
+
+        it 'should update the unique' do
+          @query.unique?.should == @options[:unique]
+        end
+
+        it 'should update the add_reversed' do
+          @query.add_reversed?.should == @options[:add_reversed]
+        end
+
+        it 'should update the reload' do
+          @query.reload?.should == @options[:reload]
+        end
+      end
+
+      describe 'using extra options' do
+        before do
+          @options.update(:name => 'Dan Kubb')
+          @other = DataMapper::Query.new(@repository, @model, @options)
+
+          @return = @query = @query.update(@other)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+
+        it 'should update the conditions' do
+          @query.conditions.should == [ [ :eql, @model.properties[:name], @options[:name] ] ]
+        end
+      end
+    end
+
+    describe 'with a Hash' do
+      describe 'that is empty' do
+        before do
+          @copy = @query.dup
+          @return = @query = @query.update({})
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+
+        it 'should not change the Query' do
+          @query.should == @copy
+        end
+      end
+
+      describe 'that specifies :repository as a Repository' do
+        before do
+          @other_repository = DataMapper::Repository.new(:other)
+
+          @return = @query = @query.update(:repository => @other_repository)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+
+        it 'should update the repository' do
+          @query.repository.should == @other_repository
+        end
+      end
+
+      describe 'that specifies :repository as a Symbol' do
+        before do
+          @other_repository_name = :other
+
+          @return = @query = @query.update(:repository => @other_repository_name)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+
+        it 'should update the repository' do
+          @query.repository.should == DataMapper::Repository.new(@other_repository_name)
+        end
+      end
+
+      describe 'that does not specify a :repository' do
+        before do
+          @return = @query = @query.update(:name => 'Dan Kubb')
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+
+        it 'should not update the repository' do
+          @query.repository.should == @repository
+        end
+      end
+
+      describe 'using different options' do
+        before do
+          @return = @query = @query.update(@other_options)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+
+        it 'should update the fields' do
+          @query.fields.should == @other_options[:fields]
+        end
+
+        it 'should update the links' do
+          @query.links.should == @other_options[:links]
+        end
+
+        it 'should update the conditions' do
+          @query.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+        end
+
+        it 'should update the offset' do
+          @query.offset.should == @other_options[:offset]
+        end
+
+        it 'should update the limit' do
+          @query.limit.should == @other_options[:limit]
+        end
+
+        it 'should update the order' do
+          @query.order.should == @other_options[:order]
+        end
+
+        it 'should update the unique' do
+          @query.unique?.should == @other_options[:unique]
+        end
+
+        it 'should update the add_reversed' do
+          @query.add_reversed?.should == @other_options[:add_reversed]
+        end
+
+        it 'should update the reload' do
+          @query.reload?.should == @other_options[:reload]
+        end
+      end
+
+      describe 'using extra options' do
+        before do
+          @options = { :name => 'Dan Kubb' }
+
+          @return = @query = @query.update(@options)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should return self' do
+          @query.should be_equal(@original)
+        end
+
+        it 'should update the conditions' do
+          @query.conditions.should == [ [ :eql, @model.properties[:name], @options[:name] ] ]
+        end
+      end
+    end
   end
 end

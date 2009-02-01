@@ -171,7 +171,7 @@ module DataMapper
         return false
       end
 
-      cmp_attributes?(other, :eql?)
+      cmp?(other, :eql?)
     end
 
     ##
@@ -197,7 +197,7 @@ module DataMapper
         return false
       end
 
-      cmp_attributes?(other, :==)
+      cmp?(other, :==)
     end
 
     ##
@@ -746,11 +746,10 @@ module DataMapper
     end
 
     ##
-    # Return true if +other+'s attribtues are equivalent to +self+'s
+    # Return true if +other+'s is equivalent or equal to +self+'s
     #
     # @param [Resource] other
     #   The Resource whose attributes are to be compared with +self+'s
-    #
     # @param [Symbol] operator
     #   The comparison operator to use to compare the attributes
     #
@@ -758,7 +757,7 @@ module DataMapper
     #   The result of the comparison of +other+'s attributes with +self+'s
     #
     # @api private
-    def cmp_attributes?(other, operator)
+    def cmp?(other, operator)
       unless key.send(operator, other.key)
         return false
       end

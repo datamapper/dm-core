@@ -13,7 +13,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @return [DataMapper::Repository]
+    # @return [Repository]
     #   the Repository to retrieve results from
     #
     # @api semipublic
@@ -24,7 +24,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @return [DataMapper::Model]
+    # @return [Model]
     #   the Model to retrieve results from
     #
     # @api semipublic
@@ -35,7 +35,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @return [DataMapper::PropertySet]
+    # @return [PropertySet]
     #   the properties in the Model that will be retrieved
     #
     # @api semipublic
@@ -166,7 +166,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @return [DataMapper::Query]
+    # @return [Query]
     #   new Query with reversed order
     #
     # @api semipublic
@@ -179,7 +179,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @return [DataMapper::Query]
+    # @return [Query]
     #   self
     #
     # @api semipublic
@@ -195,10 +195,10 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @param [DataMapper::Query, Hash] other
+    # @param [Query, Hash] other
     #   other Query or conditions
     #
-    # @return [DataMapper::Query]
+    # @return [Query]
     #   self
     #
     # @api semipublic
@@ -209,11 +209,13 @@ module DataMapper
 
       case other
         when self.class
+          assert_valid_other(other)
+
           if self == other
             return self
           end
 
-          initialize(other.repository, other.model, @options.merge(other.options))
+          initialize(other.repository, model, @options.merge(other.options))
         when Hash
           if other.empty?
             return self
@@ -221,14 +223,9 @@ module DataMapper
 
           options    = other.dup
           repository = options.delete(:repository) || self.repository
-          model      = options.delete(:model)      || self.model
 
           if repository.kind_of?(Symbol)
             repository = DataMapper.repository(repository)
-          end
-
-          if model.kind_of?(String)
-            model = Object.find_const(model)
           end
 
           initialize(repository, model, @options.merge(options))
@@ -240,10 +237,10 @@ module DataMapper
     ##
     # Similar to Query#update, but acts on a duplicate.
     #
-    # @param [DataMapper::Query, Hash] other
+    # @param [Query, Hash] other
     #   other query to merge with
     #
-    # @return [DataMapper::Query]
+    # @return [Query]
     #   updated duplicate of original query
     #
     # @api semipublic
@@ -278,7 +275,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @param [DataMapper::Query] other
+    # @param [Query] other
     #   the other Query to compare with
     #
     # @return [TrueClass, FalseClass]
@@ -290,11 +287,11 @@ module DataMapper
         return true
       end
 
-      unless other.class.equal?(self.class) || other.respond_to?(:to_hash)
+      unless other.respond_to?(:repository) && other.respond_to?(:model) && other.respond_to?(:to_hash)
         return false
       end
 
-      to_hash == other.to_hash
+      cmp?(other, :==)
     end
 
     ##
@@ -302,7 +299,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @param [DataMapper::Query] other
+    # @param [Query] other
     #   the other Query to compare with
     #
     # @return [TrueClass, FalseClass]
@@ -310,7 +307,15 @@ module DataMapper
     #
     # @api semipublic
     def eql?(other)
-      raise NotImplementedError, 'TODO: need to write method'
+      if equal?(other)
+        return true
+      end
+
+      unless other.class.equal?(self.class)
+        return false
+      end
+
+      cmp?(other, :eql?)
     end
 
     # TODO: document this
@@ -461,9 +466,9 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @param [DataMapper::Repository] repository
+    # @param [Repository] repository
     #   the Repository to retrieve results from
-    # @param [DataMapper::Model] model
+    # @param [Model] model
     #   the Model to retrieve results from
     # @param [Hash] options
     #   the conditions and scope
@@ -475,7 +480,7 @@ module DataMapper
 
       @repository = repository
       @model      = model
-      @options    = options.freeze
+      @options    = options.dup.freeze
 
       repository_name = repository.name
 
@@ -484,15 +489,15 @@ module DataMapper
 
       assert_valid_options(@options)
 
-      @fields       = options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
-      @links        = options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
+      @fields       = @options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
+      @links        = @options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
       @conditions   = []                                  # must be an Array of triplets (or pairs when passing in raw String queries)
-      @offset       = options.fetch :offset,       0      # must be an Integer greater than or equal to 0
-      @limit        = options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
-      @order        = options.fetch :order,        @model.default_order(repository_name)   # must be an Array of Symbol, DM::Query::Direction or DM::Property
-      @unique       = options.fetch :unique,       false  # must be true or false
-      @add_reversed = options.fetch :add_reversed, false  # must be true or false
-      @reload       = options.fetch :reload,       false  # must be true or false
+      @offset       = @options.fetch :offset,       0      # must be an Integer greater than or equal to 0
+      @limit        = @options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
+      @order        = @options.fetch :order,        @model.default_order(repository_name)   # must be an Array of Symbol, DM::Query::Direction or DM::Property
+      @unique       = @options.fetch :unique,       false  # must be true or false
+      @add_reversed = @options.fetch :add_reversed, false  # must be true or false
+      @reload       = @options.fetch :reload,       false  # must be true or false
 
       # XXX: should I validate that each property in @order corresponds
       # to something in @fields?  Many DB engines require they match,
@@ -505,10 +510,10 @@ module DataMapper
       normalize_links
 
       # treat all non-options as conditions
-      options.except(*OPTIONS).each { |kv| append_condition(*kv) }
+      @options.except(*OPTIONS).each { |kv| append_condition(*kv) }
 
-      # parse raw options[:conditions] differently
-      if conditions = options[:conditions]
+      # parse raw @options[:conditions] differently
+      if conditions = @options[:conditions]
         case conditions
           when Hash
             conditions.each { |kv| append_condition(*kv) }
@@ -713,6 +718,14 @@ module DataMapper
     def assert_valid_boolean(name, value)
       if value != true && value != false
         raise ArgumentError, "+#{name}+ should be true or false, but was #{value.inspect}", caller(3)
+      end
+    end
+
+    # TODO: document this
+    # @api private
+    def assert_valid_other(other)
+      unless other.model == model
+        raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}", caller(2)
       end
     end
 
@@ -929,6 +942,30 @@ module DataMapper
       end
 
       return first_pos, last_pos ? last_pos - first_pos : nil
+    end
+
+    ##
+    # Return true if +other+'s is equivalent or equal to +self+'s
+    #
+    # @param [Query] other
+    #   The Resource whose attributes are to be compared with +self+'s
+    # @param [Symbol] operator
+    #   The comparison operator to use to compare the attributes
+    #
+    # @return [TrueClass, FalseClass]
+    #   The result of the comparison of +other+'s attributes with +self+'s
+    #
+    # @api private
+    def cmp?(other, operator)
+      unless repository.send(operator, other.repository)
+        return false
+      end
+
+      unless model.send(operator, other.model)
+        return false
+      end
+
+      to_hash.send(operator, other.to_hash)
     end
   end # class Query
 end # module DataMapper
