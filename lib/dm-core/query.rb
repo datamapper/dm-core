@@ -258,17 +258,13 @@ module DataMapper
         return dup
       end
 
-      offset = other.delete(:offset) || 0
-      limit  = other.delete(:limit)  || self.limit
+      if other.key?(:offset) || other.key?(:limit)
+        offset = other.delete(:offset) || self.offset
+        limit  = other.delete(:limit)  || self.limit
 
-      assert_valid_offset(offset, limit)
-
-      if offset == 0 && limit == self.limit
-        merge(other)
+        merge(other).slice!(offset, limit)
       else
-        # TODO: should I make a slice! method that acts like slice/[], but
-        # does not dup the object?  the following dupes the Query twice
-        merge(other)[offset, limit]
+        merge(other)
       end
     end
 
@@ -324,13 +320,7 @@ module DataMapper
     #   TODO: needs example
     # @api semipublic
     def [](*args)
-      offset, limit = extract_slice_arguments(*args)
-
-      if self.limit || self.offset > 0
-        offset, limit = get_relative_position(offset, limit)
-      end
-
-      self.class.new(repository, model, @options.merge(:offset => offset, :limit => limit))
+      dup.slice!(*args)
     end
 
     alias slice []
@@ -339,7 +329,13 @@ module DataMapper
     #   TODO: needs example
     # @api semipublic
     def slice!(*args)
-      raise NotImplementedError, 'TODO: write this method, and then delegate to it from Query#slice, doing dup.slice!(*args)'
+      offset, limit = extract_slice_arguments(*args)
+
+      if self.limit || self.offset > 0
+        offset, limit = get_relative_position(offset, limit)
+      end
+
+      update(:offset => offset, :limit => limit)
     end
 
     # TODO: document this
@@ -375,11 +371,6 @@ module DataMapper
       if raw_queries.any?
         hash[:conditions] = [ raw_queries.map { |q| "(#{q})" }.join(' AND ') ].concat(bind_values)
       end
-
-      # TODO: normalize :fields, :order and all conditions to be relative
-      # to the current model, for brevity
-      #   - what about just returning self.options?  It should be normalized
-      #     as expected.
 
       hash.update(conditions)
     end
