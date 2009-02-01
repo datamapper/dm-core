@@ -1,21 +1,43 @@
 module DataMapper
   module Associations
     class Relationship
-      include Extlib::Assertions
-
       OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :through ].to_set.freeze
 
       # TODO: document
       # @api semipublic
-      attr_reader :name, *OPTIONS
+      attr_reader :name
 
+      # TODO: document
+      # @api semipublic
+      attr_reader :child_repository_name
+
+      # TODO: document
+      # @api semipublic
+      attr_reader :parent_repository_name
+
+      # TODO: document
+      # @api semipublic
+      attr_reader :min
+
+      # TODO: document
+      # @api semipublic
+      attr_reader :max
+
+      # TODO: document
+      # @api semipublic
+      attr_reader :through
+
+      # TODO: document
+      # @api semipublic
+      def intermediaries
+        @intermediaries ||= [].freeze
+      end
+
+      # TODO: document
+      # @api private
       def query
         # TODO: make sure the model scope is merged in
         @query
-      end
-
-      def intermediaries
-        @intermediaries ||= [].freeze
       end
 
       # TODO: document
@@ -79,7 +101,7 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      def target_for(resource)
+      def query_for(resource)
         raise NotImplementedError
       end
 

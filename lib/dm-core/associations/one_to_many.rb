@@ -10,20 +10,27 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def target_for(parent_resource)
-          # TODO: spec this
-          #if parent_resource.new?
-          #  # an unsaved parent cannot be referenced by children
-          #  return
-          #end
-
+        def query_for(parent)
           # TODO: do not build the query with child_key/parent_key.. use
           # child_accessor/parent_accessor.  The query should be able to
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
-          query = self.query.merge(child_key.zip(parent_key.get(parent_resource)).to_hash)
-          Query.new(DataMapper.repository(child_repository_name), child_model, query)
+          # TODO: when parent is a Collection, and it's query includes an
+          # offset/limit, use it as a subquery to scope the results, rather
+          # than (potentially) lazy-loading the Collection and getting
+          # each resource key
+
+          # TODO: handle compound keys when OR conditions supported
+          parent_values = case parent
+            when Resource               then parent_key.get(parent)
+            when DataMapper::Collection then parent.map { |r| parent_key.get(r) }.transpose
+          end
+
+          # TODO: spec what should happen when parent not saved
+
+          options = query.merge(child_key.zip(parent_values).to_hash)
+          Query.new(DataMapper.repository(child_repository_name), child_model, options)
         end
 
         private
@@ -47,7 +54,7 @@ module DataMapper
                 parent_repository_name = repository.name
                 relationship           = model.relationships(parent_repository_name)[#{name.inspect}]
 
-                query = relationship.target_for(self)
+                query = relationship.query_for(self)
 
                 collection = relationship.class.collection_class.new(query)
 

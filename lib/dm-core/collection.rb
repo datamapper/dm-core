@@ -1130,37 +1130,14 @@ module DataMapper
     #
     # @return [DataMapper::Collection] the associated Resources
     #
-    def delegate_to_relationship(relationship, query = nil)
-      target_repository, target_model, target_key, source_key = nil, nil, nil
+    def delegate_to_relationship(relationship, other_query = nil)
+      query = relationship.query_for(self)
 
-      if relationship.kind_of?(Associations::ManyToOne::Relationship)
-        target_repository_name = relationship.parent_repository_name || repository.name
-        target_model           = relationship.parent_model
-        target_key             = relationship.parent_key
-        source_key             = relationship.child_key
-      else
-        target_repository_name = relationship.child_repository_name || repository.name
-        target_model           = relationship.child_model
-        target_key             = relationship.child_key
-        source_key             = relationship.parent_key
+      if other_query
+        query.update(other_query)
       end
 
-      # TODO: when self.query includes an offset/limit use it as a
-      # subquery to scope the results rather than a join
-
-      values = map { |r| source_key.get(r) }
-
-      repository = DataMapper.repository(target_repository_name)
-      conditions = relationship.query.dup
-
-      if query
-        conditions.update(query)
-      end
-
-      conditions.update(target_key.zip(values.transpose).to_hash)
-      conditions.update(:links => self.query.links.dup << relationship)
-
-      target_model.all(Query.new(repository, target_model, conditions))
+      query.model.all(query)
     end
   end # class Collection
 end # module DataMapper

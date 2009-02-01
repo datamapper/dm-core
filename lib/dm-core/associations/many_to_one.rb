@@ -4,21 +4,30 @@ module DataMapper
       class Relationship < DataMapper::Associations::Relationship
         # TODO: document
         # @api semipublic
-        def target_for(child_resource)
+        def query_for(child)
           # TODO: do not build the query with child_key/parent_key.. use
           # child_accessor/parent_accessor.  The query should be able to
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
-          child_value = child_key.get(child_resource)
+          # TODO: when parent is a Collection, and it's query includes an
+          # offset/limit, use it as a subquery to scope the results, rather
+          # than (potentially) lazy-loading the Collection and getting
+          # each resource key
 
-          if child_value.any? { |v| v.blank? }
+          # TODO: handle compound keys when OR conditions supported
+          child_values = case child
+            when Resource               then child_key.get(child)
+            when DataMapper::Collection then child.map { |r| child_key.get(r) }.transpose
+          end
+
+          if child_values.any? { |v| v.blank? }
             # child must have a valid reference to the parent
             return
           end
 
-          query = self.query.merge(parent_key.zip(child_value).to_hash)
-          Query.new(DataMapper.repository(parent_repository_name), parent_model, query)
+          options = query.merge(parent_key.zip(child_values).to_hash)
+          Query.new(DataMapper.repository(parent_repository_name), parent_model, options)
         end
 
         private
@@ -48,7 +57,7 @@ module DataMapper
               child_repository_name = repository.name
               relationship          = model.relationships(child_repository_name)[#{name.inspect}]
 
-              resource = if query = relationship.target_for(self)
+              resource = if query = relationship.query_for(self)
                 if conditions
                   query.update(conditions)
                 end

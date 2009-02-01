@@ -5,12 +5,6 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  before do
-    if defined?(DataMapper::Adapters::InMemoryAdapter)
-      @in_memory_adapter = DataMapper::Adapters::InMemoryAdapter
-    end
-  end
-
   [ :add, :<< ].each do |method|
     it { @articles.should respond_to(method) }
 
@@ -104,38 +98,40 @@ share_examples_for 'A public Collection' do
 
     describe 'with a query using raw conditions' do
       before do
-        @new = @articles.create(:content => 'New Article')
-        @copy = @articles.dup
-        @return = @articles.all(:conditions => [ 'content = ?', 'New Article' ])
+        unless @skip = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+          @new = @articles.create(:content => 'New Article')
+          @copy = @articles.dup
+          @return = @articles.all(:conditions => [ 'content = ?', 'New Article' ])
+        end
       end
 
       it 'should return a Collection' do
-        unless @in_memory_adapter && @adapter.kind_of?(@in_memory_adapter)
+        unless @skip
           @return.should be_kind_of(DataMapper::Collection)
         end
       end
 
       it 'should return a new Collection' do
-        unless @in_memory_adapter && @adapter.kind_of?(@in_memory_adapter)
+        unless @skip
           @return.should_not be_equal(@articles)
         end
       end
 
       it 'should return expected Resources' do
-        unless @in_memory_adapter && @adapter.kind_of?(@in_memory_adapter)
+        unless @skip
           @return.should == [ @new ]
         end
       end
 
       it 'should have a different query than original Collection' do
-        unless @in_memory_adapter && @adapter.kind_of?(@in_memory_adapter)
+        unless @skip
           @return.query.should_not == @articles.query
         end
       end
 
       it 'should scope the Collection' do
         pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          unless @in_memory_adapter && @adapter.kind_of?(@in_memory_adapter)
+          unless @skip
             @return.reload.should == @copy.entries.select { |a| a.content == 'New Article' }.first(1)
           end
         end
@@ -1239,10 +1235,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return expected Collection' do
-        skip = [ DataMapper::Collection, DataMapper::Associations::OneToMany::Collection ]
-        pending_if 'TODO: fix', skip.include?(@articles.class) && !(@in_memory_adapter && @adapter.kind_of?(@in_memory_adapter)) do
-          @collection.should == [ @original ]
-        end
+        @collection.should == [ @original ]
       end
     end
 
@@ -1263,10 +1256,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          skip = [ DataMapper::Collection, DataMapper::Associations::OneToMany::Collection ]
-          pending_if 'TODO: fix', skip.include?(@articles.class) && !(@in_memory_adapter && @adapter.kind_of?(@in_memory_adapter)) do
-            @collection.should == [ @other ]
-          end
+          @collection.should == [ @other ]
         end
       end
 
