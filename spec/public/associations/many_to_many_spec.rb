@@ -27,7 +27,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
         has n, :authors, :through => Resource
         belongs_to :original, :model => self
-        has n, :revisions,    :model => self
+        has n, :revisions, :model => self, :child_key => [ :original_id ]
       end
 
       # FIXME: make it so we don't have to "prime" the through association
@@ -50,7 +50,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
         @original = @author.articles.create(:title => 'Original Article')
         @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
-        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
+        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other',  :original => @article)
 
         @articles       = @author.articles(:title => 'Sample Article')
         @other_articles = @author.articles(:title => 'Other Article')

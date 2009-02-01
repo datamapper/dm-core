@@ -45,7 +45,7 @@ end
 
         belongs_to :author
         belongs_to :original, :model => self
-        has n, :revisions, :model => self
+        has n, :revisions, :model => self, :child_key => [ :original_id ]
       end
 
       @model = Article
@@ -57,7 +57,7 @@ end
 
         @original = @author.articles.create(:title => 'Original Article')
         @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
-        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
+        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other',  :original => @article)
 
         @articles       = @author.articles(:title => 'Sample Article')
         @other_articles = @author.articles(:title => 'Other Article')
