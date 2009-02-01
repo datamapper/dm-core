@@ -254,10 +254,6 @@ module DataMapper
     def relative(other)
       assert_kind_of 'other', other, Hash
 
-      if other.empty?
-        return dup
-      end
-
       if other.key?(:offset) || other.key?(:limit)
         offset = other.delete(:offset) || self.offset
         limit  = other.delete(:limit)  || self.limit
