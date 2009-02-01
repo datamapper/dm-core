@@ -1136,13 +1136,13 @@ module DataMapper
       if relationship.kind_of?(Associations::ManyToOne::Relationship)
         target_repository_name = relationship.parent_repository_name || repository.name
         target_model           = relationship.parent_model
-        target_key             = relationship.parent_key(target_repository_name)
-        source_key             = relationship.child_key(repository.name)
+        target_key             = relationship.parent_key
+        source_key             = relationship.child_key
       else
         target_repository_name = relationship.child_repository_name || repository.name
         target_model           = relationship.child_model
-        target_key             = relationship.child_key(target_repository_name)
-        source_key             = relationship.parent_key(repository.name)
+        target_key             = relationship.child_key
+        source_key             = relationship.parent_key
       end
 
       # TODO: when self.query includes an offset/limit use it as a
@@ -1151,7 +1151,7 @@ module DataMapper
       values = map { |r| source_key.get(r) }
 
       repository = DataMapper.repository(target_repository_name)
-      conditions = relationship.query(repository.name).dup
+      conditions = relationship.query.dup
 
       if query
         conditions.update(query)

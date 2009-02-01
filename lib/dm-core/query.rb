@@ -373,6 +373,11 @@ module DataMapper
         hash[:conditions] = [ raw_queries.map { |q| "(#{q})" }.join(' AND ') ].concat(bind_values)
       end
 
+      # TODO: normalize :fields, :order and all conditions to be relative
+      # to the current model, for brevity
+      #   - what about just returning self.options?  It should be normalized
+      #     as expected.
+
       hash.update(conditions)
     end
 

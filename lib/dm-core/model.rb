@@ -227,15 +227,14 @@ module DataMapper
       if !@_valid_relations && respond_to?(:many_to_one_relationships)
         @_valid_relations = true
         begin
-          many_to_one_relationships.each do |r|
-            r.child_key(repository_name)
-          end
+          many_to_one_relationships.each { |r| r.child_key }
         rescue NameError
           # Apparently not all relations are loaded,
           # so we will try again later on
           @_valid_relations = false
         end
       end
+
       @properties[repository_name] ||= repository_name == Repository.default_name ? PropertySet.new : properties(Repository.default_name).dup
     end
 
@@ -576,8 +575,8 @@ module DataMapper
     def properties_with_subclasses(repository_name = default_repository_name)
       properties = PropertySet.new
       ([ self ].to_set + (respond_to?(:descendants) ? descendants : [])).each do |model|
-        model.relationships(repository_name).each_value { |relationship| relationship.child_key(repository_name) }
-        model.many_to_one_relationships.each { |relationship| relationship.child_key(repository_name) }
+        model.relationships(repository_name).each_value { |relationship| relationship.child_key }
+        model.many_to_one_relationships.each { |relationship| relationship.child_key }
         model.properties(repository_name).each do |property|
           properties << property unless properties.include?(property)
         end

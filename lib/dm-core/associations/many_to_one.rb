@@ -10,20 +10,14 @@ module DataMapper
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
-          child_repository_name  = child_resource.repository.name
-          parent_repository_name = self.parent_repository_name || child_repository_name
-
-          parent_key  = parent_key(parent_repository_name)
-          child_value = child_key(child_repository_name).get(child_resource)
+          child_value = child_key.get(child_resource)
 
           if child_value.any? { |v| v.blank? }
             # child must have a valid reference to the parent
             return
           end
 
-          query = self.query(child_repository_name).dup
-          query.update(parent_key.zip(child_value).to_hash)
-
+          query = self.query.merge(parent_key.zip(child_value).to_hash)
           Query.new(DataMapper.repository(parent_repository_name), parent_model, query)
         end
 
@@ -96,17 +90,13 @@ module DataMapper
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
             def #{name}=(parent)
-              child_repository_name  = repository.name
-              relationship           = model.relationships(child_repository_name)[#{name.inspect}]
-              parent_repository_name = relationship.parent_repository_name || child_repository_name
+              child_repository_name = repository.name
+              relationship          = model.relationships(child_repository_name)[#{name.inspect}]
 
-              values = if parent.nil?
-                []
-              else
-                relationship.parent_key(parent_repository_name).get(parent)
-              end
+              parent_key = relationship.parent_key
+              child_key  = relationship.child_key
 
-              relationship.child_key(child_repository_name).set(self, values)
+              child_key.set(self, parent_key.get(parent))
 
               @#{name} = parent
             end

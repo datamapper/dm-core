@@ -509,6 +509,8 @@ module DataMapper
     #
     # @api private
     def get(resource)
+      return if resource.nil?
+
       if resource.new?
         value = get!(resource)
         value.nil? && default? ? default_for(resource) : value

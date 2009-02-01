@@ -9,7 +9,7 @@ module DataMapper
       # @api semipublic
       attr_reader :name, *OPTIONS
 
-      def query(default_repository_name)
+      def query
         # TODO: make sure the model scope is merged in
         @query
       end
@@ -28,18 +28,11 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      def child_key(repository_name)
-        assert_kind_of 'repository_name', repository_name, Symbol
-
-        child_repository_name  = @child_repository_name  || repository_name
-        parent_repository_name = @parent_repository_name || repository_name
-
-        @child_key ||= {}
-
-        @child_key[child_repository_name] ||= begin
+      def child_key
+        @child_key ||= begin
           properties = child_model.properties(child_repository_name)
 
-          child_key = parent_key(parent_repository_name).zip(@child_properties || []).map do |parent_property,property_name|
+          child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
             property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
 
             properties[property_name] || begin
@@ -72,14 +65,8 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      def parent_key(repository_name)
-        assert_kind_of 'repository_name', repository_name, Symbol
-
-        parent_repository_name = @parent_repository_name || repository_name
-
-        @parent_key ||= {}
-
-        @parent_key[parent_repository_name] ||= begin
+      def parent_key
+        @parent_key ||= begin
           parent_key = if @parent_properties
             parent_model.properties(parent_repository_name).slice(*@parent_properties)
           else
@@ -103,19 +90,19 @@ module DataMapper
       def initialize(name, child_model, parent_model, options = {})
         case child_model
           when Model  then @child_model      = child_model
-          when String then @child_model_name = child_model.freeze
+          when String then @child_model_name = child_model.dup.freeze
         end
 
         case parent_model
           when Model  then @parent_model      = parent_model
-          when String then @parent_model_name = parent_model.freeze
+          when String then @parent_model_name = parent_model.dup.freeze
         end
 
         @name                   = name
-        @child_repository_name  = options[:child_repository_name]
-        @parent_repository_name = options[:parent_repository_name]
-        @child_properties       = options[:child_key].freeze
-        @parent_properties      = options[:parent_key].freeze
+        @child_repository_name  = options[:child_repository_name]  || options[:parent_repository_name]
+        @parent_repository_name = options[:parent_repository_name] || options[:child_repository_name]
+        @child_properties       = options[:child_key].try_dup.freeze
+        @parent_properties      = options[:parent_key].try_dup.freeze
         @min                    = options[:min]
         @max                    = options[:max]
         @through                = options[:through]

@@ -40,8 +40,10 @@ module DataMapper
     end
 
     def relationships(repository_name = default_repository_name)
-      @relationships ||= Mash.new
-      @relationships[repository_name] ||= repository_name == Repository.default_name ? {} : relationships(Repository.default_name).dup
+      assert_kind_of 'repository_name', repository_name, Symbol
+
+      @relationships ||= {}
+      @relationships[repository_name] ||= repository_name == Repository.default_name ? Mash.new : relationships(Repository.default_name).dup
     end
 
     def n

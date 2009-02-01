@@ -27,10 +27,10 @@ module DataMapper
         # @api semipublic
         def intermediaries
           @intermediaries ||= begin
-            relationships = through.child_model.relationships(through.child_repository_name)
+            relationships = through.child_model.relationships(parent_repository_name)
 
             unless target = relationships[name] || relationships[name.to_s.singular.to_sym]
-              raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{repository.name} repository"
+              raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{parent_repository_name.inspect} repository"
             end
 
             [ through, target ].map { |r| (i = r.intermediaries).any? ? i : r }.flatten.freeze
@@ -39,7 +39,7 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def query(default_repository_name)
+        def query
           query = super.dup
 
           # use all intermediaries, besides "through", in the query links
@@ -48,16 +48,14 @@ module DataMapper
           # TODO: move the logic below inside Query.  It should be
           # extracting the query conditions from each relationship itself
 
+          default_repository_name = parent_repository_name
+
           # merge the conditions from each intermediary into the query
           intermediaries.each do |relationship|
 
             # TODO: refactor this with source/target terminology.  Many relationships would
             # have the child as the target, and the parent as the source, while OneToMany
             # relationships would be reversed.  This will also clean up code in the DO adapter
-
-            # TODO: the default_repository_name should only be used as the default
-            # for the first relationship in the chain.  Afterwards each relative
-            # relationship should use the prior relationship's repository as the default
 
             repository_name, model = case relationship
               when ManyToMany::Relationship, OneToMany::Relationship, OneToOne::Relationship
@@ -72,7 +70,7 @@ module DataMapper
             # Query::Operator values and make sure the target is a Property
             # or a Query::Path object.
 
-            relationship.query(default_repository_name).each do |key,value|
+            relationship.query.each do |key,value|
               # TODO: figure out how to merge Query options from intermediaries
               if Query::OPTIONS.include?(key)
                 next  # skip for now
@@ -81,15 +79,21 @@ module DataMapper
               case key
                 when Symbol, String
                   query[ model.properties(repository_name)[key] ] = value
+
                 when Property, Query::Path
                   query[key] = value
+
                 when Query::Operator
                   # TODO: if the key.target is a Property, then do not look it up
                   query[ key.class.new(model.properties(repository_name)[key.target], key.operator) ] = value
+
                 else
                   raise ArgumentError, "#{key.class} not allowed in relationship query"
               end
             end
+
+            # set the default repository for the next relationship in the chain
+            default_repository_name = repository_name
           end
 
           query.freeze
@@ -97,14 +101,8 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def child_key(repository_name)
-          assert_kind_of 'repository_name', repository_name, Symbol
-
-          child_repository_name = @child_repository_name || repository_name
-
-          @child_key ||= {}
-
-          @child_key[child_repository_name] ||= begin
+        def child_key
+          @child_key ||= begin
             child_key = if @child_properties
               child_model.properties(child_repository_name).slice(*@child_properties)
             else
@@ -135,17 +133,10 @@ module DataMapper
           #   - make sure that each intermediary can have different conditons that
           #     scope its results
 
-          parent_repository_name = parent_resource.repository.name
-          child_repository_name  = self.child_repository_name || parent_repository_name
+          child_key  = through.child_key
+          parent_key = through.parent_key
 
-          child_key    = through.child_key(child_repository_name)
-          parent_value = through.parent_key(parent_repository_name).get(parent_resource)
-
-          query = self.query(parent_repository_name).dup
-          query.update(child_key.zip(parent_value).to_hash)
-
-          # TODO: make sure the Model scope is also merged into this
-
+          query = self.query.merge(child_key.zip(parent_key.get(parent_resource)).to_hash)
           Query.new(DataMapper.repository(child_repository_name), child_model, query)
         end
 
@@ -257,8 +248,8 @@ module DataMapper
 
             if relationship.kind_of?(ManyToOne::Relationship)
               if tail.any?
-                values = relationship.child_key(tail.first.repository.name).get(tail.first)
-                default_attributes.update(relationship.parent_key(relationship.parent_repository_name).zip(values).to_hash)
+                values = relationship.child_key.get(tail.first)
+                default_attributes.update(relationship.parent_key.zip(values).to_hash)
               else
                 default_attributes.update(attributes)
                 default_attributes.update(self.send(:default_attributes))
@@ -267,11 +258,11 @@ module DataMapper
               tail.unshift(relationship.parent_model.create(default_attributes))
             else
               if relationship == pivot.first && pivot.size == 2 && head.any?
-                values = pivot.first.parent_key(head.last.repository.name).get(head.last)
-                default_attributes.update(pivot.first.child_key(repository.name).map { |p| p.name }.zip(values).to_hash)
+                values = pivot.first.parent_key.get(head.last)
+                default_attributes.update(pivot.first.child_key.map { |p| p.name }.zip(values).to_hash)
 
-                values = pivot.last.parent_key(tail.first.repository.name).get(tail.first)
-                default_attributes.update(pivot.last.child_key(repository.name).map { |p| p.name }.zip(values).to_hash)
+                values = pivot.last.parent_key.get(tail.first)
+                default_attributes.update(pivot.last.child_key.map { |p| p.name }.zip(values).to_hash)
               end
 
               # TODO: make a Relationship#get retrieve the association ivar value
