@@ -51,7 +51,7 @@ module DataMapper
             end
           end
 
-          PropertySet.new(child_key)
+          PropertySet.new(child_key).freeze
         end
       end
 
@@ -73,7 +73,7 @@ module DataMapper
             parent_model.key(parent_repository_name)
           end
 
-          PropertySet.new(parent_key)
+          PropertySet.new(parent_key).freeze
         end
       end
 
@@ -99,8 +99,8 @@ module DataMapper
         end
 
         @name                   = name
-        @child_repository_name  = options[:child_repository_name]  || options[:parent_repository_name]
-        @parent_repository_name = options[:parent_repository_name] || options[:child_repository_name]
+        @child_repository_name  = (options[:child_repository_name]  || options[:parent_repository_name]).freeze
+        @parent_repository_name = (options[:parent_repository_name] || options[:child_repository_name]).freeze
         @child_properties       = options[:child_key].try_dup.freeze
         @parent_properties      = options[:parent_key].try_dup.freeze
         @min                    = options[:min]

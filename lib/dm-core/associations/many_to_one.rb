@@ -27,6 +27,7 @@ module DataMapper
         # @api semipublic
         def initialize(name, child_model, parent_model, options = {})
           parent_model ||= Extlib::Inflection.camelize(name)
+          options        = options.merge(:min => 0, :max => 1)
           super
         end
 

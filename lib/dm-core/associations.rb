@@ -79,7 +79,7 @@ module DataMapper
     #
     # @api public
     def has(cardinality, name, options = {})
-      assert_kind_of 'cardinality', cardinality, Integer, Float, Range
+      assert_kind_of 'cardinality', cardinality, Integer, Range, n.class
       assert_kind_of 'name',        name,        Symbol
       assert_kind_of 'options',     options,     Hash
 
@@ -88,8 +88,10 @@ module DataMapper
 
       assert_valid_options(options)
 
+      parent_repository_name = repository.name
+
       options[:child_repository_name]  = options.delete(:repository)
-      options[:parent_repository_name] = repository.name
+      options[:parent_repository_name] = parent_repository_name
 
       klass = if options.key?(:through)
         ManyToMany::Relationship
@@ -99,7 +101,7 @@ module DataMapper
         OneToOne::Relationship
       end
 
-      relationships(repository.name)[name] = klass.new(name, options.delete(:model), self, options.freeze)
+      relationships(parent_repository_name)[name] = klass.new(name, options.delete(:model), self, options)
     end
 
     ##
@@ -119,16 +121,18 @@ module DataMapper
       assert_kind_of 'name',    name,    Symbol
       assert_kind_of 'options', options, Hash
 
-      options = options.merge(:min => options[:min] || 0, :max => 1)
+      options = options.dup
 
       assert_valid_options(options)
 
       @_valid_relations = false
 
-      options[:child_repository_name]  = repository.name
+      child_repository_name = repository.name
+
+      options[:child_repository_name]  = child_repository_name
       options[:parent_repository_name] = options.delete(:repository)
 
-      relationships(repository.name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:model), options.freeze)
+      relationships(child_repository_name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:model), options)
     end
 
     private
@@ -140,9 +144,9 @@ module DataMapper
     # @api private
     def extract_min_max(cardinality)
       case cardinality
-        when Integer then return cardinality, cardinality
-        when Range   then return cardinality.first, cardinality.last
-        when n       then return 0, n
+        when Integer then [ cardinality,       cardinality      ]
+        when Range   then [ cardinality.first, cardinality.last ]
+        when n       then [ 0,                 n                ]
       end
     end
 
@@ -152,17 +156,19 @@ module DataMapper
       # TODO: update to match Query#assert_valid_options
       #   - perform options normalization elsewhere
 
-      assert_kind_of 'options[:min]', options[:min], Integer
-      assert_kind_of 'options[:max]', options[:max], Integer, Float
+      if options.key?(:min) && options.key?(:max)
+        assert_kind_of 'options[:min]', options[:min], Integer
+        assert_kind_of 'options[:max]', options[:max], Integer, n.class
 
-      if options[:min] == n && options[:max] == n
-        raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller(1)
-      elsif options[:min] > options[:max]
-        raise ArgumentError, "Cardinality min (#{options[:min]}) cannot be larger than the max (#{options[:max]})", caller(1)
-      elsif options[:min] < 0
-        raise ArgumentError, "Cardinality min much be greater than or equal to 0, but was #{options[:min]}", caller(1)
-      elsif options[:max] < 1
-        raise ArgumentError, "Cardinality max much be greater than or equal to 1, but was #{options[:max]}", caller(1)
+        if options[:min] == n && options[:max] == n
+          raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller(1)
+        elsif options[:min] > options[:max]
+          raise ArgumentError, "Cardinality min (#{options[:min]}) cannot be larger than the max (#{options[:max]})", caller(1)
+        elsif options[:min] < 0
+          raise ArgumentError, "Cardinality min much be greater than or equal to 0, but was #{options[:min]}", caller(1)
+        elsif options[:max] < 1
+          raise ArgumentError, "Cardinality max much be greater than or equal to 1, but was #{options[:max]}", caller(1)
+        end
       end
 
       if options.key?(:repository)
