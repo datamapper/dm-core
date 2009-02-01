@@ -199,7 +199,7 @@ module DataMapper
       with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
 
       query = with_query ? last_arg : {}
-      query = self.query.relative(query.merge(:limit => limit || 1))
+      query = self.query[0, limit || 1].update(query)
 
       if !with_query && (loaded? || lazy_possible?(head, limit || 1))
         if limit
@@ -241,7 +241,7 @@ module DataMapper
       with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
 
       query = with_query ? last_arg : {}
-      query = self.query.relative(query.merge(:limit => limit || 1)).reverse
+      query = self.query[0, limit || 1].update(query).reverse!
 
       # tell the Query to prepend each result from the adapter
       query.update(:add_reversed => !query.add_reversed?)
