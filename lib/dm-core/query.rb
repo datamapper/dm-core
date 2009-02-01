@@ -259,9 +259,11 @@ module DataMapper
       end
 
       offset = other.delete(:offset) || 0
-      limit  = other.delete(:limit)
+      limit  = other.delete(:limit)  || self.limit
 
-      if offset == 0 && (limit.nil? || limit == self.limit)
+      assert_valid_offset(offset, limit)
+
+      if offset == 0 && limit == self.limit
         merge(other)
       else
         # TODO: should I make a slice! method that acts like slice/[], but
@@ -324,20 +326,21 @@ module DataMapper
     def [](*args)
       offset, limit = extract_slice_arguments(*args)
 
-      unless self.limit.nil? && self.offset == 0
+      if self.limit || self.offset > 0
         offset, limit = get_relative_position(offset, limit)
       end
 
-      options = @options.merge(:offset => offset)
-
-      if limit
-        options[:limit] = limit
-      end
-
-      self.class.new(repository, model, options)
+      self.class.new(repository, model, @options.merge(:offset => offset, :limit => limit))
     end
 
     alias slice []
+
+    # TODO: document this
+    #   TODO: needs example
+    # @api semipublic
+    def slice!(*args)
+      raise NotImplementedError, 'TODO: write this method, and then delegate to it from Query#slice, doing dup.slice!(*args)'
+    end
 
     # TODO: document this
     #   TODO: needs example
@@ -910,7 +913,7 @@ module DataMapper
     def extract_slice_arguments(*args)
       first_arg, second_arg = args
 
-      if args.size == 2 && first_arg.kind_of?(Integer) && (second_arg.kind_of?(Integer) || second_arg.nil?)
+      if args.size == 2 && first_arg.kind_of?(Integer) && second_arg.kind_of?(Integer)
         return first_arg, second_arg
       elsif args.size == 1 && first_arg.kind_of?(Range)
         offset  = first_arg.first
