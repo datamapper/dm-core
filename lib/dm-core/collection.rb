@@ -50,8 +50,21 @@ module DataMapper
       properties = model.properties(repository.name)
       fields     = properties.key | properties.discriminator | query.fields
 
-      # load a collection and replace the current collection with the results
-      replace(all(query.update(:fields => fields, :reload => true)))
+      # populate the local identity map
+      lazy_load
+
+      # update existing resources
+      collection = all(query.update(:fields => fields, :reload => true)).map do |resource|
+        if original = @identity_map[resource.key]
+          fields.each { |p| p.set!(original, p.get!(resource)) }
+          original
+        else
+          resource
+        end
+      end
+
+      # replace the list of resources
+      replace(collection)
     end
 
     ##
@@ -144,7 +157,6 @@ module DataMapper
     # @api public
     def all(query = nil)
       if query.nil? || (query.kind_of?(Hash) && query.empty?)
-        # TODO: make this return dup and not self
         self
       else
         new_collection(scoped_query(query))
@@ -590,10 +602,10 @@ module DataMapper
     #
     # @api public
     def replace(other)
-      if loaded?
-        orphan_resources(self)
-      end
       other = other.map { |r| r.kind_of?(Hash) ? new(r) : r }
+      if loaded?
+        orphan_resources(self - other)
+      end
       relate_resources(other)
       super(other)
     end
@@ -948,17 +960,36 @@ module DataMapper
     # @api private
     def default_attributes
       default_attributes = {}
+
+      properties = model.properties(repository.name)
+      model_key  = properties.key
+
       query.conditions.each do |tuple|
         operator, property, bind_value = *tuple
 
-        next unless operator == :eql &&
-          property.kind_of?(DataMapper::Property) &&
-          ![ Array, Range ].any? { |k| bind_value.kind_of?(k) } &&
-          property.model == model &&
-          !model.key(repository.name).include?(property)
+        unless operator == :eql
+          next
+        end
+
+        unless property.kind_of?(DataMapper::Property)
+          next
+        end
+
+        unless properties.include?(property)
+          next
+        end
+
+        if model_key.include?(property)
+          next
+        end
+
+        if bind_value.kind_of?(Array) || bind_value.kind_of?(Range)
+          next
+        end
 
         default_attributes[property.name] = bind_value
       end
+
       default_attributes
     end
 

@@ -38,7 +38,7 @@ share_examples_for 'A public Collection' do
     describe 'with no arguments' do
       before do
         @copy = @articles.dup
-        @return = @resources = @articles.all
+        @return = @collection = @articles.all
       end
 
       it 'should return a Collection' do
@@ -50,16 +50,16 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be expected Resources' do
-        @resources.should == [ @article ]
+        @collection.should == [ @article ]
       end
 
       it 'should have the same query as original Collection' do
-        @return.query.should be_equal(@articles.query)
+        @collection.query.should be_equal(@articles.query)
       end
 
       it 'should scope the Collection' do
         pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @resources.reload.should == @copy.entries
+          @collection.reload.should == @copy.entries
         end
       end
     end
@@ -1480,7 +1480,7 @@ share_examples_for 'A public Collection' do
 
     describe 'with a Query' do
       before do
-        @query = DataMapper::Query.new(@repository, @model, :fields => [ :content ])
+        @query = DataMapper::Query.new(@repository, @model, :fields => [ :content ])  # :title is a default field
         @return = @collection = @articles.reload(@query)
       end
 
@@ -1492,7 +1492,7 @@ share_examples_for 'A public Collection' do
         @return.should be_equal(@articles)
       end
 
-      { :id => true, :content => true, :title => false }.each do |attribute,expected|
+      { :id => true, :content => true, :title => true }.each do |attribute,expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
           @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
         end

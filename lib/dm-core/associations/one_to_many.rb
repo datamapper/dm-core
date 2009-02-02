@@ -99,15 +99,13 @@ module DataMapper
       class Collection < DataMapper::Collection
         attr_writer :relationship, :parent
 
+        # TODO: document
+        # @api public
         def reload(query = nil)
-          # include the child_key in reloaded records
-          fields = if query.kind_of?(Hash) && query.any?
-            query[:fields] = @relationship.child_key.to_a | (query[:fields] || [])
-          elsif query.kind_of?(Query)
-            query.update(:fields => @relationship.child_key.to_a | query.fields)
-          end
+          query = query.nil? ? self.query.dup : self.query.merge(query)
 
-          super
+          # include the child_key in reloaded records
+          super(query.update(:fields => @relationship.child_key.to_a | query.fields))
         end
 
         # TODO: document

@@ -16,7 +16,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         property :content, Text
 
         belongs_to :original, :model => self
-        has n, :revisions, :model => self
+        has n, :revisions, :model => self, :child_key => [ :original_id ]
       end
 
       @model = Article

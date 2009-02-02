@@ -50,7 +50,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
         @original = @author.articles.create(:title => 'Original Article')
         @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
-        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other',  :original => @article)
+        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
 
         @articles       = @author.articles(:title => 'Sample Article')
         @other_articles = @author.articles(:title => 'Other Article')
