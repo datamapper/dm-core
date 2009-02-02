@@ -979,23 +979,10 @@ describe DataMapper::Query do
       end
 
       describe 'using a different repository' do
-        before do
-          @other_repository = DataMapper::Repository.new(:other)
-          @other            = DataMapper::Query.new(@other_repository, @model)
-
-          @return = @query = @query.update(@other)
-        end
-
-        it 'should return a Query' do
-          @return.should be_kind_of(DataMapper::Query)
-        end
-
-        it 'should return self' do
-          @query.should be_equal(@original)
-        end
-
-        it 'should update the repository' do
-          @query.repository.should == @other_repository
+        it 'should raise an exception' do
+          lambda {
+            @query.update(DataMapper::Query.new(DataMapper::Repository.new(:other), User))
+          }.should raise_error(ArgumentError, '+other+ DataMapper::Query must be for the default repository, not other')
         end
       end
 
@@ -1106,64 +1093,6 @@ describe DataMapper::Query do
 
         it 'should not change the Query' do
           @query.should == @copy
-        end
-      end
-
-      describe 'that specifies :repository as a Repository' do
-        before do
-          @other_repository = DataMapper::Repository.new(:other)
-
-          @return = @query = @query.update(:repository => @other_repository)
-        end
-
-        it 'should return a Query' do
-          @return.should be_kind_of(DataMapper::Query)
-        end
-
-        it 'should return self' do
-          @query.should be_equal(@original)
-        end
-
-        it 'should update the repository' do
-          @query.repository.should == @other_repository
-        end
-      end
-
-      describe 'that specifies :repository as a Symbol' do
-        before do
-          @other_repository_name = :other
-
-          @return = @query = @query.update(:repository => @other_repository_name)
-        end
-
-        it 'should return a Query' do
-          @return.should be_kind_of(DataMapper::Query)
-        end
-
-        it 'should return self' do
-          @query.should be_equal(@original)
-        end
-
-        it 'should update the repository' do
-          @query.repository.should == DataMapper::Repository.new(@other_repository_name)
-        end
-      end
-
-      describe 'that does not specify a :repository' do
-        before do
-          @return = @query = @query.update(:name => 'Dan Kubb')
-        end
-
-        it 'should return a Query' do
-          @return.should be_kind_of(DataMapper::Query)
-        end
-
-        it 'should return self' do
-          @query.should be_equal(@original)
-        end
-
-        it 'should not update the repository' do
-          @query.repository.should == @repository
         end
       end
 

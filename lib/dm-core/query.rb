@@ -215,20 +215,13 @@ module DataMapper
             return self
           end
 
-          initialize(other.repository, model, @options.merge(other.options))
+          initialize(repository, model, @options.merge(other.options))
         when Hash
           if other.empty?
             return self
           end
 
-          options    = other.dup
-          repository = options.delete(:repository) || self.repository
-
-          if repository.kind_of?(Symbol)
-            repository = DataMapper.repository(repository)
-          end
-
-          initialize(repository, model, @options.merge(options))
+          initialize(repository, model, @options.merge(other))
       end
 
       self
@@ -251,16 +244,24 @@ module DataMapper
     # TODO: document this
     #   TODO: needs example
     # @api semipublic
-    def relative(other)
-      assert_kind_of 'other', other, Hash
+    def relative(options)
+      assert_kind_of 'options', options, Hash
 
-      if other.key?(:offset) || other.key?(:limit)
-        offset = other.delete(:offset) || self.offset
-        limit  = other.delete(:limit)  || self.limit
+      options = options.dup
 
-        merge(other).slice!(offset, limit)
+      repository = options.delete(:repository) || self.repository
+
+      if repository.kind_of?(Symbol)
+        repository = DataMapper.repository(repository)
+      end
+
+      if options.key?(:offset) || options.key?(:limit)
+        offset = options.delete(:offset) || self.offset
+        limit  = options.delete(:limit)  || self.limit
+
+        self.class.new(repository, model, @options.merge(options)).slice!(offset, limit)
       else
-        merge(other)
+        self.class.new(repository, model, @options.merge(options))
       end
     end
 
@@ -719,6 +720,10 @@ module DataMapper
     # TODO: document this
     # @api private
     def assert_valid_other(other)
+      unless other.repository == repository
+        raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}", caller(2)
+      end
+
       unless other.model == model
         raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}", caller(2)
       end
