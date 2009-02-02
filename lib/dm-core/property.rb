@@ -576,8 +576,15 @@ module DataMapper
     #
     # @api private
     def set(resource, value)
-      set_original_value(resource, get!(resource))
-      set!(resource, typecast(value))
+      original = get!(resource)
+      value    = typecast(value)
+
+      if loaded?(resource) && value == original
+        return original
+      end
+
+      set_original_value(resource, original)
+      set!(resource, value)
     end
 
     # Bypases resource loading and sets value on
@@ -743,15 +750,20 @@ module DataMapper
       assert_kind_of 'type',    type,    Class, Module
       assert_kind_of 'options', options, Hash
 
-      assert_valid_options(options)
+      options = options.dup
 
       if TrueClass == type
         warn "#{type} is deprecated, use Boolean instead"
         type = DataMapper::Types::Boolean
-      elsif Integer == type && options[:serial]
+      elsif Integer == type && options.delete(:serial)
         warn "#{type} with explicit :serial option is deprecated, use Serial instead"
         type = DataMapper::Types::Serial
+      elsif String == type && options.key?(:size)
+        warn "#{type} with :size option is deprecated, use String with :length instead"
+        options[:length] = options.delete(:size)
       end
+
+      assert_valid_options(options)
 
       # if the type can be found within DataMapper::Types then
       # use that class rather than the primitive
@@ -786,10 +798,10 @@ module DataMapper
 
       # assign attributes per-type
       if String == @primitive || Class == @primitive
-        @length = @options[:length] || @options[:size] || DEFAULT_LENGTH
+        @length = @options.fetch(:length, DEFAULT_LENGTH)
       elsif BigDecimal == @primitive || Float == @primitive
-        @precision = @options[:precision] || DEFAULT_PRECISION
-        @scale     = @options[:scale]     || (Float == @primitive ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL)
+        @precision = @options.fetch(:precision, DEFAULT_PRECISION)
+        @scale     = @options.fetch(:scale,     Float == @primitive ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL)
 
         unless @precision > 0
           raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"
