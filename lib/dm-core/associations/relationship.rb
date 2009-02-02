@@ -9,6 +9,10 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
+      attr_reader :instance_variable_name
+
+      # TODO: document
+      # @api semipublic
       attr_reader :child_repository_name
 
       # TODO: document
@@ -105,6 +109,26 @@ module DataMapper
         raise NotImplementedError
       end
 
+      def get(resource, query = nil)
+        raise NotImplementedError
+      end
+
+      def get!(resource)
+        resource.instance_variable_get(instance_variable_name)
+      end
+
+      def set(resource, association)
+        raise NotImplementedError
+      end
+
+      def set!(resource, association)
+        resource.instance_variable_set(instance_variable_name, association)
+      end
+
+      def loaded?(resource)
+        resource.instance_variable_defined?(instance_variable_name)
+      end
+
       private
 
       # TODO: document
@@ -121,6 +145,7 @@ module DataMapper
         end
 
         @name                   = name
+        @instance_variable_name = "@#{@name}"
         @child_repository_name  = (options[:child_repository_name]  || options[:parent_repository_name]).freeze
         @parent_repository_name = (options[:parent_repository_name] || options[:child_repository_name]).freeze
         @child_properties       = options[:child_key].try_dup.freeze
@@ -137,15 +162,8 @@ module DataMapper
 
         @query = query.freeze
 
-        create_helper
         create_accessor
         create_mutator
-      end
-
-      # TODO: document
-      # @api semipublic
-      def create_helper
-        raise NotImplementedError
       end
 
       # TODO: document

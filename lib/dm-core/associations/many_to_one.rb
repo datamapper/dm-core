@@ -30,6 +30,33 @@ module DataMapper
           Query.new(DataMapper.repository(parent_repository_name), parent_model, options)
         end
 
+        def get(child, query = nil)
+          # TODO: when Resource can be matched against conditions
+          # always set the ivar, but return the resource only if
+          # it matches the conditions
+
+          return get!(child) if query.nil? && loaded?(child)
+
+          unless query_for = query_for(child)
+            return
+          end
+
+          if query
+            query_for.update(query)
+          end
+
+          unless parent = parent_model.first(query_for)
+            return
+          end
+
+          set!(child, parent)
+        end
+
+        def set(child, parent)
+          child_key.set(child, parent_key.get(parent))
+          set!(child, parent)
+        end
+
         private
 
         # TODO: document
@@ -38,40 +65,6 @@ module DataMapper
           parent_model ||= Extlib::Inflection.camelize(name)
           options        = options.merge(:min => 0, :max => 1)
           super
-        end
-
-        # TODO: document
-        # @api semipublic
-        def create_helper
-          return if child_model.instance_methods(false).include?("#{name}_helper")
-
-          child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            private
-            def #{name}_helper(conditions = nil)
-              # TODO: when Resource can be matched against conditions
-              # always set the ivar, but return the resource only if
-              # it matches the conditions
-
-              return @#{name} if conditions.nil? && defined?(@#{name})
-
-              child_repository_name = repository.name
-              relationship          = model.relationships(child_repository_name)[#{name.inspect}]
-
-              resource = if query = relationship.query_for(self)
-                if conditions
-                  query.update(conditions)
-                end
-
-                query.model.first(query)
-              else
-                nil
-              end
-
-              return if resource.nil?
-
-              @#{name} = resource
-            end
-          RUBY
         end
 
         # TODO: document
@@ -87,7 +80,7 @@ module DataMapper
             # be cleared.
 
             def #{name}(query = nil)
-              #{name}_helper(query)
+              relationships[#{name.inspect}].get(self, query)
             end
           RUBY
         end
@@ -100,15 +93,7 @@ module DataMapper
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
             def #{name}=(parent)
-              child_repository_name = repository.name
-              relationship          = model.relationships(child_repository_name)[#{name.inspect}]
-
-              parent_key = relationship.parent_key
-              child_key  = relationship.child_key
-
-              child_key.set(self, parent_key.get(parent))
-
-              @#{name} = parent
+              relationships[#{name.inspect}].set(self, parent)
             end
           RUBY
         end

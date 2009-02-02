@@ -279,8 +279,7 @@ module DataMapper
                 tail_child_key.zip(tail_parent_key.get(tail.first)) { |p,v| default_attributes[p.name] = v }
               end
 
-              # TODO: make a Relationship#get retrieve the association ivar value
-              head << head.last.send(relationship.name).create(default_attributes)
+              head << relationship.get(head.last).create(default_attributes)
             end
           end
 

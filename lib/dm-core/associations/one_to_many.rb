@@ -33,6 +33,34 @@ module DataMapper
           Query.new(DataMapper.repository(child_repository_name), child_model, options)
         end
 
+        def get(parent, query = nil)
+          collection = get!(parent) || begin
+            query_for = query_for(parent)
+
+            collection = self.class.collection_class.new(query_for)
+
+            collection.relationship = self
+            collection.parent       = parent
+
+            # TODO: make this public
+            parent.send(:child_associations) << collection
+
+            set!(parent, collection)
+          end
+
+          collection.all(query)
+        end
+
+        def set(parent, children)
+          original = get!(parent)
+
+          if children == original
+            return original
+          end
+
+          set!(parent, original.replace(children))
+        end
+
         private
 
         # TODO: document
@@ -44,40 +72,13 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def create_helper
-          return if parent_model.instance_methods(false).include?("#{name}_helper")
-
-          parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            private
-            def #{name}_helper
-              @#{name} ||= begin
-                parent_repository_name = repository.name
-                relationship           = model.relationships(parent_repository_name)[#{name.inspect}]
-
-                query = relationship.query_for(self)
-
-                collection = relationship.class.collection_class.new(query)
-
-                collection.relationship = relationship
-                collection.parent       = self
-
-                child_associations << collection
-
-                collection
-              end
-            end
-          RUBY
-        end
-
-        # TODO: document
-        # @api semipublic
         def create_accessor
           return if parent_model.instance_methods(false).include?(name)
 
           parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
             def #{name}(query = nil)
-              #{name}_helper.all(query)
+              relationships[#{name.inspect}].get(self, query)
             end
           RUBY
         end
@@ -90,7 +91,7 @@ module DataMapper
           parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
             def #{name}=(children)
-              #{name}_helper.replace(children)
+              relationships[#{name.inspect}].set(self, children)
             end
           RUBY
         end
