@@ -10,14 +10,14 @@ module DataMapper
         return true if equal?(other)
         return false unless other.respond_to?(:target) && other.respond_to?(:operator)
 
-        target == other.target && operator == other.operator
+        cmp?(other, :==)
       end
 
       def eql?(other)
         return true if equal?(other)
         return false unless self.class.equal?(other.class)
 
-        target.eql?(other.target) && operator.eql?(other.operator)
+        cmp?(other, :eql?)
       end
 
       private
@@ -27,6 +27,10 @@ module DataMapper
 
         @target   = target
         @operator = operator
+      end
+
+      def cmp?(other, operator)
+        target.send(operator, other.target) && self.operator.send(operator, other.operator)
       end
     end # class Operator
   end # class Query

@@ -10,14 +10,14 @@ module DataMapper
         return true if equal?(other)
         return false unless other.respond_to?(:property) && other.respond_to?(:direction)
 
-        property == other.property && direction == other.direction
+        cmp?(other, :==)
       end
 
       def eql?(other)
         return true if equal?(other)
         return false unless self.class.equal?(other.class)
 
-        property.eql?(other.property) && direction.eql?(other.direction)
+        cmp?(other, :eql?)
       end
 
       def reverse
@@ -41,6 +41,10 @@ module DataMapper
 
         @property  = property
         @direction = direction
+      end
+
+      def cmp?(other, operator)
+        property.send(operator, other.property) && direction.send(operator, other.direction)
       end
     end # class Direction
   end # class Query
