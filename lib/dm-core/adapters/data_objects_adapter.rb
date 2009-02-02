@@ -262,7 +262,7 @@ module DataMapper
           statement << join_statement(query.links, qualify)                if qualify
           statement << " WHERE #{where_statement(conditions, qualify)}"    if conditions.any?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
-          statement << " ORDER BY #{order_by_statement(order, qualify)}"   if order && order.any?
+          statement << " ORDER BY #{order_statement(order, qualify)}"      if order && order.any?
           statement << " LIMIT #{quote_value(limit)}"                      if limit
           statement << " OFFSET #{quote_value(offset)}"                    if limit && offset > 0
           statement
@@ -365,20 +365,12 @@ module DataMapper
           end.join(' AND ')
         end
 
-        def order_by_statement(order, qualify)
-          order.map { |i| order_statement(i, qualify) }.join(', ')
-        end
-
-        def order_statement(item, qualify)
-          case item
-            when Property
-              property_to_column_name(item, qualify)
-
-            when Query::Direction
-              statement = property_to_column_name(item.property, qualify)
-              statement << ' DESC' if item.direction == :desc
-              statement
-          end
+        def order_statement(order, qualify)
+          order.map do |order|
+            statement = property_to_column_name(order.property, qualify)
+            statement << ' DESC' if order.direction == :desc
+            statement
+          end.join(', ')
         end
 
         def condition_statement(operator, left_condition, right_condition, qualify)
