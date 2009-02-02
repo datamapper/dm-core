@@ -50,6 +50,9 @@ module DataMapper
       properties = model.properties(repository.name)
       fields     = properties.key | properties.discriminator | query.fields
 
+      # TODO: figure out how to make the specs pass without doing the
+      # explicit lazy_load below
+
       # populate the local identity map
       lazy_load
 
