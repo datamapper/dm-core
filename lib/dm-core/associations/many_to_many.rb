@@ -257,8 +257,10 @@ module DataMapper
 
             if relationship.kind_of?(ManyToOne::Relationship)
               if tail.any?
-                values = relationship.child_key.get(tail.first)
-                default_attributes.update(relationship.parent_key.zip(values).to_hash)
+                child_key  = relationship.child_key
+                parent_key = relationship.parent_key
+
+                parent_key.zip(child_key.get(tail.first)) { |p,v| default_attributes[p.name] = v }
               else
                 default_attributes.update(attributes)
                 default_attributes.update(self.send(:default_attributes))
@@ -267,11 +269,14 @@ module DataMapper
               tail.unshift(relationship.parent_model.create(default_attributes))
             else
               if relationship == pivot.first && pivot.size == 2 && head.any?
-                values = pivot.first.parent_key.get(head.last)
-                default_attributes.update(pivot.first.child_key.map { |p| p.name }.zip(values).to_hash)
+                head_parent_key = pivot.first.parent_key
+                head_child_key  = pivot.first.child_key
 
-                values = pivot.last.parent_key.get(tail.first)
-                default_attributes.update(pivot.last.child_key.map { |p| p.name }.zip(values).to_hash)
+                tail_parent_key = pivot.last.parent_key
+                tail_child_key  = pivot.last.child_key
+
+                head_child_key.zip(head_parent_key.get(head.last))  { |p,v| default_attributes[p.name] = v }
+                tail_child_key.zip(tail_parent_key.get(tail.first)) { |p,v| default_attributes[p.name] = v }
               end
 
               # TODO: make a Relationship#get retrieve the association ivar value
