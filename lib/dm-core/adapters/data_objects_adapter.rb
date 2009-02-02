@@ -408,19 +408,19 @@ module DataMapper
 
         def equality_operator(operand)
           case operand
-            when Array, Query then 'IN'
-            when Range        then 'BETWEEN'
-            when nil          then 'IS'
-            else                   '='
+            when Array then 'IN'
+            when Range then 'BETWEEN'
+            when nil   then 'IS'
+            else            '='
           end
         end
 
         def inequality_operator(operand)
           case operand
-            when Array, Query then 'NOT IN'
-            when Range        then 'NOT BETWEEN'
-            when nil          then 'IS NOT'
-            else                   '<>'
+            when Array then 'NOT IN'
+            when Range then 'NOT BETWEEN'
+            when nil   then 'IS NOT'
+            else            '<>'
           end
         end
 
