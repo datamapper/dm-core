@@ -45,36 +45,13 @@ module DataMapper
     #
     # @api public
     def reload(query = nil)
-      if query.kind_of?(Hash) && query.any?
-        @query = Query.new(repository, model, self.query.to_hash.update(query))
-      elsif query.kind_of?(Query)
-        @query = query
-      end
+      query = query.nil? ? self.query.dup : self.query.merge(query)
 
-      # XXX: when not loaded, should the behavior change?
-
-      repository_name = repository.name
-
-      # update query fields to always include the model key
-      fields = model.key(repository_name) | @query.fields
-
-      # always include the discriminator if defined in the model
-      model.properties(repository_name).each do |property|
-        if property.type == Types::Discriminator
-          fields << property
-        end
-      end
-
-      @query.update(:fields => fields)
-
-      # FIXME: is it possible to wipe out the Collection and have it be lazy loaded on demand?
-
-      # specify the Query explicitly so that Collection#all does not
-      # perform a relative query
-      query = Query.new(repository, model, self.query.to_hash.update(:reload => true))
+      properties = model.properties(repository.name)
+      fields     = properties.key | properties.discriminator | query.fields
 
       # load a collection and replace the current collection with the results
-      replace(all(query))
+      replace(all(query.update(:fields => fields, :reload => true)))
     end
 
     ##

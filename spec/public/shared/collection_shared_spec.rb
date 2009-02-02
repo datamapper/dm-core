@@ -1471,7 +1471,7 @@ share_examples_for 'A public Collection' do
         @return.should be_equal(@articles)
       end
 
-      { :title => true, :content => true }.each do |attribute,expected|
+      { :id => true, :content => true, :title => true }.each do |attribute,expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
           @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
         end
@@ -1480,7 +1480,6 @@ share_examples_for 'A public Collection' do
 
     describe 'with a Query' do
       before do
-        @copy = @articles.dup
         @query = DataMapper::Query.new(@repository, @model, :fields => [ :content ])
         @return = @collection = @articles.reload(@query)
       end
@@ -1493,7 +1492,7 @@ share_examples_for 'A public Collection' do
         @return.should be_equal(@articles)
       end
 
-      { :title => false }.each do |attribute,expected|
+      { :id => true, :content => true, :title => false }.each do |attribute,expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
           @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
         end

@@ -47,12 +47,15 @@ module DataMapper
 
     # TODO: make PropertySet#reject return a PropertySet instance
     def defaults
-      # TODO: return self if none of the properties are lazy
-      @defaults ||= reject { |p| p.lazy? }
+      @defaults ||= key | discriminator | reject { |p| p.lazy? }
     end
 
     def key
       @key ||= select { |p| p.key? }
+    end
+
+    def discriminator
+      @discriminator ||= select { |p| p.type == Types::Discriminator }
     end
 
     def indexes
@@ -127,7 +130,7 @@ module DataMapper
     end
 
     def clear_cache
-      @defaults, @key = nil
+      @defaults, @key, @discriminator = nil
     end
 
     def lazy_contexts
