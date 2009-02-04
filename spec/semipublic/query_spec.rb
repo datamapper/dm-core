@@ -49,7 +49,7 @@ describe DataMapper::Query do
     describe 'with a repository' do
       describe 'that is valid' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -57,7 +57,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the repository' do
-          @query.repository.should == @repository
+          @return.repository.should == @repository
         end
       end
 
@@ -73,7 +73,7 @@ describe DataMapper::Query do
     describe 'with a model' do
       describe 'that is valid' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -81,7 +81,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the model' do
-          @query.model.should == @model
+          @return.model.should == @model
         end
       end
 
@@ -97,7 +97,7 @@ describe DataMapper::Query do
     describe 'with a fields option' do
       describe 'that is an Array containing a Symbol' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -105,7 +105,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the fields' do
-          @query.fields.should == @model.properties.values_at(*@fields)
+          @return.fields.should == @model.properties.values_at(*@fields)
         end
       end
 
@@ -113,7 +113,7 @@ describe DataMapper::Query do
         before do
           @options[:fields] = [ 'name' ]
 
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -121,7 +121,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the fields' do
-          @query.fields.should == @model.properties.values_at('name')
+          @return.fields.should == @model.properties.values_at('name')
         end
       end
 
@@ -129,7 +129,7 @@ describe DataMapper::Query do
         before do
           @options[:fields] = @model.properties.values_at(:name)
 
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -137,13 +137,13 @@ describe DataMapper::Query do
         end
 
         it 'should set the fields' do
-          @query.fields.should == @model.properties.values_at(:name)
+          @return.fields.should == @model.properties.values_at(:name)
         end
       end
 
       describe 'that is missing' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.except(:fields).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:fields).freeze)
         end
 
         it 'should return a Query' do
@@ -151,7 +151,7 @@ describe DataMapper::Query do
         end
 
         it 'should set fields to the model default properties' do
-          @query.fields.should == @model.properties.defaults
+          @return.fields.should == @model.properties.defaults
         end
       end
 
@@ -194,12 +194,20 @@ describe DataMapper::Query do
           }.should raise_error(ArgumentError, '+options[:fields]+ entry 1 of an unsupported object Fixnum')
         end
       end
+
+      describe 'that is an Array containing an unknown Property' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:fields => [ DataMapper::Property.new(@model, :unknown, String) ]))
+          }.should raise_error(ArgumentError, '+options[:field]+ entry :unknown does not map to a property')
+        end
+      end
     end
 
     describe 'with a links option' do
       describe 'that is an Array containing a Symbol' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -207,7 +215,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the links' do
-          @query.links.should == @model.relationships.values_at(*@links)
+          @return.links.should == @model.relationships.values_at(*@links)
         end
       end
 
@@ -215,7 +223,7 @@ describe DataMapper::Query do
         before do
           @options[:links] = [ 'referrer' ]
 
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -223,7 +231,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the links' do
-          @query.links.should == @model.relationships.values_at('referrer')
+          @return.links.should == @model.relationships.values_at('referrer')
         end
       end
 
@@ -231,7 +239,7 @@ describe DataMapper::Query do
         before do
           @options[:links] = @model.relationships.values_at(:referrer)
 
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -239,13 +247,13 @@ describe DataMapper::Query do
         end
 
         it 'should set the links' do
-          @query.links.should == @model.relationships.values_at(:referrer)
+          @return.links.should == @model.relationships.values_at(:referrer)
         end
       end
 
       describe 'that is missing' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.except(:links).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:links).freeze)
         end
 
         it 'should return a Query' do
@@ -253,7 +261,7 @@ describe DataMapper::Query do
         end
 
         it 'should set links to an empty Array' do
-          @query.links.should == []
+          @return.links.should == []
         end
       end
 
@@ -301,7 +309,7 @@ describe DataMapper::Query do
     describe 'with a conditions option' do
       describe 'that is a valid Hash' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -309,7 +317,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the conditions' do
-          @query.conditions.should == [ [ :eql, @model.properties[:name], @conditions[:name] ] ]
+          @return.conditions.should == [ [ :eql, @model.properties[:name], @conditions[:name] ] ]
         end
       end
 
@@ -317,7 +325,7 @@ describe DataMapper::Query do
         before do
           @options[:conditions] = [ 'name = ?', 'Dan Kubb' ]
 
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -325,13 +333,13 @@ describe DataMapper::Query do
         end
 
         it 'should set the conditions' do
-          @query.conditions.should == [ [ :raw, 'name = ?', 'Dan Kubb' ] ]
+          @return.conditions.should == [ [ :raw, 'name = ?', 'Dan Kubb' ] ]
         end
       end
 
       describe 'that is missing' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.except(:conditions).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:conditions).freeze)
         end
 
         it 'should return a Query' do
@@ -339,7 +347,7 @@ describe DataMapper::Query do
         end
 
         it 'should set conditions to an empty Array' do
-          @query.conditions.should == []
+          @return.conditions.should == []
         end
       end
 
@@ -363,7 +371,7 @@ describe DataMapper::Query do
     describe 'with an offset option' do
       describe 'that is valid' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -371,13 +379,13 @@ describe DataMapper::Query do
         end
 
         it 'should set the offset' do
-          @query.offset.should == @offset
+          @return.offset.should == @offset
         end
       end
 
       describe 'that is missing' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.except(:offset).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:offset).freeze)
         end
 
         it 'should return a Query' do
@@ -385,7 +393,7 @@ describe DataMapper::Query do
         end
 
         it 'should set offset to 0' do
-          @query.offset.should == 0
+          @return.offset.should == 0
         end
       end
 
@@ -404,12 +412,20 @@ describe DataMapper::Query do
           }.should raise_error(ArgumentError, '+options[:offset]+ must be greater than or equal to 0, but was -1')
         end
       end
+
+      describe 'that is greater than 0 and a nil limit' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:offset => 1, :limit => nil))
+          }.should raise_error(ArgumentError, '+options[:offset]+ cannot be greater than 0 if limit is not specified')
+        end
+      end
     end
 
     describe 'with a limit option' do
       describe 'that is valid' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -417,13 +433,13 @@ describe DataMapper::Query do
         end
 
         it 'should set the limit' do
-          @query.limit.should == @limit
+          @return.limit.should == @limit
         end
       end
 
       describe 'that is missing' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.except(:limit).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:limit).freeze)
         end
 
         it 'should return a Query' do
@@ -431,7 +447,7 @@ describe DataMapper::Query do
         end
 
         it 'should set limit to nil' do
-          @query.limit.should be_nil
+          @return.limit.should be_nil
         end
       end
 
@@ -455,7 +471,7 @@ describe DataMapper::Query do
     describe 'with an order option' do
       describe 'that is an Array containing a Symbol' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -463,7 +479,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the order' do
-          @query.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
+          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
         end
       end
 
@@ -471,7 +487,7 @@ describe DataMapper::Query do
         before do
           @options[:order] = [ 'name' ]
 
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -479,7 +495,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the order' do
-          @query.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
+          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
         end
       end
 
@@ -487,7 +503,7 @@ describe DataMapper::Query do
         before do
           @options[:order] = @model.properties.values_at(:name)
 
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -495,7 +511,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the order' do
-          @query.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
+          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
         end
       end
 
@@ -503,7 +519,7 @@ describe DataMapper::Query do
         before do
           @options[:order] = [ :name.desc ]
 
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -511,13 +527,13 @@ describe DataMapper::Query do
         end
 
         it 'should set the order' do
-          @query.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ]
+          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ]
         end
       end
 
       describe 'that is missing' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.except(:order).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:order).freeze)
         end
 
         it 'should return a Query' do
@@ -525,7 +541,7 @@ describe DataMapper::Query do
         end
 
         it 'should set order to the model default order' do
-          @query.order.should == @model.default_order(@repository.name)
+          @return.order.should == @model.default_order(@repository.name)
         end
       end
 
@@ -565,7 +581,7 @@ describe DataMapper::Query do
     describe 'with a unique option' do
       describe 'that is valid' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -573,13 +589,13 @@ describe DataMapper::Query do
         end
 
         it 'should set the unique? flag' do
-          @query.unique?.should == @unique
+          @return.unique?.should == @unique
         end
       end
 
       describe 'that is missing' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.except(:unique).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:unique).freeze)
         end
 
         it 'should return a Query' do
@@ -587,7 +603,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the query to not be unique' do
-          @query.should_not be_unique
+          @return.should_not be_unique
         end
       end
 
@@ -603,7 +619,7 @@ describe DataMapper::Query do
     describe 'with an add_reversed option' do
       describe 'that is valid' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -611,13 +627,13 @@ describe DataMapper::Query do
         end
 
         it 'should set the add_reversed? flag' do
-          @query.add_reversed?.should == @add_reversed
+          @return.add_reversed?.should == @add_reversed
         end
       end
 
       describe 'that is missing' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.except(:add_reversed).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:add_reversed).freeze)
         end
 
         it 'should return a Query' do
@@ -626,7 +642,7 @@ describe DataMapper::Query do
 
         it 'should set the query to not add in reverse order' do
           # TODO: think about renaming the flag to not sound 'clumsy'
-          @query.should_not be_add_reversed
+          @return.should_not be_add_reversed
         end
       end
 
@@ -642,7 +658,7 @@ describe DataMapper::Query do
     describe 'with a reload option' do
       describe 'that is valid' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -650,13 +666,13 @@ describe DataMapper::Query do
         end
 
         it 'should set the reload? flag' do
-          @query.reload?.should == @reload
+          @return.reload?.should == @reload
         end
       end
 
       describe 'that is missing' do
         before do
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.except(:reload).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:reload).freeze)
         end
 
         it 'should return a Query' do
@@ -664,7 +680,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the query to not reload' do
-          @query.should_not be_reload
+          @return.should_not be_reload
         end
       end
 
@@ -682,7 +698,7 @@ describe DataMapper::Query do
         before do
           @options.update(@options.delete(:conditions))
 
-          @return = @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
 
         it 'should return a Query' do
@@ -690,7 +706,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the conditions' do
-          @query.conditions.should == [ [ :eql, @model.properties[:name], @conditions[:name] ] ]
+          @return.conditions.should == [ [ :eql, @model.properties[:name], @conditions[:name] ] ]
         end
       end
 
@@ -705,7 +721,7 @@ describe DataMapper::Query do
 
     describe 'with no options' do
       before do
-        @return = @query = DataMapper::Query.new(@repository, @model)
+        @return = DataMapper::Query.new(@repository, @model)
       end
 
       it 'should return a Query' do
@@ -713,7 +729,7 @@ describe DataMapper::Query do
       end
 
       it 'should set options to an empty Hash' do
-        @query.options.should == {}
+        @return.options.should == {}
       end
     end
   end
@@ -735,6 +751,20 @@ describe DataMapper::Query do
     @options    = {}
     @query      = DataMapper::Query.new(@repository, @model, @options)
     @original   = @query
+  end
+
+  before do
+    @other_options = {
+      :fields       => [ @model.properties[:name] ].freeze,
+      :links        => [ @model.relationships[:referrer] ].freeze,
+      :conditions   => { :name => 'Dan Kubb' }.freeze,
+      :offset       => 1,
+      :limit        => 2,
+      :order        => [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ].freeze,
+      :unique       => true,
+      :add_reversed => true,
+      :reload       => true,
+    }
   end
 
   it { @query.should respond_to(:==) }
@@ -860,7 +890,172 @@ describe DataMapper::Query do
   it { @query.should respond_to(:relative) }
 
   describe '#relative' do
-    it 'should be awesome'
+    describe 'with a Hash' do
+      describe 'that is empty' do
+        before do
+          @return = @query.relative({})
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should not return self' do
+          @return.should_not be_equal(@query)
+        end
+
+        it 'should return a copy' do
+          @return.should be_eql(@query)
+        end
+      end
+
+      describe 'using a different repository as a Repository' do
+        before do
+          @repository = DataMapper::Repository.new(:other)
+          @return = @query.relative(:repository => @repository)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should set the repository' do
+          @return.repository.should equal(@repository)
+        end
+      end
+
+      describe 'using a different repository as a Symbol' do
+        before do
+          @return = @query.relative(:repository => :other)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should set the repository' do
+          @return.repository.should == DataMapper::Repository.new(:other)
+        end
+      end
+
+      describe 'using different options' do
+        before do
+          @return = @query.relative(@other_options)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should update the fields' do
+          @return.fields.should == @other_options[:fields]
+        end
+
+        it 'should update the links' do
+          @return.links.should == @other_options[:links]
+        end
+
+        it 'should update the conditions' do
+          @return.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+        end
+
+        it 'should update the offset' do
+          @return.offset.should == @other_options[:offset]
+        end
+
+        it 'should update the limit' do
+          @return.limit.should == @other_options[:limit]
+        end
+
+        it 'should update the order' do
+          @return.order.should == @other_options[:order]
+        end
+
+        it 'should update the unique' do
+          @return.unique?.should == @other_options[:unique]
+        end
+
+        it 'should update the add_reversed' do
+          @return.add_reversed?.should == @other_options[:add_reversed]
+        end
+
+        it 'should update the reload' do
+          @return.reload?.should == @other_options[:reload]
+        end
+      end
+
+      describe 'using extra options' do
+        before do
+          @options = { :name => 'Dan Kubb' }
+
+          @return = @query.relative(@options)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should update the conditions' do
+          @return.conditions.should == [ [ :eql, @model.properties[:name], @options[:name] ] ]
+        end
+      end
+
+      describe 'using an offset when query offset is greater than 0' do
+        before do
+          @query = @query.update(:offset => 1, :limit => 2)
+
+          @return = @query.relative(:offset => 1)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should update the offset to be relative to the original offset' do
+          @return.offset.should == 2
+        end
+      end
+
+      describe 'using an limit when query limit specified' do
+        before do
+          @query = @query.update(:offset => 1, :limit => 2)
+
+          @return = @query.relative(:limit => 1)
+        end
+
+        it 'should return a Query' do
+          @return.should be_kind_of(DataMapper::Query)
+        end
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should update the limit' do
+          @return.limit.should == 1
+        end
+      end
+    end
   end
 
   it { @query.should respond_to(:reload?) }
@@ -879,7 +1074,7 @@ describe DataMapper::Query do
 
   describe '#reverse' do
     before do
-      @return = @query = @query.reverse
+      @return = @query.reverse
     end
 
     it 'should return a Query' do
@@ -887,20 +1082,20 @@ describe DataMapper::Query do
     end
 
     it 'should copy the Query' do
-      @query.should_not be_equal(@original)
+      @return.should_not be_equal(@original)
     end
 
     # TODO: push this into dup spec
     it 'should not reference original order' do
-      @query.order.should_not be_equal(@original.order)
+      @return.order.should_not be_equal(@original.order)
     end
 
     it 'should have a reversed order' do
-      @query.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ]
+      @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ]
     end
 
     it 'should be equivalent, except for order' do
-      @query.to_hash.except(:order).should == @original.to_hash.except(:order)
+      @return.to_hash.except(:order).should == @original.to_hash.except(:order)
     end
   end
 
@@ -908,7 +1103,7 @@ describe DataMapper::Query do
 
   describe '#reverse!' do
     before do
-      @return = @query = @query.reverse!
+      @return = @query.reverse!
     end
 
     it 'should return a Query' do
@@ -916,11 +1111,11 @@ describe DataMapper::Query do
     end
 
     it 'should return self' do
-      @query.should be_equal(@original)
+      @return.should be_equal(@original)
     end
 
     it 'should have a reversed order' do
-      @query.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ]
+      @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ]
     end
   end
 
@@ -945,26 +1140,12 @@ describe DataMapper::Query do
   it { @query.should respond_to(:update) }
 
   describe '#update' do
-    before do
-      @other_options = {
-        :fields       => [ @model.properties[:name] ].freeze,
-        :links        => [ @model.relationships[:referrer] ].freeze,
-        :conditions   => { :name => 'Dan Kubb' }.freeze,
-        :offset       => 1,
-        :limit        => 2,
-        :order        => [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ].freeze,
-        :unique       => true,
-        :add_reversed => true,
-        :reload       => true,
-      }
-    end
-
     describe 'with a Query' do
       describe 'that is equivalent' do
         before do
           @other = DataMapper::Query.new(@repository, @model)
 
-          @return = @query = @query.update(@other)
+          @return = @query.update(@other)
         end
 
         it 'should return a Query' do
@@ -972,7 +1153,7 @@ describe DataMapper::Query do
         end
 
         it 'should return self' do
-          @query.should be_equal(@original)
+          @return.should be_equal(@original)
         end
       end
 
@@ -1004,7 +1185,7 @@ describe DataMapper::Query do
         before do
           @other = DataMapper::Query.new(@repository, @model, @options.update(@other_options))
 
-          @return = @query = @query.update(@other)
+          @return = @query.update(@other)
         end
 
         it 'should return a Query' do
@@ -1012,43 +1193,43 @@ describe DataMapper::Query do
         end
 
         it 'should return self' do
-          @query.should be_equal(@original)
+          @return.should be_equal(@original)
         end
 
         it 'should update the fields' do
-          @query.fields.should == @options[:fields]
+          @return.fields.should == @options[:fields]
         end
 
         it 'should update the links' do
-          @query.links.should == @options[:links]
+          @return.links.should == @options[:links]
         end
 
         it 'should update the conditions' do
-          @query.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+          @return.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
         end
 
         it 'should update the offset' do
-          @query.offset.should == @options[:offset]
+          @return.offset.should == @options[:offset]
         end
 
         it 'should update the limit' do
-          @query.limit.should == @options[:limit]
+          @return.limit.should == @options[:limit]
         end
 
         it 'should update the order' do
-          @query.order.should == @options[:order]
+          @return.order.should == @options[:order]
         end
 
         it 'should update the unique' do
-          @query.unique?.should == @options[:unique]
+          @return.unique?.should == @options[:unique]
         end
 
         it 'should update the add_reversed' do
-          @query.add_reversed?.should == @options[:add_reversed]
+          @return.add_reversed?.should == @options[:add_reversed]
         end
 
         it 'should update the reload' do
-          @query.reload?.should == @options[:reload]
+          @return.reload?.should == @options[:reload]
         end
       end
 
@@ -1057,7 +1238,7 @@ describe DataMapper::Query do
           @options.update(:name => 'Dan Kubb')
           @other = DataMapper::Query.new(@repository, @model, @options)
 
-          @return = @query = @query.update(@other)
+          @return = @query.update(@other)
         end
 
         it 'should return a Query' do
@@ -1065,11 +1246,11 @@ describe DataMapper::Query do
         end
 
         it 'should return self' do
-          @query.should be_equal(@original)
+          @return.should be_equal(@original)
         end
 
         it 'should update the conditions' do
-          @query.conditions.should == [ [ :eql, @model.properties[:name], @options[:name] ] ]
+          @return.conditions.should == [ [ :eql, @model.properties[:name], @options[:name] ] ]
         end
       end
     end
@@ -1078,7 +1259,7 @@ describe DataMapper::Query do
       describe 'that is empty' do
         before do
           @copy = @query.dup
-          @return = @query = @query.update({})
+          @return = @query.update({})
         end
 
         it 'should return a Query' do
@@ -1086,17 +1267,17 @@ describe DataMapper::Query do
         end
 
         it 'should return self' do
-          @query.should be_equal(@original)
+          @return.should be_equal(@original)
         end
 
         it 'should not change the Query' do
-          @query.should == @copy
+          @return.should == @copy
         end
       end
 
       describe 'using different options' do
         before do
-          @return = @query = @query.update(@other_options)
+          @return = @query.update(@other_options)
         end
 
         it 'should return a Query' do
@@ -1104,43 +1285,43 @@ describe DataMapper::Query do
         end
 
         it 'should return self' do
-          @query.should be_equal(@original)
+          @return.should be_equal(@original)
         end
 
         it 'should update the fields' do
-          @query.fields.should == @other_options[:fields]
+          @return.fields.should == @other_options[:fields]
         end
 
         it 'should update the links' do
-          @query.links.should == @other_options[:links]
+          @return.links.should == @other_options[:links]
         end
 
         it 'should update the conditions' do
-          @query.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+          @return.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
         end
 
         it 'should update the offset' do
-          @query.offset.should == @other_options[:offset]
+          @return.offset.should == @other_options[:offset]
         end
 
         it 'should update the limit' do
-          @query.limit.should == @other_options[:limit]
+          @return.limit.should == @other_options[:limit]
         end
 
         it 'should update the order' do
-          @query.order.should == @other_options[:order]
+          @return.order.should == @other_options[:order]
         end
 
         it 'should update the unique' do
-          @query.unique?.should == @other_options[:unique]
+          @return.unique?.should == @other_options[:unique]
         end
 
         it 'should update the add_reversed' do
-          @query.add_reversed?.should == @other_options[:add_reversed]
+          @return.add_reversed?.should == @other_options[:add_reversed]
         end
 
         it 'should update the reload' do
-          @query.reload?.should == @other_options[:reload]
+          @return.reload?.should == @other_options[:reload]
         end
       end
 
@@ -1148,7 +1329,7 @@ describe DataMapper::Query do
         before do
           @options = { :name => 'Dan Kubb' }
 
-          @return = @query = @query.update(@options)
+          @return = @query.update(@options)
         end
 
         it 'should return a Query' do
@@ -1156,11 +1337,11 @@ describe DataMapper::Query do
         end
 
         it 'should return self' do
-          @query.should be_equal(@original)
+          @return.should be_equal(@original)
         end
 
         it 'should update the conditions' do
-          @query.conditions.should == [ [ :eql, @model.properties[:name], @options[:name] ] ]
+          @return.conditions.should == [ [ :eql, @model.properties[:name], @options[:name] ] ]
         end
       end
     end

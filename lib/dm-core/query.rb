@@ -641,7 +641,7 @@ module DataMapper
       end
 
       if offset > 0 && limit.nil?
-        raise ArgumentError, '+options[:limit]+ must be non-nil if offset is greater than 0', caller(3)
+        raise ArgumentError, '+options[:offset]+ cannot be greater than 0 if limit is not specified', caller(3)
       end
     end
 
