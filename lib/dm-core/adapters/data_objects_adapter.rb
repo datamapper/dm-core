@@ -35,8 +35,13 @@ module DataMapper
           # make the order of the properties consistent
           model.properties(name).each do |property|
             next unless attributes.key?(property)
+
+            bind_value = attributes[property]
+
+            next if property.eql?(identity_field) && bind_value.nil?
+
             properties  << property
-            bind_values << attributes[property]
+            bind_values << bind_value
           end
 
           statement = insert_statement(model, properties, identity_field)
