@@ -17,29 +17,27 @@ module DataMapper
     #
     # @api semipublic
     def self.append_inclusions(*inclusions)
-      extra_inclusions.concat inclusions
-      true
+      warn "DataMapper::Resource.append_inclusions is deprecated, use DataMapper::Model.append_inclusions instead"
+      DataMapper::Model.append_inclusions(*inclusions)
     end
 
+    ##
     # The current registered extra inclusions
+    #
+    # @return [Set]
+    #
     # @api private
     def self.extra_inclusions
-      @extra_inclusions ||= []
+      warn "DataMapper::Resource.extra_inclusions is deprecated, use DataMapper::Model.extra_inclusions instead"
+      DataMapper::Model.extra_inclusions
     end
 
+    ##
     # Makes sure a class gets all the methods when it includes Resource
     #
     # @api private
-    # TODO: move logic to Model#extended
     def self.included(model)
       model.extend Model
-
-      extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
-
-      class << model
-        @_valid_model = false
-        attr_reader :_valid_model
-      end
     end
 
     ##

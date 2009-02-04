@@ -33,6 +33,6 @@ module DataMapper
       RUBY
     end
 
-    DataMapper::Resource.append_inclusions self
+    DataMapper::Model.append_inclusions self
   end
 end # module DataMapper

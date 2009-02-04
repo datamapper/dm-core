@@ -55,6 +55,35 @@ module DataMapper
     end
 
     ##
+    # Appends a module for inclusion into the model class after
+    # DataMapper::Resource.
+    #
+    # This is a useful way to extend DataMapper::Resource while still retaining
+    # a self.included method.
+    #
+    # @param [Module] inclusions
+    #   the module that is to be appended to the module after DataMapper::Resource
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the inclusions have been successfully appended to the list
+    #
+    # @api semipublic
+    def self.append_inclusions(*inclusions)
+      extra_inclusions.concat inclusions
+      true
+    end
+
+    ##
+    # The current registered extra inclusions
+    #
+    # @return [Set]
+    #
+    # @api private
+    def self.extra_inclusions
+      @extra_inclusions ||= []
+    end
+
+    ##
     # Extends the model with this module after DataMapper::Resource has been
     # included.
     #
@@ -74,7 +103,11 @@ module DataMapper
       true
     end
 
-    # TODO: document
+    ##
+    # The current registered extra extensions
+    #
+    # @return [Set]
+    #
     # @api private
     def self.extra_extensions
       @extra_extensions ||= []
@@ -83,12 +116,23 @@ module DataMapper
     # TODO: document
     # @api private
     def self.extended(model)
+      unless model.ancestors.include?(Resource)
+        model.send(:include, Resource)
+      end
+
       descendants << model
 
       model.instance_variable_set(:@storage_names,            {})
       model.instance_variable_set(:@properties,               {})
       model.instance_variable_set(:@field_naming_conventions, {})
-      extra_extensions.each { |extension| model.extend(extension) }
+
+      extra_inclusions.each { |mod| model.send(:include, mod) }
+      extra_extensions.each { |mod| model.extend(mod)         }
+
+      class << model
+        @_valid_model = false
+        attr_reader :_valid_model
+      end
     end
 
     # TODO: document
