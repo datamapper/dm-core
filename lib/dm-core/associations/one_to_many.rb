@@ -160,6 +160,11 @@ module DataMapper
 
         private
 
+        def lazy_load
+          return if @parent.new?
+          super
+        end
+
         # TODO: document
         # @api private
         def new_collection(query, resources = nil, &block)
