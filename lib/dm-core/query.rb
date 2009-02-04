@@ -891,13 +891,13 @@ module DataMapper
     end
 
     ##
-    # Extract arguments for #[] and return offset and limit
+    # Extract arguments for #slice an #slice! and return offset and limit
     #
-    # @param [Array(Integer), Range] *args
-    #   the offset and limit, or range indicating first and last position
+    # @param [Integer, Array(Integer), Range] *args the offset,
+    #   offset and limit, or range indicating first and last position
     #
     # @return [Integer] the offset
-    # @return [Integer,NilClass] the limit
+    # @return [Integer,NilClass] the limit, if any
     #
     # @api private
     def extract_slice_arguments(*args)
@@ -905,11 +905,15 @@ module DataMapper
 
       if args.size == 2 && first_arg.kind_of?(Integer) && second_arg.kind_of?(Integer)
         return first_arg, second_arg
-      elsif args.size == 1 && first_arg.kind_of?(Range)
-        offset  = first_arg.first
-        limit   = first_arg.last - offset
-        limit += 1 unless first_arg.exclude_end?
-        return offset, limit
+      elsif args.size == 1
+        if first_arg.kind_of?(Integer)
+          return first_arg, 1
+        elsif first_arg.kind_of?(Range)
+          offset = first_arg.first
+          limit  = first_arg.last - offset
+          limit += 1 unless first_arg.exclude_end?
+          return offset, limit
+        end
       end
 
       raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}", caller(1)
