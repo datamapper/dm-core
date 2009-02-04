@@ -257,9 +257,10 @@ module DataMapper
         repository = DataMapper.repository(repository)
       end
 
-      if options.key?(:offset) || options.key?(:limit)
-        offset = options.delete(:offset) || self.offset
-        limit  = options.delete(:limit)  || self.limit
+      if offset = options.delete(:offset)
+        assert_valid_offset(offset, options.fetch(:limit, self.limit))
+
+        limit = options.delete(:limit) || self.limit - offset
 
         self.class.new(repository, model, @options.merge(options)).slice!(offset, limit)
       else
@@ -925,27 +926,25 @@ module DataMapper
     # @api private
     def get_relative_position(offset, limit)
 
-      # find the relative offset
-      first_pos = self.offset + offset
+      # find the first position
+      first = self.offset + offset
 
       # find the absolute last position (if any)
-      last_pos = if self.limit
+      last = if self.limit
         self.offset + self.limit
       end
 
-      # if a limit was specified, and there is no last position, or
-      # the relative limit is within range, narrow the window
-      if limit && (last_pos.nil? || first_pos + limit < last_pos)
-        last_pos = first_pos + limit
+      # if there was no limit, or the relative limit is within
+      # range, narrow the window
+      if last.nil? || first + limit < last
+        last = first + limit
       end
 
-      # the last position is below the relative offset then the
-      # query cannot be satisfied. throw an exception
-      if last_pos && first_pos >= last_pos
-        raise 'outside range'  # TODO: raise a proper exception object
+      if last - first < 1
+        raise RangeError, "offset #{offset} and limit #{limit} are outside allowed range"
       end
 
-      return first_pos, last_pos ? last_pos - first_pos : nil
+      return first, last - first
     end
 
     ##

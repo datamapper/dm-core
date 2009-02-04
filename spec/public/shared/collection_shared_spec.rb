@@ -142,7 +142,7 @@ share_examples_for 'A public Collection' do
       it 'should raise an exception' do
         lambda {
           @articles.all(:limit => 10).all(:offset => 10)
-        }.should raise_error(RuntimeError, 'outside range')
+        }.should raise_error(RangeError, 'offset 10 and limit 0 are outside allowed range')
       end
     end
   end
