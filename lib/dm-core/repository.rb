@@ -85,7 +85,7 @@ module DataMapper
     #
     # @api private
     def identity_map(model)
-      @identity_maps[model] ||= IdentityMap.new
+      @identity_maps[model.base_model] ||= IdentityMap.new
     end
 
     ##

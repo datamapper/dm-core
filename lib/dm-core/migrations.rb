@@ -547,7 +547,7 @@ module DataMapper
       #
       # @api public
       def auto_upgrade!
-        DataMapper::Resource.descendants.each do |model|
+        DataMapper::Model.descendants.each do |model|
           model.auto_upgrade!(name)
         end
       end
@@ -560,7 +560,7 @@ module DataMapper
       #
       # @api private
       def auto_migrate_down!
-        DataMapper::Resource.descendants.each do |model|
+        DataMapper::Model.descendants.each do |model|
           model.auto_migrate_down!(name)
         end
       end
@@ -570,7 +570,7 @@ module DataMapper
       #
       # @api private
       def auto_migrate_up!
-        DataMapper::Resource.descendants.each do |model|
+        DataMapper::Model.descendants.each do |model|
           model.auto_migrate_up!(name)
         end
       end

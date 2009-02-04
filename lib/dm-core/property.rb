@@ -512,8 +512,11 @@ module DataMapper
       return if resource.nil?
 
       if resource.new?
-        value = get!(resource)
-        value.nil? && default? ? default_for(resource) : value
+        unless loaded?(resource)
+          set(resource, default? ? default_for(resource) : nil)
+        else
+          get!(resource)
+        end
       else
         lazy_load(resource) unless loaded?(resource)
         get!(resource)
