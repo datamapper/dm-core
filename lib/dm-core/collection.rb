@@ -191,7 +191,7 @@ module DataMapper
       with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
 
       query = with_query ? last_arg : {}
-      query = self.query[0, limit || 1].update(query)
+      query = self.query.slice(0, limit || 1).update(query)
 
       if !with_query && (loaded? || lazy_possible?(head, limit || 1))
         if limit
@@ -233,7 +233,7 @@ module DataMapper
       with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
 
       query = with_query ? last_arg : {}
-      query = self.query[0, limit || 1].update(query).reverse!
+      query = self.query.slice(0, limit || 1).update(query).reverse!
 
       # tell the Query to prepend each result from the adapter
       query.update(:add_reversed => !query.add_reversed?)
@@ -314,9 +314,9 @@ module DataMapper
       end
 
       query = if offset >= 0
-        self.query[offset, limit]
+        self.query.slice(offset, limit)
       else
-        query = self.query[(limit + offset).abs, limit].reverse!
+        query = self.query.slice((limit + offset).abs, limit).reverse!
 
         # tell the Query to prepend each result from the adapter
         query.update(:add_reversed => !query.add_reversed?)
@@ -358,9 +358,9 @@ module DataMapper
       offset, limit = extract_slice_arguments(*args)
 
       query = if offset >= 0
-        self.query[offset, limit]
+        self.query.slice(offset, limit)
       else
-        query = self.query[(limit + offset).abs, limit].reverse!
+        query = self.query.slice((limit + offset).abs, limit).reverse!
 
         # tell the Query to prepend each result from the adapter
         query.update(:add_reversed => !query.add_reversed?)

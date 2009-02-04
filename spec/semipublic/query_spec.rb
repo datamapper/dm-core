@@ -924,12 +924,10 @@ describe DataMapper::Query do
     end
   end
 
-  [ :slice, :[] ].each do |method|
-    it { @query.should respond_to(method) }
+  it { @query.should respond_to(:slice) }
 
-    describe "##{method}" do
-      it 'should be awesome'
-    end
+  describe '#slice' do
+    it 'should be awesome'
   end
 
   it { @query.should respond_to(:to_hash) }
