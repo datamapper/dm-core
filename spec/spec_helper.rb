@@ -57,7 +57,8 @@ PRIMARY.only(*adapters).each do |name, default|
     ADAPTERS << name
     PRIMARY[name] = connection_string  # ensure *_SPEC_URI is saved
   rescue Exception => e
-    puts "Could not connect to the database using #{connection_string}"
+    puts e.inspect
+    puts "Could not connect to the database using #{connection_string.inspect}"
   end
 end
 

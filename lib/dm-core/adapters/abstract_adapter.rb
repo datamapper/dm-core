@@ -56,12 +56,15 @@ module DataMapper
         @field_naming_convention    = NamingConventions::Field::Underscored
       end
 
+      # Converts the options has into a uri by removing the keys
+      # that would already be imported by URI.new, and converting 
+      # the pairs left to strings so #query_values can grok it
       def options_to_query_values
         @options.reject { |key, v|
           URI_COMPONENTS.include? key.to_sym
         }.inject({}) { |acc, pair|
           key, val = pair
-          acc[key.to_s] = val
+          acc[key.to_s] = val.to_s
           acc
         }
       end
