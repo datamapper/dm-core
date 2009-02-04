@@ -47,11 +47,6 @@ describe 'One to One Associations' do
     @child_model = Comment
   end
 
-  after do
-    # FIXME: should not need to clear STI models explicitly
-    Object.send(:remove_const, :Author) if defined?(Author)
-  end
-
   supported_by :all do
     before do
       user    = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')

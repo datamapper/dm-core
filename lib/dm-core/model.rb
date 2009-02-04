@@ -38,6 +38,23 @@ module DataMapper
     end
 
     ##
+    # Return all classes that extend the DataMapper::Model module
+    #
+    #   Class Foo
+    #     include DataMapper::Resource
+    #   end
+    #
+    #   DataMapper::Model.descendants.to_a.first   #=> Foo
+    #
+    # @return [Set]
+    #   Set containing the including classes
+    #
+    # @api private
+    def self.descendants
+      @descendants ||= Set.new
+    end
+
+    ##
     # Extends the model with this module after DataMapper::Resource has been
     # included.
     #
@@ -66,6 +83,8 @@ module DataMapper
     # TODO: document
     # @api private
     def self.extended(model)
+      descendants << model
+
       model.instance_variable_set(:@storage_names,            {})
       model.instance_variable_set(:@properties,               {})
       model.instance_variable_set(:@field_naming_conventions, {})
@@ -76,6 +95,8 @@ module DataMapper
     # @api private
     chainable do
       def inherited(target)
+        DataMapper::Model.descendants << target
+
         target.instance_variable_set(:@storage_names,            @storage_names.dup)
         target.instance_variable_set(:@properties,               {})
         target.instance_variable_set(:@base_model,               self.base_model)

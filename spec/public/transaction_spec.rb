@@ -44,11 +44,6 @@ describe DataMapper::Resource, 'Transactions' do
     end
   end
 
-  after do
-    # FIXME: should not need to clear STI models explicitly
-    Object.send(:remove_const, :Author) if defined?(Author)
-  end
-
   supported_by :postgres, :mysql do
     before do
       # --- Temporary private api use to get around rspec limitations ---

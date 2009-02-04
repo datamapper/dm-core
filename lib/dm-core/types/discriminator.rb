@@ -10,8 +10,7 @@ module DataMapper
 
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def self.descendants
-            (@descendants ||= []).uniq!
-            @descendants
+            @descendants ||= Set.new
           end
 
           after_class_method :inherited, :add_scope_for_discriminator

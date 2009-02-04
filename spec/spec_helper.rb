@@ -71,11 +71,11 @@ Spec::Runner.configure do |config|
   config.include(DataMapper::Spec::PendingHelpers)
   config.after(:each) do
     # clear out models
-    descendants = DataMapper::Resource.descendants.dup.to_a
+    descendants = DataMapper::Model.descendants.dup.to_a
     while model = descendants.shift
       descendants.concat(model.descendants) if model.respond_to?(:descendants)
       Object.send(:remove_const, model.name.to_sym)
-      DataMapper::Resource.descendants.delete(model)
+      DataMapper::Model.descendants.delete(model)
     end
   end
 end

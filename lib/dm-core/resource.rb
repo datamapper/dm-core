@@ -36,8 +36,6 @@ module DataMapper
 
       extra_inclusions.each { |inclusion| model.send(:include, inclusion) }
 
-      descendants << model
-
       class << model
         @_valid_model = false
         attr_reader :_valid_model
@@ -58,7 +56,8 @@ module DataMapper
     #
     # @api semipublic
     def self.descendants
-      @descendants ||= Set.new
+      warn "DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead"
+      DataMapper::Model.descendants
     end
 
     # +---------------
