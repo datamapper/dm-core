@@ -918,7 +918,6 @@ module DataMapper
       if resources
         replace(resources)
       else
-        query = query.dup  # FIXME: why is this necessary?
         block ||= lambda do |c|
           resources = query.repository.read_many(query)
 
