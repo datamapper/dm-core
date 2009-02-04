@@ -925,7 +925,6 @@ module DataMapper
           resources -= c.tail if c.tail
           resources -= c.instance_variable_get(:@orphans).to_a
 
-          # XXX: can add_reversed be removed from Query and handled within Collection?
           query.add_reversed? ? c.unshift(*resources.reverse) : c.push(*resources)
         end
         load_with(&block)
