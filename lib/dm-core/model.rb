@@ -66,48 +66,41 @@ module DataMapper
     # TODO: document
     # @api private
     def self.extended(model)
-      model.instance_variable_set(:@storage_names, {})
-      model.instance_variable_set(:@properties,    {})
+      model.instance_variable_set(:@storage_names,            {})
+      model.instance_variable_set(:@properties,               {})
       model.instance_variable_set(:@field_naming_conventions, {})
       extra_extensions.each { |extension| model.extend(extension) }
     end
 
     # TODO: document
     # @api private
-    def inherited(target)
-      target.instance_variable_set(:@storage_names,       @storage_names.dup)
-      target.instance_variable_set(:@properties,          {})
-      target.instance_variable_set(:@base_model,          self.base_model)
-      target.instance_variable_set(:@paranoid_properties, @paranoid_properties)
-      target.instance_variable_set(:@field_naming_conventions,  @field_naming_conventions.dup)
+    chainable do
+      def inherited(target)
+        target.instance_variable_set(:@storage_names,            @storage_names.dup)
+        target.instance_variable_set(:@properties,               {})
+        target.instance_variable_set(:@base_model,               self.base_model)
+        target.instance_variable_set(:@paranoid_properties,      @paranoid_properties)
+        target.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
 
-      if self.respond_to?(:validators)
-        @validations.contexts.each do |context, validators|
-          validators.each { |validator| target.validators.context(context) << validator }
-        end
-      end
-
-      @properties.each do |repository_name,properties|
-        repository(repository_name) do
-          properties.each do |property|
-            next if target.properties(repository_name).include?(property)
-            target.property(property.name, property.type, property.options.dup)
+        # TODO: move this into dm-validations
+        if self.respond_to?(:validators)
+          @validations.contexts.each do |context, validators|
+            validators.each { |validator| target.validators.context(context) << validator }
           end
         end
-      end
 
-      if @relationships
-        duped_relationships = {}
-        @relationships.each do |repository_name,relationships|
-          relationships.each do |name, relationship|
-            dup = relationship.dup
-            dup.instance_variable_set(:@child_model, target) if dup.instance_variable_get(:@child_model) == self
-            dup.instance_variable_set(:@parent_model, target) if dup.instance_variable_get(:@parent_model) == self
-            duped_relationships[repository_name] ||= {}
-            duped_relationships[repository_name][name] = dup
+        # TODO: add a method to PropertySet to copy the properties to a new model
+        @properties.each do |repository_name,properties|
+          repository(repository_name) do
+            properties.each do |property|
+              if target.properties(repository_name).include?(property)
+                next
+              end
+
+              target.property(property.name, property.type, property.options.dup)
+            end
           end
         end
-        target.instance_variable_set(:@relationships, duped_relationships)
       end
     end
 

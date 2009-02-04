@@ -32,12 +32,12 @@ end
 
 dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
+require dir / 'core_ext'
 require dir / 'version'
+
 require dir / 'resource'
 require dir / 'model'
 require dir / 'collection'
-
-require dir / 'support'
 
 require dir / 'type'
 require dir / 'types'
@@ -47,10 +47,12 @@ require dir / 'property_set'
 require dir / 'query'
 require dir / 'repository'
 require dir / 'property'
-
 require dir / 'adapters'
+
 require dir / 'transaction'
 require dir / 'migrations'
+
+require dir / 'support'
 
 # == Setup and Configuration
 # DataMapper uses URIs or a connection hash to connect to your data-store.

@@ -12,6 +12,40 @@ module DataMapper
 
     class UnsavedParentError < RuntimeError; end
 
+    # TODO: document
+    # @api private
+    def self.extended(model)
+      model.instance_variable_set(:@relationships, {})
+    end
+
+    chainable do
+      # TODO: document
+      # @api private
+      def inherited(target)
+        # TODO: Create a RelationshipSet class, and then add a method that allows copying the relationships to a new model
+        duped_relationships = {}
+        @relationships.each do |repository_name, relationships|
+          duped_relationship = duped_relationships[repository_name] ||= Mash.new
+
+          relationships.each do |name, relationship|
+            dup = relationship.dup
+
+            [ :@child_model, :@parent_mode ].each do |ivar|
+              if dup.instance_variable_get(ivar) == self
+                dup.instance_variable_set(ivar, target)
+              end
+            end
+
+            duped_relationship[name] = dup
+          end
+        end
+
+        target.instance_variable_set(:@relationships, duped_relationships)
+
+        super
+      end
+    end
+
     ##
     # Returns all relationships that are many-to-one for this model.
     #
@@ -35,14 +69,12 @@ module DataMapper
     #
     # @api private
     def many_to_one_relationships
-      relationships unless @relationships # needs to be initialized!
-      @relationships.values.collect do |rels| rels.values end.flatten.select do |relationship| relationship.child_model == self end
+      @relationships.values.collect { |r| r.values }.flatten.select { |r| r.child_model == self }
     end
 
     def relationships(repository_name = default_repository_name)
       assert_kind_of 'repository_name', repository_name, Symbol
 
-      @relationships ||= {}
       @relationships[repository_name] ||= repository_name == Repository.default_name ? Mash.new : relationships(Repository.default_name).dup
     end
 
