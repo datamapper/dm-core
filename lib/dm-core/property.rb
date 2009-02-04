@@ -889,22 +889,13 @@ module DataMapper
     # @api private
     def create_accessor
       unless model.instance_methods(false).include?(getter)
-        if primitive == TrueClass
-          model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            #{reader_visibility}
-            def #{getter}
-              return #{instance_variable_name} if defined?(#{instance_variable_name})
-              #{instance_variable_name} = properties[#{name.inspect}].get(self)
-            end
-          RUBY
-        else
-          model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            #{reader_visibility}
-            def #{getter}
-              #{instance_variable_name} ||= properties[#{name.inspect}].get(self)
-            end
-          RUBY
-        end
+        model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{reader_visibility}
+          def #{getter}
+            return #{instance_variable_name} if defined?(#{instance_variable_name})
+            #{instance_variable_name} = properties[#{name.inspect}].get(self)
+          end
+        RUBY
       end
 
       if primitive == TrueClass && !model.instance_methods(false).include?(name)
