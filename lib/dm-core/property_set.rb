@@ -47,7 +47,7 @@ module DataMapper
 
     # TODO: make PropertySet#reject return a PropertySet instance
     def defaults
-      @defaults ||= key | discriminator | reject { |p| p.lazy? }
+      @defaults ||= key | [ discriminator ].compact | reject { |p| p.lazy? }
     end
 
     def key
@@ -55,7 +55,7 @@ module DataMapper
     end
 
     def discriminator
-      @discriminator ||= select { |p| p.type == Types::Discriminator }
+      @discriminator ||= detect { |p| p.type == Types::Discriminator }
     end
 
     def indexes

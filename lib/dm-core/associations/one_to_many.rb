@@ -161,7 +161,9 @@ module DataMapper
         private
 
         def lazy_load
-          return if @parent.new?
+          if @parent.new?
+            return
+          end
           super
         end
 

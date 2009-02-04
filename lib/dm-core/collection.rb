@@ -47,27 +47,28 @@ module DataMapper
     def reload(query = nil)
       query = query.nil? ? self.query.dup : self.query.merge(query)
 
-      properties = model.properties(repository.name)
-      fields     = properties.key | properties.discriminator | query.fields
+      resources = if head && tail
+        (head + tail)
+      else
+        self
+      end
+
+      # make sure the Identity Map contains all the existing resources
+      identity_map = query.repository.identity_map(query.model)
+
+      resources.each do |resource|
+        identity_map[resource.key] = resource
+      end
 
       # TODO: figure out how to make the specs pass without doing the
       # explicit lazy_load below
-
-      # populate the local identity map
       lazy_load
 
-      # update existing resources
-      collection = all(query.update(:fields => fields, :reload => true)).map do |resource|
-        if original = @identity_map[resource.key]
-          fields.each { |p| p.set!(original, p.get!(resource)) }
-          original
-        else
-          resource
-        end
-      end
+      properties = model.properties(repository.name)
+      fields     = properties.key | [ properties.discriminator ].compact | query.fields
 
       # replace the list of resources
-      replace(collection)
+      replace(all(query.update(:fields => fields, :reload => true)))
     end
 
     ##

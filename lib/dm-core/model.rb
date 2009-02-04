@@ -440,6 +440,30 @@ module DataMapper
     end
 
     ##
+    # Initializes an instance of Resource with the given attributes
+    #
+    # @param [Hash(Symbol => Object)] attributes
+    #   hash of attributes to set
+    #
+    # @return [DataMapper::Resource]
+    #   the newly initialized Resource instance
+    #
+    # @api public
+    def new(attributes = {})
+      model = nil
+
+      if discriminator = properties.discriminator
+        model = attributes[discriminator.name]
+      end
+
+      model ||= self
+
+      resource = model.allocate
+      resource.send(:initialize, attributes)
+      resource
+    end
+
+    ##
     # Create an instance of Resource with the given attributes
     #
     # @param [Hash(Symbol => Object)] attributes
@@ -504,13 +528,15 @@ module DataMapper
 
       identity_map = nil
       key_values   = nil
+      resource     = nil
 
-      resource = if (key_property_indexes = query.key_property_indexes).any?
+      if (key_property_indexes = query.key_property_indexes).any?
         identity_map = repository.identity_map(model)
         key_values   = values.values_at(*key_property_indexes)
+        resource     = identity_map[key_values]
+      end
 
-        identity_map[key_values]
-      end || model.allocate
+      resource ||= model.allocate
 
       resource.instance_variable_set(:@repository, repository)
       resource.instance_variable_set(:@saved,      true)
@@ -522,10 +548,6 @@ module DataMapper
 
         if property.custom?
           value = property.type.load(value, property)
-        #else
-          # DK: commenting this out for now because the values should
-          # be coming back from the data source typecasted properly
-          #value = property.typecast(value)
         end
 
         property.set!(resource, value)
