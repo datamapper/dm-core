@@ -205,24 +205,26 @@ module DataMapper
     def update(other)
       assert_kind_of 'other', other, self.class, Hash
 
-      reset_memoized_vars
-
-      case other
+      options = case other
         when self.class
-          assert_valid_other(other)
-
-          if self == other
+          if self.eql?(other)
             return self
           end
 
-          initialize(repository, model, @options.merge(other.options))
+          assert_valid_other(other)
+
+          @options.merge(other.options)
         when Hash
           if other.empty?
             return self
           end
 
-          initialize(repository, model, @options.merge(other))
+          @options.merge(other)
       end
+
+      reset_memoized_vars
+
+      initialize(repository, model, options)
 
       self
     end

@@ -416,7 +416,7 @@ describe DataMapper::Query do
       describe 'that is greater than 0 and a nil limit' do
         it 'should raise an exception' do
           lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:offset => 1, :limit => nil))
+            DataMapper::Query.new(@repository, @model, @options.except(:limit).update(:offset => 1))
           }.should raise_error(ArgumentError, '+options[:offset]+ cannot be greater than 0 if limit is not specified')
         end
       end
