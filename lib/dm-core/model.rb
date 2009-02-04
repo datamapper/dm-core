@@ -452,7 +452,7 @@ module DataMapper
     def new(attributes = {})
       model = nil
 
-      if discriminator = properties.discriminator
+      if discriminator = properties(repository_name).discriminator
         model = attributes[discriminator.name]
       end
 
