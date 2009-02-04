@@ -16,7 +16,7 @@ module DataMapper::Spec
           before do
             # store these in instance vars for the shared adapter specs
             @adapter    = DataMapper.setup(:default, connection_uri)
-            @repository = repository(@adapter.name)
+            @repository = DataMapper.repository(@adapter.name)
 
             # create all tables and constraints before each spec
             if @repository.respond_to?(:auto_migrate!)
@@ -46,7 +46,7 @@ module DataMapper::Spec
 
           before do
             @alternate_adapter    = DataMapper.setup(:alternate, connection_uri)
-            @alternate_repository = repository(@alternate_adapter.name)
+            @alternate_repository = DataMapper.repository(@alternate_adapter.name)
 
             # create all tables and constraints before each spec
             if @alternate_repository.respond_to?(:auto_migrate!)

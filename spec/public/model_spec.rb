@@ -98,7 +98,7 @@ describe DataMapper::Model do
           end
 
           it 'should create the Resources in the expected Repository' do
-            Heffalump.all(:repository => repository(@alternate_adapter.name)).should == @resources
+            Heffalump.all(:repository => DataMapper.repository(@alternate_adapter.name)).should == @resources
           end
         end
 
@@ -108,7 +108,7 @@ describe DataMapper::Model do
             Heffalump.all(:repository => @repository).destroy!
 
             # add an extra property to the alternate model
-            repository(@alternate_adapter.name) do
+            DataMapper.repository(@alternate_adapter.name) do
               Heffalump.property :status, String, :default => 'new'
             end
 
@@ -117,7 +117,7 @@ describe DataMapper::Model do
             end
 
             # add new resources to the alternate repository
-            repository(@alternate_adapter.name) do
+            DataMapper.repository(@alternate_adapter.name) do
               @heff1 = Heffalump.create(:color => 'Black',     :num_spots => 0,   :striped => true)
               @heff2 = Heffalump.create(:color => 'Brown',     :num_spots => 25,  :striped => false)
               @heff3 = Heffalump.create(:color => 'Dark Blue', :num_spots => nil, :striped => false)

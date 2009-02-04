@@ -775,7 +775,7 @@ module DataMapper
         raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type", caller
       end
 
-      @repository_name        = repository.name
+      @repository_name        = model.repository.name
       @model                  = model
       @name                   = name.to_s.sub(/\?$/, '').to_sym
       @type                   = type
