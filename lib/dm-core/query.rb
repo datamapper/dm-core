@@ -779,6 +779,9 @@ module DataMapper
             @properties[field]
         end
       end
+
+      # sort fields based on declared order, appending unmatch fields
+      @fields = (@properties & @fields) | @fields
     end
 
     ##

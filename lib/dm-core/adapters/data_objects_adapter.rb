@@ -240,6 +240,7 @@ module DataMapper
         end
 
         def select_statement(query)
+          model      = query.model
           fields     = query.fields
           conditions = query.conditions
           limit      = query.limit
@@ -254,7 +255,7 @@ module DataMapper
           end
 
           unless (limit && limit > 1) || offset > 0 || qualify
-            unique = query.model.properties.select { |p| p.unique? }.to_set
+            unique = model.properties(name).select { |p| p.unique? }.to_set
 
             if query.conditions.any? { |o,p,b| o == :eql && unique.include?(p) && (!b.kind_of?(Array) || b.size == 1) }
               order = nil
@@ -263,7 +264,7 @@ module DataMapper
           end
 
           statement = "SELECT #{columns_statement(fields, qualify)}"
-          statement << " FROM #{quote_name(query.model.storage_name(name))}"
+          statement << " FROM #{quote_name(model.storage_name(name))}"
           statement << join_statement(query.links, qualify)                if qualify
           statement << " WHERE #{where_statement(conditions, qualify)}"    if conditions.any?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
