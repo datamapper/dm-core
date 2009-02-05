@@ -104,6 +104,8 @@ module DataMapper
       properties[name].get(self)
     end
 
+    alias [] attribute_get
+
     ##
     # Sets the value of the attribute and marks the attribute as dirty
     # if it has been changed so that it may be saved. Do not set from
@@ -144,6 +146,8 @@ module DataMapper
     def attribute_set(name, value)
       properties[name].set(self, value)
     end
+
+    alias []= attribute_set
 
     ##
     # Compares another Resource for equality
