@@ -148,27 +148,8 @@ module DataMapper
 
       protected
 
-      def normalize_uri(uri_or_options)
-        if uri_or_options.kind_of?(String) || uri_or_options.kind_of?(Addressable::URI)
-          uri_or_options = DataObjects::URI.parse(uri_or_options)
-        end
-
-        if uri_or_options.kind_of?(DataObjects::URI)
-          return uri_or_options
-        end
-
-        query = uri_or_options.except(:adapter, :username, :password, :host, :port, :database).map { |pair| pair.join('=') }.join('&')
-        query = nil if query.blank?
-
-        return DataObjects::URI.parse(Addressable::URI.new(
-          :scheme   => uri_or_options[:adapter].to_s,
-          :user     => uri_or_options[:username],
-          :password => uri_or_options[:password],
-          :host     => uri_or_options[:host],
-          :port     => uri_or_options[:port],
-          :path     => uri_or_options[:database],
-          :query    => query
-        ))
+      def normalized_uri
+        @normalized_uri ||= DataObjects::URI.parse(@uri)
       end
 
       chainable do
@@ -178,7 +159,7 @@ module DataMapper
         def create_connection
           # DataObjects::Connection.new(uri) will give you back the right
           # driver based on the Uri#scheme.
-          DataObjects::Connection.new(@uri)
+          DataObjects::Connection.new(normalized_uri)
         end
 
         # @api semipublic
@@ -191,9 +172,9 @@ module DataMapper
 
       def initialize(name, uri_or_options)
         super
-
+        
         # Default the driver-specifc logger to DataMapper's logger
-        if driver_module = DataObjects.const_get(@uri.scheme.capitalize) rescue nil
+        if driver_module = DataObjects.const_get(normalized_uri.scheme.capitalize) rescue nil
           driver_module.logger = DataMapper.logger if driver_module.respond_to?(:logger=)
         end
       end

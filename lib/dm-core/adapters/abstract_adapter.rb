@@ -28,10 +28,6 @@ module DataMapper
 
       protected
 
-      def normalize_uri(uri)
-        uri.is_a?(String) ? Addressable::URI.parse(uri) : uri
-      end
-
       private
 
       # Instantiate an Adapter by passing it a DataMapper::Repository
@@ -48,7 +44,7 @@ module DataMapper
           # URI.new doesn't import unknown keys as query values, so add them manually
           @uri.query_values = options_to_query_values || {}
         else
-          @uri     = normalize_uri(uri_or_options)
+          @uri     = uri_or_options.is_a?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
           @options = Mash.new(@uri.to_hash).merge(@uri.query_values || {})
         end
 
