@@ -101,7 +101,6 @@ module DataMapper
         fields     = query.fields
         offset     = query.offset
         limit      = query.limit
-        order      = query.order
 
         records = identity_map(model).values
 
@@ -109,14 +108,8 @@ module DataMapper
 
         size = records.size
 
-        # if the requested resource is outside the range of available
-        # resources return
-        if offset > size - 1
-          return []
-        end
-
         # sort the resources
-        sort_resources( records, order)
+        sort_records(records, query)
 
         # limit the resources
         unless (limit.nil? || limit == size) && offset == 0
@@ -220,7 +213,8 @@ module DataMapper
       #   The sorted Resources
       #
       # @api private
-      def sort_resources(resources, order)
+      def sort_records(resources, query)
+        order = query.order
         sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
 
         # sort resources by each property
