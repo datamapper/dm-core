@@ -104,14 +104,37 @@ module DataMapper
         limit      = query.limit
         order      = query.order
 
-        resources = []
+        records = filter_recordset(identity_map(model).values, query)
 
-        # find all matching records
-        identity_map(model).each_value do |resource|
-          resources << resource if conditions.all? do |condition|
+        size = records.size
+
+        # if the requested resource is outside the range of available
+        # resources return
+        if offset > size - 1
+          return []
+        end
+
+        # sort the resources
+        sort_resources( records, order)
+
+        # limit the resources
+        unless (limit.nil? || limit == size) && offset == 0
+          records = records[offset, limit || size]
+        end
+
+        # copy the value from each InMemoryAdapter Resource
+        records.map! do |record|
+          model.load(fields.map { |p| p.get!(record) }, query)
+        end
+      end
+
+      def filter_recordset(records, query)
+        conditions = query.conditions
+        records.select do |record|
+          conditions.all? do |condition|
             operator, property, bind_value = *condition
 
-            value = property.get!(resource)
+            value = property.get!(record)
 
             case operator
               when :eql, :in then equality_comparison(bind_value, value)
@@ -123,27 +146,6 @@ module DataMapper
               when :lte      then !value.nil? && value <= bind_value
             end
           end
-        end
-
-        size = resources.size
-
-        # if the requested resource is outside the range of available
-        # resources return
-        if offset > size - 1
-          return []
-        end
-
-        # sort the resources
-        sort_resources(resources, order)
-
-        # limit the resources
-        unless (limit.nil? || limit == size) && offset == 0
-          resources = resources[offset, limit || size]
-        end
-
-        # copy the value from each InMemoryAdapter Resource
-        resources.map! do |resource|
-          model.load(fields.map { |p| p.get!(resource) }, query)
         end
       end
 
