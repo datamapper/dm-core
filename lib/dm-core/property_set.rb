@@ -17,8 +17,10 @@ module DataMapper
       @properties.key?(name)
     end
 
-     # TODO: deprecate has_property?
-    alias has_property? named?
+    def has_property?(name)
+      warn "#{self.class}#has_property? is deprecated, use #{self.class}#named? instead"
+      named?(name)
+    end
 
     def values_at(*names)
       @properties.values_at(*names)
