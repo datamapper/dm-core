@@ -172,7 +172,7 @@ module DataMapper
 
       def initialize(name, uri_or_options)
         super
-        
+
         # Default the driver-specifc logger to DataMapper's logger
         if driver_module = DataObjects.const_get(normalized_uri.scheme.capitalize) rescue nil
           driver_module.logger = DataMapper.logger if driver_module.respond_to?(:logger=)
