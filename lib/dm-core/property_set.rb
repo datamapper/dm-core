@@ -7,7 +7,7 @@ module DataMapper
     def []=(name, property)
       if named?(name)
         add_property(property)
-        super(index(property), property)
+        map! { |p| p == property || p.name == property.name ? property : p }
       else
         self << property
       end
