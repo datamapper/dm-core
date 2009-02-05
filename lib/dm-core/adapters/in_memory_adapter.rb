@@ -105,16 +105,8 @@ module DataMapper
         records = identity_map(model).values
 
         filter_records(records, query)
-
-        size = records.size
-
-        # sort the resources
         sort_records(records, query)
-
-        # limit the resources
-        unless (limit.nil? || limit == size) && offset == 0
-          records = records[offset, limit || size]
-        end
+        limit_records(records, query) 
 
         # copy the value from each InMemoryAdapter Resource
         records.map! do |record|
@@ -144,6 +136,15 @@ module DataMapper
 
         records
       end
+
+      def limit_records(records, query)
+        limit, offset = query.limit, query.offset
+
+        unless (limit.nil? || limit == size) && offset == 0
+          records = records[offset, limit || size]
+        end
+      end
+
 
       ##
       # Destroys all the records matching the given query. "DELETE" in SQL.
@@ -215,17 +216,19 @@ module DataMapper
       # @api private
       def sort_records(resources, query)
         order = query.order
-        sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
+        if order
+          sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
 
-        # sort resources by each property
-        resources.sort! do |a,b|
-          cmp = 0
-          sort_order.each do |(property,descending)|
-            cmp = property.get!(a) <=> property.get!(b)
-            cmp *= -1 if descending
-            break if cmp != 0
+          # sort resources by each property
+          resources.sort! do |a,b|
+            cmp = 0
+            sort_order.each do |(property,descending)|
+              cmp = property.get!(a) <=> property.get!(b)
+              cmp *= -1 if descending
+              break if cmp != 0
+            end
+            cmp
           end
-          cmp
         end
       end
 
