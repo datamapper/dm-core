@@ -99,12 +99,13 @@ module DataMapper
 
         model      = query.model
         fields     = query.fields
-        conditions = query.conditions
         offset     = query.offset
         limit      = query.limit
         order      = query.order
 
-        records = filter_recordset(identity_map(model).values, query)
+        records = identity_map(model).values
+
+        filter_records(records, query)
 
         size = records.size
 
@@ -128,25 +129,27 @@ module DataMapper
         end
       end
 
-      def filter_recordset(records, query)
+      def filter_records(records, query)
         conditions = query.conditions
-        records.select do |record|
-          conditions.all? do |condition|
+        records.delete_if do |record| # Be destructive by using #delete_if
+          not conditions.all? do |condition|
             operator, property, bind_value = *condition
 
             value = property.get!(record)
 
             case operator
-              when :eql, :in then equality_comparison(bind_value, value)
-              when :not      then !equality_comparison(bind_value, value)
-              when :like     then Regexp.new(bind_value) =~ value
-              when :gt       then !value.nil? && value >  bind_value
-              when :gte      then !value.nil? && value >= bind_value
-              when :lt       then !value.nil? && value <  bind_value
-              when :lte      then !value.nil? && value <= bind_value
+            when :eql, :in then equality_comparison(bind_value, value)
+            when :not      then !equality_comparison(bind_value, value)
+            when :like     then Regexp.new(bind_value) =~ value
+            when :gt       then !value.nil? && value >  bind_value
+            when :gte      then !value.nil? && value >= bind_value
+            when :lt       then !value.nil? && value <  bind_value
+            when :lte      then !value.nil? && value <= bind_value
             end
           end
         end
+
+        records
       end
 
       ##
