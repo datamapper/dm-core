@@ -99,52 +99,16 @@ module DataMapper
 
         model      = query.model
         fields     = query.fields
-        offset     = query.offset
-        limit      = query.limit
 
         records = identity_map(model).values
 
-        filter_records(records, query)
-        sort_records(records, query)
-        limit_records(records, query) 
+        filter_records!(records, query)
 
         # copy the value from each InMemoryAdapter Resource
         records.map! do |record|
           model.load(fields.map { |p| p.get!(record) }, query)
         end
       end
-
-      def filter_records(records, query)
-        conditions = query.conditions
-        records.delete_if do |record| # Be destructive by using #delete_if
-          not conditions.all? do |condition|
-            operator, property, bind_value = *condition
-
-            value = property.get!(record)
-
-            case operator
-            when :eql, :in then equality_comparison(bind_value, value)
-            when :not      then !equality_comparison(bind_value, value)
-            when :like     then Regexp.new(bind_value) =~ value
-            when :gt       then !value.nil? && value >  bind_value
-            when :gte      then !value.nil? && value >= bind_value
-            when :lt       then !value.nil? && value <  bind_value
-            when :lte      then !value.nil? && value <= bind_value
-            end
-          end
-        end
-
-        records
-      end
-
-      def limit_records(records, query)
-        limit, offset = query.limit, query.offset
-
-        unless (limit.nil? || limit == size) && offset == 0
-          records = records[offset, limit || size]
-        end
-      end
-
 
       ##
       # Destroys all the records matching the given query. "DELETE" in SQL.
@@ -180,56 +144,6 @@ module DataMapper
       def initialize(name, uri_or_options)
         super
         @identity_maps = {}
-      end
-
-      ##
-      # Compares two values and returns true if they are equal
-      #
-      # @param [Object] bind_value
-      #   The value we are comparing against
-      # @param [Object] value
-      #   The value we are comparing with
-      #
-      # @return [TrueClass,FalseClass]
-      #   Returns true if the values are equal
-      #
-      # @api private
-      def equality_comparison(bind_value, value)
-        case bind_value
-          when Array, Range then bind_value.include?(value)
-          else                   bind_value == value
-        end
-      end
-
-      ##
-      # Sorts a list of Resources by a given order
-      #
-      # @param [Enumerable] resources
-      #   A list of Resources to sort
-      # @param [Enumerable(Query::Direction)] order
-      #   A list of Direction objects specifying which property and
-      #   direction to sort by.
-      #
-      # @return [Enumerable]
-      #   The sorted Resources
-      #
-      # @api private
-      def sort_records(resources, query)
-        order = query.order
-        if order
-          sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
-
-          # sort resources by each property
-          resources.sort! do |a,b|
-            cmp = 0
-            sort_order.each do |(property,descending)|
-              cmp = property.get!(a) <=> property.get!(b)
-              cmp *= -1 if descending
-              break if cmp != 0
-            end
-            cmp
-          end
-        end
       end
 
       ##
