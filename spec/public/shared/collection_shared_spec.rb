@@ -1844,8 +1844,12 @@ share_examples_for 'A public Collection' do
           @return = @articles.send(method, 12, 1)
         end
 
-        it 'should return nil' do
-          @return.should be_nil
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be empty' do
+          @return.should be_empty
         end
       end
 
@@ -1854,8 +1858,12 @@ share_examples_for 'A public Collection' do
           @return = @articles.send(method, 12..13)
         end
 
-        it 'should return nil' do
-          @return.should be_nil
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be empty' do
+          @return.should be_empty
         end
       end
     end

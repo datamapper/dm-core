@@ -323,10 +323,10 @@ module DataMapper
         query.update(:add_reversed => !query.add_reversed?)
       end
 
-      if sliced = super
-        new_collection(query, sliced)
+      if loaded? || (offset >= 0 ? lazy_possible?(head, offset + 1) : lazy_possible?(tail, offset.abs))
+        new_collection(query, super)
       else
-        nil
+        new_collection(query)
       end
     end
 
