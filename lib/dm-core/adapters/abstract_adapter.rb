@@ -3,6 +3,8 @@ module DataMapper
     class AbstractAdapter
       include Extlib::Assertions
 
+      URI_COMPONENTS = [ :scheme, :authority, :user, :password, :host, :port, :path, :fragment, :query ].freeze
+
       attr_reader :name, :uri, :options
       attr_accessor :resource_naming_convention, :field_naming_convention
 
@@ -65,10 +67,10 @@ module DataMapper
       #   Whats left of the given array after the filtering
       #
       # @api semipublic
-      def filter_records!(records, query)
-        match_records!(records, query)
-        sort_records!(records, query)
-        limit_records!(records, query)
+      def filter_records(records, query)
+        match_records(records, query)
+        sort_records(records, query)
+        limit_records(records, query)
       end
 
       ##
@@ -84,22 +86,24 @@ module DataMapper
       #   Whats left of the given array after the matching
       #
       # @api semipublic
-      def match_records!(records, query)
+      def match_records(records, query)
         conditions = query.conditions
-        records.delete_if do |record| # Be destructive by using #delete_if
+
+        # Be destructive by using #delete_if
+        records.delete_if do |record|
           not conditions.all? do |condition|
             operator, property, bind_value = *condition
 
             value = property.get!(record)
 
             case operator
-            when :eql, :in then equality_comparison(bind_value, value)
-            when :not      then !equality_comparison(bind_value, value)
-            when :like     then Regexp.new(bind_value) =~ value
-            when :gt       then !value.nil? && value >  bind_value
-            when :gte      then !value.nil? && value >= bind_value
-            when :lt       then !value.nil? && value <  bind_value
-            when :lte      then !value.nil? && value <= bind_value
+              when :eql, :in then equality_comparison(bind_value, value)
+              when :not      then !equality_comparison(bind_value, value)
+              when :like     then Regexp.new(bind_value) =~ value
+              when :gt       then !value.nil? && value >  bind_value
+              when :gte      then !value.nil? && value >= bind_value
+              when :lt       then !value.nil? && value <  bind_value
+              when :lte      then !value.nil? && value <= bind_value
             end
           end
         end
@@ -139,9 +143,8 @@ module DataMapper
       #   The sorted records
       #
       # @api semipublic
-      def sort_records!(records, query)
-        order = query.order
-        if order
+      def sort_records(records, query)
+        if order = query.order
           sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
 
           # sort resources by each property
@@ -169,18 +172,15 @@ module DataMapper
       #   The offset & limited records
       #
       # @api semipublic
-      def limit_records!(records, query)
-        offset     = query.offset
-        limit      = query.limit
-        # if the requested resource is outside the range of available
-        # resources return
-        size = records.size
-        if offset > size - 1
-          records.replace([])
-        end
+      def limit_records(records, query)
+        offset = query.offset
+        limit  = query.limit
 
-        # limit the resources
-        unless (limit.nil? || limit == size) && offset == 0
+        size = records.size
+
+        if offset > size - 1
+          records.clear
+        elsif (limit && limit != size) || offset > 0
           records.replace(records[offset, limit || size] || [])
         end
       end
@@ -193,16 +193,8 @@ module DataMapper
       #
       # @api private
       def options_to_query_values
-        @options.reject { |key, v|
-          URI_COMPONENTS.include? key.to_sym
-        }.inject({}) { |acc, pair|
-          key, val = pair
-          acc[key.to_s] = val.to_s
-          acc
-        }
+        @options.except(*URI_COMPONENTS).map { |k,v| [ k.to_s, v.to_s ] }.to_hash
       end
-
-      URI_COMPONENTS = [:scheme, :authority, :user, :password, :host, :port, :path, :fragment, :query].freeze
     end # class AbstractAdapter
   end # module Adapters
 end # module DataMapper

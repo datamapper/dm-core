@@ -94,15 +94,12 @@ module DataMapper
       #
       # @api semipublic
       def read_many(query)
-        # TODO: Extract this into its own module, so it can be re-used in all
-        # adapters that don't have a native query language
-
-        model      = query.model
-        fields     = query.fields
+        model  = query.model
+        fields = query.fields
 
         records = identity_map(model).values
 
-        filter_records!(records, query)
+        filter_records(records, query)
 
         # copy the value from each InMemoryAdapter Resource
         records.map! do |record|
