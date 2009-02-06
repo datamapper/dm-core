@@ -53,8 +53,8 @@ module DataMapper
       protected
 
       ##
-      # Takes an Array of records, and destructively filters it 
-      # by a query. First finds all matching conditions, then sorts it, 
+      # Takes an Array of records, and destructively filters it
+      # by a query. First finds all matching conditions, then sorts it,
       # then does offset & limit
       #
       # @param [Array] records

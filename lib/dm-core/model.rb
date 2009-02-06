@@ -179,6 +179,8 @@ module DataMapper
     #
     # @api public
     def storage_name(repository_name = default_repository_name)
+      assert_kind_of 'repository_name', repository_name, Symbol
+
       @storage_names[repository_name] ||= repository(repository_name).adapter.resource_naming_convention.call(base_model.send(:default_storage_name)).freeze
     end
 
@@ -205,6 +207,8 @@ module DataMapper
     #
     # @api public
     def field_naming_convention(repository_name = default_storage_name)
+      assert_kind_of 'repository_name', repository_name, Symbol
+
       @field_naming_conventions[repository_name] ||= repository(repository_name).adapter.field_naming_convention
     end
 
@@ -588,6 +592,8 @@ module DataMapper
     # TODO: document
     # @api semipublic
     def default_order(repository_name = default_repository_name)
+      assert_kind_of 'repository_name', repository_name, Symbol
+
       @default_order ||= {}
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
     end
