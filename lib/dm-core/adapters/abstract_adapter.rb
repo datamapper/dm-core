@@ -18,7 +18,14 @@ module DataMapper
 
         if uri_or_options.is_a?(Hash)
           @options = Mash.new(uri_or_options)
-          @uri     = Addressable::URI.new(@options)
+          @uri     = Addressable::URI.new(
+            :scheme   => @options[:adapter],
+            :user     => @options[:username],
+            :password => @options[:password],
+            :host     => @options[:host],
+            :port     => @options[:port],
+            :path     => @options[:database]
+          )
           # URI.new doesn't import unknown keys as query values, so add them manually
           @uri.query_values = options_to_query_values || {}
         else
