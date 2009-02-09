@@ -863,6 +863,9 @@ module DataMapper
       @conditions << [ operator, property, bind_value ]
     end
 
+    # TODO: make this typecast all bind values that do not match the
+    # property primitive
+
     # TODO: document this
     #   TODO: needs example
     # @api private

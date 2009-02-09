@@ -815,29 +815,6 @@ module DataMapper
     end
 
     ##
-    # Returns the PropertySet representing the fields in the Collection scope
-    #
-    # @return [DataMapper::PropertySet]
-    #   The set of properties this Collection's query will retrieve
-    #
-    # @api semipublic
-    def properties
-      PropertySet.new(query.fields)
-    end
-
-    ##
-    # Returns the Relationships for the Collection's Model
-    #
-    # @return [Hash]
-    #   The model's relationships, mapping the name to the
-    #   DataMapper::Associations::Relationship object
-    #
-    # @api semipublic
-    def relationships
-      model.relationships(repository.name)
-    end
-
-    ##
     # check to see if collection can respond to the method
     #
     # @param [Symbol] method
@@ -877,6 +854,29 @@ module DataMapper
     # @api public
     def inspect
       "[#{map { |r| r.inspect }.join(', ')}]"
+    end
+
+    ##
+    # Returns the PropertySet representing the fields in the Collection scope
+    #
+    # @return [DataMapper::PropertySet]
+    #   The set of properties this Collection's query will retrieve
+    #
+    # @api semipublic
+    def properties
+      PropertySet.new(query.fields)
+    end
+
+    ##
+    # Returns the Relationships for the Collection's Model
+    #
+    # @return [Hash]
+    #   The model's relationships, mapping the name to the
+    #   DataMapper::Associations::Relationship object
+    #
+    # @api semipublic
+    def relationships
+      model.relationships(repository.name)
     end
 
     protected
@@ -922,9 +922,13 @@ module DataMapper
         block ||= lambda do |c|
           resources = query.repository.read_many(query)
 
-          resources -= c.head if c.head
-          resources -= c.tail if c.tail
-          resources -= c.instance_variable_get(:@orphans).to_a
+          head    = c.head
+          tail    = c.tail
+          orphans = c.instance_variable_get(:@orphans).to_a
+
+          resources -= head    if head.any?
+          resources -= tail    if tail.any?
+          resources -= orphans if orphans.any?
 
           query.add_reversed? ? c.unshift(*resources.reverse) : c.push(*resources)
         end

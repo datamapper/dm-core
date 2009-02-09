@@ -226,6 +226,12 @@ module DataMapper
       cmp
     end
 
+    # TODO: document this
+    # @api private
+    def hash
+      model.hash + key.hash
+    end
+
     ##
     # Get a Human-readable representation of this Resource instance
     #
