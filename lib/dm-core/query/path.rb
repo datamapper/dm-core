@@ -6,10 +6,10 @@ module DataMapper
       # silence Object deprecation warnings
       [ :id, :type ].each { |m| undef_method m if method_defined?(m) }
 
+      attr_reader :repository_name
       attr_reader :relationships
       attr_reader :model
       attr_reader :property
-      attr_reader :operator
 
       %w[ gt gte lt lte not eql like in ].each do |sym|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -30,6 +30,23 @@ module DataMapper
         @property ? @property.name.to_sym : @model.storage_name(@repository_name).to_sym
       end
 
+      def ==(other)
+        return true if equal?(other)
+        return false unless other.respond_to?(:repository_name) &&
+                            other.respond_to?(:relationships)   &&
+                            other.respond_to?(:model)           &&
+                            other.respond_to?(:property)
+
+        cmp?(other, :==)
+      end
+
+      def eql?(other)
+        return true if equal?(other)
+        return false unless self.class.equal?(other.class)
+
+        cmp?(other, :eql?)
+      end
+
       private
 
       def initialize(repository, relationships, model, property_name = nil)
@@ -42,6 +59,13 @@ module DataMapper
         @relationships   = relationships
         @model           = model
         @property        = @model.properties(@repository_name)[property_name] if property_name
+      end
+
+      def cmp?(other, operator)
+        repository_name.send(operator, other.repository_name) &&
+        relationships.send(operator, other.relationships)     &&
+        model.send(operator, other.model)                     &&
+        property.send(operator, other.property)
       end
 
       def method_missing(method, *args)

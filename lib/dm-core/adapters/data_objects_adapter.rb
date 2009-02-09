@@ -246,7 +246,7 @@ module DataMapper
 
           statement = "SELECT #{columns_statement(fields, qualify)}"
           statement << " FROM #{quote_name(model.storage_name(name))}"
-          statement << join_statement(query.links, qualify)                if qualify
+          statement << join_statement(model, query.links, qualify)         if qualify
           statement << " WHERE #{where_statement(conditions, qualify)}"    if conditions.any?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
           statement << " ORDER BY #{order_statement(order, qualify)}"      if order && order.any?
@@ -300,16 +300,11 @@ module DataMapper
           properties.map { |p| property_to_column_name(p, qualify) }.join(', ')
         end
 
-        def join_statement(links, qualify)
+        def join_statement(previous_model, links, qualify)
           statement = ''
 
           links.reverse_each do |relationship|
-            model = case relationship
-              when Associations::ManyToMany::Relationship, Associations::OneToMany::Relationship, Associations::OneToOne::Relationship
-                relationship.parent_model
-              when Associations::ManyToOne::Relationship
-                relationship.child_model
-            end
+            model = previous_model == relationship.child_model ? relationship.parent_model : relationship.child_model
 
             # We only do INNER JOIN for now
             statement << " INNER JOIN #{quote_name(model.storage_name(name))} ON "
@@ -317,6 +312,8 @@ module DataMapper
             statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
               condition_statement(:eql, parent_property, child_property, qualify)
             end.join(' AND ')
+
+            previous_model = model
           end
 
           statement

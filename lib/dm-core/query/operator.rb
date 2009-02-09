@@ -8,7 +8,8 @@ module DataMapper
 
       def ==(other)
         return true if equal?(other)
-        return false unless other.respond_to?(:target) && other.respond_to?(:operator)
+        return false unless other.respond_to?(:target) &&
+                            other.respond_to?(:operator)
 
         cmp?(other, :==)
       end
@@ -30,7 +31,8 @@ module DataMapper
       end
 
       def cmp?(other, operator)
-        target.send(operator, other.target) && self.operator.send(operator, other.operator)
+        target.send(operator, other.target) &&
+        self.operator.send(operator, other.operator)
       end
     end # class Operator
   end # class Query

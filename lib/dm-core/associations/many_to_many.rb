@@ -43,8 +43,8 @@ module DataMapper
           @many_to_many_query ||= begin
             query = super.dup
 
-            # use all intermediaries, besides "through", in the query links
-            query[:links] = intermediaries[1..-1]
+            # use all intermediaries in the query links
+            query[:links] = intermediaries
 
             # TODO: move the logic below inside Query.  It should be
             # extracting the query conditions from each relationship itself
@@ -52,24 +52,25 @@ module DataMapper
             default_repository_name = parent_repository_name
 
             # merge the conditions from each intermediary into the query
-            intermediaries.each do |relationship|
+            query[:links].each do |relationship|
 
               # TODO: refactor this with source/target terminology.  Many relationships would
               # have the child as the target, and the parent as the source, while OneToMany
               # relationships would be reversed.  This will also clean up code in the DO adapter
 
-              repository_name, model = case relationship
-                when ManyToMany::Relationship, OneToMany::Relationship, OneToOne::Relationship
-                  [ relationship.child_repository_name || default_repository_name, relationship.child_model ]
-                when ManyToOne::Relationship
-                  [ relationship.parent_repository_name || default_repository_name, relationship.parent_model ]
+              repository_name = nil
+              model           = nil
+
+              if relationship.kind_of?(ManyToOne::Relationship)
+                repository_name = relationship.parent_repository_name || default_repository_name
+                model           = relationship.parent_model
+              else
+                repository_name = relationship.child_repository_name || default_repository_name
+                model           = relationship.child_model
               end
 
-              # TODO: create a semipublic method in Query that normalizes to a Query::Operator
-              # when given a default model.  In the case of Symbol or String, lookup the
-              # property within the default model.  It should recursively unwrap
-              # Query::Operator values and make sure the target is a Property
-              # or a Query::Path object.
+              # TODO: try to do some of this normalization when
+              # assigning the Query options to the Relationship
 
               relationship.query.each do |key,value|
                 # TODO: figure out how to merge Query options from intermediaries
@@ -79,13 +80,21 @@ module DataMapper
 
                 case key
                   when Symbol, String
+
+                    # TODO: turn this into a Query::Path
                     query[ model.properties(repository_name)[key] ] = value
 
-                  when Property, Query::Path
+                  when Property
+
+                    # TODO: turn this into a Query::Path
+                    query[key] = value
+
+                  when Query::Path
                     query[key] = value
 
                   when Query::Operator
-                    # TODO: if the key.target is a Property, then do not look it up
+
+                    # TODO: if the key.target is a Query::Path, then do not look it up
                     query[ key.class.new(model.properties(repository_name)[key.target], key.operator) ] = value
 
                   else

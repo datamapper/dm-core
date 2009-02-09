@@ -8,7 +8,8 @@ module DataMapper
 
       def ==(other)
         return true if equal?(other)
-        return false unless other.respond_to?(:property) && other.respond_to?(:direction)
+        return false unless other.respond_to?(:property) &&
+                            other.respond_to?(:direction)
 
         cmp?(other, :==)
       end
@@ -44,7 +45,8 @@ module DataMapper
       end
 
       def cmp?(other, operator)
-        property.send(operator, other.property) && direction.send(operator, other.direction)
+        property.send(operator, other.property) &&
+        direction.send(operator, other.direction)
       end
     end # class Direction
   end # class Query

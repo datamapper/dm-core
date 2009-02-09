@@ -501,6 +501,8 @@ module DataMapper
       # important that you sort on it, but not important enough to
       # return.
 
+      @links = @links.dup
+
       normalize_order
       normalize_fields
       normalize_links
@@ -517,6 +519,9 @@ module DataMapper
             @conditions << [ :raw, *conditions ]
         end
       end
+
+      # normalize any newly added links
+      normalize_links
     end
 
     # TODO: document this
@@ -791,7 +796,7 @@ module DataMapper
     #
     # @api private
     def normalize_links
-      @links = @links.map do |link|
+      @links.map! do |link|
         case link
           when Associations::Relationship
             link
@@ -800,6 +805,10 @@ module DataMapper
             @relationships[link]
         end
       end
+
+      @links.map! { |r| (i = r.intermediaries).any? ? i : r }
+      @links.flatten!
+      @links.uniq!
     end
 
     ##
@@ -836,12 +845,8 @@ module DataMapper
           return append_condition(subject.target, bind_value, subject.operator)
 
         when Query::Path
-          subject.relationships.map do |relationship|
-            @links << relationship unless @links.include?(relationship)
-          end
-
-          operator = subject.operator
-          subject.property
+          @links.concat(subject.relationships)
+          subject
 
         else
           # TODO: move into assert_valid_conditions
