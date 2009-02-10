@@ -32,6 +32,7 @@ share_examples_for 'An Adapter' do
       it 'should have a name' do
         @a.name.should == :test_abstract
       end
+
       it 'should require name to be a symbol' do
         lambda {
           @adapter_class.new("somestring", @options)
@@ -75,6 +76,7 @@ share_examples_for 'An Adapter' do
           @uri = Addressable::URI.parse("abstract://paul:secret@hostname:12345/tmp?foo=bar")
           @a = @adapter_class.new(@adapter_name, @uri)
         end
+
         it_should_behave_like '#options'
 
         it 'should not have :scheme in the options hash (renamed :adapter)' do
@@ -164,6 +166,7 @@ share_examples_for 'An Adapter' do
   end
 
   it { @adapter.should respond_to(:delete) }
+
   describe '#delete' do
     before do
       @resource.save
@@ -208,6 +211,7 @@ share_examples_for 'An Adapter' do
       it 'should be able to search for objects with not equal value' do
         @model.all(@string_property.name.not => 'red').should_not include(@blue)
       end
+
       it 'should include objects that are not like the value' do
         @model.all(@string_property.name.not => 'black').should include(@red)
       end
@@ -254,6 +258,8 @@ share_examples_for 'An Adapter' do
         pending_if 'SQlite3 does not support Regexp values', @using_sqlite3 do
           @model.all(@string_property.name.like => /ed/).should include(@red)
         end
+      end
+
       it 'should not search for objects that do not match the value' do
         pending_if 'SQlite3 does not support Regexp values', @using_sqlite3 do
           @model.all(@string_property.name.like => /blak/).should_not include(@red)
@@ -299,6 +305,7 @@ share_examples_for 'An Adapter' do
       it 'should be able to search for objects with value less than' do
         @model.all(@integer_property.name.lte => 3).should include(@two)
       end
+
       it 'should be able to search for objects with values equal to' do
         @model.all(@integer_property.name.lte => 2).should include(@two)
       end
@@ -315,4 +322,3 @@ share_examples_for 'An Adapter' do
     end
   end
 end
-

@@ -7,6 +7,7 @@ pkg
 coverage.html
 coverage/*
 *.db
+spec/db
 spec/integration/*.db*
 nbproject
 profile_results.*
