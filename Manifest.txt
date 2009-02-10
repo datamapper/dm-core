@@ -19,6 +19,7 @@ lib/dm-core/adapters/in_memory_adapter.rb
 lib/dm-core/adapters/mysql_adapter.rb
 lib/dm-core/adapters/postgres_adapter.rb
 lib/dm-core/adapters/sqlite3_adapter.rb
+lib/dm-core/adapters/yaml_adapter.rb
 lib/dm-core/associations.rb
 lib/dm-core/associations/many_to_many.rb
 lib/dm-core/associations/many_to_one.rb
@@ -44,6 +45,7 @@ lib/dm-core/query/operator.rb
 lib/dm-core/query/path.rb
 lib/dm-core/repository.rb
 lib/dm-core/resource.rb
+lib/dm-core/spec/adapter_shared_spec.rb
 lib/dm-core/support.rb
 lib/dm-core/support/errors.rb
 lib/dm-core/support/hook.rb
@@ -83,12 +85,12 @@ spec/semipublic/adapters/in_memory_adapter_spec.rb
 spec/semipublic/adapters/mysql_adapter_spec.rb
 spec/semipublic/adapters/postgres_adapter_spec.rb
 spec/semipublic/adapters/sqlite3_adapter_spec.rb
+spec/semipublic/adapters/yaml_adapter_spec.rb
 spec/semipublic/associations/many_to_one_spec.rb
 spec/semipublic/associations_spec.rb
 spec/semipublic/collection_spec.rb
 spec/semipublic/query_spec.rb
 spec/semipublic/resource_spec.rb
-spec/semipublic/shared/adapter_shared_spec.rb
 spec/semipublic/shared/resource_shared_spec.rb
 spec/spec.opts
 spec/spec_helper.rb

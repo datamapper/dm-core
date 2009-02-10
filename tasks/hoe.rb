@@ -37,7 +37,7 @@ hoe = Hoe.new(GEM_NAME, GEM_VERSION) do |p|
 
   p.rubyforge_name = PROJECT_NAME if PROJECT_NAME
 
-  p.clean_globs |= ["{coverage,doc,log,tmp}", "**/*.{log,db}", "profile_results.*", "**/.DS_Store"]
+  p.clean_globs |= %w[ {coverage,doc,log,tmp} **/*.{log,db} profile_results.* **/.DS_Store spec/db ]
 
   GEM_DEPENDENCIES.each do |dep|
     p.extra_deps << dep
