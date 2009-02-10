@@ -30,30 +30,30 @@ module DataMapper::Adapters
     end
 
     def read_many(query)
-      model = query.model
-
-      records = records_for(model).values
-      filter_records(records, query)
-
+      model  = query.model
       fields = query.fields
-      records.map! do |record|
+
+      records = records_for(model)
+
+      filter_records(records.values, query).map! do |record|
         model.load(fields.map { |p| record[p.name] }, query)
       end
     end
 
     def update(attributes, query)
+      attributes = attributes.map { |p,v| [ p.name, v ] }.to_hash
       update_records(query.model) do |records|
-        filter_records(records.dup.values, query).each do |record|
-          attributes.each { |p,v| records[records.index(record)][p.name] = v }
+        filter_records(records.values, query).each do |record|
+          record.update(attributes)
         end
       end.size
     end
 
     def delete(query)
       update_records(query.model) do |records|
-        filter_records(records.dup.values, query).each do |record|
-          records.delete_if { |k,r| r == record }
-        end
+        deleted = filter_records(records.values, query).to_set
+        records.delete_if { |_k,r| deleted.include?(r) }
+        deleted
       end.size
     end
 
@@ -81,22 +81,19 @@ module DataMapper::Adapters
     ##
     # Read all records from a file for a model
     #
-    # @param [#to_s] model
+    # @param [#storage_name] model
     #   The model/name to retieve records for
     #
     # @api private
     def records_for(model)
-      if File.readable? yaml_file(model)
-        YAML.load_file( yaml_file(model) ) || Hash.new({})
-      else
-        Hash.new({})
-      end
+      file = yaml_file(model)
+      File.readable?(file) && YAML.load_file(file) || {}
     end
 
     ##
     # Writes all records to a file
     #
-    # @param [#to_s] model
+    # @param [#storage_name] model
     #   The model/name to write the records for
     #
     # @param [Hash] records
@@ -104,22 +101,22 @@ module DataMapper::Adapters
     #
     # @api private
     def write_records(model, records)
-      File.open(yaml_file(model), 'w') { |fh|
+      File.open(yaml_file(model), 'w') do |fh|
         YAML.dump(records, fh)
-      }
+      end
     end
 
     ##
     # Given a model, gives the filename to be used for record storage
     #
-    #     yaml_file(Article) #=> "/path/to/files/Article.yml"
+    #     yaml_file(Article) #=> "/path/to/files/articles.yml"
     #
-    # @param [#to_s] model
-    #   The model/name to be used to determine the file name. Usually a
-    #   DataMapper::Model class, but can be anything
+    # @param [#storage_name] model
+    #   The model to be used to determine the file name.
     #
+    # @api private
     def yaml_file(model)
-      File.join(path, "#{model}.yml")
+      File.join(path, "#{model.storage_name(name)}.yml")
     end
 
   end

@@ -25,7 +25,7 @@ module DataMapper
       # @api semipublic
       def initialize(name, uri_or_options)
         super
-        @records = Hash.new({})
+        @records = {}
       end
 
       ##
@@ -49,9 +49,7 @@ module DataMapper
             identity_field.set!(resource, records.size.succ)
           end
 
-          # copy the userspace Resource so that if we call #update we
-          # don't silently change the data in userspace
-          records[resource.key] = resource.dup
+          records[resource.key] = resource.attributes
         end
 
         resources.size
@@ -87,14 +85,12 @@ module DataMapper
       #
       # @api semipublic
       def read_many(query)
-        model      = query.model
-        fields     = query.fields
+        model  = query.model
+        fields = query.fields
 
-        records = records_for(model).values
+        records = records_for(model)
 
-        filter_records(records, query)
-
-        records.map! do |record|
+        filter_records(records.values, query).map! do |record|
           model.load(fields.map { |p| record[p.name] }, query)
         end
       end
@@ -115,11 +111,11 @@ module DataMapper
       #
       # @api semipublic
       def update(attributes, query)
-        records = records_for(query.model)
-        filter_records(records.dup.values, query).each do |record|
-          attributes.each do |p,v|
-            records[records.index(record)][p.name] = v
-          end
+        records    = records_for(query.model)
+        attributes = attributes.map { |p,v| [ p.name, v ] }.to_hash
+
+        filter_records(records.values, query).each do |record|
+          record.update(attributes)
         end.size
       end
 
@@ -135,16 +131,19 @@ module DataMapper
       # @api semipublic
       def delete(query)
         records = records_for(query.model)
-        filter_records(records.dup.values, query).each do |record|
-          records.delete_if { |k,r| r == record }
-        end.size
+        deleted = filter_records(records.values, query).to_set
+        records.delete_if { |_k,r| deleted.include?(r) }
+        deleted.size
       end
 
       private
 
+      ##
       # All the records we're storing. This method will look them up by model name
+      #
+      # @api private
       def records_for(model)
-        @records[model]
+        @records[model] ||= {}
       end
 
     end # class InMemoryAdapter
