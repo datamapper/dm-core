@@ -1,4 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
+require 'dm-core/test/adapter_shared_spec'
 
 describe 'DataMapper::Adapters::MysqlAdapter' do
   supported_by :mysql do

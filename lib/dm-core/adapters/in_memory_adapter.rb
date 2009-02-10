@@ -10,6 +10,25 @@ module DataMapper
     # and up to date.
     class InMemoryAdapter < AbstractAdapter
       ##
+      # Make a new instance of the adapter. The @model_records ivar is the 'data-store'
+      # for this adapter. It is not shared amongst multiple incarnations of this
+      # adapter, eg DataMapper.setup(:default, :adapter => :in_memory);
+      # DataMapper.setup(:alternate, :adapter => :in_memory) do not share the
+      # data-store between them.
+      #
+      # @param [String, Symbol] name
+      #   The name of the DataMapper::Repository using this adapter.
+      # @param [String, Hash] uri_or_options
+      #   The connection uri string, or a hash of options to set up
+      #   the adapter
+      #
+      # @api semipublic
+      def initialize(name, uri_or_options)
+        super
+        @records = Hash.new({})
+      end
+
+      ##
       # Used by DataMapper to put records into a data-store: "INSERT" in SQL-speak.
       # It takes an array of the resources (model instances) to be saved. Resources
       # each have a key that can be used to quickly look them up later without
@@ -24,41 +43,15 @@ module DataMapper
       # @api semipublic
       def create(resources)
         resources.each do |resource|
-          identity_map = identity_map(resource.model)
+          records = records_for(resource.model)
 
           if identity_field = resource.model.identity_field(name)
-            identity_field.set!(resource, identity_map.size.succ)
+            identity_field.set!(resource, records.size.succ)
           end
 
           # copy the userspace Resource so that if we call #update we
           # don't silently change the data in userspace
-          identity_map[resource.key] = resource.dup
-        end
-
-        resources.size
-      end
-
-      ##
-      # Used by DataMapper to update the attributes on existing records in a
-      # data-store: "UPDATE" in SQL-speak. It takes a hash of the attributes
-      # to update with, as well as a query object that specifies which resources
-      # should be updated.
-      #
-      # @param [Hash] attributes
-      #   A set of key-value pairs of the attributes to update the resources with.
-      # @param [DataMapper::Query] query
-      #   The query that should be used to find the resource(s) to update.
-      #
-      # @return [Integer]
-      #   the number of records that were successfully updated
-      #
-      # @api semipublic
-      def update(attributes, query)
-        identity_map = identity_map(query.model)
-
-        resources = read_many(query).each do |r|
-          resource = identity_map[r.key]
-          attributes.each { |p,v| p.set!(resource, v) }
+          records[resource.key] = resource.dup
         end
 
         resources.size
@@ -94,17 +87,40 @@ module DataMapper
       #
       # @api semipublic
       def read_many(query)
-        model  = query.model
-        fields = query.fields
+        model      = query.model
+        fields     = query.fields
 
-        records = identity_map(model).values
+        records = records_for(model).values
 
         filter_records(records, query)
 
-        # copy the value from each InMemoryAdapter Resource
         records.map! do |record|
-          model.load(fields.map { |p| p.get!(record) }, query)
+          model.load(fields.map { |p| record[p.name] }, query)
         end
+      end
+      
+      ##
+      # Used by DataMapper to update the attributes on existing records in a
+      # data-store: "UPDATE" in SQL-speak. It takes a hash of the attributes
+      # to update with, as well as a query object that specifies which resources
+      # should be updated.
+      #
+      # @param [Hash] attributes
+      #   A set of key-value pairs of the attributes to update the resources with.
+      # @param [DataMapper::Query] query
+      #   The query that should be used to find the resource(s) to update.
+      #
+      # @return [Integer]
+      #   the number of records that were successfully updated
+      #
+      # @api semipublic
+      def update(attributes, query)
+        records = records_for(query.model)
+        filter_records(records.dup.values, query).each do |record|
+          attributes.each do |p,v|
+            records[records.index(record)][p.name] = v
+          end
+        end.size
       end
 
       ##
@@ -118,44 +134,19 @@ module DataMapper
       #
       # @api semipublic
       def delete(query)
-        identity_map = identity_map(query.model)
-        read_many(query).each { |r| identity_map.delete(r.key) }.size
+        records = records_for(query.model) 
+        filter_records(records.dup.values, query).each do |record|
+          records.delete_if { |k,r| r == record }
+        end.size
       end
 
       private
 
-      ##
-      # Make a new instance of the adapter. The @model_records ivar is the 'data-store'
-      # for this adapter. It is not shared amongst multiple incarnations of this
-      # adapter, eg DataMapper.setup(:default, :adapter => :in_memory);
-      # DataMapper.setup(:alternate, :adapter => :in_memory) do not share the
-      # data-store between them.
-      #
-      # @param [String, Symbol] name
-      #   The name of the DataMapper::Repository using this adapter.
-      # @param [String, Hash] uri_or_options
-      #   The connection uri string, or a hash of options to set up
-      #   the adapter
-      #
-      # @api semipublic
-      def initialize(name, uri_or_options)
-        super
-        @identity_maps = {}
+      # All the records we're storing. This method will look them up by model name
+      def records_for(model)
+        @records[model]
       end
 
-      ##
-      # Returns the Identity Map for a given Model
-      #
-      # @param [DataMapper::Model] model
-      #   A model to retrieve the Identity Map for
-      #
-      # @return [DataMapper::IdentityMap]
-      #   The Identity Map of Resources
-      #
-      # @api private
-      def identity_map(model)
-        @identity_maps[model] ||= IdentityMap.new
-      end
     end # class InMemoryAdapter
 
     const_added(:InMemoryAdapter)

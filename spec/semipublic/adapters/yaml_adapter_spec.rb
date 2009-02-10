@@ -1,19 +1,19 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 require 'dm-core/test/adapter_shared_spec'
 
-describe 'DataMapper::Adapters::PostgresAdapter' do
-  supported_by :postgres do
+describe 'DataMapper::Adapters::YamlAdapter' do
+  supported_by :yaml do
     before do
       class ::Heffalump
         include DataMapper::Resource
 
-        property :id,        Serial
+        property :id,        Serial, :key => true
         property :color,     String
         property :num_spots, Integer
         property :striped,   Boolean
       end
 
-      Heffalump.auto_migrate!
+      Heffalump.all.destroy
 
       @heff1 = Heffalump.create(:color => 'Black',     :num_spots => 0,   :striped => true)
       @heff2 = Heffalump.create(:color => 'Brown',     :num_spots => 25,  :striped => false)

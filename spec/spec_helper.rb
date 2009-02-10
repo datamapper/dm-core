@@ -4,7 +4,9 @@ require 'spec'
 require 'pathname'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
-require SPEC_ROOT.parent + 'lib/dm-core'
+$LOAD_PATH << SPEC_ROOT.parent + "lib"
+require 'dm-core'
+
 Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |f| require f }
 
 # create sqlite3_fs directory if it doesn't exist
@@ -19,6 +21,7 @@ ADAPTERS = []
 
 PRIMARY = {
   'in_memory'  => { :adapter => :in_memory },
+  'yaml'       => "yaml://#{sqlite3_db_dir}/primary_yaml",
   'sqlite3'    => 'sqlite3::memory:',
 #  'sqlite3_fs' => "sqlite3://#{sqlite3_db_dir}/primary.db",
   'mysql'      => 'mysql://localhost/dm_core_test',
@@ -27,6 +30,7 @@ PRIMARY = {
 
 ALTERNATE = {
   'in_memory'  => { :adapter => :in_memory },
+  'yaml'       => "yaml://#{sqlite3_db_dir}/secondary_yaml",
   'sqlite3'    => "sqlite3://#{sqlite3_db_dir}/alternate.db",  # use a FS for the alternate because there can only be one memory db at a time in SQLite3
 #  'sqlite3_fs' => "sqlite3://#{sqlite3_db_dir}/alternate.db",
   'mysql'      => 'mysql://localhost/dm_core_test2',
@@ -57,7 +61,7 @@ PRIMARY.only(*adapters).each do |name, default|
     ADAPTERS << name
     PRIMARY[name] = connection_string  # ensure *_SPEC_URI is saved
   rescue Exception => e
-    puts "Could not connect to the database using #{connection_string.inspect} because: #{e.inspect}"
+    puts "Could not connect to the database using #{connection_string.inspect} because: #{e.inspect}", e.backtrace
   end
 end
 

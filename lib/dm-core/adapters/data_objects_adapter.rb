@@ -149,7 +149,20 @@ module DataMapper
       protected
 
       def normalized_uri
-        @normalized_uri ||= DataObjects::URI.parse(@uri)
+        @normalized_uri ||= begin
+          # srsly? TODO: Make DataObjects::URI handle parsing an options hash
+          query = @options.except(:adapter, :username, :password, :host, :port, :database).map { |pair| pair.join('=') }.join('&')
+          query = nil if query.blank?
+          DataObjects::URI.parse(Addressable::URI.new(
+            :scheme =>    @options[:adapter].to_s,
+            :user =>      @options[:username],
+            :password =>  @options[:password],
+            :host =>      @options[:host],
+            :port =>      @options[:port],
+            :path =>      @options[:database],
+            :query =>     query
+          ))
+        end
       end
 
       chainable do
@@ -172,6 +185,12 @@ module DataMapper
 
       def initialize(name, uri_or_options)
         super
+
+        # AbstractAdapter#initialize sets :path in the options,
+        # we want to refer to it as :database
+        if @options.has_key?(:path) && !@options.has_key?(:database)
+          @options[:database] = @options[:path]
+        end
 
         # Default the driver-specifc logger to DataMapper's logger
         if driver_module = DataObjects.const_get(normalized_uri.scheme.capitalize) rescue nil

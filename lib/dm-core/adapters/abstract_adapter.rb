@@ -3,9 +3,7 @@ module DataMapper
     class AbstractAdapter
       include Extlib::Assertions
 
-      URI_COMPONENTS = [ :scheme, :authority, :user, :password, :host, :port, :path, :fragment, :query ].freeze
-
-      attr_reader :name, :uri, :options
+      attr_reader :name, :options
       attr_accessor :resource_naming_convention, :field_naming_convention
 
       # Instantiate an Adapter by passing it a DataMapper::Repository
@@ -18,19 +16,9 @@ module DataMapper
 
         if uri_or_options.is_a?(Hash)
           @options = Mash.new(uri_or_options)
-          @uri     = Addressable::URI.new(
-            :scheme   => @options[:adapter],
-            :user     => @options[:username],
-            :password => @options[:password],
-            :host     => @options[:host],
-            :port     => @options[:port],
-            :path     => @options[:database]
-          )
-          # URI.new doesn't import unknown keys as query values, so add them manually
-          @uri.query_values = options_to_query_values || {}
         else
-          @uri     = uri_or_options.is_a?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
-          @options = Mash.new(@uri.to_hash).merge(@uri.query_values || {})
+          uri      = uri_or_options.is_a?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
+          @options = uri_to_options(
         end
 
         @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
@@ -78,6 +66,7 @@ module DataMapper
         match_records(records, query)
         sort_records(records, query)
         limit_records(records, query)
+        records
       end
 
       ##
@@ -101,7 +90,7 @@ module DataMapper
           not conditions.all? do |condition|
             operator, property, bind_value = *condition
 
-            value = property.get!(record)
+            value = record[property.name]
 
             case operator
               when :eql, :in then equality_comparison(bind_value, value)
@@ -158,7 +147,7 @@ module DataMapper
           records.sort! do |a,b|
             cmp = 0
             sort_order.each do |(property,descending)|
-              cmp = property.get!(a) <=> property.get!(b)
+              cmp = a[property.name] <=> b[property.name]
               cmp *= -1 if descending
               break if cmp != 0
             end
@@ -194,14 +183,17 @@ module DataMapper
 
       private
 
-      # Converts the options has into a uri by removing the keys
-      # that would already be imported by URI.new, and converting
-      # the pairs left to strings so #query_values can grok it
-      #
-      # @api private
-      def options_to_query_values
-        @options.except(*URI_COMPONENTS).map { |k,v| [ k.to_s, v.to_s ] }.to_hash
+      def uri_to_options(uri)
+        options = Mash.new(uri.to_hash).merge(uri.query_values || {})
+
+        # Alias 'scheme' part of uri to 'adapter', if its not already set
+        if options.has_key?(:scheme) && !options.has_key?(:adapter)
+          options[:adapter] = options.delete(:scheme)
+        end
+
+        options
       end
+
     end # class AbstractAdapter
   end # module Adapters
 end # module DataMapper
