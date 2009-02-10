@@ -18,7 +18,7 @@ module DataMapper
           @options = Mash.new(uri_or_options)
         else
           uri      = uri_or_options.is_a?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
-          @options = uri_to_options(
+          @options = uri_to_options(uri)
         end
 
         @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
