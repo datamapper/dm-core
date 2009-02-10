@@ -98,7 +98,7 @@ module DataMapper
           model.load(fields.map { |p| record[p.name] }, query)
         end
       end
-      
+
       ##
       # Used by DataMapper to update the attributes on existing records in a
       # data-store: "UPDATE" in SQL-speak. It takes a hash of the attributes
@@ -134,7 +134,7 @@ module DataMapper
       #
       # @api semipublic
       def delete(query)
-        records = records_for(query.model) 
+        records = records_for(query.model)
         filter_records(records.dup.values, query).each do |record|
           records.delete_if { |k,r| r == record }
         end.size

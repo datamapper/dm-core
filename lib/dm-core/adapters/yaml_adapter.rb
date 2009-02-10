@@ -124,4 +124,3 @@ module DataMapper::Adapters
 
   end
 end
-
