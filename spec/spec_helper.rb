@@ -10,8 +10,8 @@ require 'dm-core'
 Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |f| require f }
 
 # create sqlite3_fs directory if it doesn't exist
-sqlite3_db_dir = SPEC_ROOT.join('db')
-sqlite3_db_dir.mkpath
+temp_db_dir = SPEC_ROOT.join('db')
+temp_db_dir.mkpath
 
 ENV['ADAPTERS'] ||= 'in_memory'
 
@@ -21,18 +21,18 @@ ADAPTERS = []
 
 PRIMARY = {
   'in_memory'  => { :adapter => :in_memory },
-  'yaml'       => "yaml://#{sqlite3_db_dir}/primary_yaml",
+  'yaml'       => "yaml://#{temp_db_dir}/primary_yaml",
   'sqlite3'    => 'sqlite3::memory:',
-#  'sqlite3_fs' => "sqlite3://#{sqlite3_db_dir}/primary.db",
+#  'sqlite3_fs' => "sqlite3://#{temp_db_dir}/primary.db",
   'mysql'      => 'mysql://localhost/dm_core_test',
   'postgres'   => 'postgres://postgres@localhost/dm_core_test'
 }
 
 ALTERNATE = {
   'in_memory'  => { :adapter => :in_memory },
-  'yaml'       => "yaml://#{sqlite3_db_dir}/secondary_yaml",
-  'sqlite3'    => "sqlite3://#{sqlite3_db_dir}/alternate.db",  # use a FS for the alternate because there can only be one memory db at a time in SQLite3
-#  'sqlite3_fs' => "sqlite3://#{sqlite3_db_dir}/alternate.db",
+  'yaml'       => "yaml://#{temp_db_dir}/secondary_yaml",
+  'sqlite3'    => "sqlite3://#{temp_db_dir}/alternate.db",  # use a FS for the alternate because there can only be one memory db at a time in SQLite3
+#  'sqlite3_fs' => "sqlite3://#{temp_db_dir}/alternate.db",
   'mysql'      => 'mysql://localhost/dm_core_test2',
   'postgres'   => 'postgres://postgres@localhost/dm_core_test2'
 }
