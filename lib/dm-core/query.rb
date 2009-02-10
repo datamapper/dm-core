@@ -965,7 +965,52 @@ module DataMapper
         return false
       end
 
-      to_hash.send(operator, other.to_hash)
+      unless fields.to_set.send(operator, other.fields.to_set)
+        return false
+      end
+
+      unless links.to_set.send(operator, other.links.to_set)
+        return false
+      end
+
+      sort_conditions = lambda do |(op, property, bind_value)|
+        if op == :raw
+          [ op.to_s, property, bind_value ]
+        else
+          [ op.to_s, property.model, property.name.to_s, bind_value ]
+        end
+      end
+
+      # TODO: update Property#<=> to sort on model and name
+      unless conditions.sort_by(&sort_conditions).send(operator, other.conditions.sort_by(&sort_conditions))
+        return false
+      end
+
+      unless order.send(operator, other.order)
+        return false
+      end
+
+      unless offset.send(operator, other.offset)
+        return false
+      end
+
+      unless limit.send(operator, other.limit)
+        return false
+      end
+
+      unless reload?.send(operator, other.reload?)
+        return false
+      end
+
+      unless unique?.send(operator, other.unique?)
+        return false
+      end
+
+      unless add_reversed?.send(operator, other.add_reversed?)
+        return false
+      end
+
+      true
     end
   end # class Query
 end # module DataMapper
