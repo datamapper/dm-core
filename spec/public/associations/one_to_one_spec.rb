@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe 'One to One Associations' do
-  before do
+  before :all do
     class ::User
       include DataMapper::Resource
 
@@ -48,7 +48,7 @@ describe 'One to One Associations' do
   end
 
   supported_by :all do
-    before do
+    before :all do
       user    = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')
       comment = @child_model.create(:body => 'Cool spec', :user => user)
 

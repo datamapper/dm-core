@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
     self.loaded = loaded
 
-    before do
+    before :all do
       class ::Article
         include DataMapper::Resource
 
@@ -15,12 +15,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         property :title,   String
         property :content, Text
       end
+
+      @model = Article
     end
 
     supported_by :all do
-      before do
+      before :all do
         @article_repository = @repository
-        @model              = Article
         @articles_query     = DataMapper::Query.new(@article_repository, @model, :title => 'Sample Article')
 
         @article = @model.create(:title => 'Sample Article', :content => 'Sample')
@@ -34,7 +35,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
       describe '.new' do
         describe 'with resources' do
-          before do
+          before :all do
             @return = @collection = DataMapper::Collection.new(@articles_query, [ @article ])
           end
 
@@ -52,7 +53,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
 
         describe 'with no resources' do
-          before do
+          before :all do
             @return = @collection = DataMapper::Collection.new(@articles_query)
           end
 
@@ -73,7 +74,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
       it { @articles.should respond_to(:properties) }
 
       describe '#properties' do
-        before do
+        before :all do
           @return = @properties = @articles.properties
         end
 
@@ -89,7 +90,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
       it { @articles.should respond_to(:query) }
 
       describe '#query' do
-        before do
+        before :all do
           @return = @articles.query
         end
 
@@ -105,7 +106,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
       it { @articles.should respond_to(:relationships) }
 
       describe '#relationships' do
-        before do
+        before :all do
           @return = @relationships = @articles.relationships
         end
 
@@ -121,7 +122,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
       it { @articles.should respond_to(:repository) }
 
       describe '#repository' do
-        before do
+        before :all do
           @return = @repository = @articles.repository
         end
 

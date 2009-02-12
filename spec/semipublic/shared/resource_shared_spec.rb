@@ -1,5 +1,5 @@
 share_examples_for 'A semipublic Resource' do
-  before do
+  before :all do
     %w[ @model @user ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end

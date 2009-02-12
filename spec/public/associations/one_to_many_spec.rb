@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 share_examples_for 'It can transfer a Resource from another association' do
-  before do
+  before :all do
     %w[ @resource @original ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
@@ -26,7 +26,7 @@ end
     self.loaded = loaded
 
     # define the model prior to supported_by
-    before do
+    before :all do
       class ::Author
         include DataMapper::Resource
 
@@ -52,7 +52,7 @@ end
     end
 
     supported_by :all do
-      before do
+      before :all do
         @author  = Author.create(:name => 'Dan Kubb')
 
         @original = @author.articles.create(:title => 'Original Article')
@@ -67,7 +67,7 @@ end
 
       describe '#<<' do
         describe 'when provided a Resource belonging to another association' do
-          before do
+          before :all do
             @original = @other_articles
             @resource = @original.first
             @return = @articles << @resource
@@ -87,7 +87,7 @@ end
 
       describe '#collect!' do
         describe 'when provided a Resource belonging to another association' do
-          before do
+          before :all do
             @original = @other_articles
             @resource = @original.first
             @return = @articles.collect! { |r| @resource }
@@ -107,7 +107,7 @@ end
 
       describe '#concat' do
         describe 'when provided a Resource belonging to another association' do
-          before do
+          before :all do
             @original = @other_articles
             @resource = @original.first
             @return = @articles.concat([ @resource ])
@@ -160,7 +160,7 @@ end
 
       describe '#insert' do
         describe 'when provided a Resource belonging to another association' do
-          before do
+          before :all do
             @original = @other_articles
             @resource = @original.first
             @return = @articles.insert(0, @resource)
@@ -184,7 +184,7 @@ end
 
       describe '#method_missing' do
         describe 'with a public collection method' do
-          before do
+          before :all do
             @return = @articles.to_a
           end
 
@@ -203,7 +203,7 @@ end
       end
 
       describe '#new' do
-        before do
+        before :all do
           @resource = @author.articles.new
         end
 
@@ -214,7 +214,7 @@ end
 
       describe '#push' do
         describe 'when provided a Resource belonging to another association' do
-          before do
+          before :all do
             @original = @other_articles
             @resource = @original.first
             @return = @articles.push(@resource)
@@ -234,7 +234,7 @@ end
 
       describe '#replace' do
         describe 'when provided a Resource belonging to another association' do
-          before do
+          before :all do
             @original = @other_articles
             @resource = @original.first
             @return = @articles.replace([ @resource ])
@@ -258,7 +258,7 @@ end
 
       describe '#unshift' do
         describe 'when provided a Resource belonging to another association' do
-          before do
+          before :all do
             @original = @other_articles
             @resource = @original.first
             @return = @articles.unshift(@resource)

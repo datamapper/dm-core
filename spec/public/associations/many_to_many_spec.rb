@@ -8,7 +8,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
     self.loaded = loaded
 
     # define the model prior to supported_by
-    before do
+    before :all do
       class ::Author
         include DataMapper::Resource
 
@@ -39,24 +39,20 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
     end
 
     supported_by :all do
-      before do
-        if defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
-          pending 'Many To Many does not work with In-Memory Adapter yet'
+      unless defined?(DataMapper::Adapters::InMemoryAdapter) # && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
+        before :all do
+          @author = Author.create(:name => 'Dan Kubb')
+
+          @original = @author.articles.create(:title => 'Original Article')
+          @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
+          @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
+
+          @articles       = @author.articles(:title => 'Sample Article')
+          @other_articles = @author.articles(:title => 'Other Article')
         end
+
+        it_should_behave_like 'A public Collection'
       end
-
-      before do
-        @author = Author.create(:name => 'Dan Kubb')
-
-        @original = @author.articles.create(:title => 'Original Article')
-        @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
-        @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
-
-        @articles       = @author.articles(:title => 'Sample Article')
-        @other_articles = @author.articles(:title => 'Other Article')
-      end
-
-      it_should_behave_like 'A public Collection'
     end
   end
 end

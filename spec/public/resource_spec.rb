@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Resource do
-  before do
+  before :all do
     class ::User
       include DataMapper::Resource
 
@@ -48,7 +48,7 @@ describe DataMapper::Resource do
   end
 
   supported_by :all do
-    before do
+    before :all do
       user = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')
 
       @user = @model.get(*user.key)

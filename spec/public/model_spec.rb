@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Model do
-  before do
+  before :all do
     class ::Heffalump
       include DataMapper::Resource
 
@@ -15,7 +15,7 @@ describe DataMapper::Model do
 
   supported_by :all do
 
-    before do
+    before :all do
       @heff1 = Heffalump.create(:color => 'Black',     :num_spots => 0,   :striped => true)
       @heff2 = Heffalump.create(:color => 'Brown',     :num_spots => 25,  :striped => false)
       @heff3 = Heffalump.create(:color => 'Dark Blue', :num_spots => nil, :striped => false)
@@ -81,7 +81,7 @@ describe DataMapper::Model do
     with_alternate_adapter do
       describe '#copy' do
         describe 'between identical models' do
-          before do
+          before :all do
             @return = @resources = Heffalump.copy(:default, @alternate_adapter.name)
           end
 
@@ -103,7 +103,7 @@ describe DataMapper::Model do
         end
 
         describe 'between different models' do
-          before do
+          before :all do
             # make sure the default repository is empty
             Heffalump.all(:repository => @repository).destroy!
 

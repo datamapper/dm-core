@@ -1,5 +1,5 @@
 share_examples_for 'A public Collection' do
-  before do
+  before :all do
     %w[ @model @article @other @original @articles @other_articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
@@ -9,7 +9,7 @@ share_examples_for 'A public Collection' do
     it { @articles.should respond_to(method) }
 
     describe "##{method}" do
-      before do
+      before :all do
         @resource = @model.new(:title => 'Title')
         @return = @articles.send(method, @resource)
       end
@@ -36,7 +36,7 @@ share_examples_for 'A public Collection' do
 
   describe '#all' do
     describe 'with no arguments' do
-      before do
+      before :all do
         @copy = @articles.dup
         @return = @collection = @articles.all
       end
@@ -65,7 +65,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a query' do
-      before do
+      before :all do
         @new = @articles.create(:content => 'New Article')
         # search for the first 10 articles, then take the first 5, and then finally take the
         # second article from the remainder
@@ -97,7 +97,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a query using raw conditions' do
-      before do
+      before :all do
         unless @skip = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter)
           @new = @articles.create(:content => 'New Article')
           @copy = @articles.dup
@@ -151,7 +151,7 @@ share_examples_for 'A public Collection' do
 
   describe '#at' do
     describe 'with positive offset' do
-      before do
+      before :all do
         @return = @resource = @articles.at(0)
       end
 
@@ -175,7 +175,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with positive offset', 'after prepending to the collection' do
-      before do
+      before :all do
         @return = @resource = @articles.unshift(@other).at(0)
       end
 
@@ -199,7 +199,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with negative offset' do
-      before do
+      before :all do
         @return = @resource = @articles.at(-1)
       end
 
@@ -223,7 +223,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with negative offset', 'after appending to the collection' do
-      before do
+      before :all do
         @return = @resource = @articles.push(@other).at(-1)
       end
 
@@ -254,9 +254,11 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
-      @resources = @articles.entries
-      @return = @articles.clear
+    before :all do
+      rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+        @resources = @articles.entries
+        @return = @articles.clear
+      end
     end
 
     it 'should return a Collection' do
@@ -280,7 +282,7 @@ share_examples_for 'A public Collection' do
     it { @articles.should respond_to(method) }
 
     describe "##{method}" do
-      before do
+      before :all do
         @resources = @articles.dup.entries
         @return = @articles.send(method) { |r| @model.new(:title => 'Title') }
       end
@@ -310,7 +312,7 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
+    before :all do
       @return = @articles.concat(@other_articles)
     end
 
@@ -334,7 +336,7 @@ share_examples_for 'A public Collection' do
   it { @articles.should respond_to(:create) }
 
   describe '#create' do
-    before do
+    before :all do
       @return = @resource = @articles.create(:content => 'Content')
     end
 
@@ -373,7 +375,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a Resource within the Collection' do
-      before do
+      before :all do
         @return = @resource = @articles.delete(@article)
       end
 
@@ -395,7 +397,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a Resource not within the Collection' do
-      before do
+      before :all do
         @return = @articles.delete(@other)
       end
 
@@ -413,7 +415,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with an offset within the Collection' do
-      before do
+      before :all do
         @return = @resource = @articles.delete_at(0)
       end
 
@@ -435,7 +437,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with an offset not within the Collection' do
-      before do
+      before :all do
         @return = @articles.delete_at(1)
       end
 
@@ -449,7 +451,7 @@ share_examples_for 'A public Collection' do
 
   describe '#delete_if' do
     describe 'with a block that matches a Resource in the Collection' do
-      before do
+      before :all do
         @resources = @articles.dup.entries
         @return = @articles.delete_if { true }
       end
@@ -472,7 +474,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a block that does not match a Resource in the Collection' do
-      before do
+      before :all do
         @resources = @articles.dup.entries
         @return = @articles.delete_if { false }
       end
@@ -498,8 +500,10 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
-      @return = @articles.destroy
+    before :all do
+      rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+        @return = @articles.destroy
+      end
     end
 
     it 'should return true' do
@@ -522,8 +526,10 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
-      @return = @articles.destroy!
+    before :all do
+      rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+        @return = @articles.destroy!
+      end
     end
 
     it 'should return true' do
@@ -546,12 +552,13 @@ share_examples_for 'A public Collection' do
   it { @articles.should respond_to(:first) }
 
   describe '#first' do
-    before do
+    before :all do
       @copy = @articles.dup
+      @copy.to_a
     end
 
     describe 'with no arguments' do
-      before do
+      before :all do
         @return = @resource = @articles.first
       end
 
@@ -573,7 +580,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with no arguments', 'after prepending to the collection' do
-      before do
+      before :all do
         @return = @resource = @articles.unshift(@other).first
       end
 
@@ -595,7 +602,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with empty query' do
-      before do
+      before :all do
         @return = @resource = @articles.first({})
       end
 
@@ -617,7 +624,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with empty query', 'after prepending to the collection' do
-      before do
+      before :all do
         @return = @resource = @articles.unshift(@other).first({})
       end
 
@@ -639,7 +646,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a query' do
-      before do
+      before :all do
         @return = @resource = @articles.first(:content => 'Sample')
       end
 
@@ -657,7 +664,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with limit specified' do
-      before do
+      before :all do
         @return = @resources = @articles.first(1)
       end
 
@@ -683,8 +690,10 @@ share_examples_for 'A public Collection' do
         pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
       end
 
-      before do
-        @return = @resources = @articles.unshift(@other).first(1)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @return = @resources = @articles.unshift(@other).first(1)
+        end
       end
 
       it 'should return a Collection' do
@@ -705,7 +714,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with limit and query specified' do
-      before do
+      before :all do
         @return = @resources = @articles.first(1, :content => 'Sample')
       end
 
@@ -727,7 +736,7 @@ share_examples_for 'A public Collection' do
 
   describe '#first_or_create' do
     describe 'with conditions that find an existing Resource' do
-      before do
+      before :all do
         @return = @resource = @articles.first_or_create(@article.attributes)
       end
 
@@ -749,7 +758,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with conditions that do not find an existing Resource' do
-      before do
+      before :all do
         @conditions = { :content => 'Unknown Content' }
         @attributes = {}
         @return = @resource = @articles.first_or_create(@conditions, @attributes)
@@ -779,7 +788,7 @@ share_examples_for 'A public Collection' do
 
   describe '#first_or_new' do
     describe 'with conditions that find an existing Resource' do
-      before do
+      before :all do
         @return = @resource = @articles.first_or_new(@article.attributes)
       end
 
@@ -801,7 +810,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with conditions that do not find an existing Resource' do
-      before do
+      before :all do
         @conditions = { :content => 'Unknown Content' }
         @attributes = {}
         @return = @resource = @articles.first_or_new(@conditions, @attributes)
@@ -829,7 +838,7 @@ share_examples_for 'A public Collection' do
 
   describe '#get' do
     describe 'with a key to a Resource within the Collection' do
-      before do
+      before :all do
         @return = @resource = @articles.get(*@article.key)
       end
 
@@ -843,7 +852,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key to a Resource not within the Collection' do
-      before do
+      before :all do
         @return = @articles.get(*@other.key)
       end
 
@@ -853,7 +862,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key not typecast' do
-      before do
+      before :all do
         @return = @resource = @articles.get(*@article.key.map { |v| v.to_s })
       end
 
@@ -867,7 +876,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key to a Resource within a Collection using a limit' do
-      before do
+      before :all do
         @articles = @articles.all(:limit => 1)
         @return = @resource = @articles.get(*@article.key)
       end
@@ -882,7 +891,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key to a Resource within a Collection using an offset' do
-      before do
+      before :all do
         @new = @articles.create(:content => 'New Article')
         @articles = @articles.all(:offset => 1, :limit => 1)
         @return = @resource = @articles.get(*@new.key)
@@ -898,7 +907,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key that is nil' do
-      before do
+      before :all do
         @key    = nil
         @return = @resource = @articles.get(@key)
       end
@@ -909,7 +918,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key that is an empty String' do
-      before do
+      before :all do
         @key    = ''
         @return = @resource = @articles.get(@key)
       end
@@ -924,7 +933,7 @@ share_examples_for 'A public Collection' do
 
   describe '#get!' do
     describe 'with a key to a Resource within the Collection' do
-      before do
+      before :all do
         @return = @resource = @articles.get!(*@article.key)
       end
 
@@ -946,7 +955,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key not typecast' do
-      before do
+      before :all do
         @return = @resource = @articles.get!(*@article.key.map { |v| v.to_s })
       end
 
@@ -960,7 +969,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key to a Resource within a Collection using a limit' do
-      before do
+      before :all do
         @articles = @articles.all(:limit => 1)
         @return = @resource = @articles.get!(*@article.key)
       end
@@ -975,7 +984,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key to a Resource within a Collection using an offset' do
-      before do
+      before :all do
         @new = @articles.create(:content => 'New Article')
         @articles = @articles.all(:offset => 1, :limit => 1)
         @return = @resource = @articles.get!(*@new.key)
@@ -991,7 +1000,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key that is nil' do
-      before do
+      before :all do
         @key = nil
       end
 
@@ -1003,7 +1012,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a key that is an empty String' do
-      before do
+      before :all do
         @key = ''
       end
 
@@ -1022,7 +1031,7 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
+    before :all do
       @resources = @other_articles
       @return = @articles.insert(0, *@resources)
     end
@@ -1047,7 +1056,7 @@ share_examples_for 'A public Collection' do
   it { @articles.should respond_to(:inspect) }
 
   describe '#inspect' do
-    before do
+    before :all do
       @copy = @articles.dup
       @copy << @model.new(:title => 'Other Article')
       @return = @copy.inspect
@@ -1065,12 +1074,13 @@ share_examples_for 'A public Collection' do
   it { @articles.should respond_to(:last) }
 
   describe '#last' do
-    before do
+    before :all do
       @copy = @articles.dup
+      @copy.to_a
     end
 
     describe 'with no arguments' do
-      before do
+      before :all do
         @return = @resource = @articles.last
       end
 
@@ -1092,7 +1102,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with no arguments', 'after appending to the collection' do
-      before do
+      before :all do
         @return = @resource = @articles.push(@other).last
       end
 
@@ -1114,7 +1124,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a query' do
-      before do
+      before :all do
         @return = @resource = @articles.last(:content => 'Sample')
       end
 
@@ -1132,7 +1142,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with limit specified' do
-      before do
+      before :all do
         @return = @resources = @articles.last(1)
       end
 
@@ -1158,8 +1168,10 @@ share_examples_for 'A public Collection' do
         pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
       end
 
-      before do
-        @return = @resources = @articles.push(@other).last(1)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @return = @resources = @articles.push(@other).last(1)
+        end
       end
 
       it 'should return a Collection' do
@@ -1180,7 +1192,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with limit and query specified' do
-      before do
+      before :all do
         @return = @resources = @articles.last(1, :content => 'Sample')
       end
 
@@ -1216,7 +1228,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a public model method' do
-      before do
+      before :all do
         @return = @articles.base_model
       end
 
@@ -1226,7 +1238,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a belongs_to relationship method' do
-      before do
+      before :all do
         @return = @collection = @articles.originals
       end
 
@@ -1240,14 +1252,14 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a has relationship method' do
-      before do
+      before :all do
         # associate the article with children
         @article.revisions << @other
         @article.save
       end
 
       describe 'with no arguments' do
-        before do
+        before :all do
           @return = @collection = @articles.revisions
         end
 
@@ -1261,7 +1273,7 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with arguments' do
-        before do
+        before :all do
           @return = @collection = @articles.revisions(:fields => [ :id ])
         end
 
@@ -1297,7 +1309,7 @@ share_examples_for 'A public Collection' do
   it { @articles.should respond_to(:new) }
 
   describe '#new' do
-    before do
+    before :all do
       @return = @resource = @articles.new(:content => 'Content')
     end
 
@@ -1329,7 +1341,7 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
+    before :all do
        @new_article = @articles.create(:title => 'Sample Article')
        @return = @resource = @articles.pop
     end
@@ -1358,7 +1370,7 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
+    before :all do
       @resources = [ @model.new(:title => 'Title 1'), @model.new(:title => 'Title 2') ]
       @return = @articles.push(*@resources)
     end
@@ -1388,7 +1400,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a block that matches a Resource in the Collection' do
-      before do
+      before :all do
         @resources = @articles.dup.entries
         @return = @articles.reject! { true }
       end
@@ -1411,7 +1423,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a block that does not match a Resource in the Collection' do
-      before do
+      before :all do
         @resources = @articles.dup.entries
         @return = @articles.reject! { false }
       end
@@ -1434,9 +1446,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with no arguments' do
-      before do
-        @resources = @articles.dup.entries
-        @return = @collection = @articles.reload
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @resources = @articles.dup.entries
+          @return = @collection = @articles.reload
+        end
       end
 
       it 'should return a Collection' do
@@ -1458,9 +1472,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a Hash query' do
-      before do
-        @resources = @articles.dup.entries
-        @return = @collection = @articles.reload(:fields => [ :content ])  # :title is a default field
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @resources = @articles.dup.entries
+          @return = @collection = @articles.reload(:fields => [ :content ])  # :title is a default field
+        end
       end
 
       it 'should return a Collection' do
@@ -1479,9 +1495,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a Query' do
-      before do
-        @query = DataMapper::Query.new(@repository, @model, :fields => [ :content ])  # :title is a default field
-        @return = @collection = @articles.reload(@query)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @query = DataMapper::Query.new(@repository, @model, :fields => [ :content ])  # :title is a default field
+          @return = @collection = @articles.reload(@query)
+        end
       end
 
       it 'should return a Collection' do
@@ -1508,9 +1526,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'when provided an Array of Resources' do
-      before do
-        @resources = @articles.dup.entries
-        @return = @articles.replace(@other_articles)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @resources = @articles.dup.entries
+          @return = @articles.replace(@other_articles)
+        end
       end
 
       it 'should return a Collection' do
@@ -1535,9 +1555,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'when provided an Array of Hashes' do
-      before do
-        @array = [ { :title => 'Hash Article', :content => 'From Hash' } ].freeze
-        @return = @articles.replace(@array)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @array = [ { :title => 'Hash Article', :content => 'From Hash' } ].freeze
+          @return = @articles.replace(@array)
+        end
       end
 
       it 'should return a Collection' do
@@ -1569,7 +1591,7 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
+    before :all do
       @new_article = @articles.create(:title => 'Sample Article')
       @return = @articles.reverse
     end
@@ -1591,9 +1613,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'when Resources are not saved' do
-      before do
-        @articles.new(:title => 'New Article', :content => 'New Article')
-        @return = @articles.save
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @articles.new(:title => 'New Article', :content => 'New Article')
+          @return = @articles.save
+        end
       end
 
       it 'should return true' do
@@ -1606,10 +1630,12 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'when Resources have been orphaned' do
-      before do
-        @resources = @articles.entries
-        @articles.replace([])
-        @return = @articles.save
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @resources = @articles.entries
+          @articles.replace([])
+          @return = @articles.save
+        end
       end
 
       it 'should return true' do
@@ -1629,7 +1655,7 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
+    before :all do
       @new_article = @articles.create(:title => 'Sample Article')
       @return = @resource = @articles.shift
     end
@@ -1655,14 +1681,14 @@ share_examples_for 'A public Collection' do
     it { @articles.should respond_to(method) }
 
     describe "##{method}" do
-      before do
+      before :all do
         1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
 
         @copy = @articles.dup
       end
 
       describe 'with a positive offset' do
-        before do
+        before :all do
           @return = @resource = @articles.send(method, 0)
         end
 
@@ -1688,7 +1714,7 @@ share_examples_for 'A public Collection' do
           pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
         end
 
-        before do
+        before :all do
           @return = @resources = @articles.send(method, 5, 5)
         end
 
@@ -1718,7 +1744,7 @@ share_examples_for 'A public Collection' do
           pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
         end
 
-        before do
+        before :all do
           @return = @resources = @articles.send(method, 5..10)
         end
 
@@ -1748,7 +1774,7 @@ share_examples_for 'A public Collection' do
           pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
         end
 
-        before do
+        before :all do
           @return = @resource = @articles.send(method, -1)
         end
 
@@ -1774,7 +1800,7 @@ share_examples_for 'A public Collection' do
           pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
         end
 
-        before do
+        before :all do
           @return = @resources = @articles.send(method, -5, 5)
         end
 
@@ -1804,7 +1830,7 @@ share_examples_for 'A public Collection' do
           pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
         end
 
-        before do
+        before :all do
           @return = @resources = @articles.send(method, -5..-2)
         end
 
@@ -1830,7 +1856,7 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with an offset not within the Collection' do
-        before do
+        before :all do
           @return = @articles.send(method, 12)
         end
 
@@ -1840,7 +1866,7 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with an offset and length not within the Collection' do
-        before do
+        before :all do
           @return = @articles.send(method, 12, 1)
         end
 
@@ -1854,7 +1880,7 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with a range not within the Collection' do
-        before do
+        before :all do
           @return = @articles.send(method, 12..13)
         end
 
@@ -1876,14 +1902,14 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
+    before :all do
       1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
 
       @copy = @articles.dup
     end
 
     describe 'with a positive offset' do
-      before do
+      before :all do
         @return = @resource = @articles.slice!(0)
       end
 
@@ -1909,8 +1935,10 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a positive offset and length' do
-      before do
-        @return = @resources = @articles.slice!(5, 5)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @return = @resources = @articles.slice!(5, 5)
+        end
       end
 
       it 'should return a Collection' do
@@ -1935,8 +1963,10 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a positive range' do
-      before do
-        @return = @resources = @articles.slice!(5..10)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @return = @resources = @articles.slice!(5..10)
+        end
       end
 
       it 'should return a Collection' do
@@ -1961,7 +1991,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a negative offset' do
-      before do
+      before :all do
         @return = @resource = @articles.slice!(-1)
       end
 
@@ -1983,8 +2013,10 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a negative offset and length' do
-      before do
-        @return = @resources = @articles.slice!(-5, 5)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @return = @resources = @articles.slice!(-5, 5)
+        end
       end
 
       it 'should return a Collection' do
@@ -2009,8 +2041,10 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a negative range' do
-      before do
-        @return = @resources = @articles.slice!(-3..-2)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @return = @resources = @articles.slice!(-3..-2)
+        end
       end
 
       it 'should return a Collection' do
@@ -2035,7 +2069,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with an offset not within the Collection' do
-      before do
+      before :all do
         @return = @articles.slice!(12)
       end
 
@@ -2045,7 +2079,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with an offset and length not within the Collection' do
-      before do
+      before :all do
         @return = @articles.slice!(12, 1)
       end
 
@@ -2055,7 +2089,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a range not within the Collection' do
-      before do
+      before :all do
         @return = @articles.slice!(12..13)
       end
 
@@ -2073,7 +2107,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'without a block' do
-      before do
+      before :all do
         @return = @articles.unshift(@other).sort!
       end
 
@@ -2091,7 +2125,7 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with a block' do
-      before do
+      before :all do
         @return = @articles.unshift(@other).sort! { |a,b| b.id <=> a.id }
       end
 
@@ -2117,7 +2151,7 @@ share_examples_for 'A public Collection' do
         pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
       end
 
-      before do
+      before :all do
         orphans = (1..10).map do |n|
           @articles.create(:content => "Article #{n}")
           @articles.pop  # remove the article from the tail
@@ -2131,7 +2165,7 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with a positive offset and a Resource' do
-        before do
+        before :all do
           @original = @copy[1]
           @original.collection.should be_equal(@articles)
 
@@ -2164,11 +2198,13 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with a positive offset and length and a Resource' do
-        before do
-          @original = @copy[2]
-          @original.collection.should be_equal(@articles)
+        before :all do
+          rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @original = @copy[2]
+            @original.collection.should be_equal(@articles)
 
-          @return = @resource = @articles.send(method, 2, 1, @new)
+            @return = @resource = @articles.send(method, 2, 1, @new)
+          end
         end
 
         it 'should return a Resource' do
@@ -2193,11 +2229,13 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with a positive range and a Resource' do
-        before do
-          @originals = @copy.values_at(2..3)
-          @originals.each { |o| o.collection.should be_equal(@articles) }
+        before :all do
+          rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @originals = @copy.values_at(2..3)
+            @originals.each { |o| o.collection.should be_equal(@articles) }
 
-          @return = @resource = @articles.send(method, 2..3, @new)
+            @return = @resource = @articles.send(method, 2..3, @new)
+          end
         end
 
         it 'should return a Resource' do
@@ -2222,11 +2260,13 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with a negative offset and a Resource' do
-        before do
-          @original = @copy[-1]
-          @original.collection.should be_equal(@articles)
+        before :all do
+          rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @original = @copy[-1]
+            @original.collection.should be_equal(@articles)
 
-          @return = @resource = @articles.send(method, -1, @new)
+            @return = @resource = @articles.send(method, -1, @new)
+          end
         end
 
         it 'should return a Resource' do
@@ -2255,11 +2295,13 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with a negative offset and length and a Resource' do
-        before do
-          @original = @copy[-2]
-          @original.collection.should be_equal(@articles)
+        before :all do
+          rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @original = @copy[-2]
+            @original.collection.should be_equal(@articles)
 
-          @return = @resource = @articles.send(method, -2, 1, @new)
+            @return = @resource = @articles.send(method, -2, 1, @new)
+          end
         end
 
         it 'should return a Resource' do
@@ -2284,11 +2326,13 @@ share_examples_for 'A public Collection' do
       end
 
       describe 'with a negative range and a Resource' do
-        before do
-          @originals = @copy.values_at(-3..-2)
-          @originals.each { |o| o.collection.should be_equal(@articles) }
+        before :all do
+          rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @originals = @copy.values_at(-3..-2)
+            @originals.each { |o| o.collection.should be_equal(@articles) }
 
-          @return = @resource = @articles.send(method, -3..-2, @new)
+            @return = @resource = @articles.send(method, -3..-2, @new)
+          end
         end
 
         it 'should return a Resource' do
@@ -2321,7 +2365,7 @@ share_examples_for 'A public Collection' do
       pending if @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
-    before do
+    before :all do
       @resources = [ @model.new(:title => 'Title 1'), @model.new(:title => 'Title 2') ]
       @return = @articles.unshift(*@resources)
     end
@@ -2351,8 +2395,10 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with no arguments' do
-      before do
-        @return = @articles.update
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @return = @articles.update
+        end
       end
 
       it 'should return true' do
@@ -2361,9 +2407,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with attributes' do
-      before do
-        @attributes = { :title => 'Updated Title' }
-        @return = @articles.update(@attributes)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @attributes = { :title => 'Updated Title' }
+          @return = @articles.update(@attributes)
+        end
       end
 
       it 'should return true' do
@@ -2381,9 +2429,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with attributes where one is a parent association' do
-      before do
-        @attributes = { :original => @other }
-        @return = @articles.update(@attributes)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @attributes = { :original => @other }
+          @return = @articles.update(@attributes)
+        end
       end
 
       it 'should return true' do
@@ -2409,8 +2459,10 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with no arguments' do
-      before do
-        @return = @articles.update!
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @return = @articles.update!
+        end
       end
 
       it 'should return true' do
@@ -2419,9 +2471,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with attributes' do
-      before do
-        @attributes = { :title => 'Updated Title' }
-        @return = @articles.update!(@attributes)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @attributes = { :title => 'Updated Title' }
+          @return = @articles.update!(@attributes)
+        end
       end
 
       it 'should return true' do
@@ -2443,9 +2497,11 @@ share_examples_for 'A public Collection' do
     end
 
     describe 'with attributes where one is a parent association' do
-      before do
-        @attributes = { :original => @other }
-        @return = @articles.update!(@attributes)
+      before :all do
+        rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @attributes = { :original => @other }
+          @return = @articles.update!(@attributes)
+        end
       end
 
       it 'should return true' do

@@ -1,5 +1,5 @@
 share_examples_for 'An Adapter' do
-  before do
+  before :all do
     %w[ @adapter @model @string_property @integer_property ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
@@ -8,7 +8,7 @@ share_examples_for 'An Adapter' do
   end
 
   describe 'initialization' do
-    before do
+    before :all do
       @adapter_class = @adapter.class
       @adapter_name = :test_abstract
       @options = {
@@ -25,7 +25,7 @@ share_examples_for 'An Adapter' do
     end
 
     describe 'name' do
-      before do
+      before :all do
         @a = @adapter_class.new(@adapter_name, @options)
       end
 
@@ -57,7 +57,7 @@ share_examples_for 'An Adapter' do
       end
 
       describe 'from a String uri' do
-        before do
+        before :all do
           uri = "abstract://paul:secret@hostname:12345/tmp?foo=bar"
           @a = @adapter_class.new(@adapter_name, uri)
         end
@@ -72,7 +72,7 @@ share_examples_for 'An Adapter' do
       end
 
       describe 'from an Addressable uri' do
-        before do
+        before :all do
           @uri = Addressable::URI.parse("abstract://paul:secret@hostname:12345/tmp?foo=bar")
           @a = @adapter_class.new(@adapter_name, @uri)
         end
@@ -87,7 +87,7 @@ share_examples_for 'An Adapter' do
       end
 
       describe 'from an options Hash' do
-        before do
+        before :all do
           @a = @adapter_class.new(@adapter_name, @options)
         end
 
@@ -101,7 +101,7 @@ share_examples_for 'An Adapter' do
   it { @adapter.should respond_to(:create) }
 
   describe '#create' do
-    before do
+    before :all do
       @return = @adapter.create([@resource])
     end
 
@@ -117,7 +117,7 @@ share_examples_for 'An Adapter' do
   it { @adapter.should respond_to(:update) }
 
   describe '#update' do
-    before do
+    before :all do
       @resource.save
       @return = @adapter.update({@string_property => 'red'}, DataMapper::Query.new(@repository, @model, @model.key.zip(@resource.key).to_hash))
     end
@@ -134,7 +134,7 @@ share_examples_for 'An Adapter' do
   it { @adapter.should respond_to(:read_one) }
 
   describe '#read_one' do
-    before do
+    before :all do
       @resource.save
       @return = @adapter.read_one(DataMapper::Query.new(@repository, @model, :id => @resource.id))
     end
@@ -151,7 +151,7 @@ share_examples_for 'An Adapter' do
   it { @adapter.should respond_to(:read_many) }
 
   describe '#read_many' do
-    before do
+    before :all do
       @resource.save
       @return = @adapter.read_many(DataMapper::Query.new(@repository, @model, :id => @resource.id))
     end
@@ -168,7 +168,7 @@ share_examples_for 'An Adapter' do
   it { @adapter.should respond_to(:delete) }
 
   describe '#delete' do
-    before do
+    before :all do
       @resource.save
       @return = @adapter.delete(DataMapper::Query.new(@repository, @model, :id => @resource.id))
     end
@@ -183,7 +183,7 @@ share_examples_for 'An Adapter' do
   end
 
   describe 'conditions' do
-    before do
+    before :all do
       @red = @model.create(@string_property.name => 'red')
       @two = @model.create(@integer_property.name => 2)
       @five = @model.create(@integer_property.name => 5)
@@ -250,7 +250,7 @@ share_examples_for 'An Adapter' do
     end
 
     describe 'like' do
-      before do
+      before :all do
         @using_sqlite3 = defined?(DataMapper::Adapters::Sqlite3Adapter) && @adapter.kind_of?(DataMapper::Adapters::Sqlite3Adapter)
       end
 

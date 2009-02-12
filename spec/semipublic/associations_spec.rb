@@ -1,24 +1,28 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Associations do
-  before do
+  before :all do
     class ::Car
       include DataMapper::Resource
+
       property :id, Serial
     end
 
     class ::Engine
       include DataMapper::Resource
+
       property :id, Serial
     end
 
     class ::Door
       include DataMapper::Resource
+
       property :id, Serial
     end
 
     class ::Window
       include DataMapper::Resource
+
       property :id, Serial
     end
   end
@@ -29,7 +33,7 @@ describe DataMapper::Associations do
 
   describe '#has' do
     describe '1' do
-      before do
+      before :all do
         @relationship = Car.has(1, :engine)
       end
 
@@ -51,7 +55,7 @@ describe DataMapper::Associations do
     end
 
     describe 'n..n' do
-      before do
+      before :all do
         @relationship = Car.has(1..4, :doors)
       end
 
@@ -73,7 +77,7 @@ describe DataMapper::Associations do
     end
 
     describe 'n..n through' do
-      before do
+      before :all do
         Door.has(1, :window)
         Car.has(1..4, :doors)
 
@@ -98,7 +102,7 @@ describe DataMapper::Associations do
     end
 
     describe 'n' do
-      before do
+      before :all do
         @relationship = Car.has(n, :doors)
       end
 
@@ -120,7 +124,7 @@ describe DataMapper::Associations do
     end
 
     describe 'n through' do
-      before do
+      before :all do
         Door.has(1, :windows)
         Car.has(1..4, :doors)
 
@@ -146,7 +150,7 @@ describe DataMapper::Associations do
   end
 
   describe '#belongs_to' do
-    before do
+    before :all do
       @relationship = Engine.belongs_to(:car)
     end
 

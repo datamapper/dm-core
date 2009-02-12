@@ -974,10 +974,11 @@ module DataMapper
       end
 
       sort_conditions = lambda do |(op, property, bind_value)|
+        # stringify conditions to allow comparison of raw vs. normal conditions
         if op == :raw
-          [ op.to_s, property, bind_value ]
+          [ op.to_s, property, *bind_value ].join(0.chr)
         else
-          [ op.to_s, property.model, property.name.to_s, bind_value ]
+          [ op.to_s, property.model, property.name.to_s, bind_value ].join(0.chr)
         end
       end
 

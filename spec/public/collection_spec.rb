@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
     self.loaded = loaded
 
-    before do
+    before :all do
       class ::Article
         include DataMapper::Resource
 
@@ -23,7 +23,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
     end
 
     supported_by :all do
-      before do
+      before :all do
         @original = @model.create(:title => 'Original Article')
         @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
         @other    = @model.create(:title => 'Other Article',  :content => 'Other')

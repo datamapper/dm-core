@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 describe DataMapper::Property do
 
   # define the model prior to supported_by
-  before do
+  before :all do
     class ::Track
       include DataMapper::Resource
 

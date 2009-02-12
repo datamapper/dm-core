@@ -13,7 +13,7 @@ module DataMapper::Spec
 
         describe("with #{adapter}") do
 
-          before do
+          before :all do
             # store these in instance vars for the shared adapter specs
             @adapter    = DataMapper.setup(:default, connection_uri)
             @repository = DataMapper.repository(@adapter.name)
@@ -24,7 +24,7 @@ module DataMapper::Spec
             end
           end
 
-          after do
+          after :all do
             # remove all tables and constraints after each spec
             if @repository.respond_to?(:auto_migrate_down)
               @repository.send(:auto_migrate_down)
@@ -44,7 +44,7 @@ module DataMapper::Spec
       ALTERNATE.only(*adapters).each do |adapter, connection_uri|
         describe("and #{adapter}") do
 
-          before do
+          before :all do
             @alternate_adapter    = DataMapper.setup(:alternate, connection_uri)
             @alternate_repository = DataMapper.repository(@alternate_adapter.name)
 
@@ -54,7 +54,7 @@ module DataMapper::Spec
             end
           end
 
-          after do
+          after :all do
             # remove all tables and constraints after each spec
             if @alternate_repository.respond_to?(:auto_migrate_down)
               @alternate_repository.send(:auto_migrate_down)

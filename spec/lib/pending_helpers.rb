@@ -7,5 +7,20 @@ module DataMapper::Spec
         yield
       end
     end
+
+    def rescue_if(message, boolean)
+      if boolean
+        raised = nil
+        begin
+          yield
+          raised = false
+        rescue Exception
+          raised = true
+        end
+        raise 'should have raised' if raised == false
+      else
+        yield
+      end
+    end
   end
 end

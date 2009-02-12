@@ -1,5 +1,5 @@
 share_examples_for 'A public Resource' do
-  before do
+  before :all do
     %w[ @model @user @child_model ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
@@ -10,7 +10,7 @@ share_examples_for 'A public Resource' do
 
     describe "##{method}" do
       describe 'when comparing to the same object' do
-        before do
+        before :all do
           @other  = @user
           @return = @user.send(method, @other)
         end
@@ -21,7 +21,7 @@ share_examples_for 'A public Resource' do
       end
 
       describe 'when comparing to an object that does not respond to model' do
-        before do
+        before :all do
           @other  = Object.new
           @return = @user.send(method, @other)
         end
@@ -32,7 +32,7 @@ share_examples_for 'A public Resource' do
       end
 
       describe 'when comparing to a resource with the same properties, but the model is a subclass' do
-        before do
+        before :all do
           @other  = Author.new(@user.attributes)
           @return = @user.send(method, @other)
         end
@@ -43,7 +43,7 @@ share_examples_for 'A public Resource' do
       end
 
       describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
-        before do
+        before :all do
           @other  = @model.get(*@user.key)
           @return = @user.send(method, @other)
         end
@@ -54,7 +54,7 @@ share_examples_for 'A public Resource' do
       end
 
       describe 'when comparing to a resource with the same repository, key but either self or the other resource is dirty' do
-        before do
+        before :all do
           @user.age = 20
           @other  = @model.get(*@user.key)
           @return = @user.send(method, @other)
@@ -66,7 +66,7 @@ share_examples_for 'A public Resource' do
       end
 
       describe 'when comparing to a resource with the same properties' do
-        before do
+        before :all do
           @other  = @model.new(@user.attributes)
           @return = @user.send(method, @other)
         end
@@ -78,7 +78,7 @@ share_examples_for 'A public Resource' do
 
       with_alternate_adapter do
         describe 'when comparing to a resource with a different repository, but the same properties' do
-          before do
+          before :all do
             @other = @alternate_repository.scope { @model.create(@user.attributes) }
             @return = @user.send(method, @other)
           end
@@ -95,7 +95,7 @@ share_examples_for 'A public Resource' do
 
   describe '#<=>' do
     describe 'when the default order properties are equal with another resource' do
-      before do
+      before :all do
         @other = User.new(:name => 'dbussink')
         @return = @user <=> @other
       end
@@ -106,7 +106,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'when the default order property values are sorted before another resource' do
-      before do
+      before :all do
         @other = User.new(:name => 'c')
         @return = @user <=> @other
       end
@@ -117,7 +117,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'when the default order property values are sorted after another resource' do
-      before do
+      before :all do
         @other = User.new(:name => 'e')
         @return = @user <=> @other
       end
@@ -164,7 +164,7 @@ share_examples_for 'A public Resource' do
 
   describe '#attributes=' do
     describe 'when a public mutator is specified' do
-      before do
+      before :all do
         @user.attributes = {:name => 'dkubb'}
       end
 
@@ -188,7 +188,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a single object' do
 
-      before do
+      before :all do
         @resource = @model.create(:name => "hacker", :age => 20)
         @return = @resource.destroy
       end
@@ -225,7 +225,7 @@ share_examples_for 'A public Resource' do
 
   describe '#eql?' do
     describe 'when comparing to the same object' do
-      before do
+      before :all do
         @other  = @user
         @return = @user.eql?(@other)
       end
@@ -236,7 +236,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'when comparing to an object that does not respond to model' do
-      before do
+      before :all do
         @other  = Object.new
         @return = @user.eql?(@other)
       end
@@ -247,7 +247,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'when comparing to a resource with the same properties, but the model is a subclass' do
-      before do
+      before :all do
         @other  = Author.new(@user.attributes)
         @return = @user.eql?(@other)
       end
@@ -258,7 +258,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'when comparing to a resource with a different key' do
-      before do
+      before :all do
         @other     = @model.create(:name => 'dkubb', :age => 33)
         @return    = @user.eql?(@other)
       end
@@ -269,7 +269,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
-      before do
+      before :all do
         @other  = @model.get(*@user.key)
         @return = @user.eql?(@other)
       end
@@ -280,7 +280,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'when comparing to a resource with the same repository, key but either self or the other resource is dirty' do
-      before do
+      before :all do
         @user.age = 20
         @other  = @model.get(*@user.key)
         @return = @user.eql?(@other)
@@ -292,7 +292,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'when comparing to a resource with the same properties' do
-      before do
+      before :all do
         @other  = @model.new(@user.attributes)
         @return = @user.eql?(@other)
       end
@@ -304,7 +304,7 @@ share_examples_for 'A public Resource' do
 
     with_alternate_adapter do
       describe 'when comparing to a resource with a different repository, but the same properties' do
-        before do
+        before :all do
           @other = @alternate_repository.scope { @model.create(@user.attributes) }
           @return = @user.eql?(@other)
         end
@@ -320,7 +320,7 @@ share_examples_for 'A public Resource' do
 
   describe '#inspect' do
 
-    before do
+    before :all do
       @user = @model.get(*@user.key)
       @inspected = @user.inspect
     end
@@ -339,7 +339,7 @@ share_examples_for 'A public Resource' do
 
   describe '#key' do
 
-    before do
+    before :all do
       @key = @user.key
       @user.name = 'dkubb'
     end
@@ -378,7 +378,7 @@ share_examples_for 'A public Resource' do
 
   describe '#reload' do
 
-    before do
+    before :all do
       @user.name = 'dkubb'
       @user.description = 'test'
       @user.reload
@@ -398,7 +398,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a new, not dirty object' do
 
-      before do
+      before :all do
         @user = @model.new
         @return = @user.save
       end
@@ -419,7 +419,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a not new, dirty object' do
 
-      before do
+      before :all do
         @user.age = 26
         @return = @user.save
       end
@@ -434,7 +434,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'on a dirty invalid object' do
-      before do
+      before :all do
         @user.name = nil
       end
 
@@ -445,6 +445,7 @@ share_examples_for 'A public Resource' do
 
     describe 'with new resources in a has relationship' do
 
+      # TODO: change to before :all after pending block dropped
       before do
         pending_if 'TODO: fix for one to one association', (!@user.respond_to?(:comments)) do
           @initial_comments = @user.comments.size
@@ -486,7 +487,13 @@ share_examples_for 'A public Resource' do
 
     describe 'with dirty resources in a has relationship' do
 
+      # TODO: change to before :all after pending block dropped
       before do
+
+        # TODO: remove once this is a before :all block
+        User.all.destroy!
+        Comment.all.destroy!
+
         pending_if 'TODO: fix for one to one association', (!@user.respond_to?(:comments)) do
           @initial_comments = @user.comments.size
           @first_comment    = @user.comments.create(:body => "DM is great!")
@@ -515,7 +522,7 @@ share_examples_for 'A public Resource' do
 
     describe 'with a new parent object' do
 
-      before do
+      before :all do
         @first_comment      = Comment.new(:body => "DM is great!")
         @first_comment.user = @model.new(:name => 'dkubb')
       end
@@ -530,6 +537,7 @@ share_examples_for 'A public Resource' do
 
     describe 'with a dirty parent object' do
 
+      # TODO: change to before :all after pending block dropped
       before do
         pending_if 'TODO: fix for one to one association', (!@user.respond_to?(:comments)) do
           @first_comment = @user.comments.new(:body => "DM is great!")
@@ -554,6 +562,7 @@ share_examples_for 'A public Resource' do
 
     describe 'with a new object and new relations' do
 
+      # TODO: change to before :all after pending block dropped
       before do
         @article = Article.new(:body => "Main")
         pending_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
@@ -563,6 +572,7 @@ share_examples_for 'A public Resource' do
       end
 
       it { @article.should_not be_dirty }
+
       it { @paragraph.should_not be_dirty }
 
       it 'should set the related object' do
@@ -576,7 +586,7 @@ share_examples_for 'A public Resource' do
 
     describe 'with a dirty object with a changed key' do
 
-      before do
+      before :all do
         @user.name = 'dkubb'
         @return = @user.save
       end
@@ -621,7 +631,7 @@ share_examples_for 'A public Resource' do
 
   describe '#update' do
     describe 'with no arguments' do
-      before do
+      before :all do
         @return = @user.update
       end
 
@@ -631,7 +641,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'with attributes' do
-      before do
+      before :all do
         @attributes = { :description => 'Changed' }
         @return = @user.update(@attributes)
       end
@@ -651,7 +661,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'with attributes where one is a parent association' do
-      before do
+      before :all do
         @attributes = { :referrer => @model.create(:name => 'dkubb', :age => 33) }
         @return = @user.update(@attributes)
       end
@@ -671,7 +681,7 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'with attributes where a value is nil for a property that does not allow nil' do
-      before do
+      before :all do
         @return = @user.update(:name => nil)
       end
 
@@ -687,7 +697,7 @@ share_examples_for 'A public Resource' do
 
   describe 'invalid resources' do
 
-    before do
+    before :all do
       class ::EmptyObject
         include DataMapper::Resource
       end

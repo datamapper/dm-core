@@ -11,8 +11,9 @@ require 'ruby-prof'
 gem 'faker', '~>0.3.1'
 require 'faker'
 
-#OUTPUT = DataMapper.root / 'profile_results.txt'
-OUTPUT = DataMapper.root / 'profile_results.html'
+TEXT_OUTPUT = DataMapper.root / 'profile_results.txt'
+HTML_OUTPUT = DataMapper.root / 'profile_results.html'
+CALL_OUTPUT = DataMapper.root / 'profile_results.prof'
 
 SOCKET_FILE = Pathname.glob(%w[
   /opt/local/var/run/mysql5/mysqld.sock
@@ -87,10 +88,19 @@ end
 
 # RubyProf, making profiling Ruby pretty since 1899!
 def profile(&b)
-  result  = RubyProf.profile &b
-  #printer = RubyProf::FlatPrinter.new(result)
-  printer = RubyProf::GraphHtmlPrinter.new(result)
-  printer.print(OUTPUT.open('w+'))
+  results = RubyProf.profile(&b)
+
+  TEXT_OUTPUT.open('w+') do |file|
+    RubyProf::FlatPrinter.new(results).print(file)
+  end
+
+  HTML_OUTPUT.open('w+') do |file|
+    RubyProf::GraphHtmlPrinter.new(results).print(file)
+  end
+
+  CALL_OUTPUT.open('w+') do |file|
+    RubyProf::CallTreePrinter.new(results).print(file)
+  end
 end
 
 c = configuration_options
@@ -150,11 +160,11 @@ TIMES = 10_000
 exhibits = Exhibit.all.to_a
 
 profile do
-#  dm_obj = Exhibit.get(1)
-#
-#  puts 'Model#id'
-#  (TIMES * 100).times { dm_obj.id }
-#
+  dm_obj = Exhibit.get(1)
+
+  puts 'Model#id'
+  (TIMES * 100).times { dm_obj.id }
+
 #  puts 'Model.new (instantiation)'
 #  TIMES.times { Exhibit.new }
 #
@@ -168,10 +178,10 @@ profile do
 #  repository(:default) do
 #    TIMES.times { touch_attributes(Exhibit.get(1)) }
 #  end
-
-  puts 'Model.first'
-  TIMES.times { touch_attributes(Exhibit.first) }
-
+#
+#  puts 'Model.first'
+#  TIMES.times { touch_attributes(Exhibit.first) }
+#
 #  puts 'Model.all limit(100)'
 #  (TIMES / 10).ceil.times { touch_attributes(Exhibit.all(:limit => 100)) }
 #

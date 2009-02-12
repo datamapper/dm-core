@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Resource, 'Transactions' do
-  before do
+  before :all do
     class ::User
       include DataMapper::Resource
 
@@ -45,6 +45,12 @@ describe DataMapper::Resource, 'Transactions' do
   end
 
   supported_by :postgres, :mysql do
+    before :all do
+      @model       = User
+      @child_model = Comment
+      @user        = @model.create(:name => 'dbussink', :age => 25, :description => "Test")
+    end
+
     before do
       # --- Temporary private api use to get around rspec limitations ---
       @repository.scope do |r|
@@ -52,10 +58,6 @@ describe DataMapper::Resource, 'Transactions' do
         transaction.begin
         r.adapter.push_transaction(transaction)
       end
-
-      @model       = User
-      @child_model = Comment
-      @user        = @model.create(:name => 'dbussink', :age => 25, :description => "Test")
     end
 
     after do
@@ -71,6 +73,10 @@ describe DataMapper::Resource, 'Transactions' do
   supported_by :postgres, :mysql do
 
     describe "#transaction" do
+
+      before do
+        User.all.destroy!
+      end
 
       it "should have access to resources presisted before the transaction" do
         User.create(:name => "carllerche")

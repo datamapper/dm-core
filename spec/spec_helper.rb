@@ -73,7 +73,7 @@ DataMapper::Logger.new(nil, :debug)
 Spec::Runner.configure do |config|
   config.extend(DataMapper::Spec::AdapterHelpers)
   config.include(DataMapper::Spec::PendingHelpers)
-  config.after(:each) do
+  config.after :all do
     # clear out models
     descendants = DataMapper::Model.descendants.dup.to_a
     while model = descendants.shift

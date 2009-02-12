@@ -1,7 +1,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Associations do
-  before do
+  before :all do
     class ::Car
       include DataMapper::Resource
       property :id, Serial
@@ -31,7 +31,7 @@ describe DataMapper::Associations do
 
   describe '#has' do
     describe '1' do
-      before do
+      before :all do
         Car.has(1, :engine)
 
         @car = Car.new
@@ -47,7 +47,7 @@ describe DataMapper::Associations do
     end
 
     describe 'n..n' do
-      before do
+      before :all do
         Car.has(1..4, :doors)
 
         @car = Car.new
@@ -63,7 +63,7 @@ describe DataMapper::Associations do
     end
 
     describe 'n..n through' do
-      before do
+      before :all do
         Door.has(1, :window)
         Car.has(1..4, :doors)
         Car.has(1..4, :windows, :through => :doors)
@@ -81,7 +81,7 @@ describe DataMapper::Associations do
     end
 
     describe 'n' do
-      before do
+      before :all do
         Car.has(n, :doors)
 
         @car = Car.new
@@ -97,7 +97,7 @@ describe DataMapper::Associations do
     end
 
     describe 'n through' do
-      before do
+      before :all do
         Door.has(1, :window)
         Car.has(n, :doors)
         Car.has(n, :windows, :through => :doors)
@@ -126,7 +126,7 @@ describe DataMapper::Associations do
   it { Engine.should respond_to(:belongs_to) }
 
   describe '#belongs_to' do
-    before do
+    before :all do
       Engine.belongs_to(:car)
       Car.has(n, :engines)
 
@@ -152,7 +152,7 @@ describe DataMapper::Associations do
     # TODO: move the "querying" specs to the ManyToOne specs
     supported_by :all do
       describe 'querying for a parent resource' do
-        before do
+        before :all do
           @car = Car.create
           @engine = Engine.create(:car => @car)
           @resource = @engine.car(:id => @car.id)
@@ -168,7 +168,7 @@ describe DataMapper::Associations do
       end
 
       describe 'querying for a parent resource that does not exist' do
-        before do
+        before :all do
           @car = Car.create
           @engine = Engine.create(:car => @car)
           @resource = @engine.car(:id.not => @car.id)
@@ -180,7 +180,7 @@ describe DataMapper::Associations do
       end
 
       describe 'changing the parent resource' do
-        before do
+        before :all do
           @car = Car.create
           @engine = Engine.new
           @engine.car = @car
@@ -198,7 +198,7 @@ describe DataMapper::Associations do
       end
 
       describe 'changing the parent foreign key' do
-        before do
+        before :all do
           @car = Car.create
 
           @engine = Engine.new
@@ -211,7 +211,7 @@ describe DataMapper::Associations do
       end
 
       describe 'changing an existing resource through the relation' do
-        before do
+        before :all do
           @car1 = Car.create
           @car2 = Car.create
           @engine = Engine.create(:car => @car1)
@@ -230,7 +230,7 @@ describe DataMapper::Associations do
       end
 
       describe 'changing an existing resource through the relation' do
-        before do
+        before :all do
           @car1 = Car.create
           @car2 = Car.create
           @engine = Engine.create(:car => @car1)

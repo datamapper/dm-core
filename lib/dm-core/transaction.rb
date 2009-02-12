@@ -303,7 +303,7 @@ module DataMapper
       #
       # @api private
       def transaction_primitive
-        DataObjects::Transaction.create_for_uri(@uri)
+        DataObjects::Transaction.create_for_uri(normalized_uri)
       end
 
       ##
