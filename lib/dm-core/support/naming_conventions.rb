@@ -21,7 +21,7 @@ module DataMapper
   # use code like this:
   #
   #   adapter = DataMapper.setup(:default, "mock://localhost/mock")
-  #   adapter.resource_naming_convention = DataMapper::NamingConventions::Resource::Underscored
+  #   adapter.resource_naming_convention = NamingConventions::Resource::Underscored
   module NamingConventions
 
     module Resource

@@ -25,7 +25,7 @@ require "time" # httpdate
 # ==== Private DataMapper Logger API
 #
 # To initialize the logger you create a new object, proxies to set_log.
-#   DataMapper::Logger.new(log{String, IO}, level{Symbol, String})
+#   Logger.new(log{String, IO}, level{Symbol, String})
 #
 # Logger will not create the file until something is actually logged
 # This avoids file creation on DataMapper init when it creates the
@@ -53,7 +53,7 @@ module DataMapper
     #     info:  generic (useful) information about system operation
     #     debug: low-level information for developers
     #
-    #   DataMapper::Logger::LEVELS[:off, :fatal, :error, :warn, :info, :debug]
+    #   Logger::LEVELS[:off, :fatal, :error, :warn, :info, :debug]
     LEVELS =
     {
       :off   => 99999,
@@ -136,7 +136,7 @@ module DataMapper
     public
 
     # To initialize the logger you create a new object, proxies to set_log.
-    #   DataMapper::Logger.new(log{String, IO},level{Symbol, String})
+    #   Logger.new(log{String, IO},level{Symbol, String})
     #
     # @param log<IO,String>        either an IO object or a name of a logfile.
     # @param log_level<String>     the message string to be logged

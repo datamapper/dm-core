@@ -1,7 +1,7 @@
 module DataMapper
   module Associations
     module ManyToOne
-      class Relationship < DataMapper::Associations::Relationship
+      class Relationship < Associations::Relationship
         # TODO: document
         # @api semipublic
         def query_for(child)

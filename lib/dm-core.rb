@@ -129,7 +129,7 @@ module DataMapper
   #   an invalid argument was passed for name[Symbol]
   # @raise [ArgumentError] "+uri_or_options+ must be a Hash, URI or String,
   #   but was..." indicates that connection information could not be gleaned
-  #   from the given uri_or_options<Hash, Addressable::URI, String>
+  #   from the given uri_or_options[Hash, Addressable::URI, String]
   #
   # @api public
   def self.setup(name, uri_or_options)
@@ -163,8 +163,10 @@ module DataMapper
   #   a new Session.
   #
   # @param [Symbol] args the name of a repository to act within or return, :default is default
+  #
   # @yield [Proc] (optional) block to execute within the context of the named repository
-  # @demo spec/integration/repository_spec.rb
+  #
+  # @api public
   def self.repository(name = nil) # :yields: current_context
     current_repository = if name
       raise ArgumentError, "First optional argument must be a Symbol, but was #{name.inspect}" unless name.kind_of?(Symbol)

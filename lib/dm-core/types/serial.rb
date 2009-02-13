@@ -1,6 +1,6 @@
 module DataMapper
   module Types
-    class Serial < DataMapper::Type
+    class Serial < Type
       primitive Integer
       serial true
     end # class Text

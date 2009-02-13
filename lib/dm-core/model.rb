@@ -10,7 +10,7 @@ module DataMapper
     # @param [Proc] block
     #   a block that will be eval'd in the context of the new Model class
     #
-    # @return [DataMapper::Model]
+    # @return [Model]
     #   the newly created Model class
     #
     # @api semipublic
@@ -39,7 +39,7 @@ module DataMapper
     end
 
     ##
-    # Return all classes that extend the DataMapper::Model module
+    # Return all classes that extend the Model module
     #
     #   Class Foo
     #     include DataMapper::Resource
@@ -56,14 +56,13 @@ module DataMapper
     end
 
     ##
-    # Appends a module for inclusion into the model class after
-    # DataMapper::Resource.
+    # Appends a module for inclusion into the model class after Resource.
     #
-    # This is a useful way to extend DataMapper::Resource while still retaining
-    # a self.included method.
+    # This is a useful way to extend Resource while still retaining a
+    # self.included method.
     #
     # @param [Module] inclusions
-    #   the module that is to be appended to the module after DataMapper::Resource
+    #   the module that is to be appended to the module after Resource
     #
     # @return [TrueClass, FalseClass]
     #   true if the inclusions have been successfully appended to the list
@@ -85,15 +84,12 @@ module DataMapper
     end
 
     ##
-    # Extends the model with this module after DataMapper::Resource has been
-    # included.
+    # Extends the model with this module after Resource has been included.
     #
-    # This is a useful way to extend DataMapper::Model while
-    # still retaining a self.extended method.
+    # This is a useful way to extend Model while still retaining a self.extended method.
     #
     # @param [Module] extensions
-    #   List of modules that will extend the model after it is
-    #   extended by DataMapper::Model
+    #   List of modules that will extend the model after it is extended by Model
     #
     # @return [TrueClass, FalseClass]
     #   whether or not the inclusions have been successfully appended to the list
@@ -121,7 +117,7 @@ module DataMapper
         model.send(:include, Resource)
       end
 
-      descendants << model
+      Model.descendants << model
 
       model.instance_variable_set(:@storage_names,            {})
       model.instance_variable_set(:@properties,               {})
@@ -140,7 +136,7 @@ module DataMapper
     # @api private
     chainable do
       def inherited(target)
-        DataMapper::Model.descendants << target
+        Model.descendants << target
 
         target.instance_variable_set(:@storage_names,            @storage_names.dup)
         target.instance_variable_set(:@properties,               {})
@@ -218,15 +214,15 @@ module DataMapper
     #
     # @param [Symbol] name
     #   the name for which to call this property
-    # @param [DataMapper::Type] type
+    # @param [Type] type
     #   the type to define this property ass
     # @param [Hash(Symbol => String)] options
     #   a hash of available options
     #
-    # @return [DataMapper::Property]
+    # @return [Property]
     #   the created Property
     #
-    # @see DataMapper::Property
+    # @see Property
     #
     # @api public
     def property(name, type, options = {})
@@ -334,7 +330,7 @@ module DataMapper
     # @param [Object] *key
     #   The primary key or keys to use for lookup
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   A single model that was found
     # @return [NilClass]
     #   If no instance was found matching +key+
@@ -353,7 +349,7 @@ module DataMapper
     #
     # @param [Object] *key
     #   The primary key or keys to use for lookup
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   A single model that was found
     # @raise [ObjectNotFoundError]
     #   The record was not found
@@ -374,9 +370,9 @@ module DataMapper
     #
     # @param [Hash] query
     #   A hash describing the conditions and order for the query
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   A set of records found matching the conditions in +query+
-    # @see DataMapper::Collection
+    # @see Collection
     #
     # @api public
     def all(query = nil)
@@ -395,7 +391,7 @@ module DataMapper
     #
     # @param [Hash] query
     #   A hash describing the conditions and order for the query
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   The first record found by the query
     #
     # @api public
@@ -420,7 +416,7 @@ module DataMapper
     #   The conditions to be used to search
     # @param [Hash] attributes
     #   The attributes to be used to create the record of none is found.
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   The instance found by +query+, or created with +attributes+ if none found
     #
     # @api public
@@ -436,7 +432,7 @@ module DataMapper
     #   The conditions to be used to search
     # @param [Hash] attributes
     #   The attributes to be used to create the record of none is found.
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   The instance found by +query+, or created with +attributes+ if none found
     #
     # @api public
@@ -450,7 +446,7 @@ module DataMapper
     # @param [Hash(Symbol => Object)] attributes
     #   hash of attributes to set
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   the newly initialized Resource instance
     #
     # @api public
@@ -474,7 +470,7 @@ module DataMapper
     # @param [Hash(Symbol => Object)] attributes
     #   hash of attributes to set
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   the newly created (and saved) Resource instance
     #
     # @api public
@@ -495,7 +491,7 @@ module DataMapper
     #   The conditions with which to find the records to copy. These
     #   conditions are merged with Model.query
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   A Collection of the Resource instances created in the operation
     #
     # @api public
@@ -519,7 +515,7 @@ module DataMapper
     # @param [Array(Object)] values
     #   an Array of values to load as the instance's values
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   the loaded Resource instance
     #
     # @api semipublic
@@ -608,7 +604,7 @@ module DataMapper
     # @param [Block] block
     #   block to execute with the fetched repository as parameter
     #
-    # @return [Object, DataMapper::Respository]
+    # @return [Object, Respository]
     #   whatever the block returns, if given a block,
     #   otherwise the requested repository.
     #
@@ -704,9 +700,9 @@ module DataMapper
         warn "#{name} prefix deprecated and no longer necessary"
         self
       elsif name == :Resource
-        DataMapper::Resource
-      elsif DataMapper::Types.const_defined?(name)
-        DataMapper::Types.const_get(name)
+        Resource
+      elsif Types.const_defined?(name)
+        Types.const_get(name)
       else
         super
       end
@@ -721,7 +717,7 @@ module DataMapper
     ##
     # Initializes a new Collection
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   A new Collection object
     #
     # @api private
@@ -730,7 +726,7 @@ module DataMapper
     end
 
     # @api private
-    # TODO: move the logic to create relative query into DataMapper::Query
+    # TODO: move the logic to create relative query into Query
     def scoped_query(query)
       if query.kind_of?(Query)
         query
@@ -760,7 +756,7 @@ module DataMapper
 
       if relationship = self.relationships(repository_name)[method]
         klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
-        return DataMapper::Query::Path.new(repository, [ relationship ], klass)
+        return Query::Path.new(repository, [ relationship ], klass)
       end
 
       if property = properties(repository_name)[method]

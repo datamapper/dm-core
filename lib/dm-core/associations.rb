@@ -54,9 +54,11 @@ module DataMapper
     #
     #  class Plur
     #    include DataMapper::Resource
+    #
     #    def self.default_repository_name
     #      :plur_db
     #    end
+    #
     #    repository(:plupp_db) do
     #      has 1, :plupp
     #    end
@@ -66,7 +68,7 @@ module DataMapper
     # but the Plur resource needs the plupp_id property no matter what repository itself lives in,
     # ie we need to create that property when we migrate etc.
     #
-    # Used in DataMapper::Model.properties_with_subclasses
+    # Used in Model.properties_with_subclasses
     #
     # @api private
     def many_to_one_relationships
@@ -101,10 +103,10 @@ module DataMapper
     #
     # @option :through[Symbol]  A association that this join should go through to form
     #       a many-to-many association
-    # @option :model[DataMapper::Model,String] The name of the class to associate with, if omitted
+    # @option :model[Model,String] The name of the class to associate with, if omitted
     #       then the association name is assumed to match the class name
     #
-    # @return [DataMapper::Association::Relationship] the relationship that was
+    # @return [Association::Relationship] the relationship that was
     #   created to reflect either a one-to-one, one-to-many or many-to-many
     #   relationship
     # @raise [ArgumentError] if the cardinality was not understood. Should be a
@@ -146,7 +148,7 @@ module DataMapper
     # @param name [Symbol] The name that the association will be referenced by
     # @see #has
     #
-    # @return [DataMapper::Association::Relationship] The association created
+    # @return [Association::Relationship] The association created
     #   should not be accessed directly
     #
     # @api public

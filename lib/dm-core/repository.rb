@@ -8,7 +8,7 @@ module DataMapper
     #
     #   TODO: create example
     #
-    # @return [Hash(Symbol => DataMapper::Adapters::AbstractAdapter)]
+    # @return [Hash(Symbol => Adapters::AbstractAdapter)]
     #   the adapters registered for all Repositories
     #
     # @api private
@@ -51,7 +51,7 @@ module DataMapper
     #
     #   TODO: create example
     #
-    # @return [DataMapper::Adapters::AbstractAdapter]
+    # @return [Adapters::AbstractAdapter]
     #   the adapter for this repository
     #
     # @raise [ArgumentError]
@@ -78,10 +78,10 @@ module DataMapper
     #
     #   TODO: create example
     #
-    # @param [DataMapper::Model] model
+    # @param [Model] model
     #   Model whose identity map should be returned
     #
-    # @return [DataMapper::IdentityMap]
+    # @return [IdentityMap]
     #   The IdentityMap for model in this Repository
     #
     # @api private
@@ -94,7 +94,7 @@ module DataMapper
     #
     #   TODO: create example
     #
-    # @yieldparam [DataMapper::Repository] repository
+    # @yieldparam [Repository] repository
     #   yields self within the block
     #
     # @yield
@@ -116,7 +116,7 @@ module DataMapper
     #
     #   TODO: create example
     #
-    # @param [Enumerable(DataMapper::Resource)] resources
+    # @param [Enumerable(Resource)] resources
     #   The list of resources (model instances) to create
     #
     # @return [Integer]
@@ -148,10 +148,10 @@ module DataMapper
     #
     #   TODO: create example
     #
-    # @param [DataMapper::Query] query
+    # @param [Query] query
     #   composition of the query to perform
     #
-    # @return [DataMapper::Resource,NilClass]
+    # @return [Resource,NilClass]
     #   The first retrieved instance which matches the query, or nil
     #   if none found
     #
@@ -165,9 +165,9 @@ module DataMapper
     #
     #   TODO: create example
     #
-    # @param [Hash(DataMapper::Property => Object)] attributes
+    # @param [Hash(Property => Object)] attributes
     #   hash of attribute values to set, keyed by Property
-    # @param [DataMapper::Query] query
+    # @param [Query] query
     #   specifies which records are to be updated
     #
     # @return [Integer]
@@ -183,7 +183,7 @@ module DataMapper
     #
     #   TODO: create example
     #
-    # @param [DataMapper::Query] query
+    # @param [Query] query
     #   specifies which records are to be deleted
     #
     # @return [Integer]

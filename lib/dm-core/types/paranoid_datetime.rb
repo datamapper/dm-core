@@ -1,6 +1,6 @@
 module DataMapper
   module Types
-    class ParanoidDateTime < DataMapper::Type(DateTime)
+    class ParanoidDateTime < Type
       primitive DateTime
       lazy      true
 

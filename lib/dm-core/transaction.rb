@@ -4,10 +4,10 @@ module DataMapper
   class Transaction
     extend Chainable
 
+    ##
+    # Create a new Transaction
     #
-    # Create a new DataMapper::Transaction
-    #
-    # @see DataMapper::Transaction#link
+    # @see Transaction#link
     #
     # In fact, it just calls #link with the given arguments at the end of the
     # constructor.
@@ -21,19 +21,19 @@ module DataMapper
       commit { |*block_args| yield(*block_args) } if block_given?
     end
 
-    #
+    ##
     # Associate this Transaction with some things.
     #
     # @param things<any number of Object>  the things you want this Transaction
     #   associated with
     # @details [things a Transaction may be associatied with]
-    #   DataMapper::Adapters::AbstractAdapter subclasses will be added as
+    #   Adapters::AbstractAdapter subclasses will be added as
     #     adapters as is.
     #   Arrays will have their elements added.
-    #   DataMapper::Repositories will have their @adapters added.
-    #   DataMapper::Resource subclasses will have all the repositories of all
+    #   Repository will have it's own @adapters added.
+    #   Resource subclasses will have all the repositories of all
     #     their properties added.
-    #   DataMapper::Resource instances will have all repositories of all their
+    #   Resource instances will have all repositories of all their
     #     properties added.
     # @param block<Block> a block (taking one argument, the Transaction) to execute
     #   within this transaction. The transaction will begin and commit around
@@ -45,13 +45,13 @@ module DataMapper
       things.each do |thing|
         if thing.kind_of?(Array)
           link(*thing)
-        elsif thing.kind_of?(DataMapper::Adapters::AbstractAdapter)
+        elsif thing.kind_of?(Adapters::AbstractAdapter)
           @adapters[thing] = :none
-        elsif thing.kind_of?(DataMapper::Repository)
+        elsif thing.kind_of?(Repository)
           link(thing.adapter)
-        elsif thing.kind_of?(Class) && thing.ancestors.include?(DataMapper::Resource)
+        elsif thing.kind_of?(Class) && thing.ancestors.include?(Resource)
           link(*thing.repositories)
-        elsif thing.kind_of?(DataMapper::Resource)
+        elsif thing.kind_of?(Resource)
           link(thing.model)
         else
           raise "Unknown argument to #{self}#link: #{thing.inspect}"
@@ -61,7 +61,7 @@ module DataMapper
       return self
     end
 
-    #
+    ##
     # Begin the transaction
     #
     # Before #begin is called, the transaction is not valid and can not be used.
@@ -74,7 +74,7 @@ module DataMapper
       @state = :begin
     end
 
-    #
+    ##
     # Commit the transaction
     #
     # @param block<Block>   a block (taking the one argument, the Transaction) to
@@ -107,7 +107,7 @@ module DataMapper
       end
     end
 
-    #
+    ##
     # Rollback the transaction
     #
     # Will undo all changes made during the transaction.
@@ -121,7 +121,7 @@ module DataMapper
       @state = :rollback
     end
 
-    #
+    ##
     # Execute a block within this Transaction.
     #
     # @param block<Block> the block of code to execute.
@@ -150,7 +150,7 @@ module DataMapper
 
     # @api private
     def method_missing(meth, *args, &block)
-      if args.size == 1 && args.first.kind_of?(DataMapper::Adapters::AbstractAdapter)
+      if args.size == 1 && args.first.kind_of?(Adapters::AbstractAdapter)
         if (match = meth.to_s.match(/^(.*)_if_(none|begin|prepare|rollback|commit)$/))
           if self.respond_to?(match[1], true)
             self.send(match[1], args.first) if state_for(args.first).to_s == match[2]
@@ -297,7 +297,7 @@ module DataMapper
       ##
       # Produces a fresh transaction primitive for this Adapter
       #
-      # Used by DataMapper::Transaction to perform its various tasks.
+      # Used by Transaction to perform its various tasks.
       #
       # @return [Object]
       #   a new Object that responds to :close, :begin, :commit,
@@ -313,10 +313,10 @@ module DataMapper
       # that everything done by this Adapter is done within the context of said
       # Transaction.
       #
-      # @param [DataMapper::Transaction] transaction
+      # @param [Transaction] transaction
       #   a Transaction to be the 'current' transaction until popped.
       #
-      # @return [Array(DataMapper::Transaction)]
+      # @return [Array(Transaction)]
       #   the stack of active transactions for the current thread
       #
       # @api private
@@ -329,7 +329,7 @@ module DataMapper
       # that everything done by this Adapter is no longer necessarily within the
       # context of said Transaction.
       #
-      # @return [DataMapper::Transaction]
+      # @return [Transaction]
       #   the former 'current' transaction.
       #
       # @api private
@@ -343,7 +343,7 @@ module DataMapper
       # Everything done by this Adapter is done within the context of this
       # Transaction.
       #
-      # @return [DataMapper::Transaction]
+      # @return [Transaction]
       #   the 'current' transaction for this Adapter.
       #
       # @api private
@@ -382,7 +382,7 @@ module DataMapper
       ##
       # Retrieve the current connection for this Adapter.
       #
-      # @return [DataMapper::Transaction]
+      # @return [Transaction]
       #   the 'current' connection for this Adapter.
       #
       # @api private
@@ -400,36 +400,37 @@ module DataMapper
       ##
       # Produce a new Transaction for this Repository
       #
-      # @return [DataMapper::Adapters::Transaction]
+      # @return [Adapters::Transaction]
       #   a new Transaction (in state :none) that can be used
       #   to execute code #with_transaction
       #
       # @api semipublic
       def transaction
-        DataMapper::Transaction.new(self)
+        Transaction.new(self)
       end
     end # module Repository
 
     module Model
-      #
+      ##
       # Produce a new Transaction for this Resource class
       #
-      # @return <DataMapper::Adapters::Transaction
-      #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
-      #   of the class of this DataMapper::Resource added.
+      # @return <Adapters::Transaction
+      #   a new Adapters::Transaction with all Repositories
+      #   of the class of this Resource added.
       #
       # @api public
       def transaction
-        DataMapper::Transaction.new(self) { |block_args| yield(*block_args) }
+        Transaction.new(self) { |block_args| yield(*block_args) }
       end
     end # module Model
 
     module Resource
+      ##
       # Produce a new Transaction for the class of this Resource
       #
-      # @return [DataMapper::Adapters::Transaction]
-      #   a new DataMapper::Adapters::Transaction with all DataMapper::Repositories
-      #   of the class of this DataMapper::Resource added.
+      # @return [Adapters::Transaction]
+      #   a new Adapters::Transaction for the Repository
+      #   of the class of this Resource added.
       #
       # @api public
       def transaction
@@ -441,9 +442,9 @@ module DataMapper
   module Adapters
     extendable do
       def const_added(const_name)
-        if DataMapper::Transaction.const_defined?(const_name)
+        if Transaction.const_defined?(const_name)
           adapter = const_get(const_name)
-          adapter.send(:include, DataMapper::Transaction.const_get(const_name))
+          adapter.send(:include, Transaction.const_get(const_name))
         end
 
         super

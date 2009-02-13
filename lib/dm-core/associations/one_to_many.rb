@@ -1,7 +1,7 @@
 module DataMapper
   module Associations
     module OneToMany
-      class Relationship < DataMapper::Associations::Relationship
+      class Relationship < Associations::Relationship
         # TODO: document
         # @api semipublic
         def self.collection_class

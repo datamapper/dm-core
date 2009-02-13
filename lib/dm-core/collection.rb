@@ -6,13 +6,13 @@ module DataMapper
   # it will attempt to defer loading until the results from the
   # repository are needed.
   #
-  # A Collection is typically returned by the DataMapper::Model#all
+  # A Collection is typically returned by the Model#all
   # method.
   class Collection < LazyArray
     ##
     # Returns the Query the Collection is scoped with
     #
-    # @return [DataMapper::Query] the Query the Collection is scoped with
+    # @return [Query] the Query the Collection is scoped with
     #
     # @api semipublic
     attr_reader :query
@@ -20,7 +20,7 @@ module DataMapper
     ##
     # Returns the Repository
     #
-    # @return [DataMapper::Repository]
+    # @return [Repository]
     #   the Repository this Collection is associated with
     #
     # @api semipublic
@@ -41,7 +41,7 @@ module DataMapper
     # @param [Query, Hash] query (optional)
     #   further restrict results with query
     #
-    # @return [DataMapper::Collection] self
+    # @return [Collection] self
     #
     # @api public
     def reload(query = nil)
@@ -84,7 +84,7 @@ module DataMapper
     # @param [Enumerable] *key
     #   keys which uniquely identify a resource in the Collection
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   Resource which matches the supplied key
     # @return [NilClass]
     #   No Resource matches the supplied key
@@ -126,7 +126,7 @@ module DataMapper
     # @param [Enumerable] *key
     #   keys which uniquely identify a resource in the Collection
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   Resource which matches the supplied key
     # @return [NilClass]
     #   No Resource matches the supplied key
@@ -155,7 +155,7 @@ module DataMapper
     # @param [Hash, Query] query (optional)
     #   parameters to scope results with.
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   Collection scoped by +query+.
     #
     # @api public
@@ -180,7 +180,7 @@ module DataMapper
     # @param [Hash] query (optional)
     #   scope the returned Resource or Collection to the supplied query
     #
-    # @return [DataMapper::Resource, DataMapper::Collection]
+    # @return [Resource, Collection]
     #   The first resource in the entries of this collection,
     #   or a new collection whose query has been merged
     #
@@ -222,7 +222,7 @@ module DataMapper
     # @param [Hash] query (optional)
     #   scope the returned Resource or Collection to the supplied query
     #
-    # @return [DataMapper::Resource, DataMapper::Collection]
+    # @return [Resource, Collection]
     #   The last resource in the entries of this collection,
     #   or a new collection whose query has been merged
     #
@@ -260,7 +260,7 @@ module DataMapper
     # @param [Integer] offset
     #   offset of the Resource in the Collection
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   Resource which matches the supplied offset
     # @return [NilClass]
     #   No Resource matches the supplied offset
@@ -297,7 +297,7 @@ module DataMapper
     # @param [Integer, Array(Integer), Range] *args
     #   the offset, offset and limit, or range indicating first and last position
     #
-    # @return [DataMapper::Resource, DataMapper::Collection, NilClass]
+    # @return [Resource, Collection, NilClass]
     #   The entry which resides at that offset and limit,
     #   or a new Collection object with the set limits and offset
     # @return [NilClass]
@@ -338,10 +338,10 @@ module DataMapper
     # @param [Integer, Array(Integer), Range] *args
     #   the offset, offset and limit, or range indicating first and last position
     #
-    # @return [DataMapper::Resource, DataMapper::Collection]
+    # @return [Resource, Collection]
     #   The entry which resides at that offset and limit, or
     #   a new Collection object with the set limits and offset
-    # @return [DataMapper::Resource, DataMapper::Collection, NilClass]
+    # @return [Resource, Collection, NilClass]
     #   The offset is out of range.
     #
     # @api public
@@ -380,7 +380,7 @@ module DataMapper
     #   The offset, offset and limit, or range indicating first and last position.
     #   The last argument may be a Resource, a list of Resources or nil.
     #
-    # @return [DataMapper::Resource, Enumerable]
+    # @return [Resource, Enumerable]
     #   the Resource or list of Resources that was spliced into the Collection
     # @return [NilClass]
     #   If nil was used to delete the entries
@@ -399,7 +399,7 @@ module DataMapper
     ##
     # Return the Collection sorted in reverse
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   Collection equal to +self+ but ordered in reverse.
     #
     # @api public
@@ -412,9 +412,9 @@ module DataMapper
     ##
     # Invoke the block for each resource and replace it the return value
     #
-    # @yield [DataMapper::Resource] Each resource in the collection
+    # @yield [Resource] Each resource in the collection
     #
-    # @return [DataMapper::Collection] self
+    # @return [Collection] self
     #
     # @api public
     def collect!
@@ -426,10 +426,10 @@ module DataMapper
     ##
     # Append one Resource to the Collection and relate it
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   the resource to add to this collection
     #
-    # @return [DataMapper::Collection] self
+    # @return [Collection] self
     #
     # @api public
     def <<(resource)
@@ -437,7 +437,10 @@ module DataMapper
       super
     end
 
-    alias add <<
+    def add(*args)
+      warn "#{self.class}#add is deprecated, use #{self.class}#<< instead"
+      self.<<(*args)
+    end
 
     ##
     # Appends the resources to self
@@ -445,7 +448,7 @@ module DataMapper
     # @param [Enumerable] resources
     #   List of Resources to append to the collection
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   +self+
     #
     # @api public
@@ -463,7 +466,7 @@ module DataMapper
     # @param [Enumerable] *resources
     #   List of Resources to append
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   self
     #
     # @api public
@@ -481,7 +484,7 @@ module DataMapper
     # @param [Enumerable] *resources
     #   The Resources to prepend
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   self
     #
     # @api public
@@ -498,7 +501,7 @@ module DataMapper
     # @param [Enumerable] *resources
     #   List of Resources to insert
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   self
     #
     # @api public
@@ -510,7 +513,7 @@ module DataMapper
     ##
     # Removes and returns the last Resource in the Collection
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   the last Resource in the Collection
     #
     # @api public
@@ -520,7 +523,7 @@ module DataMapper
 
     # Removes and returns the first Resource in the Collection
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   the first Resource in the Collection
     #
     # @api public
@@ -535,10 +538,10 @@ module DataMapper
     # orphan it from the Collection.  If the Resource is not within the
     # Collection, it should return nil.
     #
-    # @param [DataMapper::Resource] resource the Resource to remove from
+    # @param [Resource] resource the Resource to remove from
     #   the Collection
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   If +resource+ is within the Collection
     # @return [NilClass]
     #   If +resource+ is not within the Collection
@@ -558,7 +561,7 @@ module DataMapper
     # @param [Integer] offset
     #   the offset of the Resource to remove from the Collection
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   If +offset+ is within the Collection
     # @return [NilClass]
     #   If +offset+ is not within the Collection
@@ -571,9 +574,9 @@ module DataMapper
     ##
     # Deletes every Resource for which block evaluates to true.
     #
-    # @yield [DataMapper::Resource] Each resource in the Collection
+    # @yield [Resource] Each resource in the Collection
     #
-    # @return [DataMapper::Collection] self
+    # @return [Collection] self
     #
     # @api public
     def delete_if
@@ -583,9 +586,9 @@ module DataMapper
     ##
     # Deletes every Resource for which block evaluates to true.
     #
-    # @yield [DataMapper::Resource] Each resource in the Collection
+    # @yield [Resource] Each resource in the Collection
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   If resources were removed
     # @return [NilClass]
     #   If no resources were removed
@@ -601,7 +604,7 @@ module DataMapper
     # @param [Enumerable] other
     #   List of other Resources to replace with
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   self
     #
     # @api public
@@ -619,7 +622,7 @@ module DataMapper
     #
     # This should remove and orphan each Resource from the Collection.
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   self
     #
     # @api public
@@ -645,7 +648,7 @@ module DataMapper
     #   The conditions to be used to search
     # @param [Hash] attributes
     #   The attributes to be used to create the record of none is found.
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   The instance found by +query+, or created with +attributes+ if none found
     #
     # @api public
@@ -661,7 +664,7 @@ module DataMapper
     #   The conditions to be used to search
     # @param [Hash] attributes
     #   The attributes to be used to create the record of none is found.
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   The instance found by +query+, or created with +attributes+ if none found
     #
     # @api public
@@ -675,7 +678,7 @@ module DataMapper
     # @param [Hash] attributes
     #   Attributes with which to initialize the new resource.
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   a new Resource initialized with +attributes+
     #
     # @api public
@@ -692,7 +695,7 @@ module DataMapper
     # @param [Hash] attributes
     #   Attributes with which to create the new resource.
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   a saved Resource
     #
     # @api public
@@ -832,7 +835,7 @@ module DataMapper
     ##
     # Returns true if the other object is identical to self
     #
-    # @param [DataMapper::Collection] other
+    # @param [Collection] other
     #   Another Collection object to compare with +self+
     #
     # @return [TrueClass, FalseClass]
@@ -858,7 +861,7 @@ module DataMapper
     ##
     # Returns the PropertySet representing the fields in the Collection scope
     #
-    # @return [DataMapper::PropertySet]
+    # @return [PropertySet]
     #   The set of properties this Collection's query will retrieve
     #
     # @api semipublic
@@ -871,7 +874,7 @@ module DataMapper
     #
     # @return [Hash]
     #   The model's relationships, mapping the name to the
-    #   DataMapper::Associations::Relationship object
+    #   Associations::Relationship object
     #
     # @api semipublic
     def relationships
@@ -883,7 +886,7 @@ module DataMapper
     ##
     # Returns the Model
     #
-    # @return [DataMapper::Model]
+    # @return [Model]
     #   the Model the Collection is associated with
     #
     # @api private
@@ -894,14 +897,14 @@ module DataMapper
     private
 
     ##
-    # Initializes a new DataMapper::Collection identified by the query.
+    # Initializes a new Collection identified by the query.
     #
-    # @param [DataMapper::Query] query
+    # @param [Query] query
     #   Scope the results of the Collection
     # @param [Enumerable] resources (optional)
     #   List of resources to initialize the Collection with
     #
-    # @return [DataMapper::Collection] self
+    # @return [Collection] self
     #
     # @api semipublic
     def initialize(query, resources = nil, &block)
@@ -949,7 +952,7 @@ module DataMapper
     ##
     # Initializes a new Collection
     #
-    # @return [DataMapper::Collection]
+    # @return [Collection]
     #   A new Collection object
     #
     # @api private
@@ -976,7 +979,7 @@ module DataMapper
           next
         end
 
-        unless property.kind_of?(DataMapper::Property)
+        unless property.kind_of?(Property)
           next
         end
 
@@ -1004,10 +1007,10 @@ module DataMapper
     # This is used by SEL related code to reload a Resource and the
     # Collection it belongs to.
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   The Resource to relate
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   If Resource was successfully related
     # @return [NilClass]
     #   If a nil resource was provided
@@ -1047,10 +1050,10 @@ module DataMapper
     # Removes the association between the Resource and Collection so that
     # SEL related code will not load the Collection.
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   The Resource to orphan
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   The Resource that was orphaned
     # @return [NilClass]
     #   If a nil resource was provided
@@ -1089,9 +1092,9 @@ module DataMapper
     ##
     # Return the absolute or relative scoped query
     #
-    # @param [DataMapper::Query,Hash]
+    # @param [Query,Hash]
     #
-    # @return [DataMapper::Query]
+    # @return [Query]
     #   the absolute or relative scoped query
     #
     # @api private
@@ -1141,7 +1144,7 @@ module DataMapper
     ##
     # Delegate the method to the Relationship
     #
-    # @return [DataMapper::Collection] the associated Resources
+    # @return [Collection] the associated Resources
     #
     def delegate_to_relationship(relationship, other_query = nil)
       query = relationship.query_for(self)

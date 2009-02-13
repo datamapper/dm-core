@@ -17,7 +17,7 @@ module DataMapper
       # data-store between them.
       #
       # @param [String, Symbol] name
-      #   The name of the DataMapper::Repository using this adapter.
+      #   The name of the Repository using this adapter.
       # @param [String, Hash] uri_or_options
       #   The connection uri string, or a hash of options to set up
       #   the adapter
@@ -34,7 +34,7 @@ module DataMapper
       # each have a key that can be used to quickly look them up later without
       # searching, if the adapter supports it.
       #
-      # @param [Enumerable(DataMapper::Resource)] resources
+      # @param [Enumerable(Resource)] resources
       #   The set of resources (model instances)
       #
       # @return [Integer]
@@ -60,10 +60,10 @@ module DataMapper
       # Used by Model#get to find a record by its identifier(s), and Model#first
       # to find a single record by some search query.
       #
-      # @param [DataMapper::Query] query
+      # @param [Query] query
       #   The query to be used to locate the resource.
       #
-      # @return [DataMapper::Resource]
+      # @return [Resource]
       #   A Resource object representing the record that was found, or nil for no
       #   matching records.
       #
@@ -77,7 +77,7 @@ module DataMapper
       # Used by Model#all to search for a set of records; that set is in an
       # Array object.
       #
-      # @param [DataMapper::Query] query
+      # @param [Query] query
       #   The query to be used to seach for the resources
       #
       # @return [Array]
@@ -103,7 +103,7 @@ module DataMapper
       #
       # @param [Hash] attributes
       #   A set of key-value pairs of the attributes to update the resources with.
-      # @param [DataMapper::Query] query
+      # @param [Query] query
       #   The query that should be used to find the resource(s) to update.
       #
       # @return [Integer]
@@ -122,7 +122,7 @@ module DataMapper
       ##
       # Destroys all the records matching the given query. "DELETE" in SQL.
       #
-      # @param [DataMapper::Query] query
+      # @param [Query] query
       #   The query used to locate the resources to be deleted.
       #
       # @return [Integer]

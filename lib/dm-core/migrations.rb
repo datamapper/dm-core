@@ -234,17 +234,17 @@ module DataMapper
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
 
           @type_map ||= {
-            Integer                   => { :primitive => 'INT'                                               },
-            String                    => { :primitive => 'VARCHAR', :size => size                            },
-            Class                     => { :primitive => 'VARCHAR', :size => size                            },
-            BigDecimal                => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
-            Float                     => { :primitive => 'FLOAT',   :precision => precision                  },
-            DateTime                  => { :primitive => 'TIMESTAMP'                                         },
-            Date                      => { :primitive => 'DATE'                                              },
-            Time                      => { :primitive => 'TIMESTAMP'                                         },
-            TrueClass                 => { :primitive => 'BOOLEAN'                                           },
-            DataMapper::Types::Object => { :primitive => 'TEXT'                                              },
-            DataMapper::Types::Text   => { :primitive => 'TEXT'                                              },
+            Integer       => { :primitive => 'INT'                                               },
+            String        => { :primitive => 'VARCHAR', :size => size                            },
+            Class         => { :primitive => 'VARCHAR', :size => size                            },
+            BigDecimal    => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
+            Float         => { :primitive => 'FLOAT',   :precision => precision                  },
+            DateTime      => { :primitive => 'TIMESTAMP'                                         },
+            Date          => { :primitive => 'DATE'                                              },
+            Time          => { :primitive => 'TIMESTAMP'                                         },
+            TrueClass     => { :primitive => 'BOOLEAN'                                           },
+            Types::Object => { :primitive => 'TEXT'                                              },
+            Types::Text   => { :primitive => 'TEXT'                                              },
           }.freeze
         end
       end # module ClassMethods

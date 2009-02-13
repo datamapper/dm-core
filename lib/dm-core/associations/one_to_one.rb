@@ -4,7 +4,7 @@
 module DataMapper
   module Associations
     module OneToOne
-      class Relationship < DataMapper::Associations::OneToMany::Relationship
+      class Relationship < Associations::OneToMany::Relationship
         def get(parent, query = nil)
           super.first
         end

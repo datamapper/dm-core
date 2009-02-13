@@ -35,10 +35,9 @@ module DataMapper
   #
   #   class Post
   #     include DataMapper::Resource
-  #     property :title,   String,    :nullable => false
-  #        # Cannot be null
-  #     property :publish, TrueClass, :default => false
-  #        # Default value for new records is false
+  #
+  #     property :title,   String,   :nullable => false  # Cannot be null
+  #     property :publish, Boolean, :default => false    # Default value for new records is false
   #   end
   #
   # By default, DataMapper supports the following primitive (Ruby) types
@@ -67,10 +66,9 @@ module DataMapper
   #
   #  class Post
   #   include DataMapper::Resource
-  #    property :title,  String, :accessor => :private
-  #      # Both reader and writer are private
-  #    property :body,   Text,   :accessor => :protected
-  #      # Both reader and writer are protected
+  #
+  #    property :title,  String, :accessor => :private    # Both reader and writer are private
+  #    property :body,   Text,   :accessor => :protected  # Both reader and writer are protected
   #  end
   #
   # Access control is also analogous to Ruby accessors and mutators, and can
@@ -79,11 +77,8 @@ module DataMapper
   #  class Post
   #    include DataMapper::Resource
   #
-  #    property :title, String, :writer => :private
-  #      # Only writer is private
-  #
-  #    property :tags,  String, :reader => :protected
-  #      # Only reader is protected
+  #    property :title, String, :writer => :private    # Only writer is private
+  #    property :tags,  String, :reader => :protected  # Only reader is protected
   #  end
   #
   # == Overriding Accessors
@@ -93,6 +88,7 @@ module DataMapper
   #
   #  class Post
   #    include DataMapper::Resource
+  #
   #    property :title,  String
   #
   #    def title=(new_title)
@@ -113,8 +109,9 @@ module DataMapper
   #
   #  class Post
   #    include DataMapper::Resource
-  #    property :title,  String                    # Loads normally
-  #    property :body,   DataMapper::Types::Text   # Is lazily loaded by default
+  #
+  #    property :title, String  # Loads normally
+  #    property :body,  Text    # Is lazily loaded by default
   #  end
   #
   # If you want to over-ride the lazy loading on any field you can set it to a
@@ -125,17 +122,10 @@ module DataMapper
   #  class Post
   #    include DataMapper::Resource
   #
-  #    property :title,    String
-  #      # Loads normally
-  #
-  #    property :body,     DataMapper::Types::Text, :lazy => false
-  #      # The default is now over-ridden
-  #
-  #    property :comment,  String, lazy => [:detailed]
-  #      # Loads in the :detailed context
-  #
-  #    property :author,   String, lazy => [:summary,:detailed]
-  #      # Loads in :summary & :detailed context
+  #    property :title,   String                                  # Loads normally
+  #    property :body,    Text,   :lazy => false                  # The default is now over-ridden
+  #    property :comment, String, lazy => [ :detailed ]           # Loads in the :detailed context
+  #    property :author,  String, lazy => [ :summary,:detailed ]  # Loads in :summary & :detailed context
   #  end
   #
   # Delaying the request for lazy-loaded attributes even applies to objects
@@ -163,8 +153,8 @@ module DataMapper
   #
   # Examples:
   #
-  #  property :id,        Serial                    # auto-incrementing key
-  #  property :legacy_pk, String, :key => true      # 'natural' key
+  #  property :id,        Serial                # auto-incrementing key
+  #  property :legacy_pk, String, :key => true  # 'natural' key
   #
   # This is roughly equivalent to ActiveRecord's <tt>set_primary_key</tt>,
   # though non-integer data types may be used, thus DataMapper supports natural
@@ -499,13 +489,13 @@ module DataMapper
 
     # Standardized getter method for the property
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   model instance for which this property is to be loaded
     #
     # @return [Object]
     #   the value of this property for the provided instance
     #
-    # @raise [ArgumentError] "+resource+ should be a DataMapper::Resource, but was ...."
+    # @raise [ArgumentError] "+resource+ should be a Resource, but was ...."
     #
     # @api private
     def get(resource)
@@ -531,7 +521,7 @@ module DataMapper
     # Keep in mind this method is not safe and should be
     # used with care.
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   model instance for which this property is to be unsafely loaded
     #
     # @return [Object]
@@ -549,7 +539,7 @@ module DataMapper
     # and avoid extra queries to the data source in certain
     # situations.
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   model instance for which to set the original value
     # @param [Object] value
     #   value to set as original value for this property in +resource+
@@ -569,7 +559,7 @@ module DataMapper
 
     # Provides a standardized setter method for the property
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   model instance for which this property is to be set
     # @param [Object] value
     #   value to which value of this property will be set for +resource+
@@ -577,7 +567,7 @@ module DataMapper
     # @return [Object]
     #   +value+ after being typecasted according to this property's primitive
     #
-    # @raise [ArgumentError] "+resource+ should be a DataMapper::Resource, but was ...."
+    # @raise [ArgumentError] "+resource+ should be a Resource, but was ...."
     #
     # @api private
     def set(resource, value)
@@ -598,7 +588,7 @@ module DataMapper
     # Keep in mind this method is not safe and should be
     # used with care.
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   the model instance for which to unsafely set the value of this property
     # @param [Object] value
     #   the value to which this property should be unsafely set for +resource+
@@ -613,7 +603,7 @@ module DataMapper
 
     # Check if the attribute corresponding to the property is loaded
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   model instance for which the attribute is to be tested
     #
     # @return [TrueClass,FalseClass]
@@ -702,7 +692,7 @@ module DataMapper
     # it is called with resource and property passed
     # as arguments.
     #
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   the model instance for which the default is to be set
     #
     # @return [Object]
@@ -759,10 +749,10 @@ module DataMapper
 
       if TrueClass == type
         warn "#{type} is deprecated, use Boolean instead"
-        type = DataMapper::Types::Boolean
+        type = Types::Boolean
       elsif Integer == type && options.delete(:serial)
         warn "#{type} with explicit :serial option is deprecated, use Serial instead"
-        type = DataMapper::Types::Serial
+        type = Types::Serial
       elsif String == type && options.key?(:size)
         warn "#{type} with :size option is deprecated, use String with :length instead"
         options[:length] = options.delete(:size)
@@ -770,13 +760,13 @@ module DataMapper
 
       assert_valid_options(options)
 
-      # if the type can be found within DataMapper::Types then
+      # if the type can be found within Types then
       # use that class rather than the primitive
       unless type.name.blank?
-        type = DataMapper::Types.find_const(type.name)
+        type = Types.find_const(type.name)
       end
 
-      unless TYPES.include?(type) || (DataMapper::Type > type && TYPES.include?(type.primitive))
+      unless TYPES.include?(type) || (Type > type && TYPES.include?(type.primitive))
         raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type", caller
       end
 
@@ -784,7 +774,7 @@ module DataMapper
       @model                  = model
       @name                   = name.to_s.sub(/\?$/, '').to_sym
       @type                   = type
-      @custom                 = DataMapper::Type > @type
+      @custom                 = Type > @type
       @options                = @custom ? @type.options.merge(options) : options
       @instance_variable_name = "@#{@name}"
 

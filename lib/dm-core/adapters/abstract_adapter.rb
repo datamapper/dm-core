@@ -86,10 +86,10 @@ module DataMapper
       # @param [Array] records
       #   The set of records to be filtered
       #
-      # @param [DataMapper::Query] query
+      # @param [Query] query
       #   The query used to perform the filtering
       #
-      # @returns [Array]
+      # @return [Array]
       #   Whats left of the given array after the filtering
       #
       # @api semipublic
@@ -106,10 +106,10 @@ module DataMapper
       # @param [Array] records
       #   The set of records to be filtered
       #
-      # @param [DataMapper::Query] query
+      # @param [Query] query
       #   The query containing the conditions to match on
       #
-      # @returns [Array]
+      # @return [Array]
       #   Whats left of the given array after the matching
       #
       # @api semipublic
@@ -162,7 +162,7 @@ module DataMapper
       #
       # @param [Enumerable] records
       #   A list of Resources to sort
-      # @param [DataMapper::Query] query
+      # @param [Query] query
       #   A query that contains one or more properties and
       #   directions to sort by.
       #
@@ -192,7 +192,7 @@ module DataMapper
       #
       # @param [Enumerable] records
       #   A list of Recrods to sort
-      # @param [DataMapper::Query] query
+      # @param [Query] query
       #   A query that contains the offset and limit
       #
       # @return [Enumerable]
@@ -216,7 +216,7 @@ module DataMapper
 
 
       ##
-      # Instantiate an Adapter by passing it a DataMapper::Repository
+      # Instantiate an Adapter by passing it a Repository
       # connection string for configuration.
       #
       # TODO: document this

@@ -1,6 +1,6 @@
 module DataMapper
   module Types
-    class Text < DataMapper::Type
+    class Text < Type
       primitive String
       size 65535
       lazy true

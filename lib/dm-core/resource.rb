@@ -2,34 +2,19 @@ module DataMapper
   module Resource
     include Extlib::Assertions
 
-    ##
-    # Appends a module for inclusion into the model class after
-    # DataMapper::Resource.
-    #
-    # This is a useful way to extend DataMapper::Resource while still retaining
-    # a self.included method.
-    #
-    # @param [Module] inclusions
-    #   the module that is to be appended to the module after DataMapper::Resource
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if the inclusions have been successfully appended to the list
-    #
-    # @api semipublic
     def self.append_inclusions(*inclusions)
       warn "DataMapper::Resource.append_inclusions is deprecated, use DataMapper::Model.append_inclusions instead"
-      DataMapper::Model.append_inclusions(*inclusions)
+      Model.append_inclusions(*inclusions)
     end
 
-    ##
-    # The current registered extra inclusions
-    #
-    # @return [Set]
-    #
-    # @api private
     def self.extra_inclusions
       warn "DataMapper::Resource.extra_inclusions is deprecated, use DataMapper::Model.extra_inclusions instead"
-      DataMapper::Model.extra_inclusions
+      Model.extra_inclusions
+    end
+
+    def self.descendants
+      warn "DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead"
+      DataMapper::Model.descendants
     end
 
     ##
@@ -39,27 +24,6 @@ module DataMapper
     def self.included(model)
       model.extend Model
     end
-
-    ##
-    # Return all classes that include the DataMapper::Resource module
-    #
-    #   Class Foo
-    #     include DataMapper::Resource
-    #   end
-    #
-    #   DataMapper::Resource.descendants.to_a.first   #=> Foo
-    #
-    # @return [Set]
-    #   Set containing the including classes
-    #
-    # @api semipublic
-    def self.descendants
-      warn "DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead"
-      DataMapper::Model.descendants
-    end
-
-    # +---------------
-    # Instance methods
 
     # TODO: document
     # @api private
@@ -80,7 +44,7 @@ module DataMapper
     #     include DataMapper::Resource
     #
     #     property :first_name, String
-    #     property :last_name, String
+    #     property :last_name,  String
     #
     #     def full_name
     #       "#{attribute_get(:first_name)} #{attribute_get(:last_name)}"
@@ -117,7 +81,7 @@ module DataMapper
     #     include DataMapper::Resource
     #
     #     property :first_name, String
-    #     property :last_name, String
+    #     property :last_name,  String
     #
     #     def full_name(name)
     #       name = name.split(' ')
@@ -156,7 +120,7 @@ module DataMapper
     # or if they are both of the *same model* and all of their attributes
     # are equivalent
     #
-    # @param [DataMapper::Resource] other
+    # @param [Resource] other
     #   the other Resource to compare with
     #
     # @return [TrueClass, FalseClass]
@@ -182,7 +146,7 @@ module DataMapper
     # or if they are both of the *same base model* and all of their attributes
     # are equivalent
     #
-    # @param [DataMapper::Resource] other
+    # @param [Resource] other
     #   the other Resource to compare with
     #
     # @return [TrueClass, FalseClass]
@@ -204,7 +168,7 @@ module DataMapper
     ##
     # Compares two Resources to allow them to be sorted
     #
-    # @param [DataMapper::Resource] other
+    # @param [Resource] other
     #   The other Resource to compare with
     #
     # @return [Integer]
@@ -291,8 +255,9 @@ module DataMapper
     #
     #   class Foo
     #     include DataMapper::Resource
-    #     property :name, String
-    #     property :description, Text, :lazy => false
+    #
+    #     property :name,        String
+    #     property :description, Text,   :lazy => false
     #   end
     #
     #   Foo.new.attribute_loaded?(:description)   #=> false
@@ -313,8 +278,9 @@ module DataMapper
     #
     #   class Foo
     #     include DataMapper::Resource
-    #     property :name, String
-    #     property :description, Text, :lazy => false
+    #
+    #     property :name,        String
+    #     property :description, Text,   :lazy => false
     #   end
     #
     #   Foo.new.loaded_attributes   #=>  [:name]
@@ -392,7 +358,7 @@ module DataMapper
 
     # Gets a Collection with the current Resource instance as its only member
     #
-    # @return [DataMapper::Collection, FalseClass]
+    # @return [Collection, FalseClass]
     #   false if this is a new record,
     #   otherwise a Collection with self as its only member
     #
@@ -453,7 +419,7 @@ module DataMapper
     #
     # @deprecated
     def new_record?
-      warn "#{self.class}#new_record? is deprecated, use #{self.class}#new? instead"
+      warn "#{self.class}#new_record? is deprecated, use #{self.class}#new? or #{self.class}#saved? instead"
       new?
     end
 
@@ -500,8 +466,6 @@ module DataMapper
     # @api public
     def attributes=(attributes)
       attributes.each do |name,value|
-        # XXX: is it common to have an attribute with a trailing question mark?
-        name = name.to_s.sub(/\?\z/, '')
         if public_method?(setter = "#{name}=")
           send(setter, value)
         else
@@ -554,7 +518,7 @@ module DataMapper
     # @return [TrueClass, FalseClass]
     #   true if Resource instance and all associations were saved
     #
-    # @see DataMapper::Repository#save
+    # @see Repository#save
     #
     # @api public
     def save(context = :default)
@@ -727,7 +691,7 @@ module DataMapper
         raise IncompleteModelError, "#{model.name} must have a key."
       end
 
-      self.class.instance_variable_set("@_valid_model", true)
+      self.class.instance_variable_set('@_valid_model', true)
     end
 
     # TODO: document

@@ -6,7 +6,7 @@ module DataMapper
   # and therefore is responsible for providing those methods.
   #
   # To see complete list of supported types, see documentation for
-  # DataMapper::Property::TYPES. dm-types library provides less common
+  # Property::TYPES. dm-types library provides less common
   # types such as ip address, uuid, json, yaml, uri, slug, version,
   # file path, bcrypt hash and so forth.
   #
@@ -65,7 +65,7 @@ module DataMapper
       end
 
       # The Ruby primitive type to use as basis for this type. See
-      # DataMapper::Property::TYPES for list of types.
+      # Property::TYPES for list of types.
       #
       # @param primitive<Class, nil>
       #   The class for the primitive. If nil is passed in, it returns the
@@ -79,7 +79,7 @@ module DataMapper
         @primitive = primitive
       end
 
-      # Load DataMapper::Property options
+      # Load Property options
       PROPERTY_OPTIONS.each do |property_option|
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{property_option}(#{property_option} = nil)         # def unique(unique = nil)
@@ -147,6 +147,7 @@ module DataMapper
   end # class Type
 
   def self.Type(primitive_type, options = {})
+    warn "DataMapper.Type(#{primitive_type}) is deprecated, specify the primitive and options explicitly"
     Class.new(Type).configure(primitive_type, options)
   end
 

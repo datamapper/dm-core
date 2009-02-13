@@ -1,7 +1,7 @@
 module DataMapper
   module Associations
     module ManyToMany
-      class Relationship < DataMapper::Associations::OneToMany::Relationship
+      class Relationship < Associations::OneToMany::Relationship
         # TODO: document
         # @api semipublic
         def self.collection_class
@@ -171,7 +171,7 @@ module DataMapper
           if namespace.const_defined?(name)
             namespace.const_get(name)
           else
-            model = DataMapper::Model.new do
+            model = Model.new do
               # all properties added to the join model are considered a key
               def property(name, type, options = {})
                 options[:key] = true
@@ -212,7 +212,7 @@ module DataMapper
         end
       end # class Relationship
 
-      class Collection < DataMapper::Associations::OneToMany::Collection
+      class Collection < Associations::OneToMany::Collection
         attr_writer :relationship, :parent
 
         def reload(query = nil)

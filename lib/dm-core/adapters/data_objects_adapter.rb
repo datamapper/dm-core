@@ -472,18 +472,16 @@ module DataMapper
     # @param <Array>    an Array containing a String (being the SQL query to
     #   execute) and the parameters to the query.
     #   example: ["SELECT name FROM users WHERE id = ?", id]
-    # @param query<DataMapper::Query>  a prepared Query to execute.
+    # @param query<Query>  a prepared Query to execute.
     # @param opts<Hash>     an options hash.
     #     :repository<Symbol> the name of the repository to execute the query
     #       in. Defaults to self.default_repository_name.
     #     :reload<Boolean>   whether to reload any instances found that already
     #      exist in the identity map. Defaults to false.
     #     :properties<Array>  the Properties of the instance that the query
-    #       loads. Must contain DataMapper::Properties.
+    #       loads. Must contain Property objects.
     #       Defaults to self.properties.
     #
-    # @note
-    #   A String, Array or Query is required.
     # @return <Collection> the instance matched by the query.
     #
     # @example
@@ -505,7 +503,7 @@ module DataMapper
         elsif arg.kind_of?(Array)
           sql = arg.first
           bind_values = arg[1..-1]
-        elsif arg.kind_of?(DataMapper::Query)
+        elsif arg.kind_of?(Query)
           query = arg
         elsif arg.kind_of?(Hash)
           repository_name = arg.delete(:repository) if arg.include?(:repository)
@@ -516,7 +514,7 @@ module DataMapper
       end
 
       repository = repository(repository_name)
-      raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless repository.adapter.kind_of?(DataMapper::Adapters::DataObjectsAdapter)
+      raise "#find_by_sql only available for Repositories served by a DataObjectsAdapter" unless repository.adapter.kind_of?(Adapters::DataObjectsAdapter)
 
       if query
         sql = repository.adapter.send(:select_statement, query)

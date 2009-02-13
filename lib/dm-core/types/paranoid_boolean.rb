@@ -1,6 +1,6 @@
 module DataMapper
   module Types
-    class ParanoidBoolean < DataMapper::Type(Boolean)
+    class ParanoidBoolean < Type
       primitive TrueClass
       default   false
       lazy      true

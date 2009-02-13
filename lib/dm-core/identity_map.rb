@@ -10,7 +10,7 @@ module DataMapper
     # @param [Enumerable] key
     #   the Resource key
     #
-    # @return [DataMapper::Resource,NilClass]
+    # @return [Resource,NilClass]
     #   the Resource with the key, or nil if not found
     #
     # @api public
@@ -24,10 +24,10 @@ module DataMapper
     #
     # @param [Enumerable] key
     #   the Resource key
-    # @param [DataMapper::Resource] resource
+    # @param [Resource] resource
     #   the Resource
     #
-    # @return [DataMapper::Resource]
+    # @return [Resource]
     #   the Resource
     #
     # @api public

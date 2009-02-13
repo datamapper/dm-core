@@ -1,6 +1,6 @@
 module DataMapper
   module Types
-    class Discriminator < DataMapper::Type
+    class Discriminator < Type
       primitive Class
       default lambda { |r,p| p.model }
       nullable false
