@@ -734,7 +734,7 @@ module DataMapper
     #
     # @api public
     def inspect
-      "#<#{self.class.name} @model=#{@model} @name=#{@name}>"
+      "#<#{self.class.name} @model=#{model.inspect} @name=#{name.inspect}>"
     end
 
     private
