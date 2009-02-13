@@ -1,6 +1,7 @@
 module DataMapper
   module Resource
     include Extlib::Assertions
+    extend Chainable
 
     def self.append_inclusions(*inclusions)
       warn "DataMapper::Resource.append_inclusions is deprecated, use DataMapper::Model.append_inclusions instead"
@@ -521,16 +522,18 @@ module DataMapper
     # @see Repository#save
     #
     # @api public
-    def save(context = :default)
-      # Takes a context, but does nothing with it. This is to maintain the
-      # same API through out all of dm-more. dm-validations requires a
-      # context to be passed
+    chainable do
+      def save
+        # Takes a context, but does nothing with it. This is to maintain the
+        # same API through out all of dm-more. dm-validations requires a
+        # context to be passed
 
-      unless saved = new? ? _create : _update
-        return false
+        unless saved = new? ? _create : _update
+          return false
+        end
+
+        child_associations.all? { |a| a.save }
       end
-
-      child_associations.all? { |a| a.save }
     end
 
     ##
