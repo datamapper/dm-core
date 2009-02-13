@@ -284,18 +284,14 @@ module DataMapper
     #     property :description, Text,   :lazy => false
     #   end
     #
-    #   Foo.new.loaded_attributes   #=>  [:name]
+    #   Foo.new.loaded_attributes   #=>  [ #<Property @model=Foo @name=:name> ]
     #
-    # @return [Array(Symbol)]
+    # @return [Array(Property)]
     #   names of attributes that have been loaded
-    #
-    # @return [Array<Symbol>] names of attributes that have been loaded
     #
     # @api private
     def loaded_attributes
-      loaded_attributes = properties.map { |p| p.name if p.loaded?(self) }
-      loaded_attributes.compact!
-      loaded_attributes
+      properties.select { |p| p.loaded?(self) }
     end
 
     ##

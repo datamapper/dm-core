@@ -145,9 +145,9 @@ module DataMapper
         target.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
 
         # TODO: move this into dm-validations
-        if self.respond_to?(:validators)
-          @validations.contexts.each do |context, validators|
-            validators.each { |validator| target.validators.context(context) << validator }
+        if respond_to?(:validators)
+          validators.contexts.each do |context, validators|
+            target.validators.context(context).concat(validators)
           end
         end
 
