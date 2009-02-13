@@ -82,7 +82,7 @@ share_examples_for 'A semipublic Resource' do
 
   describe "#repository" do
 
-    before(:each) do
+    before :all do
       class ::Statistic
         include DataMapper::Resource
 

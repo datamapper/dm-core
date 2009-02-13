@@ -21,10 +21,6 @@ module DataMapper
         cmp?(other, :eql?)
       end
 
-      def reverse
-        dup.reverse!
-      end
-
       def reverse!
         @direction = @direction == :asc ? :desc : :asc
         self

@@ -82,7 +82,7 @@ describe DataMapper::Model do
       describe '#copy' do
         describe 'between identical models' do
           before :all do
-            @return = @resources = Heffalump.copy(:default, @alternate_adapter.name)
+            @return = @resources = Heffalump.copy(@repository.name, @alternate_adapter.name)
           end
 
           it 'should return an Enumerable' do

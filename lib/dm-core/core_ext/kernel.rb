@@ -1,13 +1,12 @@
 module Kernel
   private
 
+  ##
   # Delegates to DataMapper::repository.
-  # Will not overwrite if a method of the same name is pre-defined.
-  def repository(*args)
-    if block_given?
-      DataMapper.repository(*args) { |*block_args| yield(*block_args) }
-    else
-      DataMapper.repository(*args)
-    end
+  #
+  # TODO: document this
+  # @api public
+  def repository(*args, &block)
+    DataMapper.repository(*args, &block)
   end
 end # module Kernel

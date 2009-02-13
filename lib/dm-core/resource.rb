@@ -218,7 +218,7 @@ module DataMapper
         raise ArgumentError, "Cannot compare a #{other.model} instance with a #{model} instance"
       end
       cmp = 0
-      model.default_order(repository.name).map do |i|
+      model.default_order(repository_name).map do |i|
         cmp = i.property.get!(self) <=> i.property.get!(other)
         cmp *= -1 if i.direction == :desc
         break if cmp != 0
@@ -242,18 +242,14 @@ module DataMapper
     #
     # @api public
     def inspect
-      saved = saved?
-
-      attrs = []
-
-      properties.each do |property|
-        value = if !property.loaded?(self) && saved
+      attrs = properties.map do |property|
+        value = if !property.loaded?(self) && saved?
           '<not loaded>'
         else
-          send(property.getter).inspect
+          property.get!(self).inspect
         end
 
-        attrs << "#{property.name}=#{value}"
+        "#{property.instance_variable_name}=#{value}"
       end
 
       "#<#{model.name} #{attrs * ' '}>"
@@ -285,7 +281,7 @@ module DataMapper
     #
     # @api public
     def key
-      @key ||= model.key(repository.name).map do |property|
+      @key ||= model.key(repository_name).map do |property|
         original_values[property] || property.get!(self)
       end
     end
@@ -604,7 +600,7 @@ module DataMapper
     # @api private
     def reset
       @saved = false
-      repository.identity_map(model).delete(key)
+      identity_map.delete(key)
       original_values.clear
     end
 
@@ -633,18 +629,16 @@ module DataMapper
         end
       end
 
-      if repository.create([ self ]) != 1
-        return false
+      if created = (repository.create([ self ]) == 1)
+        @repository = repository
+        @saved      = true
+
+        original_values.clear
+
+        identity_map[key] = self
       end
 
-      @repository = repository
-      @saved      = true
-
-      original_values.clear
-
-      repository.identity_map(model)[key] = self
-
-      true
+      created
     end
 
     # TODO: document
@@ -657,15 +651,23 @@ module DataMapper
         true
       elsif dirty_attributes.any? { |p,v| !p.nullable? && v.nil? }
         false
-      elsif repository.update(dirty_attributes, to_query) != 1
-        false
       else
-        original_values.clear
+        if updated = (repository.update(dirty_attributes, to_query) == 1)
+          original_values.clear
 
-        repository.identity_map(model)[key] = self
+          identity_map[key] = self
+        end
 
-        true
+        updated
       end
+    end
+
+    private
+
+    # TODO: document
+    # @api private
+    def repository_name
+      repository.name
     end
 
     # Gets this instance's Model's properties
@@ -675,7 +677,7 @@ module DataMapper
     #
     # @api private
     def properties
-      model.properties(repository.name)
+      model.properties(repository_name)
     end
 
     # Gets this instance's Model's relationships
@@ -685,15 +687,19 @@ module DataMapper
     #
     # @api private
     def relationships
-      model.relationships(repository.name)
+      model.relationships(repository_name)
     end
 
-    private
+    # TODO: document
+    # @api semipublic
+    def identity_map
+      repository.identity_map(model)
+    end
 
     ##
     # Initialize a new instance of this Resource using the provided values
     #
-    # @param  [Hash]  attributes
+    # @param  [Hash] attributes
     #   attribute values to use for the new instance
     #
     # @return [Resource]
@@ -713,14 +719,12 @@ module DataMapper
         return
       end
 
-      properties = self.properties
-
       if properties.empty? && relationships.empty?
-        raise IncompleteResourceError, "#{model.name} must have at least one property or relationship to be initialized."
+        raise IncompleteModelError, "#{model.name} must have at least one property or relationship to be initialized."
       end
 
       if properties.key.empty?
-        raise IncompleteResourceError, "#{model.name} must have a key."
+        raise IncompleteModelError, "#{model.name} must have a key."
       end
 
       self.class.instance_variable_set("@_valid_model", true)

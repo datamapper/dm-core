@@ -10,6 +10,8 @@ module DataMapper
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
+      extend Chainable
+
       ##
       # For each model instance in resources, issues an SQL INSERT
       # (or equivalent) statement to create a new record in the data store for
@@ -149,20 +151,21 @@ module DataMapper
       protected
 
       def normalized_uri
-        @normalized_uri ||= begin
-          # srsly? TODO: Make DataObjects::URI handle parsing an options hash
-          query = @options.except(:adapter, :username, :password, :host, :port, :database).map { |pair| pair.join('=') }.join('&')
-          query = nil if query.blank?
-          DataObjects::URI.parse(Addressable::URI.new(
-            :scheme =>    @options[:adapter].to_s,
-            :user =>      @options[:username],
-            :password =>  @options[:password],
-            :host =>      @options[:host],
-            :port =>      @options[:port],
-            :path =>      @options[:database],
-            :query =>     query
-          ))
-        end
+        @normalized_uri ||=
+          begin
+            # srsly? TODO: Make DataObjects::URI handle parsing an options hash
+            query = @options.except(:adapter, :username, :password, :host, :port, :database).map { |pair| pair.join('=') }.join('&')
+            query = nil if query.blank?
+            DataObjects::URI.parse(Addressable::URI.new(
+              :scheme =>    @options[:adapter].to_s,
+              :user =>      @options[:username],
+              :password =>  @options[:password],
+              :host =>      @options[:host],
+              :port =>      @options[:port],
+              :path =>      @options[:database],
+              :query =>     query
+            ))
+          end
       end
 
       chainable do
@@ -188,7 +191,7 @@ module DataMapper
 
         # AbstractAdapter#initialize sets :path in the options,
         # we want to refer to it as :database
-        if @options.has_key?(:path) && !@options.has_key?(:database)
+        if @options.key?(:path) && !@options.key?(:database)
           @options[:database] = @options[:path]
         end
 
@@ -426,13 +429,7 @@ module DataMapper
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
         def quote_name(name)
-          escaped = name.gsub('"', '""')
-
-          if escaped.include?('.')
-            escaped.split('.').map { |part| "\"#{part}\"" }.join('.')
-          else
-            "\"#{escaped}\""
-          end
+          "\"#{name.gsub('"', '""')}\""
         end
 
         # TODO: once the driver's quoting methods become public, have

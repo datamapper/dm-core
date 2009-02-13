@@ -517,7 +517,7 @@ describe DataMapper::Query do
 
       describe 'that is an Array containing an Operator' do
         before :all do
-          @options[:order] = [ :name.desc ]
+          @options[:order] = [ :name.asc ]
 
           @return = DataMapper::Query.new(@repository, @model, @options.freeze)
         end
@@ -527,7 +527,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the order' do
-          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ]
+          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :asc) ]
         end
       end
 

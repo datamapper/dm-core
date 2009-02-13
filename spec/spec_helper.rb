@@ -6,6 +6,7 @@ require 'pathname'
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
 $LOAD_PATH << SPEC_ROOT.parent + "lib"
 require 'dm-core'
+require 'dm-core/core_ext/symbol'
 
 Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |f| require f }
 

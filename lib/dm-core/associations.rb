@@ -9,6 +9,7 @@ require dir / 'many_to_many'
 module DataMapper
   module Associations
     include Extlib::Assertions
+    extend Chainable
 
     class UnsavedParentError < RuntimeError; end
 

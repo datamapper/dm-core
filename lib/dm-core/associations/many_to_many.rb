@@ -26,102 +26,105 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def intermediaries
-          @intermediaries ||= begin
-            relationships = through.child_model.relationships(parent_repository_name)
+          @intermediaries ||=
+            begin
+              relationships = through.child_model.relationships(parent_repository_name)
 
-            unless target = relationships[name] || relationships[name.to_s.singular.to_sym]
-              raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{parent_repository_name.inspect} repository"
+              unless target = relationships[name] || relationships[name.to_s.singular.to_sym]
+                raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{parent_repository_name.inspect} repository"
+              end
+
+              [ through, target ].map { |r| (i = r.intermediaries).any? ? i : r }.flatten.freeze
             end
-
-            [ through, target ].map { |r| (i = r.intermediaries).any? ? i : r }.flatten.freeze
-          end
         end
 
         # TODO: document
         # @api private
         def query
-          @many_to_many_query ||= begin
-            query = super.dup
+          @many_to_many_query ||=
+            begin
+              query = super.dup
 
-            # use all intermediaries in the query links
-            query[:links] = intermediaries
+              # use all intermediaries in the query links
+              query[:links] = intermediaries
 
-            # TODO: move the logic below inside Query.  It should be
-            # extracting the query conditions from each relationship itself
+              # TODO: move the logic below inside Query.  It should be
+              # extracting the query conditions from each relationship itself
 
-            default_repository_name = parent_repository_name
+              default_repository_name = parent_repository_name
 
-            # merge the conditions from each intermediary into the query
-            query[:links].each do |relationship|
+              # merge the conditions from each intermediary into the query
+              query[:links].each do |relationship|
 
-              # TODO: refactor this with source/target terminology.  Many relationships would
-              # have the child as the target, and the parent as the source, while OneToMany
-              # relationships would be reversed.  This will also clean up code in the DO adapter
+                # TODO: refactor this with source/target terminology.  Many relationships would
+                # have the child as the target, and the parent as the source, while OneToMany
+                # relationships would be reversed.  This will also clean up code in the DO adapter
 
-              repository_name = nil
-              model           = nil
+                repository_name = nil
+                model           = nil
 
-              if relationship.kind_of?(ManyToOne::Relationship)
-                repository_name = relationship.parent_repository_name || default_repository_name
-                model           = relationship.parent_model
-              else
-                repository_name = relationship.child_repository_name || default_repository_name
-                model           = relationship.child_model
-              end
-
-              # TODO: try to do some of this normalization when
-              # assigning the Query options to the Relationship
-
-              relationship.query.each do |key,value|
-                # TODO: figure out how to merge Query options from intermediaries
-                if Query::OPTIONS.include?(key)
-                  next  # skip for now
+                if relationship.kind_of?(ManyToOne::Relationship)
+                  repository_name = relationship.parent_repository_name || default_repository_name
+                  model           = relationship.parent_model
+                else
+                  repository_name = relationship.child_repository_name || default_repository_name
+                  model           = relationship.child_model
                 end
 
-                case key
-                  when Symbol, String
+                # TODO: try to do some of this normalization when
+                # assigning the Query options to the Relationship
 
-                    # TODO: turn this into a Query::Path
-                    query[ model.properties(repository_name)[key] ] = value
+                relationship.query.each do |key,value|
+                  # TODO: figure out how to merge Query options from intermediaries
+                  if Query::OPTIONS.include?(key)
+                    next  # skip for now
+                  end
 
-                  when Property
+                  case key
+                    when Symbol, String
 
-                    # TODO: turn this into a Query::Path
-                    query[key] = value
+                      # TODO: turn this into a Query::Path
+                      query[ model.properties(repository_name)[key] ] = value
 
-                  when Query::Path
-                    query[key] = value
+                    when Property
 
-                  when Query::Operator
+                      # TODO: turn this into a Query::Path
+                      query[key] = value
 
-                    # TODO: if the key.target is a Query::Path, then do not look it up
-                    query[ key.class.new(model.properties(repository_name)[key.target], key.operator) ] = value
+                    when Query::Path
+                      query[key] = value
 
-                  else
-                    raise ArgumentError, "#{key.class} not allowed in relationship query"
+                    when Query::Operator
+
+                      # TODO: if the key.target is a Query::Path, then do not look it up
+                      query[ key.class.new(model.properties(repository_name)[key.target], key.operator) ] = value
+
+                    else
+                      raise ArgumentError, "#{key.class} not allowed in relationship query"
+                  end
                 end
+
+                # set the default repository for the next relationship in the chain
+                default_repository_name = repository_name
               end
 
-              # set the default repository for the next relationship in the chain
-              default_repository_name = repository_name
+              query.freeze
             end
-
-            query.freeze
-          end
         end
 
         # TODO: document
         # @api semipublic
         def child_key
-          @child_key ||= begin
-            child_key = if @child_properties
-              child_model.properties(child_repository_name).slice(*@child_properties)
-            else
-              child_model.key(child_repository_name)
-            end
+          @child_key ||=
+            begin
+              child_key = if @child_properties
+                child_model.properties(child_repository_name).slice(*@child_properties)
+              else
+                child_model.key(child_repository_name)
+              end
 
-            PropertySet.new(child_key).freeze
-          end
+              PropertySet.new(child_key).freeze
+            end
         end
 
         # TODO: document

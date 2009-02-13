@@ -370,7 +370,7 @@ module DataMapper
 
       # defer setting the field with the adapter specific naming
       # conventions until after the adapter has been setup
-      @field ||= model.field_naming_convention(repository.name).call(self).freeze
+      @field ||= model.field_naming_convention(DataMapper.repository.name).call(self).freeze
     end
 
     # Returns true if property is unique. Serial properties and keys
@@ -744,7 +744,7 @@ module DataMapper
     #
     # @api public
     def inspect
-      "#<Property:#{@model}:#{@name}>"
+      "#<#{self.class.name} @model=#{@model} @name=#{@name}>"
     end
 
     private
@@ -933,8 +933,8 @@ module DataMapper
     # @api private
     def typecast_to_datetime(value)
       case value
-      when Hash then typecast_hash_to_datetime(value)
-      else DateTime.parse(value.to_s)
+        when Hash then typecast_hash_to_datetime(value)
+        else           DateTime.parse(value.to_s)
       end
     end
 
@@ -950,8 +950,8 @@ module DataMapper
     # @api private
     def typecast_to_date(value)
       case value
-      when Hash then typecast_hash_to_date(value)
-      else Date.parse(value.to_s)
+        when Hash then typecast_hash_to_date(value)
+        else           Date.parse(value.to_s)
       end
     end
 
@@ -969,8 +969,8 @@ module DataMapper
     # @api private
     def typecast_to_time(value)
       case value
-      when Hash then typecast_hash_to_time(value)
-      else Time.parse(value.to_s)
+        when Hash then typecast_hash_to_time(value)
+        else           Time.parse(value.to_s)
       end
     end
 

@@ -30,11 +30,11 @@ lib/dm-core/collection.rb
 lib/dm-core/core_ext.rb
 lib/dm-core/core_ext/array.rb
 lib/dm-core/core_ext/kernel.rb
-lib/dm-core/core_ext/module.rb
 lib/dm-core/core_ext/symbol.rb
 lib/dm-core/identity_map.rb
 lib/dm-core/migrations.rb
 lib/dm-core/model.rb
+lib/dm-core/model/hook.rb
 lib/dm-core/model/is.rb
 lib/dm-core/model/scope.rb
 lib/dm-core/property.rb
@@ -47,8 +47,7 @@ lib/dm-core/repository.rb
 lib/dm-core/resource.rb
 lib/dm-core/spec/adapter_shared_spec.rb
 lib/dm-core/support.rb
-lib/dm-core/support/errors.rb
-lib/dm-core/support/hook.rb
+lib/dm-core/support/chainable.rb
 lib/dm-core/support/logger.rb
 lib/dm-core/support/naming_conventions.rb
 lib/dm-core/transaction.rb

@@ -18,13 +18,7 @@ module DataMapper
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
         def quote_name(name)
-          escaped = name.gsub('`', '``')
-
-          if escaped.include?('.')
-            escaped.split('.').map { |part| "`#{part}`" }.join('.')
-          else
-            "`#{escaped}`"
-          end
+          "`#{name.gsub('`', '``')}`"
         end
 
         # TODO: once the driver's quoting methods become public, have

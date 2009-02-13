@@ -7,13 +7,13 @@ class Array
   #
   def to_hash
     h = {}
-    self.each{ |k,v| h[k] = v }
+    each { |k,v| h[k] = v }
     h
   end
 
   def to_mash
     m = Mash.new
-    self.each{ |k,v| m[k] = v }
+    each { |k,v| m[k] = v }
     m
   end
-end # class Symbol
+end # class Array

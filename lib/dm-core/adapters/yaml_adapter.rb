@@ -42,19 +42,20 @@ module DataMapper::Adapters
 
     def update(attributes, query)
       attributes = attributes.map { |p,v| [ p.name, v ] }.to_hash
+
       update_records(query.model) do |records|
-        filter_records(records.values, query).each do |record|
-          record.update(attributes)
-        end
-      end.size
+        updated = filter_records(records.values, query)
+        updated.each { |r| r.update(attributes) }
+        updated.size
+      end
     end
 
     def delete(query)
       update_records(query.model) do |records|
         deleted = filter_records(records.values, query).to_set
         records.delete_if { |_k,r| deleted.include?(r) }
-        deleted
-      end.size
+        deleted.size
+      end
     end
 
     protected

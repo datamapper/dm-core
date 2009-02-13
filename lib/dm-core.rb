@@ -33,6 +33,7 @@ end
 dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
 require dir / 'core_ext'
+require dir / 'support'
 require dir / 'version'
 
 require dir / 'resource'
@@ -51,8 +52,6 @@ require dir / 'adapters'
 
 require dir / 'transaction'
 require dir / 'migrations'
-
-require dir / 'support'
 
 # == Setup and Configuration
 # DataMapper uses URIs or a connection hash to connect to your data-store.
@@ -102,8 +101,19 @@ require dir / 'support'
 module DataMapper
   extend Extlib::Assertions
 
+  # TODO: move to dm-validations
+  class ValidationError < StandardError; end
+
+  class ObjectNotFoundError < StandardError; end
+
+  class RepositoryNotSetupError < StandardError; end
+
+  class IncompleteModelError < StandardError; end
+
+  class PluginNotFoundError < StandardError; end
+
   def self.root
-    @root ||= Pathname(__FILE__).dirname.parent.expand_path
+    @root ||= Pathname(__FILE__).dirname.parent.expand_path.freeze
   end
 
   ##
@@ -123,36 +133,24 @@ module DataMapper
   #
   # @api public
   def self.setup(name, uri_or_options)
-    assert_kind_of 'name',           name,           Symbol
-    assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
+    assert_kind_of 'name', name, Symbol
 
-    adapter_name = case uri_or_options
-      when Addressable::URI
-        uri_or_options.scheme
-      when Hash
-        uri_or_options[:adapter].to_s
-      when String
-        Addressable::URI.parse(uri_or_options).scheme
-    end
+    options = Adapters::AbstractAdapter.normalize_options(uri_or_options)
 
-    class_name = (Extlib::Inflection.classify(adapter_name) + 'Adapter').to_sym
+    adapter_name = options[:adapter]
+    class_name   = (Extlib::Inflection.classify(adapter_name) + 'Adapter').to_sym
 
     unless Adapters.const_defined?(class_name)
       lib_name = "#{adapter_name}_adapter"
 
       begin
         require root / 'lib' / 'dm-core' / 'adapters' / lib_name
-      rescue LoadError => e
-        begin
-          require lib_name
-        rescue Exception
-          # library not found, raise the original error
-          raise e
-        end
+      rescue LoadError
+        require lib_name
       end
     end
 
-    Repository.adapters[name] = Adapters.const_get(class_name).new(name, uri_or_options)
+    Repository.adapters[name] = Adapters.const_get(class_name).new(name, options)
   end
 
   ##
@@ -184,8 +182,4 @@ module DataMapper
 
   # A logger should always be present. Lets be consistent with DO
   Logger.new(nil, :off)
-
-  def self.prepare(*args, &blk)
-    yield repository(*args)
-  end
 end

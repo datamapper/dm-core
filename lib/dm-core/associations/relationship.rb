@@ -55,30 +55,31 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def child_key
-        @child_key ||= begin
-          properties = child_model.properties(child_repository_name)
+        @child_key ||=
+          begin
+            properties = child_model.properties(child_repository_name)
 
-          child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
-            property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
+            child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
+              property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
 
-            properties[property_name] || begin
-              options = { :index => property_prefix }
+              properties[property_name] || begin
+                options = { :index => property_prefix }
 
-              [ :length, :size, :precision, :scale ].each do |option|
-                if parent_property.options.key?(option)
-                  options[option] = parent_property.options[option]
+                [ :length, :size, :precision, :scale ].each do |option|
+                  if parent_property.options.key?(option)
+                    options[option] = parent_property.options[option]
+                  end
+                end
+
+                # create the property within the correct repository
+                DataMapper.repository(child_repository_name) do
+                  child_model.property(property_name, parent_property.primitive, options)
                 end
               end
-
-              # create the property within the correct repository
-              DataMapper.repository(child_repository_name) do
-                child_model.property(property_name, parent_property.primitive, options)
-              end
             end
-          end
 
-          PropertySet.new(child_key).freeze
-        end
+            PropertySet.new(child_key).freeze
+          end
       end
 
       # TODO: document
@@ -92,15 +93,16 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def parent_key
-        @parent_key ||= begin
-          parent_key = if @parent_properties
-            parent_model.properties(parent_repository_name).slice(*@parent_properties)
-          else
-            parent_model.key(parent_repository_name)
-          end
+        @parent_key ||=
+          begin
+            parent_key = if @parent_properties
+              parent_model.properties(parent_repository_name).slice(*@parent_properties)
+            else
+              parent_model.key(parent_repository_name)
+            end
 
-          PropertySet.new(parent_key).freeze
-        end
+            PropertySet.new(parent_key).freeze
+          end
       end
 
       # TODO: document

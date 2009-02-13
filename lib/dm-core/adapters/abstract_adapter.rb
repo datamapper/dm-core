@@ -2,45 +2,76 @@ module DataMapper
   module Adapters
     class AbstractAdapter
       include Extlib::Assertions
+      extend Extlib::Assertions
 
-      attr_reader :name, :options
-      attr_accessor :resource_naming_convention, :field_naming_convention
+      # TODO: document this
+      # @api semipublic
+      attr_reader :name
 
-      # Instantiate an Adapter by passing it a DataMapper::Repository
-      # connection string for configuration.
-      def initialize(name, uri_or_options)
-        assert_kind_of 'name',           name,           Symbol
+      # TODO: document this
+      # @api semipublic
+      attr_reader :options
+
+      # TODO: document this
+      # @api semipublic
+      attr_accessor :resource_naming_convention
+
+      # TODO: document this
+      # @api semipublic
+      attr_accessor :field_naming_convention
+
+      # TODO: document this
+      # @api semipublic
+      def self.normalize_options(uri_or_options)
         assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
 
-        @name = name
-
-        if uri_or_options.is_a?(Hash)
-          @options = Mash.new(uri_or_options)
+        options = if uri_or_options.is_a?(Hash)
+          uri_or_options.to_mash
         else
-          uri      = uri_or_options.is_a?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
-          @options = uri_to_options(uri)
+          uri     = uri_or_options.is_a?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
+          options = uri.to_hash.to_mash
+
+          if options.delete(:query)
+            options.update(uri.query_values)
+          end
+
+          # Alias 'scheme' part of uri to 'adapter', if its not already set
+          if options.key?(:scheme) && !options.key?(:adapter)
+            options[:adapter] = options.delete(:scheme)
+          end
+
+          options
         end
 
-        @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
-        @field_naming_convention    = NamingConventions::Field::Underscored
+        options
       end
 
+      # TODO: document this
+      # @api semipublic
       def create(resources)
         raise NotImplementedError
       end
 
+      # TODO: document this
+      # @api semipublic
       def read_many(query)
         raise NotImplementedError
       end
 
+      # TODO: document this
+      # @api semipublic
       def read_one(query)
         raise NotImplementedError
       end
 
+      # TODO: document this
+      # @api semipublic
       def update(attributes, query)
         raise NotImplementedError
       end
 
+      # TODO: document this
+      # @api semipublic
       def delete(query)
         raise NotImplementedError
       end
@@ -183,17 +214,22 @@ module DataMapper
 
       private
 
-      def uri_to_options(uri)
-        options = Mash.new(uri.to_hash).merge(uri.query_values || {})
 
-        # Alias 'scheme' part of uri to 'adapter', if its not already set
-        if options.has_key?(:scheme) && !options.has_key?(:adapter)
-          options[:adapter] = options.delete(:scheme)
-        end
+      ##
+      # Instantiate an Adapter by passing it a DataMapper::Repository
+      # connection string for configuration.
+      #
+      # TODO: document this
+      #
+      # @api semipublic
+      def initialize(name, uri_or_options)
+        assert_kind_of 'name', name, Symbol
 
-        options
+        @name                       = name
+        @options                    = self.class.normalize_options(uri_or_options)
+        @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
+        @field_naming_convention    = NamingConventions::Field::Underscored
       end
-
     end # class AbstractAdapter
   end # module Adapters
 end # module DataMapper

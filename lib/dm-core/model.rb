@@ -1,5 +1,6 @@
 module DataMapper
   module Model
+    extend Chainable
 
     ##
     # Creates a new Model class with default_storage_name +storage_name+
@@ -505,7 +506,7 @@ module DataMapper
       fields = query[:fields] ||= properties(source).select { |p| destination_properties.include?(p) }
 
       repository(destination) do
-        all(query.merge(:repository => repository(source))).map do |resource|
+        all(query.merge(:repository => source)).map do |resource|
           create(fields.map { |p| [ p.name, p.get(resource) ] }.to_hash)
         end
       end
@@ -734,7 +735,15 @@ module DataMapper
       if query.kind_of?(Query)
         query
       else
-        query = Query.new(query.delete(:repository) || self.repository, self, query)
+        query = query.dup
+
+        repository = query.delete(:repository)
+
+        if repository.kind_of?(Symbol)
+          repository = DataMapper.repository(repository)
+        end
+
+        query = Query.new(repository || self.repository, self, query)
 
         if self.query
           self.query.merge(query)
@@ -765,5 +774,6 @@ end # module DataMapper
 
 dir = Pathname(__FILE__).dirname.expand_path / 'model'
 
+require dir / 'hook'
 require dir / 'is'
 require dir / 'scope'

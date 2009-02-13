@@ -61,12 +61,13 @@ module DataMapper
     def adapter
       # Make adapter instantiation lazy so we can defer repository setup until it's actually
       # needed. Do not remove this code.
-      @adapter ||= begin
-        raise ArgumentError, "Adapter not set: #{@name}. Did you forget to setup?" \
-          unless self.class.adapters.key?(@name)
+      @adapter ||=
+        begin
+          raise RepositoryNotSetupError, "Adapter not set: #{@name}. Did you forget to setup?" \
+            unless self.class.adapters.key?(@name)
 
-        self.class.adapters[@name]
-      end
+          self.class.adapters[@name]
+        end
     end
 
     ##
@@ -206,7 +207,10 @@ module DataMapper
     #
     # @api semipublic
     def eql?(other)
-      return true if equal?(other)
+      if equal?(other)
+        return true
+      end
+
       name.eql?(other.name)
     end
 
@@ -221,8 +225,8 @@ module DataMapper
     #   human readable representation of the repository
     #
     # @api private
-    def to_s
-      "#<DataMapper::Repository:#{@name}>"
+    def inspect
+      "#<#{self.class.name} @name=#{@name}>"
     end
 
     private

@@ -26,13 +26,9 @@ module DataMapper
       @properties.values_at(*names)
     end
 
-    # TODO: deprecate slice
-    alias slice values_at
-
-    def clear
-      clear_cache
-      @properties.clear
-      super
+    def slice(*args)
+      warn "#{self.class}#slice is deprecated, use #{self.class}#values_at instead"
+      values_at(*args)
     end
 
     def <<(property)
@@ -40,8 +36,10 @@ module DataMapper
       super
     end
 
-    # TODO: deprecate add
-    alias add <<
+    def add(*args)
+      warn "#{self.class}#add is deprecated, use #{self.class}#<< instead"
+      self.<<(*args)
+    end
 
     def include?(property)
       named?(property.name)
@@ -111,7 +109,7 @@ module DataMapper
     end
 
     def inspect
-      '#<PropertySet:{' + map { |property| property.inspect }.join(',') + '}>'
+      "#<#{self.class.name} { #{ map { |p| p.inspect }.join(', ') } }>"
     end
 
     private

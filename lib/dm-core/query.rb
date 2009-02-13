@@ -396,26 +396,27 @@ module DataMapper
     #   TODO: needs example
     # @api private
     def bind_values
-      @bind_values ||= begin
-        bind_values = []
+      @bind_values ||=
+        begin
+          bind_values = []
 
-        conditions.each do |tuple|
-          next if tuple.size == 2
-          operator, property, bind_value = *tuple
+          conditions.each do |tuple|
+            next if tuple.size == 2
+            operator, property, bind_value = *tuple
 
-          if :raw == operator
-            bind_values.push(*bind_value)
-          else
-            if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
-              bind_values.push(bind_value.first, bind_value.last)
+            if :raw == operator
+              bind_values.push(*bind_value)
             else
-              bind_values << bind_value
+              if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
+                bind_values.push(bind_value.first, bind_value.last)
+              else
+                bind_values << bind_value
+              end
             end
           end
-        end
 
-        bind_values
-      end
+          bind_values
+        end
     end
 
     # TODO: document this
@@ -442,17 +443,18 @@ module DataMapper
     #
     # @api private
     def key_property_indexes
-      @key_property_indexes ||= begin
-        indexes = []
+      @key_property_indexes ||=
+        begin
+          indexes = []
 
-        fields.each_with_index do |property, i|
-          if property.key?
-            indexes << i
+          fields.each_with_index do |property, i|
+            if property.key?
+              indexes << i
+            end
           end
-        end
 
-        indexes
-      end
+          indexes
+        end
     end
 
     private

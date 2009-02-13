@@ -2,7 +2,7 @@
 
 module DataMapper
   class Transaction
-    attr_reader :transaction_primitives, :adapters, :state
+    extend Chainable
 
     #
     # Create a new DataMapper::Transaction
@@ -286,6 +286,8 @@ module DataMapper
     end
 
     module Adapter
+      extend Chainable
+
       def self.included(base)
         [ :Repository, :Model, :Resource ].each do |name|
           DataMapper.const_get(name).send(:include, Transaction.const_get(name))
@@ -370,10 +372,11 @@ module DataMapper
       # @api private
       def transactions
         @transactions ||= {}
-        @transactions[Thread.current] ||= begin
-          @transactions.delete_if { |t,_| !t.alive? }
-          []
-        end
+        @transactions[Thread.current] ||=
+          begin
+            @transactions.delete_if { |t,_| !t.alive? }
+            []
+          end
       end
 
       ##

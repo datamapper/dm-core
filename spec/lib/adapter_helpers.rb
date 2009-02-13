@@ -31,6 +31,17 @@ module DataMapper::Spec
             end
           end
 
+          after :all do
+            if defined?(DataMapper::Adapters::YamlAdapter) && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
+              descendants = DataMapper::Model.descendants.dup.to_a
+              while model = descendants.shift
+                descendants.concat(model.descendants) if model.respond_to?(:descendants)
+
+                model.all(:repository => @repository).destroy!
+              end
+            end
+          end
+
           self.instance_eval(&block)
         end
 
@@ -58,6 +69,17 @@ module DataMapper::Spec
             # remove all tables and constraints after each spec
             if @alternate_repository.respond_to?(:auto_migrate_down)
               @alternate_repository.send(:auto_migrate_down)
+            end
+          end
+
+          after :all do
+            if defined?(DataMapper::Adapters::YamlAdapter) && @alternate_adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
+              descendants = DataMapper::Model.descendants.dup.to_a
+              while model = descendants.shift
+                descendants.concat(model.descendants) if model.respond_to?(:descendants)
+
+                model.all(:repository => @alternate_repository).destroy!
+              end
             end
           end
 

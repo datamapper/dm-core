@@ -783,12 +783,11 @@ module DataMapper
     #
     # @api public
     def destroy
-      if all? { |r| r.destroy }
+      if destroyed = all? { |r| r.destroy }
         clear
-        true
-      else
-        false
       end
+
+      destroyed
     end
 
     ##
