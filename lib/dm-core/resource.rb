@@ -702,6 +702,8 @@ module DataMapper
     # TODO: document
     # @api private
     def child_associations
+      # TODO: change this to iterate over the model's relationships, and
+      # use r.loaded?(self) && r.get!(self) to get the associations
       @child_associations ||= []
     end
 

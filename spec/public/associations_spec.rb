@@ -29,223 +29,325 @@ describe DataMapper::Associations do
 
   it { Car.should respond_to(:has) }
 
-  describe '#has' do
-    describe '1' do
-      before :all do
-        Car.has(1, :engine)
+  supported_by :all do
+    describe '#has' do
+      describe '1' do
+        before :all do
+          Car.has(1, :engine)
 
-        @car = Car.new
+          @car = Car.new
+        end
+
+        describe 'accessor' do
+          it 'should be created' do
+            @car.should respond_to(:engine)
+          end
+
+          describe 'when there is no child resource' do
+            before :all do
+              @return = @car.engine
+            end
+
+            it 'should return nil' do
+              @return.should be_nil
+            end
+          end
+
+          describe 'when there is a child resource' do
+            before :all do
+              @engine     = Engine.new
+              @car.engine = @engine
+
+              @return = @car.engine
+            end
+
+            it 'should return a Resource' do
+              @return.should be_kind_of(DataMapper::Resource)
+            end
+
+            it 'should return the expected Resource' do
+              @return.should equal(@engine)
+            end
+          end
+        end
+
+        describe 'mutator' do
+          it 'should be created' do
+            @car.should respond_to(:engine=)
+          end
+
+          describe 'when setting a child resource' do
+            before :all do
+              @engine = Engine.new
+
+              @return = @car.engine = @engine
+            end
+
+            it 'should return the expected Resource' do
+              @return.should equal(@engine)
+            end
+
+            it 'should set the Resource' do
+              @car.engine.should equal(@engine)
+            end
+          end
+
+          describe 'when setting a nil resource' do
+            before :all do
+              @car.engine = Engine.new
+
+              @return = @car.engine = nil
+            end
+
+            it 'should return nil' do
+              @return.should be_nil
+            end
+
+            it 'should set nil' do
+              @car.engine.should be_nil
+            end
+          end
+        end
       end
 
-      it 'should create the accessor' do
-        @car.should respond_to(:engine)
+      describe 'n..n' do
+        before :all do
+          Car.has(1..4, :doors)
+
+          @car = Car.new
+        end
+
+        describe 'accessor' do
+          it 'should be created' do
+            @car.should respond_to(:doors)
+          end
+
+          describe 'when there is no child resource' do
+            before :all do
+              @return = @car.doors
+            end
+
+            it 'should return a OneToMany::Collection' do
+              @return.should be_kind_of(DataMapper::Associations::OneToMany::Collection)
+            end
+
+            it 'should return an empty OneToMany::Collection' do
+              @return.should be_empty
+            end
+          end
+
+          describe 'when there is a child resource' do
+            before :all do
+              @door = Door.new
+              @car.doors << @door
+
+              @return = @car.doors
+            end
+
+            it 'should return a OneToMany::Collection' do
+              @return.should be_kind_of(DataMapper::Associations::OneToMany::Collection)
+            end
+
+            it 'should return expected Resources' do
+              @return.should == [ @door ]
+            end
+          end
+        end
+
+        describe 'mutator' do
+          it 'should be created' do
+            @car.should respond_to(:doors=)
+          end
+        end
       end
 
-      it 'should create the mutator' do
-        @car.should respond_to(:engine=)
-      end
-    end
+      describe 'n..n through' do
+        before :all do
+          Door.has(1, :window)
+          Car.has(1..4, :doors)
+          Car.has(1..4, :windows, :through => :doors)
 
-    describe 'n..n' do
-      before :all do
-        Car.has(1..4, :doors)
+          @car = Car.new
+        end
 
-        @car = Car.new
-      end
+        it 'should create the accessor' do
+          @car.should respond_to(:windows)
+        end
 
-      it 'should create the accessor' do
-        @car.should respond_to(:doors)
-      end
-
-      it 'should create the mutator' do
-        @car.should respond_to(:doors=)
-      end
-    end
-
-    describe 'n..n through' do
-      before :all do
-        Door.has(1, :window)
-        Car.has(1..4, :doors)
-        Car.has(1..4, :windows, :through => :doors)
-
-        @car = Car.new
+        it 'should create the mutator' do
+          @car.should respond_to(:windows=)
+        end
       end
 
-      it 'should create the accessor' do
-        @car.should respond_to(:windows)
+      describe 'n' do
+        before :all do
+          Car.has(n, :doors)
+
+          @car = Car.new
+        end
+
+        it 'should create the accessor' do
+          @car.should respond_to(:doors)
+        end
+
+        it 'should create the mutator' do
+          @car.should respond_to(:doors=)
+        end
       end
 
-      it 'should create the mutator' do
-        @car.should respond_to(:windows=)
-      end
-    end
+      describe 'n through' do
+        before :all do
+          Door.has(1, :window)
+          Car.has(n, :doors)
+          Car.has(n, :windows, :through => :doors)
 
-    describe 'n' do
-      before :all do
-        Car.has(n, :doors)
+          @car = Car.new
+        end
 
-        @car = Car.new
-      end
+        it 'should create the accessor' do
+          @car.should respond_to(:windows)
+        end
 
-      it 'should create the accessor' do
-        @car.should respond_to(:doors)
-      end
-
-      it 'should create the mutator' do
-        @car.should respond_to(:doors=)
-      end
-    end
-
-    describe 'n through' do
-      before :all do
-        Door.has(1, :window)
-        Car.has(n, :doors)
-        Car.has(n, :windows, :through => :doors)
-
-        @car = Car.new
+        it 'should create the mutator' do
+          @car.should respond_to(:windows=)
+        end
       end
 
-      it 'should create the accessor' do
-        @car.should respond_to(:windows)
+      it 'should raise an exception if the cardinality is not understood' do
+        lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
       end
 
-      it 'should create the mutator' do
-        @car.should respond_to(:windows=)
+      it 'should raise an exception if the minimum constraint is larger than the maximum' do
+        lambda { Car.has(2..1, :doors) }.should raise_error(ArgumentError)
       end
-    end
-
-    it 'should raise an exception if the cardinality is not understood' do
-      lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
-    end
-
-    it 'should raise an exception if the minimum constraint is larger than the maximum' do
-      lambda { Car.has(2..1, :doors) }.should raise_error(ArgumentError)
     end
   end
 
   it { Engine.should respond_to(:belongs_to) }
 
-  describe '#belongs_to' do
-    before :all do
-      Engine.belongs_to(:car)
-      Car.has(n, :engines)
+  supported_by :all do
+    describe '#belongs_to' do
+      before :all do
+        Engine.belongs_to(:car)
+        Car.has(n, :engines)
 
-      @engine = Engine.new
-    end
-
-    it 'should create the accessor' do
-      @engine.should respond_to(:car)
-    end
-
-    it 'should create the mutator' do
-      @engine.should respond_to(:car=)
-    end
-
-    it 'should create the child key accessor' do
-      @engine.should respond_to(:car_id)
-    end
-
-    it 'should create the child key mutator' do
-      @engine.should respond_to(:car_id=)
-    end
-
-    # TODO: move the "querying" specs to the ManyToOne specs
-    supported_by :all do
-      describe 'querying for a parent resource' do
-        before :all do
-          @car = Car.create
-          @engine = Engine.create(:car => @car)
-          @resource = @engine.car(:id => @car.id)
-        end
-
-        it 'should return a Resource' do
-          @resource.should be_kind_of(DataMapper::Resource)
-        end
-
-        it 'should return expected Resource' do
-          @resource.should eql(@car)
-        end
+        @engine = Engine.new
       end
 
-      describe 'querying for a parent resource that does not exist' do
-        before :all do
-          @car = Car.create
-          @engine = Engine.create(:car => @car)
-          @resource = @engine.car(:id.not => @car.id)
-        end
-
-        it 'should return nil' do
-          @resource.should be_nil
-        end
+      it 'should create the accessor' do
+        @engine.should respond_to(:car)
       end
 
-      describe 'changing the parent resource' do
-        before :all do
-          @car = Car.create
-          @engine = Engine.new
-          @engine.car = @car
-        end
+      it 'should create the mutator' do
+        @engine.should respond_to(:car=)
+      end
 
-        it 'should set the associated foreign key' do
-          @engine.car_id.should == @car.id
-        end
+      it 'should create the child key accessor' do
+        @engine.should respond_to(:car_id)
+      end
 
-        it 'should add the engine object to the car' do
-          pending 'Changing a belongs_to parent should add the object to the correct association' do
-            @car.engines.should include(@engine)
+      it 'should create the child key mutator' do
+        @engine.should respond_to(:car_id=)
+      end
+
+      # TODO: move the "querying" specs to the ManyToOne specs
+      supported_by :all do
+        describe 'querying for a parent resource' do
+          before :all do
+            @car = Car.create
+            @engine = Engine.create(:car => @car)
+            @resource = @engine.car(:id => @car.id)
           end
-        end
-      end
 
-      describe 'changing the parent foreign key' do
-        before :all do
-          @car = Car.create
-
-          @engine = Engine.new
-          @engine.car_id = @car.id
-        end
-
-        it 'should set the associated resource' do
-          @engine.car.should eql(@car)
-        end
-      end
-
-      describe 'changing an existing resource through the relation' do
-        before :all do
-          @car1 = Car.create
-          @car2 = Car.create
-          @engine = Engine.create(:car => @car1)
-          @engine.car = @car2
-        end
-
-        it 'should also change the foreign key' do
-          @engine.car_id.should == @car2.id
-        end
-
-        it 'should add the engine to the car' do
-          pending 'Changing a belongs_to parent should add the object to the correct association' do
-            @car2.engines.should include(@engine)
+          it 'should return a Resource' do
+            @resource.should be_kind_of(DataMapper::Resource)
           end
-        end
-      end
 
-      describe 'changing an existing resource through the relation' do
-        before :all do
-          @car1 = Car.create
-          @car2 = Car.create
-          @engine = Engine.create(:car => @car1)
-          @engine.car_id = @car2.id
-        end
-
-        it 'should also change the foreign key' do
-          pending 'a change to the foreign key should also change the related object' do
-            @engine.car.should eql(@car2)
+          it 'should return expected Resource' do
+            @resource.should eql(@car)
           end
         end
 
-        it 'should add the engine to the car' do
-          pending 'a change to the foreign key should also change the related object' do
-            @car2.engines.should include(@engine)
+        describe 'querying for a parent resource that does not exist' do
+          before :all do
+            @car = Car.create
+            @engine = Engine.create(:car => @car)
+            @resource = @engine.car(:id.not => @car.id)
+          end
+
+          it 'should return nil' do
+            @resource.should be_nil
+          end
+        end
+
+        describe 'changing the parent resource' do
+          before :all do
+            @car = Car.create
+            @engine = Engine.new
+            @engine.car = @car
+          end
+
+          it 'should set the associated foreign key' do
+            @engine.car_id.should == @car.id
+          end
+
+          it 'should add the engine object to the car' do
+            pending 'Changing a belongs_to parent should add the object to the correct association' do
+              @car.engines.should include(@engine)
+            end
+          end
+        end
+
+        describe 'changing the parent foreign key' do
+          before :all do
+            @car = Car.create
+
+            @engine = Engine.new
+            @engine.car_id = @car.id
+          end
+
+          it 'should set the associated resource' do
+            @engine.car.should eql(@car)
+          end
+        end
+
+        describe 'changing an existing resource through the relation' do
+          before :all do
+            @car1 = Car.create
+            @car2 = Car.create
+            @engine = Engine.create(:car => @car1)
+            @engine.car = @car2
+          end
+
+          it 'should also change the foreign key' do
+            @engine.car_id.should == @car2.id
+          end
+
+          it 'should add the engine to the car' do
+            pending 'Changing a belongs_to parent should add the object to the correct association' do
+              @car2.engines.should include(@engine)
+            end
+          end
+        end
+
+        describe 'changing an existing resource through the relation' do
+          before :all do
+            @car1 = Car.create
+            @car2 = Car.create
+            @engine = Engine.create(:car => @car1)
+            @engine.car_id = @car2.id
+          end
+
+          it 'should also change the foreign key' do
+            pending 'a change to the foreign key should also change the related object' do
+              @engine.car.should eql(@car2)
+            end
+          end
+
+          it 'should add the engine to the car' do
+            pending 'a change to the foreign key should also change the related object' do
+              @car2.engines.should include(@engine)
+            end
           end
         end
       end

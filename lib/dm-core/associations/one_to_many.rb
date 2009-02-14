@@ -34,31 +34,20 @@ module DataMapper
         end
 
         def get(parent, query = nil)
-          collection = get!(parent) || begin
-            query_for = query_for(parent)
+          lazy_load(parent) unless loaded?(parent)
 
-            collection = self.class.collection_class.new(query_for)
+          collection = get!(parent)
 
-            collection.relationship = self
-            collection.parent       = parent
-
-            # TODO: make this public
-            parent.send(:child_associations) << collection
-
-            set!(parent, collection)
+          if query.nil?
+            collection
+          else
+            collection.all(query)
           end
-
-          collection.all(query)
         end
 
         def set(parent, children)
-          original = get!(parent)
-
-          if children == original
-            return original
-          end
-
-          set!(parent, original.replace(children))
+          lazy_load(parent) unless loaded?(parent)
+          set!(parent, get!(parent).replace(children))
         end
 
         private
@@ -94,6 +83,22 @@ module DataMapper
               relationships[#{name.inspect}].set(self, children)
             end
           RUBY
+        end
+
+        # TODO: document
+        # @api private
+        def lazy_load(parent)
+          query_for = query_for(parent)
+
+          collection = self.class.collection_class.new(query_for)
+
+          collection.relationship = self
+          collection.parent       = parent
+
+          # TODO: refactor this out and just use introspection to save children
+          parent.send(:child_associations) << collection
+
+          set!(parent, collection)
         end
       end # class Relationship
 
@@ -161,10 +166,19 @@ module DataMapper
         private
 
         def lazy_load
-          if @parent.new?
-            return
+          if @parent.saved?
+            super
+          elsif !loaded?
+            mark_loaded
+
+            # TODO: update LazyArray to wrap the idiom where we move from the head/tail to the array
+            #   - Update the default Collection#load_with block to use the same idiom
+            @array.unshift(*@head)
+            @array.concat(@tail)
+            @head = @tail = nil
+            @reapers.each { |r| @array.delete_if(&r) } if @reapers
+            @array.freeze if frozen?
           end
-          super
         end
 
         # TODO: document
