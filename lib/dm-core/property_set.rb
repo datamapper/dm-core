@@ -92,7 +92,7 @@ module DataMapper
 
     def lazy_load_context(names)
       if names.kind_of?(Array) && names.empty?
-        raise ArgumentError, '+names+ cannot be empty', caller
+        raise ArgumentError, '+names+ cannot be empty'
       end
 
       result = []

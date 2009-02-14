@@ -196,13 +196,13 @@ module DataMapper
         assert_kind_of 'options[:max]', options[:max], Integer, n.class
 
         if options[:min] == n && options[:max] == n
-          raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association', caller(1)
+          raise ArgumentError, 'Cardinality may not be n..n.  The cardinality specifies the min/max number of results from the association'
         elsif options[:min] > options[:max]
-          raise ArgumentError, "Cardinality min (#{options[:min]}) cannot be larger than the max (#{options[:max]})", caller(1)
+          raise ArgumentError, "Cardinality min (#{options[:min]}) cannot be larger than the max (#{options[:max]})"
         elsif options[:min] < 0
-          raise ArgumentError, "Cardinality min much be greater than or equal to 0, but was #{options[:min]}", caller(1)
+          raise ArgumentError, "Cardinality min much be greater than or equal to 0, but was #{options[:min]}"
         elsif options[:max] < 1
-          raise ArgumentError, "Cardinality max much be greater than or equal to 1, but was #{options[:max]}", caller(1)
+          raise ArgumentError, "Cardinality max much be greater than or equal to 1, but was #{options[:max]}"
         end
       end
 
@@ -239,7 +239,7 @@ module DataMapper
       end
 
       if options.key?(:limit)
-        raise ArgumentError, '+options[:limit]+ should not be specified on a relationship', caller(1)
+        raise ArgumentError, '+options[:limit]+ should not be specified on a relationship'
       end
     end
 

@@ -354,7 +354,7 @@ module DataMapper
         warn "Passing in +repository_name+ to #{self.class}#field is deprecated: #{caller[0]}"
 
         if repository_name != self.repository_name
-          raise ArgumentError, "Mismatching +repository_name+ with #{self.class}#repository_name (#{repository_name.inspect} != #{self.repository_name.inspect})", caller
+          raise ArgumentError, "Mismatching +repository_name+ with #{self.class}#repository_name (#{repository_name.inspect} != #{self.repository_name.inspect})"
         end
       end
 
@@ -767,7 +767,7 @@ module DataMapper
       end
 
       unless TYPES.include?(type) || (Type > type && TYPES.include?(type.primitive))
-        raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type", caller
+        raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type"
       end
 
       @repository_name        = model.repository.name
@@ -827,7 +827,7 @@ module DataMapper
 
     def assert_valid_options(options)
       if (unknown = options.keys - PROPERTY_OPTIONS).any?
-        raise ArgumentError, "options #{unknown.map { |o| o.inspect }.join(' and ')} are unknown", caller(1)
+        raise ArgumentError, "options #{unknown.map { |o| o.inspect }.join(' and ')} are unknown"
       end
 
       options.each do |key,value|
@@ -837,12 +837,12 @@ module DataMapper
 
           when :default
             if value.nil?
-              raise ArgumentError, "options[#{key.inspect}] must not be nil", caller(1)
+              raise ArgumentError, "options[#{key.inspect}] must not be nil"
             end
 
           when :serial, :key, :nullable, :unique, :lazy, :auto_validation
             unless value == true || value == false
-              raise ArgumentError, "options[#{key.inspect}] must be either true or false", caller(1)
+              raise ArgumentError, "options[#{key.inspect}] must be either true or false"
             end
 
           when :index, :unique_index
@@ -858,7 +858,7 @@ module DataMapper
             assert_kind_of "options[#{key.inspect}]", value, Symbol
 
             unless VISIBILITY_OPTIONS.include?(value)
-              raise ArgumentError, "options[#{key.inspect}] must be #{VISIBILITY_OPTIONS.join(' or ')}", caller(1)
+              raise ArgumentError, "options[#{key.inspect}] must be #{VISIBILITY_OPTIONS.join(' or ')}"
             end
         end
       end
