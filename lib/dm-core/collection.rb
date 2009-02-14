@@ -437,6 +437,8 @@ module DataMapper
       super
     end
 
+    # @deprecated
+    #   use #<< instead
     def add(*args)
       warn "#{self.class}#add is deprecated, use #{self.class}#<< instead"
       self.<<(*args)
@@ -633,8 +635,8 @@ module DataMapper
       super
     end
 
-    # @api public
     # @deprecated
+    #   use #new instead
     def build(*args)
       warn "#{self.class}#build is deprecated, use #{self.class}#new instead"
       new(*args)
@@ -1146,6 +1148,7 @@ module DataMapper
     #
     # @return [Collection] the associated Resources
     #
+    # @api private
     def delegate_to_relationship(relationship, other_query = nil)
       query = relationship.query_for(self)
 

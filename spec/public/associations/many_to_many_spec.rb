@@ -22,7 +22,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         include DataMapper::Resource
 
         property :id,      Serial
-        property :title,   String
+        property :title,   String, :nullable => false
         property :content, Text
 
         has n, :authors, :through => Resource

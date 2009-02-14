@@ -1,5 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
+# TODO: see if we can use this shared spec, and alot of the specs below
+# for the ManyToMany association specs
+
 share_examples_for 'It can transfer a Resource from another association' do
   before :all do
     %w[ @resource @original ].each do |ivar|
@@ -40,7 +43,7 @@ end
         include DataMapper::Resource
 
         property :id,      Serial
-        property :title,   String
+        property :title,   String, :nullable => false
         property :content, Text
 
         belongs_to :author
