@@ -361,34 +361,122 @@ share_examples_for 'A public Collection' do
       pending if @skip
     end
 
-    before :all do
-      @return = @resource = @articles.create(:content => 'Content')
-    end
+    describe 'when scoped to a property' do
+      before :all do
+        @return = @resource = @articles.create
+      end
 
-    it 'should return a Resource' do
-      @return.should be_kind_of(DataMapper::Resource)
-    end
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
 
-    it 'should be a Resource with expected attributes' do
-      @resource.attributes.only(:content).should == { :content => 'Content' }
-    end
+      it 'should be a saved Resource' do
+        @resource.should be_saved
+      end
 
-    it 'should be a saved Resource' do
-      @resource.should be_saved
-    end
+      it 'should append the Resource to the Collection' do
+        pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @articles.last.should be_equal(@resource)
+        end
+      end
 
-    it 'should append the Resource to the Collection' do
-      pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-        @articles.last.should be_equal(@resource)
+      it 'should use the query conditions to set default values' do
+        @resource.title.should == 'Sample Article'
+      end
+
+      it 'should not append a Resource if create fails' do
+        pending 'TODO: not sure how to best spec this'
       end
     end
 
-    it 'should use the query conditions to set default values' do
-      @resource.attributes.only(:title).should == { :title => 'Sample Article' }
+    describe 'when scoped to the key' do
+      before :all do
+        @articles = @articles.all(:id => 1)
+
+        @return = @resource = @articles.create
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be a saved Resource' do
+        @resource.should be_saved
+      end
+
+      it 'should append the Resource to the Collection' do
+        pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @articles.last.should be_equal(@resource)
+        end
+      end
+
+      it 'should not use the query conditions to set default values' do
+        @resource.id.should_not == 1
+      end
+
+      it 'should not append a Resource if create fails' do
+        pending 'TODO: not sure how to best spec this'
+      end
     end
 
-    it 'should not append a Resource if create fails' do
-      pending 'TODO: not sure how to best spec this'
+    describe 'when scoped to a property with multiple values' do
+      before :all do
+        @articles = @articles.all(:content => %w[ Sample Other ])
+
+        @return = @resource = @articles.create
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be a saved Resource' do
+        @resource.should be_saved
+      end
+
+      it 'should append the Resource to the Collection' do
+        pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @articles.last.should be_equal(@resource)
+        end
+      end
+
+      it 'should not use the query conditions to set default values' do
+        @resource.content.should be_nil
+      end
+
+      it 'should not append a Resource if create fails' do
+        pending 'TODO: not sure how to best spec this'
+      end
+    end
+
+    describe 'when scoped with a condition other than eql' do
+      before :all do
+        @articles = @articles.all(:content.not => 'Sample')
+
+        @return = @resource = @articles.create
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be a saved Resource' do
+        @resource.should be_saved
+      end
+
+      it 'should append the Resource to the Collection' do
+        pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @articles.last.should be_equal(@resource)
+        end
+      end
+
+      it 'should not use the query conditions to set default values' do
+        @resource.content.should be_nil
+      end
+
+      it 'should not append a Resource if create fails' do
+        pending 'TODO: not sure how to best spec this'
+      end
     end
   end
 
@@ -1374,28 +1462,98 @@ share_examples_for 'A public Collection' do
   it { @articles.should respond_to(:new) }
 
   describe '#new' do
-    before :all do
-      @return = @resource = @articles.new(:content => 'Content')
+    describe 'when scoped to a property' do
+      before :all do
+        @return = @resource = @articles.new
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be a new Resource' do
+        @resource.should be_new
+      end
+
+      it 'should append the Resource to the Collection' do
+        @articles.last.should be_equal(@resource)
+      end
+
+      it 'should use the query conditions to set default values' do
+        @resource.title.should == 'Sample Article'
+      end
     end
 
-    it 'should return a Resource' do
-      @return.should be_kind_of(DataMapper::Resource)
+    describe 'when scoped to the key' do
+      before :all do
+        @articles = @articles.all(:id => 1)
+
+        @return = @resource = @articles.new
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be a new Resource' do
+        @resource.should be_new
+      end
+
+      it 'should append the Resource to the Collection' do
+        @articles.last.should be_equal(@resource)
+      end
+
+      it 'should not use the query conditions to set default values' do
+        @resource.id.should be_nil
+      end
     end
 
-    it 'should be a Resource with expected attributes' do
-      @resource.attributes.only(:content).should == { :content => 'Content' }
+    describe 'when scoped to a property with multiple values' do
+      before :all do
+        @articles = @articles.all(:content => %w[ Sample Other ])
+
+        @return = @resource = @articles.new
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be a new Resource' do
+        @resource.should be_new
+      end
+
+      it 'should append the Resource to the Collection' do
+        @articles.last.should be_equal(@resource)
+      end
+
+      it 'should not use the query conditions to set default values' do
+        @resource.content.should be_nil
+      end
     end
 
-    it 'should be a new Resource' do
-      @resource.should be_new
-    end
+    describe 'when scoped with a condition other than eql' do
+      before :all do
+        @articles = @articles.all(:content.not => 'Sample')
 
-    it 'should append the Resource to the Collection' do
-      @articles.last.should be_equal(@resource)
-    end
+        @return = @resource = @articles.new
+      end
 
-    it 'should use the query conditions to set default values' do
-      @resource.attributes.only(:title).should == { :title => 'Sample Article' }
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be a new Resource' do
+        @resource.should be_new
+      end
+
+      it 'should append the Resource to the Collection' do
+        @articles.last.should be_equal(@resource)
+      end
+
+      it 'should not use the query conditions to set default values' do
+        @resource.content.should be_nil
+      end
     end
   end
 

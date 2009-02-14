@@ -971,8 +971,8 @@ module DataMapper
     def default_attributes
       default_attributes = {}
 
-      properties = model.properties(repository.name)
-      model_key  = properties.key
+      repository_name = repository.name
+      properties      = model.properties(repository_name) - model.key(repository_name)
 
       query.conditions.each do |tuple|
         operator, property, bind_value = *tuple
@@ -981,15 +981,7 @@ module DataMapper
           next
         end
 
-        unless property.kind_of?(Property)
-          next
-        end
-
         unless properties.include?(property)
-          next
-        end
-
-        if model_key.include?(property)
           next
         end
 
