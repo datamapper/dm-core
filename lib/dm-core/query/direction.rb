@@ -26,10 +26,6 @@ module DataMapper
         self
       end
 
-      def inspect
-        "#<#{self.class.name} #{@property.inspect} #{@direction}>"
-      end
-
       private
 
       def initialize(property, direction = :asc)
