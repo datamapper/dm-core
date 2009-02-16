@@ -280,24 +280,30 @@ module DataMapper
           end
 
           unless (limit && limit > 1) || offset > 0 || qualify
-            if conditions.any? { |o,p,b| o == :eql && p.unique? && !b.kind_of?(Array) && !b.kind_of?(Range) }
+            operands = conditions.operands
+
+            # if a unique property is used, and there is no OR operator, then an ORDER
+            # and LIMIT are unecessary because it should only return a single row
+            if conditions.kind_of?(Conditions::AndOperation) &&
+               operands.any? { |o| o.kind_of?(Conditions::EqualToComparison) && o.property.unique? } &&
+               !operands.any? { |o| o.kind_of?(Conditions::OrOperation) }
               order = nil
               limit = nil
             end
           end
 
-          where_statement, bind_values = where_statement(conditions, qualify)
+          conditions_statement, bind_values = conditions_statement(conditions, qualify)
 
           statement = "SELECT #{columns_statement(fields, qualify)}"
           statement << " FROM #{quote_name(model.storage_name(name))}"
           statement << join_statement(model, query.links, qualify)         if qualify
-          statement << " WHERE #{where_statement}"                         unless where_statement.blank?
+          statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" unless group_by.blank?
           statement << " ORDER BY #{order_statement(order, qualify)}"      unless order.blank?
           statement << " LIMIT #{quote_value(limit)}"                      if limit
           statement << " OFFSET #{quote_value(offset)}"                    if limit && offset > 0
 
-          return statement, bind_values || []
+          return statement, bind_values
         end
 
         # Constructs INSERT statement for given query,
@@ -327,11 +333,11 @@ module DataMapper
         #
         # @return [String] UPDATE statement as a string
         def update_statement(properties, query)
-          where_statement, bind_values = where_statement(query.conditions)
+          conditions_statement, bind_values = conditions_statement(query.conditions)
 
           statement = "UPDATE #{quote_name(query.model.storage_name(name))}"
           statement << " SET #{properties.map { |p| "#{quote_name(p.field)} = ?" }.join(', ')}"
-          statement << " WHERE #{where_statement}" unless where_statement.blank?
+          statement << " WHERE #{conditions_statement}" unless conditions_statement.blank?
 
           return statement, bind_values
         end
@@ -340,10 +346,10 @@ module DataMapper
         #
         # @return [String] DELETE statement as a string
         def delete_statement(query)
-          where_statement, bind_values = where_statement(query.conditions)
+          conditions_statement, bind_values = conditions_statement(query.conditions)
 
           statement = "DELETE FROM #{quote_name(query.model.storage_name(name))}"
-          statement << " WHERE #{where_statement}" unless where_statement.blank?
+          statement << " WHERE #{conditions_statement}" unless conditions_statement.blank?
 
           return statement, bind_values
         end
@@ -368,7 +374,7 @@ module DataMapper
             statement << " INNER JOIN #{quote_name(model.storage_name(name))} ON "
 
             statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
-              condition_statement(:eql, parent_property, child_property, qualify)
+              "#{property_to_column_name(parent_property, qualify)} = #{property_to_column_name(child_property, qualify)}"
             end.join(' AND ')
 
             previous_model = model
@@ -380,54 +386,17 @@ module DataMapper
         # Constructs where clause
         #
         # @return [String] where clause
-        def where_statement(conditions, qualify = false)
-          statements  = []
-          bind_values = []
-
-          conditions.each do |tuple|
-            operator, property, bind_value = *tuple
-
-            # handle exclusive range conditions
-            if bind_value.kind_of?(Range) && bind_value.exclude_end?
-
-              # TODO: think about updating Query so that exclusive Range conditions are
-              # transformed into AND or OR conditions like below.  Effectively the logic
-              # here would be moved into Query
-
-              min = bind_value.first
-              max = bind_value.last
-
-              case operator
-                when :eql
-                  gte_condition = condition_statement(:gte, property, min, qualify)
-                  lt_condition  = condition_statement(:lt,  property, max,  qualify)
-
-                  statements << "#{gte_condition} AND #{lt_condition}"
-                when :not
-                  lt_condition  = condition_statement(:lt,  property, min, qualify)
-                  gte_condition = condition_statement(:gte, property, max,  qualify)
-
-                  if conditions.size > 1
-                    statements << "(#{lt_condition} OR #{gte_condition})"
-                  else
-                    statements << "#{lt_condition} OR #{gte_condition}"
-                  end
-              end
-
-              bind_values << min
-              bind_values << max
+        def conditions_statement(conditions, qualify = false)
+          statement, bind_values = case conditions
+            when Conditions::NotOperation       then negate_operation(conditions, qualify)
+            when Conditions::AbstractOperation  then operation_statement(conditions, qualify)
+            when Conditions::AbstractComparison then comparison_statement(conditions, qualify)
+            when Array                          then conditions  # handle raw conditions
             else
-              statements << condition_statement(operator, property, bind_value, qualify)
-
-              if operator == :raw
-                bind_values.push(*bind_value) if tuple.size == 3
-              else
-                bind_values << bind_value
-              end
-            end
+              raise ArgumentError, "invalid conditions #{conditions.class}: #{conditions.inspect}"
           end
 
-          return statements.join(' AND '), bind_values
+          return statement, bind_values
         end
 
         # Constructs order clause
@@ -443,54 +412,88 @@ module DataMapper
           statements.join(', ')
         end
 
-        # Constructs condition clause
-        #
-        # @return [String] condition clause
-        def condition_statement(operator, left_condition, right_condition, qualify)
-          return left_condition if operator == :raw
+        def negate_operation(operation, qualify)
+          @negated = !@negated
+          begin
+            conditions_statement(operation.operands.first, qualify)
+          ensure
+            @negated = !@negated
+          end
+        end
 
-          conditions = [ left_condition, right_condition ].map do |condition|
-            case condition
-              when Property, Query::Path
-                property_to_column_name(condition, qualify)
-              else
-                '?'
+        def operation_statement(operation, qualify)
+          statements  = []
+          bind_values = []
+
+          operation.operands.each do |operand|
+            statement, values = conditions_statement(operand, qualify)
+
+            if operand.kind_of?(Conditions::OrOperation)
+              statement = "(#{statement})"
             end
+
+            statements << statement
+            bind_values.concat(values)
           end
 
-          comparison = case operator
-            when :eql, :in then equality_operator(right_condition)
-            when :not      then inequality_operator(right_condition)
-            when :like     then like_operator(right_condition)
-            when :gt       then '>'
-            when :gte      then '>='
-            when :lt       then '<'
-            when :lte      then '<='
+          join_with = operation.kind_of?(Conditions::AndOperation) ? 'AND' : 'OR'
+
+          return statements.join(" #{join_with} "), bind_values
+        end
+
+        # Constructs comparison clause
+        #
+        # @return [String] comparison clause
+        def comparison_statement(comparison, qualify)
+          value = comparison.value
+
+          operator = case comparison
+            when Conditions::EqualToComparison              then @negated ? inequality_operator(value) : equality_operator(value)
+            when Conditions::InclusionComparison            then @negated ? exclude_operator(value)    : include_operator(value)
+            when Conditions::RegexpComparison               then @negated ? not_regexp_operator(value) : regexp_operator(value)
+            when Conditions::LikeComparison                 then @negated ? unlike_operator(value)     : like_operator(value)
+            when Conditions::GreaterThanComparison          then @negated ? '<='                       : '>'
+            when Conditions::LessThanComparison             then @negated ? '>='                       : '<'
+            when Conditions::GreaterThanOrEqualToComparison then @negated ? '<'                        : '>='
+            when Conditions::LessThanOrEqualToComparison    then @negated ? '>'                        : '<='
           end
 
-          conditions.join(" #{comparison} ")
+          return "#{property_to_column_name(comparison.property, qualify)} #{operator} ?", [ value ]
         end
 
         def equality_operator(operand)
-          case operand
-            when Array then 'IN'
-            when Range then 'BETWEEN'
-            when nil   then 'IS'
-            else            '='
-          end
+          operand.nil? ? 'IS' : '='
         end
 
         def inequality_operator(operand)
+          operand.nil? ? 'IS NOT' : '<>'
+        end
+
+        def include_operator(operand)
           case operand
-            when Array then 'NOT IN'
-            when Range then 'NOT BETWEEN'
-            when nil   then 'IS NOT'
-            else            '<>'
+            when Array then 'IN'
+            when Range then 'BETWEEN'
           end
         end
 
+        def exclude_operator(operand)
+          "NOT #{include_operator(operand)}"
+        end
+
+        def regexp_operator(operand)
+          '~'
+        end
+
+        def not_regexp_operator(operand)
+          '!~'
+        end
+
         def like_operator(operand)
-          operand.kind_of?(Regexp) ? '~' : 'LIKE'
+          'LIKE'
+        end
+
+        def unlike_operator(operand)
+          'NOT LIKE'
         end
 
         # TODO: once the driver's quoting methods become public, have

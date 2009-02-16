@@ -968,18 +968,16 @@ module DataMapper
           repository_name = repository.name
           properties      = model.properties(repository_name) - model.key(repository_name)
 
-          query.conditions.each do |tuple|
-            operator, property, bind_value = *tuple
+          unless query.conditions.kind_of?(Conditions::AndOperation)
+            return
+          end
 
-            unless operator == :eql && properties.include?(property)
+          query.conditions.operands.each do |operand|
+            unless operand.kind_of?(Conditions::EqualToComparison) && properties.include?(operand.property)
               next
             end
 
-            if bind_value.kind_of?(Array) || bind_value.kind_of?(Range)
-              next
-            end
-
-            default_attributes[property.name] = bind_value
+            default_attributes[operand.property.name] = operand.value
           end
 
           default_attributes.freeze

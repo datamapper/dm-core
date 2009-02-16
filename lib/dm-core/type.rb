@@ -57,7 +57,7 @@ module DataMapper
   #       def self.load(value, property)
   #         if value.nil?
   #           nil
-  #         elsif value.is_a?(String)
+  #         elsif value.kind_of?(String)
   #           ::JSON.load(value)
   #         else
   #           raise ArgumentError.new("+value+ of a property of JSON type must be nil or a String")
@@ -65,7 +65,7 @@ module DataMapper
   #       end
   #
   #       def self.dump(value, property)
-  #         if value.nil? || value.is_a?(String)
+  #         if value.nil? || value.kind_of?(String)
   #           value
   #         else
   #           ::JSON.dump(value)

@@ -30,8 +30,12 @@ module DataMapper
           end
         end
 
-        def like_operator(operand) #:nodoc:
-          operand.kind_of?(Regexp) ? 'REGEXP' : 'LIKE'
+        def regexp_operator(operand)
+          'REGEXP'
+        end
+
+        def not_regexp_operator(operand)
+          'NOT REGEXP'
         end
       end #module SQL
 

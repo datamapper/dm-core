@@ -16,7 +16,7 @@ Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |f| require f 
 temp_db_dir = SPEC_ROOT.join('db')
 temp_db_dir.mkpath
 
-ENV['ADAPTERS'] ||= 'in_memory'
+ENV['ADAPTERS'] ||= 'all'
 
 HAS_DO = DataMapper::Adapters.const_defined?('DataObjectsAdapter')
 
@@ -64,7 +64,7 @@ PRIMARY.only(*adapters).each do |name, default|
     ADAPTERS << name
     PRIMARY[name] = connection_string  # ensure *_SPEC_URI is saved
   rescue Exception => e
-    puts "Could not connect to the database using #{connection_string.inspect} because: #{e.inspect}", e.backtrace
+    puts "Could not connect to the database using #{connection_string.inspect} because: #{e.inspect}"
   end
 end
 

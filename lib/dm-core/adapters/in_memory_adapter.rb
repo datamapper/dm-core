@@ -56,8 +56,8 @@ module DataMapper
       end
 
       ##
-      # Looks up one record or a collection of records from the data-store: 
-      # "SELECT" in SQL. 
+      # Looks up one record or a collection of records from the data-store:
+      # "SELECT" in SQL.
       #
       # @param [Query] query
       #   The query to be used to seach for the resources

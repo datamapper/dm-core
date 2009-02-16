@@ -48,10 +48,10 @@ module DataMapper
       def self.normalize_options(uri_or_options)
         assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
 
-        options = if uri_or_options.is_a?(Hash)
+        options = if uri_or_options.kind_of?(Hash)
           uri_or_options.to_mash
         else
-          uri     = uri_or_options.is_a?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
+          uri     = uri_or_options.kind_of?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
           options = uri.to_hash.to_mash
 
           if options.delete(:query)
@@ -144,21 +144,7 @@ module DataMapper
 
         # Be destructive by using #delete_if
         records.delete_if do |record|
-          not conditions.all? do |condition|
-            operator, property, bind_value = *condition
-
-            value = record[property.name]
-
-            case operator
-              when :eql, :in then equality_comparison(bind_value, value)
-              when :not      then !equality_comparison(bind_value, value)
-              when :like     then Regexp.new(bind_value) =~ value
-              when :gt       then !value.nil? && value >  bind_value
-              when :gte      then !value.nil? && value >= bind_value
-              when :lt       then !value.nil? && value <  bind_value
-              when :lte      then !value.nil? && value <= bind_value
-            end
-          end
+          not conditions.matches?(record)
         end
 
         records

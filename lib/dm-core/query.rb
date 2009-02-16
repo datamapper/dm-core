@@ -143,7 +143,7 @@ module DataMapper
     # up if invalid conditions used
     #def valid?
     #  !conditions.any? do |operator, property, bind_value|
-    #    next if :raw == operator
+    #    next if operator.kind_of?(Array)
     #
     #    case bind_value
     #      when Array
@@ -421,53 +421,6 @@ module DataMapper
       update(:offset => offset, :limit => limit)
     end
 
-    # Returns hash of the following options
-    # of the query:
-    #
-    # * fields
-    # * order
-    # * offset
-    # * reload
-    # * unique
-    # * add_reversed
-    #
-    # @return [Hash]  Hash representation of query options listed above
-    #
-    # @api semipublic
-    def to_hash
-      hash = {
-        :fields       => fields,
-        :order        => order,
-        :offset       => offset,
-        :reload       => reload?,
-        :unique       => unique?,
-        :add_reversed => add_reversed?,
-      }
-
-      hash[:limit] = limit unless limit == nil
-      hash[:links] = links unless links == []
-
-      conditions  = {}
-      raw_queries = []
-      bind_values = []
-
-      self.conditions.each do |tuple|
-        if tuple[0] == :raw
-          raw_queries << tuple[1]
-          bind_values << tuple[2] if tuple.size == 3
-        else
-          operator, property, bind_value = tuple
-          conditions[Operator.new(property, operator)] = bind_value
-        end
-      end
-
-      if raw_queries.any?
-        hash[:conditions] = [ raw_queries.map { |q| "(#{q})" }.join(' AND ') ].concat(bind_values)
-      end
-
-      hash.update(conditions)
-    end
-
     # Returns detailed human readable
     # string representation of the query
     #
@@ -495,7 +448,7 @@ module DataMapper
     # fetched by the query. Discriminator properties
     # must have type DataMapper::Types::Discriminator
     #
-    # @return [Index] position of first discriminator property
+    # @return [Integer] position of first discriminator property
     #
     # @api private
     def inheritance_property_index
@@ -570,7 +523,7 @@ module DataMapper
 
       @fields       = @options.fetch :fields,       @properties.defaults
       @links        = @options.fetch :links,        []
-      @conditions   = []
+      @conditions   = Conditions::BooleanOperation.new(:and)  # AND all the conditions together
       @offset       = @options.fetch :offset,       0
       @limit        = @options.fetch :limit,        nil
       @order        = @options.fetch :order,        @model.default_order(repository_name)
@@ -601,7 +554,7 @@ module DataMapper
 
           when Array
             statement, *bind_values = *conditions
-            @conditions << [ :raw, statement, bind_values ]
+            @conditions << [ statement, bind_values ]
         end
       end
 
@@ -618,7 +571,7 @@ module DataMapper
       # that changes to the duped object (such as via Query#reverse!)
       # do not alter the original object
       @order      = original.order.map      { |o| o.dup }
-      @conditions = original.conditions.map { |c| c.dup }
+      @conditions = original.conditions.dup
     end
 
     ##
@@ -977,7 +930,42 @@ module DataMapper
           subject
       end
 
-      @conditions << [ operator, subject, normalize_bind_value(subject, bind_value) ]
+      bind_value = normalize_bind_value(subject, bind_value)
+      negated    = operator == :not
+
+      if bind_value.kind_of?(Range) && bind_value.exclude_end?
+        min = bind_value.first
+        max = bind_value.last
+
+        case operator
+          when :eql
+            @conditions << Conditions::BooleanOperation.new(:and,
+              Conditions::Comparison.new(:gte, subject, min),
+              Conditions::Comparison.new(:lt,  subject, max)
+            )
+          when :not
+            @conditions << Conditions::BooleanOperation.new(:or,
+              Conditions::Comparison.new(:lt,  subject, min),
+              Conditions::Comparison.new(:gte, subject, max)
+            )
+        end
+      else
+        if operator == :eql || operator == :not
+          operator = case bind_value
+            when Array, Range then :in
+            when Regexp       then :regexp
+            else                   :eql
+          end
+        end
+
+        condition = Conditions::Comparison.new(operator, subject, bind_value)
+
+        if negated
+          condition = Conditions::BooleanOperation.new(:not, condition)
+        end
+
+        @conditions << condition
+      end
     end
 
     # TODO: make this typecast all bind values that do not match the
@@ -987,10 +975,6 @@ module DataMapper
     #   TODO: needs example
     # @api private
     def normalize_bind_value(property_or_path, bind_value)
-
-      # TODO: when conditions objects available, defer this until
-      # the value is retrieved.  This will allow a Proc to be provided
-      # early to a Collection, and then evaluated at query time.
       if bind_value.kind_of?(Proc)
         bind_value = bind_value.call
       end
@@ -1086,17 +1070,7 @@ module DataMapper
         return false
       end
 
-      sort_conditions = lambda do |(op, property, bind_value)|
-        # stringify conditions to allow comparison of raw vs. normal conditions
-        if op == :raw
-          [ op.to_s, property, *bind_value ].join(0.chr)
-        else
-          [ op.to_s, property.model, property.name.to_s, bind_value ].join(0.chr)
-        end
-      end
-
-      # TODO: update Property#<=> to sort on model and name
-      unless conditions.sort_by(&sort_conditions).send(operator, other.conditions.sort_by(&sort_conditions))
+      unless conditions.send(operator, other.conditions)
         return false
       end
 
