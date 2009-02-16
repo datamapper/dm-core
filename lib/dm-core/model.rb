@@ -767,9 +767,3 @@ module DataMapper
     end
   end # module Model
 end # module DataMapper
-
-dir = Pathname(__FILE__).dirname.expand_path / 'model'
-
-require dir / 'hook'
-require dir / 'is'
-require dir / 'scope'

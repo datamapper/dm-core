@@ -9,13 +9,14 @@
 #   environment.
 #
 
+require 'base64'
+require 'bigdecimal'
 require 'date'
 require 'pathname'
+require 'rubygems'
 require 'set'
 require 'time'
 require 'yaml'
-
-require 'rubygems'
 
 gem 'addressable', '~>2.0'
 require 'addressable/uri'
@@ -25,33 +26,55 @@ require 'extlib'
 require 'extlib/inflection'
 
 begin
+  gem 'fastthread', '~>1.0.1'
   require 'fastthread'
 rescue LoadError
   # fastthread not installed
 end
 
-dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
+dir = Pathname(__FILE__).dirname.parent.expand_path / 'lib' / 'dm-core'
 
-require dir / 'core_ext'
-require dir / 'support'
-require dir / 'version'
-
-require dir / 'resource'
-require dir / 'model'
+require dir / 'support' / 'chainable'
 require dir / 'collection'
+require dir / 'model'
 
-require dir / 'type'
-require dir / 'types'
+require dir / 'adapters'
+require dir / 'adapters' / 'abstract_adapter'
 require dir / 'associations'
+require dir / 'associations' / 'relationship'
+require dir / 'associations' / 'one_to_many'
+require dir / 'associations' / 'one_to_one'
+require dir / 'associations' / 'many_to_one'
+require dir / 'associations' / 'many_to_many'
+require dir / 'core_ext' / 'array'
 require dir / 'identity_map'
+require dir / 'migrations'
+require dir / 'model' / 'hook'
+require dir / 'model' / 'is'
+require dir / 'model' / 'scope'
+require dir / 'property'
 require dir / 'property_set'
 require dir / 'query'
+require dir / 'query' / 'direction'
+require dir / 'query' / 'operator'
+require dir / 'query' / 'path'
 require dir / 'repository'
-require dir / 'property'
-require dir / 'adapters'
-
+require dir / 'resource'
+require dir / 'support' / 'logger'
+require dir / 'support' / 'naming_conventions'
 require dir / 'transaction'
-require dir / 'migrations'
+require dir / 'type'
+require dir / 'types' / 'boolean'
+require dir / 'types' / 'discriminator'
+require dir / 'types' / 'text'
+require dir / 'types' / 'paranoid_datetime'
+require dir / 'types' / 'paranoid_boolean'
+require dir / 'types' / 'object'
+require dir / 'types' / 'serial'
+require dir / 'version'
+
+# A logger should always be present. Lets be consistent with DO
+DataMapper::Logger.new(nil, :off)
 
 # == Setup and Configuration
 # DataMapper uses URIs or a connection hash to connect to your data-store.
@@ -112,6 +135,8 @@ module DataMapper
 
   class PluginNotFoundError < StandardError; end
 
+  # TODO: document this
+  # @api private
   def self.root
     @root ||= Pathname(__FILE__).dirname.parent.expand_path.freeze
   end
@@ -167,9 +192,9 @@ module DataMapper
   # @yield [Proc] (optional) block to execute within the context of the named repository
   #
   # @api public
-  def self.repository(name = nil) # :yields: current_context
+  def self.repository(name = nil)
     current_repository = if name
-      raise ArgumentError, "First optional argument must be a Symbol, but was #{name.inspect}" unless name.kind_of?(Symbol)
+      assert_kind_of 'name', name, Symbol
       Repository.context.detect { |r| r.name == name } || Repository.new(name)
     else
       Repository.context.last || Repository.new(Repository.default_name)
@@ -181,7 +206,4 @@ module DataMapper
       current_repository
     end
   end
-
-  # A logger should always be present. Lets be consistent with DO
-  Logger.new(nil, :off)
 end

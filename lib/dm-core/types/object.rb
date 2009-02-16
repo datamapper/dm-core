@@ -1,5 +1,3 @@
-require "base64"
-
 module DataMapper
   module Types
     class Object < Type

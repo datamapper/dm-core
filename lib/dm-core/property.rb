@@ -1,7 +1,3 @@
-require 'date'
-require 'time'
-require 'bigdecimal'
-
 module DataMapper
 
   # :include:QUICKLINKS

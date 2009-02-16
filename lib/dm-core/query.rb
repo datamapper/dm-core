@@ -994,9 +994,3 @@ module DataMapper
     end
   end # class Query
 end # module DataMapper
-
-dir = Pathname(__FILE__).dirname.expand_path / 'query'
-
-require dir / 'direction'
-require dir / 'operator'
-require dir / 'path'

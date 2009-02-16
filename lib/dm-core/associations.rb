@@ -1,11 +1,3 @@
-dir = Pathname(__FILE__).dirname.expand_path / 'associations'
-
-require dir / 'relationship'
-require dir / 'one_to_many'
-require dir / 'one_to_one'
-require dir / 'many_to_one'
-require dir / 'many_to_many'
-
 module DataMapper
   module Associations
     include Extlib::Assertions

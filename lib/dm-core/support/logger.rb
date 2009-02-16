@@ -1,4 +1,3 @@
-require "time" # httpdate
 # ==== Public DataMapper Logger API
 #
 # Logger taken from Merb :)
