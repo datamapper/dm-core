@@ -1,3 +1,7 @@
+# TODO: if the Collection is loaded, and a finder (#all, #first, #last)
+# is used, then use the Query conditions to return the matching entries
+# rather than executing another query.
+
 module DataMapper
   # The Collection class represents a list of resources persisted in
   # a repository and identified by a query.

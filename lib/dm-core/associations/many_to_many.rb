@@ -298,12 +298,12 @@ module DataMapper
           tail.last
         end
 
-        def update(attributes = {}, *allowed)
+        def update(attributes = {})
           # TODO: update the resources in the child model
           raise NotImplementedError
         end
 
-        def update!(attributes = {}, *allowed)
+        def update!(attributes = {})
           # TODO: update the resources in the child model
           raise NotImplementedError
         end

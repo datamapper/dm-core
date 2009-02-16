@@ -395,33 +395,6 @@ module DataMapper
     # TODO: document this
     #   TODO: needs example
     # @api private
-    def bind_values
-      @bind_values ||=
-        begin
-          bind_values = []
-
-          conditions.each do |tuple|
-            next if tuple.size == 2
-            operator, property, bind_value = *tuple
-
-            if :raw == operator
-              bind_values.push(*bind_value)
-            else
-              if bind_value.kind_of?(Range) && bind_value.exclude_end? && (operator == :eql || operator == :not)
-                bind_values.push(bind_value.first, bind_value.last)
-              else
-                bind_values << bind_value
-              end
-            end
-          end
-
-          bind_values
-        end
-    end
-
-    # TODO: document this
-    #   TODO: needs example
-    # @api private
     def inheritance_property_index
       if defined?(@inheritance_property_index)
         return @inheritance_property_index
@@ -877,6 +850,10 @@ module DataMapper
     #   TODO: needs example
     # @api private
     def normalize_bind_value(property_or_path, bind_value)
+
+      # TODO: when conditions objects available, defer this until
+      # the value is retrieved.  This will allow a Proc to be provided
+      # early to a Collection, and then evaluated at query time.
       if bind_value.kind_of?(Proc)
         bind_value = bind_value.call
       end

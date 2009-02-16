@@ -61,11 +61,13 @@ module DataMapper
 
       def read_many(query)
         with_connection do |connection|
-          command = connection.create_command(select_statement(query))
+          statement, bind_values = select_statement(query)
+
+          command = connection.create_command(statement)
           command.set_types(query.fields.map { |p| p.primitive })
 
           begin
-            reader = command.execute_reader(*query.bind_values)
+            reader = command.execute_reader(*bind_values)
 
             model     = query.model
             resources = []
@@ -99,9 +101,10 @@ module DataMapper
           bind_values << attributes[property]
         end
 
-        bind_values.concat(query.bind_values)
+        statement, conditions_bind_values = update_statement(properties, query)
 
-        statement = update_statement(properties, query)
+        bind_values.concat(conditions_bind_values)
+
         execute(statement, *bind_values).to_i
       end
 
@@ -109,8 +112,8 @@ module DataMapper
         # TODO: if the query contains any links, a limit or an offset
         # use a subselect to get the rows to be deleted
 
-        statement = delete_statement(query)
-        execute(statement, *query.bind_values).to_i
+        statement, bind_values = delete_statement(query)
+        execute(statement, *bind_values).to_i
       end
 
       # Database-specific method
@@ -258,23 +261,24 @@ module DataMapper
           end
 
           unless (limit && limit > 1) || offset > 0 || qualify
-            unique = model.properties(name).select { |p| p.unique? }.to_set
-
-            if query.conditions.any? { |o,p,b| o == :eql && unique.include?(p) && (!b.kind_of?(Array) || b.size == 1) }
+            if conditions.any? { |o,p,b| o == :eql && p.unique? && !b.kind_of?(Array) && !b.kind_of?(Range) }
               order = nil
               limit = nil
             end
           end
 
+          where_statement, bind_values = where_statement(conditions, qualify)
+
           statement = "SELECT #{columns_statement(fields, qualify)}"
           statement << " FROM #{quote_name(model.storage_name(name))}"
           statement << join_statement(model, query.links, qualify)         if qualify
-          statement << " WHERE #{where_statement(conditions, qualify)}"    if conditions.any?
+          statement << " WHERE #{where_statement}"                         unless where_statement.blank?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
           statement << " ORDER BY #{order_statement(order, qualify)}"      if order && order.any?
           statement << " LIMIT #{quote_value(limit)}"                      if limit
           statement << " OFFSET #{quote_value(offset)}"                    if limit && offset > 0
-          statement
+
+          return statement, bind_values || []
         end
 
         def insert_statement(model, properties, identity_field)
@@ -298,24 +302,22 @@ module DataMapper
         end
 
         def update_statement(properties, query)
+          where_statement, bind_values = where_statement(query.conditions)
+
           statement = "UPDATE #{quote_name(query.model.storage_name(name))}"
           statement << " SET #{properties.map { |p| "#{quote_name(p.field)} = ?" }.join(', ')}"
+          statement << " WHERE #{where_statement}" unless where_statement.blank?
 
-          if (conditions = query.conditions).any?
-            statement << " WHERE #{where_statement(conditions, query.links.any?)}"
-          end
-
-          statement
+          return statement, bind_values
         end
 
         def delete_statement(query)
+          where_statement, bind_values = where_statement(query.conditions)
+
           statement = "DELETE FROM #{quote_name(query.model.storage_name(name))}"
+          statement << " WHERE #{where_statement}" unless where_statement.blank?
 
-          if (conditions = query.conditions).any?
-            statement << " WHERE #{where_statement(conditions, query.links.any?)}"
-          end
-
-          statement
+          return statement, bind_values
         end
 
         def columns_statement(properties, qualify)
@@ -341,34 +343,47 @@ module DataMapper
           statement
         end
 
-        def where_statement(conditions, qualify)
-          conditions.map do |operator,property,bind_value|
-            # TODO: think about updating Query so that exclusive Range conditions are
-            # transformed into AND or OR conditions like below.  Effectively the logic
-            # below would be moved into Query
+        def where_statement(conditions, qualify = false)
+          statements  = []
+          bind_values = []
 
+          conditions.each do |operator, property, bind_value|
             # handle exclusive range conditions
             if bind_value.kind_of?(Range) && bind_value.exclude_end?
+
+              # TODO: think about updating Query so that exclusive Range conditions are
+              # transformed into AND or OR conditions like below.  Effectively the logic
+              # here would be moved into Query
+
+              min = bind_value.first
+              max = bind_value.last
+
               case operator
                 when :eql
-                  gte_condition = condition_statement(:gte, property, bind_value.first, qualify)
-                  lt_condition  = condition_statement(:lt,  property, bind_value.last,  qualify)
+                  gte_condition = condition_statement(:gte, property, min, qualify)
+                  lt_condition  = condition_statement(:lt,  property, max,  qualify)
 
-                  "#{gte_condition} AND #{lt_condition}"
+                  statements << "#{gte_condition} AND #{lt_condition}"
                 when :not
-                  lt_condition  = condition_statement(:lt,  property, bind_value.first, qualify)
-                  gte_condition = condition_statement(:gte, property, bind_value.last,  qualify)
+                  lt_condition  = condition_statement(:lt,  property, min, qualify)
+                  gte_condition = condition_statement(:gte, property, max,  qualify)
 
                   if conditions.size > 1
-                    "(#{lt_condition} OR #{gte_condition})"
+                    statements << "(#{lt_condition} OR #{gte_condition})"
                   else
-                    "#{lt_condition} OR #{gte_condition}"
+                    statements << "#{lt_condition} OR #{gte_condition}"
                   end
               end
+
+              bind_values << min
+              bind_values << max
             else
-              condition_statement(operator, property, bind_value, qualify)
+              statements  << condition_statement(operator, property, bind_value, qualify)
+              bind_values << bind_value
             end
-          end.join(' AND ')
+          end
+
+          return statements.join(' AND '), bind_values
         end
 
         def order_statement(order, qualify)

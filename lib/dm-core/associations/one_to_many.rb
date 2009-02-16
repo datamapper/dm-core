@@ -137,15 +137,22 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def update(attributes = {}, *allowed)
+        def update(attributes = {})
           assert_parent_saved 'The parent must be saved before mass-updating the collection'
           super
         end
 
         # TODO: document
         # @api public
-        def update!(attributes = {}, *allowed)
+        def update!(attributes = {})
           assert_parent_saved 'The parent must be saved before mass-updating the collection without validation'
+          super
+        end
+
+        # TODO: document
+        # @api public
+        def save
+          assert_parent_saved 'The parent must be saved before saving the collection'
           super
         end
 
