@@ -1,16 +1,33 @@
 class Array
 
   ##
-  # atm it assumes self is an array of [key,value]-arrays
-  # this is just a better way to make hashes than Hash[*array.flatten]
-  # since you cannot flatten only one level in ruby 1.8.6
+  # Transforms an Array of key/value pairs into a Hash
   #
+  # This is a better idiom than using Hash[*array.flatten] in Ruby 1.8.6
+  # because it is not possible to limit the flattening to a single
+  # level.
+  #
+  # @return [Hash]
+  #   A Hash where each entry in the Array is turned into a key/value
+  #
+  # @api public
   def to_hash
     h = {}
     each { |k,v| h[k] = v }
     h
   end
 
+  ##
+  # Transforms an Array of key/value pairs into a Mash
+  #
+  # This is a better idiom than using Mash[*array.flatten] in Ruby 1.8.6
+  # because it is not possible to limit the flattening to a single
+  # level.
+  #
+  # @return [Mash]
+  #   A Hash where each entry in the Array is turned into a key/value
+  #
+  # @api public
   def to_mash
     m = Mash.new
     each { |k,v| m[k] = v }
