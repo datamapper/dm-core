@@ -27,7 +27,6 @@ lib/dm-core/associations/one_to_many.rb
 lib/dm-core/associations/one_to_one.rb
 lib/dm-core/associations/relationship.rb
 lib/dm-core/collection.rb
-lib/dm-core/core_ext.rb
 lib/dm-core/core_ext/array.rb
 lib/dm-core/core_ext/kernel.rb
 lib/dm-core/core_ext/symbol.rb
@@ -46,13 +45,11 @@ lib/dm-core/query/path.rb
 lib/dm-core/repository.rb
 lib/dm-core/resource.rb
 lib/dm-core/spec/adapter_shared_spec.rb
-lib/dm-core/support.rb
 lib/dm-core/support/chainable.rb
 lib/dm-core/support/logger.rb
 lib/dm-core/support/naming_conventions.rb
 lib/dm-core/transaction.rb
 lib/dm-core/type.rb
-lib/dm-core/types.rb
 lib/dm-core/types/boolean.rb
 lib/dm-core/types/discriminator.rb
 lib/dm-core/types/object.rb
