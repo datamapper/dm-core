@@ -1686,10 +1686,7 @@ share_examples_for 'A public Collection' do
 
       { :title => true, :content => false }.each do |attribute,expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-          skip = [ DataMapper::Associations::OneToMany::Collection ]
-          pending_if 'TODO: fix', skip.include?(@articles.class) && attribute == :content do
-            @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
-          end
+          @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
         end
       end
     end

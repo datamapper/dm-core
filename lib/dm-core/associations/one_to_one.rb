@@ -5,12 +5,18 @@ module DataMapper
   module Associations
     module OneToOne
       class Relationship < Associations::OneToMany::Relationship
+
+        # TODO: document
+        # @api semipublic
         def get(parent, query = nil)
           super.first
         end
 
+        # TODO: document
+        # @api semipublic
         def set(parent, child)
           super(parent, [ child ].compact)
+          child
         end
 
         private

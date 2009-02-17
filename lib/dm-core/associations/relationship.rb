@@ -111,22 +111,32 @@ module DataMapper
         raise NotImplementedError
       end
 
+      # TODO: document
+      # @api semipublic
       def get(resource, query = nil)
         raise NotImplementedError
       end
 
+      # TODO: document
+      # @api semipublic
       def get!(resource)
         resource.instance_variable_get(instance_variable_name)
       end
 
+      # TODO: document
+      # @api semipublic
       def set(resource, association)
         raise NotImplementedError
       end
 
+      # TODO: document
+      # @api semipublic
       def set!(resource, association)
         resource.instance_variable_set(instance_variable_name, association)
       end
 
+      # TODO: document
+      # @api semipublic
       def loaded?(resource)
         resource.instance_variable_defined?(instance_variable_name)
       end

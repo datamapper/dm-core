@@ -387,11 +387,13 @@ module DataMapper
         end
 
         def order_statement(order, qualify)
-          order.map do |order|
+          statements = order.map do |order|
             statement = property_to_column_name(order.property, qualify)
             statement << ' DESC' if order.direction == :desc
             statement
-          end.join(', ')
+          end
+
+          statements.join(', ')
         end
 
         def condition_statement(operator, left_condition, right_condition, qualify)

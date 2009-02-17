@@ -231,5 +231,7 @@ module DataMapper
         @field_naming_convention    = NamingConventions::Field::Underscored
       end
     end # class AbstractAdapter
+
+    const_added(:AbstractAdapter)
   end # module Adapters
 end # module DataMapper

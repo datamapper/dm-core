@@ -4,9 +4,6 @@
 # * Requires fastthread, support libs, and base.
 # * Sets the application root and environment for compatibility with frameworks
 #   such as Rails or Merb.
-# * Checks for the database.yml and loads it if it exists.
-# * Sets up the database using the config from the Yaml file or from the
-#   environment.
 #
 
 require 'base64'
@@ -48,7 +45,7 @@ require dir / 'associations' / 'many_to_one'
 require dir / 'associations' / 'many_to_many'
 require dir / 'core_ext' / 'array'
 require dir / 'identity_map'
-require dir / 'migrations'
+require dir / 'migrations'                      # TODO: move to dm-more
 require dir / 'model' / 'hook'
 require dir / 'model' / 'is'
 require dir / 'model' / 'scope'
@@ -62,13 +59,13 @@ require dir / 'repository'
 require dir / 'resource'
 require dir / 'support' / 'logger'
 require dir / 'support' / 'naming_conventions'
-require dir / 'transaction'
+require dir / 'transaction'                     # TODO: move to dm-more
 require dir / 'type'
 require dir / 'types' / 'boolean'
 require dir / 'types' / 'discriminator'
 require dir / 'types' / 'text'
-require dir / 'types' / 'paranoid_datetime'
-require dir / 'types' / 'paranoid_boolean'
+require dir / 'types' / 'paranoid_datetime'     # TODO: move to dm-more
+require dir / 'types' / 'paranoid_boolean'      # TODO: move to dm-more
 require dir / 'types' / 'object'
 require dir / 'types' / 'serial'
 require dir / 'version'
@@ -167,10 +164,11 @@ module DataMapper
 
     unless Adapters.const_defined?(class_name)
       lib_name = "#{adapter_name}_adapter"
+      file     = root / 'lib' / 'dm-core' / 'adapters' / "#{lib_name}.rb"
 
-      begin
-        require root / 'lib' / 'dm-core' / 'adapters' / lib_name
-      rescue LoadError
+      if file.file?
+        require file
+      else
         require lib_name
       end
     end

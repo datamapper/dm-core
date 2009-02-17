@@ -337,7 +337,7 @@ module DataMapper
     DEFAULT_SCALE_FLOAT      = nil
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
-      :type, :reader_visibility, :writer_visibility, :getter, :options,
+      :type, :reader_visibility, :writer_visibility, :options,
       :default, :precision, :scale, :repository_name
 
     # Supplies the field in the data-store which the property corresponds to
@@ -483,7 +483,7 @@ module DataMapper
       @custom
     end
 
-    # Standardized getter method for the property
+    # Standardized accessor method for the property
     #
     # @param [Resource] resource
     #   model instance for which this property is to be loaded
@@ -775,7 +775,6 @@ module DataMapper
       @instance_variable_name = "@#{@name}"
 
       @primitive = @type.respond_to?(:primitive) ? @type.primitive : @type
-      @getter    = TrueClass == @primitive ? "#{@name}?".to_sym : @name
       @field     = @options[:field].freeze
       @default   = @options[:default]
 
@@ -872,24 +871,24 @@ module DataMapper
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
     end
 
-    # defines the getter for the property
+    # defines the accessor for the property
     #
     # @api private
     def create_accessor
-      unless model.instance_methods(false).include?(getter)
+      unless model.instance_methods(false).include?(name)
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
-          def #{getter}
+          def #{name}
             return #{instance_variable_name} if defined?(#{instance_variable_name})
             #{instance_variable_name} = properties[#{name.inspect}].get(self)
           end
         RUBY
       end
 
-      if primitive == TrueClass && !model.instance_methods(false).include?(name)
+      if primitive == TrueClass && !model.instance_methods(false).include?("#{name}?")
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
-          alias #{name} #{getter}
+          alias #{name}? #{name}
         RUBY
       end
     end
@@ -899,6 +898,7 @@ module DataMapper
     # @api private
     def create_mutator
       return if model.instance_methods(false).include?("#{name}=")
+
       model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         #{writer_visibility}
         def #{name}=(value)

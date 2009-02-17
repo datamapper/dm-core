@@ -122,5 +122,7 @@ module DataMapper
       end
 
     end # class YamlAdapter
+
+    const_added(:YamlAdapter)
   end # module Adapters
 end # module DataMapper

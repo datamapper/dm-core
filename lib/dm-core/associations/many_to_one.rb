@@ -16,42 +16,37 @@ module DataMapper
           # each resource key
 
           # TODO: handle compound keys when OR conditions supported
-          child_values = case child
-            when Resource               then child_key.get(child)
-            when DataMapper::Collection then child.map { |r| child_key.get(r) }.transpose
-          end
-
-          if child_values.any? { |v| v.blank? }
-            # child must have a valid reference to the parent
-            return
-          end
+          child_values = Array(child).map { |r| child_key.get(r).first }.compact
 
           options = query.merge(parent_key.zip(child_values).to_hash)
           Query.new(DataMapper.repository(parent_repository_name), parent_model, options)
         end
 
+        # TODO: document
+        # @api semipublic
         def get(child, query = nil)
-          # TODO: when Resource can be matched against conditions
-          # always set the ivar, but return the resource only if
-          # it matches the conditions
+          lazy_load(child) unless loaded?(child)
 
-          return get!(child) if query.nil? && loaded?(child)
+          resource = get!(child)
 
-          unless query_for = query_for(child)
-            return
+          if query.nil? || resource.nil?
+            resource
+          else
+            # TODO: when Resource can be matched against conditions
+            # easily, return the resource if it matches, otherwise
+            # return nil
+            if resource.saved?
+              parent_model.first(resource.to_query.update(query))
+            else
+              # TODO: remove this condition when in-memory objects
+              # can be matched
+              resource
+            end
           end
-
-          if query
-            query_for.update(query)
-          end
-
-          unless parent = parent_model.first(query_for)
-            return
-          end
-
-          set!(child, parent)
         end
 
+        # TODO: document
+        # @api semipublic
         def set(child, parent)
           child_key.set(child, parent_key.get(parent))
           set!(child, parent)
@@ -96,6 +91,28 @@ module DataMapper
               relationships[#{name.inspect}].set(self, parent)
             end
           RUBY
+        end
+
+        # TODO: document
+        # @api private
+        def lazy_load(child)
+
+          # lazy load if the child key is not nil for at least one child
+          if Array(child).all? { |r| child_key.get(r).nil? }
+            return
+          end
+
+          query_for = query_for(child)
+
+          if query
+            query_for.update(query)
+          end
+
+          unless parent = parent_model.first(query_for)
+            return
+          end
+
+          set!(child, parent)
         end
 
         # TODO: document

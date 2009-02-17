@@ -246,9 +246,14 @@ module DataMapper
     #
     # @api public
     def key
-      @key ||= model.key(repository_name).map do |property|
+      return @key if defined?(@key)
+
+      key = model.key(repository_name).map do |property|
         original_values[property] || property.get!(self)
       end
+
+      # set the key if every entry is non-nil
+      @key = key if key.all?
     end
 
     ##
@@ -444,8 +449,8 @@ module DataMapper
     def attributes
       attributes = {}
       properties.each do |property|
-        if public_method?(getter = property.getter)
-          attributes[property.name] = send(getter)
+        if public_method?(name = property.name)
+          attributes[name] = send(name)
         end
       end
       attributes
@@ -617,6 +622,9 @@ module DataMapper
       else
         if updated = (repository.update(dirty_attributes, to_query) == 1)
           original_values.clear
+
+          # remove the cached key in case it was updated
+          remove_instance_variable(:@key)
 
           identity_map[key] = self
         end

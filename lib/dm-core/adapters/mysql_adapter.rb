@@ -5,8 +5,6 @@ require 'do_mysql'
 
 module DataMapper
   module Adapters
-    # Options:
-    # host, user, password, database (path), socket(uri query string), port
     class MysqlAdapter < DataObjectsAdapter
       module SQL
         private

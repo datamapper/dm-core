@@ -1,24 +1,233 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
+share_examples_for 'it creates a one accessor' do
+  describe 'accessor' do
+    describe 'when there is no associated resource' do
+      describe 'without a query' do
+        before :all do
+          @return = @car.send(@name)
+        end
+
+        it 'should return nil' do
+          @return.should be_nil
+        end
+      end
+
+      describe 'with a query' do
+        before :all do
+          @return = @car.send(@name, :id => 1)
+        end
+
+        it 'should return nil' do
+          @return.should be_nil
+        end
+      end
+    end
+
+    describe 'when there is an associated resource' do
+      before :all do
+        @expected = @model.new
+        @car.send("#{@name}=", @expected)
+
+        @return = @car.send(@name)
+      end
+
+      describe 'without a query' do
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return the expected Resource' do
+          @return.should equal(@expected)
+        end
+      end
+
+      describe 'with a query' do
+        before :all do
+          @car.save
+
+          @return = @car.send(@name, :id => @expected.id)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should return the expected Resource' do
+          @return.should == @expected
+        end
+      end
+    end
+  end
+end
+
+share_examples_for 'it creates a one mutator' do
+  describe 'mutator' do
+    describe 'when setting an associated resource' do
+      before do
+        @expected = @model.new
+
+        @return = @car.send("#{@name}=", @expected)
+      end
+
+      it 'should return the expected Resource' do
+        @return.should equal(@expected)
+      end
+
+      it 'should set the Resource' do
+        @car.send(@name).should equal(@expected)
+      end
+
+      it 'should relate associated Resource' do
+        pending do
+          @expected.car.should == @car
+        end
+      end
+
+      it 'should persist the Resource' do
+        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::OneToOne::Relationship) do
+          @car.save
+          @car.reload.send(@name).should == @expected
+        end
+      end
+
+      it 'should persist the associated Resource' do
+        pending do
+          @car.save
+          @expected.should be_saved
+          @expected.reload.car.should == @car
+        end
+      end
+    end
+
+    describe 'when setting a nil resource' do
+      before :all do
+        @car.send("#{@name}=", @model.new)
+
+        @return = @car.send("#{@name}=", nil)
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
+      end
+
+      it 'should set nil' do
+        @car.send(@name).should be_nil
+      end
+
+      it 'should persist as nil' do
+        @car.save
+        @car.reload.send(@name).should be_nil
+      end
+    end
+
+    describe 'when changing an associated resource' do
+      before :all do
+        @car.send("#{@name}=", @model.new)
+        @car.save
+        @expected = @model.new
+
+        @return = @car.send("#{@name}=", @expected)
+      end
+
+      it 'should return the expected Resource' do
+        @return.should equal(@expected)
+      end
+
+      it 'should set the Resource' do
+        @car.send(@name).should equal(@expected)
+      end
+
+      it 'should relate associated Resource' do
+        @expected.car.should == @car
+      end
+
+      it 'should persist the Resource' do
+        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::OneToOne::Relationship) do
+          @car.save
+          @car.reload.send(@name).should == @expected
+        end
+      end
+
+      it 'should persist the associated Resource' do
+        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
+          @car.save
+          @expected.should be_saved
+          @expected.reload.car.should == @car
+        end
+      end
+    end
+  end
+end
+
+share_examples_for 'it creates a many accessor' do
+  describe 'when there is no child resource' do
+    before :all do
+      @return = @car.send(@name)
+    end
+
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
+
+    it 'should return an empty Collection' do
+      @return.should be_empty
+    end
+  end
+
+  describe 'when there is a child resource' do
+    before :all do
+      @skip = Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship)
+
+      rescue_if 'TODO', @skip do
+        @expected = @model.new
+        @car.send("#{@name}=", [ @expected ])
+
+        @return = @car.send(@name)
+      end
+    end
+
+    it 'should return a Collection' do
+      pending_if 'TODO', @skip do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+    end
+
+    it 'should return expected Resources' do
+      pending_if 'TODO', @skip do
+        @return.should == [ @expected ]
+      end
+    end
+  end
+end
+
+share_examples_for 'it creates a many mutator' do
+  # TODO: write this
+end
+
 describe DataMapper::Associations do
   before :all do
     class ::Car
       include DataMapper::Resource
+
       property :id, Serial
     end
 
     class ::Engine
       include DataMapper::Resource
+
       property :id, Serial
     end
 
     class ::Door
       include DataMapper::Resource
+
       property :id, Serial
     end
 
     class ::Window
       include DataMapper::Resource
+
       property :id, Serial
     end
   end
@@ -29,228 +238,123 @@ describe DataMapper::Associations do
 
   it { Car.should respond_to(:has) }
 
-  supported_by :all do
-    describe '#has' do
-      describe '1' do
-        before :all do
-          Car.has(1, :engine)
+  describe '#has' do
+    describe '1' do
+      before :all do
+        @model = Engine
+        @name  = :engine
 
+        Car.has(1, @name)
+        Engine.belongs_to(:car)
+      end
+
+      supported_by :all do
+        before :all do
           @car = Car.new
         end
 
-        describe 'accessor' do
-          it 'should be created' do
-            @car.should respond_to(:engine)
-          end
+        it { @car.should respond_to(@name) }
 
-          describe 'when there is no child resource' do
-            before :all do
-              @return = @car.engine
-            end
+        it_should_behave_like 'it creates a one accessor'
 
-            it 'should return nil' do
-              @return.should be_nil
-            end
-          end
+        it { @car.should respond_to("#{@name}=") }
 
-          describe 'when there is a child resource' do
-            before :all do
-              @engine     = Engine.new
-              @car.engine = @engine
+        it_should_behave_like 'it creates a one mutator'
+      end
+    end
 
-              @return = @car.engine
-            end
+    describe 'n..n' do
+      before :all do
+        @model = Door
+        @name  = :doors
 
-            it 'should return a Resource' do
-              @return.should be_kind_of(DataMapper::Resource)
-            end
-
-            it 'should return the expected Resource' do
-              @return.should equal(@engine)
-            end
-          end
-        end
-
-        describe 'mutator' do
-          it 'should be created' do
-            @car.should respond_to(:engine=)
-          end
-
-          describe 'when setting a child resource' do
-            before :all do
-              @engine = Engine.new
-
-              @return = @car.engine = @engine
-            end
-
-            it 'should return the expected Resource' do
-              @return.should equal(@engine)
-            end
-
-            it 'should set the Resource' do
-              @car.engine.should equal(@engine)
-            end
-          end
-
-          describe 'when setting a nil resource' do
-            before :all do
-              @car.engine = Engine.new
-
-              @return = @car.engine = nil
-            end
-
-            it 'should return nil' do
-              @return.should be_nil
-            end
-
-            it 'should set nil' do
-              @car.engine.should be_nil
-            end
-          end
-        end
+        Car.has(1..4, @name)
+        Door.belongs_to(:car)
       end
 
-      describe 'n..n' do
+      supported_by :all do
         before :all do
-          Car.has(1..4, :doors)
-
           @car = Car.new
         end
 
-        describe 'accessor' do
-          it 'should be created' do
-            @car.should respond_to(:doors)
-          end
+        it { @car.should respond_to(@name) }
 
-          describe 'when there is no child resource' do
-            before :all do
-              @return = @car.doors
-            end
+        it_should_behave_like 'it creates a many accessor'
 
-            it 'should return a OneToMany::Collection' do
-              @return.should be_kind_of(DataMapper::Associations::OneToMany::Collection)
-            end
+        it { @car.should respond_to("#{@name}=") }
 
-            it 'should return an empty OneToMany::Collection' do
-              @return.should be_empty
-            end
-          end
+        it_should_behave_like 'it creates a many mutator'
+      end
+    end
 
-          describe 'when there is a child resource' do
-            before :all do
-              @door = Door.new
-              @car.doors << @door
+    describe 'n..n through' do
+      before :all do
+        @model = Window
+        @name  = :windows
 
-              @return = @car.doors
-            end
-
-            it 'should return a OneToMany::Collection' do
-              @return.should be_kind_of(DataMapper::Associations::OneToMany::Collection)
-            end
-
-            it 'should return expected Resources' do
-              @return.should == [ @door ]
-            end
-          end
-        end
-
-        describe 'mutator' do
-          it 'should be created' do
-            @car.should respond_to(:doors=)
-          end
-        end
+        Door.belongs_to(:car)
+        Door.has(1, :window)
+        Window.belongs_to(:door)
+        Car.has(1..4, :doors)
+        Car.has(1..4, :windows, :through => :doors)
       end
 
-      describe 'n..n through' do
+      supported_by :all do
         before :all do
-          Door.has(1, :window)
-          Car.has(1..4, :doors)
-          Car.has(1..4, :windows, :through => :doors)
-
           @car = Car.new
         end
 
-        it 'should create the accessor' do
-          @car.should respond_to(:windows)
-        end
+        it { @car.should respond_to(@name) }
 
-        it 'should create the mutator' do
-          @car.should respond_to(:windows=)
-        end
+        it_should_behave_like 'it creates a many accessor'
+
+        it { @car.should respond_to("#{@name}=") }
+
+        it_should_behave_like 'it creates a many mutator'
       end
+    end
 
-      describe 'n' do
-        before :all do
-          Car.has(n, :doors)
+    it 'should raise an exception if the cardinality is not understood' do
+      lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
+    end
 
-          @car = Car.new
-        end
-
-        it 'should create the accessor' do
-          @car.should respond_to(:doors)
-        end
-
-        it 'should create the mutator' do
-          @car.should respond_to(:doors=)
-        end
-      end
-
-      describe 'n through' do
-        before :all do
-          Door.has(1, :window)
-          Car.has(n, :doors)
-          Car.has(n, :windows, :through => :doors)
-
-          @car = Car.new
-        end
-
-        it 'should create the accessor' do
-          @car.should respond_to(:windows)
-        end
-
-        it 'should create the mutator' do
-          @car.should respond_to(:windows=)
-        end
-      end
-
-      it 'should raise an exception if the cardinality is not understood' do
-        lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
-      end
-
-      it 'should raise an exception if the minimum constraint is larger than the maximum' do
-        lambda { Car.has(2..1, :doors) }.should raise_error(ArgumentError)
-      end
+    it 'should raise an exception if the minimum constraint is larger than the maximum' do
+      lambda { Car.has(2..1, :doors) }.should raise_error(ArgumentError)
     end
   end
 
   it { Engine.should respond_to(:belongs_to) }
 
-  supported_by :all do
-    describe '#belongs_to' do
+  describe '#belongs_to' do
+    before :all do
+      @model = Engine
+      @name  = :engine
+
+      Car.belongs_to(@name)
+      Engine.has(1, :car)
+    end
+
+    supported_by :all do
       before :all do
+        @car = Car.new
+      end
+
+      it { @car.should respond_to(@name) }
+
+      it_should_behave_like 'it creates a one accessor'
+
+      it { @car.should respond_to("#{@name}=") }
+
+      it_should_behave_like 'it creates a one mutator'
+    end
+
+    # TODO: refactor these specs into above structure once they pass
+    describe 'pending query specs' do
+      before :all do
+        Car.has(1, :engine)
         Engine.belongs_to(:car)
-        Car.has(n, :engines)
-
-        @engine = Engine.new
       end
 
-      it 'should create the accessor' do
-        @engine.should respond_to(:car)
-      end
-
-      it 'should create the mutator' do
-        @engine.should respond_to(:car=)
-      end
-
-      it 'should create the child key accessor' do
-        @engine.should respond_to(:car_id)
-      end
-
-      it 'should create the child key mutator' do
-        @engine.should respond_to(:car_id=)
-      end
-
-      # TODO: move the "querying" specs to the ManyToOne specs
       supported_by :all do
         describe 'querying for a parent resource' do
           before :all do

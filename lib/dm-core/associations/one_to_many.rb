@@ -22,17 +22,14 @@ module DataMapper
           # each resource key
 
           # TODO: handle compound keys when OR conditions supported
-          parent_values = case parent
-            when Resource               then parent_key.get(parent)
-            when DataMapper::Collection then parent.map { |r| parent_key.get(r) }.transpose
-          end
-
-          # TODO: spec what should happen when parent not saved
+          parent_values = Array(parent).map { |r| parent_key.get(r).first }.compact
 
           options = query.merge(child_key.zip(parent_values).to_hash)
           Query.new(DataMapper.repository(child_repository_name), child_model, options)
         end
 
+        # TODO: document
+        # @api semipublic
         def get(parent, query = nil)
           lazy_load(parent) unless loaded?(parent)
 
@@ -41,10 +38,14 @@ module DataMapper
           if query.nil?
             collection
           else
-            collection.all(query)
+            # XXX: use query_for(parent) to explicitly set the child_key in the query
+            # because we do not save a reference to the instance.  Remove when we do.
+            collection.all(query_for(parent).update(query))
           end
         end
 
+        # TODO: document
+        # @api semipublic
         def set(parent, children)
           lazy_load(parent) unless loaded?(parent)
           set!(parent, get!(parent).replace(children))
@@ -214,10 +215,12 @@ module DataMapper
           #     reference in the child to get an id, and since it is related
           #     to the child, the child will get the correct parent id
 
-          parent_key = @relationship.parent_key
-          child_key  = @relationship.child_key
+          if @parent.saved?
+            parent_key = @relationship.parent_key
+            child_key  = @relationship.child_key
 
-          child_key.set(resource, parent_key.get(@parent))
+            child_key.set(resource, parent_key.get(@parent))
+          end
 
           super
         end

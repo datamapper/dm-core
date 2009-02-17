@@ -37,7 +37,7 @@ module DataMapper
     #
     # If +query+ is provided, updates this Collection's query with its conditions
     #
-    #   cars_from_91 = Cars.all(:year_manufactured.eql => 1991)
+    #   cars_from_91 = Cars.all(:year_manufactured => 1991)
     #   cars_from_91.first.year_manufactured = 2001   # note: not saved
     #   cars_from_91.reload
     #   cars_from_91.first.year                       #=> 1991
@@ -148,7 +148,7 @@ module DataMapper
     # This returns a new Collection scoped relative to the current
     # Collection.
     #
-    #   cars_from_91 = Cars.all(:year_manufactured.eql => 1991)
+    #   cars_from_91 = Cars.all(:year_manufactured => 1991)
     #   toyotas_91 = cars_from_91.all(:manufacturer => "Toyota")
     #   toyotas_91.all? { |c| c.year_manufactured == 1991 }       #=> true
     #   toyotas_91.all? { |c| c.manufacturer == "Toyota" }        #=> true
@@ -1146,6 +1146,8 @@ module DataMapper
     #
     # @api private
     def delegate_to_relationship(relationship, other_query = nil)
+      # TODO: spec what should happen when none of the resources in self are saved
+
       query = relationship.query_for(self)
 
       if other_query
