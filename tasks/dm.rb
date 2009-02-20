@@ -4,7 +4,7 @@ require 'spec/rake/verify_rcov'
 task :default => 'spec'
 
 RCov::VerifyTask.new(:verify_rcov => :rcov) do |t|
-  t.threshold = 84.0 # Make sure you have rcov 0.7 or higher!
+  t.threshold = 84.3 # Make sure you have rcov 0.7 or higher!
 end
 
 def run_spec(name, files, rcov)
@@ -15,8 +15,8 @@ def run_spec(name, files, rcov)
     t.rcov = rcov
     t.rcov_opts << '--exclude' << 'spec'
     t.rcov_opts << '--text-summary'
-    t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-    t.rcov_opts << '--only-uncovered'
+    #t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+    #t.rcov_opts << '--only-uncovered'
     #t.rcov_opts << '--profile'
   end
 end
