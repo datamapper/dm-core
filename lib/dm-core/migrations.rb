@@ -634,7 +634,7 @@ module DataMapper
         if base_model == self
           repository(repository_name).upgrade_model_storage(self)
         else
-          base_model.auto_upgrade!(self)
+          base_model.auto_upgrade!(repository_name)
         end
       end
     end # module Model
