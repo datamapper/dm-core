@@ -314,7 +314,7 @@ module DataMapper
     def [](*args)
       offset, limit = extract_slice_arguments(*args)
 
-      if limit == 1 && args.size == 1 && args.first.kind_of?(Integer)
+      if args.size == 1 && args.first.kind_of?(Integer)
         return at(offset)
       end
 
