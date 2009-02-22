@@ -228,15 +228,19 @@ module DataMapper
     def property(name, type, options = {})
       property = Property.new(self, name, type, options)
 
-      properties(repository_name)[property.name] = property
+      properties(repository_name) << property
       @_valid_relations = false
 
       # Add property to the other mappings as well if this is for the default
       # repository.
       if repository_name == default_repository_name
-        @properties.each do |repository_name, properties|
-          next if repository_name == default_repository_name
-          properties << property unless properties.include?(property)
+        @properties.except(repository_name).each do |repository_name, properties|
+          next if properties.named?(name)
+
+          # make sure the property is created within the correct repository scope
+          DataMapper.repository(repository_name) do
+            properties << Property.new(self, name, type, options)
+          end
         end
       end
 
@@ -286,6 +290,7 @@ module DataMapper
       if !@_valid_relations && respond_to?(:many_to_one_relationships)
         @_valid_relations = true
         begin
+          relationships(repository_name).each_value { |r| r.through; r.child_key }
           many_to_one_relationships.each { |r| r.child_key }
         rescue NameError
           # Apparently not all relations are loaded,
@@ -294,7 +299,7 @@ module DataMapper
         end
       end
 
-      @properties[repository_name] ||= repository_name == Repository.default_name ? PropertySet.new : properties(Repository.default_name).dup
+      @properties[repository_name] ||= repository_name == default_repository_name ? PropertySet.new : properties(default_repository_name).dup
     end
 
     ##
@@ -657,13 +662,15 @@ module DataMapper
     # @api private
     def properties_with_subclasses(repository_name = default_repository_name)
       properties = PropertySet.new
+
       ([ self ].to_set + (respond_to?(:descendants) ? descendants : [])).each do |model|
-        model.relationships(repository_name).each_value { |relationship| relationship.child_key }
-        model.many_to_one_relationships.each { |relationship| relationship.child_key }
+        model.relationships(repository_name).each_value { |r| r.through; r.child_key }
+        model.many_to_one_relationships.each { |r| r.child_key }
         model.properties(repository_name).each do |property|
           properties << property unless properties.include?(property)
         end
       end
+
       properties
     end
 

@@ -70,7 +70,7 @@ module DataMapper
     def relationships(repository_name = default_repository_name)
       assert_kind_of 'repository_name', repository_name, Symbol
 
-      @relationships[repository_name] ||= repository_name == Repository.default_name ? Mash.new : relationships(Repository.default_name).dup
+      @relationships[repository_name] ||= repository_name == default_repository_name ? Mash.new : relationships(default_repository_name).dup
     end
 
     def n

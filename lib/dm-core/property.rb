@@ -356,7 +356,7 @@ module DataMapper
 
       # defer setting the field with the adapter specific naming
       # conventions until after the adapter has been setup
-      @field ||= model.field_naming_convention(DataMapper.repository.name).call(self).freeze
+      @field ||= model.field_naming_convention(self.repository_name).call(self).freeze
     end
 
     # Returns true if property is unique. Serial properties and keys

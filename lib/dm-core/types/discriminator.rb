@@ -6,7 +6,8 @@ module DataMapper
       nullable false
 
       def self.bind(property)
-        model = property.model
+        repository_name = property.repository_name
+        model           = property.model
 
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def self.descendants
@@ -17,7 +18,7 @@ module DataMapper
 
           def self.add_scope_for_discriminator(retval, target)
             target.descendants << target
-            target.default_scope.update(#{property.name.inspect} => target.descendants)
+            target.default_scope(#{repository_name.inspect}).update(#{property.name.inspect} => target.descendants)
             propagate_descendants(target)
           end
 
