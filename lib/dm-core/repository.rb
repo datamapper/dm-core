@@ -195,26 +195,68 @@ module DataMapper
     end
 
     ##
-    # Tests Equality of Repository objects
+    # Compares another Repository for equality
     #
-    #   TODO: create example
+    # Repository is equal to +other+ if they are the same object (identity)
+    # or if they are of the same class and have the same name
     #
-    # @param [Object] other
-    #   object to be compared to self
+    # @param [Repository] other
+    #   the other Repository to compare with
     #
     # @return [TrueClass, FalseClass]
-    #   whether self equals other
+    #   true if they are equal, false if not
     #
-    # @api semipublic
+    # @api public
     def eql?(other)
       if equal?(other)
         return true
       end
 
-      name.eql?(other.name)
+      unless self.class.equal?(other.class)
+        return false
+      end
+
+      cmp?(other, :eql?)
     end
 
-    alias == eql?
+    ##
+    # Compares another Repository for equivalency
+    #
+    # Repository is equal to +other+ if they are the same object (identity)
+    # or if they both have the same name
+    #
+    # @param [Repository] other
+    #   the other Repository to compare with
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if they are equal, false if not
+    #
+    # @api public
+    def ==(other)
+      if equal?(other)
+        return true
+      end
+
+      unless other.respond_to?(:name)
+        return false
+      end
+
+      cmp?(other, :==)
+    end
+
+    ##
+    # Return the hash of the Repository
+    #
+    # This is necessary for properly determining the unique Repository
+    # in a Set or Hash
+    #
+    # @return [Integer]
+    #   the Hash of the Repository name
+    #
+    # @api private
+    def hash
+      name.hash
+    end
 
     ##
     # Return a human readalbe representation of the repository
@@ -245,6 +287,12 @@ module DataMapper
 
       @name          = name
       @identity_maps = {}
+    end
+
+    # TODO: document
+    # @api private
+    def cmp?(other, operator)
+      name.send(operator, other.name)
     end
   end # class Repository
 end # module DataMapper
