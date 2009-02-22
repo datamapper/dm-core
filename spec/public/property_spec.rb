@@ -305,22 +305,6 @@ describe DataMapper::Property do
     end
 
     describe "#initialize" do
-      describe "when unknown type is given" do
-        it 'raises an exception'
-      end
-
-      it "stores model"
-
-      it 'stores field name'
-
-      it 'stores serial flag'
-
-      it 'stores key value'
-
-      it 'stores default value'
-
-      it 'stores unique index value'
-
       describe "when tracking strategy is explicitly given" do
         it 'uses tracking strategy from options'
       end
