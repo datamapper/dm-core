@@ -291,9 +291,17 @@ describe DataMapper::Property do
     end
 
     describe "#inspect" do
-      it 'shows model name'
+      before(:each) do
+        @str = Track.properties[:title].inspect
+      end
 
-      it 'shows property name'
+      it 'features model name' do
+        @str.should =~ /@model=Track/
+      end
+
+      it 'features property name' do
+        @str.should =~ /@name=:title/
+      end
     end
 
     describe "#initialize" do
