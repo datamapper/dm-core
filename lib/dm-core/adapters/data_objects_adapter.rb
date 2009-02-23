@@ -347,7 +347,9 @@ module DataMapper
           statements  = []
           bind_values = []
 
-          conditions.each do |operator, property, bind_value|
+          conditions.each do |tuple|
+            operator, property, bind_value = *tuple
+
             # handle exclusive range conditions
             if bind_value.kind_of?(Range) && bind_value.exclude_end?
 
@@ -378,8 +380,13 @@ module DataMapper
               bind_values << min
               bind_values << max
             else
-              statements  << condition_statement(operator, property, bind_value, qualify)
-              bind_values << bind_value
+              statements << condition_statement(operator, property, bind_value, qualify)
+
+              if operator == :raw
+                bind_values.push(*bind_value) if tuple.size == 3
+              else
+                bind_values << bind_value
+              end
             end
           end
 
