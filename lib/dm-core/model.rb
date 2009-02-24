@@ -654,12 +654,6 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def eager_properties(repository_name = default_repository_name)
-      properties(repository_name).defaults
-    end
-
-    # TODO: document
-    # @api private
     def properties_with_subclasses(repository_name = default_repository_name)
       properties = PropertySet.new
 
