@@ -43,7 +43,6 @@ require dir / 'associations' / 'one_to_many'
 require dir / 'associations' / 'one_to_one'
 require dir / 'associations' / 'many_to_one'
 require dir / 'associations' / 'many_to_many'
-require dir / 'core_ext' / 'array'
 require dir / 'identity_map'
 require dir / 'migrations'                      # TODO: move to dm-more
 require dir / 'model' / 'hook'

@@ -27,7 +27,6 @@ lib/dm-core/associations/one_to_many.rb
 lib/dm-core/associations/one_to_one.rb
 lib/dm-core/associations/relationship.rb
 lib/dm-core/collection.rb
-lib/dm-core/core_ext/array.rb
 lib/dm-core/core_ext/kernel.rb
 lib/dm-core/core_ext/symbol.rb
 lib/dm-core/identity_map.rb
