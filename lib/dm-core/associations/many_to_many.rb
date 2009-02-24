@@ -43,6 +43,12 @@ module DataMapper
         def query
           @many_to_many_query ||=
             begin
+              # TODO: make sure the proper Query is set up, one that includes all the links
+              #   - make sure that all relationships can be intermediaries
+              #   - make sure that each intermediary can be at random repositories
+              #   - make sure that each intermediary can have different conditons that
+              #     scope its results
+
               query = super.dup
 
               # use all intermediaries in the query links
@@ -127,38 +133,26 @@ module DataMapper
             end
         end
 
-        # TODO: document
-        # @api semipublic
-        def query_for(parent)
+        def parent_scope(parent)
           # TODO: do not build the query with child_key/parent_key.. use
           # child_accessor/parent_accessor.  The query should be able to
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
-
-          # TODO: make sure the proper Query is set up, one that includes all the links
-          #   - make sure that all relationships can be intermediaries
-          #   - make sure that each intermediary can be at random repositories
-          #   - make sure that each intermediary can have different conditons that
-          #     scope its results
-
-          child_key  = through.child_key
-          parent_key = through.parent_key
 
           # TODO: when parent is a Collection, and it's query includes an
           # offset/limit, use it as a subquery to scope the results, rather
           # than (potentially) lazy-loading the Collection and getting
           # each resource key
 
-          # TODO: handle compound keys when OR conditions supported
-          parent_values = case parent
-            when Resource               then parent_key.get(parent)
-            when DataMapper::Collection then parent.map { |r| parent_key.get(r) }.transpose
-          end
+          child_key  = through.child_key
+          parent_key = through.parent_key
 
           # TODO: spec what should happen when parent not saved
 
-          options = query.merge(child_key.zip(parent_values).to_hash)
-          Query.new(DataMapper.repository(child_repository_name), child_model, options)
+          # TODO: handle compound keys when OR conditions supported
+          parent_values = Array(parent).map { |r| parent_key.get(r) }.transpose
+
+          child_key.zip(parent_values).to_hash
         end
 
         private
@@ -340,6 +334,8 @@ module DataMapper
           if resource.saved?
             @identity_map[resource.key] = resource
             @orphans.delete(resource)
+          else
+            resource.attributes = default_attributes.except(*resource.loaded_attributes.map { |p| p.name })
           end
 
           resource

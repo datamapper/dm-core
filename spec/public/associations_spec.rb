@@ -15,6 +15,8 @@ share_examples_for 'it creates a one accessor' do
 
       describe 'with a query' do
         before :all do
+          @car.save
+
           @return = @car.send(@name, :id => 1)
         end
 
@@ -85,14 +87,12 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist the Resource' do
-        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::OneToOne::Relationship) do
-          @car.save
-          @car.reload.send(@name).should == @expected
-        end
+        @car.save
+        @car.reload.send(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
-        pending do
+        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
           @car.save
           @expected.should be_saved
           @expected.reload.car.should == @car
@@ -143,10 +143,8 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist the Resource' do
-        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::OneToOne::Relationship) do
-          @car.save
-          @car.reload.send(@name).should == @expected
-        end
+        @car.save
+        @car.reload.send(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do

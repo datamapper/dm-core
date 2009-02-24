@@ -382,8 +382,9 @@ module DataMapper
     # @api public
     def eql?(other)
       return true if equal?(other)
-      return false unless other.kind_of?(Property)
-      other.model == @model && other.name == @name
+      return false unless other.kind_of?(self.class)
+
+      model == other.model && name == other.name
     end
 
     # Returns maximum property length (if applicable).
@@ -535,15 +536,15 @@ module DataMapper
     #   value to set as original value for this property in +resource+
     #
     # @api private
-    def set_original_value(resource, value)
+    def set_original_value(resource, original)
       original_values = resource.original_values
-      new_value       = self.value(value)
+      original        = self.value(original)
 
       if original_values.key?(self)
         # stop tracking the value if it has not changed
-        original_values.delete(self) if new_value == original_values[self]
+        original_values.delete(self) if original == original_values[self] && resource.saved?
       else
-        original_values[self] = new_value
+        original_values[self] = original
       end
     end
 
@@ -561,14 +562,16 @@ module DataMapper
     #
     # @api private
     def set(resource, value)
-      original = get!(resource)
+      loaded   = loaded?(resource)
+      original = get!(resource) if loaded
       value    = typecast(value)
 
-      if loaded?(resource) && value == original
+      if loaded && value == original
         return original
       end
 
       set_original_value(resource, original)
+
       set!(resource, value)
     end
 

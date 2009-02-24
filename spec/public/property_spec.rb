@@ -51,7 +51,7 @@ describe DataMapper::Property do
       end
     end
 
-    describe "#equal?" do
+    describe "#eql?" do
       it 'is true for properties with the same model and name' do
         Track.properties[:title].should eql(Track.properties[:title])
       end

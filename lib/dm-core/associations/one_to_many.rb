@@ -10,7 +10,7 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def query_for(parent)
+        def parent_scope(parent)
           # TODO: do not build the query with child_key/parent_key.. use
           # child_accessor/parent_accessor.  The query should be able to
           # translate those to child_key/parent_key inside the adapter,
@@ -21,11 +21,18 @@ module DataMapper
           # than (potentially) lazy-loading the Collection and getting
           # each resource key
 
-          # TODO: handle compound keys when OR conditions supported
-          parent_values = Array(parent).map { |r| parent_key.get(r).first }.compact
+          # TODO: spec what should happen when parent not saved
 
-          options = query.merge(child_key.zip(parent_values).to_hash)
-          Query.new(DataMapper.repository(child_repository_name), child_model, options)
+          # TODO: handle compound keys when OR conditions supported
+          parent_values = Array(parent).map { |r| parent_key.get(r) }.transpose
+
+          child_key.zip(parent_values).to_hash
+        end
+
+        # TODO: document
+        # @api semipublic
+        def query_for(parent)
+          Query.new(DataMapper.repository(child_repository_name), child_model, query.merge(parent_scope(parent)))
         end
 
         # TODO: document
@@ -48,7 +55,15 @@ module DataMapper
         # @api semipublic
         def set(parent, children)
           lazy_load(parent) unless loaded?(parent)
-          set!(parent, get!(parent).replace(children))
+          get!(parent).replace(children)
+        end
+
+        # TODO: document
+        # @api semipublic
+        def set!(resource, association)
+          association.relationship = self
+          association.parent       = resource
+          super
         end
 
         private
@@ -90,34 +105,54 @@ module DataMapper
         # @api private
         def lazy_load(parent)
           query_for = query_for(parent)
-
-          collection = self.class.collection_class.new(query_for)
-
-          collection.relationship = self
-          collection.parent       = parent
-
-          # TODO: refactor this out and just use introspection to save children
-          parent.send(:child_associations) << collection
-
-          set!(parent, collection)
+          set!(parent, self.class.collection_class.new(query_for))
         end
       end # class Relationship
 
       class Collection < DataMapper::Collection
-        attr_writer :relationship, :parent
+
+        # TODO: document
+        # @api private
+        attr_accessor :relationship
+
+        # TODO: document
+        # @api private
+        attr_accessor :parent
 
         # TODO: document
         # @api public
-        def reload(query = nil)
-          query = query.nil? ? self.query.dup : self.query.merge(query)
+        def query
+          query = super
 
-          # include the child_key in reloaded records
-          super(query.update(:fields => @relationship.child_key.to_a | query.fields))
+          if parent.saved?
+            # include the child_key in the results
+            query.update(:fields => relationship.child_key.to_a | query.fields)
+
+            # scope the query to the parent
+            query.update(relationship.parent_scope(parent))
+          end
+
+          query
         end
 
         # TODO: document
         # @api public
-        def replace(other)
+        def reload(query = nil)
+          assert_parent_saved 'The parent must be saved before reloading the collection'
+          super(query.nil? ? self.query.dup : self.query.merge(query))
+        end
+
+        def all(*)
+          assert_parent_saved 'The parent must be saved before further scoping the collection'
+          super
+        end
+
+        # TODO: add stub methods for each finder like all(), where it raises
+        # an exception when trying to scope the results before the parent is saved
+
+        # TODO: document
+        # @api public
+        def replace(*)
           lazy_load  # lazy load so that children are always orphaned
           super
         end
@@ -131,21 +166,21 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def create(attributes = {})
+        def create(*)
           assert_parent_saved 'The parent must be saved before creating a Resource'
           super
         end
 
         # TODO: document
         # @api public
-        def update(attributes = {})
+        def update(*)
           assert_parent_saved 'The parent must be saved before mass-updating the collection'
           super
         end
 
         # TODO: document
         # @api public
-        def update!(attributes = {})
+        def update!(*)
           assert_parent_saved 'The parent must be saved before mass-updating the collection without validation'
           super
         end
@@ -154,6 +189,10 @@ module DataMapper
         # @api public
         def save
           assert_parent_saved 'The parent must be saved before saving the collection'
+
+          # remove reference to parent in orphans
+          @orphans.each { |r| r.save }
+
           super
         end
 
@@ -174,7 +213,7 @@ module DataMapper
         private
 
         def lazy_load
-          if @parent.saved?
+          if parent.saved?
             super
           elsif !loaded?
             mark_loaded
@@ -194,8 +233,8 @@ module DataMapper
         def new_collection(query, resources = nil, &block)
           collection = self.class.new(query, &block)
 
-          collection.relationship = @relationship
-          collection.parent       = @parent
+          collection.relationship = relationship
+          collection.parent       = parent
 
           # set the resources after the relationship and parent are set
           if resources
@@ -215,11 +254,11 @@ module DataMapper
           #     reference in the child to get an id, and since it is related
           #     to the child, the child will get the correct parent id
 
-          if @parent.saved?
-            parent_key = @relationship.parent_key
-            child_key  = @relationship.child_key
+          if parent.saved?
+            parent_key = relationship.parent_key
+            child_key  = relationship.child_key
 
-            child_key.set(resource, parent_key.get(@parent))
+            child_key.set(resource, parent_key.get(parent))
           end
 
           super
@@ -231,7 +270,7 @@ module DataMapper
           return if resource.nil?
 
           # TODO: should just set the resource parent to nil using the mutator
-          @relationship.child_key.set(resource, [])
+          relationship.child_key.set(resource, [])
 
           super
         end
@@ -239,7 +278,7 @@ module DataMapper
         # TODO: document
         # @api private
         def assert_parent_saved(message)
-          if @parent.new?
+          if parent.new?
             raise UnsavedParentError, message
           end
         end

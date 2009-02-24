@@ -692,7 +692,7 @@ module DataMapper
     #
     # @api public
     def new(attributes = {})
-      resource = repository.scope { model.new(default_attributes.update(attributes)) }
+      resource = repository.scope { model.new(attributes) }
       self << resource
       resource
     end
@@ -709,7 +709,7 @@ module DataMapper
     #
     # @api public
     def create(attributes = {})
-      resource = repository.scope { model.create(default_attributes.update(attributes)) }
+      resource = repository.scope { model.create(default_attributes.merge(attributes)) }
       self << resource if resource.saved?
       resource
     end
@@ -779,7 +779,6 @@ module DataMapper
       # is used to store the reference to the parent.
       relate_resources(resources)
 
-      resources.concat(@orphans.to_a)
       @orphans.clear
 
       resources.all? { |r| r.save }
@@ -1014,6 +1013,8 @@ module DataMapper
       if resource.saved?
         @identity_map[resource.key] = resource
         @orphans.delete(resource)
+      else
+        resource.attributes = default_attributes.except(*resource.loaded_attributes.map { |p| p.name })
       end
 
       resource

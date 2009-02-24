@@ -710,9 +710,14 @@ module DataMapper
     # TODO: document
     # @api private
     def child_associations
-      # TODO: change this to iterate over the model's relationships, and
-      # use r.loaded?(self) && r.get!(self) to get the associations
-      @child_associations ||= []
+      child_associations = []
+
+      relationships.each_value do |r|
+        next unless !r.kind_of?(Associations::ManyToOne::Relationship) && r.loaded?(self) && association = r.get!(self)
+        child_associations << association
+      end
+
+      child_associations.freeze
     end
 
     ##
