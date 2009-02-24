@@ -320,21 +320,15 @@ module DataMapper
       Time,
       Object,
       Class,
-    ]
-
-    # Properties of these types are immutable, that is,
-    # cannot be changed
-    IMMUTABLE_TYPES = [ TrueClass, Float, Integer, BigDecimal ]
+    ].to_set.freeze
 
     # Possible :visibility option values
-    VISIBILITY_OPTIONS = [ :public, :protected, :private ]
+    VISIBILITY_OPTIONS = [ :public, :protected, :private ].to_set.freeze
 
     DEFAULT_LENGTH           = 50
     DEFAULT_PRECISION        = 10
-    # Default scale for properties of BigDecimal type
-    DEFAULT_SCALE_BIGDECIMAL = 0
-    # Default scalr for properties of type Float
-    DEFAULT_SCALE_FLOAT      = nil
+    DEFAULT_SCALE_BIGDECIMAL = 0    # Default scale for BigDecimal type
+    DEFAULT_SCALE_FLOAT      = nil  # Default scale for Float type
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :options,

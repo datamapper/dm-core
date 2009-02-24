@@ -426,7 +426,7 @@ module DataMapper
             end
           end
 
-          indexes
+          indexes.freeze
         end
     end
 

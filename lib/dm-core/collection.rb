@@ -973,30 +973,33 @@ module DataMapper
     #
     # @api private
     def default_attributes
-      default_attributes = {}
+      @default_attributes ||=
+        begin
+          default_attributes = {}
 
-      repository_name = repository.name
-      properties      = model.properties(repository_name) - model.key(repository_name)
+          repository_name = repository.name
+          properties      = model.properties(repository_name) - model.key(repository_name)
 
-      query.conditions.each do |tuple|
-        operator, property, bind_value = *tuple
+          query.conditions.each do |tuple|
+            operator, property, bind_value = *tuple
 
-        unless operator == :eql
-          next
+            unless operator == :eql
+              next
+            end
+
+            unless properties.include?(property)
+              next
+            end
+
+            if bind_value.kind_of?(Array) || bind_value.kind_of?(Range)
+              next
+            end
+
+            default_attributes[property.name] = bind_value
+          end
+
+          default_attributes.freeze
         end
-
-        unless properties.include?(property)
-          next
-        end
-
-        if bind_value.kind_of?(Array) || bind_value.kind_of?(Range)
-          next
-        end
-
-        default_attributes[property.name] = bind_value
-      end
-
-      default_attributes
     end
 
     ##

@@ -24,7 +24,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def initialize(name, child_model, parent_model, options = {})
-          child_model ||= Extlib::Inflection.camelize(name)
+          child_model ||= Extlib::Inflection.camelize(name).freeze
           super
         end
       end # class Relationship

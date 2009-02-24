@@ -286,6 +286,10 @@ module DataMapper
     end # module DataObjectsAdapter
 
     module MysqlAdapter
+      DEFAULT_ENGINE        = 'InnoDB'.freeze
+      DEFAULT_CHARACTER_SET = 'utf8'.freeze
+      DEFAULT_COLLATION     = 'utf8_general_ci'.freeze
+
       def self.included(base)
         base.extend ClassMethods
       end
@@ -319,7 +323,7 @@ module DataMapper
         alias db_name schema_name
 
         def create_table_statement(model, properties)
-          "#{super} ENGINE = InnoDB CHARACTER SET #{character_set} COLLATE #{collation}"
+          "#{super} ENGINE = #{DEFAULT_ENGINE} CHARACTER SET #{character_set} COLLATE #{collation}"
         end
 
         def property_schema_hash(property)
@@ -343,16 +347,16 @@ module DataMapper
         end
 
         def character_set
-          @character_set ||= show_variable('character_set_connection') || 'utf8'
+          @character_set ||= show_variable('character_set_connection') || DEFAULT_CHARACTER_SET
         end
 
         def collation
-          @collation ||= show_variable('collation_connection') || 'utf8_general_ci'
+          @collation ||= show_variable('collation_connection') || DEFAULT_COLLATION
         end
 
         def show_variable(name)
           result = query('SHOW VARIABLES LIKE ?', name).first
-          result ? result.value : nil
+          result ? result.value.freeze : nil
         end
       end # module SQL
 
@@ -369,7 +373,7 @@ module DataMapper
             Object    => { :primitive => 'TEXT'                 },
             DateTime  => { :primitive => 'DATETIME'             },
             Time      => { :primitive => 'DATETIME'             }
-          )
+          ).freeze
         end
       end # module ClassMethods
     end # module MysqlAdapter
@@ -403,11 +407,11 @@ module DataMapper
         end
 
         def schema_name
-          @schema_name ||= query('SELECT current_schema()').first
+          @schema_name ||= query('SELECT current_schema()').first.freeze
         end
 
         def postgres_version
-          @postgres_version ||= query('SELECT version()').first.split[1]
+          @postgres_version ||= query('SELECT version()').first.split[1].freeze
         end
 
         def without_notices
@@ -455,7 +459,7 @@ module DataMapper
             Integer    => { :primitive => 'INTEGER'                                           },
             BigDecimal => { :primitive => 'NUMERIC', :precision => precision, :scale => scale },
             Float      => { :primitive => 'DOUBLE PRECISION'                                  }
-          )
+          ).freeze
         end
       end # module ClassMethods
     end # module PostgresAdapter
@@ -518,7 +522,7 @@ module DataMapper
         end
 
         def sqlite_version
-          @sqlite_version ||= query('SELECT sqlite_version(*)').first
+          @sqlite_version ||= query('SELECT sqlite_version(*)').first.freeze
         end
       end # module SQL
 
@@ -532,7 +536,7 @@ module DataMapper
           @type_map ||= super.merge(
             Integer => { :primitive => 'INTEGER' },
             Class   => { :primitive => 'VARCHAR' }
-          )
+          ).freeze
         end
       end # module ClassMethods
     end # module Sqlite3Adapter
