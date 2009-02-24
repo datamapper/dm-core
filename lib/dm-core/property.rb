@@ -791,7 +791,7 @@ module DataMapper
           raise ArgumentError, "precision must be greater than 0, but was #{@precision.inspect}"
         end
 
-        if (BigDecimal == @primitive) || (Float == @primitive && !@scale.nil?)
+        unless Float == @primitive && @scale.nil?
           unless @scale >= 0
             raise ArgumentError, "scale must be equal to or greater than 0, but was #{@scale.inspect}"
           end

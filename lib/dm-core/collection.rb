@@ -2,6 +2,9 @@
 # is used, then use the Query conditions to return the matching entries
 # rather than executing another query.
 
+# TODO: if Collection is scoped by a unique property, should adding
+# new Resources be denied?
+
 module DataMapper
   # The Collection class represents a list of resources persisted in
   # a repository and identified by a query.
@@ -836,20 +839,6 @@ module DataMapper
     # @api public
     def respond_to?(method, include_private = false)
       super || model.respond_to?(method) || relationships.key?(method)
-    end
-
-    ##
-    # Returns true if the other object is identical to self
-    #
-    # @param [Collection] other
-    #   Another Collection object to compare with +self+
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if the objects are identical
-    #
-    # @api public
-    def equal?(other)
-      object_id == other.object_id
     end
 
     ##

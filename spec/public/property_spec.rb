@@ -155,7 +155,7 @@ describe DataMapper::Property do
 
     describe "#get" do
       before(:all) do
-        @image = Image.create(:md5hash     => "5268f0f3f452844c79843e820f9988691f44f9bc",
+        @image = Image.create(:md5hash     => "5268f0f3f452844c79843e820f998869",
                               :title       => "Rome at the sunset",
                               :description => "Just wow")
         @image.should be_saved
