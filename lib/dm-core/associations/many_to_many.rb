@@ -133,6 +133,8 @@ module DataMapper
             end
         end
 
+        # TODO: document
+        # @api private
         def parent_scope(parent)
           # TODO: do not build the query with child_key/parent_key.. use
           # child_accessor/parent_accessor.  The query should be able to
@@ -150,7 +152,7 @@ module DataMapper
           # TODO: spec what should happen when parent not saved
 
           # TODO: handle compound keys when OR conditions supported
-          parent_values = Array(parent).map { |r| parent_key.get(r) }.transpose
+          parent_values = Array(parent).map { |r| parent_key.get(r) }.select { |k| k.all? }.transpose
 
           child_key.zip(parent_values).to_hash
         end
