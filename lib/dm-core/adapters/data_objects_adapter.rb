@@ -154,21 +154,16 @@ module DataMapper
       protected
 
       def normalized_uri
-        @normalized_uri ||=
-          begin
-            # srsly? TODO: Make DataObjects::URI handle parsing an options hash
-            query = @options.except(:adapter, :username, :password, :host, :port, :database).map { |pair| pair.join('=') }.join('&')
-            query = nil if query.blank?
-            DataObjects::URI.parse(Addressable::URI.new(
-              :scheme =>    @options[:adapter].to_s,
-              :user =>      @options[:username],
-              :password =>  @options[:password],
-              :host =>      @options[:host],
-              :port =>      @options[:port],
-              :path =>      @options[:database],
-              :query =>     query
-            ))
-          end
+        @normalized_uri ||= DataObjects::URI.new(
+          @options[:adapter].to_s,
+          @options[:username],
+          @options[:password],
+          @options[:host],
+          @options[:port],
+          @options[:database],
+          @options.except(:adapter, :username, :password, :host, :port, :database),
+          nil
+        ).freeze
       end
 
       chainable do
