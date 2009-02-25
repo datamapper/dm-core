@@ -15,7 +15,7 @@ module DataMapper
       # TODO: document
       # @api private
       def inherited(target)
-        # TODO: Create a RelationshipSet class, and then add a method that allows copying the relationships to a new model
+        # TODO: Create a RelationshipSet class, and then add a method that allows copying the relationships to the supplied repository and model
         duped_relationships = {}
         @relationships.each do |repository_name, relationships|
           duped_relationship = duped_relationships[repository_name] ||= Mash.new
@@ -70,7 +70,15 @@ module DataMapper
     def relationships(repository_name = default_repository_name)
       assert_kind_of 'repository_name', repository_name, Symbol
 
-      @relationships[repository_name] ||= repository_name == default_repository_name ? Mash.new : relationships(default_repository_name).dup
+      # TODO: create RelationshipSet#copy that will copy the relationships, but assign the
+      # new Relationship objects to a supplied repository and model.  dup does not really
+      # do what is needed
+
+      @relationships[repository_name] ||= if repository_name == default_repository_name
+        Mash.new
+      else
+        relationships(default_repository_name).dup
+      end
     end
 
     def n

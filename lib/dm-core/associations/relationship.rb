@@ -9,6 +9,10 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
+      attr_reader :options
+
+      # TODO: document
+      # @api semipublic
       attr_reader :instance_variable_name
 
       # TODO: document
@@ -63,13 +67,8 @@ module DataMapper
               property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
 
               properties[property_name] || begin
-                options = { :index => property_prefix }
-
-                [ :length, :size, :precision, :scale ].each do |option|
-                  if parent_property.options.key?(option)
-                    options[option] = parent_property.options[option]
-                  end
-                end
+                options = parent_property.options.only(:length, :size, :precision, :scale)
+                options.update(:index => property_prefix)
 
                 # create the property within the correct repository
                 DataMapper.repository(child_repository_name) do
@@ -78,7 +77,7 @@ module DataMapper
               end
             end
 
-            PropertySet.new(child_key).freeze
+            properties.class.new(child_key).freeze
           end
       end
 
@@ -95,13 +94,15 @@ module DataMapper
       def parent_key
         @parent_key ||=
           begin
+            properties = parent_model.properties(parent_repository_name)
+
             parent_key = if @parent_properties
-              parent_model.properties(parent_repository_name).slice(*@parent_properties)
+              properties.slice(*@parent_properties)
             else
-              parent_model.key(parent_repository_name)
+              properties.key
             end
 
-            PropertySet.new(parent_key).freeze
+            properties.class.new(parent_key).freeze
           end
       end
 
@@ -157,16 +158,17 @@ module DataMapper
         end
 
         @name                   = name
-        @instance_variable_name = "@#{@name}"
-        @child_repository_name  = (options[:child_repository_name]  || options[:parent_repository_name]).freeze
-        @parent_repository_name = (options[:parent_repository_name] || options[:child_repository_name]).freeze
-        @child_properties       = options[:child_key].try_dup.freeze
-        @parent_properties      = options[:parent_key].try_dup.freeze
-        @min                    = options[:min]
-        @max                    = options[:max]
-        @through                = options[:through]
+        @instance_variable_name = "@#{@name}".freeze
+        @options                = options.dup.freeze
+        @child_repository_name  = @options[:child_repository_name]  || @options[:parent_repository_name]
+        @parent_repository_name = @options[:parent_repository_name] || @options[:child_repository_name]
+        @child_properties       = @options[:child_key].try_dup.freeze
+        @parent_properties      = @options[:parent_key].try_dup.freeze
+        @min                    = @options[:min]
+        @max                    = @options[:max]
+        @through                = @options[:through]
 
-        query = options.except(*OPTIONS)
+        query = @options.except(*OPTIONS)
 
         if max.kind_of?(Integer)
           query[:limit] = max

@@ -763,13 +763,13 @@ module DataMapper
         raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type"
       end
 
-      @repository_name        = model.repository.name
+      @repository_name        = model.repository_name
       @model                  = model
       @name                   = name.to_s.sub(/\?$/, '').to_sym
       @type                   = type
       @custom                 = Type > @type
-      @options                = @custom ? @type.options.merge(options) : options
-      @instance_variable_name = "@#{@name}"
+      @options                = (@custom ? @type.options.merge(options) : options.dup).freeze
+      @instance_variable_name = "@#{@name}".freeze
 
       @primitive = @type.respond_to?(:primitive) ? @type.primitive : @type
       @field     = @options[:field].freeze

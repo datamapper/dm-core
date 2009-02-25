@@ -299,7 +299,15 @@ module DataMapper
         end
       end
 
-      @properties[repository_name] ||= repository_name == default_repository_name ? PropertySet.new : properties(default_repository_name).dup
+      # TODO: create PropertySet#copy that will copy the properties, but assign the
+      # new Relationship objects to a supplied repository and model.  dup does not really
+      # do what is needed
+
+      @properties[repository_name] ||= if repository_name == default_repository_name
+        PropertySet.new
+      else
+        properties(default_repository_name).dup
+      end
     end
 
     ##

@@ -123,13 +123,15 @@ module DataMapper
         def child_key
           @child_key ||=
             begin
+              properties = child_model.properties(child_repository_name)
+
               child_key = if @child_properties
-                child_model.properties(child_repository_name).slice(*@child_properties)
+                properties.slice(*@child_properties)
               else
-                child_model.key(child_repository_name)
+                properties.key
               end
 
-              PropertySet.new(child_key).freeze
+              properties.class.new(child_key).freeze
             end
         end
 
