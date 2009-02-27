@@ -5,7 +5,7 @@ share_examples_for 'An Adapter' do
     end
 
     @adapter_class = @adapter.class
-    @scheme        = @adapter_class.to_s.sub(/\ADataMapper::Adapters::([A-Za-z\d]+)Adapter\z/, '\1').downcase
+    @scheme        = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(@adapter_class).chomp('Adapter'))
     @adapter_name  = "test_#{@scheme}".to_sym
 
     @resource = @model.new(:color => 'Mauve')
