@@ -491,7 +491,8 @@ module DataMapper
           when Hash
             conditions.each { |kv| append_condition(*kv) }
           when Array
-            @conditions << [ :raw, *conditions ]
+            statement, *bind_values = *conditions
+            @conditions << [ :raw, statement, bind_values ]
         end
       end
 

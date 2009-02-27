@@ -333,7 +333,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the conditions' do
-          @return.conditions.should == [ [ :raw, 'name = ?', 'Dan Kubb' ] ]
+          @return.conditions.should == [ [ :raw, 'name = ?', [ 'Dan Kubb' ] ] ]
         end
       end
 
