@@ -155,13 +155,13 @@ module DataMapper
 
       def normalized_uri
         @normalized_uri ||= DataObjects::URI.new(
-          @options[:adapter].to_s,
-          @options[:username],
+          @options[:adapter],
+          @options[:user],
           @options[:password],
           @options[:host],
           @options[:port],
-          @options[:database],
-          @options.except(:adapter, :username, :password, :host, :port, :database),
+          @options[:path],
+          @options.except(:adapter, :user, :password, :host, :port, :path),
           nil
         ).freeze
       end
@@ -172,7 +172,7 @@ module DataMapper
         # @api semipublic
         def create_connection
           # DataObjects::Connection.new(uri) will give you back the right
-          # driver based on the Uri#scheme.
+          # driver based on the DataObjects::URI#scheme
           DataObjects::Connection.new(normalized_uri)
         end
 
@@ -187,14 +187,8 @@ module DataMapper
       def initialize(name, uri_or_options)
         super
 
-        # AbstractAdapter#initialize sets :path in the options,
-        # we want to refer to it as :database
-        if @options.key?(:path) && !@options.key?(:database)
-          @options[:database] = @options[:path]
-        end
-
-        # Default the driver-specifc logger to DataMapper's logger
-        if driver_module = DataObjects.const_get(normalized_uri.scheme.capitalize) rescue nil
+        # Default the driver-specific logger to DataMapper's logger
+        if driver_module = DataObjects.const_get(normalized_uri.scheme.capitalize)
           driver_module.logger = DataMapper.logger if driver_module.respond_to?(:logger=)
         end
       end

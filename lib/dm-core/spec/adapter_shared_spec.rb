@@ -4,15 +4,17 @@ share_examples_for 'An Adapter' do
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
 
+    @adapter_class = @adapter.class
+    @scheme        = @adapter_class.to_s.sub(/\ADataMapper::Adapters::([A-Za-z\d]+)Adapter\z/, '\1').downcase
+    @adapter_name  = "test_#{@scheme}".to_sym
+
     @resource = @model.new(:color => 'Mauve')
   end
 
   describe 'initialization' do
     before :all do
-      @adapter_class = @adapter.class
-      @adapter_name = :test_abstract
       @options = {
-        :adapter  => 'abstract',
+        :adapter  => @scheme,
         :user     => 'paul',
         :password => 'secret',
         :host     => 'hostname',
@@ -30,7 +32,7 @@ share_examples_for 'An Adapter' do
       end
 
       it 'should have a name' do
-        @a.name.should == :test_abstract
+        @a.name.should == @adapter_name
       end
 
       it 'should require name to be a symbol' do
@@ -58,7 +60,8 @@ share_examples_for 'An Adapter' do
 
       describe 'from a String uri' do
         before :all do
-          uri = "abstract://paul:secret@hostname:12345/tmp?foo=bar"
+          uri = "#{@scheme}://paul:secret@hostname:12345/tmp?foo=bar"
+
           @a = @adapter_class.new(@adapter_name, uri)
         end
 
@@ -66,14 +69,14 @@ share_examples_for 'An Adapter' do
 
         it 'should not have :scheme in the options hash (renamed :adapter)' do
           @a.options.should_not have_key(:scheme)
-          @a.options[:adapter].should == 'abstract'
+          @a.options[:adapter].should == @scheme
         end
 
       end
 
       describe 'from an Addressable uri' do
         before :all do
-          @uri = Addressable::URI.parse("abstract://paul:secret@hostname:12345/tmp?foo=bar")
+          @uri = Addressable::URI.parse("#{@scheme}://paul:secret@hostname:12345/tmp?foo=bar")
           @a = @adapter_class.new(@adapter_name, @uri)
         end
 

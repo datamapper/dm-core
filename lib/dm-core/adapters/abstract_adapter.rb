@@ -35,12 +35,13 @@ module DataMapper
             options.update(uri.query_values)
           end
 
-          # Alias 'scheme' part of uri to 'adapter', if its not already set
-          if options.key?(:scheme) && !options.key?(:adapter)
-            options[:adapter] = options.delete(:scheme)
-          end
-
           options
+        end
+
+        # remap options to internal naming convention
+        { :scheme => :adapter, :username => :user, :database => :path }.each do |old,new|
+          next unless options.key?(old) && !options.key?(new)
+          options[new] = options.delete(old)
         end
 
         options
