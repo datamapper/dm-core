@@ -1118,7 +1118,49 @@ describe DataMapper::Query do
   it { @query.should respond_to(:slice) }
 
   describe '#slice' do
-    it 'should be awesome'
+    before :all do
+      @query = @query.update(:offset => 1, :limit => 2)
+
+      @return = @query.slice(1, 1)
+    end
+
+    it { @return.should be_kind_of(DataMapper::Query) }
+
+    it 'should not return self' do
+      @return.should_not be_equal(@original)
+    end
+
+    it 'should update the offset to be relative to the original offset' do
+      @return.offset.should == 2
+    end
+
+    it 'should update the limit' do
+      @return.limit.should == 1
+    end
+  end
+
+  it { @query.should respond_to(:slice!) }
+
+  describe '#slice!' do
+    before :all do
+      @query = @query.update(:offset => 1, :limit => 2)
+
+      @return = @query.slice!(1, 1)
+    end
+
+    it { @return.should be_kind_of(DataMapper::Query) }
+
+    it 'should return self' do
+      @return.should be_equal(@original)
+    end
+
+    it 'should update the offset to be relative to the original offset' do
+      @return.offset.should == 2
+    end
+
+    it 'should update the limit' do
+      @return.limit.should == 1
+    end
   end
 
   it { @query.should respond_to(:to_hash) }
@@ -1139,7 +1181,7 @@ describe DataMapper::Query do
     describe 'with a Query' do
       describe 'that is equivalent' do
         before :all do
-          @other = DataMapper::Query.new(@repository, @model)
+          @other = DataMapper::Query.new(@repository, @model, @options)
 
           @return = @query.update(@other)
         end

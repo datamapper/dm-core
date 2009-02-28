@@ -460,15 +460,15 @@ module DataMapper
 
       assert_valid_options(@options)
 
-      @fields       = @options.fetch :fields,       @properties.defaults  # must be an Array of Symbol, String or DM::Property
-      @links        = @options.fetch :links,        []     # must be an Array of Tuples - Tuple [DM::Query,DM::Assoc::Relationship]
-      @conditions   = []                                  # must be an Array of triplets (or pairs when passing in raw String queries)
-      @offset       = @options.fetch :offset,       0      # must be an Integer greater than or equal to 0
-      @limit        = @options.fetch :limit,        nil    # must be an Integer greater than or equal to 1
-      @order        = @options.fetch :order,        @model.default_order(repository_name)   # must be an Array of Symbol, DM::Query::Direction or DM::Property
-      @unique       = @options.fetch :unique,       false  # must be true or false
-      @add_reversed = @options.fetch :add_reversed, false  # must be true or false
-      @reload       = @options.fetch :reload,       false  # must be true or false
+      @fields       = @options.fetch :fields,       @properties.defaults
+      @links        = @options.fetch :links,        []
+      @conditions   = []
+      @offset       = @options.fetch :offset,       0
+      @limit        = @options.fetch :limit,        nil
+      @order        = @options.fetch :order,        @model.default_order(repository_name)
+      @unique       = @options.fetch :unique,       false
+      @add_reversed = @options.fetch :add_reversed, false
+      @reload       = @options.fetch :reload,       false
 
       # XXX: should I validate that each property in @order corresponds
       # to something in @fields?  Many DB engines require they match,
