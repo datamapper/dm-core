@@ -284,7 +284,7 @@ module DataMapper
         return true
       end
 
-      unless other.respond_to?(:repository) && other.respond_to?(:model) && other.respond_to?(:to_hash)
+      unless [ :repository, :model, :fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed? ].all? { |m| other.respond_to?(m) }
         return false
       end
 
