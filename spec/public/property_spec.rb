@@ -321,11 +321,9 @@ describe DataMapper::Property do
       end
 
       describe "when type primitive is a float" do
-        it 'runs #to_f on the value' do
+        it 'returns float representation of the value' do
           Image.properties[:filesize].typecast("24.34").should == 24.34
         end
-
-        it 'returns a float'
       end
 
       describe "when type primitive is an integer" do
