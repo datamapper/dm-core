@@ -1198,7 +1198,15 @@ describe DataMapper::Query do
   it { @query.should respond_to(:repository) }
 
   describe '#repository' do
-    it 'should be awesome'
+    before :all do
+      @return = @query.repository
+    end
+
+    it { @return.should be_kind_of(DataMapper::Repository) }
+
+    it 'should return expected value' do
+      @return.should == @repository
+    end
   end
 
   it { @query.should respond_to(:reverse) }
