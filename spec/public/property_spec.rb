@@ -442,7 +442,9 @@ describe DataMapper::Property do
 
 
     describe "#default_for" do
-      it 'returns default value for non-callables'
+      it 'returns default value for non-callables' do
+        Image.properties[:format].default_for(Image.new).should == "jpeg"
+      end
 
       it 'returns result of a call for callable values'
     end
