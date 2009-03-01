@@ -21,6 +21,7 @@ describe DataMapper::Property do
       property :title,        String, :nullable => false, :unique => true
       property :description,  Text,   :length => 1..1024, :lazy => true
 
+      property :format,       String, :default => "jpeg"
     end
   end
 
@@ -163,6 +164,8 @@ describe DataMapper::Property do
         # yes, we use dark ruby magic
         @image.send(:remove_instance_variable, :@description)
         Image.properties[:description].loaded?(@image).should be(false)
+        @image.send(:remove_instance_variable, :@format)
+        Image.properties[:format].loaded?(@image).should be(false)
       end
 
       it 'triggers loading for lazy loaded properties' do
@@ -175,7 +178,9 @@ describe DataMapper::Property do
         @image.instance_variable_get(:@description).should == "Just wow"
       end
 
-      it 'sets default value for new records with nil value'
+      it 'sets default value for new records with nil value' do
+        Image.properties[:format].get(@image).should == "jpeg"
+      end
 
       it 'returns property value' do
         Image.properties[:description].get(@image).should == "Just wow"
