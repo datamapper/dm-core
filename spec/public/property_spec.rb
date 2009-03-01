@@ -202,10 +202,40 @@ describe DataMapper::Property do
       end
     end
 
+    # What's going on here:
+    #
+    # we first set original value and make an assertion on it
+    # then we try to set it again, which clears original value
+    # (since original value is set, property is no longer dirty)
     describe "#set_original_value" do
-      it 'sets original value of the property'
+      before(:each) do
+        @image = Image.create(:md5hash     => "5268f0f3f452844c79843e820f998869",
+                              :title       => "Rome at the sunset",
+                              :description => "Just wow")
+        @image.reload
+        @property = Image.properties[:title]
+      end
 
-      it 'only sets original value unless it is already set'
+      describe "when value changes" do
+        before(:each) do
+          @property.set_original_value(@image, "Rome at the sunset")
+        end
+
+        it 'sets original value of the property' do
+          @image.original_values[@property].should == "Rome at the sunset"
+        end
+      end
+
+      describe "when value stays the same" do
+        before(:each) do
+          @property.set_original_value(@image, "Rome at the sunset")
+        end
+
+        it 'only sets original value when it has changed' do
+          @property.set_original_value(@image, "Rome at the sunset")
+          @image.original_values[@property].should be_blank
+        end
+      end
     end
 
     describe "#set" do
