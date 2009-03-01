@@ -997,7 +997,15 @@ describe DataMapper::Query do
   it { @query.should respond_to(:offset) }
 
   describe '#offset' do
-    it 'should be awesome'
+    before :all do
+      @return = @query.offset
+    end
+
+    it { @return.should be_kind_of(Integer) }
+
+    it 'should return expected value' do
+      @return.should == 0
+    end
   end
 
   it { @query.should respond_to(:order) }
