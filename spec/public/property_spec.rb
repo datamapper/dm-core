@@ -308,7 +308,7 @@ describe DataMapper::Property do
 
       describe "when value is a Ruby primitive" do
         it 'returns value unchanged' do
-          p Image.properties[:size].typecast([3200, 2400]).should == [3200, 2400]
+          Image.properties[:size].typecast([3200, 2400]).should == [3200, 2400]
         end
       end
 
