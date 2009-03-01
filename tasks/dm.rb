@@ -4,7 +4,7 @@ require 'spec/rake/verify_rcov'
 task :default => 'spec'
 
 RCov::VerifyTask.new(:verify_rcov => :rcov) do |t|
-  t.threshold = 84.8 # Make sure you have rcov 0.7 or higher!
+  t.threshold = 86.7 # Make sure you have rcov 0.7 or higher!
 end
 
 def run_spec(name, files, rcov)
