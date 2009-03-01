@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Property do
@@ -279,7 +280,7 @@ describe DataMapper::Property do
     describe "#set!" do
       before(:each) do
         @image = Image.new(:md5hash      => "5268f0f3f452844c79843e820f998869",
-                            :title       => "Rome at the sunset",
+                           :title       => "Rome at the sunset",
                            :description => "Just wow")
 
         @property = Image.properties[:title]
@@ -290,15 +291,6 @@ describe DataMapper::Property do
         @image.title.should == "Set with dark Ruby magic"
       end
     end
-
-    describe "#lazy_load" do
-      it 'returns nil if given resource is a new record'
-
-      it 'triggers load for a single lazy loaded property'
-
-      it 'triggers load for a group of lazy loaded properties'
-    end
-
 
 
     describe "#typecast" do
