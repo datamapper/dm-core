@@ -239,13 +239,29 @@ describe DataMapper::Property do
     end
 
     describe "#set" do
+      before(:each) do
+        # keep in mind we must run these examples with a
+        # saved model instance
+        @image = Image.create(:md5hash     => "5268f0f3f452844c79843e820f998869",
+                              :title       => "Rome at the sunset",
+                              :description => "Just wow")
+        @image.reload
+        @property = Image.properties[:title]
+      end
+
       it 'triggers lazy loading for given resource'
 
       it 'type casts given value'
 
-      it 'stores original value'
+      it 'stores original value' do
+        @property.set(@image, "Updated value")
+        @image.original_values[@property].should == "Rome at the sunset"
+      end
 
-      it 'sets new property value'
+      it 'sets new property value' do
+        @property.set(@image, "Updated value")
+        @image.title.should == "Updated value"
+      end
     end
 
     describe "#set!" do
