@@ -328,19 +328,22 @@ describe DataMapper::Property do
 
       describe "when type primitive is an integer" do
         describe "and value only has digits in it" do
-          it 'runs #to_i on the value'
-
-          it 'returns an integer'
+          it 'returns integer representation of the value' do
+            Image.properties[:filesize].typecast("24").should == 24
+          end
         end
 
         describe "and value is a string representation of a hex or octal integer" do
-          it 'returns 0'
-
-          it 'returns an integer'
+          it 'returns 0' do
+            Image.properties[:filesize].typecast("0x24").should == 0.0
+          end
         end
 
         describe "but value has non-digits and punctuation in it" do
-          it "returns nil"
+          it "returns result of property type's casting of nil" do
+            # nil.to_f => 0.0
+            Image.properties[:filesize].typecast("datamapper").should be(0.0)
+          end
         end
       end
 
