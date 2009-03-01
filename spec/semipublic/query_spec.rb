@@ -899,7 +899,17 @@ describe DataMapper::Query do
   it { @query.should respond_to(:conditions) }
 
   describe '#conditions' do
-    it 'should be awesome'
+    before :all do
+      @query.update(:name => 'Dan Kubb')
+
+      @return = @query.conditions
+    end
+
+    it { @return.should be_kind_of(Array) }
+
+    it 'should return expected value' do
+      @return.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+    end
   end
 
   it { @query.should respond_to(:dup) }
