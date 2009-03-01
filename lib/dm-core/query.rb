@@ -878,7 +878,7 @@ module DataMapper
     #   TODO: needs example
     # @api private
     def reset_memoized_vars
-      @bind_values = @key_property_indexes = nil
+      @key_property_indexes = nil
 
       if defined?(@inheritance_property_index)
         remove_instance_variable(:@inheritance_property_index)
