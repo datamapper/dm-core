@@ -1011,7 +1011,15 @@ describe DataMapper::Query do
   it { @query.should respond_to(:order) }
 
   describe '#order' do
-    it 'should be awesome'
+    before :all do
+      @return = @query.order
+    end
+
+    it { @return.should be_kind_of(Array) }
+
+    it 'should return expected value' do
+      @return.should == [ DataMapper::Query::Direction.new(@model.properties[:name]) ]
+    end
   end
 
   it { @query.should respond_to(:relative) }
