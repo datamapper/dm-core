@@ -22,7 +22,7 @@ describe DataMapper::Query do
 
     @fields       = [ :name ].freeze
     @links        = [ :referrer ].freeze
-    @conditions   = { :name => 'Dan Kubb' }.freeze
+    @conditions   = { :name => 'Dan Kubb' }
     @offset       = 0
     @limit        = 1
     @order        = [ :name ].freeze
@@ -43,9 +43,7 @@ describe DataMapper::Query do
     }
   end
 
-  it 'should respond to .new' do
-    DataMapper::Query.should respond_to(:new)
-  end
+  it { DataMapper::Query.should respond_to(:new) }
 
   describe '.new' do
     describe 'with a repository' do
@@ -290,14 +288,89 @@ describe DataMapper::Query do
 
     describe 'with a conditions option' do
       describe 'that is a valid Hash' do
-        before :all do
-          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+        describe 'with the Property key' do
+          before :all do
+            @options[:conditions] = { @model.properties[:name] => 'Dan Kubb' }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+          end
         end
 
-        it { @return.should be_kind_of(DataMapper::Query) }
+        describe 'with the Symbol key mapping to a Property' do
+          before :all do
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
 
-        it 'should set the conditions' do
-          @return.conditions.should == [ [ :eql, @model.properties[:name], @conditions[:name] ] ]
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+          end
+        end
+
+        describe 'with the String key mapping to a Property' do
+          before :all do
+            @options[:conditions] = { 'name' => 'Dan Kubb' }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+          end
+        end
+
+        describe 'with the Query::Operator key' do
+          before :all do
+            @options[:conditions] = { :name.gte => 'Dan Kubb' }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should == [ [ :gte, @model.properties[:name], 'Dan Kubb' ] ]
+          end
+        end
+
+        describe 'with the Query::Path key' do
+          before :all do
+            @options[:conditions] = { @model.referrer.name => 'Dan Kubb' }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should == [ [ :eql, @model.referrer.name, 'Dan Kubb' ] ]
+          end
+
+          it 'should set the links' do
+            @return.links.should == [ @model.relationships[:referrer] ]
+          end
+        end
+
+        describe 'with the String key mapping to a Query::Path' do
+          before :all do
+            @options[:conditions] = { 'referrer.name' => 'Dan Kubb' }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should == [ [ :eql, @model.referrer.name, 'Dan Kubb' ] ]
+          end
+
+          it 'should set the links' do
+            @return.links.should == [ @model.relationships[:referrer] ]
+          end
         end
       end
 

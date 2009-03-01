@@ -363,7 +363,7 @@ module DataMapper
           bind_values << tuple[2] if tuple.size == 3
         else
           operator, property, bind_value = tuple
-          conditions[Query::Operator.new(property, operator)] = bind_value
+          conditions[Operator.new(property, operator)] = bind_value
         end
       end
 
@@ -768,7 +768,7 @@ module DataMapper
     end
 
     ##
-    # Normalize links to DM::Query::Path
+    # Normalize links to Query::Path
     #
     #   TODO: needs example
     #
@@ -794,7 +794,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @param [Symbol, String, Property, Query::Path, Operator] subject
+    # @param [Symbol, String, Property, Path, Operator] subject
     #   the subject to match
     # @param [Object] bind_value
     #   the value to match on
@@ -822,7 +822,7 @@ module DataMapper
         when Operator
           return append_condition(subject.target, bind_value, subject.operator)
 
-        when Query::Path
+        when Path
           @links.concat(subject.relationships)
           subject
 
@@ -862,7 +862,7 @@ module DataMapper
       end
 
       case property_or_path
-        when Query::Path
+        when Path
           bind_value = normalize_bind_value(property_or_path.property, bind_value)
 
         when Property
