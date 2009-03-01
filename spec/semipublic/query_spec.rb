@@ -1579,7 +1579,17 @@ describe DataMapper::Query do
   it { @query.should respond_to(:unique?) }
 
   describe '#unique?' do
-    it 'should be awesome'
+    describe 'when the query is unique' do
+      before :all do
+        @query.update(:unique => true)
+      end
+
+      it { @query.should be_unique }
+    end
+
+    describe 'when the query is not unique' do
+      it { @query.should_not be_unique }
+    end
   end
 
   it { @query.should respond_to(:update) }
