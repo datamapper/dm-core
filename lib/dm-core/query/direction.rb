@@ -21,6 +21,10 @@ module DataMapper
         cmp?(other, :eql?)
       end
 
+      def hash
+        property.hash + direction.hash
+      end
+
       def reverse!
         @direction = @direction == :asc ? :desc : :asc
         self

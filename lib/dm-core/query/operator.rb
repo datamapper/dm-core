@@ -21,6 +21,10 @@ module DataMapper
         cmp?(other, :eql?)
       end
 
+      def hash
+        target.hash + operator.hash
+      end
+
       private
 
       def initialize(target, operator)

@@ -47,6 +47,10 @@ module DataMapper
         cmp?(other, :eql?)
       end
 
+      def hash
+        repository_name.hash + relationships.hash + model.hash + property.hash
+      end
+
       private
 
       def initialize(repository, relationships, model, property_name = nil)

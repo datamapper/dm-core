@@ -1669,7 +1669,52 @@ describe DataMapper::Query do
   it { @query.should respond_to(:to_hash) }
 
   describe '#to_hash' do
-    it 'should be awesome'
+    describe 'when no raw conditions' do
+      before :all do
+        @query.update(:name => 'Dan Kubb')
+
+        @return = @query.to_hash
+      end
+
+      it { @return.should be_kind_of(Hash) }
+
+      it 'should return expected value' do
+        @return.should == {
+          :fields                  => [ @model.properties[:name], @model.properties[:referrer_name] ],
+          :offset                  => 0,
+          :limit                   => 3,
+          :order                   => [ DataMapper::Query::Direction.new(@model.properties[:name]) ],
+          :unique                  => false,
+          :add_reversed            => false,
+          :reload                  => false,
+          DataMapper::Query::Operator.new(@model.properties[:name], :eql) => 'Dan Kubb',
+        }
+      end
+    end
+
+    describe 'when raw conditions' do
+      before :all do
+        @options.update(:conditions => [ 'name = ?', 'Dan Kubb' ])
+        @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+
+        @return = @query.to_hash
+      end
+
+      it { @return.should be_kind_of(Hash) }
+
+      it 'should return expected value' do
+        @return.should == {
+          :fields       => [ @model.properties[:name], @model.properties[:referrer_name] ],
+          :conditions   => [ '(name = ?)', [ 'Dan Kubb' ] ],
+          :offset       => 0,
+          :limit        => 3,
+          :order        => [ DataMapper::Query::Direction.new(@model.properties[:name]) ],
+          :unique       => false,
+          :add_reversed => false,
+          :reload       => false,
+        }
+      end
+    end
   end
 
   it { @query.should respond_to(:unique?) }

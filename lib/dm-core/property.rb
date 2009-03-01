@@ -369,22 +369,52 @@ module DataMapper
       unique?
     end
 
-    # Returns equality of properties. Properties are
-    # comparable only if their models are equal and
-    # both properties has the same name.
+    ##
+    # Compares another Property for equivalency
     #
-    # @param [Object] other
-    #   the object to compare self to
+    #   TODO: needs example
+    #
+    # @param [Property] other
+    #   the other Property to compare with
     #
     # @return [TrueClass, FalseClass]
-    #   Result of equality comparison.
+    #   true if they are equivalent, false if not
     #
-    # @api public
-    def eql?(other)
-      return true if equal?(other)
-      return false unless other.kind_of?(self.class)
+    # @api semipublic
+    def ==(other)
+      if equal?(other)
+        return true
+      end
 
-      model == other.model && name == other.name
+      unless other.respond_to?(:model) && other.respond_to?(:name)
+        return false
+      end
+
+      cmp?(other, :==)
+    end
+
+    ##
+    # Compares another Property for equality
+    #
+    #   TODO: needs example
+    #
+    # @param [Property] other
+    #   the other Property to compare with
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if they are equal, false if not
+    #
+    # @api semipublic
+    def eql?(other)
+      if equal?(other)
+        return true
+      end
+
+      unless other.kind_of?(self.class)
+        return false
+      end
+
+      cmp?(other, :eql?)
     end
 
     # Returns maximum property length (if applicable).
@@ -1022,6 +1052,30 @@ module DataMapper
     def extract_time_args_from_hash(hash, *args)
       now = Time.now
       args.map { |arg| hash[arg] || hash[arg.to_s] || now.send(arg) }
+    end
+
+    ##
+    # Return true if +other+'s is equivalent or equal to +self+'s
+    #
+    # @param [Property] other
+    #   The Property whose attributes are to be compared with +self+'s
+    # @param [Symbol] operator
+    #   The comparison operator to use to compare the attributes
+    #
+    # @return [TrueClass, FalseClass]
+    #   The result of the comparison of +other+'s attributes with +self+'s
+    #
+    # @api private
+    def cmp?(other, operator)
+      unless model.send(operator, other.model)
+        return false
+      end
+
+      unless name.send(operator, other.name)
+        return false
+      end
+
+      true
     end
   end # class Property
 end # module DataMapper
