@@ -965,7 +965,13 @@ describe DataMapper::Query do
   it { @query.should respond_to(:links) }
 
   describe '#links' do
-    it 'should be awesome'
+    before :all do
+      @return = @query.links
+    end
+
+    it { @return.should be_kind_of(Array) }
+
+    it { @return.should be_empty }
   end
 
   it { @query.should respond_to(:merge) }
