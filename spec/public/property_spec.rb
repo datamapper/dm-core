@@ -188,7 +188,18 @@ describe DataMapper::Property do
     end
 
     describe "#get!" do
-      it 'gets instance variable value from the resource directly'
+      before(:each) do
+        @image = Image.new
+
+        # now some dark Ruby magic
+        @image.instance_variable_set(:@description, "Is set by magic")
+      end
+
+      it 'gets instance variable value from the resource directly' do
+        # if you know a better way to test direct instance variable access,
+        # go ahead and make changes to this example
+        Image.properties[:description].get!(@image).should == "Is set by magic"
+      end
     end
 
     describe "#set_original_value" do
