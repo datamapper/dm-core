@@ -951,7 +951,15 @@ describe DataMapper::Query do
   it { @query.should respond_to(:limit) }
 
   describe '#limit' do
-    it 'should be awesome'
+    before :all do
+      @return = @query.limit
+    end
+
+    it { @return.should be_kind_of(Integer) }
+
+    it 'should return expected value' do
+      @return.should == 3
+    end
   end
 
   it { @query.should respond_to(:links) }
