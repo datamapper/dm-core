@@ -983,7 +983,15 @@ describe DataMapper::Query do
   it { @query.should respond_to(:model) }
 
   describe '#model' do
-    it 'should be awesome'
+    before :all do
+      @return = @query.model
+    end
+
+    it { @return.should be_kind_of(Class) }
+
+    it 'should return expected value' do
+      @return.should == @model
+    end
   end
 
   it { @query.should respond_to(:offset) }
