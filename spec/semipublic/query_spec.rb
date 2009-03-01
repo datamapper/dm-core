@@ -1115,27 +1115,187 @@ describe DataMapper::Query do
     end
   end
 
-  it { @query.should respond_to(:slice) }
+  [ :slice, :[] ].each do |method|
+    it { @query.should respond_to(method) }
 
-  describe '#slice' do
-    before :all do
-      @query = @query.update(:offset => 1, :limit => 2)
+    describe "##{method}" do
+      describe 'with a positive offset' do
+        before :all do
+          @query = @query.update(:offset => 1, :limit => 2)
 
-      @return = @query.slice(1, 1)
-    end
+          @return = @query.send(method, 1)
+        end
 
-    it { @return.should be_kind_of(DataMapper::Query) }
+        it { @return.should be_kind_of(DataMapper::Query) }
 
-    it 'should not return self' do
-      @return.should_not be_equal(@original)
-    end
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
 
-    it 'should update the offset to be relative to the original offset' do
-      @return.offset.should == 2
-    end
+        it 'should update the offset to be relative to the original offset' do
+          @return.offset.should == 2
+        end
 
-    it 'should update the limit' do
-      @return.limit.should == 1
+        it 'should update the limit to 1' do
+          @return.limit.should == 1
+        end
+      end
+
+      describe 'with a positive offset and length' do
+        before :all do
+          @query = @query.update(:offset => 1, :limit => 2)
+
+          @return = @query.send(method, 1, 1)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should update the offset to be relative to the original offset' do
+          @return.offset.should == 2
+        end
+
+        it 'should update the limit' do
+          @return.limit.should == 1
+        end
+      end
+
+      describe 'with a positive range' do
+        before :all do
+          @query = @query.update(:offset => 1, :limit => 3)
+
+          @return = @query.send(method, 1..2)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should update the offset to be relative to the original offset' do
+          @return.offset.should == 2
+        end
+
+        it 'should update the limit' do
+          @return.limit.should == 2
+        end
+      end
+
+      describe 'with a negative offset' do
+        before :all do
+          @query = @query.update(:offset => 1, :limit => 2)
+
+          @return = @query.send(method, -1)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should update the offset to be relative to the original offset' do
+          pending "TODO: update Query##{method} handle negative offset" do
+            @return.offset.should == 2
+          end
+        end
+
+        it 'should update the limit to 1' do
+          @return.limit.should == 1
+        end
+      end
+
+      describe 'with a negative offset and length' do
+        before :all do
+          @query = @query.update(:offset => 1, :limit => 2)
+
+          @return = @query.send(method, -1, 1)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should update the offset to be relative to the original offset' do
+          pending "TODO: update Query##{method} handle negative offset and length" do
+            @return.offset.should == 2
+          end
+        end
+
+        it 'should update the limit to 1' do
+          @return.limit.should == 1
+        end
+      end
+
+      describe 'with a negative range' do
+        before :all do
+          @query = @query.update(:offset => 1, :limit => 3)
+
+          rescue_if "TODO: update Query##{method} handle negative range" do
+            @return = @query.send(method, -2..-1)
+          end
+        end
+
+        before do
+          pending_if "TODO: update Query##{method} handle negative range", @return.nil?
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should not return self' do
+          @return.should_not be_equal(@original)
+        end
+
+        it 'should update the offset to be relative to the original offset' do
+          @return.offset.should == 2
+        end
+
+        it 'should update the limit to 1' do
+          @return.limit.should == 2
+        end
+      end
+
+      describe 'with an offset not within range' do
+        before :all do
+          @query = @query.update(:offset => 1, :limit => 3)
+        end
+
+        it 'should raise an exception' do
+          lambda {
+            @query.send(method, 12)
+          }.should raise_error(RangeError, 'offset 12 and limit 1 are outside allowed range')
+        end
+      end
+
+      describe 'with an offset and length not within range' do
+        before :all do
+          @query = @query.update(:offset => 1, :limit => 3)
+        end
+
+        it 'should raise an exception' do
+          lambda {
+            @query.send(method, 12, 1)
+          }.should raise_error(RangeError, 'offset 12 and limit 1 are outside allowed range')
+        end
+      end
+
+      describe 'with a range not within range' do
+        before :all do
+          @query = @query.update(:offset => 1, :limit => 3)
+        end
+
+        it 'should raise an exception' do
+          lambda {
+            @query.send(method, 12..12)
+          }.should raise_error(RangeError, 'offset 12 and limit 1 are outside allowed range')
+        end
+      end
     end
   end
 

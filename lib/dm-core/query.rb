@@ -322,6 +322,8 @@ module DataMapper
       dup.slice!(*args)
     end
 
+    alias [] slice
+
     # TODO: document this
     #   TODO: needs example
     # @api semipublic

@@ -1,6 +1,6 @@
 module DataMapper::Spec
   module PendingHelpers
-    def pending_if(message, boolean)
+    def pending_if(message, boolean = true)
       if boolean
         pending(message) { yield }
       else
@@ -8,7 +8,7 @@ module DataMapper::Spec
       end
     end
 
-    def rescue_if(message, boolean)
+    def rescue_if(message, boolean = true)
       if boolean
         raised = nil
         begin
