@@ -640,7 +640,7 @@ module DataMapper
                 assert_valid_conditions(subject.target => bind_value)
 
                 if subject.operator == :not && bind_value.kind_of?(Array) && bind_value.empty?
-                  raise ArgumentError, "Cannot use 'not' operator with a bind value that is an empty Array for #{property}"
+                  raise ArgumentError, "Cannot use 'not' operator with a bind value that is an empty Array for #{subject.inspect}"
                 end
 
               when Path
@@ -659,8 +659,8 @@ module DataMapper
           end
 
         when Array
-          unless conditions.first.kind_of?(String) && conditions.first.length > 0
-            raise ArgumentError, '+options[:conditions]+ should have a String SQL statement for the first option'
+          unless conditions.first.kind_of?(String) && !conditions.first.blank?
+            raise ArgumentError, '+options[:conditions]+ should have a statement for the first entry'
           end
       end
     end

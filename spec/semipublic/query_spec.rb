@@ -447,6 +447,55 @@ describe DataMapper::Query do
           }.should raise_error(ArgumentError, '+options[:conditions]+ should not be empty')
         end
       end
+
+      describe 'that is an Array with a blank statement' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:conditions => [ ' ' ]))
+          }.should raise_error(ArgumentError, '+options[:conditions]+ should have a statement for the first entry')
+        end
+      end
+
+      describe 'that is a Hash with a Symbol key that is not for a Property in the model' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { :unknown => 1 }))
+          }.should raise_error(ArgumentError, 'condition :unknown does not map to a property')
+        end
+      end
+
+      describe 'that is a Hash with a String key that is not for a Property in the model' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { 'unknown' => 1 }))
+          }.should raise_error(ArgumentError, 'condition "unknown" does not map to a property')
+        end
+      end
+
+      describe 'that is a Hash with a Query::Operator key that is not for a Property in the model' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { :unknown.asc => 1 }))
+          }.should raise_error(ArgumentError, 'condition #<DataMapper::Query::Operator @target=:unknown @operator=:asc> used an invalid operator asc')
+        end
+      end
+
+      describe 'that is a Hash with a not operator that has an empty Array' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { :name.not => [] }))
+          }.should raise_error(ArgumentError, 'Cannot use \'not\' operator with a bind value that is an empty Array for #<DataMapper::Query::Operator @target=:name @operator=:not>')
+        end
+      end
+
+      describe 'that is a Hash with a key of a type that is not permitted' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { 1 => 1 }))
+          }.should raise_error(ArgumentError, 'condition 1 of an unsupported object Fixnum')
+        end
+      end
+
     end
 
     describe 'with an offset option' do
