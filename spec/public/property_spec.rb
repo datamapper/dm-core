@@ -22,6 +22,9 @@ describe DataMapper::Property do
       property :description,  Text,   :length => 1..1024, :lazy => true
 
       property :format,       String, :default => "jpeg"
+      # WxH, stored as a dumped Ruby pair
+      property :size,         Object
+      property :filesize,     Float
     end
   end
 
@@ -292,6 +295,8 @@ describe DataMapper::Property do
       it 'triggers load for a group of lazy loaded properties'
     end
 
+
+
     describe "#typecast" do
       describe "when type is able to do typecasting on it's own" do
         it 'delegates all the work to the type'
@@ -302,7 +307,9 @@ describe DataMapper::Property do
       end
 
       describe "when value is a Ruby primitive" do
-        it 'returns value unchanged'
+        it 'returns value unchanged' do
+          p Image.properties[:size].typecast([3200, 2400]).should == [3200, 2400]
+        end
       end
 
       describe "when type primitive is a string" do
