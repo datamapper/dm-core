@@ -214,6 +214,7 @@ module DataMapper
           assert_valid_other(other)
 
           @options.merge(other.options)
+
         when Hash
           if other.empty?
             return self
@@ -492,6 +493,7 @@ module DataMapper
         case conditions
           when Hash
             conditions.each { |kv| append_condition(*kv) }
+
           when Array
             statement, *bind_values = *conditions
             @conditions << [ :raw, statement, bind_values ]
@@ -554,6 +556,11 @@ module DataMapper
 
       fields.each do |field|
         case field
+          when Symbol, String
+            unless @properties.named?(field)
+              raise ArgumentError, "+options[:fields]+ entry #{field.inspect} does not map to a property"
+            end
+
           when Property
             unless @properties.include?(field)
               raise ArgumentError, "+options[:field]+ entry #{field.name.inspect} does not map to a property"
@@ -566,11 +573,6 @@ module DataMapper
           #  unless target.kind_of?(Property) && @properties.include?(target)
           #    raise ArgumentError, "+options[:fields]+ entry #{target.inspect} does not map to a property"
           #  end
-
-          when Symbol, String
-            unless @properties.named?(field)
-              raise ArgumentError, "+options[:fields]+ entry #{field.inspect} does not map to a property"
-            end
 
           else
             raise ArgumentError, "+options[:fields]+ entry #{field.inspect} of an unsupported object #{field.class}"
@@ -589,16 +591,16 @@ module DataMapper
 
       links.each do |link|
         case link
+          when Symbol, String
+            unless @relationships.key?(link.to_sym)
+              raise ArgumentError, "+options[:links]+ entry #{link.inspect} does not map to a relationship"
+            end
+
           when Associations::Relationship
             # TODO: figure out how to validate links from other models
             #unless @relationships.value?(link)
             #  raise ArgumentError, "+options[:links]+ entry #{link.name.inspect} does not map to a relationship"
             #end
-
-          when Symbol, String
-            unless @relationships.key?(link.to_sym)
-              raise ArgumentError, "+options[:links]+ entry #{link.inspect} does not map to a relationship"
-            end
 
           else
             raise ArgumentError, "+options[:links]+ entry #{link.inspect} of an unsupported object #{link.class}"
@@ -651,16 +653,6 @@ module DataMapper
 
       order.each do |order|
         case order
-          when Direction
-            unless @properties.include?(order.property)
-              raise ArgumentError, "+options[:order]+ entry #{order.property.name.inspect} does not map to a property"
-            end
-
-          when Property
-            unless @properties.include?(order)
-              raise ArgumentError, "+options[:order]+ entry #{order.name.inspect} does not map to a property"
-            end
-
           when Operator
             unless order.operator == :asc || order.operator == :desc
               raise ArgumentError, "+options[:order]+ entry #{order.inspect} used an invalid operator #{order.operator}"
@@ -671,6 +663,16 @@ module DataMapper
           when Symbol, String
             unless @properties.named?(order)
               raise ArgumentError, "+options[:order]+ entry #{order.inspect} does not map to a property"
+            end
+
+          when Property
+            unless @properties.include?(order)
+              raise ArgumentError, "+options[:order]+ entry #{order.name.inspect} does not map to a property"
+            end
+
+          when Direction
+            unless @properties.include?(order.property)
+              raise ArgumentError, "+options[:order]+ entry #{order.property.name.inspect} does not map to a property"
             end
 
           else
@@ -710,12 +712,6 @@ module DataMapper
       # should probably be normalized to a Direction object
       @order = @order.map do |order|
         case order
-          when Direction
-            order
-
-          when Property
-            Direction.new(order)
-
           when Operator
             target   = order.target
             property = target.kind_of?(Property) ? target : @properties[target]
@@ -725,6 +721,11 @@ module DataMapper
           when Symbol, String
             Direction.new(@properties[order])
 
+          when Property
+            Direction.new(order)
+
+          when Direction
+            order
         end
       end
     end
@@ -738,15 +739,15 @@ module DataMapper
     def normalize_fields
       @fields = @fields.map do |field|
         case field
+          when Symbol, String
+            @properties[field]
+
           when Property
             field
 
           # TODO: mix-in Operator normalization for fields in dm-aggregates
           #when Operator
           #  field
-
-          when Symbol, String
-            @properties[field]
         end
       end
 
@@ -763,11 +764,8 @@ module DataMapper
     def normalize_links
       @links.map! do |link|
         case link
-          when Associations::Relationship
-            link
-
-          when Symbol, String
-            @relationships[link]
+          when Symbol, String             then @relationships[link]
+          when Associations::Relationship then link
         end
       end
 
@@ -791,9 +789,6 @@ module DataMapper
     # @api private
     def append_condition(subject, bind_value, operator = :eql)
       property = case subject
-        when Property
-          subject
-
         when Symbol
           @properties[subject]
 
@@ -811,6 +806,9 @@ module DataMapper
 
         when Path
           @links.concat(subject.relationships)
+          subject
+
+        when Property
           subject
 
         else
@@ -849,13 +847,13 @@ module DataMapper
       end
 
       case property_or_path
-        when Path
-          bind_value = normalize_bind_value(property_or_path.property, bind_value)
-
         when Property
           if property_or_path.custom?
             bind_value = property_or_path.type.dump(bind_value, property_or_path)
           end
+
+        when Path
+          bind_value = normalize_bind_value(property_or_path.property, bind_value)
       end
 
       bind_value.kind_of?(Array) && bind_value.size == 1 ? bind_value.first : bind_value
