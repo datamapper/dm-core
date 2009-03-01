@@ -9,10 +9,16 @@ require 'ostruct'
 # class methods
 describe DataMapper::Query do
   before :all do
+    class ::Password < DataMapper::Type
+      primitive String
+      length    40
+    end
+
     class ::User
       include DataMapper::Resource
 
-      property :name, String, :key => true
+      property :name,     String,   :key => true
+      property :password, Password
 
       belongs_to :referrer, :model => self
     end
@@ -370,6 +376,32 @@ describe DataMapper::Query do
 
           it 'should set the links' do
             @return.links.should == [ @model.relationships[:referrer] ]
+          end
+        end
+
+        describe 'with a Proc value' do
+          before :all do
+            @options[:conditions] = { :name => lambda { 'Dan Kubb' } }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should == [ [ :eql, @model.properties[:name], 'Dan Kubb' ] ]
+          end
+        end
+
+        describe 'with a custom Property' do
+          before :all do
+            @options[:conditions] = { :password => 'password' }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should == [ [ :eql, @model.properties[:password], 'password' ] ]
           end
         end
       end
