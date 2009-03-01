@@ -303,7 +303,9 @@ describe DataMapper::Property do
       end
 
       describe "when value is nil" do
-        it 'returns value unchanged'
+        it 'returns value unchanged' do
+          Image.properties[:size].typecast(nil).should be(nil)
+        end
       end
 
       describe "when value is a Ruby primitive" do
