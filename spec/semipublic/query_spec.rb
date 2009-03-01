@@ -1182,7 +1182,17 @@ describe DataMapper::Query do
   it { @query.should respond_to(:reload?) }
 
   describe '#reload?' do
-    it 'should be awesome'
+    describe 'when the query should reload' do
+      before :all do
+        @query.update(:reload => true)
+      end
+
+      it { @query.should be_reload }
+    end
+
+    describe 'when the query should not reload' do
+      it { @query.should_not be_reload }
+    end
   end
 
   it { @query.should respond_to(:repository) }
