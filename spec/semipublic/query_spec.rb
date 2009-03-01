@@ -1296,6 +1296,14 @@ describe DataMapper::Query do
           }.should raise_error(RangeError, 'offset 12 and limit 1 are outside allowed range')
         end
       end
+
+      describe 'with invalid arguments' do
+        it 'should raise an exception' do
+          lambda {
+            @query.send(method, 'invalid')
+          }.should raise_error(ArgumentError, 'arguments may be 1 or 2 Integers, or 1 Range object, was: ["invalid"]')
+        end
+      end
     end
   end
 
@@ -1477,6 +1485,14 @@ describe DataMapper::Query do
         lambda {
           @query.slice!(12..12)
         }.should raise_error(RangeError, 'offset 12 and limit 1 are outside allowed range')
+      end
+    end
+
+    describe 'with invalid arguments' do
+      it 'should raise an exception' do
+        lambda {
+          @query.slice!('invalid')
+        }.should raise_error(ArgumentError, 'arguments may be 1 or 2 Integers, or 1 Range object, was: ["invalid"]')
       end
     end
   end
