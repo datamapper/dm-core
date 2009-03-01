@@ -666,20 +666,7 @@ module DataMapper
               raise ArgumentError, "+options[:order]+ entry #{order.inspect} used an invalid operator #{order.operator}"
             end
 
-            case target = order.target
-              when Property
-                unless @properties.include?(target)
-                  raise ArgumentError, "+options[:order]+ entry #{target.inspect} does not map to a property"
-                end
-
-              when Symbol, String
-                unless @properties.named?(target)
-                  raise ArgumentError, "+options[:order]+ entry #{target.inspect} does not map to a property"
-                end
-
-              else
-                raise ArgumentError, "+options[:order]+ entry #{order.inspect} does not contain a Property, Symbol or String, but was #{target.class}"
-            end
+            assert_valid_order([ order.target ], fields)
 
           when Symbol, String
             unless @properties.named?(order)

@@ -639,6 +639,63 @@ describe DataMapper::Query do
           }.should raise_error(ArgumentError, '+options[:order]+ entry 1 of an unsupported object Fixnum')
         end
       end
+
+      describe 'that contains a Query::Direction with a property that is not part of the model' do
+        before :all do
+          @property = DataMapper::Property.new(@model, :unknown, String)
+          @direction = DataMapper::Query::Direction.new(@property, :desc)
+        end
+
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:order => [ @direction ]))
+          }.should raise_error(ArgumentError, '+options[:order]+ entry :unknown does not map to a property')
+        end
+      end
+
+      describe 'that contains a Query::Operator with a target that is not part of the model' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:order => [ :unknown.desc ]))
+          }.should raise_error(ArgumentError, '+options[:order]+ entry :unknown does not map to a property')
+        end
+      end
+
+      describe 'that contains a Query::Operator with an unknown operator' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:order => [ :name.gt ]))
+          }.should raise_error(ArgumentError, '+options[:order]+ entry #<DataMapper::Query::Operator @target=:name @operator=:gt> used an invalid operator gt')
+        end
+      end
+
+      describe 'that contains a Property that is not part of the model' do
+        before :all do
+          @property = DataMapper::Property.new(@model, :unknown, String)
+        end
+
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:order => [ @property ]))
+          }.should raise_error(ArgumentError, '+options[:order]+ entry :unknown does not map to a property')
+        end
+      end
+
+      describe 'that contains a Symbol that is not for a Property in the model' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:order => [ :unknown ]))
+          }.should raise_error(ArgumentError, '+options[:order]+ entry :unknown does not map to a property')
+        end
+      end
+
+      describe 'that contains a String that is not for a Property in the model' do
+        it 'should raise an exception' do
+          lambda {
+            DataMapper::Query.new(@repository, @model, @options.update(:order => [ 'unknown' ]))
+          }.should raise_error(ArgumentError, '+options[:order]+ entry "unknown" does not map to a property')
+        end
+      end
     end
 
     describe 'with a unique option' do
