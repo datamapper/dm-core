@@ -931,7 +931,15 @@ describe DataMapper::Query do
   it { @query.should respond_to(:fields) }
 
   describe '#fields' do
-    it 'should be awesome'
+    before :all do
+      @return = @query.fields
+    end
+
+    it { @return.should be_kind_of(Array) }
+
+    it 'should return expected value' do
+      @return.should == [ @model.properties[:name], @model.properties[:referrer_name] ]
+    end
   end
 
   it { @query.should respond_to(:inspect) }
