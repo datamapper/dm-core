@@ -6,7 +6,8 @@ module DataMapper
   class Query
     include Extlib::Assertions
 
-    OPTIONS = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze
+    OPTIONS   = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze
+    OPERATORS = [ :eql, :in, :not, :like, :gt, :gte, :lt, :lte ].to_set.freeze
 
     ##
     # Returns the repository
@@ -531,8 +532,6 @@ module DataMapper
       assert_kind_of 'options', options, Hash
 
       options.each do |attribute, value|
-        next unless OPTIONS.include?(attribute)
-
         case attribute
           when :fields                         then assert_valid_fields(value, options[:unique])
           when :links                          then assert_valid_links(value)
@@ -541,6 +540,8 @@ module DataMapper
           when :limit                          then assert_valid_limit(value)
           when :order                          then assert_valid_order(value, options[:fields])
           when :unique, :add_reversed, :reload then assert_valid_boolean("options[:#{attribute}]", value)
+          else
+            assert_valid_conditions(attribute => value)
         end
       end
     end
@@ -615,6 +616,52 @@ module DataMapper
 
       if conditions.empty?
         raise ArgumentError, '+options[:conditions]+ should not be empty'
+      end
+
+      case conditions
+        when Hash
+          conditions.each do |subject, bind_value|
+            case subject
+              when Symbol
+                unless @properties.named?(subject)
+                  raise ArgumentError, "condition #{subject.inspect} does not map to a property"
+                end
+
+              when String
+                unless subject.include?('.') || @properties.named?(subject)
+                  raise ArgumentError, "condition #{subject.inspect} does not map to a property"
+                end
+
+              when Operator
+                unless OPERATORS.include?(subject.operator)
+                  raise ArgumentError, "condition #{subject.inspect} used an invalid operator #{subject.operator}"
+                end
+
+                assert_valid_conditions(subject.target => bind_value)
+
+                if subject.operator == :not && bind_value.kind_of?(Array) && bind_value.empty?
+                  raise ArgumentError, "Cannot use 'not' operator with a bind value that is an empty Array for #{property}"
+                end
+
+              when Path
+                assert_valid_links(subject.relationships)
+
+              when Property
+                # TODO: validate that it belongs to the current model, or to any
+                # model in the links
+                #unless @properties.include?(subject)
+                #  raise ArgumentError, "condition #{subject.name.inspect} does not map to a property"
+                #end
+
+              else
+                raise ArgumentError, "condition #{subject.inspect} of an unsupported object #{subject.class}"
+            end
+          end
+
+        when Array
+          unless conditions.first.kind_of?(String) && conditions.first.length > 0
+            raise ArgumentError, '+options[:conditions]+ should have a String SQL statement for the first option'
+          end
       end
     end
 
@@ -788,7 +835,7 @@ module DataMapper
     #
     # @api private
     def append_condition(subject, bind_value, operator = :eql)
-      property = case subject
+      subject = case subject
         when Symbol
           @properties[subject]
 
@@ -810,25 +857,9 @@ module DataMapper
 
         when Property
           subject
-
-        else
-          # TODO: move into assert_valid_conditions
-          raise ArgumentError, "Condition type #{subject.inspect} not supported"
       end
 
-      # TODO: move into assert_valid_conditions
-      if property.nil?
-        raise ArgumentError, "Clause #{subject.inspect} does not map to a DataMapper::Property or DataMapper::Associations::Relationship"
-      end
-
-      bind_value = normalize_bind_value(property, bind_value)
-
-      # TODO: move into assert_valid_conditions
-      if operator == :not && bind_value.kind_of?(Array) && bind_value.empty?
-        raise ArgumentError, "Cannot use 'not' operator with a bind value that is an empty Array for #{property}"
-      end
-
-      @conditions << [ operator, property, bind_value ]
+      @conditions << [ operator, subject, normalize_bind_value(subject, bind_value) ]
     end
 
     # TODO: make this typecast all bind values that do not match the

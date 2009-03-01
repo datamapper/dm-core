@@ -11,11 +11,11 @@ module DataMapper
       attr_reader :model
       attr_reader :property
 
-      %w[ gt gte lt lte not eql like in ].each do |sym|
+      Query::OPERATORS.each do |sym|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def #{sym}
             #{"warn \"explicit use of '#{sym}' operator is deprecated\"" if sym == :eql || sym == :in}
-            Operator.new(self, :#{sym})
+            Operator.new(self, #{sym.inspect})
           end
         RUBY
       end
