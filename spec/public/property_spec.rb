@@ -306,9 +306,9 @@ describe DataMapper::Property do
       end
 
       describe "when type primitive is a string" do
-        it 'runs #to_s on the value'
-
-        it 'returns a string'
+        it 'returns string representation of the new value' do
+          Image.properties[:title].typecast(1.0).should == "1.0"
+        end
       end
 
       describe "when type primitive is a float" do
