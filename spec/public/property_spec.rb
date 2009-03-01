@@ -27,7 +27,7 @@ describe DataMapper::Property do
       property :filesize,     Float
 
       property :taken_on,     Date
-      property :taken_at,     Time
+      property :taken_at,     Time, :default => lambda { Time.now }
       property :retouched_at, DateTime
     end
   end
@@ -446,7 +446,9 @@ describe DataMapper::Property do
         Image.properties[:format].default_for(Image.new).should == "jpeg"
       end
 
-      it 'returns result of a call for callable values'
+      it 'returns result of a call for callable values' do
+        Image.properties[:taken_at].default_for(Image.new).year.should == Time.now.year
+      end
     end
 
     describe "value" do
