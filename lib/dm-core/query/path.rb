@@ -51,6 +51,17 @@ module DataMapper
         repository_name.hash + relationships.hash + model.hash + property.hash
       end
 
+      def inspect
+        attrs = [
+          [ :repository_name, repository_name ],
+          [ :relationships,   relationships   ],
+          [ :model,           model           ],
+          [ :property,        property        ],
+        ]
+
+        "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" } * ' '}>"
+      end
+
       private
 
       def initialize(repository, relationships, model, property_name = nil)

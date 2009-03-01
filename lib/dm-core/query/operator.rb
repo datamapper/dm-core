@@ -25,6 +25,10 @@ module DataMapper
         target.hash + operator.hash
       end
 
+      def inspect
+        "#<#{self.class.name} @target=#{target.inspect} @operator=#{operator.inspect}>"
+      end
+
       private
 
       def initialize(target, operator)

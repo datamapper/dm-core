@@ -6,6 +6,11 @@ module DataMapper
       attr_reader :property
       attr_reader :direction
 
+      def reverse!
+        @direction = @direction == :asc ? :desc : :asc
+        self
+      end
+
       def ==(other)
         return true if equal?(other)
         return false unless other.respond_to?(:property) &&
@@ -25,9 +30,8 @@ module DataMapper
         property.hash + direction.hash
       end
 
-      def reverse!
-        @direction = @direction == :asc ? :desc : :asc
-        self
+      def inspect
+        "#<#{self.class.name} @property=#{property.inspect} @direction=#{direction.inspect}>"
       end
 
       private

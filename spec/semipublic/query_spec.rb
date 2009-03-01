@@ -987,7 +987,25 @@ describe DataMapper::Query do
   it { @query.should respond_to(:inspect) }
 
   describe '#inspect' do
-    it 'should be awesome'
+    before :all do
+      @return = @query.inspect
+    end
+
+    it 'should return expected value' do
+      @return.should == <<-INSPECT.compress_lines
+        #<DataMapper::Query
+          @repository=:default
+          @model=User
+          @fields=[#<DataMapper::Property @model=User @name=:name>, #<DataMapper::Property @model=User @name=:referrer_name>]
+          @links=[]
+          @conditions=[]
+          @order=[#<DataMapper::Query::Direction @property=#<DataMapper::Property @model=User @name=:name> @direction=:asc>]
+          @limit=3
+          @offset=0
+          @reload=false
+          @unique=false>
+      INSPECT
+    end
   end
 
   it { @query.should respond_to(:limit) }
