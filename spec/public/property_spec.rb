@@ -177,7 +177,9 @@ describe DataMapper::Property do
 
       it 'sets default value for new records with nil value'
 
-      it 'returns property value'
+      it 'returns property value' do
+        Image.properties[:description].get(@image).should == "Just wow"
+      end
     end
 
     describe "#get!" do
