@@ -251,7 +251,12 @@ describe DataMapper::Property do
 
       it 'triggers lazy loading for given resource'
 
-      it 'type casts given value'
+      it 'type casts given value' do
+        # set it to a float
+        @property.set(@image, 1.0)
+        # get a string that has been typecasted
+        @image.title.should == "1.0"
+      end
 
       it 'stores original value' do
         @property.set(@image, "Updated value")
