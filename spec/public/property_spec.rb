@@ -270,7 +270,18 @@ describe DataMapper::Property do
     end
 
     describe "#set!" do
-      it 'directly sets instance variable on given resource'
+      before(:each) do
+        @image = Image.new(:md5hash      => "5268f0f3f452844c79843e820f998869",
+                            :title       => "Rome at the sunset",
+                           :description => "Just wow")
+
+        @property = Image.properties[:title]
+      end
+
+      it 'directly sets instance variable on given resource' do
+        @property.set!(@image, "Set with dark Ruby magic")
+        @image.title.should == "Set with dark Ruby magic"
+      end
     end
 
     describe "#lazy_load" do
