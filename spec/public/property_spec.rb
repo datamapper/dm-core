@@ -338,7 +338,7 @@ describe DataMapper::Property do
         describe "but value has non-digits and punctuation in it" do
           it "returns result of property type's casting of nil" do
             # nil.to_f => 0.0
-            Image.properties[:filesize].typecast("datamapper").should be(0.0)
+            Image.properties[:filesize].typecast("datamapper").should == 0.0
           end
         end
       end
