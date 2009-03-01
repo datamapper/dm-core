@@ -25,6 +25,10 @@ describe DataMapper::Property do
       # WxH, stored as a dumped Ruby pair
       property :size,         Object
       property :filesize,     Float
+
+      property :taken_on,     Date
+      property :taken_at,     Time
+      property :retouched_at, DateTime
     end
   end
 
@@ -353,31 +357,81 @@ describe DataMapper::Property do
 
       describe "when type primitive is a DateTime" do
         describe "and value given as a hash with keys like :year, :month, etc" do
-          it 'builds a DateTime instance from hash values'
+          it 'builds a DateTime instance from hash values' do
+            result = Image.properties[:retouched_at].typecast({
+                                                                :year  => 2006,
+                                                                :month => 11,
+                                                                :day   => 23,
+                                                                :hour  => 12,
+                                                                :min   => 0,
+                                                                :sec   => 0
+                                                              })
+            result.year.should == 2006
+            result.month.should == 11
+            result.day.should == 23
+            result.hour.should == 12
+            result.min.should == 0
+            result.sec.should == 0
+          end
         end
 
         describe "and value is a string" do
-          it 'parses the string'
+          it 'parses the string' do
+            Image.properties[:retouched_at].typecast("Dec, 2006").month.should == 12
+          end
         end
       end
 
       describe "when type primitive is a Date" do
         describe "and value given as a hash with keys like :year, :month, etc" do
-          it 'builds a Date instance from hash values'
+          it 'builds a Date instance from hash values' do
+            result = Image.properties[:taken_on].typecast({
+                                                            :year  => 2007,
+                                                            :month => 03,
+                                                            :day   => 25
+                                                          })
+            result.year.should == 2007
+            result.month.should == 03
+            result.day.should == 25
+          end
         end
 
         describe "and value is a string" do
-          it 'parses the string'
+          it 'parses the string' do
+            result = Image.properties[:taken_on].typecast("Dec 20th, 2006")
+            result.month.should == 12
+            result.day.should == 20
+            result.year.should == 2006
+          end
         end
       end
 
       describe "when type primitive is a Time" do
         describe "and value given as a hash with keys like :year, :month, etc" do
-          it 'builds a Time instance from hash values'
+          it 'builds a Time instance from hash values' do
+            result = Image.properties[:retouched_at].typecast({
+                                                                :year  => 2006,
+                                                                :month => 11,
+                                                                :day   => 23,
+                                                                :hour  => 12,
+                                                                :min   => 0,
+                                                                :sec   => 0
+                                                              })
+            result.year.should == 2006
+            result.month.should == 11
+            result.day.should == 23
+            result.hour.should == 12
+            result.min.should == 0
+            result.sec.should == 0
+          end
         end
 
         describe "and value is a string" do
-          it 'parses the string'
+          it 'parses the string' do
+            result = Image.properties[:taken_at].typecast("22:24")
+            result.hour.should == 22
+            result.min.should == 24
+          end
         end
       end
 
