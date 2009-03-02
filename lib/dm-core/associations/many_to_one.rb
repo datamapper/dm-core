@@ -1,8 +1,12 @@
 module DataMapper
   module Associations
     module ManyToOne
+      # Relationship class with implementation specific
+      # to n side of 1 to n association
       class Relationship < Associations::Relationship
-        # TODO: document
+        # Creates and returns Query instance that fetches
+        # parent resource (ex.: author) for given child resource (ex.: article)
+        #
         # @api semipublic
         def query_for(child)
           # TODO: do not build the query with child_key/parent_key.. use
@@ -22,7 +26,8 @@ module DataMapper
           Query.new(DataMapper.repository(parent_repository_name), parent_model, options)
         end
 
-        # TODO: document
+        # Loads and returns association parent (ex.: author) for given child resource
+        # (ex.: article)
         # @api semipublic
         def get(child, query = nil)
           return unless loaded?(child) || lazy_load(child)
@@ -45,7 +50,9 @@ module DataMapper
           end
         end
 
-        # TODO: document
+        # Sets value of association parent (ex.: author) for given child resource
+        # (ex.: article)
+        #
         # @api semipublic
         def set(child, parent)
           child_key.set(child, parent_key.get(parent))
@@ -54,7 +61,7 @@ module DataMapper
 
         private
 
-        # TODO: document
+        # Initializes the relationship, always using max cardinality of 1.
         # @api semipublic
         def initialize(name, child_model, parent_model, options = {})
           parent_model ||= Extlib::Inflection.camelize(name).freeze
@@ -62,7 +69,9 @@ module DataMapper
           super
         end
 
-        # TODO: document
+        # Dynamically defines reader method for parent association
+        # (for instance, method article for model Paragraph)
+        #
         # @api semipublic
         def create_accessor
           return if child_model.instance_methods(false).map { |m| m.to_sym }.include?(name)
@@ -80,7 +89,9 @@ module DataMapper
           RUBY
         end
 
-        # TODO: document
+        # Dynamically defines writer method for parent association
+        # (for instance, method article= for model Paragraph)
+        #
         # @api semipublic
         def create_mutator
           return if child_model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
@@ -93,7 +104,9 @@ module DataMapper
           RUBY
         end
 
-        # TODO: document
+        # Loads association parent and sets resulting value on
+        # given child resource
+        #
         # @api private
         def lazy_load(child)
 
@@ -116,7 +129,8 @@ module DataMapper
           set!(child, parent)
         end
 
-        # TODO: document
+        # Prefix used to build name of default child key
+        #
         # @api private
         def property_prefix
           name
