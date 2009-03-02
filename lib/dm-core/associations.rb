@@ -213,7 +213,10 @@ module DataMapper
       end
     end
 
-    # TODO: document
+    # Validates options of association method like belongs_to or has:
+    # verifies types of cardinality bounds, repository, association class,
+    # keys and possible values of :through option.
+    #
     # @api private
     def assert_valid_options(options)
       # TODO: update to match Query#assert_valid_options
