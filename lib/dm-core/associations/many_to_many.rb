@@ -2,7 +2,9 @@ module DataMapper
   module Associations
     module ManyToMany
       class Relationship < Associations::OneToMany::Relationship
-        # TODO: document
+        # Returns collection class used by this type of
+        # relationship
+        #
         # @api semipublic
         def self.collection_class
           ManyToMany::Collection
