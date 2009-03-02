@@ -6,13 +6,17 @@ module DataMapper
     module OneToOne
       class Relationship < Associations::OneToMany::Relationship
 
-        # TODO: document
+        # Loads (if necessary) and returns association child
+        # for given parent
+        #
         # @api semipublic
         def get(parent, query = nil)
           super.first
         end
 
-        # TODO: document
+        # Sets and returns association child
+        # for given parent
+        # 
         # @api semipublic
         def set(parent, child)
           super(parent, [ child ].compact)
@@ -21,7 +25,10 @@ module DataMapper
 
         private
 
-        # TODO: document
+        # Initializes the relationship. Always assumes child model class is
+        # a camel cased association name.
+        # TODO: ensure that it makes sense to make it configurable
+        #
         # @api semipublic
         def initialize(name, child_model, parent_model, options = {})
           child_model ||= Extlib::Inflection.camelize(name).freeze
