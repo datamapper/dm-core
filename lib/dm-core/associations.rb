@@ -18,7 +18,9 @@ module DataMapper
     end
 
     chainable do
-      # TODO: document
+      # When DataMapper model is inherited, relationships
+      # of parent are duplicated and copied to subclass model
+      #
       # @api private
       def inherited(target)
         # TODO: Create a RelationshipSet class, and then add a method that allows copying the relationships to the supplied repository and model
