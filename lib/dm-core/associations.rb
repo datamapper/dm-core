@@ -96,6 +96,8 @@ module DataMapper
       end
     end
 
+    # Used to express unlimited cardinality of association,
+    # see +has+
     def n
       1.0/0
     end
