@@ -3,6 +3,13 @@ module DataMapper
     include Extlib::Assertions
     extend Chainable
 
+    # Raised on attempt to operate on collection of child objects
+    # when parent object is not yet saved.
+    # For instance, if your article object is not saved,
+    # but you try to fetch or scope down comments (1:n case), or
+    # publications (n:m case), operation cannot be completed
+    # because parent object's keys are not yet persisted,
+    # and thus there is no FK value to use in the query.
     class UnsavedParentError < RuntimeError; end
 
     # Initializes relationships hash for extended model
