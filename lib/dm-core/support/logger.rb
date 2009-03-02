@@ -93,7 +93,7 @@ module DataMapper
     end
 
     def initialize_log(log)
-      close if @log # be sure that we don't leave open files laying around.
+      close if defined?(@log) && !@log.nil? # be sure that we don't leave open files laying around.
       @log = log || "log/dm.log"
     end
 

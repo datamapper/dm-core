@@ -1,10 +1,12 @@
-require 'rubygems'
-gem 'rspec', '>=1.1.8'
-require 'spec'
 require 'pathname'
+require 'rubygems'
+
+gem 'rspec', '~>1.1.8'
+require 'spec'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
-$LOAD_PATH << SPEC_ROOT.parent + "lib"
+$LOAD_PATH.unshift(SPEC_ROOT.parent + 'lib')
+
 require 'dm-core'
 require 'dm-core/core_ext/symbol'
 

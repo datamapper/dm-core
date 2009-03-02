@@ -43,10 +43,6 @@ module DataMapper
       :validates, :unique, :precision, :scale
     ]
 
-    PROPERTY_OPTION_ALIASES = {
-      :size => [ :length ]
-    }
-
     class << self
 
       def configure(primitive_type, options)
@@ -82,21 +78,14 @@ module DataMapper
       # Load Property options
       PROPERTY_OPTIONS.each do |property_option|
         self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{property_option}(#{property_option} = nil)         # def unique(unique = nil)
-            return @#{property_option} if #{property_option}.nil?  #   return @unique if unique.nil?
-                                                                   #
-            @#{property_option} = #{property_option}               #   @unique = unique
-          end                                                      # end
+          def #{property_option}(*args)                                  # def unique(*args)
+            if args.any?                                                 #   if args.any?
+              @#{property_option} = args.first                           #     @unique = args.first
+            else                                                         #   else
+              defined?(@#{property_option}) ? @#{property_option} : nil  #     defined?(@unique) ? @unique : nil
+            end                                                          #   end
+          end                                                            # end
         RUBY
-      end
-
-      # Create property aliases
-      PROPERTY_OPTION_ALIASES.each do |property_option, aliases|
-        aliases.each do |ali|
-          self.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            alias #{ali} #{property_option}         # alias size length
-          RUBY
-        end
       end
 
       # Gives all the options set on this type

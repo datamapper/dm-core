@@ -20,7 +20,6 @@ require 'addressable/uri'
 
 gem 'extlib', '~>0.9.10'
 require 'extlib'
-require 'extlib/inflection'
 
 begin
   gem 'fastthread', '~>1.0.1'

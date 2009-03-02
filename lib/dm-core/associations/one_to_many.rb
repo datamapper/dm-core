@@ -78,7 +78,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def create_accessor
-          return if parent_model.instance_methods(false).include?(name)
+          return if parent_model.instance_methods(false).map { |m| m.to_sym }.include?(name)
 
           parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
@@ -91,7 +91,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def create_mutator
-          return if parent_model.instance_methods(false).include?("#{name}=")
+          return if parent_model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
 
           parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable

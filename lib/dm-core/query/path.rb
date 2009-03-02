@@ -22,12 +22,12 @@ module DataMapper
 
       # duck type the DM::Query::Path to act like a DM::Property
       def field(*args)
-        @property ? @property.field(*args) : nil
+        defined?(@property) ? @property.field(*args) : nil
       end
 
       # more duck typing
       def to_sym
-        @property ? @property.name.to_sym : @model.storage_name(@repository_name).to_sym
+        defined?(@property) ? @property.name.to_sym : @model.storage_name(@repository_name).to_sym
       end
 
       def ==(other)
@@ -90,7 +90,7 @@ module DataMapper
           return Query::Path.new(repository, @relationships.dup << relationship, klass)
         end
 
-        if @model.properties(@repository_name)[method] && @property.nil?
+        if @model.properties(@repository_name)[method] && !defined?(@property)
           @property = @model.properties(@repository_name)[method]
           return self
         end

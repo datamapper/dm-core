@@ -902,7 +902,7 @@ module DataMapper
     #
     # @api private
     def create_accessor
-      unless model.instance_methods(false).include?(name)
+      unless model.instance_methods(false).map { |m| m.to_sym }.include?(name)
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
           def #{name}
@@ -912,7 +912,7 @@ module DataMapper
         RUBY
       end
 
-      if primitive == TrueClass && !model.instance_methods(false).include?("#{name}?")
+      if primitive == TrueClass && !model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}?".to_sym)
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
           alias #{name}? #{name}
@@ -924,7 +924,7 @@ module DataMapper
     #
     # @api private
     def create_mutator
-      return if model.instance_methods(false).include?("#{name}=")
+      return if model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
 
       model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         #{writer_visibility}
