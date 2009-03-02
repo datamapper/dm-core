@@ -202,6 +202,8 @@ module DataMapper
     # A support method for converting Integer, Range or Infinity values into two
     # values representing the minimum and maximum cardinality of the association
     #
+    # @return [Array]  A pair of integers, min and max
+    #
     # @api private
     def extract_min_max(cardinality)
       case cardinality
