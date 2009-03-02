@@ -1,5 +1,8 @@
 module DataMapper
   module Associations
+    # Base class for relationships. Each type of relationship
+    # (1 to 1, 1 to n, n to m) implements a subclass of this class
+    # with methods like get and set overridden.
     class Relationship
       OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :through ].to_set.freeze
 
@@ -116,13 +119,20 @@ module DataMapper
       # @api semipublic
       attr_reader :through
 
-      # TODO: document
+      # Intermediate relationships in a "through" association.
+      # Always returns empty frozen Array for this base class,
+      # must be overriden in subclasses.
+      #
       # @api semipublic
       def intermediaries
         @intermediaries ||= [].freeze
       end
 
-      # TODO: document
+      # Returns query object for relationship.
+      # For this base class, always returns query object
+      # has been initialized with.
+      # Overriden in subclasses.
+      #
       # @api private
       def query
         # TODO: make sure the model scope is merged in
@@ -149,7 +159,7 @@ module DataMapper
             properties = child_model.properties(child_repository_name)
 
             child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
-              property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
+            property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
 
               properties[property_name] || begin
                 options = parent_property.options.only(:length, :size, :precision, :scale)
@@ -195,37 +205,52 @@ module DataMapper
           end
       end
 
-      # TODO: document
+      # Creates and returns Query instance for given
+      # resource (usually a parent).
+      # Must be implemented in subclasses.
+      #
       # @api semipublic
       def query_for(resource)
         raise NotImplementedError
       end
 
-      # TODO: document
+      # Loads and returns "other end" of the association.
+      # Must be implemented in subclasses.
+      #
       # @api semipublic
       def get(resource, query = nil)
         raise NotImplementedError
       end
 
-      # TODO: document
+      # Gets "other end" of the association directly
+      # as @ivar on given resource. Subclasses usually
+      # use implementation of this class.
+      #
       # @api semipublic
       def get!(resource)
         resource.instance_variable_get(instance_variable_name)
       end
 
-      # TODO: document
+      # Sets value of the "other end" of association
+      # on given resource. Must be implemented in subclasses.
+      #
       # @api semipublic
       def set(resource, association)
         raise NotImplementedError
       end
 
-      # TODO: document
+      # Sets "other end" of the association directly
+      # as @ivar on given resource. Subclasses usually
+      # use implementation of this class.
+      #
       # @api semipublic
       def set!(resource, association)
         resource.instance_variable_set(instance_variable_name, association)
       end
 
-      # TODO: document
+      # Checks if "other end" of association is loaded on given
+      # resource.
+      #
       # @api semipublic
       def loaded?(resource)
         resource.instance_variable_defined?(instance_variable_name)
@@ -233,7 +258,13 @@ module DataMapper
 
       private
 
-      # TODO: document
+      # Initializes new Relationship: sets attributes of relationship
+      # from options as well as conventions: for instance, @ivar name
+      # for association is constructed by prefixing @ to association name.
+      #
+      # Once attributes are set, reader and writer (called accessor and mutator in
+      # DataMapper terminology) are created for the resource association belongs to
+      #
       # @api semipublic
       def initialize(name, child_model, parent_model, options = {})
         case child_model
@@ -269,19 +300,24 @@ module DataMapper
         create_mutator
       end
 
-      # TODO: document
+      # Creates both reader and writer method for association.
+      # Must be implemented by subclasses.
+      #
       # @api semipublic
       def create_accessor
         raise NotImplementedError
       end
 
-      # TODO: document
+      # Creates both writer method for association.
+      # Must be implemented by subclasses.
+      #
       # @api semipublic
       def create_mutator
         raise NotImplementedError
       end
 
-      # TODO: document
+      # Prefix used to build name of default child key
+      #
       # @api private
       def property_prefix
         Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.name)).to_sym
