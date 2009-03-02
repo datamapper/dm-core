@@ -27,7 +27,6 @@ module DataMapper
 
           # TODO: handle compound keys when OR conditions supported
           parent_values = Array(parent).map { |r| parent_key.get(r) }.select { |k| k.all? }.transpose
-
           child_key.zip(parent_values).to_hash
         end
 

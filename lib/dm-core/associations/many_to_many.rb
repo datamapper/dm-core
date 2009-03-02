@@ -120,7 +120,9 @@ module DataMapper
             end
         end
 
-        # TODO: document
+        # Returns a set of keys that identify child model
+        #
+        # @return   [DataMapper::PropertySet]  a set of properties that identify child model
         # @api semipublic
         def child_key
           @child_key ||=

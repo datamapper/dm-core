@@ -56,7 +56,9 @@ module DataMapper
         raise NameError, "Cannot find the child_model #{@child_model_name} for #{@parent_model || @parent_model_name} in #{name}"
       end
 
-      # TODO: document
+      # Returns a set of keys that identify child model
+      #
+      # @return   [DataMapper::PropertySet]  a set of properties that identify child model
       # @api semipublic
       def child_key
         @child_key ||=
