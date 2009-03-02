@@ -3,35 +3,116 @@ module DataMapper
     class Relationship
       OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :through ].to_set.freeze
 
-      # TODO: document
+      # Relationship name
+      #
+      # Example: for :parent association in
+      #
+      # class VersionControl::Commit
+      #   include ::DataMapper::Resource
+      #
+      #   belongs_to :parent
+      # end
+      #
+      # name is :parent
+      #
       # @api semipublic
       attr_reader :name
 
-      # TODO: document
+      # Options used to set up association
+      # of this relationship
+      #
+      # Example: for :author association in
+      #
+      # class VersionControl::Commit
+      #   include ::DataMapper::Resource
+      #
+      #   belongs_to :author, :model => 'Person'
+      # end
+      #
+      # options is a hash with a single key, :model
+      #
       # @api semipublic
       attr_reader :options
 
-      # TODO: document
+      # @ivar used to store collection of child options
+      # in parent
+      #
+      # Example: for :commits association in
+      #
+      # class VersionControl::Branch
+      #   include ::DataMapper::Resource
+      #
+      #   has n, :commits
+      # end
+      #
+      # instance variable name for parent will be
+      # @commits
+      #
       # @api semipublic
       attr_reader :instance_variable_name
 
-      # TODO: document
+      # Repository from where child objects
+      # are loaded
+      #
       # @api semipublic
       attr_reader :child_repository_name
 
-      # TODO: document
+      # Repository from where parent objects
+      # are loaded
+      #
       # @api semipublic
       attr_reader :parent_repository_name
 
-      # TODO: document
+      # Minimum number of child objects for
+      # relationship
+      #
+      # Example: for :cores association in
+      #
+      # class CPU::Multicore
+      #   include ::DataMapper::Resource
+      #
+      #   has n, :cores, :min => 2
+      # end
+      #
+      # minimum is 2
+      #
       # @api semipublic
       attr_reader :min
 
-      # TODO: document
+      # Maximum number of child objects for
+      # relationship
+      #
+      # Example: for :fouls association in
+      #
+      # class Basketball::Player
+      #   include ::DataMapper::Resource
+      #
+      #   has n, :fouls, :max => 5
+      # end
+      #
+      # maximum is 5
+      #
       # @api semipublic
       attr_reader :max
 
-      # TODO: document
+      # Intermediate association for join model
+      # relationships
+      #
+      # Example: for :bugs association in
+      #
+      # class Software::Engineer
+      #   include ::DataMapper::Resource
+      #
+      #   has n, :missing_tests
+      #   has n, :bugs, :through => :missing_tests
+      # end
+      #
+      # through is :missing_tests
+      #
+      # TODO: document a case when
+      # through option is a model and
+      # not an association name
+      #
       # @api semipublic
       attr_reader :through
 
