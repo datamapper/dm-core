@@ -212,7 +212,7 @@ share_examples_for 'An Adapter' do
 
     describe 'not' do
       it 'should be able to search for objects with not equal value' do
-        @model.all(@string_property.name.not => 'red').should_not include(@blue)
+        @model.all(@string_property.name.not => 'red').should_not include(@red)
       end
 
       it 'should include objects that are not like the value' do

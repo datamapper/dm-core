@@ -7,14 +7,14 @@ module DataMapper
         register_instance_hooks :_create, :_update, :destroy
 
         def self.before(target_method, method_sym = nil, &block)
-          remap_target_method(target_method).each do |target_method|
-            super target_method, method_sym, &block
+          remap_target_method(target_method).each do |t|
+            super t, method_sym, &block
           end
         end
 
         def self.after(target_method, method_sym = nil, &block)
-          remap_target_method(target_method).each do |target_method|
-            super target_method, method_sym, &block
+          remap_target_method(target_method).each do |t|
+            super t, method_sym, &block
           end
         end
 

@@ -208,10 +208,12 @@ module DataMapper
     # @api public
     def inspect
       attrs = properties.map do |property|
-        value = if !property.loaded?(self) && saved?
+        value = if property.loaded?(self)
+          property.get!(self).inspect
+        elsif saved?
           '<not loaded>'
         else
-          property.get!(self).inspect
+          'nil'
         end
 
         "#{property.instance_variable_name}=#{value}"
@@ -231,7 +233,7 @@ module DataMapper
     # @api semipublic
     def repository
       # only set @repository explicitly when persisted
-      @repository || model.repository
+      defined?(@repository) ? @repository : model.repository
     end
 
     ##
@@ -249,7 +251,7 @@ module DataMapper
       return @key if defined?(@key)
 
       key = model.key(repository_name).map do |property|
-        original_values[property] || property.get!(self)
+        original_values[property] || (property.loaded?(self) ? property.get!(self) : nil)
       end
 
       # set the key if every entry is non-nil

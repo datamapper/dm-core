@@ -25,11 +25,11 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def get(child, query = nil)
-          lazy_load(child) unless loaded?(child)
+          return unless loaded?(child) || lazy_load(child)
 
           resource = get!(child)
 
-          if query.nil? || resource.nil?
+          if query.nil?
             resource
           else
             # TODO: when Resource can be matched against conditions
@@ -65,7 +65,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def create_accessor
-          return if child_model.instance_methods(false).include?(name)
+          return if child_model.instance_methods(false).map { |m| m.to_sym }.include?(name)
 
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
@@ -83,7 +83,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def create_mutator
-          return if child_model.instance_methods(false).include?("#{name}=")
+          return if child_model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
 
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
@@ -112,6 +112,7 @@ module DataMapper
             return
           end
 
+          # if successful should always return the parent, otherwise nil
           set!(child, parent)
         end
 

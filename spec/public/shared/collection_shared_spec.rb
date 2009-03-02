@@ -497,7 +497,9 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be the expected Resource' do
-        @resource.should == @article
+        # compare keys because FK attributes may have been altered
+        # when removing from the Collection
+        @resource.key.should == @article.key
       end
 
       it 'should remove the Resource from the Collection' do

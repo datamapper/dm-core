@@ -1546,7 +1546,7 @@ describe DataMapper::Query do
         end
 
         before do
-          pending_if "TODO: update Query##{method} handle negative range", @return.nil?
+          pending_if "TODO: update Query##{method} handle negative range", !defined?(@return)
         end
 
         it { @return.should be_kind_of(DataMapper::Query) }
@@ -1737,7 +1737,7 @@ describe DataMapper::Query do
       end
 
       before do
-        pending_if 'TODO: update Query#slice! handle negative range', @return.nil?
+        pending_if 'TODO: update Query#slice! handle negative range', !defined?(@return)
       end
 
       it { @return.should be_kind_of(DataMapper::Query) }

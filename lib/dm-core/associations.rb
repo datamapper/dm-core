@@ -24,7 +24,7 @@ module DataMapper
             dup = relationship.dup
 
             [ :@child_model, :@parent_mode ].each do |ivar|
-              if dup.instance_variable_get(ivar) == self
+              if dup.instance_variable_defined?(ivar) && dup.instance_variable_get(ivar) == self
                 dup.instance_variable_set(ivar, target)
               end
             end

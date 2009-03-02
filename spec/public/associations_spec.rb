@@ -177,6 +177,8 @@ share_examples_for 'it creates a many accessor' do
     before :all do
       @skip = Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship)
 
+      @return = nil
+
       rescue_if 'TODO', @skip do
         @expected = @model.new
         @car.send("#{@name}=", [ @expected ])

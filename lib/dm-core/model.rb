@@ -121,6 +121,7 @@ module DataMapper
 
       model.instance_variable_set(:@storage_names,            {})
       model.instance_variable_set(:@properties,               {})
+      model.instance_variable_set(:@paranoid_properties,      {})
       model.instance_variable_set(:@field_naming_conventions, {})
 
       extra_inclusions.each { |mod| model.send(:include, mod) }
@@ -141,7 +142,7 @@ module DataMapper
         target.instance_variable_set(:@storage_names,            @storage_names.dup)
         target.instance_variable_set(:@properties,               {})
         target.instance_variable_set(:@base_model,               self.base_model)
-        target.instance_variable_set(:@paranoid_properties,      @paranoid_properties)
+        target.instance_variable_set(:@paranoid_properties,      @paranoid_properties.dup)
         target.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
 
         # TODO: move this into dm-validations
@@ -287,7 +288,7 @@ module DataMapper
 
       # We need to check whether all relations are already set up.
       # If this isn't the case, we try to reload them here
-      if !@_valid_relations && respond_to?(:many_to_one_relationships)
+      if (!defined?(@_valid_relations) || @_valid_relations == false) && respond_to?(:many_to_one_relationships)
         @_valid_relations = true
         begin
           relationships(repository_name).each_value { |r| r.through; r.child_key }
@@ -679,7 +680,7 @@ module DataMapper
     # TODO: document
     # @api private
     def paranoid_properties
-      @paranoid_properties ||= {}
+      @paranoid_properties
     end
 
     # TODO: document

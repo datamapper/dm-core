@@ -406,11 +406,11 @@ module DataMapper
 
       fields.each_with_index do |property, i|
         if property.type == Types::Discriminator
-          break @inheritance_property_index = i
+          return @inheritance_property_index = i
         end
       end
 
-      @inheritance_property_index
+      @inheritance_property_index = nil
     end
 
     ##
@@ -698,32 +698,32 @@ module DataMapper
         raise ArgumentError, '+options[:order]+ should not be empty if +options[:fields] contains a non-operator'
       end
 
-      order.each do |order|
-        case order
+      order.each do |order_entry|
+        case order_entry
           when Operator
-            unless order.operator == :asc || order.operator == :desc
-              raise ArgumentError, "+options[:order]+ entry #{order.inspect} used an invalid operator #{order.operator}"
+            unless order_entry.operator == :asc || order_entry.operator == :desc
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} used an invalid operator #{order_entry.operator}"
             end
 
-            assert_valid_order([ order.target ], fields)
+            assert_valid_order([ order_entry.target ], fields)
 
           when Symbol, String
-            unless @properties.named?(order)
-              raise ArgumentError, "+options[:order]+ entry #{order.inspect} does not map to a property"
+            unless @properties.named?(order_entry)
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} does not map to a property"
             end
 
           when Property
-            unless @properties.include?(order)
-              raise ArgumentError, "+options[:order]+ entry #{order.name.inspect} does not map to a property"
+            unless @properties.include?(order_entry)
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.name.inspect} does not map to a property"
             end
 
           when Direction
-            unless @properties.include?(order.property)
-              raise ArgumentError, "+options[:order]+ entry #{order.property.name.inspect} does not map to a property"
+            unless @properties.include?(order_entry.property)
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.property.name.inspect} does not map to a property"
             end
 
           else
-            raise ArgumentError, "+options[:order]+ entry #{order.inspect} of an unsupported object #{order.class}"
+            raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} of an unsupported object #{order_entry.class}"
         end
       end
     end
@@ -960,11 +960,11 @@ module DataMapper
         return false
       end
 
-      unless fields.to_set.send(operator, other.fields.to_set)
+      unless fields.sort_by { |f| f.hash }.send(operator, other.fields.sort_by { |f| f.hash })
         return false
       end
 
-      unless links.to_set.send(operator, other.links.to_set)
+      unless links.sort_by { |r| r.hash }.send(operator, other.links.sort_by { |r| r.hash })
         return false
       end
 
