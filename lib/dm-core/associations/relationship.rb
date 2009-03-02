@@ -300,7 +300,7 @@ module DataMapper
         create_mutator
       end
 
-      # Creates both reader and writer method for association.
+      # Creates reader method for association.
       # Must be implemented by subclasses.
       #
       # @api semipublic
