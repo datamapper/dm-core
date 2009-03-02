@@ -562,7 +562,7 @@ module DataMapper
     #
     # @param [Resource] resource
     #   model instance for which to set the original value
-    # @param [Object] value
+    # @param [Object] original
     #   value to set as original value for this property in +resource+
     #
     # @api private
@@ -638,6 +638,9 @@ module DataMapper
     end
 
     # Loads lazy columns when get or set is called.
+    #
+    # @param [Resource] resource
+    #   model instance for which lazy loaded attribute are loaded
     #
     # @api private
     def lazy_load(resource)
