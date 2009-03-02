@@ -75,6 +75,13 @@ module DataMapper
       @relationships.values.collect { |r| r.values }.flatten.select { |r| r.child_model == self }
     end
 
+    # Returns copy of relationships set in given repository.
+    #
+    # @param [Symbol] repository_name
+    #   Name of the repository for which relationships set is returned
+    # @return [Mash]  relationships set for given repository
+    #
+    # @api semipublic
     def relationships(repository_name = default_repository_name)
       assert_kind_of 'repository_name', repository_name, Symbol
 
