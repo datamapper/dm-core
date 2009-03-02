@@ -122,6 +122,8 @@ module DataMapper
     #       a many-to-many association
     # @option :model[Model,String] The name of the class to associate with, if omitted
     #       then the association name is assumed to match the class name
+    # @option :repository[Symbol]
+    #       name of child model repository
     #
     # @return [Association::Relationship] the relationship that was
     #   created to reflect either a one-to-one, one-to-many or many-to-many
