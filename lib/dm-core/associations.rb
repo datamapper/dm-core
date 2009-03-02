@@ -161,11 +161,18 @@ module DataMapper
     ##
     # A shorthand, clear syntax for defining many-to-one resource relationships.
     #
-    #  * belongs_to :user                      # many to one user
-    #  * belongs_to :friend, :model => 'User'  # many to one friend
+    #  * belongs_to :user                              # many to one user
+    #  * belongs_to :friend, :model => 'User'          # many to one friend
+    #  * belongs_to :reference, :repository => :pubmed # association for repository other than default
     #
     # @param name [Symbol] The name that the association will be referenced by
     # @see #has
+    #
+    # @option :model[Model,String] The name of the class to associate with, if omitted
+    #       then the association name is assumed to match the class name
+    #
+    # @option :repository[Symbol]
+    #       name of child model repository
     #
     # @return [Association::Relationship] The association created
     #   should not be accessed directly
