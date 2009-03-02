@@ -5,7 +5,13 @@ module DataMapper
 
     class UnsavedParentError < RuntimeError; end
 
-    # TODO: document
+    # Initializes relationships hash for extended model
+    # class.
+    #
+    # When model calls has n, has 1 or belongs_to, relationships
+    # are stored in that hash: keys are repository names and
+    # values are relationship sets.
+    #
     # @api private
     def self.extended(model)
       model.instance_variable_set(:@relationships, {})
