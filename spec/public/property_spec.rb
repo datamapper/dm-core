@@ -163,7 +163,7 @@ describe DataMapper::Property do
     end
 
     describe "#get" do
-      before(:all) do
+      before :all do
         @image = Image.create(:md5hash     => "5268f0f3f452844c79843e820f998869",
                               :title       => "Rome at the sunset",
                               :description => "Just wow")
@@ -196,7 +196,7 @@ describe DataMapper::Property do
     end
 
     describe "#get!" do
-      before(:each) do
+      before :all do
         @image = Image.new
 
         # now some dark Ruby magic
@@ -216,7 +216,7 @@ describe DataMapper::Property do
     # then we try to set it again, which clears original value
     # (since original value is set, property is no longer dirty)
     describe "#set_original_value" do
-      before(:each) do
+      before :all do
         @image = Image.create(:md5hash     => "5268f0f3f452844c79843e820f998869",
                               :title       => "Rome at the sunset",
                               :description => "Just wow")
@@ -225,7 +225,7 @@ describe DataMapper::Property do
       end
 
       describe "when value changes" do
-        before(:each) do
+        before :all do
           @property.set_original_value(@image, "Rome at the sunset")
         end
 
@@ -235,7 +235,7 @@ describe DataMapper::Property do
       end
 
       describe "when value stays the same" do
-        before(:each) do
+        before :all do
           @property.set_original_value(@image, "Rome at the sunset")
         end
 
@@ -247,7 +247,7 @@ describe DataMapper::Property do
     end
 
     describe "#set" do
-      before(:each) do
+      before :all do
         # keep in mind we must run these examples with a
         # saved model instance
         @image = Image.create(:md5hash     => "5268f0f3f452844c79843e820f998869",
@@ -278,7 +278,7 @@ describe DataMapper::Property do
     end
 
     describe "#set!" do
-      before(:each) do
+      before :all do
         @image = Image.new(:md5hash      => "5268f0f3f452844c79843e820f998869",
                            :title       => "Rome at the sunset",
                            :description => "Just wow")
@@ -291,7 +291,6 @@ describe DataMapper::Property do
         @image.title.should == "Set with dark Ruby magic"
       end
     end
-
 
     describe "#typecast" do
       describe "when type is able to do typecasting on it's own" do
@@ -432,7 +431,6 @@ describe DataMapper::Property do
       end
     end # #typecase
 
-
     describe "#default_for" do
       it 'returns default value for non-callables' do
         Image.properties[:format].default_for(Image.new).should == "jpeg"
@@ -443,14 +441,14 @@ describe DataMapper::Property do
       end
     end
 
-    describe "value" do
+    describe "#value" do
       it 'returns value for core types'
 
       it 'triggers dump operation for custom types'
     end
 
     describe "#inspect" do
-      before(:each) do
+      before :all do
         @str = Track.properties[:title].inspect
       end
 
