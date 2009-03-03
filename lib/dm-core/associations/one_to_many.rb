@@ -1,6 +1,6 @@
 module DataMapper
   module Associations
-    module OneToMany
+    module OneToMany #:nodoc:
       class Relationship < Associations::Relationship
         # Returns collection class used by this type of
         # relationship

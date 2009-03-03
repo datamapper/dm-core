@@ -9,19 +9,19 @@ module DataMapper
       module SQL #:nodoc:
         private
 
-        def supports_default_values?
+        def supports_default_values? #:nodoc:
           false
         end
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
-        def quote_name(name)
+        def quote_name(name) #:nodoc:
           "`#{name.gsub('`', '``')}`"
         end
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
-        def quote_value(value)
+        def quote_value(value) #:nodoc:
           case value
             when TrueClass  then super(1)
             when FalseClass then super(0)
@@ -30,7 +30,7 @@ module DataMapper
           end
         end
 
-        def like_operator(operand)
+        def like_operator(operand) #:nodoc:
           operand.kind_of?(Regexp) ? 'REGEXP' : 'LIKE'
         end
       end #module SQL

@@ -207,7 +207,7 @@ module DataMapper
 
       # This module is just for organization. The methods are included into the
       # Adapter below.
-      module SQL
+      module SQL #:nodoc:
 
         # TODO: document this
         # @api semipublic

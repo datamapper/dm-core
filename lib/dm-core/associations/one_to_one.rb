@@ -3,7 +3,7 @@
 
 module DataMapper
   module Associations
-    module OneToOne
+    module OneToOne #:nodoc:
       class Relationship < Associations::OneToMany::Relationship
 
         # Loads (if necessary) and returns association child
@@ -16,7 +16,7 @@ module DataMapper
 
         # Sets and returns association child
         # for given parent
-        # 
+        #
         # @api semipublic
         def set(parent, child)
           super(parent, [ child ].compact)

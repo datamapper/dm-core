@@ -1,6 +1,6 @@
 module DataMapper
   module Associations
-    module ManyToOne
+    module ManyToOne #:nodoc:
       # Relationship class with implementation specific
       # to n side of 1 to n association
       class Relationship < Associations::Relationship
