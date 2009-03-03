@@ -143,7 +143,7 @@ module DataMapper
         # @api private
         def parent_scope(parent)
           # TODO: do not build the query with child_key/parent_key.. use
-          # child_accessor/parent_accessor.  The query should be able to
+          # child_reader/parent_reader.  The query should be able to
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 

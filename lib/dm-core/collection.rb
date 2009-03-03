@@ -775,7 +775,7 @@ module DataMapper
         head + tail
       end
 
-      # FIXME: remove this once the mutator on the child side
+      # FIXME: remove this once the writer method on the child side
       # is used to store the reference to the parent.
       relate_resources(resources)
 

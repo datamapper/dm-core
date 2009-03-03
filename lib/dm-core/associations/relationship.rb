@@ -262,8 +262,8 @@ module DataMapper
       # from options as well as conventions: for instance, @ivar name
       # for association is constructed by prefixing @ to association name.
       #
-      # Once attributes are set, reader and writer (called accessor and mutator in
-      # DataMapper terminology) are created for the resource association belongs to
+      # Once attributes are set, reader and writer are created for
+      # the resource association belongs to
       #
       # @api semipublic
       def initialize(name, child_model, parent_model, options = {})
@@ -296,15 +296,15 @@ module DataMapper
 
         @query = query.freeze
 
-        create_accessor
-        create_mutator
+        create_reader
+        create_writer
       end
 
       # Creates reader method for association.
       # Must be implemented by subclasses.
       #
       # @api semipublic
-      def create_accessor
+      def create_reader
         raise NotImplementedError
       end
 
@@ -312,7 +312,7 @@ module DataMapper
       # Must be implemented by subclasses.
       #
       # @api semipublic
-      def create_mutator
+      def create_writer
         raise NotImplementedError
       end
 
