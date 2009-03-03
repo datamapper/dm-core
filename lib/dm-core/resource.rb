@@ -32,7 +32,6 @@ module DataMapper
     # @api private
     attr_writer :collection
 
-    # TODO: document
     # @api public
     alias model class
 
