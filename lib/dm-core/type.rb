@@ -127,10 +127,11 @@ module DataMapper
       value
     end
 
+    # A hook to allow types to extend or modify property it's bound to.
+    # Implementations are not supposed to modify the state of the type class, and
+    # should produce no side-effects on the type class.
     def self.bind(property)
-      # This method should not modify the state of this type class, and
-      # should produce no side-effects on the type class. It's just a
-      # hook to allow your custom-type to modify the property it's bound to.
+      # no op
     end
 
   end # class Type
