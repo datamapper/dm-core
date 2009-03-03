@@ -468,9 +468,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should save the second resource created through the constructor' do
-        pending "Changing a belongs_to parent should add the object to the correct association" do
-          @second_comment.new?.should be_false
-        end
+        @second_comment.new?.should be_false
       end
 
       it 'should save the correct foreign key for the second resource' do
