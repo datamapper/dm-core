@@ -13,10 +13,10 @@ module DataMapper
 
       Query::OPERATORS.each do |sym|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{sym}
-            #{"warn \"explicit use of '#{sym}' operator is deprecated\"" if sym == :eql || sym == :in}
-            Operator.new(self, #{sym.inspect})
-          end
+          def #{sym}                                                                                   # def eql
+            #{"warn \"explicit use of '#{sym}' operator is deprecated\"" if sym == :eql || sym == :in} #   warn "explicit use of 'eql' operator is deprecated"
+            Operator.new(self, #{sym.inspect})                                                         #   Operator.new(self, :eql)
+          end                                                                                          # end
         RUBY
       end
 
