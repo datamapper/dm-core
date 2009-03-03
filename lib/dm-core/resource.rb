@@ -26,7 +26,9 @@ module DataMapper
       model.extend Model
     end
 
-    # TODO: document
+    # Collection this resource associated with.
+    # Used by SEL.
+    #
     # @api private
     attr_writer :collection
 
