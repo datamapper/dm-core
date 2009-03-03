@@ -69,7 +69,7 @@ module DataMapper
           super
         end
 
-        # Dynamically defines reader method for parent association
+        # Dynamically defines reader method for child side of association
         # (for instance, method article for model Paragraph)
         #
         # @api semipublic
@@ -89,7 +89,7 @@ module DataMapper
           RUBY
         end
 
-        # Dynamically defines writer method for parent association
+        # Dynamically defines writer method for child side of association
         # (for instance, method article= for model Paragraph)
         #
         # @api semipublic
