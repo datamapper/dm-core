@@ -151,7 +151,7 @@ module DataMapper
         true
       end
 
-      module SQL
+      module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
         # Adapters that support AUTO INCREMENT fields for CREATE TABLE
@@ -303,7 +303,7 @@ module DataMapper
         result ? result.field == field_name : false
       end
 
-      module SQL
+      module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
         def supports_serial?
@@ -399,7 +399,7 @@ module DataMapper
         end
       end
 
-      module SQL
+      module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
         def supports_drop_table_if_exists?
@@ -479,7 +479,7 @@ module DataMapper
         end
       end
 
-      module SQL
+      module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
         def supports_serial?

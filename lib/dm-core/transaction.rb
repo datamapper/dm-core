@@ -24,8 +24,9 @@ module DataMapper
     ##
     # Associate this Transaction with some things.
     #
-    # @param things<any number of Object>  the things you want this Transaction
+    # @param [Object] things  the things you want this Transaction
     #   associated with
+    #
     # @details [things a Transaction may be associatied with]
     #   Adapters::AbstractAdapter subclasses will be added as
     #     adapters as is.
@@ -35,8 +36,10 @@ module DataMapper
     #     their properties added.
     #   Resource instances will have all repositories of all their
     #     properties added.
-    # @param block<Block> a block (taking one argument, the Transaction) to execute
-    #   within this transaction. The transaction will begin and commit around
+    #
+    # @param [Proc] block
+    #   a block (taking one argument, the Transaction) to execute within
+    #   this transaction. The transaction will begin and commit around
     #   the block, and rollback if an exception is raised.
     #
     # @api private

@@ -6,7 +6,7 @@ require 'do_postgres'
 module DataMapper
   module Adapters
     class PostgresAdapter < DataObjectsAdapter
-      module SQL
+      module SQL #:nodoc:
         private
 
         def supports_returning?
