@@ -10,7 +10,11 @@ module DataMapper
           OneToMany::Collection
         end
 
-        # TODO: document
+        # Returns a hash of conditions that scopes query that fetches
+        # parent object
+        #
+        # @returns [Hash]  Hash of conditions that scopes query
+        #
         # @api private
         def parent_scope(parent)
           # TODO: do not build the query with child_key/parent_key.. use
@@ -30,13 +34,16 @@ module DataMapper
           child_key.zip(parent_values).to_hash
         end
 
-        # TODO: document
+        # Creates and returns Query instance that fetches
+        # child resource(s) (ex.: articles) for given child resource (ex.: author)
+        #
         # @api semipublic
         def query_for(parent)
           Query.new(DataMapper.repository(child_repository_name), child_model, query.merge(parent_scope(parent)))
         end
 
-        # TODO: document
+        # Loads and returns association children (ex.: articles) for given parent resource
+        # (ex.: author)
         # @api semipublic
         def get(parent, query = nil)
           lazy_load(parent) unless loaded?(parent)
@@ -52,14 +59,18 @@ module DataMapper
           end
         end
 
-        # TODO: document
+        # Sets value of association children (ex.: paragraphs) for given parent resource
+        # (ex.: article)
+        #
         # @api semipublic
         def set(parent, children)
           lazy_load(parent) unless loaded?(parent)
           get!(parent).replace(children)
         end
 
-        # TODO: document
+        # Sets value of association children (ex.: paragraphs) for given parent resource
+        # (ex.: article)
+        #
         # @api semipublic
         def set!(resource, association)
           association.relationship = self
@@ -76,7 +87,9 @@ module DataMapper
           super
         end
 
-        # TODO: document
+        # Dynamically defines reader method for parent side of association
+        # (for instance, method paragraphs for model Article)
+        #
         # @api semipublic
         def create_accessor
           return if parent_model.instance_methods(false).map { |m| m.to_sym }.include?(name)
@@ -89,7 +102,9 @@ module DataMapper
           RUBY
         end
 
-        # TODO: document
+        # Dynamically defines reader method for parent side of association
+        # (for instance, method paragraphs= for model Article)
+        #
         # @api semipublic
         def create_mutator
           return if parent_model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
@@ -102,7 +117,9 @@ module DataMapper
           RUBY
         end
 
-        # TODO: document
+        # Loads association children and sets resulting value on
+        # given parent resource
+        #
         # @api private
         def lazy_load(parent)
           query_for = query_for(parent)
