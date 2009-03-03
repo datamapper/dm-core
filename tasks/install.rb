@@ -5,20 +5,14 @@ def sudo_gem(cmd)
   sh "#{SUDO} #{RUBY} -S gem #{cmd}", :verbose => false
 end
 
-desc "Install #{GEM_NAME}"
 if WIN32
+  desc "Install #{GEM_NAME}"
   task :install => :gem do
-    system %{gem install --no-rdoc --no-ri -l pkg/#{GEM_NAME}-#{GEM_VERSION}.gem}
-  end
-  namespace :dev do
-    desc 'Install for development (for windows)'
-    task :winstall => :gem do
-      warn "You can now call 'rake install' instead of 'rake dev:winstall'."
-      system %{gem install --no-rdoc --no-ri -l pkg/#{GEM_NAME}-#{GEM_VERSION}.gem}
-    end
+    sudo_gem "install --no-rdoc --no-ri --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem"
   end
 else
+  desc "Install #{GEM_NAME}"
   task :install => :package do
-    sudo_gem %{install --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem}
+    sudo_gem "install --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem"
   end
 end
