@@ -96,9 +96,9 @@ module DataMapper
 
           parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
-            def #{name}(query = nil)
-              relationships[#{name.inspect}].get(self, query)
-            end
+            def #{name}(query = nil)                          # def paragraphs(query = nil)
+              relationships[#{name.inspect}].get(self, query) #   relationships["paragraphs"].get(self, query)
+            end                                               # end
           RUBY
         end
 
@@ -111,9 +111,9 @@ module DataMapper
 
           parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
-            def #{name}=(children)
-              relationships[#{name.inspect}].set(self, children)
-            end
+            def #{name}=(children)                               # def paragraphs=(children)
+              relationships[#{name.inspect}].set(self, children) #   relationships["paragraphs"].set(self, children)
+            end                                                  # end
           RUBY
         end
 

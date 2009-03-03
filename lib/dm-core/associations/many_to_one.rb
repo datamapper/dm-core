@@ -83,9 +83,9 @@ module DataMapper
             # and then the FK(s) are set, the cache in the accessor should
             # be cleared.
 
-            def #{name}(query = nil)
-              relationships[#{name.inspect}].get(self, query)
-            end
+            def #{name}(query = nil)                          # def article(query = nil)
+              relationships[#{name.inspect}].get(self, query) #   relationships["article"].get(self, query)
+            end                                               # end
           RUBY
         end
 
@@ -98,9 +98,9 @@ module DataMapper
 
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
-            def #{name}=(parent)
-              relationships[#{name.inspect}].set(self, parent)
-            end
+            def #{name}=(parent)                               # def article=(parent)
+              relationships[#{name.inspect}].set(self, parent) #   relationships["article"].set(self, parent)
+            end                                                # end
           RUBY
         end
 
