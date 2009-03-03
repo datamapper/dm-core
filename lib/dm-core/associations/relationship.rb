@@ -74,7 +74,7 @@ module DataMapper
       # class CPU::Multicore
       #   include ::DataMapper::Resource
       #
-      #   has n, :cores, :min => 2
+      #   has 2..n, :cores
       # end
       #
       # minimum is 2
@@ -90,7 +90,7 @@ module DataMapper
       # class Basketball::Player
       #   include ::DataMapper::Resource
       #
-      #   has n, :fouls, :max => 5
+      #   has n..5, :fouls
       # end
       #
       # maximum is 5

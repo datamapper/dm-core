@@ -6,7 +6,7 @@ require 'do_mysql'
 module DataMapper
   module Adapters
     class MysqlAdapter < DataObjectsAdapter
-      module SQL
+      module SQL #:nodoc:
         private
 
         def supports_default_values?

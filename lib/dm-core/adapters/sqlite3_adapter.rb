@@ -6,7 +6,7 @@ require 'do_sqlite3'
 module DataMapper
   module Adapters
     class Sqlite3Adapter < DataObjectsAdapter
-      module SQL
+      module SQL #:nodoc:
         private
 
         # TODO: once the driver's quoting methods become public, have

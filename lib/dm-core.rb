@@ -144,10 +144,10 @@ module DataMapper
   # @param [Hash(Symbol => String), Addressable::URI, String] uri_or_options
   #   connection information
   #
-  # @return Repository
+  # @return [Repository]
   #   the resulting setup repository
   #
-  # @raise ArgumentError "+name+ must be a Symbol, but was..."
+  # @raise [ArgumentError] "+name+ must be a Symbol, but was..."
   #   indicates that an invalid argument was passed for name[Symbol]
   # @raise [ArgumentError] "+uri_or_options+ must be a Hash, URI or String, but was..."
   #   indicates that connection information could not be gleaned from
