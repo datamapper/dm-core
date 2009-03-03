@@ -67,7 +67,7 @@ module DataMapper
   #    property :body,   Text,   :accessor => :protected  # Both reader and writer are protected
   #  end
   #
-  # Access control is also analogous to Ruby accessors and mutators, and can
+  # Access control is also analogous to Ruby attribute readers and writers, and can
   # be declared using :reader and :writer, in addition to :accessor.
   #
   #  class Post
@@ -78,9 +78,9 @@ module DataMapper
   #  end
   #
   # == Overriding Accessors
-  # The accessor for any property can be overridden in the same manner that Ruby
-  # class accessors can be.  After the property is defined, just add your custom
-  # accessor:
+  # The reader/writer for any property can be overridden in the same manner that Ruby
+  # attr readers/writers can be.  After the property is defined, just add your custom
+  # reader or writer:
   #
   #  class Post
   #    include DataMapper::Resource
@@ -508,7 +508,7 @@ module DataMapper
       @custom
     end
 
-    # Standardized accessor method for the property
+    # Standardized reader method for the property
     #
     # @param [Resource] resource
     #   model instance for which this property is to be loaded
@@ -839,8 +839,8 @@ module DataMapper
       end
 
       determine_visibility
-      create_accessor
-      create_mutator
+      create_reader
+      create_writer
 
       if custom?
         type.bind(self)
@@ -901,10 +901,10 @@ module DataMapper
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
     end
 
-    # defines the accessor for the property
+    # defines the reader method for the property
     #
     # @api private
-    def create_accessor
+    def create_reader
       unless model.instance_methods(false).map { |m| m.to_sym }.include?(name)
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
@@ -926,7 +926,7 @@ module DataMapper
     # defines the setter for the property
     #
     # @api private
-    def create_mutator
+    def create_writer
       return if model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
 
       model.class_eval <<-RUBY, __FILE__, __LINE__ + 1

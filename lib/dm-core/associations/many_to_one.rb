@@ -10,7 +10,7 @@ module DataMapper
         # @api semipublic
         def query_for(child)
           # TODO: do not build the query with child_key/parent_key.. use
-          # child_accessor/parent_accessor.  The query should be able to
+          # child_reader/parent_reader.  The query should be able to
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
@@ -73,14 +73,14 @@ module DataMapper
         # (for instance, method article for model Paragraph)
         #
         # @api semipublic
-        def create_accessor
+        def create_reader
           return if child_model.instance_methods(false).map { |m| m.to_sym }.include?(name)
 
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
 
-            # FIXME: if the accessor is used, caching nil in the ivar
-            # and then the FK(s) are set, the cache in the accessor should
+            # FIXME: if the writer is used, caching nil in the ivar
+            # and then the FK(s) are set, the cache in the writer should
             # be cleared.
 
             def #{name}(query = nil)                          # def article(query = nil)
@@ -93,7 +93,7 @@ module DataMapper
         # (for instance, method article= for model Paragraph)
         #
         # @api semipublic
-        def create_mutator
+        def create_writer
           return if child_model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
 
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1

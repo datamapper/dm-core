@@ -723,13 +723,13 @@ module DataMapper
     end
 
     ##
-    # Return true if the accesor or mutator +method+ is publicly accessible
+    # Return true if the reader or writer +method+ is publicly accessible
     #
     # @param [String, Symbol] method
-    #   The name of accessor or mutator to test
+    #   The name of reader or writer to test
     #
     # @return [TrueClass, FalseClass]
-    #   true if the accessor or mutator +method+ is public
+    #   true if the reader or writer +method+ is public
     #
     # @api private
     def public_method?(method)

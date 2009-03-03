@@ -18,7 +18,7 @@ module DataMapper
         # @api private
         def parent_scope(parent)
           # TODO: do not build the query with child_key/parent_key.. use
-          # child_accessor/parent_accessor.  The query should be able to
+          # child_reader/parent_reader.  The query should be able to
           # translate those to child_key/parent_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
@@ -91,7 +91,7 @@ module DataMapper
         # (for instance, method paragraphs for model Article)
         #
         # @api semipublic
-        def create_accessor
+        def create_reader
           return if parent_model.instance_methods(false).map { |m| m.to_sym }.include?(name)
 
           parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -106,7 +106,7 @@ module DataMapper
         # (for instance, method paragraphs= for model Article)
         #
         # @api semipublic
-        def create_mutator
+        def create_writer
           return if parent_model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
 
           parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -267,7 +267,7 @@ module DataMapper
         def relate_resource(resource)
           return if resource.nil?
 
-          # TODO: should just set the resource parent using the mutator
+          # TODO: should just set the resource parent using writer method
           #   - this will allow the parent to be saved later and the parent
           #     reference in the child to get an id, and since it is related
           #     to the child, the child will get the correct parent id
@@ -287,7 +287,7 @@ module DataMapper
         def orphan_resource(resource)
           return if resource.nil?
 
-          # TODO: should just set the resource parent to nil using the mutator
+          # TODO: should just set the resource parent to nil using writer method
           relationship.child_key.set(resource, [])
 
           super
