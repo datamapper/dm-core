@@ -1066,7 +1066,7 @@ module DataMapper
     end
 
     ##
-    # Orphan an list of Resources from the Collection
+    # Orphan a list of Resources from the Collection
     #
     # @param [Enumerable] resources
     #   The list of Resources to orphan
