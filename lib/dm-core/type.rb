@@ -41,6 +41,8 @@ module DataMapper
     class << self
 
       def configure(primitive_type, options)
+        warn 'DataMapper.Type.configure is deprecated, specify the primitive and options explicitly'
+
         @_primitive_type = primitive_type
         @_options = options
 
