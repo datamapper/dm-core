@@ -1143,7 +1143,26 @@ describe DataMapper::Query do
   it { @query.should respond_to(:merge) }
 
   describe '#merge' do
-    it 'should be awesome'
+    describe "with a Hash" do
+      before(:each) do
+        @return = @query.merge({ :limit => 202 })
+      end
+
+      it "does not affect the receiver" do
+        @query.options[:limit].should == 3
+      end
+    end
+
+    describe "with a Query" do
+      before(:each) do
+        @other  = DataMapper::Query.new(@repository, @model, @options.update(@other_options))
+        @return = @query.merge(@other)
+      end
+
+      it "does not affect the receiver" do
+        @query.options[:limit].should == 3
+      end
+    end
   end
 
   it { @query.should respond_to(:model) }

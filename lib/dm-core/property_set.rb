@@ -1,4 +1,8 @@
 module DataMapper
+  # Set of Property objects, used to associate
+  # queries with set of fields it performed over,
+  # to represent composite keys (esp. for associations)
+  # and so on.
   class PropertySet < Array
     def [](name)
       @properties[name]
