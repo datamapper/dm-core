@@ -36,7 +36,12 @@ module DataMapper
   #     end
   #   end
   class Type
-    PROPERTY_OPTIONS = ::DataMapper::Property::PROPERTY_OPTIONS
+     PROPERTY_OPTIONS = [
+       :accessor, :reader, :writer,
+       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
+       :format, :index, :unique_index, :auto_validation,
+       :validates, :unique, :precision, :scale
+     ]
 
     class << self
 
