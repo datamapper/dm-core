@@ -211,7 +211,7 @@ module DataMapper
         if limit
           all(query)
         else
-          relate_resource(query.repository.read_one(query))
+          relate_resource(query.repository.read(query).first)
         end
       end
     end
@@ -256,7 +256,7 @@ module DataMapper
         if limit
           all(query)
         else
-          relate_resource(query.repository.read_one(query))
+          relate_resource(query.repository.read(query).last)
         end
       end
     end
@@ -916,7 +916,7 @@ module DataMapper
         replace(resources)
       else
         block ||= lambda do |c|
-          resources = query.repository.read_many(query)
+          resources = query.repository.read(query)
 
           head    = c.head
           tail    = c.tail

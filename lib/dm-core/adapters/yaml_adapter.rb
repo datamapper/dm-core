@@ -25,11 +25,7 @@ module DataMapper
         resources.size
       end
 
-      def read_one(query)
-        read_many(query).first
-      end
-
-      def read_many(query)
+      def read(query)
         model  = query.model
         fields = query.fields
 

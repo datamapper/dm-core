@@ -59,7 +59,7 @@ module DataMapper
         created
       end
 
-      def read_many(query)
+      def read(query)
         with_connection do |connection|
           statement, bind_values = select_statement(query)
 
@@ -81,10 +81,6 @@ module DataMapper
             reader.close if reader
           end
         end
-      end
-
-      def read_one(query)
-        read_many(query).first
       end
 
       def update(attributes, query)

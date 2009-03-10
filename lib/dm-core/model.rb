@@ -414,9 +414,9 @@ module DataMapper
       query = scoped_query(query.merge(:limit => args.first || 1))
 
       if args.any?
-        Collection.new(query)
+        Collection.new(query).first
       else
-        query.repository.read_one(query)
+        query.repository.read(query).first
       end
     end
 

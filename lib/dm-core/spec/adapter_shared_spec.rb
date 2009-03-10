@@ -134,29 +134,12 @@ share_examples_for 'An Adapter' do
     end
   end
 
-  it { @adapter.should respond_to(:read_one) }
+  it { @adapter.should respond_to(:read) }
 
-  describe '#read_one' do
+  describe '#read' do
     before :all do
       @resource.save
-      @return = @adapter.read_one(DataMapper::Query.new(@repository, @model, :id => @resource.id))
-    end
-
-    it 'should return a DataMapper::Resource' do
-      @return.should be_a_kind_of(@model)
-    end
-
-    it 'should return nil when no resource was found' do
-      @adapter.read_one(DataMapper::Query.new(@repository, @model, :id => nil)).should be_nil
-    end
-  end
-
-  it { @adapter.should respond_to(:read_many) }
-
-  describe '#read_many' do
-    before :all do
-      @resource.save
-      @return = @adapter.read_many(DataMapper::Query.new(@repository, @model, :id => @resource.id))
+      @return = @adapter.read(DataMapper::Query.new(@repository, @model, :id => @resource.id))
     end
 
     it 'should return an Array' do

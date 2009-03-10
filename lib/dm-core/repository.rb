@@ -139,25 +139,8 @@ module DataMapper
     #   Result set of the query
     #
     # @api semipublic
-    def read_many(query)
-      adapter.read_many(query)
-    end
-
-    ##
-    # Retrieve a single resource instance by a query
-    #
-    #   TODO: create example
-    #
-    # @param [Query] query
-    #   composition of the query to perform
-    #
-    # @return [Resource,NilClass]
-    #   The first retrieved instance which matches the query, or nil
-    #   if none found
-    #
-    # @api semipublic
-    def read_one(query)
-      adapter.read_one(query)
+    def read(query)
+      adapter.read(query)
     end
 
     ##

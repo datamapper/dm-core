@@ -55,13 +55,7 @@ module DataMapper
 
       # TODO: document this
       # @api semipublic
-      def read_many(query)
-        raise NotImplementedError
-      end
-
-      # TODO: document this
-      # @api semipublic
-      def read_one(query)
+      def read(query)
         raise NotImplementedError
       end
 

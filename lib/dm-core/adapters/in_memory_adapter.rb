@@ -56,35 +56,18 @@ module DataMapper
       end
 
       ##
-      # Look up a single record from the data-store. "SELECT ... LIMIT 1" in SQL.
-      # Used by Model#get to find a record by its identifier(s), and Model#first
-      # to find a single record by some search query.
-      #
-      # @param [Query] query
-      #   The query to be used to locate the resource.
-      #
-      # @return [Resource]
-      #   A Resource object representing the record that was found, or nil for no
-      #   matching records.
-      #
-      # @api semipublic
-      def read_one(query)
-        read_many(query).first
-      end
-
-      ##
-      # Looks up a collection of records from the data-store: "SELECT" in SQL.
-      # Used by Model#all to search for a set of records; that set is in an
-      # Array object.
+      # Looks up one record or a collection of records from the data-store: 
+      # "SELECT" in SQL. 
       #
       # @param [Query] query
       #   The query to be used to seach for the resources
       #
       # @return [Array]
-      #   An Array of all the resources found by the query.
+      #   An Array of Hashes containing the key-value pairs for
+      #   each record
       #
       # @api semipublic
-      def read_many(query)
+      def read(query)
         model  = query.model
         fields = query.fields
 
