@@ -18,7 +18,7 @@ module DataMapper
 
           def self.add_scope_for_discriminator(retval, target)
             target.descendants << target
-            target.default_scope(#{repository_name.inspect}).update(#{property.name.inspect} => target.descendants)
+            target.default_scope(#{repository_name.inspect}).update(#{property.name.inspect} => target.descendants.to_a)
             propagate_descendants(target)
           end
 
