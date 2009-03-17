@@ -47,7 +47,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @return [Array]
+    # @return [Array<DataMapper::Associations::Relationship>]
     #   the relationships that will be used to scope the results
     #
     # @api semipublic
