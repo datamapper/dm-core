@@ -28,6 +28,12 @@ module DataMapper
 
         # Loads and returns association parent (ex.: author) for given child resource
         # (ex.: article)
+        #
+        # @param  child  [DataMapper::Resource]
+        #   Child object (ex.: instance of article)
+        # @param  query  [DataMapper::Query]
+        #   Query options
+        #
         # @api semipublic
         def get(child, query = nil)
           return unless loaded?(child) || lazy_load(child)
@@ -52,6 +58,12 @@ module DataMapper
 
         # Sets value of association parent (ex.: author) for given child resource
         # (ex.: article)
+        #
+        # @param child [DataMapper::Resource]
+        #   Child object (ex.: instance of article)
+        #
+        # @param child [DataMapper::Resource]
+        #   Parent object (ex.: instance of author)
         #
         # @api semipublic
         def set(child, parent)
