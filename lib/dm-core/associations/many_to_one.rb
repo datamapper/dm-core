@@ -5,7 +5,11 @@ module DataMapper
       # to n side of 1 to n association
       class Relationship < Associations::Relationship
         # Creates and returns Query instance that fetches
-        # parent resource (ex.: author) for given child resource (ex.: article)
+        # parent resource (ex.: author) for given child
+        # child resource (ex.: article)
+        #
+        # @param  child  [Array<DataMapper::Resource>]
+        #   collection (possibly with a single item) of child objects
         #
         # @api semipublic
         def query_for(child)
