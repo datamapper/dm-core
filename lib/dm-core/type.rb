@@ -114,7 +114,7 @@ module DataMapper
         self
       end
 
-      # The Ruby primitive type to use as basis for this type. See
+      # Ruby primitive type to use as basis for this type. See
       # Property::TYPES for list of types.
       #
       # @param primitive [Class, nil]
