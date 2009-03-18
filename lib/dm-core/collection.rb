@@ -1142,10 +1142,7 @@ module DataMapper
       # TODO: spec what should happen when none of the resources in self are saved
 
       query = relationship.query_for(self)
-
-      if other_query
-        query.update(other_query)
-      end
+      query.update(other_query) if other_query
 
       query.model.all(query)
     end
