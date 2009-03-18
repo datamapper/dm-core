@@ -41,6 +41,48 @@ module DataMapper
   #
   # Properties of LowerCase type now will downcase it's values before
   # it is persisted to the storage.
+  #
+  # One more real world example from dm-types library is a JSON type
+  # that stores values serialized as JSON, and often useful for embedded
+  # values:
+  #
+  #
+  # module DataMapper
+  #   module Types
+  #     class Json < DataMapper::Type
+  #       primitive String
+  #       size 65535
+  #       lazy true
+  #
+  #       def self.load(value, property)
+  #         if value.nil?
+  #           nil
+  #         elsif value.is_a?(String)
+  #           ::JSON.load(value)
+  #         else
+  #           raise ArgumentError.new("+value+ of a property of JSON type must be nil or a String")
+  #         end
+  #       end
+  #
+  #       def self.dump(value, property)
+  #         if value.nil? || value.is_a?(String)
+  #           value
+  #         else
+  #           ::JSON.dump(value)
+  #         end
+  #       end
+  #
+  #       def self.typecast(value, property)
+  #         if value.nil? || value.kind_of?(Array) || value.kind_of?(Hash)
+  #           value
+  #         else
+  #           ::JSON.load(value.to_s)
+  #         end
+  #       end
+  #     end # class Json
+  #     JSON = Json
+  #   end # module Types
+  # end # module DataMapper
   class Type
 
     # Until cooperation of Property and Type does not change, each must
@@ -75,11 +117,11 @@ module DataMapper
       # The Ruby primitive type to use as basis for this type. See
       # Property::TYPES for list of types.
       #
-      # @param primitive<Class, nil>
+      # @param primitive [Class, nil]
       #   The class for the primitive. If nil is passed in, it returns the
       #   current primitive
       #
-      # @return <Class> if the <primitive> param is nil, return the current primitive.
+      # @return [Class] if the <primitive> param is nil, return the current primitive.
       #
       # @api public
       def primitive(primitive = nil)
@@ -102,7 +144,7 @@ module DataMapper
 
       # Gives all the options set on this type
       #
-      # @return <Hash> with all options and their values set on this type
+      # @return [Hash] with all options and their values set on this type
       #
       # @api public
       def options
@@ -117,10 +159,10 @@ module DataMapper
 
     # Stub instance method for dumping
     #
-    # @param value<Object, nil>       the value to dump
-    # @param property<Property, nil>  the property the type is being used by
+    # @param value     [Object, nil]    value to dump
+    # @param property  [Property, nil]  property the type is being used by
     #
-    # @return <Object> Dumped object
+    # @return [Object] Dumped object
     #
     # @api public
     def self.dump(value, property)
@@ -129,10 +171,10 @@ module DataMapper
 
     # Stub instance method for loading
     #
-    # @param value<Object, nil>       the value to serialize
-    # @param property<Property, nil>  the property the type is being used by
+    # @param value     [Object, nil]    value to serialize
+    # @param property  [Property, nil]  property the type is being used by
     #
-    # @return <Object> Serialized object. Must be the same type as the Ruby primitive
+    # @return [Object] Serialized object. Must be the same type as the Ruby primitive
     #
     # @api public
     def self.load(value, property)
