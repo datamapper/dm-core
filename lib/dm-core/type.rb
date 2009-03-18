@@ -14,34 +14,44 @@ module DataMapper
   # To define a new type, subclass DataMapper::Type, pick ruby primitive, and
   # set the options for this type.
   #
-  #   class MyType < DataMapper::Type
-  #     primitive String
-  #     size 10
+  #   class LowerCase < DataMapper::Type
+  #     primitive        String
+  #     auto_validation  true
+  #     size             255
   #   end
   #
-  # Following this, you will be able to use MyType as a type for any given
+  # Following this, you will be able to use LowerCase as a type for any given
   # property. If special materialization and serialization is required,
   # override the class methods
   #
-  #   class MyType < DataMapper::Type
-  #     primitive String
-  #     size 10
+  #   class LowerCase < DataMapper::Type
+  #     primitive        String
+  #     auto_validation  true
+  #     size             255
   #
   #     def self.dump(value, property)
-  #       <work some magic>
+  #       return nil unless value
+  #       value.to_s.downcase
   #     end
   #
   #     def self.load(value)
-  #       <work some magic>
+  #       value
   #     end
   #   end
+  #
+  # Properties of LowerCase type now will downcase it's values before
+  # it is persisted to the storage.
   class Type
-     PROPERTY_OPTIONS = [
-       :accessor, :reader, :writer,
-       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-       :format, :index, :unique_index, :auto_validation,
-       :validates, :unique, :precision, :scale
-     ]
+
+    # Until cooperation of Property and Type does not change, each must
+    # have a separate list of options, because plugins (ex.: dm-validations)
+    # may want to extend one or the other, and expects no side effects
+    PROPERTY_OPTIONS = [
+                        :accessor, :reader, :writer,
+                        :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
+                        :format, :index, :unique_index, :auto_validation,
+                        :validates, :unique, :precision, :scale
+                       ]
 
     class << self
 
