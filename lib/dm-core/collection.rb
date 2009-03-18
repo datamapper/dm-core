@@ -971,11 +971,7 @@ module DataMapper
           query.conditions.each do |tuple|
             operator, property, bind_value = *tuple
 
-            unless operator == :eql
-              next
-            end
-
-            unless properties.include?(property)
+            unless operator == :eql && properties.include?(property)
               next
             end
 
