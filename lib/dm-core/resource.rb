@@ -721,7 +721,11 @@ module DataMapper
       reload_attributes(*properties.lazy_load_context(name) - loaded_attributes)
     end
 
-    # TODO: document
+    # Returns array of child relationships for which this resource is parent and is loaded
+    #
+    # @return [Array<DataMapper::Associations::ManyToOne::Relationship>]
+    #   array of child relationships for which this resource is parent and is loaded
+    #
     # @api private
     def child_associations
       child_associations = []
