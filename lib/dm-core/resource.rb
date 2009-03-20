@@ -713,7 +713,9 @@ module DataMapper
       self.class.instance_variable_set('@_valid_model', true)
     end
 
-    # TODO: document
+    # Reloads attributes that belong to given lazy loading
+    # context, and not yet loaded
+    #
     # @api private
     def lazy_load(name)
       reload_attributes(*properties.lazy_load_context(name) - loaded_attributes)
