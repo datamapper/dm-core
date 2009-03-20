@@ -72,7 +72,9 @@ module DataMapper
     #
     # Conditions are "greater than" operator for "wins"
     # field and exact match operator for "conference"
-    # field
+    # field:
+    #
+    # [[:gt, #<Property:Team:wins>, 30], [:eql, #<Property:Team:conference>, "East"]]
     #
     # @return [Array]
     #   the conditions that will be used to scope the results
