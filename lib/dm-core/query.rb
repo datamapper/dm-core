@@ -10,9 +10,15 @@ module DataMapper
     OPERATORS = [ :eql, :in, :not, :like, :gt, :gte, :lt, :lte ].to_set.freeze
 
     ##
-    # Returns the repository
+    # Returns the repository query should be
+    # executed in
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:repository => :medline)
+    #
     #
     # @return [Repository]
     #   the Repository to retrieve results from
@@ -21,9 +27,9 @@ module DataMapper
     attr_reader :repository
 
     ##
-    # Returns the model
-    #
-    #   TODO: needs example
+    # Returns model (class) that is used
+    # to instantiate objects from query result
+    # returned by adapter
     #
     # @return [Model]
     #   the Model to retrieve results from
@@ -34,7 +40,11 @@ module DataMapper
     ##
     # Returns the fields
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:fields => [:title, :vernacular_title, :abstract])
     #
     # @return [PropertySet]
     #   the properties in the Model that will be retrieved
@@ -43,9 +53,7 @@ module DataMapper
     attr_reader :fields
 
     ##
-    # Returns the links
-    #
-    #   TODO: needs example
+    # Returns the links (associations) query fetches
     #
     # @return [Array<DataMapper::Associations::Relationship>]
     #   the relationships that will be used to scope the results
@@ -54,9 +62,17 @@ module DataMapper
     attr_reader :links
 
     ##
-    # Returns the conditions
+    # Returns the conditions of the query
     #
-    #   TODO: needs example
+    # In the following example:
+    #
+    # @example
+    #
+    #   Team.all(:wins.gt => 30, :conference => "East")
+    #
+    # Conditions are "greater than" operator for "wins"
+    # field and exact match operator for "conference"
+    # field
     #
     # @return [Array]
     #   the conditions that will be used to scope the results
@@ -65,9 +81,13 @@ module DataMapper
     attr_reader :conditions
 
     ##
-    # Returns the offset
+    # Returns the offset query uses
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:offset => page.offset)
     #
     # @return [Integer]
     #   the offset of the results
@@ -76,9 +96,13 @@ module DataMapper
     attr_reader :offset
 
     ##
-    # Returns the limit
+    # Returns the limit query uses
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:limit => 10)
     #
     # @return [Integer,NilClass]
     #   the maximum number of results
@@ -89,7 +113,14 @@ module DataMapper
     ##
     # Returns the order
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:order => [:created_at.desc, :length.desc])
+    #
+    # query order is a set of two ordering rules, descending on
+    # "created_at" field and descending again on "length" field
     #
     # @return [Array]
     #   the order of results
@@ -99,8 +130,6 @@ module DataMapper
 
     ##
     # Returns the original options
-    #
-    #   TODO: needs example
     #
     # @return [Hash]
     #   the original options
@@ -126,7 +155,14 @@ module DataMapper
     ##
     # Indicates if each result should be returned in reverse order
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:limit => 5).reverse
+    #
+    # Note that :add_reversed option may be used in conditions directly,
+    # but this is rarely the case
     #
     # @return [TrueClass,FalseClass]
     #   true if the results should be reversed, false if not
@@ -165,7 +201,11 @@ module DataMapper
     ##
     # Returns a new Query with a reversed order
     #
-    #   TODO: needs example
+    # @example
+    #
+    #   Document.all(:limit => 5).reverse
+    #
+    # Will execute a single query with correct order
     #
     # @return [Query]
     #   new Query with reversed order
@@ -178,7 +218,12 @@ module DataMapper
     ##
     # Reverses the sort order of the Query
     #
-    #   TODO: needs example
+    # @example
+    #
+    #   Document.all(:limit => 5).reverse
+    #
+    # Will execute a single query with original order
+    # and then reverse collection in the Ruby space
     #
     # @return [Query]
     #   self
@@ -194,7 +239,12 @@ module DataMapper
     ##
     # Updates the Query with another Query or conditions
     #
-    #   TODO: needs example
+    # Pretty unrealistic example:
+    #
+    # @example
+    #
+    #   Journal.all(:limit => 2).query.limit                     # => 2
+    #   Journal.all(:limit => 2).query.update(:limit => 3).limit # => 3
     #
     # @param [Query, Hash] other
     #   other Query or conditions
@@ -282,8 +332,6 @@ module DataMapper
     ##
     # Compares another Query for equivalency
     #
-    #   TODO: needs example
-    #
     # @param [Query] other
     #   the other Query to compare with
     #
@@ -306,8 +354,6 @@ module DataMapper
     ##
     # Compares another Query for equality
     #
-    #   TODO: needs example
-    #
     # @param [Query] other
     #   the other Query to compare with
     #
@@ -327,8 +373,19 @@ module DataMapper
       cmp?(other, :eql?)
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Slices collection by adding limit and offset to the
+    # query, so a single query is executed
+    #
+    # @example
+    #
+    #   Journal.all(:limit => 10).slice(3, 5)
+    #
+    # will execute query with the following limit and offset
+    # (when repository uses DataObjects adapter, and thus
+    # queries use SQL):
+    #
+    #   LIMIT 5 OFFSET 3
+    #
     # @api semipublic
     def slice(*args)
       dup.slice!(*args)
@@ -336,8 +393,21 @@ module DataMapper
 
     alias [] slice
 
-    # TODO: document this
-    #   TODO: needs example
+    # Slices collection by adding limit and offset to the
+    # query, so a single query is executed
+    #
+    # @example
+    #
+    #   Journal.all(:limit => 10).slice!(3, 5)
+    #
+    # will execute query with the following limit
+    # (when repository uses DataObjects adapter, and thus
+    # queries use SQL):
+    #
+    #   LIMIT 10
+    #
+    # and then takes a slice of collection in the Ruby space
+    #
     # @api semipublic
     def slice!(*args)
       offset, limit = extract_slice_arguments(*args)
@@ -349,8 +419,18 @@ module DataMapper
       update(:offset => offset, :limit => limit)
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Returns hash of the following options
+    # of the query:
+    #
+    # * fields
+    # * order
+    # * offset
+    # * reload
+    # * unique
+    # * add_reversed
+    #
+    # @return [Hash]  Hash representation of query options listed above
+    #
     # @api semipublic
     def to_hash
       hash = {
@@ -386,8 +466,11 @@ module DataMapper
       hash.update(conditions)
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Returns detailed human readable
+    # string representation of the query
+    #
+    # @return [String]  detailed string representation of the query
+    #
     # @api semipublic
     def inspect
       attrs = [
