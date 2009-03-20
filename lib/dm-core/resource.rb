@@ -630,6 +630,9 @@ module DataMapper
     # this object was loaded from, and clears cached key
     # value (instance variable @key)
     #
+    # @return [TrueClass, FalseClass]
+    #   true if the receiver was successfully updated
+    #
     # @api semipublic
     def _update
       # retrieve the attributes that need to be persisted
