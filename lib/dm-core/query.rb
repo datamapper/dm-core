@@ -245,8 +245,18 @@ module DataMapper
       dup.update(other)
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Builds and returns new query that merges
+    # original with one given, and slices the result
+    # with respect to :limit and :offset options
+    #
+    # This method is used by Collection to
+    # concatenate options from multiple chained
+    # calls in cases like the following:
+    #
+    # @example
+    #
+    #   author.books.all(:year => 2009).all(:published => false)
+    #
     # @api semipublic
     def relative(options)
       assert_kind_of 'options', options, Hash
