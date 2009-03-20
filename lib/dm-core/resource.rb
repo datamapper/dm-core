@@ -589,6 +589,12 @@ module DataMapper
     # Saves this Resource instance to the repository,
     # setting default values for any unset properties
     #
+    # If resource is not dirty or a new (not yet saved),
+    # this method returns false
+    #
+    # On successful save identity map of the repository is
+    # updated
+    #
     # Needs to be a protected method so that it is hookable
     #
     # @return [TrueClass, FalseClass]
