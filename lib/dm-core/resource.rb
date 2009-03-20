@@ -668,7 +668,12 @@ module DataMapper
       model.relationships(repository_name)
     end
 
-    # TODO: document
+    # Returns identity map of repository this object
+    # was loaded from
+    #
+    # @return [DataMapper::IdentityMap]
+    #   identity map of repository this object was loaded from
+    #
     # @api semipublic
     def identity_map
       repository.identity_map(model)
