@@ -574,7 +574,9 @@ module DataMapper
     end
 
     ##
-    # Reset the Resource to a similar state as a new record
+    # Reset the Resource to a similar state as a new record:
+    # removes it from identity map and clears original property
+    # values (thus making all properties non dirty)
     #
     # @api private
     def reset
