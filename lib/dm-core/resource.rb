@@ -638,7 +638,11 @@ module DataMapper
 
     private
 
-    # TODO: document
+    # Returns name of the repository this object
+    # was loaded from
+    #
+    # @return [String] name of the repository this object was loaded from
+    #
     # @api private
     def repository_name
       repository.name
