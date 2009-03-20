@@ -647,7 +647,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that value of :fields option
+    # refers to existing properties
+    #
     # @api private
     def assert_valid_fields(fields, unique)
       assert_kind_of 'options[:fields]', fields, Array
@@ -682,7 +684,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that value of :links option
+    # refers to existing associations
+    #
     # @api private
     def assert_valid_links(links)
       assert_kind_of 'options[:links]', links, Array
@@ -710,7 +714,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that value of :conditions option
+    # refers to existing properties
+    #
     # @api private
     def assert_valid_conditions(conditions)
       assert_kind_of 'options[:conditions]', conditions, Hash, Array
@@ -766,7 +772,7 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that query offset is non-negative and only used together with limit
     # @api private
     def assert_valid_offset(offset, limit)
       assert_kind_of 'options[:offset]', offset, Integer
@@ -780,7 +786,7 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that query limit equals to or greater than 1
     # @api private
     def assert_valid_limit(limit)
       assert_kind_of 'options[:limit]', limit, Integer
@@ -790,7 +796,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that :order option uses proper operator and refers
+    # to existing property
+    #
     # @api private
     def assert_valid_order(order, fields)
       assert_kind_of 'options[:order]', order, Array
@@ -829,7 +837,7 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Used to verify value of boolean properties in conditions
     # @api private
     def assert_valid_boolean(name, value)
       if value != true && value != false
@@ -837,7 +845,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that associations given in conditions belong
+    # to the same repository as query's model
+    #
     # @api private
     def assert_valid_other(other)
       unless other.repository == repository
