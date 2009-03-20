@@ -192,7 +192,15 @@ module DataMapper
       cmp
     end
 
-    # TODO: document this
+    # Returns hash value of the object.
+    # Two objects with the same hash value assumed equal (using eql? method)
+    #
+    # DataMapper resources are equal when their models have the same hash
+    # and they have the same set of properties
+    #
+    # When used as key in a Hash or Hash subclass, objects are compared
+    # by eql? and thus hash value has direct effect on lookup
+    #
     # @api private
     def hash
       model.hash + key.hash
