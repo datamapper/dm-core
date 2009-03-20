@@ -1008,8 +1008,8 @@ module DataMapper
       bind_value.kind_of?(Array) && bind_value.size == 1 ? bind_value.first : bind_value
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Clears indexes of key proprties as well as discriminator column
+    #
     # @api private
     def reset_memoized_vars
       @key_property_indexes = nil
