@@ -489,8 +489,10 @@ module DataMapper
       "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" } * ' '}>"
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Returns index of first discriminator property
+    # fetched by the query. Discriminator properties
+    # must have type DataMapper::Types::Discriminator
+    #
     # @api private
     def inheritance_property_index
       if defined?(@inheritance_property_index)
