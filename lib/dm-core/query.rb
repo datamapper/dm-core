@@ -536,7 +536,12 @@ module DataMapper
     ##
     # Initializes a Query instance
     #
-    #   TODO: needs example
+    # @example
+    #
+    #  JournalIssue.all(:links => [:journal, :country, :medium], :repository => :medline)
+    #
+    # initialized a query with repository defined with name :medline,
+    # model JournalIssue and options { :links => [:journal, :country, :medium] }
     #
     # @param [Repository] repository
     #   the Repository to retrieve results from
