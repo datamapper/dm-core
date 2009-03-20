@@ -620,7 +620,16 @@ module DataMapper
       created
     end
 
-    # TODO: document
+    # Persists dirty attributes
+    #
+    # If object is not dirty, this method returns false.
+    # If there are non-nullable properties with value of nil,
+    # false is returned as well.
+    #
+    # This method updates identitity map of repository
+    # this object was loaded from, and clears cached key
+    # value (instance variable @key)
+    #
     # @api semipublic
     def _update
       # retrieve the attributes that need to be persisted
