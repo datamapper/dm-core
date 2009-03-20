@@ -607,8 +607,9 @@ module DataMapper
       normalize_links
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Copying contructor, called when
+    # #dup method is called on the query
+    #
     # @api semipublic
     def initialize_copy(original)
       # TODO: test to see if this is necessary.  The idea is to ensure
