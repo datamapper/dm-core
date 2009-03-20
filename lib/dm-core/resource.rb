@@ -33,7 +33,7 @@ module DataMapper
     attr_writer :collection
 
     # @api public
-    alias model class
+    alias_method :model, :class
 
     ##
     # Returns the value of the attribute.
