@@ -489,9 +489,11 @@ module DataMapper
       "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" } * ' '}>"
     end
 
-    # Returns index of first discriminator property
+    # Returns position of first discriminator property
     # fetched by the query. Discriminator properties
     # must have type DataMapper::Types::Discriminator
+    #
+    # @return [Index] position of first discriminator property
     #
     # @api private
     def inheritance_property_index
@@ -511,7 +513,7 @@ module DataMapper
     ##
     # Get the indices of all keys in fields
     #
-    #   TODO: needs example
+    # @return [Array<Integer>] Array of positions of key properties
     #
     # @api private
     def key_property_indexes
