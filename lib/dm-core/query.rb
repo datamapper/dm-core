@@ -916,7 +916,12 @@ module DataMapper
     ##
     # Normalize links to Query::Path
     #
-    #   TODO: needs example
+    # Normalization means links given as symbols are replaced with
+    # relationships they refer to, intermediate links are "followed"
+    # and duplicates are removed
+    #
+    # This method, even though is not a bang method, modifies
+    # receiver's links attribute
     #
     # @api private
     def normalize_links
