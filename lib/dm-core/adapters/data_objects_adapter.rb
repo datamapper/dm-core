@@ -268,8 +268,8 @@ module DataMapper
           statement << " FROM #{quote_name(model.storage_name(name))}"
           statement << join_statement(model, query.links, qualify)         if qualify
           statement << " WHERE #{where_statement}"                         unless where_statement.blank?
-          statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
-          statement << " ORDER BY #{order_statement(order, qualify)}"      if order && order.any?
+          statement << " GROUP BY #{columns_statement(group_by, qualify)}" unless group_by.blank?
+          statement << " ORDER BY #{order_statement(order, qualify)}"      unless order.blank?
           statement << " LIMIT #{quote_value(limit)}"                      if limit
           statement << " OFFSET #{quote_value(offset)}"                    if limit && offset > 0
 
