@@ -622,8 +622,6 @@ module DataMapper
     ##
     # Validate the options
     #
-    #   TODO: needs example
-    #
     # @param [#each] options
     #   the options to validate
     #
