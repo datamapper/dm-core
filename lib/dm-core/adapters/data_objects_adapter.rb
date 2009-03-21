@@ -3,10 +3,11 @@ require 'data_objects'
 
 module DataMapper
   module Adapters
-    # You must inherit from the DoAdapter, and implement the
-    # required methods to adapt a database library for use with the DataMapper.
+    # DataObjectsAdapter is the base class for all adapers for relational
+    # databases. If you want to add support for a new RDBMS, it makes
+    # sense to make your adapter class inherit from this class.
     #
-    # NOTE: By inheriting from DataObjectsAdapter, you get a copy of all the
+    # By inheriting from DataObjectsAdapter, you get a copy of all the
     # standard sub-modules (Quoting, Coersion and Queries) in your own Adapter.
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
