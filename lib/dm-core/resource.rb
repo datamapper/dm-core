@@ -33,7 +33,7 @@ module DataMapper
     attr_writer :collection
 
     # @api public
-    alias model class
+    alias_method :model, :class
 
     ##
     # Returns the value of the attribute.
@@ -192,7 +192,15 @@ module DataMapper
       cmp
     end
 
-    # TODO: document this
+    # Returns hash value of the object.
+    # Two objects with the same hash value assumed equal (using eql? method)
+    #
+    # DataMapper resources are equal when their models have the same hash
+    # and they have the same set of properties
+    #
+    # When used as key in a Hash or Hash subclass, objects are compared
+    # by eql? and thus hash value has direct effect on lookup
+    #
     # @api private
     def hash
       model.hash + key.hash
@@ -566,7 +574,9 @@ module DataMapper
     end
 
     ##
-    # Reset the Resource to a similar state as a new record
+    # Reset the Resource to a similar state as a new record:
+    # removes it from identity map and clears original property
+    # values (thus making all properties non dirty)
     #
     # @api private
     def reset
@@ -580,6 +590,12 @@ module DataMapper
     ##
     # Saves this Resource instance to the repository,
     # setting default values for any unset properties
+    #
+    # If resource is not dirty or a new (not yet saved),
+    # this method returns false
+    #
+    # On successful save identity map of the repository is
+    # updated
     #
     # Needs to be a protected method so that it is hookable
     #
@@ -612,7 +628,19 @@ module DataMapper
       created
     end
 
-    # TODO: document
+    # Persists dirty attributes
+    #
+    # If object is not dirty, this method returns false.
+    # If there are non-nullable properties with value of nil,
+    # false is returned as well.
+    #
+    # This method updates identitity map of repository
+    # this object was loaded from, and clears cached key
+    # value (instance variable @key)
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the receiver was successfully updated
+    #
     # @api semipublic
     def _update
       # retrieve the attributes that need to be persisted
@@ -638,7 +666,11 @@ module DataMapper
 
     private
 
-    # TODO: document
+    # Returns name of the repository this object
+    # was loaded from
+    #
+    # @return [String] name of the repository this object was loaded from
+    #
     # @api private
     def repository_name
       repository.name
@@ -664,7 +696,12 @@ module DataMapper
       model.relationships(repository_name)
     end
 
-    # TODO: document
+    # Returns identity map of repository this object
+    # was loaded from
+    #
+    # @return [DataMapper::IdentityMap]
+    #   identity map of repository this object was loaded from
+    #
     # @api semipublic
     def identity_map
       repository.identity_map(model)
@@ -704,13 +741,19 @@ module DataMapper
       self.class.instance_variable_set('@_valid_model', true)
     end
 
-    # TODO: document
+    # Reloads attributes that belong to given lazy loading
+    # context, and not yet loaded
+    #
     # @api private
     def lazy_load(name)
       reload_attributes(*properties.lazy_load_context(name) - loaded_attributes)
     end
 
-    # TODO: document
+    # Returns array of child relationships for which this resource is parent and is loaded
+    #
+    # @return [Array<DataMapper::Associations::ManyToOne::Relationship>]
+    #   array of child relationships for which this resource is parent and is loaded
+    #
     # @api private
     def child_associations
       child_associations = []

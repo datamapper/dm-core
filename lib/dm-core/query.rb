@@ -10,9 +10,15 @@ module DataMapper
     OPERATORS = [ :eql, :in, :not, :like, :gt, :gte, :lt, :lte ].to_set.freeze
 
     ##
-    # Returns the repository
+    # Returns the repository query should be
+    # executed in
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:repository => :medline)
+    #
     #
     # @return [Repository]
     #   the Repository to retrieve results from
@@ -21,9 +27,9 @@ module DataMapper
     attr_reader :repository
 
     ##
-    # Returns the model
-    #
-    #   TODO: needs example
+    # Returns model (class) that is used
+    # to instantiate objects from query result
+    # returned by adapter
     #
     # @return [Model]
     #   the Model to retrieve results from
@@ -34,7 +40,11 @@ module DataMapper
     ##
     # Returns the fields
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:fields => [:title, :vernacular_title, :abstract])
     #
     # @return [PropertySet]
     #   the properties in the Model that will be retrieved
@@ -43,9 +53,7 @@ module DataMapper
     attr_reader :fields
 
     ##
-    # Returns the links
-    #
-    #   TODO: needs example
+    # Returns the links (associations) query fetches
     #
     # @return [Array<DataMapper::Associations::Relationship>]
     #   the relationships that will be used to scope the results
@@ -54,9 +62,19 @@ module DataMapper
     attr_reader :links
 
     ##
-    # Returns the conditions
+    # Returns the conditions of the query
     #
-    #   TODO: needs example
+    # In the following example:
+    #
+    # @example
+    #
+    #   Team.all(:wins.gt => 30, :conference => "East")
+    #
+    # Conditions are "greater than" operator for "wins"
+    # field and exact match operator for "conference"
+    # field:
+    #
+    # [[:gt, #<Property:Team:wins>, 30], [:eql, #<Property:Team:conference>, "East"]]
     #
     # @return [Array]
     #   the conditions that will be used to scope the results
@@ -65,9 +83,13 @@ module DataMapper
     attr_reader :conditions
 
     ##
-    # Returns the offset
+    # Returns the offset query uses
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:offset => page.offset)
     #
     # @return [Integer]
     #   the offset of the results
@@ -76,9 +98,13 @@ module DataMapper
     attr_reader :offset
 
     ##
-    # Returns the limit
+    # Returns the limit query uses
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:limit => 10)
     #
     # @return [Integer,NilClass]
     #   the maximum number of results
@@ -89,7 +115,14 @@ module DataMapper
     ##
     # Returns the order
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:order => [:created_at.desc, :length.desc])
+    #
+    # query order is a set of two ordering rules, descending on
+    # "created_at" field and descending again on "length" field
     #
     # @return [Array]
     #   the order of results
@@ -99,8 +132,6 @@ module DataMapper
 
     ##
     # Returns the original options
-    #
-    #   TODO: needs example
     #
     # @return [Hash]
     #   the original options
@@ -126,7 +157,14 @@ module DataMapper
     ##
     # Indicates if each result should be returned in reverse order
     #
-    #   TODO: needs example
+    # Set in cases like the following:
+    #
+    # @example
+    #
+    #   Document.all(:limit => 5).reverse
+    #
+    # Note that :add_reversed option may be used in conditions directly,
+    # but this is rarely the case
     #
     # @return [TrueClass,FalseClass]
     #   true if the results should be reversed, false if not
@@ -165,7 +203,11 @@ module DataMapper
     ##
     # Returns a new Query with a reversed order
     #
-    #   TODO: needs example
+    # @example
+    #
+    #   Document.all(:limit => 5).reverse
+    #
+    # Will execute a single query with correct order
     #
     # @return [Query]
     #   new Query with reversed order
@@ -178,7 +220,12 @@ module DataMapper
     ##
     # Reverses the sort order of the Query
     #
-    #   TODO: needs example
+    # @example
+    #
+    #   Document.all(:limit => 5).reverse
+    #
+    # Will execute a single query with original order
+    # and then reverse collection in the Ruby space
     #
     # @return [Query]
     #   self
@@ -194,7 +241,12 @@ module DataMapper
     ##
     # Updates the Query with another Query or conditions
     #
-    #   TODO: needs example
+    # Pretty unrealistic example:
+    #
+    # @example
+    #
+    #   Journal.all(:limit => 2).query.limit                     # => 2
+    #   Journal.all(:limit => 2).query.update(:limit => 3).limit # => 3
     #
     # @param [Query, Hash] other
     #   other Query or conditions
@@ -245,8 +297,18 @@ module DataMapper
       dup.update(other)
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Builds and returns new query that merges
+    # original with one given, and slices the result
+    # with respect to :limit and :offset options
+    #
+    # This method is used by Collection to
+    # concatenate options from multiple chained
+    # calls in cases like the following:
+    #
+    # @example
+    #
+    #   author.books.all(:year => 2009).all(:published => false)
+    #
     # @api semipublic
     def relative(options)
       assert_kind_of 'options', options, Hash
@@ -272,8 +334,6 @@ module DataMapper
     ##
     # Compares another Query for equivalency
     #
-    #   TODO: needs example
-    #
     # @param [Query] other
     #   the other Query to compare with
     #
@@ -296,8 +356,6 @@ module DataMapper
     ##
     # Compares another Query for equality
     #
-    #   TODO: needs example
-    #
     # @param [Query] other
     #   the other Query to compare with
     #
@@ -317,8 +375,19 @@ module DataMapper
       cmp?(other, :eql?)
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Slices collection by adding limit and offset to the
+    # query, so a single query is executed
+    #
+    # @example
+    #
+    #   Journal.all(:limit => 10).slice(3, 5)
+    #
+    # will execute query with the following limit and offset
+    # (when repository uses DataObjects adapter, and thus
+    # queries use SQL):
+    #
+    #   LIMIT 5 OFFSET 3
+    #
     # @api semipublic
     def slice(*args)
       dup.slice!(*args)
@@ -326,8 +395,21 @@ module DataMapper
 
     alias [] slice
 
-    # TODO: document this
-    #   TODO: needs example
+    # Slices collection by adding limit and offset to the
+    # query, so a single query is executed
+    #
+    # @example
+    #
+    #   Journal.all(:limit => 10).slice!(3, 5)
+    #
+    # will execute query with the following limit
+    # (when repository uses DataObjects adapter, and thus
+    # queries use SQL):
+    #
+    #   LIMIT 10
+    #
+    # and then takes a slice of collection in the Ruby space
+    #
     # @api semipublic
     def slice!(*args)
       offset, limit = extract_slice_arguments(*args)
@@ -339,8 +421,18 @@ module DataMapper
       update(:offset => offset, :limit => limit)
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Returns hash of the following options
+    # of the query:
+    #
+    # * fields
+    # * order
+    # * offset
+    # * reload
+    # * unique
+    # * add_reversed
+    #
+    # @return [Hash]  Hash representation of query options listed above
+    #
     # @api semipublic
     def to_hash
       hash = {
@@ -376,8 +468,11 @@ module DataMapper
       hash.update(conditions)
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Returns detailed human readable
+    # string representation of the query
+    #
+    # @return [String]  detailed string representation of the query
+    #
     # @api semipublic
     def inspect
       attrs = [
@@ -396,8 +491,12 @@ module DataMapper
       "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" } * ' '}>"
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Returns position of first discriminator property
+    # fetched by the query. Discriminator properties
+    # must have type DataMapper::Types::Discriminator
+    #
+    # @return [Index] position of first discriminator property
+    #
     # @api private
     def inheritance_property_index
       if defined?(@inheritance_property_index)
@@ -416,7 +515,7 @@ module DataMapper
     ##
     # Get the indices of all keys in fields
     #
-    #   TODO: needs example
+    # @return [Array<Integer>] Array of positions of key properties
     #
     # @api private
     def key_property_indexes
@@ -439,7 +538,12 @@ module DataMapper
     ##
     # Initializes a Query instance
     #
-    #   TODO: needs example
+    # @example
+    #
+    #  JournalIssue.all(:links => [:journal, :country, :medium], :repository => :medline)
+    #
+    # initialized a query with repository defined with name :medline,
+    # model JournalIssue and options { :links => [:journal, :country, :medium] }
     #
     # @param [Repository] repository
     #   the Repository to retrieve results from
@@ -505,8 +609,9 @@ module DataMapper
       normalize_links
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Copying contructor, called when
+    # #dup method is called on the query
+    #
     # @api semipublic
     def initialize_copy(original)
       # TODO: test to see if this is necessary.  The idea is to ensure
@@ -518,8 +623,6 @@ module DataMapper
 
     ##
     # Validate the options
-    #
-    #   TODO: needs example
     #
     # @param [#each] options
     #   the options to validate
@@ -546,7 +649,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that value of :fields option
+    # refers to existing properties
+    #
     # @api private
     def assert_valid_fields(fields, unique)
       assert_kind_of 'options[:fields]', fields, Array
@@ -581,7 +686,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that value of :links option
+    # refers to existing associations
+    #
     # @api private
     def assert_valid_links(links)
       assert_kind_of 'options[:links]', links, Array
@@ -609,7 +716,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that value of :conditions option
+    # refers to existing properties
+    #
     # @api private
     def assert_valid_conditions(conditions)
       assert_kind_of 'options[:conditions]', conditions, Hash, Array
@@ -665,7 +774,7 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that query offset is non-negative and only used together with limit
     # @api private
     def assert_valid_offset(offset, limit)
       assert_kind_of 'options[:offset]', offset, Integer
@@ -679,7 +788,7 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that query limit equals to or greater than 1
     # @api private
     def assert_valid_limit(limit)
       assert_kind_of 'options[:limit]', limit, Integer
@@ -689,7 +798,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that :order option uses proper operator and refers
+    # to existing property
+    #
     # @api private
     def assert_valid_order(order, fields)
       assert_kind_of 'options[:order]', order, Array
@@ -728,7 +839,7 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Used to verify value of boolean properties in conditions
     # @api private
     def assert_valid_boolean(name, value)
       if value != true && value != false
@@ -736,7 +847,9 @@ module DataMapper
       end
     end
 
-    # TODO: document this
+    # Verifies that associations given in conditions belong
+    # to the same repository as query's model
+    #
     # @api private
     def assert_valid_other(other)
       unless other.repository == repository
@@ -805,7 +918,12 @@ module DataMapper
     ##
     # Normalize links to Query::Path
     #
-    #   TODO: needs example
+    # Normalization means links given as symbols are replaced with
+    # relationships they refer to, intermediate links are "followed"
+    # and duplicates are removed
+    #
+    # This method, even though is not a bang method, modifies
+    # receiver's links attribute
     #
     # @api private
     def normalize_links
@@ -890,8 +1008,8 @@ module DataMapper
       bind_value.kind_of?(Array) && bind_value.size == 1 ? bind_value.first : bind_value
     end
 
-    # TODO: document this
-    #   TODO: needs example
+    # Clears indexes of key proprties as well as discriminator column
+    #
     # @api private
     def reset_memoized_vars
       @key_property_indexes = nil
