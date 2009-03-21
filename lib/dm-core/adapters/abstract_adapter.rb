@@ -1,26 +1,49 @@
 module DataMapper
   module Adapters
+    # Specific adapters extend this class and implement
+    # methods for creating, reading, updating and deleting records.
+    #
+    # Adapters may only implement method for reading or (less common case)
+    # writing. Read only adapter may be useful when one needs to work
+    # with legacy data that should not be changed or web services that
+    # only provide read access to data (from Wordnet and Medline to
+    # Atom and RSS syndication feeds)
+    #
+    # Note that in case of adapters to relational databases it makes
+    # sense to inherit from DataObjectsAdapter class.
     class AbstractAdapter
       include Extlib::Assertions
       extend Extlib::Assertions
 
-      # TODO: document this
+      # Adapter name. Note that when you use
+      #
+      # DataMapper.setup(:default, "postgres://postgres@localhost/dm_core_test")
+      #
+      # then adapter name is currently be set to is :default
+      #
       # @api semipublic
       attr_reader :name
 
-      # TODO: document this
+      # Options with which adapter was set up
+      #
       # @api semipublic
       attr_reader :options
 
-      # TODO: document this
+      # A callable object that implements naming
+      # convention for resources and storages
+      #
       # @api semipublic
       attr_accessor :resource_naming_convention
 
-      # TODO: document this
+      # A callable object that implements naming
+      # convention for properties and storage fields
+      #
       # @api semipublic
       attr_accessor :field_naming_convention
 
-      # TODO: document this
+      # Turns options hash or connection URI into
+      # options hash used by the adapter
+      #
       # @api semipublic
       def self.normalize_options(uri_or_options)
         assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
@@ -47,25 +70,33 @@ module DataMapper
         options
       end
 
-      # TODO: document this
+      # Persists one or many new resources
+      # Adapters provide specific implementation of this method
+      #
       # @api semipublic
       def create(resources)
         raise NotImplementedError
       end
 
-      # TODO: document this
+      # Reads one or many resources from storage
+      # Adapters provide specific implementation of this method
+      #
       # @api semipublic
       def read(query)
         raise NotImplementedError
       end
 
-      # TODO: document this
+      # Updates one or many existing resources
+      # Adapters provide specific implementation of this method
+      #
       # @api semipublic
       def update(attributes, query)
         raise NotImplementedError
       end
 
-      # TODO: document this
+      # Deletes one or many existing resources
+      # Adapters provide specific implementation of this method
+      #
       # @api semipublic
       def delete(query)
         raise NotImplementedError
