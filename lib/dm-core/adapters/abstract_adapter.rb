@@ -245,7 +245,8 @@ module DataMapper
       # Instantiate an Adapter by passing it a Repository
       # connection string for configuration.
       #
-      # TODO: document this
+      # Also sets up default naming conventions for resources
+      # and properties (fields)
       #
       # @api semipublic
       def initialize(name, uri_or_options)
