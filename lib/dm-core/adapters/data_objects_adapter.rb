@@ -65,6 +65,14 @@ module DataMapper
         created
       end
 
+      # Constructs and executes SELECT query, then instantiates
+      # one or many object from result set.
+      #
+      # @param  [Query]
+      #   query to execute
+      # 
+      # @return [Array, Resource]
+      #   Resource(s) instantiated from query results
       def read(query)
         with_connection do |connection|
           statement, bind_values = select_statement(query)
