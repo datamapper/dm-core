@@ -70,7 +70,7 @@ module DataMapper
       #
       # @param  [Query]
       #   query to execute
-      # 
+      #
       # @return [Array, Resource]
       #   Resource(s) instantiated from query results
       def read(query)
@@ -97,6 +97,11 @@ module DataMapper
         end
       end
 
+      # Constructs and executes UPDATE statement for given
+      # attributes and a query
+      #
+      # @param [Hash]   attributes to set
+      # @param [Query]  query to execute
       def update(attributes, query)
         # TODO: if the query contains any links, a limit or an offset
         # use a subselect to get the rows to be updated
@@ -118,6 +123,9 @@ module DataMapper
         execute(statement, *bind_values).to_i
       end
 
+      # Constructs and executes DELETE statement for given query
+      #
+      # @param [Query]  query to execute
       def delete(query)
         # TODO: if the query contains any links, a limit or an offset
         # use a subselect to get the rows to be deleted
@@ -184,7 +192,8 @@ module DataMapper
 
       chainable do
         protected
-
+        # Instantiates new connection object
+        #
         # @api semipublic
         def create_connection
           # DataObjects::Connection.new(uri) will give you back the right
@@ -192,6 +201,8 @@ module DataMapper
           DataObjects::Connection.new(normalized_uri)
         end
 
+        # Takes connection and closes it
+        #
         # @api semipublic
         def close_connection(connection)
           connection.close
@@ -250,6 +261,9 @@ module DataMapper
           true
         end
 
+        # Constructs SELECT statement for given query,
+        #
+        # @return [String] SELECT statement as a string
         def select_statement(query)
           model      = query.model
           fields     = query.fields
@@ -286,6 +300,9 @@ module DataMapper
           return statement, bind_values || []
         end
 
+        # Constructs INSERT statement for given query,
+        #
+        # @return [String] INSERT statement as a string
         def insert_statement(model, properties, identity_field)
           statement = "INSERT INTO #{quote_name(model.storage_name(name))} "
 
@@ -306,6 +323,9 @@ module DataMapper
           statement
         end
 
+        # Constructs UPDATE statement for given query,
+        #
+        # @return [String] UPDATE statement as a string
         def update_statement(properties, query)
           where_statement, bind_values = where_statement(query.conditions)
 
@@ -316,6 +336,9 @@ module DataMapper
           return statement, bind_values
         end
 
+        # Constructs DELETE statement for given query,
+        #
+        # @return [String] DELETE statement as a string
         def delete_statement(query)
           where_statement, bind_values = where_statement(query.conditions)
 
@@ -325,10 +348,16 @@ module DataMapper
           return statement, bind_values
         end
 
+        # Constructs comma separated list of fields
+        #
+        # @return [String] list of fields as a string
         def columns_statement(properties, qualify)
           properties.map { |p| property_to_column_name(p, qualify) }.join(', ')
         end
 
+        # Constructs joins clause
+        #
+        # @return [String] joins clause
         def join_statement(previous_model, links, qualify)
           statement = ''
 
@@ -348,6 +377,9 @@ module DataMapper
           statement
         end
 
+        # Constructs where clause
+        #
+        # @return [String] where clause
         def where_statement(conditions, qualify = false)
           statements  = []
           bind_values = []
@@ -398,6 +430,9 @@ module DataMapper
           return statements.join(' AND '), bind_values
         end
 
+        # Constructs order clause
+        #
+        # @return [String] order clause
         def order_statement(order, qualify)
           statements = order.map do |order|
             statement = property_to_column_name(order.property, qualify)
@@ -408,6 +443,9 @@ module DataMapper
           statements.join(', ')
         end
 
+        # Constructs condition clause
+        #
+        # @return [String] condition clause
         def condition_statement(operator, left_condition, right_condition, qualify)
           return left_condition if operator == :raw
 
