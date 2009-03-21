@@ -90,7 +90,7 @@ module DataMapper
       # class Basketball::Player
       #   include ::DataMapper::Resource
       #
-      #   has n..5, :fouls
+      #   has 0..5, :fouls
       # end
       #
       # maximum is 5
