@@ -278,7 +278,7 @@ module DataMapper
             elsif table_list.include?(child_table_name)
               parent_table_name
             else
-              raise ArgumentError "you're trying to join a table with no connection to this query"
+              raise ArgumentError, 'you\'re trying to join a table with no connection to this query'
             end
             table_list << join_table_name
 

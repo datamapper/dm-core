@@ -339,7 +339,7 @@ describe DataMapper::Adapters::DataObjectsAdapter do
 
       if method == :read_one
         it 'should return a DataMapper::Resource' do
-          do_read.should == be_kind_of(DataMapper::Resource)
+          do_read.should be_kind_of(DataMapper::Resource)
         end
       else
         it 'should return a DataMapper::Collection' do

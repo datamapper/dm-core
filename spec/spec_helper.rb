@@ -1,7 +1,7 @@
 require 'pathname'
 require 'rubygems'
 
-gem 'rspec', '~>1.1.11'
+gem 'rspec', '~>1.2'
 require 'spec'
 
 SPEC_ROOT = Pathname(__FILE__).dirname.expand_path
