@@ -26,15 +26,15 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<data_objects>, ["~> 0.9.12"])
       s.add_runtime_dependency(%q<extlib>, ["~> 0.9.11"])
-      s.add_runtime_dependency(%q<addressable>, ["~> 2.0.1"])
+      s.add_runtime_dependency(%q<addressable>, ["~> 2.0.2"])
     else
       s.add_dependency(%q<data_objects>, ["~> 0.9.12"])
       s.add_dependency(%q<extlib>, ["~> 0.9.11"])
-      s.add_dependency(%q<addressable>, ["~> 2.0.1"])
+      s.add_dependency(%q<addressable>, ["~> 2.0.2"])
     end
   else
     s.add_dependency(%q<data_objects>, ["~> 0.9.12"])
     s.add_dependency(%q<extlib>, ["~> 0.9.11"])
-    s.add_dependency(%q<addressable>, ["~> 2.0.1"])
+    s.add_dependency(%q<addressable>, ["~> 2.0.2"])
   end
 end

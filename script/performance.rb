@@ -12,7 +12,7 @@ require 'rbench'
 gem 'faker', '~>0.3.1'
 require 'faker'
 
-gem 'activerecord', '~>2.2.2'
+gem 'activerecord', '~>2.3.2'
 require 'active_record'
 
 socket_file = Pathname.glob(%w[
