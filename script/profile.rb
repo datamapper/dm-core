@@ -5,7 +5,7 @@ require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
 require 'ftools'
 require 'rubygems'
 
-gem 'ruby-prof', '~>0.7.0'
+gem 'ruby-prof', '~>0.7.3'
 require 'ruby-prof'
 
 gem 'faker', '~>0.3.1'

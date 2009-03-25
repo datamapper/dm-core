@@ -27,6 +27,8 @@ lib/dm-core/associations/one_to_many.rb
 lib/dm-core/associations/one_to_one.rb
 lib/dm-core/associations/relationship.rb
 lib/dm-core/collection.rb
+lib/dm-core/conditions/boolean_operator.rb
+lib/dm-core/conditions/comparisons.rb
 lib/dm-core/core_ext/kernel.rb
 lib/dm-core/core_ext/symbol.rb
 lib/dm-core/identity_map.rb
@@ -84,6 +86,7 @@ spec/semipublic/adapters/yaml_adapter_spec.rb
 spec/semipublic/associations/many_to_one_spec.rb
 spec/semipublic/associations_spec.rb
 spec/semipublic/collection_spec.rb
+spec/semipublic/conditions_spec.rb
 spec/semipublic/query_spec.rb
 spec/semipublic/resource_spec.rb
 spec/semipublic/shared/resource_shared_spec.rb

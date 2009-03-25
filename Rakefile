@@ -14,8 +14,8 @@ GEM_NAME         = 'dm-core'
 GEM_VERSION      = DataMapper::VERSION
 GEM_DEPENDENCIES = [
   %w[ extlib      ~>0.9.11 ],
-  %w[ rspec       >=1.1.12 ],
-  %w[ addressable ~>2.0    ],
+  %w[ rspec       ~>1.2    ],
+  %w[ addressable ~>2.0.2  ],
 ]
 
 PROJECT_NAME        = 'datamapper'
