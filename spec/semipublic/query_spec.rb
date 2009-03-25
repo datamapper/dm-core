@@ -436,7 +436,6 @@ describe DataMapper::Query do
           it { @return.should be_kind_of(DataMapper::Query) }
 
           it 'should set the conditions' do
-            pending
             @return.conditions.should ==
               DataMapper::Conditions::BooleanOperation.new(
                 :and,
