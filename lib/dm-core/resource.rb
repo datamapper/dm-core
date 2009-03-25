@@ -450,18 +450,26 @@ module DataMapper
     ##
     # Gets all the attributes of the Resource instance
     #
-    # @return [Hash]
-    #   All the (non)-lazy attributes
+    # @param [Symbol] key_on
+    #   Use this attribute of the Property as keys.
+    #   defaults to :name. :field is useful for adapters
+    #   :property or nil use the actual Property object.
     #
     # @return [Hash]
-    #   All the (non)-lazy attributes
+    #   All the attributes
     #
     # @api public
-    def attributes
+    def attributes(key_on = :name)
       attributes = {}
       properties.each do |property|
         if public_method?(name = property.name)
-          attributes[name] = send(name)
+          key = case key_on
+            when :name  then name
+            when :field then property.field
+            else             property
+          end
+
+          attributes[key] = send(name)
         end
       end
       attributes
@@ -556,7 +564,8 @@ module DataMapper
     #
     # @api public
     def destroy
-      if saved? && repository.delete(to_query) == 1
+      if saved?
+        repository.delete(collection)
         reset
         true
       else
@@ -616,16 +625,16 @@ module DataMapper
         end
       end
 
-      if created = (repository.create([ self ]) == 1)
-        @repository = repository
-        @saved      = true
+      repository.create([ self ])
 
-        original_values.clear
+      @repository = repository
+      @saved      = true
 
-        identity_map[key] = self
-      end
+      original_values.clear
 
-      created
+      identity_map[key] = self
+
+      true
     end
 
     # Persists dirty attributes
@@ -651,16 +660,19 @@ module DataMapper
       elsif dirty_attributes.any? { |p,v| !p.nullable? && v.nil? }
         false
       else
-        if updated = (repository.update(dirty_attributes, to_query) == 1)
-          original_values.clear
+        # remove from the identity map
+        identity_map.delete(key)
 
-          # remove the cached key in case it was updated
-          remove_instance_variable(:@key)
+        repository.update(dirty_attributes, Collection.new(to_query, [ self ]))
 
-          identity_map[key] = self
-        end
+        # remove the cached key in case it is updated
+        remove_instance_variable(:@key)
 
-        updated
+        original_values.clear
+
+        identity_map[key] = self
+
+        true
       end
     end
 

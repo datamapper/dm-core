@@ -22,16 +22,14 @@ module DataMapper
       # adapter directly, it is up to plugin developer to keep identity map
       # up to date.
       #
-      #
-      # @param [Array] resources
-      #   The set of resources (model instances)
+      # @param [Enumerable(Resource)] resources
+      #   The list of resources (model instances) to create
       #
       # @return [Integer]
-      #   The number of records that were actually saved into the data-store
+      #   The number of records that were actually saved into the database
       #
       # @api semipublic
       def create(resources)
-        created = 0
         resources.each do |resource|
           model          = resource.model
           identity_field = model.identity_field
@@ -59,20 +57,20 @@ module DataMapper
             if identity_field
               identity_field.set!(resource, result.insert_id)
             end
-            created += 1
           end
         end
-        created
       end
 
       # Constructs and executes SELECT query, then instantiates
       # one or many object from result set.
       #
-      # @param  [Query]
-      #   query to execute
+      # @param [Query] query
+      #   composition of the query to perform
       #
-      # @return [Array, Resource]
-      #   Resource(s) instantiated from query results
+      # @return [Array]
+      #   result set of the query
+      #
+      # @api semipublic
       def read(query)
         with_connection do |connection|
           statement, bind_values = select_statement(query)
@@ -100,9 +98,18 @@ module DataMapper
       # Constructs and executes UPDATE statement for given
       # attributes and a query
       #
-      # @param [Hash]   attributes to set
-      # @param [Query]  query to execute
-      def update(attributes, query)
+      # @param [Hash(Property => Object)] attributes
+      #   hash of attribute values to set, keyed by Property
+      # @param [Collection] collection
+      #   collection of records to be updated
+      #
+      # @return [Integer]
+      #   the number of records updated
+      #
+      # @api semipublic
+      def update(attributes, collection)
+        query = collection.query
+
         # TODO: if the query contains any links, a limit or an offset
         # use a subselect to get the rows to be updated
 
@@ -125,8 +132,16 @@ module DataMapper
 
       # Constructs and executes DELETE statement for given query
       #
-      # @param [Query]  query to execute
-      def delete(query)
+      # @param [Collection] collection
+      #   collection of records to be deleted
+      #
+      # @return [Integer]
+      #   the number of records deleted
+      #
+      # @api semipublic
+      def delete(collection)
+        query = collection.query
+
         # TODO: if the query contains any links, a limit or an offset
         # use a subselect to get the rows to be deleted
 
@@ -183,7 +198,7 @@ module DataMapper
               @options[:password],
               @options[:host],
               @options[:port],
-              @options[:path],
+              @options[:path] || @options[:database],
               query,
               @options[:fragment]
             ).freeze

@@ -12,45 +12,36 @@ module DataMapper
       end
 
       def create(resources)
-        resources.each do |resource|
-          model = resource.model
-          update_records(model) do |records|
-            if identity_field = resource.model.identity_field(name)
-              identity_field.set!(resource, records.size.succ)
-            end
-            records[resource.key] = resource.attributes
+        update_records(resources.first.model) do |records|
+          resources.each do |resource|
+            initialize_identity_field(resource, records.size.succ)
+            records[resource.key] = resource.attributes(:field)
           end
         end
-
-        resources.size
       end
 
       def read(query)
-        model  = query.model
-        fields = query.fields
-
-        records = records_for(model)
-
-        filter_records(records.values, query).map! do |record|
-          model.load(fields.map { |p| record[p.name] }, query)
-        end
+        records = records_for(query.model)
+        filter_records(records.values, query)
       end
 
-      def update(attributes, query)
-        attributes = attributes.map { |p,v| [ p.name, v ] }.to_hash
+      def update(attributes, collection)
+        query      = collection.query
+        attributes = attributes_as_fields(attributes)
 
-        update_records(query.model) do |records|
+        update_records(collection.model) do |records|
           updated = filter_records(records.values, query)
           updated.each { |r| r.update(attributes) }
-          updated.size
         end
       end
 
-      def delete(query)
-        update_records(query.model) do |records|
-          deleted = filter_records(records.values, query).to_set
-          records.delete_if { |_k,r| deleted.include?(r) }
-          deleted.size
+      def delete(collection)
+        query = collection.query
+
+        update_records(collection.model) do |records|
+          records_to_delete = filter_records(records.values, query).to_set
+          records.delete_if { |_k,r| records_to_delete.include?(r) }
+          records_to_delete
         end
       end
 

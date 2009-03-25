@@ -37,22 +37,14 @@ module DataMapper
       # @param [Enumerable(Resource)] resources
       #   The set of resources (model instances)
       #
-      # @return [Integer]
-      #   The number of records that were actually saved into the data-store
-      #
       # @api semipublic
       def create(resources)
+        records = records_for(resources.first.model)
+
         resources.each do |resource|
-          records = records_for(resource.model)
-
-          if identity_field = resource.model.identity_field(name)
-            identity_field.set!(resource, records.size.succ)
-          end
-
-          records[resource.key] = resource.attributes
+          initialize_identity_field(resource, records.size.succ)
+          records[resource.key] = resource.attributes(:field)
         end
-
-        resources.size
       end
 
       ##
@@ -68,38 +60,28 @@ module DataMapper
       #
       # @api semipublic
       def read(query)
-        model  = query.model
-        fields = query.fields
-
-        records = records_for(model)
-
-        filter_records(records.values, query).map! do |record|
-          model.load(fields.map { |p| record[p.name] }, query)
-        end
+        records = records_for(query.model)
+        filter_records(records.values, query)
       end
 
       ##
       # Used by DataMapper to update the attributes on existing records in a
       # data-store: "UPDATE" in SQL-speak. It takes a hash of the attributes
-      # to update with, as well as a query object that specifies which resources
+      # to update with, as well as a collection object that specifies which resources
       # should be updated.
       #
       # @param [Hash] attributes
       #   A set of key-value pairs of the attributes to update the resources with.
-      # @param [Query] query
+      # @param [DataMapper::Collection] resources
       #   The query that should be used to find the resource(s) to update.
       #
-      # @return [Integer]
-      #   the number of records that were successfully updated
-      #
       # @api semipublic
-      def update(attributes, query)
-        records    = records_for(query.model)
-        attributes = attributes.map { |p,v| [ p.name, v ] }.to_hash
+      def update(attributes, collection)
+        records    = records_for(collection.model)
+        attributes = attributes_as_fields(attributes)
 
-        updated = filter_records(records.values, query)
+        updated = filter_records(records.values, collection.query)
         updated.each { |r| r.update(attributes) }
-        updated.size
       end
 
       ##
@@ -112,11 +94,11 @@ module DataMapper
       #   The number of records that were deleted.
       #
       # @api semipublic
-      def delete(query)
-        records = records_for(query.model)
-        deleted = filter_records(records.values, query).to_set
-        records.delete_if { |_k,r| deleted.include?(r) }
-        deleted.size
+      def delete(collection)
+        records = records_for(collection.model)
+        records_to_delete = filter_records(records.values, collection.query).to_set
+        records.delete_if { |_k,r| records_to_delete.include?(r) }
+        records_to_delete
       end
 
       private

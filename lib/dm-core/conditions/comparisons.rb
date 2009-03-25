@@ -31,7 +31,7 @@ module DataMapper
 
       def record_value(record)
         if record.kind_of?(Hash)
-          record[@property.name]
+          record[@property.field]
         else
           @property.get!(record)
         end

@@ -136,11 +136,24 @@ module DataMapper
     #   composition of the query to perform
     #
     # @return [Array]
-    #   Result set of the query
+    #   result set of the query
     #
     # @api semipublic
     def read(query)
-      adapter.read(query)
+      results = adapter.read(query)
+
+      model  = query.model
+      fields = query.fields
+
+      results.map! do |record|
+        case record
+          when Hash
+            values = fields.map { |p| record[p.field] || record[p] }
+            model.load(values, query)
+          when DataMapper::Resource
+            record
+        end
+      end
     end
 
     ##
@@ -150,15 +163,15 @@ module DataMapper
     #
     # @param [Hash(Property => Object)] attributes
     #   hash of attribute values to set, keyed by Property
-    # @param [Query] query
-    #   specifies which records are to be updated
+    # @param [Collection] collection
+    #   collection of records to be updated
     #
     # @return [Integer]
     #   the number of records updated
     #
     # @api semipublic
-    def update(attributes, query)
-      adapter.update(attributes, query)
+    def update(attributes, collection)
+      adapter.update(attributes, collection)
     end
 
     ##
@@ -166,15 +179,15 @@ module DataMapper
     #
     #   TODO: create example
     #
-    # @param [Query] query
-    #   specifies which records are to be deleted
+    # @param [Collection] collection
+    #   collection of records to be deleted
     #
     # @return [Integer]
     #   the number of records deleted
     #
     # @api semipublic
-    def delete(query)
-      adapter.delete(query)
+    def delete(collection)
+      adapter.delete(collection)
     end
 
     ##

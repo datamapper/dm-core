@@ -58,20 +58,27 @@ module DataMapper
             options.update(uri.query_values)
           end
 
+          # remap options to internal naming convention
+          { :scheme => :adapter, :username => :user }.each do |old,new|
+            next unless options.key?(old) && !options.key?(new)
+            options[new] = options.delete(old)
+          end
+
           options
         end
 
-        # remap options to internal naming convention
-        { :scheme => :adapter, :username => :user, :database => :path }.each do |old,new|
-          next unless options.key?(old) && !options.key?(new)
-          options[new] = options.delete(old)
-        end
 
         options
       end
 
       # Persists one or many new resources
       # Adapters provide specific implementation of this method
+      #
+      # @param [Enumerable(Resource)] resources
+      #   The list of resources (model instances) to create
+      #
+      # @return [Integer]
+      #   The number of records that were actually saved into the data-store
       #
       # @api semipublic
       def create(resources)
@@ -89,16 +96,30 @@ module DataMapper
       # Updates one or many existing resources
       # Adapters provide specific implementation of this method
       #
+      # @param [Hash(Property => Object)] attributes
+      #   hash of attribute values to set, keyed by Property
+      # @param [Collection] collection
+      #   collection of records to be updated
+      #
+      # @return [Integer]
+      #   the number of records updated
+      #
       # @api semipublic
-      def update(attributes, query)
+      def update(attributes, collection)
         raise NotImplementedError
       end
 
       # Deletes one or many existing resources
       # Adapters provide specific implementation of this method
       #
+      # @param [Collection] collection
+      #   collection of records to be deleted
+      #
+      # @return [Integer]
+      #   the number of records deleted
+      #
       # @api semipublic
-      def delete(query)
+      def delete(collection)
         raise NotImplementedError
       end
 
@@ -190,7 +211,7 @@ module DataMapper
           records.sort! do |a,b|
             cmp = 0
             sort_order.each do |(property,descending)|
-              cmp = a[property.name] <=> b[property.name]
+              cmp = a[property.field] <=> b[property.field]
               cmp *= -1 if descending
               break if cmp != 0
             end
@@ -224,8 +245,20 @@ module DataMapper
         end
       end
 
-      private
+      def initialize_identity_field(resource, next_id)
+        if identity_field = resource.model.identity_field(name)
+          identity_field.set!(resource, next_id)
+          # TODO: replace above with this, once
+          # specs can handle random, non-sequential ids
+          #identity_field.set!(resource, rand(2**32))
+        end
+      end
 
+      def attributes_as_fields(attributes)
+        attributes.map { |p,v| [p.field, v] }.to_hash
+      end
+
+      private
 
       ##
       # Instantiate an Adapter by passing it a Repository

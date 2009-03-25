@@ -36,6 +36,17 @@ module DataMapper
     end
 
     ##
+    # Returns the Model
+    #
+    # @return [Model]
+    #   the Model the Collection is associated with
+    #
+    # @api semipublic
+    def model
+      query.model
+    end
+
+    ##
     # Reloads the Collection from the repository.
     #
     # If +query+ is provided, updates this Collection's query with its conditions
@@ -747,18 +758,16 @@ module DataMapper
       elsif dirty_attributes.any? { |p,v| !p.nullable? && v.nil? }
         false
       else
-        updated = repository.update(dirty_attributes, query)
+        updated = repository.update(dirty_attributes, self)
 
         if loaded?
           each do |resource|
             dirty_attributes.each { |p,v| p.set!(resource, v) }
             repository.identity_map(model)[resource.key] = resource
           end
-
-          updated == size
-        else
-          true
         end
+
+        true
       end
     end
 
@@ -812,16 +821,14 @@ module DataMapper
     #
     # @api public
     def destroy!
-      destroyed = repository.delete(query)
+      repository.delete(self)
 
       if loaded?
         each { |r| r.reset }
-        size = self.size
         clear
-        destroyed == size
-      else
-        true
       end
+
+      true
     end
 
     ##
@@ -873,19 +880,6 @@ module DataMapper
     # @api semipublic
     def relationships
       model.relationships(repository.name)
-    end
-
-    protected
-
-    ##
-    # Returns the Model
-    #
-    # @return [Model]
-    #   the Model the Collection is associated with
-    #
-    # @api private
-    def model
-      query.model
     end
 
     private
