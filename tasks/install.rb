@@ -13,6 +13,6 @@ if WIN32
 else
   desc "Install #{GEM_NAME}"
   task :install => :package do
-    sudo_gem "install --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem"
+    sudo_gem "install --no-rdoc --no-ri --local pkg/#{GEM_NAME}-#{GEM_VERSION}.gem"
   end
 end
