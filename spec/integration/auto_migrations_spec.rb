@@ -133,8 +133,6 @@ if HAS_SQLITE3
           it 'should properly typecast value' do
             if DateTime == klass
               @book.send(name).to_s.should == expected_value.to_s
-            elsif Time == klass
-              @book.send(name).strftime("%a %b %d %H:%M:%S %Z %Y #{@book.send(name).usec}").should == expected_value.strftime("%a %b %d %H:%M:%S %Z %Y #{expected_value.usec}")
             else
               @book.send(name).should == expected_value
             end
@@ -391,8 +389,6 @@ if HAS_POSTGRES
           it 'should properly typecast value' do
             if DateTime == klass
               @book.send(name).to_s.should == expected_value.to_s
-            elsif Time == klass
-              @book.send(name).strftime("%a %b %d %H:%M:%S %Z %Y #{@book.send(name).usec}").should == expected_value.strftime("%a %b %d %H:%M:%S %Z %Y #{expected_value.usec}")
             else
               @book.send(name).should == expected_value
             end
