@@ -81,10 +81,8 @@ module DataMapper
 
         with_repository(child_model) do |r|
           parent_identity_map = parent.repository.identity_map(parent_model)
-          child_identity_map  = r.identity_map(child_model)
 
           query_values = parent_identity_map.keys
-          query_values.reject! { |k| child_identity_map[k] }
 
           bind_values = query_values unless query_values.empty?
           query = child_key.zip(bind_values.transpose).to_hash
