@@ -116,7 +116,7 @@ if HAS_SQLITE3
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
-        describe "a #{klass} property" do
+        describe "a #{klass} property (#{name})" do
           it "should be created as a #{type}" do
             @table_set[name.to_s].type.should == type
           end
@@ -133,6 +133,8 @@ if HAS_SQLITE3
           it 'should properly typecast value' do
             if DateTime == klass
               @book.send(name).to_s.should == expected_value.to_s
+            elsif Time == klass
+              @book.send(name).strftime("%a %b %d %H:%M:%S %Z %Y #{@book.send(name).usec}").should == expected_value.strftime("%a %b %d %H:%M:%S %Z %Y #{expected_value.usec}")
             else
               @book.send(name).should == expected_value
             end
@@ -228,7 +230,7 @@ if HAS_MYSQL
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
-        describe "a #{klass} property" do
+        describe "a #{klass} property (#{name})" do
           it "should be created as a #{type}" do
             @table_set[name.to_s].type.should == type
           end
@@ -372,7 +374,7 @@ if HAS_POSTGRES
       }
 
       types.each do |name,(klass,type,nullable,default,key)|
-        describe "a #{Extlib::Inflection.classify(name.to_s)} property" do
+        describe "a #{klass} property (#{name})" do
           it "should be created as a #{type}" do
             @table_set[name.to_s].type.should == type
           end
@@ -389,6 +391,8 @@ if HAS_POSTGRES
           it 'should properly typecast value' do
             if DateTime == klass
               @book.send(name).to_s.should == expected_value.to_s
+            elsif Time == klass
+              @book.send(name).strftime("%a %b %d %H:%M:%S %Z %Y #{@book.send(name).usec}").should == expected_value.strftime("%a %b %d %H:%M:%S %Z %Y #{expected_value.usec}")
             else
               @book.send(name).should == expected_value
             end
