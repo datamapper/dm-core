@@ -1,6 +1,17 @@
 === 0.9.11 / not released
 
-  * No changes this version
+* 1 major enhancement:
+
+  * Added deprecation warning for inferred child_key naming convention change
+
+* 6 bug fixes:
+
+  * Removed unecessary code from SEL
+  * 1.9.1 fix for Logger to use Array#join instead of Array#to_s
+  * 1.9.1 fix for specs to pass
+  * Fix for multiple join models to create correct SQL
+  * Fix for STI and lazy loading
+  * Fixed Resource#eql?
 
 === 0.9.10 / 2009-01-19
 
