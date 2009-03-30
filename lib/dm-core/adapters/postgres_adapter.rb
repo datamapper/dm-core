@@ -1,4 +1,4 @@
-gem 'do_postgres', '~>0.9.12'
+gem 'do_postgres', '~>0.9.11'
 require 'do_postgres'
 
 module DataMapper
