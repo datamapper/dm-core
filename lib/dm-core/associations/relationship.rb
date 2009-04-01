@@ -8,54 +8,47 @@ module DataMapper
       # @api private
       attr_reader :name, :options, :query
 
-      # @api private
       def child_key
-        @child_key ||= begin
-          child_key = nil
-          child_model.repository.scope do |r|
-            model_properties = child_model.properties(r.name)
+        child_key = child_model.repository.scope do |r|
+          model_properties = child_model.properties(r.name)
 
-            child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
-              # TODO: use something similar to DM::NamingConventions to determine the property name
-              parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
-              property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
+          child_key = parent_key.zip(@child_properties).map do |parent_property,property_name|
+            # TODO: use something similar to DM::NamingConventions to determine the property name
+            parent_name = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name))
+            property_name ||= "#{parent_name}_#{parent_property.name}".to_sym
 
-              if model_properties.has_property?(property_name)
-                model_properties[property_name]
-              else
-                options = {}
+            if model_properties.has_property?(property_name)
+              model_properties[property_name]
+            else
+              options = {}
 
-                [ :length, :precision, :scale ].each do |option|
-                  options[option] = parent_property.send(option)
-                end
-
-                # NOTE: hack to make each many to many child_key a true key,
-                # until I can figure out a better place for this check
-                if child_model.respond_to?(:many_to_many)
-                  options[:key] = true
-                end
-
-                child_model.property(property_name, parent_property.primitive, options)
+              [ :length, :precision, :scale ].each do |option|
+                options[option] = parent_property.send(option)
               end
+
+              # NOTE: hack to make each many to many child_key a true key,
+              # until I can figure out a better place for this check
+              if child_model.respond_to?(:many_to_many)
+                options[:key] = true
+              end
+
+              child_model.property(property_name, parent_property.primitive, options)
             end
           end
-          PropertySet.new(child_key)
         end
+        @child_key = PropertySet.new(child_key)
       end
 
       # @api private
       def parent_key
-        @parent_key ||= begin
-          parent_key = nil
-          parent_model.repository.scope do |r|
-            parent_key = if @parent_properties
-              parent_model.properties(r.name).slice(*@parent_properties)
-            else
-              parent_model.key
-            end
+        parent_key = parent_model.repository.scope do |r|
+          if @parent_properties
+            parent_model.properties(r.name).slice(*@parent_properties)
+          else
+            parent_model.key
           end
-          PropertySet.new(parent_key)
         end
+        @parent_key = PropertySet.new(parent_key)
       end
 
       # @api private
