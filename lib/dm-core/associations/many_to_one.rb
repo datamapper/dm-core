@@ -90,7 +90,7 @@ module DataMapper
         #
         # @api semipublic
         def create_reader
-          return if child_model.instance_methods(false).map { |m| m.to_sym }.include?(name)
+          return if child_model.instance_methods(false).any? { |m| m.to_sym == name }
 
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
@@ -110,11 +110,13 @@ module DataMapper
         #
         # @api semipublic
         def create_writer
-          return if child_model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
+          writer_name = "#{name}=".to_sym
+
+          return if child_model.instance_methods(false).any? { |m| m.to_sym == writer_name }
 
           child_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
-            def #{name}=(parent)                               # def article=(parent)
+            def #{writer_name}(parent)                         # def article=(parent)
               relationships[#{name.inspect}].set(self, parent) #   relationships["article"].set(self, parent)
             end                                                # end
           RUBY

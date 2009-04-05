@@ -134,7 +134,7 @@ module DataMapper
         return true
       end
 
-      unless self.class.equal?(other.class)
+      unless model.equal?(other.class)
         return false
       end
 
@@ -432,7 +432,7 @@ module DataMapper
     #
     # @deprecated
     def new_record?
-      warn "#{self.class}#new_record? is deprecated, use #{self.class}#new? or #{self.class}#saved? instead"
+      warn "#{model}#new_record? is deprecated, use #{model}#new? or #{model}#saved? instead"
       new?
     end
 
@@ -482,7 +482,7 @@ module DataMapper
         if public_method?(setter = "#{name}=")
           send(setter, value)
         else
-          raise ArgumentError, "The property '#{name}' is not accessible in #{self.class}"
+          raise ArgumentError, "The property '#{name}' is not accessible in #{model}"
         end
       end
     end
@@ -494,10 +494,10 @@ module DataMapper
     #
     # @api public
     def update_attributes(attributes = {}, *allowed)
-      warn "#{self.class}#update_attributes is deprecated, use #{self.class}#update instead"
+      warn "#{model}#update_attributes is deprecated, use #{model}#update instead"
 
       if allowed.any?
-        warn "specifying allowed in #{self.class}#update_attributes is deprecated," \
+        warn "specifying allowed in #{model}#update_attributes is deprecated," \
           'use Hash#only to filter the attributes in the caller'
         attributes = attributes.only(*allowed)
       end

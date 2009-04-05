@@ -905,7 +905,7 @@ module DataMapper
     #
     # @api private
     def create_reader
-      unless model.instance_methods(false).map { |m| m.to_sym }.include?(name)
+      unless model.instance_methods(false).any? { |m| m.to_sym == name }
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
           def #{name}
@@ -915,7 +915,9 @@ module DataMapper
         RUBY
       end
 
-      if primitive == TrueClass && !model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}?".to_sym)
+      boolean_reader_name = "#{name}?".to_sym
+
+      if primitive == TrueClass && !model.instance_methods(false).any? { |m| m.to_sym == boolean_reader_name }
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           #{reader_visibility}
           alias #{name}? #{name}
@@ -927,11 +929,13 @@ module DataMapper
     #
     # @api private
     def create_writer
-      return if model.instance_methods(false).map { |m| m.to_sym }.include?("#{name}=".to_sym)
+      writer_name = "#{name}=".to_sym
+
+      return if model.instance_methods(false).any? { |m| m.to_sym == writer_name }
 
       model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
         #{writer_visibility}
-        def #{name}=(value)
+        def #{writer_name}(value)
           properties[#{name.inspect}].set(self, value)
         end
       RUBY
