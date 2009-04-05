@@ -10,6 +10,8 @@ module DataMapper
         model           = property.model
 
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          # TODO: update to use an Ordered Set so that new models
+          # added retain their order
           def self.descendants
             @descendants ||= Set.new
           end

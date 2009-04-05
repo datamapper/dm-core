@@ -31,55 +31,23 @@ module DataMapper
       # @api private
       def inherited(target)
         # TODO: Create a RelationshipSet class, and then add a method that allows copying the relationships to the supplied repository and model
-        duped_relationships = {}
+        target.instance_variable_set(:@relationships, duped_relationships = {})
+
         @relationships.each do |repository_name, relationships|
-          duped_relationship = duped_relationships[repository_name] ||= Mash.new
+          dup = duped_relationships[repository_name] ||= Mash.new
 
           relationships.each do |name, relationship|
-            dup = relationship.dup
-
-            [ :@child_model, :@parent_model ].each do |ivar|
-              if dup.instance_variable_defined?(ivar) && dup.instance_variable_get(ivar) == self
-                dup.instance_variable_set(ivar, target)
-              end
-            end
-
-            duped_relationship[name] = dup
+            dup[name] = relationship.class.new(
+              relationship.name,
+              relationship.child_model_name  == self.name ? target : relationship.child_model_name,
+              relationship.parent_model_name == self.name ? target : relationship.parent_model_name,
+              relationship.options
+            )
           end
         end
 
-        target.instance_variable_set(:@relationships, duped_relationships)
-
         super
       end
-    end
-
-    ##
-    # Returns all relationships that are many-to-one for this model.
-    #
-    # Used to find the relationships that require properties in any Repository.
-    #
-    #  class Plur
-    #    include DataMapper::Resource
-    #
-    #    def self.default_repository_name
-    #      :plur_db
-    #    end
-    #
-    #    repository(:plupp_db) do
-    #      has 1, :plupp
-    #    end
-    #  end
-    #
-    # This resource has a many-to-one to the Plupp resource residing in the :plupp_db repository,
-    # but the Plur resource needs the plupp_id property no matter what repository itself lives in,
-    # ie we need to create that property when we migrate etc.
-    #
-    # Used in Model.properties_with_subclasses
-    #
-    # @api private
-    def many_to_one_relationships
-      @relationships.values.collect { |r| r.values }.flatten.select { |r| r.child_model == self }
     end
 
     # Returns copy of relationships set in given repository.
@@ -192,8 +160,6 @@ module DataMapper
       options = options.dup
 
       assert_valid_options(options)
-
-      @_valid_relations = false
 
       child_repository_name = repository.name
 

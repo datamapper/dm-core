@@ -119,6 +119,7 @@ module DataMapper
 
       Model.descendants << model
 
+      model.instance_variable_set(:@valid,                    false)
       model.instance_variable_set(:@storage_names,            {})
       model.instance_variable_set(:@properties,               {})
       model.instance_variable_set(:@paranoid_properties,      {})
@@ -126,11 +127,6 @@ module DataMapper
 
       extra_inclusions.each { |mod| model.send(:include, mod) }
       extra_extensions.each { |mod| model.extend(mod)         }
-
-      class << model
-        @_valid_model = false
-        attr_reader :_valid_model
-      end
     end
 
     # TODO: document
@@ -139,11 +135,12 @@ module DataMapper
       def inherited(target)
         Model.descendants << target
 
+        target.instance_variable_set(:@valid,                    false)
         target.instance_variable_set(:@storage_names,            @storage_names.dup)
         target.instance_variable_set(:@properties,               {})
-        target.instance_variable_set(:@base_model,               self.base_model)
         target.instance_variable_set(:@paranoid_properties,      @paranoid_properties.dup)
         target.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
+        target.instance_variable_set(:@base_model,               base_model)
 
         # TODO: move this into dm-validations
         if respond_to?(:validators)
@@ -156,11 +153,7 @@ module DataMapper
         @properties.each do |repository_name,properties|
           repository(repository_name) do
             properties.each do |property|
-              if target.properties(repository_name).include?(property)
-                next
-              end
-
-              target.property(property.name, property.type, property.options.dup)
+              target.property(property.name, property.type, property.options)
             end
           end
         end
@@ -230,7 +223,6 @@ module DataMapper
       property = Property.new(self, name, type, options)
 
       properties(repository_name) << property
-      @_valid_relations = false
 
       # Add property to the other mappings as well if this is for the default
       # repository.
@@ -285,20 +277,6 @@ module DataMapper
     # @api public
     def properties(repository_name = default_repository_name)
       assert_kind_of 'repository_name', repository_name, Symbol
-
-      # We need to check whether all relations are already set up.
-      # If this isn't the case, we try to reload them here
-      if (!defined?(@_valid_relations) || @_valid_relations == false) && respond_to?(:many_to_one_relationships)
-        @_valid_relations = true
-        begin
-          relationships(repository_name).each_value { |r| r.through; r.child_key }
-          many_to_one_relationships.each { |r| r.child_key }
-        rescue NameError
-          # Apparently not all relations are loaded,
-          # so we will try again later on
-          @_valid_relations = false
-        end
-      end
 
       # TODO: create PropertySet#copy that will copy the properties, but assign the
       # new Relationship objects to a supplied repository and model.  dup does not really
@@ -465,6 +443,8 @@ module DataMapper
     #
     # @api public
     def new(attributes = {})
+      assert_valid
+
       model = nil
 
       if discriminator = properties(repository_name).discriminator
@@ -666,11 +646,12 @@ module DataMapper
     def properties_with_subclasses(repository_name = default_repository_name)
       properties = PropertySet.new
 
-      ([ self ].to_set + (respond_to?(:descendants) ? descendants : [])).each do |model|
-        model.relationships(repository_name).each_value { |r| r.through; r.child_key }
-        model.many_to_one_relationships.each { |r| r.child_key }
+      models = [ self ]
+      models.concat(descendants) if respond_to?(:descendants)
+
+      models.uniq.each do |model|
         model.properties(repository_name).each do |property|
-          properties << property unless properties.include?(property)
+          properties << property unless properties.any? { |p| p.name == property.name }
         end
       end
 
@@ -757,6 +738,26 @@ module DataMapper
           merge_with_default_scope(query)
         end
       end
+    end
+
+    # @api private
+    def assert_valid # :nodoc:
+      return if @valid
+
+      if properties(repository_name).empty? && relationships(repository_name).empty?
+        raise IncompleteModelError, "#{name} must have at least one property or relationship to be initialized."
+      end
+
+      if key(repository_name).empty?
+        raise IncompleteModelError, "#{name} must have a key."
+      end
+
+      # initialize the relationships
+      @relationships.each_value do |relationships|
+        relationships.each_value { |r| r.through; r.child_key }
+      end
+
+      @valid = true
     end
 
     # TODO: document

@@ -969,6 +969,9 @@ describe DataMapper::Query do
       property :name, String, :key => true
 
       belongs_to :referrer, :model => self
+
+      # TODO: figure out a way to remove this
+      assert_valid
     end
 
     @repository = DataMapper::Repository.new(:default)

@@ -144,9 +144,13 @@ module DataMapper
       # @returns [DataMapper::Resource] Class of association child
       # @api semipublic
       def child_model
-        @child_model ||= (@parent_model || Object).find_const(@child_model_name)
+        @child_model ||= (@parent_model || Object).find_const(child_model_name)
       rescue NameError
-        raise NameError, "Cannot find the child_model #{@child_model_name} for #{@parent_model || @parent_model_name} in #{name}"
+        raise NameError, "Cannot find the child_model #{child_model_name} for #{parent_model_name} in #{name}"
+      end
+
+      def child_model_name
+        @child_model ? @child_model.name : @child_model_name
       end
 
       # Returns a set of keys that identify child model
@@ -181,9 +185,13 @@ module DataMapper
       # @returns [DataMapper::Resource] Class of association parent
       # @api semipublic
       def parent_model
-        @parent_model ||= (@child_model || Object).find_const(@parent_model_name)
+        @parent_model ||= (@child_model || Object).find_const(parent_model_name)
       rescue NameError
-        raise NameError, "Cannot find the parent_model #{@parent_model_name} for #{@child_model || @child_model_name} in #{name}"
+        raise NameError, "Cannot find the parent_model #{parent_model_name} for #{child_model_name} in #{name}"
+      end
+
+      def parent_model_name
+        @parent_model ? @parent_model.name : @parent_model_name
       end
 
       # Returns a set of keys that identify parent model

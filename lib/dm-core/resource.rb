@@ -718,27 +718,8 @@ module DataMapper
     #
     # @api public
     def initialize(attributes = {}) # :nodoc:
-      assert_valid_model
       @saved = false
       self.attributes = attributes
-    end
-
-    # TODO: move to Model#assert_valid
-    # @api private
-    def assert_valid_model # :nodoc:
-      if self.class._valid_model
-        return
-      end
-
-      if properties.empty? && relationships.empty?
-        raise IncompleteModelError, "#{model.name} must have at least one property or relationship to be initialized."
-      end
-
-      if properties.key.empty?
-        raise IncompleteModelError, "#{model.name} must have a key."
-      end
-
-      self.class.instance_variable_set('@_valid_model', true)
     end
 
     # Reloads attributes that belong to given lazy loading
