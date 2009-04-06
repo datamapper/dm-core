@@ -744,17 +744,18 @@ module DataMapper
     def assert_valid # :nodoc:
       return if @valid
 
-      if properties(repository_name).empty? && relationships(repository_name).empty?
-        raise IncompleteModelError, "#{name} must have at least one property or relationship to be initialized."
+      if properties(repository_name).empty? &&
+        !relationships(repository_name).any? { |r| r.kind_of?(Associations::ManyToOne::Relationship) }
+        raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
       end
 
       if key(repository_name).empty?
-        raise IncompleteModelError, "#{name} must have a key."
+        raise IncompleteModelError, "#{name} must have a key to be valid"
       end
 
       # initialize the relationships
       @relationships.each_value do |relationships|
-        relationships.each_value { |r| r.through; r.child_key }
+        relationships.each_value { |r| r.child_key }
       end
 
       @valid = true

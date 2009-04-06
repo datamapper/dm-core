@@ -77,7 +77,7 @@ Spec::Runner.configure do |config|
   config.extend(DataMapper::Spec::AdapterHelpers)
   config.include(DataMapper::Spec::PendingHelpers)
   config.after :all do
-    # clear out models
+    # global model cleanup
     descendants = DataMapper::Model.descendants.dup.to_a
     while model = descendants.shift
       descendants.concat(model.descendants) if model.respond_to?(:descendants)

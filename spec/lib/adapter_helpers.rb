@@ -26,11 +26,13 @@ module DataMapper::Spec
 
           after :all do
             # remove all tables and constraints after each spec
-            if @repository.respond_to?(:auto_migrate_down)
-              @repository.send(:auto_migrate_down)
+            if DataMapper.respond_to?(:auto_migrate_down!, true)
+              DataMapper.send(:auto_migrate_down!, @repository.name)
             end
           end
 
+          # TODO: add destroy_model_storage and migrations code
+          # that removes the YAML file and remove this code
           after :all do
             if defined?(DataMapper::Adapters::YamlAdapter) && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
               descendants = DataMapper::Model.descendants.dup.to_a
@@ -67,11 +69,13 @@ module DataMapper::Spec
 
           after :all do
             # remove all tables and constraints after each spec
-            if @alternate_repository.respond_to?(:auto_migrate_down)
-              @alternate_repository.send(:auto_migrate_down)
+            if DataMapper.respond_to?(:auto_migrate_down!, true)
+              DataMapper.send(:auto_migrate_down!, @alternate_repository.name)
             end
           end
 
+          # TODO: add destroy_model_storage and migrations code
+          # that removes the YAML file and remove this code
           after :all do
             if defined?(DataMapper::Adapters::YamlAdapter) && @alternate_adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
               descendants = DataMapper::Model.descendants.dup.to_a

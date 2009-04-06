@@ -696,8 +696,7 @@ share_examples_for 'A public Resource' do
   end
 
   describe 'invalid resources' do
-
-    before :all do
+    before do
       class ::EmptyObject
         include DataMapper::Resource
       end
@@ -716,6 +715,14 @@ share_examples_for 'A public Resource' do
       lambda { KeylessObject.new }.should raise_error
     end
 
+    after do
+      # clean out invalid models so that global model cleanup
+      # does not throw an exception when working with models
+      # in an invalid state
+      [ EmptyObject, KeylessObject ].each do |model|
+        Object.send(:remove_const, model.name.to_sym)
+        DataMapper::Model.descendants.delete(model)
+      end
+    end
   end
-
 end

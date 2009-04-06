@@ -23,6 +23,11 @@ module DataMapper
             join_model.belongs_to(join_relationship_name(child_model),           :model => child_model)
             parent_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
           end
+
+          # initialize the child_key since the parent and child model are defined
+          @through.child_key
+
+          @through
         end
 
         # TODO: document
@@ -176,7 +181,7 @@ module DataMapper
             model = Model.new do
               # all properties added to the join model are considered a key
               def property(name, type, options = {})
-                options[:key] = true
+                options[:key] = true unless options.key?(:key)
                 options.delete(:index)
                 super
               end
