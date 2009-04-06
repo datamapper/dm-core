@@ -235,8 +235,7 @@ module DataMapper
       def limit_records(records, query)
         offset = query.offset
         limit  = query.limit
-
-        size = records.size
+        size   = records.size
 
         if offset > size - 1
           records.clear

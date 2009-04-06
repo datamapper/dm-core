@@ -77,9 +77,9 @@ module DataMapper
       #
       # @api semipublic
       def update(attributes, collection)
-        records    = records_for(collection.model)
         attributes = attributes_as_fields(attributes)
 
+        records = records_for(collection.model)
         updated = filter_records(records.values, collection.query)
         updated.each { |r| r.update(attributes) }
       end
