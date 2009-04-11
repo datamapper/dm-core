@@ -3,7 +3,12 @@ share_examples_for "An Adapter" do
 
   def self.adapter_supports?(*methods)
     methods.all? do |method|
-      described_type.instance_methods(false).include?(method.to_s)
+      # TODO: figure out a way to see if the instance method is only inherited
+      # from the Abstract Adapter, and not defined in it's class.  If that is
+      # the case return false
+
+      # CRUD methods can be inherited from parent class
+      described_type.instance_methods.any? { |m| method.to_s == m.to_s }
     end
   end
 
@@ -28,12 +33,10 @@ share_examples_for "An Adapter" do
     if @repository.respond_to?(:auto_migrate!)
       Heffalump.auto_migrate!
     end
-
   end
 
   if adapter_supports?(:create)
     describe '#create' do
-
       it 'should not raise any errors' do
         lambda {
           Heffalump.create(:color => 'peach')
@@ -46,7 +49,6 @@ share_examples_for "An Adapter" do
         h.save
         h.id.should_not be_nil
       end
-
     end
   else
     it 'needs to support #create'
@@ -69,7 +71,6 @@ share_examples_for "An Adapter" do
       it 'should return stuff' do
         Heffalump.all.should include(@heffalump)
       end
-
     end
   else
     it 'needs to support #read'
@@ -101,7 +102,6 @@ share_examples_for "An Adapter" do
         @heffalump.save
         @heffalump.color.should == color
       end
-
     end
   else
     it 'needs to support #update'
@@ -161,14 +161,14 @@ share_examples_for "An Adapter" do
         describe 'not' do
           it 'should be able to search for objects with not equal value' do
             Heffalump.all(:color.not => 'red').should_not include(@red)
-        end
+          end
 
-        it 'should include objects that are not like the value' do
-          Heffalump.all(:color.not => 'black').should include(@red)
-        end
+          it 'should include objects that are not like the value' do
+            Heffalump.all(:color.not => 'black').should include(@red)
+          end
 
-        it 'should be able to search for objects with not nil value' do
-          Heffalump.all(:color.not => nil).should include(@red)
+          it 'should be able to search for objects with not nil value' do
+            Heffalump.all(:color.not => nil).should include(@red)
           end
 
           it 'should not include objects with a nil value' do
@@ -203,16 +203,18 @@ share_examples_for "An Adapter" do
         describe 'like' do
           it 'should be able to search for objects that match value' do
             Heffalump.all(:color.like => '%ed').should include(@red)
-        end
+          end
 
-        it 'should not search for objects that do not match the value' do
-          Heffalump.all(:color.like => '%blak%').should_not include(@red)
+          it 'should not search for objects that do not match the value' do
+            Heffalump.all(:color.like => '%blak%').should_not include(@red)
           end
         end
 
         describe 'regexp' do
-          before :all do
-            @using_sqlite3 = defined?(DataMapper::Adapters::Sqlite3Adapter) && @adapter.kind_of?(DataMapper::Adapters::Sqlite3Adapter)
+          before do
+            if defined?(DataMapper::Adapters::Sqlite3Adapter) && @adapter.kind_of?(DataMapper::Adapters::Sqlite3Adapter)
+              pending 'delegate regexp matches to same system that the InMemory and YAML adapters use'
+            end
           end
 
           it 'should be able to search for objects that match value' do
@@ -271,7 +273,6 @@ share_examples_for "An Adapter" do
             Heffalump.all(:num_spots.lte => 1).should_not include(@two)
           end
         end
-
       end
 
       describe 'limits' do
@@ -279,10 +280,8 @@ share_examples_for "An Adapter" do
           Heffalump.all(:limit => 2).length.should == 2
         end
       end
-
     end
   else
     it 'needs to support #read and #create to test query matching'
   end
-
 end

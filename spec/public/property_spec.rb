@@ -167,13 +167,10 @@ describe DataMapper::Property do
         @image = Image.create(:md5hash     => "5268f0f3f452844c79843e820f998869",
                               :title       => "Rome at the sunset",
                               :description => "Just wow")
+
         @image.should be_saved
-        # imitate "normal" load here to test lazy attributes load
-        # yes, we use dark ruby magic
-        @image.send(:remove_instance_variable, :@description)
-        Image.properties[:description].loaded?(@image).should be(false)
-        @image.send(:remove_instance_variable, :@format)
-        Image.properties[:format].loaded?(@image).should be(false)
+
+        @image = Image.first(:fields => [ :md5hash, :title ], :md5hash => @image.md5hash)
       end
 
       it 'triggers loading for lazy loaded properties' do

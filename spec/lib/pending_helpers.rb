@@ -18,8 +18,7 @@ module DataMapper::Spec
           raised = true
         end
 
-        # TODO: uncomment once InMemory and Yaml Adapters work with many to many
-        #raise 'should have raised' if raised == false
+        raise 'should have raised' if raised == false
       else
         yield
       end
