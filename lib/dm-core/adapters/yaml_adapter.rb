@@ -6,7 +6,7 @@ module DataMapper
 
       attr_reader :path
 
-      def initialize(name, uri_or_options)
+      def initialize(name, options = {})
         super
         @path = FileUtils.mkdir_p(@options[:path])
       end

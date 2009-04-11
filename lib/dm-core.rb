@@ -156,26 +156,36 @@ module DataMapper
   #   the given uri_or_options[Hash, Addressable::URI, String]
   #
   # @api public
-  def self.setup(name, uri_or_options)
-    assert_kind_of 'name', name, Symbol
+  def self.setup(*args)
+    if args.first.is_a?(DataMapper::Adapters::AbstractAdapter)
+      adapter = args.first
+      name = adapter.name
+    else
+      name = args.first
+      uri_or_options = args.last
 
-    options = Adapters::AbstractAdapter.normalize_options(uri_or_options)
+      options = normalize_options(uri_or_options)
 
-    adapter_name = options[:adapter]
-    class_name   = (Extlib::Inflection.classify(adapter_name) + 'Adapter').to_sym
+      adapter_name = options[:adapter]
+      class_name   = (Extlib::Inflection.classify(adapter_name) + 'Adapter').to_sym
 
-    unless Adapters.const_defined?(class_name)
-      lib_name = "#{adapter_name}_adapter"
-      file     = root / 'lib' / 'dm-core' / 'adapters' / "#{lib_name}.rb"
+      unless Adapters.const_defined?(class_name)
+        lib_name = "#{adapter_name}_adapter"
+        file     = root / 'lib' / 'dm-core' / 'adapters' / "#{lib_name}.rb"
 
-      if file.file?
-        require file
-      else
-        require lib_name
+        if file.file?
+          require file
+        else
+          require lib_name
+        end
       end
+
+      adapter = Adapters.const_get(class_name).new(name, options)
     end
 
-    Repository.adapters[name] = Adapters.const_get(class_name).new(name, options)
+    assert_kind_of 'name', name, Symbol
+
+    Repository.adapters[name] = adapter
   end
 
   ##
@@ -206,4 +216,30 @@ module DataMapper
       current_repository
     end
   end
+
+  # Turns options hash or connection URI into
+  # options hash used by the adapter
+  #
+  # @api private
+  def self.normalize_options(uri_or_options)
+    assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
+
+    if uri_or_options.kind_of?(Hash)
+      uri_or_options.to_mash
+    else
+      uri     = uri_or_options.kind_of?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
+      options = uri.to_hash.to_mash
+
+      # Extract the name/value pairs from the query portion of the
+      # connection uri, and set them as options directly.
+      if options[:query]
+        options.update(uri.query_values)
+      end
+
+      options[:adapter] = options[:scheme]
+
+      options
+    end
+  end
+
 end

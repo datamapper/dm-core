@@ -23,7 +23,7 @@ module DataMapper
       #   the adapter
       #
       # @api semipublic
-      def initialize(name, uri_or_options)
+      def initialize(name, options = {})
         super
         @records = {}
       end

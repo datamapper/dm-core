@@ -41,36 +41,6 @@ module DataMapper
       # @api semipublic
       attr_accessor :field_naming_convention
 
-      # Turns options hash or connection URI into
-      # options hash used by the adapter
-      #
-      # @api semipublic
-      def self.normalize_options(uri_or_options)
-        assert_kind_of 'uri_or_options', uri_or_options, Addressable::URI, Hash, String
-
-        options = if uri_or_options.kind_of?(Hash)
-          uri_or_options.to_mash
-        else
-          uri     = uri_or_options.kind_of?(String) ? Addressable::URI.parse(uri_or_options) : uri_or_options
-          options = uri.to_hash.to_mash
-
-          if options.delete(:query)
-            options.update(uri.query_values)
-          end
-
-          # remap options to internal naming convention
-          { :scheme => :adapter, :username => :user }.each do |old,new|
-            next unless options.key?(old) && !options.key?(new)
-            options[new] = options.delete(old)
-          end
-
-          options
-        end
-
-
-        options
-      end
-
       # Persists one or many new resources
       # Adapters provide specific implementation of this method
       #
@@ -267,11 +237,11 @@ module DataMapper
       # and properties (fields)
       #
       # @api semipublic
-      def initialize(name, uri_or_options)
+      def initialize(name, options)
         assert_kind_of 'name', name, Symbol
 
         @name                       = name
-        @options                    = self.class.normalize_options(uri_or_options)
+        @options                    = options.dup.freeze
         @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Field::Underscored
       end
