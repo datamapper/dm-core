@@ -94,7 +94,7 @@ module DataMapper
           grouped_collection = {}
           collection.each do |resource|
             child_value = child_key.get(resource)
-            parent_obj = parent_identity_map[child_value]
+            next unless parent_obj = parent_identity_map[child_value]
             grouped_collection[parent_obj] ||= []
             grouped_collection[parent_obj] << resource
           end
