@@ -150,7 +150,7 @@ module DataMapper
 
       adapter.read(query).map do |record|
         values = case record
-          when Hash     then fields.map { |p| record[p] || record[p.field] }
+          when Hash     then fields.map { |p| record.key?(p) ? record[p] : record[p.field] }
           when Resource then fields.map { |p| p.get!(record) }
         end
 
