@@ -72,27 +72,29 @@ module DataMapper
       #
       # @api semipublic
       def read(query)
-        with_connection do |connection|
-          statement, bind_values = select_statement(query)
+        fields = query.fields
+        types  = fields.map { |p| p.primitive }
 
+        statement, bind_values = select_statement(query)
+
+        resources = []
+
+        with_connection do |connection|
           command = connection.create_command(statement)
-          command.set_types(query.fields.map { |p| p.primitive })
+          command.set_types(types)
+
+          reader = command.execute_reader(*bind_values)
 
           begin
-            reader = command.execute_reader(*bind_values)
-
-            model     = query.model
-            resources = []
-
             while(reader.next!)
-              resources << model.load(reader.values, query)
+              resources << fields.zip(reader.values).to_hash
             end
-
-            resources
           ensure
-            reader.close if reader
+            reader.close
           end
         end
+
+        resources
       end
 
       # Constructs and executes UPDATE statement for given
@@ -402,16 +404,24 @@ module DataMapper
         #
         # @return [String] where clause
         def conditions_statement(conditions, qualify = false)
-          statement, bind_values = case conditions
-            when Conditions::NotOperation       then negate_operation(conditions, qualify)
-            when Conditions::AbstractOperation  then operation_statement(conditions, qualify)
-            when Conditions::AbstractComparison then comparison_statement(conditions, qualify)
-            when Array                          then conditions  # handle raw conditions
+          case conditions
+            when Conditions::NotOperation
+              negate_operation(conditions, qualify)
+            when Conditions::AbstractOperation
+              # TODO: remove this once conditions can be compressed
+              if conditions.operands.size == 1
+                # factor out operations with a single operand
+                conditions_statement(conditions.operands.first, qualify)
+              else
+                operation_statement(conditions, qualify)
+              end
+            when Conditions::AbstractComparison
+              comparison_statement(conditions, qualify)
+            when Array
+              conditions  # handle raw conditions
             else
               raise ArgumentError, "invalid conditions #{conditions.class}: #{conditions.inspect}"
           end
-
-          return statement, bind_values
         end
 
         # Constructs order clause
@@ -440,10 +450,12 @@ module DataMapper
           statements  = []
           bind_values = []
 
-          operation.operands.each do |operand|
+          operands = operation.operands
+
+          operands.each do |operand|
             statement, values = conditions_statement(operand, qualify)
 
-            if operand.kind_of?(Conditions::OrOperation)
+            if operand.respond_to?(:operands) && operand.operands.size > 1
               statement = "(#{statement})"
             end
 
@@ -451,9 +463,10 @@ module DataMapper
             bind_values.concat(values)
           end
 
-          join_with = operation.kind_of?(Conditions::AndOperation) ? 'AND' : 'OR'
+          join_with = operation.kind_of?(@negated ? Conditions::OrOperation : Conditions::AndOperation) ? 'AND' : 'OR'
+          statement = statements.join(" #{join_with} ")
 
-          return statements.join(" #{join_with} "), bind_values
+          return statement, bind_values
         end
 
         # Constructs comparison clause
@@ -461,6 +474,21 @@ module DataMapper
         # @return [String] comparison clause
         def comparison_statement(comparison, qualify)
           value = comparison.value
+
+          # TODO: move exclusive Range handling into another method, and
+          # update conditions_statement to use it
+
+          # break exclusive Range queries up into two comparisons ANDed together
+          if value.kind_of?(Range) && value.exclude_end?
+            operation = Conditions::BooleanOperation.new(:and,
+              Conditions::Comparison.new(:gte, comparison.property, value.first),
+              Conditions::Comparison.new(:lt,  comparison.property, value.last)
+            )
+
+            statement, bind_values = operation_statement(operation, qualify)
+
+            return "(#{statement})", bind_values
+          end
 
           operator = case comparison
             when Conditions::EqualToComparison              then @negated ? inequality_operator(value) : equality_operator(value)

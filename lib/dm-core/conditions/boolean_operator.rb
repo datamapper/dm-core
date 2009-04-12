@@ -80,6 +80,14 @@ module DataMapper
       def matches?(record)
         @operands.all? { |o| o.matches?(record) }
       end
+
+      def <<(operand)
+        if operand.kind_of?(self.class)
+          operands.concat(operand.operands)
+        else
+          super
+        end
+      end
     end
 
     class OrOperation < AbstractOperation
@@ -87,6 +95,14 @@ module DataMapper
 
       def matches?(record)
         @operands.any? { |o| o.matches?(record) }
+      end
+
+      def <<(operand)
+        if operand.kind_of?(self.class)
+          operands.concat(operand.operands)
+        else
+          super
+        end
       end
     end
 
@@ -101,6 +117,11 @@ module DataMapper
 
       def matches?(record)
         not @operand.matches?(record)
+      end
+
+      def <<(operand)
+        raise ArgumentError, "#{self.class} cannot have more than one operand" if operands.size > 0
+        super
       end
     end
   end

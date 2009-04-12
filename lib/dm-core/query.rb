@@ -546,16 +546,17 @@ module DataMapper
       # treat all non-options as conditions
       @options.except(*OPTIONS).each { |kv| append_condition(*kv) }
 
-      # parse raw @options[:conditions] differently
-      if conditions = @options[:conditions]
-        case conditions
-          when Hash
-            conditions.each { |kv| append_condition(*kv) }
+      # parse @options[:conditions] differently
+      case conditions = @options[:conditions]
+        when Conditions::AbstractOperation
+          @conditions << conditions
 
-          when Array
-            statement, *bind_values = *conditions
-            @conditions << [ statement, bind_values ]
-        end
+        when Hash
+          conditions.each { |kv| append_condition(*kv) }
+
+        when Array
+          statement, *bind_values = *conditions
+          @conditions << [ statement, bind_values ]
       end
 
       # normalize any newly added links
@@ -674,11 +675,7 @@ module DataMapper
     #
     # @api private
     def assert_valid_conditions(conditions)
-      assert_kind_of 'options[:conditions]', conditions, Hash, Array
-
-      if conditions.empty?
-        raise ArgumentError, '+options[:conditions]+ should not be empty'
-      end
+      assert_kind_of 'options[:conditions]', conditions, Conditions::AbstractOperation, Hash, Array
 
       case conditions
         when Hash
@@ -721,6 +718,10 @@ module DataMapper
           end
 
         when Array
+          if conditions.empty?
+            raise ArgumentError, '+options[:conditions]+ should not be empty'
+          end
+
           unless conditions.first.kind_of?(String) && !conditions.first.blank?
             raise ArgumentError, '+options[:conditions]+ should have a statement for the first entry'
           end
@@ -930,42 +931,25 @@ module DataMapper
           subject
       end
 
+      # TODO: push this logic into Conditions objects
       bind_value = normalize_bind_value(subject, bind_value)
       negated    = operator == :not
 
-      if bind_value.kind_of?(Range) && bind_value.exclude_end?
-        min = bind_value.first
-        max = bind_value.last
-
-        case operator
-          when :eql
-            @conditions << Conditions::BooleanOperation.new(:and,
-              Conditions::Comparison.new(:gte, subject, min),
-              Conditions::Comparison.new(:lt,  subject, max)
-            )
-          when :not
-            @conditions << Conditions::BooleanOperation.new(:or,
-              Conditions::Comparison.new(:lt,  subject, min),
-              Conditions::Comparison.new(:gte, subject, max)
-            )
+      if operator == :eql || operator == :not
+        operator = case bind_value
+          when Array, Range then :in
+          when Regexp       then :regexp
+          else                   :eql
         end
-      else
-        if operator == :eql || operator == :not
-          operator = case bind_value
-            when Array, Range then :in
-            when Regexp       then :regexp
-            else                   :eql
-          end
-        end
-
-        condition = Conditions::Comparison.new(operator, subject, bind_value)
-
-        if negated
-          condition = Conditions::BooleanOperation.new(:not, condition)
-        end
-
-        @conditions << condition
       end
+
+      condition = Conditions::Comparison.new(operator, subject, bind_value)
+
+      if negated
+        condition = Conditions::BooleanOperation.new(:not, condition)
+      end
+
+      @conditions << condition
     end
 
     # TODO: make this typecast all bind values that do not match the
@@ -989,6 +973,7 @@ module DataMapper
           bind_value = normalize_bind_value(property_or_path.property, bind_value)
       end
 
+      # TODO: update InclusionComparison so it knows how to do this
       bind_value.kind_of?(Array) && bind_value.size == 1 ? bind_value.first : bind_value
     end
 
