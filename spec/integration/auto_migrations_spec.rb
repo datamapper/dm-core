@@ -105,7 +105,7 @@ if HAS_SQLITE3
 #        :class         => [ Class,             'VARCHAR(50)',  false, 'Class',                           'Class',           false ],
         :big_decimal   => [ BigDecimal,        'DECIMAL(2,1)', false, '1.1',                             BigDecimal('1.1'), false ],
         :float         => [ Float,             'FLOAT(2,1)',   false, '1.1',                             1.1,               false ],
-        :date_time     => [ DateTime,          'DATETIME',     false, NOW.strftime('%Y-%m-%d %H:%M:%S'), NOW,               false ],
+        :date_time     => [ DateTime,          'TIMESTAMP',    false, NOW.strftime('%Y-%m-%d %H:%M:%S'), NOW,               false ],
         :time_1        => [ Time,              'TIMESTAMP',    false, TIME_STRING_1,                     TIME_1,            false ],
 #SQLite pads out the microseconds to the full 6 digits no matter what the value is - we simply pad up the zeros needed
         :time_2        => [ Time,              'TIMESTAMP',    false, TIME_STRING_2.dup << '00000',      TIME_2,            false ],
@@ -219,10 +219,10 @@ if HAS_MYSQL
         :big_decimal   => [ BigDecimal,        'DECIMAL(2,1)', false, '1.1',                                BigDecimal('1.1'), false ],
         :float         => [ Float,             'FLOAT(2,1)',   false, '1.1',                                1.1,               false ],
         :date_time     => [ DateTime,          'DATETIME',     false, NOW.strftime('%Y-%m-%d %H:%M:%S'),    NOW,               false ],
-        :time_1        => [ Time,              'TIMESTAMP',    false, TIME_1.strftime('%Y-%m-%d %H:%M:%S'), TIME_1,            false ],
-        :time_2        => [ Time,              'TIMESTAMP',    false, TIME_2.strftime('%Y-%m-%d %H:%M:%S'), TIME_2,            false ],
-        :time_3        => [ Time,              'TIMESTAMP',    false, TIME_3.strftime('%Y-%m-%d %H:%M:%S'), TIME_3 ,           false ],
-        :time_4        => [ Time,              'TIMESTAMP',    false, TIME_4.strftime('%Y-%m-%d %H:%M:%S'), TIME_4 ,           false ],
+        :time_1        => [ Time,              'DATETIME',     false, TIME_1.strftime('%Y-%m-%d %H:%M:%S'), TIME_1,            false ],
+        :time_2        => [ Time,              'DATETIME',     false, TIME_2.strftime('%Y-%m-%d %H:%M:%S'), TIME_2,            false ],
+        :time_3        => [ Time,              'DATETIME',     false, TIME_3.strftime('%Y-%m-%d %H:%M:%S'), TIME_3 ,           false ],
+        :time_4        => [ Time,              'DATETIME',     false, TIME_4.strftime('%Y-%m-%d %H:%M:%S'), TIME_4 ,           false ],
         :object        => [ Object,            'TEXT',         true,  nil,                                  nil,               false ],
         :discriminator => [ DM::Discriminator, 'VARCHAR(50)',  false, nil,                                  EveryType,         false ],
       }
