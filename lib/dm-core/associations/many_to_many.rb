@@ -16,15 +16,15 @@ module DataMapper
           return @through if @through != Resource
 
           # habtm relationship traversal is deferred because we want the
-          # child_model and parent_model constants to be defined, so we
+          # target_model and source_model constants to be defined, so we
           # can define the join model within their common namespace
 
-          @through = DataMapper.repository(parent_repository_name) do
-            join_model.belongs_to(join_relationship_name(child_model),           :model => child_model)
-            parent_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
+          @through = DataMapper.repository(source_repository_name) do
+            join_model.belongs_to(join_relationship_name(target_model),          :model => target_model)
+            source_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
           end
 
-          # initialize the child_key since the parent and child model are defined
+          # initialize the child_key since the source and child model are defined
           @through.child_key
 
           @through
@@ -35,10 +35,10 @@ module DataMapper
         def intermediaries
           @intermediaries ||=
             begin
-              relationships = through.child_model.relationships(parent_repository_name)
+              relationships = through.child_model.relationships(source_repository_name)
 
               unless target = relationships[name] || relationships[name.to_s.singular.to_sym]
-                raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{parent_repository_name.inspect} repository"
+                raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{source_repository_name.inspect} repository"
               end
 
               [ through, target ].map { |r| (i = r.intermediaries).any? ? i : r }.flatten.freeze
@@ -64,13 +64,13 @@ module DataMapper
               # TODO: move the logic below inside Query.  It should be
               # extracting the query conditions from each relationship itself
 
-              default_repository_name = parent_repository_name
+              default_repository_name = source_repository_name
 
               # merge the conditions from each intermediary into the query
               query[:links].each do |relationship|
 
                 # TODO: refactor this with source/target terminology.  Many relationships would
-                # have the child as the target, and the parent as the source, while OneToMany
+                # have the child as the target, and the source as the source, while OneToMany
                 # relationships would be reversed.  This will also clean up code in the DO adapter
 
                 repository_name = nil
@@ -129,30 +129,30 @@ module DataMapper
         #
         # @return   [DataMapper::PropertySet]  a set of properties that identify child model
         # @api semipublic
-        def child_key
-          @child_key ||=
+        def target_key
+          @target_key ||=
             begin
-              properties = child_model.properties(child_repository_name)
+              properties = target_model.properties(target_repository_name)
 
-              child_key = if @child_properties
+              target_key = if @child_properties
                 properties.slice(*@child_properties)
               else
                 properties.key
               end
 
-              properties.class.new(child_key).freeze
+              properties.class.new(target_key).freeze
             end
         end
 
         # TODO: document
         # @api private
-        def parent_scope(parent)
-          # TODO: do not build the query with child_key/parent_key.. use
-          # child_reader/parent_reader.  The query should be able to
-          # translate those to child_key/parent_key inside the adapter,
+        def source_scope(source)
+          # TODO: do not build the query with target_key/source_key.. use
+          # target_reader/source_reader.  The query should be able to
+          # translate those to target_key/source_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
-          # TODO: when parent is a Collection, and it's query includes an
+          # TODO: when source is a Collection, and it's query includes an
           # offset/limit, use it as a subquery to scope the results, rather
           # than (potentially) lazy-loading the Collection and getting
           # each resource key
@@ -163,7 +163,7 @@ module DataMapper
           # TODO: spec what should happen when parent not saved
 
           # TODO: handle compound keys when OR conditions supported
-          parent_values = Array(parent).map { |r| parent_key.get(r) }.select { |k| k.all? }.transpose
+          parent_values = Array(source).map { |r| parent_key.get(r) }.select { |k| k.all? }.transpose
 
           child_key.zip(parent_values).to_hash
         end
@@ -194,17 +194,17 @@ module DataMapper
         # TODO: document
         # @api private
         def join_model_namespace_name
-          child_parts  = child_model.base_model.name.split('::')
-          parent_parts = parent_model.base_model.name.split('::')
+          target_parts = target_model.base_model.name.split('::')
+          source_parts = source_model.base_model.name.split('::')
 
-          name = [ child_parts.pop, parent_parts.pop ].sort.join
+          name = [ target_parts.pop, source_parts.pop ].sort.join
 
           namespace = Object
 
-          # find the common namespace between the child_model and parent_model
-          child_parts.zip(parent_parts) do |child_part,parent_part|
-            break if child_part != parent_part
-            namespace = namespace.const_get(child_part)
+          # find the common namespace between the target_model and source_model
+          target_parts.zip(source_parts) do |target_part,source_part|
+            break if target_part != source_part
+            namespace = namespace.const_get(target_part)
           end
 
           return namespace, name
@@ -220,7 +220,7 @@ module DataMapper
       end # class Relationship
 
       class Collection < Associations::OneToMany::Collection
-        attr_writer :relationship, :parent
+        attr_writer :relationship, :source
 
         def reload(query = nil)
           # TODO: remove references to the intermediaries
@@ -241,7 +241,7 @@ module DataMapper
         end
 
         def create(attributes = {})
-          assert_parent_saved 'The parent must be saved before creating a Resource'
+          assert_source_saved 'The source must be saved before creating a Resource'
 
           # NOTE: this is ugly as hell. this is a first draft to
           # try to figure out an approach that will create all the
@@ -263,7 +263,7 @@ module DataMapper
             prev = relationship
           end
 
-          head, tail = [ @parent ], []
+          head, tail = [ source ], []
 
           while intermediaries.any?
             relationship = if pivot.first == intermediaries.first
@@ -306,12 +306,12 @@ module DataMapper
         end
 
         def update(attributes = {})
-          # TODO: update the resources in the child model
+          # TODO: update the resources in the target model
           raise NotImplementedError
         end
 
         def update!(attributes = {})
-          # TODO: update the resources in the child model
+          # TODO: update the resources in the target model
           raise NotImplementedError
         end
 
@@ -323,13 +323,13 @@ module DataMapper
 
         def destroy
           # TODO: destroy the intermediaries
-          # TODO: destroy the resources in the child model
+          # TODO: destroy the resources in the target model
           raise NotImplementedError
         end
 
         def destroy!
           # TODO: destroy! the intermediaries
-          # TODO: destroy! the resources in the child model
+          # TODO: destroy! the resources in the target model
           raise NotImplementedError
         end
 

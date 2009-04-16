@@ -117,10 +117,9 @@ module DataMapper
 
       assert_valid_options(options)
 
-      parent_repository_name = repository.name
-
+      # TODO: change to target_respository_name and source_repository_name
       options[:child_repository_name]  = options.delete(:repository)
-      options[:parent_repository_name] = parent_repository_name
+      options[:parent_repository_name] = repository.name
 
       klass = if options.key?(:through)
         ManyToMany::Relationship
@@ -130,7 +129,7 @@ module DataMapper
         OneToOne::Relationship
       end
 
-      relationships(parent_repository_name)[name] = klass.new(name, options.delete(:model), self, options)
+      relationships(repository.name)[name] = klass.new(name, options.delete(:model), self, options)
     end
 
     ##
@@ -161,12 +160,11 @@ module DataMapper
 
       assert_valid_options(options)
 
-      child_repository_name = repository.name
-
-      options[:child_repository_name]  = child_repository_name
+      # TODO: change to source_repository_name and target_respository_name
+      options[:child_repository_name]  = repository.name
       options[:parent_repository_name] = options.delete(:repository)
 
-      relationships(child_repository_name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:model), options)
+      relationships(repository.name)[name] = ManyToOne::Relationship.new(name, self, options.delete(:model), options)
     end
 
     private
@@ -223,6 +221,9 @@ module DataMapper
         warn '+options[:class_name]+ is deprecated, use :model instead'
         options[:model] = options.delete(:class_name)
       end
+
+      # TODO: deprecate :child_key and :parent_key in favor of :source_key and
+      # :target_key (will mean something different for each relationship)
 
       if options.key?(:child_key)
         assert_kind_of 'options[:child_key]', options[:child_key], Enumerable

@@ -134,7 +134,7 @@ end
             author = Author.new(:name => 'Dan Kubb')
             lambda {
               author.articles.create
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before creating a Resource')
+            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before creating a Resource')
           end
         end
       end
@@ -145,7 +145,7 @@ end
             author = Author.new(:name => 'Dan Kubb')
             lambda {
               author.articles.destroy
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the collection')
+            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before mass-deleting the collection')
           end
         end
       end
@@ -156,7 +156,7 @@ end
             author = Author.new(:name => 'Dan Kubb')
             lambda {
               author.articles.destroy!
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-deleting the collection without validation')
+            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before mass-deleting the collection without validation')
           end
         end
       end
@@ -285,7 +285,7 @@ end
             author = Author.new(:name => 'Dan Kubb')
             lambda {
               author.articles.update(:title => 'New Title')
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the collection')
+            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before mass-updating the collection')
           end
         end
       end
@@ -296,7 +296,7 @@ end
             author = Author.new(:name => 'Dan Kubb')
             lambda {
               author.articles.update!(:title => 'New Title')
-            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The parent must be saved before mass-updating the collection without validation')
+            }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before mass-updating the collection without validation')
           end
         end
       end

@@ -1,4 +1,4 @@
-# TODO: make it so that a child_key is created with nullable => false if
+# TODO: make it so that a target_key is created with nullable => false if
 #       @min == 1
 
 module DataMapper
@@ -6,32 +6,32 @@ module DataMapper
     module OneToOne #:nodoc:
       class Relationship < Associations::OneToMany::Relationship
 
-        # Loads (if necessary) and returns association child
-        # for given parent
+        # Loads (if necessary) and returns association target
+        # for given source
         #
         # @api semipublic
-        def get(parent, query = nil)
+        def get(source, query = nil)
           super.first
         end
 
-        # Sets and returns association child
-        # for given parent
+        # Sets and returns association target
+        # for given source
         #
         # @api semipublic
-        def set(parent, child)
-          super(parent, [ child ].compact)
-          child
+        def set(source, target)
+          super(source, [ target ].compact)
+          target
         end
 
         private
 
-        # Initializes the relationship. Always assumes child model class is
+        # Initializes the relationship. Always assumes target model class is
         # a camel cased association name.
         # TODO: ensure that it makes sense to make it configurable
         #
         # @api semipublic
-        def initialize(name, child_model, parent_model, options = {})
-          child_model ||= Extlib::Inflection.camelize(name).freeze
+        def initialize(name, target_model, source_model, options = {})
+          target_model ||= Extlib::Inflection.camelize(name).freeze
           super
         end
       end # class Relationship

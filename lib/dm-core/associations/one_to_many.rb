@@ -2,6 +2,14 @@ module DataMapper
   module Associations
     module OneToMany #:nodoc:
       class Relationship < Associations::Relationship
+        alias target_repository_name child_repository_name
+        alias target_model           child_model
+        alias target_key             child_key
+
+        alias source_repository_name parent_repository_name
+        alias source_model           parent_model
+        alias source_key             parent_key
+
         # Returns collection class used by this type of
         # relationship
         #
@@ -11,70 +19,70 @@ module DataMapper
         end
 
         # Returns a hash of conditions that scopes query that fetches
-        # parent object
+        # source object
         #
         # @returns [Hash]  Hash of conditions that scopes query
         #
         # @api private
-        def parent_scope(parent)
-          # TODO: do not build the query with child_key/parent_key.. use
-          # child_reader/parent_reader.  The query should be able to
-          # translate those to child_key/parent_key inside the adapter,
+        def source_scope(source)
+          # TODO: do not build the query with target_key/source_key.. use
+          # target_reader/source_reader.  The query should be able to
+          # translate those to target_key/source_key inside the adapter,
           # allowing adapters that don't join on PK/FK to work too.
 
-          # TODO: when parent is a Collection, and it's query includes an
+          # TODO: when source is a Collection, and it's query includes an
           # offset/limit, use it as a subquery to scope the results, rather
           # than (potentially) lazy-loading the Collection and getting
           # each resource key
 
-          # TODO: spec what should happen when parent not saved
+          # TODO: spec what should happen when source not saved
 
           # TODO: handle compound keys when OR conditions supported
-          parent_values = Array(parent).map { |r| parent_key.get(r) }.select { |k| k.all? }.transpose
-          child_key.zip(parent_values).to_hash
+          source_values = Array(source).map { |r| source_key.get(r) }.select { |k| k.all? }.transpose
+          target_key.zip(source_values).to_hash
         end
 
         # Creates and returns Query instance that fetches
-        # child resource(s) (ex.: articles) for given child resource (ex.: author)
+        # target resource(s) (ex.: articles) for given target resource (ex.: author)
         #
         # @api semipublic
-        def query_for(parent)
-          Query.new(DataMapper.repository(child_repository_name), child_model, query.merge(parent_scope(parent)))
+        def query_for(source)
+          Query.new(DataMapper.repository(child_repository_name), target_model, query.merge(source_scope(source)))
         end
 
-        # Loads and returns association children (ex.: articles) for given parent resource
+        # Loads and returns association targets (ex.: articles) for given source resource
         # (ex.: author)
         # @api semipublic
-        def get(parent, query = nil)
-          lazy_load(parent) unless loaded?(parent)
+        def get(source, query = nil)
+          lazy_load(source) unless loaded?(source)
 
-          collection = get!(parent)
+          collection = get!(source)
 
           if query.nil?
             collection
           else
-            # XXX: use query_for(parent) to explicitly set the child_key in the query
+            # XXX: use query_for(source) to explicitly set the target_key in the query
             # because we do not save a reference to the instance.  Remove when we do.
-            collection.all(query_for(parent).update(query))
+            collection.all(query_for(source).update(query))
           end
         end
 
-        # Sets value of association children (ex.: paragraphs) for given parent resource
+        # Sets value of association targets (ex.: paragraphs) for given source resource
         # (ex.: article)
         #
         # @api semipublic
-        def set(parent, children)
-          lazy_load(parent) unless loaded?(parent)
-          get!(parent).replace(children)
+        def set(source, targets)
+          lazy_load(source) unless loaded?(source)
+          get!(source).replace(targets)
         end
 
-        # Sets value of association children (ex.: paragraphs) for given parent resource
+        # Sets value of association targets (ex.: paragraphs) for given source resource
         # (ex.: article)
         #
         # @api semipublic
         def set!(resource, association)
           association.relationship = self
-          association.parent       = resource
+          association.source       = resource
           super
         end
 
@@ -82,50 +90,54 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def initialize(name, child_model, parent_model, options = {})
-          child_model ||= Extlib::Inflection.camelize(name.to_s.singular).freeze
+        def initialize(name, target_model, source_model, options = {})
+          target_model ||= Extlib::Inflection.camelize(name.to_s.singular).freeze
           super
         end
 
-        # Dynamically defines reader method for parent side of association
+        # Dynamically defines reader method for source side of association
         # (for instance, method paragraphs for model Article)
         #
         # @api semipublic
         def create_reader
-          return if parent_model.instance_methods(false).any? { |m| m.to_sym == name }
+          return if source_model.instance_methods(false).any? { |m| m.to_sym == name }
 
-          parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
-            def #{name}(query = nil)                          # def paragraphs(query = nil)
-              relationships[#{name.inspect}].get(self, query) #   relationships["paragraphs"].get(self, query)
-            end                                               # end
+            def #{name}(query = nil)                           # def paragraphs(query = nil)
+              relationships[#{name.inspect}].get(self, query)  #   relationships[:paragraphs].get(self, query)
+            end                                                # end
           RUBY
         end
 
-        # Dynamically defines reader method for parent side of association
+        # Dynamically defines reader method for source side of association
         # (for instance, method paragraphs= for model Article)
         #
         # @api semipublic
         def create_writer
           writer_name = "#{name}=".to_sym
 
-          return if parent_model.instance_methods(false).any? { |m| m.to_sym == writer_name }
+          return if source_model.instance_methods(false).any? { |m| m.to_sym == writer_name }
 
-          parent_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             public  # TODO: make this configurable
-            def #{writer_name}(children)                         # def paragraphs=(children)
-              relationships[#{name.inspect}].set(self, children) #   relationships["paragraphs"].set(self, children)
+            def #{writer_name}(targets)                          # def paragraphs=(targets)
+              relationships[#{name.inspect}].set(self, targets)  #   relationships[:paragraphs].set(self, targets)
             end                                                  # end
           RUBY
         end
 
-        # Loads association children and sets resulting value on
-        # given parent resource
+        # Loads association targets and sets resulting value on
+        # given source resource
         #
         # @api private
-        def lazy_load(parent)
-          query_for = query_for(parent)
-          set!(parent, self.class.collection_class.new(query_for))
+        def lazy_load(source)
+          # TODO: return a Collection, that when lazy-loaded, it will
+          # use SEL to load the related record for every resource in
+          # the collection the source belongs to
+
+          query_for = query_for(source)
+          set!(source, self.class.collection_class.new(query_for))
         end
       end # class Relationship
 
@@ -137,19 +149,19 @@ module DataMapper
 
         # TODO: document
         # @api private
-        attr_accessor :parent
+        attr_accessor :source
 
         # TODO: document
         # @api public
         def query
           query = super
 
-          if parent.saved?
-            # include the child_key in the results
+          if source.saved?
+            # include the target_key in the results
             query.update(:fields => relationship.child_key.to_a | query.fields)
 
-            # scope the query to the parent
-            query.update(relationship.parent_scope(parent))
+            # scope the query to the source
+            query.update(relationship.source_scope(source))
           end
 
           query
@@ -158,59 +170,59 @@ module DataMapper
         # TODO: document
         # @api public
         def reload(query = nil)
-          assert_parent_saved 'The parent must be saved before reloading the collection'
+          assert_source_saved 'The source must be saved before reloading the collection'
           super(query.nil? ? self.query.dup : self.query.merge(query))
         end
 
         def all(*)
-          assert_parent_saved 'The parent must be saved before further scoping the collection'
+          assert_source_saved 'The source must be saved before further scoping the collection'
           super
         end
 
         # TODO: add stub methods for each finder like all(), where it raises
-        # an exception when trying to scope the results before the parent is saved
+        # an exception when trying to scope the results before the source is saved
 
         # TODO: document
         # @api public
         def replace(*)
-          lazy_load  # lazy load so that children are always orphaned
+          lazy_load  # lazy load so that targets are always orphaned
           super
         end
 
         # TODO: document
         # @api public
         def clear
-          lazy_load  # lazy load so that children are always orphaned
+          lazy_load  # lazy load so that targets are always orphaned
           super
         end
 
         # TODO: document
         # @api public
         def create(*)
-          assert_parent_saved 'The parent must be saved before creating a Resource'
+          assert_source_saved 'The source must be saved before creating a Resource'
           super
         end
 
         # TODO: document
         # @api public
         def update(*)
-          assert_parent_saved 'The parent must be saved before mass-updating the collection'
+          assert_source_saved 'The source must be saved before mass-updating the collection'
           super
         end
 
         # TODO: document
         # @api public
         def update!(*)
-          assert_parent_saved 'The parent must be saved before mass-updating the collection without validation'
+          assert_source_saved 'The source must be saved before mass-updating the collection without validation'
           super
         end
 
         # TODO: document
         # @api public
         def save
-          assert_parent_saved 'The parent must be saved before saving the collection'
+          assert_source_saved 'The source must be saved before saving the collection'
 
-          # remove reference to parent in orphans
+          # remove reference to source in orphans
           @orphans.each { |r| r.save }
 
           super
@@ -219,21 +231,21 @@ module DataMapper
         # TODO: document
         # @api public
         def destroy
-          assert_parent_saved 'The parent must be saved before mass-deleting the collection'
+          assert_source_saved 'The source must be saved before mass-deleting the collection'
           super
         end
 
         # TODO: document
         # @api public
         def destroy!
-          assert_parent_saved 'The parent must be saved before mass-deleting the collection without validation'
+          assert_source_saved 'The source must be saved before mass-deleting the collection without validation'
           super
         end
 
         private
 
         def lazy_load
-          if parent.saved?
+          if source.saved?
             super
           elsif !loaded?
             mark_loaded
@@ -254,9 +266,9 @@ module DataMapper
           collection = self.class.new(query, &block)
 
           collection.relationship = relationship
-          collection.parent       = parent
+          collection.source       = source
 
-          # set the resources after the relationship and parent are set
+          # set the resources after the relationship and source are set
           if resources
             collection.replace(resources)
           end
@@ -269,16 +281,16 @@ module DataMapper
         def relate_resource(resource)
           return if resource.nil?
 
-          # TODO: should just set the resource parent using writer method
-          #   - this will allow the parent to be saved later and the parent
-          #     reference in the child to get an id, and since it is related
-          #     to the child, the child will get the correct parent id
+          # TODO: should just set the resource source using writer method
+          #   - this will allow the source to be saved later and the source
+          #     reference in the target to get an id, and since it is related
+          #     to the target, the target will get the correct source id
 
-          if parent.saved?
-            parent_key = relationship.parent_key
-            child_key  = relationship.child_key
+          if source.saved?
+            source_key = relationship.source_key
+            target_key  = relationship.child_key
 
-            child_key.set(resource, parent_key.get(parent))
+            target_key.set(resource, source_key.get(source))
           end
 
           super
@@ -289,7 +301,7 @@ module DataMapper
         def orphan_resource(resource)
           return if resource.nil?
 
-          # TODO: should just set the resource parent to nil using writer method
+          # TODO: should just set the resource source to nil using writer method
           relationship.child_key.set(resource, [])
 
           super
@@ -297,8 +309,8 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def assert_parent_saved(message)
-          if parent.new?
+        def assert_source_saved(message)
+          if source.new?
             raise UnsavedParentError, message
           end
         end
