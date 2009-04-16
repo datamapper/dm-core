@@ -82,6 +82,10 @@ module DataMapper
       zip(values) { |p,v| p.set(resource, v) }
     end
 
+    def loaded?(resource)
+      all? { |p| p.loaded?(resource) }
+    end
+
     def property_contexts(name)
       contexts = []
       lazy_contexts.each do |context,property_names|

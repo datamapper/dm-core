@@ -128,6 +128,35 @@ module DataMapper
         @intermediaries ||= [].freeze
       end
 
+      # Returns a hash of conditions that scopes query that fetches
+      # target object
+      #
+      # @returns [Hash]  Hash of conditions that scopes query
+      #
+      # @api private
+      def source_scope(source)
+        # TODO: do not build the query with target_key/source_key.. use
+        # target_reader/source_reader.  The query should be able to
+        # translate those to target_key/source_key inside the adapter,
+        # allowing adapters that don't join on PK/FK to work too.
+
+        # TODO: when source is a Collection, and it's query includes an
+        # offset/limit, use it as a subquery to scope the results, rather
+        # than (potentially) lazy-loading the Collection and getting
+        # each resource key
+
+        # TODO: spec what should happen when source not saved
+
+        scope = {}
+
+        # TODO: handle compound keys when OR conditions supported
+        if (source_values = Array(source).map { |r| source_key.first.get(r) }.compact).any?
+          scope[target_key.first] = source_values
+        end
+
+        scope
+      end
+
       # Returns query object for relationship.
       # For this base class, always returns query object
       # has been initialized with.

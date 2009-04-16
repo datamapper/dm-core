@@ -823,9 +823,7 @@ share_examples_for 'A public Collection' do
       end
 
       before :all do
-        rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return = @resources = @articles.unshift(@other).first(1)
-        end
+        @return = @resources = @articles.unshift(@other).first(1)
       end
 
       it 'should return a Collection' do
@@ -1343,9 +1341,7 @@ share_examples_for 'A public Collection' do
       end
 
       before :all do
-        rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return = @resources = @articles.push(@other).last(1)
-        end
+        @return = @resources = @articles.push(@other).last(1)
       end
 
       it 'should return a Collection' do
@@ -2222,9 +2218,7 @@ share_examples_for 'A public Collection' do
     describe 'with a positive offset and length' do
       before :all do
         unless @skip
-          rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return = @resources = @articles.slice!(5, 5)
-          end
+          @return = @resources = @articles.slice!(5, 5)
         end
       end
 
@@ -2252,9 +2246,7 @@ share_examples_for 'A public Collection' do
     describe 'with a positive range' do
       before :all do
         unless @skip
-          rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return = @resources = @articles.slice!(5..10)
-          end
+          @return = @resources = @articles.slice!(5..10)
         end
       end
 
@@ -2306,9 +2298,7 @@ share_examples_for 'A public Collection' do
     describe 'with a negative offset and length' do
       before :all do
         unless @skip
-          rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return = @resources = @articles.slice!(-5, 5)
-          end
+          @return = @resources = @articles.slice!(-5, 5)
         end
       end
 
@@ -2336,9 +2326,7 @@ share_examples_for 'A public Collection' do
     describe 'with a negative range' do
       before :all do
         unless @skip
-          rescue_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return = @resources = @articles.slice!(-3..-2)
-          end
+          @return = @resources = @articles.slice!(-3..-2)
         end
       end
 

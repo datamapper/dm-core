@@ -157,15 +157,19 @@ module DataMapper
           # than (potentially) lazy-loading the Collection and getting
           # each resource key
 
-          child_key  = through.child_key
-          parent_key = through.parent_key
+          target_key = through.child_key
+          source_key = through.parent_key
 
-          # TODO: spec what should happen when parent not saved
+          # TODO: spec what should happen when source not saved
+
+          scope = {}
 
           # TODO: handle compound keys when OR conditions supported
-          parent_values = Array(source).map { |r| parent_key.get(r) }.select { |k| k.all? }.transpose
+          if (source_values = Array(source).map { |r| source_key.first.get(r) }.compact).any?
+            scope[target_key.first] = source_values
+          end
 
-          child_key.zip(parent_values).to_hash
+          scope
         end
 
         private
@@ -220,7 +224,13 @@ module DataMapper
       end # class Relationship
 
       class Collection < Associations::OneToMany::Collection
-        attr_writer :relationship, :source
+        # TODO: document
+        # @api private
+        attr_accessor :relationship
+
+        # TODO: document
+        # @api private
+        attr_accessor :source
 
         def reload(query = nil)
           # TODO: remove references to the intermediaries

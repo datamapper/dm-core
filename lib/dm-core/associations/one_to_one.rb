@@ -10,7 +10,7 @@ module DataMapper
         # for given source
         #
         # @api semipublic
-        def get(source, query = nil)
+        def get(*)
           super.first
         end
 

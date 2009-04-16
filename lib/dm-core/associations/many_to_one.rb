@@ -12,28 +12,6 @@ module DataMapper
         alias target_model           parent_model
         alias target_key             parent_key
 
-        # Returns a hash of conditions that scopes query that fetches
-        # source object
-        #
-        # @returns [Hash]  Hash of conditions that scopes query
-        #
-        # @api private
-        def source_scope(source)
-          # TODO: do not build the query with source_key/target_key.. use
-          # source_reader/target_reader.  The query should be able to
-          # translate those to source_key/target_key inside the adapter,
-          # allowing adapters that don't join on PK/FK to work too.
-
-          # TODO: when target is a Collection, and it's query includes an
-          # offset/limit, use it as a subquery to scope the results, rather
-          # than (potentially) lazy-loading the Collection and getting
-          # each resource key
-
-          # TODO: handle compound keys when OR conditions supported
-          source_values = Array(source).map { |r| source_key.get(r).first }.compact
-          target_key.zip(source_values).to_hash
-        end
-
         # Creates and returns Query instance that fetches
         # target resource (ex.: author) for given source
         # source resource (ex.: article)
@@ -42,8 +20,12 @@ module DataMapper
         #   collection (possibly with a single item) of source objects
         #
         # @api semipublic
-        def query_for(source)
-          Query.new(DataMapper.repository(target_repository_name), target_model, query.merge(source_scope(source)))
+        def query_for(source, other_query = nil)
+          query = self.query.merge(source_scope(source))
+          query.update(other_query) if other_query
+
+          query = Query.new(DataMapper.repository(target_repository_name), target_model, query)
+          query.update(:fields => query.fields | target_key)
         end
 
         # Loads and returns association target (ex.: author) for given source resource
@@ -146,23 +128,17 @@ module DataMapper
           # TODO: use SEL to load the related record for every resource in
           # the collection the target belongs to
 
-          # lazy load if the source key is not nil for at least one source
-          if Array(source).all? { |r| source_key.get(r).nil? }
+          # skip lazy load if the source key is not loaded
+          unless source_key.loaded?(source)
             return
           end
 
-          query_for = query_for(source)
-
-          if query
-            query_for.update(query)
-          end
-
-          unless target = target_model.first(query_for)
-            return
-          end
+          query = query_for(source, self.query)
 
           # if successful should always return the target, otherwise nil
-          set!(source, target)
+          if target = target_model.first(query)
+            set!(source, target)
+          end
         end
 
         # Prefix used to build name of default source key

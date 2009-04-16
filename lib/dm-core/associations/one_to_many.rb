@@ -18,36 +18,16 @@ module DataMapper
           OneToMany::Collection
         end
 
-        # Returns a hash of conditions that scopes query that fetches
-        # source object
-        #
-        # @returns [Hash]  Hash of conditions that scopes query
-        #
-        # @api private
-        def source_scope(source)
-          # TODO: do not build the query with target_key/source_key.. use
-          # target_reader/source_reader.  The query should be able to
-          # translate those to target_key/source_key inside the adapter,
-          # allowing adapters that don't join on PK/FK to work too.
-
-          # TODO: when source is a Collection, and it's query includes an
-          # offset/limit, use it as a subquery to scope the results, rather
-          # than (potentially) lazy-loading the Collection and getting
-          # each resource key
-
-          # TODO: spec what should happen when source not saved
-
-          # TODO: handle compound keys when OR conditions supported
-          source_values = Array(source).map { |r| source_key.get(r) }.select { |k| k.all? }.transpose
-          target_key.zip(source_values).to_hash
-        end
-
         # Creates and returns Query instance that fetches
         # target resource(s) (ex.: articles) for given target resource (ex.: author)
         #
         # @api semipublic
-        def query_for(source)
-          Query.new(DataMapper.repository(child_repository_name), target_model, query.merge(source_scope(source)))
+        def query_for(source, other_query = nil)
+          query = self.query.merge(source_scope(source))
+          query.update(other_query) if other_query
+
+          query = Query.new(DataMapper.repository(target_repository_name), target_model, query)
+          query.update(:fields => query.fields | target_key)
         end
 
         # Loads and returns association targets (ex.: articles) for given source resource
@@ -63,7 +43,7 @@ module DataMapper
           else
             # XXX: use query_for(source) to explicitly set the target_key in the query
             # because we do not save a reference to the instance.  Remove when we do.
-            collection.all(query_for(source).update(query))
+            collection.all(query_for(source, query))
           end
         end
 
@@ -80,9 +60,9 @@ module DataMapper
         # (ex.: article)
         #
         # @api semipublic
-        def set!(resource, association)
-          association.relationship = self
-          association.source       = resource
+        def set!(resource, collection)
+          collection.relationship = self
+          collection.source       = resource
           super
         end
 
@@ -103,7 +83,6 @@ module DataMapper
           return if source_model.instance_methods(false).any? { |m| m.to_sym == name }
 
           source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            public  # TODO: make this configurable
             def #{name}(query = nil)                           # def paragraphs(query = nil)
               relationships[#{name.inspect}].get(self, query)  #   relationships[:paragraphs].get(self, query)
             end                                                # end
@@ -120,7 +99,6 @@ module DataMapper
           return if source_model.instance_methods(false).any? { |m| m.to_sym == writer_name }
 
           source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            public  # TODO: make this configurable
             def #{writer_name}(targets)                          # def paragraphs=(targets)
               relationships[#{name.inspect}].set(self, targets)  #   relationships[:paragraphs].set(self, targets)
             end                                                  # end
@@ -136,8 +114,8 @@ module DataMapper
           # use SEL to load the related record for every resource in
           # the collection the source belongs to
 
-          query_for = query_for(source)
-          set!(source, self.class.collection_class.new(query_for))
+          query = query_for(source)
+          set!(source, self.class.collection_class.new(query))
         end
       end # class Relationship
 
@@ -181,6 +159,13 @@ module DataMapper
 
         # TODO: add stub methods for each finder like all(), where it raises
         # an exception when trying to scope the results before the source is saved
+
+        ##
+        # Access Collection#replace directly
+        #
+        # @api private
+        alias collection_replace replace
+        private :collection_replace
 
         # TODO: document
         # @api public
@@ -270,7 +255,7 @@ module DataMapper
 
           # set the resources after the relationship and source are set
           if resources
-            collection.replace(resources)
+            collection.send(:collection_replace, resources)
           end
 
           collection
