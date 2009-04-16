@@ -1462,8 +1462,6 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          skip = [ DataMapper::Collection, DataMapper::Associations::OneToMany::Collection ]
-          pending 'TODO: fix' if skip.include?(@articles.class)
           @collection.should == [ @other ]
         end
 

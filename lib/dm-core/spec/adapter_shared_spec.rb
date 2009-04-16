@@ -1,5 +1,4 @@
-
-share_examples_for "An Adapter" do
+share_examples_for 'An Adapter' do
 
   def self.adapter_supports?(*methods)
     methods.all? do |method|
@@ -13,7 +12,7 @@ share_examples_for "An Adapter" do
   end
 
   before :all do
-    raise "+@adapter+ should be defined in before block" unless instance_variable_get("@adapter")
+    raise '+@adapter+ should be defined in before block' unless instance_variable_get('@adapter')
 
     @adapter_class = @adapter.class
     @scheme        = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(@adapter_class).chomp('adapter'))
@@ -130,7 +129,7 @@ share_examples_for "An Adapter" do
   end
 
   if adapter_supports?(:read, :create)
-    describe "query matching" do
+    describe 'query matching' do
       require 'dm-core/core_ext/symbol'
 
       before :all do
