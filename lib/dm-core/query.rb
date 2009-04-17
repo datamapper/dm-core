@@ -276,8 +276,6 @@ module DataMapper
           @options.merge(other)
       end
 
-      reset_memoized_vars
-
       initialize(repository, model, options)
 
       self
@@ -442,48 +440,6 @@ module DataMapper
       ]
 
       "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" } * ' '}>"
-    end
-
-    # Returns position of first discriminator property
-    # fetched by the query. Discriminator properties
-    # must have type DataMapper::Types::Discriminator
-    #
-    # @return [Integer] position of first discriminator property
-    #
-    # @api private
-    def inheritance_property_index
-      if defined?(@inheritance_property_index)
-        return @inheritance_property_index
-      end
-
-      fields.each_with_index do |property, i|
-        if property.type == Types::Discriminator
-          return @inheritance_property_index = i
-        end
-      end
-
-      @inheritance_property_index = nil
-    end
-
-    ##
-    # Get the indices of all keys in fields
-    #
-    # @return [Array<Integer>] Array of positions of key properties
-    #
-    # @api private
-    def key_property_indexes
-      @key_property_indexes ||=
-        begin
-          indexes = []
-
-          fields.each_with_index do |property, i|
-            if property.key?
-              indexes << i
-            end
-          end
-
-          indexes.freeze
-        end
     end
 
     private
@@ -975,14 +931,6 @@ module DataMapper
 
       # TODO: update InclusionComparison so it knows how to do this
       bind_value.kind_of?(Array) && bind_value.size == 1 ? bind_value.first : bind_value
-    end
-
-    # Clears indexes of key proprties as well as discriminator column
-    #
-    # @api private
-    def reset_memoized_vars
-      @key_property_indexes = nil
-      remove_instance_variable(:@inheritance_property_index) if defined?(@inheritance_property_index)
     end
 
     ##

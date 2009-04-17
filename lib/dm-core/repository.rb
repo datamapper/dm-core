@@ -140,22 +140,7 @@ module DataMapper
     #
     # @api semipublic
     def read(query)
-      model  = query.model
-      fields = query.fields
-
-      # TODO: update Model#load to accept an Enumerable of Hash/Resource
-      # objects, and perform this remapping there.  This should provide
-      # a nice performance boost, since Model#load can perform alot of
-      # it's work one time and just loop over the results.
-
-      adapter.read(query).map do |record|
-        values = case record
-          when Hash     then fields.map { |p| record.key?(p) ? record[p] : record[p.field] }
-          when Resource then fields.map { |p| p.get!(record) }
-        end
-
-        model.load(values, query)
-      end
+      query.model.load(adapter.read(query), query)
     end
 
     ##

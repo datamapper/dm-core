@@ -506,57 +506,83 @@ module DataMapper
     # Loads an instance of this Model, taking into account IdentityMap lookup,
     # inheritance columns(s) and Property typecasting.
     #
-    # @param [Array(Object)] values
-    #   an Array of values to load as the instance's values
+    # @param [Enumerable(Object)] records
+    #   an Array of Resource or Hashes to load a Resource with
     #
     # @return [Resource]
     #   the loaded Resource instance
     #
     # @api semipublic
-    def load(values, query)
-      repository = query.repository
-      model      = self
+    def load(records, query)
+      repository    = query.repository
+      fields        = query.fields
+      discriminator = properties(repository.name).discriminator
+      no_reload     = !query.reload?
 
-      if inheritance_property_index = query.inheritance_property_index
-        model = values.at(inheritance_property_index) || model
-      end
+      field_map = fields.map { |p| [ p, p.field ] }.to_hash
 
-      identity_map = nil
-      key_values   = nil
-      resource     = nil
+      records.map do |record|
+        identity_map = nil
+        key_values   = nil
+        resource     = nil
 
-      if (key_property_indexes = query.key_property_indexes).any?
-        identity_map = repository.identity_map(model)
-        key_values   = values.values_at(*key_property_indexes)
-        resource     = identity_map[key_values]
-      end
+        case record
+          when Hash
+            # remap fields to use the Property object
+            record = record.dup
+            field_map.each { |p,f| record[p] = record.delete(f) if record.key?(f) }
 
-      resource ||= model.allocate
+            model = discriminator && record[discriminator] || self
 
-      resource.instance_variable_set(:@repository, repository)
-      resource.instance_variable_set(:@saved,      true)
+            resource = if (key_values = record.values_at(*key)).all?
+              identity_map = repository.identity_map(model)
+              identity_map[key_values]
+            end
 
-      no_reload = !query.reload?
+            resource ||= model.allocate
 
-      query.fields.zip(values) do |property,value|
-        next if no_reload && property.loaded?(resource)
+            fields.each do |property|
+              next if no_reload && property.loaded?(resource)
 
-        if property.custom?
-          value = property.type.load(value, property)
+              value = record[property]
+
+              if property.custom?
+                value = property.type.load(value, property)
+              end
+
+              property.set!(resource, value)
+            end
+
+          when Resource
+            model = record.model
+
+            resource = if (key_values = record.key).all?
+              identity_map = repository.identity_map(model)
+              identity_map[key_values]
+            end
+
+            resource ||= model.allocate
+
+            fields.each do |property|
+              next if no_reload && property.loaded?(resource)
+
+              property.set!(resource, property.get!(record))
+            end
         end
 
-        property.set!(resource, value)
-      end
+        resource.instance_variable_set(:@repository, repository)
+        resource.instance_variable_set(:@saved,      true)
 
-      if identity_map && key_values
-        # defer setting the IdentityMap so second level caches can
-        # record the state of the resource after loaded
-        identity_map[key_values] = resource
-      else
-        resource.freeze
-      end
+        if identity_map && key_values && key_values.any?
+          # defer setting the IdentityMap so second level caches can
+          # record the state of the resource after loaded
+          identity_map[key_values] = resource
+        else
+          resource.freeze
+        end
 
-      resource
+        resource
+      end
     end
 
     # TODO: document
