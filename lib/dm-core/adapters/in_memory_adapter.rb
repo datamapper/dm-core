@@ -10,7 +10,78 @@ module DataMapper
     # and up to date.
     class InMemoryAdapter < AbstractAdapter
       ##
-      # Make a new instance of the adapter. The @model_records ivar is the 'data-store'
+      # Used by DataMapper to put records into a data-store: "INSERT" in SQL-speak.
+      # It takes an array of the resources (model instances) to be saved. Resources
+      # each have a key that can be used to quickly look them up later without
+      # searching, if the adapter supports it.
+      #
+      # @param [Enumerable(Resource)] resources
+      #   The set of resources (model instances)
+      #
+      # @api semipublic
+      def create(resources)
+        records = records_for(resources.first.model)
+
+        resources.each do |resource|
+          initialize_identity_field(resource, records.size.succ)
+          records << resource.attributes(:field)
+        end
+      end
+
+      ##
+      # Looks up one record or a collection of records from the data-store:
+      # "SELECT" in SQL.
+      #
+      # @param [Query] query
+      #   The query to be used to seach for the resources
+      #
+      # @return [Array]
+      #   An Array of Hashes containing the key-value pairs for
+      #   each record
+      #
+      # @api semipublic
+      def read(query)
+        filter_records(records_for(query.model).dup, query)
+      end
+
+      ##
+      # Used by DataMapper to update the attributes on existing records in a
+      # data-store: "UPDATE" in SQL-speak. It takes a hash of the attributes
+      # to update with, as well as a collection object that specifies which resources
+      # should be updated.
+      #
+      # @param [Hash] attributes
+      #   A set of key-value pairs of the attributes to update the resources with.
+      # @param [DataMapper::Collection] resources
+      #   The query that should be used to find the resource(s) to update.
+      #
+      # @api semipublic
+      def update(attributes, collection)
+        attributes = attributes_as_fields(attributes)
+        read(collection.query).each { |r| r.update(attributes) }
+      end
+
+      ##
+      # Destroys all the records matching the given query. "DELETE" in SQL.
+      #
+      # @param [Query] query
+      #   The query used to locate the resources to be deleted.
+      #
+      # @return [Integer]
+      #   The number of records that were deleted.
+      #
+      # @api semipublic
+      def delete(collection)
+        records = records_for(collection.model)
+        records_to_delete = filter_records(records.dup, collection.query).to_set
+        records.delete_if { |r| records_to_delete.include?(r) }
+        records_to_delete
+      end
+
+      private
+
+      ##
+      # Make a new instance of the adapter. The @records ivar is the 'data-store'
       # for this adapter. It is not shared amongst multiple incarnations of this
       # adapter, eg DataMapper.setup(:default, :adapter => :in_memory);
       # DataMapper.setup(:alternate, :adapter => :in_memory) do not share the
@@ -29,86 +100,11 @@ module DataMapper
       end
 
       ##
-      # Used by DataMapper to put records into a data-store: "INSERT" in SQL-speak.
-      # It takes an array of the resources (model instances) to be saved. Resources
-      # each have a key that can be used to quickly look them up later without
-      # searching, if the adapter supports it.
-      #
-      # @param [Enumerable(Resource)] resources
-      #   The set of resources (model instances)
-      #
-      # @api semipublic
-      def create(resources)
-        records = records_for(resources.first.model)
-
-        resources.each do |resource|
-          initialize_identity_field(resource, records.size.succ)
-          records[resource.key] = resource.attributes(:field)
-        end
-      end
-
-      ##
-      # Looks up one record or a collection of records from the data-store:
-      # "SELECT" in SQL.
-      #
-      # @param [Query] query
-      #   The query to be used to seach for the resources
-      #
-      # @return [Array]
-      #   An Array of Hashes containing the key-value pairs for
-      #   each record
-      #
-      # @api semipublic
-      def read(query)
-        records = records_for(query.model)
-        filter_records(records.values, query)
-      end
-
-      ##
-      # Used by DataMapper to update the attributes on existing records in a
-      # data-store: "UPDATE" in SQL-speak. It takes a hash of the attributes
-      # to update with, as well as a collection object that specifies which resources
-      # should be updated.
-      #
-      # @param [Hash] attributes
-      #   A set of key-value pairs of the attributes to update the resources with.
-      # @param [DataMapper::Collection] resources
-      #   The query that should be used to find the resource(s) to update.
-      #
-      # @api semipublic
-      def update(attributes, collection)
-        attributes = attributes_as_fields(attributes)
-
-        records = records_for(collection.model)
-        updated = filter_records(records.values, collection.query)
-        updated.each { |r| r.update(attributes) }
-      end
-
-      ##
-      # Destroys all the records matching the given query. "DELETE" in SQL.
-      #
-      # @param [Query] query
-      #   The query used to locate the resources to be deleted.
-      #
-      # @return [Integer]
-      #   The number of records that were deleted.
-      #
-      # @api semipublic
-      def delete(collection)
-        records = records_for(collection.model)
-        records_to_delete = filter_records(records.values, collection.query).to_set
-        records.delete_if { |_k,r| records_to_delete.include?(r) }
-        records_to_delete
-      end
-
-      private
-
-      ##
       # All the records we're storing. This method will look them up by model name
       #
       # @api private
       def records_for(model)
-        @records[model] ||= {}
+        @records[model] ||= []
       end
 
     end # class InMemoryAdapter

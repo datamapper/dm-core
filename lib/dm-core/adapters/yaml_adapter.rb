@@ -4,48 +4,42 @@ module DataMapper
       require 'yaml'
       require 'fileutils'
 
-      attr_reader :path
-
-      def initialize(name, options = {})
-        super
-        @path = FileUtils.mkdir_p(@options[:path])
-      end
-
       def create(resources)
         update_records(resources.first.model) do |records|
           resources.each do |resource|
             initialize_identity_field(resource, records.size.succ)
-            records[resource.key] = resource.attributes(:field)
+            records << resource.attributes(:field)
           end
         end
       end
 
       def read(query)
-        records = records_for(query.model)
-        filter_records(records.values, query)
+        filter_records(records_for(query.model).dup, query)
       end
 
       def update(attributes, collection)
-        query      = collection.query
         attributes = attributes_as_fields(attributes)
 
         update_records(collection.model) do |records|
-          updated = filter_records(records.values, query)
-          updated.each { |r| r.update(attributes) }
+          records_to_update = filter_records(records.dup, collection.query)
+          records_to_update.each { |r| r.update(attributes) }
         end
       end
 
       def delete(collection)
-        query = collection.query
-
         update_records(collection.model) do |records|
-          records_to_delete = filter_records(records.values, query).to_set
-          records.delete_if { |_k,r| records_to_delete.include?(r) }
+          records_to_delete = filter_records(records.dup, collection.query).to_set
+          records.delete_if { |r| records_to_delete.include?(r) }
           records_to_delete
         end
       end
 
-      protected
+      private
+
+      def initialize(name, options = {})
+        super
+        @path = FileUtils.mkdir_p(@options[:path])
+      end
 
       ##
       # Retrieves all records for a model and yeilds them to a block.
@@ -76,7 +70,7 @@ module DataMapper
       # @api private
       def records_for(model)
         file = yaml_file(model)
-        File.readable?(file) && YAML.load_file(file) || {}
+        File.readable?(file) ? YAML.load_file(file) : []
       end
 
       ##
@@ -105,7 +99,7 @@ module DataMapper
       #
       # @api private
       def yaml_file(model)
-        File.join(path, "#{model.storage_name(name)}.yml")
+        File.join(@path, "#{model.storage_name(name)}.yml")
       end
 
     end # class YamlAdapter

@@ -306,6 +306,7 @@ module DataMapper
     #   names of attributes that have been loaded
     #
     # @api private
+    # TODO: think about renaming this loaded_properties
     def loaded_attributes
       properties.select { |p| p.loaded?(self) }
     end

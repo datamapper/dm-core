@@ -451,6 +451,10 @@ module DataMapper
     #
     # @api public
     def <<(resource)
+      if resource.kind_of?(Hash)
+        resource = new(resource)
+      end
+
       relate_resource(resource)
       super
     end
@@ -629,10 +633,18 @@ module DataMapper
     #
     # @api public
     def replace(other)
-      other = other.map { |r| r.kind_of?(Hash) ? new(r) : r }
+      other = other.map do |resource|
+        if resource.kind_of?(Hash)
+          new(resource)
+        else
+          resource
+        end
+      end
+
       if loaded?
         orphan_resources(self - other)
       end
+
       relate_resources(other)
       super(other)
     end
@@ -667,7 +679,7 @@ module DataMapper
     # @param [Hash] conditions
     #   The conditions to be used to search
     # @param [Hash] attributes
-    #   The attributes to be used to create the record of none is found.
+    #   The attributes to be used to initialize the resource with if none found
     # @return [Resource]
     #   The instance found by +query+, or created with +attributes+ if none found
     #
@@ -683,7 +695,7 @@ module DataMapper
     # @param [Hash] conditions
     #   The conditions to be used to search
     # @param [Hash] attributes
-    #   The attributes to be used to create the record of none is found.
+    #   The attributes to be used to create the resource with if none found
     # @return [Resource]
     #   The instance found by +query+, or created with +attributes+ if none found
     #

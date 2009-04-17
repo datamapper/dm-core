@@ -159,10 +159,11 @@ module DataMapper
           sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
 
           # sort resources by each property
-          records.sort! do |a,b|
+          records.sort! do |a, b|
             cmp = 0
-            sort_order.each do |(property,descending)|
+            sort_order.each do |(property, descending)|
               # TODO: update to handle Hash Symbol/Property and Resource objects
+              # TODO: handle case where one or both of the values is nil
               cmp = a[property.field] <=> b[property.field]
               cmp *= -1 if descending
               break if cmp != 0
@@ -206,7 +207,7 @@ module DataMapper
       end
 
       def attributes_as_fields(attributes)
-        attributes.map { |p,v| [p.field, v] }.to_hash
+        attributes.map { |p, v| [ p.field, v ] }.to_hash
       end
 
       private
