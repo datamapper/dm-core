@@ -142,25 +142,6 @@ module DataMapper
       end
 
       ##
-      # Compares two values and returns true if they are equal
-      #
-      # @param [Object] bind_value
-      #   The value we are comparing against
-      # @param [Object] value
-      #   The value we are comparing with
-      #
-      # @return [TrueClass,FalseClass]
-      #   Returns true if the values are equal
-      #
-      # @api private
-      def equality_comparison(bind_value, value)
-        case bind_value
-          when Array, Range then bind_value.include?(value)
-          else                   bind_value == value
-        end
-      end
-
-      ##
       # Sorts a list of Records by a given query
       #
       # @param [Enumerable] records
@@ -181,6 +162,7 @@ module DataMapper
           records.sort! do |a,b|
             cmp = 0
             sort_order.each do |(property,descending)|
+              # TODO: update to handle Hash Symbol/Property and Resource objects
               cmp = a[property.field] <=> b[property.field]
               cmp *= -1 if descending
               break if cmp != 0

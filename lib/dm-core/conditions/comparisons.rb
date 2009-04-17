@@ -30,10 +30,11 @@ module DataMapper
       end
 
       def record_value(record)
-        if record.kind_of?(Hash)
-          record[@property.field]
-        else
-          @property.get!(record)
+        case record
+          when Hash
+            record.key?(@property) ? record[@property] : record[@property.field]
+          when Resource
+            @property.get!(record)
         end
       end
 
@@ -100,11 +101,7 @@ module DataMapper
       slug :eql
 
       def matches?(record)
-        if @value.kind_of?(Array) || @value.kind_of?(Range)
-          @value.include?(record_value(record))
-        else
-          record_value(record) == @value
-        end
+        @value == record_value(record)
       end
 
       def comparator_string
