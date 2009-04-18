@@ -41,7 +41,7 @@ module DataMapper
       #
       # @api semipublic
       def read(query)
-        filter_records(records_for(query.model).dup, query)
+        query.filter_records(records_for(query.model).dup)
       end
 
       ##
@@ -73,8 +73,8 @@ module DataMapper
       # @api semipublic
       def delete(collection)
         records = records_for(collection.model)
-        records_to_delete = filter_records(records.dup, collection.query).to_set
-        records.delete_if { |r| records_to_delete.include?(r) }
+        records_to_delete = collection.query.filter_records(records.dup)
+        records.replace(records - records_to_delete)
         records_to_delete
       end
 

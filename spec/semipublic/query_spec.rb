@@ -1173,6 +1173,36 @@ describe DataMapper::Query do
     end
   end
 
+  it { @query.should respond_to(:filter_records) }
+
+  supported_by :all do
+    describe '#filter_records' do
+      before :all do
+        @john = { 'name' => 'John Doe',  'referrer_name' => nil         }
+        @sam  = { 'name' => 'Sam Smoot', 'referrer_name' => nil         }
+        @dan  = { 'name' => 'Dan Kubb',  'referrer_name' => 'Sam Smoot' }
+
+        @records = [ @john, @sam, @dan ]
+
+        @query.update(:name.not => @sam['name'])
+
+        @return = @query.filter_records(@records)
+      end
+
+      it 'should return Enumerable' do
+        @return.should be_kind_of(Enumerable)
+      end
+
+      it 'should be the records provided' do
+        @return.should equal(@records)
+      end
+
+      it 'should return expected values' do
+        @return.should == [ @dan, @john ]
+      end
+    end
+  end
+
   it { @query.should respond_to(:inspect) }
 
   describe '#inspect' do
@@ -1211,6 +1241,36 @@ describe DataMapper::Query do
     end
   end
 
+  it { @query.should respond_to(:limit_records) }
+
+  supported_by :all do
+    describe '#limit_records' do
+      before :all do
+        @john = { 'name' => 'John Doe',  'referrer_name' => nil         }
+        @sam  = { 'name' => 'Sam Smoot', 'referrer_name' => nil         }
+        @dan  = { 'name' => 'Dan Kubb',  'referrer_name' => 'Sam Smoot' }
+
+        @records = [ @john, @sam, @dan ]
+
+        @query.update(:limit => 1, :offset => 1)
+
+        @return = @query.limit_records(@records)
+      end
+
+      it 'should return Enumerable' do
+        @return.should be_kind_of(Enumerable)
+      end
+
+      it 'should be the records provided' do
+        @return.should equal(@records)
+      end
+
+      it 'should return expected values' do
+        @return.should == [ @sam ]
+      end
+    end
+  end
+
   it { @query.should respond_to(:links) }
 
   describe '#links' do
@@ -1221,6 +1281,36 @@ describe DataMapper::Query do
     it { @return.should be_kind_of(Array) }
 
     it { @return.should be_empty }
+  end
+
+  it { @query.should respond_to(:match_records) }
+
+  supported_by :all do
+    describe '#match_records' do
+      before :all do
+        @john = { 'name' => 'John Doe',  'referrer_name' => nil         }
+        @sam  = { 'name' => 'Sam Smoot', 'referrer_name' => nil         }
+        @dan  = { 'name' => 'Dan Kubb',  'referrer_name' => 'Sam Smoot' }
+
+        @records = [ @john, @sam, @dan ]
+
+        @query.update(:name.not => @sam['name'])
+
+        @return = @query.match_records(@records)
+      end
+
+      it 'should return Enumerable' do
+        @return.should be_kind_of(Enumerable)
+      end
+
+      it 'should be the records provided' do
+        @return.should equal(@records)
+      end
+
+      it 'should return expected values' do
+        @return.should == [ @john, @dan ]
+      end
+    end
   end
 
   it { @query.should respond_to(:merge) }
@@ -1908,6 +1998,36 @@ describe DataMapper::Query do
         lambda {
           @query.slice!('invalid')
         }.should raise_error(ArgumentError, 'arguments may be 1 or 2 Integers, or 1 Range object, was: ["invalid"]')
+      end
+    end
+  end
+
+  it { @query.should respond_to(:sort_records) }
+
+  supported_by :all do
+    describe '#sort_records' do
+      before :all do
+        @john = { 'name' => 'John Doe',  'referrer_name' => nil         }
+        @sam  = { 'name' => 'Sam Smoot', 'referrer_name' => nil         }
+        @dan  = { 'name' => 'Dan Kubb',  'referrer_name' => 'Sam Smoot' }
+
+        @records = [ @john, @sam, @dan ]
+
+        @query.update(:order => [ :name ])
+
+        @return = @query.sort_records(@records)
+      end
+
+      it 'should return Enumerable' do
+        @return.should be_kind_of(Enumerable)
+      end
+
+      it 'should be the records provided' do
+        @return.should equal(@records)
+      end
+
+      it 'should return expected values' do
+        @return.should == [ @dan, @john, @sam ]
       end
     end
   end

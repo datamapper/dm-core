@@ -330,6 +330,97 @@ module DataMapper
     end
 
     ##
+    # Takes an Enumerable of records, and destructively filters it.
+    # First finds all matching conditions, then sorts it,
+    # then does offset & limit
+    #
+    # @param [Enumerable] records
+    #   The set of records to be filtered
+    #
+    # @return [Enumerable]
+    #   Whats left of the given array after the filtering
+    #
+    # @api semipublic
+    def filter_records(records)
+      match_records(records)
+      sort_records(records)
+      limit_records(records)
+      records
+    end
+
+    ##
+    # Filter a set of records by the conditions
+    #
+    # @param [Enumerable] records
+    #   The set of records to be filtered
+    #
+    # @return [Enumerable]
+    #   Whats left of the given array after the matching
+    #
+    # @api semipublic
+    def match_records(records)
+      records.delete_if do |record|
+        !conditions.matches?(record)
+      end
+    end
+
+    ##
+    # Sorts a list of Records by the order
+    #
+    # @param [Enumerable] records
+    #   A list of Resources to sort
+    #
+    # @return [Enumerable]
+    #   The sorted records
+    #
+    # @api semipublic
+    def sort_records(records)
+      sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
+
+      # sort resources by each property
+      records.sort! do |a, b|
+        cmp = 0
+        sort_order.each do |(property, descending)|
+          a_value = a[property.field]
+          b_value = b[property.field]
+
+          cmp = if a_value.nil? || b_value.nil?
+             0 if a_value.nil? && b_value.nil?
+             1 if a_value.nil?
+            -1 if b_value.nil?
+          else
+            # TODO: update to handle Hash Symbol/Property and Resource objects
+            a_value <=> b_value
+          end
+
+          cmp *= -1 if descending
+          break if cmp != 0
+        end
+        cmp
+      end
+    end
+
+    ##
+    # Limits a set of records by the offset and/or limit
+    #
+    # @param [Enumerable] records
+    #   A list of Recrods to sort
+    #
+    # @return [Enumerable]
+    #   The offset & limited records
+    #
+    # @api semipublic
+    def limit_records(records)
+      size = records.size
+
+      if offset > size - 1
+        records.clear
+      elsif (limit && limit != size) || offset > 0
+        records.replace(records[offset, limit || size] || [])
+      end
+    end
+
+    ##
     # Compares another Query for equivalency
     #
     # @param [Query] other

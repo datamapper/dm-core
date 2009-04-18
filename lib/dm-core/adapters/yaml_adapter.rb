@@ -14,22 +14,22 @@ module DataMapper
       end
 
       def read(query)
-        filter_records(records_for(query.model).dup, query)
+        query.filter_records(records_for(query.model).dup)
       end
 
       def update(attributes, collection)
         attributes = attributes_as_fields(attributes)
 
         update_records(collection.model) do |records|
-          records_to_update = filter_records(records.dup, collection.query)
+          records_to_update = collection.query.filter_records(records.dup)
           records_to_update.each { |r| r.update(attributes) }
         end
       end
 
       def delete(collection)
         update_records(collection.model) do |records|
-          records_to_delete = filter_records(records.dup, collection.query).to_set
-          records.delete_if { |r| records_to_delete.include?(r) }
+          records_to_delete = collection.query.filter_records(records.dup)
+          records.replace(records - records_to_delete)
           records_to_delete
         end
       end
@@ -70,7 +70,7 @@ module DataMapper
       # @api private
       def records_for(model)
         file = yaml_file(model)
-        File.readable?(file) && YAML.load_file(file) || []
+        File.readable?(file) ? YAML.load_file(file) : []
       end
 
       ##
