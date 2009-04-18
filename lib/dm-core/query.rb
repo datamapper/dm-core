@@ -544,6 +544,27 @@ module DataMapper
       "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" } * ' '}>"
     end
 
+    ##
+    # Get the properties used in the conditions
+    #
+    # @return [Set<Property>]
+    #  Set of Property objects used in the conditions
+    #
+    # @api private
+    def condition_properties
+      properties = Set.new
+      operands   = conditions.operands.dup
+
+      while operand = operands.pop
+        case operand
+          when Conditions::AbstractOperation  then operands.concat(operand.operands)
+          when Conditions::AbstractComparison then properties << operand.property
+        end
+      end
+
+      properties
+    end
+
     private
 
     ##

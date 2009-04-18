@@ -957,6 +957,21 @@ module DataMapper
     #
     # @api private
     def new_collection(query, resources = nil, &block)
+      resources ||= if loaded?
+        fields = self.query.fields.to_set
+
+        if query.fields.to_set.subset?(fields) &&
+          !query.links.any?                    &&
+          query.unique? == self.query.unique?  &&
+          !query.add_reversed?                 &&
+          !query.reload?                       &&
+          !query.raw?                          &&
+          query.condition_properties.subset?(fields)
+        then
+          query.filter_records(to_a.dup)
+        end
+      end
+
       self.class.new(query, resources, &block)
     end
 
