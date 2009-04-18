@@ -201,6 +201,17 @@ module DataMapper
     end
 
     ##
+    # Indicates if the Query has raw conditions
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the query has raw conditions, false if not
+    #
+    # @api semipublic
+    def raw?
+      @raw
+    end
+
+    ##
     # Returns a new Query with a reversed order
     #
     # @example
@@ -577,6 +588,7 @@ module DataMapper
       @unique       = @options.fetch :unique,       false
       @add_reversed = @options.fetch :add_reversed, false
       @reload       = @options.fetch :reload,       false
+      @raw          = false
 
       # XXX: should I validate that each property in @order corresponds
       # to something in @fields?  Many DB engines require they match,
@@ -604,6 +616,7 @@ module DataMapper
         when Array
           statement, *bind_values = *conditions
           @conditions << [ statement, bind_values ]
+          @raw = true
       end
 
       # normalize any newly added links

@@ -1380,6 +1380,22 @@ describe DataMapper::Query do
     end
   end
 
+  it { @query.should respond_to(:raw?) }
+
+  describe '#raw?' do
+    describe 'when the query contains raw conditions' do
+      before :all do
+        @query.update(:conditions => [ 'name = ?', 'Dan Kubb' ])
+      end
+
+      it { @query.should be_raw }
+    end
+
+    describe 'when the query does not contain raw conditions' do
+      it { @query.should_not be_raw }
+    end
+  end
+
   it { @query.should respond_to(:relative) }
 
   describe '#relative' do
