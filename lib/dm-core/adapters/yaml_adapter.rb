@@ -70,7 +70,7 @@ module DataMapper
       # @api private
       def records_for(model)
         file = yaml_file(model)
-        File.readable?(file) ? YAML.load_file(file) : []
+        File.readable?(file) && YAML.load_file(file) || []
       end
 
       ##
@@ -99,7 +99,7 @@ module DataMapper
       #
       # @api private
       def yaml_file(model)
-        File.join(@path, "#{model.storage_name(name)}.yml")
+        File.join(@path, "#{model.base_model.storage_name(name)}.yml")
       end
 
     end # class YamlAdapter

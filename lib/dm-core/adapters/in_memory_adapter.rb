@@ -104,7 +104,7 @@ module DataMapper
       #
       # @api private
       def records_for(model)
-        @records[model] ||= []
+        @records[model.base_model] ||= []
       end
 
     end # class InMemoryAdapter
