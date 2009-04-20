@@ -500,7 +500,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not include(@resource)
+        @articles.should_not be_include(@resource)
       end
 
       it 'should orphan the Resource' do
@@ -544,7 +544,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not include(@resource)
+        @articles.should_not be_include(@resource)
       end
 
       it 'should orphan the Resource' do
@@ -586,7 +586,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not include(r) }
+        @resources.each { |r| @articles.should_not be_include(r) }
       end
 
       it 'should orphan the Resources' do
@@ -1602,7 +1602,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should remove the Resource from the Collection' do
-      @articles.should_not include(@resource)
+      @articles.should_not be_include(@resource)
     end
 
     it 'should orphan the Resource' do
@@ -1665,7 +1665,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not include(r) }
+        @resources.each { |r| @articles.should_not be_include(r) }
       end
 
       it 'should orphan the Resources' do
@@ -1939,7 +1939,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should remove the Resource from the Collection' do
-      @articles.should_not include(@resource)
+      @articles.should_not be_include(@resource)
     end
 
     it 'should orphan the Resource' do
@@ -1976,7 +1976,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resource from the Collection' do
-          @articles.should include(@resource)
+          @articles.should be_include(@resource)
         end
 
         it 'should relate the Resource to the Collection' do
@@ -2002,7 +2002,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resources from the Collection' do
-          @resources.each { |r| @articles.should include(r) }
+          @resources.each { |r| @articles.should be_include(r) }
         end
 
         it 'should orphan the Resources' do
@@ -2032,7 +2032,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resources from the Collection' do
-          @resources.each { |r| @articles.should include(r) }
+          @resources.each { |r| @articles.should be_include(r) }
         end
 
         it 'should orphan the Resources' do
@@ -2064,7 +2064,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resource from the Collection' do
-          @articles.should include(@resource)
+          @articles.should be_include(@resource)
         end
 
         it 'should relate the Resource to the Collection' do
@@ -2090,7 +2090,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resources from the Collection' do
-          @resources.each { |r| @articles.should include(r) }
+          @resources.each { |r| @articles.should be_include(r) }
         end
 
         it 'should orphan the Resources' do
@@ -2120,7 +2120,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resources from the Collection' do
-          @resources.each { |r| @articles.should include(r) }
+          @resources.each { |r| @articles.should be_include(r) }
         end
 
         it 'should orphan the Resources' do
@@ -2207,7 +2207,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not include(@resource)
+        @articles.should_not be_include(@resource)
       end
 
       it 'should orphan the Resource' do
@@ -2231,7 +2231,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not include(r) }
+        @resources.each { |r| @articles.should_not be_include(r) }
       end
 
       it 'should orphan the Resources' do
@@ -2259,7 +2259,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not include(r) }
+        @resources.each { |r| @articles.should_not be_include(r) }
       end
 
       it 'should orphan the Resources' do
@@ -2287,7 +2287,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resource from the Collection' do
-        @articles.should_not include(@resource)
+        @articles.should_not be_include(@resource)
       end
 
       it 'should orphan the Resource' do
@@ -2311,7 +2311,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not include(r) }
+        @resources.each { |r| @articles.should_not be_include(r) }
       end
 
       it 'should orphan the Resources' do
@@ -2339,7 +2339,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not include(r) }
+        @resources.each { |r| @articles.should_not be_include(r) }
       end
 
       it 'should orphan the Resources' do
@@ -2482,7 +2482,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should include(@resource)
+          @articles.should be_include(@resource)
         end
 
         it 'should relate the Resource to the Collection' do
@@ -2517,7 +2517,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should include(@resource)
+          @articles.should be_include(@resource)
         end
 
         it 'should orphan the original Resource' do
@@ -2548,7 +2548,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should include(@resource)
+          @articles.should be_include(@resource)
         end
 
         it 'should orphan the original Resources' do
@@ -2579,7 +2579,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should include(@resource)
+          @articles.should be_include(@resource)
         end
 
         it 'should relate the Resource to the Collection' do
@@ -2614,7 +2614,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should include(@resource)
+          @articles.should be_include(@resource)
         end
 
         it 'should orphan the original Resource' do
@@ -2645,7 +2645,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should include the Resource in the Collection' do
-          @articles.should include(@resource)
+          @articles.should be_include(@resource)
         end
 
         it 'should orphan the original Resources' do
