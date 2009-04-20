@@ -33,7 +33,7 @@ module DataMapper
     #
     # @param [Hash, Query]  Query to add to current scope nesting
     #
-    # @api semipublic
+    # @api private
     def with_scope(query)
       # merge the current scope with the passed in query
       with_exclusive_scope(self.query ? self.query.merge(query) : query) { |*block_args| yield(*block_args) }
@@ -44,7 +44,7 @@ module DataMapper
     # queries previously pushed onto the stack
     # have no effect.
     #
-    # @api semipublic
+    # @api private
     def with_exclusive_scope(query)
       query = Query.new(repository, self, query) if query.kind_of?(Hash)
 

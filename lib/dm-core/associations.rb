@@ -73,6 +73,8 @@ module DataMapper
 
     # Used to express unlimited cardinality of association,
     # see +has+
+    #
+    # @api public
     def n
       1.0/0
     end
@@ -90,15 +92,17 @@ module DataMapper
     #
     # @param cardinality [Integer, Range, Infinity]
     #   cardinality that defines the association type and constraints
-    # @param name <Symbol>  the name that the association will be referenced by
-    # @param opts <Hash>    an options hash
+    # @param name [Symbol]
+    #   the name that the association will be referenced by
+    # @param opts [Hash]
+    #   an options hash
     #
     # @option :through[Symbol]  A association that this join should go through to form
-    #       a many-to-many association
+    #   a many-to-many association
     # @option :model[Model,String] The name of the class to associate with, if omitted
-    #       then the association name is assumed to match the class name
+    #   then the association name is assumed to match the class name
     # @option :repository[Symbol]
-    #       name of child model repository
+    #   name of child model repository
     #
     # @return [Association::Relationship] the relationship that was
     #   created to reflect either a one-to-one, one-to-many or many-to-many
@@ -143,10 +147,10 @@ module DataMapper
     # @see #has
     #
     # @option :model[Model,String] The name of the class to associate with, if omitted
-    #       then the association name is assumed to match the class name
+    #   then the association name is assumed to match the class name
     #
     # @option :repository[Symbol]
-    #       name of child model repository
+    #   name of child model repository
     #
     # @return [Association::Relationship] The association created
     #   should not be accessed directly

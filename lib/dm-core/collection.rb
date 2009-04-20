@@ -1,7 +1,3 @@
-# TODO: if the Collection is loaded, and a finder (#all, #first, #last)
-# is used, then use the Query conditions to return the matching entries
-# rather than executing another query.
-
 # TODO: if Collection is scoped by a unique property, should adding
 # new Resources be denied?
 

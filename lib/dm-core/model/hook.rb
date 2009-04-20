@@ -6,12 +6,16 @@ module DataMapper
 
         register_instance_hooks :_create, :_update, :destroy
 
+        # TODO: document
+        # @api public
         def self.before(target_method, method_sym = nil, &block)
           remap_target_method(target_method).each do |t|
             super t, method_sym, &block
           end
         end
 
+        # TODO: document
+        # @api public
         def self.after(target_method, method_sym = nil, &block)
           remap_target_method(target_method).each do |t|
             super t, method_sym, &block
@@ -21,6 +25,8 @@ module DataMapper
         class << self
           private
 
+          # TODO: document
+          # @api private
           def remap_target_method(target_method)
             case target_method
               when :create then [ :_create           ]

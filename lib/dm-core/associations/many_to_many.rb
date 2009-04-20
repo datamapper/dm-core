@@ -232,24 +232,32 @@ module DataMapper
         # @api private
         attr_accessor :source
 
+        # TODO: document
+        # @api public
         def reload(query = nil)
           # TODO: remove references to the intermediaries
           # TODO: reload the collection
           raise NotImplementedError
         end
 
+        # TODO: document
+        # @api public
         def replace(other)
           # TODO: wipe out the intermediaries
           # TODO: replace the collection with other
           raise NotImplementedError
         end
 
+        # TODO: document
+        # @api public
         def clear
           # TODO: clear the intermediaries
           # TODO: clear the collection
           raise NotImplementedError
         end
 
+        # TODO: document
+        # @api public
         def create(attributes = {})
           assert_source_saved 'The source must be saved before creating a Resource'
 
@@ -315,28 +323,38 @@ module DataMapper
           tail.last
         end
 
+        # TODO: document
+        # @api public
         def update(attributes = {})
           # TODO: update the resources in the target model
           raise NotImplementedError
         end
 
+        # TODO: document
+        # @api public
         def update!(attributes = {})
           # TODO: update the resources in the target model
           raise NotImplementedError
         end
 
+        # TODO: document
+        # @api public
         def save
           # TODO: create the new intermediaries
           # TODO: destroy the orphaned intermediaries
           raise NotImplementedError
         end
 
+        # TODO: document
+        # @api public
         def destroy
           # TODO: destroy the intermediaries
           # TODO: destroy the resources in the target model
           raise NotImplementedError
         end
 
+        # TODO: document
+        # @api public
         def destroy!
           # TODO: destroy! the intermediaries
           # TODO: destroy! the resources in the target model
@@ -345,6 +363,8 @@ module DataMapper
 
         private
 
+        # TODO: document
+        # @api private
         def relate_resource(resource)
           # TODO: queue up new intermediaries for creation
 
@@ -364,6 +384,8 @@ module DataMapper
           resource
         end
 
+        # TODO: document
+        # @api private
         def orphan_resource(resource)
           # TODO: queue up orphaned intermediaries for destruction
 

@@ -229,7 +229,9 @@ module DataMapper
 
       # Returns a set of keys that identify parent model
       #
-      # @return   [DataMapper::PropertySet]  a set of properties that identify parent model
+      # @return [DataMapper::PropertySet]
+      #   a set of properties that identify parent model
+      #
       # @api private
       def parent_key
         @parent_key ||=

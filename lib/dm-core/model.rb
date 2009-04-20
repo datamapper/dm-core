@@ -129,9 +129,9 @@ module DataMapper
       extra_extensions.each { |mod| model.extend(mod)         }
     end
 
-    # TODO: document
-    # @api private
     chainable do
+      # TODO: document
+      # @api private
       def inherited(target)
         Model.descendants << target
 

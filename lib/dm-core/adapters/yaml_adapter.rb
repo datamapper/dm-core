@@ -1,9 +1,11 @@
+require 'yaml'
+require 'fileutils'
+
 module DataMapper
   module Adapters
     class YamlAdapter < AbstractAdapter
-      require 'yaml'
-      require 'fileutils'
-
+      # TODO: document
+      # @api semipublic
       def create(resources)
         update_records(resources.first.model) do |records|
           resources.each do |resource|
@@ -13,10 +15,14 @@ module DataMapper
         end
       end
 
+      # TODO: document
+      # @api semipublic
       def read(query)
         query.filter_records(records_for(query.model).dup)
       end
 
+      # TODO: document
+      # @api semipublic
       def update(attributes, collection)
         attributes = attributes_as_fields(attributes)
 
@@ -26,6 +32,8 @@ module DataMapper
         end
       end
 
+      # TODO: document
+      # @api semipublic
       def delete(collection)
         update_records(collection.model) do |records|
           records_to_delete = collection.query.filter_records(records.dup)
@@ -36,6 +44,8 @@ module DataMapper
 
       private
 
+      # TODO: document
+      # @api semipublic
       def initialize(name, options = {})
         super
         @path = FileUtils.mkdir_p(@options[:path])

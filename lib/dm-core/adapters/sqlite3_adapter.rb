@@ -11,6 +11,8 @@ module DataMapper
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
+        # TODO: document
+        # @api private
         def quote_value(value)
           case value
             when TrueClass  then super('t')

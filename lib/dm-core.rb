@@ -42,6 +42,8 @@ require dir / 'associations' / 'one_to_many'
 require dir / 'associations' / 'one_to_one'
 require dir / 'associations' / 'many_to_one'
 require dir / 'associations' / 'many_to_many'
+require dir / 'conditions' / 'boolean_operator'
+require dir / 'conditions' / 'comparisons'
 require dir / 'identity_map'
 require dir / 'migrations'                      # TODO: move to dm-more
 require dir / 'model' / 'hook'
@@ -53,8 +55,7 @@ require dir / 'query'
 require dir / 'query' / 'direction'
 require dir / 'query' / 'operator'
 require dir / 'query' / 'path'
-require dir / 'conditions' / 'boolean_operator'
-require dir / 'conditions' / 'comparisons'
+require dir / 'query' / 'sort'
 require dir / 'repository'
 require dir / 'resource'
 require dir / 'support' / 'logger'
@@ -132,7 +133,7 @@ module DataMapper
 
   class PluginNotFoundError < StandardError; end
 
-  # TODO: document this
+  # TODO: document
   # @api private
   def self.root
     @root ||= Pathname(__FILE__).dirname.parent.expand_path.freeze

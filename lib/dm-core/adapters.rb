@@ -3,6 +3,8 @@ module DataMapper
     extend Chainable
 
     extendable do
+      # TODO: document
+      # @api private
       def const_added(const_name)
       end
     end

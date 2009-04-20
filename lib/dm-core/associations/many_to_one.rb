@@ -4,13 +4,29 @@ module DataMapper
       # Relationship class with implementation specific
       # to n side of 1 to n association
       class Relationship < Associations::Relationship
+        # TODO: document
+        # @api semipublic
         alias source_repository_name child_repository_name
-        alias source_model           child_model
-        alias source_key             child_key
 
+        # TODO: document
+        # @api semipublic
+        alias source_model child_model
+
+        # TODO: document
+        # @api semipublic
+        alias source_key child_key
+
+        # TODO: document
+        # @api semipublic
         alias target_repository_name parent_repository_name
-        alias target_model           parent_model
-        alias target_key             parent_key
+
+        # TODO: document
+        # @api semipublic
+        alias target_model parent_model
+
+        # TODO: document
+        # @api semipublic
+        alias target_key parent_key
 
         # Creates and returns Query instance that fetches
         # target resource (ex.: author) for given source
@@ -76,6 +92,7 @@ module DataMapper
         private
 
         # Initializes the relationship, always using max cardinality of 1.
+        #
         # @api semipublic
         def initialize(name, source_model, target_model, options = {})
           target_model ||= Extlib::Inflection.camelize(name).freeze

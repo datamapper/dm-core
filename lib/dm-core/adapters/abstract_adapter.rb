@@ -95,6 +95,8 @@ module DataMapper
 
       protected
 
+      # TODO: document
+      # @api semipublic
       def initialize_identity_field(resource, next_id)
         if identity_field = resource.model.identity_field(name)
           identity_field.set!(resource, next_id)
@@ -104,6 +106,8 @@ module DataMapper
         end
       end
 
+      # TODO: document
+      # @api semipublic
       def attributes_as_fields(attributes)
         attributes.map { |p, v| [ p.field, v ] }.to_hash
       end

@@ -4,7 +4,7 @@ module Kernel
   ##
   # Delegates to DataMapper.repository()
   #
-  # TODO: document this
+  # TODO: document
   #
   # @api public
   def repository(*args, &block)

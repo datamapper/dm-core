@@ -364,6 +364,7 @@ module DataMapper
       @unique
     end
 
+    # @deprecated
     def unique
       warn "#{self}#unique is deprecated, use #{self}#unique?"
       unique?
@@ -765,6 +766,8 @@ module DataMapper
 
     private
 
+    # TODO: document
+    # @api semipublic
     def initialize(model, name, type, options = {})
       assert_kind_of 'model',   model,   Model
       assert_kind_of 'name',    name,    Symbol
@@ -850,6 +853,8 @@ module DataMapper
       @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
     end
 
+    # TODO: document
+    # @api private
     def assert_valid_options(options)
       if (unknown = options.keys - PROPERTY_OPTIONS).any?
         raise ArgumentError, "options #{unknown.map { |o| o.inspect }.join(' and ')} are unknown"
@@ -894,7 +899,9 @@ module DataMapper
     # Will raise ArgumentError if this Property's reader and writer
     # visibilities are not included in VISIBILITY_OPTIONS.
     # @return [NilClass]
+    #
     # @raise [ArgumentError] "property visibility must be :public, :protected, or :private"
+    #
     # @api private
     def determine_visibility
       @reader_visibility = @options[:reader] || @options[:accessor] || :public

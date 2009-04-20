@@ -13,6 +13,8 @@ module DataMapper
     # adds list item behavior to the model. Plugin that wants to conform
     # to "is API" of DataMapper must supply is_+behavior name+ method,
     # for example above it would be is_list.
+    #
+    # @api public
     def is(plugin, *pars, &block)
       generator_method = "is_#{plugin}".to_sym
 
@@ -23,6 +25,6 @@ module DataMapper
       end
     end
 
-    Model.send(:include, self)
+    Model.append_inclusions self
   end # module Is
 end # module DataMapper

@@ -5,6 +5,8 @@ module DataMapper
       default   false
       lazy      true
 
+      # TODO: document
+      # @api privatex
       def self.bind(property)
         repository_name = property.repository_name
         model           = property.model
@@ -13,7 +15,6 @@ module DataMapper
         model.send(:set_paranoid_property, property_name){true}
 
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-
           def self.with_deleted
             with_exclusive_scope(#{property_name.inspect} => true) do
               yield

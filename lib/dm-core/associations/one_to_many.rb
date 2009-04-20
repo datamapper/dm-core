@@ -2,13 +2,29 @@ module DataMapper
   module Associations
     module OneToMany #:nodoc:
       class Relationship < Associations::Relationship
+        # TODO: document
+        # @api semipublic
         alias target_repository_name child_repository_name
-        alias target_model           child_model
-        alias target_key             child_key
 
+        # TODO: document
+        # @api semipublic
+        alias target_model child_model
+
+        # TODO: document
+        # @api semipublic
+        alias target_key child_key
+
+        # TODO: document
+        # @api semipublic
         alias source_repository_name parent_repository_name
-        alias source_model           parent_model
-        alias source_key             parent_key
+
+        # TODO: document
+        # @api semipublic
+        alias source_model parent_model
+
+        # TODO: document
+        # @api semipublic
+        alias source_key parent_key
 
         # Returns collection class used by this type of
         # relationship
@@ -32,6 +48,7 @@ module DataMapper
 
         # Loads and returns association targets (ex.: articles) for given source resource
         # (ex.: author)
+        #
         # @api semipublic
         def get(source, query = nil)
           lazy_load(source) unless loaded?(source)
@@ -152,6 +169,8 @@ module DataMapper
           super(query.nil? ? self.query.dup : self.query.merge(query))
         end
 
+        # TODO: document
+        # @api public
         def all(*)
           assert_source_saved 'The source must be saved before further scoping the collection'
           super
@@ -240,6 +259,8 @@ module DataMapper
 
         private
 
+        # TODO: document
+        # @api private
         def lazy_load
           if source.saved?
             super

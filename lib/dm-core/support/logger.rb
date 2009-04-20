@@ -149,7 +149,7 @@ module DataMapper
     #   DataMapper.logger.set_log(log{String, IO},level{Symbol, String})
     #
     # @param log<IO,String>        either an IO object or a name of a logfile.
-    # @param log_level<Symbol>     a symbol representing the log level from
+    # @param log_level[Symbol]     a symbol representing the log level from
     #   {:off, :fatal, :error, :warn, :info, :debug}
     # @param delimiter<String>     delimiter to use between message sections
     # @param log_creation<Boolean> log that the file is being created

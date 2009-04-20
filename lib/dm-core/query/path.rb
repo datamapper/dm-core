@@ -6,9 +6,20 @@ module DataMapper
       # silence Object deprecation warnings
       [ :id, :type ].each { |m| undef_method m if method_defined?(m) }
 
+      # TODO: document
+      # @api private
       attr_reader :repository_name
+
+      # TODO: document
+      # @api private
       attr_reader :relationships
+
+      # TODO: document
+      # @api private
       attr_reader :model
+
+      # TODO: document
+      # @api private
       attr_reader :property
 
       Query::OPERATORS.each do |sym|
@@ -20,16 +31,24 @@ module DataMapper
         RUBY
       end
 
-      # duck type the DM::Query::Path to act like a DM::Property
+      ##
+      # Duck type the DM::Query::Path to act like a DM::Property
+      #
+      # @api private
       def field(*args)
         defined?(@property) ? @property.field(*args) : nil
       end
 
-      # more duck typing
+      ##
+      # Duck type the DM::Query::Path to act like a DM::Property
+      #
+      # @api private
       def to_sym
         defined?(@property) ? @property.name.to_sym : @model.storage_name(@repository_name).to_sym
       end
 
+      # TODO: document
+      # @api private
       def ==(other)
         return true if equal?(other)
         return false unless other.respond_to?(:repository_name) &&
@@ -40,6 +59,8 @@ module DataMapper
         cmp?(other, :==)
       end
 
+      # TODO: document
+      # @api private
       def eql?(other)
         return true if equal?(other)
         return false unless self.class.equal?(other.class)
@@ -47,10 +68,14 @@ module DataMapper
         cmp?(other, :eql?)
       end
 
+      # TODO: document
+      # @api private
       def hash
         repository_name.hash + relationships.hash + model.hash + property.hash
       end
 
+      # TODO: document
+      # @api private
       def inspect
         attrs = [
           [ :repository_name, repository_name ],
@@ -64,6 +89,8 @@ module DataMapper
 
       private
 
+      # TODO: document
+      # @api private
       def initialize(repository, relationships, model, property_name = nil)
         assert_kind_of 'repository',    repository,    Repository
         assert_kind_of 'relationships', relationships, Array
@@ -76,6 +103,8 @@ module DataMapper
         @property        = @model.properties(@repository_name)[property_name] if property_name
       end
 
+      # TODO: document
+      # @api private
       def cmp?(other, operator)
         repository_name.send(operator, other.repository_name) &&
         relationships.send(operator, other.relationships)     &&
@@ -83,6 +112,8 @@ module DataMapper
         property.send(operator, other.property)
       end
 
+      # TODO: document
+      # @api private
       def method_missing(method, *args)
         if relationship = @model.relationships(@repository_name)[method]
           repository = DataMapper.repository(@repository_name)

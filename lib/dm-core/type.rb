@@ -97,6 +97,8 @@ module DataMapper
 
     class << self
 
+      # TODO: document
+      # @api private
       def configure(primitive_type, options)
         warn 'DataMapper.Type.configure is deprecated, specify the primitive and options explicitly'
 
@@ -190,6 +192,7 @@ module DataMapper
 
   end # class Type
 
+  # @deprecated
   def self.Type(primitive_type, options = {})
     warn "DataMapper.Type(#{primitive_type}) is deprecated, specify the primitive and options explicitly"
     Class.new(Type).configure(primitive_type, options)

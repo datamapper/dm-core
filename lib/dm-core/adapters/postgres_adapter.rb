@@ -9,6 +9,8 @@ module DataMapper
       module SQL #:nodoc:
         private
 
+        # TODO: document
+        # @api private
         def supports_returning?
           true
         end

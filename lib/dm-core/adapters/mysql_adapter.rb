@@ -9,18 +9,24 @@ module DataMapper
       module SQL #:nodoc:
         private
 
+        # TODO: document
+        # @api private
         def supports_default_values? #:nodoc:
           false
         end
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
+        # TODO: document
+        # @api private
         def quote_name(name) #:nodoc:
           "`#{name.gsub('`', '``')}`"
         end
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
+        # TODO: document
+        # @api private
         def quote_value(value) #:nodoc:
           case value
             when TrueClass  then super(1)
@@ -30,10 +36,14 @@ module DataMapper
           end
         end
 
+        # TODO: document
+        # @api private
         def regexp_operator(operand)
           'REGEXP'
         end
 
+        # TODO: document
+        # @api private
         def not_regexp_operator(operand)
           'NOT REGEXP'
         end

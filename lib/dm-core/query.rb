@@ -7,7 +7,7 @@ module DataMapper
     include Extlib::Assertions
 
     OPTIONS   = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze
-    OPERATORS = [ :eql, :in, :not, :like, :gt, :gte, :lt, :lte ].to_set.freeze
+    OPERATORS = DataMapper::Conditions::AbstractComparison.subclasses.map { |c| c.slug }.push(:not).to_set.freeze
 
     ##
     # Returns the repository query should be
@@ -1022,7 +1022,7 @@ module DataMapper
     # TODO: make this typecast all bind values that do not match the
     # property primitive
 
-    # TODO: document this
+    # TODO: document
     #   TODO: needs example
     # @api private
     def normalize_bind_value(property_or_path, bind_value)
@@ -1073,7 +1073,7 @@ module DataMapper
       raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}"
     end
 
-    # TODO: document this
+    # TODO: document
     # @api private
     def get_relative_position(offset, limit)
       new_offset = self.offset + offset

@@ -3,16 +3,19 @@ module DataMapper
     include Extlib::Assertions
     extend Chainable
 
+    # @deprecated
     def self.append_inclusions(*inclusions)
       warn "DataMapper::Resource.append_inclusions is deprecated, use DataMapper::Model.append_inclusions instead"
       Model.append_inclusions(*inclusions)
     end
 
+    # @deprecated
     def self.extra_inclusions
       warn "DataMapper::Resource.extra_inclusions is deprecated, use DataMapper::Model.extra_inclusions instead"
       Model.extra_inclusions
     end
 
+    # @deprecated
     def self.descendants
       warn "DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead"
       DataMapper::Model.descendants

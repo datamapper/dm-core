@@ -60,6 +60,8 @@ module DataMapper
     end
 
     module DataObjectsAdapter
+      # TODO: document
+      # @api private
       def self.included(base)
         base.extend ClassMethods
 
@@ -78,6 +80,8 @@ module DataMapper
       #
       # @return [TrueClass, FalseClass]
       #   true if the storage exists
+      #
+      # @api semipublic
       def storage_exists?(storage_name)
         statement = <<-SQL.compress_lines
           SELECT COUNT(*)
@@ -100,6 +104,8 @@ module DataMapper
       #
       # @return [TrueClass, FalseClass]
       #   true if the field exists.
+      #
+      # @api semipublic
       def field_exists?(storage_name, column_name)
         statement = <<-SQL.compress_lines
           SELECT COUNT(*)
@@ -112,6 +118,8 @@ module DataMapper
         query(statement, schema_name, storage_name, column_name).first > 0
       end
 
+      # TODO: document
+      # @api semipublic
       def upgrade_model_storage(model)
         properties = model.properties_with_subclasses(name)
 
@@ -130,6 +138,8 @@ module DataMapper
         end.compact
       end
 
+      # TODO: document
+      # @api semipublic
       def create_model_storage(model)
         properties = model.properties_with_subclasses(name)
 
@@ -145,6 +155,8 @@ module DataMapper
         true
       end
 
+      # TODO: document
+      # @api semipublic
       def destroy_model_storage(model)
         return true unless supports_drop_table_if_exists? || storage_exists?(model.storage_name(name))
         execute(drop_table_statement(model))
@@ -157,22 +169,31 @@ module DataMapper
         # Adapters that support AUTO INCREMENT fields for CREATE TABLE
         # statements should overwrite this to return true
         #
+        # @api private
         def supports_serial?
           false
         end
 
+        # TODO: document
+        # @api private
         def supports_drop_table_if_exists?
           false
         end
 
+        # TODO: document
+        # @api private
         def schema_name
           raise NotImplementedError
         end
 
+        # TODO: document
+        # @api private
         def alter_table_add_column_statement(table_name, schema_hash)
           "ALTER TABLE #{quote_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
         end
 
+        # TODO: document
+        # @api private
         def create_table_statement(model, properties)
           statement = <<-SQL.compress_lines
             CREATE TABLE #{quote_name(model.storage_name(name))}
@@ -183,6 +204,8 @@ module DataMapper
           statement
         end
 
+        # TODO: document
+        # @api private
         def drop_table_statement(model)
           if supports_drop_table_if_exists?
             "DROP TABLE IF EXISTS #{quote_name(model.storage_name(name))}"
@@ -191,6 +214,8 @@ module DataMapper
           end
         end
 
+        # TODO: document
+        # @api private
         def create_index_statements(model)
           table_name = model.storage_name(name)
           model.properties(name).indexes.map do |index_name, fields|
@@ -201,6 +226,8 @@ module DataMapper
           end
         end
 
+        # TODO: document
+        # @api private
         def create_unique_index_statements(model)
           table_name = model.storage_name(name)
           model.properties(name).unique_indexes.map do |index_name, fields|
@@ -211,6 +238,8 @@ module DataMapper
           end
         end
 
+        # TODO: document
+        # @api private
         def property_schema_hash(property)
           schema = (self.class.type_map[property.type] || self.class.type_map[property.primitive]).merge(:name => property.field)
 
@@ -241,6 +270,8 @@ module DataMapper
           schema
         end
 
+        # TODO: document
+        # @api private
         def property_schema_statement(schema)
           statement = quote_name(schema[:name])
           statement << " #{schema[:primitive]}"
@@ -263,6 +294,8 @@ module DataMapper
         # Default types for all data object based adapters.
         #
         # @return [Hash] default types for data objects adapters.
+        #
+        # @api private
         def type_map
           size      = Property::DEFAULT_LENGTH
           precision = Property::DEFAULT_PRECISION
@@ -290,14 +323,20 @@ module DataMapper
       DEFAULT_CHARACTER_SET = 'utf8'.freeze
       DEFAULT_COLLATION     = 'utf8_general_ci'.freeze
 
+      # TODO: document
+      # @api private
       def self.included(base)
         base.extend ClassMethods
       end
 
+      # TODO: document
+      # @api semipublic
       def storage_exists?(storage_name)
         query('SHOW TABLES LIKE ?', storage_name).first == storage_name
       end
 
+      # TODO: document
+      # @api semipublic
       def field_exists?(storage_name, field_name)
         result = query("SHOW COLUMNS FROM #{quote_name(storage_name)} LIKE ?", field_name).first
         result ? result.field == field_name : false
@@ -306,14 +345,20 @@ module DataMapper
       module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
+        # TODO: document
+        # @api private
         def supports_serial?
           true
         end
 
+        # TODO: document
+        # @api private
         def supports_drop_table_if_exists?
           true
         end
 
+        # TODO: document
+        # @api private
         def schema_name
           # TODO: is there a cleaner way to find out the current DB we are connected to?
           @uri.path.split('/').last
@@ -322,10 +367,14 @@ module DataMapper
         # TODO: update dkubb/dm-more/dm-migrations to use schema_name and remove this
         alias db_name schema_name
 
+        # TODO: document
+        # @api private
         def create_table_statement(model, properties)
           "#{super} ENGINE = #{DEFAULT_ENGINE} CHARACTER SET #{character_set} COLLATE #{collation}"
         end
 
+        # TODO: document
+        # @api private
         def property_schema_hash(property)
           schema = super
 
@@ -336,6 +385,8 @@ module DataMapper
           schema
         end
 
+        # TODO: document
+        # @api private
         def property_schema_statement(schema)
           statement = super
 
@@ -346,14 +397,20 @@ module DataMapper
           statement
         end
 
+        # TODO: document
+        # @api private
         def character_set
           @character_set ||= show_variable('character_set_connection') || DEFAULT_CHARACTER_SET
         end
 
+        # TODO: document
+        # @api private
         def collation
           @collation ||= show_variable('collation_connection') || DEFAULT_COLLATION
         end
 
+        # TODO: document
+        # @api private
         def show_variable(name)
           result = query('SHOW VARIABLES LIKE ?', name).first
           result ? result.value.freeze : nil
@@ -366,6 +423,8 @@ module DataMapper
         # Types for MySQL databases.
         #
         # @return [Hash] types for MySQL databases.
+        #
+        # @api private
         def type_map
           @type_map ||= super.merge(
             Integer   => { :primitive => 'INT',     :size => 11 },
@@ -379,18 +438,26 @@ module DataMapper
     end # module MysqlAdapter
 
     module PostgresAdapter
+      # TODO: document
+      # @api private
       def self.included(base)
         base.extend ClassMethods
       end
 
+      # TODO: document
+      # @api semipublic
       def upgrade_model_storage(model)
         without_notices { super }
       end
 
+      # TODO: document
+      # @api semipublic
       def create_model_storage(model)
         without_notices { super }
       end
 
+      # TODO: document
+      # @api semipublic
       def destroy_model_storage(model)
         if supports_drop_table_if_exists?
           without_notices { super }
@@ -402,18 +469,26 @@ module DataMapper
       module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
+        # TODO: document
+        # @api private
         def supports_drop_table_if_exists?
           @supports_drop_table_if_exists ||= postgres_version >= '8.2'
         end
 
+        # TODO: document
+        # @api private
         def schema_name
           @schema_name ||= query('SELECT current_schema()').first.freeze
         end
 
+        # TODO: document
+        # @api private
         def postgres_version
           @postgres_version ||= query('SELECT version()').first.split[1].freeze
         end
 
+        # TODO: document
+        # @api private
         def without_notices
           # execute the block with NOTICE messages disabled
           begin
@@ -424,6 +499,8 @@ module DataMapper
           end
         end
 
+        # TODO: document
+        # @api private
         def property_schema_hash(property)
           schema = super
 
@@ -451,6 +528,8 @@ module DataMapper
         # Types for PostgreSQL databases.
         #
         # @return [Hash] types for PostgreSQL databases.
+        #
+        # @api private
         def type_map
           precision = Property::DEFAULT_PRECISION
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
@@ -465,14 +544,20 @@ module DataMapper
     end # module PostgresAdapter
 
     module Sqlite3Adapter
+      # TODO: document
+      # @api private
       def self.included(base)
         base.extend ClassMethods
       end
 
+      # TODO: document
+      # @api semipublic
       def storage_exists?(storage_name)
         query_table(storage_name).size > 0
       end
 
+      # TODO: document
+      # @api semipublic
       def field_exists?(storage_name, column_name)
         query_table(storage_name).any? do |row|
           row.name == column_name
@@ -482,18 +567,26 @@ module DataMapper
       module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
+        # TODO: document
+        # @api private
         def supports_serial?
           @supports_serial ||= sqlite_version >= '3.1.0'
         end
 
+        # TODO: document
+        # @api private
         def supports_drop_table_if_exists?
           @supports_drop_table_if_exists ||= sqlite_version >= '3.3.0'
         end
 
+        # TODO: document
+        # @api private
         def query_table(table_name)
           query('PRAGMA table_info(?)', table_name)
         end
 
+        # TODO: document
+        # @api private
         def create_table_statement(model, properties)
           statement = <<-SQL.compress_lines
             CREATE TABLE #{quote_name(model.storage_name(name))}
@@ -511,6 +604,8 @@ module DataMapper
           statement
         end
 
+        # TODO: document
+        # @api private
         def property_schema_statement(schema)
           statement = super
 
@@ -521,6 +616,8 @@ module DataMapper
           statement
         end
 
+        # TODO: document
+        # @api private
         def sqlite_version
           @sqlite_version ||= query('SELECT sqlite_version(*)').first.freeze
         end
@@ -532,6 +629,8 @@ module DataMapper
         # Types for SQLite 3 databases.
         #
         # @return [Hash] types for SQLite 3 databases.
+        #
+        # @api private
         def type_map
           @type_map ||= super.merge(
             Integer => { :primitive => 'INTEGER' },
@@ -545,24 +644,35 @@ module DataMapper
       ##
       # Determine whether a particular named storage exists in this repository
       #
-      # @param [String] storage_name name of the storage to test for
-      # @return [TrueClass, FalseClass] true if the data-store +storage_name+ exists
+      # @param [String]
+      #   storage_name name of the storage to test for
+      #
+      # @return [TrueClass, FalseClass]
+      #   true if the data-store +storage_name+ exists
+      #
+      # @api semipublic
       def storage_exists?(storage_name)
         adapter.storage_exists?(storage_name)
       end
 
+      # TODO: document
+      # @api semipublic
       def upgrade_model_storage(model)
         if adapter.respond_to?(:upgrade_model_storage)
           adapter.upgrade_model_storage(model)
         end
       end
 
+      # TODO: document
+      # @api semipublic
       def create_model_storage(model)
         if adapter.respond_to?(:create_model_storage)
           adapter.create_model_storage(model)
         end
       end
 
+      # TODO: document
+      # @api semipublic
       def destroy_model_storage(model)
         if adapter.respond_to?(:destroy_model_storage)
           adapter.destroy_model_storage(model)
@@ -590,6 +700,8 @@ module DataMapper
     end # module Repository
 
     module Model
+      # TODO: document
+      # @api semipublic
       def storage_exists?(repository_name = default_repository_name)
         repository(repository_name).storage_exists?(storage_name(repository_name))
       end
@@ -659,6 +771,9 @@ module DataMapper
 
   module Adapters
     extendable do
+
+      # TODO: document
+      # @api private
       def const_added(const_name)
         if DataMapper::Migrations.const_defined?(const_name)
           adapter = const_get(const_name)

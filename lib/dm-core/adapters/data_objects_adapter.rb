@@ -152,6 +152,8 @@ module DataMapper
       end
 
       # Database-specific method
+      # TODO: document
+      # @api public
       def execute(statement, *bind_values)
         with_connection do |connection|
           command = connection.create_command(statement)
@@ -159,6 +161,8 @@ module DataMapper
         end
       end
 
+      # TODO: document
+      # @api public
       def query(statement, *bind_values)
         with_connection do |connection|
           begin
@@ -188,6 +192,8 @@ module DataMapper
 
       protected
 
+      # TODO: document
+      # @api private
       def normalized_uri
         @normalized_uri ||=
           begin
@@ -209,6 +215,7 @@ module DataMapper
 
       chainable do
         protected
+
         # Instantiates new connection object
         #
         # @api semipublic
@@ -228,6 +235,8 @@ module DataMapper
 
       private
 
+      # TODO: document
+      # @api public
       def initialize(name, uri_or_options)
         super
 
@@ -237,6 +246,8 @@ module DataMapper
         end
       end
 
+      # TODO: document
+      # @api private
       def with_connection
         begin
           connection = create_connection
@@ -253,7 +264,7 @@ module DataMapper
       # Adapter below.
       module SQL #:nodoc:
 
-        # TODO: document this
+        # TODO: document
         # @api semipublic
         def property_to_column_name(property, qualify)
           if qualify
@@ -268,12 +279,16 @@ module DataMapper
 
         # Adapters requiring a RETURNING syntax for INSERT statements
         # should overwrite this to return true.
+        #
+        # @api private
         def supports_returning?
           false
         end
 
         # Adapters that do not support the DEFAULT VALUES syntax for
         # INSERT statements should overwrite this to return false.
+        #
+        # @api private
         def supports_default_values?
           true
         end
@@ -281,6 +296,8 @@ module DataMapper
         # Constructs SELECT statement for given query,
         #
         # @return [String] SELECT statement as a string
+        #
+        # @api private
         def select_statement(query)
           model      = query.model
           fields     = query.fields
@@ -329,6 +346,8 @@ module DataMapper
         # Constructs INSERT statement for given query,
         #
         # @return [String] INSERT statement as a string
+        #
+        # @api private
         def insert_statement(model, properties, identity_field)
           statement = "INSERT INTO #{quote_name(model.storage_name(name))} "
 
@@ -352,6 +371,8 @@ module DataMapper
         # Constructs UPDATE statement for given query,
         #
         # @return [String] UPDATE statement as a string
+        #
+        # @api private
         def update_statement(properties, query)
           conditions_statement, bind_values = conditions_statement(query.conditions)
 
@@ -365,6 +386,8 @@ module DataMapper
         # Constructs DELETE statement for given query,
         #
         # @return [String] DELETE statement as a string
+        #
+        # @api private
         def delete_statement(query)
           conditions_statement, bind_values = conditions_statement(query.conditions)
 
@@ -384,6 +407,8 @@ module DataMapper
         # Constructs joins clause
         #
         # @return [String] joins clause
+        #
+        # @api private
         def join_statement(previous_model, links, qualify)
           statement = ''
 
@@ -406,6 +431,8 @@ module DataMapper
         # Constructs where clause
         #
         # @return [String] where clause
+        #
+        # @api private
         def conditions_statement(conditions, qualify = false)
           case conditions
             when Conditions::NotOperation
@@ -430,6 +457,8 @@ module DataMapper
         # Constructs order clause
         #
         # @return [String] order clause
+        #
+        # @api private
         def order_statement(order, qualify)
           statements = order.map do |order|
             statement = property_to_column_name(order.property, qualify)
@@ -440,6 +469,8 @@ module DataMapper
           statements.join(', ')
         end
 
+        # TODO: document
+        # @api private
         def negate_operation(operation, qualify)
           @negated = !@negated
           begin
@@ -449,6 +480,8 @@ module DataMapper
           end
         end
 
+        # TODO: document
+        # @api private
         def operation_statement(operation, qualify)
           statements  = []
           bind_values = []
@@ -475,6 +508,8 @@ module DataMapper
         # Constructs comparison clause
         #
         # @return [String] comparison clause
+        #
+        # @api private
         def comparison_statement(comparison, qualify)
           value = comparison.value
 
@@ -507,14 +542,20 @@ module DataMapper
           return "#{property_to_column_name(comparison.property, qualify)} #{operator} ?", [ value ]
         end
 
+        # TODO: document
+        # @api private
         def equality_operator(operand)
           operand.nil? ? 'IS' : '='
         end
 
+        # TODO: document
+        # @api private
         def inequality_operator(operand)
           operand.nil? ? 'IS NOT' : '<>'
         end
 
+        # TODO: document
+        # @api private
         def include_operator(operand)
           case operand
             when Array then 'IN'
@@ -522,34 +563,48 @@ module DataMapper
           end
         end
 
+        # TODO: document
+        # @api private
         def exclude_operator(operand)
           "NOT #{include_operator(operand)}"
         end
 
+        # TODO: document
+        # @api private
         def regexp_operator(operand)
           '~'
         end
 
+        # TODO: document
+        # @api private
         def not_regexp_operator(operand)
           '!~'
         end
 
+        # TODO: document
+        # @api private
         def like_operator(operand)
           'LIKE'
         end
 
+        # TODO: document
+        # @api private
         def unlike_operator(operand)
           'NOT LIKE'
         end
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
+        # TODO: document
+        # @api private
         def quote_name(name)
           "\"#{name.gsub('"', '""')}\""
         end
 
         # TODO: once the driver's quoting methods become public, have
         # this method delegate to them instead
+        # TODO: document
+        # @api private
         def quote_value(value)
           case value
             when String
