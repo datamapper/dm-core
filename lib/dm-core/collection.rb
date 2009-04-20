@@ -212,18 +212,16 @@ module DataMapper
       query = with_query ? last_arg : {}
       query = self.query.slice(0, limit || 1).update(query)
 
-      if !with_query && (loaded? || lazy_possible?(head, limit || 1))
-        if limit
-          new_collection(query, super(limit))
-        else
-          super()
-        end
+      collection = if !with_query && (loaded? || lazy_possible?(head, query.limit))
+        new_collection(query, super(query.limit))
       else
-        if limit
-          all(query)
-        else
-          relate_resource(query.repository.read(query).first)
-        end
+        all(query)
+      end
+
+      if limit
+        collection
+      else
+        relate_resource(collection.to_a.first)
       end
     end
 
@@ -257,18 +255,16 @@ module DataMapper
       # tell the Query to prepend each result from the adapter
       query.update(:add_reversed => !query.add_reversed?)
 
-      if !with_query && (loaded? || lazy_possible?(tail, limit || 1))
-        if limit
-          new_collection(query, super(limit))
-        else
-          super()
-        end
+      collection = if !with_query && (loaded? || lazy_possible?(tail, query.limit))
+        new_collection(query, super(query.limit))
       else
-        if limit
-          all(query)
-        else
-          relate_resource(query.repository.read(query).last)
-        end
+        all(query)
+      end
+
+      if limit
+        collection
+      else
+        relate_resource(collection.to_a.last)
       end
     end
 
@@ -957,21 +953,7 @@ module DataMapper
     #
     # @api private
     def new_collection(query, resources = nil, &block)
-      resources ||= if loaded?
-        fields = self.query.fields.to_set
-
-        if query.fields.to_set.subset?(fields) &&
-          !query.links.any?                    &&
-          query.unique? == self.query.unique?  &&
-          !query.add_reversed?                 &&
-          !query.reload?                       &&
-          !query.raw?                          &&
-          query.condition_properties.subset?(fields)
-        then
-          query.filter_records(to_a.dup)
-        end
-      end
-
+      resources ||= filter(query) if loaded?
       self.class.new(query, resources, &block)
     end
 
@@ -1092,6 +1074,23 @@ module DataMapper
         resources.each { |r| orphan_resource(r) }
       else
         orphan_resource(resources)
+      end
+    end
+
+    # TODO: documents
+    # @api private
+    def filter(query)
+      fields = self.query.fields.to_set
+
+      if query.fields.to_set.subset?(fields) &&
+        !query.links.any?                    &&
+        query.unique? == self.query.unique?  &&
+        !query.add_reversed?                 &&
+        !query.reload?                       &&
+        !query.raw?                          &&
+        query.condition_properties.subset?(fields)
+      then
+        query.filter_records(to_a.dup)
       end
     end
 

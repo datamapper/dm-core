@@ -1193,8 +1193,8 @@ describe DataMapper::Query do
         @return.should be_kind_of(Enumerable)
       end
 
-      it 'should be the records provided' do
-        @return.should equal(@records)
+      it 'should not be the records provided' do
+        @return.should_not be_equal(@records)
       end
 
       it 'should return expected values' do
@@ -1261,8 +1261,8 @@ describe DataMapper::Query do
         @return.should be_kind_of(Enumerable)
       end
 
-      it 'should be the records provided' do
-        @return.should equal(@records)
+      it 'should not be the records provided' do
+        @return.should_not be_equal(@records)
       end
 
       it 'should return expected values' do
@@ -1303,8 +1303,8 @@ describe DataMapper::Query do
         @return.should be_kind_of(Enumerable)
       end
 
-      it 'should be the records provided' do
-        @return.should equal(@records)
+      it 'should not be the records provided' do
+        @return.should_not be_equal(@records)
       end
 
       it 'should return expected values' do
@@ -1429,7 +1429,7 @@ describe DataMapper::Query do
         end
 
         it 'should set the repository' do
-          @return.repository.should equal(@repository)
+          @return.repository.should be_equal(@repository)
         end
       end
 
@@ -2038,8 +2038,8 @@ describe DataMapper::Query do
         @return.should be_kind_of(Enumerable)
       end
 
-      it 'should be the records provided' do
-        @return.should equal(@records)
+      it 'should not be the records provided' do
+        @return.should_not be_equal(@records)
       end
 
       it 'should return expected values' do

@@ -157,8 +157,19 @@ module DataMapper
           super
         end
 
-        # TODO: add stub methods for each finder like all(), where it raises
-        # an exception when trying to scope the results before the source is saved
+        # TODO: document
+        # @api public
+        def first(*)
+          assert_source_saved 'The source must be saved before further scoping the collection'
+          super
+        end
+
+        # TODO: document
+        # @api public
+        def last(*)
+          assert_source_saved 'The source must be saved before further scoping the collection'
+          super
+        end
 
         ##
         # Access Collection#replace directly
@@ -295,7 +306,7 @@ module DataMapper
         # TODO: document
         # @api private
         def assert_source_saved(message)
-          if source.new?
+          unless source.saved? || loaded?
             raise UnsavedParentError, message
           end
         end

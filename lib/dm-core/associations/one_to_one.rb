@@ -10,8 +10,12 @@ module DataMapper
         # for given source
         #
         # @api semipublic
-        def get(*)
-          super.first
+        def get(source, query = nil)
+          if loaded?(source)
+            super.first
+          else
+            nil
+          end
         end
 
         # Sets and returns association target

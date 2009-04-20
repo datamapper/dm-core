@@ -353,9 +353,9 @@ module DataMapper
     #
     # @api semipublic
     def filter_records(records)
-      match_records(records)
-      sort_records(records)
-      limit_records(records)
+      records = match_records(records)
+      records = sort_records(records)
+      records = limit_records(records)
       records
     end
 
@@ -370,8 +370,8 @@ module DataMapper
     #
     # @api semipublic
     def match_records(records)
-      records.delete_if do |record|
-        !conditions.matches?(record)
+      records.select do |record|
+        conditions.matches?(record)
       end
     end
 
@@ -386,28 +386,12 @@ module DataMapper
     #
     # @api semipublic
     def sort_records(records)
-      sort_order = order.map { |i| [ i.property, i.direction == :desc ] }
+      sort_order = order.map { |i| [ i.property, i.direction == :asc ] }
 
-      # sort resources by each property
-      records.sort! do |a, b|
-        cmp = 0
-        sort_order.each do |(property, descending)|
-          a_value = a[property.field]
-          b_value = b[property.field]
-
-          cmp = if a_value.nil? || b_value.nil?
-             0 if a_value.nil? && b_value.nil?
-             1 if a_value.nil?
-            -1 if b_value.nil?
-          else
-            # TODO: update to handle Hash Symbol/Property and Resource objects
-            a_value <=> b_value
-          end
-
-          cmp *= -1 if descending
-          break if cmp != 0
+      records.sort_by do |record|
+        sort_order.map do |(property, ascending)|
+          Sort.new(record_value(record, property), ascending)
         end
-        cmp
       end
     end
 
@@ -425,9 +409,11 @@ module DataMapper
       size = records.size
 
       if offset > size - 1
-        records.clear
+        []
       elsif (limit && limit != size) || offset > 0
-        records.replace(records[offset, limit || size] || [])
+        records[offset, limit || size] || []
+      else
+        records.dup
       end
     end
 
@@ -1157,6 +1143,17 @@ module DataMapper
       end
 
       true
+    end
+
+    # TODO: DRY this up with conditions
+    # @api private
+    def record_value(record, property)
+      case record
+        when Hash
+          record.key?(property) ? record[property] : record[property.field]
+        when Resource
+          property.get!(record)
+      end
     end
   end # class Query
 end # module DataMapper

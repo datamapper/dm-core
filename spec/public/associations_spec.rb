@@ -139,7 +139,9 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should relate associated Resource' do
-        @expected.car.should == @car
+        pending_if 'should create back-reference', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
+          @expected.car.should == @car
+        end
       end
 
       it 'should persist the Resource' do
