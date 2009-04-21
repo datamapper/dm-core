@@ -54,7 +54,7 @@ module DataMapper
         #
         # @api semipublic
         def get(source, query = nil)
-          return unless loaded?(source) || lazy_load(source)
+          return unless loaded?(source) || (source_key.loaded?(source) && lazy_load(source))
 
           resource = get!(source)
 
@@ -144,11 +144,6 @@ module DataMapper
         def lazy_load(source)
           # TODO: use SEL to load the related record for every resource in
           # the collection the target belongs to
-
-          # skip lazy load if the source key is not loaded
-          unless source_key.loaded?(source)
-            return
-          end
 
           query = query_for(source, self.query)
 

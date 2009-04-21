@@ -11,11 +11,8 @@ module DataMapper
         #
         # @api semipublic
         def get(source, query = nil)
-          if loaded?(source)
-            super.first
-          else
-            nil
-          end
+          return unless loaded?(source) || source_key.loaded?(source)
+          super.first
         end
 
         # Sets and returns association target
