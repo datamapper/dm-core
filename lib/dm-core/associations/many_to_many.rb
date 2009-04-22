@@ -249,15 +249,12 @@ module DataMapper
 
           links    = @relationship.links.dup
           midpoint = []
-          prev     = nil
 
           # find out the midpoint of the links
-          links.each do |relationship|
-            if relationship.kind_of?(ManyToOne::Relationship)
-              break midpoint = [ prev, relationship ]
-            end
-
-            prev = relationship
+          links.each_with_index do |relationship,i|
+            next_relationship = links[i + 1]
+            next unless next_relationship.kind_of?(ManyToOne::Relationship)
+            break midpoint = [ relationship, next_relationship ]
           end
 
           source = self.source
