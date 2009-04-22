@@ -117,8 +117,7 @@ module DataMapper
       def method_missing(method, *args)
         if relationship = @model.relationships(@repository_name)[method]
           repository = DataMapper.repository(@repository_name)
-          klass      = klass = model == relationship.child_model ? relationship.parent_model : relationship.child_model
-          return Query::Path.new(repository, @relationships.dup << relationship, klass)
+          return Query::Path.new(repository, @relationships.dup << relationship, relationship.target_model)
         end
 
         if @model.properties(@repository_name)[method] && !defined?(@property)
