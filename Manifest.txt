@@ -43,6 +43,7 @@ lib/dm-core/query.rb
 lib/dm-core/query/direction.rb
 lib/dm-core/query/operator.rb
 lib/dm-core/query/path.rb
+lib/dm-core/query/sort.rb
 lib/dm-core/repository.rb
 lib/dm-core/resource.rb
 lib/dm-core/spec/adapter_shared_spec.rb
@@ -75,9 +76,11 @@ spec/public/collection_spec.rb
 spec/public/model_spec.rb
 spec/public/property_spec.rb
 spec/public/resource_spec.rb
+spec/public/setup_spec.rb
 spec/public/shared/collection_shared_spec.rb
 spec/public/shared/resource_shared_spec.rb
 spec/public/transaction_spec.rb
+spec/semipublic/adapters/abstract_adapter_spec.rb
 spec/semipublic/adapters/in_memory_adapter_spec.rb
 spec/semipublic/adapters/mysql_adapter_spec.rb
 spec/semipublic/adapters/postgres_adapter_spec.rb
