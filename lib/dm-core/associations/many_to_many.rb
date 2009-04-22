@@ -24,24 +24,24 @@ module DataMapper
             source_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
           end
 
-          # initialize the child_key since the source and child model are defined
-          @through.child_key
+          # initialize the target_key now that the source and target model are defined
+          @through.target_key
 
           @through
         end
 
         # TODO: document
         # @api semipublic
-        def intermediaries
-          @intermediaries ||=
+        def links
+          @links ||=
             begin
-              relationships = through.child_model.relationships(source_repository_name)
+              relationships = through.target_model.relationships(source_repository_name)
 
               unless target = relationships[name] || relationships[name.to_s.singular.to_sym]
-                raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.child_model} within the #{source_repository_name.inspect} repository"
+                raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.target_model} within the #{source_repository_name.inspect} repository"
               end
 
-              [ through, target ].map { |r| (i = r.intermediaries).any? ? i : r }.flatten.freeze
+              [ through, target ].map { |r| (i = r.links).any? ? i : r }.flatten.freeze
             end
         end
 
@@ -51,56 +51,41 @@ module DataMapper
           @many_to_many_query ||=
             begin
               # TODO: make sure the proper Query is set up, one that includes all the links
-              #   - make sure that all relationships can be intermediaries
+              #   - make sure that all relationships can be links
               #   - make sure that each intermediary can be at random repositories
               #   - make sure that each intermediary can have different conditons that
               #     scope its results
 
               query = super.dup
 
-              # use all intermediaries in the query links
-              query[:links] = intermediaries
+              # use all links in the query links
+              query[:links] = links
 
               # TODO: move the logic below inside Query.  It should be
               # extracting the query conditions from each relationship itself
 
-              default_repository_name = source_repository_name
+              repository_name = source_repository_name
 
               # merge the conditions from each intermediary into the query
               query[:links].each do |relationship|
-
-                # TODO: refactor this with source/target terminology.  Many relationships would
-                # have the child as the target, and the source as the source, while OneToMany
-                # relationships would be reversed.  This will also clean up code in the DO adapter
-
-                repository_name = nil
-                model           = nil
-
-                if relationship.kind_of?(ManyToOne::Relationship)
-                  repository_name = relationship.parent_repository_name || default_repository_name
-                  model           = relationship.parent_model
-                else
-                  repository_name = relationship.child_repository_name || default_repository_name
-                  model           = relationship.child_model
-                end
+                repository_name = relationship.target_repository_name || repository_name
+                model           = relationship.target_model
 
                 # TODO: try to do some of this normalization when
                 # assigning the Query options to the Relationship
 
                 relationship.query.each do |key,value|
-                  # TODO: figure out how to merge Query options from intermediaries
+                  # TODO: figure out how to merge Query options from links
                   if Query::OPTIONS.include?(key)
                     next  # skip for now
                   end
 
                   case key
                     when Symbol, String
-
                       # TODO: turn this into a Query::Path
-                      query[ model.properties(repository_name)[key] ] = value
+                      query[model.properties(repository_name)[key]] = value
 
                     when Property
-
                       # TODO: turn this into a Query::Path
                       query[key] = value
 
@@ -108,41 +93,42 @@ module DataMapper
                       query[key] = value
 
                     when Query::Operator
-
                       # TODO: if the key.target is a Query::Path, then do not look it up
-                      query[ key.class.new(model.properties(repository_name)[key.target], key.operator) ] = value
+                      query[key.class.new(model.properties(repository_name)[key.target], key.operator)] = value
 
                     else
                       raise ArgumentError, "#{key.class} not allowed in relationship query"
                   end
                 end
-
-                # set the default repository for the next relationship in the chain
-                default_repository_name = repository_name
               end
 
               query.freeze
             end
         end
 
-        # Returns a set of keys that identify child model
+        ##
+        # Returns a set of keys that identify the target model
         #
-        # @return   [DataMapper::PropertySet]  a set of properties that identify child model
+        # @return [DataMapper::PropertySet]
+        #   a set of properties that identify the target model
+        #
         # @api semipublic
-        def target_key
-          @target_key ||=
+        def child_key
+          @child_key ||=
             begin
               properties = target_model.properties(target_repository_name)
 
-              target_key = if @child_properties
+              child_key = if @child_properties
                 properties.slice(*@child_properties)
               else
                 properties.key
               end
 
-              properties.class.new(target_key).freeze
+              properties.class.new(child_key).freeze
             end
         end
+
+        alias target_key child_key
 
         # TODO: document
         # @api private
@@ -157,8 +143,8 @@ module DataMapper
           # than (potentially) lazy-loading the Collection and getting
           # each resource key
 
-          target_key = through.child_key
-          source_key = through.parent_key
+          target_key = through.target_key
+          source_key = through.source_key
 
           # TODO: spec what should happen when source not saved
 
@@ -183,7 +169,7 @@ module DataMapper
             namespace.const_get(name)
           else
             model = Model.new do
-              # all properties added to the join model are considered a key
+              # all properties added to the anonymous join model are considered a key
               def property(name, type, options = {})
                 options[:key] = true unless options.key?(:key)
                 options.delete(:index)
@@ -261,66 +247,50 @@ module DataMapper
         def create(attributes = {})
           assert_source_saved 'The source must be saved before creating a Resource'
 
-          # NOTE: this is ugly as hell. this is a first draft to
-          # try to figure out an approach that will create all the
-          # inermediary records, in the right order, creating
-          # dependencies first.  this should probably be generalized
-          # so that it can also be used with new() and just have
-          # it create new resources that can be saved by iterating
-          # over a list, calling save() on each.
+          links = @relationship.links.dup
 
-          intermediaries = @relationship.intermediaries.dup
+          middle, prev = [], nil
 
-          pivot, prev = [ nil, intermediaries.last ], nil
-
-          intermediaries.each do |relationship|
+          links.each do |relationship|
             if relationship.kind_of?(ManyToOne::Relationship)
-              break pivot = [ prev, relationship ].compact
+              break middle = [ prev, relationship ]
             end
 
             prev = relationship
           end
 
-          head, tail = [ source ], []
+          source = self.source
 
-          while intermediaries.any?
-            relationship = if pivot.first == intermediaries.first
-              intermediaries.pop
-            else
-              intermediaries.shift
-            end
-
-            default_attributes = {}
-
-            if relationship.kind_of?(ManyToOne::Relationship)
-              if tail.any?
-                child_key  = relationship.child_key
-                parent_key = relationship.parent_key
-
-                parent_key.zip(child_key.get(tail.first)) { |p,v| default_attributes[p.name] = v }
-              else
-                default_attributes.update(attributes)
-                default_attributes.update(self.send(:default_attributes))
-              end
-
-              tail.unshift(relationship.parent_model.create(default_attributes))
-            else
-              if relationship == pivot.first && pivot.size == 2 && head.any?
-                head_parent_key = pivot.first.parent_key
-                head_child_key  = pivot.first.child_key
-
-                tail_parent_key = pivot.last.parent_key
-                tail_child_key  = pivot.last.child_key
-
-                head_child_key.zip(head_parent_key.get(head.last))  { |p,v| default_attributes[p.name] = v }
-                tail_child_key.zip(tail_parent_key.get(tail.first)) { |p,v| default_attributes[p.name] = v }
-              end
-
-              head << relationship.get(head.last).create(default_attributes)
-            end
+          until links.empty? || links.first == middle.first
+            relationship = links.shift
+            source = relationship.get(source).create
+            return source if links.empty?
           end
 
-          tail.last
+          join_resource = source
+
+          source, target = nil, nil
+
+          until links.empty? || links.last == middle.first
+            relationship = links.pop
+
+            default_attributes = if target.nil?
+              attributes.merge(self.send(:default_attributes))
+            else
+              relationship.source_scope(source)
+            end
+
+            source = relationship.target_model.create(default_attributes)
+            target ||= source
+          end
+
+          if middle.nitems == 2
+            lhs, rhs = middle
+            default_attributes = rhs.source_key.map { |p| p.name }.zip(rhs.target_key.get(source))
+            lhs.get(join_resource).create(default_attributes)
+          end
+
+          target
         end
 
         # TODO: document

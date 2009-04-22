@@ -779,9 +779,9 @@ module DataMapper
         raise IncompleteModelError, "#{name} must have a key to be valid"
       end
 
-      # initialize the relationships
+      # initialize join models and target keys
       @relationships.each_value do |relationships|
-        relationships.each_value { |r| r.child_key }
+        relationships.each_value { |r| r.through; r.child_key }
       end
 
       @valid = true
@@ -790,11 +790,8 @@ module DataMapper
     # TODO: document
     # @api public
     def method_missing(method, *args, &block)
-      repository_name = self.repository_name
-
-      if relationship = self.relationships(repository_name)[method]
-        klass = self == relationship.child_model ? relationship.parent_model : relationship.child_model
-        return Query::Path.new(repository, [ relationship ], klass)
+      if relationship = relationships(repository_name)[method]
+        return Query::Path.new(repository, [ relationship ], relationship.target_model)
       end
 
       if property = properties(repository_name)[method]

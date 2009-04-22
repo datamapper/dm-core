@@ -124,8 +124,8 @@ module DataMapper
       # must be overriden in subclasses.
       #
       # @api semipublic
-      def intermediaries
-        @intermediaries ||= [].freeze
+      def links
+        @links ||= [].freeze
       end
 
       # Returns a hash of conditions that scopes query that fetches
@@ -323,8 +323,8 @@ module DataMapper
         @name                   = name
         @instance_variable_name = "@#{@name}".freeze
         @options                = options.dup.freeze
-        @child_repository_name  = @options[:child_repository_name]  || @options[:parent_repository_name]
-        @parent_repository_name = @options[:parent_repository_name] || @options[:child_repository_name]
+        @child_repository_name  = @options[:child_repository_name]  || @options[:parent_repository_name]  # XXX: if nothing specified, should it be nil to indicate a relative repo?
+        @parent_repository_name = @options[:parent_repository_name] || @options[:child_repository_name]   # XXX: if nothing specified, should it be nil to indicate a relative repo?
         @child_properties       = @options[:child_key].try_dup.freeze
         @parent_properties      = @options[:parent_key].try_dup.freeze
         @min                    = @options[:min]

@@ -962,13 +962,20 @@ module DataMapper
     def default_attributes
       @default_attributes ||=
         begin
+          unless query.conditions.kind_of?(Conditions::AndOperation)
+            return
+          end
+
           default_attributes = {}
 
           repository_name = repository.name
-          properties      = model.properties(repository_name) - model.key(repository_name)
+          properties      = model.properties(repository_name)
+          key             = model.key(repository_name)
 
-          unless query.conditions.kind_of?(Conditions::AndOperation)
-            return
+          # if all the key properties are included in the conditions,
+          # then do not allow them to be default attributes
+          if query.condition_properties.to_set.superset?(key.to_set)
+            properties -= key
           end
 
           query.conditions.operands.each do |operand|

@@ -153,7 +153,7 @@ module DataMapper
 
           if source.saved?
             # include the target_key in the results
-            query.update(:fields => relationship.child_key.to_a | query.fields)
+            query.update(:fields => relationship.target_key.to_a | query.fields)
 
             # scope the query to the source
             query.update(relationship.source_scope(source))
@@ -305,7 +305,7 @@ module DataMapper
 
           if source.saved?
             source_key = relationship.source_key
-            target_key  = relationship.child_key
+            target_key = relationship.target_key
 
             target_key.set(resource, source_key.get(source))
           end

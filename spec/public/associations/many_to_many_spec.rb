@@ -30,11 +30,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         has n, :revisions, :model => self, :child_key => [ :original_id ]
       end
 
-      # FIXME: make it so we don't have to "prime" the through association
-      # for the join model to be created by auto_migrate
-      Author.relationships[:articles].through
-      Article.relationships[:authors].through
-
       @model = Article
     end
 

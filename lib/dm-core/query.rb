@@ -955,7 +955,7 @@ module DataMapper
         end
       end
 
-      @links.map! { |r| (i = r.intermediaries).any? ? i : r }
+      @links.map! { |r| (i = r.links).any? ? i : r }
       @links.flatten!
       @links.uniq!
     end
