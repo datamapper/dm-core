@@ -249,11 +249,12 @@ module DataMapper
 
           links = @relationship.links.dup
 
-          middle, prev = [], nil
+          midpoint, prev = [], nil
 
+          # find out the midpoint of the links
           links.each do |relationship|
             if relationship.kind_of?(ManyToOne::Relationship)
-              break middle = [ prev, relationship ]
+              break midpoint = [ prev, relationship ]
             end
 
             prev = relationship
@@ -261,9 +262,13 @@ module DataMapper
 
           source = self.source
 
-          until links.empty? || links.first == middle.first
+          # walk the links from left to right, stopping at the midpoint
+          until links.first == midpoint.first
             relationship = links.shift
             source = relationship.get(source).create
+
+            # if all links have been processed, we are at the left-most
+            # point, return the source as the target
             return source if links.empty?
           end
 
@@ -271,7 +276,8 @@ module DataMapper
 
           source, target = nil, nil
 
-          until links.empty? || links.last == middle.first
+          # walk the links from the right to left, stopping at the midpoint
+          until links.last == midpoint.first
             relationship = links.pop
 
             default_attributes = if target.nil?
@@ -281,15 +287,20 @@ module DataMapper
             end
 
             source = relationship.target_model.create(default_attributes)
+
+            # the left-most relationship will set the target
             target ||= source
+
+            # if all links have been processed return the target
+            return target if links.empty?
           end
 
-          if middle.nitems == 2
-            lhs, rhs = middle
-            default_attributes = rhs.source_key.map { |p| p.name }.zip(rhs.target_key.get(source))
-            lhs.get(join_resource).create(default_attributes)
-          end
+          # handle the relationships at the midpoint
+          lhs, rhs = midpoint
+          default_attributes = rhs.source_key.map { |p| p.name }.zip(rhs.target_key.get(source)).to_hash
+          lhs.get(join_resource).create(default_attributes)
 
+          # always return the target
           target
         end
 
