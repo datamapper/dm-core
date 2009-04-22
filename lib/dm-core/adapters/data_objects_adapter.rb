@@ -333,7 +333,7 @@ module DataMapper
 
           statement = "SELECT #{columns_statement(fields, qualify)}"
           statement << " FROM #{quote_name(model.storage_name(name))}"
-          statement << join_statement(model, query.links, qualify)         if qualify
+          statement << join_statement(query.links, qualify)                if qualify
           statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" unless group_by.blank?
           statement << " ORDER BY #{order_statement(order, qualify)}"      unless order.blank?
@@ -409,20 +409,14 @@ module DataMapper
         # @return [String] joins clause
         #
         # @api private
-        def join_statement(previous_model, links, qualify)
+        def join_statement(links, qualify)
           statement = ''
 
           links.reverse_each do |relationship|
-            model = previous_model == relationship.child_model ? relationship.parent_model : relationship.child_model
-
-            # We only do INNER JOIN for now
-            statement << " INNER JOIN #{quote_name(model.storage_name(name))} ON "
-
-            statement << relationship.parent_key.zip(relationship.child_key).map do |parent_property,child_property|
-              "#{property_to_column_name(parent_property, qualify)} = #{property_to_column_name(child_property, qualify)}"
+            statement << " INNER JOIN #{quote_name(relationship.source_model.storage_name(name))} ON "
+            statement << relationship.target_key.zip(relationship.source_key).map do |target_property,source_property|
+              "#{property_to_column_name(target_property, qualify)} = #{property_to_column_name(source_property, qualify)}"
             end.join(' AND ')
-
-            previous_model = model
           end
 
           statement
