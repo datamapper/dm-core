@@ -247,9 +247,9 @@ module DataMapper
         def create(attributes = {})
           assert_source_saved 'The source must be saved before creating a Resource'
 
-          links = @relationship.links.dup
-
-          midpoint, prev = [], nil
+          links    = @relationship.links.dup
+          midpoint = []
+          prev     = nil
 
           # find out the midpoint of the links
           links.each do |relationship|
@@ -273,8 +273,8 @@ module DataMapper
           end
 
           join_resource = source
-
-          source, target = nil, nil
+          source        = nil
+          target        = nil
 
           # walk the links from the right to left, stopping at the midpoint
           until links.last == midpoint.first
