@@ -331,13 +331,7 @@ module DataMapper
         @max                    = @options[:max]
         @through                = @options[:through]
 
-        query = @options.except(*OPTIONS)
-
-        if max.kind_of?(Integer)
-          query[:limit] = max
-        end
-
-        @query = query.freeze
+        @query = @options.except(*OPTIONS).freeze
 
         create_reader
         create_writer
