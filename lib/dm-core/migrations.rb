@@ -361,7 +361,7 @@ module DataMapper
         # @api private
         def schema_name
           # TODO: is there a cleaner way to find out the current DB we are connected to?
-          @uri.path.split('/').last
+          @options[:path].split('/').last
         end
 
         # TODO: update dkubb/dm-more/dm-migrations to use schema_name and remove this
