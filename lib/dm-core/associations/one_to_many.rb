@@ -46,6 +46,28 @@ module DataMapper
           query.update(:fields => query.fields | target_key)
         end
 
+        ##
+        # Returns a Collection for this relationship with a given source
+        #
+        # @param [Resource] source
+        #   A Resource to scope the collection with
+        # @param [Query] other_query (optional)
+        #   A Query to further scope the collection with
+        #
+        # @return [Collection]
+        #   The collection scoped to the relationship, resource and query
+        #
+        # @api private
+        def collection_for(source, other_query = nil)
+          query = query_for(source, other_query)
+
+          collection = self.class.collection_class.new(query)
+          collection.relationship = self
+          collection.source       = source
+
+          collection
+        end
+
         # Loads and returns association targets (ex.: articles) for given source resource
         # (ex.: author)
         #
@@ -71,16 +93,6 @@ module DataMapper
         def set(source, targets)
           lazy_load(source) unless loaded?(source)
           get!(source).replace(targets)
-        end
-
-        # Sets value of association targets (ex.: paragraphs) for given source resource
-        # (ex.: article)
-        #
-        # @api semipublic
-        def set!(resource, collection)
-          collection.relationship = self
-          collection.source       = resource
-          super
         end
 
         private
@@ -131,8 +143,7 @@ module DataMapper
           # use SEL to load the related record for every resource in
           # the collection the source belongs to
 
-          query = query_for(source)
-          set!(source, self.class.collection_class.new(query))
+          set!(source, collection_for(source))
         end
       end # class Relationship
 

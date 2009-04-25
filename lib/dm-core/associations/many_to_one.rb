@@ -145,12 +145,8 @@ module DataMapper
           # TODO: use SEL to load the related record for every resource in
           # the collection the target belongs to
 
-          query = query_for(source, self.query)
-
-          # if successful should always return the target, otherwise nil
-          if target = target_model.first(query)
-            set!(source, target)
-          end
+          query = query_for(source)
+          set!(source, target_model.first(query))
         end
 
         # Prefix used to build name of default source key
