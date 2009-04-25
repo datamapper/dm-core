@@ -299,6 +299,22 @@ module DataMapper
         resource.instance_variable_defined?(instance_variable_name)
       end
 
+      ##
+      # Get the inverse relationship from the target model
+      #
+      # @api semipublic
+      def inverse
+        @inverse ||= target_model.relationships(target_repository_name).values.detect do |relationship|
+          relationship.target_repository_name == source_repository_name &&
+          relationship.target_model           == source_model           &&
+          relationship.target_key             == source_key             &&
+          relationship.query.empty?
+
+          # TODO: handle case where @query is not empty, but scoped the same as the target model.
+          # that case should be treated the same as the Query being empty
+        end
+      end
+
       private
 
       # Initializes new Relationship: sets attributes of relationship
