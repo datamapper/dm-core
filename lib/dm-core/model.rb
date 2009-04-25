@@ -672,12 +672,12 @@ module DataMapper
     def properties_with_subclasses(repository_name = default_repository_name)
       properties = PropertySet.new
 
-      models = [ self ]
-      models.concat(descendants) if respond_to?(:descendants)
+      models = [ self ].to_set
+      models.merge(descendants) if respond_to?(:descendants)
 
-      models.uniq.each do |model|
+      models.each do |model|
         model.properties(repository_name).each do |property|
-          properties << property unless properties.any? { |p| p.name == property.name }
+          properties << property unless properties.named?(property.name)
         end
       end
 
