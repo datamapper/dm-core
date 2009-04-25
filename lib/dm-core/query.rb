@@ -1041,7 +1041,12 @@ module DataMapper
       end
 
       # TODO: update InclusionComparison so it knows how to do this
-      bind_value.kind_of?(Array) && bind_value.size == 1 ? bind_value.first : bind_value
+      if bind_value.kind_of?(Array)
+        bind_value.uniq!
+        bind_value.size == 1 ? bind_value.first : bind_value.sort
+      else
+        bind_value
+      end
     end
 
     ##
