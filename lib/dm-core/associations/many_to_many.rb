@@ -10,6 +10,30 @@ module DataMapper
           ManyToMany::Collection
         end
 
+        ##
+        # Returns a set of keys that identify the target model
+        #
+        # @return [DataMapper::PropertySet]
+        #   a set of properties that identify the target model
+        #
+        # @api semipublic
+        def child_key
+          @child_key ||=
+            begin
+              properties = target_model.properties(target_repository_name)
+
+              child_key = if @child_properties
+                properties.values_at(*@child_properties)
+              else
+                properties.key
+              end
+
+              properties.class.new(child_key).freeze
+            end
+        end
+
+        alias target_key child_key
+
         # TODO: document
         # @api semipublic
         def through
@@ -43,6 +67,34 @@ module DataMapper
 
               [ through, target ].map { |r| (i = r.links).any? ? i : r }.flatten.freeze
             end
+        end
+
+        # TODO: document
+        # @api private
+        def source_scope(source)
+          # TODO: do not build the query with target_key/source_key.. use
+          # target_reader/source_reader.  The query should be able to
+          # translate those to target_key/source_key inside the adapter,
+          # allowing adapters that don't join on PK/FK to work too.
+
+          # TODO: when source is a Collection, and it's query includes an
+          # offset/limit, use it as a subquery to scope the results, rather
+          # than (potentially) lazy-loading the Collection and getting
+          # each resource key
+
+          target_key = through.target_key
+          source_key = through.source_key
+
+          # TODO: spec what should happen when source not saved
+
+          scope = {}
+
+          # TODO: handle compound keys when OR conditions supported
+          if (source_values = Array(source).map { |r| source_key.first.get(r) }.compact).any?
+            scope[target_key.first] = source_values
+          end
+
+          scope
         end
 
         # TODO: document
@@ -104,58 +156,6 @@ module DataMapper
 
               query.freeze
             end
-        end
-
-        ##
-        # Returns a set of keys that identify the target model
-        #
-        # @return [DataMapper::PropertySet]
-        #   a set of properties that identify the target model
-        #
-        # @api semipublic
-        def child_key
-          @child_key ||=
-            begin
-              properties = target_model.properties(target_repository_name)
-
-              child_key = if @child_properties
-                properties.values_at(*@child_properties)
-              else
-                properties.key
-              end
-
-              properties.class.new(child_key).freeze
-            end
-        end
-
-        alias target_key child_key
-
-        # TODO: document
-        # @api private
-        def source_scope(source)
-          # TODO: do not build the query with target_key/source_key.. use
-          # target_reader/source_reader.  The query should be able to
-          # translate those to target_key/source_key inside the adapter,
-          # allowing adapters that don't join on PK/FK to work too.
-
-          # TODO: when source is a Collection, and it's query includes an
-          # offset/limit, use it as a subquery to scope the results, rather
-          # than (potentially) lazy-loading the Collection and getting
-          # each resource key
-
-          target_key = through.target_key
-          source_key = through.source_key
-
-          # TODO: spec what should happen when source not saved
-
-          scope = {}
-
-          # TODO: handle compound keys when OR conditions supported
-          if (source_values = Array(source).map { |r| source_key.first.get(r) }.compact).any?
-            scope[target_key.first] = source_values
-          end
-
-          scope
         end
 
         private

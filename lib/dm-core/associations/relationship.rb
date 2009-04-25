@@ -157,6 +157,15 @@ module DataMapper
         scope
       end
 
+      # Creates and returns Query instance for given
+      # resource (usually a parent).
+      # Must be implemented in subclasses.
+      #
+      # @api semipublic
+      def query_for(resource)
+        raise NotImplementedError
+      end
+
       # Returns query object for relationship.
       # For this base class, always returns query object
       # has been initialized with.
@@ -246,15 +255,6 @@ module DataMapper
 
             properties.class.new(parent_key).freeze
           end
-      end
-
-      # Creates and returns Query instance for given
-      # resource (usually a parent).
-      # Must be implemented in subclasses.
-      #
-      # @api semipublic
-      def query_for(resource)
-        raise NotImplementedError
       end
 
       # Loads and returns "other end" of the association.

@@ -2,6 +2,14 @@ module DataMapper
   module Associations
     module OneToMany #:nodoc:
       class Relationship < Associations::Relationship
+        # Returns collection class used by this type of
+        # relationship
+        #
+        # @api semipublic
+        def self.collection_class
+          OneToMany::Collection
+        end
+
         # TODO: document
         # @api semipublic
         alias target_repository_name child_repository_name
@@ -25,14 +33,6 @@ module DataMapper
         # TODO: document
         # @api semipublic
         alias source_key parent_key
-
-        # Returns collection class used by this type of
-        # relationship
-        #
-        # @api semipublic
-        def self.collection_class
-          OneToMany::Collection
-        end
 
         # Creates and returns Query instance that fetches
         # target resource(s) (ex.: articles) for given target resource (ex.: author)
