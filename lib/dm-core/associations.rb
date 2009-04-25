@@ -41,7 +41,7 @@ module DataMapper
               relationship.name,
               relationship.child_model_name  == self.name ? target : relationship.child_model_name,
               relationship.parent_model_name == self.name ? target : relationship.parent_model_name,
-              relationship.options
+              relationship.options.dup
             )
           end
         end

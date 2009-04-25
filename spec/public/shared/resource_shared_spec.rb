@@ -444,10 +444,8 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'with new resources in a has relationship' do
-
-      # TODO: change to before :all after pending block dropped
       before do
-        pending_if 'TODO: fix for one to one association', (!@user.respond_to?(:comments)) do
+        rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
           @initial_comments = @user.comments.size
           @first_comment    = @user.comments.new(:body => "DM is great!")
           @second_comment   = @child_model.new(:user => @user, :body => "is it really?")
@@ -456,15 +454,21 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should save resource' do
-        @return.should be_true
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @return.should be_true
+        end
       end
 
       it 'should save the first resource created through new' do
-        @first_comment.new?.should be_false
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @first_comment.new?.should be_false
+        end
       end
 
       it 'should save the correct foreign key for the first resource' do
-        @first_comment.user.should eql(@user)
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @first_comment.user.should eql(@user)
+        end
       end
 
       it 'should save the second resource created through the constructor' do
@@ -474,7 +478,9 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should save the correct foreign key for the second resource' do
-        @second_comment.user.should eql(@user)
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @second_comment.user.should eql(@user)
+        end
       end
 
       it 'should create 2 extra resources in persistent storage' do
@@ -486,15 +492,8 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'with dirty resources in a has relationship' do
-
-      # TODO: change to before :all after pending block dropped
-      before do
-
-        # TODO: remove once this is a before :all block
-        User.all.destroy!
-        Comment.all.destroy!
-
-        pending_if 'TODO: fix for one to one association', (!@user.respond_to?(:comments)) do
+      before :all do
+        rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
           @initial_comments = @user.comments.size
           @first_comment    = @user.comments.create(:body => "DM is great!")
           @second_comment   = @child_model.create(:user => @user, :body => "is it really?")
@@ -507,15 +506,21 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should save the dirty resources' do
-        @return.should be_true
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @return.should be_true
+        end
       end
 
       it 'should have saved the first child resource' do
-        @first_comment.should_not be_dirty
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @first_comment.should_not be_dirty
+        end
       end
 
       it 'should not have saved the second child resource' do
-        @second_comment.should be_dirty
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @second_comment.should be_dirty
+        end
       end
 
     end
@@ -536,10 +541,8 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'with a dirty parent object' do
-
-      # TODO: change to before :all after pending block dropped
-      before do
-        pending_if 'TODO: fix for one to one association', (!@user.respond_to?(:comments)) do
+      before :all do
+        rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
           @first_comment = @user.comments.new(:body => "DM is great!")
           @user.name = 'dbussink-the-second'
           @return = @first_comment.save
@@ -547,40 +550,56 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should succesfully save the object' do
-        @return.should be_true
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @return.should be_true
+        end
       end
 
       it 'should still have a dirty user object' do
-        @user.should be_dirty
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @user.should be_dirty
+        end
       end
 
       it 'should not have persisted the changes' do
-        @user.attributes.should_not == @model.get(*@user.key).attributes
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @user.attributes.should_not == @model.get(*@user.key).attributes
+        end
       end
 
     end
 
     describe 'with a new object and new relations' do
-
-      # TODO: change to before :all after pending block dropped
-      before do
+      before :all do
         @article = Article.new(:body => "Main")
-        pending_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
+        rescue_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
           @paragraph = @article.paragraphs.new(:text => "Content")
           @article.save
         end
       end
 
-      it { @article.should_not be_dirty }
+      it 'should not be dirty' do
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @article.should_not be_dirty
+        end
+      end
 
-      it { @paragraph.should_not be_dirty }
+      it 'should not be dirty' do
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @paragraph.should_not be_dirty
+        end
+      end
 
       it 'should set the related object' do
-        @paragraph.article.should == @article
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @paragraph.article.should == @article
+        end
       end
 
       it 'should set the foreign key properly' do
-        @paragraph.article_id.should == @article.id
+        pending_if 'TODO', !@user.respond_to?(:comments) do
+          @paragraph.article_id.should == @article.id
+        end
       end
     end
 

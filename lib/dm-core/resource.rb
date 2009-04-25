@@ -466,7 +466,7 @@ module DataMapper
     def attributes(key_on = :name)
       attributes = {}
       properties.each do |property|
-        if public_method?(name = property.name)
+        if model.public_method_defined?(name = property.name)
           key = case key_on
             when :name  then name
             when :field then property.field
@@ -491,7 +491,7 @@ module DataMapper
     # @api public
     def attributes=(attributes)
       attributes.each do |name,value|
-        if public_method?(setter = "#{name}=")
+        if model.public_method_defined?(setter = "#{name}=")
           send(setter, value)
         else
           raise ArgumentError, "The property '#{name}' is not accessible in #{model}"
@@ -761,20 +761,6 @@ module DataMapper
       end
 
       child_associations.freeze
-    end
-
-    ##
-    # Return true if the reader or writer +method+ is publicly accessible
-    #
-    # @param [String, Symbol] method
-    #   The name of reader or writer to test
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if the reader or writer +method+ is public
-    #
-    # @api private
-    def public_method?(method)
-      model.public_method_defined?(method)
     end
 
     ##
