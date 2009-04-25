@@ -221,7 +221,7 @@ module DataMapper
         # TODO: document
         # @api public
         def reload(query = nil)
-          # TODO: remove references to the intermediaries
+          # TODO: remove *references* to the intermediaries
           # TODO: reload the collection
           raise NotImplementedError
         end
@@ -229,7 +229,7 @@ module DataMapper
         # TODO: document
         # @api public
         def replace(other)
-          # TODO: wipe out the intermediaries
+          # TODO: remove the left-most intermediary
           # TODO: replace the collection with other
           raise NotImplementedError
         end

@@ -116,7 +116,7 @@ module DataMapper
       # @api private
       def method_missing(method, *args)
         if relationship = @model.relationships(@repository_name)[method]
-          repository = DataMapper.repository(@repository_name)
+          repository = DataMapper.repository(relationship.target_repository_name)
           return Query::Path.new(repository, @relationships.dup << relationship, relationship.target_model)
         end
 
