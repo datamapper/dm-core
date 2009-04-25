@@ -414,7 +414,7 @@ module DataMapper
 
           links.reverse_each do |relationship|
             statement << " INNER JOIN #{quote_name(relationship.source_model.storage_name(name))} ON "
-            statement << relationship.target_key.zip(relationship.source_key).map do |target_property,source_property|
+            statement << relationship.target_key.zip(relationship.source_key).map do |target_property, source_property|
               "#{property_to_column_name(target_property, qualify)} = #{property_to_column_name(source_property, qualify)}"
             end.join(' AND ')
           end
