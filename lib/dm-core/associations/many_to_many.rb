@@ -247,8 +247,9 @@ module DataMapper
         def create(attributes = {})
           assert_source_saved 'The source must be saved before creating a Resource'
 
-          links    = @relationship.links.dup
-          midpoint = nil
+          attributes = default_attributes.merge(attributes)
+          links      = @relationship.links.dup
+          midpoint   = nil
 
           head = [ source ]
 
@@ -260,7 +261,7 @@ module DataMapper
 
             relationship = links.shift
 
-            head << relationship.get(head.last).create
+            head << relationship.get(head.last).create(links.empty? ? attributes : {})
 
             # if all links have been processed, we are at the left-most
             # point, return the source as the target
@@ -273,13 +274,13 @@ module DataMapper
           until links.last == midpoint.first
             relationship = links.pop
 
-            default_attributes = if tail.empty?
-              attributes.merge(self.send(:default_attributes))
+            attributes = if tail.empty?
+              attributes
             else
               relationship.source_scope(tail.first)
             end
 
-            tail.unshift(relationship.target_model.create(default_attributes))
+            tail.unshift(relationship.target_model.create(attributes))
 
             # if all links have been processed return the target
             return tail.last if links.empty?
