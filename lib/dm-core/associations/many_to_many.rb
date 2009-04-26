@@ -248,57 +248,50 @@ module DataMapper
           assert_source_saved 'The source must be saved before creating a Resource'
 
           links    = @relationship.links.dup
-          midpoint = []
+          midpoint = nil
 
-          # find out the midpoint of the links
-          links.each_with_index do |relationship,i|
-            next_relationship = links[i + 1]
-            next unless next_relationship.kind_of?(ManyToOne::Relationship)
-            break midpoint = [ relationship, next_relationship ]
-          end
-
-          source = self.source
+          head = [ source ]
 
           # walk the links from left to right, stopping at the midpoint
-          until links.first == midpoint.first
+          until midpoint
+            if (next_relationship = links[1]) && next_relationship.kind_of?(ManyToOne::Relationship)
+              break midpoint = links[0,2]
+            end
+
             relationship = links.shift
-            source = relationship.get(source).create
+
+            head << relationship.get(head.last).create
 
             # if all links have been processed, we are at the left-most
             # point, return the source as the target
-            return source if links.empty?
+            return head.last if links.empty?
           end
 
-          join_resource = source
-          source        = nil
-          target        = nil
+          tail = []
 
           # walk the links from the right to left, stopping at the midpoint
           until links.last == midpoint.first
             relationship = links.pop
 
-            default_attributes = if target.nil?
+            default_attributes = if tail.empty?
               attributes.merge(self.send(:default_attributes))
             else
-              relationship.source_scope(source)
+              relationship.source_scope(tail.first)
             end
 
-            source = relationship.target_model.create(default_attributes)
-
-            # the left-most relationship will set the target
-            target ||= source
+            tail.unshift(relationship.target_model.create(default_attributes))
 
             # if all links have been processed return the target
-            return target if links.empty?
+            return tail.last if links.empty?
           end
 
-          # handle the relationships at the midpoint
+          # handle the relationship at the midpoint
           lhs, rhs = midpoint
-          default_attributes = rhs.source_key.map { |p| p.name }.zip(rhs.target_key.get(source)).to_hash
-          lhs.get(join_resource).create(default_attributes)
+          default_attributes = rhs.source_key.map { |p| p.name }.zip(rhs.target_key.get(tail.first)).to_hash
+          lhs.get(head.last).create(default_attributes)
 
-          # always return the target
-          target
+          # always return the tail
+          tail.last
         end
 
         # TODO: document
