@@ -771,7 +771,7 @@ module DataMapper
       return if @valid
 
       if properties(repository_name).empty? &&
-        !relationships(repository_name).any? { |r| r.kind_of?(Associations::ManyToOne::Relationship) }
+        !relationships(repository_name).any? { |(n,r)| r.kind_of?(Associations::ManyToOne::Relationship) }
         raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
       end
 
