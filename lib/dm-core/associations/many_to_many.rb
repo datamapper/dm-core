@@ -2,14 +2,6 @@ module DataMapper
   module Associations
     module ManyToMany #:nodoc:
       class Relationship < Associations::OneToMany::Relationship
-        # Returns collection class used by this type of
-        # relationship
-        #
-        # @api semipublic
-        def self.collection_class
-          ManyToMany::Collection
-        end
-
         ##
         # Returns a set of keys that identify the target model
         #
@@ -206,6 +198,14 @@ module DataMapper
           namespace = join_model_namespace_name.first
           relationship_name = Extlib::Inflection.underscore(model.base_model.name.sub(/\A#{namespace.name}::/, '')).gsub('/', '_')
           (plural ? relationship_name.plural : relationship_name).to_sym
+        end
+
+        # Returns collection class used by this type of
+        # relationship
+        #
+        # @api private
+        def collection_class
+          ManyToMany::Collection
         end
       end # class Relationship
 

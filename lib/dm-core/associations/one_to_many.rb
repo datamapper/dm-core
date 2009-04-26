@@ -2,14 +2,6 @@ module DataMapper
   module Associations
     module OneToMany #:nodoc:
       class Relationship < Associations::Relationship
-        # Returns collection class used by this type of
-        # relationship
-        #
-        # @api semipublic
-        def self.collection_class
-          OneToMany::Collection
-        end
-
         # TODO: document
         # @api semipublic
         alias target_repository_name child_repository_name
@@ -61,7 +53,7 @@ module DataMapper
         def collection_for(source, other_query = nil)
           query = query_for(source, other_query)
 
-          collection = self.class.collection_class.new(query)
+          collection = collection_class.new(query)
           collection.relationship = self
           collection.source       = source
 
@@ -144,6 +136,14 @@ module DataMapper
           # the collection the source belongs to
 
           set!(source, collection_for(source))
+        end
+
+        # Returns collection class used by this type of
+        # relationship
+        #
+        # @api private
+        def collection_class
+          OneToMany::Collection
         end
       end # class Relationship
 
