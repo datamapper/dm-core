@@ -1,7 +1,8 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 # run the specs once with a loaded association and once not
-[ false, true ].each do |loaded|
+#[ false, true ].each do |loaded|
+[ true ].each do |loaded|
   describe 'Many to Many Associations' do
     extend DataMapper::Spec::CollectionHelpers::GroupMethods
 

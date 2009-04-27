@@ -125,10 +125,8 @@ module DataMapper
       options[:child_repository_name]  = options.delete(:repository)
       options[:parent_repository_name] = repository.name
 
-      klass = if options.key?(:through)
-        ManyToMany::Relationship
-      elsif options[:max] > 1
-        OneToMany::Relationship
+      klass = if options[:max] > 1
+        options.key?(:through) ? ManyToMany::Relationship : OneToMany::Relationship
       else
         OneToOne::Relationship
       end
@@ -159,6 +157,11 @@ module DataMapper
     def belongs_to(name, options = {})
       assert_kind_of 'name',    name,    Symbol
       assert_kind_of 'options', options, Hash
+
+      if options.key?(:through)
+        warn "#{self.name}#belongs_to with :through is deprecated, use 'has 1, :#{name}, #{options.inspect}' in #{self.name} instead"
+        return has(1, name, options)
+      end
 
       options = options.dup
 

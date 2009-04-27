@@ -307,6 +307,13 @@ module DataMapper
           order      = query.order
           group_by   = nil
 
+          # FIXME: using a boolean for qualify does not work in some cases,
+          # such as when you have a self-referrential many to many association.
+          # if you don't qualfiy the columns with a unique alias, then the
+          # SQL query will fail.  This may mean though, that it might not
+          # be enough to pass in a Property, but we may need to know the
+          # table and the alias we should use for the column.
+
           qualify = query.links.any?
 
           if qualify || query.unique?

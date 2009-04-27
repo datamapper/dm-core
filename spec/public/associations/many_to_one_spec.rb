@@ -56,8 +56,8 @@ describe 'Many to One Associations' do
       user    = @model.create(:name => 'dbussink', :age => 25, :description => 'Test')
       comment = @child_model.create(:body => 'Cool spec', :user => user)
 
-      @comment     = @child_model.get(*comment.key)
-      @user        = @comment.user
+      @comment = @child_model.get(*comment.key)
+      @user    = @comment.user
     end
 
     it_should_behave_like 'A public Resource'

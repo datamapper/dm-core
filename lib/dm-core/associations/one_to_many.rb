@@ -65,8 +65,9 @@ module DataMapper
         #
         # @api semipublic
         def get(source, query = nil)
-          lazy_load(source) unless loaded?(source)
+          assert_kind_of 'source', source, source_model
 
+          lazy_load(source) unless loaded?(source)
           collection = get!(source)
 
           if query.nil?
@@ -83,6 +84,8 @@ module DataMapper
         #
         # @api semipublic
         def set(source, targets)
+          assert_kind_of 'source', source, source_model
+
           lazy_load(source) unless loaded?(source)
           get!(source).replace(targets)
         end
@@ -144,6 +147,18 @@ module DataMapper
         # @api private
         def collection_class
           OneToMany::Collection
+        end
+
+        ##
+        # Prefix used to build name of default child key
+        #
+        # @return [Symbol]
+        #   The name to prefix the default child key
+        #
+        # @api semipublic
+        def property_prefix
+          # TODO: try to use the inverse relationship name if possible 
+          Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name)).to_sym
         end
       end # class Relationship
 
@@ -309,8 +324,6 @@ module DataMapper
         def relate_resource(resource)
           return if resource.nil?
 
-          # TODO: figure out a better idiom for seeing if a Resource has it's PK set
-
           if relationship.source_key.loaded?(source)
             relationship.inverse.set(resource, source)
           end
@@ -323,8 +336,10 @@ module DataMapper
         def orphan_resource(resource)
           return if resource.nil?
 
-          # TODO: should just set the resource source to nil using writer method
-          relationship.child_key.set(resource, [])
+          # only orphan a resource if it could have been related previously
+          if relationship.source_key.loaded?(source)
+            relationship.inverse.set(resource, nil)
+          end
 
           super
         end

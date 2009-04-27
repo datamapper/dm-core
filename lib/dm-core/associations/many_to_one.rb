@@ -57,8 +57,9 @@ module DataMapper
         #
         # @api semipublic
         def get(source, query = nil)
-          return unless loaded?(source) || (source_key.loaded?(source) && lazy_load(source))
+          assert_kind_of 'source', source, source_model
 
+          return unless loaded?(source) || (source_key.loaded?(source) && lazy_load(source))
           resource = get!(source)
 
           if query.nil?
@@ -88,6 +89,8 @@ module DataMapper
         #
         # @api semipublic
         def set(source, target)
+          assert_kind_of 'source', source, source_model
+
           source_key.set(source, target_key.get(target))
           set!(source, target)
         end
@@ -152,9 +155,13 @@ module DataMapper
           set!(source, target_model.first(query))
         end
 
-        # Prefix used to build name of default source key
+        ##
+        # Prefix used to build name of default child key
         #
-        # @api private
+        # @return [Symbol]
+        #   The name to prefix the default child key
+        #
+        # @api semipublic
         def property_prefix
           name
         end

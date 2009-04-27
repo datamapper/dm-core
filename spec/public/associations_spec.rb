@@ -181,24 +181,18 @@ share_examples_for 'it creates a many accessor' do
 
       @return = nil
 
-      rescue_if 'TODO', @skip do
-        @expected = @model.new
-        @car.send("#{@name}=", [ @expected ])
+      @expected = @model.new
+      @car.send("#{@name}=", [ @expected ])
 
-        @return = @car.send(@name)
-      end
+      @return = @car.send(@name)
     end
 
     it 'should return a Collection' do
-      pending_if 'TODO', @skip do
-        @return.should be_kind_of(DataMapper::Collection)
-      end
+      @return.should be_kind_of(DataMapper::Collection)
     end
 
     it 'should return expected Resources' do
-      pending_if 'TODO', @skip do
-        @return.should == [ @expected ]
-      end
+      @return.should == [ @expected ]
     end
   end
 end

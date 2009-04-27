@@ -4,6 +4,8 @@ module DataMapper
     # (1 to 1, 1 to n, n to m) implements a subclass of this class
     # with methods like get and set overridden.
     class Relationship
+      include Extlib::Assertions
+
       OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :through ].to_set.freeze
 
       # Relationship name
@@ -298,13 +300,13 @@ module DataMapper
       # @api semipublic
       def inverse
         @inverse ||= target_model.relationships(target_repository_name).values.detect do |relationship|
+          !relationship.equal?(self)                                    &&
           relationship.target_repository_name == source_repository_name &&
           relationship.target_model           == source_model           &&
-          relationship.target_key             == source_key             &&
-          relationship.query.empty?
+          relationship.target_key             == source_key
 
-          # TODO: handle case where @query is not empty, but scoped the same as the target model.
-          # that case should be treated the same as the Query being empty
+          # TODO: match only when the Query is empty, or is the same as the
+          # default scope for the target model
         end
 
         # TODO: if no inverse relationship found, create one, and use an approximate guess as
@@ -350,7 +352,9 @@ module DataMapper
         create_writer
       end
 
+      ##
       # Creates reader method for association.
+      #
       # Must be implemented by subclasses.
       #
       # @api semipublic
@@ -358,7 +362,9 @@ module DataMapper
         raise NotImplementedError, "#{self.class}#create_reader not implemented"
       end
 
+      ##
       # Creates both writer method for association.
+      #
       # Must be implemented by subclasses.
       #
       # @api semipublic
@@ -366,11 +372,21 @@ module DataMapper
         raise NotImplementedError, "#{self.class}#create_writer not implemented"
       end
 
+      ##
       # Prefix used to build name of default child key
       #
-      # @api private
+      # Must be implemented by subclasses.
+      #
+      # @return [Symbol]
+      #   The name to prefix the default child key
+      #
+      # @api semipublic
       def property_prefix
-        Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.name)).to_sym
+        raise NotImplementedError, "#{self.class}#property_prefix not implemented"
+      end
+
+      def assert_valid_source(source)
+        raise "source not a #{source_model} instance, but was #{source.class}" unless source_model == source.model
       end
     end # class Relationship
   end # module Associations

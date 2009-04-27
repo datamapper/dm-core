@@ -569,7 +569,7 @@ module DataMapper
     # @api public
     def destroy
       if saved?
-        repository.delete(collection)
+        repository.delete(Collection.new(to_query, [ self ]))
         reset
         true
       else

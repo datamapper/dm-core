@@ -40,8 +40,8 @@ module DataMapper
             source_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
           end
 
-          # initialize the target_key now that the source and target model are defined
-          @through.target_key
+          # initialize the child_key now that the source and target model are defined
+          @through.child_key
 
           @through
         end
@@ -215,33 +215,90 @@ module DataMapper
         # @api public
         def reload(query = nil)
           # TODO: remove *references* to the intermediaries
-          # TODO: reload the collection
-          raise NotImplementedError, "#{self.class}#reload not implemented"
+          super
         end
 
         # TODO: document
         # @api public
         def replace(other)
-          # TODO: remove the left-most intermediary
-          # TODO: replace the collection with other
-          raise NotImplementedError, "#{self.class}#replace not implemented"
+          through           = @relationship.through
+          last_relationship = @relationship.links.last
+
+          if loaded?
+            inverse = last_relationship.inverse
+
+            each do |resource|
+              if association = inverse.get(resource)
+                association.destroy
+              end
+            end
+          end
+
+          through.send(:lazy_load, source) unless through.loaded?(source)
+          association = through.get!(source)
+
+          other.each do |target|
+            source_key = last_relationship.source_key
+            target_key = last_relationship.target_key
+
+            if association.kind_of?(OneToMany::Collection)
+              association << { last_relationship.name => target }
+            else
+              raise 'TODO: handle many to one associations'
+            end
+          end
+
+          super(other)
         end
 
         # TODO: document
         # @api public
         def clear
           # TODO: clear the intermediaries
-          # TODO: clear the collection
-          raise NotImplementedError, "#{self.class}#clear not implemented"
+          super
         end
 
         # TODO: document
         # @api public
         def create(attributes = {})
           assert_source_saved 'The source must be saved before creating a Resource'
+          intermediaries(attributes, @relationship.links.dup).last
+        end
 
+        # TODO: document
+        # @api public
+        def update!(attributes = {})
+          # TODO: update the resources in the target model
+          raise NotImplementedError, "#{self.class}#update! not implemented"
+        end
+
+        # TODO: document
+        # @api public
+        def save
+          # TODO: create the new intermediaries
+          # TODO: destroy the orphaned intermediaries
+          super
+        end
+
+        # TODO: document
+        # @api public
+        def destroy
+          # TODO: destroy the intermediaries (provided nothing else links to them)
+          super
+        end
+
+        # TODO: document
+        # @api public
+        def destroy!
+          # TODO: destroy! the intermediaries
+          # TODO: destroy! the resources in the target model
+          raise NotImplementedError, "#{self.class}#destroy! not implemented"
+        end
+
+        private
+
+        def intermediaries(attributes, links)
           attributes = default_attributes.merge(attributes)
-          links      = @relationship.links.dup
           midpoint   = nil
 
           head = [ source ]
@@ -260,9 +317,7 @@ module DataMapper
               head << collection.first_or_create
             end
 
-            # if all links have been processed, we are at the left-most
-            # point, return the source as the target
-            return head.last if links.empty?
+            return head if links.empty?
           end
 
           # split the midpoint into left and right hand sides
@@ -286,89 +341,21 @@ module DataMapper
             tail.unshift(resource)
           end
 
-          # always return the tail
-          tail.last
+          head + tail
         end
 
-        # TODO: document
-        # @api public
-        def update(attributes = {})
-          # TODO: update the resources in the target model
-          raise NotImplementedError, "#{self.class}#update not implemented"
+        # FIXME: temporarily bypass OneToMany::Collection#relate_resource
+        # until issues with it can be worked out
+        def relate_resource(*args)
+          collection_relate_resource(*args)
         end
 
-        # TODO: document
-        # @api public
-        def update!(attributes = {})
-          # TODO: update the resources in the target model
-          raise NotImplementedError, "#{self.class}#update! not implemented"
+        # FIXME: temporarily bypass OneToMany::Collection#orphan_resource
+        # until issues with it can be worked out
+        def orphan_resource(*args)
+          collection_orphan_resource(*args)
         end
 
-        # TODO: document
-        # @api public
-        def save
-          # TODO: create the new intermediaries
-          # TODO: destroy the orphaned intermediaries
-          raise NotImplementedError, "#{self.class}#save not implemented"
-        end
-
-        # TODO: document
-        # @api public
-        def destroy
-          # TODO: destroy the intermediaries
-          # TODO: destroy the resources in the target model
-          raise NotImplementedError, "#{self.class}#destroy not implemented"
-        end
-
-        # TODO: document
-        # @api public
-        def destroy!
-          # TODO: destroy! the intermediaries
-          # TODO: destroy! the resources in the target model
-          raise NotImplementedError, "#{self.class}#destroy! not implemented"
-        end
-
-        private
-
-        # TODO: document
-        # @api private
-        def relate_resource(resource)
-          # TODO: queue up new intermediaries for creation
-
-          # TODO: figure out how to DRY this up.  Should we just inherit
-          # from Collection directly, and bypass OneToMany::Collection?
-          return if resource.nil?
-
-          resource.collection = self
-
-          if resource.saved?
-            @identity_map[resource.key] = resource
-            @orphans.delete(resource)
-          else
-            resource.attributes = default_attributes.except(*resource.loaded_attributes.map { |p| p.name })
-          end
-
-          resource
-        end
-
-        # TODO: document
-        # @api private
-        def orphan_resource(resource)
-          # TODO: figure out how to DRY this up.  Should we just inherit
-          # from Collection directly, and bypass OneToMany::Collection?
-          return if resource.nil?
-
-          if resource.collection.equal?(self)
-            resource.collection = nil
-          end
-
-          if resource.saved?
-            @identity_map.delete(resource.key)
-            @orphans << resource
-          end
-
-          resource
-        end
       end # class Collection
     end # module ManyToMany
   end # module Associations

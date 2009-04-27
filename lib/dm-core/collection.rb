@@ -1020,6 +1020,10 @@ module DataMapper
       resource
     end
 
+    # TODO: temporary until OneToMany::Collection#relate_resource can
+    # be used by ManyToMany::Collection#relate_resource
+    alias collection_relate_resource relate_resource
+
     ##
     # Relate a list of Resources to the Collection
     #
@@ -1064,6 +1068,10 @@ module DataMapper
 
       resource
     end
+
+    # TODO: temporary until OneToMany::Collection#relate_resource can
+    # be used by ManyToMany::Collection#relate_resource
+    alias collection_orphan_resource orphan_resource
 
     ##
     # Orphan a list of Resources from the Collection
