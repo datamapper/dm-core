@@ -11,7 +11,7 @@ module DataMapper
       # Example: for :parent association in
       #
       # class VersionControl::Commit
-      #   include ::DataMapper::Resource
+      #   include DataMapper::Resource
       #
       #   belongs_to :parent
       # end
@@ -27,7 +27,7 @@ module DataMapper
       # Example: for :author association in
       #
       # class VersionControl::Commit
-      #   include ::DataMapper::Resource
+      #   include DataMapper::Resource
       #
       #   belongs_to :author, :model => 'Person'
       # end
@@ -43,7 +43,7 @@ module DataMapper
       # Example: for :commits association in
       #
       # class VersionControl::Branch
-      #   include ::DataMapper::Resource
+      #   include DataMapper::Resource
       #
       #   has n, :commits
       # end
@@ -72,7 +72,7 @@ module DataMapper
       # Example: for :cores association in
       #
       # class CPU::Multicore
-      #   include ::DataMapper::Resource
+      #   include DataMapper::Resource
       #
       #   has 2..n, :cores
       # end
@@ -88,7 +88,7 @@ module DataMapper
       # Example: for :fouls association in
       #
       # class Basketball::Player
-      #   include ::DataMapper::Resource
+      #   include DataMapper::Resource
       #
       #   has 0..5, :fouls
       # end
@@ -104,7 +104,7 @@ module DataMapper
       # Example: for :bugs association in
       #
       # class Software::Engineer
-      #   include ::DataMapper::Resource
+      #   include DataMapper::Resource
       #
       #   has n, :missing_tests
       #   has n, :bugs, :through => :missing_tests
