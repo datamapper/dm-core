@@ -748,14 +748,9 @@ module DataMapper
         when Hash
           conditions.each do |subject, bind_value|
             case subject
-              when Symbol
-                unless @properties.named?(subject)
-                  raise ArgumentError, "condition #{subject.inspect} does not map to a property"
-                end
-
-              when String
-                unless subject.include?('.') || @properties.named?(subject)
-                  raise ArgumentError, "condition #{subject.inspect} does not map to a property"
+              when Symbol, String
+                unless subject.to_s.include?('.') || @properties.named?(subject) || @relationships.key?(subject)
+                  raise ArgumentError, "condition #{subject.inspect} does not map to a property or relationship"
                 end
 
               when Operator
@@ -976,15 +971,23 @@ module DataMapper
     def append_condition(subject, bind_value, operator = :eql)
       subject = case subject
         when Symbol
-          @properties[subject]
+          return append_condition(subject.to_s, bind_value, operator)
 
         when String
           if subject.include?('.')
             query_path = model
             subject.split('.').each { |m| query_path = query_path.send(m) }
             return append_condition(query_path, bind_value, operator)
-          else
-            @properties[subject]
+          elsif property = @properties[subject]
+            property
+          elsif relationship = @relationships[subject]
+
+            # TODO: handle compound keys
+            if (source_values = Array(bind_value).map { |r| relationship.target_key.first.get(r) }.compact).any?
+              append_condition(relationship.source_key.first, source_values, operator)
+            end
+
+            return @conditions
           end
 
         when Operator

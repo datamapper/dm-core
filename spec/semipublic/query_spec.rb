@@ -356,6 +356,56 @@ describe DataMapper::Query do
           end
         end
 
+        supported_by :all do
+          describe 'with the Symbol key mapping to a Relationship' do
+            before :all do
+              user = @model.create(:name => 'Dan Kubb')
+
+              @options[:conditions] = { :referrer => user }
+
+              @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+            end
+
+            it { @return.should be_kind_of(DataMapper::Query) }
+
+            it 'should set the conditions' do
+              @return.conditions.should ==
+                DataMapper::Conditions::BooleanOperation.new(
+                  :and,
+                  DataMapper::Conditions::Comparison.new(
+                    :eql,
+                    @model.properties[:referrer_name],
+                    'Dan Kubb'
+                  )
+                )
+            end
+          end
+
+          describe 'with the String key mapping to a Relationship' do
+            before :all do
+              user = @model.create(:name => 'Dan Kubb')
+
+              @options[:conditions] = { 'referrer' => user }
+
+              @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+            end
+
+            it { @return.should be_kind_of(DataMapper::Query) }
+
+            it 'should set the conditions' do
+              @return.conditions.should ==
+                DataMapper::Conditions::BooleanOperation.new(
+                  :and,
+                  DataMapper::Conditions::Comparison.new(
+                    :eql,
+                    @model.properties[:referrer_name],
+                    'Dan Kubb'
+                  )
+                )
+            end
+          end
+        end
+
         describe 'with the Query::Operator key' do
           before :all do
             @options[:conditions] = { :name.gte => 'Dan Kubb' }
@@ -524,7 +574,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:conditions => { :unknown => 1 }))
-          }.should raise_error(ArgumentError, 'condition :unknown does not map to a property')
+          }.should raise_error(ArgumentError, 'condition :unknown does not map to a property or relationship')
         end
       end
 
@@ -532,7 +582,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:conditions => { 'unknown' => 1 }))
-          }.should raise_error(ArgumentError, 'condition "unknown" does not map to a property')
+          }.should raise_error(ArgumentError, 'condition "unknown" does not map to a property or relationship')
         end
       end
 
@@ -559,7 +609,6 @@ describe DataMapper::Query do
           }.should raise_error(ArgumentError, 'condition 1 of an unsupported object Fixnum')
         end
       end
-
     end
 
     describe 'with an offset option' do

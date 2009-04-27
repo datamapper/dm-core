@@ -149,7 +149,7 @@ module DataMapper
 
         scope = {}
 
-        # TODO: handle compound keys when OR conditions supported
+        # TODO: handle compound keys
         if (source_values = Array(source).map { |r| source_key.first.get(r) }.compact).any?
           scope[target_key.first] = source_values
         end
