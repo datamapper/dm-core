@@ -597,7 +597,7 @@ module DataMapper
       # DO NOT REMOVE!
       # method_missing depends on these existing. Without this stub,
       # a missing module can cause misleading recursive errors.
-      raise NotImplementedError
+      raise NotImplementedError, "#{self.class}#relationships not implemented"
     end
 
     # TODO: document

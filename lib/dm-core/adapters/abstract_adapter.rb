@@ -52,7 +52,7 @@ module DataMapper
       #
       # @api semipublic
       def create(resources)
-        raise NotImplementedError
+        raise NotImplementedError, "#{self.class}#create not implemented"
       end
 
       # Reads one or many resources from storage
@@ -60,7 +60,7 @@ module DataMapper
       #
       # @api semipublic
       def read(query)
-        raise NotImplementedError
+        raise NotImplementedError, "#{self.class}#read not implemented"
       end
 
       # Updates one or many existing resources
@@ -76,7 +76,7 @@ module DataMapper
       #
       # @api semipublic
       def update(attributes, collection)
-        raise NotImplementedError
+        raise NotImplementedError, "#{self.class}#update not implemented"
       end
 
       # Deletes one or many existing resources
@@ -90,7 +90,7 @@ module DataMapper
       #
       # @api semipublic
       def delete(collection)
-        raise NotImplementedError
+        raise NotImplementedError, "#{self.class}#delete not implemented"
       end
 
       protected

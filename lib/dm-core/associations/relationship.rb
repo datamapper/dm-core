@@ -163,7 +163,7 @@ module DataMapper
       #
       # @api semipublic
       def query_for(resource)
-        raise NotImplementedError
+        raise NotImplementedError, "#{self.class}#query_for not implemented"
       end
 
       # Returns query object for relationship.
@@ -262,7 +262,7 @@ module DataMapper
       #
       # @api semipublic
       def get(resource, query = nil)
-        raise NotImplementedError
+        raise NotImplementedError, "#{self.class}#get not implemented"
       end
 
       # Gets "other end" of the association directly
@@ -279,7 +279,7 @@ module DataMapper
       #
       # @api semipublic
       def set(resource, association)
-        raise NotImplementedError
+        raise NotImplementedError, "#{self.class}#set not implemented"
       end
 
       # Sets "other end" of the association directly
@@ -358,7 +358,7 @@ module DataMapper
       #
       # @api semipublic
       def create_reader
-        raise NotImplementedError
+        raise NotImplementedError, "#{self.class}#create_reader not implemented"
       end
 
       # Creates both writer method for association.
@@ -366,7 +366,7 @@ module DataMapper
       #
       # @api semipublic
       def create_writer
-        raise NotImplementedError
+        raise NotImplementedError, "#{self.class}#create_writer not implemented"
       end
 
       # Prefix used to build name of default child key

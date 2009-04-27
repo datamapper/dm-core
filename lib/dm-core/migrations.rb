@@ -183,7 +183,7 @@ module DataMapper
         # TODO: document
         # @api private
         def schema_name
-          raise NotImplementedError
+          raise NotImplementedError, "#{self.class}#schema_name not implemented"
         end
 
         # TODO: document

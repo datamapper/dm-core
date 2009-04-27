@@ -223,7 +223,7 @@ module DataMapper
         def reload(query = nil)
           # TODO: remove *references* to the intermediaries
           # TODO: reload the collection
-          raise NotImplementedError
+          raise NotImplementedError, "#{self.class}#reload not implemented"
         end
 
         # TODO: document
@@ -231,7 +231,7 @@ module DataMapper
         def replace(other)
           # TODO: remove the left-most intermediary
           # TODO: replace the collection with other
-          raise NotImplementedError
+          raise NotImplementedError, "#{self.class}#replace not implemented"
         end
 
         # TODO: document
@@ -239,7 +239,7 @@ module DataMapper
         def clear
           # TODO: clear the intermediaries
           # TODO: clear the collection
-          raise NotImplementedError
+          raise NotImplementedError, "#{self.class}#clear not implemented"
         end
 
         # TODO: document
@@ -299,14 +299,14 @@ module DataMapper
         # @api public
         def update(attributes = {})
           # TODO: update the resources in the target model
-          raise NotImplementedError
+          raise NotImplementedError, "#{self.class}#update not implemented"
         end
 
         # TODO: document
         # @api public
         def update!(attributes = {})
           # TODO: update the resources in the target model
-          raise NotImplementedError
+          raise NotImplementedError, "#{self.class}#update! not implemented"
         end
 
         # TODO: document
@@ -314,7 +314,7 @@ module DataMapper
         def save
           # TODO: create the new intermediaries
           # TODO: destroy the orphaned intermediaries
-          raise NotImplementedError
+          raise NotImplementedError, "#{self.class}#save not implemented"
         end
 
         # TODO: document
@@ -322,7 +322,7 @@ module DataMapper
         def destroy
           # TODO: destroy the intermediaries
           # TODO: destroy the resources in the target model
-          raise NotImplementedError
+          raise NotImplementedError, "#{self.class}#destroy not implemented"
         end
 
         # TODO: document
@@ -330,7 +330,7 @@ module DataMapper
         def destroy!
           # TODO: destroy! the intermediaries
           # TODO: destroy! the resources in the target model
-          raise NotImplementedError
+          raise NotImplementedError, "#{self.class}#destroy! not implemented"
         end
 
         private
