@@ -359,8 +359,6 @@ module DataMapper
         # TODO: document
         # @api private
         def orphan_resource(resource)
-          # TODO: queue up orphaned intermediaries for destruction
-
           # TODO: figure out how to DRY this up.  Should we just inherit
           # from Collection directly, and bypass OneToMany::Collection?
           return if resource.nil?
