@@ -28,7 +28,7 @@ module DataMapper
 
       module UnderscoredAndPluralized
         def self.call(name)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(name)).gsub('/','_')
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(name)).gsub('/', '_')
         end
       end # module UnderscoredAndPluralized
 
@@ -56,7 +56,7 @@ module DataMapper
 
       module UnderscoredAndPluralized
         def self.call(property)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name.to_s)).gsub('/','_')
+          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name.to_s)).gsub('/', '_')
         end
       end # module UnderscoredAndPluralized
 

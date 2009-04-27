@@ -36,7 +36,7 @@ DataMapper::Logger.new(DataMapper.root / 'log' / 'dm.log', :debug)
 adapter = DataMapper.setup(:default, configuration_options)
 
 if configuration_options[:adapter]
-  sqlfile       = File.join(File.dirname(__FILE__),'..','tmp','performance.sql')
+  sqlfile       = File.join(File.dirname(__FILE__), '..', 'tmp', 'performance.sql')
   mysql_bin     = %w[ mysql mysql5 ].select { |bin| `which #{bin}`.length > 0 }
   mysqldump_bin = %w[ mysqldump mysqldump5 ].select { |bin| `which #{bin}`.length > 0 }
 end

@@ -118,10 +118,10 @@ module DataMapper
   #  class Post
   #    include DataMapper::Resource
   #
-  #    property :title,   String                                  # Loads normally
-  #    property :body,    Text,   :lazy => false                  # The default is now over-ridden
-  #    property :comment, String, lazy => [ :detailed ]           # Loads in the :detailed context
-  #    property :author,  String, lazy => [ :summary,:detailed ]  # Loads in :summary & :detailed context
+  #    property :title,   String                                    # Loads normally
+  #    property :body,    Text,   :lazy => false                    # The default is now over-ridden
+  #    property :comment, String, :lazy => [ :detailed ]            # Loads in the :detailed context
+  #    property :author,  String, :lazy => [ :summary, :detailed ]  # Loads in :summary & :detailed context
   #  end
   #
   # Delaying the request for lazy-loaded attributes even applies to objects
@@ -434,7 +434,7 @@ module DataMapper
 
     # Returns index name if property has index.
     #
-    # @return [TrueClass,Symbol,Array,NilClass]
+    # @return [TrueClass, Symbol, Array, NilClass]
     #   returns true if property is indexed by itself
     #   returns a Symbol if the property is indexed with other properties
     #   returns an Array if the property belongs to multiple indexes
@@ -448,7 +448,7 @@ module DataMapper
     # Returns true if property has unique index. Serial properties and
     # keys are unique by default.
     #
-    # @return [TrueClass,Symbol,Array,NilClass]
+    # @return [TrueClass, Symbol, Array, NilClass]
     #   returns true if property is indexed by itself
     #   returns a Symbol if the property is indexed with other properties
     #   returns an Array if the property belongs to multiple indexes
@@ -630,7 +630,7 @@ module DataMapper
     # @param [Resource] resource
     #   model instance for which the attribute is to be tested
     #
-    # @return [TrueClass,FalseClass]
+    # @return [TrueClass, FalseClass]
     #   true if the attribute is loaded in the resource
     #
     # @api private
@@ -732,7 +732,7 @@ module DataMapper
 
     # Returns true if the property has a default value
     #
-    # @return [TrueClass,FalseClass]
+    # @return [TrueClass, FalseClass]
     #   true if the property has a default value
     #
     # @api semipublic
@@ -860,7 +860,7 @@ module DataMapper
         raise ArgumentError, "options #{unknown.map { |o| o.inspect }.join(' and ')} are unknown"
       end
 
-      options.each do |key,value|
+      options.each do |key, value|
         case key
           when :field
             assert_kind_of "options[#{key.inspect}]", value, String

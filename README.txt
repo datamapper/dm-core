@@ -142,7 +142,7 @@ need other comparisons though? Try these:
   Zoo.get(11)
 
   # Does a NOT IN () clause for you.
-  Person.all(:name.not => ['bob','rick','steve'])
+  Person.all(:name.not => ['bob', 'rick', 'steve'])
 
 See? Fewer SQL fragments dirtying your Ruby code. And that's just a few of the
 nice syntax tweaks DataMapper delivers out of the box...

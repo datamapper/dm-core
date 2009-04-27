@@ -118,7 +118,7 @@ module DataMapper
         #   it up against the key.  This will require some changes to
         #   how subqueries are generated, since the key may be a
         #   composite key.  In the case of DO adapters, it means subselects
-        #   like the form "(a, b) IN(SELECT a,b FROM ...)", which will
+        #   like the form "(a, b) IN(SELECT a, b FROM ...)", which will
         #   require making it so the Query condition key can be a
         #   Property or an Array of Property objects
 
@@ -759,14 +759,14 @@ module DataMapper
 
       if dirty_attributes.empty?
         true
-      elsif dirty_attributes.any? { |p,v| !p.nullable? && v.nil? }
+      elsif dirty_attributes.any? { |p, v| !p.nullable? && v.nil? }
         false
       else
         updated = repository.update(dirty_attributes, self)
 
         if loaded?
           each do |resource|
-            dirty_attributes.each { |p,v| p.set!(resource, v) }
+            dirty_attributes.each { |p, v| p.set!(resource, v) }
             repository.identity_map(model)[resource.key] = resource
           end
         end
@@ -1100,7 +1100,7 @@ module DataMapper
     ##
     # Return the absolute or relative scoped query
     #
-    # @param [Query,Hash]
+    # @param [Query, Hash]
     #
     # @return [Query]
     #   the absolute or relative scoped query

@@ -106,7 +106,7 @@ module DataMapper
     #
     #   Document.all(:limit => 10)
     #
-    # @return [Integer,NilClass]
+    # @return [Integer, NilClass]
     #   the maximum number of results
     #
     # @api semipublic
@@ -166,7 +166,7 @@ module DataMapper
     # Note that :add_reversed option may be used in conditions directly,
     # but this is rarely the case
     #
-    # @return [TrueClass,FalseClass]
+    # @return [TrueClass, FalseClass]
     #   true if the results should be reversed, false if not
     #
     # @api private
@@ -1059,7 +1059,7 @@ module DataMapper
     #   offset and limit, or range indicating first and last position
     #
     # @return [Integer] the offset
-    # @return [Integer,NilClass] the limit, if any
+    # @return [Integer, NilClass] the limit, if any
     #
     # @api private
     def extract_slice_arguments(*args)

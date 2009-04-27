@@ -399,7 +399,7 @@ module DataMapper
         @transactions ||= {}
         @transactions[Thread.current] ||=
           begin
-            @transactions.delete_if { |t,_| !t.alive? }
+            @transactions.delete_if { |t, _| !t.alive? }
             []
           end
       end

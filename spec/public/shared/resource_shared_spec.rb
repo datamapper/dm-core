@@ -675,12 +675,12 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should update attributes of Resource' do
-        @attributes.each { |k,v| @user.send(k).should == v }
+        @attributes.each { |k, v| @user.send(k).should == v }
       end
 
       it 'should persist the changes' do
         resource = @model.get(*@user.key)
-        @attributes.each { |k,v| resource.send(k).should == v }
+        @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
 
@@ -695,12 +695,12 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should update attributes of Resource' do
-        @attributes.each { |k,v| @user.send(k).should == v }
+        @attributes.each { |k, v| @user.send(k).should == v }
       end
 
       it 'should persist the changes' do
         resource = @model.get(*@user.key)
-        @attributes.each { |k,v| resource.send(k).should == v }
+        @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
 

@@ -277,7 +277,7 @@ module DataMapper
           statement << " #{schema[:primitive]}"
 
           if schema[:precision] && schema[:scale]
-            statement << "(#{[ :precision, :scale ].map { |k| quote_value(schema[k]) }.join(',')})"
+            statement << "(#{[ :precision, :scale ].map { |k| quote_value(schema[k]) }.join(', ')})"
           elsif schema[:size]
             statement << "(#{quote_value(schema[:size])})"
           end

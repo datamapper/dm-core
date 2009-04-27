@@ -150,7 +150,7 @@ module DataMapper
         end
 
         # TODO: add a method to PropertySet to copy the properties to a new model
-        @properties.each do |repository_name,properties|
+        @properties.each do |repository_name, properties|
           repository(repository_name) do
             properties.each do |property|
               target.property(property.name, property.type, property.options)
@@ -530,7 +530,7 @@ module DataMapper
           when Hash
             # remap fields to use the Property object
             record = record.dup
-            field_map.each { |p,f| record[p] = record.delete(f) if record.key?(f) }
+            field_map.each { |p, f| record[p] = record.delete(f) if record.key?(f) }
 
             model = discriminator && record[discriminator] || self
 
@@ -699,7 +699,7 @@ module DataMapper
     # TODO: document
     # @api private
     def typecast_key(key)
-      self.key(repository_name).zip(key).map { |p,v| p.typecast(v) }
+      self.key(repository_name).zip(key).map { |p, v| p.typecast(v) }
     end
 
     # TODO: document
@@ -771,7 +771,7 @@ module DataMapper
       return if @valid
 
       if properties(repository_name).empty? &&
-        !relationships(repository_name).any? { |(n,r)| r.kind_of?(Associations::ManyToOne::Relationship) }
+        !relationships(repository_name).any? { |(n, r)| r.kind_of?(Associations::ManyToOne::Relationship) }
         raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
       end
 

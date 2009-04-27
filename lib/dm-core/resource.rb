@@ -490,7 +490,7 @@ module DataMapper
     #
     # @api public
     def attributes=(attributes)
-      attributes.each do |name,value|
+      attributes.each do |name, value|
         if model.public_method_defined?(setter = "#{name}=")
           send(setter, value)
         else
@@ -509,7 +509,7 @@ module DataMapper
       warn "#{model}#update_attributes is deprecated, use #{model}#update instead"
 
       if allowed.any?
-        warn "specifying allowed in #{model}#update_attributes is deprecated," \
+        warn "specifying allowed in #{model}#update_attributes is deprecated, " \
           'use Hash#only to filter the attributes in the caller'
         attributes = attributes.only(*allowed)
       end
@@ -661,7 +661,7 @@ module DataMapper
 
       if dirty_attributes.empty?
         true
-      elsif dirty_attributes.any? { |p,v| !p.nullable? && v.nil? }
+      elsif dirty_attributes.any? { |p, v| !p.nullable? && v.nil? }
         false
       else
         # remove from the identity map

@@ -202,7 +202,7 @@ module DataMapper
           begin
             properties = child_model.properties(child_repository_name)
 
-            child_key = parent_key.zip(@child_properties || []).map do |parent_property,property_name|
+            child_key = parent_key.zip(@child_properties || []).map do |parent_property, property_name|
             property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
 
               properties[property_name] || begin

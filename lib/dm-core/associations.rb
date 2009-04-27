@@ -99,7 +99,7 @@ module DataMapper
     #
     # @option :through[Symbol]  A association that this join should go through to form
     #   a many-to-many association
-    # @option :model[Model,String] The name of the class to associate with, if omitted
+    # @option :model[Model, String] The name of the class to associate with, if omitted
     #   then the association name is assumed to match the class name
     # @option :repository[Symbol]
     #   name of child model repository
@@ -146,7 +146,7 @@ module DataMapper
     # @param name [Symbol] The name that the association will be referenced by
     # @see #has
     #
-    # @option :model[Model,String] The name of the class to associate with, if omitted
+    # @option :model[Model, String] The name of the class to associate with, if omitted
     #   then the association name is assumed to match the class name
     #
     # @option :repository[Symbol]

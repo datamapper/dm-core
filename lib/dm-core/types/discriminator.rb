@@ -2,7 +2,7 @@ module DataMapper
   module Types
     class Discriminator < Type
       primitive Class
-      default lambda { |r,p| p.model }
+      default lambda { |r, p| p.model }
       nullable false
 
       # TODO: document

@@ -42,7 +42,7 @@ DataMapper::Logger.new(log_dir / 'dm.log', :off)
 adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
 
 if configuration_options[:adapter]
-  sqlfile       = File.join(File.dirname(__FILE__),'..','tmp','performance.sql')
+  sqlfile       = File.join(File.dirname(__FILE__), '..', 'tmp', 'performance.sql')
   mysql_bin     = %w[ mysql mysql5 ].select { |bin| `which #{bin}`.length > 0 }
   mysqldump_bin = %w[ mysqldump mysqldump5 ].select { |bin| `which #{bin}`.length > 0 }
 end
@@ -184,7 +184,7 @@ RBench.run(TIMES) do
   column :times
   column :ar, :title => 'AR 2.2.2'
   column :dm, :title => "DM #{DataMapper::VERSION}"
-  column :diff, :compare => [:ar,:dm]
+  column :diff, :compare => [:ar, :dm]
 
   report 'Model#id', (TIMES * 100).ceil do
     ar_obj = ARExhibit.find(1)

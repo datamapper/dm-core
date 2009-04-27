@@ -3,7 +3,7 @@
 # Logger taken from Merb :)
 #
 # To replace an existing logger with a new one:
-#   DataMapper.logger.set_log(log{String, IO},level{Symbol, String})
+#   DataMapper.logger.set_log(log{String, IO}, level{Symbol, String})
 #
 # Available logging levels are:
 #   :off, :fatal, :error, :warn, :info, :debug
@@ -135,9 +135,9 @@ module DataMapper
     public
 
     # To initialize the logger you create a new object, proxies to set_log.
-    #   Logger.new(log{String, IO},level{Symbol, String})
+    #   Logger.new(log{String, IO}, level{Symbol, String})
     #
-    # @param log<IO,String>        either an IO object or a name of a logfile.
+    # @param log<IO, String>       either an IO object or a name of a logfile.
     # @param log_level<String>     the message string to be logged
     # @param delimiter<String>     delimiter to use between message sections
     # @param log_creation<Boolean> log that the file is being created
@@ -146,9 +146,9 @@ module DataMapper
     end
 
     # To replace an existing logger with a new one:
-    #   DataMapper.logger.set_log(log{String, IO},level{Symbol, String})
+    #   DataMapper.logger.set_log(log{String, IO}, level{Symbol, String})
     #
-    # @param log<IO,String>        either an IO object or a name of a logfile.
+    # @param log<IO, String>       either an IO object or a name of a logfile.
     # @param log_level[Symbol]     a symbol representing the log level from
     #   {:off, :fatal, :error, :warn, :info, :debug}
     # @param delimiter<String>     delimiter to use between message sections

@@ -118,7 +118,7 @@ module DataMapper
                 # TODO: try to do some of this normalization when
                 # assigning the Query options to the Relationship
 
-                relationship.query.each do |key,value|
+                relationship.query.each do |key, value|
                   # TODO: figure out how to merge Query options from links
                   if Query::OPTIONS.include?(key)
                     next  # skip for now
@@ -184,7 +184,7 @@ module DataMapper
           namespace = Object
 
           # find the common namespace between the target_model and source_model
-          target_parts.zip(source_parts) do |target_part,source_part|
+          target_parts.zip(source_parts) do |target_part, source_part|
             break if target_part != source_part
             namespace = namespace.const_get(target_part)
           end
@@ -256,7 +256,7 @@ module DataMapper
           # walk the links from left to right, stopping at the midpoint
           until midpoint
             if (next_relationship = links[1]) && next_relationship.kind_of?(ManyToOne::Relationship)
-              break midpoint = links[0,2]
+              break midpoint = links[0, 2]
             end
 
             relationship = links.shift

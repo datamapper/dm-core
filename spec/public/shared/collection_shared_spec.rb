@@ -1461,7 +1461,7 @@ share_examples_for 'A public Collection' do
           @collection.should == [ @other ]
         end
 
-        { :id => true, :title => false, :content => false }.each do |attribute,expected|
+        { :id => true, :title => false, :content => false }.each do |attribute, expected|
           it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
             skip = [ DataMapper::Collection, DataMapper::Associations::OneToMany::Collection ]
             pending 'TODO: fix' if skip.include?(@articles.class)
@@ -1718,7 +1718,7 @@ share_examples_for 'A public Collection' do
         @return.should be_equal(@articles)
       end
 
-      { :title => true, :content => false }.each do |attribute,expected|
+      { :title => true, :content => false }.each do |attribute, expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
           @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
         end
@@ -1744,7 +1744,7 @@ share_examples_for 'A public Collection' do
         @return.should be_equal(@articles)
       end
 
-      { :id => true, :content => true, :title => true }.each do |attribute,expected|
+      { :id => true, :content => true, :title => true }.each do |attribute, expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
           @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
         end
@@ -1768,7 +1768,7 @@ share_examples_for 'A public Collection' do
         @return.should be_equal(@articles)
       end
 
-      { :id => true, :content => true, :title => true }.each do |attribute,expected|
+      { :id => true, :content => true, :title => true }.each do |attribute, expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
           @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
         end
@@ -2418,7 +2418,7 @@ share_examples_for 'A public Collection' do
     describe 'with a block' do
       before :all do
         unless @skip
-          @return = @articles.unshift(@other).sort! { |a,b| b.id <=> a.id }
+          @return = @articles.unshift(@other).sort! { |a, b| b.id <=> a.id }
         end
       end
 
@@ -2718,12 +2718,12 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
+        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
       end
 
       it 'should persist the changes' do
         resource = @model.get(*@article.key)
-        @attributes.each { |k,v| resource.send(k).should == v }
+        @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
 
@@ -2741,12 +2741,12 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
+        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
       end
 
       it 'should persist the changes' do
         resource = @model.get(*@article.key)
-        @attributes.each { |k,v| resource.send(k).should == v }
+        @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
   end
@@ -2788,12 +2788,12 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
+        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
       end
 
       it 'should persist the changes' do
         resource = @model.get(*@article.key)
-        @attributes.each { |k,v| resource.send(k).should == v }
+        @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
 
@@ -2813,12 +2813,12 @@ share_examples_for 'A public Collection' do
       it 'should update attributes of all Resources' do
         skip = [ DataMapper::Collection, DataMapper::Associations::OneToMany::Collection ]
         pending 'TODO: fix' if skip.include?(@articles.class)
-        @articles.each { |r| @attributes.each { |k,v| r.send(k).should == v } }
+        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
       end
 
       it 'should persist the changes' do
         resource = @model.get(*@article.key)
-        @attributes.each { |k,v| resource.send(k).should == v }
+        @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
 

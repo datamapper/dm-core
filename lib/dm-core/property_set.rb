@@ -108,7 +108,7 @@ module DataMapper
     # TODO: document
     # @api semipublic
     def set(resource, values)
-      zip(values) { |p,v| p.set(resource, v) }
+      zip(values) { |p, v| p.set(resource, v) }
     end
 
     # TODO: document
@@ -121,7 +121,7 @@ module DataMapper
     # @api private
     def property_contexts(name)
       contexts = []
-      lazy_contexts.each do |context,property_names|
+      lazy_contexts.each do |context, property_names|
         contexts << context if property_names.include?(name)
       end
       contexts
