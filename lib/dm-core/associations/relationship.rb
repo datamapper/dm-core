@@ -147,7 +147,7 @@ module DataMapper
 
         # TODO: spec what should happen when source not saved
 
-        { inverse.name => Array(source).select { |r| r.saved? } }
+        { inverse => Array(source).select { |r| r.saved? } }
       end
 
       # Creates and returns Query instance for given

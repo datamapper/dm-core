@@ -767,7 +767,7 @@ module DataMapper
               when Path
                 assert_valid_links(subject.relationships)
 
-              when Property
+              when Associations::Relationship, Property
                 # TODO: validate that it belongs to the current model, or to any
                 # model in the links
                 #unless @properties.include?(subject)
@@ -978,19 +978,8 @@ module DataMapper
             query_path = model
             subject.split('.').each { |m| query_path = query_path.send(m) }
             return append_condition(query_path, bind_value, operator)
-          elsif property = @properties[subject]
-            property
-          elsif relationship = @relationships[subject]
-            # TODO: handle compound keys.  Consider pushing this into the adapter
-            source_key = relationship.source_key.first
-            target_key = relationship.target_key.first
-
-            if (resources = Array(bind_value).select { |r| r.saved? }).any?
-              source_values = resources.map { |r| target_key.get(r) }
-              append_condition(source_key, source_values, operator)
-            end
-
-            return @conditions
+          else
+            return append_condition(@properties[subject] || @relationships[subject], bind_value, operator)
           end
 
         when Operator
@@ -999,6 +988,18 @@ module DataMapper
         when Path
           @links.concat(subject.relationships)
           subject
+
+        when Associations::Relationship
+          # TODO: handle compound keys.  Consider pushing this into the adapter
+          source_key = subject.source_key.first
+          target_key = subject.target_key.first
+
+          if (resources = Array(bind_value).select { |r| r.saved? }).any?
+            source_values = resources.map { |r| target_key.get(r) }
+            append_condition(source_key, source_values, operator)
+          end
+
+          return @conditions
 
         when Property
           subject
