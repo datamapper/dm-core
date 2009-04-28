@@ -309,7 +309,7 @@ module DataMapper
 
         # TODO: if no inverse relationship found, create one, and use an approximate guess as
         # to the relationship name (assuming the name is not already taken)
-        @inverse || raise("no inverse for #{target_model}##{name}")
+        @inverse || raise("no inverse for #{source_model}##{name}")
       end
 
       private
