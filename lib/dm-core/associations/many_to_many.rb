@@ -82,6 +82,9 @@ module DataMapper
         # TODO: document
         # @api private
         def query
+          # TODO: consider making this a query_for method, so that ManyToMany::Relationship#query only
+          # returns the query supplied in the definition
+
           @many_to_many_query ||=
             begin
               # TODO: make sure the proper Query is set up, one that includes all the links
