@@ -981,10 +981,13 @@ module DataMapper
           elsif property = @properties[subject]
             property
           elsif relationship = @relationships[subject]
+            # TODO: handle compound keys.  Consider pushing this into the adapter
+            source_key = relationship.source_key.first
+            target_key = relationship.target_key.first
 
-            # TODO: handle compound keys
-            if (source_values = Array(bind_value).map { |r| relationship.target_key.first.get(r) }.compact).any?
-              append_condition(relationship.source_key.first, source_values, operator)
+            if (resources = Array(bind_value).select { |r| r.saved? }).any?
+              source_values = resources.map { |r| target_key.get(r) }
+              append_condition(source_key, source_values, operator)
             end
 
             return @conditions

@@ -57,27 +57,17 @@ module DataMapper
                 raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.target_model} within the #{source_repository_name.inspect} repository"
               end
 
-              [ through, target ].map { |r| (i = r.links).any? ? i : r }.flatten.freeze
+              [ through, target ].map { |r| (l = r.links).any? ? l : r }.flatten.freeze
             end
         end
 
         # TODO: document
         # @api private
         def source_scope(source)
-          # TODO: do not build the query with target_key/source_key.. use
-          # target_reader/source_reader.  The query should be able to
-          # translate those to target_key/source_key inside the adapter,
-          # allowing adapters that don't join on PK/FK to work too.
-
-          # TODO: when source is a Collection, and it's query includes an
-          # offset/limit, use it as a subquery to scope the results, rather
-          # than (potentially) lazy-loading the Collection and getting
-          # each resource key
+          # TODO: remove this method and inherit from Relationship
 
           target_key = through.target_key
           source_key = through.source_key
-
-          # TODO: spec what should happen when source not saved
 
           scope = {}
 

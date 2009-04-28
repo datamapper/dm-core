@@ -147,14 +147,7 @@ module DataMapper
 
         # TODO: spec what should happen when source not saved
 
-        scope = {}
-
-        # TODO: handle compound keys
-        if (source_values = Array(source).map { |r| source_key.first.get(r) }.compact).any?
-          scope[target_key.first] = source_values
-        end
-
-        scope
+        { inverse.name => Array(source).select { |r| r.saved? } }
       end
 
       # Creates and returns Query instance for given
@@ -316,6 +309,7 @@ module DataMapper
 
         # TODO: if no inverse relationship found, create one, and use an approximate guess as
         # to the relationship name (assuming the name is not already taken)
+        @inverse || raise("no inverse for #{target_model}##{name}")
       end
 
       private
