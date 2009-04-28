@@ -313,6 +313,9 @@ module DataMapper
           # TODO: handle case where @query is not empty, but scoped the same as the target model.
           # that case should be treated the same as the Query being empty
         end
+
+        # TODO: if no inverse relationship found, create one, and use an approximate guess as
+        # to the relationship name (assuming the name is not already taken)
       end
 
       private
