@@ -676,7 +676,7 @@ module DataMapper
     #   The instance found by +query+, or created with +attributes+ if none found
     #
     # @api public
-    def first_or_new(conditions, attributes = {})
+    def first_or_new(conditions = {}, attributes = {})
       first(conditions) || new(conditions.merge(attributes))
     end
 
@@ -692,7 +692,7 @@ module DataMapper
     #   The instance found by +query+, or created with +attributes+ if none found
     #
     # @api public
-    def first_or_create(conditions, attributes = {})
+    def first_or_create(conditions = {}, attributes = {})
       first(conditions) || create(conditions.merge(attributes))
     end
 

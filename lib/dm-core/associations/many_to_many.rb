@@ -240,8 +240,9 @@ module DataMapper
         def create(attributes = {})
           assert_source_saved 'The source must be saved before creating a Resource'
 
-          links    = @relationship.links.dup
-          midpoint = nil
+          attributes = default_attributes.merge(attributes)
+          links      = @relationship.links.dup
+          midpoint   = nil
 
           head = [ source ]
           tail = []
@@ -253,7 +254,7 @@ module DataMapper
 
             if links.empty?
               # create the target resource
-              head << collection.first_or_create(default_attributes.merge(attributes))
+              head << collection.create(attributes)
             else
               # create each resource linking to the previous resource
               head << collection.first_or_create
@@ -271,7 +272,7 @@ module DataMapper
             resource = if tail.empty?
               # create the target resource
               model = relationship.target_model
-              model.create(default_attributes.merge(attributes))
+              model.create(attributes)
             elsif relationship == lhs
               # create the join resource
               collection = lhs.get(head.last)
