@@ -1,6 +1,3 @@
-# TODO: make it so that a target_key is created with nullable => false if
-#       @min == 1
-
 module DataMapper
   module Associations
     module OneToOne #:nodoc:

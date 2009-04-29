@@ -1,3 +1,6 @@
+# TODO: make it so that a target_key is created with nullable => false
+# if provided to belongs_to declaration
+
 module DataMapper
   module Associations
     module ManyToOne #:nodoc:

@@ -121,7 +121,7 @@ module DataMapper
 
       assert_valid_options(options)
 
-      # TODO: change to target_respository_name and source_repository_name
+      # TODO: change to :target_respository_name and :source_repository_name
       options[:child_repository_name]  = options.delete(:repository)
       options[:parent_repository_name] = repository.name
 
