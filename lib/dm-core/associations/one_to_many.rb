@@ -309,16 +309,10 @@ module DataMapper
         def relate_resource(resource)
           return if resource.nil?
 
-          # TODO: should just set the resource source using writer method
-          #   - this will allow the source to be saved later and the source
-          #     reference in the target to get an id, and since it is related
-          #     to the target, the target will get the correct source id
+          # TODO: figure out a better idiom for seeing if a Resource has it's PK set
 
-          if source.saved?
-            source_key = relationship.source_key
-            target_key = relationship.target_key
-
-            target_key.set(resource, source_key.get(source))
+          if relationship.source_key.loaded?(source)
+            relationship.inverse.set(resource, source)
           end
 
           super
