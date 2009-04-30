@@ -15,19 +15,6 @@ module DataMapper
           false
         end
 
-        # TODO: once the driver's quoting methods become public, have
-        # this method delegate to them instead
-        # TODO: document
-        # @api private
-        def quote_value(value) #:nodoc:
-          case value
-            when TrueClass  then super(1)
-            when FalseClass then super(0)
-            else
-              super
-          end
-        end
-
         # TODO: document
         # @api private
         def regexp_operator(operand)

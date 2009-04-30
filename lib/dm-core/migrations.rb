@@ -129,13 +129,18 @@ module DataMapper
 
         table_name = model.storage_name(name)
 
-        properties.map do |property|
-          schema_hash = property_schema_hash(property)
-          next if field_exists?(table_name, schema_hash[:name])
-          statement = alter_table_add_column_statement(table_name, schema_hash)
-          execute(statement)
-          property
-        end.compact
+        with_connection do |connection|
+          properties.map do |property|
+            schema_hash = property_schema_hash(property)
+            next if field_exists?(table_name, schema_hash[:name])
+
+            statement = alter_table_add_column_statement(connection, table_name, schema_hash)
+            command   = connection.create_command(statement)
+            command.execute_non_query
+
+            property
+          end.compact
+        end
       end
 
       # TODO: document
@@ -146,10 +151,15 @@ module DataMapper
         return false if storage_exists?(model.storage_name(name))
         return false if properties.empty?
 
-        execute(create_table_statement(model, properties))
+        with_connection do |connection|
+          statement = create_table_statement(connection, model, properties)
+          command   = connection.create_command(statement)
+          command.execute_non_query
 
-        (create_index_statements(model) + create_unique_index_statements(model)).each do |sql|
-          execute(sql)
+          (create_index_statements(model) + create_unique_index_statements(model)).each do |statement|
+            command   = connection.create_command(statement)
+            command.execute_non_query
+          end
         end
 
         true
@@ -188,16 +198,16 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def alter_table_add_column_statement(table_name, schema_hash)
-          "ALTER TABLE #{quote_name(table_name)} ADD COLUMN #{property_schema_statement(schema_hash)}"
+        def alter_table_add_column_statement(connection, table_name, schema_hash)
+          "ALTER TABLE #{quote_name(table_name)} ADD COLUMN #{property_schema_statement(connection, schema_hash)}"
         end
 
         # TODO: document
         # @api private
-        def create_table_statement(model, properties)
+        def create_table_statement(connection, model, properties)
           statement = <<-SQL.compress_lines
             CREATE TABLE #{quote_name(model.storage_name(name))}
-            (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')},
+            (#{properties.map { |p| property_schema_statement(connection, property_schema_hash(p)) }.join(', ')},
             PRIMARY KEY(#{ properties.key.map { |p| quote_name(p.field) }.join(', ')}))
           SQL
 
@@ -272,18 +282,18 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def property_schema_statement(schema)
+        def property_schema_statement(connection, schema)
           statement = quote_name(schema[:name])
           statement << " #{schema[:primitive]}"
 
           if schema[:precision] && schema[:scale]
-            statement << "(#{[ :precision, :scale ].map { |k| quote_value(schema[k]) }.join(', ')})"
+            statement << "(#{[ :precision, :scale ].map { |k| connection.quote_value(schema[k]) }.join(', ')})"
           elsif schema[:size]
-            statement << "(#{quote_value(schema[:size])})"
+            statement << "(#{connection.quote_value(schema[:size])})"
           end
 
           statement << ' NOT NULL' unless schema[:nullable?]
-          statement << " DEFAULT #{quote_value(schema[:default])}" if schema.key?(:default)
+          statement << " DEFAULT #{connection.quote_value(schema[:default])}" if schema.key?(:default)
           statement
         end
       end # module SQL
@@ -302,7 +312,7 @@ module DataMapper
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
 
           @type_map ||= {
-            Integer       => { :primitive => 'INT'                                               },
+            Integer       => { :primitive => 'INTEGER'                                           },
             String        => { :primitive => 'VARCHAR', :size => size                            },
             Class         => { :primitive => 'VARCHAR', :size => size                            },
             BigDecimal    => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
@@ -369,7 +379,7 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def create_table_statement(model, properties)
+        def create_table_statement(connection, model, properties)
           "#{super} ENGINE = #{DEFAULT_ENGINE} CHARACTER SET #{character_set} COLLATE #{collation}"
         end
 
@@ -387,7 +397,7 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def property_schema_statement(schema)
+        def property_schema_statement(connection, schema)
           statement = super
 
           if supports_serial? && schema[:serial?]
@@ -427,11 +437,8 @@ module DataMapper
         # @api private
         def type_map
           @type_map ||= super.merge(
-            Integer   => { :primitive => 'INT',     :size => 11 },
-            TrueClass => { :primitive => 'TINYINT', :size => 1  },  # TODO: map this to a BIT or CHAR(0) field?
-            Object    => { :primitive => 'TEXT'                 },
-            DateTime  => { :primitive => 'DATETIME'             },
-            Time      => { :primitive => 'DATETIME'             }
+            DateTime => { :primitive => 'DATETIME' },
+            Time     => { :primitive => 'DATETIME' }
           ).freeze
         end
       end # module ClassMethods
@@ -535,7 +542,6 @@ module DataMapper
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
 
           @type_map ||= super.merge(
-            Integer    => { :primitive => 'INTEGER'                                           },
             BigDecimal => { :primitive => 'NUMERIC', :precision => precision, :scale => scale },
             Float      => { :primitive => 'DOUBLE PRECISION'                                  }
           ).freeze
@@ -587,10 +593,10 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def create_table_statement(model, properties)
+        def create_table_statement(connection, model, properties)
           statement = <<-SQL.compress_lines
             CREATE TABLE #{quote_name(model.storage_name(name))}
-            (#{properties.map { |p| property_schema_statement(property_schema_hash(p)) }.join(', ')}
+            (#{properties.map { |p| property_schema_statement(connection, property_schema_hash(p)) }.join(', ')}
           SQL
 
           # skip adding the primary key if one of the columns is serial.  In
@@ -606,7 +612,7 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def property_schema_statement(schema)
+        def property_schema_statement(connection, schema)
           statement = super
 
           if supports_serial? && schema[:serial?]
@@ -632,10 +638,7 @@ module DataMapper
         #
         # @api private
         def type_map
-          @type_map ||= super.merge(
-            Integer => { :primitive => 'INTEGER' },
-            Class   => { :primitive => 'VARCHAR' }
-          ).freeze
+          @type_map ||= super.merge(Class => { :primitive => 'VARCHAR' }).freeze
         end
       end # module ClassMethods
     end # module Sqlite3Adapter

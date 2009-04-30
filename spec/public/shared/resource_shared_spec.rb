@@ -4,9 +4,7 @@ share_examples_for 'A public Resource' do
                defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
 
     relationship = @model.relationships[:referrer]
-
-    @one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) &&
-                          relationship.instance_variable_get('@relationship').kind_of?(DataMapper::Associations::ManyToMany::Relationship)
+    @one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && !relationship.through.nil?
 
     @skip = @no_join && @one_to_one_through
   end

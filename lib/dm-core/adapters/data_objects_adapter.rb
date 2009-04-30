@@ -75,11 +75,11 @@ module DataMapper
         fields = query.fields
         types  = fields.map { |p| p.primitive }
 
-        statement, bind_values = select_statement(query)
-
         resources = []
 
         with_connection do |connection|
+          statement, bind_values = select_statement(query)
+
           command = connection.create_command(statement)
           command.set_types(types)
 
@@ -344,8 +344,16 @@ module DataMapper
           statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" unless group_by.blank?
           statement << " ORDER BY #{order_statement(order, qualify)}"      unless order.blank?
-          statement << " LIMIT #{quote_value(limit)}"                      if limit
-          statement << " OFFSET #{quote_value(offset)}"                    if limit && offset > 0
+
+          if limit
+            statement   << ' LIMIT ?'
+            bind_values << limit
+          end
+
+          if limit && offset > 0
+            statement   << ' OFFSET ?'
+            bind_values << offset
+          end
 
           return statement, bind_values
         end
@@ -594,38 +602,10 @@ module DataMapper
           'NOT LIKE'
         end
 
-        # TODO: once the driver's quoting methods become public, have
-        # this method delegate to them instead
         # TODO: document
         # @api private
         def quote_name(name)
           "\"#{name.gsub('"', '""')}\""
-        end
-
-        # TODO: once the driver's quoting methods become public, have
-        # this method delegate to them instead
-        # TODO: document
-        # @api private
-        def quote_value(value)
-          case value
-            when String
-              "'#{value.gsub("'", "''")}'"
-            when Integer, Float
-              value.to_s
-            when DateTime
-              quote_value(value.strftime('%Y-%m-%d %H:%M:%S'))
-            when Date
-              quote_value(value.strftime('%Y-%m-%d'))
-            when Time
-              usec = value.usec
-              quote_value(value.strftime('%Y-%m-%d %H:%M:%S') + ((usec > 0 ? ".#{usec.to_s.rjust(6, '0')}" : '')))
-            when BigDecimal
-              value.to_s('F')
-            when nil
-              'NULL'
-            else
-              value.to_s
-          end
         end
       end #module SQL
 
