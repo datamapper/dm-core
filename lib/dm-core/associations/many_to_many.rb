@@ -248,7 +248,7 @@ module DataMapper
             end
           end
 
-          super(other)
+          super
         end
 
         # TODO: document

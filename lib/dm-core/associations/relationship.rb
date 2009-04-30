@@ -311,7 +311,7 @@ module DataMapper
 
         # TODO: if no inverse relationship found, create one, and use an approximate guess as
         # to the relationship name (assuming the name is not already taken)
-        @inverse || raise("no inverse for #{source_model}##{name}")
+        @inverse
       end
 
       private
@@ -383,10 +383,6 @@ module DataMapper
       # @api semipublic
       def property_prefix
         raise NotImplementedError, "#{self.class}#property_prefix not implemented"
-      end
-
-      def assert_valid_source(source)
-        raise "source not a #{source_model} instance, but was #{source.class}" unless source_model == source.model
       end
     end # class Relationship
   end # module Associations

@@ -157,7 +157,7 @@ module DataMapper
         #
         # @api semipublic
         def property_prefix
-          # TODO: try to use the inverse relationship name if possible 
+          # TODO: try to use the inverse relationship name if possible
           Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name)).to_sym
         end
       end # class Relationship
