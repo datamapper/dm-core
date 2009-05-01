@@ -251,8 +251,24 @@ module DataMapper
         # TODO: document
         # @api public
         def update!(attributes = {})
-          # TODO: update the resources in the target model
-          raise NotImplementedError, "#{self.class}#update! not implemented"
+          # FIXME: use a subquery to do this more efficiently in the future,
+          repository_name = @relationship.target_repository_name
+          model           = @relationship.target_model
+          key             = model.key(repository_name)
+
+          # TODO: handle compound keys
+          return false unless model.all(key.first => map { |r| r.key.first }).update!(attributes)
+
+          if loaded?
+            dirty_attributes = model.new(attributes).dirty_attributes
+
+            each do |resource|
+              dirty_attributes.each { |p, v| p.set!(resource, v) }
+              repository.identity_map(model)[resource.key] = resource
+            end
+          end
+
+          true
         end
 
         # TODO: document
@@ -282,8 +298,19 @@ module DataMapper
         def destroy!
           orphan_resources(to_a)
           save
-          # TODO: destroy! the resources in the target model
-          raise NotImplementedError, "#{self.class}#destroy! not implemented"
+
+          # FIXME: use a subquery to do this more efficiently in the future
+          repository_name = @relationship.target_repository_name
+          model           = @relationship.target_model
+          key             = model.key(repository_name)
+
+          # TODO: handle compound keys
+          model.all(key.first => map { |r| r.key.first }).destroy!
+
+          each { |r| r.reset }
+          clear
+
+          true
         end
 
         private

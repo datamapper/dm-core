@@ -157,6 +157,14 @@ share_examples_for 'A public Collection' do
         @return = @resource = @articles.at(0)
       end
 
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          @articles.should_not be_loaded
+        end
+      end
+
       it 'should return a Resource' do
         @return.should be_kind_of(DataMapper::Resource)
       end
@@ -167,12 +175,6 @@ share_examples_for 'A public Collection' do
 
       it 'should relate the Resource to the Collection' do
         @resource.collection.should be_equal(@articles)
-      end
-
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
       end
     end
 
@@ -181,6 +183,14 @@ share_examples_for 'A public Collection' do
         @return = @resource = @articles.unshift(@other).at(0)
       end
 
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          @articles.should_not be_loaded
+        end
+      end
+
       it 'should return a Resource' do
         @return.should be_kind_of(DataMapper::Resource)
       end
@@ -192,17 +202,19 @@ share_examples_for 'A public Collection' do
       it 'should relate the Resource to the Collection' do
         @resource.collection.should be_equal(@articles)
       end
-
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
-      end
     end
 
     describe 'with negative offset' do
       before :all do
         @return = @resource = @articles.at(-1)
+      end
+
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          @articles.should_not be_loaded
+        end
       end
 
       it 'should return a Resource' do
@@ -216,17 +228,19 @@ share_examples_for 'A public Collection' do
       it 'should relate the Resource to the Collection' do
         @resource.collection.should be_equal(@articles)
       end
-
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
-      end
     end
 
     describe 'with negative offset', 'after appending to the collection' do
       before :all do
         @return = @resource = @articles.push(@other).at(-1)
+      end
+
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          @articles.should_not be_loaded
+        end
       end
 
       it 'should return a Resource' do
@@ -239,12 +253,6 @@ share_examples_for 'A public Collection' do
 
       it 'should relate the Resource to the Collection' do
         @resource.collection.should be_equal(@articles)
-      end
-
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
       end
     end
   end
@@ -591,27 +599,31 @@ share_examples_for 'A public Collection' do
 
   describe '#destroy!' do
     before :all do
-      rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+      rescue_if 'TODO', @skip do
         @return = @articles.destroy!
       end
     end
 
-    it 'should return true' do
-      pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-        @return.should be_true
+    # FIXME: this is spec order dependent, move this into a helper method
+    # and execute in the before :all block
+    unless loaded
+      it 'should not be a kicker' do
+        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          @articles.should_not be_loaded
+        end
       end
+    end
+
+    it 'should return true' do
+      @return.should be_true
     end
 
     it 'should remove the Resources from the datasource' do
-      pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-        @model.all(:title => 'Sample Article').should be_empty
-      end
+      @model.all(:title => 'Sample Article').should be_empty
     end
 
     it 'should clear the collection' do
-      pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-        @articles.should be_empty
-      end
+      @articles.should be_empty
     end
 
     it 'should bypass validation' do
@@ -2524,31 +2536,47 @@ share_examples_for 'A public Collection' do
   describe '#update!' do
     describe 'with no arguments' do
       before :all do
-        rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+        rescue_if 'TODO', @skip do
           @return = @articles.update!
         end
       end
 
-      it 'should return true' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.should be_true
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @articles.should_not be_loaded
+          end
         end
+      end
+
+      it 'should return true' do
+        @return.should be_true
       end
     end
 
     describe 'with attributes' do
       before :all do
-        rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+        rescue_if 'TODO', @skip do
           @attributes = { :title => 'Updated Title' }
 
           @return = @articles.update!(@attributes)
         end
       end
 
-      it 'should return true' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.should be_true
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @articles.should_not be_loaded
+          end
         end
+      end
+
+      it 'should return true' do
+        @return.should be_true
       end
 
       it 'should bypass validation' do
@@ -2556,59 +2584,65 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
-        end
+        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
       end
 
       it 'should persist the changes' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          resource = @model.get(*@article.key)
-          @attributes.each { |k, v| resource.send(k).should == v }
-        end
+        resource = @model.get(*@article.key)
+        @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
 
     describe 'with attributes where one is a parent association' do
       before :all do
-        rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+        rescue_if 'TODO', @skip do
           @attributes = { :original => @other }
 
           @return = @articles.update!(@attributes)
         end
       end
 
-      it 'should return true' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.should be_true
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @articles.should_not be_loaded
+          end
         end
+      end
+
+      it 'should return true' do
+        @return.should be_true
       end
 
       it 'should update attributes of all Resources' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
-        end
+        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
       end
 
       it 'should persist the changes' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          resource = @model.get(*@article.key)
-          @attributes.each { |k, v| resource.send(k).should == v }
-        end
+        resource = @model.get(*@article.key)
+        @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
 
     describe 'with attributes where a not-nullable property is nil' do
       before :all do
-        rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return = @articles.update!(:title => nil)
+        @return = @articles.update!(:title => nil)
+      end
+
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @articles.should_not be_loaded
+          end
         end
       end
 
       it 'should return false' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.should be_false
-        end
+        @return.should be_false
       end
     end
   end
