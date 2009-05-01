@@ -290,46 +290,46 @@ module DataMapper
 
         def intermediaries(attributes, links)
           attributes = default_attributes.merge(attributes)
-          midpoint   = nil
 
           head = [ source ]
           tail = []
 
-          # walk the links from left to right, stopping at the midpoint
-          until links[1].kind_of?(ManyToOne::Relationship)
-            relationship = links.shift
-            collection   = relationship.get(head.last)
+          lhs, rhs = nil, nil
 
-            if links.empty?
-              # create the target resource
-              head << collection.create(attributes)
+          until links.empty?
+            if links[1].kind_of?(ManyToOne::Relationship) || (links.size == 1 && lhs && rhs)
+              lhs, rhs = links.first(2) unless lhs && rhs
+
+              relationship = links.pop
+
+              resource = if tail.empty?
+                # create the target resource
+                model = relationship.target_model
+                model.create(attributes)
+              elsif relationship == lhs
+                # create the join resource
+                collection = lhs.get(head.last)
+                collection.first_or_create(rhs.name => tail.first)
+              else
+                # create each resource linking the target and join resources
+                collection = relationship.inverse.get(tail.first)
+                collection.first_or_create
+              end
+
+              tail.unshift(resource)
             else
-              # create each resource linking to the previous resource
-              head << collection.first_or_create
+              relationship = links.shift
+
+              collection = relationship.get(head.last)
+
+              if links.empty?
+                # create the target resource
+                head << collection.create(attributes)
+              else
+                # create each resource linking to the previous resource
+                head << collection.first_or_create
+              end
             end
-
-            return head if links.empty?
-          end
-
-          # split the midpoint into left and right hand sides
-          lhs, rhs = links.first(2)
-
-          while relationship = links.pop
-            resource = if tail.empty?
-              # create the target resource
-              model = relationship.target_model
-              model.create(attributes)
-            elsif relationship == lhs
-              # create the join resource
-              collection = lhs.get(head.last)
-              collection.first_or_create(rhs.name => tail.first)
-            else
-              # create each resource linking the target and join resources
-              collection = relationship.inverse.get(tail.first)
-              collection.first_or_create
-            end
-
-            tail.unshift(resource)
           end
 
           head + tail
