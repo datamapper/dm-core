@@ -1661,11 +1661,9 @@ share_examples_for 'A public Collection' do
 
     describe 'when provided an Array of Hashes' do
       before :all do
-        rescue_if 'TODO', @skip do
-          @array = [ { :title => 'Hash Article', :content => 'From Hash' } ].freeze
+        @array = [ { :title => 'Hash Article', :content => 'From Hash' } ].freeze
 
-          @return = @articles.replace(@array)
-        end
+        @return = @articles.replace(@array)
       end
 
       it 'should return a Collection' do

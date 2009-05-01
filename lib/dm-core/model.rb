@@ -388,13 +388,12 @@ module DataMapper
     #
     # @api public
     def first(*args)
-      query = args.last.respond_to?(:merge) ? args.pop : {}
-      query = scoped_query(query.merge(:limit => args.first || 1))
+      query = scoped_query(args.last.respond_to?(:merge) ? args.pop : {})
 
       if args.any?
-        Collection.new(query).first
+        new_collection(query).first(*args)
       else
-        query.repository.read(query).first
+        query.repository.read(query.update(:limit => 1)).first
       end
     end
 
@@ -445,10 +444,8 @@ module DataMapper
     def new(attributes = {})
       assert_valid
 
-      model = nil
-
-      if discriminator = properties(repository_name).discriminator
-        model = attributes[discriminator.name]
+      model = if discriminator = properties(repository_name).discriminator
+        attributes[discriminator.name]
       end
 
       model ||= self
