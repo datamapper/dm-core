@@ -1094,7 +1094,6 @@ module DataMapper
       fields = self.query.fields.to_set
 
       if query.fields.to_set.subset?(fields) &&
-        !query.links.any?                    &&
         query.unique? == self.query.unique?  &&
         !query.add_reversed?                 &&
         !query.reload?                       &&

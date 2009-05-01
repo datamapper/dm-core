@@ -189,9 +189,7 @@ share_examples_for 'A public Resource' do
   describe '#attributes' do
 
     it 'should return the expected values' do
-      pending_if 'TODO', @one_to_one_through do
-        @user.attributes.only(:name, :description, :age).should == { :name => 'dbussink', :description => 'Test', :age => 25 }
-      end
+      @user.attributes.only(:name, :description, :age).should == { :name => 'dbussink', :description => 'Test', :age => 25 }
     end
 
   end
@@ -620,7 +618,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should not have persisted the changes' do
-        pending_if 'TODO', !@user.respond_to?(:comments) && !@one_to_one_through do
+        pending_if 'TODO', !@user.respond_to?(:comments) do
           @user.attributes.should_not == @model.get(*@user.key).attributes
         end
       end

@@ -190,9 +190,9 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def reload(query = nil)
+        def reload(*)
           assert_source_saved 'The source must be saved before reloading the collection'
-          super(query.nil? ? self.query.dup : self.query.merge(query))
+          super
         end
 
         # TODO: document
@@ -310,6 +310,8 @@ module DataMapper
 
           collection.relationship = relationship
           collection.source       = source
+
+          resources ||= filter(query) if loaded?
 
           # set the resources after the relationship and source are set
           if resources

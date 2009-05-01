@@ -213,31 +213,18 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def reload(query = nil)
-          # TODO: remove *references* to the intermediaries
-          super
-        end
-
-        # TODO: document
-        # @api public
         def replace(other)
           through           = @relationship.through
           last_relationship = @relationship.links.last
-
-          if loaded?
-            inverse = last_relationship.inverse
-
-            each do |resource|
-              if association = inverse.get(resource)
-                association.destroy
-              end
-            end
-          end
 
           through.send(:lazy_load, source) unless through.loaded?(source)
           association = through.get!(source)
 
           other.each do |target|
+            if target.kind_of?(Hash)
+              target = new(target)
+            end
+
             source_key = last_relationship.source_key
             target_key = last_relationship.target_key
 
@@ -253,16 +240,12 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def clear
-          # TODO: clear the intermediaries
-          super
-        end
-
-        # TODO: document
-        # @api public
         def create(attributes = {})
           assert_source_saved 'The source must be saved before creating a Resource'
-          intermediaries(attributes, @relationship.links.dup).last
+
+          resource = intermediaries(attributes, @relationship.links.dup).last
+          self << resource if resource.saved?
+          resource
         end
 
         # TODO: document
@@ -275,22 +258,30 @@ module DataMapper
         # TODO: document
         # @api public
         def save
+          through = @relationship.through
+
           # TODO: create the new intermediaries
-          # TODO: destroy the orphaned intermediaries
+
+          @orphans.each do |resource|
+            through.get(source).destroy
+          end
+
           super
         end
 
         # TODO: document
         # @api public
         def destroy
-          # TODO: destroy the intermediaries (provided nothing else links to them)
+          orphan_resources(to_a)
+          save
           super
         end
 
         # TODO: document
         # @api public
         def destroy!
-          # TODO: destroy! the intermediaries
+          orphan_resources(to_a)
+          save
           # TODO: destroy! the resources in the target model
           raise NotImplementedError, "#{self.class}#destroy! not implemented"
         end
@@ -346,14 +337,14 @@ module DataMapper
 
         # FIXME: temporarily bypass OneToMany::Collection#relate_resource
         # until issues with it can be worked out
-        def relate_resource(*args)
-          collection_relate_resource(*args)
+        def relate_resource(resource)
+          collection_relate_resource(resource)
         end
 
         # FIXME: temporarily bypass OneToMany::Collection#orphan_resource
         # until issues with it can be worked out
-        def orphan_resource(*args)
-          collection_orphan_resource(*args)
+        def orphan_resource(resource)
+          collection_orphan_resource(resource)
         end
 
       end # class Collection

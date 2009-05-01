@@ -344,9 +344,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @articles.last.should be_equal(@resource)
-        end
+        @articles.last.should be_equal(@resource)
       end
 
       it 'should use the query conditions to set default values' do
@@ -374,9 +372,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @articles.last.should be_equal(@resource)
-        end
+        @articles.last.should be_equal(@resource)
       end
 
       it 'should not use the query conditions to set default values' do
@@ -404,9 +400,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @articles.last.should be_equal(@resource)
-        end
+        @articles.last.should be_equal(@resource)
       end
 
       it 'should not use the query conditions to set default values' do
@@ -434,9 +428,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @articles.last.should be_equal(@resource)
-        end
+        @articles.last.should be_equal(@resource)
       end
 
       it 'should not use the query conditions to set default values' do
@@ -850,9 +842,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should relate the Resource to the Collection' do
-        pending_if 'TODO: fix', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @resource.collection.should be_equal(@articles)
-        end
+        @resource.collection.should be_equal(@articles)
       end
     end
   end
@@ -1671,7 +1661,7 @@ share_examples_for 'A public Collection' do
 
     describe 'when provided an Array of Hashes' do
       before :all do
-        rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+        rescue_if 'TODO', @skip do
           @array = [ { :title => 'Hash Article', :content => 'From Hash' } ].freeze
 
           @return = @articles.replace(@array)
@@ -1679,33 +1669,23 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return a Collection' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.should be_kind_of(DataMapper::Collection)
-        end
+        @return.should be_kind_of(DataMapper::Collection)
       end
 
       it 'should return self' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.should be_equal(@articles)
-        end
+        @return.should be_equal(@articles)
       end
 
       it 'should initialize a Resource' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.first.should be_kind_of(DataMapper::Resource)
-        end
+        @return.first.should be_kind_of(DataMapper::Resource)
       end
 
       it 'should be a new Resource' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.first.should be_new
-        end
+        @return.first.should be_new
       end
 
       it 'should be a Resource with attributes matching the Hash' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.first.attributes.only(*@array.first.keys).should == @array.first
-        end
+        @return.first.attributes.only(*@array.first.keys).should == @array.first
       end
     end
   end
@@ -1842,15 +1822,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @resources.each { |r| r.collection.should_not be_equal(@articles) }
-          end
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
         end
 
         it 'should scope the Collection' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @resources.reload.should == @copy.entries.send(method, 5, 5)
-          end
+          @resources.reload.should == @copy.entries.send(method, 5, 5)
         end
       end
 
@@ -1872,15 +1848,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @resources.each { |r| r.collection.should_not be_equal(@articles) }
-          end
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
         end
 
         it 'should scope the Collection' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @resources.reload.should == @copy.entries.send(method, 5..10)
-          end
+          @resources.reload.should == @copy.entries.send(method, 5..10)
         end
       end
 
@@ -1896,9 +1868,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should == @copy.entries.send(method, -1)
-          end
+          @return.should == @copy.entries.send(method, -1)
         end
 
         it 'should not remove the Resource from the Collection' do
@@ -1920,9 +1890,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return the expected Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should == @copy.entries.send(method, -5, 5)
-          end
+          @return.should == @copy.entries.send(method, -5, 5)
         end
 
         it 'should not remove the Resources from the Collection' do
@@ -1930,15 +1898,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @resources.each { |r| r.collection.should_not be_equal(@articles) }
-          end
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
         end
 
         it 'should scope the Collection' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @resources.reload.should == @copy.entries.send(method, -5, 5)
-          end
+          @resources.reload.should == @copy.entries.send(method, -5, 5)
         end
       end
 
@@ -1952,9 +1916,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return the expected Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.to_a.should == @copy.entries.send(method, -5..-2)
-          end
+          @return.to_a.should == @copy.entries.send(method, -5..-2)
         end
 
         it 'should not remove the Resources from the Collection' do
@@ -1962,15 +1924,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @resources.each { |r| r.collection.should_not be_equal(@articles) }
-          end
+          @resources.each { |r| r.collection.should_not be_equal(@articles) }
         end
 
         it 'should scope the Collection' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @resources.reload.should == @copy.entries.send(method, -5..-2)
-          end
+          @resources.reload.should == @copy.entries.send(method, -5..-2)
         end
       end
 
@@ -2077,9 +2035,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should scope the Collection' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @resources.reload.should == @copy.entries.slice!(5, 5)
-        end
+        @resources.reload.should == @copy.entries.slice!(5, 5)
       end
     end
 
@@ -2107,9 +2063,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should scope the Collection' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @resources.reload.should == @copy.entries.slice!(5..10)
-        end
+        @resources.reload.should == @copy.entries.slice!(5..10)
       end
     end
 
@@ -2149,9 +2103,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return the expected Resources' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.should == @copy.entries.slice!(-5, 5)
-        end
+        @return.should == @copy.entries.slice!(-5, 5)
       end
 
       it 'should remove the Resources from the Collection' do
@@ -2163,9 +2115,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should scope the Collection' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @resources.reload.should == @copy.entries.slice!(-5, 5)
-        end
+        @resources.reload.should == @copy.entries.slice!(-5, 5)
       end
     end
 
@@ -2181,9 +2131,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return the expected Resources' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @return.should == @copy.entries.slice!(-3..-2)
-        end
+        @return.should == @copy.entries.slice!(-3..-2)
       end
 
       it 'should remove the Resources from the Collection' do
@@ -2195,9 +2143,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should scope the Collection' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @resources.reload.should == @copy.entries.slice!(-3..-2)
-        end
+        @resources.reload.should == @copy.entries.slice!(-3..-2)
       end
     end
 
@@ -2334,7 +2280,7 @@ share_examples_for 'A public Collection' do
 
       describe 'with a positive offset and length and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          rescue_if 'TODO', @skip do
             @original = @copy[2]
             @original.collection.should be_equal(@articles)
 
@@ -2343,21 +2289,15 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return a Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should be_kind_of(DataMapper::Resource)
-          end
+          @return.should be_kind_of(DataMapper::Resource)
         end
 
         it 'should return the expected Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should be_equal(@new)
-          end
+          @return.should be_equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should == @copy.entries[2, 1] = @new
-          end
+          @return.should == @copy.entries[2, 1] = @new
         end
 
         it 'should include the Resource in the Collection' do
@@ -2365,15 +2305,13 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @original.collection.should_not be_equal(@articles)
-          end
+          @original.collection.should_not be_equal(@articles)
         end
       end
 
       describe 'with a positive range and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          rescue_if 'TODO', @skip do
             @originals = @copy.values_at(2..3)
             @originals.each { |o| o.collection.should be_equal(@articles) }
 
@@ -2382,21 +2320,15 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return a Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should be_kind_of(DataMapper::Resource)
-          end
+          @return.should be_kind_of(DataMapper::Resource)
         end
 
         it 'should return the expected Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
             @return.should be_equal(@new)
-          end
         end
 
         it 'should return the same as Array#[]=' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should == @copy.entries[2..3] = @new
-          end
+          @return.should == @copy.entries[2..3] = @new
         end
 
         it 'should include the Resource in the Collection' do
@@ -2404,15 +2336,13 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @originals.each { |o| o.collection.should_not be_equal(@articles) }
-          end
+          @originals.each { |o| o.collection.should_not be_equal(@articles) }
         end
       end
 
       describe 'with a negative offset and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          rescue_if 'TODO', @skip do
             @original = @copy[-1]
             @original.collection.should be_equal(@articles)
 
@@ -2421,21 +2351,15 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return a Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should be_kind_of(DataMapper::Resource)
-          end
+          @return.should be_kind_of(DataMapper::Resource)
         end
 
         it 'should return expected Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should be_equal(@new)
-          end
+          @return.should be_equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should == @copy.entries[-1] = @new
-          end
+          @return.should == @copy.entries[-1] = @new
         end
 
         it 'should include the Resource in the Collection' do
@@ -2443,21 +2367,17 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should relate the Resource to the Collection' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @resource.collection.should be_equal(@articles)
-          end
+          @resource.collection.should be_equal(@articles)
         end
 
         it 'should orphan the original Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @original.collection.should_not be_equal(@articles)
-          end
+          @original.collection.should_not be_equal(@articles)
         end
       end
 
       describe 'with a negative offset and length and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          rescue_if 'TODO', @skip do
             @original = @copy[-2]
             @original.collection.should be_equal(@articles)
 
@@ -2466,21 +2386,15 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return a Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should be_kind_of(DataMapper::Resource)
-          end
+          @return.should be_kind_of(DataMapper::Resource)
         end
 
         it 'should return the expected Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should be_equal(@new)
-          end
+          @return.should be_equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should == @copy.entries[-2, 1] = @new
-          end
+          @return.should == @copy.entries[-2, 1] = @new
         end
 
         it 'should include the Resource in the Collection' do
@@ -2488,15 +2402,13 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @original.collection.should_not be_equal(@articles)
-          end
+          @original.collection.should_not be_equal(@articles)
         end
       end
 
       describe 'with a negative range and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip || @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          rescue_if 'TODO', @skip do
             @originals = @copy.values_at(-3..-2)
             @originals.each { |o| o.collection.should be_equal(@articles) }
 
@@ -2505,21 +2417,15 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return a Resource' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should be_kind_of(DataMapper::Resource)
-          end
+          @return.should be_kind_of(DataMapper::Resource)
         end
 
         it 'should return the expected Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should be_equal(@new)
-          end
+          @return.should be_equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @return.should == @copy.entries[-3..-2] = @new
-          end
+          @return.should == @copy.entries[-3..-2] = @new
         end
 
         it 'should include the Resource in the Collection' do
@@ -2527,9 +2433,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resources' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @originals.each { |o| o.collection.should_not be_equal(@articles) }
-          end
+          @originals.each { |o| o.collection.should_not be_equal(@articles) }
         end
       end
     end
