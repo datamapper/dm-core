@@ -446,6 +446,7 @@ module DataMapper
           case conditions
             when Conditions::NotOperation
               negate_operation(conditions, qualify)
+
             when Conditions::AbstractOperation
               # TODO: remove this once conditions can be compressed
               if conditions.operands.size == 1
@@ -454,12 +455,12 @@ module DataMapper
               else
                 operation_statement(conditions, qualify)
               end
+
             when Conditions::AbstractComparison
               comparison_statement(conditions, qualify)
+
             when Array
               conditions  # handle raw conditions
-            else
-              raise ArgumentError, "invalid conditions #{conditions.class}: #{conditions.inspect}"
           end
         end
 
