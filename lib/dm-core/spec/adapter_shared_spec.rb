@@ -220,9 +220,18 @@ share_examples_for 'An Adapter' do
             Heffalump.all(:color => /ed/).should be_include(@red)
           end
 
-          it 'should not search for objects that do not match the value' do
+          it 'should not be able to search for objects that do not match the value' do
             Heffalump.all(:color => /blak/).should_not be_include(@red)
           end
+
+          it 'should be able to do a negated search for objects that match value' do
+            Heffalump.all(:color.not => /blak/).should be_include(@red)
+          end
+
+          it 'should not be able to do a negated search for objects that do not match value' do
+            Heffalump.all(:color.not => /ed/).should_not be_include(@red)
+          end
+
         end
 
         describe 'gt' do
