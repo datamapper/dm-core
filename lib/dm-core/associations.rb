@@ -232,12 +232,10 @@ module DataMapper
       # TODO: deprecate :child_key and :parent_key in favor of :source_key and
       # :target_key (will mean something different for each relationship)
 
-      if options.key?(:child_key)
-        assert_kind_of 'options[:child_key]', options[:child_key], Enumerable
-      end
-
-      if options.key?(:parent_key)
-        assert_kind_of 'options[:parent_key]', options[:parent_key], Enumerable
+      [ :child_key, :parent_key ].each do |key|
+        if options.key?(key)
+          assert_kind_of "options[#{key.inspect}]", options[key], Enumerable
+        end
       end
 
       if options.key?(:through) && options[:through] != Resource
