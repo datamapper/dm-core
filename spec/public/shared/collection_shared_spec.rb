@@ -599,9 +599,7 @@ share_examples_for 'A public Collection' do
 
   describe '#destroy!' do
     before :all do
-      rescue_if 'TODO', @skip do
-        @return = @articles.destroy!
-      end
+      @return = @articles.destroy!
     end
 
     # FIXME: this is spec order dependent, move this into a helper method
@@ -2536,9 +2534,7 @@ share_examples_for 'A public Collection' do
   describe '#update!' do
     describe 'with no arguments' do
       before :all do
-        rescue_if 'TODO', @skip do
-          @return = @articles.update!
-        end
+        @return = @articles.update!
       end
 
       # FIXME: this is spec order dependent, move this into a helper method
@@ -2558,11 +2554,9 @@ share_examples_for 'A public Collection' do
 
     describe 'with attributes' do
       before :all do
-        rescue_if 'TODO', @skip do
-          @attributes = { :title => 'Updated Title' }
+        @attributes = { :title => 'Updated Title' }
 
-          @return = @articles.update!(@attributes)
-        end
+        @return = @articles.update!(@attributes)
       end
 
       # FIXME: this is spec order dependent, move this into a helper method
@@ -2595,11 +2589,9 @@ share_examples_for 'A public Collection' do
 
     describe 'with attributes where one is a parent association' do
       before :all do
-        rescue_if 'TODO', @skip do
-          @attributes = { :original => @other }
+        @attributes = { :original => @other }
 
-          @return = @articles.update!(@attributes)
-        end
+        @return = @articles.update!(@attributes)
       end
 
       # FIXME: this is spec order dependent, move this into a helper method
