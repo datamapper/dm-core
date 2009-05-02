@@ -48,6 +48,7 @@ lib/dm-core/repository.rb
 lib/dm-core/resource.rb
 lib/dm-core/spec/adapter_shared_spec.rb
 lib/dm-core/support/chainable.rb
+lib/dm-core/support/deprecate.rb
 lib/dm-core/support/logger.rb
 lib/dm-core/support/naming_conventions.rb
 lib/dm-core/transaction.rb

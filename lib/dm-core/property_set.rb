@@ -4,6 +4,12 @@ module DataMapper
   # to represent composite keys (esp. for associations)
   # and so on.
   class PropertySet < Array
+    extend Deprecate
+
+    deprecate :has_property?, :named?
+    deprecate :slice,         :values_at
+    deprecate :add,           :<<
+
     # TODO: document
     # @api semipublic
     def [](name)
@@ -27,22 +33,10 @@ module DataMapper
       @properties.key?(name)
     end
 
-    # @deprecated
-    def has_property?(name)
-      warn "#{self.class}#has_property? is deprecated, use #{self.class}#named? instead"
-      named?(name)
-    end
-
     # TODO: document
     # @api semipublic
     def values_at(*names)
       @properties.values_at(*names)
-    end
-
-    # @deprecated
-    def slice(*args)
-      warn "#{self.class}#slice is deprecated, use #{self.class}#values_at instead"
-      values_at(*args)
     end
 
     # TODO: document
@@ -50,12 +44,6 @@ module DataMapper
     def <<(property)
       add_property(property)
       super
-    end
-
-    # @deprecated
-    def add(*args)
-      warn "#{self.class}#add is deprecated, use #{self.class}#<< instead"
-      self.<<(*args)
     end
 
     # TODO: document

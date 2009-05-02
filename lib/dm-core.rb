@@ -31,6 +31,8 @@ end
 dir = Pathname(__FILE__).dirname.parent.expand_path / 'lib' / 'dm-core'
 
 require dir / 'support' / 'chainable'
+require dir / 'support' / 'deprecate'
+
 require dir / 'collection'
 require dir / 'model'
 

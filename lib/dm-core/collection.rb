@@ -12,6 +12,11 @@ module DataMapper
   # A Collection is typically returned by the Model#all
   # method.
   class Collection < LazyArray
+    extend Deprecate
+
+    deprecate :add,   :<<
+    deprecate :build, :new
+
     ##
     # Returns the Query the Collection is scoped with
     #
@@ -451,12 +456,7 @@ module DataMapper
       super
     end
 
-    # @deprecated
-    #   use #<< instead
-    def add(*args)
-      warn "#{self.class}#add is deprecated, use #{self.class}#<< instead"
-      self.<<(*args)
-    end
+
 
     ##
     # Appends the resources to self
@@ -655,13 +655,6 @@ module DataMapper
         orphan_resources(self)
       end
       super
-    end
-
-    # @deprecated
-    #   use #new instead
-    def build(*args)
-      warn "#{self.class}#build is deprecated, use #{self.class}#new instead"
-      new(*args)
     end
 
     ##

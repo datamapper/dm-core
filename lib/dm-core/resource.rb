@@ -2,6 +2,9 @@ module DataMapper
   module Resource
     include Extlib::Assertions
     extend Chainable
+    extend Deprecate
+
+    deprecate :new_record?, :new?
 
     # @deprecated
     def self.append_inclusions(*inclusions)
@@ -432,15 +435,6 @@ module DataMapper
     end
 
     ##
-    # Checks if this Resource instance has been saved
-    #
-    # @deprecated
-    def new_record?
-      warn "#{model}#new_record? is deprecated, use #{model}#new? or #{model}#saved? instead"
-      new?
-    end
-
-    ##
     # Checks if this Resource instance is saved
     #
     # @return [TrueClass, FalseClass]
@@ -514,7 +508,7 @@ module DataMapper
         attributes = attributes.only(*allowed)
       end
 
-      update(attributes, *allowed)
+      update(attributes)
     end
 
     ##

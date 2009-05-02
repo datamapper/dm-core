@@ -294,6 +294,9 @@ module DataMapper
   #   see SingleTableInheritance for more on how to use <tt>Class</tt> columns.
   class Property
     include Extlib::Assertions
+    extend Deprecate
+
+    deprecate :unique, :unique?
 
     # NOTE: check is only for psql, so maybe the postgres adapter should
     # define its own property options. currently it will produce a warning tho
@@ -362,12 +365,6 @@ module DataMapper
     # @api public
     def unique?
       @unique
-    end
-
-    # @deprecated
-    def unique
-      warn "#{self}#unique is deprecated, use #{self}#unique?"
-      unique?
     end
 
     ##
