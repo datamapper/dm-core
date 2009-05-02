@@ -56,5 +56,6 @@ describe DataMapper::Resource do
     end
 
     it_should_behave_like 'A public Resource'
+    it_should_behave_like 'A Resource supporting Strategic Eager Loading'
   end
 end

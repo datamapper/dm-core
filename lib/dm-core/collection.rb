@@ -1235,12 +1235,36 @@ module DataMapper
     #
     # @api private
     def delegate_to_relationship(relationship, other_query = nil)
-      # TODO: spec what should happen when none of the resources in self are saved
+      source_key = relationship.source_key
+      target_key = relationship.target_key
 
-      query = relationship.query_for(self)
-      query.update(other_query) if other_query
+      # TODO: use a subquery if the current collection is not already
+      # loaded to avoid kicking it unecessarily
 
-      model.all(query)
+      source_map = {}
+
+      query = relationship.query_for(self, other_query)
+
+      resources = model.all(query).each do |target|
+        targets = source_map[ target_key.get(target) ] ||= []
+        targets << target
+      end
+
+      each do |source|
+        targets = source_map[ source_key.get(source) ] || []
+
+        if relationship.max == 1
+          relationship.set(source, targets.first)
+        else
+          # TODO: figure out an alternative approach to using a
+          # private method call collection_replace
+          collection = relationship.collection_for(source, other_query)
+          collection.send(:collection_replace, targets)
+          relationship.set!(source, collection)
+        end
+      end
+
+      resources
     end
   end # class Collection
 end # module DataMapper

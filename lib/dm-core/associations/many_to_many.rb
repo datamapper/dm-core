@@ -370,6 +370,17 @@ module DataMapper
           collection_orphan_resource(resource)
         end
 
+        # TODO: document
+        # @api private
+        def delegate_to_relationship(relationship, other_query = nil)
+          # FIXME: add support for SEL to m:m
+
+          query = relationship.query_for(self)
+          query.update(other_query) if other_query
+
+          model.all(query)
+        end
+
       end # class Collection
     end # module ManyToMany
   end # module Associations

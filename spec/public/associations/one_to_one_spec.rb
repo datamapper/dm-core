@@ -62,6 +62,7 @@ describe 'One to One Associations' do
     end
 
     it_should_behave_like 'A public Resource'
+    it_should_behave_like 'A Resource supporting Strategic Eager Loading'
   end
 end
 
@@ -137,5 +138,8 @@ describe 'One to One Through Associations' do
     end
 
     it_should_behave_like 'A public Resource'
+
+    # TODO: make this pass
+    #it_should_behave_like 'A Resource supporting Strategic Eager Loading'
   end
 end

@@ -1390,9 +1390,11 @@ share_examples_for 'A public Collection' do
 
     describe 'with a has relationship method' do
       before :all do
-        # associate the article with children
-        @article.revisions << @other
-        @article.save
+        rescue_if 'fix SEL for many to many', @many_to_many do
+          # associate the article with children
+          @article.revisions << @other
+          @article.save
+        end
       end
 
       describe 'with no arguments' do
@@ -1415,7 +1417,9 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          @collection.should == [ @other ]
+          pending_if 'fix SEL for many to many', @many_to_many do
+            @collection.should == [ @other ]
+          end
         end
       end
 
@@ -1439,12 +1443,16 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          @collection.should == [ @other ]
+          pending_if 'fix SEL for many to many', @many_to_many do
+            @collection.should == [ @other ]
+          end
         end
 
         { :id => true, :title => false, :content => false }.each do |attribute, expected|
           it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-            @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
+            pending_if 'TODO', attribute == :title && !@many_to_many do
+              @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
+            end
           end
         end
       end

@@ -69,6 +69,7 @@ end
       end
 
       it_should_behave_like 'A public Collection'
+      it_should_behave_like 'A Collection supporting Strategic Eager Loading'
 
       describe '#<<' do
         describe 'when provided a Resource belonging to another association' do

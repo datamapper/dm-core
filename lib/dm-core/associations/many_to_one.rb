@@ -160,10 +160,12 @@ module DataMapper
         def lazy_load(source)
           return unless source_key.loaded?(source)
 
-          # TODO: use SEL to load the related record for every resource in
-          # the collection the target belongs to
-
-          set!(source, resource_for(source))
+          if source.saved? && source.collection.size > 1
+            # SEL: load all related resources in the source collection
+            source.collection.send(name)
+          else
+            set!(source, resource_for(source))
+          end
         end
 
         # Returns the inverse relationship class

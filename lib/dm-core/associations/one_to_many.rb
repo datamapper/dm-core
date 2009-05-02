@@ -134,11 +134,15 @@ module DataMapper
         #
         # @api private
         def lazy_load(source)
-          # TODO: return a Collection, that when lazy-loaded, it will
-          # use SEL to load the related record for every resource in
-          # the collection the source belongs to
+          # TODO: if the collection is not loaded, then use a subquery
+          # to load it.
 
-          set!(source, collection_for(source))
+          if source.saved? && source.collection.size > 1
+            # SEL: load all related resources in the source collection
+            source.collection.send(name)
+          else
+            set!(source, collection_for(source))
+          end
         end
 
         # Returns collection class used by this type of
