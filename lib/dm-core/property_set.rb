@@ -141,12 +141,6 @@ module DataMapper
       result
     end
 
-    # TODO: document
-    # @api semipublic
-    def inspect
-      "#<#{self.class.name} { #{ map { |p| p.inspect }.join(', ') } }>"
-    end
-
     private
 
     # TODO: document
