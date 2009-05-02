@@ -259,13 +259,11 @@ module DataMapper
           # TODO: handle compound keys
           return false unless model.all(key.first => map { |r| r.key.first }).update!(attributes)
 
-          if loaded?
-            dirty_attributes = model.new(attributes).dirty_attributes
+          dirty_attributes = model.new(attributes).dirty_attributes
 
-            each do |resource|
-              dirty_attributes.each { |p, v| p.set!(resource, v) }
-              repository.identity_map(model)[resource.key] = resource
-            end
+          each do |resource|
+            dirty_attributes.each { |p, v| p.set!(resource, v) }
+            repository.identity_map(model)[resource.key] = resource
           end
 
           true
