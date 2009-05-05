@@ -169,7 +169,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:fields => [ :unknown ]))
-          }.should raise_error(ArgumentError, '+options[:fields]+ entry :unknown does not map to a property')
+          }.should raise_error(ArgumentError, "+options[:fields]+ entry :unknown does not map to a property in #{@model}")
         end
       end
 
@@ -177,7 +177,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:fields => [ 'unknown' ]))
-          }.should raise_error(ArgumentError, '+options[:fields]+ entry "unknown" does not map to a property')
+          }.should raise_error(ArgumentError, "+options[:fields]+ entry \"unknown\" does not map to a property in #{@model}")
         end
       end
 
@@ -193,7 +193,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:fields => [ DataMapper::Property.new(@model, :unknown, String) ]))
-          }.should raise_error(ArgumentError, '+options[:field]+ entry :unknown does not map to a property')
+          }.should raise_error(ArgumentError, "+options[:field]+ entry :unknown does not map to a property in #{@model}")
         end
       end
     end
@@ -271,7 +271,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:links => [ :unknown ]))
-          }.should raise_error(ArgumentError, '+options[:links]+ entry :unknown does not map to a relationship')
+          }.should raise_error(ArgumentError, "+options[:links]+ entry :unknown does not map to a relationship in #{@model}")
         end
       end
 
@@ -279,7 +279,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:links => [ 'unknown' ]))
-          }.should raise_error(ArgumentError, '+options[:links]+ entry "unknown" does not map to a relationship')
+          }.should raise_error(ArgumentError, "+options[:links]+ entry \"unknown\" does not map to a relationship in #{@model}")
         end
       end
 
@@ -574,7 +574,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:conditions => { :unknown => 1 }))
-          }.should raise_error(ArgumentError, 'condition :unknown does not map to a property or relationship')
+          }.should raise_error(ArgumentError, "condition :unknown does not map to a property or relationship in #{@model}")
         end
       end
 
@@ -582,7 +582,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:conditions => { 'unknown' => 1 }))
-          }.should raise_error(ArgumentError, 'condition "unknown" does not map to a property or relationship')
+          }.should raise_error(ArgumentError, "condition \"unknown\" does not map to a property or relationship in #{@model}")
         end
       end
 
@@ -790,7 +790,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ 'unknown' ]))
-          }.should raise_error(ArgumentError, '+options[:order]+ entry "unknown" does not map to a property')
+          }.should raise_error(ArgumentError, "+options[:order]+ entry \"unknown\" does not map to a property in #{@model}")
         end
       end
 
@@ -811,7 +811,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ @direction ]))
-          }.should raise_error(ArgumentError, '+options[:order]+ entry :unknown does not map to a property')
+          }.should raise_error(ArgumentError, "+options[:order]+ entry :unknown does not map to a property in #{@model}")
         end
       end
 
@@ -819,7 +819,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ :unknown.desc ]))
-          }.should raise_error(ArgumentError, '+options[:order]+ entry :unknown does not map to a property')
+          }.should raise_error(ArgumentError, "+options[:order]+ entry :unknown does not map to a property in #{@model}")
         end
       end
 
@@ -839,7 +839,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ @property ]))
-          }.should raise_error(ArgumentError, '+options[:order]+ entry :unknown does not map to a property')
+          }.should raise_error(ArgumentError, "+options[:order]+ entry :unknown does not map to a property in #{@model}")
         end
       end
 
@@ -847,7 +847,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ :unknown ]))
-          }.should raise_error(ArgumentError, '+options[:order]+ entry :unknown does not map to a property')
+          }.should raise_error(ArgumentError, "+options[:order]+ entry :unknown does not map to a property in #{@model}")
         end
       end
 
@@ -855,7 +855,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:order => [ 'unknown' ]))
-          }.should raise_error(ArgumentError, '+options[:order]+ entry "unknown" does not map to a property')
+          }.should raise_error(ArgumentError, "+options[:order]+ entry \"unknown\" does not map to a property in #{@model}")
         end
       end
     end

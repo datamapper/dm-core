@@ -243,7 +243,7 @@ module DataMapper
             properties = parent_model.properties(parent_repository_name)
 
             parent_key = if @parent_properties
-              properties.slice(*@parent_properties)
+              properties.values_at(*@parent_properties)
             else
               properties.key
             end
@@ -300,18 +300,27 @@ module DataMapper
       # @api semipublic
       def inverse
         @inverse ||= target_model.relationships(target_repository_name).values.detect do |relationship|
-          !relationship.equal?(self)                                    &&
-          relationship.target_repository_name == source_repository_name &&
-          relationship.target_model           == source_model           &&
-          relationship.target_key             == source_key
+          relationship.kind_of?(inverse_class)                          &&
+          relationship.child_repository_name  == child_repository_name  &&
+          relationship.parent_repository_name == parent_repository_name &&
+          relationship.child_model            == child_model            &&
+          relationship.parent_model           == parent_model           &&
+          relationship.child_key              == child_key              &&
+          relationship.parent_key             == parent_key
 
           # TODO: match only when the Query is empty, or is the same as the
           # default scope for the target model
         end
 
-        # TODO: if no inverse relationship found, create one, and use an approximate guess as
-        # to the relationship name (assuming the name is not already taken)
-        @inverse
+        @inverse ||= target_model.relationships(target_repository_name)[inverse_name] = inverse_class.new(
+          inverse_name,
+          child_model,
+          parent_model,
+          options.only(:child_repository_name, :parent_repository_name).update(
+            :child_key  => child_key.map { |p| p.name },
+            :parent_key => parent_key.map { |p| p.name }
+          )
+        )
       end
 
       private

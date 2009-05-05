@@ -149,6 +149,20 @@ module DataMapper
           OneToMany::Collection
         end
 
+        # Returns the inverse relationship class
+        #
+        # @api private
+        def inverse_class
+          ManyToOne::Relationship
+        end
+
+        # Returns the inverse relationship name
+        #
+        # @api private
+        def inverse_name
+          Extlib::Inflection.underscore(source_model.name)
+        end
+
         ##
         # Prefix used to build name of default child key
         #

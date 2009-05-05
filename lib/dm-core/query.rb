@@ -685,20 +685,20 @@ module DataMapper
         case field
           when Symbol, String
             unless @properties.named?(field)
-              raise ArgumentError, "+options[:fields]+ entry #{field.inspect} does not map to a property"
+              raise ArgumentError, "+options[:fields]+ entry #{field.inspect} does not map to a property in #{model}"
             end
 
           when Property
-            unless @properties.include?(field)
-              raise ArgumentError, "+options[:field]+ entry #{field.name.inspect} does not map to a property"
+            unless field.model == model && @properties.include?(field)
+              raise ArgumentError, "+options[:field]+ entry #{field.name.inspect} does not map to a property in #{model}"
             end
 
           # TODO: mix-in Operator validation for fields in dm-aggregates
           #when Operator
           #  target = field.target
           #
-          #  unless target.kind_of?(Property) && @properties.include?(target)
-          #    raise ArgumentError, "+options[:fields]+ entry #{target.inspect} does not map to a property"
+          #  unless target.kind_of?(Property) && target.model == model && @properties.include?(target)
+          #    raise ArgumentError, "+options[:fields]+ entry #{target.inspect} does not map to a property in #{model}"
           #  end
 
           else
@@ -722,13 +722,13 @@ module DataMapper
         case link
           when Symbol, String
             unless @relationships.key?(link.to_sym)
-              raise ArgumentError, "+options[:links]+ entry #{link.inspect} does not map to a relationship"
+              raise ArgumentError, "+options[:links]+ entry #{link.inspect} does not map to a relationship in #{model}"
             end
 
           when Associations::Relationship
             # TODO: figure out how to validate links from other models
             #unless @relationships.value?(link)
-            #  raise ArgumentError, "+options[:links]+ entry #{link.name.inspect} does not map to a relationship"
+            #  raise ArgumentError, "+options[:links]+ entry #{link.name.inspect} does not map to a relationship in #{model}"
             #end
 
           else
@@ -750,7 +750,7 @@ module DataMapper
             case subject
               when Symbol, String
                 unless subject.to_s.include?('.') || @properties.named?(subject) || @relationships.key?(subject)
-                  raise ArgumentError, "condition #{subject.inspect} does not map to a property or relationship"
+                  raise ArgumentError, "condition #{subject.inspect} does not map to a property or relationship in #{model}"
                 end
 
               when Operator
@@ -771,7 +771,7 @@ module DataMapper
                 # TODO: validate that it belongs to the current model, or to any
                 # model in the links
                 #unless @properties.include?(subject)
-                #  raise ArgumentError, "condition #{subject.name.inspect} does not map to a property"
+                #  raise ArgumentError, "condition #{subject.name.inspect} does not map to a property in #{model}"
                 #end
 
               else
@@ -836,17 +836,17 @@ module DataMapper
 
           when Symbol, String
             unless @properties.named?(order_entry)
-              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} does not map to a property"
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} does not map to a property in #{model}"
             end
 
           when Property
-            unless @properties.include?(order_entry)
-              raise ArgumentError, "+options[:order]+ entry #{order_entry.name.inspect} does not map to a property"
+            unless order_entry.model == model && @properties.include?(order_entry)
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.name.inspect} does not map to a property in #{model}"
             end
 
           when Direction
-            unless @properties.include?(order_entry.property)
-              raise ArgumentError, "+options[:order]+ entry #{order_entry.property.name.inspect} does not map to a property"
+            unless order_entry.property.model == model && @properties.include?(order_entry.property)
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.property.name.inspect} does not map to a property in #{model}"
             end
 
           else

@@ -629,31 +629,32 @@ share_examples_for 'A public Resource' do
       before :all do
         @article = Article.new(:body => "Main")
         rescue_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
-          @paragraph = @article.paragraphs.new(:text => "Content")
+          @paragraph = @article.paragraphs.new(:text => 'Content')
+
           @article.save
         end
       end
 
       it 'should not be dirty' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
+        pending_if 'TODO', !@article.respond_to?(:paragraphs) do
           @article.should_not be_dirty
         end
       end
 
       it 'should not be dirty' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
+        pending_if 'TODO', !@article.respond_to?(:paragraphs) do
           @paragraph.should_not be_dirty
         end
       end
 
       it 'should set the related object' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
+        pending_if 'TODO', !@article.respond_to?(:paragraphs) do
           @paragraph.article.should == @article
         end
       end
 
       it 'should set the foreign key properly' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
+        pending_if 'TODO', !@article.respond_to?(:paragraphs) do
           @paragraph.article_id.should == @article.id
         end
       end

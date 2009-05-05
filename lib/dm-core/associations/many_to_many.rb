@@ -193,6 +193,12 @@ module DataMapper
           (plural ? relationship_name.plural : relationship_name).to_sym
         end
 
+        # TODO: document
+        # @api private
+        def inverse
+          raise NotImplementedError, "#{self.class}#inverse not implemented"
+        end
+
         # Returns collection class used by this type of
         # relationship
         #
