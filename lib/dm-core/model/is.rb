@@ -25,6 +25,6 @@ module DataMapper
       end
     end
 
-    Model.append_inclusions self
+    Model.append_extensions self
   end # module Is
 end # module DataMapper
