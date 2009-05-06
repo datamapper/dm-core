@@ -12,10 +12,6 @@ describe 'Many to One Associations' do
 
       belongs_to :referrer, :model => self
       has n, :comments
-
-      # TODO: remove this after Relationship#inverse can dynamically
-      # create an inverse relationship when no perfect match can be found
-      has n, :referree, :model => self, :child_key => [ :referrer_name ]
     end
 
     class ::Author < User; end

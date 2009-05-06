@@ -300,7 +300,7 @@ module DataMapper
       # @api semipublic
       def inverse
         @inverse ||= target_model.relationships(target_repository_name).values.detect do |relationship|
-          relationship.kind_of?(inverse_class)                          &&
+          !relationship.equal?(self)                                    &&
           relationship.child_repository_name  == child_repository_name  &&
           relationship.parent_repository_name == parent_repository_name &&
           relationship.child_model            == child_model            &&
@@ -310,17 +310,7 @@ module DataMapper
 
           # TODO: match only when the Query is empty, or is the same as the
           # default scope for the target model
-        end
-
-        @inverse ||= target_model.relationships(target_repository_name)[inverse_name] = inverse_class.new(
-          inverse_name,
-          child_model,
-          parent_model,
-          options.only(:child_repository_name, :parent_repository_name).update(
-            :child_key  => child_key.map { |p| p.name },
-            :parent_key => parent_key.map { |p| p.name }
-          )
-        )
+        end || invert
       end
 
       private
@@ -392,6 +382,20 @@ module DataMapper
       # @api semipublic
       def property_prefix
         raise NotImplementedError, "#{self.class}#property_prefix not implemented"
+      end
+
+      # TODO: document
+      # @api private
+      def invert
+        inverse_class.new(
+          inverse_name,
+          child_model,
+          parent_model,
+          options.only(:child_repository_name, :parent_repository_name).update(
+            :child_key  => child_key.map  { |p| p.name },
+            :parent_key => parent_key.map { |p| p.name }
+          )
+        )
       end
     end # class Relationship
   end # module Associations
