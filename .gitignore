@@ -3,7 +3,6 @@ log/*
 doc
 cov
 pkg
-.DS_Store
 coverage.html
 coverage/*
 *.db
@@ -18,3 +17,4 @@ lib/coverage.html
 _Yardoc
 .yardoc
 tmp/*
+\.*
