@@ -7,6 +7,8 @@ module DataMapper
   module Adapters
     class MysqlAdapter < DataObjectsAdapter
       module SQL #:nodoc:
+        IDENTIFIER_MAX_LENGTH = 64
+
         private
 
         # TODO: document

@@ -263,6 +263,7 @@ module DataMapper
       # This module is just for organization. The methods are included into the
       # Adapter below.
       module SQL #:nodoc:
+        IDENTIFIER_MAX_LENGTH = 128
 
         # TODO: document
         # @api semipublic
@@ -606,7 +607,7 @@ module DataMapper
         # TODO: document
         # @api private
         def quote_name(name)
-          "\"#{name.gsub('"', '""')}\""
+          "\"#{name[0, self.class::IDENTIFIER_MAX_LENGTH].gsub('"', '""')}\""
         end
       end #module SQL
 
