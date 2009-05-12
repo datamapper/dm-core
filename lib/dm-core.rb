@@ -28,7 +28,7 @@ rescue LoadError
   # fastthread not installed
 end
 
-dir = Pathname(__FILE__).dirname.parent.expand_path / 'lib' / 'dm-core'
+dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
 require dir / 'support' / 'chainable'
 require dir / 'support' / 'deprecate'

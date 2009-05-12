@@ -391,7 +391,7 @@ module DataMapper
           inverse_name,
           child_model,
           parent_model,
-          options.only(:child_repository_name, :parent_repository_name).update(
+          options.only(*OPTIONS - [ :min, :max ]).update(
             :child_key  => child_key.map  { |p| p.name },
             :parent_key => parent_key.map { |p| p.name }
           )
