@@ -73,6 +73,9 @@ require dir / 'types' / 'object'
 require dir / 'types' / 'serial'
 require dir / 'version'
 
+require dir / 'core_ext' / 'kernel'             # TODO: do not load automatically
+require dir / 'core_ext' / 'symbol'             # TODO: do not load automatically
+
 # A logger should always be present. Lets be consistent with DO
 DataMapper::Logger.new(nil, :off)
 
