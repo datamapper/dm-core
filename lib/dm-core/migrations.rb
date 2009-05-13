@@ -1035,6 +1035,7 @@ module DataMapper
           else
             nil
           end
+
         end
 
         # TODO: document
@@ -1132,6 +1133,122 @@ module DataMapper
 
       end # module ClassMethods
     end # module PostgresAdapter
+
+   module SqlserverAdapter
+      DEFAULT_CHARACTER_SET = 'utf8'.freeze
+
+      # TODO: document
+      # @api private
+      def self.included(base)
+        base.extend ClassMethods
+      end
+
+      # TODO: document
+      # @api semipublic
+      def storage_exists?(storage_name)
+        query("SELECT name FROM sysobjects WHERE name LIKE ?", storage_name).first == storage_name
+      end
+
+      # TODO: document
+      # @api semipublic
+      def field_exists?(storage_name, field_name)
+        result = query("SELECT c.name FROM sysobjects as o JOIN syscolumns AS c ON o.id = c.id WHERE o.name = #{quote_name(storage_name)} AND c.name LIKE ?", field_name).first
+        result ? result.field == field_name : false
+      end
+
+      module SQL #:nodoc:
+#        private  ## This cannot be private for current migrations
+
+        # TODO: document
+        # @api private
+        def supports_serial?
+          true
+        end
+
+        # TODO: document
+        # @api private
+        def supports_drop_table_if_exists?
+          false
+        end
+
+        # TODO: document
+        # @api private
+        def schema_name
+          # TODO: is there a cleaner way to find out the current DB we are connected to?
+          @options[:path].split('/').last
+        end
+
+        # TODO: update dkubb/dm-more/dm-migrations to use schema_name and remove this
+
+        alias db_name schema_name
+
+        # TODO: document
+        # @api private
+        def create_table_statement(connection, model, properties)
+          super
+        end
+
+        # TODO: document
+        # @api private
+        def property_schema_hash(property)
+          schema = super
+
+          if schema[:primitive] == 'TEXT'
+            schema.delete(:default)
+          end
+
+          schema
+        end
+
+        # TODO: document
+        # @api private
+        def property_schema_statement(connection, schema)
+          statement = super
+
+          if supports_serial? && schema[:serial?]
+            statement << ' IDENTITY'
+          end
+
+          statement
+        end
+
+        # TODO: document
+        # @api private
+        def character_set
+          @character_set ||= show_variable('character_set_connection') || DEFAULT_CHARACTER_SET
+        end
+
+        # TODO: document
+        # @api private
+        def collation
+          @collation ||= show_variable('collation_connection') || DEFAULT_COLLATION
+        end
+
+        # TODO: document
+        # @api private
+        def show_variable(name)
+          raise "SqlserverAdapter#show_variable: Not implemented"
+        end
+
+      end # module SQL
+
+      include SQL
+
+      module ClassMethods
+        # Types for Sqlserver databases.
+        #
+        # @return [Hash] types for Sqlserver databases.
+        #
+        # @api private
+        def type_map
+          @type_map ||= super.merge(
+            DateTime => { :primitive => 'DATETIME' },
+            Time     => { :primitive => 'DATETIME' }
+          ).freeze
+        end
+      end # module ClassMethods
+    end # module SqlserverAdapter
+
 
     module Repository
       # Determine whether a particular named storage exists in this repository

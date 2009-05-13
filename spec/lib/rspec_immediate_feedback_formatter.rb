@@ -33,6 +33,7 @@ module Spec
           end
 
           output.puts(red(message))
+          # output.puts(failure.expectation_not_met? ? red(message) : message)
           dump_failure(counter, failure)  # dump stacktrace immediately
           output.flush
         end
