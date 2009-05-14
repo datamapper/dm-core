@@ -415,6 +415,20 @@ module DataMapper
       cmp?(other, :eql?)
     end
 
+    ##
+    # Returns the hash of the property name
+    #
+    # This is necessary to allow comparisons between different properties
+    # in different models, having the same base model
+    #
+    # @return [Integer]
+    #   the property name hash
+    #
+    # @api semipublic
+    def hash
+      name.hash
+    end
+
     # Returns maximum property length (if applicable).
     # This usually only makes sense when property is of
     # type Range or custom type.
@@ -1073,7 +1087,7 @@ module DataMapper
     #
     # @api private
     def cmp?(other, operator)
-      unless model.send(operator, other.model)
+      unless model.base_model.send(operator, other.model.base_model)
         return false
       end
 
