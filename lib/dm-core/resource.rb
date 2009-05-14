@@ -140,7 +140,7 @@ module DataMapper
         return true
       end
 
-      unless model.equal?(other.class)
+      unless self.class.equal?(other.class)
         return false
       end
 
