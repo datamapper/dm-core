@@ -46,18 +46,14 @@ module DataMapper
     def link(*things)
       raise "Illegal state for link: #{@state}" unless @state == :none
       things.each do |thing|
-        if thing.kind_of?(Array)
-          link(*thing)
-        elsif thing.kind_of?(Adapters::AbstractAdapter)
-          @adapters[thing] = :none
-        elsif thing.kind_of?(Repository)
-          link(thing.adapter)
-        elsif thing.kind_of?(Class) && thing.ancestors.include?(Resource)
-          link(*thing.repositories)
-        elsif thing.kind_of?(Resource)
-          link(thing.model)
-        else
-          raise "Unknown argument to #{self}#link: #{thing.inspect}"
+        case thing
+          when DataMapper::Adapters::AbstractAdapter then @adapters[thing] = :none
+          when DataMapper::Repository                then link(thing.adapter)
+          when DataMapper::Model                     then link(*thing.repositories)
+          when DataMapper::Resource                  then link(thing.model)
+          when Array                                 then link(*thing)
+          else
+            raise "Unknown argument to #{self.class}#link: #{thing.inspect} (#{thing.class})"
         end
       end
       return commit { |*block_args| yield(*block_args) } if block_given?
