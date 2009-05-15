@@ -191,13 +191,11 @@ module DataMapper
         def query
           query = super
 
-          if source.saved?
-            # include the target_key in the results
-            query.update(:fields => relationship.target_key.to_a | query.fields)
+          # include the target_key in the results
+          query.update(:fields => query.fields | relationship.target_key.to_a)
 
-            # scope the query to the source
-            query.update(relationship.source_scope(source))
-          end
+          # scope the query to the source
+          query.update(relationship.source_scope(source))
 
           query
         end
@@ -240,14 +238,14 @@ module DataMapper
         # TODO: document
         # @api public
         def replace(*)
-          lazy_load  # lazy load so that targets are always orphaned
+          lazy_load if source.saved?  # lazy load so that targets are always orphaned
           super
         end
 
         # TODO: document
         # @api public
         def clear
-          lazy_load  # lazy load so that targets are always orphaned
+          lazy_load if source.saved?  # lazy load so that targets are always orphaned
           super
         end
 
@@ -302,19 +300,8 @@ module DataMapper
         # TODO: document
         # @api private
         def lazy_load
-          if source.saved?
-            super
-          elsif !loaded?
-            mark_loaded
-
-            # TODO: update LazyArray to wrap the idiom where we move from the head/tail to the array
-            #   - Update the default Collection#load_with block to use the same idiom
-            @array.unshift(*@head)
-            @array.concat(@tail)
-            @head = @tail = nil
-            @reapers.each { |r| @array.delete_if(&r) } if @reapers
-            @array.freeze if frozen?
-          end
+          assert_source_saved 'The source must be saved before loading the collection'
+          super
         end
 
         # TODO: document

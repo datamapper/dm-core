@@ -589,7 +589,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should raise an exception when saving the resource' do
-        pending "it should raise an exception when a parent is not persisted" do
+        pending 'it should raise an exception when a parent is not persisted' do
           lambda { @first_comment.save }.should raise_error
         end
       end

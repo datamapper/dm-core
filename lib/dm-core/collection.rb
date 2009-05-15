@@ -66,25 +66,21 @@ module DataMapper
     def reload(query = nil)
       query = query.nil? ? self.query.dup : self.query.merge(query)
 
-      resources = if head && tail
-        (head + tail)
-      else
+      resources = if loaded?
         self
+      else
+        head + tail
       end
 
       # make sure the Identity Map contains all the existing resources
-      identity_map = query.repository.identity_map(query.model)
+      identity_map = repository.identity_map(model)
 
       resources.each do |resource|
         identity_map[resource.key] = resource
       end
 
-      # TODO: figure out how to make the specs pass without doing the
-      # explicit lazy_load below
-      lazy_load
-
       properties = model.properties(repository.name)
-      fields     = properties.key | [ properties.discriminator ].compact | query.fields
+      fields     = properties.key | [ properties.discriminator ].compact | self.query.fields | query.fields
 
       # replace the list of resources
       replace(all(query.update(:fields => fields, :reload => true)))
@@ -412,16 +408,35 @@ module DataMapper
     alias splice []=
 
     ##
-    # Return the Collection sorted in reverse
+    # Return a copy of the Collection sorted in reverse
     #
     # @return [Collection]
     #   Collection equal to +self+ but ordered in reverse.
     #
     # @api public
     def reverse
-      reversed = super
-      reversed.instance_variable_set(:@query, query.reverse)
-      reversed
+      dup.reverse!
+    end
+
+    ##
+    # Return the Collection sorted in reverse
+    #
+    # @return [Collection]
+    #   +self+
+    #
+    # @api public
+    def reverse!
+      query.reverse!
+
+      # reverse without kicking if possible
+      if loaded?
+        @array.reverse!
+      else
+        # reverse and swap the head and tail
+        @head, @tail = tail.reverse!, head.reverse!
+      end
+
+      self
     end
 
     ##
@@ -892,9 +907,9 @@ module DataMapper
     # @return [Collection] self
     #
     # @api semipublic
-    def initialize(query, resources = nil, &block)
+    def initialize(query, resources = nil)
       if block_given?
-        warn "#{self.class}#new with a block is deprecated"
+        raise "#{self.class}#new with a block is deprecated"
       end
 
       @query        = query
@@ -905,21 +920,6 @@ module DataMapper
 
       if resources
         replace(resources)
-      else
-        block ||= lambda do |c|
-          resources = query.repository.read(query)
-
-          head    = c.head
-          tail    = c.tail
-          orphans = c.instance_variable_get(:@orphans).to_a
-
-          resources -= head    if head.any?
-          resources -= tail    if tail.any?
-          resources -= orphans if orphans.any?
-
-          query.add_reversed? ? c.unshift(*resources.reverse) : c.push(*resources)
-        end
-        load_with(&block)
       end
     end
 
@@ -932,6 +932,39 @@ module DataMapper
       @query        = @query.dup
       @identity_map = @identity_map.dup
       @orphans      = @orphans.dup
+    end
+
+    ##
+    # Lazy loads a Collection
+    #
+    # @return [Collection]
+    #   +self+
+    #
+    # @api semipublic
+    def lazy_load
+      return self if loaded?
+
+      mark_loaded
+
+      resources = repository.read(query)
+
+      orphans = @orphans.to_a
+
+      # remove already known results
+      resources -= head    if head.any?
+      resources -= tail    if tail.any?
+      resources -= orphans if orphans.any?
+
+      query.add_reversed? ? unshift(*resources.reverse) : concat(resources)
+
+      @array.unshift(*head)
+      @array.concat(tail)
+
+      @head = @tail = nil
+      @reapers.each { |r| @array.delete_if(&r) } if @reapers
+      @array.freeze if frozen?
+
+      self
     end
 
     ##
@@ -1161,7 +1194,7 @@ module DataMapper
       query = relationship.query_for(self)
       query.update(other_query) if other_query
 
-      query.model.all(query)
+      model.all(query)
     end
   end # class Collection
 end # module DataMapper

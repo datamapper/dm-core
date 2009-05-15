@@ -161,8 +161,9 @@ share_examples_for 'it creates a one mutator' do
 end
 
 share_examples_for 'it creates a many accessor' do
-  describe 'when there is no child resource' do
+  describe 'when there is no child resource and the source is saved' do
     before :all do
+      @car.save
       @return = @car.send(@name)
     end
 
@@ -172,6 +173,12 @@ share_examples_for 'it creates a many accessor' do
 
     it 'should return an empty Collection' do
       @return.should be_empty
+    end
+  end
+
+  describe 'when there is no child resource and the source is not saved' do
+    it 'should raise an exception when loading the association' do
+      lambda { @car.send(@name).to_a }.should raise_error(DataMapper::Associations::UnsavedParentError)
     end
   end
 

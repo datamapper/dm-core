@@ -147,8 +147,6 @@ module DataMapper
         # than (potentially) lazy-loading the Collection and getting
         # each resource key
 
-        # TODO: spec what should happen when source not saved
-
         { inverse => source }
       end
 

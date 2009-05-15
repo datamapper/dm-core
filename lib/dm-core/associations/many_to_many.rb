@@ -283,7 +283,9 @@ module DataMapper
           # TODO: create the new intermediaries
 
           @orphans.each do |resource|
-            through.get(source).destroy
+            if resource = through.get(source)
+              resource.destroy
+            end
           end
 
           super

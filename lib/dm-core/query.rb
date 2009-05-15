@@ -630,16 +630,12 @@ module DataMapper
       normalize_links
     end
 
-    # Copying contructor, called when
-    # #dup method is called on the query
+    ##
+    # Copying contructor, called for Query#dup
     #
     # @api semipublic
     def initialize_copy(original)
-      # TODO: test to see if this is necessary.  The idea is to ensure
-      # that changes to the duped object (such as via Query#reverse!)
-      # do not alter the original object
-      @order      = original.order.map      { |o| o.dup }
-      @conditions = original.conditions.dup
+      initialize(original.repository, original.model, original.options)
     end
 
     ##

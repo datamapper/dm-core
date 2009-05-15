@@ -1617,7 +1617,7 @@ share_examples_for 'A public Collection' do
 
     describe 'with a Query' do
       before :all do
-        @query = DataMapper::Query.new(@repository, @model, :fields => [ :content ])  # :title is a default field
+        @query = DataMapper::Query.new(@repository, @model, :fields => [ :content ])  # :title is an original field
 
         @return = @collection = @articles.reload(@query)
       end
@@ -1702,6 +1702,8 @@ share_examples_for 'A public Collection' do
 
   describe '#reverse' do
     before :all do
+      @query = @articles.query
+
       @new_article = @articles.create(:title => 'Sample Article')
 
       @return = @articles.reverse
@@ -1713,6 +1715,38 @@ share_examples_for 'A public Collection' do
 
     it 'should return a Collection with reversed entries' do
       @return.should == [ @new_article, @article ]
+    end
+
+    it 'should return a Query that is the reverse of the original' do
+      @return.query.should == @query.reverse
+    end
+  end
+
+  it { @articles.should respond_to(:reverse!) }
+
+  describe '#reverse!' do
+    before :all do
+      @query = @articles.query
+
+      @new_article = @articles.create(:title => 'Sample Article')
+
+      @return = @articles.reverse!
+    end
+
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
+
+    it 'should return self' do
+      @return.should be_equal(@articles)
+    end
+
+    it 'should return a Collection with reversed entries' do
+      @return.should == [ @new_article, @article ]
+    end
+
+    it 'should return a Query that equal to the original' do
+      @return.query.should equal(@query)
     end
   end
 
