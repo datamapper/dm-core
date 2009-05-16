@@ -770,7 +770,12 @@ module DataMapper
       elsif dirty_attributes.any? { |p, v| !p.nullable? && v.nil? }
         false
       else
-        updated = repository.update(dirty_attributes, self)
+        if query.limit || query.offset > 0
+          # TODO: handle this with a subquery
+          each { |r| r.update!(attributes) }
+        else
+          repository.update(dirty_attributes, self)
+        end
 
         if loaded?
           each do |resource|
@@ -833,7 +838,12 @@ module DataMapper
     #
     # @api public
     def destroy!
-      repository.delete(self)
+      if query.limit || query.offset > 0
+        # TODO: handle this with a subquery
+        each { |r| r.destroy! }
+      else
+        repository.delete(self)
+      end
 
       if loaded?
         each { |r| r.reset }

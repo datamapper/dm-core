@@ -244,7 +244,7 @@ module DataMapper
     end
 
     ##
-    # Return a human readalbe representation of the repository
+    # Return a human readable representation of the repository
     #
     #   TODO: create example
     #

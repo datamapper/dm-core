@@ -789,7 +789,7 @@ module DataMapper
         warn "#{type} with explicit :serial option is deprecated, use Serial instead"
         type = Types::Serial
       elsif String == type && options.key?(:size)
-        warn "#{type} with :size option is deprecated, use String with :length instead"
+        warn "#{type} with :size option is deprecated, use #{type} with :length instead"
         options[:length] = options.delete(:size)
       end
 

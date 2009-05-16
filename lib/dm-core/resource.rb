@@ -522,10 +522,22 @@ module DataMapper
     #
     # @api public
     def update(attributes = {})
-      assert_kind_of 'attributes', attributes, Hash
-
       self.attributes = attributes
+      _update
+    end
 
+    ##
+    # Updates attributes and saves this Resource instance, bypassing hooks
+    #
+    # @param  [Hash]  attributes
+    #   attributes to be updated
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if resource and storage state match
+    #
+    # @api public
+    def update!(attributes = {})
+      self.attributes = attributes
       _update
     end
 
@@ -542,15 +554,24 @@ module DataMapper
     # @api public
     chainable do
       def save
-        # Takes a context, but does nothing with it. This is to maintain the
-        # same API through out all of dm-more. dm-validations requires a
-        # context to be passed
+        _save
+      end
+    end
 
-        unless saved = new? ? _create : _update
-          return false
-        end
-
-        child_associations.all? { |a| a.save }
+    ##
+    # Save the instance and associated children to the data-store, bypassing hooks
+    #
+    # This saves all children in a has n relationship (if they're dirty).
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if Resource instance and all associations were saved
+    #
+    # @see Repository#save
+    #
+    # @api public
+    chainable do
+      def save!
+        _save
       end
     end
 
@@ -562,13 +583,18 @@ module DataMapper
     #
     # @api public
     def destroy
-      if saved?
-        repository.delete(Collection.new(to_query, [ self ]))
-        reset
-        true
-      else
-        false
-      end
+      _destroy
+    end
+
+    ##
+    # Destroy the instance, remove it from the repository, bypassing hooks
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if resource was destroyed
+    #
+    # @api public
+    def destroy!
+      _destroy
     end
 
     # Gets a Query that will return this Resource instance
@@ -593,6 +619,18 @@ module DataMapper
     end
 
     protected
+
+    ##
+    # Saves the resource
+    #
+    # @api private
+    def _save
+      unless saved = new? ? _create : _update
+        return false
+      end
+
+      child_associations.all? { |a| a.save }
+    end
 
     ##
     # Saves this Resource instance to the repository,
@@ -671,6 +709,20 @@ module DataMapper
         identity_map[key] = self
 
         true
+      end
+    end
+
+    ##
+    # Destroys the resource
+    #
+    # @api private
+    def _destroy
+      if saved?
+        repository.delete(Collection.new(to_query, [ self ]))
+        reset
+        true
+      else
+        false
       end
     end
 
