@@ -1050,7 +1050,7 @@ module DataMapper
         @identity_map[resource.key] = resource
         @orphans.delete(resource)
       else
-        resource.attributes = default_attributes.except(*resource.loaded_attributes.map { |p| p.name })
+        resource.attributes = default_attributes
       end
 
       resource

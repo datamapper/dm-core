@@ -290,7 +290,7 @@ share_examples_for 'A public Collection' do
       before :all do
         @resources = @articles.dup.entries
 
-        @return = @articles.send(method) { |r| @model.new(:title => 'Title') }
+        @return = @articles.send(method) { |r| @model.new(:title => 'Ignored Title', :content => 'New Content') }
       end
 
       it 'should return a Collection' do
@@ -302,7 +302,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update the Collection inline' do
-        @articles.each { |r| r.attributes.only(:title).should == { :title => 'Title' } }
+        @articles.each { |r| r.attributes.only(:title, :content).should == { :title => 'Sample Article', :content => 'New Content' } }
       end
 
       it 'should orphan each replaced Resource in the Collection' do
@@ -1139,7 +1139,7 @@ share_examples_for 'A public Collection' do
   describe '#inspect' do
     before :all do
       @copy = @articles.dup
-      @copy << @model.new(:title => 'Other Article')
+      @copy << @model.new(:title => 'Ignored Title', :content => 'Other Article')
 
       @return = @copy.inspect
     end
@@ -1150,7 +1150,8 @@ share_examples_for 'A public Collection' do
     it { @return.should match(/\bid=nil\b/) }
 
     it { @return.should match(/\btitle=\"Sample Article\"\s/) }
-    it { @return.should match(/\btitle=\"Other Article\"\s/) }
+    it { @return.should_not match(/\btitle=\"Ignored Title\"\s/) }
+    it { @return.should match(/\bcontent=\"Other Article\"\s/) }
   end
 
   it { @articles.should respond_to(:last) }
@@ -1671,7 +1672,7 @@ share_examples_for 'A public Collection' do
 
     describe 'when provided an Array of Hashes' do
       before :all do
-        @array = [ { :title => 'Hash Article', :content => 'From Hash' } ].freeze
+        @array = [ { :content => 'From Hash' } ].freeze
 
         @return = @articles.replace(@array)
       end
