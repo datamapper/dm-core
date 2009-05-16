@@ -16,12 +16,14 @@ module DataMapper
       @properties[name]
     end
 
+    alias super_slice []=
+
     # TODO: document
     # @api semipublic
     def []=(name, property)
       if named?(name)
         add_property(property)
-        map! { |p| p == property || p.name == property.name ? property : p }
+        super_slice(index(property), property)
       else
         self << property
       end
@@ -42,8 +44,12 @@ module DataMapper
     # TODO: document
     # @api semipublic
     def <<(property)
-      add_property(property)
-      super
+      if named?(property.name)
+        super_slice(index(property), property)
+      else
+        add_property(property)
+        super
+      end
     end
 
     # TODO: document

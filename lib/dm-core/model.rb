@@ -113,6 +113,8 @@ module DataMapper
     # TODO: document
     # @api private
     def self.extended(model)
+      return if Model.descendants.include?(model)
+
       unless model.ancestors.include?(Resource)
         model.send(:include, Resource)
       end
