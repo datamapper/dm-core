@@ -8,11 +8,11 @@ module DataMapper
         # for given source
         #
         # @api semipublic
-        def get(source, query = nil)
+        def get(source, other_query = nil)
           assert_kind_of 'source', source, source_model
 
           return unless loaded?(source) || source_key.loaded?(source)
-          @relationship.get(source, query).first
+          @relationship.get(source, other_query).first
         end
 
         # Sets and returns association target
@@ -21,6 +21,7 @@ module DataMapper
         # @api semipublic
         def set(source, target)
           assert_kind_of 'source', source, source_model
+          assert_kind_of 'target', target, Resource, NilClass
 
           @relationship.set(source, [ target ].compact)
           target

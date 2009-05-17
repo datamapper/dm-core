@@ -209,6 +209,11 @@ module DataMapper
       query = with_query ? last_arg : {}
       query = self.query.slice(0, limit || 1).update(query)
 
+      # TODO: when a query provided, and there are enough elements in head to
+      # satisfy the query.limit, filter the head with the query, and make
+      # sure it matches the limit exactly.  if so, use that result instead
+      # of calling all()
+
       collection = if !with_query && (loaded? || lazy_possible?(head, query.limit))
         new_collection(query, super(query.limit))
       else
@@ -251,6 +256,11 @@ module DataMapper
 
       # tell the Query to prepend each result from the adapter
       query.update(:add_reversed => !query.add_reversed?)
+
+      # TODO: when a query provided, and there are enough elements in tail to
+      # satisfy the query.limit, filter the tail with the query, and make
+      # sure it matches the limit exactly.  if so, use that result instead
+      # of calling all()
 
       collection = if !with_query && (loaded? || lazy_possible?(tail, query.limit))
         new_collection(query, super(query.limit))

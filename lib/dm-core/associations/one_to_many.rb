@@ -47,7 +47,7 @@ module DataMapper
         #   A Query to further scope the collection with
         #
         # @return [Collection]
-        #   The collection scoped to the relationship, resource and query
+        #   The collection scoped to the relationship, source and query
         #
         # @api private
         def collection_for(source, other_query = nil)
@@ -64,18 +64,18 @@ module DataMapper
         # (ex.: author)
         #
         # @api semipublic
-        def get(source, query = nil)
+        def get(source, other_query = nil)
           assert_kind_of 'source', source, source_model
 
           lazy_load(source) unless loaded?(source)
           collection = get!(source)
 
-          if query.nil?
+          if other_query.nil?
             collection
           else
             # XXX: use query_for(source) to explicitly set the target_key in the query
             # because we do not save a reference to the instance.  Remove when we do.
-            collection.all(query_for(source, query))
+            collection.all(query_for(source, other_query))
           end
         end
 
@@ -84,7 +84,8 @@ module DataMapper
         #
         # @api semipublic
         def set(source, targets)
-          assert_kind_of 'source', source, source_model
+          assert_kind_of 'source',  source,  source_model
+          assert_kind_of 'targets', targets, Array
 
           lazy_load(source) unless loaded?(source)
           get!(source).replace(targets)
@@ -204,27 +205,6 @@ module DataMapper
         # @api public
         def reload(*)
           assert_source_saved 'The source must be saved before reloading the collection'
-          super
-        end
-
-        # TODO: document
-        # @api public
-        def all(*)
-          assert_source_saved 'The source must be saved before further scoping the collection'
-          super
-        end
-
-        # TODO: document
-        # @api public
-        def first(*)
-          assert_source_saved 'The source must be saved before further scoping the collection'
-          super
-        end
-
-        # TODO: document
-        # @api public
-        def last(*)
-          assert_source_saved 'The source must be saved before further scoping the collection'
           super
         end
 

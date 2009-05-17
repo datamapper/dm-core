@@ -254,7 +254,7 @@ module DataMapper
       # Must be implemented in subclasses.
       #
       # @api semipublic
-      def get(resource, query = nil)
+      def get(resource, other_query = nil)
         raise NotImplementedError, "#{self.class}#get not implemented"
       end
 

@@ -47,34 +47,41 @@ module DataMapper
           query.update(:fields => query.fields | target_key)
         end
 
+        ##
+        # Returns a Resoruce for this relationship with a given source
+        #
+        # @param [Resource] source
+        #   A Resource to scope the collection with
+        # @param [Query] other_query (optional)
+        #   A Query to further scope the collection with
+        #
+        # @return [Resource]
+        #   The resource scoped to the relationship, source and query
+        #
+        # @api private
+        def resource_for(source, other_query = nil)
+          query = query_for(source, other_query)
+
+          target_model.first(query)
+        end
+
         # Loads and returns association target (ex.: author) for given source resource
         # (ex.: article)
         #
         # @param  source  [DataMapper::Resource]
         #   Child object (ex.: instance of article)
-        # @param  query  [DataMapper::Query]
+        # @param  other_query  [DataMapper::Query]
         #   Query options
         #
         # @api semipublic
-        def get(source, query = nil)
+        def get(source, other_query = nil)
           assert_kind_of 'source', source, source_model
 
-          return unless loaded?(source) || (source_key.loaded?(source) && lazy_load(source))
+          lazy_load(source) unless loaded?(source)
           resource = get!(source)
 
-          if query.nil?
+          if other_query.nil? || query_for(source, other_query).conditions.matches?(resource)
             resource
-          else
-            # TODO: when Resource can be matched against conditions
-            # easily, return the resource if it matches, otherwise
-            # return nil
-            if resource.saved?
-              target_model.first(resource.to_query.update(query))
-            else
-              # TODO: remove this condition when in-memory objects
-              # can be matched
-              resource
-            end
           end
         end
 
@@ -90,6 +97,7 @@ module DataMapper
         # @api semipublic
         def set(source, target)
           assert_kind_of 'source', source, source_model
+          assert_kind_of 'target', target, Resource, NilClass
 
           source_key.set(source, target_key.get(target))
           set!(source, target)
@@ -148,11 +156,12 @@ module DataMapper
         #
         # @api private
         def lazy_load(source)
+          return unless source_key.loaded?(source)
+
           # TODO: use SEL to load the related record for every resource in
           # the collection the target belongs to
 
-          query = query_for(source)
-          set!(source, target_model.first(query))
+          set!(source, resource_for(source))
         end
 
         # Returns the inverse relationship class
