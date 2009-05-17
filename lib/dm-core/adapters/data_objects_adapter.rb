@@ -74,7 +74,7 @@ module DataMapper
         fields = query.fields
         types  = fields.map { |p| p.primitive }
 
-        resources = []
+        records = []
 
         with_connection do |connection|
           statement, bind_values = select_statement(query)
@@ -86,14 +86,14 @@ module DataMapper
 
           begin
             while(reader.next!)
-              resources << fields.zip(reader.values).to_hash
+              records << fields.zip(reader.values).to_hash
             end
           ensure
             reader.close
           end
         end
 
-        resources
+        records
       end
 
       # Constructs and executes UPDATE statement for given
