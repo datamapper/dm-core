@@ -82,6 +82,9 @@ module DataMapper
       properties = model.properties(repository.name)
       fields     = properties.key | [ properties.discriminator ].compact | self.query.fields | query.fields
 
+      # sort fields based on declared order, for more consistent reload queries
+      fields = properties & fields
+
       # replace the list of resources
       replace(all(query.update(:fields => fields, :reload => true)))
     end

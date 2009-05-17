@@ -918,13 +918,10 @@ module DataMapper
             field
 
           # TODO: mix-in Operator normalization for fields in dm-aggregates
-          #when Operator
-          #  field
+          when Operator
+            field
         end
       end
-
-      # sort fields based on declared order, appending unmatch fields
-      @fields = (@properties & @fields) | @fields
     end
 
     ##
