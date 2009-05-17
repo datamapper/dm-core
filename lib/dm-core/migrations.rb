@@ -752,7 +752,7 @@ module DataMapper
       # @param Symbol repository_name the repository to be migrated
       #
       # @api private
-      def auto_migrate_down!(repository_name)
+      def auto_migrate_down!(repository_name = self.repository_name)
         assert_valid
         if base_model == self
           repository(repository_name).destroy_model_storage(self)
@@ -767,7 +767,7 @@ module DataMapper
       # @param Symbol repository_name the repository to be migrated
       #
       # @api private
-      def auto_migrate_up!(repository_name)
+      def auto_migrate_up!(repository_name = self.repository_name)
         assert_valid
         if base_model == self
           repository(repository_name).create_model_storage(self)
