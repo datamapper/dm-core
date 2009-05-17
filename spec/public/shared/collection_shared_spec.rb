@@ -9,7 +9,9 @@ share_examples_for 'A public Collection' do
     @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
                defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
 
-    @skip = @no_join && @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
+    @many_to_many = @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
+
+    @skip = @no_join && @many_to_many
   end
 
   before do
@@ -93,7 +95,7 @@ share_examples_for 'A public Collection' do
 
       it 'should be expected Resources' do
         @return.size.should == 1
-        pending_if 'allow in place filtering on many to many', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+        pending_if 'allow in place filtering on many to many', @many_to_many do
           @return.first.should equal(@new)
         end
       end
@@ -607,7 +609,7 @@ share_examples_for 'A public Collection' do
       # and execute in the before :all block
       unless loaded
         it 'should not be a kicker' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          pending_if 'TODO', @many_to_many do
             @articles.should_not be_loaded
           end
         end
@@ -2637,7 +2639,7 @@ share_examples_for 'A public Collection' do
       # and execute in the before :all block
       unless loaded
         it 'should not be a kicker' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          pending_if 'TODO', @many_to_many do
             @articles.should_not be_loaded
           end
         end
@@ -2672,7 +2674,7 @@ share_examples_for 'A public Collection' do
       # and execute in the before :all block
       unless loaded
         it 'should not be a kicker' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+          pending_if 'TODO', @many_to_many do
             @articles.should_not be_loaded
           end
         end
