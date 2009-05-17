@@ -46,6 +46,21 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
       end
 
       it_should_behave_like 'A public Collection'
+
+      describe '#destroy!' do
+        describe 'on a limited collection' do
+          before :all do
+            @other   = @articles.create
+            @limited = @articles.all(:limit => 1)
+
+            @return = @limited.destroy!
+          end
+
+          it 'should only remove the join resource for the destroyed resource' do
+            ArticleAuthor.all.should_not be_empty
+          end
+        end
+      end
     end
   end
 end

@@ -218,43 +218,38 @@ share_examples_for 'A public Resource' do
     end
   end
 
-  it { @user.should respond_to(:destroy) }
+  [ :destroy, :destroy! ].each do |method|
+    it { @user.should respond_to(:destroy) }
 
-  describe '#destroy' do
+    describe "##{method}" do
+      describe 'on a single object' do
+        before :all do
+          @resource = @model.create(:name => 'hacker', :age => 20)
 
-    describe 'on a single object' do
+          @return = @resource.send(method)
+        end
 
-      before :all do
-        @resource = @model.create(:name => "hacker", :age => 20)
-        @return = @resource.destroy
-      end
+        it 'should successfully remove a resource' do
+          @return.should be_true
+        end
 
-      it 'should successfully remove a resource' do
-        @return.should be_true
-      end
-
-      it 'should freeze the destoyed resource' do
-        pending "it freezes resources when destroying them" do
+        it 'should freeze the destoyed resource' do
           @resource.should be_frozen
+        end
+
+        it 'should not be able to remove an already removed resource' do
+          @resource.destroy.should be_false
+        end
+
+        it 'should remove object from persitent storage' do
+          @model.get(*@resource.key).should be_nil
         end
       end
 
-      it 'should not be able to remove an already removed resource' do
-        @resource.destroy.should be_false
+      describe 'with has relationship resources' do
+        it 'should raise an exception'
       end
-
-      it 'should remove object from persitent storage' do
-        @model.get(*@resource.key).should be_nil
-      end
-
     end
-
-    describe 'with has relationship resources' do
-
-      it 'should raise an exception'
-
-    end
-
   end
 
   it { @user.should respond_to(:eql?) }

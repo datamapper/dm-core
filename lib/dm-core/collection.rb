@@ -771,8 +771,9 @@ module DataMapper
         false
       else
         if query.limit || query.offset > 0
-          # TODO: handle this with a subquery
-          each { |r| r.update!(attributes) }
+          # TODO: handle this with a subquery and handle compound keys
+          key = model.key(repository.name)
+          model.all(:repository => repository, key.first => map { |r| r.key.first }).update!(attributes)
         else
           repository.update(dirty_attributes, self)
         end
@@ -839,8 +840,9 @@ module DataMapper
     # @api public
     def destroy!
       if query.limit || query.offset > 0
-        # TODO: handle this with a subquery
-        each { |r| r.destroy! }
+        # TODO: handle this with a subquery and handle compound keys
+        key = model.key(repository.name)
+        model.all(:repository => repository, key.first => map { |r| r.key.first }).destroy!
       else
         repository.delete(self)
       end

@@ -598,34 +598,75 @@ share_examples_for 'A public Collection' do
   it { @articles.should respond_to(:destroy!) }
 
   describe '#destroy!' do
-    before :all do
-      @return = @articles.destroy!
-    end
+    describe 'on a normal collection' do
+      before :all do
+        @return = @articles.destroy!
+      end
 
-    # FIXME: this is spec order dependent, move this into a helper method
-    # and execute in the before :all block
-    unless loaded
-      it 'should not be a kicker' do
-        pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-          @articles.should_not be_loaded
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
+            @articles.should_not be_loaded
+          end
         end
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+
+      it 'should remove the Resources from the datasource' do
+        @model.all(:title => 'Sample Article').should be_empty
+      end
+
+      it 'should clear the collection' do
+        @articles.should be_empty
+      end
+
+      it 'should bypass validation' do
+        pending 'TODO: not sure how to best spec this'
       end
     end
 
-    it 'should return true' do
-      @return.should be_true
-    end
+    describe 'on a limited collection' do
+      before :all do
+        @other   = @articles.create
+        @limited = @articles.all(:limit => 1)
 
-    it 'should remove the Resources from the datasource' do
-      @model.all(:title => 'Sample Article').should be_empty
-    end
+        @return = @limited.destroy!
+      end
 
-    it 'should clear the collection' do
-      @articles.should be_empty
-    end
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending 'Update Collection#destroy! to use a subquery' do
+            @limited.should_not be_loaded
+          end
+        end
+      end
 
-    it 'should bypass validation' do
-      pending 'TODO: not sure how to best spec this'
+      it 'should return true' do
+        @return.should be_true
+      end
+
+      it 'should remove the Resources from the datasource' do
+        @model.all(:title => 'Sample Article').should == [ @other ]
+      end
+
+      it 'should clear the collection' do
+        @limited.should be_empty
+      end
+
+      it 'should bypass validation' do
+        pending 'TODO: not sure how to best spec this'
+      end
+
+      it 'should not destroy the other Resource' do
+        @model.get(*@other.key).should_not be_nil
+      end
     end
   end
 
@@ -2670,6 +2711,48 @@ share_examples_for 'A public Collection' do
 
       it 'should return false' do
         @return.should be_false
+      end
+    end
+
+    describe 'on a limited collection' do
+      before :all do
+        @other      = @articles.create
+        @limited    = @articles.all(:limit => 1)
+        @attributes = { :content => 'Updated Content' }
+
+        @return = @limited.update!(@attributes)
+      end
+
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending 'Update Collection#update! to use a subquery' do
+            @limited.should_not be_loaded
+          end
+        end
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+
+      it 'should bypass validation' do
+        pending 'TODO: not sure how to best spec this'
+      end
+
+      it 'should update attributes of all Resources' do
+        @limited.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
+      end
+
+      it 'should persist the changes' do
+        resource = @model.get(*@article.key)
+        @attributes.each { |k, v| resource.send(k).should == v }
+      end
+
+      it 'should not update the other Resource' do
+        @other.reload
+        @attributes.each { |k, v| @other.send(k).should_not == v }
       end
     end
   end

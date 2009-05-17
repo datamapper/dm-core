@@ -340,7 +340,7 @@ module DataMapper
           return if resource.nil?
 
           # only orphan a resource if it could have been related previously
-          if relationship.source_key.loaded?(source)
+          if !resource.frozen? && relationship.source_key.loaded?(source)
             relationship.inverse.set(resource, nil)
           end
 

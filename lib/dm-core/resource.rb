@@ -720,6 +720,7 @@ module DataMapper
       if saved?
         repository.delete(Collection.new(to_query, [ self ]))
         reset
+        freeze
         true
       else
         false

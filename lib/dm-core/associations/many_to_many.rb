@@ -231,9 +231,6 @@ module DataMapper
               target = new(target)
             end
 
-            source_key = last_relationship.source_key
-            target_key = last_relationship.target_key
-
             if association.kind_of?(OneToMany::Collection)
               association << { last_relationship.name => target }
             else
@@ -263,7 +260,9 @@ module DataMapper
           key             = model.key(repository_name)
 
           # TODO: handle compound keys
-          return false unless model.all(key.first => map { |r| r.key.first }).update!(attributes)
+          unless model.all(:repository => repository_name, key.first => map { |r| r.key.first }).update!(attributes)
+            return false
+          end
 
           dirty_attributes = model.new(attributes).dirty_attributes
 
@@ -278,13 +277,17 @@ module DataMapper
         # TODO: document
         # @api public
         def save
-          through = @relationship.through
+          through           = @relationship.through
+          last_relationship = @relationship.links.last
 
           # TODO: create the new intermediaries
 
-          @orphans.each do |resource|
-            if resource = through.get(source)
-              resource.destroy
+          # delete only intermediaries linked to the target orphans
+          if intermediaries = through.get(source)
+            intermediaries.each do |intermediary|
+              if @orphans.include?(last_relationship.get(intermediary))
+                intermediary.destroy
+              end
             end
           end
 
@@ -311,7 +314,7 @@ module DataMapper
           key             = model.key(repository_name)
 
           # TODO: handle compound keys
-          model.all(key.first => map { |r| r.key.first }).destroy!
+          model.all(:repository => repository_name, key.first => map { |r| r.key.first }).destroy!
 
           each { |r| r.reset }
           clear
