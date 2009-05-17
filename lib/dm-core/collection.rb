@@ -770,12 +770,8 @@ module DataMapper
       elsif dirty_attributes.any? { |p, v| !p.nullable? && v.nil? }
         false
       else
-        if query.limit || query.offset > 0
-          # TODO: handle this with a subquery and handle compound keys
-          key = model.key(repository.name)
-          model.all(:repository => repository, key.first => map { |r| r.key.first }).update!(attributes)
-        else
-          repository.update(dirty_attributes, self)
+        unless _update(dirty_attributes)
+          return false
         end
 
         if loaded?
@@ -989,6 +985,26 @@ module DataMapper
     def new_collection(query, resources = nil, &block)
       resources ||= filter(query) if loaded?
       self.class.new(query, resources, &block)
+    end
+
+    ##
+    # Updates a collection
+    #
+    # @return [TrueClass,FalseClass]
+    #   Returns true if collection was updated
+    #
+    # @api private
+    def _update(dirty_attributes)
+      if query.limit || query.offset > 0
+        attributes = dirty_attributes.map { |p, v| [ p.name, v ] }.to_hash
+
+        # TODO: handle this with a subquery and handle compound keys
+        key = model.key(repository.name)
+        model.all(:repository => repository, key.first => map { |r| r.key.first }).update!(attributes)
+      else
+        repository.update(dirty_attributes, self)
+        true
+      end
     end
 
     ##

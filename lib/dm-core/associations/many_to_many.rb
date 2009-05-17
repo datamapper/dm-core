@@ -253,29 +253,6 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def update!(attributes = {})
-          # FIXME: use a subquery to do this more efficiently in the future,
-          repository_name = @relationship.target_repository_name
-          model           = @relationship.target_model
-          key             = model.key(repository_name)
-
-          # TODO: handle compound keys
-          unless model.all(:repository => repository_name, key.first => map { |r| r.key.first }).update!(attributes)
-            return false
-          end
-
-          dirty_attributes = model.new(attributes).dirty_attributes
-
-          each do |resource|
-            dirty_attributes.each { |p, v| p.set!(resource, v) }
-            repository.identity_map(model)[resource.key] = resource
-          end
-
-          true
-        end
-
-        # TODO: document
-        # @api public
         def save
           through           = @relationship.through
           last_relationship = @relationship.links.last
@@ -323,6 +300,16 @@ module DataMapper
         end
 
         private
+
+        def _update(dirty_attributes)
+          attributes = dirty_attributes.map { |p, v| [ p.name, v ] }.to_hash
+
+          # FIXME: use a subquery to do this more efficiently in the future,
+          key = model.key(repository.name)
+
+          # TODO: handle compound keys
+          model.all(:repository => repository_name, key.first => map { |r| r.key.first }).update!(attributes)
+        end
 
         def intermediaries(attributes, links)
           attributes = default_attributes.merge(attributes)

@@ -2617,9 +2617,7 @@ share_examples_for 'A public Collection' do
       # and execute in the before :all block
       unless loaded
         it 'should not be a kicker' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @articles.should_not be_loaded
-          end
+          @articles.should_not be_loaded
         end
       end
 
@@ -2703,9 +2701,7 @@ share_examples_for 'A public Collection' do
       # and execute in the before :all block
       unless loaded
         it 'should not be a kicker' do
-          pending_if 'TODO', @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection) do
-            @articles.should_not be_loaded
-          end
+          @articles.should_not be_loaded
         end
       end
 

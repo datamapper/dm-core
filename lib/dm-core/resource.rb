@@ -523,7 +523,7 @@ module DataMapper
     # @api public
     def update(attributes = {})
       self.attributes = attributes
-      _update
+      _update(dirty_attributes)
     end
 
     ##
@@ -538,7 +538,7 @@ module DataMapper
     # @api public
     def update!(attributes = {})
       self.attributes = attributes
-      _update
+      _update(dirty_attributes)
     end
 
     ##
@@ -621,18 +621,6 @@ module DataMapper
     protected
 
     ##
-    # Saves the resource
-    #
-    # @api private
-    def _save
-      unless saved = new? ? _create : _update
-        return false
-      end
-
-      child_associations.all? { |a| a.save }
-    end
-
-    ##
     # Saves this Resource instance to the repository,
     # setting default values for any unset properties
     #
@@ -647,7 +635,7 @@ module DataMapper
     # @return [TrueClass, FalseClass]
     #   true if the receiver was successfully created
     #
-    # @api semipublic
+    # @api private
     def _create
       # Can't create a resource that is not dirty and doesn't have serial keys
       if new? && !dirty?
@@ -686,11 +674,8 @@ module DataMapper
     # @return [TrueClass, FalseClass]
     #   true if the receiver was successfully updated
     #
-    # @api semipublic
-    def _update
-      # retrieve the attributes that need to be persisted
-      dirty_attributes = self.dirty_attributes
-
+    # @api private
+    def _update(dirty_attributes)
       if dirty_attributes.empty?
         true
       elsif dirty_attributes.any? { |p, v| !p.nullable? && v.nil? }
@@ -712,6 +697,20 @@ module DataMapper
       end
     end
 
+    private
+
+    ##
+    # Saves the resource
+    #
+    # @api private
+    def _save
+      unless saved = new? ? _create : _update(dirty_attributes)
+        return false
+      end
+
+      child_associations.all? { |a| a.save }
+    end
+
     ##
     # Destroys the resource
     #
@@ -726,8 +725,6 @@ module DataMapper
         false
       end
     end
-
-    private
 
     # Returns name of the repository this object
     # was loaded from
