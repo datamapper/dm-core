@@ -6,23 +6,17 @@
 #   such as Rails or Merb.
 #
 
+require 'addressable/uri'
 require 'base64'
 require 'bigdecimal'
 require 'date'
+require 'extlib'
 require 'pathname'
-require 'rubygems'
 require 'set'
 require 'time'
 require 'yaml'
 
-gem 'addressable', '~>2.0.2'
-require 'addressable/uri'
-
-gem 'extlib', '~>0.9.11'
-require 'extlib'
-
 begin
-  gem 'fastthread', '~>1.0.4'
   require 'fastthread'
 rescue LoadError
   # fastthread not installed
