@@ -704,6 +704,12 @@ module DataMapper
 
     module Model
       # TODO: document
+      # @api private
+      def self.included(mod)
+        mod.descendants.each { |model| model.extend self }
+      end
+
+      # TODO: document
       # @api semipublic
       def storage_exists?(repository_name = default_repository_name)
         repository(repository_name).storage_exists?(storage_name(repository_name))
