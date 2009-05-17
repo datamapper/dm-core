@@ -689,14 +689,6 @@ module DataMapper
               raise ArgumentError, "+options[:field]+ entry #{field.name.inspect} does not map to a property in #{model}"
             end
 
-          # TODO: mix-in Operator validation for fields in dm-aggregates
-          #when Operator
-          #  target = field.target
-          #
-          #  unless target.kind_of?(Property) && target.model == model && @properties.include?(target)
-          #    raise ArgumentError, "+options[:fields]+ entry #{target.inspect} does not map to a property in #{model}"
-          #  end
-
           else
             raise ArgumentError, "+options[:fields]+ entry #{field.inspect} of an unsupported object #{field.class}"
         end
@@ -914,11 +906,7 @@ module DataMapper
           when Symbol, String
             @properties[field]
 
-          when Property
-            field
-
-          # TODO: mix-in Operator normalization for fields in dm-aggregates
-          when Operator
+          when Property, Operator
             field
         end
       end
