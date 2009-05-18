@@ -655,7 +655,9 @@ module DataMapper
       #
       # @api semipublic
       def storage_exists?(storage_name)
-        adapter.storage_exists?(storage_name)
+        if adapter.respond_to?(:storage_exists?)
+          adapter.storage_exists?(storage_name)
+        end
       end
 
       # TODO: document
