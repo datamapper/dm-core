@@ -64,6 +64,8 @@ end
 
         @articles       = @author.articles(:title => 'Sample Article')
         @other_articles = @author.articles(:title => 'Other Article')
+
+        @articles.entries if loaded
       end
 
       it_should_behave_like 'A public Collection'

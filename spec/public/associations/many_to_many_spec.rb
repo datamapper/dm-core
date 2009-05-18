@@ -43,6 +43,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
         @articles       = @author.articles(:title => 'Sample Article')
         @other_articles = @author.articles(:title => 'Other Article')
+
+        @articles.entries if loaded
       end
 
       it_should_behave_like 'A public Collection'

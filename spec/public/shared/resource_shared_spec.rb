@@ -817,4 +817,17 @@ share_examples_for 'A public Resource' do
       end
     end
   end
+
+  describe 'lazy loading' do
+    before :all do
+      @user.name = 'dkubb'
+      @user.description  # lazy load the description
+    end
+
+    it 'should not overwrite dirty attribute' do
+      pending do
+        @user.name.should == 'dkubb'
+      end
+    end
+  end
 end

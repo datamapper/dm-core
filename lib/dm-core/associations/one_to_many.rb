@@ -34,8 +34,7 @@ module DataMapper
           query = self.query.merge(source_scope(source))
           query.update(other_query) if other_query
 
-          query = Query.new(DataMapper.repository(target_repository_name), target_model, query)
-          query.update(:fields => query.fields | target_key)
+          Query.new(DataMapper.repository(target_repository_name), target_model, query)
         end
 
         ##
@@ -190,15 +189,11 @@ module DataMapper
         # TODO: document
         # @api public
         def query
-          query = super
-
-          # include the target_key in the results
-          query.update(:fields => query.fields | relationship.target_key.to_a)
+          # TODO: remove this when the Query stores a reference to the
+          # Resource instead of the Resource keys
 
           # scope the query to the source
-          query.update(relationship.source_scope(source))
-
-          query
+          super.update(relationship.source_scope(source))
         end
 
         # TODO: document

@@ -3,12 +3,15 @@ share_examples_for 'A public Collection' do
     %w[ @model @article @other @original @articles @other_articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
+
+    @articles.loaded?.should == loaded
   end
 
   before :all do
     @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
                defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
 
+    @one_to_many  = @articles.kind_of?(DataMapper::Associations::OneToMany::Collection)
     @many_to_many = @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
 
     @skip = @no_join && @many_to_many
@@ -1622,6 +1625,16 @@ share_examples_for 'A public Collection' do
         @return = @collection = @articles.reload
       end
 
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending do
+            @articles.should_not be_loaded
+          end
+        end
+      end
+
       it 'should return a Collection' do
         @return.should be_kind_of(DataMapper::Collection)
       end
@@ -1642,6 +1655,16 @@ share_examples_for 'A public Collection' do
         @resources = @articles.dup.entries
 
         @return = @collection = @articles.reload(:fields => [ :content ])  # :title is a default field
+      end
+
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending do
+            @articles.should_not be_loaded
+          end
+        end
       end
 
       it 'should return a Collection' do
@@ -1666,6 +1689,16 @@ share_examples_for 'A public Collection' do
         @return = @collection = @articles.reload(@query)
       end
 
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending do
+            @articles.should_not be_loaded
+          end
+        end
+      end
+
       it 'should return a Collection' do
         @return.should be_kind_of(DataMapper::Collection)
       end
@@ -1674,9 +1707,11 @@ share_examples_for 'A public Collection' do
         @return.should be_equal(@articles)
       end
 
-      { :id => true, :content => true, :title => true }.each do |attribute, expected|
+      { :id => true, :content => true, :title => loaded }.each do |attribute, expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-          @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
+          pending_if "TODO: #{@articles.class}#reload should not be a kicker", @one_to_many && loaded == false && attribute == :title do
+            @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
+          end
         end
       end
     end
