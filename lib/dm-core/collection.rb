@@ -969,15 +969,14 @@ module DataMapper
 
       resources = repository.read(query)
 
-      orphans = @orphans.to_a
-
       # remove already known results
-      resources -= head    if head.any?
-      resources -= tail    if tail.any?
-      resources -= orphans if orphans.any?
+      resources -= head          if head.any?
+      resources -= tail          if tail.any?
+      resources -= @orphans.to_a if @orphans.any?
 
       query.add_reversed? ? unshift(*resources.reverse) : concat(resources)
 
+      # TODO: DRY this up with LazyArray
       @array.unshift(*head)
       @array.concat(tail)
 

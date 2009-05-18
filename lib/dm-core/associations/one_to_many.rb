@@ -280,8 +280,21 @@ module DataMapper
         # TODO: document
         # @api private
         def lazy_load
-          assert_source_saved 'The source must be saved before loading the collection'
-          super
+          if source.saved? || loaded?
+            super
+          else
+            mark_loaded
+
+            # TODO: DRY this up with LazyArray
+            @array.unshift(*head)
+            @array.concat(tail)
+
+            @head = @tail = nil
+            @reapers.each { |r| @array.delete_if(&r) } if @reapers
+            @array.freeze if frozen?
+
+            self
+          end
         end
 
         # TODO: document

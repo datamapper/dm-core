@@ -177,8 +177,16 @@ share_examples_for 'it creates a many accessor' do
   end
 
   describe 'when there is no child resource and the source is not saved' do
-    it 'should raise an exception when loading the association' do
-      lambda { @car.send(@name).to_a }.should raise_error(DataMapper::Associations::UnsavedParentError)
+    before :all do
+      @return = @car.send(@name)
+    end
+
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
+
+    it 'should return an empty Collection' do
+      @return.should be_empty
     end
   end
 
