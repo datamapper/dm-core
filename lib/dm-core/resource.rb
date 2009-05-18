@@ -398,7 +398,7 @@ module DataMapper
     # @api public
     def reload
       if saved?
-        reload_attributes(*loaded_attributes)
+        reload_attributes(loaded_attributes)
         child_associations.each { |a| a.reload }
       end
 
@@ -415,7 +415,7 @@ module DataMapper
     #   the receiver, the current Resource instance
     #
     # @api private
-    def reload_attributes(*attributes)
+    def reload_attributes(attributes)
       unless attributes.empty? || new?
         collection.reload(:fields => attributes)
       end
@@ -786,8 +786,8 @@ module DataMapper
     # context, and not yet loaded
     #
     # @api private
-    def lazy_load(name)
-      reload_attributes(*properties.lazy_load_context(name) - loaded_attributes)
+    def lazy_load(property_names)
+      reload_attributes(properties.in_context(property_names) - loaded_attributes)
     end
 
     # Returns array of child relationships for which this resource is parent and is loaded

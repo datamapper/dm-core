@@ -654,8 +654,8 @@ module DataMapper
       # If we're trying to load a lazy property, load it. Otherwise, lazy-load
       # any properties that should be eager-loaded but were not included
       # in the original :fields list
-      contexts = lazy? ? name : model.properties(resource.repository.name).defaults
-      resource.send(:lazy_load, contexts)
+      property_names = lazy? ? [ name ] : model.properties(resource.repository.name).defaults.map { |p| p.name }
+      resource.send(:lazy_load, property_names)
     end
 
     # typecasts values into a primitive (Ruby class that backs DataMapper

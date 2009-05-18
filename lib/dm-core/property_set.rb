@@ -113,38 +113,32 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def property_contexts(name)
+    def property_contexts(property_name)
       contexts = []
       lazy_contexts.each do |context, property_names|
-        contexts << context if property_names.include?(name)
+        contexts << context if property_names.include?(property_name)
       end
       contexts
     end
 
     # TODO: document
     # @api private
-    def lazy_context(name)
-      lazy_contexts[name] ||= []
+    def lazy_context(context)
+      lazy_contexts[context] ||= []
     end
 
     # TODO: document
     # @api private
-    def lazy_load_context(names)
-      if names.kind_of?(Array) && names.empty?
-        raise ArgumentError, '+names+ cannot be empty'
-      end
-
-      result = []
-
-      Array(names).each do |name|
-        contexts = property_contexts(name)
-        if contexts.empty?
-          result << name  # not lazy
+    def in_context(property_names)
+      property_names_in_context = property_names.map do |property_name|
+        if (contexts = property_contexts(property_name)).any?
+          lazy_contexts.values_at(*contexts)
         else
-          result |= lazy_contexts.values_at(*contexts).flatten.uniq
+          property_name  # not lazy
         end
       end
-      result
+
+      values_at(*property_names_in_context.flatten.uniq)
     end
 
     private

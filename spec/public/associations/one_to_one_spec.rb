@@ -7,6 +7,7 @@ describe 'One to One Associations' do
 
       property :name,        String, :key => true
       property :age,         Integer
+      property :summary,     Text
       property :description, Text
       property :admin,       Boolean, :accessor => :private
 
@@ -81,6 +82,7 @@ describe 'One to One Through Associations' do
 
       property :name,        String, :key => true
       property :age,         Integer
+      property :summary,     Text
       property :description, Text
       property :admin,       Boolean, :accessor => :private
 

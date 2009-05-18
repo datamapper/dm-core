@@ -820,11 +820,23 @@ share_examples_for 'A public Resource' do
 
   describe 'lazy loading' do
     before :all do
-      @user.name = 'dkubb'
-      @user.description  # lazy load the description
+      @user.name    = 'dkubb'
+      @user.age     = 33
+      @user.summary = 'Programmer'
+
+      # lazy load the description
+      @user.description
     end
 
     it 'should not overwrite dirty attribute' do
+      @user.age.should == 33
+    end
+
+    it 'should not overwrite dirty lazy attribute' do
+      @user.summary.should == 'Programmer'
+    end
+
+    it 'should not overwrite dirty key' do
       pending do
         @user.name.should == 'dkubb'
       end
