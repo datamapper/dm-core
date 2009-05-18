@@ -6,7 +6,15 @@ module DataMapper
       # TODO: document
       # @api private
       def <=>(other)
-        cmp = @value <=> other.value
+        other_value = other.value
+
+        cmp = case
+          when @value.nil? && other_value.nil? then  0
+          when @value.nil?                     then  1
+          when other_value.nil?                then -1
+          else @value <=> other_value
+        end
+
         cmp *= -1 unless @ascending
         cmp
       end
