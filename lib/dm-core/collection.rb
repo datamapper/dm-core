@@ -79,9 +79,12 @@ module DataMapper
         identity_map[resource.key] = resource
       end
 
-      properties  = model.properties(repository.name)
-      fields      = properties.key | query.fields
-      fields     |= properties.discriminator if properties.discriminator
+      properties = model.properties(repository.name)
+      fields     = properties.key | query.fields
+
+      if discriminator = properties.discriminator
+        fields |= [ discriminator ]
+      end
 
       # sort fields based on declared order, for more consistent reload queries
       fields = properties & fields

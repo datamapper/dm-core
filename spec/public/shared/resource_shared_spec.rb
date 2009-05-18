@@ -820,12 +820,14 @@ share_examples_for 'A public Resource' do
 
   describe 'lazy loading' do
     before :all do
-      @user.name    = 'dkubb'
-      @user.age     = 33
-      @user.summary = 'Programmer'
+      rescue_if 'TODO', @skip do
+        @user.name    = 'dkubb'
+        @user.age     = 33
+        @user.summary = 'Programmer'
 
-      # lazy load the description
-      @user.description
+        # lazy load the description
+        @user.description
+      end
     end
 
     it 'should not overwrite dirty attribute' do
