@@ -209,7 +209,7 @@ module DataMapper
     #
     # @api private
     def hash
-      model.hash + key.hash
+      key.hash
     end
 
     ##
