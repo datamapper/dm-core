@@ -1034,7 +1034,7 @@ module DataMapper
       # TODO: update InclusionComparison so it knows how to do this
       if bind_value.kind_of?(Array)
         bind_value.uniq!
-        bind_value.size == 1 ? bind_value.first : bind_value.sort
+        bind_value.size == 1 ? bind_value.first : bind_value.sort_by { |v| Sort.new(v) }
       else
         bind_value
       end
