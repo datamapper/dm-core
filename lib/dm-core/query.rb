@@ -246,6 +246,9 @@ module DataMapper
       # reverse the sort order
       @order.map! { |o| o.reverse! }
 
+      # reverse the order for the options
+      @options = @options.merge(:order => @order).freeze
+
       self
     end
 
