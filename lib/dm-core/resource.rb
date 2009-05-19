@@ -306,14 +306,13 @@ module DataMapper
     #     property :description, Text,   :lazy => false
     #   end
     #
-    #   Foo.new.loaded_attributes   #=>  [ #<Property @model=Foo @name=:name> ]
+    #   Foo.new.loaded_properties   #=>  [ #<Property @model=Foo @name=:name> ]
     #
     # @return [Array(Property)]
     #   names of attributes that have been loaded
     #
     # @api private
-    # TODO: think about renaming this loaded_properties
-    def loaded_attributes
+    def loaded_properties
       properties.select { |p| p.loaded?(self) }
     end
 
@@ -398,7 +397,7 @@ module DataMapper
     # @api public
     def reload
       if saved?
-        reload_attributes(loaded_attributes)
+        reload_attributes(loaded_properties)
         child_associations.each { |a| a.reload }
       end
 
@@ -787,7 +786,7 @@ module DataMapper
     #
     # @api private
     def lazy_load(property_names)
-      reload_attributes(properties.in_context(property_names) - loaded_attributes)
+      reload_attributes(properties.in_context(property_names) - loaded_properties)
     end
 
     # Returns array of child relationships for which this resource is parent and is loaded
