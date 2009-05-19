@@ -223,18 +223,16 @@ module DataMapper
     # @api public
     def inspect
       attrs = properties.map do |property|
-        value = if property.loaded?(self)
+        value = if new? || property.loaded?(self)
           property.get!(self).inspect
-        elsif saved?
-          '<not loaded>'
         else
-          'nil'
+          '<not loaded>'
         end
 
         "#{property.instance_variable_name}=#{value}"
       end
 
-      "#<#{model.name} #{attrs * ' '}>"
+      "#<#{model.name} #{attrs.join(' ')}>"
     end
 
     ##
