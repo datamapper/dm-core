@@ -15,8 +15,7 @@ module DataMapper
           else @value <=> other_value
         end
 
-        cmp *= -1 unless @ascending
-        cmp
+        @ascending ? cmp : cmp * -1
       end
 
       private
