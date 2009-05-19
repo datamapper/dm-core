@@ -523,7 +523,7 @@ module DataMapper
     # @api public
     def update(attributes = {})
       self.attributes = attributes
-      _update(dirty_attributes)
+      _update
     end
 
     ##
@@ -538,7 +538,7 @@ module DataMapper
     # @api public
     def update!(attributes = {})
       self.attributes = attributes
-      _update(dirty_attributes)
+      _update
     end
 
     ##
@@ -675,7 +675,7 @@ module DataMapper
     #   true if the receiver was successfully updated
     #
     # @api private
-    def _update(dirty_attributes)
+    def _update
       if dirty_attributes.empty?
         true
       elsif dirty_attributes.any? { |p, v| !p.nullable? && v.nil? }
@@ -704,7 +704,7 @@ module DataMapper
     #
     # @api private
     def _save
-      unless saved = new? ? _create : _update(dirty_attributes)
+      unless saved = new? ? _create : _update
         return false
       end
 
