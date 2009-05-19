@@ -227,7 +227,7 @@ describe DataMapper::Property do
         end
 
         it 'sets original value of the property' do
-          @image.original_values[@property].should == "Rome at the sunset"
+          @image.original_attributes[@property].should == "Rome at the sunset"
         end
       end
 
@@ -238,7 +238,7 @@ describe DataMapper::Property do
 
         it 'only sets original value when it has changed' do
           @property.set_original_value(@image, "Rome at the sunset")
-          @image.original_values[@property].should be_blank
+          @image.original_attributes[@property].should be_blank
         end
       end
     end
@@ -265,7 +265,7 @@ describe DataMapper::Property do
 
       it 'stores original value' do
         @property.set(@image, "Updated value")
-        @image.original_values[@property].should == "Rome at the sunset"
+        @image.original_attributes[@property].should == "Rome at the sunset"
       end
 
       it 'sets new property value' do

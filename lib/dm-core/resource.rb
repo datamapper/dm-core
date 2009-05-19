@@ -266,7 +266,7 @@ module DataMapper
       return @key if defined?(@key)
 
       key = model.key(repository_name).map do |property|
-        original_values[property] || (property.loaded?(self) ? property.get!(self) : nil)
+        original_attributes[property] || (property.loaded?(self) ? property.get!(self) : nil)
       end
 
       # set the key if every entry is non-nil
@@ -324,8 +324,8 @@ module DataMapper
     #   original values of attributes that have unsaved changes
     #
     # @api semipublic
-    def original_values
-      @original_values ||= {}
+    def original_attributes
+      @original_attributes ||= {}
     end
 
     ##
@@ -338,7 +338,7 @@ module DataMapper
     def dirty_attributes
       dirty_attributes = {}
 
-      original_values.each_key do |property|
+      original_attributes.each_key do |property|
         dirty_attributes[property] = property.value(property.get!(self))
       end
 
@@ -615,7 +615,7 @@ module DataMapper
     def reset
       @saved = false
       identity_map.delete(key)
-      original_values.clear
+      original_attributes.clear
     end
 
     protected
@@ -654,7 +654,7 @@ module DataMapper
       @repository = repository
       @saved      = true
 
-      original_values.clear
+      original_attributes.clear
 
       identity_map[key] = self
 
@@ -689,7 +689,7 @@ module DataMapper
         # remove the cached key in case it is updated
         remove_instance_variable(:@key)
 
-        original_values.clear
+        original_attributes.clear
 
         identity_map[key] = self
 
