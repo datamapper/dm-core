@@ -37,7 +37,6 @@ module DataMapper
 
         # Initializes the relationship. Always assumes target model class is
         # a camel cased association name.
-        # TODO: ensure that it makes sense to make it configurable
         #
         # @api semipublic
         def initialize(name, target_model, source_model, options = {})

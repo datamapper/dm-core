@@ -970,6 +970,10 @@ module DataMapper
           source_key = subject.source_key.first
           target_key = subject.target_key.first
 
+          # TODO: when the bind_value is a Collection, and it is not loaded
+          # then use a subquery to scope the results rather than lazy loading
+          # it just to retrieve the Resource key
+
           if (resources = Array(bind_value).select { |r| r.saved? }).any?
             source_values = resources.map { |r| target_key.get(r) }
             append_condition(source_key, source_values, operator)

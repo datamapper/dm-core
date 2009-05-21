@@ -31,22 +31,6 @@ module DataMapper
         # @api semipublic
         alias target_key parent_key
 
-        # Creates and returns Query instance that fetches
-        # target resource (ex.: author) for given source
-        # source resource (ex.: article)
-        #
-        # @param  source  [Array<DataMapper::Resource>]
-        #   collection (possibly with a single item) of source objects
-        #
-        # @api semipublic
-        def query_for(source, other_query = nil)
-          query = self.query.merge(source_scope(source))
-          query.update(other_query) if other_query
-
-          query = Query.new(DataMapper.repository(target_repository_name), target_model, query)
-          query.update(:fields => query.fields | target_key)
-        end
-
         ##
         # Returns a Resoruce for this relationship with a given source
         #
@@ -62,7 +46,8 @@ module DataMapper
         def resource_for(source, other_query = nil)
           query = query_for(source, other_query)
 
-          # TODO: lookup the resource in the Identity Map first
+          # TODO: lookup the resource in the Identity Map, and make sure
+          # it matches the query criteria, otherwise perform the query
 
           target_model.first(query)
         end

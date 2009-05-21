@@ -121,6 +121,15 @@ module DataMapper
       # @api semipublic
       attr_reader :through
 
+      # Returns query options for relationship.
+      #
+      # For this base class, always returns query options
+      # has been initialized with.
+      # Overriden in subclasses.
+      #
+      # @api private
+      attr_reader :query
+
       # Intermediate relationships in a "through" association.
       # Always returns empty frozen Array for this base class,
       # must be overriden in subclasses.
@@ -137,37 +146,19 @@ module DataMapper
       #
       # @api private
       def source_scope(source)
-        # TODO: do not build the query with target_key/source_key.. use
-        # target_reader/source_reader.  The query should be able to
-        # translate those to target_key/source_key inside the adapter,
-        # allowing adapters that don't join on PK/FK to work too.
-
-        # TODO: when source is a Collection, and it's query includes an
-        # offset/limit, use it as a subquery to scope the results, rather
-        # than (potentially) lazy-loading the Collection and getting
-        # each resource key
-
         { inverse => source }
       end
 
-      # Creates and returns Query instance for given
-      # resource (usually a parent).
-      # Must be implemented in subclasses.
+      # Creates and returns Query instance that fetches
+      # target resource(s) (ex.: articles) for given target resource (ex.: author)
       #
       # @api semipublic
-      def query_for(resource)
-        raise NotImplementedError, "#{self.class}#query_for not implemented"
-      end
+      def query_for(source, other_query = nil)
+        query = self.query.merge(source_scope(source))
+        query.update(other_query) if other_query
 
-      # Returns query object for relationship.
-      # For this base class, always returns query object
-      # has been initialized with.
-      # Overriden in subclasses.
-      #
-      # @api private
-      def query
-        # TODO: make sure the model scope is merged in
-        @query
+        query = Query.new(DataMapper.repository(target_repository_name), target_model, query)
+        query.update(:fields => query.fields | target_key)
       end
 
       # Returns model class used by child side of the relationship

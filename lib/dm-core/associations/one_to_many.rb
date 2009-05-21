@@ -26,17 +26,6 @@ module DataMapper
         # @api semipublic
         alias source_key parent_key
 
-        # Creates and returns Query instance that fetches
-        # target resource(s) (ex.: articles) for given target resource (ex.: author)
-        #
-        # @api semipublic
-        def query_for(source, other_query = nil)
-          query = self.query.merge(source_scope(source))
-          query.update(other_query) if other_query
-
-          Query.new(DataMapper.repository(target_repository_name), target_model, query)
-        end
-
         ##
         # Returns a Collection for this relationship with a given source
         #

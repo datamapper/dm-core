@@ -1450,9 +1450,7 @@ share_examples_for 'A public Collection' do
 
         { :id => true, :title => false, :content => false }.each do |attribute, expected|
           it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-            pending_if 'TODO', attribute == :title && !@many_to_many do
-              @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
-            end
+            @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
           end
         end
       end
