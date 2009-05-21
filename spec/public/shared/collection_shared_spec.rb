@@ -1351,6 +1351,14 @@ share_examples_for 'A public Collection' do
         @return = @articles.base_model
       end
 
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          @articles.should_not be_loaded
+        end
+      end
+
       it 'should return expected object' do
         @return.should == @model
       end
@@ -1359,6 +1367,16 @@ share_examples_for 'A public Collection' do
     describe 'with a belongs_to relationship method' do
       before :all do
         @return = @collection = @articles.originals
+      end
+
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending do
+            @articles.should_not be_loaded
+          end
+        end
       end
 
       it 'should return a Collection' do
@@ -1382,6 +1400,16 @@ share_examples_for 'A public Collection' do
           @return = @collection = @articles.revisions
         end
 
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
         it 'should return a Collection' do
           @return.should be_kind_of(DataMapper::Collection)
         end
@@ -1394,6 +1422,16 @@ share_examples_for 'A public Collection' do
       describe 'with arguments' do
         before :all do
           @return = @collection = @articles.revisions(:fields => [ :id ])
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
         end
 
         it 'should return a Collection' do
