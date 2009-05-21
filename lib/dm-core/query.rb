@@ -246,8 +246,8 @@ module DataMapper
       # reverse the sort order
       @order.map! { |o| o.reverse! }
 
-      # reverse the order for the options
-      @options = @options.merge(:order => @order).freeze
+      # copy the order to the options
+      @options = @options.merge(:order => @order.map { |o| o.dup }).freeze
 
       self
     end
@@ -600,17 +600,7 @@ module DataMapper
       @reload       = @options.fetch :reload,       false
       @raw          = false
 
-      # XXX: should I validate that each property in @order corresponds
-      # to something in @fields?  Many DB engines require they match,
-      # and I can think of no valid queries where a field would be so
-      # important that you sort on it, but not important enough to
-      # return.
-
       @links = @links.dup
-
-      normalize_order
-      normalize_fields
-      normalize_links
 
       # treat all non-options as conditions
       @options.except(*OPTIONS).each { |kv| append_condition(*kv) }
@@ -629,7 +619,8 @@ module DataMapper
           @raw = true
       end
 
-      # normalize any newly added links
+      normalize_order
+      normalize_fields
       normalize_links
     end
 
@@ -892,7 +883,7 @@ module DataMapper
             Direction.new(order)
 
           when Direction
-            order
+            order.dup
         end
       end
     end
@@ -928,13 +919,14 @@ module DataMapper
     # @api private
     def normalize_links
       @links.map! do |link|
-        case link
+        relationship = case link
           when Symbol, String             then @relationships[link]
           when Associations::Relationship then link
         end
+
+        (links = relationship.links).any? ? links : relationship
       end
 
-      @links.map! { |r| (i = r.links).any? ? i : r }
       @links.flatten!
       @links.uniq!
     end

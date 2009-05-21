@@ -1,16 +1,23 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
-require 'pp'
 
-describe "DataMapper.setup" do
-
-  describe "using connection string" do
+describe 'DataMapper.setup' do
+  describe 'using connection string' do
     before :all do
-      @result = DataMapper.setup(:setup_test, 'in_memory://user:pass@hostname:1234/path?foo=bar&baz=foo#fragment')
-      @options = @result.options
+      @return = DataMapper.setup(:setup_test, 'in_memory://user:pass@hostname:1234/path?foo=bar&baz=foo#fragment')
+
+      @options = @return.options
+    end
+
+    after :all do
+      DataMapper::Repository.adapters.delete(@return.name)
+    end
+
+    it 'should return an Adapter' do
+      @return.should be_kind_of(DataMapper::Adapters::AbstractAdapter)
     end
 
     it 'should set up the repository' do
-      DataMapper.repository(:setup_test).should == @result
+      DataMapper.repository(:setup_test).adapter.should equal(@return)
     end
 
     it 'should extract options from the uri' do
@@ -23,7 +30,7 @@ describe "DataMapper.setup" do
         :path     => '/path',
         :fragment => 'fragment'
       }.each do |key, val|
-        @result.options[key].should == val
+        @options[key].should == val
       end
     end
 
@@ -39,17 +46,25 @@ describe "DataMapper.setup" do
       @options[:foo].should == 'bar'
       @options[:baz].should == 'foo'
     end
-
   end
 
-  describe "using options" do
+  describe 'using options' do
     before :all do
-      @result = DataMapper.setup(:setup_test, :adapter => :in_memory, :foo => 'bar')
-      @options = @result.options
+      @return = DataMapper.setup(:setup_test, :adapter => :in_memory, :foo => 'bar')
+
+      @options = @return.options
+    end
+
+    after :all do
+      DataMapper::Repository.adapters.delete(@return.name)
+    end
+
+    it 'should return an Adapter' do
+      @return.should be_kind_of(DataMapper::Adapters::AbstractAdapter)
     end
 
     it 'should set up the repository' do
-      DataMapper.repository(:setup_test).should == @result
+      DataMapper.repository(:setup_test).adapter.should equal(@return)
     end
 
     it 'should set the options given' do
@@ -62,24 +77,31 @@ describe "DataMapper.setup" do
     end
   end
 
-  describe "using an instance of an adapter" do
+  describe 'using an instance of an adapter' do
     before :all do
       @adapter = DataMapper::Adapters::InMemoryAdapter.new(:setup_test)
-      @result = DataMapper.setup(@adapter)
+
+      @return = DataMapper.setup(@adapter)
+    end
+
+    after :all do
+      DataMapper::Repository.adapters.delete(@return.name)
+    end
+
+    it 'should return an Adapter' do
+      @return.should be_kind_of(DataMapper::Adapters::AbstractAdapter)
     end
 
     it 'should set up the repository' do
-      DataMapper.repository(:setup_test).should == @result
+      DataMapper.repository(:setup_test).adapter.should equal(@return)
     end
 
     it 'should use the adapter given' do
-      @result.should == @adapter
+      @return.should == @adapter
     end
 
     it 'should use the name given to the adapter' do
-      @result.name.should == @adapter.name
+      @return.name.should == @adapter.name
     end
-
   end
-
 end

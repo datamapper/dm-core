@@ -14,11 +14,6 @@ share_examples_for 'An Adapter' do
   before :all do
     raise '+@adapter+ should be defined in before block' unless instance_variable_get('@adapter')
 
-    @adapter_class = @adapter.class
-    @scheme        = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(@adapter_class).chomp('adapter'))
-    @adapter_name  = "test_#{@scheme}".to_sym
-    @repository    = DataMapper.repository(@adapter.name)
-
     class ::Heffalump
       include DataMapper::Resource
 

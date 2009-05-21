@@ -188,16 +188,6 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def query
-          # TODO: remove this when the Query stores a reference to the
-          # Resource instead of the Resource keys
-
-          # scope the query to the source
-          super.update(relationship.source_scope(source))
-        end
-
-        # TODO: document
-        # @api public
         def reload(*)
           assert_source_saved 'The source must be saved before reloading the collection'
           super

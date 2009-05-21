@@ -56,7 +56,7 @@ module DataMapper
     # @return [Adapters::AbstractAdapter]
     #   the adapter for this repository
     #
-    # @raise [ArgumentError]
+    # @raise [RepositoryNotSetupError]
     #   if there is no adapter registered for a repository named @name
     #
     # @api semipublic
@@ -226,6 +226,10 @@ module DataMapper
         return false
       end
 
+      unless other.respond_to?(:adapter)
+        return false
+      end
+
       cmp?(other, :==)
     end
 
@@ -277,7 +281,7 @@ module DataMapper
     # TODO: document
     # @api private
     def cmp?(other, operator)
-      name.send(operator, other.name)
+      name.send(operator, other.name) && adapter.send(operator, other.adapter)
     end
   end # class Repository
 end # module DataMapper

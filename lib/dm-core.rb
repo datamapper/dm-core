@@ -146,8 +146,8 @@ module DataMapper
   # @param [Hash(Symbol => String), Addressable::URI, String] uri_or_options
   #   connection information
   #
-  # @return [Repository]
-  #   the resulting setup repository
+  # @return [DataMapper::Adapters::AbstractAdapter]
+  #   the resulting setup adapter
   #
   # @raise [ArgumentError] "+name+ must be a Symbol, but was..."
   #   indicates that an invalid argument was passed for name[Symbol]
@@ -157,12 +157,10 @@ module DataMapper
   #
   # @api public
   def self.setup(*args)
-    if args.first.is_a?(DataMapper::Adapters::AbstractAdapter)
+    if args.first.kind_of?(DataMapper::Adapters::AbstractAdapter)
       adapter = args.first
-      name = adapter.name
     else
-      name = args.first
-      uri_or_options = args.last
+      name, uri_or_options = args
 
       options = normalize_options(uri_or_options)
 
@@ -183,9 +181,7 @@ module DataMapper
       adapter = Adapters.const_get(class_name).new(name, options)
     end
 
-    assert_kind_of 'name', name, Symbol
-
-    Repository.adapters[name] = adapter
+    Repository.adapters[adapter.name] = adapter
   end
 
   ##

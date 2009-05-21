@@ -1484,7 +1484,13 @@ describe DataMapper::Query do
 
       describe 'using a different repository as a Symbol' do
         before :all do
+          @other_adapter = DataMapper.setup(:other, :adapter => :in_memory)
+
           @return = @query.relative(:repository => :other)
+        end
+
+        after :all do
+          DataMapper::Repository.adapters.delete(@other_adapter.name)
         end
 
         it { @return.should be_kind_of(DataMapper::Query) }
