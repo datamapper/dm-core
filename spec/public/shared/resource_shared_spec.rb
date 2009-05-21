@@ -839,7 +839,7 @@ share_examples_for 'A public Resource' do
     end
 
     it 'should not overwrite dirty key' do
-      pending do
+      pending_if 'TODO', !@using_transactions do
         @user.name.should == 'dkubb'
       end
     end

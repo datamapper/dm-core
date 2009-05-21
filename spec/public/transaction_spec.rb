@@ -45,7 +45,7 @@ describe DataMapper::Resource, 'Transactions' do
     end
   end
 
-  supported_by :postgres, :mysql do
+  supported_by :postgres, :mysql, :sqlite3 do
     before :all do
       @model       = User
       @child_model = Comment
@@ -59,6 +59,8 @@ describe DataMapper::Resource, 'Transactions' do
         transaction.begin
         r.adapter.push_transaction(transaction)
       end
+
+      @using_transactions = true
     end
 
     after do
@@ -71,7 +73,7 @@ describe DataMapper::Resource, 'Transactions' do
 
   end
 
-  supported_by :postgres, :mysql do
+  supported_by :postgres, :mysql, :sqlite3 do
 
     describe "#transaction" do
 
