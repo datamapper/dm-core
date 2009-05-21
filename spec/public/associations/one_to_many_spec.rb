@@ -62,8 +62,13 @@ end
         @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
         @other    = @author.articles.create(:title => 'Other Article',  :content => 'Other')
 
-        @articles       = @author.articles(:title => 'Sample Article')
-        @other_articles = @author.articles(:title => 'Other Article')
+        # load the targets without references to a single source
+        load_collection = lambda do |query|
+          Author.get(*@author.key).articles(query)
+        end
+
+        @articles       = load_collection.call(:title => 'Sample Article')
+        @other_articles = load_collection.call(:title => 'Other Article')
 
         @articles.entries if loaded
       end

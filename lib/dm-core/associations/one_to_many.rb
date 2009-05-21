@@ -67,15 +67,7 @@ module DataMapper
           assert_kind_of 'source', source, source_model
 
           lazy_load(source) unless loaded?(source)
-          collection = get!(source)
-
-          if other_query.nil?
-            collection
-          else
-            # XXX: use query_for(source) to explicitly set the target_key in the query
-            # because we do not save a reference to the instance.  Remove when we do.
-            collection.all(query_for(source, other_query))
-          end
+          get!(source).all(other_query)
         end
 
         # Sets value of association targets (ex.: paragraphs) for given source resource

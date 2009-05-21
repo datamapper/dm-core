@@ -28,8 +28,13 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
         @other    = @model.create(:title => 'Other Article',  :content => 'Other')
 
-        @articles       = @model.all(:title => 'Sample Article')
-        @other_articles = @model.all(:title => 'Other Article')
+        # load the targets without references to a single source
+        load_collection = lambda do |query|
+          @model.all(query)
+        end
+
+        @articles       = load_collection.call(:title => 'Sample Article')
+        @other_articles = load_collection.call(:title => 'Other Article')
 
         @articles.entries if loaded
       end
