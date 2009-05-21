@@ -62,6 +62,8 @@ module DataMapper
         def resource_for(source, other_query = nil)
           query = query_for(source, other_query)
 
+          # TODO: lookup the resource in the Identity Map first
+
           target_model.first(query)
         end
 

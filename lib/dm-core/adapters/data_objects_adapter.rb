@@ -326,6 +326,9 @@ module DataMapper
             # TODO: move this method to Query, so that it walks the conditions
             # and finds an OR operator
 
+            # TODO: handle cases where two or more properties need to be
+            # used together to be unique
+
             # if a unique property is used, and there is no OR operator, then an ORDER
             # and LIMIT are unecessary because it should only return a single row
             if conditions.kind_of?(Conditions::AndOperation) &&
