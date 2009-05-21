@@ -21,7 +21,7 @@ module DataMapper
         # @api semipublic
         def set(source, target)
           assert_kind_of 'source', source, source_model
-          assert_kind_of 'target', target, Resource, NilClass
+          assert_kind_of 'target', target, target_model, NilClass
 
           @relationship.set(source, [ target ].compact)
           target
