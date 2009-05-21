@@ -432,6 +432,12 @@ module DataMapper
     end # module Repository
 
     module Model
+      # TODO: document
+      # @api private
+      def self.included(mod)
+        mod.descendants.each { |model| model.extend self }
+      end
+
       ##
       # Produce a new Transaction for this Resource class
       #
