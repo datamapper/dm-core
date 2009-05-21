@@ -855,6 +855,7 @@ module DataMapper
       if query.limit || query.offset > 0
         # TODO: handle this with a subquery and handle compound keys
         key = model.key(repository.name)
+        raise NotImplementedError, 'Cannot work with compound keys yet' if key.size > 1
         model.all(:repository => repository, key.first => map { |r| r.key.first }).destroy!
       else
         repository.delete(self)
@@ -1016,6 +1017,7 @@ module DataMapper
 
         # TODO: handle this with a subquery and handle compound keys
         key = model.key(repository.name)
+        raise NotImplementedError, 'Cannot work with compound keys yet' if key.size > 1
         model.all(:repository => repository, key.first => map { |r| r.key.first }).update!(attributes)
       else
         repository.update(dirty_attributes, self)
