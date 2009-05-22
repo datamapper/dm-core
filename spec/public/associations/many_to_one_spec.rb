@@ -23,7 +23,7 @@ describe 'Many to One Associations' do
       property :id,   Serial
       property :body, Text
 
-      belongs_to :user
+      belongs_to :user, :nullable => false
     end
 
     class ::Article
@@ -41,7 +41,7 @@ describe 'Many to One Associations' do
       property :id,   Serial
       property :text, String
 
-      belongs_to :article
+      belongs_to :article, :nullable => false
     end
 
     @model       = User

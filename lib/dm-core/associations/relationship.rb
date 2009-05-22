@@ -187,15 +187,12 @@ module DataMapper
             properties = child_model.properties(child_repository_name)
 
             child_key = parent_key.zip(@child_properties || []).map do |parent_property, property_name|
-            property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
+              property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
 
               properties[property_name] || begin
-                options = parent_property.options.only(:length, :size, :precision, :scale)
-                options.update(:index => property_prefix)
-
                 # create the property within the correct repository
                 DataMapper.repository(child_repository_name) do
-                  child_model.property(property_name, parent_property.primitive, options)
+                  child_model.property(property_name, parent_property.primitive, child_key_options(parent_property))
                 end
               end
             end
@@ -336,10 +333,16 @@ module DataMapper
         @max                    = @options[:max]
         @through                = @options[:through]
 
-        @query = @options.except(*OPTIONS).freeze
+        @query = @options.except(*self.class::OPTIONS).freeze
 
         create_reader
         create_writer
+      end
+
+      # TODO: document
+      # @api private
+      def child_key_options(parent_property)
+        parent_property.options.only(:length, :size, :precision, :scale).update(:index => property_prefix)
       end
 
       ##
@@ -382,7 +385,7 @@ module DataMapper
           inverse_name,
           child_model,
           parent_model,
-          options.only(*OPTIONS - [ :min, :max ]).update(
+          options.only(*self.class::OPTIONS - [ :min, :max, :through ]).update(
             :child_key  => child_key.map  { |p| p.name },
             :parent_key => parent_key.map { |p| p.name }
           )

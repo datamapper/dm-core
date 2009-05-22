@@ -76,7 +76,8 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def initialize(name, target_model, source_model, options = {})
-          target_model ||= Extlib::Inflection.camelize(name.to_s.singular).freeze
+          target_model ||= Extlib::Inflection.camelize(name.to_s.singular)
+          options        = { :min => 0, :max => source_model.n }.update(options)
           super
         end
 

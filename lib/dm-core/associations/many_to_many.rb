@@ -35,15 +35,16 @@ module DataMapper
           # target_model and source_model constants to be defined, so we
           # can define the join model within their common namespace
 
-          @through = DataMapper.repository(source_repository_name) do
-            join_model.belongs_to(join_relationship_name(target_model),          :model => target_model)
-            source_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
+          DataMapper.repository(source_repository_name) do
+            many_to_one = join_model.belongs_to(join_relationship_name(target_model),          :model => target_model, :nullable => false)
+            one_to_many = source_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
+
+            # initialize the child_key on the many to one relationship
+            # now that the source, join and target models are defined
+            many_to_one.child_key
+
+            @through = one_to_many
           end
-
-          # initialize the child_key now that the source and target model are defined
-          @through.child_key
-
-          @through
         end
 
         # TODO: document

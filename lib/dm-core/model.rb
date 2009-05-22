@@ -780,7 +780,7 @@ module DataMapper
 
       # initialize join models and target keys
       @relationships.each_value do |relationships|
-        relationships.each_value { |r| r.through; r.child_key }
+        relationships.each_value { |r| r.child_key if r.kind_of?(Associations::ManyToOne::Relationship); r.through }
       end
 
       @valid = true

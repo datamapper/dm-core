@@ -32,8 +32,8 @@ module DataMapper
   #   class Post
   #     include DataMapper::Resource
   #
-  #     property :title,   String,   :nullable => false  # Cannot be null
-  #     property :publish, Boolean, :default => false    # Default value for new records is false
+  #     property :title,   String,  :nullable => false  # Cannot be null
+  #     property :publish, Boolean, :default => false   # Default value for new records is false
   #   end
   #
   # By default, DataMapper supports the following primitive (Ruby) types

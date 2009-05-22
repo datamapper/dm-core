@@ -7,6 +7,8 @@ module DataMapper
       # Relationship class with implementation specific
       # to n side of 1 to n association
       class Relationship < Associations::Relationship
+        OPTIONS = (superclass::OPTIONS + [ :nullable ]).freeze
+
         # TODO: document
         # @api semipublic
         alias source_repository_name child_repository_name
@@ -96,9 +98,14 @@ module DataMapper
         #
         # @api semipublic
         def initialize(name, source_model, target_model, options = {})
-          target_model ||= Extlib::Inflection.camelize(name).freeze
-          options        = options.merge(:min => 0, :max => 1)
+          @nullable      = options.fetch(:nullable, true)
+          target_model ||= Extlib::Inflection.camelize(name)
+          options        = { :min => @nullable ? 0 : 1, :max => 1 }.update(options)
           super
+        end
+
+        def child_key_options(*)
+          super.merge(:nullable => @nullable)
         end
 
         # Dynamically defines reader method for source side of association
