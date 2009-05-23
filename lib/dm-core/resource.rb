@@ -705,7 +705,7 @@ module DataMapper
         return false
       end
 
-      child_associations.all? { |a| a.save }
+      child_associations.map { |a| a.save }.all?
     end
 
     ##
@@ -789,16 +789,16 @@ module DataMapper
 
     # Returns array of child relationships for which this resource is parent and is loaded
     #
-    # @return [Array<DataMapper::Associations::ManyToOne::Relationship>]
+    # @return [Array<DataMapper::Associations::OneToMany::Relationship>]
     #   array of child relationships for which this resource is parent and is loaded
     #
     # @api private
     def child_associations
       child_associations = []
 
-      relationships.each_value do |r|
-        next unless !r.kind_of?(Associations::ManyToOne::Relationship) && r.loaded?(self) && association = r.get!(self)
-        child_associations << association
+      relationships.each_value do |relationship|
+        next unless relationship.respond_to?(:collection_for) && relationship.loaded?(self)
+        child_associations << relationship.get!(self)
       end
 
       child_associations.freeze
