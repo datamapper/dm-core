@@ -90,11 +90,17 @@ share_examples_for 'An Adapter' do
         @heffalump.id.should == id
       end
 
+      it 'should update altered fields' do
+        @heffalump.color = 'violet'
+        @heffalump.save
+        Heffalump.get(*@heffalump.key).color.should == 'violet'
+      end
+
       it 'should not alter other fields' do
         color = @heffalump.color
         @heffalump.num_spots = 3
         @heffalump.save
-        @heffalump.color.should == color
+        Heffalump.get(*@heffalump.key).color.should == color
       end
     end
   else
