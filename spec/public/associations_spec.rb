@@ -64,7 +64,7 @@ end
 share_examples_for 'it creates a one mutator' do
   describe 'mutator' do
     describe 'when setting an associated resource' do
-      before do
+      before :all do
         @expected = @model.new
 
         @return = @car.send("#{@name}=", @expected)
@@ -89,15 +89,17 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist the Resource' do
-        @car.save
-        @car.reload.send(@name).should == @expected
+        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
+          @car.save
+          @car.model.get(*@car.key).send(@name).should == @expected
+        end
       end
 
       it 'should persist the associated Resource' do
         pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
           @car.save
           @expected.should be_saved
-          @expected.reload.car.should == @car
+          @expected.model.get(*@expected.key).car.should == @car
         end
       end
     end
@@ -119,7 +121,7 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist as nil' do
         @car.save
-        @car.reload.send(@name).should be_nil
+        @car.model.get(*@car.key).send(@name).should be_nil
       end
     end
 
@@ -150,15 +152,17 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist the Resource' do
-        @car.save
-        @car.reload.send(@name).should == @expected
+        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
+          @car.save
+          @car.model.get(*@car.key).send(@name).should == @expected
+        end
       end
 
       it 'should persist the associated Resource' do
         pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
           @car.save
           @expected.should be_saved
-          @expected.reload.car.should == @car
+          @expected.model.get(*@expected.key).car.should == @car
         end
       end
     end
@@ -166,59 +170,149 @@ share_examples_for 'it creates a one mutator' do
 end
 
 share_examples_for 'it creates a many accessor' do
-  describe 'when there is no child resource and the source is saved' do
-    before :all do
-      @car.save
-      @return = @car.send(@name)
+  describe 'accessor' do
+    describe 'when there is no child resource and the source is saved' do
+      before :all do
+        @car.save
+        @return = @car.send(@name)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return an empty Collection' do
+        @return.should be_empty
+      end
     end
 
-    it 'should return a Collection' do
-      @return.should be_kind_of(DataMapper::Collection)
+    describe 'when there is no child resource and the source is not saved' do
+      before :all do
+        @return = @car.send(@name)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return an empty Collection' do
+        @return.should be_empty
+      end
     end
 
-    it 'should return an empty Collection' do
-      @return.should be_empty
-    end
-  end
+    describe 'when there is a child resource' do
+      before :all do
+        @return = nil
 
-  describe 'when there is no child resource and the source is not saved' do
-    before :all do
-      @return = @car.send(@name)
-    end
+        @expected = @model.new
+        @car.send("#{@name}=", [ @expected ])
 
-    it 'should return a Collection' do
-      @return.should be_kind_of(DataMapper::Collection)
-    end
+        @return = @car.send(@name)
+      end
 
-    it 'should return an empty Collection' do
-      @return.should be_empty
-    end
-  end
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
 
-  describe 'when there is a child resource' do
-    before :all do
-      @skip = Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship)
-
-      @return = nil
-
-      @expected = @model.new
-      @car.send("#{@name}=", [ @expected ])
-
-      @return = @car.send(@name)
-    end
-
-    it 'should return a Collection' do
-      @return.should be_kind_of(DataMapper::Collection)
-    end
-
-    it 'should return expected Resources' do
-      @return.should == [ @expected ]
+      it 'should return expected Resources' do
+        @return.should == [ @expected ]
+      end
     end
   end
 end
 
 share_examples_for 'it creates a many mutator' do
-  # TODO: write this
+  describe 'mutator' do
+    describe 'when setting an associated collection' do
+      before :all do
+        @expected = [ @model.new ]
+
+        @return = @car.send("#{@name}=", @expected)
+      end
+
+      it 'should return the expected Collection' do
+        @return.should == @expected
+      end
+
+      it 'should set the Collection' do
+        @car.send(@name).should == @expected
+        @car.send(@name).zip(@expected) { |v, e| v.should equal(e) }
+      end
+
+      it 'should relate the associated Collection' do
+        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
+          @expected.each { |r| r.car.should == @car }
+        end
+      end
+
+      it 'should persist the Collection' do
+        @car.save
+        @car.model.get(*@car.key).send(@name).should == @expected
+      end
+
+      it 'should persist the associated Resource' do
+        @car.save
+        @expected.each { |r| r.should be_saved }
+        @expected.each { |r| r.model.get(*r.key).car.should == @car }
+      end
+    end
+
+    describe 'when setting an empty collection' do
+      before :all do
+        @car.send("#{@name}=", [ @model.new ])
+
+        @return = @car.send("#{@name}=", [])
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should set an empty Collection' do
+        @car.send(@name).should be_empty
+      end
+
+      it 'should persist as an empty Collection' do
+        @car.save
+        @car.model.get(*@car.key).send(@name).should be_empty
+      end
+    end
+
+    describe 'when changing an associated collection' do
+      before :all do
+        @car.send("#{@name}=", [ @model.new ])
+        @expected = [ @model.new ]
+
+        @return = @car.send("#{@name}=", @expected)
+      end
+
+      it 'should return the expected Resource' do
+        @return.should == @expected
+      end
+
+      it 'should set the Resource' do
+        @car.send(@name).should == @expected
+        @car.send(@name).zip(@expected) { |v, e| v.should equal(e) }
+      end
+
+      it 'should relate associated Resource' do
+        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
+          @expected.each { |r| r.car.should == @car }
+        end
+      end
+
+      it 'should persist the Resource' do
+        @car.save
+        @car.model.get(*@car.key).send(@name).should == @expected
+      end
+
+      it 'should persist the associated Resource' do
+        @car.save
+        @expected.each { |r| r.should be_saved }
+        @expected.each { |r| r.model.get(*r.key).car.should == @car }
+      end
+    end
+  end
 end
 
 describe DataMapper::Associations do
@@ -290,7 +384,16 @@ describe DataMapper::Associations do
 
       supported_by :all do
         before :all do
+          @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
+                     defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
+        end
+
+        before :all do
           @car = Car.new
+        end
+
+        before do
+          pending if @no_join
         end
 
         it { @car.should respond_to(@name) }
@@ -332,16 +435,28 @@ describe DataMapper::Associations do
         @model = Window
         @name  = :windows
 
-        Door.belongs_to(:car)
-        Door.has(1, :window)
         Window.belongs_to(:door)
+        Window.has(1, :car, :through => :door)
+
+        Door.has(1, :window)
+        Door.belongs_to(:car)
+
         Car.has(1..4, :doors)
         Car.has(1..4, :windows, :through => :doors)
       end
 
       supported_by :all do
         before :all do
+          @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
+                     defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
+        end
+
+        before :all do
           @car = Car.new
+        end
+
+        before do
+          pending if @no_join
         end
 
         it { @car.should respond_to(@name) }
