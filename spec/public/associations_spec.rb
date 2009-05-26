@@ -355,7 +355,7 @@ describe DataMapper::Associations do
         @name  = :engine
 
         Car.has(1, @name)
-        Engine.belongs_to(:car, :nullable => false)
+        Engine.belongs_to(:car)
       end
 
       supported_by :all do
@@ -412,7 +412,7 @@ describe DataMapper::Associations do
         @name  = :doors
 
         Car.has(1..4, @name)
-        Door.belongs_to(:car, :nullable => false)
+        Door.belongs_to(:car)
       end
 
       supported_by :all do
@@ -435,11 +435,11 @@ describe DataMapper::Associations do
         @model = Window
         @name  = :windows
 
-        Window.belongs_to(:door, :nullable => false)
+        Window.belongs_to(:door)
         Window.has(1, :car, :through => :door)
 
         Door.has(1, :window)
-        Door.belongs_to(:car, :nullable => false)
+        Door.belongs_to(:car)
 
         Car.has(1..4, :doors)
         Car.has(1..4, :windows, :through => :doors)
@@ -507,7 +507,7 @@ describe DataMapper::Associations do
     describe 'pending query specs' do
       before :all do
         Car.has(1, :engine)
-        Engine.belongs_to(:car, :nullable => false)
+        Engine.belongs_to(:car)
       end
 
       supported_by :all do

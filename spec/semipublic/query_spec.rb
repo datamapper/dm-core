@@ -20,7 +20,7 @@ describe DataMapper::Query do
       property :name,     String,   :key => true
       property :password, Password
 
-      belongs_to :referrer, :model => self
+      belongs_to :referrer, :model => self, :nullable => true
     end
 
     @repository = DataMapper::Repository.new(:default)
@@ -1017,7 +1017,7 @@ describe DataMapper::Query do
 
       property :name, String, :key => true
 
-      belongs_to :referrer, :model => self
+      belongs_to :referrer, :model => self, :nullable => true
 
       # TODO: figure out a way to remove this
       assert_valid

@@ -16,7 +16,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         property :content, Text
         property :author,  String, :nullable => false
 
-        belongs_to :original, :model => self
+        belongs_to :original, :model => self, :nullable => true
         has n, :revisions, :model => self, :child_key => [ :original_id ]
         has 1, :previous,  :model => self, :child_key => [ :original_id ], :order => [ :id.desc ]
       end

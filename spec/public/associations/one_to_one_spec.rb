@@ -11,7 +11,7 @@ describe 'One to One Associations' do
       property :description, Text
       property :admin,       Boolean, :accessor => :private
 
-      belongs_to :referrer, :model => self
+      belongs_to :referrer, :model => self, :nullable => true
       has 1, :comment
 
       # TODO: remove this after Relationship#inverse can dynamically
@@ -27,7 +27,7 @@ describe 'One to One Associations' do
       property :id,   Serial
       property :body, Text
 
-      belongs_to :user, :nullable => false
+      belongs_to :user
     end
 
     class ::Article
@@ -45,7 +45,7 @@ describe 'One to One Associations' do
       property :id,   Serial
       property :text, String
 
-      belongs_to :article, :nullable => false
+      belongs_to :article
     end
 
     @model       = User
@@ -74,8 +74,8 @@ describe 'One to One Through Associations' do
       property :referrer_name, String, :key => true
       property :referree_name, String, :key => true
 
-      belongs_to :referrer, :model => 'User', :child_key => [ :referrer_name ]
-      belongs_to :referree, :model => 'User', :child_key => [ :referree_name ]
+      belongs_to :referrer, :model => 'User', :child_key => [ :referrer_name ], :nullable => true
+      belongs_to :referree, :model => 'User', :child_key => [ :referree_name ], :nullable => true
     end
 
     class ::User

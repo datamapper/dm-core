@@ -1,6 +1,3 @@
-# TODO: make it so that a target_key is created with nullable => false
-# if provided to belongs_to declaration
-
 module DataMapper
   module Associations
     module ManyToOne #:nodoc:
@@ -32,6 +29,12 @@ module DataMapper
         # TODO: document
         # @api semipublic
         alias target_key parent_key
+
+        # TODO: document
+        # @api semipublic
+        def nullable?
+          @nullable
+        end
 
         ##
         # Returns a Resoruce for this relationship with a given source
@@ -98,14 +101,14 @@ module DataMapper
         #
         # @api semipublic
         def initialize(name, source_model, target_model, options = {})
-          @nullable      = options.fetch(:nullable, true)
+          @nullable      = options.fetch(:nullable, false)
           target_model ||= Extlib::Inflection.camelize(name)
           options        = { :min => @nullable ? 0 : 1, :max => 1 }.update(options)
           super
         end
 
         def child_key_options(*)
-          super.merge(:nullable => @nullable)
+          super.merge(:nullable => nullable?)
         end
 
         # Dynamically defines reader method for source side of association

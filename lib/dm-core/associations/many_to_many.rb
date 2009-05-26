@@ -36,7 +36,7 @@ module DataMapper
           # can define the join model within their common namespace
 
           DataMapper.repository(source_repository_name) do
-            many_to_one = join_model.belongs_to(join_relationship_name(target_model),          :model => target_model, :nullable => false)
+            many_to_one = join_model.belongs_to(join_relationship_name(target_model),          :model => target_model)
             one_to_many = source_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
 
             # initialize the child_key on the many to one relationship

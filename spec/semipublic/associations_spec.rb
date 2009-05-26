@@ -162,12 +162,16 @@ describe DataMapper::Associations do
       @relationship.parent_model.should == Car
     end
 
-    it 'should return a Relationship with a min of 0' do
-      @relationship.min.should == 0
+    it 'should return a Relationship with a min of 1' do
+      @relationship.min.should == 1
     end
 
     it 'should return a Relationship with a max of 1' do
       @relationship.max.should == 1
+    end
+
+    it 'should return a Relationship that is not nullable' do
+      @relationship.nullable?.should be_false
     end
   end
 end

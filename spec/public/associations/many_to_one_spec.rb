@@ -11,7 +11,7 @@ describe 'Many to One Associations' do
       property :description, Text
       property :admin,       Boolean, :accessor => :private
 
-      belongs_to :referrer, :model => self
+      belongs_to :referrer, :model => self, :nullable => true
       has n, :comments
     end
 
@@ -23,7 +23,7 @@ describe 'Many to One Associations' do
       property :id,   Serial
       property :body, Text
 
-      belongs_to :user, :nullable => false
+      belongs_to :user
     end
 
     class ::Article
@@ -41,7 +41,7 @@ describe 'Many to One Associations' do
       property :id,   Serial
       property :text, String
 
-      belongs_to :article, :nullable => false
+      belongs_to :article
     end
 
     @model       = User
