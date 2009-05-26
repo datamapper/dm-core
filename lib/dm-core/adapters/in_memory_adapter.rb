@@ -53,7 +53,7 @@ module DataMapper
       # @param [Hash] attributes
       #   A set of key-value pairs of the attributes to update the resources with.
       # @param [DataMapper::Collection] resources
-      #   The query that should be used to find the resource(s) to update.
+      #   The collection of resources to update.
       #
       # @api semipublic
       def update(attributes, collection)
@@ -64,8 +64,8 @@ module DataMapper
       ##
       # Destroys all the records matching the given query. "DELETE" in SQL.
       #
-      # @param [Query] query
-      #   The query used to locate the resources to be deleted.
+      # @param [DataMapper::Collection] resources
+      #   The collection of resources to delete.
       #
       # @return [Integer]
       #   The number of records that were deleted.

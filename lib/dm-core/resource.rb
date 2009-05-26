@@ -696,10 +696,14 @@ module DataMapper
     #
     # @api private
     def _save
-      unless saved = new? ? _create : _update
-        return false
-      end
+      (new? ? _create : _update) && save_children
+    end
 
+    ##
+    # Saves the children resources
+    #
+    # @api private
+    def save_children
       child_associations.all? { |a| a.save }
     end
 
