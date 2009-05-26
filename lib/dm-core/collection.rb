@@ -1257,14 +1257,14 @@ module DataMapper
       each do |source|
         targets = source_map[ source_key.get(source) ] || []
 
-        if relationship.max == 1
-          relationship.set(source, targets.first)
-        else
+         if relationship.respond_to?(:collection_for)
           # TODO: figure out an alternative approach to using a
           # private method call collection_replace
           collection = relationship.collection_for(source, other_query)
           collection.send(:collection_replace, targets)
           relationship.set!(source, collection)
+        else
+          relationship.set(source, targets.first)
         end
       end
 

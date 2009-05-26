@@ -1341,8 +1341,12 @@ share_examples_for 'A public Collection' do
     @articles.should respond_to(:original)
   end
 
-  it 'should respond to a has relationship method with #method_missing' do
+  it 'should respond to a has n relationship method with #method_missing' do
     @articles.should respond_to(:revisions)
+  end
+
+  it 'should respond to a has 1 relationship method with #method_missing' do
+    @articles.should respond_to(:previous)
   end
 
   describe '#method_missing' do
@@ -1388,7 +1392,7 @@ share_examples_for 'A public Collection' do
       end
     end
 
-    describe 'with a has relationship method' do
+    describe 'with a has n relationship method' do
       before :all do
         rescue_if 'fix SEL for many to many', @many_to_many do
           # associate the article with children
@@ -1451,6 +1455,73 @@ share_examples_for 'A public Collection' do
         { :id => true, :title => false, :content => false }.each do |attribute, expected|
           it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
             @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
+          end
+        end
+      end
+    end
+
+    describe 'with a has 1 relationship method' do
+      before :all do
+        rescue_if 'fix SEL for many to many', @many_to_many do
+          @article.previous = @other
+          @article.save
+        end
+      end
+
+      describe 'with no arguments' do
+        before :all do
+          @return = @articles.previous
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          pending_if 'fix SEL for many to many', @many_to_many do
+            @return.should == [ @other ]
+          end
+        end
+      end
+
+      describe 'with arguments' do
+        before :all do
+          @return = @articles.previous(:fields => [ :id ])
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          pending_if 'fix SEL for many to many', @many_to_many do
+            @return.should == [ @other ]
+          end
+        end
+
+        { :id => true, :title => false, :content => false }.each do |attribute, expected|
+          it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
+            @return.each { |r| r.attribute_loaded?(attribute).should == expected }
           end
         end
       end

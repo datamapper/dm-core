@@ -49,6 +49,7 @@ end
         belongs_to :author, :nullable => false
         belongs_to :original, :model => self
         has n, :revisions, :model => self, :child_key => [ :original_id ]
+        has 1, :previous,  :model => self, :child_key => [ :original_id ], :order => [ :id.desc ]
       end
 
       @model = Article

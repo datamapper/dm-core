@@ -288,7 +288,7 @@ module DataMapper
       # @api semipublic
       def inverse
         @inverse ||= target_model.relationships(target_repository_name).values.detect do |relationship|
-          !relationship.equal?(self)                                    &&
+          relationship.kind_of?(inverse_class)                          &&
           relationship.child_repository_name  == child_repository_name  &&
           relationship.parent_repository_name == parent_repository_name &&
           relationship.child_model            == child_model            &&

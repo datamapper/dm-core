@@ -29,6 +29,18 @@ module DataMapper
 
         # TODO: document
         # @api public
+        def kind_of?(klass)
+          super || @relationship.kind_of?(klass)
+        end
+
+        # TODO: document
+        # @api public
+        def instance_of?(klass)
+          super || @relationship.instance_of?(klass)
+        end
+
+        # TODO: document
+        # @api public
         def respond_to?(method, include_private = false)
           super || @relationship.respond_to?(method, include_private)
         end
