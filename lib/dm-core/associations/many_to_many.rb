@@ -213,11 +213,16 @@ module DataMapper
         # TODO: document
         # @api public
         def create(attributes = {})
-          assert_source_saved 'The source must be saved before creating a Resource'
-
-          resource = create_intermediaries(attributes, relationship.links.dup).last
-          self << resource if resource.saved?
-          resource
+          if last_relationship.respond_to?(:resource_for)
+            resource = super
+            if create_intermediary(last_relationship => resource)
+              resource
+            end
+          else
+            if intermediary = create_intermediary
+              super(attributes.merge(last_relationship.inverse => intermediary))
+            end
+          end
         end
 
         # TODO: document
@@ -229,41 +234,19 @@ module DataMapper
             head + tail
           end
 
-          last_relationship = relationship.links.last
-
           # delete only intermediaries linked to the target orphans
           intermediaries.each do |intermediary|
             next unless @orphans.include?(last_relationship.get(intermediary))
             intermediaries.delete(intermediary) if intermediary.destroy
           end
 
-          # ensure all intermediaries are saved so that using first_or_new
-          # below actually finds previously added Resources, rather than
-          # creating duplicate records
-          return false unless intermediaries.save
-
-          # TODO: this handles the case where the through resource is dependent
-          # on the target being created, but probably will not handle the case where
-          # the target is dependent on the through resource.  TEST THIS OUT
-          #   - can this case can occur where a many to many is through a belongs_to?
-
-          if last_relationship.kind_of?(Associations::ManyToOne::Relationship)
-            resources.all? do |resource|
-              if resource.save
-                # create the intermediary record if there isn't one already
-                intermediaries.first_or_create(last_relationship => resource)
-              end
-            end
+          if last_relationship.respond_to?(:resource_for)
+            super
+            resources.all? { |r| create_intermediary(last_relationship => r) }
           else
-            # XXX: would this be used for has n through a belongs_to?
-
-            intermediary = intermediaries.first_or_create
-            inverse      = last_relationship.inverse
-
-            return false unless intermediary.save
-
-            resources.map do |resource|
-              inverse.set(resource, intermediary)
+            if intermediary = create_intermediary
+              inverse = last_relationship.inverse
+              resources.map { |r| inverse.set(r, intermediary) }
             end
 
             super
@@ -307,6 +290,8 @@ module DataMapper
 
         private
 
+        # TODO: document
+        # @api private
         def _update(dirty_attributes)
           attributes = dirty_attributes.map { |p, v| [ p.name, v ] }.to_hash
 
@@ -317,61 +302,27 @@ module DataMapper
           model.all(:repository => repository_name, key.first => map { |r| r.key.first }).update!(attributes)
         end
 
+        # TODO: document
+        # @api private
         def intermediaries
-          through           = relationship.through
-          last_relationship = relationship.links.last
-
+          through        = relationship.through
           intermediaries = through.loaded?(source) ? through.get!(source) : through.collection_for(source)
-          intermediaries = intermediaries.all(last_relationship => self)
+          intermediaries.all(last_relationship => self)
         end
 
-        # TODO: attempt to refactor this method out using an approach
-        # similar to #save to create intermediaries
-        def create_intermediaries(attributes, links)
-          attributes = default_attributes.merge(attributes)
-
-          head = [ source ]
-          tail = []
-
-          lhs, rhs = nil, nil
-
-          until links.empty?
-            if links[1].kind_of?(ManyToOne::Relationship) || (links.size == 1 && lhs && rhs)
-              lhs, rhs = links.first(2) unless lhs && rhs
-
-              relationship = links.pop
-
-              resource = if tail.empty?
-                # create the target resource
-                model = relationship.target_model
-                model.create(attributes)
-              elsif relationship == lhs
-                # create the join resource
-                collection = lhs.get(head.last)
-                collection.first_or_create(rhs => tail.first)
-              else
-                # create each resource linking the target and join resources
-                collection = relationship.inverse.get(tail.first)
-                collection.first_or_create
-              end
-
-              tail.unshift(resource)
-            else
-              relationship = links.shift
-
-              collection = relationship.get(head.last)
-
-              if links.empty?
-                # create the target resource
-                head << collection.create(attributes)
-              else
-                # create each resource linking to the previous resource
-                head << collection.first_or_create
-              end
-            end
+        # TODO: document
+        # @api private
+        def create_intermediary(attributes = {})
+          # create the intermediary record if there isn't one already
+          if intermediaries.save && (intermediary = intermediaries.first_or_create(attributes)).saved?
+            intermediary
           end
+        end
 
-          head + tail
+        # TODO: document
+        # @api private
+        def last_relationship
+          @last_relationship ||= relationship.links.last
         end
 
         # TODO: document
@@ -396,7 +347,6 @@ module DataMapper
 
           model.all(query)
         end
-
       end # class Collection
     end # module ManyToMany
   end # module Associations

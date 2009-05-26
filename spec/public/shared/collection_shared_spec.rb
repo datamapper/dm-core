@@ -98,9 +98,7 @@ share_examples_for 'A public Collection' do
 
       it 'should be expected Resources' do
         @return.size.should == 1
-        pending_if 'allow in place filtering on many to many', @many_to_many do
-          @return.first.should equal(@new)
-        end
+        @return.first.should equal(@new)
       end
 
       it 'should have a different query than original Collection' do
