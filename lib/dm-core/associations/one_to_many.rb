@@ -45,6 +45,9 @@ module DataMapper
           collection.relationship = self
           collection.source       = source
 
+          # make the collection empty if the source is not saved
+          collection.replace([]) unless source.saved?
+
           collection
         end
 
@@ -163,7 +166,6 @@ module DataMapper
       end # class Relationship
 
       class Collection < DataMapper::Collection
-
         # TODO: document
         # @api private
         attr_accessor :relationship
@@ -286,17 +288,30 @@ module DataMapper
           collection
         end
 
+        # TODO: remove this method once Resource objects are stored in
+        # the Query rather than just references
+        # @api private
+        def default_attributes
+          super.merge(relationship.source_scope(source)).freeze
+        end
+
+        # alias Collection#relate_resource for use by subclasses that
+        # may not set the inverse relationship when relating
+        alias collection_relate_resource relate_resource
+
         # TODO: document
         # @api private
         def relate_resource(resource)
           return if resource.nil?
 
-          if relationship.source_key.loaded?(source)
-            relationship.inverse.set(resource, source)
-          end
+          relationship.inverse.set(resource, source)
 
           super
         end
+
+        # alias Collection#relate_resource for use by subclasses that
+        # may not unset the inverse relationship when orphaning
+        alias collection_orphan_resource orphan_resource
 
         # TODO: document
         # @api private
@@ -304,7 +319,7 @@ module DataMapper
           return if resource.nil?
 
           # only orphan a resource if it could have been related previously
-          if !resource.frozen? && relationship.source_key.loaded?(source)
+          if !resource.frozen?
             relationship.inverse.set(resource, nil)
           end
 
@@ -314,7 +329,7 @@ module DataMapper
         # TODO: document
         # @api private
         def assert_source_saved(message)
-          unless source.saved? || loaded?
+          unless source.saved?
             raise UnsavedParentError, message
           end
         end

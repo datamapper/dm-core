@@ -25,6 +25,24 @@ module DataMapper
     end
 
     ##
+    # Deprecated API for updating attributes and saving Resource
+    #
+    # @see #update
+    #
+    # @api public
+    def update_attributes(attributes = {}, *allowed)
+      warn "#{model}#update_attributes is deprecated, use #{model}#update instead"
+
+      if allowed.any?
+        warn "specifying allowed in #{model}#update_attributes is deprecated, " \
+          'use Hash#only to filter the attributes in the caller'
+        attributes = attributes.only(*allowed)
+      end
+
+      update(attributes)
+    end
+
+    ##
     # Makes sure a class gets all the methods when it includes Resource
     #
     # @api private
@@ -38,8 +56,84 @@ module DataMapper
     # @api private
     attr_writer :collection
 
+    # TODO: document
     # @api public
     alias_method :model, :class
+
+    ##
+    # Repository this resource belongs to in the context of this collection
+    # or of the resource's class.
+    #
+    # @return [Repository]
+    #   the respository this resource belongs to, in the context of
+    #   a collection OR in the instance's Model's context
+    #
+    # @api semipublic
+    def repository
+      # only set @repository explicitly when persisted
+      defined?(@repository) ? @repository : model.repository
+    end
+
+    ##
+    # Retrieve the key(s) for this resource.
+    #
+    # This always returns the persisted key value,
+    # even if the key is changed and not yet persisted.
+    # This is done so all relations still work.
+    #
+    # @return [Array(Key)]
+    #   the key(s) identifying this resource
+    #
+    # @api public
+    def key
+      return @key if defined?(@key)
+
+      key = model.key(repository_name).map do |property|
+        original_attributes[property] || (property.loaded?(self) ? property.get!(self) : nil)
+      end
+
+      # set the key if every entry is non-nil
+      @key = key if key.all?
+    end
+
+    ##
+    # Checks if this Resource instance is new
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the resource is new and not saved
+    #
+    # @api public
+    def new?
+      !saved?
+    end
+
+    ##
+    # Checks if this Resource instance is saved
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the resource has been saved
+    #
+    # @api public
+    def saved?
+      @saved == true
+    end
+
+    ##
+    # Checks if the resource has unsaved changes
+    #
+    # @return
+    #   [TrueClass, FalseClass] true if resource is new or has any unsaved changes
+    #
+    # @api semipublic
+    def dirty?
+      if dirty_attributes.any?
+        true
+      elsif new?
+        model.identity_field || properties.any? { |p| p.default? }
+      else
+        false
+      end
+    end
 
     ##
     # Returns the value of the attribute.
@@ -120,6 +214,162 @@ module DataMapper
     end
 
     alias []= attribute_set
+
+    ##
+    # Gets all the attributes of the Resource instance
+    #
+    # @param [Symbol] key_on
+    #   Use this attribute of the Property as keys.
+    #   defaults to :name. :field is useful for adapters
+    #   :property or nil use the actual Property object.
+    #
+    # @return [Hash]
+    #   All the attributes
+    #
+    # @api public
+    def attributes(key_on = :name)
+      attributes = {}
+      properties.each do |property|
+        if model.public_method_defined?(name = property.name)
+          key = case key_on
+            when :name  then name
+            when :field then property.field
+            else             property
+          end
+
+          attributes[key] = send(name)
+        end
+      end
+      attributes
+    end
+
+    ##
+    # Assign values to multiple attributes in one call (mass assignment)
+    #
+    # @param [Hash] attributes
+    #   names and values of attributes to assign
+    #
+    # @return [Hash]
+    #   names and values of attributes assigned
+    #
+    # @api public
+    def attributes=(attributes)
+      # TODO: update to accept Property and Relationship objects as keys
+      attributes.each do |name, value|
+        case name
+          when String, Symbol
+            if model.public_method_defined?(setter = "#{name}=")
+              send(setter, value)
+            else
+              raise ArgumentError, "The property '#{name}' is not accessible in #{model}"
+            end
+          when Associations::Relationship, Property
+            name.set(self, value)
+        end
+      end
+    end
+
+    ##
+    # Reloads association and all child association
+    #
+    # @return [Resource]
+    #   the receiver, the current Resource instance
+    #
+    # @api public
+    def reload
+      if saved?
+        reload_attributes(loaded_properties)
+        child_associations.each { |a| a.reload }
+      end
+
+      self
+    end
+
+    ##
+    # Updates attributes and saves this Resource instance
+    #
+    # @param  [Hash]  attributes
+    #   attributes to be updated
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if resource and storage state match
+    #
+    # @api public
+    def update(attributes = {})
+      self.attributes = attributes
+      _update
+    end
+
+    ##
+    # Updates attributes and saves this Resource instance, bypassing hooks
+    #
+    # @param  [Hash]  attributes
+    #   attributes to be updated
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if resource and storage state match
+    #
+    # @api public
+    def update!(attributes = {})
+      self.attributes = attributes
+      _update
+    end
+
+    ##
+    # Save the instance and associated children to the data-store.
+    #
+    # This saves all children in a has n relationship (if they're dirty).
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if Resource instance and all associations were saved
+    #
+    # @see Repository#save
+    #
+    # @api public
+    chainable do
+      def save
+        _save
+      end
+    end
+
+    ##
+    # Save the instance and associated children to the data-store, bypassing hooks
+    #
+    # This saves all children in a has n relationship (if they're dirty).
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if Resource instance and all associations were saved
+    #
+    # @see Repository#save
+    #
+    # @api public
+    chainable do
+      def save!
+        _save
+      end
+    end
+
+    ##
+    # Destroy the instance, remove it from the repository
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if resource was destroyed
+    #
+    # @api public
+    def destroy
+      _destroy
+    end
+
+    ##
+    # Destroy the instance, remove it from the repository, bypassing hooks
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if resource was destroyed
+    #
+    # @api public
+    def destroy!
+      _destroy
+    end
 
     ##
     # Compares another Resource for equality
@@ -222,6 +472,7 @@ module DataMapper
     #
     # @api public
     def inspect
+      # TODO: display relationship values
       attrs = properties.map do |property|
         value = if new? || property.loaded?(self)
           property.get!(self).inspect
@@ -236,39 +487,14 @@ module DataMapper
     end
 
     ##
-    # Repository this resource belongs to in the context of this collection
-    # or of the resource's class.
+    # Hash of original values of attributes that have unsaved changes
     #
-    # @return [Repository]
-    #   the respository this resource belongs to, in the context of
-    #   a collection OR in the instance's Model's context
+    # @return [Hash]
+    #   original values of attributes that have unsaved changes
     #
     # @api semipublic
-    def repository
-      # only set @repository explicitly when persisted
-      defined?(@repository) ? @repository : model.repository
-    end
-
-    ##
-    # Retrieve the key(s) for this resource.
-    #
-    # This always returns the persisted key value,
-    # even if the key is changed and not yet persisted.
-    # This is done so all relations still work.
-    #
-    # @return [Array(Key)]
-    #   the key(s) identifying this resource
-    #
-    # @api public
-    def key
-      return @key if defined?(@key)
-
-      key = model.key(repository_name).map do |property|
-        original_attributes[property] || (property.loaded?(self) ? property.get!(self) : nil)
-      end
-
-      # set the key if every entry is non-nil
-      @key = key if key.all?
+    def original_attributes
+      @original_attributes ||= {}
     end
 
     ##
@@ -315,14 +541,17 @@ module DataMapper
     end
 
     ##
-    # Hash of original values of attributes that have unsaved changes
+    # Checks if an attribute has unsaved changes
     #
-    # @return [Hash]
-    #   original values of attributes that have unsaved changes
+    # @param [Symbol] name
+    #   name of attribute to check for unsaved changes
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if attribute has unsaved changes
     #
     # @api semipublic
-    def original_attributes
-      @original_attributes ||= {}
+    def attribute_dirty?(name)
+      dirty_attributes.key?(properties[name])
     end
 
     ##
@@ -343,267 +572,6 @@ module DataMapper
     end
 
     ##
-    # Checks if the resource has unsaved changes
-    #
-    # @return
-    #   [TrueClass, FalseClass] true if resource is new or has any unsaved changes
-    #
-    # @api semipublic
-    def dirty?
-      if dirty_attributes.any?
-        true
-      elsif new?
-        model.identity_field || properties.any? { |p| p.default? }
-      else
-        false
-      end
-    end
-
-    ##
-    # Checks if an attribute has unsaved changes
-    #
-    # @param [Symbol] name
-    #   name of attribute to check for unsaved changes
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if attribute has unsaved changes
-    #
-    # @api semipublic
-    def attribute_dirty?(name)
-      dirty_attributes.key?(properties[name])
-    end
-
-    # Gets a Collection with the current Resource instance as its only member
-    #
-    # @return [Collection, FalseClass]
-    #   false if this is a new record,
-    #   otherwise a Collection with self as its only member
-    #
-    # @api private
-    def collection
-      @collection ||= if saved?
-        Collection.new(to_query, [ self ])
-      end
-    end
-
-    ##
-    # Reloads association and all child association
-    #
-    # @return [Resource]
-    #   the receiver, the current Resource instance
-    #
-    # @api public
-    def reload
-      if saved?
-        reload_attributes(loaded_properties)
-        child_associations.each { |a| a.reload }
-      end
-
-      self
-    end
-
-    ##
-    # Reloads specified attributes
-    #
-    # @param [Enumerable(Symbol)] attributes
-    #   name(s) of attribute(s) to reload
-    #
-    # @return [Resource]
-    #   the receiver, the current Resource instance
-    #
-    # @api private
-    def reload_attributes(attributes)
-      unless attributes.empty? || new?
-        collection.reload(:fields => attributes)
-      end
-
-      self
-    end
-
-    ##
-    # Checks if this Resource instance is new
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if the resource is new and not saved
-    #
-    # @api public
-    def new?
-      !saved?
-    end
-
-    ##
-    # Checks if this Resource instance is saved
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if the resource has been saved
-    #
-    # @api public
-    def saved?
-      @saved == true
-    end
-
-    ##
-    # Gets all the attributes of the Resource instance
-    #
-    # @param [Symbol] key_on
-    #   Use this attribute of the Property as keys.
-    #   defaults to :name. :field is useful for adapters
-    #   :property or nil use the actual Property object.
-    #
-    # @return [Hash]
-    #   All the attributes
-    #
-    # @api public
-    def attributes(key_on = :name)
-      attributes = {}
-      properties.each do |property|
-        if model.public_method_defined?(name = property.name)
-          key = case key_on
-            when :name  then name
-            when :field then property.field
-            else             property
-          end
-
-          attributes[key] = send(name)
-        end
-      end
-      attributes
-    end
-
-    ##
-    # Assign values to multiple attributes in one call (mass assignment)
-    #
-    # @param [Hash] attributes
-    #   names and values of attributes to assign
-    #
-    # @return [Hash]
-    #   names and values of attributes assigned
-    #
-    # @api public
-    def attributes=(attributes)
-      attributes.each do |name, value|
-        if model.public_method_defined?(setter = "#{name}=")
-          send(setter, value)
-        else
-          raise ArgumentError, "The property '#{name}' is not accessible in #{model}"
-        end
-      end
-    end
-
-    ##
-    # Deprecated API for updating attributes and saving Resource
-    #
-    # @see #update
-    #
-    # @api public
-    def update_attributes(attributes = {}, *allowed)
-      warn "#{model}#update_attributes is deprecated, use #{model}#update instead"
-
-      if allowed.any?
-        warn "specifying allowed in #{model}#update_attributes is deprecated, " \
-          'use Hash#only to filter the attributes in the caller'
-        attributes = attributes.only(*allowed)
-      end
-
-      update(attributes)
-    end
-
-    ##
-    # Updates attributes and saves this Resource instance
-    #
-    # @param  [Hash]  attributes
-    #   attributes to be updated
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if resource and storage state match
-    #
-    # @api public
-    def update(attributes = {})
-      self.attributes = attributes
-      _update
-    end
-
-    ##
-    # Updates attributes and saves this Resource instance, bypassing hooks
-    #
-    # @param  [Hash]  attributes
-    #   attributes to be updated
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if resource and storage state match
-    #
-    # @api public
-    def update!(attributes = {})
-      self.attributes = attributes
-      _update
-    end
-
-    ##
-    # Save the instance and associated children to the data-store.
-    #
-    # This saves all children in a has n relationship (if they're dirty).
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if Resource instance and all associations were saved
-    #
-    # @see Repository#save
-    #
-    # @api public
-    chainable do
-      def save
-        _save
-      end
-    end
-
-    ##
-    # Save the instance and associated children to the data-store, bypassing hooks
-    #
-    # This saves all children in a has n relationship (if they're dirty).
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if Resource instance and all associations were saved
-    #
-    # @see Repository#save
-    #
-    # @api public
-    chainable do
-      def save!
-        _save
-      end
-    end
-
-    ##
-    # Destroy the instance, remove it from the repository
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if resource was destroyed
-    #
-    # @api public
-    def destroy
-      _destroy
-    end
-
-    ##
-    # Destroy the instance, remove it from the repository, bypassing hooks
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if resource was destroyed
-    #
-    # @api public
-    def destroy!
-      _destroy
-    end
-
-    # Gets a Query that will return this Resource instance
-    #
-    # @return [Query] Query that will retrieve this Resource instance
-    #
-    # @api private
-    def to_query
-      model.to_query(repository, key)
-    end
-
-    ##
     # Reset the Resource to a similar state as a new record:
     # removes it from identity map and clears original property
     # values (thus making all properties non dirty)
@@ -613,6 +581,18 @@ module DataMapper
       @saved = false
       identity_map.delete(key)
       original_attributes.clear
+    end
+
+    # Gets a Collection with the current Resource instance as its only member
+    #
+    # @return [Collection, FalseClass]
+    #   nil if this is a new record,
+    #   otherwise a Collection with self as its only member
+    #
+    # @api private
+    def collection
+      return @collection if @collection || new? || frozen?
+      @collection = Collection.new(to_query, [ self ])
     end
 
     protected
@@ -697,6 +677,21 @@ module DataMapper
     private
 
     ##
+    # Initialize a new instance of this Resource using the provided values
+    #
+    # @param  [Hash] attributes
+    #   attribute values to use for the new instance
+    #
+    # @return [Resource]
+    #   the newly initialized resource instance
+    #
+    # @api public
+    def initialize(attributes = {}) # :nodoc:
+      @saved = false
+      self.attributes = attributes
+    end
+
+    ##
     # Saves the resource
     #
     # @api private
@@ -705,7 +700,7 @@ module DataMapper
         return false
       end
 
-      child_associations.map { |a| a.save }.all?
+      child_associations.all? { |a| a.save }
     end
 
     ##
@@ -715,6 +710,7 @@ module DataMapper
     def _destroy
       if saved?
         repository.delete(Collection.new(to_query, [ self ]))
+        @collection.delete(self) if @collection
         reset
         freeze
         true
@@ -764,27 +760,39 @@ module DataMapper
       repository.identity_map(model)
     end
 
-    ##
-    # Initialize a new instance of this Resource using the provided values
-    #
-    # @param  [Hash] attributes
-    #   attribute values to use for the new instance
-    #
-    # @return [Resource]
-    #   the newly initialized resource instance
-    #
-    # @api public
-    def initialize(attributes = {}) # :nodoc:
-      @saved = false
-      self.attributes = attributes
-    end
-
     # Reloads attributes that belong to given lazy loading
     # context, and not yet loaded
     #
     # @api private
     def lazy_load(property_names)
       reload_attributes(properties.in_context(property_names) - loaded_properties)
+    end
+
+    ##
+    # Reloads specified attributes
+    #
+    # @param [Enumerable(Symbol)] attributes
+    #   name(s) of attribute(s) to reload
+    #
+    # @return [Resource]
+    #   the receiver, the current Resource instance
+    #
+    # @api private
+    def reload_attributes(attributes)
+      unless attributes.empty? || new?
+        collection.reload(:fields => attributes)
+      end
+
+      self
+    end
+
+    # Gets a Query that will return this Resource instance
+    #
+    # @return [Query] Query that will retrieve this Resource instance
+    #
+    # @api private
+    def to_query
+      model.to_query(repository, key)
     end
 
     # Returns array of child relationships for which this resource is parent and is loaded
@@ -798,10 +806,18 @@ module DataMapper
 
       relationships.each_value do |relationship|
         next unless relationship.respond_to?(:collection_for) && relationship.loaded?(self)
-        child_associations << relationship.get!(self)
+
+        association = relationship.get!(self)
+        next unless association.loaded? || association.head.any? || association.tail.any?
+
+        child_associations << association
       end
 
-      child_associations.freeze
+      many_to_many, other_associations = child_associations.partition do |association|
+        association.kind_of?(DataMapper::Associations::ManyToMany::Collection)
+      end
+
+      many_to_many + other_associations
     end
 
     ##

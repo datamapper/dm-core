@@ -1,3 +1,7 @@
+# TODO: make AbstractOperation enumerable
+# TODO: deprecate AbstractOperation#operands in favor of AbstractOperation#entries
+# TODO: remove attr_reader :operants from AbstractOperation
+
 module DataMapper
   module Conditions
     class InvalidOperation < Exception; end
@@ -12,6 +16,8 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def self.operation_class(operation)
+        # TODO: when inheriting, register the class' slug, so that this
+        # lookup can be done via a Hash
         AbstractOperation.subclasses.detect { |c| c.slug == operation }
       end
     end

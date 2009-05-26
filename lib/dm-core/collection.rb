@@ -1,6 +1,10 @@
 # TODO: if Collection is scoped by a unique property, should adding
 # new Resources be denied?
 
+# TODO: add a #dirty? method that either checks the head/tail if not
+# loaded, or the whole Collection if it is to see if any Resource objects
+# are dirty.  Will be useful in Resource#save to speed up saving
+
 module DataMapper
   # The Collection class represents a list of resources persisted in
   # a repository and identified by a query.
@@ -185,6 +189,10 @@ module DataMapper
       if query.nil? || (query.kind_of?(Hash) && query.empty?)
         self
       else
+        # TODO: if there is no order parameter, and the Collection is not loaded
+        # check to see if the query can be satisfied by the head/tail.  Ideally
+        # we would want to
+
         new_collection(scoped_query(query))
       end
     end
@@ -220,6 +228,7 @@ module DataMapper
       # satisfy the query.limit, filter the head with the query, and make
       # sure it matches the limit exactly.  if so, use that result instead
       # of calling all()
+      #   - this can probably only be done if there is no :order parameter
 
       collection = if !with_query && (loaded? || lazy_possible?(head, query.limit))
         new_collection(query, super(query.limit))
@@ -487,8 +496,6 @@ module DataMapper
       relate_resource(resource)
       super
     end
-
-
 
     ##
     # Appends the resources to self
@@ -1001,6 +1008,11 @@ module DataMapper
     # @api private
     def new_collection(query, resources = nil, &block)
       resources ||= filter(query) if loaded?
+
+      # TOOD: figure out a way to pass not-yet-saved Resources to this newly
+      # created Collection.  If the new resource matches the conditions, then
+      # it should be added to the collection (keep in mind limit/offset too)
+
       self.class.new(query, resources, &block)
     end
 
@@ -1092,10 +1104,6 @@ module DataMapper
       resource
     end
 
-    # TODO: temporary until OneToMany::Collection#relate_resource can
-    # be used by ManyToMany::Collection#relate_resource
-    alias collection_relate_resource relate_resource
-
     ##
     # Relate a list of Resources to the Collection
     #
@@ -1140,10 +1148,6 @@ module DataMapper
 
       resource
     end
-
-    # TODO: temporary until OneToMany::Collection#relate_resource can
-    # be used by ManyToMany::Collection#relate_resource
-    alias collection_orphan_resource orphan_resource
 
     ##
     # Orphan a list of Resources from the Collection

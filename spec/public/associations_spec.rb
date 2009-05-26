@@ -15,8 +15,6 @@ share_examples_for 'it creates a one accessor' do
 
       describe 'with a query' do
         before :all do
-          @car.save
-
           @return = @car.send(@name, :id => 1)
         end
 
@@ -30,11 +28,13 @@ share_examples_for 'it creates a one accessor' do
       before :all do
         @expected = @model.new
         @car.send("#{@name}=", @expected)
-
-        @return = @car.send(@name)
       end
 
       describe 'without a query' do
+        before :all do
+          @return = @car.send(@name)
+        end
+
         it 'should return a Resource' do
           @return.should be_kind_of(DataMapper::Resource)
         end
@@ -46,8 +46,6 @@ share_examples_for 'it creates a one accessor' do
 
       describe 'with a query' do
         before :all do
-          @car.save
-
           @return = @car.send(@name, :id => @expected.id)
         end
 
@@ -81,7 +79,11 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should relate associated Resource' do
-        pending do
+        relationship  = Car.relationships[@name]
+        belongs_to    = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
+        has_1_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.through
+
+        pending_if 'TODO', belongs_to || has_1_through do
           @expected.car.should == @car
         end
       end
@@ -124,7 +126,6 @@ share_examples_for 'it creates a one mutator' do
     describe 'when changing an associated resource' do
       before :all do
         @car.send("#{@name}=", @model.new)
-        @car.save
         @expected = @model.new
 
         @return = @car.send("#{@name}=", @expected)
@@ -139,7 +140,11 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should relate associated Resource' do
-        pending_if 'should create back-reference', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
+        relationship  = Car.relationships[@name]
+        belongs_to    = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
+        has_1_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.through
+
+        pending_if 'should create back-reference', belongs_to || has_1_through do
           @expected.car.should == @car
         end
       end
@@ -257,6 +262,30 @@ describe DataMapper::Associations do
 
         Car.has(1, @name)
         Engine.belongs_to(:car)
+      end
+
+      supported_by :all do
+        before :all do
+          @car = Car.new
+        end
+
+        it { @car.should respond_to(@name) }
+
+        it_should_behave_like 'it creates a one accessor'
+
+        it { @car.should respond_to("#{@name}=") }
+
+        it_should_behave_like 'it creates a one mutator'
+      end
+    end
+
+    describe '1 through' do
+      before :all do
+        @model = Engine
+        @name  = :engine
+
+        Car.has(1, @name, :through => DataMapper::Resource)
+        Engine.has(1, :car, :through => DataMapper::Resource)
       end
 
       supported_by :all do

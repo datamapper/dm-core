@@ -211,43 +211,11 @@ module DataMapper
 
       class Collection < Associations::OneToMany::Collection
         # TODO: document
-        # @api private
-        attr_accessor :relationship
-
-        # TODO: document
-        # @api private
-        attr_accessor :source
-
-        # TODO: document
-        # @api public
-        def replace(other)
-          through           = @relationship.through
-          last_relationship = @relationship.links.last
-
-          through.send(:lazy_load, source) unless through.loaded?(source)
-          association = through.get!(source)
-
-          other.each do |target|
-            if target.kind_of?(Hash)
-              target = new(target)
-            end
-
-            if association.kind_of?(OneToMany::Collection)
-              association << { last_relationship.name => target }
-            else
-              raise 'TODO: handle many to one associations'
-            end
-          end
-
-          super
-        end
-
-        # TODO: document
         # @api public
         def create(attributes = {})
           assert_source_saved 'The source must be saved before creating a Resource'
 
-          resource = intermediaries(attributes, @relationship.links.dup).last
+          resource = create_intermediaries(attributes, relationship.links.dup).last
           self << resource if resource.saved?
           resource
         end
@@ -255,18 +223,58 @@ module DataMapper
         # TODO: document
         # @api public
         def save
-          through           = @relationship.through
-          last_relationship = @relationship.links.last
+          resources = if loaded?
+            entries
+          else
+            head + tail
+          end
 
-          # TODO: create the new intermediaries
+          last_relationship = relationship.links.last
 
           # delete only intermediaries linked to the target orphans
-          if intermediaries = through.get(source)
-            intermediaries.each do |intermediary|
-              if @orphans.include?(last_relationship.get(intermediary))
-                intermediary.destroy
+          intermediaries.each do |intermediary|
+            next unless @orphans.include?(last_relationship.get(intermediary))
+            intermediaries.delete(intermediary) if intermediary.destroy
+          end
+
+          # ensure all intermediaries are saved so that using first_or_new
+          # below actually finds previously added Resources, rather than
+          # creating duplicate records
+          return false unless intermediaries.save
+
+          # TODO: this handles the case where the through resource is dependent
+          # on the target being created, but probably will not handle the case where
+          # the target is dependent on the through resource.  TEST THIS OUT
+          #   - can this case can occur where a many to many is through a belongs_to?
+
+          if last_relationship.kind_of?(Associations::ManyToOne::Relationship)
+            resources.all? do |resource|
+              if resource.save
+                # create the intermediary record if there isn't one already
+                intermediaries.first_or_create(last_relationship => resource)
               end
             end
+          else
+            # XXX: would this be used for has n through a belongs_to?
+
+            intermediary = intermediaries.first_or_create
+            inverse      = last_relationship.inverse
+
+            return false unless intermediary.save
+
+            resources.map do |resource|
+              inverse.set(resource, intermediary)
+            end
+
+            super
+          end
+        end
+
+        # TODO: document
+        # @api public
+        def destroy
+          unless intermediaries.destroy
+            return false
           end
 
           super
@@ -274,21 +282,18 @@ module DataMapper
 
         # TODO: document
         # @api public
-        def destroy
-          orphan_resources(to_a)
-          save
-          super
-        end
-
-        # TODO: document
-        # @api public
         def destroy!
-          orphan_resources(to_a)
-          save
+          unless intermediaries.destroy!
+            return false
+          end
+
+          if empty?
+            return true
+          end
 
           # FIXME: use a subquery to do this more efficiently in the future
-          repository_name = @relationship.target_repository_name
-          model           = @relationship.target_model
+          repository_name = relationship.target_repository_name
+          model           = relationship.target_model
           key             = model.key(repository_name)
 
           # TODO: handle compound keys
@@ -312,7 +317,17 @@ module DataMapper
           model.all(:repository => repository_name, key.first => map { |r| r.key.first }).update!(attributes)
         end
 
-        def intermediaries(attributes, links)
+        def intermediaries
+          through           = relationship.through
+          last_relationship = relationship.links.last
+
+          intermediaries = through.loaded?(source) ? through.get!(source) : through.collection_for(source)
+          intermediaries = intermediaries.all(last_relationship => self)
+        end
+
+        # TODO: attempt to refactor this method out using an approach
+        # similar to #save to create intermediaries
+        def create_intermediaries(attributes, links)
           attributes = default_attributes.merge(attributes)
 
           head = [ source ]
@@ -333,7 +348,7 @@ module DataMapper
               elsif relationship == lhs
                 # create the join resource
                 collection = lhs.get(head.last)
-                collection.first_or_create(rhs.name => tail.first)
+                collection.first_or_create(rhs => tail.first)
               else
                 # create each resource linking the target and join resources
                 collection = relationship.inverse.get(tail.first)
@@ -359,14 +374,14 @@ module DataMapper
           head + tail
         end
 
-        # FIXME: temporarily bypass OneToMany::Collection#relate_resource
-        # until issues with it can be worked out
+        # TODO: document
+        # @api private
         def relate_resource(resource)
           collection_relate_resource(resource)
         end
 
-        # FIXME: temporarily bypass OneToMany::Collection#orphan_resource
-        # until issues with it can be worked out
+        # TODO: document
+        # @api private
         def orphan_resource(resource)
           collection_orphan_resource(resource)
         end

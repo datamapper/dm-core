@@ -74,11 +74,11 @@ module DataMapper
         fields = query.fields
         types  = fields.map { |p| p.primitive }
 
+        statement, bind_values = select_statement(query)
+
         records = []
 
         with_connection do |connection|
-          statement, bind_values = select_statement(query)
-
           command = connection.create_command(statement)
           command.set_types(types)
 
