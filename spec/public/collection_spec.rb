@@ -14,6 +14,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         property :id,      Serial
         property :title,   String, :nullable => false
         property :content, Text
+        property :author,  String
 
         belongs_to :original, :model => self
         has n, :revisions, :model => self, :child_key => [ :original_id ]
@@ -24,6 +25,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
     supported_by :all do
       before :all do
+        @author = 'Dan Kubb'
+
         @original = @model.create(:title => 'Original Article')
         @article  = @model.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
         @other    = @model.create(:title => 'Other Article',  :content => 'Other')

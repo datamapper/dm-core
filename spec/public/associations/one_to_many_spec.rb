@@ -46,7 +46,7 @@ end
         property :title,   String, :nullable => false
         property :content, Text
 
-        belongs_to :author
+        belongs_to :author, :nullable => false
         belongs_to :original, :model => self
         has n, :revisions, :model => self, :child_key => [ :original_id ]
       end

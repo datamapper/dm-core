@@ -5,10 +5,10 @@ share_examples_for 'A Collection supporting Strategic Eager Loading' do
     end
 
     before :all do
-      @revision = @article.revisions.create(:title => 'Revision')
+      @revision = @article.revisions.create(:title => 'Revision', :author => @author)
 
-      @new_article  = @model.create(:title => 'Sample Article')
-      @new_revision = @new_article.revisions.create(:title => 'New Revision')
+      @new_article  = @model.create(:title => 'Sample Article', :author => @author)
+      @new_revision = @new_article.revisions.create(:title => 'New Revision', :author => @author)
     end
 
     before :all do
@@ -48,9 +48,7 @@ share_examples_for 'A Collection supporting Strategic Eager Loading' do
       if loaded
         @results.should == [ [ @article, @revision ] ]
       else
-        pending_if 'TODO: make method_missing not a kicker', @one_to_many do
-          @results.should == [ [ @article, @revision ], [ @new_article, @new_revision ] ]
-        end
+        @results.should == [ [ @article, @revision ], [ @new_article, @new_revision ] ]
       end
     end
   end

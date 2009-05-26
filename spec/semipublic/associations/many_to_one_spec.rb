@@ -27,7 +27,7 @@ describe 'Many to One Associations' do
       property :id,   Serial
       property :body, Text
 
-      belongs_to :user
+      belongs_to :user, :nullable => false
     end
 
     class ::Default
