@@ -77,7 +77,8 @@ end
 ADAPTERS.freeze
 PRIMARY.freeze
 
-DataMapper::Logger.new(nil, :debug)
+logger = DataMapper::Logger.new(DataMapper.root / 'log' / 'dm.log', :debug)
+logger.auto_flush = true
 
 Spec::Runner.configure do |config|
   config.extend(DataMapper::Spec::AdapterHelpers)

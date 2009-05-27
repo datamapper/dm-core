@@ -71,7 +71,7 @@ require dir / 'core_ext' / 'kernel'             # TODO: do not load automaticall
 require dir / 'core_ext' / 'symbol'             # TODO: do not load automatically
 
 # A logger should always be present. Lets be consistent with DO
-DataMapper::Logger.new(nil, :off)
+DataMapper::Logger.new(StringIO.new, :fatal)
 
 # == Setup and Configuration
 # DataMapper uses URIs or a connection hash to connect to your data-store.
