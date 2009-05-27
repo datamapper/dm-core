@@ -3,9 +3,9 @@
 require 'ftools'
 require 'rubygems'
 
-gem 'addressable', '~>2.0.2'
+gem 'addressable', '~>2.0'
 gem 'faker',       '~>0.3.1'
-gem 'ruby-prof',    '~>0.7.3'
+gem 'ruby-prof',   '~>0.7.3'
 
 require 'addressable/uri'
 require 'faker'

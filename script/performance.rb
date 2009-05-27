@@ -4,7 +4,7 @@ require 'ftools'
 require 'rubygems'
 
 gem 'activerecord', '~>2.3.2'
-gem 'addressable',  '~>2.0.2'
+gem 'addressable',  '~>2.0'
 gem 'faker',        '~>0.3.1'
 gem 'rbench',       '~>0.2.3'
 
