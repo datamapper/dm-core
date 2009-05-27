@@ -191,14 +191,14 @@ module DataMapper
         # TODO: document
         # @api public
         def replace(*)
-          lazy_load if source.saved?  # lazy load so that targets are always orphaned
+          lazy_load  # lazy load so that targets are always orphaned
           super
         end
 
         # TODO: document
         # @api public
         def clear
-          lazy_load if source.saved?  # lazy load so that targets are always orphaned
+          lazy_load  # lazy load so that targets are always orphaned
           super
         end
 
@@ -253,20 +253,8 @@ module DataMapper
         # TODO: document
         # @api private
         def lazy_load
-          if source.saved? || loaded?
+          if source.saved?
             super
-          else
-            mark_loaded
-
-            # TODO: DRY this up with LazyArray
-            @array.unshift(*head)
-            @array.concat(tail)
-
-            @head = @tail = nil
-            @reapers.each { |r| @array.delete_if(&r) } if @reapers
-            @array.freeze if frozen?
-
-            self
           end
         end
 
