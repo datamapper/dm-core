@@ -24,34 +24,34 @@ public_specs     = ROOT + 'spec/public/**/*_spec.rb'
 semipublic_specs = ROOT + 'spec/semipublic/**/*_spec.rb'
 all_specs        = ROOT + 'spec/**/*_spec.rb'
 
-desc "Run all specifications"
+desc 'Run all specifications'
 run_spec('spec', all_specs, false)
 
-desc "Run all specifications with rcov"
+desc 'Run all specifications with rcov'
 run_spec('rcov', all_specs, true)
 
 namespace :spec do
-  desc "Run public specifications"
+  desc 'Run public specifications'
   run_spec('public', public_specs, false)
 
-  desc "Run semipublic specifications"
+  desc 'Run semipublic specifications'
   run_spec('semipublic', semipublic_specs, false)
 end
 
 namespace :rcov do
-  desc "Run public specifications with rcov"
+  desc 'Run public specifications with rcov'
   run_spec('public', public_specs, true)
 
-  desc "Run semipublic specifications with rcov"
+  desc 'Run semipublic specifications with rcov'
   run_spec('semipublic', semipublic_specs, true)
 end
 
-desc "Run all comparisons with ActiveRecord"
+desc 'Run all comparisons with ActiveRecord'
 task :perf do
   sh ROOT + 'script/performance.rb'
 end
 
-desc "Profile DataMapper"
+desc 'Profile DataMapper'
 task :profile do
   sh ROOT + 'script/profile.rb'
 end

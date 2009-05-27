@@ -1,20 +1,19 @@
 #!/usr/bin/env ruby
 
-require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
-
 require 'ftools'
 require 'rubygems'
 
-# sudo gem install rbench
-# OR git clone git://github.com/somebee/rbench.git , rake install
-gem 'rbench', '~>0.2.3'
+gem 'activerecord', '~>2.3.2'
+gem 'addressable',  '~>2.0.2'
+gem 'faker',        '~>0.3.1'
+gem 'rbench',       '~>0.2.3'
+
+require 'active_record'
+require 'addressable/uri'
+require 'faker'
 require 'rbench'
 
-gem 'faker', '~>0.3.1'
-require 'faker'
-
-gem 'activerecord', '~>2.3.2'
-require 'active_record'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core'))
 
 socket_file = Pathname.glob(%w[
   /opt/local/var/run/mysql5/mysqld.sock
@@ -30,7 +29,7 @@ configuration_options = {
   :adapter => 'mysql',
   :username => 'root',
   :password => '',
-  :database => 'data_mapper_1',
+  :database => 'dm_core_test',
 }
 
 configuration_options[:socket] = socket_file unless socket_file.nil?
@@ -39,7 +38,7 @@ log_dir = DataMapper.root / 'log'
 log_dir.mkdir unless log_dir.directory?
 
 DataMapper::Logger.new(log_dir / 'dm.log', :off)
-adapter = DataMapper.setup(:default, "mysql://root@localhost/data_mapper_1?socket=#{socket_file}")
+adapter = DataMapper.setup(:default, "mysql://root@localhost/dm_core_test?socket=#{socket_file}")
 
 if configuration_options[:adapter]
   sqlfile       = File.join(File.dirname(__FILE__), '..', 'tmp', 'performance.sql')
@@ -69,13 +68,11 @@ ARExhibit.find_by_sql('SELECT 1')
 class User
   include DataMapper::Resource
 
-  property :id,    Serial
-  property :name,  String
-  property :email, String
-  property :about, Text, :lazy => true
+  property :id,         Serial
+  property :name,       String
+  property :email,      String
+  property :about,      Text,   :lazy => false
   property :created_on, Date
-
-  auto_migrate!
 end
 
 class Exhibit
@@ -85,14 +82,13 @@ class Exhibit
   property :name,       String
   property :zoo_id,     Integer
   property :user_id,    Integer
-  property :notes,      Text, :lazy => true
+  property :notes,      Text,    :lazy => false
   property :created_on, Date
-#  property :updated_at, DateTime
 
   belongs_to :user
-
-  auto_migrate!
 end
+
+DataMapper.auto_migrate!
 
 def touch_attributes(*exhibits)
   exhibits.flatten.each do |exhibit|
@@ -182,7 +178,7 @@ puts "Benchmarks will now run #{TIMES} times"
 RBench.run(TIMES) do
 
   column :times
-  column :ar, :title => 'AR 2.2.2'
+  column :ar, :title => 'AR 2.3.2'
   column :dm, :title => "DM #{DataMapper::VERSION}"
   column :diff, :compare => [:ar, :dm]
 
@@ -225,9 +221,8 @@ RBench.run(TIMES) do
     dm { touch_attributes(Exhibit.all(:limit => 100)) }
   end
 
-  # NOTE: this will run slow until SEL is added back into dm-core
   report 'Model.all limit(100) with relationship', (TIMES / 10).ceil do
-    ar { touch_relationships(ARExhibit.all(:limit => 100, :include => [:user])) }
+    ar { touch_relationships(ARExhibit.all(:limit => 100, :include => [ :user ])) }
     dm { touch_relationships(Exhibit.all(:limit => 100)) }
   end
 
@@ -256,8 +251,8 @@ RBench.run(TIMES) do
   end
 
   report 'Resource#update' do
-    ar { e = ARExhibit.find(1); e.name = 'bob'; e.save }
-    dm { e = Exhibit.get(1); e.name = 'bob'; e.save }
+    ar { ARExhibit.find(1).update_attributes(:name => 'bob') }
+    dm { Exhibit.get(1).update(:name => 'bob') }
   end
 
   report 'Resource#destroy' do

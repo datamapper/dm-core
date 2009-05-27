@@ -1,15 +1,17 @@
 #!/usr/bin/env ruby
 
-require File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core')
-
 require 'ftools'
 require 'rubygems'
 
-gem 'ruby-prof', '~>0.7.3'
+gem 'addressable', '~>2.0.2'
+gem 'faker',       '~>0.3.1'
+gem 'ruby-prof',    '~>0.7.3'
+
+require 'addressable/uri'
+require 'faker'
 require 'ruby-prof'
 
-gem 'faker', '~>0.3.1'
-require 'faker'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'dm-core'))
 
 TEXT_OUTPUT = DataMapper.root / 'profile_results.txt'
 HTML_OUTPUT = DataMapper.root / 'profile_results.html'
@@ -25,7 +27,7 @@ SOCKET_FILE = Pathname.glob(%w[
 
 configuration_options = {
   :adapter  => 'mysql',
-  :database => 'data_mapper_1',
+  :database => 'dm_core_test',
   :host     => 'localhost',
   :username => 'root',
   :password => '',
@@ -44,13 +46,11 @@ end
 class User
   include DataMapper::Resource
 
-  property :id,    Serial
-  property :name,  String
-  property :email, String
-  property :about, Text, :lazy => true
+  property :id,         Serial
+  property :name,       String
+  property :email,      String
+  property :about,      Text,   :lazy => false
   property :created_on, Date
-
-  auto_migrate!
 end
 
 class Exhibit
@@ -60,14 +60,13 @@ class Exhibit
   property :name,       String
   property :zoo_id,     Integer
   property :user_id,    Integer
-  property :notes,      Text, :lazy => true
+  property :notes,      Text,    :lazy => false
   property :created_on, Date
-#  property :updated_at, DateTime
 
   belongs_to :user
-
-  auto_migrate!
 end
+
+DataMapper.auto_migrate!
 
 def touch_attributes(*exhibits)
   exhibits.flatten.each do |exhibit|

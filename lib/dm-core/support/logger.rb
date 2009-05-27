@@ -94,7 +94,7 @@ module DataMapper
 
     def initialize_log(log)
       close if defined?(@log) && !@log.nil? # be sure that we don't leave open files laying around.
-      @log = log || "log/dm.log"
+      @log = log || 'log/dm.log'
     end
 
     def reset_methods(o_or_c)
@@ -153,8 +153,8 @@ module DataMapper
     #   {:off, :fatal, :error, :warn, :info, :debug}
     # @param delimiter<String>     delimiter to use between message sections
     # @param log_creation<Boolean> log that the file is being created
-    def set_log(log, log_level = :off, delimiter = " ~ ", log_creation = false)
-      delimiter    ||= " ~ "
+    def set_log(log, log_level = :off, delimiter = ' ~ ', log_creation = false)
+      delimiter    ||= ' ~ '
 
       if log_level && LEVELS[log_level.to_sym]
         self.level = log_level.to_sym
@@ -169,7 +169,7 @@ module DataMapper
 
       DataMapper.logger = self
 
-      self.info("Logfile created") if log_creation
+      self.info('Logfile created') if log_creation
     end
 
     # Flush the entire buffer to the log object.

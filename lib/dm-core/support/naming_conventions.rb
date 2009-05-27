@@ -20,7 +20,7 @@ module DataMapper
   # DataMapper.setup(name, uri) returns the Adapter for convenience, so you can
   # use code like this:
   #
-  #   adapter = DataMapper.setup(:default, "mock://localhost/mock")
+  #   adapter = DataMapper.setup(:default, 'mock://localhost/mock')
   #   adapter.resource_naming_convention = NamingConventions::Resource::Underscored
   module NamingConventions
 
@@ -46,7 +46,7 @@ module DataMapper
 
       module Yaml
         def self.call(name)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(name)) + ".yaml"
+          "#{Extlib::Inflection.pluralize(Extlib::Inflection.underscore(name))}.yaml"
         end
       end # module Yaml
 
@@ -74,7 +74,7 @@ module DataMapper
 
       module Yaml
         def self.call(property)
-          Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name.to_s)) + ".yaml"
+          "#{Extlib::Inflection.pluralize(Extlib::Inflection.underscore(property.name.to_s))}.yaml"
         end
       end # module Yaml
 

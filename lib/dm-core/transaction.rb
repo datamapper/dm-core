@@ -133,7 +133,7 @@ module DataMapper
     #
     # @api private
     def within
-      raise "No block provided" unless block_given?
+      raise 'No block provided' unless block_given?
       raise "Illegal state for within: #{@state}" unless @state == :begin
       @adapters.each do |adapter, state|
         adapter.push_transaction(self)

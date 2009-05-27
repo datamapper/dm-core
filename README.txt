@@ -22,7 +22,7 @@ see all <tt>false</tt> results. Do the same in DataMapper and it's
 <tt>true</tt> all the way down.
 
   repository do
-    @parent = Tree.find(:first, :conditions => ['name = ?', 'bob'])
+    @parent = Tree.first(:name => 'bob')
 
     @parent.children.each do |child|
       puts @parent.object_id == child.parent.object_id
@@ -75,6 +75,7 @@ text-fields) by passing a @lazy@ option to your field mapping with a value of
 
   class Animal
     include DataMapper::Resource
+
     property :name, String
     property :notes, Text, :lazy => false
   end
@@ -137,12 +138,12 @@ need other comparisons though? Try these:
   Person.all(:name.not => 'bob')
 
   # If the value of a pair is an Array, we do an IN-clause for you.
-  Person.all(:name.like => 'S%', :id => [1, 2, 3, 4, 5])
+  Person.all(:name.like => 'S%', :id => [ 1, 2, 3, 4, 5 ])
 
   Zoo.get(11)
 
   # Does a NOT IN () clause for you.
-  Person.all(:name.not => ['bob', 'rick', 'steve'])
+  Person.all(:name.not => [ 'bob', 'rick', 'steve' ])
 
 See? Fewer SQL fragments dirtying your Ruby code. And that's just a few of the
 nice syntax tweaks DataMapper delivers out of the box...

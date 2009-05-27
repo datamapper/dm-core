@@ -92,10 +92,10 @@ DataMapper::Logger.new(nil, :off)
 # address the data-store on the server.
 #
 # Here's some examples
-#   DataMapper.setup(:default, "sqlite3://path/to/your/project/db/development.db")
-#   DataMapper.setup(:default, "mysql://localhost/dm_core_test")
+#   DataMapper.setup(:default, 'sqlite3://path/to/your/project/db/development.db')
+#   DataMapper.setup(:default, 'mysql://localhost/dm_core_test')
 #     # no auth-info
-#   DataMapper.setup(:default, "postgres://root:supahsekret@127.0.0.1/dm_core_test")
+#   DataMapper.setup(:default, 'postgres://root:supahsekret@127.0.0.1/dm_core_test')
 #     # with auth-info
 #
 #
@@ -104,7 +104,7 @@ DataMapper::Logger.new(nil, :off)
 #
 #   DataMapper.setup(:default, {
 #     :adapter  => 'adapter_name_here',
-#     :database => "path/to/repo",
+#     :database => 'path/to/repo',
 #     :username => 'username',
 #     :password => 'password',
 #     :host     => 'hostname'
@@ -113,7 +113,7 @@ DataMapper::Logger.new(nil, :off)
 # === Logging
 # To turn on error logging to STDOUT, issue:
 #
-#   DataMapper::Logger.new(STDOUT, 0)
+#   DataMapper::Logger.new(STDOUT, :debug)
 #
 # You can pass a file location ("/path/to/log/file.log") in place of STDOUT.
 # see DataMapper::Logger for more information.

@@ -66,6 +66,7 @@ script/performance.rb
 script/profile.rb
 spec/lib/adapter_helpers.rb
 spec/lib/collection_helpers.rb
+spec/lib/counter_adapter.rb
 spec/lib/pending_helpers.rb
 spec/lib/rspec_immediate_feedback_formatter.rb
 spec/public/associations/many_to_many_spec.rb
@@ -80,6 +81,7 @@ spec/public/resource_spec.rb
 spec/public/setup_spec.rb
 spec/public/shared/collection_shared_spec.rb
 spec/public/shared/resource_shared_spec.rb
+spec/public/shared/sel_spec.rb
 spec/public/transaction_spec.rb
 spec/semipublic/adapters/abstract_adapter_spec.rb
 spec/semipublic/adapters/in_memory_adapter_spec.rb

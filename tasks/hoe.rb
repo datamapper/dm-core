@@ -1,8 +1,8 @@
 require 'hoe'
 
-@config_file = "~/.rubyforge/user-config.yml"
+@config_file = '~/.rubyforge/user-config.yml'
 @config = nil
-RUBYFORGE_USERNAME = "unknown"
+RUBYFORGE_USERNAME = 'unknown'
 def rubyforge_username
   unless @config
     begin
@@ -16,13 +16,13 @@ Run 'rubyforge setup' to prepare your env for access to Rubyforge
       exit
     end
   end
-  RUBYFORGE_USERNAME.replace @config["username"]
+  RUBYFORGE_USERNAME.replace @config['username']
 end
 
 # Remove hoe dependency
 class Hoe
   def extra_dev_deps
-    @extra_dev_deps.reject! { |dep| dep[0] == "hoe" }
+    @extra_dev_deps.reject! { |dep| dep[0] == 'hoe' }
     @extra_dev_deps
   end
 end

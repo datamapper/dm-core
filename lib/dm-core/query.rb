@@ -68,13 +68,13 @@ module DataMapper
     #
     # @example
     #
-    #   Team.all(:wins.gt => 30, :conference => "East")
+    #   Team.all(:wins.gt => 30, :conference => 'East')
     #
     # Conditions are "greater than" operator for "wins"
     # field and exact match operator for "conference"
     # field:
     #
-    # [[:gt, #<Property:Team:wins>, 30], [:eql, #<Property:Team:conference>, "East"]]
+    # [[:gt, #<Property:Team:wins>, 30], [:eql, #<Property:Team:conference>, 'East']]
     #
     # @return [Array]
     #   the conditions that will be used to scope the results
@@ -530,7 +530,7 @@ module DataMapper
         [ :unique,     unique?         ],
       ]
 
-      "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" } * ' '}>"
+      "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" }.join(' ')}>"
     end
 
     ##

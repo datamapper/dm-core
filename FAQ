@@ -24,7 +24,7 @@ model has two or more keys, no big deal
 Create a property and make it a ParanoidDateTime or ParanoidBoolean type.
 
   property :deleted_at, ParanoidDateTime
-  property :deleted, ParanoidBoolean
+  property :deleted,    ParanoidBoolean
 
 All of your calls to <tt>##all()</tt>, <tt>##first()</tt> will be scoped 
 with <tt>:deleted_at => nil</tt> or <tt>:deleted => false</tt>. Plus, 
@@ -36,8 +36,9 @@ This is what the Discriminator data-type is for:
 
   class Person
     include DataMapper::Resource
-    property :id, Serial
-    property :type, Discriminator ## other shared properties here
+
+    property :id,   Serial
+    property :type, Discriminator  ## other shared properties here
   end
 
   class Salesperson < Person; end
@@ -48,8 +49,8 @@ the data-store.
 
 === How do I run my own commands?
 
-  repository.adapter.query("select * from users where clue > 0")
-  repository(:integration).adapter.query("select * from users where clue > 0")
+  repository.adapter.query("SELECT * FROM users WHERE clue > 0")
+  repository(:integration).adapter.query("SELECT * FROM users WHERE clue > 0")
 
 This does not return any Users (har har), but rather Struct's that will quack
 like Users. They'll be read-only as well.

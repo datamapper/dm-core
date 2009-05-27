@@ -84,7 +84,7 @@ module DataMapper
           [ :property,        property        ],
         ]
 
-        "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" } * ' '}>"
+        "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" }.join(' ')}>"
       end
 
       private

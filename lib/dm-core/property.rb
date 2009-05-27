@@ -63,8 +63,8 @@ module DataMapper
   #  class Post
   #   include DataMapper::Resource
   #
-  #    property :title,  String, :accessor => :private    # Both reader and writer are private
-  #    property :body,   Text,   :accessor => :protected  # Both reader and writer are protected
+  #    property :title, String, :accessor => :private    # Both reader and writer are private
+  #    property :body,  Text,   :accessor => :protected  # Both reader and writer are protected
   #  end
   #
   # Access control is also analogous to Ruby attribute readers and writers, and can
@@ -85,7 +85,7 @@ module DataMapper
   #  class Post
   #    include DataMapper::Resource
   #
-  #    property :title,  String
+  #    property :title, String
   #
   #    def title=(new_title)
   #      raise ArgumentError if new_title != 'Luke is Awesome'
