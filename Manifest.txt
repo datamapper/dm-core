@@ -61,7 +61,6 @@ lib/dm-core/types/paranoid_datetime.rb
 lib/dm-core/types/serial.rb
 lib/dm-core/types/text.rb
 lib/dm-core/version.rb
-script/all
 script/performance.rb
 script/profile.rb
 spec/lib/adapter_helpers.rb
