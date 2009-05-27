@@ -21,9 +21,17 @@ module DataMapper
       # TODO: document
       # @api private
       def ==(other)
-        return true if equal?(other)
-        return false unless other.respond_to?(:property) &&
-                            other.respond_to?(:direction)
+        if equal?(other)
+          return true
+        end
+
+        unless other.respond_to?(:property)
+          return false
+        end
+
+        unless other.respond_to?(:direction)
+          return false
+        end
 
         cmp?(other, :==)
       end
@@ -31,8 +39,13 @@ module DataMapper
       # TODO: document
       # @api private
       def eql?(other)
-        return true if equal?(other)
-        return false unless self.class.equal?(other.class)
+        if equal?(other)
+          return true
+        end
+
+        unless self.class.equal?(other.class)
+          return false
+        end
 
         cmp?(other, :eql?)
       end
@@ -40,7 +53,7 @@ module DataMapper
       # TODO: document
       # @api private
       def hash
-        property.hash + direction.hash
+        property.hash
       end
 
       # TODO: document

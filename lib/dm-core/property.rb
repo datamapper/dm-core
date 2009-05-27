@@ -300,19 +300,18 @@ module DataMapper
 
     # NOTE: check is only for psql, so maybe the postgres adapter should
     # define its own property options. currently it will produce a warning tho
-    # since PROPERTY_OPTIONS is a constant
+    # since OPTIONS is a constant
     #
-    # NOTE: PLEASE update PROPERTY_OPTIONS in DataMapper::Type when updating
+    # NOTE: PLEASE update OPTIONS in DataMapper::Type when updating
     # them here
-    PROPERTY_OPTIONS = [
+    OPTIONS = [
       :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :unique_index, :auto_validation,
       :validates, :unique, :precision, :scale
     ]
 
-    # TODO: rename PRIMITIVES, and freeze this
-    TYPES = [
+    PRIMITIVES = [
       TrueClass,
       String,
       Float,
@@ -757,7 +756,7 @@ module DataMapper
     #
     # @api semipublic
     def value(value)
-      custom? ? self.type.dump(value, self) : value
+      custom? ? type.dump(value, self) : value
     end
 
     # Returns a concise string representation of the property instance.
@@ -801,7 +800,7 @@ module DataMapper
         type = Types.find_const(type.name)
       end
 
-      unless TYPES.include?(type) || (Type > type && TYPES.include?(type.primitive))
+      unless PRIMITIVES.include?(type) || (Type > type && PRIMITIVES.include?(type.primitive))
         raise ArgumentError, "+type+ was #{type.inspect}, which is not a supported type"
       end
 
@@ -862,7 +861,7 @@ module DataMapper
     # TODO: document
     # @api private
     def assert_valid_options(options)
-      if (unknown = options.keys - PROPERTY_OPTIONS).any?
+      if (unknown = options.keys - OPTIONS).any?
         raise ArgumentError, "options #{unknown.map { |o| o.inspect }.join(' and ')} are unknown"
       end
 

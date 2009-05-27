@@ -50,11 +50,25 @@ module DataMapper
       # TODO: document
       # @api private
       def ==(other)
-        return true if equal?(other)
-        return false unless other.respond_to?(:repository_name) &&
-                            other.respond_to?(:relationships)   &&
-                            other.respond_to?(:model)           &&
-                            other.respond_to?(:property)
+        if equal?(other)
+          return true
+        end
+
+        unless other.respond_to?(:repository_name)
+          return false
+        end
+
+        unless other.respond_to?(:relationships)
+          return false
+        end
+
+        unless other.respond_to?(:model)
+          return false
+        end
+
+        unless other.respond_to?(:property)
+          return false
+        end
 
         cmp?(other, :==)
       end
@@ -62,8 +76,13 @@ module DataMapper
       # TODO: document
       # @api private
       def eql?(other)
-        return true if equal?(other)
-        return false unless self.class.equal?(other.class)
+        if equal?(other)
+          return true
+        end
+
+        unless self.class.equal?(other.class)
+          return false
+        end
 
         cmp?(other, :eql?)
       end
@@ -71,7 +90,7 @@ module DataMapper
       # TODO: document
       # @api private
       def hash
-        repository_name.hash + relationships.hash + model.hash + property.hash
+        property.hash
       end
 
       # TODO: document

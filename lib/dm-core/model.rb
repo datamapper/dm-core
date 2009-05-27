@@ -1,3 +1,6 @@
+# TODO: move paranoid property concerns to a ParanoidModel that is mixed
+# into Model when a Paranoid property is used
+
 module DataMapper
   module Model
     extend Chainable

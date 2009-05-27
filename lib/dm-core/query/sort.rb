@@ -9,10 +9,14 @@ module DataMapper
         other_value = other.value
 
         cmp = case
-          when @value.nil? && other_value.nil? then  0
-          when @value.nil?                     then  1
-          when other_value.nil?                then -1
-          else @value <=> other_value
+          when @value.nil? && other_value.nil?
+            0
+          when @value.nil?
+            1
+          when other_value.nil?
+            -1
+          else
+            @value <=> other_value
         end
 
         @ascending ? cmp : cmp * -1

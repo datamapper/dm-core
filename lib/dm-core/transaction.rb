@@ -18,7 +18,9 @@ module DataMapper
       @state = :none
       @adapters = {}
       link(*things)
-      commit { |*block_args| yield(*block_args) } if block_given?
+      if block_given?
+        commit { |*block_args| yield(*block_args) }
+      end
     end
 
     ##
@@ -44,20 +46,32 @@ module DataMapper
     #
     # @api private
     def link(*things)
-      raise "Illegal state for link: #{@state}" unless @state == :none
+      unless @state == :none
+        raise "Illegal state for link: #{@state}"
+      end
+
       things.each do |thing|
         case thing
-          when DataMapper::Adapters::AbstractAdapter then @adapters[thing] = :none
-          when DataMapper::Repository                then link(thing.adapter)
-          when DataMapper::Model                     then link(*thing.repositories)
-          when DataMapper::Resource                  then link(thing.model)
-          when Array                                 then link(*thing)
+          when DataMapper::Adapters::AbstractAdapter
+            @adapters[thing] = :none
+          when DataMapper::Repository
+            link(thing.adapter)
+          when DataMapper::Model
+            link(*thing.repositories)
+          when DataMapper::Resource
+            link(thing.model)
+          when Array
+            link(*thing)
           else
             raise "Unknown argument to #{self.class}#link: #{thing.inspect} (#{thing.class})"
         end
       end
-      return commit { |*block_args| yield(*block_args) } if block_given?
-      return self
+
+      if block_given?
+        commit { |*block_args| yield(*block_args) }
+      else
+        self
+      end
     end
 
     ##
@@ -67,7 +81,10 @@ module DataMapper
     #
     # @api private
     def begin
-      raise "Illegal state for begin: #{@state}" unless @state == :none
+      unless @state == :none
+        raise "Illegal state for begin: #{@state}"
+      end
+
       each_adapter(:connect_adapter, [:log_fatal_transaction_breakage])
       each_adapter(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
       @state = :begin
@@ -87,18 +104,27 @@ module DataMapper
     # @api private
     def commit
       if block_given?
-        raise "Illegal state for commit with block: #{@state}" unless @state == :none
+        unless @state == :none
+          raise "Illegal state for commit with block: #{@state}"
+        end
+
         begin
           self.begin
           rval = within { |*block_args| yield(*block_args) }
-          self.commit if @state == :begin
+          if @state == :begin
+            self.commit
+          end
           return rval
-        rescue Exception => e
-          self.rollback if @state == :begin
-          raise e
+        rescue Exception => exception
+          if @state == :begin
+            self.rollback
+          end
+          raise exception
         end
       else
-        raise "Illegal state for commit without block: #{@state}" unless @state == :begin
+        unless @state == :begin
+          raise "Illegal state for commit without block: #{@state}"
+        end
         each_adapter(:prepare_adapter, [:rollback_and_close_adapter_if_begin, :rollback_prepared_and_close_adapter_if_prepare])
         each_adapter(:commit_adapter, [:log_fatal_transaction_breakage])
         each_adapter(:close_adapter, [:log_fatal_transaction_breakage])
@@ -113,7 +139,9 @@ module DataMapper
     #
     # @api private
     def rollback
-      raise "Illegal state for rollback: #{@state}" unless @state == :begin
+      unless @state == :begin
+        raise "Illegal state for rollback: #{@state}"
+      end
       each_adapter(:rollback_adapter_if_begin, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
       each_adapter(:rollback_prepared_adapter_if_prepare, [:rollback_prepared_and_close_adapter_if_begin, :close_adapter_if_none])
       each_adapter(:close_adapter_if_open, [:log_fatal_transaction_breakage])
@@ -133,11 +161,18 @@ module DataMapper
     #
     # @api private
     def within
-      raise 'No block provided' unless block_given?
-      raise "Illegal state for within: #{@state}" unless @state == :begin
+      unless block_given?
+        raise 'No block provided'
+      end
+
+      unless @state == :begin
+        raise "Illegal state for within: #{@state}"
+      end
+
       @adapters.each do |adapter, state|
         adapter.push_transaction(self)
       end
+
       begin
         return yield(self)
       ensure
@@ -153,13 +188,17 @@ module DataMapper
       if args.size == 1 && args.first.kind_of?(Adapters::AbstractAdapter)
         if (match = meth.to_s.match(/^(.*)_if_(none|begin|prepare|rollback|commit)$/))
           if self.respond_to?(match[1], true)
-            self.send(match[1], args.first) if state_for(args.first).to_s == match[2]
+            if state_for(args.first).to_s == match[2]
+              self.send(match[1], args.first)
+            end
           else
             super
           end
         elsif (match = meth.to_s.match(/^(.*)_unless_(none|begin|prepare|rollback|commit)$/))
           if self.respond_to?(match[1], true)
-            self.send(match[1], args.first) unless state_for(args.first).to_s == match[2]
+            unless state_for(args.first).to_s == match[2]
+              self.send(match[1], args.first)
+            end
           else
             super
           end
@@ -174,8 +213,14 @@ module DataMapper
     # TODO: document
     # @api private
     def primitive_for(adapter)
-      raise "Unknown adapter #{adapter}" unless @adapters.include?(adapter)
-      raise "No primitive for #{adapter}" unless @transaction_primitives.include?(adapter)
+      unless @adapters.include?(adapter)
+        raise "Unknown adapter #{adapter}"
+      end
+
+      unless @transaction_primitives.include?(adapter)
+        raise "No primitive for #{adapter}"
+      end
+
       @transaction_primitives[adapter]
     end
 
@@ -185,9 +230,12 @@ module DataMapper
     # @api private
     def validate_primitive(primitive)
       [:close, :begin, :prepare, :rollback, :rollback_prepared, :commit].each do |meth|
-        raise "Invalid primitive #{primitive}: doesnt respond_to?(#{meth.inspect})" unless primitive.respond_to?(meth)
+        unless primitive.respond_to?(meth)
+          raise "Invalid primitive #{primitive}: doesnt respond_to?(#{meth.inspect})"
+        end
       end
-      return primitive
+
+      primitive
     end
 
     # TODO: document
@@ -197,32 +245,41 @@ module DataMapper
         @adapters.each do |adapter, state|
           self.send(method, adapter)
         end
-      rescue Exception => e
+      rescue Exception => exception
         @adapters.each do |adapter, state|
           on_fail.each do |fail_handler|
             begin
               self.send(fail_handler, adapter)
-            rescue Exception => e2
-              DataMapper.logger.fatal("#{self}#each_adapter(#{method.inspect}, #{on_fail.inspect}) failed with #{e.inspect}: #{e.backtrace.join("\n")} - and when sending #{fail_handler} to #{adapter} we failed again with #{e2.inspect}: #{e2.backtrace.join("\n")}")
+            rescue Exception => inner_exception
+              DataMapper.logger.fatal("#{self}#each_adapter(#{method.inspect}, #{on_fail.inspect}) failed with #{exception.inspect}: #{exception.backtrace.join("\n")} - and when sending #{fail_handler} to #{adapter} we failed again with #{inner_exception.inspect}: #{inner_exception.backtrace.join("\n")}")
             end
           end
         end
-        raise e
+        raise exception
       end
     end
 
     # TODO: document
     # @api private
     def state_for(adapter)
-      raise "Unknown adapter #{adapter}" unless @adapters.include?(adapter)
+      unless @adapters.include?(adapter)
+        raise "Unknown adapter #{adapter}"
+      end
+
       @adapters[adapter]
     end
 
     # TODO: document
     # @api private
     def do_adapter(adapter, what, prerequisite)
-      raise "No primitive for #{adapter}" unless @transaction_primitives.include?(adapter)
-      raise "Illegal state for #{what}: #{state_for(adapter)}" unless state_for(adapter) == prerequisite
+      unless @transaction_primitives.include?(adapter)
+        raise "No primitive for #{adapter}"
+      end
+
+      unless state_for(adapter) == prerequisite
+        raise "Illegal state for #{what}: #{state_for(adapter)}"
+      end
+
       DataMapper.logger.debug("#{adapter.name}: #{what}")
       @transaction_primitives[adapter].send(what)
       @adapters[adapter] = what
@@ -237,7 +294,10 @@ module DataMapper
     # TODO: document
     # @api private
     def connect_adapter(adapter)
-      raise "Already a primitive for adapter #{adapter}" unless @transaction_primitives[adapter].nil?
+      if @transaction_primitives.key?(adapter)
+        raise "Already a primitive for adapter #{adapter}"
+      end
+
       @transaction_primitives[adapter] = validate_primitive(adapter.transaction_primitive)
     end
 
@@ -252,7 +312,10 @@ module DataMapper
     # TODO: document
     # @api private
     def close_adapter(adapter)
-      raise "No primitive for adapter" unless @transaction_primitives.include?(adapter)
+      unless @transaction_primitives.include?(adapter)
+        raise 'No primitive for adapter'
+      end
+
       @transaction_primitives[adapter].close
       @transaction_primitives.delete(adapter)
     end
@@ -395,7 +458,7 @@ module DataMapper
         @transactions ||= {}
         @transactions[Thread.current] ||=
           begin
-            @transactions.delete_if { |t, _| !t.alive? }
+            @transactions.delete_if { |thread, transactions| !thread.alive? }
             []
           end
       end

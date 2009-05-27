@@ -118,7 +118,7 @@ module DataMapper
     # @api public
     def get(*key)
       key = model.typecast_key(key)
-      return if key.any? { |v| v.blank? }
+      return if key.any? { |value| value.blank? }
 
       if resource = @identity_map[key]
         # find cached resource
@@ -304,9 +304,11 @@ module DataMapper
     #
     # @api public
     def at(offset)
-      if loaded? || (offset >= 0 ? lazy_possible?(head, offset + 1) : lazy_possible?(tail, offset.abs))
+      positive_offset = offset >= 0
+
+      if loaded? || partially_loaded?(offset)
         super
-      elsif offset >= 0
+      elsif positive_offset
         first(:offset => offset)
       else
         last(:offset => offset.abs - 1)
@@ -351,16 +353,9 @@ module DataMapper
         return at(offset)
       end
 
-      query = if offset >= 0
-        self.query.slice(offset, limit)
-      else
-        query = self.query.slice((limit + offset).abs, limit).reverse!
+      query = sliced_query(offset, limit)
 
-        # tell the Query to prepend each result from the adapter
-        query.update(:add_reversed => !query.add_reversed?)
-      end
-
-      if loaded? || (offset >= 0 ? lazy_possible?(head, offset + 1) : lazy_possible?(tail, offset.abs))
+      if loaded? || partially_loaded?(offset, limit)
         new_collection(query, super)
       else
         new_collection(query)
@@ -395,14 +390,7 @@ module DataMapper
 
       offset, limit = extract_slice_arguments(*args)
 
-      query = if offset >= 0
-        self.query.slice(offset, limit)
-      else
-        query = self.query.slice((limit + offset).abs, limit).reverse!
-
-        # tell the Query to prepend each result from the adapter
-        query.update(:add_reversed => !query.add_reversed?)
-      end
+      query = sliced_query(offset, limit)
 
       new_collection(query, orphaned)
     end
@@ -474,7 +462,7 @@ module DataMapper
     #
     # @api public
     def collect!
-      super { |r| relate_resource(yield(orphan_resource(r))) }
+      super { |resource| relate_resource(yield(orphan_resource(resource))) }
     end
 
     alias map! collect!
@@ -635,7 +623,7 @@ module DataMapper
     #
     # @api public
     def delete_if
-      super { |r| yield(r) && orphan_resource(r) }
+      super { |resource| yield(resource) && orphan_resource(resource) }
     end
 
     ##
@@ -650,7 +638,7 @@ module DataMapper
     #
     # @api public
     def reject!
-      super { |r| yield(r) && orphan_resource(r) }
+      super { |resource| yield(resource) && orphan_resource(resource) }
     end
 
     ##
@@ -773,7 +761,7 @@ module DataMapper
     # @api public
     def update(attributes = {})
       dirty_attributes = model.new(attributes).dirty_attributes
-      dirty_attributes.empty? || all? { |r| r.update(attributes) }
+      dirty_attributes.empty? || all? { |resource| resource.update(attributes) }
     end
 
     ##
@@ -791,7 +779,7 @@ module DataMapper
 
       if dirty_attributes.empty?
         true
-      elsif dirty_attributes.any? { |p, v| !p.nullable? && v.nil? }
+      elsif dirty_attributes.any? { |property, value| !property.nullable? && value.nil? }
         false
       else
         unless _update(dirty_attributes)
@@ -800,7 +788,7 @@ module DataMapper
 
         if loaded?
           each do |resource|
-            dirty_attributes.each { |p, v| p.set!(resource, v) }
+            dirty_attributes.each { |property, value| property.set!(resource, value) }
             repository.identity_map(model)[resource.key] = resource
           end
         end
@@ -828,7 +816,7 @@ module DataMapper
 
       @orphans.clear
 
-      resources.all? { |r| r.save }
+      resources.all? { |resource| resource.save }
     end
 
     ##
@@ -841,7 +829,7 @@ module DataMapper
     #
     # @api public
     def destroy
-      if destroyed = all? { |r| r.destroy }
+      if destroyed = all? { |resource| resource.destroy }
         clear
       end
 
@@ -863,13 +851,13 @@ module DataMapper
         # TODO: handle this with a subquery and handle compound keys
         key = model.key(repository.name)
         raise NotImplementedError, 'Cannot work with compound keys yet' if key.size > 1
-        model.all(:repository => repository, key.first => map { |r| r.key.first }).destroy!
+        model.all(:repository => repository, key.first => map { |resource| resource.key.first }).destroy!
       else
         repository.delete(self)
       end
 
       if loaded?
-        each { |r| r.reset }
+        each { |resource| resource.reset }
         clear
       end
 
@@ -901,7 +889,7 @@ module DataMapper
     #
     # @api public
     def inspect
-      "[#{map { |r| r.inspect }.join(', ')}]"
+      "[#{map { |resource| resource.inspect }.join(', ')}]"
     end
 
     ##
@@ -967,6 +955,16 @@ module DataMapper
       @orphans      = @orphans.dup
     end
 
+    # TODO: document
+    # @api private
+    def partially_loaded?(offset, limit = 1)
+      if offset >= 0
+        lazy_possible?(head, offset + limit)
+      else
+        lazy_possible?(tail, offset.abs)
+      end
+    end
+
     ##
     # Lazy loads a Collection
     #
@@ -975,7 +973,9 @@ module DataMapper
     #
     # @api semipublic
     def lazy_load
-      return self if loaded?
+      if loaded?
+        return self
+      end
 
       mark_loaded
 
@@ -993,7 +993,7 @@ module DataMapper
       @array.concat(tail)
 
       @head = @tail = nil
-      @reapers.each { |r| @array.delete_if(&r) } if @reapers
+      @reapers.each { |resource| @array.delete_if(&resource) } if @reapers
       @array.freeze if frozen?
 
       self
@@ -1007,7 +1007,9 @@ module DataMapper
     #
     # @api private
     def new_collection(query, resources = nil, &block)
-      resources ||= filter(query) if loaded?
+      if loaded?
+        resources ||= filter(query)
+      end
 
       # TOOD: figure out a way to pass not-yet-saved Resources to this newly
       # created Collection.  If the new resource matches the conditions, then
@@ -1025,12 +1027,12 @@ module DataMapper
     # @api private
     def _update(dirty_attributes)
       if query.limit || query.offset > 0
-        attributes = dirty_attributes.map { |p, v| [ p.name, v ] }.to_hash
+        attributes = dirty_attributes.map { |property, value| [ property.name, value ] }.to_hash
 
         # TODO: handle this with a subquery and handle compound keys
         key = model.key(repository.name)
         raise NotImplementedError, 'Cannot work with compound keys yet' if key.size > 1
-        model.all(:repository => repository, key.first => map { |r| r.key.first }).update!(attributes)
+        model.all(:repository => repository, key.first => map { |resource| resource.key.first }).update!(attributes)
       else
         repository.update(dirty_attributes, self)
         true
@@ -1113,7 +1115,7 @@ module DataMapper
     # @api private
     def relate_resources(resources)
       if resources.kind_of?(Enumerable)
-        resources.each { |r| relate_resource(r) }
+        resources.each { |resource| relate_resource(resource) }
       else
         relate_resource(resources)
       end
@@ -1158,7 +1160,7 @@ module DataMapper
     # @api private
     def orphan_resources(resources)
       if resources.kind_of?(Enumerable)
-        resources.each { |r| orphan_resource(r) }
+        resources.each { |resource| orphan_resource(resource) }
       else
         orphan_resource(resources)
       end
@@ -1194,6 +1196,21 @@ module DataMapper
         query
       else
         self.query.relative(query)
+      end
+    end
+
+    # TODO: document
+    # @api private
+    def sliced_query(offset, limit)
+      query = self.query
+
+      if offset >= 0
+        query.slice(offset, limit)
+      else
+        query = query.slice((limit + offset).abs, limit).reverse!
+
+        # tell the Query to prepend each result from the adapter
+        query.update(:add_reversed => !query.add_reversed?)
       end
     end
 

@@ -6,7 +6,7 @@ module DataMapper
   # and therefore is responsible for providing those methods.
   #
   # To see complete list of supported types, see documentation for
-  # Property::TYPES. dm-types library provides less common
+  # Property::PRIMITIVES. dm-types library provides less common
   # types such as ip address, uuid, json, yaml, uri, slug, version,
   # file path, bcrypt hash and so forth.
   #
@@ -89,11 +89,11 @@ module DataMapper
     # have a separate list of options, because plugins (ex.: dm-validations)
     # may want to extend one or the other, and expects no side effects
     PROPERTY_OPTIONS = [
-                        :accessor, :reader, :writer,
-                        :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
-                        :format, :index, :unique_index, :auto_validation,
-                        :validates, :unique, :precision, :scale
-                       ]
+      :accessor, :reader, :writer,
+      :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
+      :format, :index, :unique_index, :auto_validation,
+      :validates, :unique, :precision, :scale
+    ]
 
     class << self
 
@@ -107,17 +107,14 @@ module DataMapper
 
         def self.inherited(base)
           base.primitive @_primitive_type
-
-          @_options.each do |k, v|
-            base.send(k, v)
-          end
+          @_options.each { |key, value| base.send(key, value) }
         end
 
         self
       end
 
       # Ruby primitive type to use as basis for this type. See
-      # Property::TYPES for list of types.
+      # Property::PRIMITIVES for list of types.
       #
       # @param primitive [Class, nil]
       #   The class for the primitive. If nil is passed in, it returns the
