@@ -118,7 +118,6 @@ module DataMapper
     # @api public
     def get(*key)
       key = model.typecast_key(key)
-      return if key.any? { |value| value.blank? }
 
       if resource = @identity_map[key]
         # find cached resource
@@ -139,7 +138,7 @@ module DataMapper
         @identity_map[key]
       else
         # current query is all inclusive, lookup using normal approach
-        first(model.key(repository.name).zip(key).to_hash)
+        first(model.key_conditions(repository, key))
       end
     end
 
@@ -190,8 +189,7 @@ module DataMapper
         self
       else
         # TODO: if there is no order parameter, and the Collection is not loaded
-        # check to see if the query can be satisfied by the head/tail.  Ideally
-        # we would want to
+        # check to see if the query can be satisfied by the head/tail.
 
         new_collection(scoped_query(query))
       end

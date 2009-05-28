@@ -334,10 +334,10 @@ module DataMapper
     #
     # @api public
     def get(*key)
-      key = typecast_key(key)
-      return if key.any? { |v| v.blank? }
       repository = self.repository
-      repository.identity_map(self)[key] || first(to_query(repository, key))
+      key        = typecast_key(key)
+
+      repository.identity_map(self)[key] || first(key_conditions(repository, key))
     end
 
     ##
@@ -706,8 +706,8 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def to_query(repository, key)
-      Query.new(repository, self, self.key(repository.name).zip(key).to_hash)
+    def key_conditions(repository, key)
+      self.key(repository.name).zip(key).to_hash
     end
 
     private

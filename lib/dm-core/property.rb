@@ -686,10 +686,8 @@ module DataMapper
       return type.typecast(value, self) if type.respond_to?(:typecast)
       return value if value.kind_of?(primitive) || value.nil?
       begin
-        if    primitive == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
-        elsif primitive == String     then value.to_s
-        elsif primitive == Float      then value.to_f
-        elsif primitive == Integer
+        # TODO: optimize this using a Hash lookup table
+        if primitive == Integer
           # The simplest possible implementation, i.e. value.to_i, is not
           # desirable because "junk".to_i gives "0". We want nil instead,
           # because this makes it clear that the typecast failed.
@@ -704,10 +702,13 @@ module DataMapper
           else
             value_to_i
           end
+        elsif primitive == String     then value.to_s
+        elsif primitive == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
         elsif primitive == BigDecimal then BigDecimal(value.to_s)
+        elsif primitive == Float      then value.to_f
         elsif primitive == DateTime   then typecast_to_datetime(value)
-        elsif primitive == Date       then typecast_to_date(value)
         elsif primitive == Time       then typecast_to_time(value)
+        elsif primitive == Date       then typecast_to_date(value)
         elsif primitive == Class      then self.class.find_const(value)
         else
           value

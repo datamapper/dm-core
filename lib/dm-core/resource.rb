@@ -796,7 +796,7 @@ module DataMapper
     #
     # @api private
     def query
-      model.to_query(repository, key)
+      Query.new(repository, model, model.key_conditions(repository, key))
     end
 
     # Returns array of child relationships for which this resource is parent and is loaded
