@@ -86,6 +86,9 @@ module DataMapper
           # TODO: consider making this a query_for method, so that ManyToMany::Relationship#query only
           # returns the query supplied in the definition
 
+          # TODO: see if this can handle extracting the :order option and sort the
+          # resulting collection using the order specified within inner joins
+
           @many_to_many_query ||=
             begin
               # TODO: make sure the proper Query is set up, one that includes all the links
