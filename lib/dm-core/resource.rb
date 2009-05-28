@@ -592,7 +592,7 @@ module DataMapper
     # @api private
     def collection
       return @collection if @collection || new? || frozen?
-      @collection = Collection.new(to_query, [ self ])
+      @collection = Collection.new(query, [ self ])
     end
 
     protected
@@ -661,7 +661,7 @@ module DataMapper
         # remove from the identity map
         identity_map.delete(key)
 
-        repository.update(dirty_attributes, Collection.new(to_query, [ self ]))
+        repository.update(dirty_attributes, Collection.new(query, [ self ]))
 
         # remove the cached key in case it is updated
         remove_instance_variable(:@key)
@@ -713,7 +713,7 @@ module DataMapper
     # @api private
     def _destroy
       if saved?
-        repository.delete(Collection.new(to_query, [ self ]))
+        repository.delete(Collection.new(query, [ self ]))
         @collection.delete(self) if @collection
         reset
         freeze
@@ -795,7 +795,7 @@ module DataMapper
     # @return [Query] Query that will retrieve this Resource instance
     #
     # @api private
-    def to_query
+    def query
       model.to_query(repository, key)
     end
 
