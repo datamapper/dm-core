@@ -90,14 +90,14 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist the Resource' do
         pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
-          @car.save
+          @car.save.should be_true
           @car.model.get(*@car.key).send(@name).should == @expected
         end
       end
 
       it 'should persist the associated Resource' do
         pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
-          @car.save
+          @car.save.should be_true
           @expected.should be_saved
           @expected.model.get(*@expected.key).car.should == @car
         end
@@ -120,7 +120,7 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist as nil' do
-        @car.save
+        @car.save.should be_true
         @car.model.get(*@car.key).send(@name).should be_nil
       end
     end
@@ -153,14 +153,14 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist the Resource' do
         pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
-          @car.save
+          @car.save.should be_true
           @car.model.get(*@car.key).send(@name).should == @expected
         end
       end
 
       it 'should persist the associated Resource' do
         pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
-          @car.save
+          @car.save.should be_true
           @expected.should be_saved
           @expected.model.get(*@expected.key).car.should == @car
         end
@@ -173,7 +173,7 @@ share_examples_for 'it creates a many accessor' do
   describe 'accessor' do
     describe 'when there is no child resource and the source is saved' do
       before :all do
-        @car.save
+        @car.save.should be_true
         @return = @car.send(@name)
       end
 
@@ -246,12 +246,12 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should persist the Collection' do
-        @car.save
+        @car.save.should be_true
         @car.model.get(*@car.key).send(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
-        @car.save
+        @car.save.should be_true
         @expected.each { |r| r.should be_saved }
         @expected.each { |r| r.model.get(*r.key).car.should == @car }
       end
@@ -273,7 +273,7 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should persist as an empty Collection' do
-        @car.save
+        @car.save.should be_true
         @car.model.get(*@car.key).send(@name).should be_empty
       end
     end
@@ -281,6 +281,8 @@ share_examples_for 'it creates a many mutator' do
     describe 'when changing an associated collection' do
       before :all do
         @car.send("#{@name}=", [ @model.new ])
+        @car.save.should be_true
+
         @expected = [ @model.new ]
 
         @return = @car.send("#{@name}=", @expected)
@@ -302,12 +304,12 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should persist the Resource' do
-        @car.save
+        @car.save.should be_true
         @car.model.get(*@car.key).send(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
-        @car.save
+        @car.save.should be_true
         @expected.each { |r| r.should be_saved }
         @expected.each { |r| r.model.get(*r.key).car.should == @car }
       end
@@ -412,7 +414,7 @@ describe DataMapper::Associations do
         @name  = :doors
 
         Car.has(1..4, @name)
-        Door.belongs_to(:car)
+        Door.belongs_to(:car, :nullable => true)
       end
 
       supported_by :all do
@@ -435,14 +437,8 @@ describe DataMapper::Associations do
         @model = Window
         @name  = :windows
 
-        Window.belongs_to(:door)
-        Window.has(1, :car, :through => :door)
-
-        Door.has(1, :window)
-        Door.belongs_to(:car)
-
-        Car.has(1..4, :doors)
-        Car.has(1..4, :windows, :through => :doors)
+        Window.has(1, :car, :through => DataMapper::Resource)
+        Car.has(1..4, :windows, :through => DataMapper::Resource)
       end
 
       supported_by :all do

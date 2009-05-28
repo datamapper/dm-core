@@ -229,9 +229,7 @@ module DataMapper
           assert_source_saved 'The source must be saved before saving the collection'
 
           # remove reference to source in orphans
-          @orphans.each { |r| r.save }
-
-          super
+          @orphans.all? { |resource| resource.save } && super
         end
 
         # TODO: document

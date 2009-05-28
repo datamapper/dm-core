@@ -235,9 +235,8 @@ module DataMapper
           end
 
           # delete only intermediaries linked to the target orphans
-          intermediaries.each do |intermediary|
-            next unless @orphans.include?(last_relationship.get(intermediary))
-            intermediaries.delete(intermediary) if intermediary.destroy
+          unless intermediaries.all(last_relationship => @orphans).destroy
+            return false
           end
 
           if last_relationship.respond_to?(:resource_for)
