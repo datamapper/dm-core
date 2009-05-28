@@ -36,8 +36,8 @@ module DataMapper
           # can define the join model within their common namespace
 
           DataMapper.repository(source_repository_name) do
-            many_to_one = join_model.belongs_to(join_relationship_name(target_model),          :model => target_model)
-            one_to_many = source_model.has(min..max, join_relationship_name(join_model, true), :model => join_model)
+            many_to_one = join_model.belongs_to(name.to_s.singularize.to_sym,            :model => target_model)
+            one_to_many = source_model.has(min..max, join_relationship_name(join_model), :model => join_model)
 
             # initialize the child_key on the many to one relationship
             # now that the source, join and target models are defined
@@ -188,10 +188,10 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def join_relationship_name(model, plural = false)
+        def join_relationship_name(model)
           namespace = join_model_namespace_name.first
           relationship_name = Extlib::Inflection.underscore(model.base_model.name.sub(/\A#{namespace.name}::/, '')).gsub('/', '_')
-          (plural ? relationship_name.plural : relationship_name).to_sym
+          relationship_name.pluralize.to_sym
         end
 
         # TODO: document
