@@ -6,6 +6,7 @@ module DataMapper
   class Logger < Extlib::Logger
     def initialize(*)
       super
+      self.auto_flush = true
       DataMapper.logger = self
     end
   end # class Logger
