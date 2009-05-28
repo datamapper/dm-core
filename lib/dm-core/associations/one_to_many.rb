@@ -278,7 +278,9 @@ module DataMapper
         # the Query rather than just references
         # @api private
         def default_attributes
-          super.merge(relationship.source_scope(source)).freeze
+          target_key   = relationship.target_key.map { |property| property.name }
+          source_scope = relationship.source_scope(source)
+          super.except(*target_key).update(source_scope).freeze
         end
 
         # alias Collection#relate_resource for use by subclasses that
