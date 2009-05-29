@@ -1,3 +1,15 @@
+# TODO: break this up into classes for each primary option, eg:
+#
+# - DataMapper::Query::Fields
+# - DataMapper::Query::Links
+# - DataMapper::Query::Conditions (move DM::Conditions here)
+# - DataMapper::Query::Offset
+# - DataMapper::Query::Limit
+# - DataMapper::Query::Order
+#
+# TODO: move assertions, validations, transformations, and equality
+# checking into each class and clean up Query
+
 module DataMapper
 
   # Query class represents a query which will be run against the data-store.
