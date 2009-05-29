@@ -92,8 +92,12 @@ module DataMapper
         original_attributes[property] || (property.loaded?(self) ? property.get!(self) : nil)
       end
 
-      # set the key if every entry is non-nil
-      @key = key if key.all?
+      return unless key.all?
+
+      # memoize the key if the Resource is not frozen
+      @key = key unless frozen?
+
+      key
     end
 
     ##

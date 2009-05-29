@@ -5,6 +5,8 @@
 # loaded, or the whole Collection if it is to see if any Resource objects
 # are dirty.  Will be useful in Resource#save to speed up saving
 
+# TODO: add #copy method
+
 module DataMapper
   # The Collection class represents a list of resources persisted in
   # a repository and identified by a query.

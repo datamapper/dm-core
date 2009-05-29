@@ -1,6 +1,8 @@
 # TODO: move paranoid property concerns to a ParanoidModel that is mixed
 # into Model when a Paranoid property is used
 
+# TODO: add Model#update, Model#update!, Model#destroy and Model#destroy!
+
 module DataMapper
   module Model
     extend Chainable
@@ -327,9 +329,8 @@ module DataMapper
     # @param [Object] *key
     #   The primary key or keys to use for lookup
     #
-    # @return [Resource]
+    # @return [Resource,NilClass]
     #   A single model that was found
-    # @return [NilClass]
     #   If no instance was found matching +key+
     #
     # @api public
@@ -575,7 +576,7 @@ module DataMapper
         resource.instance_variable_set(:@repository, repository)
         resource.instance_variable_set(:@saved,      true)
 
-        if identity_map && key_values && key_values.any?
+        if identity_map
           # defer setting the IdentityMap so second level caches can
           # record the state of the resource after loaded
           identity_map[key_values] = resource

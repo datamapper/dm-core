@@ -7,7 +7,8 @@ Rake::RDocTask.new('doc') do |t|
 end
 
 begin
-  gem 'yard', '~>0.2.3'
+  # sudo gem install lsegal-yard --source http://gems.github.com
+  gem 'lsegal-yard', '~>0.2.3'
   require 'yard'
 
   YARD::Rake::YardocTask.new('yardoc') do |t|
