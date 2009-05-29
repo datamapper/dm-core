@@ -7,7 +7,7 @@ share_examples_for 'A Collection supporting Strategic Eager Loading' do
     before :all do
       @revision = @article.revisions.create(:title => 'Revision', :author => @author)
 
-      @new_article  = @model.create(:title => 'Sample Article', :author => @author)
+      @new_article  = @article_model.create(:title => 'Sample Article', :author => @author)
       @new_revision = @new_article.revisions.create(:title => 'New Revision', :author => @author)
     end
 
@@ -57,11 +57,11 @@ end
 share_examples_for 'A Resource supporting Strategic Eager Loading' do
   describe 'using SEL when inside a Collection' do
     before :all do
-      @referrer = User.create(:name => 'Referrer')
+      @referrer = @user_model.create(:name => 'Referrer', :comment => @comment)
 
       @user.update(:referrer => @referrer)
 
-      @new_user = @model.create(:name => 'Another User', :referrer => @referrer)
+      @new_user = @user_model.create(:name => 'Another User', :referrer => @referrer, :comment => @comment)
     end
 
     before :all do
@@ -80,7 +80,7 @@ share_examples_for 'A Resource supporting Strategic Eager Loading' do
     before :all do
       @results = []
 
-      @model.all.each do |user|
+      @user_model.all.each do |user|
         @results << [ user, user.referrer ]
       end
 

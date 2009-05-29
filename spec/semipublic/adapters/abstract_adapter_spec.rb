@@ -4,7 +4,7 @@ describe 'AbstractAdapter' do
   before :all do
     @adapter = DataMapper::Adapters::AbstractAdapter.new(:abstract, :foo => 'bar')
     @adapter_class = @adapter.class
-    @scheme        = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(@adapter_class).chomp('adapter'))
+    @scheme        = Extlib::Inflection.underscore(Extlib::Inflection.demodulize(@adapter_class).chomp('Adapter'))
     @adapter_name  = "test_#{@scheme}".to_sym
   end
 

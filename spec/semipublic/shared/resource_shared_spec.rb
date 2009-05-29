@@ -1,6 +1,6 @@
 share_examples_for 'A semipublic Resource' do
   before :all do
-    %w[ @model @user ].each do |ivar|
+    %w[ @user_model @user ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
   end
@@ -25,7 +25,7 @@ share_examples_for 'A semipublic Resource' do
 
     describe 'on a new record, with no attributes, no default attributes, and no identity field' do
 
-      before { @user = User.new }
+      before { @user = @user_model.new }
 
       it { @user.should_not be_dirty }
 
@@ -70,7 +70,7 @@ share_examples_for 'A semipublic Resource' do
 
     describe 'on a new record' do
 
-      before { @user = User.new }
+      before { @user = @user_model.new }
 
       it { @user.attribute_dirty?(:age).should be_false }
 
@@ -98,9 +98,9 @@ share_examples_for 'A semipublic Resource' do
 
     with_alternate_adapter do
       it "should return the default adapter when nothing is specified" do
-        User.create(:name => "carl").repository.should == @repository
-        User.new.repository.should                     == @repository
-        User.get("carl").repository.should             == @repository
+        @user_model.create(:name => "carl").repository.should == @repository
+        @user_model.new.repository.should                     == @repository
+        @user_model.get("carl").repository.should             == @repository
       end
 
       it "should return the default repository for the model" do
@@ -112,12 +112,12 @@ share_examples_for 'A semipublic Resource' do
 
       it "should return the repository defined by the current context" do
         @alternate_repository.scope do
-          User.new.repository.should                     == @alternate_repository
-          User.create(:name => "carl").repository.should == @alternate_repository
-          User.get("carl").repository.should             == @alternate_repository
+          @user_model.new.repository.should                     == @alternate_repository
+          @user_model.create(:name => "carl").repository.should == @alternate_repository
+          @user_model.get("carl").repository.should             == @alternate_repository
         end
 
-        @alternate_repository.scope { User.get("carl") }.repository.should == @alternate_repository
+        @alternate_repository.scope { @user_model.get("carl") }.repository.should == @alternate_repository
       end
     end
 

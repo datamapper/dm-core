@@ -8,25 +8,27 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
     self.loaded = loaded
 
     before :all do
-      class ::Article
-        include DataMapper::Resource
+      module ::Blog
+        class Article
+          include DataMapper::Resource
 
-        property :id,      Serial
-        property :title,   String
-        property :content, Text
+          property :id,      Serial
+          property :title,   String
+          property :content, Text
+        end
       end
 
-      @model = Article
+      @article_model = Blog::Article
     end
 
     supported_by :all do
       before :all do
         @article_repository = @repository
-        @articles_query     = DataMapper::Query.new(@article_repository, @model, :title => 'Sample Article')
+        @articles_query     = DataMapper::Query.new(@article_repository, @article_model, :title => 'Sample Article')
 
-        @article = @model.create(:title => 'Sample Article', :content => 'Sample')
+        @article = @article_model.create(:title => 'Sample Article', :content => 'Sample')
 
-        @articles = @model.all(@articles_query)
+        @articles = @article_model.all(@articles_query)
 
         @articles.entries if loaded
       end
@@ -115,7 +117,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
 
         it 'should return expected Hash' do
-          @return.should be_equal(@model.relationships(@article_repository.name))
+          @return.should be_equal(@article_model.relationships(@article_repository.name))
         end
       end
 

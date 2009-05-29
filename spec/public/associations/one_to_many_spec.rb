@@ -30,34 +30,37 @@ end
 
     # define the model prior to supported_by
     before :all do
-      class ::Author
-        include DataMapper::Resource
+      module ::Blog
+        class Author
+          include DataMapper::Resource
 
-        property :id,   Serial
-        property :name, String
+          property :id,   Serial
+          property :name, String
 
-        has n, :articles
+          has n, :articles
+        end
+
+        class Article
+          include DataMapper::Resource
+
+          property :id,      Serial
+          property :title,   String, :nullable => false
+          property :content, Text
+
+          belongs_to :author, :nullable => true
+          belongs_to :original, :model => self, :nullable => true
+          has n, :revisions, :model => self, :child_key => [ :original_id ]
+          has 1, :previous,  :model => self, :child_key => [ :original_id ], :order => [ :id.desc ]
+        end
       end
 
-      class ::Article
-        include DataMapper::Resource
-
-        property :id,      Serial
-        property :title,   String, :nullable => false
-        property :content, Text
-
-        belongs_to :author, :nullable => true
-        belongs_to :original, :model => self, :nullable => true
-        has n, :revisions, :model => self, :child_key => [ :original_id ]
-        has 1, :previous,  :model => self, :child_key => [ :original_id ], :order => [ :id.desc ]
-      end
-
-      @model = Article
+      @author_model  = Blog::Author
+      @article_model = Blog::Article
     end
 
     supported_by :all do
       before :all do
-        @author  = Author.create(:name => 'Dan Kubb')
+        @author  = @author_model.create(:name => 'Dan Kubb')
 
         @original = @author.articles.create(:title => 'Original Article')
         @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
@@ -65,7 +68,7 @@ end
 
         # load the targets without references to a single source
         load_collection = lambda do |query|
-          Author.get(*@author.key).articles(query)
+          @author_model.get(*@author.key).articles(query)
         end
 
         @articles       = load_collection.call(:title => 'Sample Article')
@@ -140,7 +143,7 @@ end
       describe '#create' do
         describe 'when the parent is not saved' do
           it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
+            author = @author_model.new(:name => 'Dan Kubb')
             lambda {
               author.articles.create
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before creating a Resource')
@@ -151,7 +154,7 @@ end
       describe '#destroy' do
         describe 'when the parent is not saved' do
           it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
+            author = @author_model.new(:name => 'Dan Kubb')
             lambda {
               author.articles.destroy
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before mass-deleting the collection')
@@ -162,7 +165,7 @@ end
       describe '#destroy!' do
         describe 'when the parent is not saved' do
           it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
+            author = @author_model.new(:name => 'Dan Kubb')
             lambda {
               author.articles.destroy!
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before mass-deleting the collection without validation')
@@ -291,7 +294,7 @@ end
       describe '#update' do
         describe 'when the parent is not saved' do
           it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
+            author = @author_model.new(:name => 'Dan Kubb')
             lambda {
               author.articles.update(:title => 'New Title')
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before mass-updating the collection')
@@ -302,7 +305,7 @@ end
       describe '#update!' do
         describe 'when the parent is not saved' do
           it 'should raise an exception' do
-            author = Author.new(:name => 'Dan Kubb')
+            author = @author_model.new(:name => 'Dan Kubb')
             lambda {
               author.articles.update!(:title => 'New Title')
             }.should raise_error(DataMapper::Associations::UnsavedParentError, 'The source must be saved before mass-updating the collection without validation')

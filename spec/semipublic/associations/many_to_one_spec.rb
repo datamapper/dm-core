@@ -35,13 +35,17 @@ describe 'Many to One Associations' do
 
       property :name, String, :key => true, :default => 'a default value'
     end
+
+    @user_model    = User
+    @comment_model = Comment
   end
 
   supported_by :all do
     before :all do
-      comment = Comment.create(:body => 'Cool spec', :user => User.create(:name => 'dbussink', :age => 25, :description => 'Test'))
+      comment = @comment_model.create(:body => 'Cool spec', :user => User.create(:name => 'dbussink', :age => 25, :description => 'Test'))
+
+      comment = @comment_model.get(*comment.key)
       @user   = comment.user
-      @model  = User
     end
 
     it_should_behave_like 'A semipublic Resource'

@@ -1,6 +1,6 @@
 share_examples_for 'A public Collection' do
   before :all do
-    %w[ @model @article @other @original @articles @other_articles ].each do |ivar|
+    %w[ @article_model @article @other @original @articles @other_articles ].each do |ivar|
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
     end
 
@@ -25,7 +25,7 @@ share_examples_for 'A public Collection' do
 
   describe '#<<' do
     before :all do
-      @resource = @model.new(:title => 'Title')
+      @resource = @article_model.new(:title => 'Title')
 
       @return = @articles << @resource
     end
@@ -293,7 +293,7 @@ share_examples_for 'A public Collection' do
       before :all do
         @resources = @articles.dup.entries
 
-        @return = @articles.send(method) { |r| @model.new(:title => 'Ignored Title', :content => 'New Content') }
+        @return = @articles.send(method) { |r| @article_model.new(:title => 'Ignored Title', :content => 'New Content') }
       end
 
       it 'should return a Collection' do
@@ -587,7 +587,7 @@ share_examples_for 'A public Collection' do
 
     it 'should remove the Resources from the datasource' do
       pending_if 'TODO', @skip do
-        @model.all(:title => 'Sample Article').should be_empty
+        @article_model.all(:title => 'Sample Article').should be_empty
       end
     end
 
@@ -621,7 +621,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the datasource' do
-        @model.all(:title => 'Sample Article').should be_empty
+        @article_model.all(:title => 'Sample Article').should be_empty
       end
 
       it 'should clear the collection' do
@@ -656,7 +656,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the datasource' do
-        @model.all(:title => 'Sample Article').should == [ @other ]
+        @article_model.all(:title => 'Sample Article').should == [ @other ]
       end
 
       it 'should clear the collection' do
@@ -668,7 +668,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should not destroy the other Resource' do
-        @model.get(*@other.key).should_not be_nil
+        @article_model.get(*@other.key).should_not be_nil
       end
     end
   end
@@ -1070,7 +1070,7 @@ share_examples_for 'A public Collection' do
       it 'should raise an exception' do
         lambda {
           @articles.get!(99)
-        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@model} with key [99] in collection")
+        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@article_model} with key [99] in collection")
       end
     end
 
@@ -1135,7 +1135,7 @@ share_examples_for 'A public Collection' do
       it 'should raise an exception' do
         lambda {
           @articles.get!(@key)
-        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@model} with key [#{@key.inspect}] in collection")
+        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@article_model} with key [#{@key.inspect}] in collection")
       end
     end
 
@@ -1147,7 +1147,7 @@ share_examples_for 'A public Collection' do
       it 'should raise an exception' do
         lambda {
           @articles.get!(@key)
-        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@model} with key [#{@key.inspect}] in collection")
+        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@article_model} with key [#{@key.inspect}] in collection")
       end
     end
   end
@@ -1183,7 +1183,7 @@ share_examples_for 'A public Collection' do
   describe '#inspect' do
     before :all do
       @copy = @articles.dup
-      @copy << @model.new(:title => 'Ignored Title', :content => 'Other Article')
+      @copy << @article_model.new(:title => 'Ignored Title', :content => 'Other Article')
 
       @return = @copy.inspect
     end
@@ -1362,7 +1362,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return expected object' do
-        @return.should == @model
+        @return.should == @article_model
       end
     end
 
@@ -1662,7 +1662,7 @@ share_examples_for 'A public Collection' do
 
   describe '#push' do
     before :all do
-      @resources = [ @model.new(:title => 'Title 1'), @model.new(:title => 'Title 2') ]
+      @resources = [ @article_model.new(:title => 'Title 1'), @article_model.new(:title => 'Title 2') ]
 
       @return = @articles.push(*@resources)
     end
@@ -1797,7 +1797,7 @@ share_examples_for 'A public Collection' do
 
     describe 'with a Query' do
       before :all do
-        @query = DataMapper::Query.new(@repository, @model, :fields => [ :content ])  # :title is an original field
+        @query = DataMapper::Query.new(@repository, @article_model, :fields => [ :content ])  # :title is an original field
 
         @return = @collection = @articles.reload(@query)
       end
@@ -2473,7 +2473,7 @@ share_examples_for 'A public Collection' do
           @articles.concat(orphans.last(5))
 
           @copy = @articles.dup
-          @new = @model.new(:content => 'New Article')
+          @new = @article_model.new(:content => 'New Article')
         end
       end
 
@@ -2677,7 +2677,7 @@ share_examples_for 'A public Collection' do
 
   describe '#unshift' do
     before :all do
-      @resources = [ @model.new(:title => 'Title 1'), @model.new(:title => 'Title 2') ]
+      @resources = [ @article_model.new(:title => 'Title 1'), @article_model.new(:title => 'Title 2') ]
 
       @return = @articles.unshift(*@resources)
     end
@@ -2728,7 +2728,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should persist the changes' do
-        resource = @model.get(*@article.key)
+        resource = @article_model.get(*@article.key)
         @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
@@ -2749,7 +2749,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should persist the changes' do
-        resource = @model.get(*@article.key)
+        resource = @article_model.get(*@article.key)
         @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
@@ -2806,7 +2806,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should persist the changes' do
-        resource = @model.get(*@article.key)
+        resource = @article_model.get(*@article.key)
         @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
@@ -2837,7 +2837,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should persist the changes' do
-        resource = @model.get(*@article.key)
+        resource = @article_model.get(*@article.key)
         @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
@@ -2892,7 +2892,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should persist the changes' do
-        resource = @model.get(*@article.key)
+        resource = @article_model.get(*@article.key)
         @attributes.each { |k, v| resource.send(k).should == v }
       end
 

@@ -33,12 +33,13 @@ describe DataMapper::Resource do
 
       property :name, String, :key => true, :default => 'a default value'
     end
+
+    @user_model = User
   end
 
   supported_by :all do
     before :all do
-      @model = User
-      @user  = @model.create(:name => 'dbussink', :age => 25, :description => "Test")
+      @user = @user_model.create(:name => 'dbussink', :age => 25, :description => "Test")
     end
 
     it_should_behave_like 'A semipublic Resource'

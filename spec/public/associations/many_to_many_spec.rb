@@ -9,34 +9,42 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
     # define the model prior to supported_by
     before :all do
-      class ::Author
-        include DataMapper::Resource
+      module ::Blog
+        class Author
+          include DataMapper::Resource
 
-        property :id,   Serial
-        property :name, String
+          property :id,   Serial
+          property :name, String
 
-        has n, :articles, :through => Resource
+          has n, :articles, :through => Resource
+        end
+
+        class Article
+          include DataMapper::Resource
+
+          property :id,      Serial
+          property :title,   String, :nullable => false
+          property :content, Text
+
+          has n, :authors, :through => Resource
+          belongs_to :original, :model => self, :nullable => true
+          has n, :revisions, :model => self, :child_key => [ :original_id ]
+          has 1, :previous,  :model => self, :child_key => [ :original_id ], :order => [ :id.desc ]
+        end
       end
 
-      class ::Article
-        include DataMapper::Resource
+      @author_model  = Blog::Author
+      @article_model = Blog::Article
 
-        property :id,      Serial
-        property :title,   String, :nullable => false
-        property :content, Text
+      # initialize the join model
+      Blog::Author.relationships[:articles].through
 
-        has n, :authors, :through => Resource
-        belongs_to :original, :model => self, :nullable => true
-        has n, :revisions, :model => self, :child_key => [ :original_id ]
-        has 1, :previous,  :model => self, :child_key => [ :original_id ], :order => [ :id.desc ]
-      end
-
-      @model = Article
+      @join_model = Blog::ArticleAuthor
     end
 
     supported_by :all do
       before :all do
-        @author = Author.create(:name => 'Dan Kubb')
+        @author = @author_model.create(:name => 'Dan Kubb')
 
         @original = @author.articles.create(:title => 'Original Article')
         @article  = @author.articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
@@ -44,7 +52,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
         # load the targets without references to a single source
         load_collection = lambda do |query|
-          Author.get(*@author.key).articles(query)
+          @author_model.get(*@author.key).articles(query)
         end
 
         @articles       = load_collection.call(:title => 'Sample Article')
@@ -68,7 +76,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
           end
 
           it 'should only remove the join resource for the destroyed resource' do
-            ArticleAuthor.all.should_not be_empty
+            @join_model.all.should_not be_empty
           end
         end
       end

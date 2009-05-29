@@ -88,7 +88,13 @@ Spec::Runner.configure do |config|
     descendants = DataMapper::Model.descendants.dup.to_a
     while model = descendants.shift
       descendants.concat(model.descendants) if model.respond_to?(:descendants)
-      Object.send(:remove_const, model.name.to_sym)
+
+      parts         = model.name.split('::')
+      constant_name = parts.pop.to_sym
+      base          = parts.empty? ? Object : Object.full_const_get(parts.join('::'))
+
+      base.send(:remove_const, constant_name)
+
       DataMapper::Model.descendants.delete(model)
     end
   end

@@ -174,7 +174,7 @@ module DataMapper
         #
         # @api private
         def inverse_name
-          Extlib::Inflection.underscore(source_model.name).pluralize
+          Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).pluralize
         end
 
         ##

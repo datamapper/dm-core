@@ -3,7 +3,7 @@ share_examples_for 'A public Resource' do
     @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
                defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
 
-    relationship = @model.relationships[:referrer]
+    relationship = @user_model.relationships[:referrer]
     @one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && !relationship.through.nil?
 
     @skip = @no_join && @one_to_one_through
@@ -11,7 +11,7 @@ share_examples_for 'A public Resource' do
 
   before :all do
     unless @skip
-      %w[ @model @user @child_model ].each do |ivar|
+      %w[ @user_model @user @comment_model ].each do |ivar|
         raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
       end
     end
@@ -50,7 +50,7 @@ share_examples_for 'A public Resource' do
       describe 'when comparing to a resource with the same properties, but the model is a subclass' do
         before :all do
           rescue_if 'TODO', @skip do
-            @other  = Author.new(@user.attributes)
+            @other  = @author_model.new(@user.attributes)
             @return = @user.send(method, @other)
           end
         end
@@ -63,7 +63,7 @@ share_examples_for 'A public Resource' do
       describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
         before :all do
           rescue_if 'TODO', @skip do
-            @other  = @model.get(*@user.key)
+            @other  = @user_model.get(*@user.key)
             @return = @user.send(method, @other)
           end
         end
@@ -77,7 +77,7 @@ share_examples_for 'A public Resource' do
         before :all do
           rescue_if 'TODO', @skip do
             @user.age = 20
-            @other  = @model.get(*@user.key)
+            @other  = @user_model.get(*@user.key)
             @return = @user.send(method, @other)
           end
         end
@@ -90,7 +90,7 @@ share_examples_for 'A public Resource' do
       describe 'when comparing to a resource with the same properties' do
         before :all do
           rescue_if 'TODO', @skip do
-            @other  = @model.new(@user.attributes)
+            @other  = @user_model.new(@user.attributes)
             @return = @user.send(method, @other)
           end
         end
@@ -104,7 +104,7 @@ share_examples_for 'A public Resource' do
         describe 'when comparing to a resource with a different repository, but the same properties' do
           before :all do
             rescue_if 'TODO', @skip do
-              @other = @alternate_repository.scope { @model.create(@user.attributes) }
+              @other = @alternate_repository.scope { @user_model.create(@user.attributes) }
               @return = @user.send(method, @other)
             end
           end
@@ -123,7 +123,7 @@ share_examples_for 'A public Resource' do
     describe 'when the default order properties are equal with another resource' do
       before :all do
         rescue_if 'TODO', @skip do
-          @other = User.new(:name => 'dbussink')
+          @other = @user_model.new(:name => 'dbussink')
           @return = @user <=> @other
         end
       end
@@ -136,7 +136,7 @@ share_examples_for 'A public Resource' do
     describe 'when the default order property values are sorted before another resource' do
       before :all do
         rescue_if 'TODO', @skip do
-          @other = User.new(:name => 'c')
+          @other = @user_model.new(:name => 'c')
           @return = @user <=> @other
         end
       end
@@ -149,7 +149,7 @@ share_examples_for 'A public Resource' do
     describe 'when the default order property values are sorted after another resource' do
       before :all do
         rescue_if 'TODO', @skip do
-          @other = User.new(:name => 'e')
+          @other = @user_model.new(:name => 'e')
           @return = @user <=> @other
         end
       end
@@ -161,7 +161,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when comparing an unrelated type of Object' do
       it 'should raise an exception' do
-        lambda { @user <=> Comment.new }.should raise_error(ArgumentError, 'Cannot compare a Comment instance with a User instance')
+        lambda { @user <=> @comment_model.new }.should raise_error(ArgumentError, "Cannot compare a #{@comment_model} instance with a #{@user_model} instance")
       end
     end
   end
@@ -213,7 +213,7 @@ share_examples_for 'A public Resource' do
       it 'should raise an exception' do
         lambda {
           @user.attributes = { :admin => true }
-        }.should raise_error(ArgumentError, 'The property \'admin\' is not accessible in User')
+        }.should raise_error(ArgumentError, "The property \'admin\' is not accessible in #{@user_model}")
       end
     end
   end
@@ -224,7 +224,7 @@ share_examples_for 'A public Resource' do
     describe "##{method}" do
       describe 'on a single object' do
         before :all do
-          @resource = @model.create(:name => 'hacker', :age => 20)
+          @resource = @user_model.create(:name => 'hacker', :age => 20, :comment => @comment)
 
           @return = @resource.send(method)
         end
@@ -242,7 +242,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should remove object from persitent storage' do
-          @model.get(*@resource.key).should be_nil
+          @user_model.get(*@resource.key).should be_nil
         end
       end
 
@@ -280,7 +280,7 @@ share_examples_for 'A public Resource' do
     describe 'when comparing to a resource with the same properties, but the model is a subclass' do
       before :all do
         rescue_if 'TODO', @skip do
-          @other  = Author.new(@user.attributes)
+          @other  = @author_model.new(@user.attributes)
           @return = @user.eql?(@other)
         end
       end
@@ -292,7 +292,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when comparing to a resource with a different key' do
       before :all do
-        @other     = @model.create(:name => 'dkubb', :age => 33)
+        @other     = @user_model.create(:name => 'dkubb', :age => 33, :comment => @comment)
         @return    = @user.eql?(@other)
       end
 
@@ -304,7 +304,7 @@ share_examples_for 'A public Resource' do
     describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
       before :all do
         rescue_if 'TODO', @skip do
-          @other  = @model.get(*@user.key)
+          @other  = @user_model.get(*@user.key)
           @return = @user.eql?(@other)
         end
       end
@@ -318,7 +318,7 @@ share_examples_for 'A public Resource' do
       before :all do
         rescue_if 'TODO', @skip do
           @user.age = 20
-          @other  = @model.get(*@user.key)
+          @other  = @user_model.get(*@user.key)
           @return = @user.eql?(@other)
         end
       end
@@ -331,7 +331,7 @@ share_examples_for 'A public Resource' do
     describe 'when comparing to a resource with the same properties' do
       before :all do
         rescue_if 'TODO', @skip do
-          @other  = @model.new(@user.attributes)
+          @other  = @user_model.new(@user.attributes)
           @return = @user.eql?(@other)
         end
       end
@@ -345,7 +345,7 @@ share_examples_for 'A public Resource' do
       describe 'when comparing to a resource with a different repository, but the same properties' do
         before :all do
           rescue_if 'TODO', @skip do
-            @other = @alternate_repository.scope { @model.create(@user.attributes) }
+            @other = @alternate_repository.scope { @user_model.create(@user.attributes) }
             @return = @user.eql?(@other)
           end
         end
@@ -363,12 +363,12 @@ share_examples_for 'A public Resource' do
 
     before :all do
       rescue_if 'TODO', @skip do
-        @user = @model.get(*@user.key)
+        @user = @user_model.get(*@user.key)
         @inspected = @user.inspect
       end
     end
 
-    it { @inspected.should match(/^#<User/) }
+    it { @inspected.should match(/^#<#{@user_model}/) }
 
     it { @inspected.should match(/name="dbussink"/) }
 
@@ -411,7 +411,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a new record' do
 
-      before { @user = User.new }
+      before { @user = @user_model.new }
 
       it { @user.should be_new }
 
@@ -446,7 +446,7 @@ share_examples_for 'A public Resource' do
     describe 'on a new, not dirty object' do
 
       before :all do
-        @user = @model.new
+        @user = @user_model.new
         @return = @user.save
       end
 
@@ -499,7 +499,7 @@ share_examples_for 'A public Resource' do
         rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
           @initial_comments = @user.comments.size
           @first_comment    = @user.comments.new(:body => "DM is great!")
-          @second_comment   = @child_model.new(:user => @user, :body => "is it really?")
+          @second_comment   = @comment_model.new(:user => @user, :body => "is it really?")
           @return           = @user.save
         end
       end
@@ -547,11 +547,11 @@ share_examples_for 'A public Resource' do
         rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
           @initial_comments = @user.comments.size
           @first_comment    = @user.comments.create(:body => "DM is great!")
-          @second_comment   = @child_model.create(:user => @user, :body => "is it really?")
+          @second_comment   = @comment_model.create(:user => @user, :body => "is it really?")
 
           @first_comment.body  = "It still has rough edges"
           @second_comment.body = "But these cool specs help fixing that"
-          @second_comment.user = @model.create(:name => 'dkubb')
+          @second_comment.user = @user_model.create(:name => 'dkubb')
           @return              = @user.save
         end
       end
@@ -579,8 +579,8 @@ share_examples_for 'A public Resource' do
     describe 'with a new parent object' do
 
       before :all do
-        @first_comment      = Comment.new(:body => "DM is great!")
-        @first_comment.user = @model.new(:name => 'dkubb')
+        @first_comment      = @comment_model.new(:body => "DM is great!")
+        @first_comment.user = @user_model.new(:name => 'dkubb')
       end
 
       it 'should raise an exception when saving the resource' do
@@ -614,7 +614,7 @@ share_examples_for 'A public Resource' do
 
       it 'should not have persisted the changes' do
         pending_if 'TODO', !@user.respond_to?(:comments) do
-          @user.attributes.should_not == @model.get(*@user.key).attributes
+          @user.attributes.should_not == @user_model.get(*@user.key).attributes
         end
       end
 
@@ -622,7 +622,7 @@ share_examples_for 'A public Resource' do
 
     describe 'with a new object and new relations' do
       before :all do
-        @article = Article.new(:body => "Main")
+        @article = @article_model.new(:body => "Main")
         rescue_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
           @paragraph = @article.paragraphs.new(:text => 'Content')
 
@@ -674,11 +674,11 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should update the identity map' do
-        @user.repository.identity_map(@model).should have_key(%w[ dkubb ])
+        @user.repository.identity_map(@user_model).should have_key(%w[ dkubb ])
       end
 
       it 'should remove the old entry from the identity map' do
-        @user.repository.identity_map(@model).should_not have_key(@original_key)
+        @user.repository.identity_map(@user_model).should_not have_key(@original_key)
       end
 
     end
@@ -697,7 +697,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a new record' do
 
-      before { @user = User.new }
+      before { @user = @user_model.new }
 
       it { @user.should_not be_saved }
 
@@ -737,7 +737,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should persist the changes' do
-        resource = @model.get(*@user.key)
+        resource = @user_model.get(*@user.key)
         @attributes.each { |k, v| resource.send(k).should == v }
       end
     end
@@ -745,7 +745,7 @@ share_examples_for 'A public Resource' do
     describe 'with attributes where one is a parent association' do
       before :all do
         rescue_if 'Use table aliases to avoid ambiguous named in query', @one_to_one_through do
-          @attributes = { :referrer => @model.create(:name => 'dkubb', :age => 33) }
+          @attributes = { :referrer => @user_model.create(:name => 'dkubb', :age => 33, :comment => @comment) }
           @return = @user.update(@attributes)
         end
       end
@@ -764,7 +764,7 @@ share_examples_for 'A public Resource' do
 
       it 'should persist the changes' do
         pending_if 'TODO', @one_to_one_through do
-          resource = @model.get(*@user.key)
+          resource = @user_model.get(*@user.key)
           @attributes.each { |k, v| resource.send(k).should == v }
         end
       end
@@ -839,7 +839,7 @@ share_examples_for 'A public Resource' do
     end
 
     it 'should not overwrite dirty key' do
-      pending_if 'TODO', !@using_transactions do
+      pending do
         @user.name.should == 'dkubb'
       end
     end
