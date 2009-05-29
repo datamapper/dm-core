@@ -377,7 +377,7 @@ module DataMapper
       if query.nil? || (query.kind_of?(Hash) && query.empty?)
         # TODO: after adding Enumerable methods to Model, try to return self here
         # TODO: try to simplify self.query to return the default scope instead of nil
-        new_collection(self.query || merge_with_default_scope(Query.new(repository, self)))
+        new_collection(self.query)
       else
         new_collection(scoped_query(query))
       end
@@ -751,20 +751,23 @@ module DataMapper
       if query.kind_of?(Query)
         query
       else
-        query = query.dup
+        repository = if query.key?(:repository)
+          query      = query.dup
+          repository = query.delete(:repository)
 
-        repository = query.delete(:repository)
-
-        if repository.kind_of?(Symbol)
-          repository = DataMapper.repository(repository)
+          if repository.kind_of?(Symbol)
+            DataMapper.repository(repository)
+          else
+            repository
+          end
+        else
+          self.repository
         end
 
-        query = Query.new(repository || self.repository, self, query)
-
-        if self.query
+        if self.query.repository == repository
           self.query.merge(query)
         else
-          merge_with_default_scope(query)
+          Query.new(repository, self, self.query.merge(query).options)
         end
       end
     end

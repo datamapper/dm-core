@@ -15,28 +15,33 @@ module DataMapper
     # @api private
     def default_scope(repository_name = default_repository_name)
       @default_scope ||= {}
-      @default_scope[repository_name] ||= {}
+
+      @default_scope[repository_name] ||= if repository_name == default_repository_name
+        {}
+      else
+        default_scope(default_repository_name).dup
+      end
     end
 
+    ##
     # Returns query on top of scope stack
+    #
     # @api private
     def query
-      scope_stack.last
+      scope_stack.last || Query.new(repository, self, default_scope(repository.name)).freeze
     end
 
     protected
 
-    # If stack is not empty, merges query with one on top of the stack
-    # and pushes resulting combined query onto the stack
-    #
-    # otherwise just pushes given query on top of the stack
+    ##
+    # Pushes given query on top of the stack
     #
     # @param [Hash, Query]  Query to add to current scope nesting
     #
     # @api private
     def with_scope(query)
       # merge the current scope with the passed in query
-      with_exclusive_scope(self.query ? self.query.merge(query) : query) { |*block_args| yield(*block_args) }
+      with_exclusive_scope(self.query.merge(query)) { |*block_args| yield(*block_args) }
     end
 
     # Pushes given query on top of scope stack and yields
@@ -46,7 +51,11 @@ module DataMapper
     #
     # @api private
     def with_exclusive_scope(query)
-      query = Query.new(repository, self, query) if query.kind_of?(Hash)
+      query = if query.kind_of?(Hash)
+        Query.new(repository, self, query)
+      else
+        query.dup.freeze
+      end
 
       scope_stack << query
 
@@ -59,33 +68,11 @@ module DataMapper
 
     private
 
-    # Merges query with a default query for repository this
-    # query works in
-    #
-    # @api private
-    def merge_with_default_scope(query)
-      repository = query.repository
-
-      Query.new(repository, self, default_scope_for_repository(repository.name)).update(query)
-    end
-
     # Initializes (if necessary) and returns current scope stack
     # @api private
     def scope_stack
       scope_stack_for = Thread.current[:dm_scope_stack] ||= {}
       scope_stack_for[self] ||= []
-    end
-
-    # Returns current scope for given repository,
-    # or globally default scope for default repository
-    #
-    # @api private
-    def default_scope_for_repository(repository_name)
-      if repository_name == default_repository_name
-        default_scope.dup
-      else
-        default_scope.merge(default_scope(repository_name))
-      end
     end
   end # module Scope
 end # module DataMapper
