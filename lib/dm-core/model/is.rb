@@ -2,6 +2,8 @@ module DataMapper
   # Module that provides a common way for plugin authors
   # to implement "is ... " traits (object behaviors that can be shared)
   module Is
+    Model.append_extensions self
+
     # A common interface to activate plugins for a resource. For instance:
     #
     # class Widget
@@ -24,7 +26,5 @@ module DataMapper
         raise PluginNotFoundError, "could not find plugin named #{plugin}"
       end
     end
-
-    Model.append_extensions self
   end # module Is
 end # module DataMapper

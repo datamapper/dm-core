@@ -1,5 +1,7 @@
 module DataMapper
   module Associations
+    Model.append_extensions self
+
     include Extlib::Assertions
     extend Chainable
 
@@ -252,7 +254,5 @@ module DataMapper
         raise ArgumentError, '+options[:limit]+ should not be specified on a relationship'
       end
     end
-
-    Model.append_extensions self
   end # module Associations
 end # module DataMapper
