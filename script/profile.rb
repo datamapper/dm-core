@@ -159,11 +159,10 @@ TIMES = 10_000
 exhibits = Exhibit.all.to_a
 
 profile do
-  dm_obj = Exhibit.get(1)
-
-  puts 'Model#id'
-  (TIMES * 100).times { dm_obj.id }
-
+#  dm_obj = Exhibit.get(1)
+#  puts 'Model#id'
+#  (TIMES * 100).times { dm_obj.id }
+#
 #  puts 'Model.new (instantiation)'
 #  TIMES.times { Exhibit.new }
 #
@@ -177,10 +176,10 @@ profile do
 #  repository(:default) do
 #    TIMES.times { touch_attributes(Exhibit.get(1)) }
 #  end
-#
-#  puts 'Model.first'
-#  TIMES.times { touch_attributes(Exhibit.first) }
-#
+
+  puts 'Model.first'
+  TIMES.times { touch_attributes(Exhibit.first) }
+
 #  puts 'Model.all limit(100)'
 #  (TIMES / 10).ceil.times { touch_attributes(Exhibit.all(:limit => 100)) }
 #
