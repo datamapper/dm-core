@@ -1102,6 +1102,7 @@ module DataMapper
     #
     # @api private
     def cmp?(other, operator)
+      # check the attributes that are most likely to differ first
       unless repository.send(operator, other.repository)
         return false
       end
@@ -1110,19 +1111,7 @@ module DataMapper
         return false
       end
 
-      unless fields.sort_by { |f| f.hash }.send(operator, other.fields.sort_by { |f| f.hash })
-        return false
-      end
-
-      unless links.sort_by { |r| r.hash }.send(operator, other.links.sort_by { |r| r.hash })
-        return false
-      end
-
       unless conditions.send(operator, other.conditions)
-        return false
-      end
-
-      unless order.send(operator, other.order)
         return false
       end
 
@@ -1131,6 +1120,18 @@ module DataMapper
       end
 
       unless limit.send(operator, other.limit)
+        return false
+      end
+
+      unless order.send(operator, other.order)
+        return false
+      end
+
+      unless fields.sort_by { |f| f.hash }.send(operator, other.fields.sort_by { |f| f.hash })
+        return false
+      end
+
+      unless links.send(operator, other.links)
         return false
       end
 
