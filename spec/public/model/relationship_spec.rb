@@ -1,4 +1,4 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 share_examples_for 'it creates a one accessor' do
   describe 'accessor' do

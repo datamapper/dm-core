@@ -596,20 +596,5 @@ module DataMapper
 
       @valid = true
     end
-
-    chainable do
-      # TODO: document
-      # @api public
-      def method_missing(method, *args, &block)
-        # TODO: move this logic into DM::Associations to be mixed in
-        if respond_to?(:relationships)
-          if relationship = relationships(repository_name)[method]
-            return Query::Path.new(repository, [ relationship ], relationship.target_model)
-          end
-        end
-
-        super
-      end
-    end
   end # module Model
 end # module DataMapper
