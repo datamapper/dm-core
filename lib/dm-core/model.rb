@@ -1,7 +1,7 @@
 # TODO: move paranoid property concerns to a ParanoidModel that is mixed
 # into Model when a Paranoid property is used
 
-# TODO: add Model#update, Model#update!, Model#destroy and Model#destroy!
+# TODO: add Model#create!, Model#update, Model#update!, Model#destroy and Model#destroy!
 
 module DataMapper
   module Model
@@ -132,8 +132,8 @@ module DataMapper
       model.instance_variable_set(:@paranoid_properties,      {})
       model.instance_variable_set(:@field_naming_conventions, {})
 
-      extra_inclusions.each { |mod| model.send(:include, mod) }
       extra_extensions.each { |mod| model.extend(mod)         }
+      extra_inclusions.each { |mod| model.send(:include, mod) }
     end
 
     chainable do
@@ -596,15 +596,6 @@ module DataMapper
 
     # TODO: document
     # @api semipublic
-    def relationships(*args)
-      # DO NOT REMOVE!
-      # method_missing depends on these existing. Without this stub,
-      # a missing module can cause misleading recursive errors.
-      raise NotImplementedError, "#{self.class}#relationships not implemented"
-    end
-
-    # TODO: document
-    # @api semipublic
     def default_repository_name
       Repository.default_name
     end
@@ -796,8 +787,11 @@ module DataMapper
     # TODO: document
     # @api public
     def method_missing(method, *args, &block)
-      if relationship = relationships(repository_name)[method]
-        return Query::Path.new(repository, [ relationship ], relationship.target_model)
+      if respond_to?(:relationships)
+        # TODO: move this logic into DM::Associations to be mixed in
+        if relationship = relationships(repository_name)[method]
+          return Query::Path.new(repository, [ relationship ], relationship.target_model)
+        end
       end
 
       if property = properties(repository_name)[method]
