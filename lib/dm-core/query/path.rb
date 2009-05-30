@@ -22,12 +22,12 @@ module DataMapper
       # @api private
       attr_reader :property
 
-      Query::OPERATORS.each do |sym|
+      (Conditions::Comparison.slugs | [ :not ]).each do |slug|
         class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{sym}                                                                                   # def eql
-            #{"warn \"explicit use of '#{sym}' operator is deprecated\"" if sym == :eql || sym == :in} #   warn "explicit use of 'eql' operator is deprecated"
-            Operator.new(self, #{sym.inspect})                                                         #   Operator.new(self, :eql)
-          end                                                                                          # end
+          def #{slug}                                                                                     # def eql
+            #{"warn \"explicit use of '#{slug}' operator is deprecated\"" if slug == :eql || slug == :in} #   warn "explicit use of 'eql' operator is deprecated"
+            Operator.new(self, #{slug.inspect})                                                           #   Operator.new(self, :eql)
+          end                                                                                             # end
         RUBY
       end
 

@@ -1,6 +1,6 @@
-require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-include DataMapper::Conditions
+include DataMapper::Query::Conditions
 
 module ComparisonSpecHelpers
 
@@ -31,7 +31,7 @@ module ComparisonSpecHelpers
 
 end
 
-describe "DataMapper::Conditions" do
+describe "DataMapper::Query::Conditions" do
 
   include ComparisonSpecHelpers
 

@@ -26,8 +26,6 @@ lib/dm-core/associations/one_to_many.rb
 lib/dm-core/associations/one_to_one.rb
 lib/dm-core/associations/relationship.rb
 lib/dm-core/collection.rb
-lib/dm-core/conditions/comparisons.rb
-lib/dm-core/conditions/operation.rb
 lib/dm-core/core_ext/kernel.rb
 lib/dm-core/core_ext/symbol.rb
 lib/dm-core/identity_map.rb
@@ -41,6 +39,8 @@ lib/dm-core/model/scope.rb
 lib/dm-core/property.rb
 lib/dm-core/property_set.rb
 lib/dm-core/query.rb
+lib/dm-core/query/conditions/comparison.rb
+lib/dm-core/query/conditions/operation.rb
 lib/dm-core/query/direction.rb
 lib/dm-core/query/operator.rb
 lib/dm-core/query/path.rb
@@ -73,8 +73,8 @@ spec/public/associations/many_to_many_spec.rb
 spec/public/associations/many_to_one_spec.rb
 spec/public/associations/one_to_many_spec.rb
 spec/public/associations/one_to_one_spec.rb
-spec/public/associations_spec.rb
 spec/public/collection_spec.rb
+spec/public/model/relationship_spec.rb
 spec/public/model_spec.rb
 spec/public/property_spec.rb
 spec/public/resource_spec.rb

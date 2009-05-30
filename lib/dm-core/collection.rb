@@ -1048,7 +1048,7 @@ module DataMapper
     def default_attributes
       @default_attributes ||=
         begin
-          unless query.conditions.kind_of?(Conditions::AndOperation)
+          unless query.conditions.kind_of?(Query::Conditions::AndOperation)
             return
           end
 
@@ -1065,7 +1065,7 @@ module DataMapper
           end
 
           query.conditions.each do |condition|
-            unless condition.kind_of?(Conditions::EqualToComparison) && properties.include?(condition.property)
+            unless condition.kind_of?(Query::Conditions::EqualToComparison) && properties.include?(condition.property)
               next
             end
 

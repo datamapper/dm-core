@@ -1,5 +1,5 @@
 class Symbol
-  (DataMapper::Query::OPERATORS | [ :asc, :desc ]).each do |sym|
+  (DataMapper::Query::Conditions::Comparison.slugs | [ :not, :asc, :desc ]).each do |sym|
     class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def #{sym}
         #{"warn \"explicit use of '#{sym}' operator is deprecated\"" if sym == :eql || sym == :in}

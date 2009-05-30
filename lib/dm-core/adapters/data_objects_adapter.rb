@@ -329,9 +329,9 @@ module DataMapper
 
             # if a unique property is used, and there is no OR operator, then an ORDER
             # and LIMIT are unecessary because it should only return a single row
-            if conditions.kind_of?(Conditions::AndOperation) &&
-               conditions.any? { |o| o.kind_of?(Conditions::EqualToComparison) && o.property.unique? } &&
-               !conditions.any? { |o| o.kind_of?(Conditions::OrOperation) }
+            if conditions.kind_of?(Query::Conditions::AndOperation) &&
+               conditions.any? { |o| o.kind_of?(Query::Conditions::EqualToComparison) && o.property.unique? } &&
+               !conditions.any? { |o| o.kind_of?(Query::Conditions::OrOperation) }
               order = nil
               limit = nil
             end
@@ -455,10 +455,10 @@ module DataMapper
         # @api private
         def conditions_statement(conditions, qualify = false)
           case conditions
-            when Conditions::NotOperation
+            when Query::Conditions::NotOperation
               negate_operation(conditions, qualify)
 
-            when Conditions::AbstractOperation
+            when Query::Conditions::AbstractOperation
               # TODO: remove this once conditions can be compressed
               if conditions.operands.size == 1
                 # factor out operations with a single operand
@@ -467,7 +467,7 @@ module DataMapper
                 operation_statement(conditions, qualify)
               end
 
-            when Conditions::AbstractComparison
+            when Query::Conditions::AbstractComparison
               comparison_statement(conditions, qualify)
 
             when Array
@@ -518,7 +518,7 @@ module DataMapper
             bind_values.concat(values)
           end
 
-          join_with = operation.kind_of?(@negated ? Conditions::OrOperation : Conditions::AndOperation) ? 'AND' : 'OR'
+          join_with = operation.kind_of?(@negated ? Query::Conditions::OrOperation : Query::Conditions::AndOperation) ? 'AND' : 'OR'
           statement = statements.join(" #{join_with} ")
 
           return statement, bind_values
@@ -537,9 +537,9 @@ module DataMapper
 
           # break exclusive Range queries up into two comparisons ANDed together
           if value.kind_of?(Range) && value.exclude_end?
-            operation = Conditions::Operation.new(:and,
-              Conditions::Comparison.new(:gte, comparison.property, value.first),
-              Conditions::Comparison.new(:lt,  comparison.property, value.last)
+            operation = Query::Conditions::Operation.new(:and,
+              Query::Conditions::Comparison.new(:gte, comparison.property, value.first),
+              Query::Conditions::Comparison.new(:lt,  comparison.property, value.last)
             )
 
             statement, bind_values = operation_statement(operation, qualify)
@@ -548,14 +548,14 @@ module DataMapper
           end
 
           operator = case comparison
-            when Conditions::EqualToComparison              then @negated ? inequality_operator(value) : equality_operator(value)
-            when Conditions::InclusionComparison            then @negated ? exclude_operator(value)    : include_operator(value)
-            when Conditions::RegexpComparison               then @negated ? not_regexp_operator(value) : regexp_operator(value)
-            when Conditions::LikeComparison                 then @negated ? unlike_operator(value)     : like_operator(value)
-            when Conditions::GreaterThanComparison          then @negated ? '<='                       : '>'
-            when Conditions::LessThanComparison             then @negated ? '>='                       : '<'
-            when Conditions::GreaterThanOrEqualToComparison then @negated ? '<'                        : '>='
-            when Conditions::LessThanOrEqualToComparison    then @negated ? '>'                        : '<='
+            when Query::Conditions::EqualToComparison              then @negated ? inequality_operator(value) : equality_operator(value)
+            when Query::Conditions::InclusionComparison            then @negated ? exclude_operator(value)    : include_operator(value)
+            when Query::Conditions::RegexpComparison               then @negated ? not_regexp_operator(value) : regexp_operator(value)
+            when Query::Conditions::LikeComparison                 then @negated ? unlike_operator(value)     : like_operator(value)
+            when Query::Conditions::GreaterThanComparison          then @negated ? '<='                       : '>'
+            when Query::Conditions::LessThanComparison             then @negated ? '>='                       : '<'
+            when Query::Conditions::GreaterThanOrEqualToComparison then @negated ? '<'                        : '>='
+            when Query::Conditions::LessThanOrEqualToComparison    then @negated ? '>'                        : '<='
           end
 
           return "#{property_to_column_name(comparison.property, qualify)} #{operator} ?", [ value ]

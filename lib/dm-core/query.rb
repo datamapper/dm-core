@@ -2,7 +2,6 @@
 #
 # - DataMapper::Query::Fields
 # - DataMapper::Query::Links
-# - DataMapper::Query::Conditions (move DM::Conditions here)
 # - DataMapper::Query::Offset
 # - DataMapper::Query::Limit
 # - DataMapper::Query::Order
@@ -18,8 +17,7 @@ module DataMapper
   class Query
     include Extlib::Assertions
 
-    OPTIONS   = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze
-    OPERATORS = DataMapper::Conditions::AbstractComparison.subclasses.map { |c| c.slug }.push(:not).to_set.freeze
+    OPTIONS = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze
 
     ##
     # Returns the repository query should be
@@ -749,7 +747,7 @@ module DataMapper
                 end
 
               when Operator
-                unless OPERATORS.include?(subject.operator)
+                unless (Conditions::Comparison.slugs | [ :not ]).include?(subject.operator)
                   raise ArgumentError, "condition #{subject.inspect} used an invalid operator #{subject.operator}"
                 end
 
