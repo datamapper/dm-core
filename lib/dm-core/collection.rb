@@ -1094,7 +1094,9 @@ module DataMapper
     def relate_resource(resource)
       return if resource.nil?
 
-      resource.collection = self
+      unless resource.frozen?
+        resource.collection = self
+      end
 
       if resource.saved?
         @identity_map[resource.key] = resource
@@ -1139,7 +1141,7 @@ module DataMapper
     def orphan_resource(resource)
       return if resource.nil?
 
-      if resource.collection.equal?(self)
+      if resource.collection.equal?(self) && !resource.frozen?
         resource.collection = nil
       end
 
