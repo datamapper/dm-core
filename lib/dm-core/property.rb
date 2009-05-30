@@ -848,8 +848,6 @@ module DataMapper
       end
 
       determine_visibility
-      create_reader
-      create_writer
 
       if custom?
         type.bind(self)
@@ -912,46 +910,6 @@ module DataMapper
     def determine_visibility
       @reader_visibility = @options[:reader] || @options[:accessor] || :public
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
-    end
-
-    # defines the reader method for the property
-    #
-    # @api private
-    def create_reader
-      unless model.instance_methods(false).any? { |m| m.to_sym == name }
-        model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          #{reader_visibility}
-          def #{name}
-            return #{instance_variable_name} if defined?(#{instance_variable_name})
-            #{instance_variable_name} = properties[#{name.inspect}].get(self)
-          end
-        RUBY
-      end
-
-      boolean_reader_name = "#{name}?".to_sym
-
-      if primitive == TrueClass && !model.instance_methods(false).any? { |m| m.to_sym == boolean_reader_name }
-        model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          #{reader_visibility}
-          alias #{name}? #{name}
-        RUBY
-      end
-    end
-
-    # defines the setter for the property
-    #
-    # @api private
-    def create_writer
-      writer_name = "#{name}=".to_sym
-
-      return if model.instance_methods(false).any? { |m| m.to_sym == writer_name }
-
-      model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-        #{writer_visibility}
-        def #{writer_name}(value)
-          properties[#{name.inspect}].set(self, value)
-        end
-      RUBY
     end
 
     # Typecasts an arbitrary value to a DateTime.

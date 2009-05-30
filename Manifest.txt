@@ -36,6 +36,7 @@ lib/dm-core/migrations.rb
 lib/dm-core/model.rb
 lib/dm-core/model/hook.rb
 lib/dm-core/model/is.rb
+lib/dm-core/model/property.rb
 lib/dm-core/model/scope.rb
 lib/dm-core/property.rb
 lib/dm-core/property_set.rb

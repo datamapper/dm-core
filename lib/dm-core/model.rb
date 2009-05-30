@@ -1,6 +1,3 @@
-# TODO: move paranoid property concerns to a ParanoidModel that is mixed
-# into Model when a Paranoid property is used
-
 # TODO: add Model#create!, Model#update, Model#update!, Model#destroy and Model#destroy!
 
 module DataMapper
@@ -126,11 +123,8 @@ module DataMapper
 
       Model.descendants << model
 
-      model.instance_variable_set(:@valid,                    false)
-      model.instance_variable_set(:@storage_names,            {})
-      model.instance_variable_set(:@properties,               {})
-      model.instance_variable_set(:@paranoid_properties,      {})
-      model.instance_variable_set(:@field_naming_conventions, {})
+      model.instance_variable_set(:@valid,         false)
+      model.instance_variable_set(:@storage_names, {})
 
       extra_extensions.each { |mod| model.extend(mod)         }
       extra_inclusions.each { |mod| model.send(:include, mod) }
@@ -142,26 +136,14 @@ module DataMapper
       def inherited(target)
         Model.descendants << target
 
-        target.instance_variable_set(:@valid,                    false)
-        target.instance_variable_set(:@storage_names,            @storage_names.dup)
-        target.instance_variable_set(:@properties,               {})
-        target.instance_variable_set(:@paranoid_properties,      @paranoid_properties.dup)
-        target.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
-        target.instance_variable_set(:@base_model,               base_model)
+        target.instance_variable_set(:@valid,         false)
+        target.instance_variable_set(:@storage_names, @storage_names.dup)
+        target.instance_variable_set(:@base_model,    base_model)
 
         # TODO: move this into dm-validations
         if respond_to?(:validators)
           validators.contexts.each do |context, validators|
             target.validators.context(context).concat(validators)
-          end
-        end
-
-        # TODO: add a method to PropertySet to copy the properties to a new model
-        @properties.each do |repository_name, properties|
-          repository(repository_name) do
-            properties.each do |property|
-              target.property(property.name, property.type, property.options)
-            end
           end
         end
       end
@@ -177,8 +159,6 @@ module DataMapper
     #
     # @api public
     def storage_name(repository_name = default_repository_name)
-      assert_kind_of 'repository_name', repository_name, Symbol
-
       @storage_names[repository_name] ||= repository(repository_name).adapter.resource_naming_convention.call(base_model.send(:default_storage_name)).freeze
     end
 
@@ -191,130 +171,6 @@ module DataMapper
     # @api public
     def storage_names
       @storage_names
-    end
-
-    ##
-    # Gets the field naming conventions for this resource in the given Repository
-    #
-    # @param [String, Symbol] repository_name
-    #   the name of the Repository for which the field naming convention
-    #   will be retrieved
-    #
-    # @return [#call]
-    #   The naming convention for the given Repository
-    #
-    # @api public
-    def field_naming_convention(repository_name = default_storage_name)
-      assert_kind_of 'repository_name', repository_name, Symbol
-
-      @field_naming_conventions[repository_name] ||= repository(repository_name).adapter.field_naming_convention
-    end
-
-    ##
-    # Defines a Property on the Resource
-    #
-    # @param [Symbol] name
-    #   the name for which to call this property
-    # @param [Type] type
-    #   the type to define this property ass
-    # @param [Hash(Symbol => String)] options
-    #   a hash of available options
-    #
-    # @return [Property]
-    #   the created Property
-    #
-    # @see Property
-    #
-    # @api public
-    def property(name, type, options = {})
-      property = Property.new(self, name, type, options)
-
-      properties(repository_name) << property
-
-      # Add property to the other mappings as well if this is for the default
-      # repository.
-      if repository_name == default_repository_name
-        @properties.except(repository_name).each do |repository_name, properties|
-          next if properties.named?(name)
-
-          # make sure the property is created within the correct repository scope
-          DataMapper.repository(repository_name) do
-            properties << Property.new(self, name, type, options)
-          end
-        end
-      end
-
-      # Add the property to the lazy_loads set for this resources repository
-      # only.
-      # TODO Is this right or should we add the lazy contexts to all
-      # repositories?
-      if property.lazy?
-        context = options.fetch(:lazy, :default)
-        context = :default if context == true
-
-        Array(context).each do |item|
-          properties(repository_name).lazy_context(item) << name
-        end
-      end
-
-      # add the property to the child classes only if the property was
-      # added after the child classes' properties have been copied from
-      # the parent
-      if respond_to?(:descendants)
-        descendants.each do |model|
-          next if model.properties(repository_name).named?(name)
-          model.property(name, type, options)
-        end
-      end
-
-      property
-    end
-
-    ##
-    # Gets a list of all properties that have been defined on this Model in
-    # the requested repository
-    #
-    # @param [Symbol, String] repository_name
-    #   The name of the repository to use. Uses the default Repository
-    #   if none is specified.
-    #
-    # @return [Array]
-    #   A list of Properties defined on this Model in the given Repository
-    #
-    # @api public
-    def properties(repository_name = default_repository_name)
-      assert_kind_of 'repository_name', repository_name, Symbol
-
-      # TODO: create PropertySet#copy that will copy the properties, but assign the
-      # new Relationship objects to a supplied repository and model.  dup does not really
-      # do what is needed
-
-      @properties[repository_name] ||= if repository_name == default_repository_name
-        PropertySet.new
-      else
-        properties(default_repository_name).dup
-      end
-    end
-
-    ##
-    # Gets the list of key fields for this Model in +repository_name+
-    #
-    # @param [String] repository_name
-    #   The name of the Repository for which the key is to be reported
-    #
-    # @return [Array]
-    #   The list of key fields for this Model in +repository_name+
-    #
-    # @api public
-    def key(repository_name = default_repository_name)
-      properties(repository_name).key
-    end
-
-    # TODO: document
-    # @api public
-    def identity_field(repository_name = default_repository_name)
-      # XXX: should identity_field be the same thing as key?
-      key(repository_name).detect { |p| p.serial? }
     end
 
     ##
@@ -603,8 +459,6 @@ module DataMapper
     # TODO: document
     # @api semipublic
     def default_order(repository_name = default_repository_name)
-      assert_kind_of 'repository_name', repository_name, Symbol
-
       @default_order ||= {}
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
     end
@@ -659,47 +513,6 @@ module DataMapper
     # @api private
     def repositories
       [ repository ].to_set + @properties.keys.map { |r| DataMapper.repository(r) }
-    end
-
-    # TODO: document
-    # @api private
-    def properties_with_subclasses(repository_name = default_repository_name)
-      properties = PropertySet.new
-
-      models = [ self ].to_set
-      models.merge(descendants) if respond_to?(:descendants)
-
-      models.each do |model|
-        model.properties(repository_name).each do |property|
-          properties << property unless properties.named?(property.name)
-        end
-      end
-
-      properties
-    end
-
-    # TODO: document
-    # @api private
-    def paranoid_properties
-      @paranoid_properties
-    end
-
-    # TODO: document
-    # @api private
-    def set_paranoid_property(name, &block)
-      paranoid_properties[name] = block
-    end
-
-    # TODO: document
-    # @api private
-    def typecast_key(key)
-      self.key(repository_name).zip(key).map { |p, v| p.typecast(v) }
-    end
-
-    # TODO: document
-    # @api private
-    def key_conditions(repository, key)
-      self.key(repository.name).zip(key).to_hash
     end
 
     private
@@ -784,21 +597,19 @@ module DataMapper
       @valid = true
     end
 
-    # TODO: document
-    # @api public
-    def method_missing(method, *args, &block)
-      if respond_to?(:relationships)
+    chainable do
+      # TODO: document
+      # @api public
+      def method_missing(method, *args, &block)
         # TODO: move this logic into DM::Associations to be mixed in
-        if relationship = relationships(repository_name)[method]
-          return Query::Path.new(repository, [ relationship ], relationship.target_model)
+        if respond_to?(:relationships)
+          if relationship = relationships(repository_name)[method]
+            return Query::Path.new(repository, [ relationship ], relationship.target_model)
+          end
         end
-      end
 
-      if property = properties(repository_name)[method]
-        return property
+        super
       end
-
-      super
     end
   end # module Model
 end # module DataMapper

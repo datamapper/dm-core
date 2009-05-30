@@ -28,13 +28,13 @@ require dir / 'support' / 'chainable'
 require dir / 'support' / 'deprecate'
 
 require dir / 'model'
-require dir / 'collection'
-
-# immediately mix these modules into model
 require dir / 'model' / 'hook'
 require dir / 'model' / 'is'
+require dir / 'model' / 'property'
 require dir / 'model' / 'scope'
 require dir / 'associations'
+
+require dir / 'collection'
 
 require dir / 'adapters'
 require dir / 'adapters' / 'abstract_adapter'
