@@ -583,9 +583,9 @@ share_examples_for 'A public Resource' do
         @first_comment.user = @user_model.new(:name => 'dkubb')
       end
 
-      it 'should raise an exception when saving the resource' do
-        pending 'it should raise an exception when a parent is not persisted' do
-          lambda { @first_comment.save }.should raise_error
+      it 'should not raise an exception when saving the resource' do
+        pending do
+          lambda { @first_comment.save.should be_false }.should_not raise_error
         end
       end
 
