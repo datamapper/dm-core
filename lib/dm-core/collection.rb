@@ -1064,12 +1064,12 @@ module DataMapper
             properties -= key
           end
 
-          query.conditions.operands.each do |operand|
-            unless operand.kind_of?(Conditions::EqualToComparison) && properties.include?(operand.property)
+          query.conditions.each do |condition|
+            unless condition.kind_of?(Conditions::EqualToComparison) && properties.include?(condition.property)
               next
             end
 
-            default_attributes[operand.property.name] = operand.value
+            default_attributes[condition.property.name] = condition.value
           end
 
           default_attributes.freeze

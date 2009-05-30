@@ -43,7 +43,7 @@ require dir / 'associations' / 'one_to_many'
 require dir / 'associations' / 'one_to_one'
 require dir / 'associations' / 'many_to_one'
 require dir / 'associations' / 'many_to_many'
-require dir / 'conditions' / 'boolean_operator'
+require dir / 'conditions' / 'operation'
 require dir / 'conditions' / 'comparisons'
 require dir / 'identity_map'
 require dir / 'migrations'                      # TODO: move to dm-more

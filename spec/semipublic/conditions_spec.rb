@@ -58,7 +58,7 @@ describe "DataMapper::Conditions" do
     end
 
     it 'should initialize an AbstractOperation object' do
-      op = BooleanOperation.new(:and)
+      op = Operation.new(:and)
       op.should be_kind_of(AbstractOperation)
     end
 
@@ -68,29 +68,29 @@ describe "DataMapper::Conditions" do
       :not => NotOperation
     }.each do |operand, klass|
       it "should initialize as #{klass} for the #{operand} operator" do
-        op = BooleanOperation.new(operand)
+        op = Operation.new(operand)
         op.should be_kind_of(klass)
       end
     end
 
     it 'should set the remaining args in @operands' do
-      op = BooleanOperation.new(:and, @comp1, @comp2)
+      op = Operation.new(:and, @comp1, @comp2)
       op.operands.should == [@comp1, @comp2]
     end
 
     it 'should have operands be empty of no operands are provided' do
-      op = BooleanOperation.new(:and)
+      op = Operation.new(:and)
       op.operands.should == []
     end
 
     describe 'NotOperation' do
       before do
-        @op = BooleanOperation.new(:not, @comp1)
+        @op = Operation.new(:not, @comp1)
       end
 
       it 'should not allow more than one operand' do
         lambda {
-          BooleanOperation.new(:not, @comp1, @comp2)
+          Operation.new(:not, @comp1, @comp2)
         }.should raise_error(InvalidOperation)
       end
 
@@ -102,7 +102,7 @@ describe "DataMapper::Conditions" do
 
     describe 'AndOperation' do
       before do
-        @op = BooleanOperation.new(:and, @comp1, @comp2)
+        @op = Operation.new(:and, @comp1, @comp2)
       end
 
       it 'should match if all comparisons match' do
@@ -121,7 +121,7 @@ describe "DataMapper::Conditions" do
 
     describe 'OrOperation' do
       before do
-        @op = BooleanOperation.new(:or, @comp1, @comp2)
+        @op = Operation.new(:or, @comp1, @comp2)
       end
 
       it 'should match if any of the comparisons match' do

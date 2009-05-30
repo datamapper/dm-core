@@ -1,12 +1,8 @@
-# TODO: make AbstractOperation enumerable
-# TODO: deprecate AbstractOperation#operands in favor of AbstractOperation#entries
-# TODO: remove attr_reader :operants from AbstractOperation
-
 module DataMapper
   module Conditions
-    class InvalidOperation < Exception; end
+    class InvalidOperation < ArgumentError; end
 
-    class BooleanOperation
+    class Operation
       # TODO: document
       # @api semipublic
       def self.new(operator, *operands)
@@ -18,11 +14,20 @@ module DataMapper
       def self.operation_class(operation)
         # TODO: when inheriting, register the class' slug, so that this
         # lookup can be done via a Hash
-        AbstractOperation.subclasses.detect { |c| c.slug == operation }
+        operation_classes[operation] ||= AbstractOperation.descendants.detect { |operation_class| operation_class.slug == operation }
+      end
+
+      class << self
+        private
+
+        def operation_classes
+          @operation_classes ||= {}
+        end
       end
     end
 
     class AbstractOperation
+      include Enumerable
 
       # TODO: document
       # @api semipublic
@@ -30,14 +35,14 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def self.subclasses
-        @subclasses ||= Set.new
+      def self.descendants
+        @descendants ||= Set.new
       end
 
       # TODO: document
       # @api private
-      def self.inherited(subclass)
-        subclasses << subclass
+      def self.inherited(operation_class)
+        descendants << operation_class
       end
 
       # TODO: document
@@ -48,8 +53,14 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
+      def each
+        @operands.each { |*block_args| yield(*block_args) }
+      end
+
+      # TODO: document
+      # @api semipublic
       def <<(operand)
-        operands << operand
+        @operands << operand
       end
 
       # TODO: document
@@ -59,7 +70,9 @@ module DataMapper
           return true
         end
 
-        unless other.class.respond_to?(:slug) && other.class.slug == self.class.slug
+        other_class = other.class
+
+        unless other_class.respond_to?(:slug) && other_class.slug == self.class.slug
           return false
         end
 
@@ -101,47 +114,43 @@ module DataMapper
       # TODO: document
       # @api private
       def cmp?(other, operator)
-        operands.send(operator, other.operands)
+        @operands.send(operator, other.operands)
+      end
+    end
+
+    module ConcatOperation
+      # TODO: document
+      # @api semipublic
+      def <<(operand)
+        if operand.kind_of?(self.class)
+          @operands.concat(operand.operands)
+        else
+          super
+        end
       end
     end
 
     class AndOperation < AbstractOperation
+      include ConcatOperation
+
       slug :and
 
       # TODO: document
       # @api semipublic
       def matches?(record)
-        @operands.all? { |o| o.matches?(record) }
-      end
-
-      # TODO: document
-      # @api semipublic
-      def <<(operand)
-        if operand.kind_of?(self.class)
-          operands.concat(operand.operands)
-        else
-          super
-        end
+        @operands.all? { |operand| operand.matches?(record) }
       end
     end
 
     class OrOperation < AbstractOperation
+      include ConcatOperation
+
       slug :or
 
       # TODO: document
       # @api semipublic
       def matches?(record)
-        @operands.any? { |o| o.matches?(record) }
-      end
-
-      # TODO: document
-      # @api semipublic
-      def <<(operand)
-        if operand.kind_of?(self.class)
-          operands.concat(operand.operands)
-        else
-          super
-        end
+        @operands.any? { |operand| operand.matches?(record) }
       end
     end
 
@@ -151,13 +160,13 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def matches?(record)
-        not @operand.matches?(record)
+        not @operands.first.matches?(record)
       end
 
       # TODO: document
       # @api semipublic
       def <<(operand)
-        raise ArgumentError, "#{self.class} cannot have more than one operand" if operands.size > 0
+        raise ArgumentError, "#{self.class} cannot have more than one operand" if @operands.size > 0
         super
       end
 
@@ -166,9 +175,8 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def initialize(*operands)
+        raise InvalidOperation, "#{self.class} is a unary operator" if operands.size > 1
         super
-        raise InvalidOperation, 'Not is a unary operator' if @operands.size > 1
-        @operand = @operands.first
       end
     end
   end

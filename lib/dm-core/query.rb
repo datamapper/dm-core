@@ -603,7 +603,7 @@ module DataMapper
 
       @fields       = @options.fetch :fields,       @properties.defaults
       @links        = @options.fetch :links,        []
-      @conditions   = Conditions::BooleanOperation.new(:and)  # AND all the conditions together
+      @conditions   = Conditions::Operation.new(:and)  # AND all the conditions together
       @offset       = @options.fetch :offset,       0
       @limit        = @options.fetch :limit,        nil
       @order        = @options.fetch :order,        @model.default_order(repository_name)
@@ -1012,7 +1012,7 @@ module DataMapper
       condition = Conditions::Comparison.new(operator, subject, bind_value)
 
       if negated
-        condition = Conditions::BooleanOperation.new(:not, condition)
+        condition = Conditions::Operation.new(:not, condition)
       end
 
       @conditions << condition

@@ -304,7 +304,7 @@ describe DataMapper::Query do
 
           it 'should set the conditions' do
             @return.conditions.should ==
-              DataMapper::Conditions::BooleanOperation.new(
+              DataMapper::Conditions::Operation.new(
                 :and,
                 DataMapper::Conditions::Comparison.new(
                   :eql,
@@ -324,7 +324,7 @@ describe DataMapper::Query do
 
           it 'should set the conditions' do
             @return.conditions.should ==
-              DataMapper::Conditions::BooleanOperation.new(
+              DataMapper::Conditions::Operation.new(
                 :and,
                 DataMapper::Conditions::Comparison.new(
                   :eql,
@@ -345,7 +345,7 @@ describe DataMapper::Query do
 
           it 'should set the conditions' do
             @return.conditions.should ==
-              DataMapper::Conditions::BooleanOperation.new(
+              DataMapper::Conditions::Operation.new(
                 :and,
                 DataMapper::Conditions::Comparison.new(
                   :eql,
@@ -370,7 +370,7 @@ describe DataMapper::Query do
 
             it 'should set the conditions' do
               @return.conditions.should ==
-                DataMapper::Conditions::BooleanOperation.new(
+                DataMapper::Conditions::Operation.new(
                   :and,
                   DataMapper::Conditions::Comparison.new(
                     :eql,
@@ -394,7 +394,7 @@ describe DataMapper::Query do
 
             it 'should set the conditions' do
               @return.conditions.should ==
-                DataMapper::Conditions::BooleanOperation.new(
+                DataMapper::Conditions::Operation.new(
                   :and,
                   DataMapper::Conditions::Comparison.new(
                     :eql,
@@ -416,7 +416,7 @@ describe DataMapper::Query do
 
           it 'should set the conditions' do
             @return.conditions.should ==
-              DataMapper::Conditions::BooleanOperation.new(
+              DataMapper::Conditions::Operation.new(
                 :and,
                 DataMapper::Conditions::Comparison.new(
                   :gte,
@@ -437,7 +437,7 @@ describe DataMapper::Query do
 
           it 'should set the conditions' do
             @return.conditions.should ==
-              DataMapper::Conditions::BooleanOperation.new(
+              DataMapper::Conditions::Operation.new(
                 :and,
                 DataMapper::Conditions::Comparison.new(
                   :eql,
@@ -462,7 +462,7 @@ describe DataMapper::Query do
 
           it 'should set the conditions' do
             @return.conditions.should ==
-              DataMapper::Conditions::BooleanOperation.new(
+              DataMapper::Conditions::Operation.new(
                 :and,
                 DataMapper::Conditions::Comparison.new(
                   :eql,
@@ -487,7 +487,7 @@ describe DataMapper::Query do
 
           it 'should set the conditions' do
             @return.conditions.should ==
-              DataMapper::Conditions::BooleanOperation.new(
+              DataMapper::Conditions::Operation.new(
                 :and,
                 DataMapper::Conditions::Comparison.new(
                   :eql,
@@ -508,7 +508,7 @@ describe DataMapper::Query do
 
           it 'should set the conditions' do
             @return.conditions.should ==
-              DataMapper::Conditions::BooleanOperation.new(
+              DataMapper::Conditions::Operation.new(
                 :and,
                 DataMapper::Conditions::Comparison.new(
                   :eql,
@@ -530,7 +530,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should set the conditions' do
-          @return.conditions.should == DataMapper::Conditions::BooleanOperation.new(:and, [ 'name = ?', [ 'Dan Kubb' ] ])
+          @return.conditions.should == DataMapper::Conditions::Operation.new(:and, [ 'name = ?', [ 'Dan Kubb' ] ])
         end
       end
 
@@ -542,7 +542,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should set conditions to an empty And operation' do
-          @return.conditions.should == DataMapper::Conditions::BooleanOperation.new(:and)
+          @return.conditions.should == DataMapper::Conditions::Operation.new(:and)
         end
       end
 
@@ -975,7 +975,7 @@ describe DataMapper::Query do
 
         it 'should set the conditions' do
           @return.conditions.should ==
-            DataMapper::Conditions::BooleanOperation.new(
+            DataMapper::Conditions::Operation.new(
               :and,
               DataMapper::Conditions::Comparison.new(
                 :eql,
@@ -1139,7 +1139,7 @@ describe DataMapper::Query do
 
     it 'should return expected value' do
       @return.should ==
-        DataMapper::Conditions::BooleanOperation.new(
+        DataMapper::Conditions::Operation.new(
           :and,
           DataMapper::Conditions::Comparison.new(
             :eql,
@@ -1524,7 +1524,7 @@ describe DataMapper::Query do
         end
 
         it 'should update the conditions' do
-          @return.conditions.should == DataMapper::Conditions::BooleanOperation.new(:and, [ 'name = ?', [ 'Dan Kubb' ] ])
+          @return.conditions.should == DataMapper::Conditions::Operation.new(:and, [ 'name = ?', [ 'Dan Kubb' ] ])
         end
 
         it 'should update the offset' do
@@ -1567,7 +1567,7 @@ describe DataMapper::Query do
 
         it 'should update the conditions' do
           @return.conditions.should ==
-            DataMapper::Conditions::BooleanOperation.new(
+            DataMapper::Conditions::Operation.new(
               :and,
               DataMapper::Conditions::Comparison.new(
                 :eql,
@@ -2179,7 +2179,7 @@ describe DataMapper::Query do
         end
 
         it 'should update the conditions' do
-          @return.conditions.should == DataMapper::Conditions::BooleanOperation.new(:and, [ 'name = ?', [ 'Dan Kubb' ] ])
+          @return.conditions.should == DataMapper::Conditions::Operation.new(:and, [ 'name = ?', [ 'Dan Kubb' ] ])
         end
 
         it 'should update the offset' do
@@ -2221,7 +2221,7 @@ describe DataMapper::Query do
 
         it 'should update the conditions' do
           @return.conditions.should ==
-            DataMapper::Conditions::BooleanOperation.new(
+            DataMapper::Conditions::Operation.new(
               :and,
               DataMapper::Conditions::Comparison.new(
                 :eql,
@@ -2267,7 +2267,7 @@ describe DataMapper::Query do
         end
 
         it 'should update the conditions' do
-          @return.conditions.should == DataMapper::Conditions::BooleanOperation.new(:and, [ 'name = ?', [ 'Dan Kubb' ] ])
+          @return.conditions.should == DataMapper::Conditions::Operation.new(:and, [ 'name = ?', [ 'Dan Kubb' ] ])
         end
 
         it 'should update the offset' do
@@ -2307,7 +2307,7 @@ describe DataMapper::Query do
         it { @return.should be_equal(@original) }
 
         it 'should update the conditions' do
-          @return.conditions.should == DataMapper::Conditions::BooleanOperation.new(
+          @return.conditions.should == DataMapper::Conditions::Operation.new(
                                           :and,
                                           DataMapper::Conditions::Comparison.new(:eql,
                                                                                  @model.properties[:name],

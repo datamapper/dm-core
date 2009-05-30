@@ -321,8 +321,6 @@ module DataMapper
           end
 
           unless (limit && limit > 1) || offset > 0 || qualify
-            operands = conditions.operands
-
             # TODO: move this method to Query, so that it walks the conditions
             # and finds an OR operator
 
@@ -332,8 +330,8 @@ module DataMapper
             # if a unique property is used, and there is no OR operator, then an ORDER
             # and LIMIT are unecessary because it should only return a single row
             if conditions.kind_of?(Conditions::AndOperation) &&
-               operands.any? { |o| o.kind_of?(Conditions::EqualToComparison) && o.property.unique? } &&
-               !operands.any? { |o| o.kind_of?(Conditions::OrOperation) }
+               conditions.any? { |o| o.kind_of?(Conditions::EqualToComparison) && o.property.unique? } &&
+               !conditions.any? { |o| o.kind_of?(Conditions::OrOperation) }
               order = nil
               limit = nil
             end
@@ -509,9 +507,7 @@ module DataMapper
           statements  = []
           bind_values = []
 
-          operands = operation.operands
-
-          operands.each do |operand|
+          operation.each do |operand|
             statement, values = conditions_statement(operand, qualify)
 
             if operand.respond_to?(:operands) && operand.operands.size > 1
@@ -541,7 +537,7 @@ module DataMapper
 
           # break exclusive Range queries up into two comparisons ANDed together
           if value.kind_of?(Range) && value.exclude_end?
-            operation = Conditions::BooleanOperation.new(:and,
+            operation = Conditions::Operation.new(:and,
               Conditions::Comparison.new(:gte, comparison.property, value.first),
               Conditions::Comparison.new(:lt,  comparison.property, value.last)
             )
