@@ -1101,7 +1101,7 @@ module DataMapper
       if resource.saved?
         @identity_map[resource.key] = resource
         @orphans.delete(resource)
-      else
+      elsif !resource.frozen?
         resource.attributes = default_attributes
       end
 
