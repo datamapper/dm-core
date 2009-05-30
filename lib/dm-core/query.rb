@@ -368,6 +368,7 @@ module DataMapper
     #
     # @api semipublic
     def filter_records(records)
+      records = records.uniq if unique?
       records = match_records(records)
       records = sort_records(records)
       records = limit_records(records)

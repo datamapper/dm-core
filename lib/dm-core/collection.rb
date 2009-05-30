@@ -1173,11 +1173,10 @@ module DataMapper
     def filter(query)
       fields = self.query.fields.to_set
 
-      if query.fields.to_set.subset?(fields) &&
-        query.unique? == self.query.unique?  &&
-        !query.add_reversed?                 &&
-        !query.reload?                       &&
-        !query.raw?                          &&
+      if (query.unique? || (!query.unique? && !self.query.unique?)) &&
+        !query.reload?                                              &&
+        !query.raw?                                                 &&
+        query.fields.to_set.subset?(fields)                         &&
         query.condition_properties.subset?(fields)
       then
         query.filter_records(to_a.dup)
