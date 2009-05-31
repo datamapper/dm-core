@@ -1,12 +1,13 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env ruby -KU
+
 require 'pathname'
 require 'rubygems'
 require 'rake'
 require 'rake/rdoctask'
 
-require 'lib/dm-core/version'
-
 ROOT = Pathname(__FILE__).dirname.expand_path
+
+require ROOT + 'lib/dm-core/version'
 
 AUTHOR           = 'Dan Kubb'
 EMAIL            = 'dan.kubb@gmail.com'
