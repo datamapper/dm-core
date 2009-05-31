@@ -1,6 +1,9 @@
 # TODO: move paranoid property concerns to a ParanoidModel that is mixed
 # into Model when a Paranoid property is used
 
+# TODO: update Model#respond_to? to return true if method_method missing
+# would handle the message
+
 module DataMapper
   module Model
     module Property

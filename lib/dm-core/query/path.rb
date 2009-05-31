@@ -1,10 +1,9 @@
 module DataMapper
   class Query
     class Path
-      include Extlib::Assertions
+      instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ send class dup object_id kind_of? instance_of? respond_to? equal? should should_not instance_variable_set instance_variable_get extend ].include?(m.to_s) }
 
-      # silence Object deprecation warnings
-      [ :id, :type ].each { |m| undef_method m if method_defined?(m) }
+      include Extlib::Assertions
 
       # TODO: document
       # @api private
@@ -31,20 +30,13 @@ module DataMapper
         RUBY
       end
 
-      ##
-      # Duck type the DM::Query::Path to act like a DM::Property
-      #
-      # @api private
-      def field(*args)
-        defined?(@property) ? @property.field(*args) : nil
-      end
-
-      ##
-      # Duck type the DM::Query::Path to act like a DM::Property
-      #
-      # @api private
-      def to_sym
-        defined?(@property) ? @property.name.to_sym : @model.storage_name(@repository_name).to_sym
+      # TODO: document
+      # @api public
+      def respond_to?(method, include_private = false)
+        super                                                                         ||
+        (defined?(@property) ? @property.respond_to?(method, include_private) : true) ||
+        @model.relationships(@repository_name).key?(method)                           ||
+        @model.properties(@repository_name).key?(method)
       end
 
       # TODO: document
@@ -54,15 +46,7 @@ module DataMapper
           return true
         end
 
-        unless other.respond_to?(:repository_name)
-          return false
-        end
-
         unless other.respond_to?(:relationships)
-          return false
-        end
-
-        unless other.respond_to?(:model)
           return false
         end
 
@@ -90,17 +74,15 @@ module DataMapper
       # TODO: document
       # @api private
       def hash
-        property.hash
+        @relationships.hash
       end
 
       # TODO: document
       # @api private
       def inspect
         attrs = [
-          [ :repository_name, repository_name ],
-          [ :relationships,   relationships   ],
-          [ :model,           model           ],
-          [ :property,        property        ],
+          [ :relationships, relationships ],
+          [ :property,      property      ],
         ]
 
         "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" }.join(' ')}>"
@@ -110,41 +92,40 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def initialize(repository, relationships, model, property_name = nil)
-        assert_kind_of 'repository',    repository,    Repository
+      def initialize(relationships, property_name = nil)
         assert_kind_of 'relationships', relationships, Array
-        assert_kind_of 'model',         model,         Model
         assert_kind_of 'property_name', property_name, Symbol, NilClass
 
-        @repository_name = repository.name
         @relationships   = relationships
-        @model           = model
+        @repository_name = @relationships.last.target_repository_name
+        @model           = @relationships.last.target_model
         @property        = @model.properties(@repository_name)[property_name] if property_name
       end
 
       # TODO: document
       # @api private
       def cmp?(other, operator)
-        repository_name.send(operator, other.repository_name) &&
-        relationships.send(operator, other.relationships)     &&
-        model.send(operator, other.model)                     &&
+        relationships.send(operator, other.relationships) &&
         property.send(operator, other.property)
       end
 
       # TODO: document
       # @api private
       def method_missing(method, *args)
-        if relationship = @model.relationships(@repository_name)[method]
-          repository = DataMapper.repository(relationship.target_repository_name)
-          return Query::Path.new(repository, @relationships.dup << relationship, relationship.target_model)
+        if @property
+          return @property.send(method, *args)
         end
 
-        if @model.properties(@repository_name)[method] && !defined?(@property)
-          @property = @model.properties(@repository_name)[method]
+        if relationship = @model.relationships(@repository_name)[method]
+          return self.class.new(@relationships.dup << relationship)
+        end
+
+        if property = @model.properties(@repository_name)[method]
+          @property = property
           return self
         end
 
-        raise NoMethodError, "undefined property or association '#{method}' on #{@model}"
+        raise NoMethodError, "undefined property or relationship '#{method}' on #{@model}"
       end
     end # class Path
   end # class Query

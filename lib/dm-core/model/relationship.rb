@@ -1,3 +1,6 @@
+# TODO: update Model#respond_to? to return true if method_method missing
+# would handle the message
+
 module DataMapper
   module Model
     module Relationship
@@ -252,7 +255,7 @@ module DataMapper
         # @api public
         def method_missing(method, *args, &block)
           if relationship = relationships(repository_name)[method]
-            return Query::Path.new(repository, [ relationship ], relationship.target_model)
+            return Query::Path.new([ relationship ])
           end
 
           super
