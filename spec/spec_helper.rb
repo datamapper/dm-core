@@ -33,8 +33,9 @@ PRIMARY = {
   'yaml'       => "yaml://#{temp_db_dir}/primary_yaml",
   'sqlite3'    => 'sqlite3::memory:',
 #  'sqlite3_fs' => "sqlite3://#{temp_db_dir}/primary.db",
-  'mysql'      => 'mysql://root@localhost/dm_core_test',
-  'postgres'   => 'postgres://postgres@localhost/dm_core_test'
+  'mysql'      => 'mysql://root:admin@localhost/dm_core_test',
+  'postgres'   => 'postgres://postgres@localhost/dm_core_test',
+  'oracle'     => 'oracle://dm_core_test:dm_core_test@orcl'
 }
 
 ALTERNATE = {
@@ -42,8 +43,9 @@ ALTERNATE = {
   'yaml'       => "yaml://#{temp_db_dir}/secondary_yaml",
   'sqlite3'    => "sqlite3://#{temp_db_dir}/alternate.db",  # use a FS for the alternate because there can only be one memory db at a time in SQLite3
 #  'sqlite3_fs' => "sqlite3://#{temp_db_dir}/alternate.db",
-  'mysql'      => 'mysql://root@localhost/dm_core_test2',
-  'postgres'   => 'postgres://postgres@localhost/dm_core_test2'
+  'mysql'      => 'mysql://root:admin@localhost/dm_core_test2',
+  'postgres'   => 'postgres://postgres@localhost/dm_core_test2',
+  'oracle'     => 'oracle://dm_core_test2:dm_core_test2@orcl'
 }
 
 # These environment variables will override the default connection string:
@@ -64,13 +66,13 @@ PRIMARY.only(*adapters).each do |name, default|
 
     # test the connection if possible
     if adapter.respond_to?(:query)
-      adapter.query('SELECT 1')
+      name == 'oracle' ? adapter.query('SELECT 1 FROM dual') : adapter.query('SELECT 1')
     end
 
     ADAPTERS << name
     PRIMARY[name] = connection_string  # ensure *_SPEC_URI is saved
-  rescue Exception => exception
-    puts "Could not connect to the database using #{connection_string.inspect} because: #{exception.inspect}"
+  # rescue Exception => exception
+  #   puts "Could not connect to the database using #{connection_string.inspect} because: #{exception.inspect}"
   end
 end
 

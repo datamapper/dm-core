@@ -250,7 +250,7 @@ module DataMapper
           # TODO: figure out a way to specify the size not be included, even if
           # a default is defined in the typemap
           #  - use this to make it so all TEXT primitive fields do not have size
-          if property.primitive == String && schema[:primitive] != 'TEXT'
+          if property.primitive == String && schema[:primitive] != 'TEXT' && schema[:primitive] != 'CLOB'
             schema[:size] = property.length
           elsif property.primitive == BigDecimal || property.primitive == Float
             schema[:precision] = property.precision
@@ -636,6 +636,169 @@ module DataMapper
         end
       end # module ClassMethods
     end # module Sqlite3Adapter
+
+    module OracleAdapter
+      # TODO: document
+      # @api private
+      def self.included(base)
+        base.extend ClassMethods
+      end
+
+      # TODO: document
+      # @api semipublic
+      def storage_exists?(storage_name)
+        statement = <<-SQL.compress_lines
+          SELECT COUNT(*)
+          FROM all_tables
+          WHERE owner = ?
+          AND table_name = ?
+        SQL
+
+        query(statement, schema_name, oracle_upcase(storage_name)).first > 0
+      end
+
+      # TODO: document
+      # @api semipublic
+      def field_exists?(storage_name, field_name)
+        statement = <<-SQL.compress_lines
+          SELECT COUNT(*)
+          FROM all_tab_columns
+          WHERE owner = ?
+          AND table_name = ?
+          AND column_name = ?
+        SQL
+
+        query(statement, schema_name, oracle_upcase(storage_name), oracle_upcase(column_name)).first > 0
+      end
+
+      # TODO: document
+      # @api semipublic
+      def create_model_storage(model)
+        properties = model.properties_with_subclasses(name)
+
+        return false if storage_exists?(model.storage_name(name))
+        return false if properties.empty?
+
+        with_connection do |connection|
+          statement = create_table_statement(connection, model, properties)
+          command   = connection.create_command(statement)
+          command.execute_non_query
+
+          (create_index_statements(model) + create_unique_index_statements(model)).each do |statement|
+            command   = connection.create_command(statement)
+            command.execute_non_query
+          end
+          
+          # added creation of sequence
+          create_sequence_statements(model, properties).each do |statement|
+            command   = connection.create_command(statement)
+            command.execute_non_query
+          end
+        end
+
+        true
+      end
+
+      # TODO: document
+      # @api semipublic
+      def destroy_model_storage(model)
+        return true unless supports_drop_table_if_exists? || storage_exists?(model.storage_name(name))
+        execute(drop_table_statement(model))
+        # added destroy of sequence
+        execute(drop_sequence_statement(model))
+        true
+      end
+      
+      private
+      
+      # If table or column name contains just lowercase characters then do uppercase
+      # as uppercase version will be used in Oracle data dictionary tables
+      def oracle_upcase(name)
+        name =~ /[A-Z]/ ? name : name.upcase
+      end
+
+      module SQL #:nodoc:
+#        private  ## This cannot be private for current migrations
+
+        # TODO: document
+        # @api private
+        def schema_name
+          @schema_name ||= query("SELECT SYS_CONTEXT('userenv','current_schema') FROM dual").first.freeze
+        end
+
+        # TODO: document
+        # @api private
+        def create_sequence_statements(model, properties)
+          table_name = model.storage_name(name)
+          # truncate table name if necessary to fit in max length of identifier
+          trunc_table_name = table_name[0,self.class::IDENTIFIER_MAX_LENGTH-4]
+          sequence_name = "#{trunc_table_name}_seq"
+          trigger_name = "#{trunc_table_name}_pkt"
+          # currently support just for numeric single primary key
+          primary_key = properties.key.first.field
+          
+          statements = []
+          statements << <<-SQL.compress_lines
+            CREATE SEQUENCE #{quote_name(sequence_name)}
+          SQL
+
+          statements << <<-SQL.compress_lines
+            CREATE OR REPLACE TRIGGER #{quote_name(trigger_name)}
+            BEFORE INSERT ON #{quote_name(table_name)} FOR EACH ROW
+            BEGIN
+              IF inserting THEN
+                IF :new.#{quote_name(primary_key)} IS NULL THEN
+                  SELECT #{quote_name(sequence_name)}.NEXTVAL INTO :new.#{quote_name(primary_key)} FROM dual;
+                END IF;
+              END IF;
+            END;
+          SQL
+
+          statements
+        end
+
+        # TODO: document
+        # @api private
+        def drop_sequence_statement(model)
+          table_name = model.storage_name(name)
+          # truncate table name if necessary to fit in max length of identifier
+          trunc_table_name = table_name[0,self.class::IDENTIFIER_MAX_LENGTH-4]
+          sequence_name = "#{trunc_table_name}_seq"
+          
+          "DROP SEQUENCE #{quote_name(sequence_name)}"
+        end
+
+      end # module SQL
+
+      include SQL
+
+      module ClassMethods
+        # Types for Oracle databases.
+        #
+        # @return [Hash] types for Oracle databases.
+        #
+        # @api private
+        def type_map
+          size      = Property::DEFAULT_LENGTH
+          precision = Property::DEFAULT_PRECISION
+          scale     = Property::DEFAULT_SCALE_BIGDECIMAL
+
+          @type_map ||= {
+            Integer       => { :primitive => 'NUMBER',  :precision => precision, :scale => 0     },
+            String        => { :primitive => 'VARCHAR2',:size => size                            },
+            Class         => { :primitive => 'VARCHAR2',:size => size                            },
+            BigDecimal    => { :primitive => 'NUMBER',  :precision => precision, :scale => nil   },
+            Float         => { :primitive => 'BINARY_FLOAT',                                     },
+            DateTime      => { :primitive => 'DATE'                                              },
+            Date          => { :primitive => 'DATE'                                              },
+            Time          => { :primitive => 'DATE'                                              },
+            TrueClass     => { :primitive => 'NUMBER',  :precision => 1, :scale => 0             },
+            Types::Object => { :primitive => 'CLOB'                                              },
+            Types::Text   => { :primitive => 'CLOB'                                              },
+          }.freeze
+        end
+      end # module ClassMethods
+    end # module PostgresAdapter
 
     module Repository
       ##
