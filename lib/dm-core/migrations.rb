@@ -292,8 +292,8 @@ module DataMapper
             statement << "(#{connection.quote_value(schema[:size])})"
           end
 
-          statement << ' NOT NULL' unless schema[:nullable?]
           statement << " DEFAULT #{connection.quote_value(schema[:default])}" if schema.key?(:default)
+          statement << ' NOT NULL' unless schema[:nullable?]
           statement
         end
       end # module SQL
