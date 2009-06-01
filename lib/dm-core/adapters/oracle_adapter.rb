@@ -10,6 +10,11 @@ module DataMapper
 
         private
 
+        # Oracle syntax for inserting default values
+        def default_values_clause
+          'VALUES(DEFAULT)'
+        end
+
         # TODO: document
         # @api private
         def supports_returning?
@@ -32,7 +37,7 @@ module DataMapper
             statement.replace "select raw_sql_.* from (#{statement}) raw_sql_ where rownum <= ?"
             bind_values << limit
           elsif offset > 0
-            statement.replace "select raw_sql_.* from (#{statement}) raw_sql_ where rownum > ?"
+            statement.replace "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{statement}) raw_sql_) where raw_rnum_ > ?"
             bind_values << offset
           end
         end

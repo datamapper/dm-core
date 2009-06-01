@@ -388,7 +388,7 @@ module DataMapper
           statement = "INSERT INTO #{quote_name(model.storage_name(name))} "
 
           if supports_default_values? && properties.empty?
-            statement << 'DEFAULT VALUES'
+            statement << default_values_clause
           else
             statement << <<-SQL.compress_lines
               (#{properties.map { |property| quote_name(property.field) }.join(', ')})
@@ -402,6 +402,12 @@ module DataMapper
           end
 
           statement
+        end
+
+        # by default PostgreSQL syntax
+        # overrided in Oracle adapter
+        def default_values_clause
+          'DEFAULT VALUES'
         end
 
         # by default PostgreSQL syntax
