@@ -360,6 +360,14 @@ module DataMapper
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
           statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
 
+          add_limit_offset!(statement, limit, offset, bind_values)
+
+          return statement, bind_values
+        end
+
+        # default construction of LIMIT and OFFSET
+        # overriden in Oracle adapter
+        def add_limit_offset!(statement, limit, offset, bind_values)
           if limit
             statement   << ' LIMIT ?'
             bind_values << limit
@@ -369,8 +377,6 @@ module DataMapper
             statement   << ' OFFSET ?'
             bind_values << offset
           end
-
-          return statement, bind_values
         end
 
         # Constructs INSERT statement for given query,
@@ -392,10 +398,16 @@ module DataMapper
           end
 
           if supports_returning? && serial
-            statement << " RETURNING #{quote_name(serial.field)}"
+            statement << returning_clause(identity_field)
           end
 
           statement
+        end
+
+        # by default PostgreSQL syntax
+        # overrided in Oracle adapter
+        def returning_clause(identity_field)
+          " RETURNING #{quote_name(identity_field.field)}"
         end
 
         # Constructs UPDATE statement for given query,
@@ -588,7 +600,13 @@ module DataMapper
             when Query::Conditions::LessThanOrEqualToComparison    then @negated ? '>'                        : '<='
           end
 
-          return "#{property_to_column_name(comparison.subject, qualify)} #{operator} #{value.nil? ? 'NULL' : '?'}", [ value ].compact
+          # if operator return value contains ? then it means that it is function call
+          # and it contains placeholder (%s) for property name as well (used in Oracle adapter for regexp operator)
+          if operator.include?('?')
+            return operator % property_to_column_name(comparison.subject, qualify), [ value ]
+          else
+            return "#{property_to_column_name(comparison.subject, qualify)} #{operator} #{value.nil? ? 'NULL' : '?'}", [ value ].compact
+          end
         end
 
         # TODO: document
