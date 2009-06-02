@@ -31,7 +31,7 @@ module ComparisonSpecHelpers
 
 end
 
-describe "DataMapper::Query::Conditions" do
+describe DataMapper::Query::Conditions do
 
   include ComparisonSpecHelpers
 

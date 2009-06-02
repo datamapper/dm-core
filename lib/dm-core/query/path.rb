@@ -6,19 +6,19 @@ module DataMapper
       include Extlib::Assertions
 
       # TODO: document
-      # @api private
+      # @api semipublic
       attr_reader :repository_name
 
       # TODO: document
-      # @api private
+      # @api semipublic
       attr_reader :relationships
 
       # TODO: document
-      # @api private
+      # @api semipublic
       attr_reader :model
 
       # TODO: document
-      # @api private
+      # @api semipublic
       attr_reader :property
 
       (Conditions::Comparison.slugs | [ :not ]).each do |slug|
@@ -31,16 +31,16 @@ module DataMapper
       end
 
       # TODO: document
-      # @api public
+      # @api semipublic
       def respond_to?(method, include_private = false)
-        super                                                                         ||
-        (defined?(@property) ? @property.respond_to?(method, include_private) : true) ||
-        @model.relationships(@repository_name).key?(method)                           ||
-        @model.properties(@repository_name).key?(method)
+        super                                                                   ||
+        (defined?(@property) && @property.respond_to?(method, include_private)) ||
+        @model.relationships(@repository_name).key?(method)                     ||
+        @model.properties(@repository_name).named?(method)
       end
 
       # TODO: document
-      # @api private
+      # @api semipublic
       def ==(other)
         if equal?(other)
           return true
@@ -58,7 +58,7 @@ module DataMapper
       end
 
       # TODO: document
-      # @api private
+      # @api semipublic
       def eql?(other)
         if equal?(other)
           return true
@@ -91,15 +91,19 @@ module DataMapper
       private
 
       # TODO: document
-      # @api private
+      # @api semipublic
       def initialize(relationships, property_name = nil)
         assert_kind_of 'relationships', relationships, Array
         assert_kind_of 'property_name', property_name, Symbol, NilClass
 
-        @relationships   = relationships
+        @relationships   = relationships.dup
         @repository_name = @relationships.last.target_repository_name
         @model           = @relationships.last.target_model
-        @property        = @model.properties(@repository_name)[property_name] if property_name
+
+        if property_name
+          @property = @model.properties(@repository_name)[property_name] ||
+            raise(ArgumentError, "Unknown property '#{property_name}' in #{@model}")
+        end
       end
 
       # TODO: document
@@ -110,7 +114,7 @@ module DataMapper
       end
 
       # TODO: document
-      # @api private
+      # @api semipublic
       def method_missing(method, *args)
         if @property
           return @property.send(method, *args)
