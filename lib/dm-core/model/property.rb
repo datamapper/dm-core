@@ -249,18 +249,6 @@ module DataMapper
         RUBY
       end
 
-      # TODO: document
-      # @api private
-      def resource_methods
-        ancestors.select { |mod| mod <= DataMapper::Resource }.map { |mod| mod.instance_methods(false) }.flatten.uniq
-      end
-
-      # TODO: document
-      # @api private
-      def resource_method_defined?(method)
-        resource_methods.any? { |resource_method| resource_method.to_s == method }
-      end
-
       chainable do
         # TODO: document
         # @api public

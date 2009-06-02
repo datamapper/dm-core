@@ -89,7 +89,7 @@ module DataMapper
         #
         # @api semipublic
         def create_reader
-          return if source_model.instance_methods(false).any? { |m| m.to_sym == name }
+          return if source_model.resource_method_defined?(name.to_s)
 
           source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def #{name}(query = nil)                           # def paragraphs(query = nil)
@@ -103,9 +103,9 @@ module DataMapper
         #
         # @api semipublic
         def create_writer
-          writer_name = "#{name}=".to_sym
+          writer_name = "#{name}="
 
-          return if source_model.instance_methods(false).any? { |m| m.to_sym == writer_name }
+          return if source_model.resource_method_defined?(writer_name)
 
           source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
             def #{writer_name}(targets)                          # def paragraphs=(targets)

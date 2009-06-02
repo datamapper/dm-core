@@ -515,6 +515,25 @@ module DataMapper
       [ repository ].to_set + @properties.keys.map { |r| DataMapper.repository(r) }
     end
 
+    # TODO: document
+    # @api private
+    def resource_methods
+      resource_methods = Set.new
+
+      ancestors.each do |mod|
+        next unless mod <= DataMapper::Resource
+        resource_methods.merge(mod.instance_methods(false).map { |method| method.to_s })
+      end
+
+      resource_methods
+    end
+
+    # TODO: document
+    # @api private
+    def resource_method_defined?(method)
+      resource_methods.include?(method)
+    end
+
     private
 
     # TODO: document
