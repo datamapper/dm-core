@@ -62,9 +62,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
       end
 
       it_should_behave_like 'A public Collection'
-
-      # TODO: make this pass
-      #it_should_behave_like 'A Collection supporting Strategic Eager Loading' unless loaded
+      it_should_behave_like 'A Collection supporting Strategic Eager Loading' unless loaded
 
       describe '#destroy!' do
         describe 'on a limited collection' do

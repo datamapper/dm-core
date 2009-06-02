@@ -1392,11 +1392,9 @@ share_examples_for 'A public Collection' do
 
     describe 'with a has n relationship method' do
       before :all do
-        rescue_if 'fix SEL for many to many', @many_to_many do
-          # associate the article with children
-          @article.revisions << @other
-          @article.save
-        end
+        # associate the article with children
+        @article.revisions << @other
+        @article.save
       end
 
       describe 'with no arguments' do
@@ -1419,9 +1417,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          pending_if 'fix SEL for many to many', @many_to_many do
-            @collection.should == [ @other ]
-          end
+          @collection.should == [ @other ]
         end
       end
 
@@ -1445,9 +1441,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          pending_if 'fix SEL for many to many', @many_to_many do
-            @collection.should == [ @other ]
-          end
+          @collection.should == [ @other ]
         end
 
         { :id => true, :title => false, :content => false }.each do |attribute, expected|
@@ -1460,10 +1454,8 @@ share_examples_for 'A public Collection' do
 
     describe 'with a has 1 relationship method' do
       before :all do
-        rescue_if 'fix SEL for many to many', @many_to_many do
-          @article.previous = @other
-          @article.save
-        end
+        @article.previous = @other
+        @article.save
       end
 
       describe 'with no arguments' do
@@ -1486,9 +1478,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          pending_if 'fix SEL for many to many', @many_to_many do
-            @return.should == [ @other ]
-          end
+          @return.should == [ @other ]
         end
       end
 
@@ -1512,9 +1502,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          pending_if 'fix SEL for many to many', @many_to_many do
-            @return.should == [ @other ]
-          end
+          @return.should == [ @other ]
         end
 
         { :id => true, :title => false, :content => false }.each do |attribute, expected|

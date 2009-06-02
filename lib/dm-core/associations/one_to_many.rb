@@ -122,10 +122,12 @@ module DataMapper
           # TODO: if the collection is not loaded, then use a subquery
           # to load it.
 
+          # SEL: load all related resources in the source collection
           if source.saved? && source.collection.size > 1
-            # SEL: load all related resources in the source collection
             source.collection.send(name)
-          else
+          end
+
+          unless loaded?(source)
             set!(source, collection_for(source))
           end
         end
