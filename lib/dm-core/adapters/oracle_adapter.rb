@@ -55,6 +55,56 @@ module DataMapper
           name =~ /[A-Z]/ ? name : name.upcase
         end
 
+        # CLOB value should be compared using DBMS_LOB.SUBSTR function
+        # NOTE: just first 32767 bytes will be compared!
+        # @api private
+        def equality_operator(property, operand)
+          if property.type == Types::Text
+            operand.nil? ? 'IS' : 'DBMS_LOB.SUBSTR(%s) = ?'
+          else
+            operand.nil? ? 'IS' : '='
+          end
+        end
+
+        # CLOB value should be compared using DBMS_LOB.SUBSTR function
+        # NOTE: just first 32767 bytes will be compared!
+        # @api private
+        def inequality_operator(property, operand)
+          if property.type == Types::Text
+            operand.nil? ? 'IS NOT' : 'DBMS_LOB.SUBSTR(%s) <> ?'
+          else
+            operand.nil? ? 'IS NOT' : '<>'
+          end
+        end
+
+        # TODO: document
+        # @api private
+        def include_operator(property, operand)
+          operator = case operand
+            when Array then 'IN'
+            when Range then 'BETWEEN'
+          end
+          if property.type == Types::Text
+            "DBMS_LOB.SUBSTR(%s) #{operator} ?"
+          else
+            operator
+          end
+        end
+
+        # TODO: document
+        # @api private
+        def exclude_operator(property, operand)
+          operator = case operand
+            when Array then 'NOT IN'
+            when Range then 'NOT BETWEEN'
+          end
+          if property.type == Types::Text
+            "DBMS_LOB.SUBSTR(%s) #{operator} ?"
+          else
+            operator
+          end
+        end
+
         # TODO: document
         # @api private
         def regexp_operator(operand)

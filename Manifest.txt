@@ -17,6 +17,7 @@ lib/dm-core/adapters/abstract_adapter.rb
 lib/dm-core/adapters/data_objects_adapter.rb
 lib/dm-core/adapters/in_memory_adapter.rb
 lib/dm-core/adapters/mysql_adapter.rb
+lib/dm-core/adapters/oracle_adapter.rb
 lib/dm-core/adapters/postgres_adapter.rb
 lib/dm-core/adapters/sqlite3_adapter.rb
 lib/dm-core/adapters/yaml_adapter.rb
@@ -92,6 +93,7 @@ spec/public/types/discriminator_spec.rb
 spec/semipublic/adapters/abstract_adapter_spec.rb
 spec/semipublic/adapters/in_memory_adapter_spec.rb
 spec/semipublic/adapters/mysql_adapter_spec.rb
+spec/semipublic/adapters/oracle_adapter_spec.rb
 spec/semipublic/adapters/postgres_adapter_spec.rb
 spec/semipublic/adapters/sqlite3_adapter_spec.rb
 spec/semipublic/adapters/yaml_adapter_spec.rb
@@ -110,6 +112,3 @@ spec/spec_helper.rb
 tasks/ci.rb
 tasks/dm.rb
 tasks/doc.rb
-tasks/gemspec.rb
-tasks/hoe.rb
-tasks/install.rb
