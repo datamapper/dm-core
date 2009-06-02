@@ -50,7 +50,7 @@ share_examples_for 'A public Collection' do
 
   it { @articles.should respond_to(:blank?) }
 
-  describe '#blank?'  do
+  describe '#blank?' do
     describe 'when the collection is empty' do
       it 'should be true' do
         @articles.clear.blank?.should be_true

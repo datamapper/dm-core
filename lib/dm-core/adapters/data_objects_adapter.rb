@@ -330,8 +330,14 @@ module DataMapper
 
           qualify = query.links.any?
 
-          if qualify || query.unique?
-            group_by = fields.select { |property| property.kind_of?(Property) }
+          # if qualify || query.unique?
+          #   group_by = fields.select { |property| property.kind_of?(Property) }
+          # end
+
+          # create subquery to find all valid keys and then use these keys to retrive all other columns
+          use_subquery = qualify || query.unique?
+          if use_subquery
+            group_by = model.key
           end
 
           unless (limit && limit > 1) || offset > 0 || qualify
@@ -354,11 +360,19 @@ module DataMapper
           conditions_statement, bind_values = conditions_statement(conditions, qualify)
 
           statement = "SELECT #{columns_statement(fields, qualify)}"
+          if use_subquery
+            statement << " FROM #{quote_name(model.storage_name(name))}"
+            statement << " WHERE (#{columns_statement(model.key, qualify)}) IN"
+            statement << " (SELECT #{columns_statement(model.key, qualify)}"
+          end
           statement << " FROM #{quote_name(model.storage_name(name))}"
           statement << join_statement(query, qualify)                      if qualify
           statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
-          statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
+          if use_subquery
+            statement << ')'
+          end
+          statement << " ORDER BY #{order_statement(order_by, qualify)}" if order_by && order_by.any?
 
           add_limit_offset!(statement, limit, offset, bind_values)
 
@@ -596,8 +610,8 @@ module DataMapper
           end
 
           operator = case comparison
-            when Query::Conditions::EqualToComparison              then @negated ? inequality_operator(comparison.property, value) : equality_operator(comparison.property, value)
-            when Query::Conditions::InclusionComparison            then @negated ? exclude_operator(comparison.property, value)    : include_operator(comparison.property, value)
+            when Query::Conditions::EqualToComparison              then @negated ? inequality_operator(comparison.subject, value) : equality_operator(comparison.subject, value)
+            when Query::Conditions::InclusionComparison            then @negated ? exclude_operator(comparison.subject, value)    : include_operator(comparison.subject, value)
             when Query::Conditions::RegexpComparison               then @negated ? not_regexp_operator(value) : regexp_operator(value)
             when Query::Conditions::LikeComparison                 then @negated ? unlike_operator(value)     : like_operator(value)
             when Query::Conditions::GreaterThanComparison          then @negated ? '<='                       : '>'
@@ -639,7 +653,7 @@ module DataMapper
         # TODO: document
         # @api private
         def exclude_operator(property, operand)
-          "NOT #{include_operator(operand)}"
+          "NOT #{include_operator(property, operand)}"
         end
 
         # TODO: document
