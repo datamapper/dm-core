@@ -596,8 +596,8 @@ module DataMapper
           end
 
           operator = case comparison
-            when Query::Conditions::EqualToComparison              then @negated ? inequality_operator(value) : equality_operator(value)
-            when Query::Conditions::InclusionComparison            then @negated ? exclude_operator(value)    : include_operator(value)
+            when Query::Conditions::EqualToComparison              then @negated ? inequality_operator(comparison.property, value) : equality_operator(comparison.property, value)
+            when Query::Conditions::InclusionComparison            then @negated ? exclude_operator(comparison.property, value)    : include_operator(comparison.property, value)
             when Query::Conditions::RegexpComparison               then @negated ? not_regexp_operator(value) : regexp_operator(value)
             when Query::Conditions::LikeComparison                 then @negated ? unlike_operator(value)     : like_operator(value)
             when Query::Conditions::GreaterThanComparison          then @negated ? '<='                       : '>'
@@ -617,19 +617,19 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def equality_operator(operand)
+        def equality_operator(property, operand)
           operand.nil? ? 'IS' : '='
         end
 
         # TODO: document
         # @api private
-        def inequality_operator(operand)
+        def inequality_operator(property, operand)
           operand.nil? ? 'IS NOT' : '<>'
         end
 
         # TODO: document
         # @api private
-        def include_operator(operand)
+        def include_operator(property, operand)
           case operand
             when Array then 'IN'
             when Range then 'BETWEEN'
@@ -638,7 +638,7 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def exclude_operator(operand)
+        def exclude_operator(property, operand)
           "NOT #{include_operator(operand)}"
         end
 
