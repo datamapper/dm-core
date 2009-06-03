@@ -1,7 +1,7 @@
 module DataMapper
   class Query
     class Path
-      instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ send class dup object_id kind_of? instance_of? respond_to? equal? should should_not instance_variable_set instance_variable_get extend ].include?(m.to_s) }
+      instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ send class dup object_id kind_of? instance_of? respond_to? equal? should should_not instance_variable_set instance_variable_get extend hash inspect ].include?(m.to_s) }
 
       include Extlib::Assertions
 
@@ -71,23 +71,6 @@ module DataMapper
         cmp?(other, :eql?)
       end
 
-      # TODO: document
-      # @api private
-      def hash
-        @relationships.hash
-      end
-
-      # TODO: document
-      # @api private
-      def inspect
-        attrs = [
-          [ :relationships, relationships ],
-          [ :property,      property      ],
-        ]
-
-        "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" }.join(' ')}>"
-      end
-
       private
 
       # TODO: document
@@ -124,9 +107,8 @@ module DataMapper
           return self.class.new(@relationships.dup << relationship)
         end
 
-        if property = @model.properties(@repository_name)[method]
-          @property = property
-          return self
+        if @model.properties(@repository_name).named?(method)
+          return self.class.new(@relationships, method)
         end
 
         raise NoMethodError, "undefined property or relationship '#{method}' on #{@model}"

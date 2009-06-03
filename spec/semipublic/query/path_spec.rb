@@ -304,7 +304,7 @@ describe DataMapper::Query::Path do
   describe '#respond_to?' do
     describe 'when supplied a method name provided by the parent class' do
       before do
-        @return = @path.respond_to?(:send)
+        @return = @path.respond_to?(:class)
       end
 
       it 'should return true' do
@@ -316,7 +316,7 @@ describe DataMapper::Query::Path do
       before do
         @path = @path.class.new(@path.relationships, @property.name)
 
-        @return = @path.respond_to?(:model)
+        @return = @path.respond_to?(:instance_variable_name)
       end
 
       it 'should return true' do
@@ -368,7 +368,61 @@ describe DataMapper::Query::Path do
   end
 
   describe '#method_missing' do
-    it 'should have more specs'
+    describe 'when supplied a method name provided by the parent class' do
+      before do
+        @return = @path.class
+      end
+
+      it 'should return the expected value' do
+        @return.should eql(DataMapper::Query::Path)
+      end
+    end
+
+    describe 'when supplied a method name provided by the property' do
+      before do
+        @path = @path.class.new(@path.relationships, @property.name)
+
+        @return = @path.instance_variable_name
+      end
+
+      it 'should return the expected value' do
+        @return.should eql('@title')
+      end
+    end
+
+    describe 'when supplied a method name referring to a relationship' do
+      before do
+        @return = @path.author
+      end
+
+      it 'should return a Query::Path' do
+        @return.should be_kind_of(DataMapper::Query::Path)
+      end
+
+      it 'should return the expected value' do
+        @return.should eql(DataMapper::Query::Path.new([ @relationship, Article.relationships[:author] ]))
+      end
+    end
+
+    describe 'when supplied a method name referring to a property' do
+      before do
+        @return = @path.title
+      end
+
+      it 'should return a Query::Path' do
+        @return.should be_kind_of(DataMapper::Query::Path)
+      end
+
+      it 'should return the expected value' do
+        @return.should eql(DataMapper::Query::Path.new(@relationships, :title))
+      end
+    end
+
+    describe 'when supplied an unknown method name' do
+      it 'should raise an error' do
+        lambda { @path.unknown }.should raise_error(NoMethodError, "undefined property or relationship 'unknown' on Article")
+      end
+    end
   end
 
   ((DataMapper::Query::Conditions::Comparison.slugs | [ :not ]) - [ :eql, :in ]).each do |slug|
