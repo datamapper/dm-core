@@ -1267,7 +1267,7 @@ describe DataMapper::Query do
           @fields=[#<DataMapper::Property @model=User @name=:name>, #<DataMapper::Property @model=User @name=:referrer_name>]
           @links=[]
           @conditions=#<DataMapper::Query::Conditions::AndOperation @operands=[]>
-          @order=[#<DataMapper::Query::Direction @property=#<DataMapper::Property @model=User @name=:name> @direction=:asc>]
+          @order=[#<DataMapper::Query::Direction @target=#<DataMapper::Property @model=User @name=:name> @operator=:asc>]
           @limit=3
           @offset=0
           @reload=false

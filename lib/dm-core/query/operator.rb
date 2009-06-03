@@ -46,7 +46,7 @@ module DataMapper
       # TODO: document
       # @api private
       def hash
-        target.hash
+        @target.hash
       end
 
       # TODO: document

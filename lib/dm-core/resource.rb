@@ -444,9 +444,9 @@ module DataMapper
         raise ArgumentError, "Cannot compare a #{other.model} instance with a #{model} instance"
       end
       cmp = 0
-      model.default_order(repository_name).map do |i|
-        cmp = i.property.get!(self) <=> i.property.get!(other)
-        cmp *= -1 if i.direction == :desc
+      model.default_order(repository_name).map do |direction|
+        cmp = direction.target.get!(self) <=> direction.target.get!(other)
+        cmp *= -1 if direction.operator == :desc
         break if cmp != 0
       end
       cmp

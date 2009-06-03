@@ -400,7 +400,7 @@ module DataMapper
     #
     # @api semipublic
     def sort_records(records)
-      sort_order = order.map { |i| [ i.property, i.direction == :asc ] }
+      sort_order = order.map { |direction| [ direction.target, direction.operator == :asc ] }
 
       records.sort_by do |record|
         sort_order.map do |(property, ascending)|

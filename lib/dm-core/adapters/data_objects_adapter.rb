@@ -481,9 +481,9 @@ module DataMapper
         #
         # @api private
         def order_statement(order, qualify)
-          statements = order.map do |order|
-            statement = property_to_column_name(order.property, qualify)
-            statement << ' DESC' if order.direction == :desc
+          statements = order.map do |direction|
+            statement = property_to_column_name(direction.target, qualify)
+            statement << ' DESC' if direction.operator == :desc
             statement
           end
 
