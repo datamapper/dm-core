@@ -26,6 +26,83 @@ module DataMapper
           " RETURNING #{quote_name(identity_field.field)} INTO :insert_id"
         end
 
+        # Constructs SELECT statement for given query,
+        # Overrides DataObjects adapter implementation with using subquery instead of GROUP BY to get unique records
+        #
+        # @return [String] SELECT statement as a string
+        #
+        # @api private
+        def select_statement(query)
+          model      = query.model
+          fields     = query.fields
+          conditions = query.conditions
+          limit      = query.limit
+          offset     = query.offset
+          order      = query.order
+          group_by   = nil
+
+          # FIXME: using a boolean for qualify does not work in some cases,
+          # such as when you have a self-referrential many to many association.
+          # if you don't qualfiy the columns with a unique alias, then the
+          # SQL query will fail.  This may mean though, that it might not
+          # be enough to pass in a Property, but we may need to know the
+          # table and the alias we should use for the column.
+
+          qualify = query.links.any?
+          
+          if query.unique?
+            group_by = fields.select { |p| p.kind_of?(Property) }
+          end
+          
+          # create subquery to find all valid keys and then use these keys to retrive all other columns
+          use_subquery = qualify
+
+          # when we can include ROWNUM condition in main WHERE clause
+          use_simple_rownum_limit = limit && (offset||0 == 0) && group_by.blank? && order.blank?
+
+          unless (limit && limit > 1) || offset > 0 || qualify
+            # TODO: move this method to Query, so that it walks the conditions
+            # and finds an OR operator
+
+            # TODO: handle cases where two or more properties need to be
+            # used together to be unique
+
+            # if a unique property is used, and there is no OR operator, then an ORDER
+            # and LIMIT are unecessary because it should only return a single row
+            if conditions.kind_of?(Query::Conditions::AndOperation) &&
+               conditions.any? { |o| o.kind_of?(Query::Conditions::EqualToComparison) && o.property.unique? } &&
+               !conditions.any? { |o| o.kind_of?(Query::Conditions::OrOperation) }
+              order = nil
+              limit = nil
+            end
+          end
+
+          conditions_statement, bind_values = conditions_statement(conditions, qualify)
+
+          statement = "SELECT #{columns_statement(fields, qualify)}"
+          if use_subquery
+            statement << " FROM #{quote_name(model.storage_name(name))}"
+            statement << " WHERE (#{columns_statement(model.key, qualify)}) IN"
+            statement << " (SELECT DISTINCT #{columns_statement(model.key, qualify)}"
+          end
+          statement << " FROM #{quote_name(model.storage_name(name))}"
+          statement << join_statement(query, qualify)                      if qualify
+          statement << " WHERE (#{conditions_statement})"                  unless conditions_statement.blank?
+          if use_subquery
+            statement << ")"
+          end
+          if use_simple_rownum_limit
+            statement << " AND rownum <= ?"
+            bind_values << limit
+          end
+          statement << " GROUP BY #{columns_statement(group_by, qualify)}" unless group_by.blank?
+          statement << " ORDER BY #{order_statement(order, qualify)}"      unless order.blank?
+
+          add_limit_offset!(statement, limit, offset, bind_values) unless use_simple_rownum_limit
+
+          return statement, bind_values
+        end
+
         # Oracle does not support LIMIT and OFFSET
         # Functionality is mimiced through the use of nested selects.
         # See http://asktom.oracle.com/pls/ask/f?p=4950:8:::::F4950_P8_DISPLAYID:127412348064
