@@ -705,7 +705,8 @@ module DataMapper
         return true unless supports_drop_table_if_exists? || storage_exists?(model.storage_name(name))
         execute(drop_table_statement(model))
         # added destroy of sequences
-        execute(drop_sequence_statement(model))
+        statement = drop_sequence_statement(model)
+        execute(statement) if statement
         true
       end
       
@@ -764,9 +765,12 @@ module DataMapper
           table_name = model.storage_name(name)
           identity_field = model.identity_field
 
-          sequence_name = identity_field.options[:sequence] || default_sequence_name(table_name)
-          
-          "DROP SEQUENCE #{quote_name(sequence_name)}"
+          if identity_field
+            sequence_name = identity_field.options[:sequence] || default_sequence_name(table_name)
+            "DROP SEQUENCE #{quote_name(sequence_name)}"
+          else
+            nil
+          end
         end
         
         private
