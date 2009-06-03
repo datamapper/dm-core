@@ -3,12 +3,56 @@ require DataMapper.root / 'lib' / 'dm-core' / 'adapters' / 'data_objects_adapter
 require 'do_oracle'
 
 module DataMapper
+
+  class Property
+    # for custom sequence names
+    OPTIONS << :sequence
+  end
+
   module Adapters
     class OracleAdapter < DataObjectsAdapter
       module SQL #:nodoc:
         IDENTIFIER_MAX_LENGTH = 30
 
         private
+
+        # Constructs INSERT statement for given query,
+        #
+        # @return [String] INSERT statement as a string
+        #
+        # @api private
+        def insert_statement(model, properties, identity_field)
+          statement = "INSERT INTO #{quote_name(model.storage_name(name))} "
+
+          custom_sequence = identity_field && identity_field.options[:sequence]
+          
+          if supports_default_values? && properties.empty? && !custom_sequence
+            statement << default_values_clause
+          else
+            # do not use custom sequence if identity field was assigned a value
+            if custom_sequence && properties.include?(identity_field)
+              custom_sequence = nil
+            end
+            statement << "("
+            if custom_sequence
+              statement << "#{quote_name(identity_field.field)}"
+              statement << ", " unless properties.empty?
+            end
+            statement << "#{properties.map { |p| quote_name(p.field) }.join(', ')}) "
+            statement << "VALUES ("
+            if custom_sequence
+              statement << "#{quote_name(custom_sequence)}.NEXTVAL"
+              statement << ", " unless properties.empty?
+            end
+            statement << "#{(['?'] * properties.size).join(', ')})"
+          end
+
+          if supports_returning? && identity_field
+            statement << returning_clause(identity_field)
+          end
+
+          statement
+        end
 
         # Oracle syntax for inserting default values
         def default_values_clause

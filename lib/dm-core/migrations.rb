@@ -690,7 +690,7 @@ module DataMapper
           end
           
           # added creation of sequence
-          create_sequence_statements(model, properties).each do |statement|
+          create_sequence_statements(model).each do |statement|
             command   = connection.create_command(statement)
             command.execute_non_query
           end
@@ -704,7 +704,7 @@ module DataMapper
       def destroy_model_storage(model)
         return true unless supports_drop_table_if_exists? || storage_exists?(model.storage_name(name))
         execute(drop_table_statement(model))
-        # added destroy of sequence
+        # added destroy of sequences
         execute(drop_sequence_statement(model))
         true
       end
@@ -728,31 +728,32 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def create_sequence_statements(model, properties)
+        def create_sequence_statements(model)
           table_name = model.storage_name(name)
-          # truncate table name if necessary to fit in max length of identifier
-          trunc_table_name = table_name[0,self.class::IDENTIFIER_MAX_LENGTH-4]
-          sequence_name = "#{trunc_table_name}_seq"
-          trigger_name = "#{trunc_table_name}_pkt"
-          # currently support just for numeric single primary key
-          primary_key = properties.key.first.field
-          
-          statements = []
-          statements << <<-SQL.compress_lines
-            CREATE SEQUENCE #{quote_name(sequence_name)}
-          SQL
+          identity_field = model.identity_field
 
-          statements << <<-SQL.compress_lines
-            CREATE OR REPLACE TRIGGER #{quote_name(trigger_name)}
-            BEFORE INSERT ON #{quote_name(table_name)} FOR EACH ROW
-            BEGIN
-              IF inserting THEN
-                IF :new.#{quote_name(primary_key)} IS NULL THEN
-                  SELECT #{quote_name(sequence_name)}.NEXTVAL INTO :new.#{quote_name(primary_key)} FROM dual;
-                END IF;
-              END IF;
-            END;
-          SQL
+          statements = []
+          if identity_field
+            sequence_name = identity_field.options[:sequence] || default_sequence_name(table_name)
+            statements << <<-SQL.compress_lines
+              CREATE SEQUENCE #{quote_name(sequence_name)}
+            SQL
+
+            # create trigger only if custom sequence name was not specified
+            unless identity_field.options[:sequence]
+              statements << <<-SQL.compress_lines
+                CREATE OR REPLACE TRIGGER #{quote_name(default_trigger_name(table_name))}
+                BEFORE INSERT ON #{quote_name(table_name)} FOR EACH ROW
+                BEGIN
+                  IF inserting THEN
+                    IF :new.#{quote_name(identity_field.field)} IS NULL THEN
+                      SELECT #{quote_name(sequence_name)}.NEXTVAL INTO :new.#{quote_name(identity_field.field)} FROM dual;
+                    END IF;
+                  END IF;
+                END;
+              SQL
+            end
+          end
 
           statements
         end
@@ -761,11 +762,23 @@ module DataMapper
         # @api private
         def drop_sequence_statement(model)
           table_name = model.storage_name(name)
-          # truncate table name if necessary to fit in max length of identifier
-          trunc_table_name = table_name[0,self.class::IDENTIFIER_MAX_LENGTH-4]
-          sequence_name = "#{trunc_table_name}_seq"
+          identity_field = model.identity_field
+
+          sequence_name = identity_field.options[:sequence] || default_sequence_name(table_name)
           
           "DROP SEQUENCE #{quote_name(sequence_name)}"
+        end
+        
+        private
+        
+        def default_sequence_name(table_name)
+          # truncate table name if necessary to fit in max length of identifier
+          "#{table_name[0,self.class::IDENTIFIER_MAX_LENGTH-4]}_seq"
+        end
+
+        def default_trigger_name(table_name)
+          # truncate table name if necessary to fit in max length of identifier
+          "#{table_name[0,self.class::IDENTIFIER_MAX_LENGTH-4]}_pkt"
         end
 
       end # module SQL
