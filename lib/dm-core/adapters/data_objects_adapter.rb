@@ -330,14 +330,8 @@ module DataMapper
 
           qualify = query.links.any?
 
-          # if qualify || query.unique?
-          #   group_by = fields.select { |property| property.kind_of?(Property) }
-          # end
-
-          # create subquery to find all valid keys and then use these keys to retrive all other columns
-          use_subquery = qualify || query.unique?
-          if use_subquery
-            group_by = model.key
+          if qualify || query.unique?
+            group_by = fields.select { |property| property.kind_of?(Property) }
           end
 
           unless (limit && limit > 1) || offset > 0 || qualify
@@ -360,19 +354,11 @@ module DataMapper
           conditions_statement, bind_values = conditions_statement(conditions, qualify)
 
           statement = "SELECT #{columns_statement(fields, qualify)}"
-          if use_subquery
-            statement << " FROM #{quote_name(model.storage_name(name))}"
-            statement << " WHERE (#{columns_statement(model.key, qualify)}) IN"
-            statement << " (SELECT #{columns_statement(model.key, qualify)}"
-          end
           statement << " FROM #{quote_name(model.storage_name(name))}"
           statement << join_statement(query, qualify)                      if qualify
           statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
-          if use_subquery
-            statement << ')'
-          end
-          statement << " ORDER BY #{order_statement(order_by, qualify)}" if order_by && order_by.any?
+          statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
 
           add_limit_offset!(statement, limit, offset, bind_values)
 
