@@ -302,7 +302,57 @@ describe DataMapper::Query::Path do
   it { @path.should respond_to(:respond_to?) }
 
   describe '#respond_to?' do
-    it 'should have more specs'
+    describe 'when supplied a method name provided by the parent class' do
+      before do
+        @return = @path.respond_to?(:send)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+    end
+
+    describe 'when supplied a method name provided by the property' do
+      before do
+        @path = @path.class.new(@path.relationships, @property.name)
+
+        @return = @path.respond_to?(:model)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+    end
+
+    describe 'when supplied a method name referring to a relationship' do
+      before do
+        @return = @path.respond_to?(:author)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+    end
+
+    describe 'when supplied a method name referring to a property' do
+      before do
+        @return = @path.respond_to?(:title)
+      end
+
+      it 'should return true' do
+        @return.should be_true
+      end
+    end
+
+    describe 'when supplied an unknown method name' do
+      before do
+        @return = @path.respond_to?(:unknown)
+      end
+
+      it 'should return false' do
+        @return.should be_false
+      end
+    end
   end
 
   it { @path.should respond_to(:repository_name) }
