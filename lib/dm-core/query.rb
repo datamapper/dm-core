@@ -977,16 +977,15 @@ module DataMapper
           subject
 
         when Associations::Relationship
-          # TODO: handle compound keys.  Consider pushing this into the adapter
-          source_key = subject.source_key.first
-          target_key = subject.target_key.first
-
           # TODO: when the bind_value is a Collection, and it is not loaded
           # then use a subquery to scope the results rather than lazy loading
           # it just to retrieve the Resource key
 
-          if (resources = Array(bind_value).select { |r| r.saved? }).any?
-            source_values = resources.map { |r| target_key.get(r) }
+          # TODO: handle compound keys.  Consider pushing this into the adapter
+          source_key = subject.source_key.first
+          target_key = subject.target_key.first
+
+          if (source_values = Array(bind_value).map { |resource| target_key.get!(resource) }.compact).any?
             append_condition(source_key, source_values, operator)
           end
 

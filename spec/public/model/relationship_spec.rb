@@ -507,6 +507,27 @@ describe DataMapper::Associations do
       end
 
       supported_by :all do
+        describe 'querying for a parent resource when only the foreign key is set' do
+          before :all do
+            # create a car that would be returned if the query is not
+            # scoped properly to retrieve @car
+            Car.create
+
+            @car = Car.create
+            engine = Engine.new(:car_id => @car.id)
+
+            @return = engine.car
+          end
+
+          it 'should return a Resource' do
+            @return.should be_kind_of(DataMapper::Resource)
+          end
+
+          it 'should return expected Resource' do
+            @return.should eql(@car)
+          end
+        end
+
         describe 'querying for a parent resource' do
           before :all do
             @car = Car.create
