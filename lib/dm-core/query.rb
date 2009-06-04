@@ -963,12 +963,34 @@ module DataMapper
           # then use a subquery to scope the results rather than lazy loading
           # it just to retrieve the Resource key
 
-          # TODO: handle compound keys.  Consider pushing this into the adapter
-          source_key = subject.source_key.first
-          target_key = subject.target_key.first
+          source_key = subject.source_key
+          target_key = subject.target_key
 
-          if (source_values = Array(bind_value).map { |resource| target_key.get!(resource) }.compact).any?
-            append_condition(source_key, source_values, operator)
+          # TODO: when operations can be compacted, remove this if/else
+          # block and just act as if the keys are always compound.
+          if subject.source_key.size == 1 && subject.target_key.size == 1
+            source_key = source_key.first
+            target_key = target_key.first
+
+            if (source_values = Array(bind_value).map { |resource| target_key.get!(resource) }.compact).any?
+              append_condition(source_key, source_values, operator)
+            end
+          else
+            or_operation = Conditions::Operation.new(:or)
+
+            Array(bind_value).each do |resource|
+              next unless (source_values = target_key.get!(resource)).all?
+
+              and_operation = Conditions::Operation.new(:and)
+
+              source_key.zip(source_values) do |property, value|
+                and_operation << Conditions::Comparison.new(operator, property, value)
+              end
+
+              or_operation << and_operation
+            end
+
+            @conditions << or_operation if or_operation.any?
           end
 
           return @conditions

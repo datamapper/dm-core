@@ -101,8 +101,20 @@ module DataMapper
 
     # TODO: document
     # @api semipublic
+    def get!(resource)
+      map { |p| p.get!(resource) }
+    end
+
+    # TODO: document
+    # @api semipublic
     def set(resource, values)
       zip(values) { |p, v| p.set(resource, v) }
+    end
+
+    # TODO: document
+    # @api semipublic
+    def set!(resource, values)
+      zip(values) { |p, v| p.set!(resource, v) }
     end
 
     # TODO: document
