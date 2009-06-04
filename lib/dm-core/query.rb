@@ -81,10 +81,7 @@ module DataMapper
     #   Team.all(:wins.gt => 30, :conference => 'East')
     #
     # Conditions are "greater than" operator for "wins"
-    # field and exact match operator for "conference"
-    # field:
-    #
-    # [[:gt, #<Property:Team:wins>, 30], [:eql, #<Property:Team:conference>, 'East']]
+    # field and exact match operator for "conference".
     #
     # @return [Array]
     #   the conditions that will be used to scope the results
@@ -148,21 +145,6 @@ module DataMapper
     #
     # @api private
     attr_reader :options
-
-    # TODO: move these checks inside assert_valid_conditions and blow
-    # up if invalid conditions used
-    #def valid?
-    #  !conditions.any? do |operator, property, bind_value|
-    #    next if operator.kind_of?(Array)
-    #
-    #    case bind_value
-    #      when Array
-    #        bind_value.empty?
-    #      when Range
-    #        operator != :eql && operator != :in && operator != :not
-    #    end
-    #  end
-    #end
 
     ##
     # Indicates if each result should be returned in reverse order

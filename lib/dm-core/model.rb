@@ -232,7 +232,6 @@ module DataMapper
     def all(query = nil)
       if query.nil? || (query.kind_of?(Hash) && query.empty?)
         # TODO: after adding Enumerable methods to Model, try to return self here
-        # TODO: try to simplify self.query to return the default scope instead of nil
         new_collection(self.query)
       else
         new_collection(scoped_query(query))
