@@ -36,7 +36,7 @@ module DataMapper
         RUBY
       end
 
-      model.instance_eval(&block) if block_given?
+      model.instance_eval(&block) if block
       model
     end
 
@@ -302,7 +302,7 @@ module DataMapper
     #   the newly initialized Resource instance
     #
     # @api public
-    def new(attributes = {})
+    def new(attributes = {}, &block)
       assert_valid
 
       model = if discriminator = properties(repository_name).discriminator
@@ -312,7 +312,7 @@ module DataMapper
       model ||= self
 
       resource = model.allocate
-      resource.send(:initialize, attributes)
+      resource.send(:initialize, attributes, &block)
       resource
     end
 
