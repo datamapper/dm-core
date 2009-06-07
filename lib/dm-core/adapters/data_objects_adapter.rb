@@ -221,14 +221,17 @@ module DataMapper
         def open_connection
           # DataObjects::Connection.new(uri) will give you back the right
           # driver based on the DataObjects::URI#scheme
-          DataObjects::Connection.new(normalized_uri)
+          connection = connection_stack.last || DataObjects::Connection.new(normalized_uri)
+          connection_stack << connection
+          connection
         end
 
         # Takes connection and closes it
         #
         # @api semipublic
         def close_connection(connection)
-          connection.close
+          connection_stack.pop
+          connection.close if connection_stack.empty?
         end
       end
 
@@ -243,6 +246,13 @@ module DataMapper
         if driver_module = DataObjects.const_get(normalized_uri.scheme.capitalize)
           driver_module.logger = DataMapper.logger if driver_module.respond_to?(:logger=)
         end
+      end
+
+      # TODO: document
+      # @api private
+      def connection_stack
+        connection_stack_for = Thread.current[:dm_do_connection_stack] ||= {}
+        connection_stack_for[self] ||= []
       end
 
       # TODO: document
