@@ -218,7 +218,7 @@ module DataMapper
         # Instantiates new connection object
         #
         # @api semipublic
-        def create_connection
+        def open_connection
           # DataObjects::Connection.new(uri) will give you back the right
           # driver based on the DataObjects::URI#scheme
           DataObjects::Connection.new(normalized_uri)
@@ -249,9 +249,8 @@ module DataMapper
       # @api private
       def with_connection
         begin
-          connection = create_connection
-          return yield(connection)
-        rescue => e
+          yield connection = open_connection
+        rescue Exception => e
           DataMapper.logger.error(e.to_s)
           raise e
         ensure

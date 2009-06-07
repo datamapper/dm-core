@@ -268,7 +268,7 @@ RBench.run(TIMES) do
   summary 'Total'
 end
 
-connection = adapter.send(:create_connection)
+connection = adapter.send(:open_connection)
 command = connection.create_command('DROP TABLE exhibits')
 command = connection.create_command('DROP TABLE users')
 command.execute_non_query rescue nil

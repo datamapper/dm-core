@@ -437,7 +437,7 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def create_connection
+        def open_connection
           current_connection || super
         end
 
