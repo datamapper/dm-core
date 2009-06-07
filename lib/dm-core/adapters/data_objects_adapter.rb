@@ -439,7 +439,7 @@ module DataMapper
 
           statement = ''
 
-          query.links.reverse_each do |relationship|
+          query.links[0..-1].reverse_each do |relationship|
             model = if relationship.source_model == previous_model
               relationship.target_model
             else
