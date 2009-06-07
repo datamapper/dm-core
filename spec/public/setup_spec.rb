@@ -20,16 +20,16 @@ describe 'DataMapper.setup' do
       DataMapper.repository(:setup_test).adapter.should equal(@return)
     end
 
-    it 'should extract options from the uri' do
-      {
-        :adapter  => 'in_memory',
-        :user     => 'user',
-        :password => 'pass',
-        :host     => 'hostname',
-        :port     => 1234,
-        :path     => '/path',
-        :fragment => 'fragment'
-      }.each do |key, val|
+    {
+      :adapter  => 'in_memory',
+      :user     => 'user',
+      :password => 'pass',
+      :host     => 'hostname',
+      :port     => 1234,
+      :path     => '/path',
+      :fragment => 'fragment'
+    }.each do |key, val|
+      it "should extract the #{key.inspect} option from the uri" do
         @options[key].should == val
       end
     end
@@ -67,11 +67,11 @@ describe 'DataMapper.setup' do
       DataMapper.repository(:setup_test).adapter.should equal(@return)
     end
 
-    it 'should set the options given' do
-      {
-        :adapter => :in_memory,
-        :foo     => 'bar'
-      }.each do |key, val|
+    {
+      :adapter => :in_memory,
+      :foo     => 'bar'
+    }.each do |key, val|
+      it "should set the #{key.inspect} option" do
         @options[key].should == val
       end
     end
@@ -102,6 +102,34 @@ describe 'DataMapper.setup' do
 
     it 'should use the name given to the adapter' do
       @return.name.should == @adapter.name
+    end
+  end
+
+  supported_by :postgres, :mysql, :sqlite3 do
+    { :path => :database, :user => :username }.each do |original_key, new_key|
+      describe "using #{new_key.inspect} option" do
+        before :all do
+          @return = DataMapper.setup(:setup_test, :adapter => @adapter.options[:adapter], new_key => @adapter.options[original_key])
+
+          @options = @return.options
+        end
+
+        after :all do
+          DataMapper::Repository.adapters.delete(@return.name)
+        end
+
+        it 'should return an Adapter' do
+          @return.should be_kind_of(DataMapper::Adapters::AbstractAdapter)
+        end
+
+        it 'should set up the repository' do
+          DataMapper.repository(:setup_test).adapter.should equal(@return)
+        end
+
+        it "should set the #{new_key.inspect} option" do
+          @options[new_key].should == @adapter.options[original_key]
+        end
+      end
     end
   end
 end

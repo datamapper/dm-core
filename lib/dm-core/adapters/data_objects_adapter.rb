@@ -196,12 +196,12 @@ module DataMapper
       def normalized_uri
         @normalized_uri ||=
           begin
-            query = @options.except(:adapter, :user, :password, :host, :port, :path, :fragment, :scheme, :query)
+            query = @options.except(:adapter, :user, :password, :host, :port, :path, :fragment, :scheme, :query, :username, :database)
             query = nil if query.empty?
 
             DataObjects::URI.new(
               @options[:adapter],
-              @options[:user],
+              @options[:user] || @options[:username],
               @options[:password],
               @options[:host],
               @options[:port],
