@@ -404,6 +404,8 @@ module DataMapper
 
               value = record[property]
 
+              # TODO: typecasting should happen inside the Adapter
+              # and all values should come back as expected objects
               if property.custom?
                 value = property.type.load(value, property)
               end
