@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Model do
   before :all do
-    module Blog
+    module ::Blog
       class Article
         include DataMapper::Resource
 

@@ -8,7 +8,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
     self.loaded = loaded
 
     before :all do
-      module Blog
+      module ::Blog
         class Article
           include DataMapper::Resource
 
