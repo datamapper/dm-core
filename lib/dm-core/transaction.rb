@@ -455,12 +455,7 @@ module DataMapper
       # TODO: document
       # @api private
       def transactions
-        @transactions ||= {}
-        @transactions[Thread.current] ||=
-          begin
-            @transactions.delete_if { |thread, transactions| !thread.alive? }
-            []
-          end
+        Thread.current[:dm_transactions] ||= []
       end
 
       ##
