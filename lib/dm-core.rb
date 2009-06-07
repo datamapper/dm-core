@@ -176,7 +176,7 @@ module DataMapper
       options = normalize_options(uri_or_options)
 
       adapter_name = options[:adapter]
-      class_name   = (Extlib::Inflection.classify(adapter_name) + 'Adapter').to_sym
+      class_name   = (Extlib::Inflection.camelize(adapter_name) + 'Adapter').to_sym
 
       unless Adapters.const_defined?(class_name)
         lib_name = "#{adapter_name}_adapter"
