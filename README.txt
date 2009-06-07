@@ -8,8 +8,8 @@
 DataMapper sports a very accessible code-base and a welcoming community.
 Outside contributions and feedback are welcome and encouraged, especially
 constructive criticism. Make your voice heard! Submit a
-ticket[http://wm.lighthouseapp.com/projects/4819-datamapper/overview] or
-patch[http://wm.lighthouseapp.com/projects/4819-datamapper/overview], speak up
+ticket[http://datamapper.lighthouseapp.com] or
+patch[http://datamapper.lighthouseapp.com], speak up
 on our mailing-list[http://groups.google.com/group/datamapper/], chat with us
 on irc[irc://irc.freenode.net/#datamapper], write a spec, get it reviewed, ask
 for commit rights. It's as easy as that to become a contributor.
