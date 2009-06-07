@@ -939,6 +939,9 @@ module DataMapper
 
       super()
 
+      # TODO: change LazyArray to not use a load proc at all
+      remove_instance_variable(:@load_with_proc)
+
       if resources
         replace(resources)
       end
