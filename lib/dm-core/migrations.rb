@@ -588,7 +588,7 @@ module DataMapper
         # TODO: document
         # @api private
         def query_table(table_name)
-          query('PRAGMA table_info(?)', table_name)
+          query("PRAGMA table_info(#{quote_name(table_name)})")
         end
 
         # TODO: document
