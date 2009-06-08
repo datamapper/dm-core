@@ -3,6 +3,5 @@ task :ci do
   # sudo gem install jscruggs-metric_fu -s http://gems.github.com
   require 'metric_fu'
 
-  Rake::Task['spec'].invoke
   Rake::Task['metrics:all'].invoke
 end
