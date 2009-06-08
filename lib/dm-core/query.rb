@@ -530,7 +530,7 @@ module DataMapper
     # Get the properties used in the conditions
     #
     # @return [Set<Property>]
-    #  Set of Property objects used in the conditions
+    #  Set of properties used in the conditions
     #
     # @api private
     def condition_properties
@@ -540,7 +540,7 @@ module DataMapper
       while operand = operands.pop
         case operand
           when Conditions::AbstractOperation  then operands.concat(operand.operands)
-          when Conditions::AbstractComparison then properties << operand.property
+          when Conditions::AbstractComparison then properties << operand.subject if operand.subject.kind_of?(Property)
         end
       end
 

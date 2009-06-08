@@ -5,9 +5,9 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def self.new(slug, property, value)
+        def self.new(slug, subject, value)
           if klass = comparison_class(slug)
-            klass.new(property, value)
+            klass.new(subject, value)
           else
             raise "No Comparison class for `#{slug.inspect}' has been defined"
           end
@@ -37,9 +37,13 @@ module DataMapper
       end # class Comparison
 
       class AbstractComparison
+        extend Deprecate
+
+        deprecate :property, :subject
+
         # TODO: document
         # @api semipublic
-        attr_reader :property
+        attr_reader :subject
 
         # TODO: document
         # @api semipublic
@@ -67,17 +71,17 @@ module DataMapper
         # @api semipublic
         def record_value(record)
           case record
-            when Hash
-              record.key?(@property) ? record[@property] : record[@property.field]
-            when Resource
-              @property.get!(record)
+            when Hash     then record_value_from_hash(record)
+            when Resource then record_value_from_resource(record)
+            else
+              record
           end
         end
 
         # TODO: document
         # @api semipublic
         def to_s
-          "#{property} #{comparator_string} #{value}"
+          "#{@subject} #{comparator_string} #{@value}"
         end
 
         # TODO: document
@@ -91,7 +95,7 @@ module DataMapper
             return false
           end
 
-          unless other.respond_to?(:property) && other.respond_to?(:value)
+          unless other.respond_to?(:subject) && other.respond_to?(:value)
             return false
           end
 
@@ -115,22 +119,22 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def inspect
-          "#<#{self.class} @property=#{property.inspect} @value=#{value.inspect}>"
+          "#<#{self.class} @subject=#{@subject.inspect} @value=#{@value.inspect}>"
         end
 
         private
 
         # TODO: document
         # @api semipublic
-        def initialize(property, value)
-          @property = property
-          @value    = value
+        def initialize(subject, value)
+          @subject = subject
+          @value   = value
         end
 
         # TODO: document
         # @api private
         def cmp?(other, operator)
-          unless property.send(operator, other.property)
+          unless subject.send(operator, other.subject)
             return false
           end
 
@@ -139,6 +143,18 @@ module DataMapper
           end
 
           true
+        end
+
+        # TODO: document
+        # @api private
+        def record_value_from_hash(hash)
+          hash.fetch(@subject, hash[@subject.field])
+        end
+
+        # TODO: document
+        # @api private
+        def record_value_from_resource(resource)
+          @subject.get!(resource)
         end
 
         # TODO: document
@@ -199,7 +215,7 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def initialize(property, value)
+        def initialize(subject, value)
           value = Regexp.new(value.to_s) unless value.kind_of?(Regexp)
           super
         end

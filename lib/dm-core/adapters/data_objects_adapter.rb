@@ -339,7 +339,7 @@ module DataMapper
             # if a unique property is used, and there is no OR operator, then an ORDER
             # and LIMIT are unecessary because it should only return a single row
             if conditions.kind_of?(Query::Conditions::AndOperation) &&
-               conditions.any? { |o| o.kind_of?(Query::Conditions::EqualToComparison) && o.property.unique? } &&
+               conditions.any? { |o| o.kind_of?(Query::Conditions::EqualToComparison) && o.subject.respond_to?(:unique?) && o.subject.unique? } &&
                !conditions.any? { |o| o.kind_of?(Query::Conditions::OrOperation) }
               order = nil
               limit = nil
@@ -547,8 +547,8 @@ module DataMapper
           # break exclusive Range queries up into two comparisons ANDed together
           if value.kind_of?(Range) && value.exclude_end?
             operation = Query::Conditions::Operation.new(:and,
-              Query::Conditions::Comparison.new(:gte, comparison.property, value.first),
-              Query::Conditions::Comparison.new(:lt,  comparison.property, value.last)
+              Query::Conditions::Comparison.new(:gte, comparison.subject, value.first),
+              Query::Conditions::Comparison.new(:lt,  comparison.subject, value.last)
             )
 
             statement, bind_values = conditions_statement(operation, qualify)
@@ -567,7 +567,7 @@ module DataMapper
             when Query::Conditions::LessThanOrEqualToComparison    then @negated ? '>'                        : '<='
           end
 
-          return "#{property_to_column_name(comparison.property, qualify)} #{operator} ?", [ value ]
+          return "#{property_to_column_name(comparison.subject, qualify)} #{operator} ?", [ value ]
         end
 
         # TODO: document

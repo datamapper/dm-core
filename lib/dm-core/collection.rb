@@ -1068,11 +1068,11 @@ module DataMapper
           end
 
           query.conditions.each do |condition|
-            unless condition.kind_of?(Query::Conditions::EqualToComparison) && properties.include?(condition.property)
+            unless condition.kind_of?(Query::Conditions::EqualToComparison) && properties.include?(condition.subject)
               next
             end
 
-            default_attributes[condition.property.name] = condition.value
+            default_attributes[condition.subject.name] = condition.value
           end
 
           default_attributes.freeze
