@@ -1061,6 +1061,7 @@ module DataMapper
           default_attributes = {}
 
           repository_name = repository.name
+          relationships   = self.relationships.values
           properties      = model.properties(repository_name)
           key             = model.key(repository_name)
 
@@ -1071,7 +1072,8 @@ module DataMapper
           end
 
           query.conditions.each do |condition|
-            unless condition.kind_of?(Query::Conditions::EqualToComparison) && properties.include?(condition.subject)
+            unless condition.kind_of?(Query::Conditions::EqualToComparison) &&
+              (properties.include?(condition.subject) || relationships.include?(condition.subject))
               next
             end
 

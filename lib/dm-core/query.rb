@@ -964,12 +964,11 @@ module DataMapper
     # @api private
     def append_condition(subject, bind_value, operator = :eql)
       case subject
-        when Property                   then append_property_condition(subject, bind_value, operator)
-        when Symbol                     then append_symbol_condition(subject, bind_value, operator)
-        when String                     then append_string_condition(subject, bind_value, operator)
-        when Operator                   then append_operator_conditions(subject, bind_value)
-        when Associations::Relationship then append_relationship_condition(subject, bind_value, operator)
-        when Path                       then append_path(subject, bind_value, operator)
+        when Property, Associations::Relationship then append_property_condition(subject, bind_value, operator)
+        when Symbol                               then append_symbol_condition(subject, bind_value, operator)
+        when String                               then append_string_condition(subject, bind_value, operator)
+        when Operator                             then append_operator_conditions(subject, bind_value)
+        when Path                                 then append_path(subject, bind_value, operator)
         else
           raise ArgumentError, "#{subject} is an invalid instance: #{subject.class}"
       end
@@ -1028,44 +1027,6 @@ module DataMapper
     def append_path(path, bind_value, operator)
       @links.concat(path.relationships)
       append_condition(path.property, bind_value, operator)
-    end
-
-    # TODO: document
-    # @api private
-    def append_relationship_condition(relationship, bind_value, operator)
-      # TODO: when the bind_value is a Collection, and it is not loaded
-      # then use a subquery to scope the results rather than lazy loading
-      # it just to retrieve the Resource key
-
-      source_key = relationship.source_key
-      target_key = relationship.target_key
-
-      if relationship.source_key.size == 1 && relationship.target_key.size == 1
-        source_key = source_key.first
-        target_key = target_key.first
-
-        if (source_values = Array(bind_value).map { |resource| target_key.get!(resource) }.compact).any?
-          append_condition(source_key, source_values, operator)
-        end
-      else
-        or_operation = Conditions::Operation.new(:or)
-
-        Array(bind_value).each do |resource|
-          next unless (source_values = target_key.get!(resource)).all?
-
-          and_operation = Conditions::Operation.new(:and)
-
-          source_key.zip(source_values) do |property, value|
-            and_operation << Conditions::Comparison.new(operator, property, value)
-          end
-
-          or_operation << and_operation
-        end
-
-        @conditions << or_operation if or_operation.any?
-      end
-
-      @conditions
     end
 
     # TODO: make this typecast all bind values that do not match the

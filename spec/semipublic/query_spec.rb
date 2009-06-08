@@ -359,9 +359,9 @@ describe DataMapper::Query do
         supported_by :all do
           describe 'with the Symbol key mapping to a Relationship' do
             before :all do
-              user = @model.create(:name => 'Dan Kubb')
+              @user = @model.create(:name => 'Dan Kubb')
 
-              @options[:conditions] = { :referrer => user }
+              @options[:conditions] = { :referrer => @user }
 
               @return = DataMapper::Query.new(@repository, @model, @options.freeze)
             end
@@ -374,8 +374,8 @@ describe DataMapper::Query do
                   :and,
                   DataMapper::Query::Conditions::Comparison.new(
                     :eql,
-                    @model.properties[:referrer_name],
-                    'Dan Kubb'
+                    @model.relationships[:referrer],
+                    @user
                   )
                 )
             end
@@ -383,9 +383,9 @@ describe DataMapper::Query do
 
           describe 'with the String key mapping to a Relationship' do
             before :all do
-              user = @model.create(:name => 'Dan Kubb')
+              @user = @model.create(:name => 'Dan Kubb')
 
-              @options[:conditions] = { 'referrer' => user }
+              @options[:conditions] = { 'referrer' => @user }
 
               @return = DataMapper::Query.new(@repository, @model, @options.freeze)
             end
@@ -398,8 +398,8 @@ describe DataMapper::Query do
                   :and,
                   DataMapper::Query::Conditions::Comparison.new(
                     :eql,
-                    @model.properties[:referrer_name],
-                    'Dan Kubb'
+                    @model.relationships['referrer'],
+                    @user
                   )
                 )
             end

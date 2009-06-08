@@ -154,10 +154,10 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def record_value(record)
+        def record_value(record, subject = @subject, key_type = :source_key)
           case record
-            when Hash     then record_value_from_hash(record)
-            when Resource then record_value_from_resource(record)
+            when Hash     then record_value_from_hash(record, subject, key_type)
+            when Resource then record_value_from_resource(record, subject, key_type)
             else
               record
           end
@@ -165,20 +165,30 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def record_value_from_hash(hash)
-          hash.fetch(@subject, hash[@subject.field])
+        def record_value_from_hash(hash, subject, key_type)
+          hash.fetch subject, case subject
+            when Property
+              hash[subject.field]
+            when Associations::Relationship
+              subject.send(key_type).map { |property| record_value(hash, property, key_type)  }
+          end
         end
 
         # TODO: document
         # @api private
-        def record_value_from_resource(resource)
-          @subject.get!(resource)
+        def record_value_from_resource(resource, subject, key_type)
+          case subject
+            when Property
+              subject.get!(resource)
+            when Associations::Relationship
+              subject.send(key_type).map { |property| record_value(resource, property, key_type)  }
+          end
         end
 
         # TODO: document
         # @api semipublic
         def expected_value
-          record_value(@value)
+          record_value(@value, @subject, :target_key)
         end
 
         # TODO: document
@@ -190,7 +200,11 @@ module DataMapper
         # TODO: document
         # @api private
         def valid_value?(subject, value)
-          value.kind_of?(subject.primitive) || (value.nil? && subject.nullable?)
+          if subject.kind_of?(Property)
+            value.kind_of?(subject.primitive) || (value.nil? && subject.nullable?)
+          else
+            value.kind_of?(subject.target_model)
+          end
         end
       end # class AbstractComparison
 
@@ -251,7 +265,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def expected_value
-          @value.map { |value| record_value(value) }
+          @value.map { |value| record_value(value, @subject, :target_key) }
         end
       end # class InclusionComparison
 
