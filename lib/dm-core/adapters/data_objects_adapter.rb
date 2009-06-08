@@ -551,7 +551,7 @@ module DataMapper
               Query::Conditions::Comparison.new(:lt,  comparison.property, value.last)
             )
 
-            statement, bind_values = operation_statement(operation, qualify)
+            statement, bind_values = conditions_statement(operation, qualify)
 
             return "(#{statement})", bind_values
           end
