@@ -46,6 +46,8 @@ share_examples_for 'it creates a one accessor' do
 
       describe 'with a query' do
         before :all do
+          @car.save  # save @car and @expected to set @expected.id
+
           @return = @car.send(@name, :id => @expected.id)
         end
 
