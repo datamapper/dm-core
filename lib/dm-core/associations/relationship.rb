@@ -6,7 +6,7 @@ module DataMapper
     class Relationship
       include Extlib::Assertions
 
-      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :through ].to_set.freeze
+      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max ].to_set.freeze
 
       # Relationship name
       #
@@ -100,27 +100,6 @@ module DataMapper
       # @api semipublic
       attr_reader :max
 
-      # Intermediate association for join model
-      # relationships
-      #
-      # Example: for :bugs association in
-      #
-      # class Software::Engineer
-      #   include DataMapper::Resource
-      #
-      #   has n, :missing_tests
-      #   has n, :bugs, :through => :missing_tests
-      # end
-      #
-      # through is :missing_tests
-      #
-      # TODO: document a case when
-      # through option is a model and
-      # not an association name
-      #
-      # @api semipublic
-      attr_reader :through
-
       # Returns query options for relationship.
       #
       # For this base class, always returns query options
@@ -129,15 +108,6 @@ module DataMapper
       #
       # @api private
       attr_reader :query
-
-      # Intermediate relationships in a "through" association.
-      # Always returns empty frozen Array for this base class,
-      # must be overriden in subclasses.
-      #
-      # @api semipublic
-      def links
-        @links ||= [].freeze
-      end
 
       # Returns a hash of conditions that scopes query that fetches
       # target object
@@ -331,7 +301,6 @@ module DataMapper
         @parent_properties      = @options[:parent_key].try_dup.freeze
         @min                    = @options[:min]
         @max                    = @options[:max]
-        @through                = @options[:through]
 
         @query = @options.except(*self.class::OPTIONS).freeze
 
@@ -385,7 +354,7 @@ module DataMapper
           inverse_name,
           child_model,
           parent_model,
-          options.only(*self.class::OPTIONS - [ :min, :max, :through ]).update(
+          options.only(*OPTIONS - [ :min, :max ]).update(
             :child_key  => child_key.map  { |p| p.name },
             :parent_key => parent_key.map { |p| p.name }
           )
