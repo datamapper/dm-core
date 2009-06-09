@@ -7,7 +7,7 @@ share_examples_for 'An Adapter' do
       # the case return false
 
       # CRUD methods can be inherited from parent class
-      described_type.instance_methods.any? { |m| method.to_s == m.to_s }
+      described_type.instance_methods.any? { |instance_method| method.to_s == instance_method.to_s }
     end
   end
 
@@ -38,10 +38,10 @@ share_examples_for 'An Adapter' do
       end
 
       it 'should set the identity field for the resource' do
-        h = Heffalump.new(:color => 'peach')
-        h.id.should be_nil
-        h.save
-        h.id.should_not be_nil
+        heffalump = Heffalump.new(:color => 'peach')
+        heffalump.id.should be_nil
+        heffalump.save
+        heffalump.id.should_not be_nil
       end
     end
   else

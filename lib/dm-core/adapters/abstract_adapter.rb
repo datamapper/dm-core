@@ -109,7 +109,7 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def attributes_as_fields(attributes)
-        attributes.map { |p, v| [ p.field, v ] }.to_hash
+        attributes.map { |property, value| [ property.field, value ] }.to_hash
       end
 
       private

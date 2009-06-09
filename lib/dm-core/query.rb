@@ -236,10 +236,10 @@ module DataMapper
     # @api semipublic
     def reverse!
       # reverse the sort order
-      @order.map! { |o| o.reverse! }
+      @order.map! { |direction| direction.reverse! }
 
       # copy the order to the options
-      @options = @options.merge(:order => @order.map { |o| o.dup }).freeze
+      @options = @options.merge(:order => @order.map { |direction| direction.dup }).freeze
 
       self
     end
@@ -428,7 +428,7 @@ module DataMapper
         return true
       end
 
-      unless [ :repository, :model, :fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed? ].all? { |m| other.respond_to?(m) }
+      unless [ :repository, :model, :fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed? ].all? { |method| other.respond_to?(method) }
         return false
       end
 
@@ -523,7 +523,7 @@ module DataMapper
         [ :unique,     unique?         ],
       ]
 
-      "#<#{self.class.name} #{attrs.map { |k, v| "@#{k}=#{v.inspect}" }.join(' ')}>"
+      "#<#{self.class.name} #{attrs.map { |key, value| "@#{key}=#{value.inspect}" }.join(' ')}>"
     end
 
     ##
@@ -796,7 +796,7 @@ module DataMapper
     def assert_valid_order(order, fields)
       assert_kind_of 'options[:order]', order, Array
 
-      if order.empty? && fields && fields.any? { |p| !p.kind_of?(Operator) }
+      if order.empty? && fields && fields.any? { |property| !property.kind_of?(Operator) }
         raise ArgumentError, '+options[:order]+ should not be empty if +options[:fields] contains a non-operator'
       end
 
@@ -949,7 +949,7 @@ module DataMapper
         when String
           if subject.include?('.')
             query_path = model
-            subject.split('.').each { |m| query_path = query_path.send(m) }
+            subject.split('.').each { |method| query_path = query_path.send(method) }
             return append_condition(query_path, bind_value, operator)
           else
             return append_condition(@properties[subject] || @relationships[subject], bind_value, operator)
@@ -1048,7 +1048,7 @@ module DataMapper
       # TODO: update InclusionComparison so it knows how to do this
       if bind_value.kind_of?(Array)
         bind_value.uniq!
-        bind_value.size == 1 ? bind_value.first : bind_value.sort_by { |v| Sort.new(v) }
+        bind_value.size == 1 ? bind_value.first : bind_value.sort_by { |value| Sort.new(value) }
       else
         bind_value
       end
@@ -1133,7 +1133,7 @@ module DataMapper
         return false
       end
 
-      unless fields.sort_by { |f| f.hash }.send(operator, other.fields.sort_by { |f| f.hash })
+      unless fields.sort_by { |property| property.hash }.send(operator, other.fields.sort_by { |property| property.hash })
         return false
       end
 

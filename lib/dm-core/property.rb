@@ -222,7 +222,7 @@ module DataMapper
   # proc.  The proc is passed two values, the resource the property is being set
   # for and the property itself.
   #
-  #   property :display_name, String, :default => { |r, p| r.login }
+  #   property :display_name, String, :default => { |resource, property| resource.login }
   #
   # Word of warning.  Don't try to read the value of the property you're setting
   # the default for in the proc.  An infinite loop will ensue.
@@ -653,7 +653,7 @@ module DataMapper
       # If we're trying to load a lazy property, load it. Otherwise, lazy-load
       # any properties that should be eager-loaded but were not included
       # in the original :fields list
-      property_names = lazy? ? [ name ] : model.properties(resource.repository.name).defaults.map { |p| p.name }
+      property_names = lazy? ? [ name ] : model.properties(resource.repository.name).defaults.map { |property| property.name }
       resource.send(:lazy_load, property_names)
     end
 
@@ -860,8 +860,8 @@ module DataMapper
     # TODO: document
     # @api private
     def assert_valid_options(options)
-      if (unknown = options.keys - OPTIONS).any?
-        raise ArgumentError, "options #{unknown.map { |o| o.inspect }.join(' and ')} are unknown"
+      if (unknown_keys = options.keys - OPTIONS).any?
+        raise ArgumentError, "options #{unknown_keys.map { |key| key.inspect }.join(' and ')} are unknown"
       end
 
       options.each do |key, value|
@@ -978,9 +978,8 @@ module DataMapper
     def typecast_hash_to_datetime(hash)
       args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
       DateTime.new(*args)
-    rescue ArgumentError => e
-      t = typecast_hash_to_time(hash)
-      DateTime.new(t.year, t.month, t.day, t.hour, t.min, t.sec)
+    rescue ArgumentError
+      typecast_hash_to_time(hash).to_datetime
     end
 
     # Creates a Date instance from a Hash with keys :year, :month, :day
@@ -996,8 +995,8 @@ module DataMapper
       args = extract_time_args_from_hash(hash, :year, :month, :day)
       Date.new(*args)
     rescue ArgumentError
-      t = typecast_hash_to_time(hash)
-      Date.new(t.year, t.month, t.day)
+      time = typecast_hash_to_time(hash)
+      Date.new(time.year, time.month, time.day)
     end
 
     # Creates a Time instance from a Hash with keys :year, :month, :day,

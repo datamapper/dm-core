@@ -355,8 +355,8 @@ module DataMapper
           child_model,
           parent_model,
           options.only(*OPTIONS - [ :min, :max ]).update(
-            :child_key  => child_key.map  { |p| p.name },
-            :parent_key => parent_key.map { |p| p.name }
+            :child_key  => child_key.map  { |property| property.name },
+            :parent_key => parent_key.map { |property| property.name }
           )
         )
       end

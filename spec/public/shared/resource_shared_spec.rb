@@ -733,12 +733,12 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should update attributes of Resource' do
-        @attributes.each { |k, v| @user.send(k).should == v }
+        @attributes.each { |key, value| @user.send(key).should == value }
       end
 
       it 'should persist the changes' do
         resource = @user_model.get(*@user.key)
-        @attributes.each { |k, v| resource.send(k).should == v }
+        @attributes.each { |key, value| resource.send(key).should == value }
       end
     end
 
@@ -758,14 +758,14 @@ share_examples_for 'A public Resource' do
 
       it 'should update attributes of Resource' do
         pending_if 'TODO', @one_to_one_through do
-          @attributes.each { |k, v| @user.send(k).should == v }
+          @attributes.each { |key, value| @user.send(key).should == value }
         end
       end
 
       it 'should persist the changes' do
         pending_if 'TODO', @one_to_one_through do
           resource = @user_model.get(*@user.key)
-          @attributes.each { |k, v| resource.send(k).should == v }
+          @attributes.each { |key, value| resource.send(key).should == value }
         end
       end
     end

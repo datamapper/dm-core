@@ -28,7 +28,7 @@ module DataMapper
 
         update_records(collection.model) do |records|
           records_to_update = collection.query.filter_records(records.dup)
-          records_to_update.each { |r| r.update(attributes) }
+          records_to_update.each { |resource| resource.update(attributes) }
         end
       end
 

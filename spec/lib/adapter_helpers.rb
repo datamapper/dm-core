@@ -93,7 +93,7 @@ module DataMapper::Spec
     end
 
     def get_adapters(*adapters)
-      adapters.map! { |a| a.to_s }
+      adapters.map! { |adapter_name| adapter_name.to_s }
       adapters = ADAPTERS if adapters.include?('all')
       ADAPTERS & adapters
     end

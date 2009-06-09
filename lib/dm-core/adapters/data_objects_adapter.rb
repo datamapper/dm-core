@@ -72,7 +72,7 @@ module DataMapper
       # @api semipublic
       def read(query)
         fields = query.fields
-        types  = fields.map { |p| p.primitive }
+        types  = fields.map { |property| property.primitive }
 
         statement, bind_values = select_statement(query)
 
@@ -170,7 +170,7 @@ module DataMapper
             results = []
 
             if (fields = reader.fields).size > 1
-              fields = fields.map { |f| Extlib::Inflection.underscore(f).to_sym }
+              fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
               struct = Struct.new(*fields)
 
               while(reader.next!) do
@@ -260,9 +260,9 @@ module DataMapper
       def with_connection
         begin
           yield connection = open_connection
-        rescue Exception => e
-          DataMapper.logger.error(e.to_s)
-          raise e
+        rescue Exception => exception
+          DataMapper.logger.error(exception.to_s)
+          raise exception
         ensure
           close_connection(connection) if connection
         end
@@ -326,7 +326,7 @@ module DataMapper
           qualify = query.links.any?
 
           if qualify || query.unique?
-            group_by = fields.select { |p| p.kind_of?(Property) }
+            group_by = fields.select { |property| property.kind_of?(Property) }
           end
 
           unless (limit && limit > 1) || offset > 0 || qualify
@@ -339,8 +339,8 @@ module DataMapper
             # if a unique property is used, and there is no OR operator, then an ORDER
             # and LIMIT are unecessary because it should only return a single row
             if conditions.kind_of?(Query::Conditions::AndOperation) &&
-               conditions.any? { |o| o.kind_of?(Query::Conditions::EqualToComparison) && o.subject.respond_to?(:unique?) && o.subject.unique? } &&
-               !conditions.any? { |o| o.kind_of?(Query::Conditions::OrOperation) }
+               conditions.any? { |operand| operand.kind_of?(Query::Conditions::EqualToComparison) && operand.subject.respond_to?(:unique?) && operand.subject.unique? } &&
+               !conditions.any? { |operand| operand.kind_of?(Query::Conditions::OrOperation) }
               order = nil
               limit = nil
             end
@@ -380,7 +380,7 @@ module DataMapper
             statement << 'DEFAULT VALUES'
           else
             statement << <<-SQL.compress_lines
-              (#{properties.map { |p| quote_name(p.field) }.join(', ')})
+              (#{properties.map { |property| quote_name(property.field) }.join(', ')})
               VALUES
               (#{(['?'] * properties.size).join(', ')})
             SQL
@@ -402,7 +402,7 @@ module DataMapper
           conditions_statement, bind_values = conditions_statement(query.conditions)
 
           statement = "UPDATE #{quote_name(query.model.storage_name(name))}"
-          statement << " SET #{properties.map { |p| "#{quote_name(p.field)} = ?" }.join(', ')}"
+          statement << " SET #{properties.map { |property| "#{quote_name(property.field)} = ?" }.join(', ')}"
           statement << " WHERE #{conditions_statement}" unless conditions_statement.blank?
 
           return statement, bind_values
@@ -426,7 +426,7 @@ module DataMapper
         #
         # @return [String] list of fields as a string
         def columns_statement(properties, qualify)
-          properties.map { |p| property_to_column_name(p, qualify) }.join(', ')
+          properties.map { |property| property_to_column_name(property, qualify) }.join(', ')
         end
 
         # Constructs joins clause

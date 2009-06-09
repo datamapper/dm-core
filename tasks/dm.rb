@@ -3,21 +3,21 @@ require 'spec/rake/verify_rcov'
 
 task :default => 'spec'
 
-RCov::VerifyTask.new(:verify_rcov => :rcov) do |t|
-  t.threshold = 87.7 # Make sure you have rcov 0.7 or higher!
+RCov::VerifyTask.new(:verify_rcov => :rcov) do |config|
+  config.threshold = 87.7 # Make sure you have rcov 0.7 or higher!
 end
 
 def run_spec(name, files, rcov)
-  Spec::Rake::SpecTask.new(name) do |t|
-    t.spec_opts << '--options' << ROOT + 'spec/spec.opts'
-    t.spec_files = Pathname.glob(ENV['FILES'] || files.to_s).map { |f| f.to_s }
-    t.rcov = rcov
-    t.rcov_opts << '--exclude' << 'spec'
-    t.rcov_opts << '--text-summary'
-    #t.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-    #t.rcov_opts << '--only-uncovered'
-    #t.rcov_opts << '--profile'
-    #t.rcov_opts << '-w'  # TODO: make sure it runs with warnings enabled
+  Spec::Rake::SpecTask.new(name) do |config|
+    config.spec_opts << '--options' << ROOT + 'spec/spec.opts'
+    config.spec_files = Pathname.glob(ENV['FILES'] || files.to_s).map { |file| file.to_s }
+    config.rcov = rcov
+    config.rcov_opts << '--exclude' << 'spec'
+    config.rcov_opts << '--text-summary'
+    #config.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
+    #config.rcov_opts << '--only-uncovered'
+    #config.rcov_opts << '--profile'
+    #config.rcov_opts << '-w'  # TODO: make sure it runs with warnings enabled
   end
 end
 

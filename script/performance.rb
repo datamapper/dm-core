@@ -126,7 +126,7 @@ else
   today = Date.today
 
   puts 'Inserting 10,000 users and exhibits...'
-  10_000.times do |i|
+  10_000.times do
     user = User.create(
       :created_on => today,
       :name       => Faker::Name.name,
@@ -246,8 +246,8 @@ RBench.run(TIMES) do
   report 'Resource#attributes=' do
     attrs_first  = { :name => 'sam', :zoo_id => 1 }
     attrs_second = { :name => 'tom', :zoo_id => 1 }
-    ar { e = ARExhibit.new(attrs_first); e.attributes = attrs_second }
-    dm { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
+    ar { exhibit = ARExhibit.new(attrs_first); exhibit.attributes = attrs_second }
+    dm { exhibit = Exhibit.new(attrs_first);   exhibit.attributes = attrs_second }
   end
 
   report 'Resource#update' do

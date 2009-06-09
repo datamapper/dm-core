@@ -58,7 +58,7 @@ module DataMapper
       # @api semipublic
       def update(attributes, collection)
         attributes = attributes_as_fields(attributes)
-        read(collection.query).each { |r| r.update(attributes) }
+        read(collection.query).each { |resource| resource.update(attributes) }
       end
 
       ##

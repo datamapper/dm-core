@@ -121,7 +121,7 @@ else
   today = Date.today
 
   puts 'Inserting 10,000 users and exhibits...'
-  10_000.times do |i|
+  10_000.times do
     user = User.create(
       :created_on => today,
       :name       => Faker::Name.name,
@@ -203,13 +203,13 @@ profile do
 #  attrs_second = { :name => 'tom', :zoo_id => 1 }
 #
 #  puts 'Resource#attributes='
-#  TIMES.times { e = Exhibit.new(attrs_first); e.attributes = attrs_second }
+#  TIMES.times { exhibit = Exhibit.new(attrs_first); exhibit.attributes = attrs_second }
 #
 #  puts 'Resource#update'
-#  TIMES.times { e = exhibits[i]; e.name = 'bob'; e.save }
+#  TIMES.times { |index| exhibit = exhibits[index]; exhibit.name = 'bob'; exhibit.save }
 #
 #  puts 'Resource#destroy'
-#  TIMES.times { |i| exhibits[i].destroy }
+#  TIMES.times { |index| exhibits[index].destroy }
 #
 #  puts 'Model.transaction'
 #  TIMES.times { Exhibit.transaction { Exhibit.new } }

@@ -140,7 +140,7 @@ module DataMapper
       # @api public
       def identity_field(repository_name = default_repository_name)
         # XXX: should identity_field be the same thing as key?
-        key(repository_name).detect { |p| p.serial? }
+        key(repository_name).detect { |property| property.serial? }
       end
 
       ##
@@ -190,7 +190,7 @@ module DataMapper
       # TODO: document
       # @api private
       def typecast_key(key)
-        self.key(repository_name).zip(key).map { |p, v| p.typecast(v) }
+        self.key(repository_name).zip(key).map { |property, value| property.typecast(value) }
       end
 
       # TODO: document

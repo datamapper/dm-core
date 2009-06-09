@@ -238,12 +238,12 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should set the Collection' do
         @car.send(@name).should == @expected
-        @car.send(@name).zip(@expected) { |v, e| v.should equal(e) }
+        @car.send(@name).zip(@expected) { |value, expected| value.should equal(expected) }
       end
 
       it 'should relate the associated Collection' do
         pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
-          @expected.each { |r| r.car.should == @car }
+          @expected.each { |resource| resource.car.should == @car }
         end
       end
 
@@ -254,8 +254,8 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should persist the associated Resource' do
         @car.save.should be_true
-        @expected.each { |r| r.should be_saved }
-        @expected.each { |r| r.model.get(*r.key).car.should == @car }
+        @expected.each { |resource| resource.should be_saved }
+        @expected.each { |resource| resource.model.get(*resource.key).car.should == @car }
       end
     end
 
@@ -296,12 +296,12 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should set the Resource' do
         @car.send(@name).should == @expected
-        @car.send(@name).zip(@expected) { |v, e| v.should equal(e) }
+        @car.send(@name).zip(@expected) { |value, expected| value.should equal(expected) }
       end
 
       it 'should relate associated Resource' do
         pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
-          @expected.each { |r| r.car.should == @car }
+          @expected.each { |resource| resource.car.should == @car }
         end
       end
 
@@ -312,8 +312,8 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should persist the associated Resource' do
         @car.save.should be_true
-        @expected.each { |r| r.should be_saved }
-        @expected.each { |r| r.model.get(*r.key).car.should == @car }
+        @expected.each { |resource| resource.should be_saved }
+        @expected.each { |resource| resource.model.get(*resource.key).car.should == @car }
       end
     end
   end

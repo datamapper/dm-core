@@ -67,10 +67,10 @@ describe DataMapper::Resource, 'Transactions' do
 
     before do
       # --- Temporary private api use to get around rspec limitations ---
-      @repository.scope do |r|
-        transaction = DataMapper::Transaction.new(r)
+      @repository.scope do |repository|
+        transaction = DataMapper::Transaction.new(repository)
         transaction.begin
-        r.adapter.push_transaction(transaction)
+        repository.adapter.push_transaction(transaction)
       end
     end
 

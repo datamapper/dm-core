@@ -2,7 +2,7 @@ module DataMapper
   module Associations
     module OneToOne #:nodoc:
       class Relationship < Associations::Relationship
-        instance_methods.each { |m| undef_method m unless %w[ __id__ __send__ send class dup object_id kind_of? instance_of? respond_to? equal? assert_kind_of should should_not instance_variable_set instance_variable_get extend ].include?(m.to_s) }
+        instance_methods.each { |method| undef_method method unless %w[ __id__ __send__ send class dup object_id kind_of? instance_of? respond_to? equal? assert_kind_of should should_not instance_variable_set instance_variable_get extend ].include?(method.to_s) }
 
         # Loads (if necessary) and returns association target
         # for given source

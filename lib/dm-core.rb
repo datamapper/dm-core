@@ -212,7 +212,7 @@ module DataMapper
   def self.repository(name = nil)
     current_repository = if name
       assert_kind_of 'name', name, Symbol
-      Repository.context.detect { |r| r.name == name } || Repository.new(name)
+      Repository.context.detect { |repository| repository.name == name } || Repository.new(name)
     else
       Repository.context.last || Repository.new(Repository.default_name)
     end

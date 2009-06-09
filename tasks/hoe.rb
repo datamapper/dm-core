@@ -27,20 +27,18 @@ class Hoe
   end
 end
 
-hoe = Hoe.new(GEM_NAME, GEM_VERSION) do |p|
+hoe = Hoe.new(GEM_NAME, GEM_VERSION) do |hoe|
+  hoe.developer(AUTHOR, EMAIL)
 
-  p.developer(AUTHOR, EMAIL)
+  hoe.description = PROJECT_DESCRIPTION
+  hoe.summary = PROJECT_SUMMARY
+  hoe.url = PROJECT_URL
 
-  p.description = PROJECT_DESCRIPTION
-  p.summary = PROJECT_SUMMARY
-  p.url = PROJECT_URL
+  hoe.rubyforge_name = PROJECT_NAME if PROJECT_NAME
 
-  p.rubyforge_name = PROJECT_NAME if PROJECT_NAME
-
-  p.clean_globs |= %w[ {coverage,doc,log,tmp} **/*.{log,db} profile_results.* **/.DS_Store spec/db ]
+  hoe.clean_globs |= %w[ {coverage,doc,log,tmp} **/*.{log,db} profile_results.* **/.DS_Store spec/db ]
 
   GEM_DEPENDENCIES.each do |dep|
-    p.extra_deps << dep
+    hoe.extra_deps << dep
   end
-
 end

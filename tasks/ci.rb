@@ -4,7 +4,7 @@ task :ci do
   require 'metric_fu'
 
   MetricFu::Configuration.run do |config|
-    specs = Pathname.glob(ENV['FILES'] || (ROOT + 'spec/**/*_spec.rb').to_s).sort.map { |f| f.to_s }
+    specs = Pathname.glob(ENV['FILES'] || (ROOT + 'spec/**/*_spec.rb').to_s).sort.map { |file| file.to_s }
 
     config.rcov = {
       :test_files => specs,

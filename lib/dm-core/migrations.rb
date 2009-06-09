@@ -99,7 +99,7 @@ module DataMapper
       #
       # @param [String] storage_name
       #   a String defining the name of a storage, for example a table name.
-      # @param [String] field_name
+      # @param [String] field
       #   a String defining the name of a field, for example a column name.
       #
       # @return [TrueClass, FalseClass]
@@ -207,8 +207,8 @@ module DataMapper
         def create_table_statement(connection, model, properties)
           statement = <<-SQL.compress_lines
             CREATE TABLE #{quote_name(model.storage_name(name))}
-            (#{properties.map { |p| property_schema_statement(connection, property_schema_hash(p)) }.join(', ')},
-            PRIMARY KEY(#{ properties.key.map { |p| quote_name(p.field) }.join(', ')}))
+            (#{properties.map { |property| property_schema_statement(connection, property_schema_hash(property)) }.join(', ')},
+            PRIMARY KEY(#{ properties.key.map { |property| quote_name(property.field) }.join(', ')}))
           SQL
 
           statement
@@ -231,7 +231,7 @@ module DataMapper
           model.properties(name).indexes.map do |index_name, fields|
             <<-SQL.compress_lines
               CREATE INDEX #{quote_name("index_#{table_name}_#{index_name}")} ON
-              #{quote_name(table_name)} (#{fields.map { |f| quote_name(f) }.join(', ')})
+              #{quote_name(table_name)} (#{fields.map { |field| quote_name(field) }.join(', ')})
             SQL
           end
         end
@@ -243,7 +243,7 @@ module DataMapper
           model.properties(name).unique_indexes.map do |index_name, fields|
             <<-SQL.compress_lines
               CREATE UNIQUE INDEX #{quote_name("unique_#{table_name}_#{index_name}")} ON
-              #{quote_name(table_name)} (#{fields.map { |f| quote_name(f) }.join(', ')})
+              #{quote_name(table_name)} (#{fields.map { |field| quote_name(field) }.join(', ')})
             SQL
           end
         end
@@ -287,7 +287,7 @@ module DataMapper
           statement << " #{schema[:primitive]}"
 
           if schema[:precision] && schema[:scale]
-            statement << "(#{[ :precision, :scale ].map { |k| connection.quote_value(schema[k]) }.join(', ')})"
+            statement << "(#{[ :precision, :scale ].map { |key| connection.quote_value(schema[key]) }.join(', ')})"
           elsif schema[:size]
             statement << "(#{connection.quote_value(schema[:size])})"
           end
@@ -347,9 +347,9 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      def field_exists?(storage_name, field_name)
-        result = query("SHOW COLUMNS FROM #{quote_name(storage_name)} LIKE ?", field_name).first
-        result ? result.field == field_name : false
+      def field_exists?(storage_name, field)
+        result = query("SHOW COLUMNS FROM #{quote_name(storage_name)} LIKE ?", field).first
+        result ? result.field == field : false
       end
 
       module SQL #:nodoc:
@@ -596,14 +596,14 @@ module DataMapper
         def create_table_statement(connection, model, properties)
           statement = <<-SQL.compress_lines
             CREATE TABLE #{quote_name(model.storage_name(name))}
-            (#{properties.map { |p| property_schema_statement(connection, property_schema_hash(p)) }.join(', ')}
+            (#{properties.map { |property| property_schema_statement(connection, property_schema_hash(property)) }.join(', ')}
           SQL
 
           # skip adding the primary key if one of the columns is serial.  In
           # SQLite the serial column must be the primary key, so it has already
           # been defined
-          unless properties.any? { |p| p.serial? }
-            statement << ", PRIMARY KEY(#{properties.key.map { |p| quote_name(p.field) }.join(', ')})"
+          unless properties.any? { |property| property.serial? }
+            statement << ", PRIMARY KEY(#{properties.key.map { |property| quote_name(property.field) }.join(', ')})"
           end
 
           statement << ')'

@@ -16,7 +16,7 @@ ENV['PLUGINS'].to_s.split(' ').each do |plugin|
   require plugin.strip
 end
 
-Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |f| require f }
+Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |file| require file }
 
 # create sqlite3_fs directory if it doesn't exist
 temp_db_dir = SPEC_ROOT.join('db')
@@ -54,7 +54,7 @@ ALTERNATE = {
 # For example, in the bash shell, you might use:
 #   export MYSQL_SPEC_URI="mysql://localhost/dm_core_test?socket=/opt/local/var/run/mysql5/mysqld.sock"
 
-adapters = ENV['ADAPTERS'].split(' ').map { |a| a.strip.downcase }.uniq
+adapters = ENV['ADAPTERS'].split(' ').map { |adapter_name| adapter_name.strip.downcase }.uniq
 adapters = PRIMARY.keys if adapters.include?('all')
 
 PRIMARY.only(*adapters).each do |name, default|
@@ -69,8 +69,8 @@ PRIMARY.only(*adapters).each do |name, default|
 
     ADAPTERS << name
     PRIMARY[name] = connection_string  # ensure *_SPEC_URI is saved
-  rescue Exception => e
-    puts "Could not connect to the database using #{connection_string.inspect} because: #{e.inspect}"
+  rescue Exception => exception
+    puts "Could not connect to the database using #{connection_string.inspect} because: #{exception.inspect}"
   end
 end
 

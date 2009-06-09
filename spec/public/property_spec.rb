@@ -28,7 +28,7 @@ describe DataMapper::Property do
       property :filesize,     Float
 
       property :taken_on,     Date
-      property :taken_at,     Time, :default => lambda { |r, p| Time.now }
+      property :taken_at,     Time, :default => lambda { |resource, property| Time.now }
       property :retouched_at, DateTime
     end
   end

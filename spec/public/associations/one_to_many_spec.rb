@@ -105,7 +105,7 @@ end
           before :all do
             @original = @other_articles
             @resource = @original.first
-            @return = @articles.collect! { |r| @resource }
+            @return = @articles.collect! { |resource| @resource }
           end
 
           it 'should return a Collection' do

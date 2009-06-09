@@ -98,7 +98,7 @@ module DataMapper
           scope = {}
 
           # TODO: handle compound keys
-          if (source_values = Array(source).map { |r| source_key.first.get(r) }.compact).any?
+          if (source_values = Array(source).map { |resource| source_key.first.get(resource) }.compact).any?
             scope[target_key.first] = source_values
           end
 
@@ -274,11 +274,11 @@ module DataMapper
 
           if last_relationship.respond_to?(:resource_for)
             super
-            resources.all? { |r| create_intermediary(last_relationship => r) }
+            resources.all? { |resource| create_intermediary(last_relationship => resource) }
           else
             if intermediary = create_intermediary
               inverse = last_relationship.inverse
-              resources.map { |r| inverse.set(r, intermediary) }
+              resources.map { |resource| inverse.set(resource, intermediary) }
             end
 
             super
@@ -312,9 +312,9 @@ module DataMapper
           key             = model.key(repository_name)
 
           # TODO: handle compound keys
-          model.all(:repository => repository_name, key.first => map { |r| r.key.first }).destroy!
+          model.all(:repository => repository_name, key.first => map { |resource| resource.key.first }).destroy!
 
-          each { |r| r.reset }
+          each { |resource| resource.reset }
           clear
 
           true
@@ -325,13 +325,13 @@ module DataMapper
         # TODO: document
         # @api private
         def _update(dirty_attributes)
-          attributes = dirty_attributes.map { |p, v| [ p.name, v ] }.to_hash
+          attributes = dirty_attributes.map { |property, value| [ property.name, value ] }.to_hash
 
           # FIXME: use a subquery to do this more efficiently in the future,
           key = model.key(repository.name)
 
           # TODO: handle compound keys
-          model.all(:repository => repository_name, key.first => map { |r| r.key.first }).update!(attributes)
+          model.all(:repository => repository_name, key.first => map { |resource| resource.key.first }).update!(attributes)
         end
 
         # TODO: document

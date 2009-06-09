@@ -139,7 +139,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should scope the Collection' do
-        @return.reload.should == @copy.entries.select { |a| a.content == 'New Article' }.first(1)
+        @return.reload.should == @copy.entries.select { |resource| resource.content == 'New Article' }.first(1)
       end
     end
 
@@ -282,7 +282,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should orphan the Resources' do
-      @resources.each { |r| r.collection.should_not be_equal(@articles) }
+      @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
     end
   end
 
@@ -293,7 +293,7 @@ share_examples_for 'A public Collection' do
       before :all do
         @resources = @articles.dup.entries
 
-        @return = @articles.send(method) { |r| @article_model.new(:title => 'Ignored Title', :content => 'New Content') }
+        @return = @articles.send(method) { |resource| @article_model.new(:title => 'Ignored Title', :content => 'New Content') }
       end
 
       it 'should return a Collection' do
@@ -305,11 +305,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update the Collection inline' do
-        @articles.each { |r| r.attributes.only(:title, :content).should == { :title => 'Sample Article', :content => 'New Content' } }
+        @articles.each { |resource| resource.attributes.only(:title, :content).should == { :title => 'Sample Article', :content => 'New Content' } }
       end
 
       it 'should orphan each replaced Resource in the Collection' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
   end
@@ -334,7 +334,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should relate each Resource to the Collection' do
-      @other_articles.each { |r| r.collection.should be_equal(@articles) }
+      @other_articles.each { |resource| resource.collection.should be_equal(@articles) }
     end
   end
 
@@ -545,11 +545,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not be_include(r) }
+        @resources.each { |resource| @articles.should_not be_include(resource) }
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -805,7 +805,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -827,7 +827,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -845,7 +845,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
   end
@@ -981,7 +981,7 @@ share_examples_for 'A public Collection' do
 
     describe 'with a key not typecast' do
       before :all do
-        @return = @resource = @articles.get(*@article.key.map { |v| v.to_s })
+        @return = @resource = @articles.get(*@article.key.map { |value| value.to_s })
       end
 
       it 'should return a Resource' do
@@ -1077,7 +1077,7 @@ share_examples_for 'A public Collection' do
     describe 'with a key not typecast' do
       before :all do
         unless @skip
-          @return = @resource = @articles.get!(*@article.key.map { |v| v.to_s })
+          @return = @resource = @articles.get!(*@article.key.map { |value| value.to_s })
         end
       end
 
@@ -1174,7 +1174,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      @resources.each { |r| r.collection.should be_equal(@articles) }
+      @resources.each { |resource| resource.collection.should be_equal(@articles) }
     end
   end
 
@@ -1286,7 +1286,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -1308,7 +1308,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -1326,7 +1326,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
   end
@@ -1446,7 +1446,7 @@ share_examples_for 'A public Collection' do
 
         { :id => true, :title => false, :content => false }.each do |attribute, expected|
           it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-            @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
+            @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
           end
         end
       end
@@ -1507,7 +1507,7 @@ share_examples_for 'A public Collection' do
 
         { :id => true, :title => false, :content => false }.each do |attribute, expected|
           it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-            @return.each { |r| r.attribute_loaded?(attribute).should == expected }
+            @return.each { |resource| resource.attribute_loaded?(attribute).should == expected }
           end
         end
       end
@@ -1668,7 +1668,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      @resources.each { |r| r.collection.should be_equal(@articles) }
+      @resources.each { |resource| resource.collection.should be_equal(@articles) }
     end
   end
 
@@ -1691,11 +1691,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not be_include(r) }
+        @resources.each { |resource| @articles.should_not be_include(resource) }
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -1746,7 +1746,7 @@ share_examples_for 'A public Collection' do
 
       { :title => true, :content => false }.each do |attribute, expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-          @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
+          @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
         end
       end
     end
@@ -1778,7 +1778,7 @@ share_examples_for 'A public Collection' do
 
       { :id => true, :content => true, :title => true }.each do |attribute, expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-          @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
+          @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
         end
       end
     end
@@ -1811,7 +1811,7 @@ share_examples_for 'A public Collection' do
       { :id => true, :content => true, :title => loaded }.each do |attribute, expected|
         it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
           pending_if "TODO: #{@articles.class}#reload should not be a kicker", @one_to_many && loaded == false && attribute == :title do
-            @collection.each { |r| r.attribute_loaded?(attribute).should == expected }
+            @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
           end
         end
       end
@@ -1841,11 +1841,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should relate each Resource added to the Collection' do
-        @articles.each { |r| r.collection.should be_equal(@articles) }
+        @articles.each { |resource| resource.collection.should be_equal(@articles) }
       end
 
       it 'should orphan each Resource removed from the Collection' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
 
@@ -1945,7 +1945,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should save each Resource' do
-        @articles.each { |r| r.should be_saved }
+        @articles.each { |resource| resource.should be_saved }
       end
     end
 
@@ -1962,7 +1962,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
     end
   end
@@ -1998,7 +1998,7 @@ share_examples_for 'A public Collection' do
 
     describe "##{method}" do
       before :all do
-        1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
+        1.upto(10) { |number| @articles.create(:content => "Article #{number}") }
         @copy = @articles.dup
       end
 
@@ -2040,11 +2040,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resources from the Collection' do
-          @resources.each { |r| @articles.should be_include(r) }
+          @resources.each { |resource| @articles.should be_include(resource) }
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |r| r.collection.should_not be_equal(@articles) }
+          @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -2066,11 +2066,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resources from the Collection' do
-          @resources.each { |r| @articles.should be_include(r) }
+          @resources.each { |resource| @articles.should be_include(resource) }
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |r| r.collection.should_not be_equal(@articles) }
+          @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -2116,11 +2116,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resources from the Collection' do
-          @resources.each { |r| @articles.should be_include(r) }
+          @resources.each { |resource| @articles.should be_include(resource) }
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |r| r.collection.should_not be_equal(@articles) }
+          @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -2142,11 +2142,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should not remove the Resources from the Collection' do
-          @resources.each { |r| @articles.should be_include(r) }
+          @resources.each { |resource| @articles.should be_include(resource) }
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |r| r.collection.should_not be_equal(@articles) }
+          @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -2200,7 +2200,7 @@ share_examples_for 'A public Collection' do
 
   describe '#slice!' do
     before :all do
-      1.upto(10) { |n| @articles.create(:content => "Article #{n}") }
+      1.upto(10) { |number| @articles.create(:content => "Article #{number}") }
 
       @copy = @articles.dup
     end
@@ -2249,11 +2249,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not be_include(r) }
+        @resources.each { |resource| @articles.should_not be_include(resource) }
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -2277,11 +2277,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not be_include(r) }
+        @resources.each { |resource| @articles.should_not be_include(resource) }
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -2329,11 +2329,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not be_include(r) }
+        @resources.each { |resource| @articles.should_not be_include(resource) }
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -2357,11 +2357,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should remove the Resources from the Collection' do
-        @resources.each { |r| @articles.should_not be_include(r) }
+        @resources.each { |resource| @articles.should_not be_include(resource) }
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |r| r.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -2429,7 +2429,7 @@ share_examples_for 'A public Collection' do
 
     describe 'with a block' do
       before :all do
-        @return = @articles.unshift(@other).sort! { |a, b| b.id <=> a.id }
+        @return = @articles.unshift(@other).sort! { |a_resource, b_resource| b_resource.id <=> a_resource.id }
       end
 
       it 'should return a Collection' do
@@ -2452,8 +2452,8 @@ share_examples_for 'A public Collection' do
     describe "##{method}" do
       before :all do
         unless @skip
-          orphans = (1..10).map do |n|
-            @articles.create(:content => "Article #{n}")
+          orphans = (1..10).map do |number|
+            @articles.create(:content => "Article #{number}")
             @articles.pop  # remove the article from the tail
           end
 
@@ -2535,7 +2535,7 @@ share_examples_for 'A public Collection' do
         before :all do
           rescue_if 'TODO', @skip do
             @originals = @copy.values_at(2..3)
-            @originals.each { |o| o.collection.should be_equal(@articles) }
+            @originals.each { |resource| resource.collection.should be_equal(@articles) }
 
             @return = @resource = @articles.send(method, 2..3, @new)
           end
@@ -2558,7 +2558,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resources' do
-          @originals.each { |o| o.collection.should_not be_equal(@articles) }
+          @originals.each { |resource| resource.collection.should_not be_equal(@articles) }
         end
       end
 
@@ -2632,7 +2632,7 @@ share_examples_for 'A public Collection' do
         before :all do
           rescue_if 'TODO', @skip do
             @originals = @copy.values_at(-3..-2)
-            @originals.each { |o| o.collection.should be_equal(@articles) }
+            @originals.each { |resource| resource.collection.should be_equal(@articles) }
 
             @return = @resource = @articles.send(method, -3..-2, @new)
           end
@@ -2655,7 +2655,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resources' do
-          @originals.each { |o| o.collection.should_not be_equal(@articles) }
+          @originals.each { |resource| resource.collection.should_not be_equal(@articles) }
         end
       end
     end
@@ -2683,7 +2683,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      @resources.each { |r| r.collection.should be_equal(@articles) }
+      @resources.each { |resource| resource.collection.should be_equal(@articles) }
     end
   end
 
@@ -2712,12 +2712,12 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
+        @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
       end
 
       it 'should persist the changes' do
         resource = @article_model.get(*@article.key)
-        @attributes.each { |k, v| resource.send(k).should == v }
+        @attributes.each { |key, value| resource.send(key).should == value }
       end
     end
 
@@ -2733,12 +2733,12 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
+        @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
       end
 
       it 'should persist the changes' do
         resource = @article_model.get(*@article.key)
-        @attributes.each { |k, v| resource.send(k).should == v }
+        @attributes.each { |key, value| resource.send(key).should == value }
       end
     end
   end
@@ -2790,12 +2790,12 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
+        @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
       end
 
       it 'should persist the changes' do
         resource = @article_model.get(*@article.key)
-        @attributes.each { |k, v| resource.send(k).should == v }
+        @attributes.each { |key, value| resource.send(key).should == value }
       end
     end
 
@@ -2821,12 +2821,12 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @articles.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
+        @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
       end
 
       it 'should persist the changes' do
         resource = @article_model.get(*@article.key)
-        @attributes.each { |k, v| resource.send(k).should == v }
+        @attributes.each { |key, value| resource.send(key).should == value }
       end
     end
 
@@ -2876,17 +2876,17 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should update attributes of all Resources' do
-        @limited.each { |r| @attributes.each { |k, v| r.send(k).should == v } }
+        @limited.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
       end
 
       it 'should persist the changes' do
         resource = @article_model.get(*@article.key)
-        @attributes.each { |k, v| resource.send(k).should == v }
+        @attributes.each { |key, value| resource.send(key).should == value }
       end
 
       it 'should not update the other Resource' do
         @other.reload
-        @attributes.each { |k, v| @other.send(k).should_not == v }
+        @attributes.each { |key, value| @other.send(key).should_not == value }
       end
     end
   end

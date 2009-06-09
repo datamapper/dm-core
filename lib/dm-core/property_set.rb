@@ -62,26 +62,26 @@ module DataMapper
     # TODO: document
     # @api semipublic
     def defaults
-      @defaults ||= key | [ discriminator ].compact | reject { |p| p.lazy? }.freeze
+      @defaults ||= key | [ discriminator ].compact | reject { |property| property.lazy? }.freeze
     end
 
     # TODO: document
     # @api semipublic
     def key
-      @key ||= select { |p| p.key? }.freeze
+      @key ||= select { |property| property.key? }.freeze
     end
 
     # TODO: document
     # @api semipublic
     def discriminator
-      @discriminator ||= detect { |p| p.type == Types::Discriminator }
+      @discriminator ||= detect { |property| property.type == Types::Discriminator }
     end
 
     # TODO: document
     # @api semipublic
     def indexes
       index_hash = {}
-      each { |p| parse_index(p.index, p.field, index_hash) }
+      each { |property| parse_index(property.index, property.field, index_hash) }
       index_hash
     end
 
@@ -89,38 +89,38 @@ module DataMapper
     # @api semipublic
     def unique_indexes
       index_hash = {}
-      each { |p| parse_index(p.unique_index, p.field, index_hash) }
+      each { |property| parse_index(property.unique_index, property.field, index_hash) }
       index_hash
     end
 
     # TODO: document
     # @api semipublic
     def get(resource)
-      map { |p| p.get(resource) }
+      map { |property| property.get(resource) }
     end
 
     # TODO: document
     # @api semipublic
     def get!(resource)
-      map { |p| p.get!(resource) }
+      map { |property| property.get!(resource) }
     end
 
     # TODO: document
     # @api semipublic
     def set(resource, values)
-      zip(values) { |p, v| p.set(resource, v) }
+      zip(values) { |property, value| property.set(resource, value) }
     end
 
     # TODO: document
     # @api semipublic
     def set!(resource, values)
-      zip(values) { |p, v| p.set!(resource, v) }
+      zip(values) { |property, value| property.set!(resource, value) }
     end
 
     # TODO: document
     # @api semipublic
     def loaded?(resource)
-      all? { |p| p.loaded?(resource) }
+      all? { |property| property.loaded?(resource) }
     end
 
     # TODO: document
@@ -159,7 +159,7 @@ module DataMapper
     # @api semipublic
     def initialize(*)
       super
-      @properties = map { |p| [ p.name, p ] }.to_mash
+      @properties = map { |property| [ property.name, property ] }.to_mash
     end
 
     # TODO: document

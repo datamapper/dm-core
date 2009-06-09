@@ -217,10 +217,10 @@ module DataMapper
     # Find a set of records matching an optional set of conditions. Additionally,
     # specify the order that the records are return.
     #
-    #   Zoo.all                         # all zoos
-    #   Zoo.all(:open => true)          # all zoos that are open
-    #   Zoo.all(:opened_on => (s..e))   # all zoos that opened on a date in the date-range
-    #   Zoo.all(:order => [:tiger_count.desc])  # Ordered by tiger_count
+    #   Zoo.all                                   # all zoos
+    #   Zoo.all(:open => true)                    # all zoos that are open
+    #   Zoo.all(:opened_on => start..end)         # all zoos that opened on a date in the date-range
+    #   Zoo.all(:order => [ :tiger_count.desc ])  # Ordered by tiger_count
     #
     # @param [Hash] query
     #   A hash describing the conditions and order for the query
@@ -351,11 +351,11 @@ module DataMapper
 
       # get the list of properties that exist in the source and destination
       destination_properties = properties(destination)
-      fields = query[:fields] ||= properties(source).select { |p| destination_properties.include?(p) }
+      fields = query[:fields] ||= properties(source).select { |property| destination_properties.include?(property) }
 
       repository(destination) do
         all(query.merge(:repository => source)).map do |resource|
-          create(fields.map { |p| [ p.name, p.get(resource) ] }.to_hash)
+          create(fields.map { |property| [ property.name, property.get(resource) ] }.to_hash)
         end
       end
     end
@@ -377,7 +377,7 @@ module DataMapper
       discriminator = properties(repository.name).discriminator
       no_reload     = !query.reload?
 
-      field_map = fields.map { |p| [ p, p.field ] }.to_hash
+      field_map = fields.map { |property| [ property, property.field ] }.to_hash
 
       records.map do |record|
         identity_map = nil
@@ -388,7 +388,7 @@ module DataMapper
           when Hash
             # remap fields to use the Property object
             record = record.dup
-            field_map.each { |p, f| record[p] = record.delete(f) if record.key?(f) }
+            field_map.each { |property, field| record[property] = record.delete(field) if record.key?(field) }
 
             model = discriminator && record[discriminator] || self
 
@@ -513,7 +513,7 @@ module DataMapper
     #
     # @api private
     def repositories
-      [ repository ].to_set + @properties.keys.map { |r| DataMapper.repository(r) }
+      [ repository ].to_set + @properties.keys.map { |repository_name| DataMapper.repository(repository_name) }
     end
 
     # TODO: document
@@ -601,7 +601,7 @@ module DataMapper
       return if @valid
 
       if properties(repository_name).empty? &&
-        !relationships(repository_name).any? { |(n, r)| r.kind_of?(Associations::ManyToOne::Relationship) }
+        !relationships(repository_name).any? { |(relationship_name, relationship)| relationship.kind_of?(Associations::ManyToOne::Relationship) }
         raise IncompleteModelError, "#{name} must have at least one property or many to one relationship to be valid"
       end
 
@@ -612,7 +612,7 @@ module DataMapper
       # initialize join models and target keys
       @relationships.each_value do |relationships|
         relationships.each_value do |relationship|
-          relationship.child_key if relationship.respond_to?(:resource_for)
+          relationship.child_key if relationship.kind_of?(Associations::ManyToOne::Relationship)
           relationship.through   if relationship.respond_to?(:through)
         end
       end

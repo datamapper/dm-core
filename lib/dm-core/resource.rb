@@ -133,7 +133,7 @@ module DataMapper
       if dirty_attributes.any?
         true
       elsif new?
-        model.identity_field || properties.any? { |p| p.default? }
+        model.identity_field || properties.any? { |property| property.default? }
       else
         false
       end
@@ -283,7 +283,7 @@ module DataMapper
     def reload
       if saved?
         reload_attributes(loaded_properties)
-        child_associations.each { |a| a.reload }
+        child_associations.each { |collection| collection.reload }
       end
 
       self
@@ -540,7 +540,7 @@ module DataMapper
     #
     # @api private
     def loaded_properties
-      properties.select { |p| p.loaded?(self) }
+      properties.select { |property| property.loaded?(self) }
     end
 
     ##
@@ -658,7 +658,7 @@ module DataMapper
     def _update
       if dirty_attributes.empty?
         true
-      elsif dirty_attributes.any? { |p, v| !p.nullable? && v.nil? }
+      elsif dirty_attributes.any? { |property, value| !property.nullable? && value.nil? }
         false
       else
         # remove from the identity map
@@ -707,7 +707,7 @@ module DataMapper
     #
     # @api private
     def save_children
-      child_associations.all? { |a| a.save }
+      child_associations.all? { |collection| collection.save }
     end
 
     ##
@@ -850,12 +850,12 @@ module DataMapper
 
       # get all the loaded and non-loaded properties that are not keys,
       # since the key comparison was performed earlier
-      loaded, not_loaded = properties.select { |p| !p.key? }.partition do |property|
+      loaded, not_loaded = properties.select { |property| !property.key? }.partition do |property|
         property.loaded?(self) && property.loaded?(other)
       end
 
       # check all loaded properties, and then all unloaded properties
-      (loaded + not_loaded).all? { |p| p.get(self).send(operator, p.get(other)) }
+      (loaded + not_loaded).all? { |property| property.get(self).send(operator, property.get(other)) }
     end
   end # module Resource
 end # module DataMapper

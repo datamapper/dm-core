@@ -1,5 +1,5 @@
 desc 'Generate gemspec'
-task :gemspec do |x|
+task :gemspec do
   # Clean up extraneous files before checking manifest
   %x[rake clean]
 

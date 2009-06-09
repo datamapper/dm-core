@@ -43,11 +43,11 @@ describe DataMapper::Model do
           end
 
           it 'should return Resources' do
-            @return.each { |r| r.should be_a_kind_of(DataMapper::Resource) }
+            @return.each { |resource| resource.should be_a_kind_of(DataMapper::Resource) }
           end
 
           it 'should have each Resource set to the expected Repository' do
-            @resources.each { |r| r.repository.name.should == @alternate_adapter.name }
+            @resources.each { |resource| resource.repository.name.should == @alternate_adapter.name }
           end
 
           it 'should create the Resources in the expected Repository' do
@@ -83,11 +83,11 @@ describe DataMapper::Model do
           end
 
           it 'should return Resources' do
-            @return.each { |r| r.should be_a_kind_of(DataMapper::Resource) }
+            @return.each { |resource| resource.should be_a_kind_of(DataMapper::Resource) }
           end
 
           it 'should have each Resource set to the expected Repository' do
-            @resources.each { |r| r.repository.name.should == :default }
+            @resources.each { |resource| resource.repository.name.should == :default }
           end
 
           it 'should create the Resources in the expected Repository' do
