@@ -611,7 +611,10 @@ module DataMapper
 
       # initialize join models and target keys
       @relationships.each_value do |relationships|
-        relationships.each_value { |r| r.child_key if r.kind_of?(Associations::ManyToOne::Relationship); r.through }
+        relationships.each_value do |relationship|
+          relationship.child_key if relationship.respond_to?(:resource_for)
+          relationship.through   if relationship.respond_to?(:through)
+        end
       end
 
       @valid = true

@@ -83,7 +83,7 @@ share_examples_for 'it creates a one mutator' do
       it 'should relate associated Resource' do
         relationship  = Car.relationships[@name]
         belongs_to    = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
-        has_1_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.through
+        has_1_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
 
         pending_if 'TODO', belongs_to || has_1_through do
           @expected.car.should == @car
@@ -146,7 +146,7 @@ share_examples_for 'it creates a one mutator' do
       it 'should relate associated Resource' do
         relationship  = Car.relationships[@name]
         belongs_to    = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
-        has_1_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.through
+        has_1_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
 
         pending_if 'should create back-reference', belongs_to || has_1_through do
           @expected.car.should == @car

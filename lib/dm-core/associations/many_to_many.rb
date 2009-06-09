@@ -2,6 +2,8 @@ module DataMapper
   module Associations
     module ManyToMany #:nodoc:
       class Relationship < Associations::OneToMany::Relationship
+        OPTIONS = (superclass::OPTIONS + [ :through ]).freeze
+
         ##
         # Returns a set of keys that identify the target model
         #
@@ -26,7 +28,24 @@ module DataMapper
 
         alias target_key child_key
 
-        # TODO: document
+        # Intermediate association for join model
+        # relationships
+        #
+        # Example: for :bugs association in
+        #
+        # class Software::Engineer
+        #   include DataMapper::Resource
+        #
+        #   has n, :missing_tests
+        #   has n, :bugs, :through => :missing_tests
+        # end
+        #
+        # through is :missing_tests
+        #
+        # TODO: document a case when
+        # through option is a model and
+        # not an association name
+        #
         # @api semipublic
         def through
           return @through if @through != Resource
@@ -58,7 +77,13 @@ module DataMapper
                 raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.target_model} within the #{source_repository_name.inspect} repository"
               end
 
-              [ through, target ].map { |r| (l = r.links).any? ? l : r }.flatten.freeze
+              [ through, target ].map do |relationship|
+                if relationship.respond_to?(:links)
+                  relationship.links
+                else
+                  relationship
+                end
+              end.flatten.freeze
             end
         end
 
@@ -148,6 +173,11 @@ module DataMapper
         end
 
         private
+
+        def initialize(name, source_model, target_model, options = {})
+          @through = options.fetch(:through)
+          super
+        end
 
         # TODO: document
         # @api private

@@ -917,7 +917,11 @@ module DataMapper
           when Associations::Relationship then link
         end
 
-        (links = relationship.links).any? ? links : relationship
+        if relationship.respond_to?(:links)
+          relationship.links
+        else
+          relationship
+        end
       end
 
       @links.flatten!
