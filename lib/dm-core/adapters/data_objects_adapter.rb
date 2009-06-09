@@ -440,14 +440,14 @@ module DataMapper
 
           statement = ''
 
-          # Find out which direction to traverse the linkages 
+          # Find out which direction to traverse the linkages
           # by inspecting the head of links (the list of matching pairs stored)
           iterator = (query.links.first.source_model == query.model ? :each : :reverse_each)
-          
+
           query.links.send(iterator) do |relationship|
             # Find out which end/model of the linkage is already part of the join
             # so that we may join the other end/model to the query.
-            model_to_join = 
+            model_to_join =
               if joined_models.include? relationship.source_model
                 relationship.target_model
               elsif joined_models.include? relationship.target_model
