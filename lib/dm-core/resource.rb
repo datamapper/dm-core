@@ -445,8 +445,7 @@ module DataMapper
       end
       cmp = 0
       model.default_order(repository_name).map do |direction|
-        cmp = direction.target.get!(self) <=> direction.target.get!(other)
-        cmp *= -1 if direction.operator == :desc
+        cmp = direction.get(self) <=> direction.get(other)
         break if cmp != 0
       end
       cmp

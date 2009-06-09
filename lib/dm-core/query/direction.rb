@@ -13,6 +13,12 @@ module DataMapper
         self
       end
 
+      # TODO: document
+      # @api private
+      def get(resource)
+        Sort.new(target.get(resource), @operator == :asc)
+      end
+
       private
 
       # TODO: document
