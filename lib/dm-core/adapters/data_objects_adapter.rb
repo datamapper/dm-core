@@ -435,23 +435,36 @@ module DataMapper
         #
         # @api private
         def join_statement(query, qualify)
-          previous_model = query.model
+          # get the model of origin for the query.
+          joined_models = [query.model]
 
           statement = ''
 
-          query.links[0..-1].reverse_each do |relationship|
-            model = if relationship.source_model == previous_model
-              relationship.target_model
-            else
-              relationship.source_model
-            end
+          # Find out which direction to traverse the linkages 
+          # by inspecting the head of links (the list of matching pairs stored)
+          iterator = (query.links.first.source_model == query.model ? :each : :reverse_each)
+          
+          query.links.send(iterator) do |relationship|
+            # Find out which end/model of the linkage is already part of the join
+            # so that we may join the other end/model to the query.
+            model_to_join = 
+              if joined_models.include? relationship.source_model
+                relationship.target_model
+              elsif joined_models.include? relationship.target_model
+                relationship.source_model
+              else
+                # and explode if neither model is related to the models already involved in the join
+                raise ArgumentError, "Unable to connect the relationship #{relationship.source_model} <-> #{relationship.target_model}) to any of the models already in the query (#{models_in_join.join(", ")}). Check the list of relationship links to ensure that they are being traversed correctly"
+              end
 
-            statement << " INNER JOIN #{quote_name(model.storage_name(name))} ON "
+            # find the name of the
+            statement << " INNER JOIN #{quote_name(model_to_join.storage_name(name))} ON "
             statement << relationship.target_key.zip(relationship.source_key).map do |target_property, source_property|
               "#{property_to_column_name(target_property, qualify)} = #{property_to_column_name(source_property, qualify)}"
             end.join(' AND ')
 
-            previous_model = model
+            # add our model to the list of candidate models that we can join on.
+            joined_models << model_to_join
           end
 
           statement
