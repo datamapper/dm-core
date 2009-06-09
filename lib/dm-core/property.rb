@@ -343,7 +343,7 @@ module DataMapper
     # @api semipublic
     def field(repository_name = nil)
       if repository_name
-        warn "Passing in +repository_name+ to #{self.class}#field is deprecated: #{caller[0]}"
+        warn "Passing in +repository_name+ to #{self.class}#field is deprecated (#{caller[0]})"
 
         if repository_name != self.repository_name
           raise ArgumentError, "Mismatching +repository_name+ with #{self.class}#repository_name (#{repository_name.inspect} != #{self.repository_name.inspect})"
@@ -783,7 +783,7 @@ module DataMapper
       options = options.dup
 
       if TrueClass == type
-        warn "#{type} is deprecated, use Boolean instead"
+        warn "#{type} is deprecated, use Boolean instead at #{caller[2]}"
         type = Types::Boolean
       elsif Integer == type && options.delete(:serial)
         warn "#{type} with explicit :serial option is deprecated, use Serial instead"

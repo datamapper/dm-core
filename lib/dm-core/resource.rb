@@ -20,7 +20,7 @@ module DataMapper
 
     # @deprecated
     def self.descendants
-      warn 'DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead'
+      warn "DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead (#{caller[0]})"
       DataMapper::Model.descendants
     end
 

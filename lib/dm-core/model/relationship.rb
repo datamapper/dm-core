@@ -156,7 +156,7 @@ module DataMapper
         assert_kind_of 'options', options, Hash
 
         if options.key?(:through)
-          warn "#{self.name}#belongs_to with :through is deprecated, use 'has 1, :#{name}, #{options.inspect}' in #{self.name} instead"
+          warn "#{self.name}#belongs_to with :through is deprecated, use 'has 1, :#{name}, #{options.inspect}' in #{self.name} instead (#{caller[0]})"
           return has(1, name, options)
         end
 
@@ -222,7 +222,7 @@ module DataMapper
 
         if options.key?(:class_name)
           assert_kind_of 'options[:class_name]', options[:class_name], String
-          warn '+options[:class_name]+ is deprecated, use :model instead'
+          warn "+options[:class_name]+ is deprecated, use :model instead (#{caller[1]})"
           options[:model] = options.delete(:class_name)
         end
 
