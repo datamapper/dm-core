@@ -80,17 +80,19 @@ module DataMapper
       # A shorthand, clear syntax for defining one-to-one, one-to-many and
       # many-to-many resource relationships.
       #
-      #  * has 1,    :friend    # one friend
-      #  * has n,    :friends   # many friends
-      #  * has 1..3, :friends   # many friends (at least 1, at most 3)
-      #  * has 3,    :friends   # many friends (exactly 3)
-      #  * has 1,    :friend,  :model   => 'User'       # one friend with the class User
-      #  * has 3,    :friends, :through => :friendships # many friends through the friendships relationship
+      #  * has 1,    :friend                             # one friend
+      #  * has n,    :friends                            # many friends
+      #  * has 1..3, :friends                            # many friends (at least 1, at most 3)
+      #  * has 3,    :friends                            # many friends (exactly 3)
+      #  * has 1,    :friend,  'User'                    # one friend with the class User
+      #  * has 3,    :friends, :through => :friendships  # many friends through the friendships relationship
       #
       # @param cardinality [Integer, Range, Infinity]
       #   cardinality that defines the association type and constraints
       # @param name [Symbol]
       #   the name that the association will be referenced by
+      # @param model [Model, #to_str]
+      #   the target model of the relationship
       # @param opts [Hash]
       #   an options hash
       #
@@ -108,15 +110,23 @@ module DataMapper
       #   Integer, Range or Infinity(n)
       #
       # @api public
-      def has(cardinality, name, options = {})
+      def has(cardinality, name, *args)
         assert_kind_of 'cardinality', cardinality, Integer, Range, n.class
         assert_kind_of 'name',        name,        Symbol
-        assert_kind_of 'options',     options,     Hash
+
+        model   = extract_model(args)
+        options = extract_options(args)
 
         min, max = extract_min_max(cardinality)
-        options = options.merge(:min => min, :max => max)
+        options.update(:min => min, :max => max)
 
         assert_valid_options(options)
+
+        if options.key?(:model) && model
+          raise ArgumentError, 'should not specify options[:model] if passing the model in the third argument'
+        end
+
+        model ||= options.delete(:model)
 
         # TODO: change to :target_respository_name and :source_repository_name
         options[:child_repository_name]  = options.delete(:repository)
@@ -128,7 +138,7 @@ module DataMapper
           Associations::OneToOne::Relationship
         end
 
-        relationships(repository.name)[name] = klass.new(name, options.delete(:model), self, options)
+        relationships(repository.name)[name] = klass.new(name, model, self, options)
       end
 
       ##
@@ -138,12 +148,15 @@ module DataMapper
       #  * belongs_to :friend, :model => 'User'          # many to one friend
       #  * belongs_to :reference, :repository => :pubmed # association for repository other than default
       #
-      # @param name [Symbol] The name that the association will be referenced by
-      # @see #has
+      # @param name [Symbol]
+      #   the name that the association will be referenced by
+      # @param model [Model, #to_str]
+      #   the target model of the relationship
+      # @param opts [Hash]
+      #   an options hash
       #
       # @option :model[Model, String] The name of the class to associate with, if omitted
       #   then the association name is assumed to match the class name
-      #
       # @option :repository[Symbol]
       #   name of child model repository
       #
@@ -151,27 +164,73 @@ module DataMapper
       #   should not be accessed directly
       #
       # @api public
-      def belongs_to(name, options = {})
-        assert_kind_of 'name',    name,    Symbol
-        assert_kind_of 'options', options, Hash
+      def belongs_to(name, *args)
+        assert_kind_of 'name', name, Symbol
+
+        model   = extract_model(args)
+        options = extract_options(args)
 
         if options.key?(:through)
           warn "#{self.name}#belongs_to with :through is deprecated, use 'has 1, :#{name}, #{options.inspect}' in #{self.name} instead (#{caller[0]})"
-          return has(1, name, options)
+          return has(1, name, model, options)
         end
 
-        options = options.dup
-
         assert_valid_options(options)
+
+        if options.key?(:model) && model
+          raise ArgumentError, 'should not specify options[:model] if passing the model in the third argument'
+        end
+
+        model ||= options.delete(:model)
 
         # TODO: change to source_repository_name and target_respository_name
         options[:child_repository_name]  = repository.name
         options[:parent_repository_name] = options.delete(:repository)
 
-        relationships(repository.name)[name] = Associations::ManyToOne::Relationship.new(name, self, options.delete(:model), options)
+        relationships(repository.name)[name] = Associations::ManyToOne::Relationship.new(name, self, model, options)
       end
 
       private
+
+      # Extract the model from an Array of arguments
+      #
+      # @param [Array(Model, String, Hash)]
+      #   The arguments passed to an relationship declaration
+      #
+      # @return [Model, #to_str]
+      #   target model for the association
+      #
+      # @api private
+      def extract_model(args)
+        model = args.first
+
+        if model.kind_of?(Model)
+          model
+        elsif model.respond_to?(:to_str)
+          model.to_str
+        else
+          nil
+        end
+      end
+
+      # Extract the model from an Array of arguments
+      #
+      # @param [Array(Model, String, Hash)]
+      #   The arguments passed to an relationship declaration
+      #
+      # @return [Hash]
+      #   options for the association
+      #
+      # @api private
+      def extract_options(args)
+        options = args.last
+
+        if options.kind_of?(Hash)
+          options.dup
+        else
+          {}
+        end
+      end
 
       ##
       # A support method for converting Integer, Range or Infinity values into two

@@ -11,9 +11,9 @@ describe DataMapper::Model do
         property :content, Text
         property :author,  String, :nullable => false
 
-        belongs_to :original, :model => self, :nullable => true
-        has n, :revisions, :model => self, :child_key => [ :original_id ]
-        has 1, :previous,  :model => self, :child_key => [ :original_id ], :order => [ :id.desc ]
+        belongs_to :original, self, :nullable => true
+        has n, :revisions, self, :child_key => [ :original_id ]
+        has 1, :previous,  self, :child_key => [ :original_id ], :order => [ :id.desc ]
       end
     end
 

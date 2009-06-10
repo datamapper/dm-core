@@ -467,6 +467,26 @@ describe DataMapper::Associations do
       end
     end
 
+    describe 'when the 3rd argument is a Model' do
+      before :all do
+        Car.has(1, :engine, Engine)
+      end
+
+      it 'should set the relationship target model' do
+        Car.relationships[:engine].target_model.should == Engine
+      end
+    end
+
+    describe 'when the 3rd argument is a String' do
+      before :all do
+        Car.has(1, :engine, 'Engine')
+      end
+
+      it 'should set the relationship target model' do
+        Car.relationships[:engine].target_model.should == Engine
+      end
+    end
+
     it 'should raise an exception if the cardinality is not understood' do
       lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
     end
