@@ -1,13 +1,24 @@
 # TODO: break this up into classes for each primary option, eg:
 #
-# - DataMapper::Query::Fields
-# - DataMapper::Query::Links
-# - DataMapper::Query::Offset
-# - DataMapper::Query::Limit
-# - DataMapper::Query::Order
+#   - DataMapper::Query::Fields
+#   - DataMapper::Query::Links
+#   - DataMapper::Query::Conditions
+#   - DataMapper::Query::Offset
+#   - DataMapper::Query::Limit
+#   - DataMapper::Query::Order
 #
 # TODO: move assertions, validations, transformations, and equality
-# checking into each class and clean up Query
+#   checking into each class and clean up Query
+#
+# TODO: add a way to "register" these classes with the Query object
+#   so that new reserved options can be added in the future.  Each
+#   class will need to implement a "slug" method or something similar
+#   so that their option namespace can be reserved.
+
+# TODO: move condition transformations into a Query::Conditions
+#   helper class that knows how to transform the primitives, and
+#   calls #comparison_for(repository, model) on objects (or some
+#   other convention that we establish)
 
 module DataMapper
 
@@ -933,81 +944,37 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @param [Symbol, String, Property, Path, Operator] subject
+    # @param [Property, Symbol, String, Operator, Associations::Relationship, Path] subject
     #   the subject to match
     # @param [Object] bind_value
     #   the value to match on
     # @param [Symbol] operator
     #   the operator to match with
     #
+    # @return [Query::Conditions::AbstractOperation]
+    #   the Query conditions
+    #
     # @api private
     def append_condition(subject, bind_value, operator = :eql)
-      subject = case subject
-        when Symbol
-          return append_condition(subject.to_s, bind_value, operator)
-
-        when String
-          if subject.include?('.')
-            query_path = model
-            subject.split('.').each { |method| query_path = query_path.send(method) }
-            return append_condition(query_path, bind_value, operator)
-          else
-            return append_condition(@properties[subject] || @relationships[subject], bind_value, operator)
-          end
-
-        when Operator
-          return append_condition(subject.target, bind_value, subject.operator)
-
-        when Path
-          @links.concat(subject.relationships)
-          subject
-
-        when Associations::Relationship
-          # TODO: when the bind_value is a Collection, and it is not loaded
-          # then use a subquery to scope the results rather than lazy loading
-          # it just to retrieve the Resource key
-
-          source_key = subject.source_key
-          target_key = subject.target_key
-
-          # TODO: when operations can be compacted, remove this if/else
-          # block and just act as if the keys are always compound.
-          if subject.source_key.size == 1 && subject.target_key.size == 1
-            source_key = source_key.first
-            target_key = target_key.first
-
-            if (source_values = Array(bind_value).map { |resource| target_key.get!(resource) }.compact).any?
-              append_condition(source_key, source_values, operator)
-            end
-          else
-            or_operation = Conditions::Operation.new(:or)
-
-            Array(bind_value).each do |resource|
-              next unless (source_values = target_key.get!(resource)).all?
-
-              and_operation = Conditions::Operation.new(:and)
-
-              source_key.zip(source_values) do |property, value|
-                and_operation << Conditions::Comparison.new(operator, property, value)
-              end
-
-              or_operation << and_operation
-            end
-
-            @conditions << or_operation if or_operation.any?
-          end
-
-          return @conditions
-
-        when Property
-          subject
+      case subject
+        when Property                   then append_property_condition(subject, bind_value, operator)
+        when Symbol                     then append_symbol_condition(subject, bind_value, operator)
+        when String                     then append_string_condition(subject, bind_value, operator)
+        when Operator                   then append_operator_conditions(subject, bind_value)
+        when Associations::Relationship then append_relationship_condition(subject, bind_value, operator)
+        when Path                       then append_path(subject, bind_value, operator)
+        else
+          raise ArgumentError, "#{subject} is an invalid instance: #{subject.class}"
       end
+    end
 
-      # TODO: push this logic into Conditions objects
-      bind_value = normalize_bind_value(subject, bind_value)
+    # TODO: document
+    # @api private
+    def append_property_condition(property, bind_value, operator)
+      bind_value = normalize_bind_value(property, bind_value)
       negated    = operator == :not
 
-      if operator == :eql || operator == :not
+      if operator == :eql || negated
         operator = case bind_value
           when Array, Range then :in
           when Regexp       then :regexp
@@ -1015,7 +982,7 @@ module DataMapper
         end
       end
 
-      condition = Conditions::Comparison.new(operator, subject, bind_value)
+      condition = Conditions::Comparison.new(operator, property, bind_value)
 
       if negated
         condition = Conditions::Operation.new(:not, condition)
@@ -1024,11 +991,82 @@ module DataMapper
       @conditions << condition
     end
 
+    # TODO: document
+    # @api private
+    def append_symbol_condition(symbol, bind_value, operator)
+      append_condition(symbol.to_s, bind_value, operator)
+    end
+
+    # TODO: document
+    # @api private
+    def append_string_condition(string, bind_value, operator)
+      if string.include?('.')
+        query_path = model
+        string.split('.').each { |method| query_path = query_path.send(method) }
+
+        append_condition(query_path, bind_value, operator)
+      else
+        append_condition(@properties[string] || @relationships[string], bind_value, operator)
+      end
+    end
+
+    # TODO: document
+    # @api private
+    def append_operator_conditions(operator, bind_value)
+      append_condition(operator.target, bind_value, operator.operator)
+    end
+
+    # TODO: document
+    # @api private
+    def append_path(path, bind_value, operator)
+      @links.concat(path.relationships)
+      append_condition(path.property, bind_value, operator)
+    end
+
+    # TODO: document
+    # @api private
+    def append_relationship_condition(relationship, bind_value, operator)
+      # TODO: when the bind_value is a Collection, and it is not loaded
+      # then use a subquery to scope the results rather than lazy loading
+      # it just to retrieve the Resource key
+
+      source_key = relationship.source_key
+      target_key = relationship.target_key
+
+      # TODO: when operations can be compacted, remove this if/else
+      # block and just act as if the keys are always compound.
+      if relationship.source_key.size == 1 && relationship.target_key.size == 1
+        source_key = source_key.first
+        target_key = target_key.first
+
+        if (source_values = Array(bind_value).map { |resource| target_key.get!(resource) }.compact).any?
+          append_condition(source_key, source_values, operator)
+        end
+      else
+        or_operation = Conditions::Operation.new(:or)
+
+        Array(bind_value).each do |resource|
+          next unless (source_values = target_key.get!(resource)).all?
+
+          and_operation = Conditions::Operation.new(:and)
+
+          source_key.zip(source_values) do |property, value|
+            and_operation << Conditions::Comparison.new(operator, property, value)
+          end
+
+          or_operation << and_operation
+        end
+
+        @conditions << or_operation if or_operation.any?
+      end
+
+      @conditions
+    end
+
     # TODO: make this typecast all bind values that do not match the
     # property primitive
 
     # TODO: document
-    #   TODO: needs example
     # @api private
     def normalize_bind_value(property_or_path, bind_value)
       if bind_value.kind_of?(Proc)

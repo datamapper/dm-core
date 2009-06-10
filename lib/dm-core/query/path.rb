@@ -1,3 +1,9 @@
+# TODO: instead of an Array of Path objects, create a Relationship
+# on the fly using :through on the previous relationship, creating a
+# chain.  Query::Path could then be a thin wrapper that specifies extra
+# conditions on the Relationships, like the target property o match
+# on.
+
 module DataMapper
   class Query
     class Path

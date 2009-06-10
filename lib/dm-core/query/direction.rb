@@ -1,3 +1,15 @@
+# TODO: rename this DM::Symbol::Direction
+
+# TODO: add a method to convert it into a DM::Query::Sort object, eg:
+#   operator.sort_for(model)
+
+# TODO: rename #target to #property_name
+
+# TODO: make sure Query converts this into a DM::Query::Sort object
+#   immediately and passes that down to the Adapter
+
+# TODO: remove #get method
+
 module DataMapper
   class Query
     class Direction < Operator
