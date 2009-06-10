@@ -27,9 +27,7 @@ module DataMapper
       # TODO: document
       # @api public
       def auto_upgrade!(repository_name = nil)
-        with_each_model_and_repository(repository_name) do |model, repository_name|
-          model.auto_upgrade!(repository_name)
-        end
+        repository_execute(:auto_upgrade!, repository_name)
       end
 
       private
@@ -37,24 +35,20 @@ module DataMapper
       # TODO: document
       # @api private
       def auto_migrate_down!(repository_name)
-        with_each_model_and_repository(repository_name) do |model, repository_name|
-          model.auto_migrate_down!(repository_name)
-        end
+        repository_execute(:auto_migrate_down!, repository_name)
       end
 
       # TODO: document
       # @api private
       def auto_migrate_up!(repository_name)
-        with_each_model_and_repository(repository_name) do |model, repository_name|
-          model.auto_migrate_up!(repository_name)
-        end
+        repository_execute(:auto_migrate_up!, repository_name)
       end
 
       # TODO: document
       # @api private
-      def with_each_model_and_repository(repository_name)
+      def repository_execute(method, repository_name)
         DataMapper::Model.descendants.each do |model|
-          yield model, repository_name || model.default_repository_name
+          model.send(method, repository_name || model.default_repository_name)
         end
       end
     end
