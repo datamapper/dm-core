@@ -915,86 +915,86 @@ module DataMapper
     # Typecasts an arbitrary value to a DateTime.
     # Handles both Hashes and DateTime instances.
     #
-    # @param [Hash, #to_s] value
+    # @param [#to_mash, #to_s] value
     #   value to be typecast to DateTime
     #
     # @return [DateTime]
-    #   Value type casted to DateTime
+    #   DateTime constructed from value
     #
     # @api private
     def typecast_to_datetime(value)
-      case value
-        when Hash then typecast_hash_to_datetime(value)
-        else           DateTime.parse(value.to_s)
+      if value.kind_of?(Hash)
+        typecast_hash_to_datetime(value)
+      else
+        DateTime.parse(value.to_s)
       end
     end
 
     # Typecasts an arbitrary value to a Date
     # Handles both Hashes and Date instances.
     #
-    # @param [Hash, #to_s] value
+    # @param [#to_mash, #to_s] value
     #   value to be typecast to Date
     #
     # @return [Date]
-    #   Value type casted to Date
+    #   Date constructed from value
     #
     # @api private
     def typecast_to_date(value)
-      case value
-        when Hash then typecast_hash_to_date(value)
-        else           Date.parse(value.to_s)
+      if value.kind_of?(Hash)
+        typecast_hash_to_date(value)
+      else
+        Date.parse(value.to_s)
       end
     end
 
     # Typecasts an arbitrary value to a Time
     # Handles both Hashes and Time instances.
     #
-    # @param [Hash, #to_s] value
-    #   value to be typecast to Time. Hash objects will be passed to
-    #   #typecast_hash_to_time, anything else will have
-    #   +Time.parse(value.to_s)+ called
+    # @param [#to_mash, #to_s] value
+    #   value to be typecast to Time
     #
     # @return [Time]
-    #   +value+ typecasted to Time
+    #   Time constructed from value
     #
     # @api private
     def typecast_to_time(value)
-      case value
-        when Hash then typecast_hash_to_time(value)
-        else           Time.parse(value.to_s)
+      if value.kind_of?(Hash)
+        typecast_hash_to_time(value)
+      else
+        Time.parse(value.to_s)
       end
     end
 
     # Creates a DateTime instance from a Hash with keys :year, :month, :day,
     # :hour, :min, :sec
     #
-    # @param [Hash] hash
-    #   hash to be typecast to DateTime
+    # @param [#to_mash] hash
+    #   Hash to be typecast to DateTime
     #
     # @return [DateTime]
-    #   DateTime object constructed from a Hash.
+    #   DateTime constructed from hash
     #
     # @api private
     def typecast_hash_to_datetime(hash)
-      args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
-      DateTime.new(*args)
+      DateTime.new(*extract_time(hash))
     rescue ArgumentError
       typecast_hash_to_time(hash).to_datetime
     end
 
     # Creates a Date instance from a Hash with keys :year, :month, :day
     #
-    # @param [Hash] hash
-    #   hash to be typecast to Date
+    # @param [#to_mash] hash
+    #   Hash to be typecast to Date
     #
     # @return [Date]
-    #   Date object constructed from a Hash.
+    #   Date constructed from hash
     #
     # @api private
     def typecast_hash_to_date(hash)
-      args = extract_time_args_from_hash(hash, :year, :month, :day)
-      Date.new(*args)
+      Date.new(*extract_time(hash)[0, 3])
     rescue ArgumentError
+      # TODO: use Time#to_date once available in Extlib
       time = typecast_hash_to_time(hash)
       Date.new(time.year, time.month, time.day)
     end
@@ -1002,33 +1002,34 @@ module DataMapper
     # Creates a Time instance from a Hash with keys :year, :month, :day,
     # :hour, :min, :sec
     #
-    # @param [Hash] hash
-    #   hash to be typecast to Time
+    # @param [#to_mash] hash
+    #   Hash to be typecast to Time
     #
     # @return [Time]
-    #   Time object constructed from a Hash.
+    #   Time constructed from hash
     #
     # @api private
     def typecast_hash_to_time(hash)
-      args = extract_time_args_from_hash(hash, :year, :month, :day, :hour, :min, :sec)
-      Time.local(*args)
+      Time.local(*extract_time(hash))
     end
 
     # Extracts the given args from the hash. If a value does not exist, it
     # uses the value of Time.now.
     #
-    # @param [Hash] hash
-    #   hash to extract time args from
-    # @param [Hash] args
-    #   time args to extract from +hash+
+    # @param [#to_mash] hash
+    #   Hash to extract time args from
     #
     # @return [Array]
     #   Extracted values
     #
     # @api private
-    def extract_time_args_from_hash(hash, *args)
-      now = Time.now
-      args.map { |arg| hash[arg] || hash[arg.to_s] || now.send(arg) }
+    def extract_time(hash)
+      mash = hash.to_mash
+      now  = Time.now
+
+      [ :year, :month, :day, :hour, :min, :sec ].map do |segment|
+        mash.fetch(segment, now.send(segment))
+      end
     end
 
     ##
