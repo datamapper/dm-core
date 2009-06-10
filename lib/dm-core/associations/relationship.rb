@@ -282,15 +282,8 @@ module DataMapper
       #
       # @api semipublic
       def initialize(name, child_model, parent_model, options = {})
-        case child_model
-          when Model  then @child_model      = child_model
-          when String then @child_model_name = child_model.dup.freeze
-        end
-
-        case parent_model
-          when Model  then @parent_model      = parent_model
-          when String then @parent_model_name = parent_model.dup.freeze
-        end
+        initialize_model_ivar('child_model',  child_model)
+        initialize_model_ivar('parent_model', parent_model)
 
         @name                   = name
         @instance_variable_name = "@#{@name}".freeze
@@ -306,6 +299,30 @@ module DataMapper
 
         create_reader
         create_writer
+      end
+
+      # Set the correct ivar if the value is a String or Model object
+      #
+      # @param [String]
+      #   the name of the ivar to set
+      # @param [Model, #to_str] model
+      #   the Model or String to set in the ivar
+      #
+      # @return [Model, #to_str]
+      #   the ivar value
+      #
+      # @raise [ArgumentError]
+      #   when model is not a Model and does not respond to #to_str
+      #
+      # @api private
+      def initialize_model_ivar(name, model)
+        if model.kind_of?(Model)
+          instance_variable_set("@#{name}", model)
+        elsif model.respond_to?(:to_str)
+          instance_variable_set("@#{name}_name", model.to_str.dup.freeze)
+        else
+          raise ArgumentError, "#{name} is not a Model and does not respond to #to_str"
+        end
       end
 
       # TODO: document
