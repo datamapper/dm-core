@@ -26,6 +26,7 @@ describe DataMapper::Property do
       # WxH, stored as a dumped Ruby pair
       property :size,         Object
       property :filesize,     Float
+      property :width,        Integer
 
       property :taken_on,     Date
       property :taken_at,     Time, :default => lambda { |resource, property| Time.now }
@@ -321,20 +322,39 @@ describe DataMapper::Property do
       describe "when type primitive is an integer" do
         describe "and value only has digits in it" do
           it 'returns integer representation of the value' do
-            Image.properties[:filesize].typecast("24").should == 24
+            Image.properties[:width].typecast("24").should == 24
           end
         end
 
-        describe "and value is a string representation of a hex or octal integer" do
-          it 'returns 0' do
-            Image.properties[:filesize].typecast("0x24").should == 0.0
+        describe "and value is a string representation of a hex, binary or octal integer" do
+          it 'returns 36' do
+            Image.properties[:width].typecast("0x24").should == 36
           end
+
+          it 'returns 5' do
+            Image.properties[:width].typecast("0b101").should == 5
+          end
+
+          it 'returns 19' do
+            Image.properties[:width].typecast("023").should == 19
+          end
+
+        end
+
+        describe "and it has various valid presentations of 0" do
+          it { Image.properties[:width].typecast(0).should == 0 }
+          it { Image.properties[:width].typecast(0.0).should == 0 }
+          it { Image.properties[:width].typecast("0").should == 0 }
+          it { Image.properties[:width].typecast("0.0").should == 0 }
+          it { Image.properties[:width].typecast("0x0").should == 0 }
+          it { Image.properties[:width].typecast(BigDecimal("0.0")).should == 0 }
+          it { Image.properties[:width].typecast(Rational(0,1)).should == 0 }
         end
 
         describe "but value has non-digits and punctuation in it" do
           it "returns result of property type's casting of nil" do
             # nil.to_f => 0.0
-            Image.properties[:filesize].typecast("datamapper").should == 0.0
+            Image.properties[:width].typecast("datamapper").should be_nil
           end
         end
       end

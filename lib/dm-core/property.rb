@@ -696,11 +696,15 @@ module DataMapper
           # these two alternatives:
           # * Integer(value) rescue nil
           # * Integer(value_to_s =~ /(\d+)/ ? $1 : value_to_s) rescue nil
-          value_to_i = value.to_i
-          if value_to_i == 0
-            value.to_s =~ /\A(0x|0b)?0+\z/ ? 0 : nil
-          else
-            value_to_i
+
+          # DB: I've reverted this to Integer(value), since the behavior
+          # DB: of Integer(value) is NOT the same as value.to_i, for example:
+          # Integer("0x24") == 36
+          # "0x24".to_i == 0
+          begin
+            Integer(value)
+          rescue
+            value.to_s =~ /^(0x|0b|0\.)?0+$/ ? 0 : nil
           end
         elsif primitive == String     then value.to_s
         elsif primitive == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
