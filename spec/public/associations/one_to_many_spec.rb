@@ -11,7 +11,7 @@ share_examples_for 'It can transfer a Resource from another association' do
   end
 
   it 'should relate the Resource to the Collection' do
-    @resource.collection.should be_equal(@articles)
+    @resource.collection.should equal(@articles)
   end
 
   it 'should remove the Resource from the original Collection' do
@@ -93,7 +93,7 @@ end
           end
 
           it 'should return self' do
-            @return.should be_equal(@articles)
+            @return.should equal(@articles)
           end
 
           it_should_behave_like 'It can transfer a Resource from another association'
@@ -113,7 +113,7 @@ end
           end
 
           it 'should return self' do
-            @return.should be_equal(@articles)
+            @return.should equal(@articles)
           end
 
           it_should_behave_like 'It can transfer a Resource from another association'
@@ -133,7 +133,7 @@ end
           end
 
           it 'should return self' do
-            @return.should be_equal(@articles)
+            @return.should equal(@articles)
           end
 
           it_should_behave_like 'It can transfer a Resource from another association'
@@ -186,7 +186,7 @@ end
           end
 
           it 'should return self' do
-            @return.should be_equal(@articles)
+            @return.should equal(@articles)
           end
 
           it_should_behave_like 'It can transfer a Resource from another association'
@@ -240,7 +240,7 @@ end
           end
 
           it 'should return self' do
-            @return.should be_equal(@articles)
+            @return.should equal(@articles)
           end
 
           it_should_behave_like 'It can transfer a Resource from another association'
@@ -260,11 +260,11 @@ end
           end
 
           it 'should return self' do
-            @return.should be_equal(@articles)
+            @return.should equal(@articles)
           end
 
           it 'should relate the Resource to the Collection' do
-            @resource.collection.should be_equal(@articles)
+            @resource.collection.should equal(@articles)
           end
 
           it_should_behave_like 'It can transfer a Resource from another association'
@@ -284,7 +284,7 @@ end
           end
 
           it 'should return self' do
-            @return.should be_equal(@articles)
+            @return.should equal(@articles)
           end
 
           it_should_behave_like 'It can transfer a Resource from another association'

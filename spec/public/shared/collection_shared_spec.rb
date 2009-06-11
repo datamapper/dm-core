@@ -35,15 +35,15 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should return self' do
-      @return.should be_equal(@articles)
+      @return.should equal(@articles)
     end
 
     it 'should append one Resource to the Collection' do
-      @articles.last.should be_equal(@resource)
+      @articles.last.should equal(@resource)
     end
 
-    it 'should relate the Resource to the Collection' do
-      @resource.collection.should be_equal(@articles)
+    it 'should not relate the Resource to the Collection' do
+      @resource.collection.should_not equal(@articles)
     end
   end
 
@@ -62,7 +62,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       it 'should be expected Resources' do
@@ -70,7 +70,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should have the same query as original Collection' do
-        @collection.query.should be_equal(@articles.query)
+        @collection.query.should equal(@articles.query)
       end
 
       it 'should scope the Collection' do
@@ -93,7 +93,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be a new Collection' do
-        @return.should_not be_equal(@articles)
+        @return.should_not equal(@articles)
       end
 
       it 'should be expected Resources' do
@@ -127,7 +127,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be a new Collection' do
-        @return.should_not be_equal(@articles)
+        @return.should_not equal(@articles)
       end
 
       it 'should be expected Resources' do
@@ -176,8 +176,8 @@ share_examples_for 'A public Collection' do
         @resource.should == @article
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it "should #{'not' unless loaded} relate the Resource to the Collection" do
+        @resource.collection.equal?(@articles).should == loaded
       end
     end
 
@@ -199,11 +199,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return expected Resource' do
-        @resource.should be_equal(@other)
+        @resource.should equal(@other)
       end
 
       it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+        @resource.collection.should equal(@articles)
       end
     end
 
@@ -228,8 +228,8 @@ share_examples_for 'A public Collection' do
         @resource.should == @article
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it "should #{'not' unless loaded} relate the Resource to the Collection" do
+        @resource.collection.equal?(@articles).should == loaded
       end
     end
 
@@ -251,11 +251,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return expected Resource' do
-        @resource.should be_equal(@other)
+        @resource.should equal(@other)
       end
 
       it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+        @resource.collection.should equal(@articles)
       end
     end
   end
@@ -274,7 +274,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should return self' do
-      @return.should be_equal(@articles)
+      @return.should equal(@articles)
     end
 
     it 'should make the Collection empty' do
@@ -282,7 +282,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should orphan the Resources' do
-      @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+      @resources.each { |resource| resource.collection.should_not equal(@articles) }
     end
   end
 
@@ -301,7 +301,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       it 'should update the Collection inline' do
@@ -309,7 +309,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan each replaced Resource in the Collection' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
   end
@@ -326,7 +326,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should return self' do
-      @return.should be_equal(@articles)
+      @return.should equal(@articles)
     end
 
     it 'should concatenate the two collections' do
@@ -334,7 +334,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should relate each Resource to the Collection' do
-      @other_articles.each { |resource| resource.collection.should be_equal(@articles) }
+      @other_articles.each { |resource| resource.collection.should equal(@articles) }
     end
   end
 
@@ -355,7 +355,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        @articles.last.should be_equal(@resource)
+        @articles.last.should equal(@resource)
       end
 
       it 'should use the query conditions to set default values' do
@@ -383,7 +383,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        @articles.last.should be_equal(@resource)
+        @articles.last.should equal(@resource)
       end
 
       it 'should not use the query conditions to set default values' do
@@ -411,7 +411,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        @articles.last.should be_equal(@resource)
+        @articles.last.should equal(@resource)
       end
 
       it 'should not use the query conditions to set default values' do
@@ -439,7 +439,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        @articles.last.should be_equal(@resource)
+        @articles.last.should equal(@resource)
       end
 
       it 'should not use the query conditions to set default values' do
@@ -475,7 +475,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resource' do
-        @resource.collection.should_not be_equal(@articles)
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -511,7 +511,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resource' do
-        @resource.collection.should_not be_equal(@articles)
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -541,7 +541,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       it 'should remove the Resources from the Collection' do
@@ -549,7 +549,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
 
@@ -565,7 +565,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       it 'should not modify the Collection' do
@@ -698,8 +698,8 @@ share_examples_for 'A public Collection' do
         @resource.should == @copy.entries.first
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.object_id.should == @articles.object_id
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -713,15 +713,15 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return expected Resource' do
-        @resource.should be_equal(@other)
+        @resource.should equal(@other)
       end
 
       it 'should be first Resource in the Collection' do
-        @resource.should be_equal(@copy.entries.unshift(@other).first)
+        @resource.should equal(@copy.entries.unshift(@other).first)
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -742,8 +742,8 @@ share_examples_for 'A public Collection' do
         @resource.should == @copy.entries.first
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -757,15 +757,15 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return expected Resource' do
-        @resource.should be_equal(@other)
+        @resource.should equal(@other)
       end
 
       it 'should be first Resource in the Collection' do
-        @resource.should be_equal(@copy.entries.unshift(@other).first)
+        @resource.should equal(@copy.entries.unshift(@other).first)
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -782,8 +782,8 @@ share_examples_for 'A public Collection' do
         @resource.should == @article
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -805,7 +805,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
 
@@ -827,7 +827,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
 
@@ -845,7 +845,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
   end
@@ -870,8 +870,8 @@ share_examples_for 'A public Collection' do
         @resource.should be_saved
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -896,7 +896,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+        @resource.collection.should equal(@articles)
       end
     end
   end
@@ -921,8 +921,8 @@ share_examples_for 'A public Collection' do
         @resource.should be_saved
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -947,7 +947,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+        @resource.collection.should equal(@articles)
       end
     end
   end
@@ -1166,7 +1166,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should return self' do
-      @return.should be_equal(@articles)
+      @return.should equal(@articles)
     end
 
     it 'should insert one or more Resources at a given offset' do
@@ -1174,7 +1174,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      @resources.each { |resource| resource.collection.should be_equal(@articles) }
+      @resources.each { |resource| resource.collection.should equal(@articles) }
     end
   end
 
@@ -1223,8 +1223,8 @@ share_examples_for 'A public Collection' do
         @resource.should == @copy.entries.last
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -1238,15 +1238,15 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return expected Resource' do
-        @resource.should be_equal(@other)
+        @resource.should equal(@other)
       end
 
       it 'should be last Resource in the Collection' do
-        @resource.should be_equal(@copy.entries.push(@other).last)
+        @resource.should equal(@copy.entries.push(@other).last)
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -1263,8 +1263,8 @@ share_examples_for 'A public Collection' do
         @resource.should == @article
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should be_equal(@articles)
+      it 'should not relate the Resource to the Collection' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -1286,7 +1286,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
 
@@ -1308,7 +1308,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
 
@@ -1326,7 +1326,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
   end
@@ -1539,7 +1539,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        @articles.last.should be_equal(@resource)
+        @articles.last.should equal(@resource)
       end
 
       it 'should use the query conditions to set default values' do
@@ -1563,7 +1563,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        @articles.last.should be_equal(@resource)
+        @articles.last.should equal(@resource)
       end
 
       it 'should not use the query conditions to set default values' do
@@ -1587,7 +1587,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        @articles.last.should be_equal(@resource)
+        @articles.last.should equal(@resource)
       end
 
       it 'should not use the query conditions to set default values' do
@@ -1611,7 +1611,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should append the Resource to the Collection' do
-        @articles.last.should be_equal(@resource)
+        @articles.last.should equal(@resource)
       end
 
       it 'should not use the query conditions to set default values' do
@@ -1642,7 +1642,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should orphan the Resource' do
-      @resource.collection.should_not be_equal(@articles)
+      @resource.collection.should_not equal(@articles)
     end
   end
 
@@ -1660,7 +1660,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should return self' do
-      @return.should be_equal(@articles)
+      @return.should equal(@articles)
     end
 
     it 'should append the Resources to the Collection' do
@@ -1668,7 +1668,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      @resources.each { |resource| resource.collection.should be_equal(@articles) }
+      @resources.each { |resource| resource.collection.should equal(@articles) }
     end
   end
 
@@ -1687,7 +1687,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       it 'should remove the Resources from the Collection' do
@@ -1695,7 +1695,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
 
@@ -1741,7 +1741,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       { :title => true, :content => false }.each do |attribute, expected|
@@ -1773,7 +1773,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       { :id => true, :content => true, :title => true }.each do |attribute, expected|
@@ -1805,7 +1805,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       { :id => true, :content => true, :title => loaded }.each do |attribute, expected|
@@ -1833,7 +1833,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       it 'should update the Collection with new Resources' do
@@ -1841,11 +1841,11 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should relate each Resource added to the Collection' do
-        @articles.each { |resource| resource.collection.should be_equal(@articles) }
+        @articles.each { |resource| resource.collection.should equal(@articles) }
       end
 
       it 'should orphan each Resource removed from the Collection' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
 
@@ -1861,7 +1861,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       it 'should initialize a Resource' do
@@ -1918,7 +1918,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should return self' do
-      @return.should be_equal(@articles)
+      @return.should equal(@articles)
     end
 
     it 'should return a Collection with reversed entries' do
@@ -1962,7 +1962,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
   end
@@ -1989,7 +1989,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should orphan the Resource' do
-      @resource.collection.should_not be_equal(@articles)
+      @resource.collection.should_not equal(@articles)
     end
   end
 
@@ -2022,7 +2022,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should relate the Resource to the Collection' do
-          @resource.collection.should be_equal(@articles)
+          @resource.collection.should equal(@articles)
         end
       end
 
@@ -2044,7 +2044,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+          @resources.each { |resource| resource.collection.should_not equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -2070,7 +2070,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+          @resources.each { |resource| resource.collection.should_not equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -2098,7 +2098,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should relate the Resource to the Collection' do
-          @resource.collection.should be_equal(@articles)
+          @resource.collection.should equal(@articles)
         end
       end
 
@@ -2120,7 +2120,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+          @resources.each { |resource| resource.collection.should_not equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -2146,7 +2146,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the Resources' do
-          @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+          @resources.each { |resource| resource.collection.should_not equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -2229,7 +2229,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resource' do
-        @resource.collection.should_not be_equal(@articles)
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -2253,7 +2253,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -2281,7 +2281,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -2309,7 +2309,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resource' do
-        @resource.collection.should_not be_equal(@articles)
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -2333,7 +2333,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -2361,7 +2361,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not be_equal(@articles) }
+        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -2419,7 +2419,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       it 'should modify and sort the Collection using default sort order' do
@@ -2437,7 +2437,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should return self' do
-        @return.should be_equal(@articles)
+        @return.should equal(@articles)
       end
 
       it 'should modify and sort the Collection using supplied block' do
@@ -2469,7 +2469,7 @@ share_examples_for 'A public Collection' do
         before :all do
           rescue_if 'TODO', @skip do
             @original = @copy[1]
-            @original.collection.should be_equal(@articles)
+            @original.collection.should equal(@articles)
 
             @return = @resource = @articles.send(method, 1, @new)
           end
@@ -2480,7 +2480,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Resource' do
-          @return.should be_equal(@new)
+          @return.should equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
@@ -2492,11 +2492,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should relate the Resource to the Collection' do
-          @resource.collection.should be_equal(@articles)
+          @resource.collection.should equal(@articles)
         end
 
         it 'should orphan the original Resource' do
-          @original.collection.should_not be_equal(@articles)
+          @original.collection.should_not equal(@articles)
         end
       end
 
@@ -2504,7 +2504,7 @@ share_examples_for 'A public Collection' do
         before :all do
           rescue_if 'TODO', @skip do
             @original = @copy[2]
-            @original.collection.should be_equal(@articles)
+            @original.collection.should equal(@articles)
 
             @return = @resource = @articles.send(method, 2, 1, @new)
           end
@@ -2515,7 +2515,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return the expected Resource' do
-          @return.should be_equal(@new)
+          @return.should equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
@@ -2527,7 +2527,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resource' do
-          @original.collection.should_not be_equal(@articles)
+          @original.collection.should_not equal(@articles)
         end
       end
 
@@ -2535,7 +2535,7 @@ share_examples_for 'A public Collection' do
         before :all do
           rescue_if 'TODO', @skip do
             @originals = @copy.values_at(2..3)
-            @originals.each { |resource| resource.collection.should be_equal(@articles) }
+            @originals.each { |resource| resource.collection.should equal(@articles) }
 
             @return = @resource = @articles.send(method, 2..3, @new)
           end
@@ -2546,7 +2546,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return the expected Resources' do
-            @return.should be_equal(@new)
+            @return.should equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
@@ -2558,7 +2558,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resources' do
-          @originals.each { |resource| resource.collection.should_not be_equal(@articles) }
+          @originals.each { |resource| resource.collection.should_not equal(@articles) }
         end
       end
 
@@ -2566,7 +2566,7 @@ share_examples_for 'A public Collection' do
         before :all do
           rescue_if 'TODO', @skip do
             @original = @copy[-1]
-            @original.collection.should be_equal(@articles)
+            @original.collection.should equal(@articles)
 
             @return = @resource = @articles.send(method, -1, @new)
           end
@@ -2577,7 +2577,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Resource' do
-          @return.should be_equal(@new)
+          @return.should equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
@@ -2589,11 +2589,11 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should relate the Resource to the Collection' do
-          @resource.collection.should be_equal(@articles)
+          @resource.collection.should equal(@articles)
         end
 
         it 'should orphan the original Resource' do
-          @original.collection.should_not be_equal(@articles)
+          @original.collection.should_not equal(@articles)
         end
       end
 
@@ -2601,7 +2601,7 @@ share_examples_for 'A public Collection' do
         before :all do
           rescue_if 'TODO', @skip do
             @original = @copy[-2]
-            @original.collection.should be_equal(@articles)
+            @original.collection.should equal(@articles)
 
             @return = @resource = @articles.send(method, -2, 1, @new)
           end
@@ -2612,7 +2612,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return the expected Resource' do
-          @return.should be_equal(@new)
+          @return.should equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
@@ -2624,7 +2624,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resource' do
-          @original.collection.should_not be_equal(@articles)
+          @original.collection.should_not equal(@articles)
         end
       end
 
@@ -2632,7 +2632,7 @@ share_examples_for 'A public Collection' do
         before :all do
           rescue_if 'TODO', @skip do
             @originals = @copy.values_at(-3..-2)
-            @originals.each { |resource| resource.collection.should be_equal(@articles) }
+            @originals.each { |resource| resource.collection.should equal(@articles) }
 
             @return = @resource = @articles.send(method, -3..-2, @new)
           end
@@ -2643,7 +2643,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return the expected Resources' do
-          @return.should be_equal(@new)
+          @return.should equal(@new)
         end
 
         it 'should return the same as Array#[]=' do
@@ -2655,7 +2655,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should orphan the original Resources' do
-          @originals.each { |resource| resource.collection.should_not be_equal(@articles) }
+          @originals.each { |resource| resource.collection.should_not equal(@articles) }
         end
       end
     end
@@ -2675,7 +2675,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should return self' do
-      @return.should be_equal(@articles)
+      @return.should equal(@articles)
     end
 
     it 'should prepend the Resources to the Collection' do
@@ -2683,7 +2683,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should relate the Resources to the Collection' do
-      @resources.each { |resource| resource.collection.should be_equal(@articles) }
+      @resources.each { |resource| resource.collection.should equal(@articles) }
     end
   end
 

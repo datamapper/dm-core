@@ -1243,7 +1243,7 @@ describe DataMapper::Query do
       end
 
       it 'should not be the records provided' do
-        @return.should_not be_equal(@records)
+        @return.should_not equal(@records)
       end
 
       it 'should return expected values' do
@@ -1311,7 +1311,7 @@ describe DataMapper::Query do
       end
 
       it 'should not be the records provided' do
-        @return.should_not be_equal(@records)
+        @return.should_not equal(@records)
       end
 
       it 'should return expected values' do
@@ -1353,7 +1353,7 @@ describe DataMapper::Query do
       end
 
       it 'should not be the records provided' do
-        @return.should_not be_equal(@records)
+        @return.should_not equal(@records)
       end
 
       it 'should return expected values' do
@@ -1457,7 +1457,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@query)
+          @return.should_not equal(@query)
         end
 
         it 'should return a copy' do
@@ -1474,11 +1474,11 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should set the repository' do
-          @return.repository.should be_equal(@repository)
+          @return.repository.should equal(@repository)
         end
       end
 
@@ -1496,7 +1496,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should set the repository' do
@@ -1512,7 +1512,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the fields' do
@@ -1562,7 +1562,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the conditions' do
@@ -1588,7 +1588,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the offset to be relative to the original offset' do
@@ -1606,7 +1606,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the limit' do
@@ -1656,12 +1656,12 @@ describe DataMapper::Query do
     it { @return.should be_kind_of(DataMapper::Query) }
 
     it 'should copy the Query' do
-      @return.should_not be_equal(@original)
+      @return.should_not equal(@original)
     end
 
     # TODO: push this into dup spec
     it 'should not reference original order' do
-      @return.order.should_not be_equal(@original.order)
+      @return.order.should_not equal(@original.order)
     end
 
     it 'should have a reversed order' do
@@ -1684,7 +1684,7 @@ describe DataMapper::Query do
 
     it { @return.should be_kind_of(DataMapper::Query) }
 
-    it { @return.should be_equal(@original) }
+    it { @return.should equal(@original) }
 
     it 'should have a reversed order' do
       @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :desc) ]
@@ -1705,7 +1705,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the offset to be relative to the original offset' do
@@ -1727,7 +1727,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the offset to be relative to the original offset' do
@@ -1749,7 +1749,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the offset to be relative to the original offset' do
@@ -1771,7 +1771,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the offset to be relative to the original offset' do
@@ -1795,7 +1795,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the offset to be relative to the original offset' do
@@ -1825,7 +1825,7 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it 'should not return self' do
-          @return.should_not be_equal(@original)
+          @return.should_not equal(@original)
         end
 
         it 'should update the offset to be relative to the original offset' do
@@ -1896,7 +1896,7 @@ describe DataMapper::Query do
       it { @return.should be_kind_of(DataMapper::Query) }
 
       it 'should return self' do
-        @return.should be_equal(@original)
+        @return.should equal(@original)
       end
 
       it 'should update the offset to be relative to the original offset' do
@@ -1918,7 +1918,7 @@ describe DataMapper::Query do
       it { @return.should be_kind_of(DataMapper::Query) }
 
       it 'should return self' do
-        @return.should be_equal(@original)
+        @return.should equal(@original)
       end
 
       it 'should update the offset to be relative to the original offset' do
@@ -1940,7 +1940,7 @@ describe DataMapper::Query do
       it { @return.should be_kind_of(DataMapper::Query) }
 
       it 'should return self' do
-        @return.should be_equal(@original)
+        @return.should equal(@original)
       end
 
       it 'should update the offset to be relative to the original offset' do
@@ -1962,7 +1962,7 @@ describe DataMapper::Query do
       it { @return.should be_kind_of(DataMapper::Query) }
 
       it 'should return self' do
-        @return.should be_equal(@original)
+        @return.should equal(@original)
       end
 
       it 'should update the offset to be relative to the original offset' do
@@ -1986,7 +1986,7 @@ describe DataMapper::Query do
       it { @return.should be_kind_of(DataMapper::Query) }
 
       it 'should return self' do
-        @return.should be_equal(@original)
+        @return.should equal(@original)
       end
 
       it 'should update the offset to be relative to the original offset' do
@@ -2016,7 +2016,7 @@ describe DataMapper::Query do
       it { @return.should be_kind_of(DataMapper::Query) }
 
       it 'should return self' do
-        @return.should be_equal(@original)
+        @return.should equal(@original)
       end
 
       it 'should update the offset to be relative to the original offset' do
@@ -2094,7 +2094,7 @@ describe DataMapper::Query do
       end
 
       it 'should not be the records provided' do
-        @return.should_not be_equal(@records)
+        @return.should_not equal(@records)
       end
 
       it 'should return expected values' do
@@ -2132,7 +2132,7 @@ describe DataMapper::Query do
 
         it { @return.should be_kind_of(DataMapper::Query) }
 
-        it { @return.should be_equal(@original) }
+        it { @return.should equal(@original) }
       end
 
       describe 'using a different repository' do
@@ -2168,7 +2168,7 @@ describe DataMapper::Query do
 
         it { @return.should be_kind_of(DataMapper::Query) }
 
-        it { @return.should be_equal(@original) }
+        it { @return.should equal(@original) }
 
         it 'should update the fields' do
           @return.fields.should == @options[:fields]
@@ -2217,7 +2217,7 @@ describe DataMapper::Query do
 
         it { @return.should be_kind_of(DataMapper::Query) }
 
-        it { @return.should be_equal(@original) }
+        it { @return.should equal(@original) }
 
         it 'should update the conditions' do
           @return.conditions.should ==
@@ -2242,7 +2242,7 @@ describe DataMapper::Query do
 
         it { @return.should be_kind_of(DataMapper::Query) }
 
-        it { @return.should be_equal(@original) }
+        it { @return.should equal(@original) }
 
         it 'should not change the Query' do
           @return.should == @copy
@@ -2256,7 +2256,7 @@ describe DataMapper::Query do
 
         it { @return.should be_kind_of(DataMapper::Query) }
 
-        it { @return.should be_equal(@original) }
+        it { @return.should equal(@original) }
 
         it 'should update the fields' do
           @return.fields.should == @other_options[:fields]
@@ -2304,7 +2304,7 @@ describe DataMapper::Query do
 
         it { @return.should be_kind_of(DataMapper::Query) }
 
-        it { @return.should be_equal(@original) }
+        it { @return.should equal(@original) }
 
         it 'should update the conditions' do
           @return.conditions.should == DataMapper::Query::Conditions::Operation.new(

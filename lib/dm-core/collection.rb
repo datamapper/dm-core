@@ -239,7 +239,7 @@ module DataMapper
       if limit
         collection
       else
-        relate_resource(collection.to_a.first)
+        collection.to_a.first
       end
     end
 
@@ -287,7 +287,7 @@ module DataMapper
       if limit
         collection
       else
-        relate_resource(collection.to_a.last)
+        collection.to_a.last
       end
     end
 
@@ -304,11 +304,9 @@ module DataMapper
     #
     # @api public
     def at(offset)
-      positive_offset = offset >= 0
-
       if loaded? || partially_loaded?(offset)
         super
-      elsif positive_offset
+      elsif offset >= 0
         first(:offset => offset)
       else
         last(:offset => offset.abs - 1)

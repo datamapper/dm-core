@@ -101,7 +101,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
 
         it 'should return expected Query' do
-          @return.should be_equal(@articles_query)
+          @return.should equal(@articles_query)
         end
       end
 
@@ -117,7 +117,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
 
         it 'should return expected Hash' do
-          @return.should be_equal(@article_model.relationships(@article_repository.name))
+          @return.should equal(@article_model.relationships(@article_repository.name))
         end
       end
 
