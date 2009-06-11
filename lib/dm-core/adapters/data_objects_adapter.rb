@@ -85,7 +85,7 @@ module DataMapper
           reader = command.execute_reader(*bind_values)
 
           begin
-            while(reader.next!)
+            while reader.next!
               records << fields.zip(reader.values).to_hash
             end
           ensure
@@ -164,28 +164,29 @@ module DataMapper
       # @api public
       def query(statement, *bind_values)
         with_connection do |connection|
+          reader = connection.create_command(statement).execute_reader(*bind_values)
+          fields = reader.fields
+
+          results = []
+
           begin
-            reader = connection.create_command(statement).execute_reader(*bind_values)
-
-            results = []
-
-            if (fields = reader.fields).size > 1
+            if fields.size > 1
               fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
               struct = Struct.new(*fields)
 
-              while(reader.next!) do
+              while reader.next!
                 results << struct.new(*reader.values)
               end
             else
-              while(reader.next!) do
+              while reader.next!
                 results << reader.values.at(0)
               end
             end
-
-            results
           ensure
-            reader.close if reader
+            reader.close
           end
+
+          results
         end
       end
 

@@ -133,6 +133,12 @@ module DataMapper
 
         # TODO: document
         # @api private
+        def initialize_copy(*)
+          @value = @value.dup
+        end
+
+        # TODO: document
+        # @api private
         def cmp?(other, operator)
           unless subject.send(operator, other.subject)
             return false

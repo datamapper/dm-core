@@ -6,7 +6,7 @@ module DataMapper
       lazy      true
 
       # TODO: document
-      # @api privatex
+      # @api private
       def self.bind(property)
         repository_name = property.repository_name
         model           = property.model

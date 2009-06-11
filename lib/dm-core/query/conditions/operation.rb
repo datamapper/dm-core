@@ -123,6 +123,12 @@ module DataMapper
         end
 
         # TODO: document
+        # @api semipublic
+        def initialize_copy(*)
+          @operands = @operands.map { |operand| operand.dup }
+        end
+
+        # TODO: document
         # @api private
         def cmp?(other, operator)
           @operands.send(operator, other.operands)

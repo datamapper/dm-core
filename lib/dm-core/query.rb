@@ -1093,7 +1093,7 @@ module DataMapper
     end
 
     ##
-    # Extract arguments for #slice an #slice! and return offset and limit
+    # Extract arguments for #slice and #slice! then return offset and limit
     #
     # @param [Integer, Array(Integer), Range] *args the offset,
     #   offset and limit, or range indicating first and last position
@@ -1199,7 +1199,7 @@ module DataMapper
     def record_value(record, property)
       case record
         when Hash
-          record.key?(property) ? record[property] : record[property.field]
+          record.fetch(property, record[property.field])
         when Resource
           property.get!(record)
       end
