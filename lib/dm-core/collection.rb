@@ -1264,19 +1264,23 @@ module DataMapper
       # TODO: use a subquery if the current collection is not already
       # loaded to avoid kicking it unecessarily
 
-      source_map = {}
+      target_maps = {}
 
-      query = relationship.query_for(self, other_query)
+      # XXX: filtering out resources without a source_key will be unecessary
+      #   once subqueries are used
+      sources = select { |resource| source_key.get!(resource).all? }
 
-      resources = model.all(query).each do |target|
-        targets = source_map[ target_key.get(target) ] ||= []
+      query = relationship.query_for(sources, other_query)
+
+      collection = model.all(query).each do |target|
+        targets = target_maps[ target_key.get(target) ] ||= []
         targets << target
       end
 
-      each do |source|
-        targets = source_map[ source_key.get(source) ] || []
+      sources.each do |source|
+        targets = target_maps[ source_key.get(source) ] || []
 
-         if relationship.respond_to?(:collection_for)
+        if relationship.respond_to?(:collection_for)
           # TODO: figure out an alternative approach to using a
           # private method call collection_replace
           collection = relationship.collection_for(source, other_query)
@@ -1287,7 +1291,7 @@ module DataMapper
         end
       end
 
-      resources
+      collection
     end
   end # class Collection
 end # module DataMapper

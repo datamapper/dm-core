@@ -268,7 +268,7 @@ module DataMapper
           end
 
           # delete only intermediaries linked to the target orphans
-          unless intermediaries.all(last_relationship => @orphans).destroy
+          unless @orphans.empty? || intermediaries.all(last_relationship => @orphans).destroy
             return false
           end
 
@@ -339,7 +339,13 @@ module DataMapper
         def intermediaries
           through        = relationship.through
           intermediaries = through.loaded?(source) ? through.get!(source) : through.collection_for(source)
-          intermediaries.all(last_relationship => self)
+          intermediaries.all(last_relationship => saved)
+        end
+
+        # TODO: document
+        # @api private
+        def saved
+          select { |resource| resource.saved? }
         end
 
         # TODO: document
