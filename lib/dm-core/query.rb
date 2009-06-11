@@ -1033,8 +1033,6 @@ module DataMapper
       source_key = relationship.source_key
       target_key = relationship.target_key
 
-      # TODO: when operations can be compacted, remove this if/else
-      # block and just act as if the keys are always compound.
       if relationship.source_key.size == 1 && relationship.target_key.size == 1
         source_key = source_key.first
         target_key = target_key.first
