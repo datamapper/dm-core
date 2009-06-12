@@ -346,15 +346,16 @@ describe DataMapper::Property do
           it { Image.properties[:width].typecast(0.0).should == 0 }
           it { Image.properties[:width].typecast("0").should == 0 }
           it { Image.properties[:width].typecast("0.0").should == 0 }
+          it { Image.properties[:width].typecast("00").should == 0 }
+          it { Image.properties[:width].typecast("0b0").should == 0 }
           it { Image.properties[:width].typecast("0x0").should == 0 }
           it { Image.properties[:width].typecast(BigDecimal("0.0")).should == 0 }
           it { Image.properties[:width].typecast(Rational(0,1)).should == 0 }
         end
 
         describe "but value has non-digits and punctuation in it" do
-          it "returns result of property type's casting of nil" do
-            # nil.to_f => 0.0
-            Image.properties[:width].typecast("datamapper").should be_nil
+          it "returns value without typecasting" do
+            Image.properties[:width].typecast('datamapper').should == 'datamapper'
           end
         end
       end

@@ -686,23 +686,12 @@ module DataMapper
       begin
         # TODO: optimize this using a Hash lookup table
         if primitive == Integer
-          # The simplest possible implementation, i.e. value.to_i, is not
-          # desirable because "junk".to_i gives "0". We want nil instead,
-          # because this makes it clear that the typecast failed.
-          #
-          # After benchmarking, we preferred the current implementation over
-          # these two alternatives:
-          # * Integer(value) rescue nil
-          # * Integer(value_to_s =~ /(\d+)/ ? $1 : value_to_s) rescue nil
-
-          # DB: I've reverted this to Integer(value), since the behavior
-          # DB: of Integer(value) is NOT the same as value.to_i, for example:
-          # Integer("0x24") == 36
-          # "0x24".to_i == 0
-          begin
-            Integer(value)
-          rescue
-            value.to_s =~ /^(0x|0b|0\.)?0+$/ ? 0 : nil
+          # only typecast a String that looks like a number
+          case value.to_s
+            when /\A((?:0|[1-9]\d*)(?:\.\d+)?)\z/     then $1.to_i      # integer or float
+            when /\A(0(?:\d+|b[01]+|x[a-fA-F\d]+))\z/ then Integer($1)  # octal, binary or hex
+            else
+              value
           end
         elsif primitive == String     then value.to_s
         elsif primitive == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
