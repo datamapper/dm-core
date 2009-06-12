@@ -174,7 +174,7 @@ module DataMapper
       end
 
       begin
-        return yield(self)
+        yield self
       ensure
         @adapters.each do |adapter, state|
           adapter.pop_transaction

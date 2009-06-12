@@ -1265,11 +1265,11 @@ module DataMapper
       # TODO: use a subquery if the current collection is not already
       # loaded to avoid kicking it unecessarily
 
-      target_maps = {}
-
       # XXX: filtering out resources without a source_key will be unecessary
       #   once subqueries are used
       sources = select { |resource| source_key.get!(resource).all? }
+
+      target_maps = {}
 
       query = relationship.query_for(sources, other_query)
 

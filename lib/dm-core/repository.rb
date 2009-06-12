@@ -107,7 +107,7 @@ module DataMapper
       Repository.context << self
 
       begin
-        return yield(self)
+        yield self
       ensure
         Repository.context.pop
       end
