@@ -423,18 +423,38 @@ share_examples_for 'A public Resource' do
 
   describe '#reload' do
 
-    before :all do
-      rescue_if 'TODO', @skip do
-        @user.name = 'dkubb'
-        @user.description = 'test'
-        @user.reload
+    describe 'for a single object' do
+
+      before :all do
+        rescue_if 'TODO', @skip do
+          @user.name = 'dkubb'
+          @user.description = 'test'
+          @user.reload
+        end
+      end
+
+      it { @user.name.should eql('dbussink') }
+
+      it 'should also reload previously loaded attributes' do
+        @user.attribute_loaded?(:description).should be_true
       end
     end
 
-    it { @user.name.should eql('dbussink') }
+    describe 'for when the object is changed outside another object' do
 
-    it 'should also reload previously loaded attributes' do
-      @user.attribute_loaded?(:description).should be_true
+      before :all do
+        @user2 = @user.dup
+        @user2.name = 'dkubb'
+        @user2.save
+        @user.reload
+      end
+
+      it 'should reload the object from the data store' do
+        pending "Reload forces all attributes to be retrieved again" do
+          @user.name.should eql('dkubb')
+        end
+      end
+
     end
 
   end
