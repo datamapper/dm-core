@@ -376,8 +376,9 @@ module DataMapper
     #
     # @api public
     def slice!(*args)
-      # lazy load the collection, and remove the matching entries
-      orphaned = orphan_resources(super)
+      orphaned = super
+
+      orphan_resources(orphaned) unless orphaned.nil?
 
       # Workaround for Ruby <= 1.8.6
       compact! if RUBY_VERSION <= '1.8.6'
@@ -559,7 +560,8 @@ module DataMapper
     #
     # @api public
     def pop
-      orphan_resource(super)
+      return nil unless resource = super
+      orphan_resource(resource)
     end
 
     # Removes and returns the first Resource in the Collection
@@ -569,7 +571,8 @@ module DataMapper
     #
     # @api public
     def shift
-      orphan_resource(super)
+      return nil unless resource = super
+      orphan_resource(resource)
     end
 
     ##
@@ -589,7 +592,8 @@ module DataMapper
     #
     # @api public
     def delete(resource)
-      orphan_resource(super)
+      return nil unless resource = super
+      orphan_resource(resource)
     end
 
     ##
@@ -609,7 +613,8 @@ module DataMapper
     #
     # @api public
     def delete_at(offset)
-      orphan_resource(super)
+      return nil unless resource = super
+      orphan_resource(resource)
     end
 
     ##
@@ -1093,8 +1098,6 @@ module DataMapper
     #
     # @api private
     def relate_resource(resource)
-      return if resource.nil?
-
       unless resource.frozen?
         resource.collection = self
       end
@@ -1140,8 +1143,6 @@ module DataMapper
     #
     # @api private
     def orphan_resource(resource)
-      return if resource.nil?
-
       if resource.collection.equal?(self) && !resource.frozen?
         resource.collection = nil
       end

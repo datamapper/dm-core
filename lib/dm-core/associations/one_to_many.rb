@@ -294,8 +294,6 @@ module DataMapper
         # TODO: document
         # @api private
         def relate_resource(resource)
-          return if resource.nil?
-
           relationship.inverse.set(resource, source)
 
           super
@@ -308,8 +306,6 @@ module DataMapper
         # TODO: document
         # @api private
         def orphan_resource(resource)
-          return if resource.nil?
-
           # only orphan a resource if it could have been related previously
           if !resource.frozen?
             relationship.inverse.set(resource, nil)

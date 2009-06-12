@@ -91,7 +91,7 @@ module DataMapper
           assert_kind_of 'source', source, source_model
           assert_kind_of 'target', target, target_model, NilClass
 
-          source_key.set(source, target_key.get(target))
+          source_key.set(source, target.nil? ? [] : target_key.get(target))
           set!(source, target)
         end
 

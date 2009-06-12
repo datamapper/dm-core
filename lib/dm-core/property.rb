@@ -531,8 +531,6 @@ module DataMapper
     #
     # @api private
     def get(resource)
-      return if resource.nil?
-
       lazy_load(resource) unless loaded?(resource) || resource.new?
 
       if loaded?(resource)
