@@ -281,7 +281,15 @@ module DataMapper
     # TODO: document
     # @api private
     def cmp?(other, operator)
-      name.send(operator, other.name) && adapter.send(operator, other.adapter)
+      unless name.send(operator, other.name)
+        return false
+      end
+
+      unless adapter.send(operator, other.adapter)
+        return false
+      end
+
+      true
     end
   end # class Repository
 end # module DataMapper

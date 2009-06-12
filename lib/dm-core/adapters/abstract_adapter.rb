@@ -93,6 +93,68 @@ module DataMapper
         raise NotImplementedError, "#{self.class}#delete not implemented"
       end
 
+      ##
+      # Compares another AbstractAdapter for equality
+      #
+      # AbstractAdapter is equal to +other+ if they are the same object (identity)
+      # or if they are of the same class and have the same name
+      #
+      # @param [AbstractAdapter] other
+      #   the other AbstractAdapter to compare with
+      #
+      # @return [TrueClass, FalseClass]
+      #   true if they are equal, false if not
+      #
+      # @api public
+      def eql?(other)
+        if equal?(other)
+          return true
+        end
+
+        unless self.class.equal?(other.class)
+          return false
+        end
+
+        cmp?(other, :eql?)
+      end
+
+      ##
+      # Compares another AbstractAdapter for equivalency
+      #
+      # AbstractAdapter is equal to +other+ if they are the same object (identity)
+      # or if they both have the same name
+      #
+      # @param [AbstractAdapter] other
+      #   the other AbstractAdapter to compare with
+      #
+      # @return [TrueClass, FalseClass]
+      #   true if they are equal, false if not
+      #
+      # @api public
+      def ==(other)
+        if equal?(other)
+          return true
+        end
+
+        unless other.respond_to?(:name)
+          return false
+        end
+
+        unless other.respond_to?(:options)
+          return false
+        end
+
+        unless other.respond_to?(:resource_naming_convention)
+          return false
+        end
+
+        unless other.respond_to?(:field_naming_convention)
+          return false
+        end
+
+        cmp?(other, :==)
+      end
+
       protected
 
       # TODO: document
@@ -129,6 +191,28 @@ module DataMapper
         @options                    = options.dup.freeze
         @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Field::Underscored
+      end
+
+      # TODO: document
+      # @api private
+      def cmp?(other, operator)
+        unless name.send(operator, other.name)
+          return false
+        end
+
+        unless options.send(operator, other.options)
+          return false
+        end
+
+        unless resource_naming_convention.send(operator, other.resource_naming_convention)
+          return false
+        end
+
+        unless field_naming_convention.send(operator, other.field_naming_convention)
+          return false
+        end
+
+        true
       end
     end # class AbstractAdapter
 
