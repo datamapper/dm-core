@@ -27,7 +27,7 @@ module DataMapper
       #
       # @api private
       def query
-        scope_stack.last || Query.new(repository, self, default_scope(repository.name)).freeze
+        Query.new(repository, self, current_scope).freeze
       end
 
       protected
@@ -39,8 +39,14 @@ module DataMapper
       #
       # @api private
       def with_scope(query)
+        options = if query.kind_of?(Hash)
+          query
+        else
+          query.options
+        end
+
         # merge the current scope with the passed in query
-        with_exclusive_scope(self.query.merge(query)) { |*block_args| yield(*block_args) }
+        with_exclusive_scope(self.query.merge(options)) { |*block_args| yield(*block_args) }
       end
 
       # Pushes given query on top of scope stack and yields
@@ -53,13 +59,13 @@ module DataMapper
         query = if query.kind_of?(Hash)
           Query.new(repository, self, query)
         else
-          query.dup.freeze
+          query.dup
         end
 
-        scope_stack << query
+        scope_stack << query.options
 
         begin
-          return yield(query)
+          yield query.freeze
         ensure
           scope_stack.pop
         end
@@ -72,6 +78,12 @@ module DataMapper
       def scope_stack
         scope_stack_for = Thread.current[:dm_scope_stack] ||= {}
         scope_stack_for[self] ||= []
+      end
+
+      # TODO: document
+      # @api private
+      def current_scope
+        scope_stack.last || default_scope(repository.name)
       end
     end # module Scope
 
