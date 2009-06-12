@@ -1070,7 +1070,7 @@ module DataMapper
               next
             end
 
-            default_attributes[condition.subject.name] = condition.value
+            default_attributes[condition.subject] = condition.value
           end
 
           default_attributes.freeze

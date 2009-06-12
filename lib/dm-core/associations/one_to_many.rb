@@ -276,6 +276,8 @@ module DataMapper
           collection
         end
 
+        alias collection_default_attributes default_attributes
+
         # TODO: remove this method once Resource objects are stored in
         # the Query rather than just references
         # @api private

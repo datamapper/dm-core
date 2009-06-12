@@ -365,6 +365,12 @@ module DataMapper
 
         # TODO: document
         # @api private
+        def default_attributes
+          collection_default_attributes
+        end
+
+        # TODO: document
+        # @api private
         def relate_resource(resource)
           collection_relate_resource(resource)
         end
