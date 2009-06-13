@@ -546,13 +546,9 @@ module DataMapper
     # @api private
     def condition_properties
       properties = Set.new
-      operands   = conditions.operands.dup
 
-      while operand = operands.pop
-        case operand
-          when Conditions::AbstractOperation  then operands.concat(operand.operands)
-          when Conditions::AbstractComparison then properties << operand.subject if operand.subject.kind_of?(Property)
-        end
+      each_comparison do |comparison|
+        properties << comparison.subject if comparison.subject.kind_of?(Property)
       end
 
       properties
@@ -1200,6 +1196,20 @@ module DataMapper
           record.fetch(property, record[property.field])
         when Resource
           property.get!(record)
+      end
+    end
+
+    # TODO: document
+    # @api private
+    def each_comparison
+      operands = conditions.operands.dup
+
+      while operand = operands.shift
+        if operand.respond_to?(:operands)
+          operands.concat(operand.operands)
+        else
+          yield operand
+        end
       end
     end
   end # class Query
