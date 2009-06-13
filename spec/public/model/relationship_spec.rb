@@ -94,18 +94,14 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist the Resource' do
-        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
-          @car.save.should be_true
-          @car.model.get(*@car.key).send(@name).should == @expected
-        end
+        @car.save.should be_true
+        @car.model.get(*@car.key).send(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
-        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
-          @car.save.should be_true
-          @expected.should be_saved
-          @expected.model.get(*@expected.key).car.should == @car
-        end
+        @car.save.should be_true
+        @expected.should be_saved
+        @expected.model.get(*@expected.key).car.should == @car
       end
     end
 
@@ -157,18 +153,14 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should persist the Resource' do
-        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
-          @car.save.should be_true
-          @car.model.get(*@car.key).send(@name).should == @expected
-        end
+        @car.save.should be_true
+        @car.model.get(*@car.key).send(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
-        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToOne::Relationship) do
-          @car.save.should be_true
-          @expected.should be_saved
-          @expected.model.get(*@expected.key).car.should == @car
-        end
+        @car.save.should be_true
+        @expected.should be_saved
+        @expected.model.get(*@expected.key).car.should == @car
       end
     end
   end

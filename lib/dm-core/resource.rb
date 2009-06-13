@@ -283,7 +283,7 @@ module DataMapper
     def reload
       if saved?
         reload_attributes(loaded_properties)
-        child_associations.each { |collection| collection.reload }
+        child_relationships.each { |relationship| relationship.get!(self).reload }
       end
 
       self
@@ -575,6 +575,17 @@ module DataMapper
     end
 
     ##
+    # Saves the resource
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the resource was successfully saved
+    #
+    # @api private
+    def save_self
+      new? ? _create : _update
+    end
+
+    ##
     # Reset the Resource to a similar state as a new record:
     # removes it from identity map and clears original property
     # values (thus making all properties non dirty)
@@ -699,7 +710,20 @@ module DataMapper
     #
     # @api private
     def _save
-      (new? ? _create : _update) && save_children
+      save_parents && save_self && save_children
+    end
+
+    ##
+    # Saves the parent resources
+    #
+    # @api private
+    def save_parents
+      parent_relationships.all? do |relationship|
+        parent = relationship.get!(self)
+        if parent.save_self
+          relationship.set(self, parent)  # set the FK values
+        end
+      end
     end
 
     ##
@@ -707,7 +731,7 @@ module DataMapper
     #
     # @api private
     def save_children
-      child_associations.all? { |collection| collection.save }
+      child_relationships.all? { |relationship| relationship.get!(self).save }
     end
 
     ##
@@ -802,14 +826,29 @@ module DataMapper
       Query.new(repository, model, model.key_conditions(repository, key))
     end
 
+    # TODO: document
+    # @api private
+    def parent_relationships
+      parent_relationships = []
+
+      relationships.each_value do |relationship|
+        next unless relationship.respond_to?(:resource_for) && relationship.loaded?(self)
+        next unless relationship.get(self)
+
+        parent_relationships << relationship
+      end
+
+      parent_relationships
+    end
+
     # Returns array of child relationships for which this resource is parent and is loaded
     #
     # @return [Array<DataMapper::Associations::OneToMany::Relationship>]
     #   array of child relationships for which this resource is parent and is loaded
     #
     # @api private
-    def child_associations
-      child_associations = []
+    def child_relationships
+      child_relationships = []
 
       relationships.each_value do |relationship|
         next unless relationship.respond_to?(:collection_for) && relationship.loaded?(self)
@@ -817,14 +856,14 @@ module DataMapper
         association = relationship.get!(self)
         next unless association.loaded? || association.head.any? || association.tail.any?
 
-        child_associations << association
+        child_relationships << relationship
       end
 
-      many_to_many, other_associations = child_associations.partition do |association|
-        association.kind_of?(DataMapper::Associations::ManyToMany::Collection)
+      many_to_many, other = child_relationships.partition do |relationship|
+        relationship.kind_of?(DataMapper::Associations::ManyToMany::Relationship)
       end
 
-      many_to_many + other_associations
+      many_to_many + other
     end
 
     ##

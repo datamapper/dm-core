@@ -598,7 +598,7 @@ share_examples_for 'A public Resource' do
 
     end
 
-    describe 'with a new parent object' do
+    describe 'with a new dependency' do
 
       before :all do
         @first_comment      = @comment_model.new(:body => "DM is great!")
@@ -613,31 +613,26 @@ share_examples_for 'A public Resource' do
 
     end
 
-    describe 'with a dirty parent object' do
+    describe 'with a dirty dependency' do
       before :all do
-        rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
-          @first_comment = @user.comments.new(:body => "DM is great!")
-          @user.name = 'dbussink-the-second'
-          @return = @first_comment.save
-        end
+        @user.name = 'dbussink-the-second'
+
+        @first_comment = @comment_model.new(:body => 'DM is great!')
+        @first_comment.user = @user
+
+        @return = @first_comment.save
       end
 
       it 'should succesfully save the object' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
-          @return.should be_true
-        end
+        @return.should be_true
       end
 
-      it 'should still have a dirty user object' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
-          @user.should be_dirty
-        end
+      it 'should not have a dirty dependency' do
+        @user.should_not be_dirty
       end
 
-      it 'should not have persisted the changes' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
-          @user.attributes.should_not == @user_model.get(*@user.key).attributes
-        end
+      it 'should succesfully save the dependency' do
+        @user.attributes.should == @user_model.get(*@user.key).attributes
       end
 
     end
