@@ -443,10 +443,12 @@ share_examples_for 'A public Resource' do
     describe 'for when the object is changed outside another object' do
 
       before :all do
-        @user2 = @user.dup
-        @user2.name = 'dkubb'
-        @user2.save
-        @user.reload
+        rescue_if 'TODO', @skip do
+          @user2 = @user.dup
+          @user2.name = 'dkubb'
+          @user2.save
+          @user.reload
+        end
       end
 
       it 'should reload the object from the data store' do
