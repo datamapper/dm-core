@@ -14,7 +14,7 @@ EMAIL            = 'dan.kubb@gmail.com'
 GEM_NAME         = 'dm-core'
 GEM_VERSION      = DataMapper::VERSION
 GEM_DEPENDENCIES = [
-  %w[ extlib      ~>0.9.12 ],
+  %w[ extlib      ~>0.9.13 ],
   %w[ addressable ~>2.0    ],
 ]
 
