@@ -615,12 +615,14 @@ share_examples_for 'A public Resource' do
 
     describe 'with a dirty dependency' do
       before :all do
-        @user.name = 'dbussink-the-second'
+        rescue_if 'TODO', @skip do
+          @user.name = 'dbussink-the-second'
 
-        @first_comment = @comment_model.new(:body => 'DM is great!')
-        @first_comment.user = @user
+          @first_comment = @comment_model.new(:body => 'DM is great!')
+          @first_comment.user = @user
 
-        @return = @first_comment.save
+          @return = @first_comment.save
+        end
       end
 
       it 'should succesfully save the object' do
