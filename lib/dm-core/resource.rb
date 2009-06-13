@@ -316,7 +316,26 @@ module DataMapper
     # @api public
     def update!(attributes = {})
       self.attributes = attributes
-      _update
+
+      if dirty_attributes.empty?
+        true
+      elsif dirty_attributes.any? { |property, value| !property.nullable? && value.nil? }
+        false
+      else
+        # remove from the identity map
+        identity_map.delete(key)
+
+        repository.update(dirty_attributes, Collection.new(query, [ self ]))
+
+        # remove the cached key in case it is updated
+        remove_instance_variable(:@key)
+
+        original_attributes.clear
+
+        identity_map[key] = self
+
+        true
+      end
     end
 
     ##
@@ -332,7 +351,7 @@ module DataMapper
     # @api public
     chainable do
       def save
-        _save
+        save!
       end
     end
 
@@ -347,10 +366,8 @@ module DataMapper
     # @see Repository#save
     #
     # @api public
-    chainable do
-      def save!
-        _save
-      end
+    def save!
+      save_parents && save_self && save_children
     end
 
     ##
@@ -623,6 +640,10 @@ module DataMapper
     #
     # Needs to be a protected method so that it is hookable
     #
+    # The primary purpose of this method is to allow before :create
+    # hooks to fire at a point just before/after resource creation
+    #
+    #
     # @return [TrueClass, FalseClass]
     #   true if the receiver was successfully created
     #
@@ -652,40 +673,19 @@ module DataMapper
       true
     end
 
-    # Persists dirty attributes
+    ##
+    # Updates resource state
     #
-    # If object is not dirty, this method returns false.
-    # If there are non-nullable properties with value of nil,
-    # false is returned as well.
-    #
-    # This method updates identitity map of repository
-    # this object was loaded from, and clears cached key
-    # value (instance variable @key)
+    # The primary purpose of this method is to allow before :update
+    # hooks to fire at a point just before/after resource update whether
+    # it is the result of Resource#save, or using Resource#update
     #
     # @return [TrueClass, FalseClass]
-    #   true if the receiver was successfully updated
+    #   true if the receiver was successfully created
     #
     # @api private
     def _update
-      if dirty_attributes.empty?
-        true
-      elsif dirty_attributes.any? { |property, value| !property.nullable? && value.nil? }
-        false
-      else
-        # remove from the identity map
-        identity_map.delete(key)
-
-        repository.update(dirty_attributes, Collection.new(query, [ self ]))
-
-        # remove the cached key in case it is updated
-        remove_instance_variable(:@key)
-
-        original_attributes.clear
-
-        identity_map[key] = self
-
-        true
-      end
+      update!
     end
 
     private
@@ -703,14 +703,6 @@ module DataMapper
     def initialize(attributes = {}) # :nodoc:
       @saved = false
       self.attributes = attributes
-    end
-
-    ##
-    # Saves the resource
-    #
-    # @api private
-    def _save
-      save_parents && save_self && save_children
     end
 
     ##
