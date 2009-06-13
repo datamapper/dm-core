@@ -84,11 +84,11 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should relate associated Resource' do
-        relationship  = Car.relationships[@name]
-        belongs_to    = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
-        has_1_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
+        relationship       = Car.relationships[@name]
+        many_to_one        = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
+        one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
 
-        pending_if 'TODO', belongs_to || has_1_through do
+        pending_if 'TODO', many_to_one || one_to_one_through do
           @expected.car.should == @car
         end
       end
@@ -147,11 +147,11 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should relate associated Resource' do
-        relationship  = Car.relationships[@name]
-        belongs_to    = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
-        has_1_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
+        relationship       = Car.relationships[@name]
+        many_to_one        = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
+        one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
 
-        pending_if 'should create back-reference', belongs_to || has_1_through do
+        pending_if 'should create back-reference', many_to_one || one_to_one_through do
           @expected.car.should == @car
         end
       end

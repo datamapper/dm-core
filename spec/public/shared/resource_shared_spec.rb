@@ -3,8 +3,8 @@ share_examples_for 'A public Resource' do
     @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
                defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
 
-    relationship = @user_model.relationships[:referrer]
-    @one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && !relationship.through.nil?
+    relationship        = @user_model.relationships[:referrer]
+    @one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
 
     @skip = @no_join && @one_to_one_through
   end
