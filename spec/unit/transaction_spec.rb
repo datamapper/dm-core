@@ -30,15 +30,11 @@ describe DataMapper::Transaction do
     @repository_adapter.should_receive(:transaction_primitive).any_number_of_times.and_return(@repository_transaction_primitive)
     @transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:close).and_return(true)
     @transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:begin).and_return(true)
-    @transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:prepare).and_return(true)
     @transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:rollback).and_return(true)
-    @transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:rollback_prepared).and_return(true)
     @transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:commit).and_return(true)
     @repository_transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:close).and_return(true)
     @repository_transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:begin).and_return(true)
-    @repository_transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:prepare).and_return(true)
     @repository_transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:rollback).and_return(true)
-    @repository_transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:rollback_prepared).and_return(true)
     @repository_transaction_primitive.should_receive(:respond_to?).any_number_of_times.with(:commit).and_return(true)
   end
 
@@ -139,7 +135,6 @@ describe DataMapper::Transaction do
       @transaction.should_receive(:each_adapter).with(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
       @transaction.should_receive(:each_adapter).with(:rollback_adapter_if_begin, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
       @transaction.should_receive(:each_adapter).with(:close_adapter_if_open, [:log_fatal_transaction_breakage])
-      @transaction.should_receive(:each_adapter).with(:rollback_prepared_adapter_if_prepare, [:rollback_prepared_and_close_adapter_if_begin, :close_adapter_if_none])
       @transaction.begin
       @transaction.rollback
     end
@@ -190,7 +185,6 @@ describe DataMapper::Transaction do
       it "should try to prepare each adapter (or rollback and close), then commit each adapter (or log fatal error), then close (or log fatal error)" do
         @transaction.should_receive(:each_adapter).with(:connect_adapter, [:log_fatal_transaction_breakage])
         @transaction.should_receive(:each_adapter).with(:begin_adapter, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
-        @transaction.should_receive(:each_adapter).with(:prepare_adapter, [:rollback_and_close_adapter_if_begin, :rollback_prepared_and_close_adapter_if_prepare])
         @transaction.should_receive(:each_adapter).with(:commit_adapter, [:log_fatal_transaction_breakage])
         @transaction.should_receive(:each_adapter).with(:close_adapter, [:log_fatal_transaction_breakage])
         @transaction.begin
@@ -222,11 +216,9 @@ describe DataMapper::Transaction do
       end
       it "should begin, yield and commit if the block raises no exception" do
         @repository_transaction_primitive.should_receive(:begin)
-        @repository_transaction_primitive.should_receive(:prepare)
         @repository_transaction_primitive.should_receive(:commit)
         @repository_transaction_primitive.should_receive(:close)
         @transaction_primitive.should_receive(:begin)
-        @transaction_primitive.should_receive(:prepare)
         @transaction_primitive.should_receive(:commit)
         @transaction_primitive.should_receive(:close)
         p = Proc.new do end
@@ -457,14 +449,9 @@ describe DataMapper::Transaction do
       @transaction.should_receive(:do_adapter).with(@other_adapter, :begin, :none)
       @transaction.instance_eval do begin_adapter(a1) end
     end
-    it "should only allow adapters in state :begin to prepare" do
+    it "should only allow adapters in state :begin to commit" do
       a1 = @other_adapter
-      @transaction.should_receive(:do_adapter).with(@other_adapter, :prepare, :begin)
-      @transaction.instance_eval do prepare_adapter(a1) end
-    end
-    it "should only allow adapters in state :prepare to commit" do
-      a1 = @other_adapter
-      @transaction.should_receive(:do_adapter).with(@other_adapter, :commit, :prepare)
+      @transaction.should_receive(:do_adapter).with(@other_adapter, :commit, :begin)
       @transaction.instance_eval do commit_adapter(a1) end
     end
     it "should only allow adapters in state :begin to rollback" do
@@ -472,22 +459,11 @@ describe DataMapper::Transaction do
       @transaction.should_receive(:do_adapter).with(@other_adapter, :rollback, :begin)
       @transaction.instance_eval do rollback_adapter(a1) end
     end
-    it "should only allow adapters in state :prepare to rollback_prepared" do
-      a1 = @other_adapter
-      @transaction.should_receive(:do_adapter).with(@other_adapter, :rollback_prepared, :prepare)
-      @transaction.instance_eval do rollback_prepared_adapter(a1) end
-    end
     it "should do delegate properly for rollback_and_close" do
       a1 = @other_adapter
       @transaction.should_receive(:rollback_adapter).with(@other_adapter)
       @transaction.should_receive(:close_adapter).with(@other_adapter)
       @transaction.instance_eval do rollback_and_close_adapter(a1) end
-    end
-    it "should do delegate properly for rollback_prepared_and_close" do
-      a1 = @other_adapter
-      @transaction.should_receive(:rollback_prepared_adapter).with(@other_adapter)
-      @transaction.should_receive(:close_adapter).with(@other_adapter)
-      @transaction.instance_eval do rollback_prepared_and_close_adapter(a1) end
     end
   end
 end

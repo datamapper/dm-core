@@ -56,20 +56,5 @@ if ADAPTERS.any?
       end
     end
 
-    it "should not commit any changes if any of the adapters doesnt prepare properly" do
-      lambda do
-        DataMapper::Transaction.new(*@repositories) do |transaction|
-          ADAPTERS.each do |name|
-            repository(name) { Sputnik.create(:name => 'hepp') }
-          end
-
-          transaction.primitive_for(@repositories.last.adapter).should_receive(:prepare).and_throw(Exception.new("I am the famous test exception"))
-        end
-      end.should raise_error(Exception, /I am the famous test exception/)
-
-      ADAPTERS.each do |name|
-        repository(name) { Sputnik.all.size.should == 0 }
-      end
-    end
   end
 end
