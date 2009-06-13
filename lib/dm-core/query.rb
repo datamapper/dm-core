@@ -215,6 +215,17 @@ module DataMapper
     end
 
     ##
+    # Indicates if the Query is valid
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the query is valid
+    #
+    # @api semipublic
+    def valid?
+      conditions.valid?
+    end
+
+    ##
     # Returns a new Query with a reversed order
     #
     # @example

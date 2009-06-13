@@ -142,6 +142,7 @@ module DataMapper
     #
     # @api semipublic
     def read(query)
+      return [] unless query.valid?
       query.model.load(adapter.read(query), query)
     end
 
@@ -160,6 +161,7 @@ module DataMapper
     #
     # @api semipublic
     def update(attributes, collection)
+      return 0 unless collection.query.valid?
       adapter.update(attributes, collection)
     end
 
@@ -176,6 +178,7 @@ module DataMapper
     #
     # @api semipublic
     def delete(collection)
+      return 0 unless collection.query.valid?
       adapter.delete(collection)
     end
 

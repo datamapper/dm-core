@@ -148,7 +148,6 @@ describe DataMapper::Query::Conditions do
 
     {
       :eql    => EqualToComparison,
-      :in     => InclusionComparison,
       :gt     => GreaterThanComparison,
       :gte    => GreaterThanOrEqualToComparison,
       :lt     => LessThanComparison,
@@ -159,6 +158,11 @@ describe DataMapper::Query::Conditions do
         comp = Comparison.new(slug, Heffalump.num_spots, 2)
         comp.should be_kind_of(klass)
       end
+    end
+
+    it "should initialize as InclusionComparison for the :in comparator" do
+      comp = Comparison.new(:in, Heffalump.num_spots, [ 2 ])
+      comp.should be_kind_of(InclusionComparison)
     end
 
     describe "EqualToComparison" do

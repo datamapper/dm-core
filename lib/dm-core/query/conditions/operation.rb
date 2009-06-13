@@ -70,8 +70,16 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
+        def valid?
+          @valid
+        end
+
+        # TODO: document
+        # @api semipublic
         def <<(operand)
           @operands << operand
+          @valid = operand.valid? if @valid && operand.respond_to?(:valid?)
+          self
         end
 
         # TODO: document
@@ -120,6 +128,7 @@ module DataMapper
         # @api semipublic
         def initialize(*operands)
           @operands = operands
+          @valid    = true
         end
 
         # TODO: document

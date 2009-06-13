@@ -80,8 +80,8 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def to_s
-          "#{@subject} #{comparator_string} #{@value}"
+        def valid?
+          @valid
         end
 
         # TODO: document
@@ -122,6 +122,12 @@ module DataMapper
           "#<#{self.class} @subject=#{@subject.inspect} @value=#{@value.inspect}>"
         end
 
+        # TODO: document
+        # @api semipublic
+        def to_s
+          "#{@subject} #{comparator_string} #{@value}"
+        end
+
         private
 
         # TODO: document
@@ -129,6 +135,7 @@ module DataMapper
         def initialize(subject, value)
           @subject = subject
           @value   = value
+          @valid   = valid_value?(subject, value)
         end
 
         # TODO: document
@@ -168,6 +175,12 @@ module DataMapper
         def comparator_string
           self.class.name.chomp('Comparison')
         end
+
+        # TODO: document
+        # @api private
+        def valid_value?(subject, value)
+          value.kind_of?(subject.primitive) || (value.nil? && subject.nullable?)
+        end
       end # class AbstractComparison
 
       class EqualToComparison < AbstractComparison
@@ -205,6 +218,24 @@ module DataMapper
         def comparator_string
           'IN'
         end
+
+        # TODO: document
+        # @api private
+        def valid_value?(subject, value)
+          unless value.kind_of?(Enumerable)
+            return false
+          end
+
+          unless value.any?
+            return false
+          end
+
+          unless value.all? { |val| super(subject, val) }
+            return false
+          end
+
+          true
+        end
       end # class InclusionComparison
 
       class RegexpComparison < AbstractComparison
@@ -220,16 +251,15 @@ module DataMapper
         private
 
         # TODO: document
-        # @api semipublic
-        def initialize(subject, value)
-          value = Regexp.new(value.to_s) unless value.kind_of?(Regexp)
-          super
+        # @api private
+        def comparator_string
+          '=~'
         end
 
         # TODO: document
         # @api private
-        def comparator_string
-          '=~'
+        def valid_value?(subject, value)
+          value.kind_of?(Regexp)
         end
       end # class RegexpComparison
 
