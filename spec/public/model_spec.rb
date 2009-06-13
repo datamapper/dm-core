@@ -57,8 +57,12 @@ describe DataMapper::Model do
 
         describe 'between different models' do
           before :all do
+            @other.destroy
+            @article.destroy
+            @original.destroy
+
             # make sure the default repository is empty
-            @article_model.all(:repository => @repository).destroy!
+            @article_model.all(:repository => @repository).should be_empty
 
             # add an extra property to the alternate model
             DataMapper.repository(@alternate_adapter.name) do

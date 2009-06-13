@@ -12,8 +12,8 @@ $LOAD_PATH.unshift(SPEC_ROOT.parent + 'lib')
 
 require 'dm-core'
 
-ENV['PLUGINS'].to_s.split(' ').each do |plugin|
-  require plugin.strip
+ENV['PLUGINS'].to_s.strip.split(/\s+/).each do |plugin|
+  require plugin
 end
 
 Pathname.glob((SPEC_ROOT + '{lib,*/shared}/**/*.rb').to_s).each { |file| require file }
