@@ -125,7 +125,6 @@ module DataMapper
         unless @state == :begin
           raise "Illegal state for commit without block: #{@state}"
         end
-        each_adapter(:prepare_adapter, [:rollback_and_close_adapter_if_begin, :rollback_prepared_and_close_adapter_if_prepare])
         each_adapter(:commit_adapter, [:log_fatal_transaction_breakage])
         each_adapter(:close_adapter, [:log_fatal_transaction_breakage])
         @state = :commit
@@ -143,7 +142,6 @@ module DataMapper
         raise "Illegal state for rollback: #{@state}"
       end
       each_adapter(:rollback_adapter_if_begin, [:rollback_and_close_adapter_if_begin, :close_adapter_if_none])
-      each_adapter(:rollback_prepared_adapter_if_prepare, [:rollback_prepared_and_close_adapter_if_begin, :close_adapter_if_none])
       each_adapter(:close_adapter_if_open, [:log_fatal_transaction_breakage])
       @state = :rollback
     end
@@ -186,7 +184,7 @@ module DataMapper
     # @api private
     def method_missing(meth, *args, &block)
       if args.size == 1 && args.first.kind_of?(Adapters::AbstractAdapter)
-        if (match = meth.to_s.match(/^(.*)_if_(none|begin|prepare|rollback|commit)$/))
+        if (match = meth.to_s.match(/^(.*)_if_(none|begin|rollback|commit)$/))
           if self.respond_to?(match[1], true)
             if state_for(args.first).to_s == match[2]
               self.send(match[1], args.first)
@@ -194,7 +192,7 @@ module DataMapper
           else
             super
           end
-        elsif (match = meth.to_s.match(/^(.*)_unless_(none|begin|prepare|rollback|commit)$/))
+        elsif (match = meth.to_s.match(/^(.*)_unless_(none|begin|rollback|commit)$/))
           if self.respond_to?(match[1], true)
             unless state_for(args.first).to_s == match[2]
               self.send(match[1], args.first)
@@ -229,7 +227,7 @@ module DataMapper
     # TODO: document
     # @api private
     def validate_primitive(primitive)
-      [:close, :begin, :prepare, :rollback, :rollback_prepared, :commit].each do |meth|
+      [:close, :begin, :rollback, :commit].each do |meth|
         unless primitive.respond_to?(meth)
           raise "Invalid primitive #{primitive}: doesnt respond_to?(#{meth.inspect})"
         end
@@ -328,33 +326,14 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def prepare_adapter(adapter)
-      do_adapter(adapter, :prepare, :begin);
-    end
-
-    # TODO: document
-    # @api private
     def commit_adapter(adapter)
-      do_adapter(adapter, :commit, :prepare)
+      do_adapter(adapter, :commit, :begin)
     end
 
     # TODO: document
     # @api private
     def rollback_adapter(adapter)
       do_adapter(adapter, :rollback, :begin)
-    end
-
-    # TODO: document
-    # @api private
-    def rollback_prepared_adapter(adapter)
-      do_adapter(adapter, :rollback_prepared, :prepare)
-    end
-
-    # TODO: document
-    # @api private
-    def rollback_prepared_and_close_adapter(adapter)
-      rollback_prepared_adapter(adapter)
-      close_adapter(adapter)
     end
 
     # TODO: document
@@ -382,7 +361,7 @@ module DataMapper
       #
       # @return [Object]
       #   a new Object that responds to :close, :begin, :commit,
-      #   :rollback, :rollback_prepared and :prepare
+      #   and :rollback,
       #
       # @api private
       def transaction_primitive
