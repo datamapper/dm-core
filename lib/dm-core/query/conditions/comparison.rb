@@ -222,7 +222,7 @@ module DataMapper
         # TODO: document
         # @api private
         def valid_value?(subject, value)
-          unless value.kind_of?(Enumerable)
+          unless value.kind_of?(Array) || value.kind_of?(Range) || value.kind_of?(Set)
             return false
           end
 
