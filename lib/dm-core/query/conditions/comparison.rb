@@ -69,17 +69,6 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def record_value(record)
-          case record
-            when Hash     then record_value_from_hash(record)
-            when Resource then record_value_from_resource(record)
-            else
-              record
-          end
-        end
-
-        # TODO: document
-        # @api semipublic
         def valid?
           @valid
         end
@@ -132,10 +121,15 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
+        attr_reader :expected
+
+        # TODO: document
+        # @api semipublic
         def initialize(subject, value)
-          @subject = subject
-          @value   = value
-          @valid   = valid_value?(subject, value)
+          @subject  = subject
+          @value    = value
+          @valid    = valid_value?(subject, value)
+          @expected = expected_value
         end
 
         # TODO: document
@@ -159,6 +153,17 @@ module DataMapper
         end
 
         # TODO: document
+        # @api semipublic
+        def record_value(record)
+          case record
+            when Hash     then record_value_from_hash(record)
+            when Resource then record_value_from_resource(record)
+            else
+              record
+          end
+        end
+
+        # TODO: document
         # @api private
         def record_value_from_hash(hash)
           hash.fetch(@subject, hash[@subject.field])
@@ -168,6 +173,12 @@ module DataMapper
         # @api private
         def record_value_from_resource(resource)
           @subject.get!(resource)
+        end
+
+        # TODO: document
+        # @api semipublic
+        def expected_value
+          record_value(@value)
         end
 
         # TODO: document
@@ -189,7 +200,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def matches?(record)
-          @value == record_value(record)
+          record_value(record) == expected
         end
 
         private
@@ -208,7 +219,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && @value.include?(record_value)
+          !record_value.nil? && expected.include?(record_value)
         end
 
         private
@@ -236,6 +247,12 @@ module DataMapper
 
           true
         end
+
+        # TODO: document
+        # @api semipublic
+        def expected_value
+          @value.map { |value| record_value(value) }
+        end
       end # class InclusionComparison
 
       class RegexpComparison < AbstractComparison
@@ -245,7 +262,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value =~ @value
+          !record_value.nil? && record_value =~ expected
         end
 
         private
@@ -271,22 +288,21 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value =~ regexp_value
+          !record_value.nil? && record_value =~ expected
         end
 
         private
-
-        # TODO: move this into the initialize method
-        # TODO: document
-        # @api semipublic
-        def regexp_value
-          @regexp_value ||= Regexp.new(@value.to_s.gsub('%', '.*').gsub('_', '.'))
-        end
 
         # TODO: document
         # @api private
         def comparator_string
           'LIKE'
+        end
+
+        # TODO: document
+        # @api semipublic
+        def expected_value
+          Regexp.new(@value.to_s.gsub('%', '.*').gsub('_', '.'))
         end
       end # class LikeComparison
 
@@ -297,7 +313,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value > @value
+          !record_value.nil? && record_value > expected
         end
 
         private
@@ -316,7 +332,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value < @value
+          !record_value.nil? && record_value < expected
         end
 
         private
@@ -335,7 +351,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value >= @value
+          !record_value.nil? && record_value >= expected
         end
 
         private
@@ -354,7 +370,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value <= @value
+          !record_value.nil? && record_value <= expected
         end
 
         private
