@@ -278,7 +278,6 @@ share_examples_for 'it creates a many mutator' do
     describe 'when changing an associated collection' do
       before :all do
         @car.send("#{@name}=", [ @model.new ])
-        @car.save.should be_true
 
         @expected = [ @model.new ]
 
