@@ -37,6 +37,18 @@ module DataMapper
       end
 
       # TODO: document
+      # @api public
+      def kind_of?(klass)
+        super || (defined?(@property) && @property.kind_of?(klass))
+      end
+
+      # TODO: document
+      # @api public
+      def instance_of?(klass)
+        super || (defined?(@property) && @property.instance_of?(klass))
+      end
+
+      # TODO: document
       # @api semipublic
       def respond_to?(method, include_private = false)
         super                                                                   ||
