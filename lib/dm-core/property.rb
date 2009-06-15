@@ -740,7 +740,7 @@ module DataMapper
     # Returns given value unchanged for core types and
     # uses +dump+ method of the property type for custom types.
     #
-    # @param [Object] val
+    # @param [Object] value
     #   the value to be converted into a storeable (ie., primitive) value
     #
     # @return [Object]
@@ -749,6 +749,28 @@ module DataMapper
     # @api semipublic
     def value(value)
       custom? ? type.dump(value, self) : value
+    end
+
+    ##
+    # Test the value to see if it is a valid value for this Property
+    #
+    # @param [Object] value
+    #   the value to be tested
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the value is valid
+    #
+    # @api semipulic
+    def valid?(value)
+      unless value.kind_of?(primitive)
+        return false
+      end
+
+      if value.nil? && !nullable?
+        return false
+      end
+
+      true
     end
 
     # Returns a concise string representation of the property instance.

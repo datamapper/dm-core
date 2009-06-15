@@ -253,6 +253,28 @@ module DataMapper
       end
 
       ##
+      # Test the resource to see if it is a valid target resource
+      #
+      # @param [Object] resource
+      #   the resource to be tested
+      #
+      # @return [TrueClass, FalseClass]
+      #   true if the resource is valid
+      #
+      # @api semipulic
+      def valid?(resource)
+        unless resource.kind_of?(target_model)
+          return false
+        end
+
+        unless target_key.get!(resource).all?
+          return false
+        end
+
+        true
+      end
+
+      ##
       # Get the inverse relationship from the target model
       #
       # @api semipublic

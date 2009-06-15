@@ -200,11 +200,7 @@ module DataMapper
         # TODO: document
         # @api private
         def valid_value?(subject, value)
-          if subject.kind_of?(Property)
-            value.kind_of?(subject.primitive) || (value.nil? && subject.nullable?)
-          else
-            value.kind_of?(subject.target_model)
-          end
+          subject.valid?(value)
         end
       end # class AbstractComparison
 
