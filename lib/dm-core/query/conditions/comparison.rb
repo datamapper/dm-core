@@ -102,7 +102,7 @@ module DataMapper
             return true
           end
 
-          unless other.class.equal?(self.class)
+          unless other.instance_of?(self.class)
             return false
           end
 
