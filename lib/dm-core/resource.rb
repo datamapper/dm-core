@@ -457,7 +457,7 @@ module DataMapper
     #
     # @api public
     def <=>(other)
-      unless other.kind_of?(model)
+      unless other.kind_of?(model.base_model)
         raise ArgumentError, "Cannot compare a #{other.model} instance with a #{model} instance"
       end
       cmp = 0
