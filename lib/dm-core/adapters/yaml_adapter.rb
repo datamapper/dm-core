@@ -1,5 +1,5 @@
+require 'pathname'
 require 'yaml'
-require 'fileutils'
 
 module DataMapper
   module Adapters
@@ -48,7 +48,7 @@ module DataMapper
       # @api semipublic
       def initialize(name, options = {})
         super
-        @path = FileUtils.mkdir_p(@options[:path])
+        (@path = Pathname(@options[:path]).freeze).mkpath
       end
 
       ##
@@ -80,7 +80,7 @@ module DataMapper
       # @api private
       def records_for(model)
         file = yaml_file(model)
-        File.readable?(file) && YAML.load_file(file) || []
+        file.readable? && YAML.load_file(file) || []
       end
 
       ##
@@ -94,7 +94,7 @@ module DataMapper
       #
       # @api private
       def write_records(model, records)
-        File.open(yaml_file(model), 'w') do |fh|
+        yaml_file(model).open('w') do |fh|
           YAML.dump(records, fh)
         end
       end
@@ -109,7 +109,7 @@ module DataMapper
       #
       # @api private
       def yaml_file(model)
-        File.join(@path, "#{model.base_model.storage_name(name)}.yml")
+        @path / "#{model.base_model.storage_name(name)}.yml"
       end
 
     end # class YamlAdapter
