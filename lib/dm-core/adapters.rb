@@ -51,13 +51,7 @@ module DataMapper
       #
       # @api private
       def normalize_options_hash(hash)
-        options = hash.to_mash
-
-        if options.key?(:scheme)
-          options[:adapter] ||= options[:scheme]
-        end
-
-        options
+        hash.to_mash
       end
 
       ##
@@ -78,6 +72,8 @@ module DataMapper
         if options[:query]
           options.update(uri.query_values)
         end
+
+        options[:adapter] = options[:scheme]
 
         options
       end
@@ -107,7 +103,7 @@ module DataMapper
       #
       # @api private
       def adapter_class(name)
-        class_name = (Extlib::Inflection.camelize(name) + 'Adapter').to_sym
+        class_name = (Extlib::Inflection.camelize(name) << 'Adapter').to_sym
         load_adapter(name) unless const_defined?(class_name)
         const_get(class_name)
       end
