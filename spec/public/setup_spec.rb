@@ -78,6 +78,14 @@ describe DataMapper do
       end
     end
 
+    describe 'using invalid options' do
+      it 'should raise an exception' do
+        lambda {
+          DataMapper.setup(:setup_test, :invalid)
+        }.should raise_error(ArgumentError, '+options+ should be Hash or Addressable::URI or String, but was Symbol')
+      end
+    end
+
     describe 'using an instance of an adapter' do
       before :all do
         @adapter = DataMapper::Adapters::InMemoryAdapter.new(:setup_test)

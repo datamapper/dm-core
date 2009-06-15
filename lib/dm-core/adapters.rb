@@ -36,7 +36,7 @@ module DataMapper
           when Addressable::URI then normalize_options_uri(options)
           when String           then normalize_options_string(options)
           else
-            raise ArgumentError, "+options+ should be a Hash, String or Addressable::URI, but was #{uri_or_options.class.name}", caller(2)
+            assert_kind_of 'options', options, Hash, Addressable::URI, String
         end
       end
 
