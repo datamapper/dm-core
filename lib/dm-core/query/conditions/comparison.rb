@@ -80,11 +80,15 @@ module DataMapper
             return true
           end
 
-          unless other.class.respond_to?(:slug) && other.class.slug == self.class.slug
+          unless other.class.respond_to?(:slug)
             return false
           end
 
-          unless other.respond_to?(:subject) && other.respond_to?(:value)
+          unless other.respond_to?(:subject)
+            return false
+          end
+
+          unless other.respond_to?(:value)
             return false
           end
 
@@ -141,6 +145,10 @@ module DataMapper
         # TODO: document
         # @api private
         def cmp?(other, operator)
+          unless self.class.slug.send(operator, other.class.slug)
+            return false
+          end
+
           unless subject.send(operator, other.subject)
             return false
           end
