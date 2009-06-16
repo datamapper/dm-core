@@ -190,65 +190,113 @@ module DataMapper
         alias collection_replace replace
         private :collection_replace
 
-        # TODO: document
+        ##
+        # Replace the Resources within the 1:m Collection
+        #
+        # @param [Enumerable] other
+        #   List of other Resources to replace with
+        #
+        # @return [Collection]
+        #   self
+        #
         # @api public
         def replace(*)
           lazy_load  # lazy load so that targets are always orphaned
           super
         end
 
-        # TODO: document
+        ##
+        # Removes all Resources from the 1:m Collection
+        #
+        # This should remove and orphan each Resource from the 1:m Collection.
+        #
+        # @return [Collection]
+        #   self
+        #
         # @api public
         def clear
           lazy_load  # lazy load so that targets are always orphaned
           super
         end
 
-        # TODO: document
-        # @api public
-        def create(*)
-          assert_source_saved 'The source must be saved before creating a Resource'
-          super
-        end
-
-        # TODO: document
+        ##
+        # Update every Resource in the 1:m Collection
+        #
+        # @param [Hash] attributes
+        #   attributes to update with
+        #
+        # @return [TrueClass, FalseClass]
+        #   true if the resources were successfully updated
+        #
         # @api public
         def update(*)
           assert_source_saved 'The source must be saved before mass-updating the collection'
           super
         end
 
-        # TODO: document
+        ##
+        # Update every Resource in the 1:m Collection, bypassing validation
+        #
+        # @param [Hash] attributes
+        #   attributes to update
+        #
+        # @return [TrueClass, FalseClass]
+        #   true if the resources were successfully updated
+        #
         # @api public
         def update!(*)
-          assert_source_saved 'The source must be saved before mass-updating the collection without validation'
+          assert_source_saved 'The source must be saved before mass-updating the collection'
           super
         end
 
-        # TODO: document
-        # @api public
-        def save
-          assert_source_saved 'The source must be saved before saving the collection'
-
-          # remove reference to source in orphans
-          @orphans.all? { |resource| resource.save } && super
-        end
-
-        # TODO: document
+        ##
+        # Remove every Resource in the 1:m Collection from the repository
+        #
+        # This performs a deletion of each Resource in the Collection from
+        # the repository and clears the Collection.
+        #
+        # @return [TrueClass, FalseClass]
+        #   true if the resources were successfully destroyed
+        #
         # @api public
         def destroy
           assert_source_saved 'The source must be saved before mass-deleting the collection'
           super
         end
 
-        # TODO: document
+        ##
+        # Remove every Resource in the 1:m Collection from the repository, bypassing validation
+        #
+        # This performs a deletion of each Resource in the Collection from
+        # the repository and clears the Collection while skipping
+        # validation.
+        #
+        # @return [TrueClass, FalseClass]
+        #   true if the resources were successfully destroyed
+        #
         # @api public
         def destroy!
-          assert_source_saved 'The source must be saved before mass-deleting the collection without validation'
+          assert_source_saved 'The source must be saved before mass-deleting the collection'
           super
         end
 
         private
+
+        # TODO: document
+        # @api private
+        def _create(*)
+          assert_source_saved 'The source must be saved before creating a resource'
+          super
+        end
+
+        # TODO: document
+        # @api private
+        def _save(safe)
+          assert_source_saved 'The source must be saved before saving the collection'
+
+          # remove reference to source in orphans
+          @orphans.all? { |resource| resource.send(safe ? :save : :save!) } && super
+        end
 
         # TODO: document
         # @api private

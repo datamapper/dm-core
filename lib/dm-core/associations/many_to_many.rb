@@ -258,49 +258,15 @@ module DataMapper
       end # class Relationship
 
       class Collection < Associations::OneToMany::Collection
-        # TODO: document
-        # @api public
-        def create(attributes = {})
-          if last_relationship.respond_to?(:resource_for)
-            resource = super
-            if create_intermediary(last_relationship => resource)
-              resource
-            end
-          else
-            if intermediary = create_intermediary
-              super(attributes.merge(last_relationship.inverse => intermediary))
-            end
-          end
-        end
-
-        # TODO: document
-        # @api public
-        def save
-          resources = if loaded?
-            entries
-          else
-            head + tail
-          end
-
-          # delete only intermediaries linked to the target orphans
-          unless @orphans.empty? || intermediaries(@orphans).destroy
-            return false
-          end
-
-          if last_relationship.respond_to?(:resource_for)
-            super
-            resources.all? { |resource| create_intermediary(last_relationship => resource) }
-          else
-            if intermediary = create_intermediary
-              inverse = last_relationship.inverse
-              resources.map { |resource| inverse.set(resource, intermediary) }
-            end
-
-            super
-          end
-        end
-
-        # TODO: document
+        ##
+        # Remove every Resource in the m:m Collection from the repository
+        #
+        # This performs a deletion of each Resource in the Collection from
+        # the repository and clears the Collection.
+        #
+        # @return [TrueClass, FalseClass]
+        #   true if the resources were successfully destroyed
+        #
         # @api public
         def destroy
           unless intermediaries.destroy
@@ -310,7 +276,16 @@ module DataMapper
           super
         end
 
-        # TODO: document
+        ##
+        # Remove every Resource in the m:m Collection from the repository, bypassing validation
+        #
+        # This performs a deletion of each Resource in the Collection from
+        # the repository and clears the Collection while skipping
+        # validation.
+        #
+        # @return [TrueClass, FalseClass]
+        #   true if the resources were successfully destroyed
+        #
         # @api public
         def destroy!
           unless intermediaries.destroy!
@@ -339,7 +314,24 @@ module DataMapper
 
         # TODO: document
         # @api private
+        def _create(safe, attributes)
+          if last_relationship.respond_to?(:resource_for)
+            resource = super
+            if create_intermediary(safe, last_relationship => resource)
+              resource
+            end
+          else
+            if intermediary = create_intermediary(safe)
+              super(safe, attributes.merge(last_relationship.inverse => intermediary))
+            end
+          end
+        end
+
+        # TODO: document
+        # @api private
         def _update(dirty_attributes)
+          assert_source_saved 'The source must be saved before mass-updating the collection'
+
           attributes = dirty_attributes.map { |property, value| [ property.name, value ] }.to_hash
 
           # FIXME: use a subquery to do this more efficiently in the future,
@@ -347,6 +339,33 @@ module DataMapper
 
           # TODO: handle compound keys
           model.all(:repository => repository_name, key.first => map { |resource| resource.key.first }).update!(attributes)
+        end
+
+        # TODO: document
+        # @api private
+        def _save(safe)
+          resources = if loaded?
+            entries
+          else
+            head + tail
+          end
+
+          # delete only intermediaries linked to the target orphans
+          unless @orphans.empty? || intermediaries(@orphans).send(safe ? :destroy : :destroy!)
+            return false
+          end
+
+          if last_relationship.respond_to?(:resource_for)
+            super
+            resources.all? { |resource| create_intermediary(safe, last_relationship => resource) }
+          else
+            if intermediary = create_intermediary(safe)
+              inverse = last_relationship.inverse
+              resources.map { |resource| inverse.set(resource, intermediary) }
+            end
+
+            super
+          end
         end
 
         # TODO: document
@@ -365,11 +384,13 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def create_intermediary(attributes = {})
-          # create the intermediary record if there isn't one already
-          if intermediaries.save && (intermediary = intermediaries.first_or_create(attributes)).saved?
-            intermediary
-          end
+        def create_intermediary(safe, attributes = {})
+          return unless intermediaries.send(safe ? :save : :save!)
+
+          intermediary = intermediaries.first(attributes) ||
+                         intermediaries.send(safe ? :create : :create!, attributes)
+
+          return intermediary if intermediary.saved?
         end
 
         # TODO: document

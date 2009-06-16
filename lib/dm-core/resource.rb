@@ -325,7 +325,9 @@ module DataMapper
         # remove from the identity map
         identity_map.delete(key)
 
-        repository.update(dirty_attributes, Collection.new(query, [ self ]))
+        unless repository.update(dirty_attributes, Collection.new(query, [ self ]))
+          return false
+        end
 
         # remove the cached key in case it is updated
         remove_instance_variable(:@key)
@@ -603,6 +605,33 @@ module DataMapper
     end
 
     ##
+    # Saves the parent resources
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the parents were successfully saved
+    #
+    # @api private
+    def save_parents
+      parent_relationships.all? do |relationship|
+        parent = relationship.get!(self)
+        if parent.save_self
+          relationship.set(self, parent)  # set the FK values
+        end
+      end
+    end
+
+    ##
+    # Saves the children resources
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the children were successfully saved
+    #
+    # @api private
+    def save_children
+      child_relationships.all? { |relationship| relationship.get!(self).save }
+    end
+
+    ##
     # Reset the Resource to a similar state as a new record:
     # removes it from identity map and clears original property
     # values (thus making all properties non dirty)
@@ -703,27 +732,6 @@ module DataMapper
     def initialize(attributes = {}) # :nodoc:
       @saved = false
       self.attributes = attributes
-    end
-
-    ##
-    # Saves the parent resources
-    #
-    # @api private
-    def save_parents
-      parent_relationships.all? do |relationship|
-        parent = relationship.get!(self)
-        if parent.save_self
-          relationship.set(self, parent)  # set the FK values
-        end
-      end
-    end
-
-    ##
-    # Saves the children resources
-    #
-    # @api private
-    def save_children
-      child_relationships.all? { |relationship| relationship.get!(self).save }
     end
 
     ##

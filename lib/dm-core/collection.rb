@@ -736,20 +736,31 @@ module DataMapper
     end
 
     ##
-    # Creates a new Resource, saves it, and appends it to the Collection
-    # if it was successfully saved.
+    # Create a Resource in the Collection
     #
-    # @param [Hash] attributes
-    #   Attributes with which to create the new resource.
+    # @param [Hash(Symbol => Object)] attributes
+    #   attributes to set
     #
     # @return [Resource]
-    #   a saved Resource
+    #   the newly created Resource instance
     #
     # @api public
     def create(attributes = {})
-      resource = repository.scope { model.create(default_attributes.merge(attributes)) }
-      self << resource if resource.saved?
-      resource
+      _create(true, attributes)
+    end
+
+    ##
+    # Create a Resource in the Collection, bypassing hooks
+    #
+    # @param [Hash(Symbol => Object)] attributes
+    #   attributes to set
+    #
+    # @return [Resource]
+    #   the newly created Resource instance
+    #
+    # @api public
+    def create!(attributes = {})
+      _create(false, attributes)
     end
 
     ##
@@ -757,9 +768,11 @@ module DataMapper
     #
     #   Person.all(:age.gte => 21).update(:allow_beer => true)
     #
-    # @param [Hash] attributes attributes to update with
+    # @param [Hash] attributes
+    #   attributes to update with
     #
-    # @return [TrueClass, FalseClass] true if successful
+    # @return [TrueClass, FalseClass]
+    #   true if the resources were successfully updated
     #
     # @api public
     def update(attributes = {})
@@ -772,9 +785,11 @@ module DataMapper
     #
     #   Person.all(:age.gte => 21).update!(:allow_beer => true)
     #
-    # @param [Hash] attributes attributes to update
+    # @param [Hash] attributes
+    #   attributes to update
     #
-    # @return [TrueClass, FalseClass] true if successful
+    # @return [TrueClass, FalseClass]
+    #   true if the resources were successfully updated
     #
     # @api public
     def update!(attributes = {})
@@ -803,32 +818,33 @@ module DataMapper
     ##
     # Save every Resource in the Collection
     #
-    # @return [TrueClass, FalseClass] true if successful
+    # @return [TrueClass, FalseClass]
+    #   true if the resources were successfully saved
     #
     # @api public
     def save
-      resources = if loaded?
-        entries
-      else
-        head + tail
-      end
-
-      # FIXME: remove this once the writer method on the child side
-      # is used to store the reference to the parent.
-      relate_resources(resources)
-
-      @orphans.clear
-
-      resources.all? { |resource| resource.save }
+      _save(true)
     end
 
     ##
-    # Remove all Resources from the repository with callbacks & validation
+    # Save every Resource in the Collection bypassing validation
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the resources were successfully saved
+    #
+    # @api public
+    def save!
+      _save(false)
+    end
+
+    ##
+    # Remove every Resource in the Collection from the repository
     #
     # This performs a deletion of each Resource in the Collection from
     # the repository and clears the Collection.
     #
-    # @return [TrueClass, FalseClass] true if successful
+    # @return [TrueClass, FalseClass]
+    #   true if the resources were successfully destroyed
     #
     # @api public
     def destroy
@@ -840,13 +856,14 @@ module DataMapper
     end
 
     ##
-    # Remove all Resources from the repository bypassing validation
+    # Remove all Resources from the repository, bypassing validation
     #
     # This performs a deletion of each Resource in the Collection from
-    # the repository and clears the Collection while skipping foreign
-    # key validation.
+    # the repository and clears the Collection while skipping
+    # validation.
     #
-    # @return [TrueClass, FalseClass] true if successful
+    # @return [TrueClass, FalseClass]
+    #   true if the resources were successfully destroyed
     #
     # @api public
     def destroy!
@@ -1025,6 +1042,24 @@ module DataMapper
     end
 
     ##
+    # Creates a resource in the collection
+    #
+    # @param [TrueClass, FalseClass] safe
+    #   Whether to use the safe or unsafe create
+    # @param [Hash] attributes
+    #   Attributes with which to create the new resource.
+    #
+    # @return [Resource]
+    #   a saved Resource
+    #
+    # @api private
+    def _create(safe, attributes)
+      resource = repository.scope { model.send(safe ? :create : :create!, default_attributes.merge(attributes)) }
+      self << resource if resource.saved?
+      resource
+    end
+
+    ##
     # Updates a collection
     #
     # @return [TrueClass,FalseClass]
@@ -1043,6 +1078,32 @@ module DataMapper
         repository.update(dirty_attributes, self)
         true
       end
+    end
+
+    ##
+    # Saves a collection
+    #
+    # @param [Symbol] method
+    #   The name of the Resource method to save the collection with
+    #
+    # @return [TrueClass,FalseClass]
+    #   Returns true if collection was updated
+    #
+    # @api private
+    def _save(safe)
+      resources = if loaded?
+        entries
+      else
+        head + tail
+      end
+
+      # FIXME: remove this once the writer method on the child side
+      # is used to store the reference to the parent.
+      relate_resources(resources)
+
+      @orphans.clear
+
+      resources.all? { |resource| resource.send(safe ? :save : :save!) }
     end
 
     ##

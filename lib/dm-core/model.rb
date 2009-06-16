@@ -317,19 +317,31 @@ module DataMapper
     end
 
     ##
-    # Create an instance of Resource with the given attributes
+    # Create a Resource
     #
     # @param [Hash(Symbol => Object)] attributes
-    #   hash of attributes to set
+    #   attributes to set
     #
     # @return [Resource]
-    #   the newly created (and saved) Resource instance
+    #   the newly created Resource instance
     #
     # @api public
     def create(attributes = {})
-      resource = new(attributes)
-      resource.save
-      resource
+      _create(true, attributes)
+    end
+
+    ##
+    # Create a Resource, bypassing hooks
+    #
+    # @param [Hash(Symbol => Object)] attributes
+    #   attributes to set
+    #
+    # @return [Resource]
+    #   the newly created Resource instance
+    #
+    # @api public
+    def create!(attributes = {})
+      _create(false, attributes)
     end
 
     ##
@@ -536,6 +548,14 @@ module DataMapper
     end
 
     private
+
+    # TODO: document
+    # @api private
+    def _create(safe, attributes)
+      resource = new(attributes)
+      resource.send(safe ? :save : :save!)
+      resource
+    end
 
     # TODO: document
     # @api private
