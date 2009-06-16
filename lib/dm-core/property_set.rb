@@ -45,6 +45,7 @@ module DataMapper
     # @api semipublic
     def <<(property)
       if named?(property.name)
+        add_property(property)
         super_slice(index(property), property)
       else
         add_property(property)

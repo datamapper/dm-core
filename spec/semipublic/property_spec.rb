@@ -37,4 +37,25 @@ describe DataMapper::Property do
       end
     end
   end
+  
+  describe 'override property definition in other repository' do
+    before(:all) do
+      module ::Blog
+        class Author
+          repository(:other) do
+            property :name,  String, :key => true, :field => 'other_name'
+          end
+        end
+      end
+    end
+      
+    it 'should return property options in other repository' do
+      ::Blog::Author.properties(:other)[:name].options[:field].should == 'other_name'
+    end
+
+    it 'should return property options in default repository' do
+      ::Blog::Author.properties[:name].options[:field].should be_nil
+    end
+  end
+
 end
