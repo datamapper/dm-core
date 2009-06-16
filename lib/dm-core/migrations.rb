@@ -731,7 +731,7 @@ module DataMapper
         # @api private
         def create_sequence_statements(model)
           table_name = model.storage_name(name)
-          identity_field = model.identity_field
+          identity_field = model.identity_field(name)
 
           statements = []
           if identity_field
@@ -763,7 +763,7 @@ module DataMapper
         # @api private
         def drop_sequence_statement(model)
           table_name = model.storage_name(name)
-          identity_field = model.identity_field
+          identity_field = model.identity_field(name)
 
           if identity_field
             sequence_name = identity_field.options[:sequence] || default_sequence_name(table_name)

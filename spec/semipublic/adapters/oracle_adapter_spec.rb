@@ -25,7 +25,7 @@ module SQLLogHelper
   
   def stop_sql_log!
     return unless @sql_log_on
-    @sql_log_off
+    @sql_log_on = nil
     DataObjects::Oracle.logger = @old_logger
   end
   
@@ -99,6 +99,44 @@ describe 'Adapter' do
 
           it "should have custom sequence name" do
             Employee.properties[:employee_id].options[:sequence].should == "emp_seq"
+          end
+
+          it "should create custom sequence" do
+            sql_log_buffer.should =~ /CREATE SEQUENCE "EMP_SEQ"/
+          end
+
+          it "should not create trigger" do
+            sql_log_buffer.should_not =~ /TRIGGER/
+          end
+
+        end
+
+        describe "create custom sequence in non-default repository" do
+
+          before(:all) do
+            stop_sql_log!
+            DataMapper.setup :oracle, DataMapper::Repository.adapters[:default].options
+            start_sql_log!
+            class ::Employee
+              include DataMapper::Resource
+              property :id,  Serial
+              repository(:oracle) do
+                property :id,  Serial, :field => "employee_id", :sequence => "emp_seq"
+              end
+            end
+            repository(:oracle) do
+              Employee.auto_migrate!
+            end
+          end
+
+          after(:all) do
+            repository(:oracle) do
+              Employee.auto_migrate_down!
+            end
+          end
+
+          it "should have custom sequence name" do
+            Employee.properties(:oracle)[:id].options[:sequence].should == "emp_seq"
           end
 
           it "should create custom sequence" do
