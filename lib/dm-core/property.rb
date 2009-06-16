@@ -762,15 +762,7 @@ module DataMapper
     #
     # @api semipulic
     def valid?(value)
-      unless value.kind_of?(primitive)
-        return false
-      end
-
-      if value.nil? && !nullable?
-        return false
-      end
-
-      true
+      value.kind_of?(primitive) || (value.nil? && nullable?)
     end
 
     # Returns a concise string representation of the property instance.
