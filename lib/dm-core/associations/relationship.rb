@@ -124,11 +124,13 @@ module DataMapper
       #
       # @api semipublic
       def query_for(source, other_query = nil)
-        query = self.query.merge(source_scope(source))
-        query.update(other_query) if other_query
-
-        query = Query.new(DataMapper.repository(target_repository_name), target_model, query)
-        query.update(:fields => query.fields | target_key)
+        DataMapper.repository(target_repository_name).scope do
+          query = target_model.query.dup
+          query.update(self.query)
+          query.update(source_scope(source))
+          query.update(other_query) if other_query
+          query.update(:fields => query.fields | target_key)
+        end
       end
 
       # Returns model class used by child side of the relationship

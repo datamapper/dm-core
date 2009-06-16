@@ -63,6 +63,22 @@ share_examples_for 'it creates a one accessor' do
         end
       end
     end
+
+    describe 'when the target model is scoped' do
+      before :all do
+        @car.send("#{@name}=", @model.new)
+        @car.save
+
+        # set the model scope to not match the expected resource
+        @model.default_scope.update(@model.key.zip([]).to_hash)
+
+        @return = @car.model.get(*@car.key).send(@name)
+      end
+
+      it 'should return nil' do
+        @return.should be_nil
+      end
+    end
   end
 end
 
@@ -205,6 +221,28 @@ share_examples_for 'it creates a many accessor' do
         @car.send("#{@name}=", [ @expected ])
 
         @return = @car.send(@name)
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return expected Resources' do
+        @return.should == [ @expected ]
+      end
+    end
+
+    describe 'when the target model is scoped' do
+      before :all do
+        2.times { @car.send(@name).new }
+        @car.save
+
+        @expected = @car.send(@name).first
+
+        # set the model scope to only return the first record
+        @model.default_scope.update(@model.key.zip(@expected.key).to_hash)
+
+        @return = @car.model.get(*@car.key).send(@name)
       end
 
       it 'should return a Collection' do

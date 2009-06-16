@@ -121,6 +121,9 @@ module DataMapper
               #   - make sure that each intermediary can be at random repositories
               #   - make sure that each intermediary can have different conditons that
               #     scope its results
+              #   - make sure that any default scoping for the intermediate models are
+              #     respected.  this will be necessary in case STI or paranoid properties
+              #     are being used anywhere in the join
 
               query = super.dup
 
