@@ -1347,9 +1347,9 @@ module DataMapper
         if relationship.respond_to?(:collection_for)
           # TODO: figure out an alternative approach to using a
           # private method call collection_replace
-          collection = relationship.collection_for(source, other_query)
-          collection.send(:collection_replace, targets)
-          relationship.set!(source, collection)
+          association = relationship.collection_for(source, other_query)
+          association.send(:collection_replace, targets)
+          relationship.set!(source, association)
         else
           relationship.set(source, targets.first)
         end

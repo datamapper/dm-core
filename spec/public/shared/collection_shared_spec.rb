@@ -1392,9 +1392,14 @@ share_examples_for 'A public Collection' do
 
     describe 'with a has n relationship method' do
       before :all do
+        @new = @articles.new
+
         # associate the article with children
-        @article.revisions << @other
+        @article.revisions << @new
+        @new.revisions     << @other
+
         @article.save
+        @new.save
       end
 
       describe 'with no arguments' do
@@ -1417,7 +1422,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          @collection.should == [ @other ]
+          @collection.should == [ @other, @new ]
         end
       end
 
@@ -1441,7 +1446,7 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          @collection.should == [ @other ]
+          @collection.should == [ @other, @new ]
         end
 
         { :id => true, :title => false, :content => false }.each do |attribute, expected|
@@ -1454,8 +1459,13 @@ share_examples_for 'A public Collection' do
 
     describe 'with a has 1 relationship method' do
       before :all do
-        @article.previous = @other
+        @new = @articles.new
+
+        @article.previous = @new
+        @new.previous     = @other
+
         @article.save
+        @new.save
       end
 
       describe 'with no arguments' do
@@ -1478,7 +1488,8 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          @return.should == [ @other ]
+          # association is sorted reverse by id
+          @return.should == [ @new, @other ]
         end
       end
 
@@ -1502,7 +1513,8 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should return expected Collection' do
-          @return.should == [ @other ]
+          # association is sorted reverse by id
+          @return.should == [ @new, @other ]
         end
 
         { :id => true, :title => false, :content => false }.each do |attribute, expected|
