@@ -57,5 +57,4 @@ describe DataMapper::Property do
       ::Blog::Author.properties[:name].options[:field].should be_nil
     end
   end
-
 end
