@@ -87,7 +87,7 @@ Spec::Runner.configure do |config|
     # global model cleanup
     descendants = DataMapper::Model.descendants.dup.to_a
     while model = descendants.shift
-      descendants.concat(model.descendants) if model.respond_to?(:descendants)
+      descendants.concat(model.descendants.to_a) if model.respond_to?(:descendants)
 
       parts         = model.name.split('::')
       constant_name = parts.pop.to_sym
