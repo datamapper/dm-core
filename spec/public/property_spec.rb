@@ -330,29 +330,12 @@ describe DataMapper::Property do
           Image.properties[:width].typecast("-24").should == -24
         end
 
-        describe "and value is a string representation of a hex, binary or octal integer" do
-          it 'returns 36' do
-            Image.properties[:width].typecast("0x24").should == 36
-          end
-
-          it 'returns 5' do
-            Image.properties[:width].typecast("0b101").should == 5
-          end
-
-          it 'returns 19' do
-            Image.properties[:width].typecast("023").should == 19
-          end
-
-        end
-
         describe "and it has various valid presentations of 0" do
           it { Image.properties[:width].typecast(0).should == 0 }
           it { Image.properties[:width].typecast(0.0).should == 0 }
           it { Image.properties[:width].typecast("0").should == 0 }
           it { Image.properties[:width].typecast("0.0").should == 0 }
           it { Image.properties[:width].typecast("00").should == 0 }
-          it { Image.properties[:width].typecast("0b0").should == 0 }
-          it { Image.properties[:width].typecast("0x0").should == 0 }
           it { Image.properties[:width].typecast(BigDecimal("0.0")).should == 0 }
           it { Image.properties[:width].typecast(Rational(0,1)).should == 0 }
         end
