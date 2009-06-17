@@ -326,6 +326,10 @@ describe DataMapper::Property do
           end
         end
 
+        it 'should return a negative integer when the value has a minus sign before digits' do
+          Image.properties[:width].typecast("-24").should == -24
+        end
+
         describe "and value is a string representation of a hex, binary or octal integer" do
           it 'returns 36' do
             Image.properties[:width].typecast("0x24").should == 36

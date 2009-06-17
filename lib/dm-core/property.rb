@@ -688,7 +688,7 @@ module DataMapper
         if primitive == Integer
           # only typecast a String that looks like a number
           case value.to_s
-            when /\A((?:0|[1-9]\d*)(?:\.\d+)?)\z/     then $1.to_i      # integer or float
+            when /\A(-?(?:0|[1-9]\d*)(?:\.\d+)?)\z/     then $1.to_i      # integer or float
             when /\A(0(?:\d+|b[01]+|x[a-fA-F\d]+))\z/ then Integer($1)  # octal, binary or hex
             else
               value
