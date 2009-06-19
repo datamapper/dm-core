@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2009-05-31}
+  s.date = %q{2009-06-19}
   s.description = %q{Faster, Better, Simpler.}
   s.email = ["dan.kubb@gmail.com"]
   s.extra_rdoc_files = ["History.txt", "Manifest.txt", "README.txt"]
@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--main", "README.txt"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{datamapper}
-  s.rubygems_version = %q{1.3.3}
+  s.rubygems_version = %q{1.3.4}
   s.summary = %q{An Object/Relational Mapper for Ruby}
 
   if s.respond_to? :specification_version then
@@ -23,14 +23,14 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<extlib>, ["~> 0.9.12"])
+      s.add_runtime_dependency(%q<extlib>, ["~> 0.9.13"])
       s.add_runtime_dependency(%q<addressable>, ["~> 2.0"])
     else
-      s.add_dependency(%q<extlib>, ["~> 0.9.12"])
+      s.add_dependency(%q<extlib>, ["~> 0.9.13"])
       s.add_dependency(%q<addressable>, ["~> 2.0"])
     end
   else
-    s.add_dependency(%q<extlib>, ["~> 0.9.12"])
+    s.add_dependency(%q<extlib>, ["~> 0.9.13"])
     s.add_dependency(%q<addressable>, ["~> 2.0"])
   end
 end

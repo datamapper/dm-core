@@ -1,0 +1,7 @@
+=== 0.10.0 / not released
+
+  * Countless enhancements:
+
+    * Total rewrite of most of dm-core, including YARD docs for more
+      than half the methods and ~90% coverage of code.  More to be done
+      but this is a great start.
