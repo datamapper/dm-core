@@ -37,8 +37,9 @@ module DataMapper::Spec
             if defined?(DataMapper::Adapters::YamlAdapter) && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
               descendants = DataMapper::Model.descendants.dup.to_a
               while model = descendants.shift
-                descendants.concat(model.descendants) if model.respond_to?(:descendants)
+                descendants.concat(model.descendants.to_a) if model.respond_to?(:descendants)
 
+                model.default_scope.clear
                 model.all(:repository => @repository).destroy!
               end
             end
@@ -80,8 +81,9 @@ module DataMapper::Spec
             if defined?(DataMapper::Adapters::YamlAdapter) && @alternate_adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
               descendants = DataMapper::Model.descendants.dup.to_a
               while model = descendants.shift
-                descendants.concat(model.descendants) if model.respond_to?(:descendants)
+                descendants.concat(model.descendants.to_a) if model.respond_to?(:descendants)
 
+                model.default_scope.clear
                 model.all(:repository => @alternate_repository).destroy!
               end
             end
