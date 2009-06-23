@@ -27,10 +27,12 @@ describe DataMapper::Property do
       property :size,         Object
       property :filesize,     Float
       property :width,        Integer
+      property :quality,      BigDecimal
 
       property :taken_on,     Date
       property :taken_at,     Time, :default => lambda { |resource, property| Time.now }
       property :retouched_at, DateTime
+      property :type,         Class
     end
   end
 
@@ -307,67 +309,238 @@ describe DataMapper::Property do
         end
       end
 
-      describe "when type primitive is a string" do
+      describe "when type primitive is a String" do
+        before :all do
+          @property = Image.properties[:title]
+        end
+
+        it 'returns same value if a string' do
+          @value = '1.0'
+          @property.typecast(@value).should equal(@value)
+        end
+
         it 'returns string representation of the new value' do
-          Image.properties[:title].typecast(1.0).should == "1.0"
+          @property.typecast(1.0).should eql('1.0')
         end
       end
 
-      describe "when type primitive is a float" do
-        it 'returns float representation of the value' do
-          Image.properties[:filesize].typecast("24.34").should == 24.34
+      describe "when type primitive is a Float" do
+        before :all do
+          @property = Image.properties[:filesize]
         end
-      end
 
-      describe "when type primitive is an integer" do
-        describe "and value only has digits in it" do
-          it 'returns integer representation of the value' do
-            Image.properties[:width].typecast("24").should == 24
+        it 'returns same value if a float' do
+          @value = 24.0
+          @property.typecast(@value).should equal(@value)
+        end
+
+        it 'returns float representation of a zero string integer' do
+          @property.typecast('0').should eql(0.0)
+        end
+
+        it 'returns float representation of a positive string integer' do
+          @property.typecast('24').should eql(24.0)
+        end
+
+        it 'returns float representation of a negative string integer' do
+          @property.typecast('-24').should eql(-24.0)
+        end
+
+        it 'returns float representation of a zero string float' do
+          @property.typecast('0.0').should eql(0.0)
+        end
+
+        it 'returns float representation of a positive string float' do
+          @property.typecast('24.35').should eql(24.35)
+        end
+
+        it 'returns float representation of a negative string float' do
+          @property.typecast('-24.35').should eql(-24.35)
+        end
+
+        it 'returns float representation of a zero integer' do
+          @property.typecast(0).should eql(0.0)
+        end
+
+        it 'returns float representation of a positive integer' do
+          @property.typecast(24).should eql(24.0)
+        end
+
+        it 'returns float representation of a negative integer' do
+          @property.typecast(-24).should eql(-24.0)
+        end
+
+        it 'returns float representation of a zero decimal' do
+          @property.typecast(BigDecimal('0.0')).should eql(0.0)
+        end
+
+        it 'returns float representation of a positive decimal' do
+          @property.typecast(BigDecimal('24.35')).should eql(24.35)
+        end
+
+        it 'returns float representation of a negative decimal' do
+          @property.typecast(BigDecimal('-24.35')).should eql(-24.35)
+        end
+
+        [ Object.new, true, '00.0', '.0', '0.', 'string' ].each do |value|
+          it "does not typecast non-numeric value #{value.inspect}" do
+            @property.typecast(value).should equal(value)
           end
         end
+      end
 
-        it 'should return a negative integer when the value has a minus sign before digits' do
-          Image.properties[:width].typecast("-24").should == -24
+      describe "when type primitive is a Integer" do
+        before :all do
+          @property = Image.properties[:width]
         end
 
-        describe "and it has various valid presentations of 0" do
-          it { Image.properties[:width].typecast(0).should == 0 }
-          it { Image.properties[:width].typecast(0.0).should == 0 }
-          it { Image.properties[:width].typecast("0").should == 0 }
-          it { Image.properties[:width].typecast("0.0").should == 0 }
-          it { Image.properties[:width].typecast("00").should == 0 }
-          it { Image.properties[:width].typecast(BigDecimal("0.0")).should == 0 }
-          it { Image.properties[:width].typecast(Rational(0,1)).should == 0 }
+        it 'returns same value if an integer' do
+          @value = 24
+          @property.typecast(@value).should equal(@value)
         end
 
-        describe "but value has non-digits and punctuation in it" do
-          it "returns value without typecasting" do
-            Image.properties[:width].typecast('datamapper').should == 'datamapper'
+        it 'returns integer representation of a zero string integer' do
+          @property.typecast('0').should eql(0)
+        end
+
+        it 'returns integer representation of a positive string integer' do
+          @property.typecast('24').should eql(24)
+        end
+
+        it 'returns integer representation of a negative string integer' do
+          @property.typecast('-24').should eql(-24)
+        end
+
+        it 'returns integer representation of a zero string float' do
+          @property.typecast('0.0').should eql(0)
+        end
+
+        it 'returns integer representation of a positive string float' do
+          @property.typecast('24.35').should eql(24)
+        end
+
+        it 'returns integer representation of a negative string float' do
+          @property.typecast('-24.35').should eql(-24)
+        end
+
+        it 'returns integer representation of a zero float' do
+          @property.typecast(0.0).should eql(0)
+        end
+
+        it 'returns integer representation of a positive float' do
+          @property.typecast(24.35).should eql(24)
+        end
+
+        it 'returns integer representation of a negative float' do
+          @property.typecast(-24.35).should eql(-24)
+        end
+
+        it 'returns integer representation of a zero decimal' do
+          @property.typecast(BigDecimal('0.0')).should eql(0)
+        end
+
+        it 'returns integer representation of a positive decimal' do
+          @property.typecast(BigDecimal('24.35')).should eql(24)
+        end
+
+        it 'returns integer representation of a negative decimal' do
+          @property.typecast(BigDecimal('-24.35')).should eql(-24)
+        end
+
+        [ Object.new, true, '00.0', '.0', '0.', 'string' ].each do |value|
+          it "does not typecast non-numeric value #{value.inspect}" do
+            @property.typecast(value).should equal(value)
           end
         end
       end
 
       describe "when type primitive is a BigDecimal" do
-        it 'casts the value to BigDecimal'
+        before :all do
+          @property = Image.properties[:quality]
+        end
+
+        it 'returns same value if a decimal' do
+          @value = BigDecimal('24.0')
+          @property.typecast(@value).should equal(@value)
+        end
+
+        it 'returns decimal representation of a zero string integer' do
+          @property.typecast('0').should eql(BigDecimal('0.0'))
+        end
+
+        it 'returns decimal representation of a positive string integer' do
+          @property.typecast('24').should eql(BigDecimal('24.0'))
+        end
+
+        it 'returns decimal representation of a negative string integer' do
+          @property.typecast('-24').should eql(BigDecimal('-24.0'))
+        end
+
+        it 'returns decimal representation of a zero string float' do
+          @property.typecast('0.0').should eql(BigDecimal('0.0'))
+        end
+
+        it 'returns decimal representation of a positive string float' do
+          @property.typecast('24.35').should eql(BigDecimal('24.35'))
+        end
+
+        it 'returns decimal representation of a negative string float' do
+          @property.typecast('-24.35').should eql(BigDecimal('-24.35'))
+        end
+
+        it 'returns decimal representation of a zero integer' do
+          @property.typecast(0).should eql(BigDecimal('0.0'))
+        end
+
+        it 'returns decimal representation of a positive integer' do
+          @property.typecast(24).should eql(BigDecimal('24.0'))
+        end
+
+        it 'returns decimal representation of a negative integer' do
+          @property.typecast(-24).should eql(BigDecimal('-24.0'))
+        end
+
+        it 'returns decimal representation of a zero float' do
+          @property.typecast(0.0).should eql(BigDecimal('0.0'))
+        end
+
+        it 'returns decimal representation of a positive float' do
+          @property.typecast(24.35).should eql(BigDecimal('24.35'))
+        end
+
+        it 'returns decimal representation of a negative float' do
+          @property.typecast(-24.35).should eql(BigDecimal('-24.35'))
+        end
+
+        [ Object.new, true, '00.0', '.0', '0.', 'string' ].each do |value|
+          it "does not typecast non-numeric value #{value.inspect}" do
+            @property.typecast(value).should equal(value)
+          end
+        end
       end
 
       describe "when type primitive is a DateTime" do
+        before do
+          @property = Image.properties[:retouched_at]
+        end
+
         describe "and value given as a hash with keys like :year, :month, etc" do
           it 'builds a DateTime instance from hash values' do
-            result = Image.properties[:retouched_at].typecast({
-                                                                :year  => 2006,
-                                                                :month => 11,
-                                                                :day   => 23,
-                                                                :hour  => 12,
-                                                                :min   => 0,
-                                                                :sec   => 0
-                                                              })
-            result.year.should == 2006
-            result.month.should == 11
-            result.day.should == 23
-            result.hour.should == 12
-            result.min.should == 0
-            result.sec.should == 0
+            result = @property.typecast(
+              'year'  => '2006',
+              'month' => '11',
+              'day'   => '23',
+              'hour'  => '12',
+              'min'   => '0',
+              'sec'   => '0'
+            )
+            result.should be_kind_of(DateTime)
+            result.year.should eql(2006)
+            result.month.should eql(11)
+            result.day.should eql(23)
+            result.hour.should eql(12)
+            result.min.should eql(0)
+            result.sec.should eql(0)
           end
         end
 
@@ -376,63 +549,102 @@ describe DataMapper::Property do
             Image.properties[:retouched_at].typecast("Dec, 2006").month.should == 12
           end
         end
+
+        it 'does not typecast non-datetime values' do
+          @property.typecast('not-datetime').should eql('not-datetime')
+        end
       end
 
       describe "when type primitive is a Date" do
+        before do
+          @property = Image.properties[:taken_on]
+        end
+
         describe "and value given as a hash with keys like :year, :month, etc" do
           it 'builds a Date instance from hash values' do
-            result = Image.properties[:taken_on].typecast({
-                                                            :year  => 2007,
-                                                            :month => 03,
-                                                            :day   => 25
-                                                          })
-            result.year.should == 2007
-            result.month.should == 03
-            result.day.should == 25
+            result = @property.typecast(
+              'year'  => '2007',
+              'month' => '3',
+              'day'   => '25'
+            )
+            result.should be_kind_of(Date)
+            result.year.should eql(2007)
+            result.month.should eql(3)
+            result.day.should eql(25)
           end
         end
 
         describe "and value is a string" do
           it 'parses the string' do
-            result = Image.properties[:taken_on].typecast("Dec 20th, 2006")
+            result = @property.typecast("Dec 20th, 2006")
             result.month.should == 12
             result.day.should == 20
             result.year.should == 2006
           end
         end
+
+        it 'does not typecast non-date values' do
+          @property.typecast('not-date').should eql('not-date')
+        end
       end
 
       describe "when type primitive is a Time" do
+        before do
+          @property = Image.properties[:taken_at]
+        end
+
         describe "and value given as a hash with keys like :year, :month, etc" do
           it 'builds a Time instance from hash values' do
-            result = Image.properties[:retouched_at].typecast({
-                                                                :year  => 2006,
-                                                                :month => 11,
-                                                                :day   => 23,
-                                                                :hour  => 12,
-                                                                :min   => 0,
-                                                                :sec   => 0
-                                                              })
-            result.year.should == 2006
-            result.month.should == 11
-            result.day.should == 23
-            result.hour.should == 12
-            result.min.should == 0
-            result.sec.should == 0
+            result = @property.typecast(
+              'year'  => '2006',
+              'month' => '11',
+              'day'   => '23',
+              'hour'  => '12',
+              'min'   => '0',
+              'sec'   => '0'
+            )
+            result.should be_kind_of(Time)
+            result.year.should  eql(2006)
+            result.month.should eql(11)
+            result.day.should   eql(23)
+            result.hour.should  eql(12)
+            result.min.should   eql(0)
+            result.sec.should   eql(0)
           end
         end
 
         describe "and value is a string" do
           it 'parses the string' do
-            result = Image.properties[:taken_at].typecast("22:24")
-            result.hour.should == 22
-            result.min.should == 24
+            result = @property.typecast('22:24')
+            result.hour.should eql(22)
+            result.min.should eql(24)
+          end
+        end
+
+        it 'does not typecast non-time values' do
+          pending 'Time#parse is too permissive' do
+            @property.typecast('not-time').should eql('not-time')
           end
         end
       end
 
       describe "when type primitive is a Class" do
-        it 'looks up constant in Property namespace'
+        before do
+          @property = Image.properties[:type]
+        end
+
+        it 'returns same value if a class' do
+          @value = Image
+          @property.typecast(@value).should equal(@value)
+        end
+
+        it 'returns the class if found' do
+          @property.typecast('Image').should eql(Image)
+        end
+
+        it 'does not typecast non-class values' do
+          @property.typecast('NoClass').should eql('NoClass')
+        end
       end
     end # #typecase
 

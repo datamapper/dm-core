@@ -298,10 +298,6 @@ module DataMapper
 
     deprecate :unique, :unique?
 
-    # NOTE: check is only for psql, so maybe the postgres adapter should
-    # define its own property options. currently it will produce a warning tho
-    # since OPTIONS is a constant
-    #
     # NOTE: PLEASE update OPTIONS in DataMapper::Type when updating
     # them here
     OPTIONS = [
@@ -383,7 +379,11 @@ module DataMapper
         return true
       end
 
-      unless other.respond_to?(:model) && other.respond_to?(:name)
+      unless other.respond_to?(:model)
+        return false
+      end
+
+      unless other.respond_to?(:name)
         return false
       end
 
@@ -437,9 +437,14 @@ module DataMapper
     #
     # @api semipublic
     def length
-      @length.kind_of?(Range) ? @length.max : @length
+      if @length.kind_of?(Range)
+        @length.max
+      else
+        @length
+      end
     end
 
+    # TODO: deprecate #size on non-Numeric primitive
     alias size length
 
     # Returns index name if property has index.
@@ -663,18 +668,20 @@ module DataMapper
     #
     # For String primitive, +to_s+ is called on value.
     #
-    # For Float primitive, +to_f+ is called on value.
+    # For Float primitive, +to_f+ is called on value but only if value is a number
+    # otherwise value is returned.
     #
-    # For Integer primitive, +to_i+ is called on value but only if value is an integer
-    # (decimal or binary), otherwise nil is returned. This is so because "junk".to_i
-    # returns 0.
+    # For Integer primitive, +to_i+ is called on value but only if value is a
+    # number, otherwise value is returned.
     #
-    # Properties of type with BigDecimal primitive use +BigDecimal(value)+ for casting.
+    # For BigDecimal primitive, +to_d+ is called on value but only if value is a
+    # number, otherwise value is returned.
+    #
     # Casting to DateTime, Time and Date can handle both hashes with keys like :day or
     # :hour and strings in format methods like Time.parse can handle.
     #
-    # @param [#to_s, #to_f, #to_i] value
-    #   the value to be typecast to this property's primitive
+    # @param [#to_s, #to_f, #to_i, #to_d, Hash] value
+    #   the value to typecast
     #
     # @return [TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Time, Class]
     #   The typecasted +value+
@@ -683,23 +690,17 @@ module DataMapper
     def typecast(value)
       return type.typecast(value, self) if type.respond_to?(:typecast)
       return value if value.kind_of?(primitive) || value.nil?
-      begin
-        # TODO: optimize this using a Hash lookup table
-        if primitive == Integer
-          # only typecast a String that looks like a number
-          value.to_s =~ /\A(-?(?:0+|[1-9]\d*)(?:\.\d+)?)\z/ ? $1.to_i : value
-        elsif primitive == String     then value.to_s
-        elsif primitive == TrueClass  then %w[ true 1 t ].include?(value.to_s.downcase)
-        elsif primitive == BigDecimal then BigDecimal(value.to_s)
-        elsif primitive == Float      then value.to_f
-        elsif primitive == DateTime   then typecast_to_datetime(value)
-        elsif primitive == Time       then typecast_to_time(value)
-        elsif primitive == Date       then typecast_to_date(value)
-        elsif primitive == Class      then self.class.find_const(value)
-        else
-          value
-        end
-      rescue
+
+      if    primitive == Integer    then typecast_to_integer(value)
+      elsif primitive == String     then typecast_to_string(value)
+      elsif primitive == TrueClass  then typecast_to_boolean(value)
+      elsif primitive == BigDecimal then typecast_to_bigdecimal(value)
+      elsif primitive == Float      then typecast_to_float(value)
+      elsif primitive == DateTime   then typecast_to_datetime(value)
+      elsif primitive == Time       then typecast_to_time(value)
+      elsif primitive == Date       then typecast_to_date(value)
+      elsif primitive == Class      then typecast_to_class(value)
+      else
         value
       end
     end
@@ -719,7 +720,11 @@ module DataMapper
     #
     # @api semipublic
     def default_for(resource)
-      @default.respond_to?(:call) ? @default.call(resource, self) : @default.try_dup
+      if @default.respond_to?(:call)
+        @default.call(resource, self)
+      else
+        @default.try_dup
+      end
     end
 
     # Returns true if the property has a default value
@@ -743,7 +748,11 @@ module DataMapper
     #
     # @api semipublic
     def value(value)
-      custom? ? type.dump(value, self) : value
+      if custom?
+        type.dump(value, self)
+      else
+        value
+      end
     end
 
     ##
@@ -912,124 +921,241 @@ module DataMapper
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
     end
 
+    ##
+    # Typecast a value to an Integer
+    #
+    # @params [#to_str, #to_i] value
+    #   value to typecast
+    #
+    # @return [Integer]
+    #   Integer constructed from value
+    #
+    # @api private
+    def typecast_to_integer(value)
+      typecast_to_numeric(value, :to_i)
+    end
+
+    ##
+    # Typecast a value to a String
+    #
+    # @params [#to_s] value
+    #   value to typecast
+    #
+    # @return [String]
+    #   String constructed from value
+    #
+    # @api private
+    def typecast_to_string(value)
+      value.to_s
+    end
+
+    ##
+    # Typecast a value to a true or false
+    #
+    # @params [#to_s] value
+    #   value to typecast
+    #
+    # @return [TrueClass, FalseClass]
+    #   true or false constructed from value
+    #
+    # @api private
+    def typecast_to_boolean(value)
+      %w[ true 1 t ].include?(value.to_s.downcase)
+    end
+
+    ##
+    # Typecast a value to a BigDecimal
+    #
+    # @params [#to_str, #to_d, Integer] value
+    #   value to typecast
+    #
+    # @return [BigDecimal]
+    #   BigDecimal constructed from value
+    #
+    # @api private
+    def typecast_to_bigdecimal(value)
+      if value.kind_of?(Integer)
+        # TODO: remove this case when Integer#to_d added by extlib
+        value.to_s.to_d
+      else
+        typecast_to_numeric(value, :to_d)
+      end
+    end
+
+    ##
+    # Typecast a value to a Float
+    #
+    # @params [#to_str, #to_f] value
+    #   value to typecast
+    #
+    # @return [Float]
+    #   Float constructed from value
+    #
+    # @api private
+    def typecast_to_float(value)
+      typecast_to_numeric(value, :to_f)
+    end
+
+    ##
+    # Match numeric string
+    #
+    # @param [#to_str, Numeric] value
+    #   value to typecast
+    # @param [Symbol] method
+    #   method to typecast with
+    #
+    # @return [Numeric]
+    #   number if matched, value if no match
+    #
+    # @api private
+    def typecast_to_numeric(value, method)
+      if value.respond_to?(:to_str)
+        if value.to_str =~ /\A(-?(?:0|[1-9]\d*)(?:\.\d+)?)\z/
+          $1.send(method)
+        else
+          value
+        end
+      elsif value.respond_to?(method)
+        value.send(method)
+      else
+        value
+      end
+    end
+
     # Typecasts an arbitrary value to a DateTime.
     # Handles both Hashes and DateTime instances.
     #
     # @param [#to_mash, #to_s] value
-    #   value to be typecast to DateTime
+    #   value to be typecast
     #
     # @return [DateTime]
     #   DateTime constructed from value
     #
     # @api private
     def typecast_to_datetime(value)
-      if value.kind_of?(Hash)
+      if value.respond_to?(:to_mash)
         typecast_hash_to_datetime(value)
       else
         DateTime.parse(value.to_s)
       end
+    rescue ArgumentError
+      value
     end
 
     # Typecasts an arbitrary value to a Date
     # Handles both Hashes and Date instances.
     #
     # @param [#to_mash, #to_s] value
-    #   value to be typecast to Date
+    #   value to be typecast
     #
     # @return [Date]
     #   Date constructed from value
     #
     # @api private
     def typecast_to_date(value)
-      if value.kind_of?(Hash)
+      if value.respond_to?(:to_mash)
         typecast_hash_to_date(value)
       else
         Date.parse(value.to_s)
       end
+    rescue ArgumentError
+      value
     end
 
     # Typecasts an arbitrary value to a Time
     # Handles both Hashes and Time instances.
     #
     # @param [#to_mash, #to_s] value
-    #   value to be typecast to Time
+    #   value to be typecast
     #
     # @return [Time]
     #   Time constructed from value
     #
     # @api private
     def typecast_to_time(value)
-      if value.kind_of?(Hash)
+      if value.respond_to?(:to_mash)
         typecast_hash_to_time(value)
       else
         Time.parse(value.to_s)
       end
+    rescue ArgumentError
+      value
     end
 
     # Creates a DateTime instance from a Hash with keys :year, :month, :day,
     # :hour, :min, :sec
     #
-    # @param [#to_mash] hash
-    #   Hash to be typecast to DateTime
+    # @param [#to_mash] value
+    #   value to be typecast
     #
     # @return [DateTime]
     #   DateTime constructed from hash
     #
     # @api private
-    def typecast_hash_to_datetime(hash)
-      DateTime.new(*extract_time(hash))
-    rescue ArgumentError
-      typecast_hash_to_time(hash).to_datetime
+    def typecast_hash_to_datetime(value)
+      DateTime.new(*extract_time(value))
     end
 
     # Creates a Date instance from a Hash with keys :year, :month, :day
     #
-    # @param [#to_mash] hash
-    #   Hash to be typecast to Date
+    # @param [#to_mash] value
+    #   value to be typecast
     #
     # @return [Date]
     #   Date constructed from hash
     #
     # @api private
-    def typecast_hash_to_date(hash)
-      Date.new(*extract_time(hash)[0, 3])
-    rescue ArgumentError
-      # TODO: use Time#to_date once available in Extlib
-      time = typecast_hash_to_time(hash)
-      Date.new(time.year, time.month, time.day)
+    def typecast_hash_to_date(value)
+      Date.new(*extract_time(value)[0, 3])
     end
 
     # Creates a Time instance from a Hash with keys :year, :month, :day,
     # :hour, :min, :sec
     #
-    # @param [#to_mash] hash
-    #   Hash to be typecast to Time
+    # @param [#to_mash] value
+    #   value to be typecast
     #
     # @return [Time]
     #   Time constructed from hash
     #
     # @api private
-    def typecast_hash_to_time(hash)
-      Time.local(*extract_time(hash))
+    def typecast_hash_to_time(value)
+      Time.local(*extract_time(value))
     end
 
     # Extracts the given args from the hash. If a value does not exist, it
     # uses the value of Time.now.
     #
-    # @param [#to_mash] hash
-    #   Hash to extract time args from
+    # @param [#to_mash] value
+    #   value to extract time args from
     #
     # @return [Array]
     #   Extracted values
     #
     # @api private
-    def extract_time(hash)
-      mash = hash.to_mash
+    def extract_time(value)
+      mash = value.to_mash
       now  = Time.now
 
       [ :year, :month, :day, :hour, :min, :sec ].map do |segment|
-        mash.fetch(segment, now.send(segment))
+        typecast_to_numeric(mash.fetch(segment, now.send(segment)), :to_i)
       end
+    end
+
+    ##
+    # Typecast a value to a Class
+    #
+    # @params [#to_s] value
+    #   value to typecast
+    #
+    # @return [Class]
+    #   Class constructed from value
+    #
+    # @api private
+    def typecast_to_class(value)
+      model.find_const(value.to_s)
+    rescue NameError
+      value
     end
 
     ##
