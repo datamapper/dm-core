@@ -766,6 +766,7 @@ module DataMapper
     #
     # @api semipulic
     def valid?(value)
+      value = self.value(value)
       value.kind_of?(primitive) || (value.nil? && nullable?)
     end
 

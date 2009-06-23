@@ -1039,20 +1039,10 @@ module DataMapper
         bind_value = bind_value.call
       end
 
-      case property_or_path
-        when Property
-          if property_or_path.custom?
-            bind_value = property_or_path.type.dump(bind_value, property_or_path)
-          end
-
-        when Path
-          bind_value = normalize_bind_value(property_or_path.property, bind_value)
-      end
-
       # TODO: update InclusionComparison so it knows how to do this
-      if bind_value.kind_of?(Array)
+      if bind_value.instance_of?(Array)
         bind_value.uniq!
-        bind_value.size == 1 ? bind_value.first : bind_value.sort_by { |value| Sort.new(value) }
+        bind_value.size == 1 ? bind_value.first : bind_value
       else
         bind_value
       end

@@ -164,7 +164,7 @@ module DataMapper
         # @api private
         def typecast_value(value)
           if subject.respond_to?(:typecast)
-            subject.typecast(value)
+            subject.value(subject.typecast(value))
           else
             value
           end
@@ -256,7 +256,7 @@ module DataMapper
         # @api private
         def typecast_value(value)
           if subject.respond_to?(:typecast) && value.respond_to?(:map)
-            value.map { |val| subject.typecast(val) }
+            value.map { |val| subject.typecast(val) }.sort_by { |val| Sort.new(val) }
           else
             value
           end
