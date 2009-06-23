@@ -19,6 +19,7 @@ describe DataMapper::Query do
 
       property :name,     String,   :key => true
       property :password, Password
+      property :balance,  BigDecimal
 
       belongs_to :referrer, self, :nullable => true
     end
@@ -516,6 +517,56 @@ describe DataMapper::Query do
                   'password'
                 )
               )
+          end
+        end
+
+        describe 'with a Symbol for a String property' do
+          before :all do
+            @options[:conditions] = { :name => 'Dan Kubb'.to_sym }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should ==
+              DataMapper::Query::Conditions::Operation.new(
+                :and,
+                DataMapper::Query::Conditions::Comparison.new(
+                  :eql,
+                  @model.properties[:name],
+                  'Dan Kubb'  # typecast value
+                )
+              )
+          end
+
+          it 'should have valid conditions' do
+            @return.conditions.should be_valid
+          end
+        end
+
+        describe 'with a Float for a BigDecimal property' do
+          before :all do
+            @options[:conditions] = { :balance => 50.5 }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            @return.conditions.should ==
+              DataMapper::Query::Conditions::Operation.new(
+                :and,
+                DataMapper::Query::Conditions::Comparison.new(
+                  :eql,
+                  @model.properties[:balance],
+                  BigDecimal('50.5')  # typecast value
+                )
+              )
+          end
+
+          it 'should have valid conditions' do
+            @return.conditions.should be_valid
           end
         end
       end

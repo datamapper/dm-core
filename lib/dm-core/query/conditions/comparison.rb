@@ -131,8 +131,8 @@ module DataMapper
         # @api semipublic
         def initialize(subject, value)
           @subject  = subject
-          @value    = value
-          @valid    = valid_value?(subject, value)
+          @value    = typecast_value(value)
+          @valid    = valid_value?(@subject, @value)
           @expected = expected_value
         end
 
@@ -158,6 +158,16 @@ module DataMapper
           end
 
           true
+        end
+
+        # TODO: document
+        # @api private
+        def typecast_value(value)
+          if subject.respond_to?(:typecast)
+            subject.typecast(value)
+          else
+            value
+          end
         end
 
         # TODO: document
@@ -201,14 +211,14 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def comparator_string
-          self.class.name.chomp('Comparison')
+        def valid_value?(subject, value)
+          subject.valid?(value)
         end
 
         # TODO: document
         # @api private
-        def valid_value?(subject, value)
-          subject.valid?(value)
+        def comparator_string
+          self.class.name.chomp('Comparison')
         end
       end # class AbstractComparison
 
@@ -244,8 +254,12 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def comparator_string
-          'IN'
+        def typecast_value(value)
+          if subject.respond_to?(:typecast) && value.respond_to?(:map)
+            value.map { |val| subject.typecast(val) }
+          else
+            value
+          end
         end
 
         # TODO: document
@@ -271,6 +285,12 @@ module DataMapper
         def expected_value
           @value.map { |value| record_value(value, @subject, :target_key) }
         end
+
+        # TODO: document
+        # @api private
+        def comparator_string
+          'IN'
+        end
       end # class InclusionComparison
 
       class RegexpComparison < AbstractComparison
@@ -287,14 +307,20 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def comparator_string
-          '=~'
+        def typecast_value(value)
+          value
         end
 
         # TODO: document
         # @api private
         def valid_value?(subject, value)
           value.kind_of?(Regexp)
+        end
+
+        # TODO: document
+        # @api private
+        def comparator_string
+          '=~'
         end
       end # class RegexpComparison
 
@@ -312,15 +338,15 @@ module DataMapper
         private
 
         # TODO: document
-        # @api private
-        def comparator_string
-          'LIKE'
-        end
-
-        # TODO: document
         # @api semipublic
         def expected_value
           Regexp.new(@value.to_s.gsub('%', '.*').gsub('_', '.'))
+        end
+
+        # TODO: document
+        # @api private
+        def comparator_string
+          'LIKE'
         end
       end # class LikeComparison
 

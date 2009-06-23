@@ -131,8 +131,6 @@ share_examples_for 'An Adapter' do
 
   if adapter_supports?(:read, :create)
     describe 'query matching' do
-      require 'dm-core/core_ext/symbol'
-
       before :all do
         @red = Heffalump.create(:color => 'red')
         @two = Heffalump.create(:num_spots => 2)
