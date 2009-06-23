@@ -494,7 +494,8 @@ module DataMapper
               comparison_statement(conditions, qualify)
 
             when Array
-              conditions  # handle raw conditions
+              statement, bind_values = conditions  # handle raw conditions
+              [ "(#{statement})", bind_values ]
           end
         end
 
