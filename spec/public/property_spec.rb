@@ -358,6 +358,14 @@ describe DataMapper::Property do
           @property.typecast('-24.35').should eql(-24.35)
         end
 
+        it 'returns float representation of a zero string float, with no leading digits' do
+          @property.typecast('.0').should eql(0.0)
+        end
+
+        it 'returns float representation of a positive string float, with no leading digits' do
+          @property.typecast('.41').should eql(0.41)
+        end
+
         it 'returns float representation of a zero integer' do
           @property.typecast(0).should eql(0.0)
         end
@@ -382,7 +390,7 @@ describe DataMapper::Property do
           @property.typecast(BigDecimal('-24.35')).should eql(-24.35)
         end
 
-        [ Object.new, true, '00.0', '.0', '0.', 'string' ].each do |value|
+        [ Object.new, true, '00.0', '0.', '-.0', 'string' ].each do |value|
           it "does not typecast non-numeric value #{value.inspect}" do
             @property.typecast(value).should equal(value)
           end
@@ -423,6 +431,14 @@ describe DataMapper::Property do
           @property.typecast('-24.35').should eql(-24)
         end
 
+        it 'returns integer representation of a zero string float, with no leading digits' do
+          @property.typecast('.0').should eql(0)
+        end
+
+        it 'returns integer representation of a positive string float, with no leading digits' do
+          @property.typecast('.41').should eql(0)
+        end
+
         it 'returns integer representation of a zero float' do
           @property.typecast(0.0).should eql(0)
         end
@@ -447,7 +463,7 @@ describe DataMapper::Property do
           @property.typecast(BigDecimal('-24.35')).should eql(-24)
         end
 
-        [ Object.new, true, '00.0', '.0', '0.', 'string' ].each do |value|
+        [ Object.new, true, '00.0', '0.', '-.0', 'string' ].each do |value|
           it "does not typecast non-numeric value #{value.inspect}" do
             @property.typecast(value).should equal(value)
           end
@@ -488,6 +504,14 @@ describe DataMapper::Property do
           @property.typecast('-24.35').should eql(BigDecimal('-24.35'))
         end
 
+        it 'returns decimal representation of a zero string float, with no leading digits' do
+          @property.typecast('.0').should eql(BigDecimal('0.0'))
+        end
+
+        it 'returns decimal representation of a positive string float, with no leading digits' do
+          @property.typecast('.41').should eql(BigDecimal('0.41'))
+        end
+
         it 'returns decimal representation of a zero integer' do
           @property.typecast(0).should eql(BigDecimal('0.0'))
         end
@@ -512,7 +536,7 @@ describe DataMapper::Property do
           @property.typecast(-24.35).should eql(BigDecimal('-24.35'))
         end
 
-        [ Object.new, true, '00.0', '.0', '0.', 'string' ].each do |value|
+        [ Object.new, true, '00.0', '0.', '-.0', 'string' ].each do |value|
           it "does not typecast non-numeric value #{value.inspect}" do
             @property.typecast(value).should equal(value)
           end

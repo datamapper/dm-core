@@ -1011,7 +1011,7 @@ module DataMapper
     # @api private
     def typecast_to_numeric(value, method)
       if value.respond_to?(:to_str)
-        if value.to_str =~ /\A(-?(?:0|[1-9]\d*)(?:\.\d+)?)\z/
+        if value.to_str =~ /\A(-?(?:0|[1-9]\d*)(?:\.\d+)?|(?:\.\d+))\z/
           $1.send(method)
         else
           value
