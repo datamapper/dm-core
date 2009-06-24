@@ -6,7 +6,7 @@ module DataMapper
     class Relationship
       include Extlib::Assertions
 
-      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max ].to_set.freeze
+      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :inverse ].to_set.freeze
 
       # Relationship name
       #
@@ -318,6 +318,7 @@ module DataMapper
         @parent_properties      = @options[:parent_key].try_dup.freeze
         @min                    = @options[:min]
         @max                    = @options[:max]
+        @inverse                = @options[:inverse]
 
         @query = @options.except(*self.class::OPTIONS).freeze
 
@@ -397,7 +398,8 @@ module DataMapper
           parent_model,
           options.only(*OPTIONS - [ :min, :max ]).update(
             :child_key  => child_key.map  { |property| property.name },
-            :parent_key => parent_key.map { |property| property.name }
+            :parent_key => parent_key.map { |property| property.name },
+            :inverse    => self
           )
         )
       end
