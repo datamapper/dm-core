@@ -16,8 +16,8 @@ module DataMapper
             begin
               properties = target_model.properties(target_repository_name)
 
-              child_key = if @child_properties
-                properties.values_at(*@child_properties)
+              child_key = if child_properties
+                properties.values_at(*child_properties)
               else
                 properties.key
               end

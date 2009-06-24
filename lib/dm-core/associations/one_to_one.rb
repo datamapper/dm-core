@@ -12,7 +12,7 @@ module DataMapper
           assert_kind_of 'source', source, source_model
 
           return unless loaded?(source) || source_key.get(source).all?
-          @relationship.get(source, other_query).first
+          relationship.get(source, other_query).first
         end
 
         # Sets and returns association target
@@ -23,29 +23,31 @@ module DataMapper
           assert_kind_of 'source', source, source_model
           assert_kind_of 'target', target, target_model, NilClass
 
-          @relationship.set(source, [ target ].compact)
+          relationship.set(source, [ target ].compact)
           target
         end
 
         # TODO: document
         # @api public
         def kind_of?(klass)
-          super || @relationship.kind_of?(klass)
+          super || relationship.kind_of?(klass)
         end
 
         # TODO: document
         # @api public
         def instance_of?(klass)
-          super || @relationship.instance_of?(klass)
+          super || relationship.instance_of?(klass)
         end
 
         # TODO: document
         # @api public
         def respond_to?(method, include_private = false)
-          super || @relationship.respond_to?(method, include_private)
+          super || relationship.respond_to?(method, include_private)
         end
 
         private
+
+        attr_reader :relationship
 
         # Initializes the relationship. Always assumes target model class is
         # a camel cased association name.
@@ -60,7 +62,7 @@ module DataMapper
         # TODO: document
         # @api private
         def method_missing(method, *args, &block)
-          @relationship.send(method, *args, &block)
+          relationship.send(method, *args, &block)
         end
       end # class Relationship
     end # module HasOne

@@ -146,7 +146,7 @@ module DataMapper
       # TODO: document
       # @api private
       def child_model_name
-        @child_model ? @child_model.name : @child_model_name
+        @child_model ? child_model.name : @child_model_name
       end
 
       # Returns a set of keys that identify child model
@@ -158,7 +158,7 @@ module DataMapper
           begin
             properties = child_model.properties(child_repository_name)
 
-            child_key = parent_key.zip(@child_properties || []).map do |parent_property, property_name|
+            child_key = parent_key.zip(child_properties || []).map do |parent_property, property_name|
               property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
 
               properties[property_name] || begin
@@ -186,7 +186,7 @@ module DataMapper
       # TODO: document
       # @api private
       def parent_model_name
-        @parent_model ? @parent_model.name : @parent_model_name
+        @parent_model ? parent_model.name : @parent_model_name
       end
 
       # Returns a set of keys that identify parent model
@@ -200,8 +200,8 @@ module DataMapper
           begin
             properties = parent_model.properties(parent_repository_name)
 
-            parent_key = if @parent_properties
-              properties.values_at(*@parent_properties)
+            parent_key = if parent_properties
+              properties.values_at(*parent_properties)
             else
               properties.key
             end
@@ -296,6 +296,8 @@ module DataMapper
       end
 
       private
+
+      attr_reader :child_properties, :parent_properties
 
       # Initializes new Relationship: sets attributes of relationship
       # from options as well as conventions: for instance, @ivar name
