@@ -78,10 +78,12 @@ spec/public/model/relationship_spec.rb
 spec/public/model_spec.rb
 spec/public/property_spec.rb
 spec/public/resource_spec.rb
+spec/public/sel_spec.rb
 spec/public/setup_spec.rb
+spec/public/shared/association_collection_shared_spec.rb
 spec/public/shared/collection_shared_spec.rb
 spec/public/shared/resource_shared_spec.rb
-spec/public/shared/sel_spec.rb
+spec/public/shared/sel_shared_spec.rb
 spec/public/transaction_spec.rb
 spec/semipublic/adapters/abstract_adapter_spec.rb
 spec/semipublic/adapters/in_memory_adapter_spec.rb
@@ -92,7 +94,9 @@ spec/semipublic/adapters/yaml_adapter_spec.rb
 spec/semipublic/associations/many_to_one_spec.rb
 spec/semipublic/associations_spec.rb
 spec/semipublic/collection_spec.rb
+spec/semipublic/property_spec.rb
 spec/semipublic/query/conditions_spec.rb
+spec/semipublic/query/path_spec.rb
 spec/semipublic/query_spec.rb
 spec/semipublic/resource_spec.rb
 spec/semipublic/shared/resource_shared_spec.rb
