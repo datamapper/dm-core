@@ -125,6 +125,12 @@ module DataMapper
     end
 
     # TODO: document
+    # @api semipublic
+    def typecast(values)
+      zip(values).map { |property, value| property.typecast(value) }
+    end
+
+    # TODO: document
     # @api private
     def property_contexts(property_name)
       contexts = []

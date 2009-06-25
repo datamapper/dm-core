@@ -205,8 +205,14 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def expected_value
-          record_value(@value, @subject, :target_key)
+        def expected_value(value = @value)
+          expected_value = record_value(value, @subject, :target_key)
+
+          if @subject.respond_to?(:source_key)
+            @subject.source_key.typecast(expected_value)
+          else
+            expected_value
+          end
         end
 
         # TODO: document
@@ -283,7 +289,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def expected_value
-          @value.map { |value| record_value(value, @subject, :target_key) }
+          @value.map { |value| super(value) }
         end
 
         # TODO: document

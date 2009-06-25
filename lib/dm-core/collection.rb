@@ -1342,7 +1342,8 @@ module DataMapper
       end
 
       sources.each do |source|
-        targets = target_maps[ source_key.get(source) ] || []
+        key     = target_key.typecast(source_key.get(source))
+        targets = target_maps[key] || []
 
         if relationship.respond_to?(:collection_for)
           # TODO: figure out an alternative approach to using a
