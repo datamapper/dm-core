@@ -1,7 +1,8 @@
 share_examples_for 'A public Collection' do
   before :all do
     %w[ @article_model @article @other @original @articles @other_articles ].each do |ivar|
-      raise "+#{ivar}+ should be defined in before block" unless instance_variable_get(ivar)
+      raise "+#{ivar}+ should be defined in before block" unless instance_variable_defined?(ivar)
+      raise "+#{ivar}+ should not be nil in before block" unless instance_variable_get(ivar)
     end
 
     @articles.loaded?.should == loaded
