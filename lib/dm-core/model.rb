@@ -192,7 +192,7 @@ module DataMapper
     # @api public
     def get(*key)
       repository = self.repository
-      key        = typecast_key(key)
+      key        = self.key(repository.name).typecast(key)
 
       repository.identity_map(self)[key] || first(key_conditions(repository, key))
     end

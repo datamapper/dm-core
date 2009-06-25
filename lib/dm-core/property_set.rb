@@ -63,13 +63,13 @@ module DataMapper
     # TODO: document
     # @api semipublic
     def defaults
-      @defaults ||= key | [ discriminator ].compact | reject { |property| property.lazy? }.freeze
+      @defaults ||= self.class.new(key | [ discriminator ].compact | reject { |property| property.lazy? }).freeze
     end
 
     # TODO: document
     # @api semipublic
     def key
-      @key ||= select { |property| property.key? }.freeze
+      @key ||= self.class.new(select { |property| property.key? }.freeze)
     end
 
     # TODO: document

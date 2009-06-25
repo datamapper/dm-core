@@ -119,7 +119,7 @@ module DataMapper
     #
     # @api public
     def get(*key)
-      key = model.typecast_key(key)
+      key = model.key(repository.name).typecast(key)
 
       if resource = @identity_map[key]
         # find cached resource

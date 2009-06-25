@@ -189,12 +189,6 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def typecast_key(key)
-        self.key(repository_name).zip(key).map { |property, value| property.typecast(value) }
-      end
-
-      # TODO: document
-      # @api private
       def key_conditions(repository, key)
         self.key(repository.name).zip(key).to_hash
       end
