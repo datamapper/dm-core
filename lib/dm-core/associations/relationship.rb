@@ -322,6 +322,17 @@ module DataMapper
         @max                    = @options[:max]
         @inverse                = @options[:inverse]
 
+        # TODO: normalize the @query to become :conditions => AndOperation
+        #  - Property/Relationship/Path should be left alone
+        #  - Symbol/String keys should become a Property, scoped to the target_repository and target_model
+        #  - Extract subject (target) from Operator
+        #    - subject should be processed same as above
+        #  - each subject should be transformed into AbstractComparison
+        #    object with the subject, operator and value
+        #  - transform into an AndOperation object, and return the
+        #    query as :condition => and_object from self.query
+        #  - this should provide the best performance
+
         @query = @options.except(*self.class::OPTIONS).freeze
 
         create_reader
