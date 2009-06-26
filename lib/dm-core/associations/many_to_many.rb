@@ -110,73 +110,13 @@ module DataMapper
         def query
           # TODO: consider making this a query_for method, so that ManyToMany::Relationship#query only
           # returns the query supplied in the definition
-
-          # TODO: see if this can handle extracting the :order option and sort the
-          # resulting collection using the order specified within inner joins
-
-          @many_to_many_query ||=
-            begin
-              # TODO: make sure the proper Query is set up, one that includes all the links
-              #   - make sure that all relationships can be links
-              #   - make sure that each intermediary can be at random repositories
-              #   - make sure that each intermediary can have different conditons that
-              #     scope its results
-              #   - make sure that any default scoping for the intermediate models are
-              #     respected.  this will be necessary in case STI or paranoid properties
-              #     are being used anywhere in the join
-
-              query = super.dup
-
-              # use all links in the query links
-              query[:links] = links
-
-              # TODO: move the logic below inside Query.  It should be
-              # extracting the query conditions from each relationship itself
-
-              repository_name = source_repository_name
-
-              # merge the conditions from each intermediary into the query
-              query[:links].each do |relationship|
-                repository_name = relationship.target_repository_name || repository_name
-                model           = relationship.target_model
-
-                # TODO: try to do some of this normalization when
-                # assigning the Query options to the Relationship
-
-                relationship.query.each do |key, value|
-                  # TODO: figure out how to merge Query options from links
-                  if Query::OPTIONS.include?(key)
-                    next  # skip for now
-                  end
-
-                  case key
-                    when Symbol, String
-                      # TODO: turn this into a Query::Path
-                      query[model.properties(repository_name)[key]] = value
-
-                    when Property
-                      # TODO: turn this into a Query::Path
-                      query[key] = value
-
-                    when Query::Path
-                      query[key] = value
-
-                    when Query::Operator
-                      # TODO: if the key.target is a Query::Path, then do not look it up
-                      query[key.class.new(model.properties(repository_name)[key.target], key.operator)] = value
-
-                    else
-                      raise ArgumentError, "#{key.class} not allowed in relationship query"
-                  end
-                end
-              end
-
-              query.freeze
-            end
+          @many_to_many_query ||= super.merge(:links => links).freeze
         end
 
         private
 
+        # TODO: document
+        # @api semipublic
         def initialize(name, source_model, target_model, options = {})
           @through = options.fetch(:through)
           super

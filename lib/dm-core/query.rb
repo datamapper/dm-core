@@ -924,26 +924,48 @@ module DataMapper
     # relationships they refer to, intermediate links are "followed"
     # and duplicates are removed
     #
-    # This method, even though is not a bang method, modifies
-    # receiver's links attribute
-    #
     # @api private
     def normalize_links
-      @links.map! do |link|
+      links = @links.dup
+
+      @links.clear
+
+      while link = links.shift
         relationship = case link
           when Symbol, String             then @relationships[link]
           when Associations::Relationship then link
         end
 
+        next if @links.include?(relationship)
+
         if relationship.respond_to?(:links)
-          relationship.links
+          links.concat(relationship.links)
         else
-          relationship
+          repository_name = relationship.target_repository_name || relationship.source_repository_name
+          model           = relationship.target_model
+
+          # TODO: see if this can handle extracting the :order option and sort the
+          # resulting collection using the order specified by through relationships
+
+          model.current_scope.merge(relationship.query).each do |subject, value|
+            # TODO: figure out how to merge Query options from links
+            if OPTIONS.include?(subject)
+              next  # skip for now
+            end
+
+            # set @repository when appending conditions
+            original, @repository = @repository, DataMapper.repository(repository_name)
+
+            begin
+              append_condition(subject, value, model)
+            ensure
+              @repository = original
+            end
+          end
+
+          @links << relationship
         end
       end
-
-      @links.flatten!
-      @links.uniq!
     end
 
     ##
@@ -962,13 +984,13 @@ module DataMapper
     #   the Query conditions
     #
     # @api private
-    def append_condition(subject, bind_value, operator = :eql)
+    def append_condition(subject, bind_value, model = self.model, operator = :eql)
       case subject
         when Property, Associations::Relationship then append_property_condition(subject, bind_value, operator)
-        when Symbol                               then append_symbol_condition(subject, bind_value, operator)
-        when String                               then append_string_condition(subject, bind_value, operator)
-        when Operator                             then append_operator_conditions(subject, bind_value)
-        when Path                                 then append_path(subject, bind_value, operator)
+        when Symbol                               then append_symbol_condition(subject, bind_value, model, operator)
+        when String                               then append_string_condition(subject, bind_value, model, operator)
+        when Operator                             then append_operator_conditions(subject, bind_value, model)
+        when Path                                 then append_path(subject, bind_value, model, operator)
         else
           raise ArgumentError, "#{subject} is an invalid instance: #{subject.class}"
       end
@@ -999,34 +1021,38 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def append_symbol_condition(symbol, bind_value, operator)
-      append_condition(symbol.to_s, bind_value, operator)
+    def append_symbol_condition(symbol, bind_value, model, operator)
+      append_condition(symbol.to_s, bind_value, model, operator)
     end
 
     # TODO: document
     # @api private
-    def append_string_condition(string, bind_value, operator)
+    def append_string_condition(string, bind_value, model, operator)
       if string.include?('.')
         query_path = model
         string.split('.').each { |method| query_path = query_path.send(method) }
 
-        append_condition(query_path, bind_value, operator)
+        append_condition(query_path, bind_value, model, operator)
       else
-        append_condition(@properties[string] || @relationships[string], bind_value, operator)
+        repository_name = repository.name
+        subject         = model.properties(repository_name)[string] ||
+                          model.relationships(repository_name)[string]
+
+        append_condition(subject, bind_value, model, operator)
       end
     end
 
     # TODO: document
     # @api private
-    def append_operator_conditions(operator, bind_value)
-      append_condition(operator.target, bind_value, operator.operator)
+    def append_operator_conditions(operator, bind_value, model)
+      append_condition(operator.target, bind_value, model, operator.operator)
     end
 
     # TODO: document
     # @api private
-    def append_path(path, bind_value, operator)
+    def append_path(path, bind_value, model, operator)
       @links.concat(path.relationships)
-      append_condition(path.property, bind_value, operator)
+      append_condition(path.property, bind_value, path.model, operator)
     end
 
     # TODO: make this typecast all bind values that do not match the

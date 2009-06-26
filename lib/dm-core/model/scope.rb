@@ -30,6 +30,12 @@ module DataMapper
         Query.new(repository, self, current_scope).freeze
       end
 
+      # TODO: document
+      # @api private
+      def current_scope
+        scope_stack.last || default_scope(repository.name)
+      end
+
       protected
 
       ##
@@ -78,12 +84,6 @@ module DataMapper
       def scope_stack
         scope_stack_for = Thread.current[:dm_scope_stack] ||= {}
         scope_stack_for[self] ||= []
-      end
-
-      # TODO: document
-      # @api private
-      def current_scope
-        scope_stack.last || default_scope(repository.name)
       end
     end # module Scope
 
