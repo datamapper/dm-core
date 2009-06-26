@@ -178,7 +178,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def many_to_one_options
-          {}
+          { :parent_key => target_key.map  { |property| property.name } }
         end
 
         # TODO: document
