@@ -941,7 +941,7 @@ module DataMapper
         if relationship.respond_to?(:links)
           links.concat(relationship.links)
         else
-          repository_name = relationship.target_repository_name || relationship.source_repository_name
+          repository_name = relationship.relative_target_repository_name
           model           = relationship.target_model
 
           # TODO: see if this can handle extracting the :order option and sort the

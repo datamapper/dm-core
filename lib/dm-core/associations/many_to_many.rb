@@ -14,7 +14,7 @@ module DataMapper
         def child_key
           @child_key ||=
             begin
-              properties = target_model.properties(target_repository_name)
+              properties = target_model.properties(relative_target_repository_name)
 
               child_key = if child_properties
                 properties.values_at(*child_properties)
@@ -237,7 +237,7 @@ module DataMapper
           end
 
           # FIXME: use a subquery to do this more efficiently in the future
-          repository_name = relationship.target_repository_name
+          repository_name = relationship.relative_target_repository_name_for(source)
           model           = relationship.target_model
           key             = model.key(repository_name)
 

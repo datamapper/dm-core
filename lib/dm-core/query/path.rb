@@ -97,9 +97,11 @@ module DataMapper
         assert_kind_of 'relationships', relationships, Array
         assert_kind_of 'property_name', property_name, Symbol, NilClass
 
-        @relationships   = relationships.dup
-        @repository_name = @relationships.last.target_repository_name
-        @model           = @relationships.last.target_model
+        @relationships = relationships.dup
+
+        last_relationship = @relationships.last
+        @repository_name  = last_relationship.relative_target_repository_name
+        @model            = last_relationship.target_model
 
         if property_name
           @property = @model.properties(@repository_name)[property_name] ||

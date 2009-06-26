@@ -124,7 +124,9 @@ module DataMapper
       #
       # @api semipublic
       def query_for(source, other_query = nil)
-        DataMapper.repository(target_repository_name).scope do
+        repository_name = relative_target_repository_name_for(source)
+
+        DataMapper.repository(repository_name).scope do
           query = target_model.query.dup
           query.update(self.query)
           query.update(source_scope(source))
@@ -156,14 +158,15 @@ module DataMapper
       def child_key
         @child_key ||=
           begin
-            properties = child_model.properties(child_repository_name)
+            repository_name = child_repository_name || parent_repository_name
+            properties      = child_model.properties(repository_name)
 
             child_key = parent_key.zip(child_properties || []).map do |parent_property, property_name|
               property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
 
               properties[property_name] || begin
                 # create the property within the correct repository
-                DataMapper.repository(child_repository_name) do
+                DataMapper.repository(repository_name) do
                   child_model.property(property_name, parent_property.primitive, child_key_options(parent_property))
                 end
               end
@@ -198,7 +201,8 @@ module DataMapper
       def parent_key
         @parent_key ||=
           begin
-            properties = parent_model.properties(parent_repository_name)
+            repository_name = parent_repository_name || child_repository_name
+            properties      = parent_model.properties(repository_name)
 
             parent_key = if parent_properties
               properties.values_at(*parent_properties)
@@ -281,23 +285,45 @@ module DataMapper
       #
       # @api semipublic
       def inverse
-        @inverse ||= target_model.relationships(target_repository_name).values.detect do |relationship|
-          relationship.kind_of?(inverse_class)                          &&
-          relationship.child_repository_name  == child_repository_name  &&
-          relationship.parent_repository_name == parent_repository_name &&
-          relationship.child_model            == child_model            &&
-          relationship.parent_model           == parent_model           &&
-          relationship.child_key              == child_key              &&
-          relationship.parent_key             == parent_key
+        @inverse ||= target_model.relationships(relative_target_repository_name).values.detect do |relationship|
+          relationship.kind_of?(inverse_class)                                                           &&
+          (relationship.child_repository_name  == child_repository_name  || child_repository_name.nil?)  &&
+          (relationship.parent_repository_name == parent_repository_name || parent_repository_name.nil?) &&
+          relationship.child_model             == child_model                                            &&
+          relationship.parent_model            == parent_model                                           &&
+          relationship.child_key               == child_key                                              &&
+          relationship.parent_key              == parent_key
 
           # TODO: match only when the Query is empty, or is the same as the
           # default scope for the target model
         end || invert
       end
 
+      # TODO: document
+      # @api private
+      def relative_target_repository_name
+        target_repository_name || source_repository_name
+      end
+
+      # TODO: document
+      # @api private
+      def relative_target_repository_name_for(source)
+        target_repository_name || if source.respond_to?(:repository)
+          source.repository.name
+        else
+          source_repository_name
+        end
+      end
+
       private
 
-      attr_reader :child_properties, :parent_properties
+      # TODO: document
+      # @api private
+      attr_reader :child_properties
+
+      # TODO: document
+      # @api private
+      attr_reader :parent_properties
 
       # Initializes new Relationship: sets attributes of relationship
       # from options as well as conventions: for instance, @ivar name
@@ -314,8 +340,8 @@ module DataMapper
         @name                   = name
         @instance_variable_name = "@#{@name}".freeze
         @options                = options.dup.freeze
-        @child_repository_name  = @options[:child_repository_name]  || @options[:parent_repository_name]  # XXX: if nothing specified, should it be nil to indicate a relative repo?
-        @parent_repository_name = @options[:parent_repository_name] || @options[:child_repository_name]   # XXX: if nothing specified, should it be nil to indicate a relative repo?
+        @child_repository_name  = @options[:child_repository_name]
+        @parent_repository_name = @options[:parent_repository_name]
         @child_properties       = @options[:child_key].try_dup.freeze
         @parent_properties      = @options[:parent_key].try_dup.freeze
         @min                    = @options[:min]
@@ -363,12 +389,6 @@ module DataMapper
         end
       end
 
-      # TODO: document
-      # @api private
-      def child_key_options(parent_property)
-        parent_property.options.only(:length, :size, :precision, :scale).update(:index => property_prefix)
-      end
-
       ##
       # Creates reader method for association.
       #
@@ -387,6 +407,12 @@ module DataMapper
       # @api semipublic
       def create_writer
         raise NotImplementedError, "#{self.class}#create_writer not implemented"
+      end
+
+      # TODO: document
+      # @api private
+      def child_key_options(parent_property)
+        parent_property.options.only(:length, :size, :precision, :scale).update(:index => property_prefix)
       end
 
       ##
