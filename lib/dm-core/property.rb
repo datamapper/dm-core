@@ -407,7 +407,7 @@ module DataMapper
         return true
       end
 
-      unless other.kind_of?(self.class)
+      unless instance_of?(other.class)
         return false
       end
 

@@ -102,7 +102,7 @@ module DataMapper
             return true
           end
 
-          unless other.instance_of?(self.class)
+          unless instance_of?(other.class)
             return false
           end
 
