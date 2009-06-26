@@ -47,7 +47,7 @@ module DataMapper
         #
         # @api semipublic
         def through
-          return @through if @through != Resource
+          return @through if explicit_through_relationship?
 
           # habtm relationship traversal is deferred because we want the
           # target_model and source_model constants to be defined, so we
@@ -167,6 +167,12 @@ module DataMapper
           namespace = join_model_namespace_name.first
           relationship_name = Extlib::Inflection.underscore(model.base_model.name.sub(/\A#{namespace.name}::/, '')).gsub('/', '_')
           relationship_name.pluralize.to_sym
+        end
+
+        # TODO: document
+        # @api private
+        def explicit_through_relationship?
+          @through != Resource
         end
 
         # TODO: document
