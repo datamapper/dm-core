@@ -69,7 +69,7 @@ module DataMapper
     # TODO: document
     # @api semipublic
     def key
-      @key ||= self.class.new(select { |property| property.key? }.freeze)
+      @key ||= self.class.new(select { |property| property.key? }).freeze
     end
 
     # TODO: document

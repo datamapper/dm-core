@@ -16,13 +16,12 @@ module DataMapper
             begin
               properties = target_model.properties(relative_target_repository_name)
 
-              child_key = if child_properties
-                properties.values_at(*child_properties)
+              if child_properties
+                child_key = properties.values_at(*child_properties)
+                properties.class.new(child_key).freeze
               else
                 properties.key
               end
-
-              properties.class.new(child_key).freeze
             end
         end
 

@@ -204,13 +204,12 @@ module DataMapper
             repository_name = parent_repository_name || child_repository_name
             properties      = parent_model.properties(repository_name)
 
-            parent_key = if parent_properties
-              properties.values_at(*parent_properties)
+            if parent_properties
+              parent_key = properties.values_at(*parent_properties)
+              properties.class.new(parent_key).freeze
             else
               properties.key
             end
-
-            properties.class.new(parent_key).freeze
           end
       end
 
