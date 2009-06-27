@@ -49,11 +49,14 @@ describe 'Adapter' do
         include SQLLogHelper
         
         before(:all) do
+          @auto_migrate_with = DataMapper::Adapters::OracleAdapter.auto_migrate_with
+          DataMapper::Adapters::OracleAdapter.auto_migrate_with :drop_and_create
           start_sql_log!
         end
         
         after(:all) do
           stop_sql_log!
+          DataMapper::Adapters::OracleAdapter.auto_migrate_with @auto_migrate_with
         end
         
         describe "create default sequence and trigger" do

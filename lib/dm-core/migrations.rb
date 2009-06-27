@@ -659,6 +659,20 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
+      def sequence_exists?(sequence_name)
+        return false unless sequence_name
+        statement = <<-SQL.compress_lines
+          SELECT COUNT(*)
+          FROM all_sequences
+          WHERE sequence_owner = ?
+          AND sequence_name = ?
+        SQL
+
+        query(statement, schema_name, oracle_upcase(sequence_name)).first > 0
+      end
+
+      # TODO: document
+      # @api semipublic
       def field_exists?(storage_name, field_name)
         statement = <<-SQL.compress_lines
           SELECT COUNT(*)
@@ -668,32 +682,60 @@ module DataMapper
           AND column_name = ?
         SQL
 
-        query(statement, schema_name, oracle_upcase(storage_name), oracle_upcase(column_name)).first > 0
+        query(statement, schema_name, oracle_upcase(storage_name), oracle_upcase(field_name)).first > 0
+      end
+
+      # TODO: document
+      # @api semipublic
+      def storage_fields(storage_name)
+        statement = <<-SQL.compress_lines
+          SELECT column_name
+          FROM all_tab_columns
+          WHERE owner = ?
+          AND table_name = ?
+        SQL
+
+        query(statement, schema_name, oracle_upcase(storage_name))
       end
 
       # TODO: document
       # @api semipublic
       def create_model_storage(model)
         properties = model.properties_with_subclasses(name)
+        table_name = model.storage_name(name)
+        truncate_or_delete = self.class.auto_migrate_with
+        table_is_truncated = truncate_or_delete && @truncated_tables && @truncated_tables[table_name]
 
-        return false if storage_exists?(model.storage_name(name))
+        return false if storage_exists?(table_name) && !table_is_truncated
         return false if properties.empty?
 
         with_connection do |connection|
-          statement = create_table_statement(connection, model, properties)
-          command   = connection.create_command(statement)
-          command.execute_non_query
-
-          (create_index_statements(model) + create_unique_index_statements(model)).each do |statement|
+          # if table was truncated then check if all columns for properties are present
+          # TODO: check all other column definition options
+          if table_is_truncated && storage_has_all_fields?(table_name, properties)
+            @truncated_tables[table_name] = nil
+          else
+            # forced drop of table if properties are different
+            if truncate_or_delete
+              destroy_model_storage(model, true)
+            end
+              
+            statement = create_table_statement(connection, model, properties)
             command   = connection.create_command(statement)
             command.execute_non_query
+
+            (create_index_statements(model) + create_unique_index_statements(model)).each do |statement|
+              command   = connection.create_command(statement)
+              command.execute_non_query
+            end
+
+            # added creation of sequence
+            create_sequence_statements(model).each do |statement|
+              command   = connection.create_command(statement)
+              command.execute_non_query
+            end
           end
           
-          # added creation of sequence
-          create_sequence_statements(model).each do |statement|
-            command   = connection.create_command(statement)
-            command.execute_non_query
-          end
         end
 
         true
@@ -701,16 +743,48 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      def destroy_model_storage(model)
-        return true unless supports_drop_table_if_exists? || storage_exists?(model.storage_name(name))
-        execute(drop_table_statement(model))
+      def destroy_model_storage(model, forced = false)
+        table_name = model.storage_name(name)
+        truncate_or_delete = self.class.auto_migrate_with
+        if storage_exists?(table_name)
+          if truncate_or_delete && !forced
+            statement = case truncate_or_delete
+            when :truncate
+              truncate_table_statement(model)
+            when :delete
+              delete_table_statement(model)
+            else
+              raise ArgumentError, "Unsupported auto_migrate_with option"
+            end
+            execute(statement)
+            @truncated_tables ||= {}
+            @truncated_tables[table_name] = true
+          else
+            execute(drop_table_statement(model))
+            @truncated_tables[table_name] = nil if @truncated_tables
+          end
+        end
         # added destroy of sequences
-        statement = drop_sequence_statement(model)
-        execute(statement) if statement
+        reset_sequences = self.class.auto_migrate_reset_sequences
+        table_is_truncated = @truncated_tables && @truncated_tables[table_name]
+        unless truncate_or_delete && !reset_sequences && !forced
+          if sequence_exists?(model_sequence_name(model))
+            if table_is_truncated && !forced
+              statement = reset_sequence_statement(model)
+            else
+              statement = drop_sequence_statement(model)
+            end
+            execute(statement) if statement
+          end
+        end
         true
       end
       
       private
+      
+      def storage_has_all_fields?(table_name, properties)
+        properties.map{|p| oracle_upcase(p.field)}.sort == storage_fields(table_name).sort
+      end
       
       # If table or column name contains just lowercase characters then do uppercase
       # as uppercase version will be used in Oracle data dictionary tables
@@ -734,10 +808,9 @@ module DataMapper
           identity_field = model.identity_field(name)
 
           statements = []
-          if identity_field
-            sequence_name = identity_field.options[:sequence] || default_sequence_name(table_name)
+          if sequence_name = model_sequence_name(model)
             statements << <<-SQL.compress_lines
-              CREATE SEQUENCE #{quote_name(sequence_name)}
+              CREATE SEQUENCE #{quote_name(sequence_name)} NOCACHE
             SQL
 
             # create trigger only if custom sequence name was not specified
@@ -762,18 +835,56 @@ module DataMapper
         # TODO: document
         # @api private
         def drop_sequence_statement(model)
-          table_name = model.storage_name(name)
-          identity_field = model.identity_field(name)
-
-          if identity_field
-            sequence_name = identity_field.options[:sequence] || default_sequence_name(table_name)
+          if sequence_name = model_sequence_name(model)
             "DROP SEQUENCE #{quote_name(sequence_name)}"
           else
             nil
           end
         end
-        
+
+        # TODO: document
+        # @api private
+        def reset_sequence_statement(model)
+          if sequence_name = model_sequence_name(model)
+            <<-SQL.compress_lines
+            DECLARE
+              cval   INTEGER;
+            BEGIN
+              SELECT #{quote_name(sequence_name)}.NEXTVAL INTO cval FROM dual;
+              EXECUTE IMMEDIATE 'ALTER SEQUENCE #{quote_name(sequence_name)} INCREMENT BY -' || cval || ' MINVALUE 0';
+              SELECT #{quote_name(sequence_name)}.NEXTVAL INTO cval FROM dual;
+              EXECUTE IMMEDIATE 'ALTER SEQUENCE #{quote_name(sequence_name)} INCREMENT BY 1';
+            END;
+            SQL
+          else
+            nil
+          end
+        end
+
+        # TODO: document
+        # @api private
+        def truncate_table_statement(model)
+          "TRUNCATE TABLE #{quote_name(model.storage_name(name))}"
+        end
+
+        # TODO: document
+        # @api private
+        def delete_table_statement(model)
+          "DELETE FROM #{quote_name(model.storage_name(name))}"
+        end
+
         private
+        
+        def model_sequence_name(model)
+          table_name = model.storage_name(name)
+          identity_field = model.identity_field(name)
+          
+          if identity_field
+            identity_field.options[:sequence] || default_sequence_name(table_name)
+          else
+            nil
+          end
+        end
         
         def default_sequence_name(table_name)
           # truncate table name if necessary to fit in max length of identifier
@@ -814,6 +925,36 @@ module DataMapper
             Types::Text   => { :primitive => 'CLOB'                                              },
           }.freeze
         end
+        
+        # Use table truncate or delete for auto_migrate! to speed up test execution
+        #
+        # @param [Symbol] :truncate, :delete or :drop_and_create (or nil)
+        #   do not specify parameter to return current value
+        # 
+        # @return [Symbol] current value of auto_migrate_with option (nil returned for :drop_and_create)
+        # 
+        # @api semipublic
+        def auto_migrate_with(value = :not_specified)
+          return @auto_migrate_with if value == :not_specified
+          value = nil if value == :drop_and_create
+          raise ArgumentError unless [nil, :truncate, :delete].include?(value)
+          @auto_migrate_with = value
+        end
+        
+        # Set if sequences will or will not be reset during auto_migrate!
+        #
+        # @param [TrueClass, FalseClass] reset sequences?
+        #   do not specify parameter to return current value
+        # 
+        # @return [Symbol] current value of auto_migrate_reset_sequences option (default value is true)
+        # 
+        # @api semipublic
+        def auto_migrate_reset_sequences(value = :not_specified)
+          return @auto_migrate_reset_sequences.nil? ? true : @auto_migrate_reset_sequences if value == :not_specified
+          raise ArgumentError unless [true, false].include?(value)
+          @auto_migrate_reset_sequences = value
+        end
+
       end # module ClassMethods
     end # module PostgresAdapter
 
