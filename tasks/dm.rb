@@ -14,9 +14,9 @@ def run_spec(name, files, rcov)
     config.rcov = rcov
     config.rcov_opts << '--exclude' << 'spec'
     config.rcov_opts << '--text-summary'
-    #config.rcov_opts << '--sort' << 'coverage' << '--sort-reverse'
-    #config.rcov_opts << '--only-uncovered'
-    #config.rcov_opts << '--profile'
+    config.rcov_opts << '--sort' << 'coverage'
+    config.rcov_opts << '--only-uncovered'
+    config.rcov_opts << '--profile'
     #config.rcov_opts << '-w'  # TODO: make sure it runs with warnings enabled
   end
 end
