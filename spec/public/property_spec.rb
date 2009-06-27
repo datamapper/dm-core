@@ -699,6 +699,12 @@ describe DataMapper::Property do
             @property.typecast(value).should be_false
           end
         end
+
+        [ 'string', 2, 1.0, BigDecimal('1.0'), DateTime.now, Time.now, Date.today, Class, Object.new, ].each do |value|
+          it "does not typecast value #{value.inspect}" do
+            @property.typecast(value).should equal(value)
+          end
+        end
       end
     end # #typecase
 
@@ -725,6 +731,26 @@ describe DataMapper::Property do
 
       it 'returns nil when property has no unique index' do
         Image.properties[:title].unique_index.should be_nil
+      end
+    end
+
+    describe '#valid?' do
+      describe 'when type primitive is a Boolean' do
+        before do
+          @property = Image.properties[:visible]
+        end
+
+        [ true, false ].each do |value|
+          it "returns true when value is #{value.inspect}" do
+            @property.valid?(value).should be_true
+          end
+        end
+
+        [ 'true', 'TRUE', '1', 1, 't', 'T', 'false', 'FALSE', '0', 0, 'f', 'F' ].each do |value|
+          it "returns false for #{value.inspect}" do
+            @property.valid?(value).should be_false
+          end
+        end
       end
     end
 

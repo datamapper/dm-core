@@ -689,7 +689,7 @@ module DataMapper
     # @api private
     def typecast(value)
       return type.typecast(value, self) if type.respond_to?(:typecast)
-      return value if value.kind_of?(primitive) || value.nil?
+      return value if primitive?(value) || value.nil?
 
       if    primitive == Integer    then typecast_to_integer(value)
       elsif primitive == String     then typecast_to_string(value)
@@ -767,7 +767,7 @@ module DataMapper
     # @api semipulic
     def valid?(value)
       value = self.value(value)
-      value.kind_of?(primitive) || (value.nil? && nullable?)
+      primitive?(value) || (value.nil? && nullable?)
     end
 
     # Returns a concise string representation of the property instance.
@@ -923,6 +923,24 @@ module DataMapper
     end
 
     ##
+    # Test a value to see if it matches the primitive type
+    #
+    # @params [Object] value
+    #   value to test
+    #
+    # @return [TrueClass, FalseClass]
+    #   true if the value is the correct type
+    #
+    # @api private
+    def primitive?(value)
+      if primitive == TrueClass
+        value == true || value == false
+      else
+        value.kind_of?(primitive)
+      end
+    end
+
+    ##
     # Typecast a value to an Integer
     #
     # @params [#to_str, #to_i] value
@@ -953,7 +971,7 @@ module DataMapper
     ##
     # Typecast a value to a true or false
     #
-    # @params [#to_s] value
+    # @params [Integer, #to_str] value
     #   value to typecast
     #
     # @return [TrueClass, FalseClass]
@@ -961,7 +979,15 @@ module DataMapper
     #
     # @api private
     def typecast_to_boolean(value)
-      %w[ true 1 t ].include?(value.to_s.downcase)
+      if value.kind_of?(Integer)
+        return true  if value == 1
+        return false if value == 0
+      elsif value.respond_to?(:to_str)
+        return true  if %w[ true  1 t ].include?(value.to_str.downcase)
+        return false if %w[ false 0 f ].include?(value.to_str.downcase)
+      end
+
+      value
     end
 
     ##

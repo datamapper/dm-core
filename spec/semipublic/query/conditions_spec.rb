@@ -45,13 +45,12 @@ describe DataMapper::Query::Conditions do
       property :striped,   Boolean
     end
 
-    @heff1 = Heffalump.new(:num_spots => 1, :color => 'green')
-    @heff2 = Heffalump.new(:num_spots => 2, :color => 'green')
-    @heff3 = Heffalump.new(:num_spots => 3, :color => 'blue')
-
+    @heff1 = Heffalump.new(:num_spots => 1, :color => 'green', :striped => true)
+    @heff2 = Heffalump.new(:num_spots => 2, :color => 'green', :striped => false)
+    @heff3 = Heffalump.new(:num_spots => 3, :color => 'blue',  :striped => false)
   end
 
-  describe "Operations" do
+  describe 'Operations' do
     before do
       @comp1 = Comparison.new(:eql, Heffalump.num_spots, 1)
       @comp2 = Comparison.new(:eql, Heffalump.color, 'green')
@@ -140,7 +139,7 @@ describe DataMapper::Query::Conditions do
     end
   end
 
-  describe "Comparisons" do
+  describe 'Comparisons' do
     it 'should initialize an AbstractComparison object' do
       comp = Comparison.new(:eql, Heffalump.num_spots, 1)
       comp.should be_kind_of(AbstractComparison)
@@ -160,107 +159,211 @@ describe DataMapper::Query::Conditions do
       end
     end
 
-    it "should initialize as InclusionComparison for the :in comparator" do
+    it 'should initialize as InclusionComparison for the :in comparator' do
       comp = Comparison.new(:in, Heffalump.num_spots, [ 2 ])
       comp.should be_kind_of(InclusionComparison)
     end
 
-    describe "EqualToComparison" do
-      before do
-        @comp = Comparison.new(:eql, Heffalump.num_spots, 1)
+    describe 'EqualToComparison' do
+      describe 'with a value matching the property primitive' do
+        before do
+          @comp = Comparison.new(:eql, Heffalump.striped, false)
+        end
+
+        it 'should match records that equal the given value' do
+          @comp.should match(@heff2)
+          @comp.should match(@heff3)
+        end
+
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff1)
+        end
       end
 
-      it "should match records that equal the given value" do
-        @comp.should match(@heff1)
-      end
+      describe 'with a value coerced into the property primitive' do
+        before do
+          @comp = Comparison.new(:eql, Heffalump.striped, 'false')
+        end
 
-      it "should not match records that do not equal the given value" do
-        @comp.should_not match(@heff2)
-      end
-    end
+        it 'should match records that equal the given value' do
+          @comp.should match(@heff2)
+          @comp.should match(@heff3)
+        end
 
-    describe "InclusionComparison" do
-      before do
-        @comp = Comparison.new(:in, Heffalump.num_spots, 1..2)
-      end
-
-      it "should match records that equal the given value" do
-        @comp.should match(@heff1)
-        @comp.should match(@heff2)
-      end
-
-      it "should not match records that do not equal the given value" do
-        @comp.should_not match(@heff3)
-      end
-    end
-
-    describe "GreaterThanComparison" do
-      before do
-        @comp = Comparison.new(:gt, Heffalump.num_spots, 2)
-      end
-
-      it "should match records that are greater than the given value" do
-        @comp.should match(@heff3)
-      end
-
-      it "should not match records that are not greater than the given value" do
-        @comp.should_not match(@heff1)
-        @comp.should_not match(@heff2)
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff1)
+        end
       end
     end
 
-    describe "GreaterThanOrEqualToComparison" do
-      before do
-        @comp = Comparison.new(:gte, Heffalump.num_spots, 2)
+    describe 'InclusionComparison' do
+      describe 'with a value matching the property primitive' do
+        before do
+          @comp = Comparison.new(:in, Heffalump.num_spots, 1..2)
+        end
+
+        it 'should match records that equal the given value' do
+          @comp.should match(@heff1)
+          @comp.should match(@heff2)
+        end
+
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff3)
+        end
       end
 
-      it "should match records that are greater than or equal to the given value" do
-        @comp.should match(@heff2)
-        @comp.should match(@heff3)
-      end
+      describe 'with a value coerced into the property primitive' do
+        before do
+          @comp = Comparison.new(:in, Heffalump.num_spots, '1'..'2')
+        end
 
-      it "should not match records that are not greater than or equal to the given value" do
-        @comp.should_not match(@heff1)
-      end
-    end
+        it 'should match records that equal the given value' do
+          @comp.should match(@heff1)
+          @comp.should match(@heff2)
+        end
 
-    describe "LessThanComparison" do
-      before do
-        @comp = Comparison.new(:lt, Heffalump.num_spots, 2)
-      end
-
-      it "should match records that are less than the given value" do
-        @comp.should match(@heff1)
-      end
-
-      it "should not match records that are not less than the given value" do
-        @comp.should_not match(@heff2)
-        @comp.should_not match(@heff3)
-      end
-    end
-
-    describe "LessThanOrEqualToComparison" do
-      before do
-        @comp = Comparison.new(:lte, Heffalump.num_spots, 2)
-      end
-
-      it "should match records that are less than or equal to the given value" do
-        @comp.should match(@heff1)
-        @comp.should match(@heff2)
-      end
-
-      it "should not match records that are not less than or equal to the given value" do
-        @comp.should_not match(@heff3)
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff3)
+        end
       end
     end
 
-    describe "RegexpComparison" do
+    describe 'GreaterThanComparison' do
+      describe 'with a value matching the property primitive' do
+        before do
+          @comp = Comparison.new(:gt, Heffalump.num_spots, 2)
+        end
+
+        it 'should match records that are greater than the given value' do
+          @comp.should match(@heff3)
+        end
+
+        it 'should not match records that are not greater than the given value' do
+          @comp.should_not match(@heff1)
+          @comp.should_not match(@heff2)
+        end
+      end
+
+      describe 'with a value coerced into the property primitive' do
+        before do
+          @comp = Comparison.new(:gt, Heffalump.num_spots, '2')
+        end
+
+        it 'should match records that are greater than the given value' do
+          @comp.should match(@heff3)
+        end
+
+        it 'should not match records that are not greater than the given value' do
+          @comp.should_not match(@heff1)
+          @comp.should_not match(@heff2)
+        end
+      end
+
+    end
+
+    describe 'GreaterThanOrEqualToComparison' do
+      describe 'with a value matching the property primitive' do
+        before do
+          @comp = Comparison.new(:gte, Heffalump.num_spots, 2)
+        end
+
+        it 'should match records that are greater than or equal to the given value' do
+          @comp.should match(@heff2)
+          @comp.should match(@heff3)
+        end
+
+        it 'should not match records that are not greater than or equal to the given value' do
+          @comp.should_not match(@heff1)
+        end
+      end
+
+      describe 'with a value coerced into the property primitive' do
+        before do
+          @comp = Comparison.new(:gte, Heffalump.num_spots, 2.0)
+        end
+
+        it 'should match records that are greater than or equal to the given value' do
+          @comp.should match(@heff2)
+          @comp.should match(@heff3)
+        end
+
+        it 'should not match records that are not greater than or equal to the given value' do
+          @comp.should_not match(@heff1)
+        end
+      end
+    end
+
+    describe 'LessThanComparison' do
+      describe 'with a value matching the property primitive' do
+        before do
+          @comp = Comparison.new(:lt, Heffalump.num_spots, 2)
+        end
+
+        it 'should match records that are less than the given value' do
+          @comp.should match(@heff1)
+        end
+
+        it 'should not match records that are not less than the given value' do
+          @comp.should_not match(@heff2)
+          @comp.should_not match(@heff3)
+        end
+      end
+
+      describe 'with a value coerced into the property primitive' do
+        before do
+          @comp = Comparison.new(:lt, Heffalump.num_spots, BigDecimal('2.0'))
+        end
+
+        it 'should match records that are less than the given value' do
+          @comp.should match(@heff1)
+        end
+
+        it 'should not match records that are not less than the given value' do
+          @comp.should_not match(@heff2)
+          @comp.should_not match(@heff3)
+        end
+      end
+    end
+
+    describe 'LessThanOrEqualToComparison' do
+      describe 'with a value matching the property primitive' do
+        before do
+          @comp = Comparison.new(:lte, Heffalump.num_spots, 2)
+        end
+
+        it 'should match records that are less than or equal to the given value' do
+          @comp.should match(@heff1)
+          @comp.should match(@heff2)
+        end
+
+        it 'should not match records that are not less than or equal to the given value' do
+          @comp.should_not match(@heff3)
+        end
+      end
+
+      describe 'with a value coerced into the property primitive' do
+        before do
+          @comp = Comparison.new(:lte, Heffalump.num_spots, '2')
+        end
+
+        it 'should match records that are less than or equal to the given value' do
+          @comp.should match(@heff1)
+          @comp.should match(@heff2)
+        end
+
+        it 'should not match records that are not less than or equal to the given value' do
+          @comp.should_not match(@heff3)
+        end
+      end
+    end
+
+    describe 'RegexpComparison' do
       before do
         @comp = Comparison.new(:regexp, Heffalump.color, /green/)
         @heff2.color = 'forest green'
       end
 
-      it "should match records that match the regexp" do
+      it 'should match records that match the regexp' do
         @comp.should match(@heff1)
         @comp.should match(@heff2)
       end
