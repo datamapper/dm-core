@@ -33,6 +33,7 @@ describe DataMapper::Property do
       property :taken_at,     Time, :default => lambda { |resource, property| Time.now }
       property :retouched_at, DateTime
       property :type,         Class
+      property :visible,      Boolean, :default => true
     end
   end
 
@@ -668,6 +669,24 @@ describe DataMapper::Property do
 
         it 'does not typecast non-class values' do
           @property.typecast('NoClass').should eql('NoClass')
+        end
+      end
+
+      describe "when type primitive is a Boolean" do
+        before do
+          @property = Image.properties[:visible]
+        end
+
+        [ true, 'true', 'TRUE', '1', 1, 't', 'T' ].each do |value|
+          it "returns true when value is #{value.inspect}" do
+            @property.typecast(value).should be_true
+          end
+        end
+
+        [ false, 'false', 'FALSE', '0', 0, 'f', 'F' ].each do |value|
+          it "returns false when value is #{value.inspect}" do
+            @property.typecast(value).should be_false
+          end
         end
       end
     end # #typecase
