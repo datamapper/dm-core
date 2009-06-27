@@ -107,7 +107,7 @@ share_examples_for 'A semipublic Resource' do
         statistic = Statistic.create(:name => "visits", :value => 2)
         statistic.repository.should        == @alternate_repository
         Statistic.new.repository.should    == @alternate_repository
-        Statistic.get(1).repository.should == @alternate_repository
+        Statistic.get(statistic.id).repository.should == @alternate_repository
       end
 
       it "should return the repository defined by the current context" do
