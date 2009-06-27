@@ -452,8 +452,8 @@ module DataMapper
       end
     end # module Adapter
 
-    # alias the MySQL and PostgreSQL adapters to use transactions
-    MysqlAdapter = PostgresAdapter = Sqlite3Adapter = Adapter
+    # alias the MySQL, PostgreSQL, Sqlite3 and Oracle adapters to use transactions
+    MysqlAdapter = PostgresAdapter = Sqlite3Adapter = OracleAdapter = Adapter
 
     module Repository
       ##
