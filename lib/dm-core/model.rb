@@ -632,8 +632,14 @@ module DataMapper
       # initialize join models and target keys
       @relationships.each_value do |relationships|
         relationships.each_value do |relationship|
-          relationship.child_key if relationship.kind_of?(Associations::ManyToOne::Relationship)
-          relationship.through   if relationship.respond_to?(:through)
+          # TODO: remove m:m test below when inverse works for it
+          if relationship.respond_to?(:resource_for)
+            relationship.child_key
+          elsif !relationship.kind_of?(Associations::ManyToMany::Relationship)
+            relationship.inverse.child_key
+          end
+
+          relationship.through if relationship.respond_to?(:through)
         end
       end
 

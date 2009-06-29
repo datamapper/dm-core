@@ -1,34 +1,35 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
 describe DataMapper::Associations::Relationship do
-  describe '#inverse' do
-    before :all do
-      module ::Blog
-        class Article
-          include DataMapper::Resource
+  before :all do
+    module ::Blog
+      class Article
+        include DataMapper::Resource
 
-          property :title, String, :key => true
+        property :title, String, :key => true
+      end
 
-          has n, :comments
-        end
+      class Comment
+        include DataMapper::Resource
 
-        class Comment
-          include DataMapper::Resource
-
-          property :id,   Serial
-          property :body, Text
-        end
+        property :id,   Serial
+        property :body, Text
       end
     end
 
-    def n
-      1.0/0
-    end
+    @article_model = Blog::Article
+    @comment_model = Blog::Comment
+  end
 
+  def n
+    1.0/0
+  end
+
+  describe '#inverse' do
     describe 'with matching relationships' do
       before :all do
-        @comments_relationship = Blog::Article.has(n, :comments)
-        @article_relationship  = Blog::Comment.belongs_to(:article)
+        @comments_relationship = @article_model.has(n, :comments)
+        @article_relationship  = @comment_model.belongs_to(:article)
 
         # TODO: move this to spec/public/model/relationship_spec.rb
         @comments_relationship.child_repository_name.should be_nil
@@ -47,8 +48,8 @@ describe DataMapper::Associations::Relationship do
 
     describe 'with matching relationships where the child repository is not nil' do
       before :all do
-        @comments_relationship = Blog::Article.has(n, :comments, :repository => :default)
-        @article_relationship  = Blog::Comment.belongs_to(:article)
+        @comments_relationship = @article_model.has(n, :comments, :repository => :default)
+        @article_relationship  = @comment_model.belongs_to(:article)
 
         # TODO: move this to spec/public/model/relationship_spec.rb
         @comments_relationship.child_repository_name.should == :default
@@ -67,8 +68,8 @@ describe DataMapper::Associations::Relationship do
 
     describe 'with matching relationships where the parent repository is not nil' do
       before :all do
-        @comments_relationship = Blog::Article.has(n, :comments)
-        @article_relationship  = Blog::Comment.belongs_to(:article, :repository => :default)
+        @comments_relationship = @article_model.has(n, :comments)
+        @article_relationship  = @comment_model.belongs_to(:article, :repository => :default)
 
         # TODO: move this to spec/public/model/relationship_spec.rb
         @comments_relationship.child_repository_name.should be_nil
@@ -87,12 +88,12 @@ describe DataMapper::Associations::Relationship do
 
     describe 'with no matching relationship', 'from the parent side' do
       before :all do
-        @relationship = Blog::Article.has(n, :comments)
+        @relationship = @article_model.has(n, :comments)
 
         @inverse = @relationship.inverse
 
         # after Relationship#inverse to ensure no match
-        @expected = Blog::Comment.belongs_to(:article)
+        @expected = @comment_model.belongs_to(:article)
       end
 
       it 'should return a Relationship' do
@@ -114,12 +115,12 @@ describe DataMapper::Associations::Relationship do
 
     describe 'with no matching relationship', 'from the child side' do
       before :all do
-        @relationship = Blog::Comment.belongs_to(:article)
+        @relationship = @comment_model.belongs_to(:article)
 
         @inverse = @relationship.inverse
 
         # after Relationship#inverse to ensure no match
-        @expected = Blog::Article.has(n, :comments)
+        @expected = @article_model.has(n, :comments)
       end
 
       it 'should return a Relationship' do
@@ -136,6 +137,45 @@ describe DataMapper::Associations::Relationship do
 
       it "should be have the relationship as it's inverse" do
         @inverse.inverse.should equal(@relationship)
+      end
+    end
+  end
+
+  describe '#valid?' do
+    before :all do
+      @relationship = @article_model.has(n, :comments)
+    end
+
+    supported_by :all do
+      describe 'with valid resource' do
+        before :all do
+          @article  = @article_model.create(:title => 'Relationships in DataMapper')
+          @resource = @article.comments.create
+        end
+
+        it 'should return true' do
+          @relationship.valid?(@resource).should be_true
+        end
+      end
+
+      describe 'with a resource of the wrong class' do
+        before :all do
+          @resource  = @article_model.new
+        end
+
+        it 'should return false' do
+          @relationship.valid?(@resource).should be_false
+        end
+      end
+
+      describe 'with a resource without a valid parent' do
+        before :all do
+          @resource = @comment_model.new
+        end
+
+        it 'should return false' do
+          @relationship.valid?(@resource).should be_false
+        end
       end
     end
   end
