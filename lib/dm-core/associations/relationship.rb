@@ -280,18 +280,78 @@ module DataMapper
       end
 
       ##
+      # Compares another Relationship for equality
+      #
+      # @param [Relationship] other
+      #   the other Relationship to compare with
+      #
+      # @return [TrueClass, FalseClass]
+      #   true if they are equal, false if not
+      #
+      # @api public
+      def eql?(other)
+        if equal?(other)
+          return true
+        end
+
+        unless instance_of?(other.class)
+          return false
+        end
+
+        cmp?(other, :eql?)
+      end
+
+      ##
+      # Compares another Relationship for equivalency
+      #
+      # @param [Relationship] other
+      #   the other Relationship to compare with
+      #
+      # @return [TrueClass, FalseClass]
+      #   true if they are equal, false if not
+      #
+      # @api public
+      def ==(other)
+        if equal?(other)
+          return true
+        end
+
+        if other.kind_of?(inverse_class)
+          return false
+        end
+
+        unless other.respond_to?(:cmp_repository?, true)
+          return false
+        end
+
+        unless other.respond_to?(:cmp_model?, true)
+          return false
+        end
+
+        unless other.respond_to?(:cmp_key?, true)
+          return false
+        end
+
+        unless other.respond_to?(:query)
+          return false
+        end
+
+        cmp?(other, :==)
+      end
+
+      ##
       # Get the inverse relationship from the target model
       #
       # @api semipublic
       def inverse
         @inverse ||= target_model.relationships(relative_target_repository_name).values.detect do |relationship|
-          relationship.kind_of?(inverse_class)                                                           &&
-          (relationship.child_repository_name  == child_repository_name  || child_repository_name.nil?)  &&
-          (relationship.parent_repository_name == parent_repository_name || parent_repository_name.nil?) &&
-          relationship.child_model             == child_model                                            &&
-          relationship.parent_model            == parent_model                                           &&
-          relationship.child_key               == child_key                                              &&
-          relationship.parent_key              == parent_key
+          relationship.kind_of?(inverse_class)   &&
+          cmp_repository?(relationship, :child)  &&
+          cmp_repository?(relationship, :parent) &&
+          cmp_model?(relationship, :child)       &&
+          cmp_model?(relationship, :parent)      &&
+          cmp_key?(relationship, :child)         &&
+          cmp_key?(relationship, :parent)
 
           # TODO: match only when the Query is empty, or is the same as the
           # default scope for the target model
@@ -440,6 +500,86 @@ module DataMapper
             :inverse    => self
           )
         )
+      end
+
+      # TODO: document
+      # @api private
+      def cmp?(other, operator)
+        unless cmp_repository?(other, :child, operator)
+          return false
+        end
+
+        unless cmp_repository?(other, :parent, operator)
+          return false
+        end
+
+        unless cmp_model?(other, :child, operator)
+          return false
+        end
+
+        unless cmp_model?(other, :parent, operator)
+          return false
+        end
+
+        unless cmp_key?(other, :child, operator)
+          return false
+        end
+
+        unless cmp_key?(other, :parent, operator)
+          return false
+        end
+
+        unless query.send(operator, other.query)
+          return false
+        end
+
+        true
+      end
+
+      # TODO: document
+      # @api private
+      def cmp_repository?(other, type, operator = :==)
+        method = "#{type}_repository_name"
+
+        # if either repository is nil, then the relationship is relative,
+        # and the repositories are considered equivalent
+        unless repository_name = send(method)
+          return true
+        end
+
+        unless other_repository_name = other.send(method)
+          return true
+        end
+
+        unless repository_name.send(operator, other_repository_name)
+          return false
+        end
+
+        true
+      end
+
+      # TODO: document
+      # @api private
+      def cmp_model?(other, type, operator = :==)
+        method = "#{type}_model"
+
+        unless send(method).send(operator, other.send(method))
+          return false
+        end
+
+        true
+      end
+
+      # TODO: document
+      # @api private
+      def cmp_key?(other, type, operator = :==)
+        method = "#{type}_key"
+
+        unless send(method).send(operator, other.send(method))
+          return false
+        end
+
+        true
       end
     end # class Relationship
   end # module Associations
