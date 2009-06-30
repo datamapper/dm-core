@@ -441,6 +441,7 @@ module DataMapper
       def initialize_model_ivar(name, model)
         if model.kind_of?(Model)
           instance_variable_set("@#{name}", model)
+          initialize_model_ivar(name, model.name)
         elsif model.respond_to?(:to_str)
           instance_variable_set("@#{name}_name", model.to_str.dup.freeze)
         else
