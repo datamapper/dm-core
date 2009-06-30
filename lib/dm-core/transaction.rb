@@ -19,6 +19,7 @@ module DataMapper
       @adapters = {}
       link(*things)
       if block_given?
+        warn "Passing block to #{self.class.name}.new is deprecated"
         commit { |*block_args| yield(*block_args) }
       end
     end
@@ -484,7 +485,8 @@ module DataMapper
       #
       # @api public
       def transaction
-        Transaction.new(self) { |block_args| yield(*block_args) }
+        transaction = Transaction.new(self)
+        transaction.commit { |block_args| yield(*block_args) }
       end
     end # module Model
 

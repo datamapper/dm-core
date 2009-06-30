@@ -122,9 +122,7 @@ describe DataMapper::Resource, 'Transactions' do
       end
 
       it 'should return the last statement in the transaction block' do
-        pending 'Transaction is refactored not to use the contructor directly' do
-          @user_model.transaction { 1 }.should == 1
-        end
+        @user_model.transaction { 1 }.should == 1
       end
     end
   end
