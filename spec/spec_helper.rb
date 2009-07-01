@@ -83,6 +83,7 @@ logger.auto_flush = true
 Spec::Runner.configure do |config|
   config.extend(DataMapper::Spec::AdapterHelpers)
   config.include(DataMapper::Spec::PendingHelpers)
+
   config.after :all do
     # global model cleanup
     descendants = DataMapper::Model.descendants.dup.to_a
@@ -93,7 +94,9 @@ Spec::Runner.configure do |config|
       constant_name = parts.pop.to_sym
       base          = parts.empty? ? Object : Object.full_const_get(parts.join('::'))
 
-      base.send(:remove_const, constant_name)
+      if base.const_defined?(constant_name)
+        base.send(:remove_const, constant_name)
+      end
 
       DataMapper::Model.descendants.delete(model)
     end
