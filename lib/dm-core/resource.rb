@@ -614,7 +614,7 @@ module DataMapper
     def save_parents
       parent_relationships.all? do |relationship|
         parent = relationship.get!(self)
-        if parent.save_self
+        if parent.save_parents && parent.save_self
           relationship.set(self, parent)  # set the FK values
         end
       end

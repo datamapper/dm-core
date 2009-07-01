@@ -702,6 +702,50 @@ share_examples_for 'A public Resource' do
 
     end
 
+    describe 'on a new object with unsaved parent and grandparent' do
+      before :all do
+        @grandparent = @user_model.new(:name => 'dkubb',       :comment => @comment)
+        @parent      = @user_model.new(:name => 'ashleymoran', :comment => @comment, :referrer => @grandparent)
+        @child       = @user_model.new(:name => 'mrship',      :comment => @comment, :referrer => @parent)
+
+        @response = @child.save
+      end
+
+      it 'should return true' do
+        @response.should be_true
+      end
+
+      it 'should save the child' do
+        @child.should be_saved
+      end
+
+      it 'should save the parent' do
+        @parent.should be_saved
+      end
+
+      it 'should save the grandparent' do
+        @grandparent.should be_saved
+      end
+
+      it 'should relate the child to the parent' do
+        pending_if 'TODO', @one_to_one_through do
+          @child.model.get(*@child.key).referrer.should == @parent
+        end
+      end
+
+      it 'should relate the parent to the grandparent' do
+        pending_if 'TODO', @one_to_one_through do
+          @parent.model.get(*@parent.key).referrer.should == @grandparent
+        end
+      end
+
+      it 'should relate the grandparent to nothing' do
+        pending_if 'TODO', @one_to_one_through do
+          @grandparent.model.get(*@grandparent.key).referrer.should be_nil
+        end
+      end
+    end
+
   end
 
   it { @user.should respond_to(:saved?) }
