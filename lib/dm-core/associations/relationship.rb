@@ -176,6 +176,17 @@ module DataMapper
           end
       end
 
+      ##
+      # Test if the child key is set
+      #
+      # @return [TrueClass, FalseClass]
+      #   true if the child key is set
+      #
+      # @api private
+      def child_key?
+        !@child_key.nil?
+      end
+
       # Returns model class used by parent side of the relationship
       #
       # @returns [DataMapper::Resource] Class of association parent
@@ -211,6 +222,17 @@ module DataMapper
               properties.key
             end
           end
+      end
+
+      ##
+      # Test if the parent key is set
+      #
+      # @return [TrueClass, FalseClass]
+      #   true if the parent key is set
+      #
+      # @api private
+      def parent_key?
+        !@parent_key.nil?
       end
 
       # Loads and returns "other end" of the association.
@@ -540,7 +562,7 @@ module DataMapper
       # TODO: document
       # @api private
       def cmp_repository?(other, type, operator = :==)
-        method = "#{type}_repository_name"
+        method = "#{type}_repository_name".to_sym
 
         # if either repository is nil, then the relationship is relative,
         # and the repositories are considered equivalent
@@ -562,7 +584,7 @@ module DataMapper
       # TODO: document
       # @api private
       def cmp_model?(other, type, operator = :==)
-        method = "#{type}_model"
+        method = "#{type}_model".to_sym
 
         unless send(method).send(operator, other.send(method))
           return false
@@ -574,7 +596,15 @@ module DataMapper
       # TODO: document
       # @api private
       def cmp_key?(other, type, operator = :==)
-        method = "#{type}_key"
+        method = "#{type}_key".to_sym
+
+        unless send("#{method}?")
+          return true
+        end
+
+        unless other.send("#{method}?")
+          return true
+        end
 
         unless send(method).send(operator, other.send(method))
           return false
