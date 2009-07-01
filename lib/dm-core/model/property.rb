@@ -85,11 +85,9 @@ module DataMapper
         # add the property to the child classes only if the property was
         # added after the child classes' properties have been copied from
         # the parent
-        if respond_to?(:descendants)
-          descendants.each do |descendant|
-            next if descendant.properties(repository_name).named?(name)
-            descendant.property(name, type, options)
-          end
+        descendants.each do |descendant|
+          next if descendant.properties(repository_name).named?(name)
+          descendant.property(name, type, options)
         end
 
         create_reader_for(property)

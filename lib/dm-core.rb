@@ -29,6 +29,7 @@ require dir / 'support' / 'chainable'
 require dir / 'support' / 'deprecate'
 
 require dir / 'model'
+require dir / 'model' / 'descendant_set'
 require dir / 'model' / 'hook'
 require dir / 'model' / 'is'
 require dir / 'model' / 'property'

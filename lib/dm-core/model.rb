@@ -41,20 +41,40 @@ module DataMapper
     end
 
     ##
-    # Return all classes that extend the Model module
+    # Return all models that extend the Model module
     #
-    #   Class Foo
+    #   class Foo
     #     include DataMapper::Resource
     #   end
     #
-    #   DataMapper::Model.descendants.to_a.first   #=> Foo
+    #   DataMapper::Model.descendants.first   #=> Foo
     #
-    # @return [Set]
-    #   Set containing the including classes
+    # @return [DescendantSet]
+    #   Set containing the descendant models
     #
     # @api private
     def self.descendants
-      @descendants ||= Set.new
+      @descendants ||= DescendantSet.new
+    end
+
+    ##
+    # Return all models that inherit from a Model
+    #
+    #   class Foo
+    #     include DataMapper::Resource
+    #   end
+    #
+    #   class Bar < Foo
+    #   end
+    #
+    #   Foo.descendants.first   #=> Bar
+    #
+    # @return [Set]
+    #   Set containing the descendant classes
+    #
+    # @api private
+    def descendants
+      @descendants ||= DescendantSet.new(self, Model.descendants << self)
     end
 
     ##
@@ -121,10 +141,9 @@ module DataMapper
         model.send(:include, Resource)
       end
 
-      Model.descendants << model
-
       model.instance_variable_set(:@valid,         false)
       model.instance_variable_set(:@storage_names, {})
+      model.instance_variable_set(:@base_model,    model)
 
       extra_extensions.each { |mod| model.extend(mod)         }
       extra_inclusions.each { |mod| model.send(:include, mod) }
@@ -134,8 +153,7 @@ module DataMapper
       # TODO: document
       # @api private
       def inherited(target)
-        Model.descendants << target
-
+        target.instance_variable_set(:@descendants,   DescendantSet.new(target, descendants << target))
         target.instance_variable_set(:@valid,         false)
         target.instance_variable_set(:@storage_names, @storage_names.dup)
         target.instance_variable_set(:@base_model,    base_model)
@@ -459,9 +477,7 @@ module DataMapper
 
     # TODO: document
     # @api semipublic
-    def base_model
-      @base_model ||= self
-    end
+    attr_reader :base_model
 
     # TODO: document
     # @api semipublic
