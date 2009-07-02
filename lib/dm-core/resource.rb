@@ -299,9 +299,11 @@ module DataMapper
     #   true if resource and storage state match
     #
     # @api public
-    def update(attributes = {})
-      self.attributes = attributes
-      _update
+    chainable do
+      def update(attributes = {})
+        self.attributes = attributes
+        _update
+      end
     end
 
     ##
@@ -379,8 +381,10 @@ module DataMapper
     #   true if resource was destroyed
     #
     # @api public
-    def destroy
-      _destroy
+    chainable do
+      def destroy
+        _destroy
+      end
     end
 
     ##
