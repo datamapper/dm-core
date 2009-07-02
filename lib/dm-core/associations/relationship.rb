@@ -385,13 +385,13 @@ module DataMapper
       # @api semipublic
       def inverse
         @inverse ||= target_model.relationships(relative_target_repository_name).values.detect do |relationship|
-          relationship.kind_of?(inverse_class)   &&
-          cmp_repository?(relationship, :child)  &&
-          cmp_repository?(relationship, :parent) &&
-          cmp_model?(relationship, :child)       &&
-          cmp_model?(relationship, :parent)      &&
-          cmp_key?(relationship, :child)         &&
-          cmp_key?(relationship, :parent)
+          relationship.kind_of?(inverse_class)                 &&
+          cmp_repository?(relationship, :==, :source, :target) &&
+          cmp_repository?(relationship, :==, :target, :source) &&
+          cmp_model?(relationship,      :==, :source, :target) &&
+          cmp_model?(relationship,      :==, :target, :source) &&
+          cmp_key?(relationship,        :==, :source, :target) &&
+          cmp_key?(relationship,        :==, :target, :source)
 
           # TODO: match only when the Query is empty, or is the same as the
           # default scope for the target model
@@ -546,28 +546,38 @@ module DataMapper
 
       # TODO: document
       # @api private
+      def options_with_inverse
+        if child_model? && parent_model?
+          options.merge(:inverse => inverse)
+        else
+          options
+        end
+      end
+
+      # TODO: document
+      # @api private
       def cmp?(other, operator)
-        unless cmp_repository?(other, :child, operator)
+        unless cmp_repository?(other, operator, :source)
           return false
         end
 
-        unless cmp_repository?(other, :parent, operator)
+        unless cmp_repository?(other, operator, :target)
           return false
         end
 
-        unless cmp_model?(other, :child, operator)
+        unless cmp_model?(other, operator, :source)
           return false
         end
 
-        unless cmp_model?(other, :parent, operator)
+        unless cmp_model?(other, operator, :target)
           return false
         end
 
-        unless cmp_key?(other, :child, operator)
+        unless cmp_key?(other, operator, :source)
           return false
         end
 
-        unless cmp_key?(other, :parent, operator)
+        unless cmp_key?(other, operator, :target)
           return false
         end
 
@@ -580,16 +590,14 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def cmp_repository?(other, type, operator = :==)
-        method = "#{type}_repository_name".to_sym
-
+      def cmp_repository?(other, operator, self_type, other_type = self_type)
         # if either repository is nil, then the relationship is relative,
         # and the repositories are considered equivalent
-        unless repository_name = send(method)
+        unless repository_name = send("#{self_type}_repository_name")
           return true
         end
 
-        unless other_repository_name = other.send(method)
+        unless other_repository_name = other.send("#{other_type}_repository_name")
           return true
         end
 
@@ -602,19 +610,16 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def cmp_model?(other, type, operator = :==)
-        method  = "#{type}_model".to_sym
-        defined = "#{method}?".to_sym
-
-        unless send(defined)
+      def cmp_model?(other, operator, self_type, other_type = self_type)
+        unless send("#{self_type}_model?")
           return false
         end
 
-        unless other.send(defined)
+        unless other.send("#{other_type}_model?")
           return false
         end
 
-        unless send(method).send(operator, other.send(method))
+        unless send("#{self_type}_model").send(operator, other.send("#{other_type}_model"))
           return false
         end
 
@@ -623,18 +628,16 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def cmp_key?(other, type, operator = :==)
-        method = "#{type}_key".to_sym
-
-        unless send("#{method}?")
+      def cmp_key?(other, operator, self_type, other_type = self_type)
+        unless send("#{self_type}_key?")
           return true
         end
 
-        unless other.send("#{method}?")
+        unless other.send("#{other_type}_key?")
           return true
         end
 
-        unless send(method).send(operator, other.send(method))
+        unless send("#{self_type}_key").send(operator, other.send("#{other_type}_key"))
           return false
         end
 

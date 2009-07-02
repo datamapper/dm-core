@@ -112,6 +112,16 @@ module DataMapper
           @many_to_many_query ||= super.merge(:links => links).freeze
         end
 
+        # TODO: document
+        # @api private
+        def inherited_by(model)
+          relationship = super
+          if explicit_through_relationship? || target_model?
+            relationship.instance_variable_set(:@through, through.inherited_by(model))
+          end
+          relationship
+        end
+
         private
 
         # TODO: document
@@ -187,10 +197,27 @@ module DataMapper
           { :parent_key => source_key.map { |property| property.name } }
         end
 
+        # Returns the inverse relationship class
+        #
+        # @api private
+        def inverse_class
+          self.class
+        end
+
         # TODO: document
         # @api private
-        def inverse
-          raise NotImplementedError, "#{self.class}#inverse not implemented"
+        def invert
+          inverse_class.new(inverse_name, parent_model, child_model, inverted_options)
+        end
+
+        # TODO: document
+        # @api private
+        def inverted_options
+          options.only(*OPTIONS - [ :min, :max ]).update(
+            :child_key  => parent_key.map { |property| property.name },
+            :parent_key => child_key.map  { |property| property.name },
+            :inverse    => self
+          )
         end
 
         # Returns collection class used by this type of

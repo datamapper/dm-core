@@ -34,12 +34,7 @@ module DataMapper
             dup = duped_relationships[repository_name] ||= Mash.new
 
             relationships.each do |name, relationship|
-              dup[name] = relationship.class.new(
-                relationship.name,
-                relationship.child_model_name  == self.name ? model : relationship.child_model_name,
-                relationship.parent_model_name == self.name ? model : relationship.parent_model_name,
-                relationship.options.dup
-              )
+              dup[name] = relationship.inherited_by(model)
             end
           end
 
@@ -138,7 +133,13 @@ module DataMapper
           Associations::OneToOne::Relationship
         end
 
-        relationships(repository.name)[name] = klass.new(name, model, self, options)
+        relationship = relationships(repository.name)[name] = klass.new(name, model, self, options)
+
+        descendants.each do |descendant|
+          descendant.relationships(repository.name)[name] ||= relationship.inherited_by(descendant)
+        end
+
+        relationship
       end
 
       ##
@@ -183,11 +184,19 @@ module DataMapper
 
         model ||= options.delete(:model)
 
+        repository_name = repository.name
+
         # TODO: change to source_repository_name and target_respository_name
-        options[:child_repository_name]  = repository.name
+        options[:child_repository_name]  = repository_name
         options[:parent_repository_name] = options.delete(:repository)
 
-        relationships(repository.name)[name] = Associations::ManyToOne::Relationship.new(name, self, model, options)
+        relationship = relationships(repository.name)[name] = Associations::ManyToOne::Relationship.new(name, self, model, options)
+
+        descendants.each do |descendant|
+          descendant.relationships(repository.name)[name] ||= relationship.inherited_by(descendant)
+        end
+
+        relationship
       end
 
       private

@@ -90,6 +90,12 @@ module DataMapper
           get!(source).replace(targets)
         end
 
+        # TODO: document
+        # @api private
+        def inherited_by(model)
+          self.class.new(name, child_model_name, model, options_with_inverse)
+        end
+
         private
 
         # TODO: document
@@ -178,8 +184,11 @@ module DataMapper
         #
         # @api semipublic
         def property_prefix
-          # TODO: try to use the inverse relationship name if possible
-          Extlib::Inflection.underscore(Extlib::Inflection.demodulize(parent_model.base_model.name)).to_sym
+          if @inverse
+            inverse.name
+          else
+            inverse_name
+          end
         end
       end # class Relationship
 

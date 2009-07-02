@@ -683,4 +683,130 @@ describe DataMapper::Associations do
       end
     end
   end
+
+  describe 'property prefix inference' do
+    describe 'when a relationship has an inverse' do
+      before :all do
+        @engine_relationship = Car.has(1, :engine, :inverse => Engine.belongs_to(:sports_car, Car))
+      end
+
+      supported_by :all do
+        it 'should have a child key prefix the same as the inverse relationship' do
+          @engine_relationship.child_key.map { |property| property.name }.should == [ :sports_car_id ]
+        end
+      end
+    end
+
+    describe 'when a relationship does not have an inverse' do
+      before :all do
+        @engine_relationship = Car.has(1, :engine)
+      end
+
+      supported_by :all do
+        it 'should have a child key prefix inferred from the source model name' do
+          @engine_relationship.child_key.map { |property| property.name }.should == [ :car_id ]
+        end
+      end
+    end
+
+    describe 'when a relationship is inherited' do
+      describe 'has an inverse' do
+        before :all do
+          Car.property(:type, DataMapper::Types::Discriminator)
+
+          class ::ElectricCar < Car; end
+
+          Car.has(1, :engine, :inverse => Engine.belongs_to(:sports_car, Car))
+        end
+
+        supported_by :all do
+          before :all do
+            @engine_relationship = ElectricCar.relationships(@repository.name)[:engine]
+          end
+
+          it 'should have a source model equal to the descendant' do
+            @engine_relationship.source_model.should equal(ElectricCar)
+          end
+
+          it 'should have a child key prefix the same as the inverse relationship' do
+            @engine_relationship.child_key.map { |property| property.name }.should == [ :sports_car_id ]
+          end
+        end
+      end
+
+      describe 'does not have an inverse' do
+        before :all do
+          Car.property(:type, DataMapper::Types::Discriminator)
+
+          class ::ElectricCar < Car; end
+
+          Car.has(1, :engine)
+        end
+
+        supported_by :all do
+          before :all do
+            @engine_relationship = ElectricCar.relationships(@repository.name)[:engine]
+          end
+
+          it 'should have a source model equal to the descendant' do
+            @engine_relationship.source_model.should equal(ElectricCar)
+          end
+
+          it 'should have a child key prefix inferred from the source model name' do
+            @engine_relationship.child_key.map { |property| property.name }.should == [ :car_id ]
+          end
+        end
+      end
+    end
+
+    describe "when a subclass defines it's own relationship" do
+      describe 'has an inverse' do
+        before :all do
+          Car.property(:type, DataMapper::Types::Discriminator)
+
+          class ::ElectricCar < Car; end
+
+          ElectricCar.has(1, :engine, :inverse => Engine.belongs_to(:sports_car, Car))
+        end
+
+        supported_by :all do
+          before :all do
+            @engine_relationship = ElectricCar.relationships(@repository.name)[:engine]
+          end
+
+          it 'should have a source model equal to the descendant' do
+            @engine_relationship.source_model.should equal(ElectricCar)
+          end
+
+          it 'should have a child key prefix the same as the inverse relationship' do
+            @engine_relationship.child_key.map { |property| property.name }.should == [ :sports_car_id ]
+          end
+        end
+      end
+
+      describe 'does not have an inverse' do
+        before :all do
+          Car.property(:type, DataMapper::Types::Discriminator)
+
+          class ::ElectricCar < Car; end
+
+          ElectricCar.has(1, :engine)
+        end
+
+        supported_by :all do
+          before :all do
+            @engine_relationship = ElectricCar.relationships(@repository.name)[:engine]
+          end
+
+          it 'should have a source model equal to the descendant' do
+            @engine_relationship.source_model.should equal(ElectricCar)
+          end
+
+          it 'should have a child key prefix inferred from the source model name' do
+            @engine_relationship.child_key.map { |property| property.name }.should == [ :electric_car_id ]
+          end
+        end
+      end
+    end
+  end
 end
