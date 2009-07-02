@@ -108,6 +108,10 @@ describe DataMapper::Associations::Relationship do
         @inverse.should_not equal(@expected)
       end
 
+      it 'should have a source repository equal to the target repository of the relationship' do
+        @inverse.source_repository_name.should == @relationship.target_repository_name
+      end
+
       it "should be have the relationship as it's inverse" do
         @inverse.inverse.should equal(@relationship)
       end
@@ -133,6 +137,10 @@ describe DataMapper::Associations::Relationship do
 
       it 'should be an anonymous relationship' do
         @inverse.should_not equal(@expected)
+      end
+
+      it 'should have a source repository equal to the target repository of the relationship' do
+        @inverse.source_repository_name.should == @relationship.target_repository_name
       end
 
       it "should be have the relationship as it's inverse" do
