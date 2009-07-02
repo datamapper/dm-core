@@ -74,7 +74,11 @@ module DataMapper
     #
     # @api private
     def descendants
-      @descendants ||= DescendantSet.new(self, Model.descendants << self)
+      @descendants ||=
+        begin
+          ancestor = base_model.equal?(self) ? Model : superclass
+          DescendantSet.new(self, ancestor.descendants << self)
+        end
     end
 
     ##
@@ -153,7 +157,6 @@ module DataMapper
       # TODO: document
       # @api private
       def inherited(target)
-        target.instance_variable_set(:@descendants,   DescendantSet.new(target, descendants << target))
         target.instance_variable_set(:@valid,         false)
         target.instance_variable_set(:@storage_names, @storage_names.dup)
         target.instance_variable_set(:@base_model,    base_model)

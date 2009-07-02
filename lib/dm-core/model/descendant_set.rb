@@ -53,6 +53,17 @@ module DataMapper
         @descendants.delete(model)
       end
 
+      ##
+      # Return an Array representation of descendants
+      #
+      # @return [Array]
+      #   the descendants
+      #
+      # @api private
+      def to_ary
+        @descendants.dup
+      end
+
       private
 
       ##

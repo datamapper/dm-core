@@ -86,6 +86,7 @@ spec/public/shared/collection_shared_spec.rb
 spec/public/shared/resource_shared_spec.rb
 spec/public/shared/sel_shared_spec.rb
 spec/public/transaction_spec.rb
+spec/public/types/discriminator_spec.rb
 spec/semipublic/adapters/abstract_adapter_spec.rb
 spec/semipublic/adapters/in_memory_adapter_spec.rb
 spec/semipublic/adapters/mysql_adapter_spec.rb

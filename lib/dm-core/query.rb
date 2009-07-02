@@ -1061,8 +1061,12 @@ module DataMapper
     # TODO: document
     # @api private
     def normalize_bind_value(property_or_path, bind_value)
-      if bind_value.kind_of?(Proc)
+      if bind_value.respond_to?(:call)
         bind_value = bind_value.call
+      end
+
+      if bind_value.respond_to?(:to_ary)
+        bind_value = bind_value.to_ary
       end
 
       # TODO: update InclusionComparison so it knows how to do this

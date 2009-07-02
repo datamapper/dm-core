@@ -262,7 +262,7 @@ module DataMapper
         # @api private
         def typecast_value(value)
           if subject.respond_to?(:typecast) && value.respond_to?(:map)
-            value.map { |val| subject.typecast(val) }.sort_by { |val| Sort.new(val) }
+            value.map { |val| subject.typecast(val) }
           else
             value
           end
