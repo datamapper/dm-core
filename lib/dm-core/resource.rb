@@ -265,7 +265,7 @@ module DataMapper
             if model.public_method_defined?(setter = "#{name}=")
               send(setter, value)
             else
-              raise ArgumentError, "The property '#{name}' is not accessible in #{model}"
+              raise ArgumentError, "The attribute '#{name}' is not accessible in #{model}"
             end
           when Associations::Relationship, Property
             name.set(self, value)

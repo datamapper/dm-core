@@ -213,7 +213,7 @@ share_examples_for 'A public Resource' do
       it 'should raise an exception' do
         lambda {
           @user.attributes = { :admin => true }
-        }.should raise_error(ArgumentError, "The property \'admin\' is not accessible in #{@user_model}")
+        }.should raise_error(ArgumentError, "The attribute \'admin\' is not accessible in #{@user_model}")
       end
     end
   end
