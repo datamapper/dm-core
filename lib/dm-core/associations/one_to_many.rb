@@ -12,7 +12,15 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
+        alias target_model? child_model?
+
+        # TODO: document
+        # @api semipublic
         alias target_key child_key
+
+        # TODO: document
+        # @api semipublic
+        alias target_key? child_key?
 
         # TODO: document
         # @api semipublic
@@ -24,7 +32,15 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
+        alias source_model? parent_model?
+
+        # TODO: document
+        # @api semipublic
         alias source_key parent_key
+
+        # TODO: document
+        # @api semipublic
+        alias source_key? parent_key?
 
         ##
         # Returns a Collection for this relationship with a given source

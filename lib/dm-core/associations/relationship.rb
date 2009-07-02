@@ -147,6 +147,15 @@ module DataMapper
 
       # TODO: document
       # @api private
+      def child_model?
+        child_model
+        true
+      rescue NameError
+        false
+      end
+
+      # TODO: document
+      # @api private
       def child_model_name
         @child_model ? child_model.name : @child_model_name
       end
@@ -195,6 +204,15 @@ module DataMapper
         @parent_model ||= (@child_model || Object).find_const(parent_model_name)
       rescue NameError
         raise NameError, "Cannot find the parent_model #{parent_model_name} for #{child_model_name} in #{name}"
+      end
+
+      # TODO: document
+      # @api private
+      def parent_model?
+        parent_model
+        true
+      rescue NameError
+        false
       end
 
       # TODO: document
@@ -585,7 +603,16 @@ module DataMapper
       # TODO: document
       # @api private
       def cmp_model?(other, type, operator = :==)
-        method = "#{type}_model".to_sym
+        method  = "#{type}_model".to_sym
+        defined = "#{method}?".to_sym
+
+        unless send(defined)
+          return false
+        end
+
+        unless other.send(defined)
+          return false
+        end
 
         unless send(method).send(operator, other.send(method))
           return false
