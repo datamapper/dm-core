@@ -60,7 +60,6 @@ module DataMapper
             # initialize the child_key now that the source, join and
             # target models are defined
             many_to_one.child_key
-            one_to_many.inverse.child_key
 
             @through = one_to_many
           end
