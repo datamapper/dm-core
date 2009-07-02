@@ -513,15 +513,16 @@ module DataMapper
       # TODO: document
       # @api private
       def invert
-        inverse_class.new(
-          inverse_name,
-          child_model,
-          parent_model,
-          options.only(*OPTIONS - [ :min, :max ]).update(
-            :child_key  => child_key.map  { |property| property.name },
-            :parent_key => parent_key.map { |property| property.name },
-            :inverse    => self
-          )
+        inverse_class.new(inverse_name, child_model, parent_model, inverted_options)
+      end
+
+      # TODO: document
+      # @api private
+      def inverted_options
+        options.only(*OPTIONS - [ :min, :max ]).update(
+          :child_key  => child_key.map  { |property| property.name },
+          :parent_key => parent_key.map { |property| property.name },
+          :inverse    => self
         )
       end
 
