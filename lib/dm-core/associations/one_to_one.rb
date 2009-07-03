@@ -21,10 +21,9 @@ module DataMapper
         # @api semipublic
         def set(source, target)
           assert_kind_of 'source', source, source_model
-          assert_kind_of 'target', target, target_model, NilClass
+          assert_kind_of 'target', target, target_model, Hash, NilClass
 
-          relationship.set(source, [ target ].compact)
-          target
+          relationship.set(source, [ target ].compact).first
         end
 
         # TODO: document

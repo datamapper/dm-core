@@ -105,7 +105,11 @@ module DataMapper
         # @api semipublic
         def set(source, target)
           assert_kind_of 'source', source, source_model
-          assert_kind_of 'target', target, target_model, NilClass
+          assert_kind_of 'target', target, target_model, Hash, NilClass
+
+          if target.kind_of?(Hash)
+            target = target_model.new(target)
+          end
 
           source_key.set(source, target.nil? ? [] : target_key.get(target))
           set!(source, target)

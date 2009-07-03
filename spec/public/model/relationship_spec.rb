@@ -84,7 +84,7 @@ end
 
 share_examples_for 'it creates a one mutator' do
   describe 'mutator' do
-    describe 'when setting an associated resource' do
+    describe 'when setting a Resource' do
       before :all do
         @expected = @model.new
 
@@ -121,7 +121,47 @@ share_examples_for 'it creates a one mutator' do
       end
     end
 
-    describe 'when setting a nil resource' do
+    describe 'when setting a Hash' do
+      before :all do
+        @car.send("#{@name}=", @model.new)
+
+        attributes = { :id => 10 }
+        @expected  = @model.new(attributes)
+
+        @return = @car.send("#{@name}=", attributes)
+      end
+
+      it 'should return the expected Resource' do
+        @return.should == @expected
+      end
+
+      it 'should set the Resource' do
+        @car.send(@name).should equal(@return)
+      end
+
+      it 'should relate associated Resource' do
+        relationship       = Car.relationships[@name]
+        many_to_one        = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
+        one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
+
+        pending_if 'TODO', many_to_one || one_to_one_through do
+          @return.car.should == @car
+        end
+      end
+
+      it 'should persist the Resource' do
+        @car.save.should be_true
+        @car.model.get(*@car.key).send(@name).should == @return
+      end
+
+      it 'should persist the associated Resource' do
+        @car.save.should be_true
+        @return.should be_saved
+        @return.model.get(*@expected.key).car.should == @car
+      end
+    end
+
+    describe 'when setting nil' do
       before :all do
         @car.send("#{@name}=", @model.new)
 
@@ -142,7 +182,7 @@ share_examples_for 'it creates a one mutator' do
       end
     end
 
-    describe 'when changing an associated resource' do
+    describe 'when changing the Resource' do
       before :all do
         @car.send("#{@name}=", @model.new)
         @expected = @model.new
@@ -258,7 +298,7 @@ end
 
 share_examples_for 'it creates a many mutator' do
   describe 'mutator' do
-    describe 'when setting an associated collection' do
+    describe 'when setting an Array of Resources' do
       before :all do
         @expected = [ @model.new ]
 
@@ -289,6 +329,41 @@ share_examples_for 'it creates a many mutator' do
         @car.save.should be_true
         @expected.each { |resource| resource.should be_saved }
         @expected.each { |resource| resource.model.get(*resource.key).car.should == @car }
+      end
+    end
+
+    describe 'when setting an Array of Hashes' do
+      before :all do
+        attributes = { :id => 11 }
+        @hashes    = [ attributes             ]
+        @expected  = [ @model.new(attributes) ]
+
+        @return = @car.send("#{@name}=", @hashes)
+      end
+
+      it 'should return the expected Collection' do
+        @return.should == @expected
+      end
+
+      it 'should set the Collection' do
+        @car.send(@name).should == @return
+      end
+
+      it 'should relate the associated Collection' do
+        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
+          @return.each { |resource| resource.car.should == @car }
+        end
+      end
+
+      it 'should persist the Collection' do
+        @car.save.should be_true
+        @car.model.get(*@car.key).send(@name).should == @return
+      end
+
+      it 'should persist the associated Resource' do
+        @car.save.should be_true
+        @return.each { |resource| resource.should be_saved }
+        @return.each { |resource| resource.model.get(*resource.key).car.should == @car }
       end
     end
 
