@@ -174,46 +174,6 @@ module DataMapper
         attributes.map { |property, value| [ property.field, value ] }.to_hash
       end
 
-      # TODO: document
-      # @api semipublic
-      def foreign_key_conditions(comparison)
-        relationship = comparison.subject
-        sources      = Array(comparison.value)
-        slug         = comparison.class.slug
-
-        source_key = relationship.source_key
-        target_key = relationship.target_key
-
-        if relationship.source_key.size == 1 && relationship.target_key.size == 1
-          source_key = source_key.first
-          target_key = target_key.first
-
-          source_values = sources.map { |resource| target_key.get!(resource) }
-
-          if source_values.size > 1
-            Query::Conditions::Comparison.new(slug, source_key, source_values)
-          else
-            Query::Conditions::Comparison.new(slug == :in ? :eql : slug, source_key, source_values.first)
-          end
-        else
-          or_operation = Query::Conditions::Operation.new(:or)
-
-          sources.each do |source|
-            source_values = target_key.get!(source)
-
-            and_operation = Query::Conditions::Operation.new(:and)
-
-            source_key.zip(source_values) do |property, value|
-              and_operation << Query::Conditions::Comparison.new(slug == :in ? :eql : slug, property, value)
-            end
-
-            or_operation << and_operation
-          end
-
-          or_operation
-        end
-      end
-
       private
 
       ##

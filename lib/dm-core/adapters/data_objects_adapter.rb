@@ -569,9 +569,8 @@ module DataMapper
             statement, bind_values = conditions_statement(operation, qualify)
 
             return "(#{statement})", bind_values
-          elsif comparison.subject.kind_of?(Associations::Relationship)
-            conditions = foreign_key_conditions(comparison)
-            return conditions_statement(conditions, qualify)
+          elsif comparison.relationship?
+            return conditions_statement(comparison.foreign_key_mapping, qualify)
           end
 
           operator = case comparison

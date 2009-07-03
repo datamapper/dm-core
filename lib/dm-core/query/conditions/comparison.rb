@@ -75,6 +75,18 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
+        def relationship?
+          false
+        end
+
+        # TODO: document
+        # @api semipublic
+        def property?
+          subject.kind_of?(Property)
+        end
+
+        # TODO: document
+        # @api semipublic
         def ==(other)
           if equal?(other)
             return true
@@ -228,7 +240,56 @@ module DataMapper
         end
       end # class AbstractComparison
 
+      module RelationshipHandler
+        # TODO: document
+        # @api semipublic
+        def relationship?
+          subject.kind_of?(Associations::Relationship)
+        end
+
+        # TODO: document
+        # @api semipublic
+        def foreign_key_mapping
+          relationship = subject
+          sources      = Array(value)
+
+          source_key = relationship.source_key
+          target_key = relationship.target_key
+
+          if relationship.source_key.size == 1 && relationship.target_key.size == 1
+            source_key = source_key.first
+            target_key = target_key.first
+
+            source_values = sources.map { |resource| target_key.get!(resource) }
+
+            if source_values.size > 1
+              InclusionComparison.new(source_key, source_values)
+            else
+              EqualToComparison.new(source_key, source_values)
+            end
+          else
+            or_operation = Query::Conditions::Operation.new(:or)
+
+            sources.each do |source|
+              source_values = target_key.get!(source)
+
+              and_operation = Query::Conditions::Operation.new(:and)
+
+              source_key.zip(source_values) do |property, value|
+                and_operation << EqualToComparison.new(property, value)
+              end
+
+              or_operation << and_operation
+            end
+
+            or_operation
+          end
+        end
+      end
+
       class EqualToComparison < AbstractComparison
+        include RelationshipHandler
+
         slug :eql
 
         # TODO: document
@@ -247,6 +308,8 @@ module DataMapper
       end # class EqualToComparison
 
       class InclusionComparison < AbstractComparison
+        include RelationshipHandler
+
         slug :in
 
         # TODO: document

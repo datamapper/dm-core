@@ -618,7 +618,7 @@ module DataMapper
 
       # parse @options[:conditions] differently
       case conditions = @options[:conditions]
-        when Conditions::AbstractOperation
+        when Conditions::AbstractOperation, Conditions::AbstractComparison
           @conditions << conditions
 
         when Hash
