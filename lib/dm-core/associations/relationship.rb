@@ -165,24 +165,23 @@ module DataMapper
       # @return   [DataMapper::PropertySet]  a set of properties that identify child model
       # @api private
       def child_key
-        @child_key ||=
-          begin
-            repository_name = child_repository_name || parent_repository_name
-            properties      = child_model.properties(repository_name)
+        return @child_key if defined?(@child_key)
 
-            child_key = parent_key.zip(child_properties || []).map do |parent_property, property_name|
-              property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
+        repository_name = child_repository_name || parent_repository_name
+        properties      = child_model.properties(repository_name)
 
-              properties[property_name] || begin
-                # create the property within the correct repository
-                DataMapper.repository(repository_name) do
-                  child_model.property(property_name, parent_property.primitive, child_key_options(parent_property))
-                end
-              end
+        child_key = parent_key.zip(child_properties || []).map do |parent_property, property_name|
+          property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
+
+          properties[property_name] || begin
+            # create the property within the correct repository
+            DataMapper.repository(repository_name) do
+              child_model.property(property_name, parent_property.primitive, child_key_options(parent_property))
             end
-
-            properties.class.new(child_key).freeze
           end
+        end
+
+        @child_key = properties.class.new(child_key).freeze
       end
 
       ##
@@ -228,18 +227,17 @@ module DataMapper
       #
       # @api private
       def parent_key
-        @parent_key ||=
-          begin
-            repository_name = parent_repository_name || child_repository_name
-            properties      = parent_model.properties(repository_name)
+        return @parent_key if defined?(@parent_key)
 
-            if parent_properties
-              parent_key = properties.values_at(*parent_properties)
-              properties.class.new(parent_key).freeze
-            else
-              properties.key
-            end
-          end
+        repository_name = parent_repository_name || child_repository_name
+        properties      = parent_model.properties(repository_name)
+
+        @parent_key = if parent_properties
+          parent_key = properties.values_at(*parent_properties)
+          properties.class.new(parent_key).freeze
+        else
+          properties.key
+        end
       end
 
       ##

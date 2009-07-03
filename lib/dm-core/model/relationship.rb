@@ -303,6 +303,7 @@ module DataMapper
           end
         end
 
+        # TODO: move this into ManyToMany::Relationship#through
         if options.key?(:through) && options[:through] != Resource
           assert_kind_of 'options[:through]', options[:through], Associations::Relationship, Symbol, Module
 

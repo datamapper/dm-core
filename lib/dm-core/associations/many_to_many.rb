@@ -12,17 +12,16 @@ module DataMapper
         #
         # @api semipublic
         def child_key
-          @child_key ||=
-            begin
-              properties = target_model.properties(relative_target_repository_name)
+          return @child_key if defined?(@child_key)
 
-              if child_properties
-                child_key = properties.values_at(*child_properties)
-                properties.class.new(child_key).freeze
-              else
-                properties.key
-              end
-            end
+          properties = target_model.properties(relative_target_repository_name)
+
+          @child_key = if child_properties
+            child_key = properties.values_at(*child_properties)
+            properties.class.new(child_key).freeze
+          else
+            properties.key
+          end
         end
 
         alias target_key child_key
@@ -54,14 +53,14 @@ module DataMapper
           # can define the join model within their common namespace
 
           DataMapper.repository(source_repository_name) do
-            many_to_one = join_model.belongs_to(name.to_s.singularize.to_sym, target_model, many_to_one_options)
-            one_to_many = source_model.has(min..max, join_relationship_name,  join_model,   one_to_many_options)
+            through = source_model.has(min..max, join_relationship_name,  join_model,   one_to_many_options)
+            last    = join_model.belongs_to(name.to_s.singularize.to_sym, target_model, many_to_one_options)
 
             # initialize the child_key now that the source, join and
             # target models are defined
-            many_to_one.child_key
+            last.child_key
 
-            @through = one_to_many
+            @through = through
           end
         end
 
@@ -140,7 +139,7 @@ module DataMapper
             namespace.const_get(name)
           else
             model = Model.new do
-              # all properties added to the anonymous join model are considered a key
+              # all properties added to the anonymous join model are keys by default
               def property(name, type, options = {})
                 options[:key] = true unless options.key?(:key)
                 options.delete(:index)
