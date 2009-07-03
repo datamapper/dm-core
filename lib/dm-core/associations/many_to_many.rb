@@ -2,7 +2,7 @@ module DataMapper
   module Associations
     module ManyToMany #:nodoc:
       class Relationship < Associations::OneToMany::Relationship
-        OPTIONS = (superclass::OPTIONS + [ :through ]).freeze
+        OPTIONS = (superclass::OPTIONS + [ :through, :via ]).freeze
 
         ##
         # Returns a set of keys that identify the target model
@@ -53,36 +53,50 @@ module DataMapper
           # can define the join model within their common namespace
 
           DataMapper.repository(source_repository_name) do
-            through = source_model.has(min..max, join_relationship_name,  join_model,   one_to_many_options)
-            last    = join_model.belongs_to(name.to_s.singularize.to_sym, target_model, many_to_one_options)
-
-            # initialize the child_key now that the source, join and
-            # target models are defined
-            last.child_key
-
-            @through = through
+            @through = source_model.has(min..max, join_relationship_name,  join_model,   one_to_many_options)
+            @via     = join_model.belongs_to(name.to_s.singularize.to_sym, target_model, many_to_one_options)
           end
+
+          # initialize the child_key now that the source, join and
+          # target models are defined
+          @via.child_key
+
+          @through
+        end
+
+        # TODO: document
+        # @api semipublic
+        def via
+          return @via if defined?(@via)
+
+          repository_name = through.relative_target_repository_name
+          relationships   = through.target_model.relationships(repository_name)
+          name            = (options[:via] || options[:remote_name] || self.name).to_s
+
+          unless via = relationships[name] || relationships[name.singularize]
+            raise NameError, "Cannot find relationship #{name.singularize} or #{name} in #{through.target_model} within the #{repository_name.inspect} repository"
+          end
+
+          @via = via
         end
 
         # TODO: document
         # @api semipublic
         def links
-          @links ||=
-            begin
-              relationships = through.target_model.relationships(source_repository_name)
+          return @links if defined?(@links)
 
-              unless target = relationships[name] || relationships[name.to_s.singular.to_sym]
-                raise NameError, "Cannot find target relationship #{name} or #{name.to_s.singular} in #{through.target_model} within the #{source_repository_name.inspect} repository"
-              end
+          @links = []
+          links  = [ through, via ]
 
-              [ through, target ].map do |relationship|
-                if relationship.respond_to?(:links)
-                  relationship.links
-                else
-                  relationship
-                end
-              end.flatten.freeze
+          while relationship = links.shift
+            if relationship.respond_to?(:links)
+              links.unshift(*relationship.links)
+            else
+              @links << relationship
             end
+          end
+
+          @links.freeze
         end
 
         # TODO: document
@@ -93,9 +107,11 @@ module DataMapper
           target_key = through.target_key
           source_key = through.source_key
 
+          # TODO: handle compound keys
+          raise NotImplementedError, "Cannot work with compound keys in #{through.target_model} yet" if target_key.size > 1
+
           scope = {}
 
-          # TODO: handle compound keys
           if (source_values = Array(source).map { |resource| source_key.first.get(resource) }.compact).any?
             scope[target_key.first] = source_values
           end
@@ -259,6 +275,10 @@ module DataMapper
         #
         # @api public
         def destroy!
+          # FIXME: use a subquery to do this more efficiently in the future
+          key = model.key(repository_name)
+          raise NotImplementedError, "#{self.class}#destroy! does not work with compound keys in #{model}" if key.size > 1
+
           unless intermediaries.destroy!
             return false
           end
@@ -267,12 +287,6 @@ module DataMapper
             return true
           end
 
-          # FIXME: use a subquery to do this more efficiently in the future
-          repository_name = relationship.relative_target_repository_name_for(source)
-          model           = relationship.target_model
-          key             = model.key(repository_name)
-
-          # TODO: handle compound keys
           model.all(:repository => repository_name, key.first => map { |resource| resource.key.first }).destroy!
 
           each { |resource| resource.reset }
@@ -286,14 +300,14 @@ module DataMapper
         # TODO: document
         # @api private
         def _create(safe, attributes)
-          if last_relationship.respond_to?(:resource_for)
+          if via.respond_to?(:resource_for)
             resource = super
-            if create_intermediary(safe, last_relationship => resource)
+            if create_intermediary(safe, via => resource)
               resource
             end
           else
             if intermediary = create_intermediary(safe)
-              super(safe, attributes.merge(last_relationship.inverse => intermediary))
+              super(safe, attributes.merge(via.inverse => intermediary))
             end
           end
         end
@@ -303,12 +317,12 @@ module DataMapper
         def _update(dirty_attributes)
           assert_source_saved 'The source must be saved before mass-updating the collection'
 
+          # FIXME: use a subquery to do this more efficiently in the future
+          key = model.key(repository_name)
+          raise NotImplementedError, "#{self.class}#update and #{self.class}#update! do not work with compound keys in #{model}" if key.size > 1
+
           attributes = dirty_attributes.map { |property, value| [ property.name, value ] }.to_hash
 
-          # FIXME: use a subquery to do this more efficiently in the future,
-          key = model.key(repository.name)
-
-          # TODO: handle compound keys
           model.all(:repository => repository_name, key.first => map { |resource| resource.key.first }).update!(attributes)
         end
 
@@ -326,12 +340,12 @@ module DataMapper
             return false
           end
 
-          if last_relationship.respond_to?(:resource_for)
+          if via.respond_to?(:resource_for)
             super
-            resources.all? { |resource| create_intermediary(safe, last_relationship => resource) }
+            resources.all? { |resource| create_intermediary(safe, via => resource) }
           else
             if intermediary = create_intermediary(safe)
-              inverse = last_relationship.inverse
+              inverse = via.inverse
               resources.map { |resource| inverse.set(resource, intermediary) }
             end
 
@@ -344,7 +358,7 @@ module DataMapper
         def intermediaries(resources = saved)
           through        = relationship.through
           intermediaries = through.loaded?(source) ? through.get!(source) : through.collection_for(source)
-          intermediaries.all(last_relationship => resources)
+          intermediaries.all(via => resources)
         end
 
         # TODO: document
@@ -366,14 +380,20 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def last_relationship
-          @last_relationship ||= relationship.links.last
+        def via
+          relationship.via
         end
 
         # TODO: document
         # @api private
         def default_attributes
           collection_default_attributes
+        end
+
+        # TODO: document
+        # @api private
+        def repository_name
+          relationship.relative_target_repository_name_for(source)
         end
 
         # TODO: document

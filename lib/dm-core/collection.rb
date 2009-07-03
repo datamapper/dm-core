@@ -868,9 +868,9 @@ module DataMapper
     # @api public
     def destroy!
       if query.limit || query.offset > 0
-        # TODO: handle this with a subquery and handle compound keys
-        key = model.key(repository.name)
-        raise NotImplementedError, 'Cannot work with compound keys yet' if key.size > 1
+        # FIXME: use a subquery to do this more efficiently in the future
+        key = model.key(repository_name)
+        raise NotImplementedError, "#{self.class}#destroy! does not work with compound keys in #{model}" if key.size > 1
         model.all(:repository => repository, key.first => map { |resource| resource.key.first }).destroy!
       else
         repository.delete(self)
@@ -1068,11 +1068,12 @@ module DataMapper
     # @api private
     def _update(dirty_attributes)
       if query.limit || query.offset > 0
+        # FIXME: use a subquery to do this more efficiently in the future
+        key = model.key(repository_name)
+        raise NotImplementedError, "#{self.class}#update and #{self.class}#update! do not work with compound keys in #{model}" if key.size > 1
+
         attributes = dirty_attributes.map { |property, value| [ property.name, value ] }.to_hash
 
-        # TODO: handle this with a subquery and handle compound keys
-        key = model.key(repository.name)
-        raise NotImplementedError, 'Cannot work with compound keys yet' if key.size > 1
         model.all(:repository => repository, key.first => map { |resource| resource.key.first }).update!(attributes)
       else
         repository.update(dirty_attributes, self)

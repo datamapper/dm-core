@@ -645,6 +645,7 @@ module DataMapper
       @saved = false
       identity_map.delete(key)
       original_attributes.clear
+      self
     end
 
     # Gets a Collection with the current Resource instance as its only member
