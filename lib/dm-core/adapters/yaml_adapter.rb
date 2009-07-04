@@ -9,7 +9,7 @@ module DataMapper
       def create(resources)
         update_records(resources.first.model) do |records|
           resources.each do |resource|
-            initialize_identity_field(resource, records.size.succ)
+            initialize_serial(resource, records.size.succ)
             records << resource.attributes(:field)
           end
         end

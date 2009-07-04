@@ -30,9 +30,9 @@ module DataMapper
       # @api semipublic
       def create(resources)
         resources.each do |resource|
-          model          = resource.model
-          identity_field = model.identity_field
-          attributes     = resource.dirty_attributes
+          model      = resource.model
+          serial     = model.serial
+          attributes = resource.dirty_attributes
 
           properties  = []
           bind_values = []
@@ -43,18 +43,18 @@ module DataMapper
 
             bind_value = attributes[property]
 
-            next if property.eql?(identity_field) && bind_value.nil?
+            next if property.eql?(serial) && bind_value.nil?
 
             properties  << property
             bind_values << bind_value
           end
 
-          statement = insert_statement(model, properties, identity_field)
+          statement = insert_statement(model, properties, serial)
           result    = execute(statement, *bind_values)
 
           if result.to_i == 1
-            if identity_field
-              identity_field.set!(resource, result.insert_id)
+            if serial
+              serial.set!(resource, result.insert_id)
             end
           end
         end
@@ -374,7 +374,7 @@ module DataMapper
         # @return [String] INSERT statement as a string
         #
         # @api private
-        def insert_statement(model, properties, identity_field)
+        def insert_statement(model, properties, serial)
           statement = "INSERT INTO #{quote_name(model.storage_name(name))} "
 
           if supports_default_values? && properties.empty?
@@ -387,8 +387,8 @@ module DataMapper
             SQL
           end
 
-          if supports_returning? && identity_field
-            statement << " RETURNING #{quote_name(identity_field.field)}"
+          if supports_returning? && serial
+            statement << " RETURNING #{quote_name(serial.field)}"
           end
 
           statement

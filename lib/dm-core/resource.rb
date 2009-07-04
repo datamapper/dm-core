@@ -133,7 +133,7 @@ module DataMapper
       if dirty_attributes.any?
         true
       elsif new?
-        model.identity_field || properties.any? { |property| property.default? }
+        model.serial || properties.any? { |property| property.default? }
       else
         false
       end

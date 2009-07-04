@@ -23,7 +23,7 @@ module DataMapper
         records = records_for(resources.first.model)
 
         resources.each do |resource|
-          initialize_identity_field(resource, records.size.succ)
+          initialize_serial(resource, records.size.succ)
           records << resource.attributes(:field)
         end
       end

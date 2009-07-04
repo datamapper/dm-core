@@ -159,13 +159,14 @@ module DataMapper
 
       # TODO: document
       # @api semipublic
-      def initialize_identity_field(resource, next_id)
-        if (identity_field = resource.model.identity_field(name)) && identity_field.get!(resource).nil?
-          identity_field.set!(resource, next_id)
-          # TODO: replace above with this, once
-          # specs can handle random, non-sequential ids
-          #identity_field.set!(resource, rand(2**32))
-        end
+      def initialize_serial(resource, next_id)
+        return unless serial = resource.model.serial(name)
+        return unless serial.get!(resource).nil?
+        serial.set!(resource, next_id)
+
+        # TODO: replace above with this, once
+        # specs can handle random, non-sequential ids
+        #serial.set!(resource, rand(2**32))
       end
 
       # TODO: document
