@@ -48,8 +48,7 @@ share_examples_for 'it creates a one accessor' do
         before :all do
           @car.save  # save @car and @expected to set @expected.id
 
-          # TODO: uncomment this when parents are saved prior to Resource objects
-          #@expected.id.should_not be_nil
+          @expected.id.should_not be_nil
 
           @return = @car.send(@name, :id => @expected.id)
         end
