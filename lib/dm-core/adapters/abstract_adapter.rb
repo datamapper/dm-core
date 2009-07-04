@@ -160,7 +160,7 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def initialize_identity_field(resource, next_id)
-        if identity_field = resource.model.identity_field(name)
+        if (identity_field = resource.model.identity_field(name)) && identity_field.get!(resource).nil?
           identity_field.set!(resource, next_id)
           # TODO: replace above with this, once
           # specs can handle random, non-sequential ids

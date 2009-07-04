@@ -156,7 +156,7 @@ share_examples_for 'it creates a one mutator' do
       it 'should persist the associated Resource' do
         @car.save.should be_true
         @return.should be_saved
-        @return.model.get(*@expected.key).car.should == @car
+        @return.model.get(*@return.key).car.should == @car
       end
     end
 
