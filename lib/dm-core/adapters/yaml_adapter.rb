@@ -109,7 +109,7 @@ module DataMapper
       #
       # @api private
       def yaml_file(model)
-        @path / "#{model.base_model.storage_name(name)}.yml"
+        @path / "#{model.storage_name(name)}.yml"
       end
 
     end # class YamlAdapter

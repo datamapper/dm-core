@@ -20,7 +20,7 @@ module DataMapper
       chainable do
         def inherited(model)
           model.instance_variable_set(:@properties,               {})
-          model.instance_variable_set(:@field_naming_conventions, {})
+          model.instance_variable_set(:@field_naming_conventions, @field_naming_conventions.dup)
           model.instance_variable_set(:@paranoid_properties,      @paranoid_properties.dup)
 
           @properties.each do |repository_name, properties|
@@ -160,10 +160,7 @@ module DataMapper
       def properties_with_subclasses(repository_name = default_repository_name)
         properties = PropertySet.new
 
-        models = [ self ].to_set
-        models.merge(descendants) if respond_to?(:descendants)
-
-        models.each do |model|
+        descendants.each do |model|
           model.properties(repository_name).each do |property|
             properties << property unless properties.named?(property.name)
           end

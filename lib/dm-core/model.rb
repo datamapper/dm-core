@@ -146,8 +146,9 @@ module DataMapper
       end
 
       model.instance_variable_set(:@valid,         false)
-      model.instance_variable_set(:@storage_names, {})
       model.instance_variable_set(:@base_model,    model)
+      model.instance_variable_set(:@storage_names, {})
+      model.instance_variable_set(:@default_order, {})
 
       extra_extensions.each { |mod| model.extend(mod)         }
       extra_inclusions.each { |mod| model.send(:include, mod) }
@@ -158,8 +159,9 @@ module DataMapper
       # @api private
       def inherited(target)
         target.instance_variable_set(:@valid,         false)
-        target.instance_variable_set(:@storage_names, @storage_names.dup)
         target.instance_variable_set(:@base_model,    base_model)
+        target.instance_variable_set(:@storage_names, @storage_names.dup)
+        target.instance_variable_set(:@default_order, @default_order.dup)
 
         # TODO: move this into dm-validations
         if respond_to?(:validators)
@@ -180,7 +182,7 @@ module DataMapper
     #
     # @api public
     def storage_name(repository_name = default_repository_name)
-      @storage_names[repository_name] ||= repository(repository_name).adapter.resource_naming_convention.call(base_model.send(:default_storage_name)).freeze
+      storage_names[repository_name] ||= repository(repository_name).adapter.resource_naming_convention.call(default_storage_name).freeze
     end
 
     ##
@@ -491,8 +493,7 @@ module DataMapper
     # TODO: document
     # @api semipublic
     def default_order(repository_name = default_repository_name)
-      @default_order ||= {}
-      @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }
+      @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }.freeze
     end
 
     ##
@@ -594,7 +595,7 @@ module DataMapper
     # TODO: document
     # @api private
     def default_storage_name
-      self.name
+      base_model.name
     end
 
     ##
