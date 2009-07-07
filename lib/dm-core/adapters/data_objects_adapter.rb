@@ -314,7 +314,7 @@ module DataMapper
           conditions = query.conditions
           limit      = query.limit
           offset     = query.offset
-          order      = query.order
+          order_by   = query.order
           group_by   = nil
 
           # FIXME: using a boolean for qualify does not work in some cases,
@@ -342,8 +342,8 @@ module DataMapper
             if conditions.kind_of?(Query::Conditions::AndOperation) &&
                conditions.any? { |operand| operand.kind_of?(Query::Conditions::EqualToComparison) && operand.subject.respond_to?(:unique?) && operand.subject.unique? } &&
                !conditions.any? { |operand| operand.kind_of?(Query::Conditions::OrOperation) }
-              order = nil
-              limit = nil
+              order_by = nil
+              limit    = nil
             end
           end
 
@@ -353,8 +353,8 @@ module DataMapper
           statement << " FROM #{quote_name(model.storage_name(name))}"
           statement << join_statement(query, qualify)                      if qualify
           statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
-          statement << " GROUP BY #{columns_statement(group_by, qualify)}" unless group_by.blank?
-          statement << " ORDER BY #{order_statement(order, qualify)}"      unless order.blank?
+          statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
+          statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
 
           if limit
             statement   << ' LIMIT ?'
