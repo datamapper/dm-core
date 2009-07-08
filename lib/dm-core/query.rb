@@ -30,6 +30,53 @@ module DataMapper
 
     OPTIONS = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze
 
+    # Extract conditions to match a Resource or Collection
+    #
+    # @param [Array, Colelction, Resource] source
+    #   the source to extract the values from
+    # @param [ProperySet] source_key
+    #   the key to extract the value from the resource
+    # @param [ProperySet] target_key
+    #   the key to match the resource with
+    #
+    # @return [AbstractComparison, AbstractOperation]
+    #   the conditions to match the resources with
+    #
+    # @api private
+    def self.target_conditions(source, source_key, target_key)
+      source_values = []
+
+      Array(source).each do |resource|
+        next unless source_key.loaded?(resource)
+        source_values << source_key.get!(resource)
+      end
+
+      if target_key.size == 1
+        target_key = target_key.first
+        source_values.flatten!
+
+        if source_values.size == 1
+          Conditions::EqualToComparison.new(target_key, source_values.first)
+        else
+          Conditions::InclusionComparison.new(target_key, source_values)
+        end
+      else
+        or_operation = Conditions::OrOperation.new
+
+        source_values.each do |source_value|
+          and_operation = Conditions::AndOperation.new
+
+          target_key.zip(source_value) do |property, value|
+            and_operation << Conditions::EqualToComparison.new(property, value)
+          end
+
+          or_operation << and_operation
+        end
+
+        or_operation
+      end
+    end
+
     ##
     # Returns the repository query should be
     # executed in

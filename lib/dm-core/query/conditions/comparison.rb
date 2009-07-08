@@ -250,42 +250,8 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def foreign_key_mapping
-          relationship = subject
-          source_key   = relationship.source_key
-          target_key   = relationship.target_key
-
-          source_values = []
-
-          Array(value).each do |resource|
-            next unless target_key.loaded?(resource)
-            source_values << target_key.get!(resource)
-          end
-
-          if source_key.size == 1 && target_key.size == 1
-            source_key    = source_key.first
-            target_key    = target_key.first
-            source_values = source_values.transpose.first
-
-            if source_values.size == 1
-              EqualToComparison.new(source_key, source_values.first)
-            else
-              InclusionComparison.new(source_key, source_values)
-            end
-          else
-            or_operation = OrOperation.new
-
-            source_values.each do |source_value|
-              and_operation = AndOperation.new
-
-              source_key.zip(source_value) do |property, value|
-                and_operation << EqualToComparison.new(property, value)
-              end
-
-              or_operation << and_operation
-            end
-
-            or_operation
-          end
+          relationship = subject.inverse
+          Query.target_conditions(value, relationship.source_key, relationship.target_key)
         end
       end
 
