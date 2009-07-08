@@ -330,7 +330,7 @@ module DataMapper
         # @api private
         def _save(safe)
           resources = if loaded?
-            entries
+            self
           else
             head + tail
           end
@@ -380,32 +380,20 @@ module DataMapper
 
         # TODO: document
         # @api private
+        def through
+          relationship.through
+        end
+
+        # TODO: document
+        # @api private
         def via
           relationship.via
         end
 
         # TODO: document
         # @api private
-        def default_attributes
-          collection_default_attributes
-        end
-
-        # TODO: document
-        # @api private
-        def repository_name
-          relationship.relative_target_repository_name_for(source)
-        end
-
-        # TODO: document
-        # @api private
-        def relate_resource(resource)
-          collection_relate_resource(resource)
-        end
-
-        # TODO: document
-        # @api private
-        def orphan_resource(resource)
-          collection_orphan_resource(resource)
+        def inverse_set(*)
+          # do nothing
         end
       end # class Collection
     end # module ManyToMany

@@ -672,6 +672,13 @@ module DataMapper
     end
 
     ##
+    # Access Collection#replace directly
+    #
+    # @api private
+    alias collection_replace replace
+    private :collection_replace
+
+    ##
     # Removes all Resources from the Collection
     #
     # This should remove and orphan each Resource from the Collection.
@@ -1093,7 +1100,7 @@ module DataMapper
     # @api private
     def _save(safe)
       resources = if loaded?
-        entries
+        self
       else
         head + tail
       end

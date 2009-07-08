@@ -202,13 +202,6 @@ module DataMapper
         end
 
         ##
-        # Access Collection#replace directly
-        #
-        # @api private
-        alias collection_replace replace
-        private :collection_replace
-
-        ##
         # Replace the Resources within the 1:m Collection
         #
         # @param [Enumerable] other
@@ -342,42 +335,26 @@ module DataMapper
           collection
         end
 
-        alias collection_default_attributes default_attributes
-
-        # TODO: remove this method once Resource objects are stored in
-        # the Query rather than just references
-        # @api private
-        def default_attributes
-          target_key   = relationship.target_key.map { |property| property.name }
-          source_scope = relationship.source_scope(source)
-          super.except(*target_key).update(source_scope).freeze
-        end
-
-        # alias Collection#relate_resource for use by subclasses that
-        # may not set the inverse relationship when relating
-        alias collection_relate_resource relate_resource
-
         # TODO: document
         # @api private
         def relate_resource(resource)
-          relationship.inverse.set(resource, source)
-
+          inverse_set(resource, source)
           super
         end
-
-        # alias Collection#relate_resource for use by subclasses that
-        # may not unset the inverse relationship when orphaning
-        alias collection_orphan_resource orphan_resource
 
         # TODO: document
         # @api private
         def orphan_resource(resource)
-          # only orphan a resource if it could have been related previously
-          if !resource.frozen?
-            relationship.inverse.set(resource, nil)
-          end
-
+          inverse_set(resource, nil)
           super
+        end
+
+        # TODO: document
+        # @api private
+        def inverse_set(source, target)
+          unless source.frozen?
+            relationship.inverse.set(source, target)
+          end
         end
 
         # TODO: document
