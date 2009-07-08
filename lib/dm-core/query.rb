@@ -1055,9 +1055,9 @@ module DataMapper
 
       if operator == :eql || negated
         operator = case bind_value
-          when Array, Range, Set then :in
-          when Regexp            then :regexp
-          else                        :eql
+          when Array, Range, Set, Collection then :in
+          when Regexp                        then :regexp
+          else                                    :eql
         end
       end
 
@@ -1112,21 +1112,17 @@ module DataMapper
     # TODO: document
     # @api private
     def normalize_bind_value(property_or_path, bind_value)
+      # TODO: defer this inside the comparison
       if bind_value.respond_to?(:call)
         bind_value = bind_value.call
       end
 
+      # TODO: bypass this for Collection, once subqueries can be handled by adapters
       if bind_value.respond_to?(:to_ary)
         bind_value = bind_value.to_ary
       end
 
-      # TODO: update InclusionComparison so it knows how to do this
-      if bind_value.instance_of?(Array)
-        bind_value.uniq!
-        bind_value.size == 1 ? bind_value.first : bind_value
-      else
-        bind_value
-      end
+      bind_value
     end
 
     ##
