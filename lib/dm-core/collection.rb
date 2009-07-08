@@ -1339,16 +1339,9 @@ module DataMapper
       source_key = relationship.source_key
       target_key = relationship.target_key
 
-      # TODO: use a subquery if the current collection is not already
-      # loaded to avoid kicking it unecessarily
-
-      # XXX: filtering out resources without a source_key will be unecessary
-      #   once subqueries are used
-      sources = select { |resource| source_key.get!(resource).all? }
-
       target_maps = {}
 
-      query = relationship.query_for(sources, other_query)
+      query = relationship.query_for(self, other_query)
 
       # TODO: create an object that wraps this logic, and when the first
       # kicker is fired, then it'll load up the collection, and then
@@ -1359,7 +1352,7 @@ module DataMapper
         targets << target
       end
 
-      sources.each do |source|
+      each do |source|
         key     = target_key.typecast(source_key.get(source))
         targets = target_maps[key] || []
 
