@@ -70,7 +70,11 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def valid?
-          @valid
+          # this needs to be deferred until the last moment because the
+          # value could be a reference to a Resource, that when the comparison
+          # was created was invalid, but has since been saved and has it's
+          # key set.
+          subject.valid?(value)
         end
 
         # TODO: document
@@ -144,7 +148,6 @@ module DataMapper
         def initialize(subject, value)
           @subject  = subject
           @value    = typecast_value(value)
-          @valid    = valid_value?(@subject, @value)
           @expected = expected_value
         end
 
@@ -229,12 +232,6 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def valid_value?(subject, value)
-          subject.valid?(value)
-        end
-
-        # TODO: document
-        # @api private
         def comparator_string
           self.class.name.chomp('Comparison')
         end
@@ -287,7 +284,31 @@ module DataMapper
           !record_value.nil? && expected.include?(record_value)
         end
 
+        # TODO: document
+        # @api semipublic
+        def valid?
+          unless value.kind_of?(Array) || value.kind_of?(Range) || value.kind_of?(Set)
+            return false
+          end
+
+          unless value.any?
+            return false
+          end
+
+          unless value.all? { |val| subject.valid?(val) }
+            return false
+          end
+
+          true
+        end
+
         private
+
+        # TODO: document
+        # @api semipublic
+        def expected_value
+          @value.map { |value| super(value) }
+        end
 
         # TODO: document
         # @api private
@@ -297,30 +318,6 @@ module DataMapper
           else
             value
           end
-        end
-
-        # TODO: document
-        # @api private
-        def valid_value?(subject, value)
-          unless value.kind_of?(Array) || value.kind_of?(Range) || value.kind_of?(Set)
-            return false
-          end
-
-          unless value.any?
-            return false
-          end
-
-          unless value.all? { |val| super(subject, val) }
-            return false
-          end
-
-          true
-        end
-
-        # TODO: document
-        # @api semipublic
-        def expected_value
-          @value.map { |value| super(value) }
         end
 
         # TODO: document
@@ -340,18 +337,18 @@ module DataMapper
           !record_value.nil? && record_value =~ expected
         end
 
+        # TODO: document
+        # @api semipublic
+        def valid?
+          value.kind_of?(Regexp)
+        end
+
         private
 
         # TODO: document
         # @api private
         def typecast_value(value)
           value
-        end
-
-        # TODO: document
-        # @api private
-        def valid_value?(subject, value)
-          value.kind_of?(Regexp)
         end
 
         # TODO: document

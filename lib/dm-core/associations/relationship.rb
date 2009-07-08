@@ -296,25 +296,22 @@ module DataMapper
       end
 
       ##
-      # Test the resource to see if it is a valid target resource
+      # Test the source to see if it is a valid target
       #
-      # @param [Object] resource
-      #   the resource to be tested
+      # @param [Object] source
+      #   the resource or collection to be tested
       #
       # @return [TrueClass, FalseClass]
       #   true if the resource is valid
       #
       # @api semipulic
-      def valid?(resource)
-        unless resource.kind_of?(target_model)
-          return false
+      def valid?(source)
+        case source
+          when Array, Collection then valid_collection?(source)
+          when Resource          then valid_resource?(source)
+          else
+            raise ArgumentError, "+source+ should be an Array or Resource, but was a #{source.class.name}"
         end
-
-        unless target_key.get!(resource).all?
-          return false
-        end
-
-        true
       end
 
       ##
@@ -538,6 +535,38 @@ module DataMapper
       # @api semipublic
       def property_prefix
         raise NotImplementedError, "#{self.class}#property_prefix not implemented"
+      end
+
+      # TODO: document
+      # @api private
+      def valid_collection?(collection)
+        if collection.instance_of?(Array) || collection.loaded?
+          collection.all? { |resource| valid_resource?(resource) }
+        else
+          unless collection.model <= target_model
+            return false
+          end
+
+          unless (collection.query.fields & target_key) == target_key
+            return false
+          end
+        end
+
+        true
+      end
+
+      # TODO: document
+      # @api private
+      def valid_resource?(resource)
+        unless resource.kind_of?(target_model)
+          return false
+        end
+
+        unless target_key.zip(target_key.get!(resource)).all? { |property, value| property.valid?(value) }
+          return false
+        end
+
+        true
       end
 
       # TODO: document
