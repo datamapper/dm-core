@@ -170,7 +170,7 @@ module DataMapper
         #
         # @api private
         def inverse_name
-          Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).to_sym
+          @inverse_name ||= Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).to_sym
         end
 
         ##
@@ -181,11 +181,7 @@ module DataMapper
         #
         # @api semipublic
         def property_prefix
-          if @inverse
-            inverse.name
-          else
-            inverse_name
-          end
+          inverse_name
         end
       end # class Relationship
 

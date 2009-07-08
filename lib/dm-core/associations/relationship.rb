@@ -382,7 +382,9 @@ module DataMapper
       #
       # @api semipublic
       def inverse
-        @inverse ||= target_model.relationships(relative_target_repository_name).values.detect do |relationship|
+        return @inverse if @inverse.kind_of?(inverse_class)
+
+        @inverse = target_model.relationships(relative_target_repository_name).values.detect do |relationship|
           relationship.kind_of?(inverse_class)                 &&
           cmp_repository?(relationship, :==, :source, :target) &&
           cmp_repository?(relationship, :==, :target, :source) &&
@@ -394,6 +396,11 @@ module DataMapper
           # TODO: match only when the Query is empty, or is the same as the
           # default scope for the target model
         end || invert
+
+        # make sure the inverse_name matches the actual inverse object
+        @inverse_name = @inverse.name
+
+        @inverse
       end
 
       # TODO: document
@@ -431,8 +438,8 @@ module DataMapper
       #
       # @api semipublic
       def initialize(name, child_model, parent_model, options = {})
-        initialize_model_ivar('child_model',  child_model)
-        initialize_model_ivar('parent_model', parent_model)
+        initialize_object_ivar('child_model',  child_model)
+        initialize_object_ivar('parent_model', parent_model)
 
         @name                   = name
         @instance_variable_name = "@#{@name}".freeze
@@ -443,7 +450,10 @@ module DataMapper
         @parent_properties      = @options[:parent_key].try_dup.freeze
         @min                    = @options[:min]
         @max                    = @options[:max]
-        @inverse                = @options[:inverse]
+
+        if inverse = @options[:inverse]
+          initialize_object_ivar('inverse', inverse)
+        end
 
         # TODO: normalize the @query to become :conditions => AndOperation
         #  - Property/Relationship/Path should be left alone
@@ -462,29 +472,33 @@ module DataMapper
         create_writer
       end
 
-      # Set the correct ivar if the value is a String or Model object
+      # Set the correct ivar if the values
       #
       # @param [String]
       #   the name of the ivar to set
-      # @param [Model, #to_str] model
-      #   the Model or String to set in the ivar
+      # @param [#name, #to_str, #to_sym] object
+      #   the object to set in the ivar
       #
-      # @return [Model, #to_str]
-      #   the ivar value
+      # @return [String]
+      #   the String value
       #
       # @raise [ArgumentError]
-      #   when model is not a Model and does not respond to #to_str
+      #   raise when object does not respond to expected methods
       #
       # @api private
-      def initialize_model_ivar(name, model)
-        if model.kind_of?(Model)
-          instance_variable_set("@#{name}", model)
-          initialize_model_ivar(name, model.name)
-        elsif model.respond_to?(:to_str)
-          instance_variable_set("@#{name}_name", model.to_str.dup.freeze)
+      def initialize_object_ivar(name, object)
+        if object.respond_to?(:name)
+          instance_variable_set("@#{name}", object)
+          initialize_object_ivar(name, object.name)
+        elsif object.respond_to?(:to_str)
+          instance_variable_set("@#{name}_name", object.to_str.dup.freeze)
+        elsif object.respond_to?(:to_sym)
+          instance_variable_set("@#{name}_name", object.to_sym)
         else
-          raise ArgumentError, "#{name} is not a Model and does not respond to #to_str"
+          raise ArgumentError, "#{name} does not respond to #to_str or #name"
         end
+
+        object
       end
 
       ##
@@ -535,11 +549,7 @@ module DataMapper
       # TODO: document
       # @api private
       def inverted_options
-        options.only(*OPTIONS - [ :min, :max ]).update(
-          :child_key  => child_key.map  { |property| property.name },
-          :parent_key => parent_key.map { |property| property.name },
-          :inverse    => self
-        )
+        options.only(*OPTIONS - [ :min, :max ]).update(:inverse => self)
       end
 
       # TODO: document
@@ -548,7 +558,7 @@ module DataMapper
         if child_model? && parent_model?
           options.merge(:inverse => inverse)
         else
-          options
+          options.merge(:inverse => inverse_name)
         end
       end
 

@@ -228,9 +228,24 @@ module DataMapper
         # TODO: document
         # @api private
         def inverted_options
+          links   = self.links.dup
+          through = links.pop.inverse
+
+          links.reverse_each do |relationship|
+            inverse = relationship.inverse
+
+            through = self.class.new(
+              inverse.name,
+              inverse.child_model,
+              inverse.parent_model,
+              inverse.options.merge(:through => through)
+            )
+          end
+
           options.only(*OPTIONS - [ :min, :max ]).update(
-            :child_key  => parent_key.map { |property| property.name },
-            :parent_key => child_key.map  { |property| property.name },
+            :through    => through,
+            :child_key  => options[:parent_key],
+            :parent_key => options[:child_key],
             :inverse    => self
           )
         end
