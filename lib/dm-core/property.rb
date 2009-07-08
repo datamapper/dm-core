@@ -577,7 +577,7 @@ module DataMapper
     # @api private
     def set_original_value(resource, original)
       original_attributes = resource.original_attributes
-      original        = self.value(original)
+      original            = self.value(original)
 
       if original_attributes.key?(self)
         # stop tracking the value if it has not changed
