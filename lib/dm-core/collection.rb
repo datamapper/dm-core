@@ -1135,7 +1135,7 @@ module DataMapper
 
           query.conditions.each do |condition|
             unless condition.kind_of?(Query::Conditions::EqualToComparison) &&
-              (properties.include?(condition.subject) || relationships.include?(condition.subject))
+              (properties.include?(condition.subject) || (condition.relationship? && condition.subject.source_model == model))
               next
             end
 
