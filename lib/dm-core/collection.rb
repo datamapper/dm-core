@@ -874,13 +874,16 @@ module DataMapper
     #
     # @api public
     def destroy!
-      if query.limit || query.offset > 0
-        # FIXME: use a subquery to do this more efficiently in the future
-        key = model.key(repository_name)
-        raise NotImplementedError, "#{self.class}#destroy! does not work with compound keys in #{model}" if key.size > 1
-        model.all(:repository => repository, key.first => map { |resource| resource.key.first }).destroy!
+      if query.limit || query.offset > 0 || query.links.any?
+        key        = model.key(repository_name)
+        conditions = Query.target_conditions(self, key, key)
+
+        unless model.all(:repository => repository, :conditions => conditions).destroy!
+          return false
+        end
       else
         repository.delete(self)
+        mark_loaded
       end
 
       if loaded?
@@ -1080,11 +1083,14 @@ module DataMapper
         key        = model.key(repository_name)
         conditions = Query.target_conditions(self, key, key)
 
-        model.all(:repository => repository, :conditions => conditions).update!(attributes)
+        unless model.all(:repository => repository, :conditions => conditions).update!(attributes)
+          return false
+        end
       else
         repository.update(dirty_attributes, self)
-        true
       end
+
+      true
     end
 
     ##

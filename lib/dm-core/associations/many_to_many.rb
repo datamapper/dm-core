@@ -257,6 +257,8 @@ module DataMapper
         #
         # @api public
         def destroy
+          assert_source_saved 'The source must be saved before mass-deleting the collection'
+
           # make sure the records are loaded so they can be found when
           # the intermediaries are removed
           lazy_load
@@ -282,21 +284,15 @@ module DataMapper
         def destroy!
           assert_source_saved 'The source must be saved before mass-deleting the collection'
 
-          key        = model.key(repository_name)
-          conditions = Query.target_conditions(self, key, key)
+          # make sure the records are loaded so they can be found when
+          # the intermediaries are removed
+          lazy_load
 
           unless intermediaries.destroy!
             return false
           end
 
-          unless model.all(:repository => repository_name, :conditions => conditions).destroy!
-            return false
-          end
-
-          each { |resource| resource.reset }
-          clear
-
-          true
+          super
         end
 
         private
