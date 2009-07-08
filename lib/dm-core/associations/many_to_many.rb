@@ -257,6 +257,10 @@ module DataMapper
         #
         # @api public
         def destroy
+          # make sure the records are loaded so they can be found when
+          # the intermediaries are removed
+          lazy_load
+
           unless intermediaries.destroy
             return false
           end
@@ -276,18 +280,18 @@ module DataMapper
         #
         # @api public
         def destroy!
-          key = model.key(repository_name)
-          raise NotImplementedError, "#{self.class}#destroy! does not work with compound keys in #{model}" if key.size > 1
+          assert_source_saved 'The source must be saved before mass-deleting the collection'
+
+          key        = model.key(repository_name)
+          conditions = Query.target_conditions(self, key, key)
 
           unless intermediaries.destroy!
             return false
           end
 
-          if empty?
-            return true
+          unless model.all(:repository => repository_name, :conditions => conditions).destroy!
+            return false
           end
-
-          model.all(:repository => repository_name, key.first => map { |resource| resource.key.first }).destroy!
 
           each { |resource| resource.reset }
           clear
