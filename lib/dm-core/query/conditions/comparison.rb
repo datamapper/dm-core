@@ -200,7 +200,7 @@ module DataMapper
             when Property
               hash[subject.field]
             when Associations::Relationship
-              subject.send(key_type).map { |property| record_value(hash, property, key_type)  }
+              subject.send(key_type).map { |property| record_value_from_hash(hash, property, key_type)  }
           end
         end
 
@@ -211,7 +211,7 @@ module DataMapper
             when Property
               subject.get!(resource)
             when Associations::Relationship
-              subject.send(key_type).map { |property| record_value(resource, property, key_type)  }
+              subject.send(key_type).get!(resource)
           end
         end
 
