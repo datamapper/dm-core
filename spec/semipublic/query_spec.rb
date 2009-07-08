@@ -601,7 +601,7 @@ describe DataMapper::Query do
         it 'should raise an exception' do
           lambda {
             DataMapper::Query.new(@repository, @model, @options.update(:conditions => 'invalid'))
-          }.should raise_error(ArgumentError, '+options[:conditions]+ should be DataMapper::Query::Conditions::AbstractOperation or Hash or Array, but was String')
+          }.should raise_error(ArgumentError, '+options[:conditions]+ should be DataMapper::Query::Conditions::AbstractOperation or DataMapper::Query::Conditions::AbstractComparison or Hash or Array, but was String')
         end
       end
 

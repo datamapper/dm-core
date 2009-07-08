@@ -735,7 +735,7 @@ module DataMapper
     #
     # @api private
     def assert_valid_conditions(conditions)
-      assert_kind_of 'options[:conditions]', conditions, Conditions::AbstractOperation, Hash, Array
+      assert_kind_of 'options[:conditions]', conditions, Conditions::AbstractOperation, Conditions::AbstractComparison, Hash, Array
 
       case conditions
         when Hash
