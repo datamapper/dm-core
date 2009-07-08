@@ -327,7 +327,7 @@ module DataMapper
         # remove from the identity map
         identity_map.delete(key)
 
-        unless repository.update(dirty_attributes, Collection.new(query, [ self ]))
+        unless repository.update(dirty_attributes, Collection.new(query, [ self ])) == 1
           return false
         end
 
@@ -744,8 +744,7 @@ module DataMapper
     #
     # @api private
     def _destroy
-      if saved?
-        repository.delete(Collection.new(query, [ self ]))
+      if saved? && repository.delete(Collection.new(query, [ self ])) == 1
         @collection.delete(self) if @collection
         reset
         freeze
