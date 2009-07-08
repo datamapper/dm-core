@@ -275,7 +275,6 @@ module DataMapper
         #
         # @api public
         def destroy!
-          # FIXME: use a subquery to do this more efficiently in the future
           key = model.key(repository_name)
           raise NotImplementedError, "#{self.class}#destroy! does not work with compound keys in #{model}" if key.size > 1
 

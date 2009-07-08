@@ -111,7 +111,7 @@ module DataMapper
       ##
       # Require the adapter library
       #
-      # @param [Symbol] name
+      # @param [String, Symbol] name
       #   the name of the adapter
       #
       # @return [TrueClass, FalseClass]

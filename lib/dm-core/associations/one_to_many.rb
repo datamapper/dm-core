@@ -141,9 +141,6 @@ module DataMapper
         #
         # @api private
         def lazy_load(source)
-          # TODO: if the collection is not loaded, then use a subquery
-          # to load it.
-
           # SEL: load all related resources in the source collection
           if source.saved? && source.collection.size > 1
             source.collection.send(name)

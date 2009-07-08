@@ -1337,6 +1337,10 @@ module DataMapper
 
       query = relationship.query_for(sources, other_query)
 
+      # TODO: create an object that wraps this logic, and when the first
+      # kicker is fired, then it'll load up the collection, and then
+      # populate all the other methods
+
       collection = model.all(query).each do |target|
         targets = target_maps[ target_key.get(target) ] ||= []
         targets << target
