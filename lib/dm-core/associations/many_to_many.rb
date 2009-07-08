@@ -102,21 +102,7 @@ module DataMapper
         # TODO: document
         # @api private
         def source_scope(source)
-          # TODO: remove this method and inherit from Relationship
-
-          target_key = through.target_key
-          source_key = through.source_key
-
-          # TODO: handle compound keys
-          raise NotImplementedError, "Cannot work with compound keys in #{through.target_model} yet" if target_key.size > 1
-
-          scope = {}
-
-          if (source_values = Array(source).map { |resource| source_key.first.get(resource) }.compact).any?
-            scope[target_key.first] = source_values
-          end
-
-          scope
+          { through.inverse => source }
         end
 
         # TODO: document
