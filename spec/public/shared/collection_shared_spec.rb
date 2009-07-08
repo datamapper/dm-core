@@ -607,16 +607,6 @@ share_examples_for 'A public Collection' do
         @return = @articles.destroy!
       end
 
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          pending_if 'TODO', @many_to_many do
-            @articles.should_not be_loaded
-          end
-        end
-      end
-
       it 'should return true' do
         @return.should be_true
       end
@@ -629,6 +619,10 @@ share_examples_for 'A public Collection' do
         @articles.should be_empty
       end
 
+      it 'should be a kicker' do
+        @articles.should be_loaded
+      end
+
       it 'should bypass validation' do
         pending 'TODO: not sure how to best spec this'
       end
@@ -636,20 +630,10 @@ share_examples_for 'A public Collection' do
 
     describe 'on a limited collection' do
       before :all do
-        @other   = @articles.create
+        @other   = @articles.create.freeze
         @limited = @articles.all(:limit => 1)
 
         @return = @limited.destroy!
-      end
-
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          pending 'Update Collection#destroy! to use a subquery' do
-            @limited.should_not be_loaded
-          end
-        end
       end
 
       it 'should return true' do
@@ -662,6 +646,10 @@ share_examples_for 'A public Collection' do
 
       it 'should clear the collection' do
         @limited.should be_empty
+      end
+
+      it 'should be a kicker' do
+        @limited.should be_loaded
       end
 
       it 'should bypass validation' do
@@ -1012,7 +1000,7 @@ share_examples_for 'A public Collection' do
 
     describe 'with a key to a Resource within a Collection using an offset' do
       before :all do
-        @new = @articles.create(:content => 'New Article')
+        @new = @articles.create(:content => 'New Article')  # TODO: freeze @new
         @articles = @articles.all(:offset => 1, :limit => 1)
 
         @return = @resource = @articles.get(*@new.key)
@@ -1023,7 +1011,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be matching Resource in the Collection' do
-        @resource.should == @new
+        @resource.should equal(@new)
       end
     end
 
@@ -1112,7 +1100,7 @@ share_examples_for 'A public Collection' do
     describe 'with a key to a Resource within a Collection using an offset' do
       before :all do
         unless @skip
-          @new = @articles.create(:content => 'New Article')
+          @new = @articles.create(:content => 'New Article')  # TODO: freeze @new
           @articles = @articles.all(:offset => 1, :limit => 1)
 
           @return = @resource = @articles.get!(*@new.key)
@@ -1124,7 +1112,7 @@ share_examples_for 'A public Collection' do
       end
 
       it 'should be matching Resource in the Collection' do
-        @resource.should == @new
+        @resource.should equal(@new)
       end
     end
 
@@ -1637,7 +1625,7 @@ share_examples_for 'A public Collection' do
 
   describe '#pop' do
     before :all do
-      @new_article = @articles.create(:title => 'Sample Article')
+      @new = @articles.create(:title => 'Sample Article')  # TODO: freeze @new
 
       @return = @resource = @articles.pop
     end
@@ -1647,7 +1635,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should be the last Resource in the Collection' do
-      @resource.should == @new_article
+      @resource.should == @new
     end
 
     it 'should remove the Resource from the Collection' do
@@ -1897,7 +1885,7 @@ share_examples_for 'A public Collection' do
     before :all do
       @query = @articles.query
 
-      @new_article = @articles.create(:title => 'Sample Article')
+      @new = @articles.create(:title => 'Sample Article')
 
       @return = @articles.reverse
     end
@@ -1907,7 +1895,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should return a Collection with reversed entries' do
-      @return.should == [ @new_article, @article ]
+      @return.should == [ @new, @article ]
     end
 
     it 'should return a Query that is the reverse of the original' do
@@ -1921,7 +1909,7 @@ share_examples_for 'A public Collection' do
     before :all do
       @query = @articles.query
 
-      @new_article = @articles.create(:title => 'Sample Article')
+      @new = @articles.create(:title => 'Sample Article')
 
       @return = @articles.reverse!
     end
@@ -1935,7 +1923,7 @@ share_examples_for 'A public Collection' do
     end
 
     it 'should return a Collection with reversed entries' do
-      @return.should == [ @new_article, @article ]
+      @return.should == [ @new, @article ]
     end
 
     it 'should return a Query that equal to the original' do
@@ -1984,7 +1972,7 @@ share_examples_for 'A public Collection' do
 
   describe '#shift' do
     before :all do
-      @new_article = @articles.create(:title => 'Sample Article')
+      @new = @articles.create(:title => 'Sample Article')
 
       @return = @resource = @articles.shift
     end

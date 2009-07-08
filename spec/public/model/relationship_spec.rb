@@ -15,7 +15,7 @@ share_examples_for 'it creates a one accessor' do
 
       describe 'with a query' do
         before :all do
-          @return = @car.send(@name, :id => 1)
+          @return = @car.send(@name, :id => 99)
         end
 
         it 'should return nil' do
@@ -65,11 +65,12 @@ share_examples_for 'it creates a one accessor' do
 
     describe 'when the target model is scoped' do
       before :all do
-        @car.send("#{@name}=", @model.new)
+        @resource = @model.new
+        @car.send("#{@name}=", @resource)
         @car.save
 
         # set the model scope to not match the expected resource
-        @model.default_scope.update(@model.key.zip([]).to_hash)
+        @model.default_scope.update(:id.not => @resource.id)
 
         @return = @car.model.get(*@car.key).send(@name)
       end
