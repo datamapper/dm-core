@@ -150,6 +150,7 @@ module DataMapper
         def <<(operand)
           if operand.kind_of?(self.class)
             @operands.concat(operand.operands)
+            self
           else
             super
           end
