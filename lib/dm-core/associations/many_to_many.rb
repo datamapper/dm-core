@@ -355,16 +355,14 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def intermediaries(resources = saved)
-          through        = relationship.through
-          intermediaries = through.loaded?(source) ? through.get!(source) : through.collection_for(source)
-          intermediaries.all(via => resources)
-        end
+        def intermediaries(targets = self)
+          intermediaries = if through.loaded?(source)
+            through.get!(source)
+          else
+            through.set!(source, through.collection_for(source))
+          end
 
-        # TODO: document
-        # @api private
-        def saved
-          select { |resource| resource.saved? }
+          intermediaries.all(via => targets)
         end
 
         # TODO: document
