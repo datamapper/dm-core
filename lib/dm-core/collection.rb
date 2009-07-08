@@ -1074,14 +1074,13 @@ module DataMapper
     #
     # @api private
     def _update(dirty_attributes)
-      if query.limit || query.offset > 0
-        # FIXME: use a subquery to do this more efficiently in the future
-        key = model.key(repository_name)
-        raise NotImplementedError, "#{self.class}#update and #{self.class}#update! do not work with compound keys in #{model}" if key.size > 1
-
+      if query.limit || query.offset > 0 || query.links.any?
         attributes = dirty_attributes.map { |property, value| [ property.name, value ] }.to_hash
 
-        model.all(:repository => repository, key.first => map { |resource| resource.key.first }).update!(attributes)
+        key        = model.key(repository_name)
+        conditions = Query.target_conditions(self, key, key)
+
+        model.all(:repository => repository, :conditions => conditions).update!(attributes)
       else
         repository.update(dirty_attributes, self)
         true
