@@ -812,6 +812,8 @@ module DataMapper
     #
     # @api private
     def assert_valid_order(order, fields)
+      return if order.nil?
+
       assert_kind_of 'options[:order]', order, Array
 
       if order.empty? && fields && fields.any? { |property| !property.kind_of?(Operator) }
@@ -877,6 +879,8 @@ module DataMapper
     #
     # @api private
     def normalize_order
+      return if @order.nil?
+
       # TODO: should Query::Path objects be permitted?  If so, then it
       # should probably be normalized to a Direction object
       @order = @order.map do |order|
