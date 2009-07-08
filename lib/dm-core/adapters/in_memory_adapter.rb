@@ -58,7 +58,7 @@ module DataMapper
       # @api semipublic
       def update(attributes, collection)
         attributes = attributes_as_fields(attributes)
-        read(collection.query).each { |resource| resource.update(attributes) }
+        read(collection.query).each { |resource| resource.update(attributes) }.size
       end
 
       ##
@@ -75,7 +75,7 @@ module DataMapper
         records = records_for(collection.model)
         records_to_delete = collection.query.filter_records(records.dup)
         records.replace(records - records_to_delete)
-        records_to_delete
+        records_to_delete.size
       end
 
       private
