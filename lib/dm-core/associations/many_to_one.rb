@@ -20,10 +20,6 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        alias source_key child_key
-
-        # TODO: document
-        # @api semipublic
         alias source_key? child_key?
 
         # TODO: document
@@ -51,6 +47,34 @@ module DataMapper
         def nullable?
           @nullable
         end
+
+        # Returns a set of keys that identify child model
+        #
+        # @return   [DataMapper::PropertySet]  a set of properties that identify child model
+        # @api private
+        def child_key
+          return @child_key if defined?(@child_key)
+
+          repository_name = child_repository_name || parent_repository_name
+          properties      = child_model.properties(repository_name)
+
+          child_key = parent_key.zip(child_properties || []).map do |parent_property, property_name|
+            property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
+
+            properties[property_name] || begin
+              # create the property within the correct repository
+              DataMapper.repository(repository_name) do
+                child_model.property(property_name, parent_property.primitive, child_key_options(parent_property))
+              end
+            end
+          end
+
+          @child_key = properties.class.new(child_key).freeze
+        end
+
+        # TODO: document
+        # @api semipublic
+        alias source_key child_key
 
         ##
         # Returns a Resoruce for this relationship with a given source

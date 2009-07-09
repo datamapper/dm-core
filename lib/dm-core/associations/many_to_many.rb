@@ -4,26 +4,14 @@ module DataMapper
       class Relationship < Associations::OneToMany::Relationship
         OPTIONS = (superclass::OPTIONS + [ :through, :via ]).freeze
 
-        ##
-        # Returns a set of keys that identify the target model
-        #
-        # @return [DataMapper::PropertySet]
-        #   a set of properties that identify the target model
-        #
-        # @api semipublic
+        # TODO: document
+        # @api private
         def child_key
-          return @child_key if defined?(@child_key)
-
-          properties = target_model.properties(relative_target_repository_name)
-
-          @child_key = if child_properties
-            child_key = properties.values_at(*child_properties)
-            properties.class.new(child_key).freeze
-          else
-            properties.key
-          end
+          relationship_child_key
         end
 
+        # TODO: document
+        # @api semipublic
         alias target_key child_key
 
         # Intermediate association for join model

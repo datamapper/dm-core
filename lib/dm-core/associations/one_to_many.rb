@@ -16,10 +16,6 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        alias target_key child_key
-
-        # TODO: document
-        # @api semipublic
         alias target_key? child_key?
 
         # TODO: document
@@ -41,6 +37,16 @@ module DataMapper
         # TODO: document
         # @api semipublic
         alias source_key? parent_key?
+
+        # TODO: document
+        # @api semipublic
+        def child_key
+          inverse.child_key
+        end
+
+        # TODO: document
+        # @api semipublic
+        alias target_key child_key
 
         ##
         # Returns a Collection for this relationship with a given source
