@@ -178,17 +178,6 @@ module DataMapper
         def inverse_name
           @inverse_name ||= Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).to_sym
         end
-
-        ##
-        # Prefix used to build name of default child key
-        #
-        # @return [Symbol]
-        #   The name to prefix the default child key
-        #
-        # @api semipublic
-        def property_prefix
-          inverse_name
-        end
       end # class Relationship
 
       class Collection < DataMapper::Collection

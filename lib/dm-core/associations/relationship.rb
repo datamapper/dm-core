@@ -527,25 +527,6 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def child_key_options(parent_property)
-        parent_property.options.only(:length, :size, :precision, :scale).update(:index => property_prefix)
-      end
-
-      ##
-      # Prefix used to build name of default child key
-      #
-      # Must be implemented by subclasses.
-      #
-      # @return [Symbol]
-      #   The name to prefix the default child key
-      #
-      # @api semipublic
-      def property_prefix
-        raise NotImplementedError, "#{self.class}#property_prefix not implemented"
-      end
-
-      # TODO: document
-      # @api private
       def valid_collection?(collection)
         if collection.instance_of?(Array) || collection.loaded?
           collection.all? { |resource| valid_resource?(resource) }

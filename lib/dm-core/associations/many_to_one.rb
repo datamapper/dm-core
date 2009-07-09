@@ -59,7 +59,7 @@ module DataMapper
           properties      = child_model.properties(repository_name)
 
           child_key = parent_key.zip(child_properties || []).map do |parent_property, property_name|
-            property_name ||= "#{property_prefix}_#{parent_property.name}".to_sym
+            property_name ||= "#{name}_#{parent_property.name}".to_sym
 
             properties[property_name] || begin
               # create the property within the correct repository
@@ -157,8 +157,10 @@ module DataMapper
           super
         end
 
-        def child_key_options(*)
-          super.merge(:nullable => nullable?)
+        # TODO: document
+        # @api private
+        def child_key_options(parent_property)
+          parent_property.options.only(:length, :size, :precision, :scale).update(:index => name, :nullable => nullable?)
         end
 
         # Dynamically defines reader method for source side of association
@@ -227,17 +229,6 @@ module DataMapper
         # @api private
         def inverse_name
           @inverse_name ||= Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).pluralize.to_sym
-        end
-
-        ##
-        # Prefix used to build name of default child key
-        #
-        # @return [Symbol]
-        #   The name to prefix the default child key
-        #
-        # @api semipublic
-        def property_prefix
-          name
         end
       end # class Relationship
     end # module ManyToOne
