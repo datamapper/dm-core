@@ -315,116 +315,118 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:create) }
+  [ :create, :create! ].each do |method|
+    it { @articles.should respond_to(method) }
 
-  describe '#create' do
-    describe 'when scoped to a property' do
-      before :all do
-        @return = @resource = @articles.create
+    describe "##{method}" do
+      describe 'when scoped to a property' do
+        before :all do
+          @return = @resource = @articles.send(method)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should be a saved Resource' do
+          @resource.should be_saved
+        end
+
+        it 'should append the Resource to the Collection' do
+          @articles.last.should equal(@resource)
+        end
+
+        it 'should use the query conditions to set default values' do
+          @resource.title.should == 'Sample Article'
+        end
+
+        it 'should not append a Resource if create fails' do
+          pending 'TODO: not sure how to best spec this'
+        end
       end
 
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
+      describe 'when scoped to the key' do
+        before :all do
+          @articles = @articles.all(:id => 1)
+
+          @return = @resource = @articles.send(method)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should be a saved Resource' do
+          @resource.should be_saved
+        end
+
+        it 'should append the Resource to the Collection' do
+          @articles.last.should equal(@resource)
+        end
+
+        it 'should not use the query conditions to set default values' do
+          @resource.id.should_not == 1
+        end
+
+        it 'should not append a Resource if create fails' do
+          pending 'TODO: not sure how to best spec this'
+        end
       end
 
-      it 'should be a saved Resource' do
-        @resource.should be_saved
+      describe 'when scoped to a property with multiple values' do
+        before :all do
+          @articles = @articles.all(:content => %w[ Sample Other ])
+
+          @return = @resource = @articles.send(method)
+        end
+
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
+
+        it 'should be a saved Resource' do
+          @resource.should be_saved
+        end
+
+        it 'should append the Resource to the Collection' do
+          @articles.last.should equal(@resource)
+        end
+
+        it 'should not use the query conditions to set default values' do
+          @resource.content.should be_nil
+        end
+
+        it 'should not append a Resource if create fails' do
+          pending 'TODO: not sure how to best spec this'
+        end
       end
 
-      it 'should append the Resource to the Collection' do
-        @articles.last.should equal(@resource)
-      end
+      describe 'when scoped with a condition other than eql' do
+        before :all do
+          @articles = @articles.all(:content.not => 'Sample')
 
-      it 'should use the query conditions to set default values' do
-        @resource.title.should == 'Sample Article'
-      end
+          @return = @resource = @articles.send(method)
+        end
 
-      it 'should not append a Resource if create fails' do
-        pending 'TODO: not sure how to best spec this'
-      end
-    end
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
 
-    describe 'when scoped to the key' do
-      before :all do
-        @articles = @articles.all(:id => 1)
+        it 'should be a saved Resource' do
+          @resource.should be_saved
+        end
 
-        @return = @resource = @articles.create
-      end
+        it 'should append the Resource to the Collection' do
+          @articles.last.should equal(@resource)
+        end
 
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
+        it 'should not use the query conditions to set default values' do
+          @resource.content.should be_nil
+        end
 
-      it 'should be a saved Resource' do
-        @resource.should be_saved
-      end
-
-      it 'should append the Resource to the Collection' do
-        @articles.last.should equal(@resource)
-      end
-
-      it 'should not use the query conditions to set default values' do
-        @resource.id.should_not == 1
-      end
-
-      it 'should not append a Resource if create fails' do
-        pending 'TODO: not sure how to best spec this'
-      end
-    end
-
-    describe 'when scoped to a property with multiple values' do
-      before :all do
-        @articles = @articles.all(:content => %w[ Sample Other ])
-
-        @return = @resource = @articles.create
-      end
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should be a saved Resource' do
-        @resource.should be_saved
-      end
-
-      it 'should append the Resource to the Collection' do
-        @articles.last.should equal(@resource)
-      end
-
-      it 'should not use the query conditions to set default values' do
-        @resource.content.should be_nil
-      end
-
-      it 'should not append a Resource if create fails' do
-        pending 'TODO: not sure how to best spec this'
-      end
-    end
-
-    describe 'when scoped with a condition other than eql' do
-      before :all do
-        @articles = @articles.all(:content.not => 'Sample')
-
-        @return = @resource = @articles.create
-      end
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should be a saved Resource' do
-        @resource.should be_saved
-      end
-
-      it 'should append the Resource to the Collection' do
-        @articles.last.should equal(@resource)
-      end
-
-      it 'should not use the query conditions to set default values' do
-        @resource.content.should be_nil
-      end
-
-      it 'should not append a Resource if create fails' do
-        pending 'TODO: not sure how to best spec this'
+        it 'should not append a Resource if create fails' do
+          pending 'TODO: not sure how to best spec this'
+        end
       end
     end
   end
@@ -551,81 +553,51 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:destroy) }
+  [ :destroy, :destroy! ].each do |method|
+    it { @articles.should respond_to(method) }
 
-  describe '#destroy' do
-    before :all do
-      @return = @articles.destroy
-    end
+    describe "##{method}" do
+      describe 'on a normal collection' do
+        before :all do
+          @return = @articles.send(method)
+        end
 
-    it 'should return true' do
-      @return.should be_true
-    end
+        it 'should return true' do
+          @return.should be_true
+        end
 
-    it 'should remove the Resources from the datasource' do
-      pending_if 'TODO', @skip do
-        @article_model.all(:title => 'Sample Article').should be_empty
-      end
-    end
+        it 'should remove the Resources from the datasource' do
+          @article_model.all(:title => 'Sample Article').should be_empty
+        end
 
-    it 'should clear the collection' do
-      pending_if 'TODO', @skip do
-        @articles.should be_empty
-      end
-    end
-  end
-
-  it { @articles.should respond_to(:destroy!) }
-
-  describe '#destroy!' do
-    describe 'on a normal collection' do
-      before :all do
-        @return = @articles.destroy!
+        it 'should clear the collection' do
+          @articles.should be_empty
+        end
       end
 
-      it 'should return true' do
-        @return.should be_true
-      end
+      describe 'on a limited collection' do
+        before :all do
+          @other   = @articles.create.freeze
+          @limited = @articles.all(:limit => 1)
 
-      it 'should remove the Resources from the datasource' do
-        @article_model.all(:title => 'Sample Article').should be_empty
-      end
+          @return = @limited.send(method)
+        end
 
-      it 'should clear the collection' do
-        @articles.should be_empty
-      end
+        it 'should return true' do
+          @return.should be_true
+        end
 
-      it 'should bypass validation' do
-        pending 'TODO: not sure how to best spec this'
-      end
-    end
+        it 'should remove the Resources from the datasource' do
+          @article_model.all(:title => 'Sample Article').should == [ @other ]
+        end
 
-    describe 'on a limited collection' do
-      before :all do
-        @other   = @articles.create.freeze
-        @limited = @articles.all(:limit => 1)
+        it 'should clear the collection' do
+          @limited.should be_empty
+        end
 
-        @return = @limited.destroy!
-      end
-
-      it 'should return true' do
-        @return.should be_true
-      end
-
-      it 'should remove the Resources from the datasource' do
-        @article_model.all(:title => 'Sample Article').should == [ @other ]
-      end
-
-      it 'should clear the collection' do
-        @limited.should be_empty
-      end
-
-      it 'should bypass validation' do
-        pending 'TODO: not sure how to best spec this'
-      end
-
-      it 'should not destroy the other Resource' do
-        @article_model.get(*@other.key).should_not be_nil
+        it 'should not destroy the other Resource' do
+          @article_model.get(*@other.key).should_not be_nil
+        end
       end
     end
   end
@@ -1893,39 +1865,41 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:save) }
+  [ :save, :save! ].each do |method|
+    it { @articles.should respond_to(method) }
 
-  describe '#save' do
-    describe 'when Resources are not saved' do
-      before :all do
-        @articles.new(:title => 'New Article', :content => 'New Article')
+    describe "##{method}" do
+      describe 'when Resources are not saved' do
+        before :all do
+          @articles.new(:title => 'New Article', :content => 'New Article')
 
-        @return = @articles.save
+          @return = @articles.send(method)
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+
+        it 'should save each Resource' do
+          @articles.each { |resource| resource.should be_saved }
+        end
       end
 
-      it 'should return true' do
-        @return.should be_true
-      end
+      describe 'when Resources have been orphaned' do
+        before :all do
+          @resources = @articles.entries
+          @articles.replace([])
 
-      it 'should save each Resource' do
-        @articles.each { |resource| resource.should be_saved }
-      end
-    end
+          @return = @articles.send(method)
+        end
 
-    describe 'when Resources have been orphaned' do
-      before :all do
-        @resources = @articles.entries
-        @articles.replace([])
+        it 'should return true' do
+          @return.should be_true
+        end
 
-        @return = @articles.save
-      end
-
-      it 'should return true' do
-        @return.should be_true
-      end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
+        it 'should orphan the Resources' do
+          @resources.each { |resource| resource.collection.should_not equal(@articles) }
+        end
       end
     end
   end
@@ -2707,194 +2681,146 @@ share_examples_for 'A public Collection' do
     end
   end
 
-  it { @articles.should respond_to(:update) }
+  [ :update, :update! ].each do |method|
+    it { @articles.should respond_to(method) }
 
-  describe '#update' do
-    describe 'with no arguments' do
-      before :all do
-        @return = @articles.update
-      end
+    describe "##{method}" do
+      describe 'with no arguments' do
+        before :all do
+          @return = @articles.send(method)
+        end
 
-      it 'should return true' do
-        @return.should be_true
-      end
-    end
+        if method == :update!
+          should_not_be_a_kicker
+        end
 
-    describe 'with attributes' do
-      before :all do
-        @attributes = { :title => 'Updated Title' }
-
-        @return = @articles.update(@attributes)
-      end
-
-      it 'should return true' do
-        @return.should be_true
-      end
-
-      it 'should update attributes of all Resources' do
-        @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
-      end
-
-      it 'should persist the changes' do
-        resource = @article_model.get(*@article.key)
-        @attributes.each { |key, value| resource.send(key).should == value }
-      end
-    end
-
-    describe 'with attributes where one is a parent association' do
-      before :all do
-        @attributes = { :original => @other }
-
-        @return = @articles.update(@attributes)
-      end
-
-      it 'should return true' do
-        @return.should be_true
-      end
-
-      it 'should update attributes of all Resources' do
-        @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
-      end
-
-      it 'should persist the changes' do
-        resource = @article_model.get(*@article.key)
-        @attributes.each { |key, value| resource.send(key).should == value }
-      end
-    end
-  end
-
-  it { @articles.should respond_to(:update!) }
-
-  describe '#update!' do
-    describe 'with no arguments' do
-      before :all do
-        @return = @articles.update!
-      end
-
-      should_not_be_a_kicker
-
-      it 'should return true' do
-        @return.should be_true
-      end
-    end
-
-    describe 'with attributes' do
-      before :all do
-        @attributes = { :title => 'Updated Title' }
-
-        @return = @articles.update!(@attributes)
-      end
-
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          pending_if 'TODO', @many_to_many do
-            @articles.should_not be_loaded
-          end
+        it 'should return true' do
+          @return.should be_true
         end
       end
 
-      it 'should return true' do
-        @return.should be_true
-      end
+      describe 'with attributes' do
+        before :all do
+          @attributes = { :title => 'Updated Title' }
 
-      it 'should bypass validation' do
-        pending 'TODO: not sure how to best spec this'
-      end
+          @return = @articles.send(method, @attributes)
+        end
 
-      it 'should update attributes of all Resources' do
-        @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
-      end
-
-      it 'should persist the changes' do
-        resource = @article_model.get(*@article.key)
-        @attributes.each { |key, value| resource.send(key).should == value }
-      end
-    end
-
-    describe 'with attributes where one is a parent association' do
-      before :all do
-        @attributes = { :original => @other }
-
-        @return = @articles.update!(@attributes)
-      end
-
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          pending_if 'TODO', @many_to_many do
-            @articles.should_not be_loaded
+        if method == :update!
+          # FIXME: this is spec order dependent, move this into a helper method
+          # and execute in the before :all block
+          unless loaded
+            it 'should not be a kicker' do
+              pending_if 'TODO', @many_to_many do
+                @articles.should_not be_loaded
+              end
+            end
           end
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+
+        it 'should update attributes of all Resources' do
+          @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
+        end
+
+        it 'should persist the changes' do
+          resource = @article_model.get(*@article.key)
+          @attributes.each { |key, value| resource.send(key).should == value }
         end
       end
 
-      it 'should return true' do
-        @return.should be_true
-      end
+      describe 'with attributes where one is a parent association' do
+        before :all do
+          @attributes = { :original => @other }
 
-      it 'should update attributes of all Resources' do
-        @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
-      end
+          @return = @articles.send(method, @attributes)
+        end
 
-      it 'should persist the changes' do
-        resource = @article_model.get(*@article.key)
-        @attributes.each { |key, value| resource.send(key).should == value }
-      end
-    end
-
-    describe 'with attributes where a not-nullable property is nil' do
-      before :all do
-        @return = @articles.update!(:title => nil)
-      end
-
-      should_not_be_a_kicker
-
-      it 'should return false' do
-        @return.should be_false
-      end
-    end
-
-    describe 'on a limited collection' do
-      before :all do
-        @other      = @articles.create
-        @limited    = @articles.all(:limit => 1)
-        @attributes = { :content => 'Updated Content' }
-
-        @return = @limited.update!(@attributes)
-      end
-
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          pending 'Update Collection#update! to use a subquery' do
-            @limited.should_not be_loaded
+        if method == :update!
+          # FIXME: this is spec order dependent, move this into a helper method
+          # and execute in the before :all block
+          unless loaded
+            it 'should not be a kicker' do
+              pending_if 'TODO', @many_to_many do
+                @articles.should_not be_loaded
+              end
+            end
           end
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+
+        it 'should update attributes of all Resources' do
+          @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
+        end
+
+        it 'should persist the changes' do
+          resource = @article_model.get(*@article.key)
+          @attributes.each { |key, value| resource.send(key).should == value }
         end
       end
 
-      it 'should return true' do
-        @return.should be_true
+      describe 'with attributes where a not-nullable property is nil' do
+        before :all do
+          @return = @articles.send(method, :title => nil)
+        end
+
+        if method == :update!
+          should_not_be_a_kicker
+        end
+
+        it 'should return false' do
+          @return.should be_false
+        end
       end
 
-      it 'should bypass validation' do
-        pending 'TODO: not sure how to best spec this'
-      end
+      describe 'on a limited collection' do
+        before :all do
+          @other      = @articles.create
+          @limited    = @articles.all(:limit => 1)
+          @attributes = { :content => 'Updated Content' }
 
-      it 'should update attributes of all Resources' do
-        @limited.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
-      end
+          @return = @limited.send(method, @attributes)
+        end
 
-      it 'should persist the changes' do
-        resource = @article_model.get(*@article.key)
-        @attributes.each { |key, value| resource.send(key).should == value }
-      end
+        if method == :update!
+          # FIXME: this is spec order dependent, move this into a helper method
+          # and execute in the before :all block
+          unless loaded
+            it 'should not be a kicker' do
+              pending "Update Collection##{method} to use a subquery" do
+                @limited.should_not be_loaded
+              end
+            end
+          end
+        end
 
-      it 'should not update the other Resource' do
-        @other.reload
-        @attributes.each { |key, value| @other.send(key).should_not == value }
+        it 'should return true' do
+          @return.should be_true
+        end
+
+        it 'should bypass validation' do
+          pending 'TODO: not sure how to best spec this'
+        end
+
+        it 'should update attributes of all Resources' do
+          @limited.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
+        end
+
+        it 'should persist the changes' do
+          resource = @article_model.get(*@article.key)
+          @attributes.each { |key, value| resource.send(key).should == value }
+        end
+
+        it 'should not update the other Resource' do
+          @other.reload
+          @attributes.each { |key, value| @other.send(key).should_not == value }
+        end
       end
     end
   end

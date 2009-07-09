@@ -957,9 +957,7 @@ module DataMapper
     #
     # @api semipublic
     def initialize(query, resources = nil)
-      if block_given?
-        raise "#{self.class}#new with a block is deprecated"
-      end
+      raise "#{self.class}#new with a block is deprecated" if block_given?
 
       @query        = query
       @identity_map = IdentityMap.new
