@@ -43,7 +43,13 @@ module DataMapper
 
             bind_value = attributes[property]
 
-            next if property.eql?(serial) && bind_value.nil?
+            # skip insering NULL for columns that are serial or without a default
+            next if bind_value.nil? && (property.serial? || !property.default?)
+
+            # if serial is being set explicitly, do not set it again
+            if property.equal?(serial)
+              serial = nil
+            end
 
             properties  << property
             bind_values << bind_value
@@ -52,10 +58,8 @@ module DataMapper
           statement = insert_statement(model, properties, serial)
           result    = execute(statement, *bind_values)
 
-          if result.to_i == 1
-            if serial
-              serial.set!(resource, result.insert_id)
-            end
+          if result.to_i == 1 && serial
+            serial.set!(resource, result.insert_id)
           end
         end
       end

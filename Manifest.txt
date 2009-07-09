@@ -49,6 +49,7 @@ lib/dm-core/query/sort.rb
 lib/dm-core/repository.rb
 lib/dm-core/resource.rb
 lib/dm-core/spec/adapter_shared_spec.rb
+lib/dm-core/spec/data_objects_adapter_shared_spec.rb
 lib/dm-core/support/chainable.rb
 lib/dm-core/support/deprecate.rb
 lib/dm-core/support/logger.rb
