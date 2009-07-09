@@ -161,13 +161,7 @@ share_examples_for 'A public Collection' do
         @return = @resource = @articles.at(0)
       end
 
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
-      end
+      should_not_be_a_kicker
 
       it 'should return a Resource' do
         @return.should be_kind_of(DataMapper::Resource)
@@ -187,13 +181,7 @@ share_examples_for 'A public Collection' do
         @return = @resource = @articles.unshift(@other).at(0)
       end
 
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
-      end
+      should_not_be_a_kicker
 
       it 'should return a Resource' do
         @return.should be_kind_of(DataMapper::Resource)
@@ -213,13 +201,7 @@ share_examples_for 'A public Collection' do
         @return = @resource = @articles.at(-1)
       end
 
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
-      end
+      should_not_be_a_kicker
 
       it 'should return a Resource' do
         @return.should be_kind_of(DataMapper::Resource)
@@ -239,13 +221,7 @@ share_examples_for 'A public Collection' do
         @return = @resource = @articles.push(@other).at(-1)
       end
 
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
-      end
+      should_not_be_a_kicker
 
       it 'should return a Resource' do
         @return.should be_kind_of(DataMapper::Resource)
@@ -619,10 +595,6 @@ share_examples_for 'A public Collection' do
         @articles.should be_empty
       end
 
-      it 'should be a kicker' do
-        @articles.should be_loaded
-      end
-
       it 'should bypass validation' do
         pending 'TODO: not sure how to best spec this'
       end
@@ -646,10 +618,6 @@ share_examples_for 'A public Collection' do
 
       it 'should clear the collection' do
         @limited.should be_empty
-      end
-
-      it 'should be a kicker' do
-        @limited.should be_loaded
       end
 
       it 'should bypass validation' do
@@ -1342,13 +1310,7 @@ share_examples_for 'A public Collection' do
         @return = @articles.base_model
       end
 
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
-      end
+      should_not_be_a_kicker
 
       it 'should return expected object' do
         @return.should == @article_model
@@ -2454,12 +2416,17 @@ share_examples_for 'A public Collection' do
       before :all do
         unless @skip
           orphans = (1..10).map do |number|
-            @articles.create(:content => "Article #{number}")
-            @articles.pop  # remove the article from the tail
+            articles = @articles.dup
+            articles.create(:content => "Article #{number}")
+            articles.pop  # remove the article from the tail
           end
 
           @articles.unshift(*orphans.first(5))
           @articles.concat(orphans.last(5))
+
+          unless loaded
+            @articles.should_not be_loaded
+          end
 
           @copy = @articles.dup
           @new = @article_model.new(:content => 'New Article')
@@ -2475,6 +2442,8 @@ share_examples_for 'A public Collection' do
             @return = @resource = @articles.send(method, 1, @new)
           end
         end
+
+        should_not_be_a_kicker
 
         it 'should return a Resource' do
           @return.should be_kind_of(DataMapper::Resource)
@@ -2511,6 +2480,8 @@ share_examples_for 'A public Collection' do
           end
         end
 
+        should_not_be_a_kicker
+
         it 'should return a Resource' do
           @return.should be_kind_of(DataMapper::Resource)
         end
@@ -2542,6 +2513,8 @@ share_examples_for 'A public Collection' do
           end
         end
 
+        should_not_be_a_kicker
+
         it 'should return a Resource' do
           @return.should be_kind_of(DataMapper::Resource)
         end
@@ -2572,6 +2545,8 @@ share_examples_for 'A public Collection' do
             @return = @resource = @articles.send(method, -1, @new)
           end
         end
+
+        should_not_be_a_kicker
 
         it 'should return a Resource' do
           @return.should be_kind_of(DataMapper::Resource)
@@ -2608,6 +2583,8 @@ share_examples_for 'A public Collection' do
           end
         end
 
+        should_not_be_a_kicker
+
         it 'should return a Resource' do
           @return.should be_kind_of(DataMapper::Resource)
         end
@@ -2639,6 +2616,8 @@ share_examples_for 'A public Collection' do
           end
         end
 
+        should_not_be_a_kicker
+
         it 'should return a Resource' do
           @return.should be_kind_of(DataMapper::Resource)
         end
@@ -2658,6 +2637,28 @@ share_examples_for 'A public Collection' do
         it 'should orphan the original Resources' do
           @originals.each { |resource| resource.collection.should_not equal(@articles) }
         end
+      end
+    end
+  end
+
+  describe '#[]=' do
+    describe 'when swapping resources' do
+      before :all do
+        rescue_if 'TODO', @skip do
+          @articles.create(:content => 'Another Article')
+
+          @entries = @articles.entries
+
+          @articles[0], @articles[1] = @articles[1], @articles[0]
+        end
+      end
+
+      it 'should include the Resource in the Collection' do
+        @articles.should == @entries.reverse
+      end
+
+      it 'should relate the Resource to the Collection' do
+        @articles.each { |resource| resource.collection.should equal(@articles) }
       end
     end
   end
@@ -2752,13 +2753,7 @@ share_examples_for 'A public Collection' do
         @return = @articles.update!
       end
 
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
-      end
+      should_not_be_a_kicker
 
       it 'should return true' do
         @return.should be_true
@@ -2836,13 +2831,7 @@ share_examples_for 'A public Collection' do
         @return = @articles.update!(:title => nil)
       end
 
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          @articles.should_not be_loaded
-        end
-      end
+      should_not_be_a_kicker
 
       it 'should return false' do
         @return.should be_false

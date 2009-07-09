@@ -315,12 +315,6 @@ module DataMapper
         # TODO: document
         # @api private
         def _save(safe)
-          resources = if loaded?
-            self
-          else
-            head + tail
-          end
-
           # delete only intermediaries linked to the target orphans
           unless @orphans.empty? || intermediaries(@orphans).send(safe ? :destroy : :destroy!)
             return false
@@ -328,11 +322,11 @@ module DataMapper
 
           if via.respond_to?(:resource_for)
             super
-            resources.all? { |resource| create_intermediary(safe, via => resource) }
+            loaded_entries.all? { |resource| create_intermediary(safe, via => resource) }
           else
             if intermediary = create_intermediary(safe)
               inverse = via.inverse
-              resources.map { |resource| inverse.set(resource, intermediary) }
+              loaded_entries.map { |resource| inverse.set(resource, intermediary) }
             end
 
             super

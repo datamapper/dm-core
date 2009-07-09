@@ -72,16 +72,10 @@ module DataMapper
     def reload(query = nil)
       query = query.nil? ? self.query.dup : self.query.merge(query)
 
-      resources = if loaded?
-        self
-      else
-        head + tail
-      end
-
       # make sure the Identity Map contains all the existing resources
       identity_map = repository.identity_map(model)
 
-      resources.each do |resource|
+      loaded_entries.each do |resource|
         identity_map[resource.key] = resource
       end
 
@@ -411,11 +405,15 @@ module DataMapper
     #
     # @api public
     def []=(*args)
-      # orphan resources being replaced
-      orphan_resources(superclass_slice(*args[0..-2]))
+      orphans = Array(superclass_slice(*args[0..-2]))
 
       # relate new resources
-      relate_resources(super)
+      resources = relate_resources(super)
+
+      # orphan resources that no longer exist in the collection elsewhere
+      orphan_resources(orphans - loaded_entries)
+
+      resources
     end
 
     alias splice []=
@@ -1032,6 +1030,16 @@ module DataMapper
       self
     end
 
+    # Loaded Resources in the collection
+    #
+    # @return [Array<Resource>]
+    #   Resources in the collection
+    #
+    # @api private
+    def loaded_entries
+      loaded? ? self : head + tail
+    end
+
     ##
     # Initializes a new Collection
     #
@@ -1104,11 +1112,7 @@ module DataMapper
     #
     # @api private
     def _save(safe)
-      resources = if loaded?
-        self
-      else
-        head + tail
-      end
+      resources = loaded_entries
 
       # FIXME: remove this once the writer method on the child side
       # is used to store the reference to the parent.
