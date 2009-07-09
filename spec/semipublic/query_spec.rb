@@ -745,11 +745,11 @@ describe DataMapper::Query do
         end
       end
 
-      describe 'that is less than 1' do
+      describe 'that is less than 0' do
         it 'should raise an exception' do
           lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:limit => 0))
-          }.should raise_error(ArgumentError, '+options[:limit]+ must be greater than or equal to 1, but was 0')
+            DataMapper::Query.new(@repository, @model, @options.update(:limit => -1))
+          }.should raise_error(ArgumentError, '+options[:limit]+ must be greater than or equal to 0, but was -1')
         end
       end
     end

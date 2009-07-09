@@ -844,13 +844,17 @@ module DataMapper
       end
     end
 
-    # Verifies that query limit equals to or greater than 1
+    # Verifies the limit is equal to or greater than 0
+    #
+    # @raise [ArgumentError]
+    #   raised if the limit is not an Integer or less than 0
+    #
     # @api private
     def assert_valid_limit(limit)
       assert_kind_of 'options[:limit]', limit, Integer
 
-      unless limit >= 1
-        raise ArgumentError, "+options[:limit]+ must be greater than or equal to 1, but was #{limit.inspect}"
+      unless limit >= 0
+        raise ArgumentError, "+options[:limit]+ must be greater than or equal to 0, but was #{limit.inspect}"
       end
     end
 

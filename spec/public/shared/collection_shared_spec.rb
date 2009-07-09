@@ -2117,6 +2117,24 @@ share_examples_for 'A public Collection' do
         end
       end
 
+      describe 'with an empty exclusive range' do
+        before :all do
+          @return = @resources = @articles.send(method, 0...0)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return the expected value' do
+          @return.to_a.should == @copy.entries.send(method, 0...0)
+        end
+
+        it 'should be empty' do
+          @return.should be_empty
+        end
+      end
+
       describe 'with an offset not within the Collection' do
         before :all do
           unless @skip
