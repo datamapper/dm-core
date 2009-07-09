@@ -6,8 +6,6 @@ describe DataMapper::Types::Discriminator do
       class Article
         include DataMapper::Resource
 
-        undef_method :type
-
         property :id,    Serial
         property :title, String, :nullable => false
         property :type,  Discriminator
