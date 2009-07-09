@@ -469,7 +469,11 @@ module DataMapper
         create_writer
       end
 
-      # Set the correct ivar if the values
+      # Set the correct ivars for the named object
+      #
+      # This method should set the object in an ivar with the same name
+      # provided, plus it should set a String form of the object in
+      # a second ivar.
       #
       # @param [String]
       #   the name of the ivar to set
