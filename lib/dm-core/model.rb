@@ -154,9 +154,9 @@ module DataMapper
       extra_inclusions.each { |mod| model.send(:include, mod) }
     end
 
+    # TODO: document
+    # @api private
     chainable do
-      # TODO: document
-      # @api private
       def inherited(target)
         target.instance_variable_set(:@valid,         false)
         target.instance_variable_set(:@base_model,    base_model)
@@ -325,18 +325,11 @@ module DataMapper
     #   the newly initialized Resource instance
     #
     # @api public
-    def new(attributes = {}, &block)
-      assert_valid
-
-      model = if discriminator = properties(repository_name).discriminator
-        attributes[discriminator.name]
+    chainable do
+      def new(*args, &block)
+        assert_valid
+        super
       end
-
-      model ||= self
-
-      resource = model.allocate
-      resource.send(:initialize, attributes, &block)
-      resource
     end
 
     ##

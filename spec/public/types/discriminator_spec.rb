@@ -24,7 +24,51 @@ describe DataMapper::Types::Discriminator do
     @article_model.properties[:type].typecast('Blog::Release').should equal(@release_model)
   end
 
-  describe 'descendant tracking' do
+  describe 'Model#new' do
+    describe 'when provided a String discriminator in the attributes' do
+      before :all do
+        @resource = @article_model.new(:type => 'Blog::Release')
+      end
+
+      it 'should return a Resource' do
+        @resource.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be an descendant instance' do
+        @resource.should be_instance_of(Blog::Release)
+      end
+    end
+
+    describe 'when provided a Class discriminator in the attributes' do
+      before :all do
+        @resource = @article_model.new(:type => Blog::Release)
+      end
+
+      it 'should return a Resource' do
+        @resource.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be an descendant instance' do
+        @resource.should be_instance_of(Blog::Release)
+      end
+    end
+
+    describe 'when not provided a discriminator in the attributes' do
+      before :all do
+        @resource = @article_model.new
+      end
+
+      it 'should return a Resource' do
+        @resource.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be a base model instance' do
+        @resource.should be_instance_of(@article_model)
+      end
+    end
+  end
+
+  describe 'Model#descendants' do
     it 'should set the descendants for the grandparent model' do
       @article_model.descendants.to_a.should == [ @article_model, @announcement_model, @release_model ]
     end
@@ -38,7 +82,7 @@ describe DataMapper::Types::Discriminator do
     end
   end
 
-  describe 'scoping' do
+  describe 'Model#default_scope' do
     it 'should set the default scope for the grandparent model' do
       @article_model.default_scope[:type].should equal(@article_model.descendants)
     end

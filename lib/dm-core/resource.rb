@@ -727,15 +727,14 @@ module DataMapper
     ##
     # Initialize a new instance of this Resource using the provided values
     #
-    # @param  [Hash] attributes
+    # @param [Hash] attributes
     #   attribute values to use for the new instance
     #
-    # @return [Resource]
-    #   the newly initialized resource instance
+    # @return [Hash]
+    #   attribute values used in the new instance
     #
     # @api public
-    def initialize(attributes = {}) # :nodoc:
-      @saved = false
+    def initialize(attributes = {}, &block) # :nodoc:
       self.attributes = attributes
     end
 
