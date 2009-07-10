@@ -59,6 +59,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
       it_should_behave_like 'A public Collection'
       it_should_behave_like 'A public Association Collection'
       it_should_behave_like 'A Collection supporting Strategic Eager Loading'
+      it_should_behave_like 'Finder Interface'
     end
   end
 end
