@@ -303,8 +303,8 @@ module DataMapper
         # TODO: document
         # @api private
         def _save(safe)
-          # delete only intermediaries linked to the target orphans
-          unless @orphans.empty? || intermediaries(@orphans).send(safe ? :destroy : :destroy!)
+          # delete only intermediaries linked to the removed targets
+          unless @removed.empty? || intermediaries(@removed).send(safe ? :destroy : :destroy!)
             return false
           end
 

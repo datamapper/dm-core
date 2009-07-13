@@ -101,7 +101,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
 
         it 'should return expected Query' do
-          @return.should equal(@articles_query)
+          @return.should eql(@articles_query)
         end
       end
 

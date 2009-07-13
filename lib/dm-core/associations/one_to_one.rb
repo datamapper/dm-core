@@ -12,6 +12,7 @@ module DataMapper
           assert_kind_of 'source', source, source_model
 
           return unless loaded?(source) || source_key.get(source).all?
+
           relationship.get(source, other_query).first
         end
 

@@ -91,6 +91,12 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
+        def hash
+          [ self.class, @subject, @value ].hash
+        end
+
+        # TODO: document
+        # @api semipublic
         def ==(other)
           if equal?(other)
             return true

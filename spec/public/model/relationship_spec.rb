@@ -457,152 +457,6 @@ describe DataMapper::Associations do
     1.0/0
   end
 
-  it { Car.should respond_to(:has) }
-
-  describe '#has' do
-    describe '1' do
-      before :all do
-        @model = Engine
-        @name  = :engine
-
-        Car.has(1, @name)
-        Engine.belongs_to(:car)
-      end
-
-      supported_by :all do
-        before :all do
-          @car = Car.new
-        end
-
-        it { @car.should respond_to(@name) }
-
-        it_should_behave_like 'it creates a one accessor'
-
-        it { @car.should respond_to("#{@name}=") }
-
-        it_should_behave_like 'it creates a one mutator'
-      end
-    end
-
-    describe '1 through' do
-      before :all do
-        @model = Engine
-        @name  = :engine
-
-        Car.has(1, @name, :through => DataMapper::Resource)
-        Engine.has(1, :car, :through => DataMapper::Resource)
-      end
-
-      supported_by :all do
-        before :all do
-          @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
-                     defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
-        end
-
-        before :all do
-          @car = Car.new
-        end
-
-        before do
-          pending if @no_join
-        end
-
-        it { @car.should respond_to(@name) }
-
-        it_should_behave_like 'it creates a one accessor'
-
-        it { @car.should respond_to("#{@name}=") }
-
-        it_should_behave_like 'it creates a one mutator'
-      end
-    end
-
-    describe 'n..n' do
-      before :all do
-        @model = Door
-        @name  = :doors
-
-        Car.has(1..4, @name)
-        Door.belongs_to(:car, :nullable => true)
-      end
-
-      supported_by :all do
-        before :all do
-          @car = Car.new
-        end
-
-        it { @car.should respond_to(@name) }
-
-        it_should_behave_like 'it creates a many accessor'
-
-        it { @car.should respond_to("#{@name}=") }
-
-        it_should_behave_like 'it creates a many mutator'
-      end
-    end
-
-    describe 'n..n through' do
-      before :all do
-        @model = Window
-        @name  = :windows
-
-        Window.has(1, :car, :through => DataMapper::Resource)
-        Car.has(1..4, :windows, :through => DataMapper::Resource)
-      end
-
-      supported_by :all do
-        before :all do
-          @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
-                     defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
-        end
-
-        before :all do
-          @car = Car.new
-        end
-
-        before do
-          pending if @no_join
-        end
-
-        it { @car.should respond_to(@name) }
-
-        it_should_behave_like 'it creates a many accessor'
-
-        it { @car.should respond_to("#{@name}=") }
-
-        it_should_behave_like 'it creates a many mutator'
-      end
-    end
-
-    describe 'when the 3rd argument is a Model' do
-      before :all do
-        Car.has(1, :engine, Engine)
-      end
-
-      it 'should set the relationship target model' do
-        Car.relationships[:engine].target_model.should == Engine
-      end
-    end
-
-    describe 'when the 3rd argument is a String' do
-      before :all do
-        Car.has(1, :engine, 'Engine')
-      end
-
-      it 'should set the relationship target model' do
-        Car.relationships[:engine].target_model.should == Engine
-      end
-    end
-
-    it 'should raise an exception if the cardinality is not understood' do
-      lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
-    end
-
-    it 'should raise an exception if the minimum constraint is larger than the maximum' do
-      lambda { Car.has(2..1, :doors) }.should raise_error(ArgumentError)
-    end
-  end
-
   it { Engine.should respond_to(:belongs_to) }
 
   describe '#belongs_to' do
@@ -756,6 +610,152 @@ describe DataMapper::Associations do
           end
         end
       end
+    end
+  end
+
+  it { Car.should respond_to(:has) }
+
+  describe '#has' do
+    describe '1' do
+      before :all do
+        @model = Engine
+        @name  = :engine
+
+        Car.has(1, @name)
+        Engine.belongs_to(:car)
+      end
+
+      supported_by :all do
+        before :all do
+          @car = Car.new
+        end
+
+        it { @car.should respond_to(@name) }
+
+        it_should_behave_like 'it creates a one accessor'
+
+        it { @car.should respond_to("#{@name}=") }
+
+        it_should_behave_like 'it creates a one mutator'
+      end
+    end
+
+    describe '1 through' do
+      before :all do
+        @model = Engine
+        @name  = :engine
+
+        Car.has(1, @name, :through => DataMapper::Resource)
+        Engine.has(1, :car, :through => DataMapper::Resource)
+      end
+
+      supported_by :all do
+        before :all do
+          @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
+                     defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
+        end
+
+        before :all do
+          @car = Car.new
+        end
+
+        before do
+          pending if @no_join
+        end
+
+        it { @car.should respond_to(@name) }
+
+        it_should_behave_like 'it creates a one accessor'
+
+        it { @car.should respond_to("#{@name}=") }
+
+        it_should_behave_like 'it creates a one mutator'
+      end
+    end
+
+    describe 'n..n' do
+      before :all do
+        @model = Door
+        @name  = :doors
+
+        Car.has(1..4, @name)
+        Door.belongs_to(:car, :nullable => true)
+      end
+
+      supported_by :all do
+        before :all do
+          @car = Car.new
+        end
+
+        it { @car.should respond_to(@name) }
+
+        it_should_behave_like 'it creates a many accessor'
+
+        it { @car.should respond_to("#{@name}=") }
+
+        it_should_behave_like 'it creates a many mutator'
+      end
+    end
+
+    describe 'n..n through' do
+      before :all do
+        @model = Window
+        @name  = :windows
+
+        Window.has(1, :car, :through => DataMapper::Resource)
+        Car.has(1..4, :windows, :through => DataMapper::Resource)
+      end
+
+      supported_by :all do
+        before :all do
+          @no_join = defined?(DataMapper::Adapters::InMemoryAdapter) && @adapter.kind_of?(DataMapper::Adapters::InMemoryAdapter) ||
+                     defined?(DataMapper::Adapters::YamlAdapter)     && @adapter.kind_of?(DataMapper::Adapters::YamlAdapter)
+        end
+
+        before :all do
+          @car = Car.new
+        end
+
+        before do
+          pending if @no_join
+        end
+
+        it { @car.should respond_to(@name) }
+
+        it_should_behave_like 'it creates a many accessor'
+
+        it { @car.should respond_to("#{@name}=") }
+
+        it_should_behave_like 'it creates a many mutator'
+      end
+    end
+
+    describe 'when the 3rd argument is a Model' do
+      before :all do
+        Car.has(1, :engine, Engine)
+      end
+
+      it 'should set the relationship target model' do
+        Car.relationships[:engine].target_model.should == Engine
+      end
+    end
+
+    describe 'when the 3rd argument is a String' do
+      before :all do
+        Car.has(1, :engine, 'Engine')
+      end
+
+      it 'should set the relationship target model' do
+        Car.relationships[:engine].target_model.should == Engine
+      end
+    end
+
+    it 'should raise an exception if the cardinality is not understood' do
+      lambda { Car.has(n..n, :doors) }.should raise_error(ArgumentError)
+    end
+
+    it 'should raise an exception if the minimum constraint is larger than the maximum' do
+      lambda { Car.has(2..1, :doors) }.should raise_error(ArgumentError)
     end
   end
 

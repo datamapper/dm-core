@@ -4,8 +4,6 @@ share_examples_for 'Finder Interface' do
       raise "+#{ivar}+ should be defined in before block" unless instance_variable_defined?(ivar)
       raise "+#{ivar}+ should not be nil in before block" unless instance_variable_get(ivar)
     end
-
-    @articles.loaded?.should == loaded
   end
 
   before :all do
@@ -27,7 +25,7 @@ share_examples_for 'Finder Interface' do
     describe "##{method}" do
       before :all do
         1.upto(10) { |number| @articles.create(:content => "Article #{number}") }
-        @copy = @articles.dup
+        @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
       end
 
       describe 'with a positive offset' do
@@ -45,12 +43,8 @@ share_examples_for 'Finder Interface' do
           @return.should == @copy.entries.send(method, 0)
         end
 
-        it 'should not remove the Resource from the Collection' do
-          @articles.should be_include(@resource)
-        end
-
-        it 'should relate the Resource to the Collection' do
-          @resource.collection.should equal(@articles)
+        it 'should orphan the Resource' do
+          @resource.collection.should_not equal(@articles)
         end
       end
 
@@ -65,10 +59,6 @@ share_examples_for 'Finder Interface' do
 
         it 'should return the expected Resource' do
           @return.should == @copy.entries.send(method, 5, 5)
-        end
-
-        it 'should not remove the Resources from the Collection' do
-          @resources.each { |resource| @articles.should be_include(resource) }
         end
 
         it 'should orphan the Resources' do
@@ -91,10 +81,6 @@ share_examples_for 'Finder Interface' do
 
         it 'should return the expected Resources' do
           @return.should == @copy.entries.send(method, 5..10)
-        end
-
-        it 'should not remove the Resources from the Collection' do
-          @resources.each { |resource| @articles.should be_include(resource) }
         end
 
         it 'should orphan the Resources' do
@@ -121,12 +107,8 @@ share_examples_for 'Finder Interface' do
           @return.should == @copy.entries.send(method, -1)
         end
 
-        it 'should not remove the Resource from the Collection' do
-          @articles.should be_include(@resource)
-        end
-
-        it 'should relate the Resource to the Collection' do
-          @resource.collection.should equal(@articles)
+        it 'should orphan the Resource' do
+          @resource.collection.should_not equal(@articles)
         end
       end
 
@@ -141,10 +123,6 @@ share_examples_for 'Finder Interface' do
 
         it 'should return the expected Resources' do
           @return.should == @copy.entries.send(method, -5, 5)
-        end
-
-        it 'should not remove the Resources from the Collection' do
-          @resources.each { |resource| @articles.should be_include(resource) }
         end
 
         it 'should orphan the Resources' do
@@ -167,10 +145,6 @@ share_examples_for 'Finder Interface' do
 
         it 'should return the expected Resources' do
           @return.to_a.should == @copy.entries.send(method, -5..-2)
-        end
-
-        it 'should not remove the Resources from the Collection' do
-          @resources.each { |resource| @articles.should be_include(resource) }
         end
 
         it 'should orphan the Resources' do
@@ -203,7 +177,7 @@ share_examples_for 'Finder Interface' do
       describe 'with an offset not within the Collection' do
         before :all do
           unless @skip
-            @return = @articles.send(method, 12)
+            @return = @articles.send(method, 99)
           end
         end
 
@@ -214,7 +188,7 @@ share_examples_for 'Finder Interface' do
 
       describe 'with an offset and length not within the Collection' do
         before :all do
-          @return = @articles.send(method, 12, 1)
+          @return = @articles.send(method, 99, 1)
         end
 
         it 'should return a Collection' do
@@ -228,7 +202,7 @@ share_examples_for 'Finder Interface' do
 
       describe 'with a range not within the Collection' do
         before :all do
-          @return = @articles.send(method, 12..13)
+          @return = @articles.send(method, 99..100)
         end
 
         it 'should return a Collection' do
@@ -245,65 +219,67 @@ share_examples_for 'Finder Interface' do
   it { @articles.should respond_to(:all) }
 
   describe '#all' do
-    describe 'with no arguments' do
-      before :all do
-        @copy = @articles.dup
+     describe 'with no arguments' do
+       before :all do
+         @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
 
-        @return = @collection = @articles.all
-      end
+         @return = @collection = @articles.all
+       end
 
-      it 'should return a Collection' do
-        @return.should be_kind_of(DataMapper::Collection)
-      end
+       it 'should return a Collection' do
+         @return.should be_kind_of(DataMapper::Collection)
+       end
 
-      it 'should return self' do
-        @return.should equal(@articles)
-      end
+       it 'should return a new instance' do
+         @return.should_not equal(@articles)
+       end
 
-      it 'should be expected Resources' do
-        @collection.should == [ @article ]
-      end
+       it 'should be expected Resources' do
+         @collection.should == @articles.entries
+       end
 
-      it 'should have the same query as original Collection' do
-        @collection.query.should equal(@articles.query)
-      end
+       it 'should not have a Query the same as the original' do
+         @return.query.should_not equal(@articles.query)
+       end
 
-      it 'should scope the Collection' do
-        @collection.reload.should == @copy.entries
-      end
-    end
+       it 'should have a Query equal to the original' do
+         @return.query.should eql(@articles.query)
+       end
 
-    describe 'with a query' do
-      before :all do
-        @new  = @articles.create(:content => 'New Article')
-        @copy = @articles.dup
+       it 'should scope the Collection' do
+         @collection.reload.should == @copy.entries
+       end
+     end
 
-        # search for the first 10 articles, then take the first 5, and then finally take the
-        # second article from the remainder
-        @return = @articles.all(:limit => 10).all(:limit => 5).all(:limit => 1, :offset => 1)
-      end
+     describe 'with a query' do
+       before :all do
+         @new  = @articles.create(:content => 'New Article')
+         @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
 
-      it 'should return a Collection' do
-        @return.should be_kind_of(DataMapper::Collection)
-      end
+         @return = @articles.all(:content => [ 'New Article' ])
+       end
 
-      it 'should be a new Collection' do
-        @return.should_not equal(@articles)
-      end
+       it 'should return a Collection' do
+         @return.should be_kind_of(DataMapper::Collection)
+       end
 
-      it 'should be expected Resources' do
-        @return.size.should == 1
-        @return.first.should equal(@new)
-      end
+       it 'should return a new instance' do
+         @return.should_not equal(@articles)
+       end
 
-      it 'should have a different query than original Collection' do
-        @return.query.should_not == @articles.query
-      end
+       it 'should be expected Resources' do
+         @return.size.should == 1
+         @return.first.should == @new
+       end
 
-      it 'should scope the Collection' do
-        @return.reload.should == @copy.entries.first(10).first(5)[1, 1]
-      end
-    end
+       it 'should have a different query than original Collection' do
+         @return.query.should_not equal(@articles.query)
+       end
+
+       it 'should scope the Collection' do
+         @return.reload.should == @copy.entries.select { |resource| resource.content == 'New Article' }
+       end
+     end
 
     describe 'with a query using raw conditions' do
       before do
@@ -311,8 +287,8 @@ share_examples_for 'Finder Interface' do
       end
 
       before :all do
-        @new = @articles.create(:content => 'New Article')
-        @copy = @articles.dup
+        @new  = @articles.create(:content => 'New Article')
+        @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
 
         @return = @articles.all(:conditions => [ 'content = ?', 'New Article' ])
       end
@@ -321,7 +297,7 @@ share_examples_for 'Finder Interface' do
         @return.should be_kind_of(DataMapper::Collection)
       end
 
-      it 'should be a new Collection' do
+      it 'should return a new instance' do
         @return.should_not equal(@articles)
       end
 
@@ -350,6 +326,11 @@ share_examples_for 'Finder Interface' do
   it { @articles.should respond_to(:at) }
 
   describe '#at' do
+    before :all do
+      @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
+      @copy.to_a
+    end
+
     describe 'with positive offset' do
       before :all do
         @return = @resource = @articles.at(0)
@@ -362,33 +343,33 @@ share_examples_for 'Finder Interface' do
       end
 
       it 'should return expected Resource' do
-        @resource.should == @article
+        @resource.should == @copy.entries.at(0)
       end
 
-      it "should #{'not' unless loaded} relate the Resource to the Collection" do
-        @resource.collection.equal?(@articles).should == loaded
-      end
-    end
-
-    describe 'with positive offset', 'after prepending to the collection' do
-      before :all do
-        @return = @resource = @articles.unshift(@other).at(0)
-      end
-
-      should_not_be_a_kicker
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should return expected Resource' do
-        @resource.should equal(@other)
-      end
-
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should equal(@articles)
+      it 'should orphan the Resource' do
+        @resource.collection.should_not equal(@articles)
       end
     end
+
+    # describe 'with positive offset', 'after prepending to the collection' do
+    #   before :all do
+    #     @return = @resource = @articles.unshift(@other).at(0)
+    #   end
+    #
+    #   should_not_be_a_kicker
+    #
+    #   it 'should return a Resource' do
+    #     @return.should be_kind_of(DataMapper::Resource)
+    #   end
+    #
+    #   it 'should return expected Resource' do
+    #     @resource.should equal(@other)
+    #   end
+    #
+    #   it 'should relate the Resource to the Collection' do
+    #     @resource.collection.should equal(@articles)
+    #   end
+    # end
 
     describe 'with negative offset' do
       before :all do
@@ -402,40 +383,40 @@ share_examples_for 'Finder Interface' do
       end
 
       it 'should return expected Resource' do
-        @resource.should == @article
+        @resource.should == @copy.entries.at(-1)
       end
 
-      it "should #{'not' unless loaded} relate the Resource to the Collection" do
-        @resource.collection.equal?(@articles).should == loaded
-      end
-    end
-
-    describe 'with negative offset', 'after appending to the collection' do
-      before :all do
-        @return = @resource = @articles.push(@other).at(-1)
-      end
-
-      should_not_be_a_kicker
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should return expected Resource' do
-        @resource.should equal(@other)
-      end
-
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should equal(@articles)
+      it 'should orphan the Resource' do
+        @resource.collection.should_not equal(@articles)
       end
     end
+
+    # describe 'with negative offset', 'after appending to the collection' do
+    #   before :all do
+    #     @return = @resource = @articles.push(@other).at(-1)
+    #   end
+    #
+    #   should_not_be_a_kicker
+    #
+    #   it 'should return a Resource' do
+    #     @return.should be_kind_of(DataMapper::Resource)
+    #   end
+    #
+    #   it 'should return expected Resource' do
+    #     @resource.should equal(@other)
+    #   end
+    #
+    #   it 'should relate the Resource to the Collection' do
+    #     @resource.collection.should equal(@articles)
+    #   end
+    # end
   end
 
   it { @articles.should respond_to(:first) }
 
   describe '#first' do
     before :all do
-      @copy = @articles.dup
+      @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
       @copy.to_a
     end
 
@@ -448,40 +429,36 @@ share_examples_for 'Finder Interface' do
         @return.should be_kind_of(DataMapper::Resource)
       end
 
-      it 'should return expected Resource' do
-        @resource.should == @article
-      end
-
       it 'should be first Resource in the Collection' do
         @resource.should == @copy.entries.first
       end
 
-      it 'should not relate the Resource to the Collection' do
+      it 'should orphan the Resource' do
         @resource.collection.should_not equal(@articles)
       end
     end
 
-    describe 'with no arguments', 'after prepending to the collection' do
-      before :all do
-        @return = @resource = @articles.unshift(@other).first
-      end
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should return expected Resource' do
-        @resource.should equal(@other)
-      end
-
-      it 'should be first Resource in the Collection' do
-        @resource.should equal(@copy.entries.unshift(@other).first)
-      end
-
-      it 'should not relate the Resource to the Collection' do
-        @resource.collection.should_not equal(@articles)
-      end
-    end
+    # describe 'with no arguments', 'after prepending to the collection' do
+    #   before :all do
+    #     @return = @resource = @articles.unshift(@other).first
+    #   end
+    #
+    #   it 'should return a Resource' do
+    #     @return.should be_kind_of(DataMapper::Resource)
+    #   end
+    #
+    #   it 'should return expected Resource' do
+    #     @resource.should equal(@other)
+    #   end
+    #
+    #   it 'should be first Resource in the Collection' do
+    #     @resource.should equal(@copy.entries.unshift(@other).first)
+    #   end
+    #
+    #   it 'should not relate the Resource to the Collection' do
+    #     @resource.collection.should_not equal(@articles)
+    #   end
+    # end
 
     describe 'with empty query' do
       before :all do
@@ -492,40 +469,36 @@ share_examples_for 'Finder Interface' do
         @return.should be_kind_of(DataMapper::Resource)
       end
 
-      it 'should return expected Resource' do
-        @resource.should == @article
-      end
-
       it 'should be first Resource in the Collection' do
         @resource.should == @copy.entries.first
       end
 
-      it 'should not relate the Resource to the Collection' do
+      it 'should orphan the Resource' do
         @resource.collection.should_not equal(@articles)
       end
     end
 
-    describe 'with empty query', 'after prepending to the collection' do
-      before :all do
-        @return = @resource = @articles.unshift(@other).first({})
-      end
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should return expected Resource' do
-        @resource.should equal(@other)
-      end
-
-      it 'should be first Resource in the Collection' do
-        @resource.should equal(@copy.entries.unshift(@other).first)
-      end
-
-      it 'should not relate the Resource to the Collection' do
-        @resource.collection.should_not equal(@articles)
-      end
-    end
+    # describe 'with empty query', 'after prepending to the collection' do
+    #   before :all do
+    #     @return = @resource = @articles.unshift(@other).first({})
+    #   end
+    #
+    #   it 'should return a Resource' do
+    #     @return.should be_kind_of(DataMapper::Resource)
+    #   end
+    #
+    #   it 'should return expected Resource' do
+    #     @resource.should equal(@other)
+    #   end
+    #
+    #   it 'should be first Resource in the Collection' do
+    #     @resource.should equal(@copy.entries.unshift(@other).first)
+    #   end
+    #
+    #   it 'should not relate the Resource to the Collection' do
+    #     @resource.collection.should_not equal(@articles)
+    #   end
+    # end
 
     describe 'with a query' do
       before :all do
@@ -540,7 +513,7 @@ share_examples_for 'Finder Interface' do
         @resource.should == @article
       end
 
-      it 'should not relate the Resource to the Collection' do
+      it 'should orphan the Resource' do
         @resource.collection.should_not equal(@articles)
       end
     end
@@ -554,10 +527,6 @@ share_examples_for 'Finder Interface' do
         @return.should be_kind_of(DataMapper::Collection)
       end
 
-      it 'should be the expected Collection' do
-        @resources.should == [ @article ]
-      end
-
       it 'should be the first N Resources in the Collection' do
         @resources.should == @copy.entries.first(1)
       end
@@ -567,27 +536,27 @@ share_examples_for 'Finder Interface' do
       end
     end
 
-    describe 'with limit specified', 'after prepending to the collection' do
-      before :all do
-        @return = @resources = @articles.unshift(@other).first(1)
-      end
-
-      it 'should return a Collection' do
-        @return.should be_kind_of(DataMapper::Collection)
-      end
-
-      it 'should be the expected Collection' do
-        @resources.should == [ @other ]
-      end
-
-      it 'should be the first N Resources in the Collection' do
-        @resources.should == @copy.entries.unshift(@other).first(1)
-      end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      end
-    end
+    # describe 'with limit specified', 'after prepending to the collection' do
+    #   before :all do
+    #     @return = @resources = @articles.unshift(@other).first(1)
+    #   end
+    #
+    #   it 'should return a Collection' do
+    #     @return.should be_kind_of(DataMapper::Collection)
+    #   end
+    #
+    #   it 'should be the expected Collection' do
+    #     @resources.should == [ @other ]
+    #   end
+    #
+    #   it 'should be the first N Resources in the Collection' do
+    #     @resources.should == @copy.entries.unshift(@other).first(1)
+    #   end
+    #
+    #   it 'should orphan the Resources' do
+    #     @resources.each { |resource| resource.collection.should_not equal(@articles) }
+    #   end
+    # end
 
     describe 'with limit and query specified' do
       before :all do
@@ -628,7 +597,7 @@ share_examples_for 'Finder Interface' do
         @resource.should be_saved
       end
 
-      it 'should not relate the Resource to the Collection' do
+      it 'should orphan the Resource' do
         @resource.collection.should_not equal(@articles)
       end
     end
@@ -646,16 +615,16 @@ share_examples_for 'Finder Interface' do
       end
 
       it 'should be expected Resource' do
-        @resource.attributes.only(:title, :content).should == { :title => 'Sample Article', :content => 'Unknown Content' }
+        @resource.attributes.only(*@conditions.keys).should == @conditions
       end
 
       it 'should be a saved Resource' do
         @resource.should be_saved
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should equal(@articles)
-      end
+      # it 'should relate the Resource' do
+      #   @resource.collection.should equal(@articles)
+      # end
     end
   end
 
@@ -679,7 +648,7 @@ share_examples_for 'Finder Interface' do
         @resource.should be_saved
       end
 
-      it 'should not relate the Resource to the Collection' do
+      it 'should orphan the Resource' do
         @resource.collection.should_not equal(@articles)
       end
     end
@@ -697,215 +666,144 @@ share_examples_for 'Finder Interface' do
       end
 
       it 'should be expected Resource' do
-        @resource.attributes.only(:title, :content).should == { :title => 'Sample Article', :content => 'Unknown Content' }
+        @resource.attributes.only(*@conditions.keys).should == @conditions
       end
 
       it 'should not be a saved Resource' do
         @resource.should be_new
       end
 
-      it 'should relate the Resource to the Collection' do
-        @resource.collection.should equal(@articles)
-      end
+      # it 'should relate the Resource' do
+      #   @resource.collection.should equal(@articles)
+      # end
     end
   end
 
-  it { @articles.should respond_to(:get) }
+  [ :get, :get! ].each do |method|
+    it { @articles.should respond_to(method) }
 
-  describe '#get' do
-    describe 'with a key to a Resource within the Collection' do
-      before :all do
-        @return = @resource = @articles.get(*@article.key)
-      end
+    describe "##{method}" do
+      describe 'with a key to a Resource within the Collection' do
+        before :all do
+          unless @skip
+            @return = @resource = @articles.send(method, *@article.key)
+          end
+        end
 
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
 
-      it 'should be matching Resource in the Collection' do
-        @resource.should == @article
-      end
-    end
+        it 'should be matching Resource in the Collection' do
+          @resource.should == @article
+        end
 
-    describe 'with a key to a Resource not within the Collection' do
-      before :all do
-        @return = @articles.get(*@other.key)
-      end
-
-      it 'should return nil' do
-        @return.should be_nil
-      end
-    end
-
-    describe 'with a key not typecast' do
-      before :all do
-        @return = @resource = @articles.get(*@article.key.map { |value| value.to_s })
-      end
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should be matching Resource in the Collection' do
-        @resource.should == @article
-      end
-    end
-
-    describe 'with a key to a Resource within a Collection using a limit' do
-      before :all do
-        @articles = @articles.all(:limit => 1)
-
-        @return = @resource = @articles.get(*@article.key)
-      end
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should be matching Resource in the Collection' do
-        @resource.should == @article
-      end
-    end
-
-    describe 'with a key to a Resource within a Collection using an offset' do
-      before :all do
-        @new = @articles.create(:content => 'New Article')  # TODO: freeze @new
-        @articles = @articles.all(:offset => 1, :limit => 1)
-
-        @return = @resource = @articles.get(*@new.key)
-      end
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should be matching Resource in the Collection' do
-        @resource.should equal(@new)
-      end
-    end
-
-    describe 'with a key that is nil' do
-      before :all do
-        @return = @resource = @articles.get(nil)
-      end
-
-      it 'should return nil' do
-        @return.should be_nil
-      end
-    end
-
-    describe 'with a key that is an empty String' do
-      before :all do
-        @return = @resource = @articles.get('')
-      end
-
-      it 'should return nil' do
-        @return.should be_nil
-      end
-    end
-  end
-
-  it { @articles.should respond_to(:get!) }
-
-  describe '#get!' do
-    describe 'with a key to a Resource within the Collection' do
-      before :all do
-        unless @skip
-          @return = @resource = @articles.get!(*@article.key)
+        it 'should orphan the Resource' do
+          @resource.collection.should_not equal(@articles)
         end
       end
 
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
+      describe 'with a key not typecast' do
+        before :all do
+          unless @skip
+            @return = @resource = @articles.send(method, *@article.key.map { |value| value.to_s })
+          end
+        end
 
-      it 'should be matching Resource in the Collection' do
-        @resource.should == @article
-      end
-    end
+        it 'should return a Resource' do
+          @return.should be_kind_of(DataMapper::Resource)
+        end
 
-    describe 'with a key to a Resource not within the Collection' do
-      it 'should raise an exception' do
-        lambda {
-          @articles.get!(99)
-        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@article_model} with key [99] in collection")
-      end
-    end
+        it 'should be matching Resource in the Collection' do
+          @resource.should == @article
+        end
 
-    describe 'with a key not typecast' do
-      before :all do
-        unless @skip
-          @return = @resource = @articles.get!(*@article.key.map { |value| value.to_s })
+        it 'should orphan the Resource' do
+          @resource.collection.should_not equal(@articles)
         end
       end
 
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
+      # describe 'with a key to a Resource within a Collection using a limit' do
+      #   before :all do
+      #     @articles = @articles.all(:limit => 1)
+      #
+      #     @return = @resource = @articles.send(method, *@article.key)
+      #   end
+      #
+      #   it 'should return a Resource' do
+      #     @return.should be_kind_of(DataMapper::Resource)
+      #   end
+      #
+      #   it 'should be matching Resource in the Collection' do
+      #     @resource.should == @article
+      #   end
+      #
+      #   it 'should orphan the Resource' do
+      #     @resource.collection.should_not equal(@articles)
+      #   end
+      # end
+      #
+      # describe 'with a key to a Resource within a Collection using an offset' do
+      #   before :all do
+      #     @new = @articles.create(:content => 'New Article')  # TODO: freeze @new
+      #     @articles = @articles.all(:offset => 1, :limit => 1)
+      #
+      #     @return = @resource = @articles.send(method, *@new.key)
+      #   end
+      #
+      #   it 'should return a Resource' do
+      #     @return.should be_kind_of(DataMapper::Resource)
+      #   end
+      #
+      #   it 'should be matching Resource in the Collection' do
+      #     @resource.should equal(@new)
+      #   end
+      #
+      #   it 'should orphan the Resource' do
+      #     @resource.collection.should_not equal(@articles)
+      #   end
+      # end
 
-      it 'should be matching Resource in the Collection' do
-        @resource.should == @article
-      end
-    end
-
-    describe 'with a key to a Resource within a Collection using a limit' do
-      before :all do
-        unless @skip
-          @articles = @articles.all(:limit => 1)
-
-          @return = @resource = @articles.get!(*@article.key)
+      describe 'with a key to a Resource not within the Collection' do
+        if method == :get
+          it 'should return nil' do
+            @articles.get(99).should be_nil
+          end
+        else
+          it 'should raise an exception' do
+            lambda {
+              @articles.get!(99)
+            }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@article_model} with key \[99\]")
+          end
         end
       end
 
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should be matching Resource in the Collection' do
-        @resource.should == @article
-      end
-    end
-
-    describe 'with a key to a Resource within a Collection using an offset' do
-      before :all do
-        unless @skip
-          @new = @articles.create(:content => 'New Article')  # TODO: freeze @new
-          @articles = @articles.all(:offset => 1, :limit => 1)
-
-          @return = @resource = @articles.get!(*@new.key)
+      describe 'with a key that is nil' do
+        if method == :get
+          it 'should return nil' do
+            @articles.get(nil).should be_nil
+          end
+        else
+          it 'should raise an exception' do
+            lambda {
+              @articles.get!(nil)
+            }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@article_model} with key [nil]")
+          end
         end
       end
 
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should be matching Resource in the Collection' do
-        @resource.should equal(@new)
-      end
-    end
-
-    describe 'with a key that is nil' do
-      before :all do
-        @key = nil
-      end
-
-      it 'should raise an exception' do
-        lambda {
-          @articles.get!(@key)
-        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@article_model} with key [#{@key.inspect}] in collection")
-      end
-    end
-
-    describe 'with a key that is an empty String' do
-      before :all do
-        @key = ''
-      end
-
-      it 'should raise an exception' do
-        lambda {
-          @articles.get!(@key)
-        }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@article_model} with key [#{@key.inspect}] in collection")
+      describe 'with a key that is an empty String' do
+        if method == :get
+          it 'should return nil' do
+            @articles.get('').should be_nil
+          end
+        else
+          it 'should raise an exception' do
+            lambda {
+              @articles.get!('')
+            }.should raise_error(DataMapper::ObjectNotFoundError, "Could not find #{@article_model} with key [\"\"]")
+          end
+        end
       end
     end
   end
@@ -914,7 +812,7 @@ share_examples_for 'Finder Interface' do
 
   describe '#last' do
     before :all do
-      @copy = @articles.dup
+      @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
       @copy.to_a
     end
 
@@ -927,40 +825,36 @@ share_examples_for 'Finder Interface' do
         @return.should be_kind_of(DataMapper::Resource)
       end
 
-      it 'should return expected Resource' do
-        @resource.should == @article
-      end
-
       it 'should be last Resource in the Collection' do
         @resource.should == @copy.entries.last
       end
 
-      it 'should not relate the Resource to the Collection' do
-        @resource.collection.should_not equal(@articles)
-      end
+      # it 'should not relate the Resource to the Collection' do
+      #   @resource.collection.should_not equal(@articles)
+      # end
     end
 
-    describe 'with no arguments', 'after appending to the collection' do
-      before :all do
-        @return = @resource = @articles.push(@other).last
-      end
-
-      it 'should return a Resource' do
-        @return.should be_kind_of(DataMapper::Resource)
-      end
-
-      it 'should return expected Resource' do
-        @resource.should equal(@other)
-      end
-
-      it 'should be last Resource in the Collection' do
-        @resource.should equal(@copy.entries.push(@other).last)
-      end
-
-      it 'should not relate the Resource to the Collection' do
-        @resource.collection.should_not equal(@articles)
-      end
-    end
+    # describe 'with no arguments', 'after appending to the collection' do
+    #   before :all do
+    #     @return = @resource = @articles.push(@other).last
+    #   end
+    #
+    #   it 'should return a Resource' do
+    #     @return.should be_kind_of(DataMapper::Resource)
+    #   end
+    #
+    #   it 'should return expected Resource' do
+    #     @resource.should equal(@other)
+    #   end
+    #
+    #   it 'should be last Resource in the Collection' do
+    #     @resource.should equal(@copy.entries.push(@other).last)
+    #   end
+    #
+    #   it 'should not relate the Resource to the Collection' do
+    #     @resource.collection.should_not equal(@articles)
+    #   end
+    # end
 
     describe 'with a query' do
       before :all do
@@ -975,9 +869,9 @@ share_examples_for 'Finder Interface' do
         @resource.should == @article
       end
 
-      it 'should not relate the Resource to the Collection' do
-        @resource.collection.should_not equal(@articles)
-      end
+      # it 'should not relate the Resource to the Collection' do
+      #   @resource.collection.should_not equal(@articles)
+      # end
     end
 
     describe 'with limit specified' do
@@ -989,40 +883,36 @@ share_examples_for 'Finder Interface' do
         @return.should be_kind_of(DataMapper::Collection)
       end
 
-      it 'should be the expected Collection' do
-        @resources.should == [ @article ]
-      end
-
       it 'should be the last N Resources in the Collection' do
         @resources.should == @copy.entries.last(1)
       end
 
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      end
+      # it 'should orphan the Resources' do
+      #   @resources.each { |resource| resource.collection.should_not equal(@articles) }
+      # end
     end
 
-    describe 'with limit specified', 'after appending to the collection' do
-      before :all do
-        @return = @resources = @articles.push(@other).last(1)
-      end
-
-      it 'should return a Collection' do
-        @return.should be_kind_of(DataMapper::Collection)
-      end
-
-      it 'should be the expected Collection' do
-        @resources.should == [ @other ]
-      end
-
-      it 'should be the last N Resources in the Collection' do
-        @resources.should == @copy.entries.push(@other).last(1)
-      end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      end
-    end
+    # describe 'with limit specified', 'after appending to the collection' do
+    #   before :all do
+    #     @return = @resources = @articles.push(@other).last(1)
+    #   end
+    #
+    #   it 'should return a Collection' do
+    #     @return.should be_kind_of(DataMapper::Collection)
+    #   end
+    #
+    #   it 'should be the expected Collection' do
+    #     @resources.should == [ @other ]
+    #   end
+    #
+    #   it 'should be the last N Resources in the Collection' do
+    #     @resources.should == @copy.entries.push(@other).last(1)
+    #   end
+    #
+    #  it 'should orphan the Resources' do
+    #    @resources.each { |resource| resource.collection.should_not equal(@articles) }
+    #   end
+    # end
 
     describe 'with limit and query specified' do
       before :all do
@@ -1037,9 +927,9 @@ share_examples_for 'Finder Interface' do
         @resources.should == [ @article ]
       end
 
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      end
+      # it 'should orphan the Resources' do
+      #   @resources.each { |resource| resource.collection.should_not equal(@articles) }
+      # end
     end
   end
 
@@ -1059,11 +949,204 @@ share_examples_for 'Finder Interface' do
     end
 
     it 'should return a Collection with reversed entries' do
-      @return.should == [ @new, @article ]
+      @return.should == @articles.entries.reverse
     end
 
     it 'should return a Query that is the reverse of the original' do
       @return.query.should == @query.reverse
+    end
+  end
+
+  it 'should respond to a belongs_to relationship method with #method_missing' do
+    pending_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
+      @articles.should respond_to(:original)
+    end
+  end
+
+  it 'should respond to a has n relationship method with #method_missing' do
+    pending_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
+      @articles.should respond_to(:revisions)
+    end
+  end
+
+  it 'should respond to a has 1 relationship method with #method_missing' do
+    pending_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
+      @articles.should respond_to(:previous)
+    end
+  end
+
+  describe '#method_missing' do
+    before do
+      pending 'Model#method_missing should delegate to relationships' if @articles.kind_of?(Class)
+    end
+
+    describe 'with a belongs_to relationship method' do
+      before :all do
+        rescue_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
+          @return = @collection = @articles.originals
+        end
+      end
+
+      # FIXME: this is spec order dependent, move this into a helper method
+      # and execute in the before :all block
+      unless loaded
+        it 'should not be a kicker' do
+          pending do
+            @articles.should_not be_loaded
+          end
+        end
+      end
+
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
+
+      it 'should return expected Collection' do
+        @collection.should == [ @original ]
+      end
+    end
+
+    describe 'with a has n relationship method' do
+      before :all do
+        @new = @articles.new
+
+        # associate the article with children
+        @article.revisions << @new
+        @new.revisions     << @other
+
+        @article.save
+        @new.save
+      end
+
+      describe 'with no arguments' do
+        before :all do
+          @return = @collection = @articles.revisions
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          @collection.should == [ @other, @new ]
+        end
+      end
+
+      describe 'with arguments' do
+        before :all do
+          @return = @collection = @articles.revisions(:fields => [ :id ])
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          @collection.should == [ @other, @new ]
+        end
+
+        { :id => true, :title => false, :content => false }.each do |attribute, expected|
+          it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
+            @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
+          end
+        end
+      end
+    end
+
+    describe 'with a has 1 relationship method' do
+      before :all do
+        @new = @articles.new
+
+        @article.previous = @new
+        @new.previous     = @other
+
+        @article.save
+        @new.save
+      end
+
+      describe 'with no arguments' do
+        before :all do
+          @return = @articles.previous
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          # association is sorted reverse by id
+          @return.should == [ @new, @other ]
+        end
+      end
+
+      describe 'with arguments' do
+        before :all do
+          @return = @articles.previous(:fields => [ :id ])
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          # association is sorted reverse by id
+          @return.should == [ @new, @other ]
+        end
+
+        { :id => true, :title => false, :content => false }.each do |attribute, expected|
+          it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
+            @return.each { |resource| resource.attribute_loaded?(attribute).should == expected }
+          end
+        end
+      end
+    end
+
+    describe 'with an unknown method' do
+      it 'should raise an exception' do
+        lambda {
+          @articles.unknown
+        }.should raise_error(NoMethodError)
+      end
     end
   end
 end

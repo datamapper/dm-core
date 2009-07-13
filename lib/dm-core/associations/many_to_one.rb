@@ -110,8 +110,8 @@ module DataMapper
           assert_kind_of 'source', source, source_model
 
           lazy_load(source) unless loaded?(source)
-          resource = get!(source)
 
+          resource = get!(source)
           if other_query.nil? || query_for(source, other_query).conditions.matches?(resource)
             resource
           end

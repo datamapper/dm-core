@@ -81,7 +81,9 @@ module DataMapper
           assert_kind_of 'source', source, source_model
 
           lazy_load(source) unless loaded?(source)
-          get!(source).all(other_query)
+
+          collection = get!(source)
+          other_query.nil? ? collection : collection.all(other_query)
         end
 
         # Sets value of association targets (ex.: paragraphs) for given source resource
@@ -93,6 +95,7 @@ module DataMapper
           assert_kind_of 'targets', targets, Array
 
           lazy_load(source) unless loaded?(source)
+
           get!(source).replace(targets)
         end
 
@@ -300,8 +303,8 @@ module DataMapper
         def _save(safe)
           assert_source_saved 'The source must be saved before saving the collection'
 
-          # remove reference to source in orphans
-          @orphans.all? { |resource| resource.send(safe ? :save : :save!) } && super
+          # update removed resources to not reference the source
+          @removed.all? { |resource| resource.send(safe ? :save : :save!) } && super
         end
 
         # TODO: document
@@ -332,14 +335,14 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def relate_resource(resource)
+        def resource_added(resource)
           inverse_set(resource, source)
           super
         end
 
         # TODO: document
         # @api private
-        def orphan_resource(resource)
+        def resource_removed(resource)
           inverse_set(resource, nil)
           super
         end

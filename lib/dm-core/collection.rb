@@ -115,10 +115,7 @@ module DataMapper
     def get(*key)
       key = model.key(repository.name).typecast(key)
 
-      if resource = @identity_map[key]
-        # find cached resource
-        resource
-      elsif !loaded? && (query.limit || query.offset > 0)
+      resource = @identity_map[key] || if !loaded? && (query.limit || query.offset > 0)
         # current query is exclusive, find resource within the set
 
         # TODO: use a subquery to retrieve the Collection and then match
@@ -136,6 +133,10 @@ module DataMapper
         # current query is all inclusive, lookup using normal approach
         first(model.key_conditions(repository, key))
       end
+
+      return if resource.nil?
+
+      orphan_resource(resource)
     end
 
     ##
@@ -156,7 +157,7 @@ module DataMapper
     #
     # @api public
     def get!(*key)
-      get(*key) || raise(ObjectNotFoundError, "Could not find #{model.name} with key #{key.inspect} in collection")
+      get(*key) || raise(ObjectNotFoundError, "Could not find #{model.name} with key #{key.inspect}")
     end
 
     ##
@@ -182,7 +183,7 @@ module DataMapper
     # @api public
     def all(query = nil)
       if query.nil? || (query.kind_of?(Hash) && query.empty?)
-        self
+        dup
       else
         # TODO: if there is no order parameter, and the Collection is not loaded
         # check to see if the query can be satisfied by the head/tail.
@@ -299,7 +300,8 @@ module DataMapper
     # @api public
     def at(offset)
       if loaded? || partially_loaded?(offset)
-        super
+        return unless resource = super
+        orphan_resource(resource)
       elsif offset >= 0
         first(:offset => offset)
       else
@@ -370,22 +372,22 @@ module DataMapper
     #
     # @api public
     def slice!(*args)
-      orphaned = super
+      removed = super
 
-      orphan_resources(orphaned) unless orphaned.nil?
+      resources_removed(removed) unless removed.nil?
 
       # Workaround for Ruby <= 1.8.6
       compact! if RUBY_VERSION <= '1.8.6'
 
-      unless orphaned.kind_of?(Enumerable)
-        return orphaned
+      unless removed.kind_of?(Enumerable)
+        return removed
       end
 
       offset, limit = extract_slice_arguments(*args)
 
       query = sliced_query(offset, limit)
 
-      new_collection(query, orphaned)
+      new_collection(query, removed)
     end
 
     ##
@@ -408,10 +410,13 @@ module DataMapper
       orphans = Array(superclass_slice(*args[0..-2]))
 
       # relate new resources
-      resources = relate_resources(super)
+      resources = resources_added(super)
 
-      # orphan resources that no longer exist in the collection elsewhere
-      orphan_resources(orphans - loaded_entries)
+      # mark resources as removed
+      resources_removed(orphans - loaded_entries)
+
+      # ensure remaining orphans are still related
+      (orphans & loaded_entries).each { |resource| relate_resource(resource) }
 
       resources
     end
@@ -459,7 +464,7 @@ module DataMapper
     #
     # @api public
     def collect!
-      super { |resource| relate_resource(yield(orphan_resource(resource))) }
+      super { |resource| resource_added(yield(resource_removed(resource))) }
     end
 
     alias map! collect!
@@ -478,7 +483,7 @@ module DataMapper
         resource = new(resource)
       end
 
-      relate_resource(resource)
+      resource_added(resource)
       super
     end
 
@@ -493,7 +498,7 @@ module DataMapper
     #
     # @api public
     def concat(resources)
-      relate_resources(resources)
+      resources_added(resources)
       super
     end
 
@@ -511,7 +516,7 @@ module DataMapper
     #
     # @api public
     def push(*resources)
-      relate_resources(resources)
+      resources_added(resources)
       super
     end
 
@@ -529,7 +534,7 @@ module DataMapper
     #
     # @api public
     def unshift(*resources)
-      relate_resources(resources)
+      resources_added(resources)
       super
     end
 
@@ -546,7 +551,7 @@ module DataMapper
     #
     # @api public
     def insert(offset, *resources)
-      relate_resources(resources)
+      resources_added(resources)
       super
     end
 
@@ -559,7 +564,7 @@ module DataMapper
     # @api public
     def pop
       return nil unless resource = super
-      orphan_resource(resource)
+      resource_removed(resource)
     end
 
     # Removes and returns the first Resource in the Collection
@@ -570,7 +575,7 @@ module DataMapper
     # @api public
     def shift
       return nil unless resource = super
-      orphan_resource(resource)
+      resource_removed(resource)
     end
 
     ##
@@ -591,7 +596,7 @@ module DataMapper
     # @api public
     def delete(resource)
       return nil unless resource = super
-      orphan_resource(resource)
+      resource_removed(resource)
     end
 
     ##
@@ -612,7 +617,7 @@ module DataMapper
     # @api public
     def delete_at(offset)
       return nil unless resource = super
-      orphan_resource(resource)
+      resource_removed(resource)
     end
 
     ##
@@ -624,7 +629,7 @@ module DataMapper
     #
     # @api public
     def delete_if
-      super { |resource| yield(resource) && orphan_resource(resource) }
+      super { |resource| yield(resource) && resource_removed(resource) }
     end
 
     ##
@@ -639,7 +644,7 @@ module DataMapper
     #
     # @api public
     def reject!
-      super { |resource| yield(resource) && orphan_resource(resource) }
+      super { |resource| yield(resource) && resource_removed(resource) }
     end
 
     ##
@@ -662,11 +667,10 @@ module DataMapper
       end
 
       if loaded?
-        orphan_resources(self - other)
+        resources_removed(self - other)
       end
 
-      relate_resources(other)
-      super(other)
+      super(resources_added(other))
     end
 
     ##
@@ -687,7 +691,7 @@ module DataMapper
     # @api public
     def clear
       if loaded?
-        orphan_resources(self)
+        resources_removed(self)
       end
       super
     end
@@ -961,7 +965,7 @@ module DataMapper
 
       @query        = query
       @identity_map = IdentityMap.new
-      @orphans      = Set.new
+      @removed      = Set.new
 
       super()
 
@@ -981,7 +985,7 @@ module DataMapper
       super
       @query        = @query.dup
       @identity_map = @identity_map.dup
-      @orphans      = @orphans.dup
+      @removed      = @removed.dup
     end
 
     # TODO: document
@@ -1013,7 +1017,7 @@ module DataMapper
       # remove already known results
       resources -= head          if head.any?
       resources -= tail          if tail.any?
-      resources -= @orphans.to_a if @orphans.any?
+      resources -= @removed.to_a if @removed.any?
 
       query.add_reversed? ? unshift(*resources.reverse) : concat(resources)
 
@@ -1034,6 +1038,7 @@ module DataMapper
     #   Resources in the collection
     #
     # @api private
+    # TODO: push this to LazyArray
     def loaded_entries
       loaded? ? self : head + tail
     end
@@ -1110,15 +1115,8 @@ module DataMapper
     #
     # @api private
     def _save(safe)
-      resources = loaded_entries
-
-      # FIXME: remove this once the writer method on the child side
-      # is used to store the reference to the parent.
-      relate_resources(resources)
-
-      @orphans.clear
-
-      resources.all? { |resource| resource.send(safe ? :save : :save!) }
+      @removed.clear
+      loaded_entries.all? { |resource| resource.send(safe ? :save : :save!) }
     end
 
     ##
@@ -1180,29 +1178,7 @@ module DataMapper
         resource.collection = self
       end
 
-      if resource.saved?
-        @identity_map[resource.key] = resource
-        @orphans.delete(resource)
-      elsif !resource.frozen?
-        resource.attributes = default_attributes
-      end
-
       resource
-    end
-
-    ##
-    # Relate a list of Resources to the Collection
-    #
-    # @param [Enumerable] resources
-    #   The list of Resources to relate
-    #
-    # @api private
-    def relate_resources(resources)
-      if resources.kind_of?(Enumerable)
-        resources.each { |resource| relate_resource(resource) }
-      else
-        relate_resource(resources)
-      end
     end
 
     ##
@@ -1225,26 +1201,49 @@ module DataMapper
         resource.collection = nil
       end
 
-      if resource.saved?
-        @identity_map.delete(resource.key)
-        @orphans << resource
-      end
-
       resource
     end
 
-    ##
-    # Orphan a list of Resources from the Collection
-    #
-    # @param [Enumerable] resources
-    #   The list of Resources to orphan
-    #
+    # TODO: documents
     # @api private
-    def orphan_resources(resources)
+    def resource_added(resource)
+      if resource.saved?
+        @identity_map[resource.key] = resource
+      elsif !resource.frozen?
+        resource.attributes = default_attributes
+      end
+
+      relate_resource(resource)
+    end
+
+    # TODO: documents
+    # @api private
+    def resources_added(resources)
       if resources.kind_of?(Enumerable)
-        resources.each { |resource| orphan_resource(resource) }
+        resources.each { |resource| resource_added(resource) }
       else
-        orphan_resource(resources)
+        resource_added(resources)
+      end
+    end
+
+    # TODO: documents
+    # @api private
+    def resource_removed(resource)
+      if resource.saved?
+        @identity_map.delete(resource.key)
+        @removed << resource
+      end
+
+      orphan_resource(resource)
+    end
+
+    # TODO: documents
+    # @api private
+    def resources_removed(resources)
+      if resources.kind_of?(Enumerable)
+        resources.each { |resource| resource_removed(resource) }
+      else
+        resource_removed(resources)
       end
     end
 
@@ -1275,7 +1274,7 @@ module DataMapper
     # @api private
     def scoped_query(query)
       if query.kind_of?(Query)
-        query
+        query.dup
       else
         self.query.relative(query)
       end

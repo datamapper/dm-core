@@ -236,6 +236,27 @@ module DataMapper
       get(*key) || raise(ObjectNotFoundError, "Could not find #{self.name} with key #{key.inspect}")
     end
 
+    def [](*args)
+      all[*args]
+    end
+
+    alias slice []
+
+    def at(*args)
+      all.at(*args)
+    end
+
+    def reverse
+      all.reverse
+    end
+
+    # TODO: spec this
+    def entries
+      all.entries
+    end
+
+    alias to_a entries
+
     ##
     # Find a set of records matching an optional set of conditions. Additionally,
     # specify the order that the records are return.
@@ -255,7 +276,7 @@ module DataMapper
     def all(query = nil)
       if query.nil? || (query.kind_of?(Hash) && query.empty?)
         # TODO: after adding Enumerable methods to Model, try to return self here
-        new_collection(self.query)
+        new_collection(self.query.dup)
       else
         new_collection(scoped_query(query))
       end
@@ -281,7 +302,9 @@ module DataMapper
       end
     end
 
-    # TODO: add #last
+    def last(*args)
+      all.last(*args)
+    end
 
     ##
     # Finds the first Resource by conditions, or initializes a new
@@ -606,7 +629,7 @@ module DataMapper
     # TODO: move the logic to create relative query into Query
     def scoped_query(query)
       if query.kind_of?(Query)
-        query
+        query.dup
       else
         repository = if query.key?(:repository)
           query      = query.dup
@@ -632,6 +655,7 @@ module DataMapper
     # @api private
     def assert_valid # :nodoc:
       return if @valid
+      @valid = true
 
       if properties(repository_name).empty? &&
         !relationships(repository_name).any? { |(relationship_name, relationship)| relationship.kind_of?(Associations::ManyToOne::Relationship) }
@@ -649,8 +673,6 @@ module DataMapper
           relationship.through if relationship.respond_to?(:through)
         end
       end
-
-      @valid = true
     end
   end # module Model
 end # module DataMapper

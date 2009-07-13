@@ -89,6 +89,12 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
+        def hash
+          @operands.sort_by { |operand| operand.hash }.hash
+        end
+
+        # TODO: document
+        # @api semipublic
         def ==(other)
           if equal?(other)
             return true
@@ -144,7 +150,7 @@ module DataMapper
         # TODO: document
         # @api private
         def cmp?(other, operator)
-          @operands.send(operator, other.operands)
+          @operands.sort_by { |operand| operand.hash }.send(operator, other.operands.sort_by { |operand| operand.hash })
         end
       end # class AbstractOperation
 

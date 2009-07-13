@@ -1,5 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
+# TODO: move these specs into shared specs for #copy
 describe DataMapper::Model do
   before :all do
     module ::Blog
@@ -100,5 +101,44 @@ describe DataMapper::Model do
         end
       end
     end
+  end
+end
+
+describe DataMapper::Model do
+  extend DataMapper::Spec::CollectionHelpers::GroupMethods
+
+  self.loaded = false
+
+  before :all do
+    module ::Blog
+      class Article
+        include DataMapper::Resource
+
+        property :id,      Serial
+        property :title,   String
+        property :content, Text
+
+        belongs_to :original, self, :nullable => true
+        has n, :revisions, self, :child_key => [ :original_id ]
+        has 1, :previous,  self, :child_key => [ :original_id ], :order => [ :id.desc ]
+      end
+    end
+
+    @article_model = Blog::Article
+  end
+
+  supported_by :all do
+    # model cannot be a kicker
+    def should_not_be_a_kicker; end
+
+    before :all do
+      @articles = @article_model
+
+      @original = @articles.create(:title => 'Original Article'                      )
+      @article  = @articles.create(:title => 'Sample Article',   :content => 'Sample')
+      @other    = @articles.create(:title => 'Other Article',    :content => 'Other' )
+    end
+
+    it_should_behave_like 'Finder Interface'
   end
 end
