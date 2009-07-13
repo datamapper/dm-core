@@ -294,23 +294,28 @@ module DataMapper
           options[:model] = options.delete(:class_name)
         end
 
+        if options.key?(:remote_name)
+          assert_kind_of 'options[:remote_name]', options[:remote_name], Symbol
+          warn "+options[:remote_name]+ is deprecated, use :via instead (#{caller[1]})"
+          options[:via] = options.delete(:remote_name)
+        end
+
+        if options.key?(:through)
+          assert_kind_of 'options[:through]', options[:through], Symbol, Module
+        end
+
+        [ :via, :inverse ].each do |key|
+          if options.key?(key)
+            assert_kind_of "options[#{key.inspect}]", options[key], Symbol, Associations::Relationship
+          end
+        end
+
         # TODO: deprecate :child_key and :parent_key in favor of :source_key and
         # :target_key (will mean something different for each relationship)
 
         [ :child_key, :parent_key ].each do |key|
           if options.key?(key)
             assert_kind_of "options[#{key.inspect}]", options[key], Enumerable
-          end
-        end
-
-        # TODO: move this into ManyToMany::Relationship#through
-        if options.key?(:through) && options[:through] != Resource
-          assert_kind_of 'options[:through]', options[:through], Associations::Relationship, Symbol, Module
-
-          if (through = options[:through]).kind_of?(Symbol)
-            unless options[:through] = relationships(repository.name)[through]
-              raise ArgumentError, "through refers to an unknown relationship #{through} in #{self} within the #{repository.name} repository"
-            end
           end
         end
 

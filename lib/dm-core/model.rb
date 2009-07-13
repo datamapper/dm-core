@@ -671,6 +671,7 @@ module DataMapper
         relationships.each_value do |relationship|
           relationship.child_key
           relationship.through if relationship.respond_to?(:through)
+          relationship.via     if relationship.respond_to?(:via)
         end
       end
     end

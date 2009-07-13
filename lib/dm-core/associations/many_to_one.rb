@@ -16,14 +16,6 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        alias source_model? child_model?
-
-        # TODO: document
-        # @api semipublic
-        alias source_key? child_key?
-
-        # TODO: document
-        # @api semipublic
         alias target_repository_name parent_repository_name
 
         # TODO: document
@@ -32,15 +24,7 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        alias target_model? parent_model?
-
-        # TODO: document
-        # @api semipublic
         alias target_key parent_key
-
-        # TODO: document
-        # @api semipublic
-        alias target_key? parent_key?
 
         # TODO: document
         # @api semipublic
@@ -58,7 +42,7 @@ module DataMapper
           repository_name = child_repository_name || parent_repository_name
           properties      = child_model.properties(repository_name)
 
-          child_key = parent_key.zip(child_properties || []).map do |parent_property, property_name|
+          child_key = parent_key.zip(@child_properties || []).map do |parent_property, property_name|
             property_name ||= "#{name}_#{parent_property.name}".to_sym
 
             properties[property_name] || begin
@@ -142,7 +126,8 @@ module DataMapper
         # TODO: document
         # @api private
         def inherited_by(model)
-          self.class.new(name, model, parent_model_name, options_with_inverse)
+          model.relationships(source_repository_name)[name] ||
+            self.class.new(name, model, parent_model_name, options_with_inverse)
         end
 
         private
@@ -155,12 +140,6 @@ module DataMapper
           target_model ||= Extlib::Inflection.camelize(name)
           options        = { :min => @nullable ? 0 : 1, :max => 1 }.update(options)
           super
-        end
-
-        # TODO: document
-        # @api private
-        def child_key_options(parent_property)
-          parent_property.options.only(:length, :size, :precision, :scale).update(:index => name, :nullable => nullable?)
         end
 
         # Dynamically defines reader method for source side of association
@@ -228,7 +207,19 @@ module DataMapper
         #
         # @api private
         def inverse_name
-          @inverse_name ||= Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).pluralize.to_sym
+          super || Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).pluralize.to_sym
+        end
+
+        # TODO: document
+        # @api private
+        def child_key_options(parent_property)
+          parent_property.options.only(:length, :size, :precision, :scale).update(:index => name, :nullable => nullable?)
+        end
+
+        # TODO: document
+        # @api private
+        def child_properties
+          child_key.map { |property| property.name }
         end
       end # class Relationship
     end # module ManyToOne

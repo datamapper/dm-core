@@ -80,8 +80,8 @@ describe 'One to One Through Associations' do
         property :referrer_name, String, :key => true
         property :referree_name, String, :key => true
 
-        belongs_to :referrer, 'User', :child_key => [ :referrer_name ], :nullable => true
-        belongs_to :referree, 'User', :child_key => [ :referree_name ], :nullable => true
+        belongs_to :referrer, 'User', :child_key => [ :referrer_name ]
+        belongs_to :referree, 'User', :child_key => [ :referree_name ]
       end
 
       class User
@@ -93,8 +93,8 @@ describe 'One to One Through Associations' do
         property :description, Text
         property :admin,       Boolean, :accessor => :private
 
-        has 1, :referral_from, Referral, :child_key => [ :referrer_name ]
-        has 1, :referral_to,   Referral, :child_key => [ :referree_name ]
+        has 1, :referral_from, Referral, :child_key => [ :referree_name ]
+        has 1, :referral_to,   Referral, :child_key => [ :referrer_name ]
 
         has 1, :referrer, self, :through => :referral_from
         has 1, :referree, self, :through => :referral_to

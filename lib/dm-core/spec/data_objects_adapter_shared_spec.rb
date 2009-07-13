@@ -36,7 +36,7 @@ share_examples_for 'A DataObjects Adapter' do
   describe '#create' do
     describe 'serial properties' do
       before :all do
-        class Article
+        class ::Article
           include DataMapper::Resource
 
           property :id, Serial
@@ -67,7 +67,7 @@ share_examples_for 'A DataObjects Adapter' do
 
     describe 'properties without a default' do
       before :all do
-        class Article
+        class ::Article
           include DataMapper::Resource
 
           property :id,    Serial

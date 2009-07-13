@@ -12,14 +12,6 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        alias target_model? child_model?
-
-        # TODO: document
-        # @api semipublic
-        alias target_key? child_key?
-
-        # TODO: document
-        # @api semipublic
         alias source_repository_name parent_repository_name
 
         # TODO: document
@@ -28,15 +20,7 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        alias source_model? parent_model?
-
-        # TODO: document
-        # @api semipublic
         alias source_key parent_key
-
-        # TODO: document
-        # @api semipublic
-        alias source_key? parent_key?
 
         # TODO: document
         # @api semipublic
@@ -102,7 +86,8 @@ module DataMapper
         # TODO: document
         # @api private
         def inherited_by(model)
-          self.class.new(name, child_model_name, model, options_with_inverse)
+          model.relationships(source_repository_name)[name] ||
+            self.class.new(name, child_model_name, model, options_with_inverse)
         end
 
         private
@@ -179,7 +164,7 @@ module DataMapper
         #
         # @api private
         def inverse_name
-          @inverse_name ||= Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).to_sym
+          super || Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).to_sym
         end
       end # class Relationship
 

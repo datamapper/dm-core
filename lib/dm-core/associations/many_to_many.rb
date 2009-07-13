@@ -4,10 +4,25 @@ module DataMapper
       class Relationship < Associations::OneToMany::Relationship
         OPTIONS = (superclass::OPTIONS + [ :through, :via ]).freeze
 
-        # TODO: document
-        # @api private
+        ##
+        # Returns a set of keys that identify the target model
+        #
+        # @return [DataMapper::PropertySet]
+        #   a set of properties that identify the target model
+        #
+        # @api semipublic
         def child_key
-          relationship_child_key
+          return @child_key if defined?(@child_key)
+
+          repository_name = child_repository_name || parent_repository_name
+          properties      = child_model.properties(repository_name)
+
+          @child_key = if @child_properties
+            child_key = properties.values_at(*@child_properties)
+            properties.class.new(child_key).freeze
+          else
+            properties.key
+          end
         end
 
         # TODO: document
@@ -34,20 +49,22 @@ module DataMapper
         #
         # @api semipublic
         def through
-          return @through if explicit_through_relationship?
+          return @through if defined?(@through)
 
-          # habtm relationship traversal is deferred because we want the
-          # target_model and source_model constants to be defined, so we
-          # can define the join model within their common namespace
-
-          DataMapper.repository(source_repository_name) do
-            @through = source_model.has(min..max, join_relationship_name,  join_model,   one_to_many_options)
-            @via     = join_model.belongs_to(name.to_s.singularize.to_sym, target_model, many_to_one_options)
+          if options[:through].kind_of?(Associations::Relationship)
+            return @through = options[:through]
           end
 
-          # initialize the child_key now that the source, join and
-          # target models are defined
-          @via.child_key
+          repository_name = source_repository_name
+          relationships   = source_model.relationships(repository_name)
+          name            = through_relationship_name
+
+          @through = relationships[name] ||
+            DataMapper.repository(repository_name) do
+              source_model.has(min..max, name, through_model, one_to_many_options)
+            end
+
+          @through.child_key
 
           @through
         end
@@ -57,15 +74,23 @@ module DataMapper
         def via
           return @via if defined?(@via)
 
-          repository_name = through.relative_target_repository_name
-          relationships   = through.target_model.relationships(repository_name)
-          name            = (options[:via] || options[:remote_name] || self.name).to_s
-
-          unless via = relationships[name] || relationships[name.singularize]
-            raise NameError, "Cannot find relationship #{name.singularize} or #{name} in #{through.target_model} within the #{repository_name.inspect} repository"
+          if options[:via].kind_of?(Associations::Relationship)
+            return @via = options[:via]
           end
 
-          @via = via
+          repository_name = through.relative_target_repository_name
+          through_model   = through.target_model
+          relationships   = through_model.relationships(repository_name)
+          name            = via_relationship_name
+
+          @via = relationships[name] ||
+            DataMapper.repository(repository_name) do
+              through_model.belongs_to(name, target_model, many_to_one_options)
+            end
+
+          @via.child_key
+
+          @via
         end
 
         # TODO: document
@@ -101,29 +126,12 @@ module DataMapper
           @many_to_many_query ||= super.merge(:links => links).freeze
         end
 
-        # TODO: document
-        # @api private
-        def inherited_by(model)
-          relationship = super
-          if explicit_through_relationship? || target_model?
-            relationship.instance_variable_set(:@through, through.inherited_by(model))
-          end
-          relationship
-        end
-
         private
 
         # TODO: document
-        # @api semipublic
-        def initialize(name, source_model, target_model, options = {})
-          @through = options.fetch(:through)
-          super
-        end
-
-        # TODO: document
         # @api private
-        def join_model
-          namespace, name = join_model_namespace_name
+        def through_model
+          namespace, name = through_model_namespace_name
 
           if namespace.const_defined?(name)
             namespace.const_get(name)
@@ -143,7 +151,7 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def join_model_namespace_name
+        def through_model_namespace_name
           target_parts = target_model.base_model.name.split('::')
           source_parts = source_model.base_model.name.split('::')
 
@@ -162,16 +170,20 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def join_relationship_name
-          namespace = join_model_namespace_name.first
-          relationship_name = Extlib::Inflection.underscore(join_model.name.sub(/\A#{namespace.name}::/, '')).tr('/', '_')
-          relationship_name.pluralize.to_sym
+        def through_relationship_name
+          if options[:through] == Resource
+            namespace = through_model_namespace_name.first
+            relationship_name = Extlib::Inflection.underscore(through_model.name.sub(/\A#{namespace.name}::/, '')).tr('/', '_')
+            relationship_name.pluralize.to_sym
+          else
+            options[:through]
+          end
         end
 
         # TODO: document
         # @api private
-        def explicit_through_relationship?
-          @through != Resource
+        def via_relationship_name
+          options.fetch(:via, name.to_s.singularize.to_sym)
         end
 
         # TODO: document
@@ -336,10 +348,12 @@ module DataMapper
         # TODO: document
         # @api private
         def create_intermediary(safe, attributes = {})
-          return unless intermediaries.send(safe ? :save : :save!)
+          collection = intermediaries
 
-          intermediary = intermediaries.first(attributes) ||
-                         intermediaries.send(safe ? :create : :create!, attributes)
+          return unless collection.send(safe ? :save : :save!)
+
+          intermediary = collection.first(attributes) ||
+                         collection.send(safe ? :create : :create!, attributes)
 
           return intermediary if intermediary.saved?
         end

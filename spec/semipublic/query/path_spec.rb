@@ -2,7 +2,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 
 # class methods
 describe DataMapper::Query::Path do
-  before do
+  before :all do
     class ::Author
       include DataMapper::Resource
 
@@ -79,7 +79,7 @@ end
 
 # instance methods
 describe DataMapper::Query::Path do
-  before do
+  before :all do
     class ::Author
       include DataMapper::Resource
 
