@@ -32,9 +32,9 @@ require dir / 'model'
 require dir / 'model' / 'descendant_set'
 require dir / 'model' / 'hook'
 require dir / 'model' / 'is'
-require dir / 'model' / 'property'
-require dir / 'model' / 'relationship'
 require dir / 'model' / 'scope'
+require dir / 'model' / 'relationship'
+require dir / 'model' / 'property'
 
 require dir / 'collection'
 
