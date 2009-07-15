@@ -1115,6 +1115,7 @@ module DataMapper
     #
     # @api private
     def _save(safe)
+      loaded_entries.each { |resource| set_default_attributes(resource) }
       @removed.clear
       loaded_entries.all? { |resource| resource.send(safe ? :save : :save!) }
     end
@@ -1156,6 +1157,14 @@ module DataMapper
 
           default_attributes.freeze
         end
+    end
+
+    # TODO: documents
+    # @api private
+    def set_default_attributes(resource)
+      unless resource.frozen?
+        resource.attributes = default_attributes
+      end
     end
 
     ##
@@ -1209,8 +1218,9 @@ module DataMapper
     def resource_added(resource)
       if resource.saved?
         @identity_map[resource.key] = resource
-      elsif !resource.frozen?
-        resource.attributes = default_attributes
+        @removed.delete(resource)
+      else
+        set_default_attributes(resource)
       end
 
       relate_resource(resource)
