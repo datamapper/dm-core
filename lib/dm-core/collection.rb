@@ -1321,7 +1321,7 @@ module DataMapper
     #
     # @api public
     def method_missing(method, *args, &block)
-      if model.respond_to?(method)
+      if model.model_method_defined?(method)
         delegate_to_model(method, *args, &block)
       elsif relationship = relationships[method] || relationships[method.to_s.singular.to_sym]
         delegate_to_relationship(relationship, *args)

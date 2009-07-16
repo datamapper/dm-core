@@ -566,21 +566,14 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def resource_methods
-      resource_methods = Set.new
-
-      ancestors.each do |mod|
-        next unless mod <= DataMapper::Resource
-        resource_methods.merge(mod.instance_methods(false).map { |method| method.to_s })
-      end
-
-      resource_methods
+    def model_method_defined?(method)
+      model_methods.include?(method.to_s)
     end
 
     # TODO: document
     # @api private
     def resource_method_defined?(method)
-      resource_methods.include?(method)
+      resource_methods.include?(method.to_s)
     end
 
     private
@@ -674,6 +667,31 @@ module DataMapper
           relationship.via     if relationship.respond_to?(:via)
         end
       end
+    end
+
+    # TODO: document
+    # @api private
+    def model_methods
+      @model_methods ||= ancestor_instance_methods { |mod| mod.meta_class }
+    end
+
+    # TODO: document
+    # @api private
+    def resource_methods
+      @resource_methods ||= ancestor_instance_methods { |mod| mod }
+    end
+
+    # TODO: document
+    # @api private
+    def ancestor_instance_methods
+      methods = Set.new
+
+      ancestors.each do |mod|
+        next unless mod <= DataMapper::Resource
+        methods.merge(yield(mod).instance_methods(false).map { |method| method.to_s })
+      end
+
+      methods
     end
   end # module Model
 end # module DataMapper

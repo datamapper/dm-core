@@ -48,6 +48,22 @@ share_examples_for 'A public Collection' do
     end
   end
 
+  it { @articles.should respond_to(:blank?) }
+
+  describe '#blank?' do
+    describe 'when the collection is empty' do
+      it 'should be true' do
+        @articles.clear.blank?.should be_true
+      end
+    end
+
+    describe 'when the collection is not empty' do
+      it 'should be false' do
+        @articles.blank?.should be_false
+      end
+    end
+  end
+
   it { @articles.should respond_to(:clear) }
 
   describe '#clear' do
