@@ -31,7 +31,7 @@ module DataMapper
       def create(resources)
         resources.each do |resource|
           model      = resource.model
-          serial     = model.serial
+          serial     = model.serial(name)
           attributes = resource.dirty_attributes
 
           properties  = []

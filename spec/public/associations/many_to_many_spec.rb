@@ -37,7 +37,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
       @article_model = Blog::Article
 
       # initialize the join model
-      Blog::Author.relationships[:articles].through
+      Blog::Author.relationships(:default)[:articles].through
 
       @join_model = Blog::ArticleAuthor
     end

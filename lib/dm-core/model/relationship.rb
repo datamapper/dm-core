@@ -50,8 +50,6 @@ module DataMapper
       #
       # @api semipublic
       def relationships(repository_name = default_repository_name)
-        assert_kind_of 'repository_name', repository_name, Symbol
-
         # TODO: create RelationshipSet#copy that will copy the relationships, but assign the
         # new Relationship objects to a supplied repository and model.  dup does not really
         # do what is needed

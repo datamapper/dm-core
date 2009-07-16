@@ -423,10 +423,11 @@ module DataMapper
     #
     # @api semipublic
     def load(records, query)
-      repository    = query.repository
-      fields        = query.fields
-      discriminator = properties(repository.name).discriminator
-      no_reload     = !query.reload?
+      repository      = query.repository
+      repository_name = repository.name
+      fields          = query.fields
+      discriminator   = properties(repository_name).discriminator
+      no_reload       = !query.reload?
 
       field_map = fields.map { |property| [ property, property.field ] }.to_hash
 
@@ -443,7 +444,7 @@ module DataMapper
 
             model = discriminator && record[discriminator] || self
 
-            resource = if (key_values = record.values_at(*key)).all?
+            resource = if (key_values = record.values_at(*model.key(repository_name))).all?
               identity_map = repository.identity_map(model)
               identity_map[key_values]
             end
