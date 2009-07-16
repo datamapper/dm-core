@@ -416,6 +416,8 @@ share_examples_for 'Finder Interface' do
 
   describe '#first' do
     before :all do
+      1.upto(5) { |number| @articles.create(:content => "Article #{number}") }
+
       @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
       @copy.to_a
     end
@@ -533,6 +535,24 @@ share_examples_for 'Finder Interface' do
 
       it 'should orphan the Resources' do
         @resources.each { |resource| resource.collection.should_not equal(@articles) }
+      end
+    end
+
+    describe 'with offset specified' do
+      before :all do
+        @return = @resource = @articles.first(:offset => 1)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be the second Resource in the Collection' do
+        @resource.should == @copy.entries[1]
+      end
+
+      it 'should orphan the Resource' do
+        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -812,6 +832,8 @@ share_examples_for 'Finder Interface' do
 
   describe '#last' do
     before :all do
+      1.upto(5) { |number| @articles.create(:content => "Article #{number}") }
+
       @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
       @copy.to_a
     end
@@ -890,6 +912,24 @@ share_examples_for 'Finder Interface' do
       # it 'should orphan the Resources' do
       #   @resources.each { |resource| resource.collection.should_not equal(@articles) }
       # end
+    end
+
+    describe 'with offset specified' do
+      before :all do
+        @return = @resource = @articles.last(:offset => 1)
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be the second Resource in the Collection' do
+        @resource.should == @copy.entries[-2]
+      end
+
+      it 'should orphan the Resource' do
+        @resource.collection.should_not equal(@articles)
+      end
     end
 
     # describe 'with limit specified', 'after appending to the collection' do

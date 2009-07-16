@@ -283,27 +283,85 @@ module DataMapper
     end
 
     ##
-    # Performs a query just like #all, however, only return the first
-    # record found, rather than a collection
+    # Return the first Resource or the first N Resources for the Model with an optional query
     #
-    # @param [Hash] query
-    #   A hash describing the conditions and order for the query
-    # @return [Resource]
-    #   The first record found by the query
+    # When there are no arguments, return the first Resource in the
+    # Model.  When the first argument is an Integer, return a
+    # Collection containing the first N Resources.  When the last
+    # (optional) argument is a Hash scope the results to the query.
+    #
+    # @param [Integer] limit (optional)
+    #   limit the returned Collection to a specific number of entries
+    # @param [Hash] query (optional)
+    #   scope the returned Resource or Collection to the supplied query
+    #
+    # @return [Resource, Collection]
+    #   The first resource in the entries of this collection,
+    #   or a new collection whose query has been merged
     #
     # @api public
     def first(*args)
-      query = scoped_query(args.last.respond_to?(:merge) ? args.pop : {})
+      last_arg = args.last
 
-      if args.any?
-        new_collection(query).first(*args)
+      limit      = args.first if args.first.kind_of?(Integer)
+      with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
+
+      query = with_query ? last_arg : {}
+
+      query = if query.kind_of?(Query)
+        query.slice(0, limit || 1)
       else
-        query.repository.read(query.update(:limit => 1)).first
+        offset = query.fetch(:offset, 0)
+        query  = query.except(:offset)
+        scoped_query(query).slice(offset, limit || 1)
+      end
+
+      if limit
+        all(query)
+      else
+        query.repository.read(query).first
       end
     end
 
+    ##
+    # Return the last Resource or the last N Resources for the Model with an optional query
+    #
+    # When there are no arguments, return the last Resource for the
+    # Model.  When the first argument is an Integer, return a
+    # Collection containing the last N Resources.  When the last
+    # (optional) argument is a Hash scope the results to the query.
+    #
+    # @param [Integer] limit (optional)
+    #   limit the returned Collection to a specific number of entries
+    # @param [Hash] query (optional)
+    #   scope the returned Resource or Collection to the supplied query
+    #
+    # @return [Resource, Collection]
+    #   The last resource in the entries of this collection,
+    #   or a new collection whose query has been merged
+    #
+    # @api public
     def last(*args)
-      all.last(*args)
+      last_arg = args.last
+
+      limit      = args.first if args.first.kind_of?(Integer)
+      with_query = last_arg.respond_to?(:merge) && !last_arg.blank?
+
+      query = with_query ? last_arg : {}
+
+      query = if query.kind_of?(Query)
+        query.slice(0, limit || 1).reverse!
+      else
+        offset = query.fetch(:offset, 0)
+        query  = query.except(:offset)
+        scoped_query(query).slice(offset, limit || 1).reverse!
+      end
+
+      if limit
+        all(query)
+      else
+        query.repository.read(query).last
+      end
     end
 
     ##
