@@ -21,21 +21,21 @@ module DataMapper
         # @return [String] INSERT statement as a string
         #
         # @api private
-        def insert_statement(model, properties, identity_field)
+        def insert_statement(model, properties, serial)
           statement = "INSERT INTO #{quote_name(model.storage_name(name))} "
 
-          custom_sequence = identity_field && identity_field.options[:sequence]
+          custom_sequence = serial && serial.options[:sequence]
           
           if supports_default_values? && properties.empty? && !custom_sequence
             statement << default_values_clause
           else
             # do not use custom sequence if identity field was assigned a value
-            if custom_sequence && properties.include?(identity_field)
+            if custom_sequence && properties.include?(serial)
               custom_sequence = nil
             end
             statement << "("
             if custom_sequence
-              statement << "#{quote_name(identity_field.field)}"
+              statement << "#{quote_name(serial.field)}"
               statement << ", " unless properties.empty?
             end
             statement << "#{properties.map { |p| quote_name(p.field) }.join(', ')}) "
@@ -47,8 +47,8 @@ module DataMapper
             statement << "#{(['?'] * properties.size).join(', ')})"
           end
 
-          if supports_returning? && identity_field
-            statement << returning_clause(identity_field)
+          if supports_returning? && serial
+            statement << returning_clause(serial)
           end
 
           statement
@@ -66,8 +66,8 @@ module DataMapper
         end
 
         # INTO :insert_id is recognized by Oracle DataObjects driber
-        def returning_clause(identity_field)
-          " RETURNING #{quote_name(identity_field.field)} INTO :insert_id"
+        def returning_clause(serial)
+          " RETURNING #{quote_name(serial.field)} INTO :insert_id"
         end
 
         # Constructs SELECT statement for given query,

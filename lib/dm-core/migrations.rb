@@ -805,7 +805,7 @@ module DataMapper
         # @api private
         def create_sequence_statements(model)
           table_name = model.storage_name(name)
-          identity_field = model.identity_field(name)
+          serial = model.serial(name)
 
           statements = []
           if sequence_name = model_sequence_name(model)
@@ -814,14 +814,14 @@ module DataMapper
             SQL
 
             # create trigger only if custom sequence name was not specified
-            unless identity_field.options[:sequence]
+            unless serial.options[:sequence]
               statements << <<-SQL.compress_lines
                 CREATE OR REPLACE TRIGGER #{quote_name(default_trigger_name(table_name))}
                 BEFORE INSERT ON #{quote_name(table_name)} FOR EACH ROW
                 BEGIN
                   IF inserting THEN
-                    IF :new.#{quote_name(identity_field.field)} IS NULL THEN
-                      SELECT #{quote_name(sequence_name)}.NEXTVAL INTO :new.#{quote_name(identity_field.field)} FROM dual;
+                    IF :new.#{quote_name(serial.field)} IS NULL THEN
+                      SELECT #{quote_name(sequence_name)}.NEXTVAL INTO :new.#{quote_name(serial.field)} FROM dual;
                     END IF;
                   END IF;
                 END;
@@ -877,10 +877,10 @@ module DataMapper
         
         def model_sequence_name(model)
           table_name = model.storage_name(name)
-          identity_field = model.identity_field(name)
+          serial = model.serial(name)
           
-          if identity_field
-            identity_field.options[:sequence] || default_sequence_name(table_name)
+          if serial
+            serial.options[:sequence] || default_sequence_name(table_name)
           else
             nil
           end
