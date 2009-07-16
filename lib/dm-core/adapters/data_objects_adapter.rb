@@ -588,7 +588,7 @@ module DataMapper
             when Query::Conditions::LessThanOrEqualToComparison    then @negated ? '>'                        : '<='
           end
 
-          return "#{property_to_column_name(comparison.subject, qualify)} #{operator} ?", [ value ]
+          return "#{property_to_column_name(comparison.subject, qualify)} #{operator} #{value.nil? ? 'NULL' : '?'}", [ value ].compact
         end
 
         # TODO: document
