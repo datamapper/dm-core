@@ -1605,7 +1605,7 @@ share_examples_for 'A public Collection' do
   describe '#method_missing' do
     describe 'with a public model method' do
       before :all do
-        @return = @articles.base_model
+        @return = @articles.model.base_model
       end
 
       should_not_be_a_kicker

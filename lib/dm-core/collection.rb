@@ -877,7 +877,7 @@ module DataMapper
     # @api public
     def destroy!
       if query.limit || query.offset > 0 || query.links.any?
-        key        = model.key(repository_name)
+        key        = model.key(repository.name)
         conditions = Query.target_conditions(self, key, key)
 
         unless model.all(:repository => repository, :conditions => conditions).destroy!
@@ -1091,7 +1091,7 @@ module DataMapper
       if query.limit || query.offset > 0 || query.links.any?
         attributes = dirty_attributes.map { |property, value| [ property.name, value ] }.to_hash
 
-        key        = model.key(repository_name)
+        key        = model.key(repository.name)
         conditions = Query.target_conditions(self, key, key)
 
         unless model.all(:repository => repository, :conditions => conditions).update!(attributes)
