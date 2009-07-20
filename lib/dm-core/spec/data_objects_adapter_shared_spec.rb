@@ -22,7 +22,7 @@ share_examples_for 'A DataObjects Adapter' do
 
   def log_output
     @log.rewind
-    @log.read.chomp.gsub(/^\s+~ \(\d+\.\d+\)\s+/, '')
+    @log.read.chomp.gsub(/^\s+~ \(\d+\.?\d*\)\s+/, '')
   end
 
   def supports_default_values?
@@ -54,14 +54,14 @@ share_examples_for 'A DataObjects Adapter' do
 
       it 'should not send NULL values' do
         statement = if supports_default_values? && supports_returning?
-          'INSERT INTO "articles" DEFAULT VALUES RETURNING "id"'
+          /^INSERT INTO "articles" .*DEFAULT.* RETURNING.*$/i
         elsif supports_default_values?
-          'INSERT INTO "articles" DEFAULT VALUES'
+          /^INSERT INTO "articles" DEFAULT VALUES$/
         else
-          'INSERT INTO "articles" () VALUES ()'
+          /^INSERT INTO "articles" \(\) VALUES \(\)$/
         end
 
-        log_output.should == statement
+        log_output.should =~ statement
       end
     end
 
@@ -85,7 +85,7 @@ share_examples_for 'A DataObjects Adapter' do
       end
 
       it 'should not send NULL values' do
-        log_output.should == 'INSERT INTO "articles" ("id") VALUES (1)'
+        log_output.should =~ /^INSERT INTO "articles" \("id"\) VALUES \(.\)$/i
       end
     end
   end

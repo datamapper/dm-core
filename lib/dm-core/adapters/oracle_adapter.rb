@@ -27,6 +27,7 @@ module DataMapper
           custom_sequence = serial && serial.options[:sequence]
           
           if supports_default_values? && properties.empty? && !custom_sequence
+            statement << "(#{quote_name(serial.field)}) " if serial
             statement << default_values_clause
           else
             # do not use custom sequence if identity field was assigned a value
@@ -56,7 +57,7 @@ module DataMapper
 
         # Oracle syntax for inserting default values
         def default_values_clause
-          'VALUES(DEFAULT)'
+          'VALUES (DEFAULT)'
         end
 
         # TODO: document
