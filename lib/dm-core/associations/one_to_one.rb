@@ -15,7 +15,7 @@ module DataMapper
         def get(source, other_query = nil)
           assert_kind_of 'source', source, source_model
 
-          return unless loaded?(source) || source_key.get(source).all?
+          return unless loaded?(source) || source_key.get(source).all? { |value| !value.nil? }
 
           relationship.get(source, other_query).first
         end

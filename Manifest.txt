@@ -79,6 +79,7 @@ spec/public/associations/many_to_one_spec.rb
 spec/public/associations/many_to_one_with_boolean_cpk_spec.rb
 spec/public/associations/one_to_many_spec.rb
 spec/public/associations/one_to_one_spec.rb
+spec/public/associations/one_to_one_with_boolean_cpk_spec.rb
 spec/public/collection_spec.rb
 spec/public/migrations_spec.rb
 spec/public/model/relationship_spec.rb

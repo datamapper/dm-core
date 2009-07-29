@@ -145,7 +145,7 @@ module DataMapper
         #
         # @api private
         def lazy_load(source)
-          return unless source_key.get(source).all?
+          return unless source_key.get(source).all? { |value| !value.nil? }
 
           # SEL: load all related resources in the source collection
           if source.saved? && source.collection.size > 1
