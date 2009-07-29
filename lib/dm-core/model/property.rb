@@ -178,7 +178,7 @@ module DataMapper
       # TODO: document
       # @api private
       def key_conditions(repository, key)
-        self.key(repository.name).zip(key).to_hash
+        self.key(repository.name).zip(key.nil? ? [] : key).to_hash
       end
 
       private
