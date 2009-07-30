@@ -386,6 +386,13 @@ module DataMapper
             schema.delete(:default)
           end
 
+          # auto-convert to BIGINT if :size is greater than MySQL
+          # INT's max "display width".
+          if property.primitive == Integer && property.options[:size].to_i > 11
+            schema[:primitive] = 'BIGINT'
+            schema[:size] = property.options[:size]
+          end
+
           schema
         end
 
