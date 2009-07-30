@@ -290,7 +290,7 @@ share_examples_for 'Finder Interface' do
         @new  = @articles.create(:content => 'New Article')
         @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
 
-        @return = @articles.all(:content => 'New Article')
+        @return = @articles.all(:conditions => [ 'content = ?', 'New Article' ])
       end
 
       it 'should return a Collection' do
