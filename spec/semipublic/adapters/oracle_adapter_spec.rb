@@ -17,27 +17,27 @@ module SQLLogHelper
     def debug(string)
       @buffer << string << "\n"
       # puts "#{string.gsub(/\n/m,"<br/>\n")}<br/>"
-    end    
+    end
   end
-  
+
   def start_sql_log!
     return if @sql_log_on
     @sql_log_on = true
     @old_logger = DataObjects::Oracle.logger
     DataObjects::Oracle.logger = SQLLogger.new
   end
-  
+
   def stop_sql_log!
     return unless @sql_log_on
     @sql_log_on = nil
     DataObjects::Oracle.logger = @old_logger
   end
-  
+
   def clear_sql_log!
     return unless @sql_log_on
     DataObjects::Oracle.logger.buffer = ""
   end
-  
+
   def sql_log_buffer
     DataObjects::Oracle.logger.buffer
   end
@@ -52,18 +52,18 @@ describe 'Adapter' do
 
       describe "sequences" do
         include SQLLogHelper
-        
+
         before(:all) do
           @auto_migrate_with = DataMapper::Adapters::OracleAdapter.auto_migrate_with
           DataMapper::Adapters::OracleAdapter.auto_migrate_with :drop_and_create
           start_sql_log!
         end
-        
+
         after(:all) do
           stop_sql_log!
           DataMapper::Adapters::OracleAdapter.auto_migrate_with @auto_migrate_with
         end
-        
+
         describe "create default sequence and trigger" do
           before(:all) do
             class ::Employee
@@ -72,11 +72,11 @@ describe 'Adapter' do
             end
             Employee.auto_migrate!
           end
-          
+
           after(:all) do
             Employee.auto_migrate_down!
           end
-          
+
           it "should not have sequence name in options" do
             Employee.properties[:employee_id].options[:sequence].should be_nil
           end
@@ -88,9 +88,9 @@ describe 'Adapter' do
           it "should create trigger" do
             sql_log_buffer.should =~ /CREATE OR REPLACE TRIGGER "EMPLOYEES_PKT"/
           end
-          
+
         end
-        
+
         describe "create custom sequence" do
 
           before(:all) do
@@ -158,7 +158,7 @@ describe 'Adapter' do
         end
 
         describe "prefetch key value from custom sequence" do
-        
+
           before(:all) do
             class ::Employee
               include DataMapper::Resource
@@ -167,11 +167,11 @@ describe 'Adapter' do
             end
             Employee.auto_migrate!
           end
-        
+
           after(:all) do
             Employee.auto_migrate_down!
           end
-        
+
           it "should prefetch sequence value when inserting new record" do
             e = Employee.create
             e.employee_id.should == 1
@@ -183,9 +183,9 @@ describe 'Adapter' do
             e = Employee.create(:employee_id => 100,:first_name => "Raimonds")
             e.employee_id.should == 100
           end
-        
+
         end
-        
+
 
       end
 

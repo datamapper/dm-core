@@ -719,7 +719,7 @@ module DataMapper
             if truncate_or_delete
               destroy_model_storage(model, true)
             end
-              
+
             statement = create_table_statement(connection, model, properties)
             command   = connection.create_command(statement)
             command.execute_non_query
@@ -735,7 +735,7 @@ module DataMapper
               command.execute_non_query
             end
           end
-          
+
         end
 
         true
@@ -779,13 +779,13 @@ module DataMapper
         end
         true
       end
-      
+
       private
-      
+
       def storage_has_all_fields?(table_name, properties)
         properties.map{|p| oracle_upcase(p.field)}.sort == storage_fields(table_name).sort
       end
-      
+
       # If table or column name contains just lowercase characters then do uppercase
       # as uppercase version will be used in Oracle data dictionary tables
       def oracle_upcase(name)
@@ -874,18 +874,18 @@ module DataMapper
         end
 
         private
-        
+
         def model_sequence_name(model)
           table_name = model.storage_name(name)
           serial = model.serial(name)
-          
+
           if serial
             serial.options[:sequence] || default_sequence_name(table_name)
           else
             nil
           end
         end
-        
+
         def default_sequence_name(table_name)
           # truncate table name if necessary to fit in max length of identifier
           "#{table_name[0,self.class::IDENTIFIER_MAX_LENGTH-4]}_seq"
@@ -925,14 +925,14 @@ module DataMapper
             Types::Text   => { :primitive => 'CLOB'                                              },
           }.freeze
         end
-        
+
         # Use table truncate or delete for auto_migrate! to speed up test execution
         #
         # @param [Symbol] :truncate, :delete or :drop_and_create (or nil)
         #   do not specify parameter to return current value
-        # 
+        #
         # @return [Symbol] current value of auto_migrate_with option (nil returned for :drop_and_create)
-        # 
+        #
         # @api semipublic
         def auto_migrate_with(value = :not_specified)
           return @auto_migrate_with if value == :not_specified
@@ -940,14 +940,14 @@ module DataMapper
           raise ArgumentError unless [nil, :truncate, :delete].include?(value)
           @auto_migrate_with = value
         end
-        
+
         # Set if sequences will or will not be reset during auto_migrate!
         #
         # @param [TrueClass, FalseClass] reset sequences?
         #   do not specify parameter to return current value
-        # 
+        #
         # @return [Symbol] current value of auto_migrate_reset_sequences option (default value is true)
-        # 
+        #
         # @api semipublic
         def auto_migrate_reset_sequences(value = :not_specified)
           return @auto_migrate_reset_sequences.nil? ? true : @auto_migrate_reset_sequences if value == :not_specified

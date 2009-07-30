@@ -25,7 +25,7 @@ module DataMapper
           statement = "INSERT INTO #{quote_name(model.storage_name(name))} "
 
           custom_sequence = serial && serial.options[:sequence]
-          
+
           if supports_default_values? && properties.empty? && !custom_sequence
             statement << "(#{quote_name(serial.field)}) " if serial
             statement << default_values_clause
@@ -94,11 +94,11 @@ module DataMapper
           # table and the alias we should use for the column.
 
           qualify = query.links.any?
-          
+
           if query.unique?
             group_by = fields.select { |p| p.kind_of?(Property) }
           end
-          
+
           # create subquery to find all valid keys and then use these keys to retrive all other columns
           use_subquery = qualify
 
