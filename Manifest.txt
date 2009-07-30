@@ -112,3 +112,6 @@ spec/spec_helper.rb
 tasks/ci.rb
 tasks/dm.rb
 tasks/doc.rb
+tasks/gemspec.rb
+tasks/hoe.rb
+tasks/install.rb
