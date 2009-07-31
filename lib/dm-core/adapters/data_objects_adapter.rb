@@ -398,7 +398,7 @@ module DataMapper
           end
 
           if supports_returning? && serial
-            statement << returning_clause(identity_field)
+            statement << returning_clause(serial)
           end
 
           statement
@@ -412,8 +412,8 @@ module DataMapper
 
         # by default PostgreSQL syntax
         # overrided in Oracle adapter
-        def returning_clause(identity_field)
-          " RETURNING #{quote_name(identity_field.field)}"
+        def returning_clause(serial)
+          " RETURNING #{quote_name(serial.field)}"
         end
 
         # Constructs UPDATE statement for given query,
