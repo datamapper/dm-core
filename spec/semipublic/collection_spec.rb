@@ -15,6 +15,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
           property :id,      Serial
           property :title,   String
           property :content, Text
+          property :subtitle, String
         end
       end
 

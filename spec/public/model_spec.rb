@@ -10,6 +10,7 @@ describe DataMapper::Model do
         property :id,      Serial
         property :title,   String, :nullable => false
         property :content, Text
+        property :subtitle, String
         property :author,  String, :nullable => false
 
         belongs_to :original, self, :nullable => true
@@ -117,6 +118,7 @@ describe DataMapper::Model do
         property :id,      Serial
         property :title,   String
         property :content, Text
+        property :subtitle, String
 
         belongs_to :original, self, :nullable => true
         has n, :revisions, self, :child_key => [ :original_id ]

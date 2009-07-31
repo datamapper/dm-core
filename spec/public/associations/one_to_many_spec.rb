@@ -25,6 +25,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
           property :id,      Serial
           property :title,   String, :nullable => false
           property :content, Text
+          property :subtitle, String
 
           belongs_to :author, :nullable => true
           belongs_to :original, self, :nullable => true

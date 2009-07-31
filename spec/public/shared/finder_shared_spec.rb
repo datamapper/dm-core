@@ -287,10 +287,10 @@ share_examples_for 'Finder Interface' do
       end
 
       before :all do
-        @new  = @articles.create(:content => 'New Article')
+        @new  = @articles.create(:subtitle => 'New Article')
         @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
 
-        @return = @articles.all(:conditions => [ 'content = ?', 'New Article' ])
+        @return = @articles.all(:conditions => [ 'subtitle = ?', 'New Article' ])
       end
 
       it 'should return a Collection' do
@@ -310,7 +310,7 @@ share_examples_for 'Finder Interface' do
       end
 
       it 'should scope the Collection' do
-        @return.reload.should == @copy.entries.select { |resource| resource.content == 'New Article' }.first(1)
+        @return.reload.should == @copy.entries.select { |resource| resource.subtitle == 'New Article' }.first(1)
       end
     end
 
