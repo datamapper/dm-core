@@ -85,7 +85,7 @@ share_examples_for 'A DataObjects Adapter' do
       end
 
       it 'should not send NULL values' do
-        log_output.should =~ /^INSERT INTO "articles" \("id"\) VALUES \(.\)$/i
+        log_output.should =~ /^INSERT INTO "articles" \("id"\) VALUES \(.{1,2}\)$/i
       end
     end
   end
