@@ -166,9 +166,11 @@ describe DataMapper::Query::Conditions do
 
     describe 'EqualToComparison' do
       describe 'with a value matching the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:eql, Heffalump.striped, false)
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that equal the given value' do
           @comp.should match(@heff2)
@@ -181,9 +183,11 @@ describe DataMapper::Query::Conditions do
       end
 
       describe 'with a value coerced into the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:eql, Heffalump.striped, 'false')
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that equal the given value' do
           @comp.should match(@heff2)
@@ -198,9 +202,11 @@ describe DataMapper::Query::Conditions do
 
     describe 'InclusionComparison' do
       describe 'with a value matching the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:in, Heffalump.num_spots, 1..2)
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that equal the given value' do
           @comp.should match(@heff1)
@@ -213,9 +219,11 @@ describe DataMapper::Query::Conditions do
       end
 
       describe 'with a value coerced into the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:in, Heffalump.num_spots, '1'..'2')
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that equal the given value' do
           @comp.should match(@heff1)
@@ -230,9 +238,11 @@ describe DataMapper::Query::Conditions do
 
     describe 'GreaterThanComparison' do
       describe 'with a value matching the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:gt, Heffalump.num_spots, 2)
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that are greater than the given value' do
           @comp.should match(@heff3)
@@ -245,9 +255,11 @@ describe DataMapper::Query::Conditions do
       end
 
       describe 'with a value coerced into the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:gt, Heffalump.num_spots, '2')
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that are greater than the given value' do
           @comp.should match(@heff3)
@@ -263,9 +275,11 @@ describe DataMapper::Query::Conditions do
 
     describe 'GreaterThanOrEqualToComparison' do
       describe 'with a value matching the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:gte, Heffalump.num_spots, 2)
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that are greater than or equal to the given value' do
           @comp.should match(@heff2)
@@ -278,9 +292,11 @@ describe DataMapper::Query::Conditions do
       end
 
       describe 'with a value coerced into the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:gte, Heffalump.num_spots, 2.0)
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that are greater than or equal to the given value' do
           @comp.should match(@heff2)
@@ -295,9 +311,11 @@ describe DataMapper::Query::Conditions do
 
     describe 'LessThanComparison' do
       describe 'with a value matching the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:lt, Heffalump.num_spots, 2)
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that are less than the given value' do
           @comp.should match(@heff1)
@@ -310,9 +328,11 @@ describe DataMapper::Query::Conditions do
       end
 
       describe 'with a value coerced into the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:lt, Heffalump.num_spots, BigDecimal('2.0'))
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that are less than the given value' do
           @comp.should match(@heff1)
@@ -327,9 +347,11 @@ describe DataMapper::Query::Conditions do
 
     describe 'LessThanOrEqualToComparison' do
       describe 'with a value matching the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:lte, Heffalump.num_spots, 2)
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that are less than or equal to the given value' do
           @comp.should match(@heff1)
@@ -342,9 +364,11 @@ describe DataMapper::Query::Conditions do
       end
 
       describe 'with a value coerced into the property primitive' do
-        before do
+        before :all do
           @comp = Comparison.new(:lte, Heffalump.num_spots, '2')
         end
+
+        it_should_behave_like 'A valid query condition'
 
         it 'should match records that are less than or equal to the given value' do
           @comp.should match(@heff1)
@@ -358,10 +382,12 @@ describe DataMapper::Query::Conditions do
     end
 
     describe 'RegexpComparison' do
-      before do
+      before :all do
         @comp = Comparison.new(:regexp, Heffalump.color, /green/)
         @heff2.color = 'forest green'
       end
+
+      it_should_behave_like 'A valid query condition'
 
       it 'should match records that match the regexp' do
         @comp.should match(@heff1)
