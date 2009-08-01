@@ -1,34 +1,95 @@
 module DataMapper
   class Query
+    # The Conditions module contains classes used as part of a Query when
+    # filtering collections of resources.
+    #
+    # The Conditions module contains two types of class used for filtering
+    # queries: Comparison and Operation. Although these are used on all
+    # repositorie types -- not just SQL-based repos -- these classes are best
+    # thought of as being the DataMapper counterpart to an SQL WHERE clause.
+    #
+    # Comparisons compare properties and relationships with values, while
+    # operations tie Comparisons together to form more complex expressions.
+    #
+    # For example, the following SQL query fragment:
+    #
+    #   ... WHERE my_field = my_value AND another_field = another_value ...
+    #
+    # ... would be represented as two EqualToComparison instances tied
+    # together with an AndOperation.
+    #
+    # Conditions -- together with the Query class -- allow DataMapper to
+    # represent SQL-like expressions in an ORM-agnostic manner, and are used
+    # for both in-memory filtering of loaded Collection instances, and by
+    # adapters to retrieve records directly from your repositories.
+    #
+    # The classes contained in the Conditions module are for internal use by
+    # DataMapper and DataMapper plugins, and are not intended to be used
+    # directly in your applications.
     module Conditions
+
+      # An abstract class which provides easy access to comparison operators.
+      #
+      # @example Creating a new comparison
+      #   Comparison.new(:eql, MyClass.my_property, "value")
+      #
       class Comparison
 
-        # TODO: document
+        # Creates a new Comparison class suitable for matching the given
+        # subject (property or relationship) against the value.
+        #
+        # @param [Symbol] slug
+        #   The type of comparison operator required. One of: :eq, :in, :gt,
+        #   :gte, :lt, :lte, :regex, :like.
+        # @param [Property, Associations::Relationship]
+        #   The subject of the comparison - the value of the subject will be
+        #   matched against the given value parameter.
+        # @param [Object] value
+        #   The value for the comparison.
+        #
+        # @return [DataMapper::Query::Conditions::AbstractComparison]
+        #
         # @api semipublic
         def self.new(slug, subject, value)
           if klass = comparison_class(slug)
             klass.new(subject, value)
           else
-            raise "No Comparison class for `#{slug.inspect}' has been defined"
+            # TODO: Spec me
+            raise ArgumentError,
+              "No Comparison class for `#{slug.inspect}' has been defined"
           end
         end
 
-        # TODO: document
+        # Returns the comparison class identified by the given slug.
+        #
+        # @param [Symbol] slug
+        #   See slug parameter for Comparison.new
+        #
         # @api semipublic
         def self.comparison_class(slug)
-          comparison_classes[slug] ||= AbstractComparison.descendants.detect { |comparison_class| comparison_class.slug == slug }
+          comparison_classes[slug] ||=
+            AbstractComparison.descendants.detect do |comparison_class|
+              comparison_class.slug == slug
+            end
         end
 
-        # TODO: document
+        # Returns an array of all slugs registered with Comparison.
+        #
+        # @return Array[Symbol]
         # @api private
         def self.slugs
-          @slugs ||= AbstractComparison.descendants.map { |comparison_class| comparison_class.slug }.freeze
+          @slugs ||=
+            AbstractComparison.descendants.map do |comparison_class|
+              comparison_class.slug
+            end.freeze
         end
 
         class << self
           private
 
-          # TODO: document
+          # Holds comparison subclasses keyed on their slug.
+          #
+          # @return Hash
           # @api private
           def comparison_classes
             @comparison_classes ||= {}
@@ -36,120 +97,177 @@ module DataMapper
         end
       end # class Comparison
 
+      # A base class for the various comparison classes.
       class AbstractComparison
         extend Deprecate
 
         deprecate :property, :subject
 
-        # TODO: document
+        # Holds the subject of the comparison; a property or relationship
+        # which is being matched against.
+        #
         # @api semipublic
         attr_reader :subject
 
-        # TODO: document
+        # Holds the expected value; this value is compared against that
+        # contained in the subject when filtering collections, or the value
+        # in the repository when performing queries.
+        #
         # @api semipublic
         attr_reader :value
 
-        # TODO: document
+        # Keeps track of AbstractComparison subclasses (used in Comparison).
+        #
         # @api private
         def self.descendants
           @descendants ||= Set.new
         end
 
-        # TODO: document
+        # Registers AbstractComparison subclasses (used in Comparison).
+        #
         # @api private
         def self.inherited(comparison_class)
           descendants << comparison_class
         end
 
-        # TODO: document
+        # Setter/getter: allows subclasses to easily set their slug.
+        #
+        # @param [Symbol] slug
+        #   The slug to be set for this class. Passing nil returns the current
+        #   value instead.
+        #
+        # @return [Symbol]
+        #   The current slug set for the Comparison.
+        #
+        # @example Creating a MyComparison compairson with slug :exact.
+        #   class MyComparison < AbstractComparison
+        #     slug :exact
+        #   end
+        #
         # @api semipublic
         def self.slug(slug = nil)
           slug ? @slug = slug : @slug
         end
 
-        # TODO: document
+        # Tests that the Comparison is valid.
+        #
+        # Subclasses can overload this to customise the means by which they
+        # determine the validity of the comparison. #valid? is called prior to
+        # performing a query on the repository: each Comparison within a Query
+        # must be valid otherwise the query will not be performed.
+        #
+        # @see DataMapper::Property#valid?
+        # @see DataMapper::Associations::Relationship#valid?
+        #
+        # @returns [TrueClass, FalseClass]
+        #
         # @api semipublic
         def valid?
-          # this needs to be deferred until the last moment because the
-          # value could be a reference to a Resource, that when the comparison
-          # was created was invalid, but has since been saved and has it's
-          # key set.
+          # This needs to be deferred until the last moment because the value
+          # could be a reference to a Resource, that when the comparison was
+          # created was invalid, but has since been saved and has it's key
+          # set.
           subject.valid?(value)
         end
 
-        # TODO: document
+        # Returns whether the subject is a Relationship.
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def relationship?
           false
         end
 
-        # TODO: document
+        # Returns whether the subject is a Property.
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def property?
           subject.kind_of?(Property)
         end
 
-        # TODO: document
+        # Computes a hash-code for this Comparison. Two Comparisons of the
+        # same class, and with the same subject and value will have the same
+        # hash-code.
+        #
+        # @return [Fixnum] The computed hash-code.
         # @api semipublic
         def hash
           [ self.class, @subject, @value ].hash
         end
 
-        # TODO: document
+        # Returns true if this object equals +other+. The objects are
+        # considered equal if they are the same object, or have the same slug,
+        # subject and value.
+        #
+        # @param [Object] other
+        #   Another object to be compared against this one.
+        #
+        # @return [TrueClass, FalseClass]
+        #
         # @api semipublic
         def ==(other)
-          if equal?(other)
-            return true
-          end
+          return true if equal?(other)
 
-          unless other.class.respond_to?(:slug)
-            return false
-          end
-
-          unless other.respond_to?(:subject)
-            return false
-          end
-
-          unless other.respond_to?(:value)
-            return false
-          end
+          return false unless other.class.respond_to?(:slug)
+          return false unless other.respond_to?(:subject)
+          return false unless other.respond_to?(:value)
 
           cmp?(other, :==)
         end
 
-        # TODO: document
+        # Returns true if this object equals +other+. The objects are
+        # considered equal if they are the same object, or are the same class,
+        # and have the same slug, subject and value.
+        #
+        # @param [Object] other
+        #   Another object to be compared against this one.
+        #
+        # @return [TrueClass, FalseClass]
+        #
         # @api semipublic
         def eql?(other)
-          if equal?(other)
-            return true
-          end
-
-          unless instance_of?(other.class)
-            return false
-          end
+          return true if equal?(other)
+          return false unless instance_of?(other.class)
 
           cmp?(other, :eql?)
         end
 
-        # TODO: document
+        # Returns a string containing a human-readable representation of this
+        # object.
+        #
+        # @return [String]
         # @api semipublic
         def inspect
           "#<#{self.class} @subject=#{@subject.inspect} @value=#{@value.inspect}>"
         end
 
-        # TODO: document
+        # Returns a string version of this Comparison object.
+        #
+        # @example
+        #   Comparison.new(:==, MyClass.my_property, "value")
+        #   # => "my_property == value"
+        #
         # @api semipublic
         def to_s
           "#{@subject} #{comparator_string} #{@value}"
         end
 
-        private
+        private # ============================================================
 
-        # TODO: document
+        # Holds the actual value of the given property or relationship.
         # @api semipublic
         attr_reader :expected
 
-        # TODO: document
+        # Creates a new AbstractComparison instance using the +subject+ and
+        # +value+.
+        #
+        # @param [Property, Associations::Relationship] subject
+        #   The subject of the comparison - the value of the subject will be
+        #   matched against the given value parameter.
+        # @param [Object] value
+        #   The value for the comparison.
+        #
         # @api semipublic
         def initialize(subject, value)
           @subject  = subject
@@ -157,31 +275,37 @@ module DataMapper
           @expected = expected_value
         end
 
-        # TODO: document
+        # Used by Ruby when creating a copy of the comparison.
         # @api private
         def initialize_copy(*)
           @value = @value.dup
         end
 
-        # TODO: document
+        # Compares this comparison with +other+ using the given +operator+.
+        # Checks that the slug, subject and value all return true when
+        # compared with their counterparts in +other+ with +operator+.
+        #
+        # @param [AbstractComparison] other
+        #    Another object to be compared against this one.
+        #
+        # @see AbstractComparison#==
+        # @see AbstractComparison#eql?
+        #
         # @api private
         def cmp?(other, operator)
-          unless self.class.slug.send(operator, other.class.slug)
-            return false
-          end
-
-          unless subject.send(operator, other.subject)
-            return false
-          end
-
-          unless value.send(operator, other.value)
-            return false
-          end
+          return false unless self.class.slug.send(operator, other.class.slug)
+          return false unless subject.send(operator, other.subject)
+          return false unless value.send(operator, other.value)
 
           true
         end
 
-        # TODO: document
+        # Typecasts the given +value+ using subject#typecast if it has a
+        # typecast method (e.g. Property), otherwise just returns the value.
+        #
+        # @param  [Object] value The object to attempt to typecast.
+        # @return [Object]       The typecasted object.
+        #
         # @api private
         def typecast_value(value)
           if subject.respond_to?(:typecast)
@@ -191,29 +315,50 @@ module DataMapper
           end
         end
 
-        # TODO: document
+        # Extracts value for the +subject+ property or relationship from the
+        # given +record+, where +record+ is a Resource instance or a Hash.
+        #
+        # @param [DataMapper::Resource, Hash] record
+        #   The resource or hash from which to retrieve the value.
+        # @param [Property, Associations::Relationship]
+        #   The subject of the comparison. For example, if this is a property,
+        #   the value for the resources +subject+ property is retrieved.
+        # @param [Symbol] key_type
+        #   In the event that +subject+ is a relationship, key_type indicated
+        #   which key should be used to retrieve the value from the resource.
+        #
         # @api semipublic
         def record_value(record, subject = @subject, key_type = :source_key)
           case record
-            when Hash     then record_value_from_hash(record, subject, key_type)
-            when Resource then record_value_from_resource(record, subject, key_type)
+            when Hash
+              record_value_from_hash(record, subject, key_type)
+            when Resource
+              record_value_from_resource(record, subject, key_type)
             else
               record
           end
         end
 
-        # TODO: document
+        # Extracts value for the +subject+ property or relationship from the
+        # given +hash+.
+        #
+        # @see AbstractComparison#record_value
         # @api private
         def record_value_from_hash(hash, subject, key_type)
           hash.fetch subject, case subject
             when Property
               hash[subject.field]
             when Associations::Relationship
-              subject.send(key_type).map { |property| record_value_from_hash(hash, property, key_type)  }
+              subject.send(key_type).map { |property|
+                record_value_from_hash(hash, property, key_type)
+              }
           end
         end
 
-        # TODO: document
+        # Extracts value for the +subject+ property or relationship from the
+        # given +resource+.
+        #
+        # @see AbstractComparison#record_value
         # @api private
         def record_value_from_resource(resource, subject, key_type)
           case subject
@@ -224,7 +369,8 @@ module DataMapper
           end
         end
 
-        # TODO: document
+        # Retrieves the value of the +subject+.
+        #
         # @api semipublic
         def expected_value(value = @value)
           expected_value = record_value(value, @subject, :target_key)
@@ -236,34 +382,56 @@ module DataMapper
           end
         end
 
-        # TODO: document
+        # Returns the name of this comparison.
+        #
+        # @return [String]
+        #   The name of the comparison class minus the trailing "Comparison".
+        #
+        # @example
+        #   Comparison.new(:eql, ...).comparator_string
+        #   # => Equal
+        #
         # @api private
         def comparator_string
           self.class.name.chomp('Comparison')
         end
       end # class AbstractComparison
 
+      # Included into comparisons which are capable of supporting
+      # Relationships.
       module RelationshipHandler
-        # TODO: document
+        # Returns whether this comparison subject is a Relationship.
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def relationship?
           subject.kind_of?(Associations::Relationship)
         end
 
-        # TODO: document
+        # Returns the conditions required to match the subject relationship.
+        #
         # @api semipublic
         def foreign_key_mapping
           relationship = subject.inverse
-          Query.target_conditions(value, relationship.source_key, relationship.target_key)
-        end
-      end
 
+          Query.target_conditions(
+            value, relationship.source_key, relationship.target_key)
+        end
+      end # module RelationshipHandler
+
+      # Tests whether the value in the record is equal to the expected_value
+      # set for the Comparison.
       class EqualToComparison < AbstractComparison
         include RelationshipHandler
 
         slug :eql
 
-        # TODO: document
+        # Asserts that the record value matches the comparison.
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def matches?(record)
           record_value(record) == expected
@@ -271,52 +439,62 @@ module DataMapper
 
         private
 
-        # TODO: document
+        # @see AbstractComparison#to_s
         # @api private
         def comparator_string
           '='
         end
       end # class EqualToComparison
 
+      # Tests whether the value in the record is contained in the
+      # expected_value set for the Comparison, where expected_value is an
+      # Array, Range, or Set.
       class InclusionComparison < AbstractComparison
         include RelationshipHandler
 
         slug :in
 
-        # TODO: document
+        # Asserts that the record value matches the comparison.
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
           !record_value.nil? && expected.include?(record_value)
         end
 
-        # TODO: document
+        # Checks that the Comparison is valid.
+        #
+        # @see DataMapper::Query::Conditions::AbstractComparison#valid?
+        # @return [TrueClass, FalseClass]
+        #
         # @api semipublic
         def valid?
-          unless value.kind_of?(Array) || value.kind_of?(Range) || value.kind_of?(Set)
-            return false
-          end
+          return false unless
+            value.kind_of?(Array) ||
+            value.kind_of?(Range) ||
+            value.kind_of?(Set)
 
-          unless value.any?
-            return false
-          end
-
-          unless value.all? { |val| subject.valid?(val) }
-            return false
-          end
-
-          true
+          value.any? && value.all? { |val| subject.valid?(val) }
         end
 
         private
 
-        # TODO: document
+        # Overloads the +expected_value+ method in AbstractComparison to
+        # typecast each value in the inclusion set.
+        #
+        # @see AbtractComparison#expected_value
         # @api semipublic
         def expected_value
           @value.map { |value| super(value) }
         end
 
-        # TODO: document
+        # Typecasts each value in the set.
+        #
+        # @see AbtractComparison#typecast_value
         # @api private
         def typecast_value(value)
           if subject.respond_to?(:typecast) && value.respond_to?(:map)
@@ -326,24 +504,33 @@ module DataMapper
           end
         end
 
-        # TODO: document
+        # @see AbstractComparison#to_s
         # @api private
         def comparator_string
           'IN'
         end
       end # class InclusionComparison
 
+      # Tests whether the value in the record matches the expected_value
+      # regexp set for the Comparison.
       class RegexpComparison < AbstractComparison
         slug :regexp
 
-        # TODO: document
+        # Asserts that the record value matches the comparison.
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
           !record_value.nil? && record_value =~ expected
         end
 
-        # TODO: document
+        # Checks that the Comparison is valid.
+        #
+        # @see AbstractComparison#valid?
         # @api semipublic
         def valid?
           value.kind_of?(Regexp)
@@ -351,24 +538,33 @@ module DataMapper
 
         private
 
-        # TODO: document
+        # Returns the value untouched.
+        #
         # @api private
         def typecast_value(value)
           value
         end
 
-        # TODO: document
+        # @see AbstractComparison#to_s
         # @api private
         def comparator_string
           '=~'
         end
       end # class RegexpComparison
 
+      # Tests whether the value in the record is like the expected_value set
+      # for the Comparison. Equivalent to a LIKE clause in an SQL database.
+      #
       # TODO: move this to dm-more with DataObjectsAdapter plugins
       class LikeComparison < AbstractComparison
         slug :like
 
-        # TODO: document
+        # Asserts that the record value matches the comparison.
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
@@ -377,23 +573,34 @@ module DataMapper
 
         private
 
-        # TODO: document
+        # Overloads the +expected_value+ method in AbstractComparison to
+        # return a regular expression suitable for matching against the
+        # records value.
+        #
+        # @see AbtractComparison#expected_value
         # @api semipublic
         def expected_value
           Regexp.new(@value.to_s.gsub('%', '.*').gsub('_', '.'))
         end
 
-        # TODO: document
+        # @see AbstractComparison#to_s
         # @api private
         def comparator_string
           'LIKE'
         end
       end # class LikeComparison
 
+      # Tests whether the value in the record is greater than the
+      # expected_value set for the Comparison.
       class GreaterThanComparison < AbstractComparison
         slug :gt
 
-        # TODO: document
+        # Asserts that the record value matches the comparison.
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
@@ -402,17 +609,24 @@ module DataMapper
 
         private
 
-        # TODO: document
+        # @see AbstractComparison#to_s
         # @api private
         def comparator_string
           '>'
         end
       end # class GreaterThanComparison
 
+      # Tests whether the value in the record is less than the expected_value
+      # set for the Comparison.
       class LessThanComparison < AbstractComparison
         slug :lt
 
-        # TODO: document
+        # Asserts that the record value matches the comparison.
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
@@ -421,17 +635,24 @@ module DataMapper
 
         private
 
-        # TODO: document
+        # @see AbstractComparison#to_s
         # @api private
         def comparator_string
           '<'
         end
       end # class LessThanComparison
 
+      # Tests whether the value in the record is greater than, or equal to,
+      # the expected_value set for the Comparison.
       class GreaterThanOrEqualToComparison < AbstractComparison
         slug :gte
 
-        # TODO: document
+        # Asserts that the record value matches the comparison.
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
@@ -440,17 +661,24 @@ module DataMapper
 
         private
 
-        # TODO: document
+        # @see AbstractComparison#to_s
         # @api private
         def comparator_string
           '>='
         end
       end # class GreaterThanOrEqualToComparison
 
+      # Tests whether the value in the record is less than, or equal to, the
+      # expected_value set for the Comparison.
       class LessThanOrEqualToComparison < AbstractComparison
         slug :lte
 
-        # TODO: document
+        # Asserts that the record value matches the comparison.
+        #
+        # @param [Resource, Hash] record
+        #   The record containing the value to be matched
+        #
+        # @return [TrueClass, FalseClass]
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
@@ -459,12 +687,13 @@ module DataMapper
 
         private
 
-        # TODO: document
+        # @see AbstractComparison#to_s
         # @api private
         def comparator_string
           '<='
         end
       end # class LessThanOrEqualToComparison
+
     end # module Conditions
   end # class Query
 end # module DataMapper
