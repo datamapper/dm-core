@@ -43,11 +43,13 @@ describe DataMapper::Query::Conditions do
       property :color,     String
       property :num_spots, Integer
       property :striped,   Boolean
+
+      belongs_to :parent, Heffalump
     end
 
-    @heff1 = Heffalump.new(:num_spots => 1, :color => 'green', :striped => true)
-    @heff2 = Heffalump.new(:num_spots => 2, :color => 'green', :striped => false)
-    @heff3 = Heffalump.new(:num_spots => 3, :color => 'blue',  :striped => false)
+    @heff1 = Heffalump.new(:id => 1, :num_spots => 1, :color => 'green', :striped => true)
+    @heff2 = Heffalump.new(:id => 2, :num_spots => 2, :color => 'green', :striped => false, :parent => @heff1)
+    @heff3 = Heffalump.new(:id => 3, :num_spots => 3, :color => 'blue',  :striped => false, :parent => @heff2)
   end
 
   describe 'Operations' do
@@ -198,6 +200,23 @@ describe DataMapper::Query::Conditions do
           @comp.should_not match(@heff1)
         end
       end
+
+      describe 'with a relationship subject' do
+        before :all do
+          @comp = Comparison.new(:eql, Heffalump.relationships[:parent], @heff1)
+        end
+
+        it_should_behave_like 'A valid query condition'
+
+        it 'should match records that equal the given value' do
+          @comp.should match(@heff2)
+        end
+
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff1)
+          @comp.should_not match(@heff3)
+        end
+      end
     end
 
     describe 'InclusionComparison' do
@@ -232,6 +251,23 @@ describe DataMapper::Query::Conditions do
 
         it 'should not match records that do not equal the given value' do
           @comp.should_not match(@heff3)
+        end
+      end
+
+      describe 'with a relationship subject' do
+        before :all do
+          @comp = Comparison.new(:in, Heffalump.relationships[:parent], [@heff1, @heff2])
+        end
+
+        it_should_behave_like 'A valid query condition'
+
+        it 'should match records that equal the given value' do
+          @comp.should match(@heff2)
+          @comp.should match(@heff3)
+        end
+
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff1)
         end
       end
     end
