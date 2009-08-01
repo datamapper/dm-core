@@ -36,6 +36,18 @@ describe DataMapper::Query::Conditions do
   include ComparisonSpecHelpers
 
   before :all do
+    class ::Mass < DataMapper::Type
+      primitive Integer
+
+      def self.load(value, property)
+        { 1 => 'Small', 2 => 'Large', 3 => 'XLarge' }[value]
+      end
+
+      def self.dump(value, property)
+        { 'Small' => 1, 'Large' => 2, 'XLarge' => 3 }[value]
+      end
+    end
+
     class ::Heffalump
       include DataMapper::Resource
 
@@ -43,13 +55,18 @@ describe DataMapper::Query::Conditions do
       property :color,     String
       property :num_spots, Integer
       property :striped,   Boolean
+      property :mass,      Mass,    :default => 'Large', :nullable => false
 
       belongs_to :parent, Heffalump
+
+      # Heffalumps are surprisingly picky when it comes to choosing friends --
+      # they greatly prefer the company of similarly sized beasts. :)
+      has n, :mass_mates, Heffalump, :child_key => [:mass], :parent_key => [:mass]
     end
 
-    @heff1 = Heffalump.new(:id => 1, :num_spots => 1, :color => 'green', :striped => true)
-    @heff2 = Heffalump.new(:id => 2, :num_spots => 2, :color => 'green', :striped => false, :parent => @heff1)
-    @heff3 = Heffalump.new(:id => 3, :num_spots => 3, :color => 'blue',  :striped => false, :parent => @heff2)
+    @heff1 = Heffalump.new(:id => 1, :num_spots => 1, :color => 'green', :striped => true,  :mass => 'Small')
+    @heff2 = Heffalump.new(:id => 2, :num_spots => 2, :color => 'green', :striped => false, :mass => 'Large',  :parent => @heff1)
+    @heff3 = Heffalump.new(:id => 3, :num_spots => 3, :color => 'blue',  :striped => false, :mass => 'XLarge', :parent => @heff2)
   end
 
   describe 'Operations' do
@@ -201,6 +218,23 @@ describe DataMapper::Query::Conditions do
         end
       end
 
+      describe 'with a value from a custom type' do
+        before :all do
+          @comp = Comparison.new(:eql, Heffalump.mass, 'Large')
+        end
+
+        it_should_behave_like 'A valid query condition'
+
+        it 'should match records that equal the given value' do
+          @comp.should match(@heff2)
+        end
+
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff1)
+          @comp.should_not match(@heff3)
+        end
+      end
+
       describe 'with a relationship subject' do
         before :all do
           @comp = Comparison.new(:eql, Heffalump.relationships[:parent], @heff1)
@@ -214,6 +248,24 @@ describe DataMapper::Query::Conditions do
 
         it 'should not match records that do not equal the given value' do
           @comp.should_not match(@heff1)
+          @comp.should_not match(@heff3)
+        end
+      end
+
+      describe 'with a relationship subject using a custom type key' do
+        before :all do
+          @comp = Comparison.new(:eql, Heffalump.relationships[:mass_mates], @heff1)
+        end
+
+        it_should_behave_like 'A valid query condition'
+
+        it 'should match records that equal the given value' do
+          @comp.should match(Heffalump.new(:id => 4, :mass => 'Small'))
+          @comp.should match(@heff1)
+        end
+
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff2)
           @comp.should_not match(@heff3)
         end
       end
@@ -254,6 +306,23 @@ describe DataMapper::Query::Conditions do
         end
       end
 
+      describe 'with a value from a custom type' do
+        before :all do
+          @comp = Comparison.new(:in, Heffalump.mass, ['Small', 'Large'])
+        end
+
+        it_should_behave_like 'A valid query condition'
+
+        it 'should match records that equal the given value' do
+          @comp.should match(@heff1)
+          @comp.should match(@heff2)
+        end
+
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff3)
+        end
+      end
+
       describe 'with a relationship subject' do
         before :all do
           @comp = Comparison.new(:in, Heffalump.relationships[:parent], [@heff1, @heff2])
@@ -268,6 +337,25 @@ describe DataMapper::Query::Conditions do
 
         it 'should not match records that do not equal the given value' do
           @comp.should_not match(@heff1)
+        end
+      end
+
+      describe 'with a relationship subject using a custom type key' do
+        before :all do
+          @comp = Comparison.new(:in, Heffalump.relationships[:mass_mates], [@heff1, @heff2])
+        end
+
+        it_should_behave_like 'A valid query condition'
+
+        it 'should match records that equal the given value' do
+          @comp.should match(Heffalump.new(:mass => 'Small'))
+          @comp.should match(Heffalump.new(:mass => 'Large'))
+          @comp.should match(@heff1)
+          @comp.should match(@heff2)
+        end
+
+        it 'should not match records that do not equal the given value' do
+          @comp.should_not match(@heff3)
         end
       end
     end
@@ -306,7 +394,6 @@ describe DataMapper::Query::Conditions do
           @comp.should_not match(@heff2)
         end
       end
-
     end
 
     describe 'GreaterThanOrEqualToComparison' do

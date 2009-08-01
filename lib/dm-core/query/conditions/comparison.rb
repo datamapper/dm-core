@@ -113,8 +113,30 @@ module DataMapper
         # contained in the subject when filtering collections, or the value
         # in the repository when performing queries.
         #
+        # In the case of custom types, this is the value as it is stored in
+        # the repository.
+        #
         # @api semipublic
         attr_reader :value
+
+        # Holds the loaded value. In the case of primitive types, this will be
+        # the same as +value+, however when using custom types this stores the
+        # loaded value.
+        #
+        # If writing an adapter, you should use +value+, while plugin authors
+        # should refer to +loaded_value+.
+        #
+        # --
+        # As an example, you might use symbols with the Enum type in dm-types
+        #
+        #   property :myprop, Enum[:open, :closed]
+        #
+        # These are stored in repositories as 1 and 2, respectively. +value+
+        # returns the 1 or 2, while +loaded_value+ returns the symbol.
+        # ++
+        #
+        # @api semipublic
+        attr_reader :loaded_value
 
         # Keeps track of AbstractComparison subclasses (used in Comparison).
         #
@@ -167,7 +189,7 @@ module DataMapper
           # could be a reference to a Resource, that when the comparison was
           # created was invalid, but has since been saved and has it's key
           # set.
-          subject.valid?(value)
+          subject.valid?(loaded_value)
         end
 
         # Returns whether the subject is a Relationship.
@@ -239,7 +261,8 @@ module DataMapper
         # @return [String]
         # @api semipublic
         def inspect
-          "#<#{self.class} @subject=#{@subject.inspect} @value=#{@value.inspect}>"
+          "#<#{self.class} @subject=#{@subject.inspect} " \
+            "@value=#{@value.inspect} @loaded_value=#{@loaded_value.inspect}>"
         end
 
         # Returns a string version of this Comparison object.
@@ -270,15 +293,17 @@ module DataMapper
         #
         # @api semipublic
         def initialize(subject, value)
-          @subject  = subject
-          @value    = typecast_value(value)
-          @expected = expected_value
+          @subject      = subject
+          @loaded_value = typecast_value(value)
+          @value        = dumped_value(@loaded_value)
+          @expected     = expected_value
         end
 
         # Used by Ruby when creating a copy of the comparison.
         # @api private
         def initialize_copy(*)
           @value = @value.dup
+          @loaded_value = @loaded_value.dup
         end
 
         # Compares this comparison with +other+ using the given +operator+.
@@ -300,18 +325,37 @@ module DataMapper
           true
         end
 
-        # Typecasts the given +value+ using subject#typecast if it has a
+        # Typecasts the given +val+ using subject#typecast if it has a
         # typecast method (e.g. Property), otherwise just returns the value.
         #
-        # @param  [Object] value The object to attempt to typecast.
-        # @return [Object]       The typecasted object.
+        # @param  [Object] val The object to attempt to typecast.
+        # @return [Object]     The typecasted object.
+        #
+        # @see Property#typecast
         #
         # @api private
-        def typecast_value(value)
+        def typecast_value(val)
           if subject.respond_to?(:typecast)
-            subject.value(subject.typecast(value))
+            subject.typecast(val)
           else
-            value
+            val
+          end
+        end
+
+        # Converts the given +val+ to the type as it is stored in the
+        # repository.
+        #
+        # @param  [Object] val The object to attempt to typecast.
+        # @return [Object]     The raw (dumped) object.
+        #
+        # @see Property#value
+        #
+        # @api private
+        def dumped_value(val)
+          if subject.respond_to?(:value)
+            subject.value(val)
+          else
+            val
           end
         end
 
@@ -372,8 +416,8 @@ module DataMapper
         # Retrieves the value of the +subject+.
         #
         # @api semipublic
-        def expected_value(value = @value)
-          expected_value = record_value(value, @subject, :target_key)
+        def expected_value(val = @loaded_value)
+          expected_value = record_value(val, @subject, :target_key)
 
           if @subject.respond_to?(:source_key)
             @subject.source_key.typecast(expected_value)
@@ -478,7 +522,7 @@ module DataMapper
             value.kind_of?(Range) ||
             value.kind_of?(Set)
 
-          value.any? && value.all? { |val| subject.valid?(val) }
+          loaded_value.any? && loaded_value.all? { |val| subject.valid?(val) }
         end
 
         private
@@ -489,18 +533,31 @@ module DataMapper
         # @see AbtractComparison#expected_value
         # @api semipublic
         def expected_value
-          @value.map { |value| super(value) }
+          loaded_value.map { |val| super(val) }
         end
 
         # Typecasts each value in the set.
         #
         # @see AbtractComparison#typecast_value
         # @api private
-        def typecast_value(value)
-          if subject.respond_to?(:typecast) && value.respond_to?(:map)
-            value.map { |val| subject.typecast(val) }
+        def typecast_value(val)
+          if subject.respond_to?(:typecast) && val.respond_to?(:map)
+            val.map { |el| subject.typecast(el) }
           else
-            value
+            val
+          end
+        end
+
+        # Converts the given +val+ to the type as it is stored in the
+        # repository.
+        #
+        # @see AbtractComparison#dumped_value
+        # @api private
+        def dumped_value(val)
+          if subject.respond_to?(:value) && val.respond_to?(:map)
+            val.map { |el| subject.value(el) }
+          else
+            val
           end
         end
 
@@ -541,8 +598,8 @@ module DataMapper
         # Returns the value untouched.
         #
         # @api private
-        def typecast_value(value)
-          value
+        def typecast_value(val)
+          val
         end
 
         # @see AbstractComparison#to_s
