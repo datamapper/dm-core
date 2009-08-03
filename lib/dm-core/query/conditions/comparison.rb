@@ -28,14 +28,16 @@ module DataMapper
     # directly in your applications.
     module Conditions
 
-      # An abstract class which provides easy access to comparison operators.
+      # An abstract class which provides easy access to comparison operators
       #
       # @example Creating a new comparison
       #   Comparison.new(:eql, MyClass.my_property, "value")
       #
       class Comparison
 
-        # Creates a new Comparison class suitable for matching the given
+        # Creates a new Comparison instance
+        #
+        # The returned instance will be suitable for matching the given
         # subject (property or relationship) against the value.
         #
         # @param [Symbol] slug
@@ -49,6 +51,9 @@ module DataMapper
         #
         # @return [DataMapper::Query::Conditions::AbstractComparison]
         #
+        # @example
+        #   Comparison.new(:eql, MyClass.properties[:id], 1)
+        #
         # @api semipublic
         def self.new(slug, subject, value)
           if klass = comparison_class(slug)
@@ -60,12 +65,14 @@ module DataMapper
           end
         end
 
-        # Returns the comparison class identified by the given slug.
+        # Returns the comparison class identified by the given slug
         #
         # @param [Symbol] slug
         #   See slug parameter for Comparison.new
         #
-        # @api semipublic
+        # @return [AbstractComparison, nil]
+        #
+        # @api private
         def self.comparison_class(slug)
           comparison_classes[slug] ||=
             AbstractComparison.descendants.detect do |comparison_class|
@@ -73,9 +80,9 @@ module DataMapper
             end
         end
 
-        # Returns an array of all slugs registered with Comparison.
+        # Returns an array of all slugs registered with Comparison
         #
-        # @return Array[Symbol]
+        # @return [Array<Symbol>]
         # @api private
         def self.slugs
           @slugs ||=
@@ -87,9 +94,9 @@ module DataMapper
         class << self
           private
 
-          # Holds comparison subclasses keyed on their slug.
+          # Holds comparison subclasses keyed on their slug
           #
-          # @return Hash
+          # @return [Hash]
           # @api private
           def comparison_classes
             @comparison_classes ||= {}
@@ -103,56 +110,62 @@ module DataMapper
 
         deprecate :property, :subject
 
-        # Holds the subject of the comparison; a property or relationship
-        # which is being matched against.
+        # The property or relationship which is being matched against
         #
+        # @return [Property, Associations::Relationship]
         # @api semipublic
         attr_reader :subject
 
-        # Holds the expected value; this value is compared against that
-        # contained in the subject when filtering collections, or the value
-        # in the repository when performing queries.
+        # Value to be compared with the subject
+        #
+        # This value is compared against that contained in the subject when
+        # filtering collections, or the value in the repository when
+        # performing queries.
         #
         # In the case of custom types, this is the value as it is stored in
         # the repository.
         #
+        # @return [Object]
         # @api semipublic
         attr_reader :value
 
-        # Holds the loaded value. In the case of primitive types, this will be
-        # the same as +value+, however when using custom types this stores the
-        # loaded value.
+        # The loaded/typecast value
+        #
+        # In the case of primitive types, this will be the same as +value+,
+        # however when using custom types this stores the loaded value.
         #
         # If writing an adapter, you should use +value+, while plugin authors
         # should refer to +loaded_value+.
         #
-        # --
+        #--
         # As an example, you might use symbols with the Enum type in dm-types
         #
         #   property :myprop, Enum[:open, :closed]
         #
         # These are stored in repositories as 1 and 2, respectively. +value+
         # returns the 1 or 2, while +loaded_value+ returns the symbol.
-        # ++
+        #++
         #
+        # @return [Object]
         # @api semipublic
         attr_reader :loaded_value
 
-        # Keeps track of AbstractComparison subclasses (used in Comparison).
+        # Keeps track of AbstractComparison subclasses (used in Comparison)
         #
+        # @return [Set<AbstractComparison>]
         # @api private
         def self.descendants
           @descendants ||= Set.new
         end
 
-        # Registers AbstractComparison subclasses (used in Comparison).
+        # Registers AbstractComparison subclasses (used in Comparison)
         #
         # @api private
         def self.inherited(comparison_class)
           descendants << comparison_class
         end
 
-        # Setter/getter: allows subclasses to easily set their slug.
+        # Setter/getter: allows subclasses to easily set their slug
         #
         # @param [Symbol] slug
         #   The slug to be set for this class. Passing nil returns the current
@@ -171,7 +184,7 @@ module DataMapper
           slug ? @slug = slug : @slug
         end
 
-        # Tests that the Comparison is valid.
+        # Tests that the Comparison is valid
         #
         # Subclasses can overload this to customise the means by which they
         # determine the validity of the comparison. #valid? is called prior to
@@ -181,7 +194,7 @@ module DataMapper
         # @see DataMapper::Property#valid?
         # @see DataMapper::Associations::Relationship#valid?
         #
-        # @returns [TrueClass, FalseClass]
+        # @return [TrueClass, FalseClass]
         #
         # @api semipublic
         def valid?
@@ -192,7 +205,7 @@ module DataMapper
           subject.valid?(loaded_value)
         end
 
-        # Returns whether the subject is a Relationship.
+        # Returns whether the subject is a Relationship
         #
         # @return [TrueClass, FalseClass]
         # @api semipublic
@@ -200,7 +213,7 @@ module DataMapper
           false
         end
 
-        # Returns whether the subject is a Property.
+        # Returns whether the subject is a Property
         #
         # @return [TrueClass, FalseClass]
         # @api semipublic
@@ -208,9 +221,10 @@ module DataMapper
           subject.kind_of?(Property)
         end
 
-        # Computes a hash-code for this Comparison. Two Comparisons of the
-        # same class, and with the same subject and value will have the same
-        # hash-code.
+        # Computes a hash-code for this Comparison
+        #
+        # Two Comparisons of the same class, and with the same subject and
+        # value will have the same hash-code.
         #
         # @return [Fixnum] The computed hash-code.
         # @api semipublic
@@ -218,9 +232,10 @@ module DataMapper
           [ self.class, @subject, @value ].hash
         end
 
-        # Returns true if this object equals +other+. The objects are
-        # considered equal if they are the same object, or have the same slug,
-        # subject and value.
+        # Returns true if this object equals +other+
+        #
+        # The objects are considered equal if they are the same object, or
+        # have the same slug, subject and value.
         #
         # @param [Object] other
         #   Another object to be compared against this one.
@@ -238,9 +253,10 @@ module DataMapper
           cmp?(other, :==)
         end
 
-        # Returns true if this object equals +other+. The objects are
-        # considered equal if they are the same object, or are the same class,
-        # and have the same slug, subject and value.
+        # Returns true if this object equals +other+
+        #
+        # The objects are considered equal if they are the same object, or are
+        # the same class, and have the same slug, subject and value.
         #
         # @param [Object] other
         #   Another object to be compared against this one.
@@ -255,8 +271,7 @@ module DataMapper
           cmp?(other, :eql?)
         end
 
-        # Returns a string containing a human-readable representation of this
-        # object.
+        # Returns a human-readable representation of this object
         #
         # @return [String]
         # @api semipublic
@@ -265,12 +280,13 @@ module DataMapper
             "@value=#{@value.inspect} @loaded_value=#{@loaded_value.inspect}>"
         end
 
-        # Returns a string version of this Comparison object.
+        # Returns a string version of this Comparison object
         #
         # @example
         #   Comparison.new(:==, MyClass.my_property, "value")
         #   # => "my_property == value"
         #
+        # @return [String]
         # @api semipublic
         def to_s
           "#{@subject} #{comparator_string} #{@value}"
@@ -278,12 +294,12 @@ module DataMapper
 
         private # ============================================================
 
-        # Holds the actual value of the given property or relationship.
+        # Holds the actual value of the given property or relationship
+        # @return [Object]
         # @api semipublic
         attr_reader :expected
 
-        # Creates a new AbstractComparison instance using the +subject+ and
-        # +value+.
+        # Creates a new AbstractComparison instance with +subject+ and +value+
         #
         # @param [Property, Associations::Relationship] subject
         #   The subject of the comparison - the value of the subject will be
@@ -299,14 +315,15 @@ module DataMapper
           @expected     = expected_value
         end
 
-        # Used by Ruby when creating a copy of the comparison.
+        # Used by Ruby when creating a copy of the comparison
         # @api private
         def initialize_copy(*)
           @value = @value.dup
           @loaded_value = @loaded_value.dup
         end
 
-        # Compares this comparison with +other+ using the given +operator+.
+        # Compares this comparison with +other+ using the given +operator+
+        #
         # Checks that the slug, subject and value all return true when
         # compared with their counterparts in +other+ with +operator+.
         #
@@ -315,6 +332,8 @@ module DataMapper
         #
         # @see AbstractComparison#==
         # @see AbstractComparison#eql?
+        #
+        # @return [TrueClass, FalseClass]
         #
         # @api private
         def cmp?(other, operator)
@@ -325,8 +344,10 @@ module DataMapper
           true
         end
 
-        # Typecasts the given +val+ using subject#typecast if it has a
-        # typecast method (e.g. Property), otherwise just returns the value.
+        # Typecasts the given +val+ using subject#typecast
+        #
+        # If the subject has no typecast method the value is returned without
+        # any changes.
         #
         # @param  [Object] val The object to attempt to typecast.
         # @return [Object]     The typecasted object.
@@ -342,7 +363,9 @@ module DataMapper
           end
         end
 
-        # Converts the given +val+ to the type as it is stored in the
+        # Dumps the given +val+ using subject#value
+        #
+        # This converts property values to the primitive as stored in the
         # repository.
         #
         # @param  [Object] val The object to attempt to typecast.
@@ -359,6 +382,8 @@ module DataMapper
           end
         end
 
+        # Returns a value for the comparison +subject+
+        #
         # Extracts value for the +subject+ property or relationship from the
         # given +record+, where +record+ is a Resource instance or a Hash.
         #
@@ -370,6 +395,8 @@ module DataMapper
         # @param [Symbol] key_type
         #   In the event that +subject+ is a relationship, key_type indicated
         #   which key should be used to retrieve the value from the resource.
+        #
+        # @return [Object]
         #
         # @api semipublic
         def record_value(record, subject = @subject, key_type = :source_key)
@@ -383,10 +410,14 @@ module DataMapper
           end
         end
 
-        # Extracts value for the +subject+ property or relationship from the
+        # Returns a value from a record hash
+        #
+        # Retrieves value for the +subject+ property or relationship from the
         # given +hash+.
         #
+        # @return [Object]
         # @see AbstractComparison#record_value
+        #
         # @api private
         def record_value_from_hash(hash, subject, key_type)
           hash.fetch subject, case subject
@@ -399,10 +430,14 @@ module DataMapper
           end
         end
 
+        # Returns a value from a resource
+        #
         # Extracts value for the +subject+ property or relationship from the
         # given +resource+.
         #
+        # @return [Object]
         # @see AbstractComparison#record_value
+        #
         # @api private
         def record_value_from_resource(resource, subject, key_type)
           case subject
@@ -413,8 +448,9 @@ module DataMapper
           end
         end
 
-        # Retrieves the value of the +subject+.
+        # Retrieves the value of the +subject+
         #
+        # @return [Object]
         # @api semipublic
         def expected_value(val = @loaded_value)
           expected_value = record_value(val, @subject, :target_key)
@@ -426,7 +462,7 @@ module DataMapper
           end
         end
 
-        # Returns the name of this comparison.
+        # Returns the name of this comparison
         #
         # @return [String]
         #   The name of the comparison class minus the trailing "Comparison".
@@ -444,7 +480,7 @@ module DataMapper
       # Included into comparisons which are capable of supporting
       # Relationships.
       module RelationshipHandler
-        # Returns whether this comparison subject is a Relationship.
+        # Returns whether this comparison subject is a Relationship
         #
         # @return [TrueClass, FalseClass]
         # @api semipublic
@@ -452,8 +488,9 @@ module DataMapper
           subject.kind_of?(Associations::Relationship)
         end
 
-        # Returns the conditions required to match the subject relationship.
+        # Returns the conditions required to match the subject relationship
         #
+        # @return [Hash]
         # @api semipublic
         def foreign_key_mapping
           relationship = subject.inverse
@@ -470,7 +507,7 @@ module DataMapper
 
         slug :eql
 
-        # Asserts that the record value matches the comparison.
+        # Asserts that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -483,6 +520,7 @@ module DataMapper
 
         private
 
+        # @return [String]
         # @see AbstractComparison#to_s
         # @api private
         def comparator_string
@@ -498,7 +536,7 @@ module DataMapper
 
         slug :in
 
-        # Asserts that the record value matches the comparison.
+        # Asserts that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -510,7 +548,7 @@ module DataMapper
           !record_value.nil? && expected.include?(record_value)
         end
 
-        # Checks that the Comparison is valid.
+        # Checks that the Comparison is valid
         #
         # @see DataMapper::Query::Conditions::AbstractComparison#valid?
         # @return [TrueClass, FalseClass]
@@ -527,18 +565,21 @@ module DataMapper
 
         private
 
-        # Overloads the +expected_value+ method in AbstractComparison to
-        # typecast each value in the inclusion set.
+        # Overloads AbtractComparison#expected_value
         #
+        # @return [Array<Object>]
         # @see AbtractComparison#expected_value
-        # @api semipublic
+        #
+        # @api private
         def expected_value
           loaded_value.map { |val| super(val) }
         end
 
-        # Typecasts each value in the set.
+        # Typecasts each value in the inclusion set
         #
+        # @return [Array<Object>]
         # @see AbtractComparison#typecast_value
+        #
         # @api private
         def typecast_value(val)
           if subject.respond_to?(:typecast) && val.respond_to?(:map)
@@ -548,10 +589,11 @@ module DataMapper
           end
         end
 
-        # Converts the given +val+ to the type as it is stored in the
-        # repository.
+        # Dumps the given +val+ using subject#value
         #
+        # @return [Array<Object>]
         # @see AbtractComparison#dumped_value
+        #
         # @api private
         def dumped_value(val)
           if subject.respond_to?(:value) && val.respond_to?(:map)
@@ -561,6 +603,7 @@ module DataMapper
           end
         end
 
+        # @return [String]
         # @see AbstractComparison#to_s
         # @api private
         def comparator_string
@@ -573,7 +616,7 @@ module DataMapper
       class RegexpComparison < AbstractComparison
         slug :regexp
 
-        # Asserts that the record value matches the comparison.
+        # Asserts that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -585,7 +628,7 @@ module DataMapper
           !record_value.nil? && record_value =~ expected
         end
 
-        # Checks that the Comparison is valid.
+        # Checks that the Comparison is valid
         #
         # @see AbstractComparison#valid?
         # @api semipublic
@@ -595,13 +638,15 @@ module DataMapper
 
         private
 
-        # Returns the value untouched.
+        # Returns the value untouched
         #
+        # @return [Object]
         # @api private
         def typecast_value(val)
           val
         end
 
+        # @return [String]
         # @see AbstractComparison#to_s
         # @api private
         def comparator_string
@@ -616,7 +661,7 @@ module DataMapper
       class LikeComparison < AbstractComparison
         slug :like
 
-        # Asserts that the record value matches the comparison.
+        # Asserts that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -630,16 +675,20 @@ module DataMapper
 
         private
 
-        # Overloads the +expected_value+ method in AbstractComparison to
-        # return a regular expression suitable for matching against the
+        # Overloads the +expected_value+ method in AbstractComparison
+        #
+        # Return a regular expression suitable for matching against the
         # records value.
         #
+        # @return [Regexp]
         # @see AbtractComparison#expected_value
+        #
         # @api semipublic
         def expected_value
           Regexp.new(@value.to_s.gsub('%', '.*').gsub('_', '.'))
         end
 
+        # @return [String]
         # @see AbstractComparison#to_s
         # @api private
         def comparator_string
@@ -652,7 +701,7 @@ module DataMapper
       class GreaterThanComparison < AbstractComparison
         slug :gt
 
-        # Asserts that the record value matches the comparison.
+        # Asserts that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -666,6 +715,7 @@ module DataMapper
 
         private
 
+        # @return [String]
         # @see AbstractComparison#to_s
         # @api private
         def comparator_string
@@ -678,7 +728,7 @@ module DataMapper
       class LessThanComparison < AbstractComparison
         slug :lt
 
-        # Asserts that the record value matches the comparison.
+        # Asserts that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -692,6 +742,7 @@ module DataMapper
 
         private
 
+        # @return [String]
         # @see AbstractComparison#to_s
         # @api private
         def comparator_string
@@ -704,7 +755,7 @@ module DataMapper
       class GreaterThanOrEqualToComparison < AbstractComparison
         slug :gte
 
-        # Asserts that the record value matches the comparison.
+        # Asserts that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -730,7 +781,7 @@ module DataMapper
       class LessThanOrEqualToComparison < AbstractComparison
         slug :lte
 
-        # Asserts that the record value matches the comparison.
+        # Asserts that the record value matches the comparison
         #
         # @param [Resource, Hash] record
         #   The record containing the value to be matched
@@ -744,6 +795,7 @@ module DataMapper
 
         private
 
+        # @return [String]
         # @see AbstractComparison#to_s
         # @api private
         def comparator_string
