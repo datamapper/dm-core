@@ -504,7 +504,7 @@ module DataMapper
         #
         # @api private
         def bits(property)
-          width = max_abs_value(property)
+          width = max_abs_number(property)
           bits  = signed?(property) ? 1 : 0
           bits += 1 and width >>= 1 until width == 0
           bits
@@ -519,7 +519,7 @@ module DataMapper
         #   the maximum absolute value
         #
         # @api private
-        def max_abs_value(property)
+        def max_abs_number(property)
           max = property.max
           max = [ (property.min + 1).abs, max ].max if signed?(property)
           max
