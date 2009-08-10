@@ -247,11 +247,8 @@ module DataMapper
         def property_schema_hash(property)
           schema = (self.class.type_map[property.type] || self.class.type_map[property.primitive]).merge(:name => property.field)
 
-          # TODO: figure out a way to specify the size not be included, even if
-          # a default is defined in the typemap
-          #  - use this to make it so all TEXT primitive fields do not have size
           if property.primitive == String && schema[:primitive] != 'TEXT' && schema[:primitive] != 'CLOB'
-            schema[:size] = property.length
+            schema[:length] = property.length
           elsif property.primitive == BigDecimal || property.primitive == Float
             schema[:precision] = property.precision
             schema[:scale]     = property.scale
@@ -282,8 +279,8 @@ module DataMapper
 
           if schema[:precision] && schema[:scale]
             statement << "(#{[ :precision, :scale ].map { |key| connection.quote_value(schema[key]) }.join(', ')})"
-          elsif schema[:size]
-            statement << "(#{connection.quote_value(schema[:size])})"
+          elsif schema[:length]
+            statement << "(#{connection.quote_value(schema[:length])})"
           end
 
           statement << " DEFAULT #{connection.quote_value(schema[:default])}" if schema.key?(:default)
@@ -301,14 +298,14 @@ module DataMapper
         #
         # @api private
         def type_map
-          size      = Property::DEFAULT_LENGTH
+          length    = Property::DEFAULT_LENGTH
           precision = Property::DEFAULT_PRECISION
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
 
           @type_map ||= {
             Integer       => { :primitive => 'INTEGER'                                           },
-            String        => { :primitive => 'VARCHAR', :size => size                            },
-            Class         => { :primitive => 'VARCHAR', :size => size                            },
+            String        => { :primitive => 'VARCHAR', :length => length                        },
+            Class         => { :primitive => 'VARCHAR', :length => length                        },
             BigDecimal    => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
             Float         => { :primitive => 'FLOAT',   :precision => precision                  },
             DateTime      => { :primitive => 'TIMESTAMP'                                         },
@@ -518,10 +515,6 @@ module DataMapper
         # @api private
         def property_schema_hash(property)
           schema = super
-
-          # TODO: see if TypeMap can be updated to set specific attributes to nil
-          # for different adapters.  precision/scale are perfect examples for
-          # Postgres floats
 
           # Postgres does not support precision and scale for Float
           if property.primitive == Float
@@ -921,22 +914,22 @@ module DataMapper
         #
         # @api private
         def type_map
-          size      = Property::DEFAULT_LENGTH
+          length    = Property::DEFAULT_LENGTH
           precision = Property::DEFAULT_PRECISION
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
 
           @type_map ||= {
-            Integer       => { :primitive => 'NUMBER',  :precision => precision, :scale => 0     },
-            String        => { :primitive => 'VARCHAR2',:size => size                            },
-            Class         => { :primitive => 'VARCHAR2',:size => size                            },
-            BigDecimal    => { :primitive => 'NUMBER',  :precision => precision, :scale => nil   },
-            Float         => { :primitive => 'BINARY_FLOAT',                                     },
-            DateTime      => { :primitive => 'DATE'                                              },
-            Date          => { :primitive => 'DATE'                                              },
-            Time          => { :primitive => 'DATE'                                              },
-            TrueClass     => { :primitive => 'NUMBER',  :precision => 1, :scale => 0             },
-            Types::Object => { :primitive => 'CLOB'                                              },
-            Types::Text   => { :primitive => 'CLOB'                                              },
+            Integer       => { :primitive => 'NUMBER',   :precision => precision, :scale => 0   },
+            String        => { :primitive => 'VARCHAR2', :length => length                      },
+            Class         => { :primitive => 'VARCHAR2', :length => length                      },
+            BigDecimal    => { :primitive => 'NUMBER',   :precision => precision, :scale => nil },
+            Float         => { :primitive => 'BINARY_FLOAT',                                    },
+            DateTime      => { :primitive => 'DATE'                                             },
+            Date          => { :primitive => 'DATE'                                             },
+            Time          => { :primitive => 'DATE'                                             },
+            TrueClass     => { :primitive => 'NUMBER',  :precision => 1, :scale => 0            },
+            Types::Object => { :primitive => 'CLOB'                                             },
+            Types::Text   => { :primitive => 'CLOB'                                             },
           }.freeze
         end
 
