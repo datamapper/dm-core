@@ -92,7 +92,7 @@ module DataMapper
       :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :unique_index, :auto_validation,
-      :validates, :unique, :precision, :scale
+      :validates, :unique, :precision, :scale, :min, :max
     ]
 
     class << self

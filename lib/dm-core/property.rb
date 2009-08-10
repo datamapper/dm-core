@@ -255,9 +255,7 @@ module DataMapper
   #
   #  :field               field in the data-store which the property corresponds to
   #
-  #  :size                field size. Usually makes sense for properties of type String.
-  #
-  #  :length              alias for :length option
+  #  :length              string field size
   #
   #  :format              format for autovalidation. Use with dm-validations plugin.
   #
@@ -304,7 +302,7 @@ module DataMapper
       :accessor, :reader, :writer,
       :lazy, :default, :nullable, :key, :serial, :field, :size, :length,
       :format, :index, :unique_index, :auto_validation,
-      :validates, :unique, :precision, :scale
+      :validates, :unique, :precision, :scale, :min, :max
     ]
 
     PRIMITIVES = [
@@ -327,10 +325,12 @@ module DataMapper
     DEFAULT_PRECISION        = 10
     DEFAULT_SCALE_BIGDECIMAL = 0    # Default scale for BigDecimal type
     DEFAULT_SCALE_FLOAT      = nil  # Default scale for Float type
+    DEFAULT_NUMERIC_MIN      = 0
+    DEFAULT_NUMERIC_MAX      = 2**31-1
 
     attr_reader :primitive, :model, :name, :instance_variable_name,
       :type, :reader_visibility, :writer_visibility, :options,
-      :default, :precision, :scale, :repository_name
+      :default, :precision, :scale, :min, :max, :repository_name
 
     # Supplies the field in the data-store which the property corresponds to
     #
@@ -798,9 +798,13 @@ module DataMapper
       elsif Integer == type && options.delete(:serial)
         warn "#{type} with explicit :serial option is deprecated, use Serial instead"
         type = Types::Serial
-      elsif String == type && options.key?(:size)
-        warn "#{type} with :size option is deprecated, use #{type} with :length instead"
-        options[:length] = options.delete(:size)
+      elsif options.key?(:size)
+        if String == type
+          warn ":size option is deprecated, use #{type} with :length instead"
+          options[:length] = options.delete(:size)
+        elsif Numeric > type
+          warn ':size option is deprecated, specify :min and :max instead'
+        end
       end
 
       assert_valid_options(options)
@@ -854,6 +858,17 @@ module DataMapper
           unless @precision >= @scale
             raise ArgumentError, "precision must be equal to or greater than scale, but was #{@precision.inspect} and scale was #{@scale.inspect}"
           end
+        end
+      end
+
+      if Numeric > @primitive && (@options.keys & [ :min, :max ]).any?
+        @min = @options.fetch(:min, DEFAULT_NUMERIC_MIN)
+        @max = @options.fetch(:max, DEFAULT_NUMERIC_MAX)
+
+        if @max < DEFAULT_NUMERIC_MIN && !@options.key?(:min)
+          raise ArgumentError, "min should be specified when the max is less than #{DEFAULT_NUMERIC_MIN}"
+        elsif @max < @min
+          raise ArgumentError, "max must be less than the min, but was #{@max} while the min was #{@min}"
         end
       end
 

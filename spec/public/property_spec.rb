@@ -199,6 +199,72 @@ describe DataMapper::Property do
       end
     end
 
+    describe '#min' do
+      describe 'when :min and :max options not provided to constructor' do
+        before do
+          @property = Image.property(:integer_with_nil_min, Integer)
+        end
+
+        it 'should be nil' do
+          @property.min.should be_nil
+        end
+      end
+
+      describe 'when :min option not provided to constructor, but :max is provided' do
+        before do
+          @property = Image.property(:integer_with_default_min, Integer, :max => 1)
+        end
+
+        it 'should be the default value' do
+          @property.min.should == 0
+        end
+      end
+
+      describe 'when :min and :max options provided to constructor' do
+        before do
+          @min = 1
+          @property = Image.property(:integer_with_explicit_min, Integer, :min => @min, :max => 2)
+        end
+
+        it 'should be the expected value' do
+          @property.min.should == @min
+        end
+      end
+    end
+
+    describe '#max' do
+      describe 'when :min and :max options not provided to constructor' do
+        before do
+          @property = Image.property(:integer_with_nil_max, Integer)
+        end
+
+        it 'should be nil' do
+          @property.max.should be_nil
+        end
+      end
+
+      describe 'when :max option not provided to constructor, but :min is provided' do
+        before do
+          @property = Image.property(:integer_with_default_max, Integer, :min => 1)
+        end
+
+        it 'should be the default value' do
+          @property.max.should == 2**31-1
+        end
+      end
+
+      describe 'when :min and :max options provided to constructor' do
+        before do
+          @max = 2
+          @property = Image.property(:integer_with_explicit_max, Integer, :min => 1, :max => @max)
+        end
+
+        it 'should be the expected value' do
+          @property.max.should == @max
+        end
+      end
+    end
+
     describe '#nullable?' do
       it 'returns true when property can accept nil as its value' do
         Track.properties[:artist].nullable?.should be_true
