@@ -383,18 +383,8 @@ module DataMapper
             schema.delete(:default)
           end
 
-          # choose the most efficient column type that will still allow
-          # the size to be satisfied
-          if property.primitive == Integer && property.options.key?(:size)
-            size = schema[:size] = property.options[:size]
-
-            schema[:primitive] =
-              if    size >= 12 then 'BIGINT'
-              elsif size >= 10 then 'INT'
-              elsif size >= 7  then 'MEDIUMINT'
-              elsif size >= 5  then 'SMALLINT'
-              else                  'TINYINT'
-              end
+          if property.primitive == Integer && property.min && property.max
+            schema[:primitive] = integer_column_statement(property)
           end
 
           schema
@@ -429,6 +419,123 @@ module DataMapper
         def show_variable(name)
           result = query('SHOW VARIABLES LIKE ?', name).first
           result ? result.value.freeze : nil
+        end
+
+        private
+
+        # Return SQL statement for the integer column
+        #
+        # @param [Property] property
+        #   the property to return the statement for
+        #
+        # @return [String]
+        #   the statement to create the integer column
+        #
+        # @api private
+        def integer_column_statement(property)
+          '%s(%d)%s' % [
+            integer_column_type(property),
+            integer_display_size(property),
+            integer_statement_sign(property),
+          ]
+        end
+
+        # Return the integer column type
+        #
+        # Use the smallest available column type that will satisfy the
+        # allowable range of numbers
+        #
+        # @param [Property] property
+        #   the property to return the column type for
+        #
+        # @return [String]
+        #   the column type
+        #
+        # @api private
+        def integer_column_type(property)
+          bits = bits(property)
+
+          if    bits > 32 then 'BIGINT'
+          elsif bits > 24 then 'INT'
+          elsif bits > 16 then 'MEDIUMINT'
+          elsif bits > 8  then 'SMALLINT'
+          else                 'TINYINT'
+          end
+        end
+
+        # Return the integer column display size
+        #
+        # Adjust the display size to match the maximum number of
+        # expected digits. This is more for documentation purposes
+        # and does not affect what can actually be stored in a
+        # specific column
+        #
+        # @param [Property] property
+        #   the property to return the display size for
+        #
+        # @return [Integer]
+        #   the display size for the integer
+        #
+        # @api private
+        def integer_display_size(property)
+          [ property.min.to_s.length, property.max.to_s.length ].max
+        end
+
+        # Return the integer sign statement
+        #
+        # @param [Property] property
+        #   the property to return the sign statement for
+        #
+        # @return [String, nil]
+        #   statement if unsigned, nil if signed
+        #
+        # @api private
+        def integer_statement_sign(property)
+          ' UNSIGNED' unless signed?(property)
+        end
+
+        # Return the bits for the maximum Property value
+        #
+        # @param [Property] property
+        #   the property to return the maximum value bits for
+        #
+        # @return [Integer]
+        #   the number of bits for the maximum Property value
+        #
+        # @api private
+        def bits(property)
+          width = max_abs_value(property)
+          bits  = signed?(property) ? 1 : 0
+          bits += 1 and width >>= 1 until width == 0
+          bits
+        end
+
+        # Return the maximum absolute number to stored in the column
+        #
+        # @param [Property] property
+        #   the property to return the maximum absolute value for
+        #
+        # @return [Integer]
+        #   the maximum absolute value
+        #
+        # @api private
+        def max_abs_value(property)
+          max = property.max
+          max = [ (property.min + 1).abs, max ].max if signed?(property)
+          max
+        end
+
+        # Test if the Property allows signed numbers or not
+        #
+        # @param [Property] property
+        #   the property to return the signedness for
+        #
+        # @return [Boolean]
+        #   true if the property is signed, false if not
+        #
+        # @api private
+        def signed?(property)
+          property.min < 0
         end
       end # module SQL
 
