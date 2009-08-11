@@ -266,6 +266,45 @@ describe DataMapper::Migrations do
           end
         end
       end
+
+      describe 'Serial property' do
+        [
+          [                   1, 'SERIAL'    ],
+          [          2147483647, 'SERIAL'    ],
+          [          2147483648, 'BIGSERIAL' ],
+          [ 9223372036854775807, 'BIGSERIAL' ],
+
+          [                 nil, 'SERIAL'    ],
+        ].each do |max, statement|
+          options = {}
+          options[:max] = max if max
+
+          describe "with a max of #{max}" do
+            before :all do
+              @property = @model.property(:id, DataMapper::Types::Serial, options)
+
+              @response = capture_log(DataObjects::Postgres) { @model.auto_migrate! }
+            end
+
+            it 'should return true' do
+              @response.should be_true
+            end
+
+            it "should create a #{statement} column" do
+              @output[-2].should == "CREATE TABLE \"blog_articles\" (\"id\" #{statement} NOT NULL, PRIMARY KEY(\"id\"))"
+            end
+
+            options.only(:min, :max).each do |key, value|
+              it "should allow the #{key} value #{value} to be stored" do
+                lambda {
+                  resource = @model.create(@property => value)
+                  @model.first(@property => value).should eql(resource)
+                }.should_not raise_error
+              end
+            end
+          end
+        end
+      end
     end
   end
 end

@@ -641,7 +641,7 @@ module DataMapper
           end
 
           if schema[:serial?]
-            schema[:primitive] = 'SERIAL'
+            schema[:primitive] = serial_column_statement(property)
           end
 
           schema
@@ -666,6 +666,20 @@ module DataMapper
           elsif min < -2**15 || max >= 2**15 then 'INTEGER'
           else                                    'SMALLINT'
           end
+        end
+
+        # Return SQL statement for the serial column
+        #
+        # @param [Property] property
+        #   the property to return the statement for
+        #
+        # @return [String]
+        #   the statement to create the serial column
+        #
+        # @api private
+        def serial_column_statement(property)
+          max = property.max
+          max && max >= 2**31 ? 'BIGSERIAL' : 'SERIAL'
         end
       end # module SQL
 
