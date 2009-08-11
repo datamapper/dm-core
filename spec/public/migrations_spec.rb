@@ -26,7 +26,7 @@ describe DataMapper::Migrations do
   supported_by :mysql do
     describe '#auto_migrate' do
       [
-        [                    0,                     0,  'TINYINT(1) UNSIGNED'   ],
+        [                    0,                     1,  'TINYINT(1) UNSIGNED'   ],
         [                    0,                     9,  'TINYINT(1) UNSIGNED'   ],
         [                    0,                    10,  'TINYINT(2) UNSIGNED'   ],
         [                    0,                    99,  'TINYINT(2) UNSIGNED'   ],
@@ -173,13 +173,13 @@ describe DataMapper::Migrations do
         [                    0,                   nil,  'INT(10) UNSIGNED'      ],
         [                  nil,                   nil,  'INTEGER'               ],
       ].each do |min, max, statement|
+        options = { :key => true }
+        options[:min] = min if min
+        options[:max] = max if max
+
         describe "Integer property with a min of #{min} and a max of #{max}" do
           before :all do
-            options = { :key => true }
-            options[:min] = min if min
-            options[:max] = max if max
-
-            @model.property(:id, Integer, options)
+            @property = @model.property(:id, Integer, options)
 
             @response = capture_log(DataObjects::Mysql) { @model.auto_migrate! }
           end
@@ -190,6 +190,15 @@ describe DataMapper::Migrations do
 
           it "should create a #{statement} column" do
             @output.last.should == "CREATE TABLE \"blog_articles\" (\"id\" #{statement} NOT NULL, PRIMARY KEY(\"id\")) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci"
+          end
+
+          options.only(:min, :max).each do |key, value|
+            it "should allow the #{key} value #{value} to be stored" do
+              lambda {
+                resource = @model.create(@property => value)
+                @model.first(@property => value).should eql(resource)
+              }.should_not raise_error
+            end
           end
         end
       end

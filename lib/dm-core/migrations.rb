@@ -453,13 +453,13 @@ module DataMapper
         #
         # @api private
         def integer_column_type(property)
-          bits = bits(property)
+          width = max_width(property)
 
-          if    bits > 32 then 'BIGINT'
-          elsif bits > 24 then 'INT'
-          elsif bits > 16 then 'MEDIUMINT'
-          elsif bits > 8  then 'SMALLINT'
-          else                 'TINYINT'
+          if    width >= 2**32 then 'BIGINT'
+          elsif width >= 2**24 then 'INT'
+          elsif width >= 2**16 then 'MEDIUMINT'
+          elsif width >= 2**8  then 'SMALLINT'
+          else                      'TINYINT'
           end
         end
 
@@ -494,35 +494,37 @@ module DataMapper
           ' UNSIGNED' unless signed?(property)
         end
 
-        # Return the bits for the maximum Property value
+        # Return the max number width to store in the column
+        #
+        # If the column is unsigned, then
         #
         # @param [Property] property
-        #   the property to return the maximum value bits for
+        #   the property to return the max number width
         #
         # @return [Integer]
-        #   the number of bits for the maximum Property value
+        #   the max number width
         #
         # @api private
-        def bits(property)
-          width = max_abs_number(property)
-          bits  = signed?(property) ? 1 : 0
-          bits += 1 and width >>= 1 until width == 0
-          bits
+        def max_width(property)
+          max = abs_number(property.max)
+          max = [ abs_number(property.min), max ].max * 2 if signed?(property)
+          max
         end
 
-        # Return the maximum absolute number to stored in the column
+        # Convert a number to an absolute number
         #
-        # @param [Property] property
-        #   the property to return the maximum absolute value for
+        # If the number if negative, then add 1 and convert to the
+        # absolute equivalent
+        #
+        # @param [Integer] number
+        #   the number to convert to an absolute number
         #
         # @return [Integer]
-        #   the maximum absolute value
+        #   the absolute number
         #
         # @api private
-        def max_abs_number(property)
-          max = property.max
-          max = [ (property.min + 1).abs, max ].max if signed?(property)
-          max
+        def abs_number(number)
+          number < 0 ? (number + 1).abs : number
         end
 
         # Test if the Property allows signed numbers or not
