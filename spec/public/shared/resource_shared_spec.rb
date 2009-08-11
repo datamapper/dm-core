@@ -233,7 +233,7 @@ share_examples_for 'A public Resource' do
           @return.should be_true
         end
 
-        it 'should freeze the destoyed resource' do
+        it 'should freeze the destroyed resource' do
           @resource.should be_frozen
         end
 
@@ -241,7 +241,7 @@ share_examples_for 'A public Resource' do
           @resource.destroy.should be_false
         end
 
-        it 'should remove object from persitent storage' do
+        it 'should remove object from persistent storage' do
           @user_model.get(*@resource.key).should be_nil
         end
       end
