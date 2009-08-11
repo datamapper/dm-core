@@ -487,11 +487,11 @@ module DataMapper
           min = property.min
           max = property.max
 
-          if    min < -2**31 || max > 2**31-1 then 'BIGINT'
-          elsif min < -2**23 || max > 2**23-1 then 'INT'
-          elsif min < -2**15 || max > 2**15-1 then 'MEDIUMINT'
-          elsif min < -2**7  || max > 2**7-1  then 'SMALLINT'
-          else                                     'TINYINT'
+          if    min < -2**31 || max >= 2**31 then 'BIGINT'
+          elsif min < -2**23 || max >= 2**23 then 'INT'
+          elsif min < -2**15 || max >= 2**15 then 'MEDIUMINT'
+          elsif min < -2**7  || max >= 2**7  then 'SMALLINT'
+          else                                    'TINYINT'
           end
         end
 
@@ -506,11 +506,11 @@ module DataMapper
         def unsigned_integer_column_type(property)
           max = property.max
 
-          if    max > 2**32-1 then 'BIGINT'
-          elsif max > 2**24-1 then 'INT'
-          elsif max > 2**16-1 then 'MEDIUMINT'
-          elsif max > 2**8-1  then 'SMALLINT'
-          else                     'TINYINT'
+          if    max >= 2**32 then 'BIGINT'
+          elsif max >= 2**24 then 'INT'
+          elsif max >= 2**16 then 'MEDIUMINT'
+          elsif max >= 2**8  then 'SMALLINT'
+          else                    'TINYINT'
           end
         end
 
@@ -659,28 +659,12 @@ module DataMapper
         #
         # @api private
         def integer_column_statement(property)
-          integer_column_type(property)
-        end
-
-        # Return the integer column type
-        #
-        # Use the smallest available column type that will satisfy the
-        # allowable range of numbers
-        #
-        # @param [Property] property
-        #   the property to return the column type for
-        #
-        # @return [String]
-        #   the column type
-        #
-        # @api private
-        def integer_column_type(property)
           min = property.min
           max = property.max
 
-          if    min < -2**31 || max > 2**31-1 then 'BIGINT'
-          elsif min < -2**15 || max > 2**15-1 then 'INTEGER'
-          else                                     'SMALLINT'
+          if    min < -2**31 || max >= 2**31 then 'BIGINT'
+          elsif min < -2**15 || max >= 2**15 then 'INTEGER'
+          else                                    'SMALLINT'
           end
         end
       end # module SQL
