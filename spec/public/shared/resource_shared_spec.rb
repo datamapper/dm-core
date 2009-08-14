@@ -445,16 +445,14 @@ share_examples_for 'A public Resource' do
       before :all do
         rescue_if 'TODO', @skip do
           @user2 = @user.dup
-          @user2.name = 'dkubb'
+          @user2.description = 'Changed'
           @user2.save
           @user.reload
         end
       end
 
       it 'should reload the object from the data store' do
-        pending "Reload forces all attributes to be retrieved again" do
-          @user.name.should eql('dkubb')
-        end
+        @user.description.should eql('Changed')
       end
 
     end
