@@ -254,8 +254,8 @@ module DataMapper
             schema[:scale]     = property.scale
           end
 
-          schema[:nullable?] = property.nullable?
-          schema[:serial?]   = property.serial?
+          schema[:nullable] = property.nullable?
+          schema[:serial]   = property.serial?
 
           if property.default.nil? || property.default.respond_to?(:call)
             # remove the default if the property is not nullable
@@ -284,7 +284,7 @@ module DataMapper
           end
 
           statement << " DEFAULT #{connection.quote_value(schema[:default])}" if schema.key?(:default)
-          statement << ' NOT NULL' unless schema[:nullable?]
+          statement << ' NOT NULL' unless schema[:nullable]
           statement
         end
 
@@ -410,7 +410,7 @@ module DataMapper
         def property_schema_statement(connection, schema)
           statement = super
 
-          if supports_serial? && schema[:serial?]
+          if supports_serial? && schema[:serial]
             statement << ' AUTO_INCREMENT'
           end
 
@@ -640,7 +640,7 @@ module DataMapper
             schema[:primitive] = integer_column_statement(property)
           end
 
-          if schema[:serial?]
+          if schema[:serial]
             schema[:primitive] = serial_column_statement(property)
           end
 
@@ -769,7 +769,7 @@ module DataMapper
         def property_schema_statement(connection, schema)
           statement = super
 
-          if supports_serial? && schema[:serial?]
+          if supports_serial? && schema[:serial]
             statement << ' PRIMARY KEY AUTOINCREMENT'
           end
 
