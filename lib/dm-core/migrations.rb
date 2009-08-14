@@ -287,21 +287,6 @@ module DataMapper
           statement << ' NOT NULL' unless schema[:nullable]
           statement
         end
-
-        private
-
-        # Test if the Property allows signed numbers or not
-        #
-        # @param [Property] property
-        #   the property to return the signedness for
-        #
-        # @return [Boolean]
-        #   true if the property is signed, false if not
-        #
-        # @api private
-        def signed?(property)
-          property.min < 0
-        end
       end # module SQL
 
       include SQL
@@ -399,7 +384,7 @@ module DataMapper
           end
 
           if property.primitive == Integer && property.min && property.max
-            schema[:primitive] = integer_column_statement(property)
+            schema[:primitive] = integer_column_statement(property.min..property.max)
           end
 
           schema
@@ -440,18 +425,18 @@ module DataMapper
 
         # Return SQL statement for the integer column
         #
-        # @param [Property] property
-        #   the property to return the statement for
+        # @param [Range] range
+        #   the min/max allowed integers
         #
         # @return [String]
         #   the statement to create the integer column
         #
         # @api private
-        def integer_column_statement(property)
+        def integer_column_statement(range)
           '%s(%d)%s' % [
-            integer_column_type(property),
-            integer_display_size(property),
-            integer_statement_sign(property),
+            integer_column_type(range),
+            integer_display_size(range),
+            integer_statement_sign(range),
           ]
         end
 
@@ -460,32 +445,32 @@ module DataMapper
         # Use the smallest available column type that will satisfy the
         # allowable range of numbers
         #
-        # @param [Property] property
-        #   the property to return the column type for
+        # @param [Range] range
+        #   the min/max allowed integers
         #
         # @return [String]
         #   the column type
         #
         # @api private
-        def integer_column_type(property)
-          if signed?(property)
-            signed_integer_column_type(property)
+        def integer_column_type(range)
+          if range.first < 0
+            signed_integer_column_type(range)
           else
-            unsigned_integer_column_type(property)
+            unsigned_integer_column_type(range)
           end
         end
 
         # Return the signed integer column type
         #
-        # @param [Property] property
-        #   the property to return the column type for
+        # @param [Range] range
+        #   the min/max allowed integers
         #
         # @return [String]
         #
         # @api private
-        def signed_integer_column_type(property)
-          min = property.min
-          max = property.max
+        def signed_integer_column_type(range)
+          min = range.first
+          max = range.last
 
           if    min < -2**31 || max >= 2**31 then 'BIGINT'
           elsif min < -2**23 || max >= 2**23 then 'INT'
@@ -497,14 +482,14 @@ module DataMapper
 
         # Return the unsigned integer column type
         #
-        # @param [Property] property
-        #   the property to return the column type for
+        # @param [Range] range
+        #   the min/max allowed integers
         #
         # @return [String]
         #
         # @api private
-        def unsigned_integer_column_type(property)
-          max = property.max
+        def unsigned_integer_column_type(range)
+          max = range.last
 
           if    max >= 2**32 then 'BIGINT'
           elsif max >= 2**24 then 'INT'
@@ -521,28 +506,28 @@ module DataMapper
         # and does not affect what can actually be stored in a
         # specific column
         #
-        # @param [Property] property
-        #   the property to return the display size for
+        # @param [Range] range
+        #   the min/max allowed integers
         #
         # @return [Integer]
         #   the display size for the integer
         #
         # @api private
-        def integer_display_size(property)
-          [ property.min.to_s.length, property.max.to_s.length ].max
+        def integer_display_size(range)
+          [ range.first.to_s.length, range.last.to_s.length ].max
         end
 
         # Return the integer sign statement
         #
-        # @param [Property] property
-        #   the property to return the sign statement for
+        # @param [Range] range
+        #   the min/max allowed integers
         #
         # @return [String, nil]
         #   statement if unsigned, nil if signed
         #
         # @api private
-        def integer_statement_sign(property)
-          ' UNSIGNED' unless signed?(property)
+        def integer_statement_sign(range)
+          ' UNSIGNED' unless range.first < 0
         end
       end # module SQL
 
@@ -637,11 +622,11 @@ module DataMapper
           end
 
           if property.primitive == Integer && property.min && property.max
-            schema[:primitive] = integer_column_statement(property)
+            schema[:primitive] = integer_column_statement(property.min..property.max)
           end
 
           if schema[:serial]
-            schema[:primitive] = serial_column_statement(property)
+            schema[:primitive] = serial_column_statement(property.max)
           end
 
           schema
@@ -651,16 +636,16 @@ module DataMapper
 
         # Return SQL statement for the integer column
         #
-        # @param [Property] property
-        #   the property to return the statement for
+        # @param [Range] range
+        #   the min/max allowed integers
         #
         # @return [String]
         #   the statement to create the integer column
         #
         # @api private
-        def integer_column_statement(property)
-          min = property.min
-          max = property.max
+        def integer_column_statement(range)
+          min = range.first
+          max = range.last
 
           if    min < -2**31 || max >= 2**31 then 'BIGINT'
           elsif min < -2**15 || max >= 2**15 then 'INTEGER'
@@ -670,15 +655,14 @@ module DataMapper
 
         # Return SQL statement for the serial column
         #
-        # @param [Property] property
-        #   the property to return the statement for
+        # @param [Integer] max
+        #   the max allowed integer
         #
         # @return [String]
         #   the statement to create the serial column
         #
         # @api private
-        def serial_column_statement(property)
-          max = property.max
+        def serial_column_statement(max)
           max && max >= 2**31 ? 'BIGSERIAL' : 'SERIAL'
         end
       end # module SQL
