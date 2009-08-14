@@ -884,4 +884,41 @@ describe DataMapper::Associations do
       end
     end
   end
+
+  describe 'child is also a parent' do
+    before :all do
+      class ::Employee
+        include DataMapper::Resource
+
+        property :id,   Serial
+        property :name, String
+
+        belongs_to :company
+      end
+
+      class ::Company
+        include DataMapper::Resource
+
+        property :id,   Serial
+        property :name, String
+
+        belongs_to :owner, Employee, :nullable => true
+        has n, :employees
+      end
+    end
+
+    supported_by :all do
+      before :all do
+        @company  = Company.create(:name => 'ACME Inc.')
+        @employee = @company.employees.create(:name => 'Wil E. Coyote')
+      end
+
+      it 'should save the child as a parent' do
+        lambda {
+          @company.owner = @employee
+          @company.save.should be_true
+        }.should_not raise_error
+      end
+    end
+  end
 end
