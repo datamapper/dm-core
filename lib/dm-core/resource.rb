@@ -8,13 +8,13 @@ module DataMapper
 
     # @deprecated
     def self.append_inclusions(*inclusions)
-      warn 'DataMapper::Resource.append_inclusions is deprecated, use DataMapper::Model.append_inclusions instead'
+      warn "DataMapper::Resource.append_inclusions is deprecated, use DataMapper::Model.append_inclusions instead (#{caller[0]})"
       Model.append_inclusions(*inclusions)
     end
 
     # @deprecated
     def self.extra_inclusions
-      warn 'DataMapper::Resource.extra_inclusions is deprecated, use DataMapper::Model.extra_inclusions instead'
+      warn "DataMapper::Resource.extra_inclusions is deprecated, use DataMapper::Model.extra_inclusions instead (#{caller[0]})"
       Model.extra_inclusions
     end
 
@@ -24,14 +24,15 @@ module DataMapper
       DataMapper::Model.descendants
     end
 
-    ##
     # Deprecated API for updating attributes and saving Resource
     #
     # @see #update
     #
     # @api public
     def update_attributes(attributes = {}, *allowed)
-      warn "#{model}#update_attributes is deprecated, use #{model}#update instead"
+      assert_update_clean_only
+
+      warn "#{model}#update_attributes is deprecated, use #{model}#update instead (#{caller[0]})"
 
       if allowed.any?
         warn "specifying allowed in #{model}#update_attributes is deprecated, " \
@@ -42,7 +43,6 @@ module DataMapper
       update(attributes)
     end
 
-    ##
     # Makes sure a class gets all the methods when it includes Resource
     #
     # @api private
@@ -60,7 +60,6 @@ module DataMapper
     # @api public
     alias_method :model, :class
 
-    ##
     # Repository this resource belongs to in the context of this collection
     # or of the resource's class.
     #
@@ -74,7 +73,6 @@ module DataMapper
       defined?(@repository) ? @repository : model.repository
     end
 
-    ##
     # Retrieve the key(s) for this resource.
     #
     # This always returns the persisted key value,
@@ -100,10 +98,9 @@ module DataMapper
       key
     end
 
-    ##
     # Checks if this Resource instance is new
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the resource is new and not saved
     #
     # @api public
@@ -111,10 +108,9 @@ module DataMapper
       !saved?
     end
 
-    ##
     # Checks if this Resource instance is saved
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the resource has been saved
     #
     # @api public
@@ -122,13 +118,22 @@ module DataMapper
       @saved == true
     end
 
-    ##
+    # Checks if the resource has no saved changes
+    #
+    # @return [Boolean]
+    #   true if the resource may not be persisted
+    #
+    # @api public
+    def clean?
+      !dirty?
+    end
+
     # Checks if the resource has unsaved changes
     #
-    # @return
-    #   [TrueClass, FalseClass] true if resource is new or has any unsaved changes
+    # @return [Boolean]
+    #  true if resource may be persisted
     #
-    # @api semipublic
+    # @api public
     def dirty?
       if dirty_attributes.any?
         true
@@ -139,14 +144,14 @@ module DataMapper
       end
     end
 
-    ##
     # Returns the value of the attribute.
     #
     # Do not read from instance variables directly, but use this method.
     # This method handles lazy loading the attribute and returning of
     # defaults if nessesary.
     #
-    #   Class Foo
+    # @example
+    #   class Foo
     #     include DataMapper::Resource
     #
     #     property :first_name, String
@@ -162,7 +167,7 @@ module DataMapper
     #     end
     #   end
     #
-    # @param  [Symbol] name
+    # @param [Symbol] name
     #   name of attribute to retrieve
     #
     # @return [Object]
@@ -176,14 +181,14 @@ module DataMapper
 
     alias [] attribute_get
 
-    ##
     # Sets the value of the attribute and marks the attribute as dirty
     # if it has been changed so that it may be saved. Do not set from
     # instance variables directly, but use this method. This method
     # handles the lazy loading the property and returning of defaults
     # if nessesary.
     #
-    #   Class Foo
+    # @example
+    #   class Foo
     #     include DataMapper::Resource
     #
     #     property :first_name, String
@@ -219,7 +224,6 @@ module DataMapper
 
     alias []= attribute_set
 
-    ##
     # Gets all the attributes of the Resource instance
     #
     # @param [Symbol] key_on
@@ -247,7 +251,6 @@ module DataMapper
       attributes
     end
 
-    ##
     # Assign values to multiple attributes in one call (mass assignment)
     #
     # @param [Hash] attributes
@@ -258,7 +261,6 @@ module DataMapper
     #
     # @api public
     def attributes=(attributes)
-      # TODO: update to accept Property and Relationship objects as keys
       attributes.each do |name, value|
         case name
           when String, Symbol
@@ -273,7 +275,6 @@ module DataMapper
       end
     end
 
-    ##
     # Reloads association and all child association
     #
     # @return [Resource]
@@ -289,116 +290,89 @@ module DataMapper
       self
     end
 
-    ##
     # Updates attributes and saves this Resource instance
     #
-    # @param  [Hash]  attributes
+    # @param [Hash] attributes
     #   attributes to be updated
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if resource and storage state match
     #
     # @api public
     chainable do
       def update(attributes = {})
+        assert_update_clean_only
         self.attributes = attributes
-        _update
+        save
       end
     end
 
-    ##
     # Updates attributes and saves this Resource instance, bypassing hooks
     #
-    # @param  [Hash]  attributes
+    # @param [Hash] attributes
     #   attributes to be updated
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if resource and storage state match
     #
     # @api public
     def update!(attributes = {})
+      assert_update_clean_only
       self.attributes = attributes
-
-      if dirty_attributes.empty?
-        true
-      elsif dirty_attributes.any? { |property, value| !property.nullable? && value.nil? }
-        false
-      else
-        # remove from the identity map
-        identity_map.delete(key)
-
-        unless repository.update(dirty_attributes, Collection.new(query, [ self ])) == 1
-          return false
-        end
-
-        # remove the cached key in case it is updated
-        remove_instance_variable(:@key)
-
-        original_attributes.clear
-
-        identity_map[key] = self
-
-        true
-      end
+      save!
     end
 
-    ##
-    # Save the instance and associated children to the data-store.
+    # Save the instance and loaded, dirty associations to the data-store
     #
-    # This saves all children in a has n relationship (if they're dirty).
-    #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if Resource instance and all associations were saved
-    #
-    # @see Repository#save
     #
     # @api public
     chainable do
       def save
-        save!
+        save_parents && save_self && save_children
       end
     end
 
-    ##
-    # Save the instance and associated children to the data-store, bypassing hooks
+    # Save the instance and loaded, dirty associations to the data-store, bypassing hooks
     #
-    # This saves all children in a has n relationship (if they're dirty).
-    #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if Resource instance and all associations were saved
-    #
-    # @see Repository#save
     #
     # @api public
     def save!
-      save_parents && save_self && save_children
+      save_parents(false) && save_self(false) && save_children(false)
     end
 
-    ##
     # Destroy the instance, remove it from the repository
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if resource was destroyed
     #
     # @api public
     chainable do
       def destroy
-        _destroy
+        destroy!
       end
     end
 
-    ##
     # Destroy the instance, remove it from the repository, bypassing hooks
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if resource was destroyed
     #
     # @api public
     def destroy!
-      _destroy
+      if saved? && repository.delete(Collection.new(query, [ self ])) == 1
+        @collection.delete(self) if @collection
+        reset
+        freeze
+        true
+      else
+        false
+      end
     end
 
-    ##
     # Compares another Resource for equality
     #
     # Resource is equal to +other+ if they are the same object (identity)
@@ -408,23 +382,17 @@ module DataMapper
     # @param [Resource] other
     #   the other Resource to compare with
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if they are equal, false if not
     #
     # @api public
     def eql?(other)
-      if equal?(other)
-        return true
-      end
-
-      unless instance_of?(other.class)
-        return false
-      end
+      return true if equal?(other)
+      return false unless instance_of?(other.class)
 
       cmp?(other, :eql?)
     end
 
-    ##
     # Compares another Resource for equivalency
     #
     # Resource is equal to +other+ if they are the same object (identity)
@@ -434,23 +402,17 @@ module DataMapper
     # @param [Resource] other
     #   the other Resource to compare with
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if they are equivalent, false if not
     #
     # @api public
     def ==(other)
-      if equal?(other)
-        return true
-      end
-
-      unless other.respond_to?(:model) && model.base_model.equal?(other.model.base_model)
-        return false
-      end
+      return true if equal?(other)
+      return false unless other.respond_to?(:model) && model.base_model.equal?(other.model.base_model)
 
       cmp?(other, :==)
     end
 
-    ##
     # Compares two Resources to allow them to be sorted
     #
     # @param [Resource] other
@@ -488,7 +450,6 @@ module DataMapper
       key.hash
     end
 
-    ##
     # Get a Human-readable representation of this Resource instance
     #
     #   Foo.new   #=> #<Foo name=nil updated_at=nil created_at=nil id=nil>
@@ -512,7 +473,6 @@ module DataMapper
       "#<#{model.name} #{attrs.join(' ')}>"
     end
 
-    ##
     # Hash of original values of attributes that have unsaved changes
     #
     # @return [Hash]
@@ -523,9 +483,9 @@ module DataMapper
       @original_attributes ||= {}
     end
 
-    ##
     # Checks if an attribute has been loaded from the repository
     #
+    # @example
     #   class Foo
     #     include DataMapper::Resource
     #
@@ -535,20 +495,21 @@ module DataMapper
     #
     #   Foo.new.attribute_loaded?(:description)   #=> false
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if ivar +name+ has been loaded
     #
-    # @return [TrueClass, FalseClass] true if ivar +name+ has been loaded
+    # @return [Boolean]
+    #   true if ivar +name+ has been loaded
     #
     # @api private
     def attribute_loaded?(name)
       properties[name].loaded?(self)
     end
 
-    ##
     # Fetches all the names of the attributes that have been loaded,
     # even if they are lazy but have been called
     #
+    # @example
     #   class Foo
     #     include DataMapper::Resource
     #
@@ -566,13 +527,12 @@ module DataMapper
       properties.select { |property| property.loaded?(self) }
     end
 
-    ##
     # Checks if an attribute has unsaved changes
     #
     # @param [Symbol] name
     #   name of attribute to check for unsaved changes
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if attribute has unsaved changes
     #
     # @api semipublic
@@ -580,7 +540,6 @@ module DataMapper
       dirty_attributes.key?(properties[name])
     end
 
-    ##
     # Hash of attributes that have unsaved changes
     #
     # @return [Hash]
@@ -597,45 +556,48 @@ module DataMapper
       dirty_attributes
     end
 
-    ##
     # Saves the resource
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the resource was successfully saved
     #
     # @api private
-    def save_self
-      new? ? _create : _update
+    def save_self(safe = true)
+      if safe
+        new? ? create_hook : update_hook
+      else
+        new? ? _create : _update
+      end
     end
 
-    ##
     # Saves the parent resources
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the parents were successfully saved
     #
     # @api private
-    def save_parents
+    def save_parents(safe = true)
       parent_relationships.all? do |relationship|
         parent = relationship.get!(self)
-        if parent.dirty? ? parent.save_parents && parent.save_self : parent.saved?
+        if parent.dirty? ? parent.save_parents(safe) && parent.save_self(safe) : parent.saved?
           relationship.set(self, parent)  # set the FK values
         end
       end
     end
 
-    ##
     # Saves the children resources
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the children were successfully saved
     #
     # @api private
-    def save_children
-      child_relationships.all? { |relationship| relationship.get!(self).save }
+    def save_children(safe = true)
+      child_relationships.all? do |relationship|
+        association = relationship.get!(self)
+        safe ? association.save : association.save!
+      end
     end
 
-    ##
     # Reset the Resource to a similar state as a new record:
     # removes it from identity map and clears original property
     # values (thus making all properties non dirty)
@@ -662,69 +624,28 @@ module DataMapper
 
     protected
 
-    ##
-    # Saves this Resource instance to the repository,
-    # setting default values for any unset properties
+    # Method for hooking callbacks on resource creation
     #
-    # If resource is not dirty or a new (not yet saved),
-    # this method returns false
-    #
-    # On successful save identity map of the repository is
-    # updated
-    #
-    # Needs to be a protected method so that it is hookable
-    #
-    # The primary purpose of this method is to allow before :create
-    # hooks to fire at a point just before/after resource creation
-    #
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if the receiver was successfully created
+    # @return [Boolean]
+    #   true if the create was successful, false if not
     #
     # @api private
-    def _create
-      # Can't create a resource that is not dirty and doesn't have serial keys
-      if new? && !dirty?
-        return false
-      end
-
-      # set defaults for new resource
-      properties.each do |property|
-        unless property.serial? || property.loaded?(self)
-          property.set(self, property.default_for(self))
-        end
-      end
-
-      repository.create([ self ])
-
-      @repository = repository
-      @saved      = true
-
-      original_attributes.clear
-
-      identity_map[key] = self
-
-      true
+    def create_hook
+      _create
     end
 
-    ##
-    # Updates resource state
+    # Method for hooking callbacks on resource updates
     #
-    # The primary purpose of this method is to allow before :update
-    # hooks to fire at a point just before/after resource update whether
-    # it is the result of Resource#save, or using Resource#update
-    #
-    # @return [TrueClass, FalseClass]
-    #   true if the receiver was successfully created
+    # @return [Boolean]
+    #   true if the update was successful, false if not
     #
     # @api private
-    def _update
-      update!
+    def update_hook
+      _update
     end
 
     private
 
-    ##
     # Initialize a new instance of this Resource using the provided values
     #
     # @param [Hash] attributes
@@ -738,25 +659,11 @@ module DataMapper
       self.attributes = attributes
     end
 
-    ##
-    # Destroys the resource
-    #
-    # @api private
-    def _destroy
-      if saved? && repository.delete(Collection.new(query, [ self ])) == 1
-        @collection.delete(self) if @collection
-        reset
-        freeze
-        true
-      else
-        false
-      end
-    end
-
     # Returns name of the repository this object
     # was loaded from
     #
-    # @return [String] name of the repository this object was loaded from
+    # @return [String]
+    #   name of the repository this object was loaded from
     #
     # @api private
     def repository_name
@@ -802,7 +709,6 @@ module DataMapper
       reload_attributes(properties.in_context(property_names) - loaded_properties)
     end
 
-    ##
     # Reloads specified attributes
     #
     # @param [Enumerable(Symbol)] attributes
@@ -822,7 +728,8 @@ module DataMapper
 
     # Gets a Query that will return this Resource instance
     #
-    # @return [Query] Query that will retrieve this Resource instance
+    # @return [Query]
+    #   Query that will retrieve this Resource instance
     #
     # @api private
     def query
@@ -869,7 +776,79 @@ module DataMapper
       many_to_many + other
     end
 
-    ##
+    # Saves this Resource instance to the repository,
+    # setting default values for any unset properties
+    #
+    # If resource is not dirty or a new (not yet saved),
+    # this method returns false
+    #
+    # On successful save identity map of the repository is
+    # updated
+    #
+    # Needs to be a protected method so that it is hookable
+    #
+    # The primary purpose of this method is to allow before :create
+    # hooks to fire at a point just before/after resource creation
+    #
+    # @return [Boolean]
+    #   true if the receiver was successfully created
+    #
+    # @api private
+    def _create
+      # Can't create a resource that is not dirty and doesn't have serial keys
+      return false if new? && !dirty?
+
+      # set defaults for new resource
+      properties.each do |property|
+        unless property.serial? || property.loaded?(self)
+          property.set(self, property.default_for(self))
+        end
+      end
+
+      repository.create([ self ])
+
+      @repository = repository
+      @saved      = true
+
+      original_attributes.clear
+
+      identity_map[key] = self
+
+      true
+    end
+
+    # Updates resource state
+    #
+    # The primary purpose of this method is to allow before :update
+    # hooks to fire at a point just before/after resource update whether
+    # it is the result of Resource#save, or using Resource#update
+    #
+    # @return [Boolean]
+    #   true if the receiver was successfully created
+    #
+    # @api private
+    def _update
+      if dirty_attributes.empty?
+        true
+      elsif dirty_attributes.any? { |property, value| !property.nullable? && value.nil? }
+        false
+      else
+        # remove from the identity map
+        identity_map.delete(key)
+
+        return false unless repository.update(dirty_attributes, Collection.new(query, [ self ])) == 1
+
+        # remove the cached key in case it is updated
+        remove_instance_variable(:@key)
+
+        original_attributes.clear
+
+        identity_map[key] = self
+
+        true
+      end
+    end
+
     # Return true if +other+'s is equivalent or equal to +self+'s
     #
     # @param [Resource] other
@@ -877,18 +856,13 @@ module DataMapper
     # @param [Symbol] operator
     #   The comparison operator to use to compare the attributes
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   The result of the comparison of +other+'s attributes with +self+'s
     #
     # @api private
     def cmp?(other, operator)
-      unless key.send(operator, other.key)
-        return false
-      end
-
-      if repository.send(operator, other.repository) && !dirty? && !other.dirty?
-        return true
-      end
+      return false unless key.send(operator, other.key)
+      return true if repository.send(operator, other.repository) && !dirty? && !other.dirty?
 
       # get all the loaded and non-loaded properties that are not keys,
       # since the key comparison was performed earlier
@@ -898,6 +872,16 @@ module DataMapper
 
       # check all loaded properties, and then all unloaded properties
       (loaded + not_loaded).all? { |property| property.get(self).send(operator, property.get(other)) }
+    end
+
+    # Raises an exception if #update is performed on a dirty resource
+    #
+    # @raise [UpdateConflictError]
+    #   raise if the resource is dirty
+    #
+    # @api private
+    def assert_update_clean_only
+      raise UpdateConflictError, 'A dirty resource may not be updated' unless clean?
     end
   end # module Resource
 end # module DataMapper
