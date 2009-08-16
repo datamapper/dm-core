@@ -213,7 +213,9 @@ module DataMapper
         # TODO: document
         # @api private
         def child_key_options(parent_property)
-          parent_property.options.only(:length, :size, :precision, :scale).update(:index => name, :nullable => nullable?)
+          options = parent_property.options.only(:length, :size, :precision, :scale).update(:index => name, :nullable => nullable?)
+          options.update(:min => parent_property.min, :max => parent_property.max) if parent_property.primitive == Integer
+          options
         end
 
         # TODO: document
