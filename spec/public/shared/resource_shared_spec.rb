@@ -766,84 +766,95 @@ share_examples_for 'A public Resource' do
 
   end
 
-  it { @user.should respond_to(:update) }
+  [ :update, :update! ].each do |method|
+    it { @user.should respond_to(method) }
 
-  describe '#update' do
-    describe 'with no arguments' do
-      before :all do
-        rescue_if 'TODO', @skip do
-          @return = @user.update
+    describe "##{method}" do
+      describe 'with no arguments' do
+        before :all do
+          rescue_if 'TODO', @skip do
+            @return = @user.send(method)
+          end
         end
-      end
 
-      it 'should return true' do
-        @return.should be_true
-      end
-    end
-
-    describe 'with attributes' do
-      before :all do
-        rescue_if 'TODO', @skip do
-          @attributes = { :description => 'Changed' }
-          @return = @user.update(@attributes)
-        end
-      end
-
-      it 'should return true' do
-        @return.should be_true
-      end
-
-      it 'should update attributes of Resource' do
-        @attributes.each { |key, value| @user.send(key).should == value }
-      end
-
-      it 'should persist the changes' do
-        resource = @user_model.get(*@user.key)
-        @attributes.each { |key, value| resource.send(key).should == value }
-      end
-    end
-
-    describe 'with attributes where one is a parent association' do
-      before :all do
-        rescue_if 'Use table aliases to avoid ambiguous named in query', @one_to_one_through do
-          @attributes = { :referrer => @user_model.create(:name => 'dkubb', :age => 33, :comment => @comment) }
-          @return = @user.update(@attributes)
-        end
-      end
-
-      it 'should return true' do
-        pending_if 'TODO', @one_to_one_through do
+        it 'should return true' do
           @return.should be_true
         end
       end
 
-      it 'should update attributes of Resource' do
-        pending_if 'TODO', @one_to_one_through do
+      describe 'with attributes' do
+        before :all do
+          rescue_if 'TODO', @skip do
+            @attributes = { :description => 'Changed' }
+            @return = @user.send(method, @attributes)
+          end
+        end
+
+        it 'should return true' do
+          @return.should be_true
+        end
+
+        it 'should update attributes of Resource' do
           @attributes.each { |key, value| @user.send(key).should == value }
         end
-      end
 
-      it 'should persist the changes' do
-        pending_if 'TODO', @one_to_one_through do
+        it 'should persist the changes' do
           resource = @user_model.get(*@user.key)
           @attributes.each { |key, value| resource.send(key).should == value }
         end
       end
-    end
 
-    describe 'with attributes where a value is nil for a property that does not allow nil' do
-      before :all do
-        rescue_if 'TODO', @skip do
-          @return = @user.update(:name => nil)
+      describe 'with attributes where one is a parent association' do
+        before :all do
+          rescue_if 'Use table aliases to avoid ambiguous named in query', @one_to_one_through do
+            @attributes = { :referrer => @user_model.create(:name => 'dkubb', :age => 33, :comment => @comment) }
+            @return = @user.send(method, @attributes)
+          end
+        end
+
+        it 'should return true' do
+          pending_if 'TODO', @one_to_one_through do
+            @return.should be_true
+          end
+        end
+
+        it 'should update attributes of Resource' do
+          pending_if 'TODO', @one_to_one_through do
+            @attributes.each { |key, value| @user.send(key).should == value }
+          end
+        end
+
+        it 'should persist the changes' do
+          pending_if 'TODO', @one_to_one_through do
+            resource = @user_model.get(*@user.key)
+            @attributes.each { |key, value| resource.send(key).should == value }
+          end
         end
       end
 
-      it 'should return false' do
-        @return.should be_false
+      describe 'with attributes where a value is nil for a property that does not allow nil' do
+        before :all do
+          rescue_if 'TODO', @skip do
+            @return = @user.send(method, :name => nil)
+          end
+        end
+
+        it 'should return false' do
+          @return.should be_false
+        end
+
+        it 'should not persist the changes' do
+          @user.reload.name.should_not be_nil
+        end
       end
 
-      it 'should not persist the changes' do
-        @user.reload.name.should_not be_nil
+      describe 'on a dirty resource' do
+        it 'should raise an exception' do
+          lambda {
+            @user.age = 99
+            @user.send(method, :admin => true)
+          }.should raise_error(DataMapper::UpdateConflictError, "#{@user.model}##{method} cannot be called on a dirty resource")
+        end
       end
     end
   end

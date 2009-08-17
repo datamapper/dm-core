@@ -30,7 +30,7 @@ module DataMapper
     #
     # @api public
     def update_attributes(attributes = {}, *allowed)
-      assert_update_clean_only
+      assert_update_clean_only(:update_attributes)
 
       warn "#{model}#update_attributes is deprecated, use #{model}#update instead (#{caller[0]})"
 
@@ -135,7 +135,7 @@ module DataMapper
     #
     # @api public
     def dirty?
-      if dirty_attributes.any?
+      if original_attributes.any?
         true
       elsif new?
         model.serial || properties.any? { |property| property.default? }
@@ -301,7 +301,7 @@ module DataMapper
     # @api public
     chainable do
       def update(attributes = {})
-        assert_update_clean_only
+        assert_update_clean_only(:update)
         self.attributes = attributes
         save
       end
@@ -317,7 +317,7 @@ module DataMapper
     #
     # @api public
     def update!(attributes = {})
-      assert_update_clean_only
+      assert_update_clean_only(:update!)
       self.attributes = attributes
       save!
     end
@@ -828,6 +828,8 @@ module DataMapper
     #
     # @api private
     def _update
+      dirty_attributes = self.dirty_attributes
+
       if dirty_attributes.empty?
         true
       elsif dirty_attributes.any? { |property, value| !property.nullable? && value.nil? }
@@ -880,8 +882,10 @@ module DataMapper
     #   raise if the resource is dirty
     #
     # @api private
-    def assert_update_clean_only
-      raise UpdateConflictError, 'A dirty resource may not be updated' unless clean?
+    def assert_update_clean_only(method)
+      if original_attributes.any?
+        raise UpdateConflictError, "#{model}##{method} cannot be called on a dirty resource"
+      end
     end
   end # module Resource
 end # module DataMapper
