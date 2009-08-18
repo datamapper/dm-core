@@ -29,7 +29,7 @@ module DataMapper
         # @api semipublic
         alias target_key child_key
 
-        # Intermediate association for join model
+        # Intermediate association for through model
         # relationships
         #
         # Example: for :bugs association in
@@ -85,10 +85,15 @@ module DataMapper
 
           @via = relationships[options[:via]] ||
             relationships[name]               ||
-            relationships[singular_name]      ||
+            relationships[singular_name]
+
+          @via ||= if anonymous_through_model?
             DataMapper.repository(repository_name) do
               through_model.belongs_to(singular_name, target_model, many_to_one_options)
             end
+          else
+            raise UnknownRelationshipError, "No relationships named #{name} or #{singular_name} in #{through_model}"
+          end
 
           @via.child_key
 
@@ -139,7 +144,7 @@ module DataMapper
             namespace.const_get(name)
           else
             model = Model.new do
-              # all properties added to the anonymous join model are keys by default
+              # all properties added to the anonymous through model are keys by default
               def property(name, type, options = {})
                 options[:key] = true unless options.key?(:key)
                 options.delete(:index)
@@ -173,13 +178,27 @@ module DataMapper
         # TODO: document
         # @api private
         def through_relationship_name
-          if options[:through] == Resource
+          if anonymous_through_model?
             namespace = through_model_namespace_name.first
             relationship_name = Extlib::Inflection.underscore(through_model.name.sub(/\A#{namespace.name}::/, '')).tr('/', '_')
             relationship_name.pluralize.to_sym
           else
             options[:through]
           end
+        end
+
+        # Check if the :through association uses an anonymous model
+        #
+        # An anonymous model means that DataMapper creates the model
+        # in-memory, and sets the relationships to join the source
+        # and the target model.
+        #
+        # @return [Boolean]
+        #   true if the through model is anonymous
+        #
+        # @api private
+        def anonymous_through_model?
+          options[:through] == Resource
         end
 
         # TODO: document

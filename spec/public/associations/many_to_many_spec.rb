@@ -125,7 +125,7 @@ end
           property :site_name, String, :default => 'default'
 
           belongs_to :site
-          has n, :authors, :through => :sites
+          has n, :authors, :through => :site
           belongs_to :original, self, :nullable => true
           has n, :revisions, self, :child_key => [ :original_id ]
           has 1, :previous,  self, :child_key => [ :original_id ], :order => [ :id.desc ]
