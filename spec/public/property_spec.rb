@@ -20,7 +20,7 @@ describe DataMapper::Property do
 
       property :md5hash,      String, :key => true, :length => 32
       property :title,        String, :nullable => false, :unique => true
-      property :description,  Text,   :length => 1..1024, :lazy => true
+      property :description,  Text,   :length => 1..1024, :lazy => [ :detail ]
 
       property :format,       String, :default => 'jpeg'
       # WxH, stored as a dumped Ruby pair

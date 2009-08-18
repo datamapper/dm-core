@@ -899,9 +899,14 @@ module DataMapper
               raise ArgumentError, "options[#{key.inspect}] must not be nil"
             end
 
-          when :serial, :key, :nullable, :unique, :lazy, :auto_validation
+          when :serial, :key, :nullable, :unique, :auto_validation
             unless value == true || value == false
               raise ArgumentError, "options[#{key.inspect}] must be either true or false"
+            end
+
+          when :lazy
+            unless value == true || value == false || value.kind_of?(Symbol) || (value.kind_of?(Array) && value.all? { |val| val.kind_of?(Symbol) })
+              raise ArgumentError, "options[#{key.inspect}] must be either true, false, a Symbol or an Array of Symbols"
             end
 
           when :index, :unique_index
