@@ -28,7 +28,7 @@ module DataMapper
     #
     # @see #update
     #
-    # @api public
+    # @deprecated
     def update_attributes(attributes = {}, *allowed)
       assert_update_clean_only(:update_attributes)
 
