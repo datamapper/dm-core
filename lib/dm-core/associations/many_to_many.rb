@@ -81,11 +81,13 @@ module DataMapper
           repository_name = through.relative_target_repository_name
           through_model   = through.target_model
           relationships   = through_model.relationships(repository_name)
-          name            = via_relationship_name
+          singular_name   = name.to_s.singularize.to_sym
 
-          @via = relationships[name] ||
+          @via = relationships[options[:via]] ||
+            relationships[name]               ||
+            relationships[singular_name]      ||
             DataMapper.repository(repository_name) do
-              through_model.belongs_to(name, target_model, many_to_one_options)
+              through_model.belongs_to(singular_name, target_model, many_to_one_options)
             end
 
           @via.child_key
@@ -178,12 +180,6 @@ module DataMapper
           else
             options[:through]
           end
-        end
-
-        # TODO: document
-        # @api private
-        def via_relationship_name
-          options.fetch(:via, name.to_s.singularize.to_sym)
         end
 
         # TODO: document

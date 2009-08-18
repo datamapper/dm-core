@@ -130,7 +130,7 @@ share_examples_for 'A public Association Collection' do
         author = @author_model.new(:name => 'Dan Kubb')
         lambda {
           author.articles.create
-        }.should raise_error(DataMapper::UnsavedParentError, 'The source must be saved before creating a resource')
+        }.should raise_error(DataMapper::UnsavedParentError)
       end
     end
   end
