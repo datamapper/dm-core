@@ -796,14 +796,14 @@ module DataMapper
         warn "#{type} is deprecated, use Boolean instead at #{caller[2]}"
         type = Types::Boolean
       elsif Integer == type && options.delete(:serial)
-        warn "#{type} with explicit :serial option is deprecated, use Serial instead"
+        warn "#{type} with explicit :serial option is deprecated, use Serial instead (#{caller[2]})"
         type = Types::Serial
       elsif options.key?(:size)
         if String == type
-          warn ":size option is deprecated, use #{type} with :length instead"
+          warn ":size option is deprecated, use #{type} with :length instead (#{caller[2]})"
           options[:length] = options.delete(:size)
         elsif Numeric > type
-          warn ':size option is deprecated, specify :min and :max instead'
+          warn ":size option is deprecated, specify :min and :max instead (#{caller[2]})"
         end
       end
 

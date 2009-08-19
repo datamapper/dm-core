@@ -19,7 +19,7 @@ module DataMapper
       @adapters = {}
       link(*things)
       if block_given?
-        warn "Passing block to #{self.class.name}.new is deprecated"
+        warn "Passing block to #{self.class.name}.new is deprecated (#{caller[0]})"
         commit { |*block_args| yield(*block_args) }
       end
     end

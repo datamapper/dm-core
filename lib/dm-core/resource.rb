@@ -36,7 +36,7 @@ module DataMapper
 
       if allowed.any?
         warn "specifying allowed in #{model}#update_attributes is deprecated, " \
-          'use Hash#only to filter the attributes in the caller'
+          "use Hash#only to filter the attributes in the caller (#{caller[0]})"
         attributes = attributes.only(*allowed)
       end
 

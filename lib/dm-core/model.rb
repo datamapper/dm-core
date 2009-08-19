@@ -28,7 +28,7 @@ module DataMapper
       RUBY
 
       if storage_name
-        warn "Passing in +storage_name+ to #{name}.new is deprecated"
+        warn "Passing in +storage_name+ to #{name}.new is deprecated (#{caller[0]})"
         model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
           def self.default_storage_name
             #{Extlib::Inflection.classify(storage_name).inspect}.freeze
@@ -649,7 +649,7 @@ module DataMapper
     # @api private
     def const_missing(name)
       if name == :DM
-        warn "#{name} prefix deprecated and no longer necessary"
+        warn "#{name} prefix deprecated and no longer necessary (#{caller[0]})"
         self
       elsif name == :Resource
         Resource
