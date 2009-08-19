@@ -850,7 +850,9 @@ share_examples_for 'A public Resource' do
 
       describe 'on a dirty resource' do
         before :all do
-          @user.age = 99
+          rescue_if 'TODO', @skip do
+            @user.age = 99
+          end
         end
 
         it 'should raise an exception' do
