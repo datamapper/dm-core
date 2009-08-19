@@ -849,9 +849,12 @@ share_examples_for 'A public Resource' do
       end
 
       describe 'on a dirty resource' do
+        before :all do
+          @user.age = 99
+        end
+
         it 'should raise an exception' do
           lambda {
-            @user.age = 99
             @user.send(method, :admin => true)
           }.should raise_error(DataMapper::UpdateConflictError, "#{@user.model}##{method} cannot be called on a dirty resource")
         end

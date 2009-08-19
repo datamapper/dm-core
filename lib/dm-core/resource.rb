@@ -118,7 +118,7 @@ module DataMapper
       @saved == true
     end
 
-    # Checks if the resource has no saved changes
+    # Checks if the resource has no changes to save
     #
     # @return [Boolean]
     #   true if the resource may not be persisted

@@ -64,6 +64,26 @@ share_examples_for 'A public Collection' do
     end
   end
 
+  it { @articles.should respond_to(:clean?) }
+
+  describe '#clean?' do
+    describe 'with all clean resources in the collection' do
+      it 'should return true' do
+        @articles.clean?.should be_true
+      end
+    end
+
+    describe 'with a dirty resource in the collection' do
+      before :all do
+        @articles.each { |r| r.content = 'Changed' }
+      end
+
+      it 'should return true' do
+        @articles.clean?.should be_false
+      end
+    end
+  end
+
   it { @articles.should respond_to(:clear) }
 
   describe '#clear' do
@@ -425,6 +445,26 @@ share_examples_for 'A public Collection' do
         it 'should not destroy the other Resource' do
           @article_model.get(*@other.key).should_not be_nil
         end
+      end
+    end
+  end
+
+  it { @articles.should respond_to(:dirty?) }
+
+  describe '#dirty?' do
+    describe 'with all clean resources in the collection' do
+      it 'should return false' do
+        @articles.dirty?.should be_false
+      end
+    end
+
+    describe 'with a dirty resource in the collection' do
+      before :all do
+        @articles.each { |r| r.content = 'Changed' }
+      end
+
+      it 'should return true' do
+        @articles.dirty?.should be_true
       end
     end
   end
@@ -1593,6 +1633,18 @@ share_examples_for 'A public Collection' do
         it 'should not update the other Resource' do
           @other.reload
           @attributes.each { |key, value| @other.send(key).should_not == value }
+        end
+      end
+
+      describe 'on a dirty collection' do
+        before :all do
+          @articles.each { |r| r.content = 'Changed' }
+        end
+
+        it 'should raise an exception' do
+          lambda {
+            @articles.send(method, :content => 'New Content')
+          }.should raise_error(DataMapper::UpdateConflictError, "##{method} cannot be called on a dirty collection")
         end
       end
     end
