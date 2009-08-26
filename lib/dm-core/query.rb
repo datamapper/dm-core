@@ -126,7 +126,7 @@ module DataMapper
     # @return [Array<DataMapper::Associations::Relationship>]
     #   the relationships that will be used to scope the results
     #
-    # @api semipublic
+    # @api private
     attr_reader :links
 
     ##
@@ -619,10 +619,10 @@ module DataMapper
     #
     # @example
     #
-    #  JournalIssue.all(:links => [:journal, :country, :medium], :repository => :medline)
+    #  JournalIssue.all(:repository => :medline, :created_on.gte => Date.today - 7)
     #
     # initialized a query with repository defined with name :medline,
-    # model JournalIssue and options { :links => [:journal, :country, :medium] }
+    # model JournalIssue and options { :created_on.gte => Date.today - 7 }
     #
     # @param [Repository] repository
     #   the Repository to retrieve results from
@@ -1106,7 +1106,7 @@ module DataMapper
     # TODO: document
     # @api private
     def append_path(path, bind_value, model, operator)
-      @links.concat(path.relationships)
+      @links.unshift(*path.relationships.reverse.map { |relationship| relationship.inverse })
       append_condition(path.property, bind_value, path.model, operator)
     end
 

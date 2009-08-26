@@ -22,6 +22,7 @@ describe DataMapper::Query do
       property :balance,  BigDecimal
 
       belongs_to :referrer, self, :nullable => true
+      has n, :referrals, self, :inverse => :referrer
     end
 
     @repository = DataMapper::Repository.new(:default)
@@ -449,7 +450,7 @@ describe DataMapper::Query do
           end
 
           it 'should set the links' do
-            @return.links.should == [ @model.relationships[:referrer] ]
+            @return.links.should == [ @model.relationships[:referrals], @model.relationships[:referrer] ]
           end
         end
 
@@ -474,7 +475,7 @@ describe DataMapper::Query do
           end
 
           it 'should set the links' do
-            @return.links.should == [ @model.relationships[:referrer] ]
+            @return.links.should == [ @model.relationships[:referrals], @model.relationships[:referrer] ]
           end
         end
 
@@ -1069,6 +1070,7 @@ describe DataMapper::Query do
       property :name, String, :key => true
 
       belongs_to :referrer, self, :nullable => true
+      has n, :referrals, self, :inverse => :referrer
 
       # TODO: figure out a way to remove this
       assert_valid
