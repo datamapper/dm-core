@@ -255,7 +255,7 @@ module DataMapper
   #
   #  :field               field in the data-store which the property corresponds to
   #
-  #  :length              string field size
+  #  :length              string field length
   #
   #  :format              format for autovalidation. Use with dm-validations plugin.
   #
@@ -295,6 +295,7 @@ module DataMapper
     extend Deprecate
 
     deprecate :unique, :unique?
+    deprecate :size,   :length
 
     # NOTE: PLEASE update OPTIONS in DataMapper::Type when updating
     # them here
@@ -443,9 +444,6 @@ module DataMapper
         @length
       end
     end
-
-    # TODO: deprecate #size on non-Numeric primitive
-    alias size length
 
     # Returns index name if property has index.
     #

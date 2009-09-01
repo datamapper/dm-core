@@ -17,7 +17,7 @@ module DataMapper
   #   class LowerCase < DataMapper::Type
   #     primitive        String
   #     auto_validation  true
-  #     size             255
+  #     length           255
   #   end
   #
   # Following this, you will be able to use LowerCase as a type for any given
@@ -27,7 +27,7 @@ module DataMapper
   #   class LowerCase < DataMapper::Type
   #     primitive        String
   #     auto_validation  true
-  #     size             255
+  #     length           255
   #
   #     def self.dump(value, property)
   #       return nil unless value
@@ -51,8 +51,8 @@ module DataMapper
   #   module Types
   #     class Json < DataMapper::Type
   #       primitive String
-  #       size 65535
-  #       lazy true
+  #       length    65535
+  #       lazy      true
   #
   #       def self.load(value, property)
   #         if value.nil?
