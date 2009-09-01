@@ -3,7 +3,6 @@ module DataMapper
     class DescendantSet
       include Enumerable
 
-      ##
       # Append a model as a descendant
       #
       # @param [Model] model
@@ -19,7 +18,6 @@ module DataMapper
         self
       end
 
-      ##
       # Iterate over each descendant
       #
       # @yield [model]
@@ -36,7 +34,6 @@ module DataMapper
         self
       end
 
-      ##
       # Remove a descendant
       #
       # Also removed the descendant from the ancestors.
@@ -53,7 +50,6 @@ module DataMapper
         @descendants.delete(model)
       end
 
-      ##
       # Return an Array representation of descendants
       #
       # @return [Array]
@@ -66,7 +62,6 @@ module DataMapper
 
       private
 
-      ##
       # Initialize a DescendantSet instance
       #
       # @param [Model] model

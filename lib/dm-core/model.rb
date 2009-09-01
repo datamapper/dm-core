@@ -73,13 +73,7 @@ module DataMapper
     #   Set containing the descendant classes
     #
     # @api private
-    def descendants
-      @descendants ||=
-        begin
-          ancestor = base_model.equal?(self) ? Model : superclass
-          DescendantSet.new(self, ancestor.descendants << self)
-        end
-    end
+    attr_reader :descendants
 
     ##
     # Appends a module for inclusion into the model class after Resource.
@@ -139,16 +133,13 @@ module DataMapper
     # TODO: document
     # @api private
     def self.extended(model)
-      return if Model.descendants.include?(model)
-
-      unless model.ancestors.include?(Resource)
-        model.send(:include, Resource)
-      end
+      descendants << model
 
       model.instance_variable_set(:@valid,         false)
       model.instance_variable_set(:@base_model,    model)
       model.instance_variable_set(:@storage_names, {})
       model.instance_variable_set(:@default_order, {})
+      model.instance_variable_set(:@descendants,   descendants.class.new(model, descendants))
 
       extra_extensions.each { |mod| model.extend(mod)         }
       extra_inclusions.each { |mod| model.send(:include, mod) }
@@ -157,16 +148,19 @@ module DataMapper
     # TODO: document
     # @api private
     chainable do
-      def inherited(target)
-        target.instance_variable_set(:@valid,         false)
-        target.instance_variable_set(:@base_model,    base_model)
-        target.instance_variable_set(:@storage_names, @storage_names.dup)
-        target.instance_variable_set(:@default_order, @default_order.dup)
+      def inherited(model)
+        descendants << model
+
+        model.instance_variable_set(:@valid,         false)
+        model.instance_variable_set(:@base_model,    base_model)
+        model.instance_variable_set(:@storage_names, @storage_names.dup)
+        model.instance_variable_set(:@default_order, @default_order.dup)
+        model.instance_variable_set(:@descendants,   descendants.class.new(model, descendants))
 
         # TODO: move this into dm-validations
         if respond_to?(:validators)
           validators.contexts.each do |context, validators|
-            target.validators.context(context).concat(validators)
+            model.validators.context(context).concat(validators)
           end
         end
       end

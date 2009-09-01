@@ -24,10 +24,8 @@ module DataMapper
           model.instance_variable_set(:@paranoid_properties,      @paranoid_properties.dup)
 
           @properties.each do |repository_name, properties|
-            repository(repository_name) do
-              properties.each do |property|
-                model.property(property.name, property.type, property.options)
-              end
+            properties.each do |property|
+              model.properties(repository_name) << property
             end
           end
 
