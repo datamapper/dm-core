@@ -561,7 +561,7 @@ module DataMapper
     # @return [Boolean]
     #   true if the resource was successfully saved
     #
-    # @api private
+    # @api semipublic
     def save_self(safe = true)
       if safe
         new? ? create_hook : update_hook
