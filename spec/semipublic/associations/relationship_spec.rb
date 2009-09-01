@@ -88,6 +88,10 @@ describe DataMapper::Associations::Relationship do
 
     describe 'with no matching relationship', 'from the parent side' do
       before :all do
+        # added to force OneToMany::Relationship#inverse to consider the
+        # child_key differences
+        @comment_model.belongs_to(:other_article, @article_model, :child_key => [ :other_article_id ])
+
         @relationship = @article_model.has(n, :comments)
 
         @inverse = @relationship.inverse

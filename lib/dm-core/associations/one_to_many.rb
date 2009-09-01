@@ -166,6 +166,14 @@ module DataMapper
         def inverse_name
           super || Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).to_sym
         end
+
+        # TODO: document
+        # @api private
+        def child_properties
+          super || parent_key.map do |parent_property|
+            "#{inverse_name}_#{parent_property.name}".to_sym
+          end
+        end
       end # class Relationship
 
       class Collection < DataMapper::Collection

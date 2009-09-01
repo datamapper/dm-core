@@ -507,7 +507,11 @@ module DataMapper
       # TODO: document
       # @api private
       def inverse_name
-        options[:inverse]
+        if options[:inverse].kind_of?(Relationship)
+          options[:inverse].name
+        else
+          options[:inverse]
+        end
       end
 
       # TODO: document
@@ -567,12 +571,10 @@ module DataMapper
       # TODO: document
       # @api private
       def cmp_key?(other, operator, type)
-        method = "#{type}_properties"
+        property_method = "#{type}_properties"
 
-        self_key  = send(method)
-        other_key = other.send(method)
-
-        return true if self_key.nil? || other_key.nil?
+        self_key  = send(property_method)
+        other_key = other.send(property_method)
 
         self_key.send(operator, other_key)
       end
