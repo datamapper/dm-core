@@ -307,15 +307,8 @@ module DataMapper
       #
       # @api public
       def eql?(other)
-        if equal?(other)
-          return true
-        end
-
-        unless instance_of?(other.class)
-          return false
-        end
-
-        cmp?(other, :eql?)
+        return true if equal?(other)
+        instance_of?(other.class) && cmp?(other, :eql?)
       end
 
       ##
@@ -329,30 +322,13 @@ module DataMapper
       #
       # @api public
       def ==(other)
-        if equal?(other)
-          return true
-        end
+        return true  if equal?(other)
+        return false if other.kind_of?(inverse_class)
 
-        if other.kind_of?(inverse_class)
-          return false
-        end
-
-        unless other.respond_to?(:cmp_repository?, true)
-          return false
-        end
-
-        unless other.respond_to?(:cmp_model?, true)
-          return false
-        end
-
-        unless other.respond_to?(:cmp_key?, true)
-          return false
-        end
-
-        unless other.respond_to?(:query)
-          return false
-        end
-
+        other.respond_to?(:cmp_repository?, true) &&
+        other.respond_to?(:cmp_model?, true)      &&
+        other.respond_to?(:cmp_key?, true)        &&
+        other.respond_to?(:query)                 &&
         cmp?(other, :==)
       end
 
@@ -501,30 +477,15 @@ module DataMapper
         if collection.instance_of?(Array) || collection.loaded?
           collection.all? { |resource| valid_resource?(resource) }
         else
-          unless collection.model <= target_model
-            return false
-          end
-
-          unless (collection.query.fields & target_key) == target_key
-            return false
-          end
+          collection.model <= target_model && (collection.query.fields & target_key) == target_key
         end
-
-        true
       end
 
       # TODO: document
       # @api private
       def valid_resource?(resource)
-        unless resource.kind_of?(target_model)
-          return false
-        end
-
-        unless target_key.zip(target_key.get!(resource)).all? { |property, value| property.valid?(value) }
-          return false
-        end
-
-        true
+        resource.kind_of?(target_model) &&
+        target_key.zip(target_key.get!(resource)).all? { |property, value| property.valid?(value) }
       end
 
       # TODO: document
@@ -574,39 +535,14 @@ module DataMapper
       # TODO: document
       # @api private
       def cmp?(other, operator)
-        unless name.send(operator, other.name)
-          return false
-        end
-
-        unless cmp_repository?(other, operator, :child)
-          return false
-        end
-
-        unless cmp_repository?(other, operator, :parent)
-          return false
-        end
-
-        unless cmp_model?(other, operator, :child)
-          return false
-        end
-
-        unless cmp_model?(other, operator, :parent)
-          return false
-        end
-
-        unless cmp_key?(other, operator, :child)
-          return false
-        end
-
-        unless cmp_key?(other, operator, :parent)
-          return false
-        end
-
-        unless query.send(operator, other.query)
-          return false
-        end
-
-        true
+        name.send(operator, other.name)           &&
+        cmp_repository?(other, operator, :child)  &&
+        cmp_repository?(other, operator, :parent) &&
+        cmp_model?(other,      operator, :child)  &&
+        cmp_model?(other,      operator, :parent) &&
+        cmp_key?(other,        operator, :child)  &&
+        cmp_key?(other,        operator, :parent) &&
+        query.send(operator, other.query)
       end
 
       # TODO: document
@@ -614,37 +550,18 @@ module DataMapper
       def cmp_repository?(other, operator, type)
         # if either repository is nil, then the relationship is relative,
         # and the repositories are considered equivalent
-        unless repository_name = send("#{type}_repository_name")
-          return true
-        end
+        return true unless repository_name = send("#{type}_repository_name")
+        return true unless other_repository_name = other.send("#{type}_repository_name")
 
-        unless other_repository_name = other.send("#{type}_repository_name")
-          return true
-        end
-
-        unless repository_name.send(operator, other_repository_name)
-          return false
-        end
-
-        true
+        repository_name.send(operator, other_repository_name)
       end
 
       # TODO: document
       # @api private
       def cmp_model?(other, operator, type)
-        unless send("#{type}_model?")
-          return false
-        end
-
-        unless other.send("#{type}_model?")
-          return false
-        end
-
-        unless send("#{type}_model").base_model.send(operator, other.send("#{type}_model").base_model)
-          return false
-        end
-
-        true
+        send("#{type}_model?")       &&
+        other.send("#{type}_model?") &&
+        send("#{type}_model").base_model.send(operator, other.send("#{type}_model").base_model)
       end
 
       # TODO: document
@@ -655,19 +572,9 @@ module DataMapper
         self_key  = send(method)
         other_key = other.send(method)
 
-        if self_key.nil?
-          return true
-        end
+        return true if self_key.nil? || other_key.nil?
 
-        if other_key.nil?
-          return true
-        end
-
-        unless self_key.send(operator, other_key)
-          return false
-        end
-
-        true
+        self_key.send(operator, other_key)
       end
     end # class Relationship
   end # module Associations
