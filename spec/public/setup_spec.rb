@@ -114,7 +114,7 @@ describe DataMapper do
       end
     end
 
-    supported_by :postgres, :mysql, :sqlite3 do
+    supported_by :postgres, :mysql, :sqlite3, :sqlserver do
       { :path => :database, :user => :username }.each do |original_key, new_key|
         describe "using #{new_key.inspect} option" do
           before :all do

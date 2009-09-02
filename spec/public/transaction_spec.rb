@@ -67,7 +67,7 @@ describe DataMapper::Resource, 'Transactions' do
     @paragraph_model = Blog::Paragraph
   end
 
-  supported_by :postgres, :mysql, :sqlite3, :oracle do
+  supported_by :postgres, :mysql, :sqlite3, :oracle, :sqlserver do
     before :all do
       user = @user_model.create(:name => 'dbussink', :age => 25, :description => 'Test')
 
@@ -93,7 +93,7 @@ describe DataMapper::Resource, 'Transactions' do
     it_should_behave_like 'A Resource supporting Strategic Eager Loading'
   end
 
-  supported_by :postgres, :mysql, :sqlite3, :oracle do
+  supported_by :postgres, :mysql, :sqlite3, :oracle, :sqlserver do
     describe '#transaction' do
       before do
         @user_model.all.destroy!
