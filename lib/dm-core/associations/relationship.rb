@@ -323,7 +323,7 @@ module DataMapper
       # @api public
       def ==(other)
         return true  if equal?(other)
-        return false if other.kind_of?(inverse_class)
+        return false if kind_of_inverse?(other)
 
         other.respond_to?(:cmp_repository?, true) &&
         other.respond_to?(:cmp_model?, true)      &&
@@ -339,7 +339,7 @@ module DataMapper
       def inverse
         return @inverse if defined?(@inverse)
 
-        if options[:inverse].kind_of?(inverse_class)
+        if kind_of_inverse?(options[:inverse])
           return @inverse = options[:inverse]
         end
 
@@ -492,7 +492,7 @@ module DataMapper
       # @api private
       def inverse?(other)
         other != self                        &&
-        other.kind_of?(inverse_class)        &&
+        kind_of_inverse?(other)              &&
         cmp_repository?(other, :==, :child)  &&
         cmp_repository?(other, :==, :parent) &&
         cmp_model?(other,      :==, :child)  &&
@@ -534,6 +534,12 @@ module DataMapper
         else
           options.merge(:inverse => inverse_name)
         end
+      end
+
+      # TODO: document
+      # @api private
+      def kind_of_inverse?(other)
+        other.kind_of?(inverse_class)
       end
 
       # TODO: document
