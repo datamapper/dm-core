@@ -799,7 +799,8 @@ module DataMapper
       elsif options.key?(:size)
         if String == type
           warn ":size option is deprecated, use #{type} with :length instead (#{caller[2]})"
-          options[:length] = options.delete(:size)
+          length = options.delete(:size)
+          options[:length] = length unless options.key?(:length)
         elsif Numeric > type
           warn ":size option is deprecated, specify :min and :max instead (#{caller[2]})"
         end
