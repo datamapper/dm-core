@@ -2,6 +2,8 @@ module DataMapper
   module Associations
     module ManyToMany #:nodoc:
       class Relationship < Associations::OneToMany::Relationship
+        extend Chainable
+
         OPTIONS = (superclass::OPTIONS + [ :through, :via ]).freeze
 
         ##
@@ -203,14 +205,18 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def many_to_one_options
-          { :parent_key => target_key.map { |property| property.name } }
+        chainable do
+          def many_to_one_options
+            { :parent_key => target_key.map { |property| property.name } }
+          end
         end
 
         # TODO: document
         # @api semipublic
-        def one_to_many_options
-          { :parent_key => source_key.map { |property| property.name } }
+        chainable do
+          def one_to_many_options
+            { :parent_key => source_key.map { |property| property.name } }
+          end
         end
 
         # Returns the inverse relationship class
