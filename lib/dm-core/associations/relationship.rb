@@ -491,6 +491,8 @@ module DataMapper
       # TODO: document
       # @api private
       def inverse?(other)
+        return true if @inverse.equal?(other)
+
         other != self                        &&
         kind_of_inverse?(other)              &&
         cmp_repository?(other, :==, :child)  &&
