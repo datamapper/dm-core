@@ -201,6 +201,22 @@ module DataMapper
           end
         end
 
+        # Sets the association targets in the resource
+        #
+        # @param [Resource] source
+        #   the source to set
+        # @param [Array(Resource)] targets
+        #   the target resource for the association
+        # @param [Query, Hash] query
+        #   not used
+        #
+        # @return [undefined]
+        #
+        # @api private
+        def eager_load_targets(source, targets, query)
+          set(source, targets.first)
+        end
+
         # Returns the inverse relationship class
         #
         # @api private

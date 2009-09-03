@@ -271,41 +271,29 @@ module DataMapper
       #
       # @param [Resource, Collection] source
       #   the source to query with
-      # @param [Query, Hash] other_query
+      # @param [Query, Hash] query
       #   optional query to restrict the collection
       #
       # @return [Collection]
       #   the loaded collection for the source
       #
       # @api private
-      def eager_load(source, other_query = nil)
-        target_maps = {}
+      def eager_load(source, query = nil)
+        target_maps = Hash.new { |h,k| h[k] = [] }
 
-        query = query_for(source, other_query)
+        collection_query = query_for(source, query)
 
         # TODO: create an object that wraps this logic, and when the first
         # kicker is fired, then it'll load up the collection, and then
         # populate all the other methods
 
-        collection = source.model.all(query).each do |target|
-          targets = target_maps[ target_key.get(target) ] ||= []
-          targets << target
+        collection = source.model.all(collection_query).each do |target|
+          target_maps[target_key.get(target)] << target
         end
 
         Array(source).each do |source|
-          key     = target_key.typecast(source_key.get(source))
-          targets = target_maps[key] || []
-
-          # TODO: move this logic into subclass
-          if respond_to?(:collection_for)
-            # TODO: figure out an alternative approach to using a
-            # private method call collection_replace
-            association = collection_for(source, other_query)
-            association.send(:collection_replace, targets)
-            set!(source, association)
-          else
-            set(source, targets.first)
-          end
+          key = target_key.typecast(source_key.get(source))
+          eager_load_targets(source, target_maps[key], query)
         end
 
         collection
@@ -513,6 +501,22 @@ module DataMapper
       # @api semipublic
       def create_writer
         raise NotImplementedError, "#{self.class}#create_writer not implemented"
+      end
+
+      # Sets the association targets in the resource
+      #
+      # @param [Resource] source
+      #   the source to set
+      # @param [Array<Resource>] targets
+      #   the targets for the association
+      # @param [Query, Hash] query
+      #   the query to scope the association with
+      #
+      # @return [undefined]
+      #
+      # @api private
+      def eager_load_targets(source, targets, query)
+        raise NotImplementedError, "#{self.class}#eager_load_targets not implemented"
       end
 
       # TODO: document

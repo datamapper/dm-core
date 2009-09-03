@@ -150,6 +150,26 @@ module DataMapper
           end
         end
 
+        # Sets the association targets in the resource
+        #
+        # @param [Resource] source
+        #   the source to set
+        # @param [Array<Resource>] targets
+        #   the target collection for the association
+        # @param [Query, Hash] query
+        #   the query to scope the association with
+        #
+        # @return [undefined]
+        #
+        # @api private
+        def eager_load_targets(source, targets, query)
+          # TODO: figure out an alternative approach to using a
+          # private method call collection_replace
+          association = collection_for(source, query)
+          association.send(:collection_replace, targets)
+          set!(source, association)
+        end
+
         # Returns collection class used by this type of
         # relationship
         #
