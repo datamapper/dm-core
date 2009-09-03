@@ -4,7 +4,7 @@ module DataMapper
       # Relationship class with implementation specific
       # to n side of 1 to n association
       class Relationship < Associations::Relationship
-        OPTIONS = (superclass::OPTIONS + [ :nullable ]).freeze
+        OPTIONS = superclass::OPTIONS.dup << :nullable
 
         # TODO: document
         # @api semipublic

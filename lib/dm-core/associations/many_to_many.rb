@@ -4,7 +4,7 @@ module DataMapper
       class Relationship < Associations::OneToMany::Relationship
         extend Chainable
 
-        OPTIONS = (superclass::OPTIONS + [ :through, :via ]).freeze
+        OPTIONS = superclass::OPTIONS.dup << :through << :via
 
         ##
         # Returns a set of keys that identify the target model

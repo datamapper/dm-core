@@ -6,7 +6,7 @@ module DataMapper
     class Relationship
       include Extlib::Assertions
 
-      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :inverse ].to_set.freeze
+      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :inverse ].to_set
 
       # Relationship name
       #
