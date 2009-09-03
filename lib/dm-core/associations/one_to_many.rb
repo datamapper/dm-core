@@ -133,11 +133,16 @@ module DataMapper
         # Loads association targets and sets resulting value on
         # given source resource
         #
+        # @param [Resource] source
+        #   the source resource for the association
+        #
+        # @return [undefined]
+        #
         # @api private
         def lazy_load(source)
           # SEL: load all related resources in the source collection
           if source.saved? && source.collection.size > 1
-            source.collection.send(name)
+            eager_load(source.collection)
           end
 
           unless loaded?(source)

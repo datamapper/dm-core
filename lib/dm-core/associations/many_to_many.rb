@@ -135,6 +135,22 @@ module DataMapper
           @many_to_many_query ||= super.merge(:links => links).freeze
         end
 
+        # Eager load the collection using the source as a base
+        #
+        # @param [Resource, Collection] source
+        #   the source to query with
+        # @param [Query, Hash] other_query
+        #   optional query to restrict the collection
+        #
+        # @return [ManyToMany::Collection]
+        #   the loaded collection for the source
+        #
+        # @api private
+        def eager_load(source, other_query = nil)
+          # FIXME: enable SEL for m:m relationships
+          source.model.all(query_for(source, other_query))
+        end
+
         private
 
         # TODO: document
@@ -255,6 +271,20 @@ module DataMapper
             :parent_key => options[:child_key],
             :inverse    => self
           )
+        end
+
+        # Loads association targets and sets resulting value on
+        # given source resource
+        #
+        # @param [Resource] source
+        #   the source resource for the association
+        #
+        # @return [undefined]
+        #
+        # @api private
+        def lazy_load(source)
+          # FIXME: delegate to super once SEL is enabled
+          set!(source, collection_for(source))
         end
 
         # Returns collection class used by this type of

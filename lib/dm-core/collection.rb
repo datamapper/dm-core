@@ -1311,39 +1311,8 @@ module DataMapper
     # @return [Collection] the associated Resources
     #
     # @api private
-    def delegate_to_relationship(relationship, other_query = nil)
-      source_key = relationship.source_key
-      target_key = relationship.target_key
-
-      target_maps = {}
-
-      query = relationship.query_for(self, other_query)
-
-      # TODO: create an object that wraps this logic, and when the first
-      # kicker is fired, then it'll load up the collection, and then
-      # populate all the other methods
-
-      collection = model.all(query).each do |target|
-        targets = target_maps[ target_key.get(target) ] ||= []
-        targets << target
-      end
-
-      each do |source|
-        key     = target_key.typecast(source_key.get(source))
-        targets = target_maps[key] || []
-
-        if relationship.respond_to?(:collection_for)
-          # TODO: figure out an alternative approach to using a
-          # private method call collection_replace
-          association = relationship.collection_for(source, other_query)
-          association.send(:collection_replace, targets)
-          relationship.set!(source, association)
-        else
-          relationship.set(source, targets.first)
-        end
-      end
-
-      collection
+    def delegate_to_relationship(relationship, query = nil)
+      relationship.eager_load(self, query)
     end
 
     # Raises an exception if #update is performed on a dirty resource

@@ -267,6 +267,50 @@ module DataMapper
         resource.instance_variable_set(instance_variable_name, association)
       end
 
+      # Eager load the collection using the source as a base
+      #
+      # @param [Resource, Collection] source
+      #   the source to query with
+      # @param [Query, Hash] other_query
+      #   optional query to restrict the collection
+      #
+      # @return [Collection]
+      #   the loaded collection for the source
+      #
+      # @api private
+      def eager_load(source, other_query = nil)
+        target_maps = {}
+
+        query = query_for(source, other_query)
+
+        # TODO: create an object that wraps this logic, and when the first
+        # kicker is fired, then it'll load up the collection, and then
+        # populate all the other methods
+
+        collection = source.model.all(query).each do |target|
+          targets = target_maps[ target_key.get(target) ] ||= []
+          targets << target
+        end
+
+        Array(source).each do |source|
+          key     = target_key.typecast(source_key.get(source))
+          targets = target_maps[key] || []
+
+          # TODO: move this logic into subclass
+          if respond_to?(:collection_for)
+            # TODO: figure out an alternative approach to using a
+            # private method call collection_replace
+            association = collection_for(source, other_query)
+            association.send(:collection_replace, targets)
+            set!(source, association)
+          else
+            set(source, targets.first)
+          end
+        end
+
+        collection
+      end
+
       # Checks if "other end" of association is loaded on given
       # resource.
       #

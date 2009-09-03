@@ -1023,6 +1023,8 @@ share_examples_for 'Finder Interface' do
     describe 'with a belongs_to relationship method' do
       before :all do
         rescue_if 'Model#method_missing should delegate to relationships', @articles.kind_of?(Class) do
+          @articles.create(:content => 'Another Article', :original => @original)
+
           @return = @collection = @articles.originals
         end
       end
@@ -1044,72 +1046,9 @@ share_examples_for 'Finder Interface' do
       it 'should return expected Collection' do
         @collection.should == [ @original ]
       end
-    end
 
-    describe 'with a has n relationship method' do
-      before :all do
-        @new = @articles.new
-
-        # associate the article with children
-        @article.revisions << @new
-        @new.revisions     << @other
-
-        @article.save
-        @new.save
-      end
-
-      describe 'with no arguments' do
-        before :all do
-          @return = @collection = @articles.revisions
-        end
-
-        # FIXME: this is spec order dependent, move this into a helper method
-        # and execute in the before :all block
-        unless loaded
-          it 'should not be a kicker' do
-            pending do
-              @articles.should_not be_loaded
-            end
-          end
-        end
-
-        it 'should return a Collection' do
-          @return.should be_kind_of(DataMapper::Collection)
-        end
-
-        it 'should return expected Collection' do
-          @collection.should == [ @other, @new ]
-        end
-      end
-
-      describe 'with arguments' do
-        before :all do
-          @return = @collection = @articles.revisions(:fields => [ :id ])
-        end
-
-        # FIXME: this is spec order dependent, move this into a helper method
-        # and execute in the before :all block
-        unless loaded
-          it 'should not be a kicker' do
-            pending do
-              @articles.should_not be_loaded
-            end
-          end
-        end
-
-        it 'should return a Collection' do
-          @return.should be_kind_of(DataMapper::Collection)
-        end
-
-        it 'should return expected Collection' do
-          @collection.should == [ @other, @new ]
-        end
-
-        { :id => true, :title => false, :content => false }.each do |attribute, expected|
-          it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-            @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
-          end
-        end
+      it 'should set the association for each Resource' do
+        @articles.map { |resource| resource.original }.should == [ @original, @original ]
       end
     end
 
@@ -1147,6 +1086,10 @@ share_examples_for 'Finder Interface' do
           # association is sorted reverse by id
           @return.should == [ @new, @other ]
         end
+
+        it 'should set the association for each Resource' do
+          @articles.map { |resource| resource.previous }.should == [ @new, @other ]
+        end
       end
 
       describe 'with arguments' do
@@ -1176,6 +1119,164 @@ share_examples_for 'Finder Interface' do
         { :id => true, :title => false, :content => false }.each do |attribute, expected|
           it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
             @return.each { |resource| resource.attribute_loaded?(attribute).should == expected }
+          end
+        end
+
+        it 'should set the association for each Resource' do
+          @articles.map { |resource| resource.previous }.should == [ @new, @other ]
+        end
+      end
+    end
+
+    describe 'with a has n relationship method' do
+      before :all do
+        @new = @articles.new
+
+        # associate the article with children
+        @article.revisions << @new
+        @new.revisions     << @other
+
+        @article.save
+        @new.save
+      end
+
+      describe 'with no arguments' do
+        before :all do
+          @return = @collection = @articles.revisions
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          @collection.should == [ @other, @new ]
+        end
+
+        it 'should set the association for each Resource' do
+          @articles.map { |resource| resource.revisions }.should == [ [ @new ], [ @other ] ]
+        end
+      end
+
+      describe 'with arguments' do
+        before :all do
+          @return = @collection = @articles.revisions(:fields => [ :id ])
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          @collection.should == [ @other, @new ]
+        end
+
+        { :id => true, :title => false, :content => false }.each do |attribute, expected|
+          it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
+            @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
+          end
+        end
+
+        it 'should set the association for each Resource' do
+          @articles.map { |resource| resource.revisions }.should == [ [ @new ], [ @other ] ]
+        end
+      end
+    end
+
+    describe 'with a has n :through relationship method' do
+      before :all do
+        @new = @articles.create
+
+        @publication1 = @article.publications.create(:name => 'Ruby Today')
+        @publication2 = @new.publications.create(:name => 'Inside DataMapper')
+      end
+
+      describe 'with no arguments' do
+        before :all do
+          @return = @collection = @articles.publications
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          pending_if 'TODO', @no_join do
+            @collection.should == [ @publication1, @publication2 ]
+          end
+        end
+
+        it 'should set the association for each Resource' do
+          pending_if 'TODO', @no_join do
+            @articles.map { |resource| resource.publications }.should == [ [ @publication1 ], [ @publication2 ] ]
+          end
+        end
+      end
+
+      describe 'with arguments' do
+        before :all do
+          @return = @collection = @articles.publications(:fields => [ :id ])
+        end
+
+        # FIXME: this is spec order dependent, move this into a helper method
+        # and execute in the before :all block
+        unless loaded
+          it 'should not be a kicker' do
+            pending do
+              @articles.should_not be_loaded
+            end
+          end
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should return expected Collection' do
+          pending_if 'TODO', @no_join do
+            @collection.should == [ @publication1, @publication2 ]
+          end
+        end
+
+        { :id => true, :name => false }.each do |attribute, expected|
+          it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
+            @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
+          end
+        end
+
+        it 'should set the association for each Resource' do
+          pending_if 'TODO', @no_join do
+            @articles.map { |resource| resource.publications }.should == [ [ @publication1 ], [ @publication2 ] ]
           end
         end
       end

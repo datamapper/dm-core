@@ -21,6 +21,16 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
           belongs_to :original, self, :nullable => true
           has n, :revisions, self, :child_key => [ :original_id ]
           has 1, :previous,  self, :child_key => [ :original_id ], :order => [ :id.desc ]
+          has n, :publications, :through => Resource
+        end
+
+        class Publication
+          include DataMapper::Resource
+
+          property :id,   Serial
+          property :name, String
+
+          has n, :articles, :through => Resource
         end
       end
 
