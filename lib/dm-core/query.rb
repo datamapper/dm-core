@@ -737,7 +737,7 @@ module DataMapper
             end
 
           when Property
-            unless field.model == model && @properties.include?(field)
+            unless @properties.include?(field)
               raise ArgumentError, "+options[:field]+ entry #{field.name.inspect} does not map to a property in #{model}"
             end
 
@@ -886,12 +886,12 @@ module DataMapper
             end
 
           when Property
-            unless order_entry.model == model && @properties.include?(order_entry)
+            unless @properties.include?(order_entry)
               raise ArgumentError, "+options[:order]+ entry #{order_entry.name.inspect} does not map to a property in #{model}"
             end
 
           when Direction
-            unless order_entry.property.model == model && @properties.include?(order_entry.property)
+            unless @properties.include?(order_entry.property)
               raise ArgumentError, "+options[:order]+ entry #{order_entry.property.name.inspect} does not map to a property in #{model}"
             end
 
