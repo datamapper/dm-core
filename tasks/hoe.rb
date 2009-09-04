@@ -27,6 +27,9 @@ class Hoe
   end
 end
 
+# Don't use Hoe's test task
+Hoe.plugins.delete(:test)
+
 hoe = Hoe.spec(GEM_NAME) do
   developer(AUTHOR, EMAIL)
 
