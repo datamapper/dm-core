@@ -2250,6 +2250,23 @@ describe DataMapper::Query do
         it { @return.should equal(@original) }
       end
 
+      describe 'that is for an ancestor model' do
+        before :all do
+          class ::Contact < User; end
+
+          @query    = DataMapper::Query.new(@repository, Contact, @options)
+          @original = @query
+
+          @other = DataMapper::Query.new(@repository, User,    @options)
+
+          @return = @query.update(@other)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it { @return.should equal(@original) }
+      end
+
       describe 'using a different repository' do
         it 'should raise an exception' do
           lambda {

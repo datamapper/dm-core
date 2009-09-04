@@ -910,11 +910,11 @@ module DataMapper
     # @api private
     def assert_valid_other(other)
       unless other.repository == repository
-        raise ArgumentError, "+other+ #{self.class} must be for the #{repository.name} repository, not #{other.repository.name}"
+        raise ArgumentError, "+other+ #{other.class} must be for the #{repository.name} repository, not #{other.repository.name}"
       end
 
-      unless other.model == model
-        raise ArgumentError, "+other+ #{self.class} must be for the #{model.name} model, not #{other.model.name}"
+      unless other.model >= model
+        raise ArgumentError, "+other+ #{other.class} must be for the #{model.name} model, not #{other.model.name}"
       end
     end
 
