@@ -1,10 +1,6 @@
 # TODO: if Collection is scoped by a unique property, should adding
 # new Resources be denied?
 
-# TODO: add a #dirty? method that either checks the head/tail if not
-# loaded, or the whole Collection if it is to see if any Resource objects
-# are dirty.  Will be useful in Resource#save to speed up saving
-
 # TODO: add #copy method
 
 module DataMapper
