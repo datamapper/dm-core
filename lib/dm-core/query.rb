@@ -32,7 +32,7 @@ module DataMapper
 
     # Extract conditions to match a Resource or Collection
     #
-    # @param [Array, Colelction, Resource] source
+    # @param [Array, Collection, Resource] source
     #   the source to extract the values from
     # @param [ProperySet] source_key
     #   the key to extract the value from the resource
