@@ -139,6 +139,22 @@ describe DataMapper::Query do
         end
       end
 
+      describe 'that is an Array containing a Property from an ancestor' do
+        before :all do
+          class ::Contact < User; end
+
+          @options[:fields] = User.properties.values_at(:name)
+
+          @return = DataMapper::Query.new(@repository, Contact, @options.freeze)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should set the fields' do
+          @return.fields.should == User.properties.values_at(:name)
+        end
+      end
+
       describe 'that is missing' do
         before :all do
           @return = DataMapper::Query.new(@repository, @model, @options.except(:fields).freeze)
@@ -796,6 +812,22 @@ describe DataMapper::Query do
         end
       end
 
+      describe 'that is an Array containing a Property from an ancestor' do
+        before :all do
+          class ::Contact < User; end
+
+          @options[:order] = User.properties.values_at(:name)
+
+          @return = DataMapper::Query.new(@repository, Contact, @options.freeze)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should set the order' do
+          @return.order.should == [ DataMapper::Query::Direction.new(User.properties[:name]) ]
+        end
+      end
+
       describe 'that is an Array containing an Operator' do
         before :all do
           @options[:order] = [ :name.asc ]
@@ -807,6 +839,36 @@ describe DataMapper::Query do
 
         it 'should set the order' do
           @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :asc) ]
+        end
+      end
+
+      describe 'that is an Array containing an Query::Direction' do
+        before :all do
+          @options[:order] = [ DataMapper::Query::Direction.new(@model.properties[:name], :asc) ]
+
+          @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should set the order' do
+          @return.order.should == [ DataMapper::Query::Direction.new(@model.properties[:name], :asc) ]
+        end
+      end
+
+      describe 'that is an Array containing an Query::Direction with a Property from an ancestor' do
+        before :all do
+          class ::Contact < User; end
+
+          @options[:order] = [ DataMapper::Query::Direction.new(User.properties[:name], :asc) ]
+
+          @return = DataMapper::Query.new(@repository, Contact, @options.freeze)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should set the order' do
+          @return.order.should == [ DataMapper::Query::Direction.new(User.properties[:name], :asc) ]
         end
       end
 

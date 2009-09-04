@@ -873,13 +873,6 @@ module DataMapper
 
       order.each do |order_entry|
         case order_entry
-          when Operator
-            unless order_entry.operator == :asc || order_entry.operator == :desc
-              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} used an invalid operator #{order_entry.operator}"
-            end
-
-            assert_valid_order([ order_entry.target ], fields)
-
           when Symbol, String
             unless @properties.named?(order_entry)
               raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} does not map to a property in #{model}"
@@ -890,10 +883,12 @@ module DataMapper
               raise ArgumentError, "+options[:order]+ entry #{order_entry.name.inspect} does not map to a property in #{model}"
             end
 
-          when Direction
-            unless @properties.include?(order_entry.property)
-              raise ArgumentError, "+options[:order]+ entry #{order_entry.property.name.inspect} does not map to a property in #{model}"
+          when Operator, Direction
+            unless order_entry.operator == :asc || order_entry.operator == :desc
+              raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} used an invalid operator #{order_entry.operator}"
             end
+
+            assert_valid_order([ order_entry.target ], fields)
 
           else
             raise ArgumentError, "+options[:order]+ entry #{order_entry.inspect} of an unsupported object #{order_entry.class}"
