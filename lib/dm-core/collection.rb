@@ -3,6 +3,9 @@
 
 # TODO: add #copy method
 
+# TODO: move Collection#loaded_entries to LazyArray
+# TODO: move Collection#partially_loaded to LazyArray
+
 module DataMapper
   # The Collection class represents a list of resources persisted in
   # a repository and identified by a query.
@@ -21,7 +24,8 @@ module DataMapper
 
     # Returns the Query the Collection is scoped with
     #
-    # @return [Query] the Query the Collection is scoped with
+    # @return [Query]
+    #   the Query the Collection is scoped with
     #
     # @api semipublic
     attr_reader :query
@@ -46,7 +50,7 @@ module DataMapper
       query.model
     end
 
-    # Reloads the Collection from the repository.
+    # Reloads the Collection from the repository
     #
     # If +query+ is provided, updates this Collection's query with its conditions
     #
@@ -58,7 +62,7 @@ module DataMapper
     # @param [Query, Hash] query (optional)
     #   further restrict results with query
     #
-    # @return [Collection] self
+    # @return [self]
     #
     # @api public
     def reload(query = nil)
@@ -163,11 +167,11 @@ module DataMapper
     # If +query+ is a Hash, results will be found by merging +query+ with this Collection's query.
     # If +query+ is a Query, results will be found using +query+ as an absolute query.
     #
-    # @param [Hash, Query] query (optional)
-    #   parameters to scope results with.
+    # @param [Hash, Query] query
+    #   optional parameters to scope results with
     #
     # @return [Collection]
-    #   Collection scoped by +query+.
+    #   Collection scoped by +query+
     #
     # @api public
     def all(query = nil)
@@ -175,7 +179,7 @@ module DataMapper
         dup
       else
         # TODO: if there is no order parameter, and the Collection is not loaded
-        # check to see if the query can be satisfied by the head/tail.
+        # check to see if the query can be satisfied by the head/tail
 
         new_collection(scoped_query(query))
       end
@@ -351,7 +355,7 @@ module DataMapper
     #   The entry which resides at that offset and limit, or
     #   a new Collection object with the set limits and offset
     # @return [Resource, Collection, nil]
-    #   The offset is out of range.
+    #   The offset is out of range
     #
     # @api public
     def slice!(*args)
@@ -408,7 +412,7 @@ module DataMapper
     # Return a copy of the Collection sorted in reverse
     #
     # @return [Collection]
-    #   Collection equal to +self+ but ordered in reverse.
+    #   Collection equal to +self+ but ordered in reverse
     #
     # @api public
     def reverse
@@ -417,8 +421,7 @@ module DataMapper
 
     # Return the Collection sorted in reverse
     #
-    # @return [Collection]
-    #   +self+
+    # @return [self]
     #
     # @api public
     def reverse!
@@ -439,7 +442,7 @@ module DataMapper
     #
     # @yield [Resource] Each resource in the collection
     #
-    # @return [Collection] self
+    # @return [self]
     #
     # @api public
     def collect!
@@ -453,7 +456,7 @@ module DataMapper
     # @param [Resource] resource
     #   the resource to add to this collection
     #
-    # @return [Collection] self
+    # @return [self]
     #
     # @api public
     def <<(resource)
@@ -470,8 +473,7 @@ module DataMapper
     # @param [Enumerable] resources
     #   List of Resources to append to the collection
     #
-    # @return [Collection]
-    #   +self+
+    # @return [self]
     #
     # @api public
     def concat(resources)
@@ -487,8 +489,7 @@ module DataMapper
     # @param [Enumerable] *resources
     #   List of Resources to append
     #
-    # @return [Collection]
-    #   self
+    # @return [self]
     #
     # @api public
     def push(*resources)
@@ -504,8 +505,7 @@ module DataMapper
     # @param [Enumerable] *resources
     #   The Resources to prepend
     #
-    # @return [Collection]
-    #   self
+    # @return [self]
     #
     # @api public
     def unshift(*resources)
@@ -520,8 +520,7 @@ module DataMapper
     # @param [Enumerable] *resources
     #   List of Resources to insert
     #
-    # @return [Collection]
-    #   self
+    # @return [self]
     #
     # @api public
     def insert(offset, *resources)
@@ -595,14 +594,14 @@ module DataMapper
     #
     # @yield [Resource] Each resource in the Collection
     #
-    # @return [Collection] self
+    # @return [self]
     #
     # @api public
     def delete_if
       super { |resource| yield(resource) && resource_removed(resource) }
     end
 
-    # Deletes every Resource for which block evaluates to true.
+    # Deletes every Resource for which block evaluates to true
     #
     # @yield [Resource] Each resource in the Collection
     #
@@ -621,8 +620,7 @@ module DataMapper
     # @param [Enumerable] other
     #   List of other Resources to replace with
     #
-    # @return [Collection]
-    #   self
+    # @return [self]
     #
     # @api public
     def replace(other)
@@ -649,10 +647,9 @@ module DataMapper
 
     # Removes all Resources from the Collection
     #
-    # This should remove and orphan each Resource from the Collection.
+    # This should remove and orphan each Resource from the Collection
     #
-    # @return [Collection]
-    #   self
+    # @return [self]
     #
     # @api public
     def clear
@@ -695,7 +692,7 @@ module DataMapper
     # Initializes a Resource and appends it to the Collection
     #
     # @param [Hash] attributes
-    #   Attributes with which to initialize the new resource.
+    #   Attributes with which to initialize the new resource
     #
     # @return [Resource]
     #   a new Resource initialized with +attributes+
@@ -859,7 +856,7 @@ module DataMapper
     #
     # @param [Symbol] method
     #   method to check in the object
-    # @param [TrueClass, FalseClass] include_private
+    # @param [Boolean] include_private
     #   if set to true, collection will check private methods
     #
     # @return [Boolean]
@@ -924,14 +921,14 @@ module DataMapper
 
     private
 
-    # Initializes a new Collection identified by the query.
+    # Initializes a new Collection identified by the query
     #
     # @param [Query] query
     #   Scope the results of the Collection
     # @param [Enumerable] resources (optional)
     #   List of resources to initialize the Collection with
     #
-    # @return [Collection] self
+    # @return [self]
     #
     # @api semipublic
     def initialize(query, resources = nil)
@@ -953,6 +950,11 @@ module DataMapper
 
     # Copies the original Collection state
     #
+    # @params [Collection] original
+    #   the original collection to copy from
+    #
+    # @return [undefined]
+    #
     # @api private
     def initialize_copy(original)
       super
@@ -961,7 +963,16 @@ module DataMapper
       @removed      = @removed.dup
     end
 
-    # TODO: document
+    # Test if the collection is loaded between the offset and limit
+    #
+    # @param [Integer] offset
+    #   the offset of the collection to test
+    # @param [Integer] limit
+    #   optional limit for how many entries to be loaded
+    #
+    # @return [Boolean]
+    #   true if the collection is loaded from the offset to the limit
+    #
     # @api private
     def partially_loaded?(offset, limit = 1)
       if offset >= 0
@@ -973,10 +984,9 @@ module DataMapper
 
     # Lazy loads a Collection
     #
-    # @return [Collection]
-    #   +self+
+    # @return [self]
     #
-    # @api semipublic
+    # @api private
     def lazy_load
       if loaded?
         return self
@@ -1010,7 +1020,6 @@ module DataMapper
     #   Resources in the collection
     #
     # @api private
-    # TODO: push this to LazyArray
     def loaded_entries
       loaded? ? self : head + tail
     end
@@ -1035,10 +1044,10 @@ module DataMapper
 
     # Creates a resource in the collection
     #
-    # @param [TrueClass, FalseClass] safe
+    # @param [Boolean] safe
     #   Whether to use the safe or unsafe create
     # @param [Hash] attributes
-    #   Attributes with which to create the new resource.
+    #   Attributes with which to create the new resource
     #
     # @return [Resource]
     #   a saved Resource
@@ -1052,7 +1061,7 @@ module DataMapper
 
     # Updates a collection
     #
-    # @return [TrueClass,FalseClass]
+    # @return [Boolean]
     #   Returns true if collection was updated
     #
     # @api private
@@ -1078,7 +1087,7 @@ module DataMapper
     # @param [Symbol] method
     #   The name of the Resource method to save the collection with
     #
-    # @return [TrueClass,FalseClass]
+    # @return [Boolean]
     #   Returns true if collection was updated
     #
     # @api private
@@ -1126,7 +1135,13 @@ module DataMapper
         end
     end
 
-    # TODO: documents
+    # Set the default attributes for a non-frozen resource
+    #
+    # @param [Resource] resource
+    #   the resource to set the default attributes for
+    #
+    # @return [undefined]
+    #
     # @api private
     def set_default_attributes(resource)
       unless resource.frozen?
@@ -1178,7 +1193,14 @@ module DataMapper
       resource
     end
 
-    # TODO: documents
+    # Track the added resource
+    #
+    # @param [Resource] resource
+    #   the resource that was added
+    #
+    # @return [Resource]
+    #   the resource that was added
+    #
     # @api private
     def resource_added(resource)
       if resource.saved?
@@ -1191,7 +1213,14 @@ module DataMapper
       relate_resource(resource)
     end
 
-    # TODO: documents
+    # Track the added resources
+    #
+    # @param [Array<Resource>] resources
+    #   the resources that were added
+    #
+    # @return [Array<Resource>]
+    #   the resources that were added
+    #
     # @api private
     def resources_added(resources)
       if resources.kind_of?(Enumerable)
@@ -1201,7 +1230,14 @@ module DataMapper
       end
     end
 
-    # TODO: documents
+    # Track the removed resource
+    #
+    # @param [Resource] resource
+    #   the resource that was removed
+    #
+    # @return [Resource]
+    #   the resource that was removed
+    #
     # @api private
     def resource_removed(resource)
       if resource.saved?
@@ -1212,7 +1248,14 @@ module DataMapper
       orphan_resource(resource)
     end
 
-    # TODO: documents
+    # Track the removed resources
+    #
+    # @param [Array<Resource>] resources
+    #   the resources that were removed
+    #
+    # @return [Array<Resource>]
+    #   the resources that were removed
+    #
     # @api private
     def resources_removed(resources)
       if resources.kind_of?(Enumerable)
@@ -1222,7 +1265,16 @@ module DataMapper
       end
     end
 
-    # TODO: documents
+    # Filter resources in the collection based on a Query
+    #
+    # @param [Query] query
+    #   the query to match each resource in the collection
+    #
+    # @return [Array]
+    #   the resources that match the Query
+    # @return [nil]
+    #   nil if no resources match the Query
+    #
     # @api private
     def filter(query)
       fields = self.query.fields.to_set
@@ -1240,7 +1292,8 @@ module DataMapper
 
     # Return the absolute or relative scoped query
     #
-    # @param [Query, Hash]
+    # @param [Query, Hash] query
+    #   the query to scope the collection with
     #
     # @return [Query]
     #   the absolute or relative scoped query
@@ -1254,7 +1307,6 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def sliced_query(offset, limit)
       query = self.query
@@ -1282,6 +1334,9 @@ module DataMapper
     # Otherwise this method will delegate to a method in the superclass
     # (LazyArray) and return the results.
     #
+    # @return [Object]
+    #   the return values of the delegated methods
+    #
     # @api public
     def method_missing(method, *args, &block)
       if model.model_method_defined?(method)
@@ -1295,6 +1350,14 @@ module DataMapper
 
     # Delegate the method to the Model
     #
+    # @param [Symbol] method
+    #   the name of the method in the model to execute
+    # @param [Array] *args
+    #   the arguments for the method
+    #
+    # @return [Object]
+    #   the return value of the model method
+    #
     # @api private
     def delegate_to_model(method, *args, &block)
       model.__send__(:with_scope, query) do
@@ -1304,7 +1367,8 @@ module DataMapper
 
     # Delegate the method to the Relationship
     #
-    # @return [Collection] the associated Resources
+    # @return [Collection]
+    #   the associated Resources
     #
     # @api private
     def delegate_to_relationship(relationship, query = nil)
@@ -1315,6 +1379,8 @@ module DataMapper
     #
     # @raise [UpdateConflictError]
     #   raise if the resource is dirty
+    #
+    # @return [undefined]
     #
     # @api private
     def assert_update_clean_only(method)
