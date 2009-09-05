@@ -22,7 +22,6 @@ module DataMapper
         end
       end
 
-      ##
       # Returns query on top of scope stack
       #
       # @api private
@@ -38,7 +37,6 @@ module DataMapper
 
       protected
 
-      ##
       # Pushes given query on top of the stack
       #
       # @param [Hash, Query]  Query to add to current scope nesting

@@ -155,7 +155,6 @@ module DataMapper
     @root ||= Pathname(__FILE__).dirname.parent.expand_path.freeze
   end
 
-  ##
   # Setups up a connection to a data-store
   #
   # @param [Symbol] name
@@ -183,7 +182,6 @@ module DataMapper
     Repository.adapters[adapter.name] = adapter
   end
 
-  ##
   # Block Syntax
   #   Pushes the named repository onto the context-stack,
   #   yields a new session, and pops the context-stack.

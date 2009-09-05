@@ -6,7 +6,6 @@ module DataMapper
 
         OPTIONS = superclass::OPTIONS.dup << :through << :via
 
-        ##
         # Returns a set of keys that identify the target model
         #
         # @return [DataMapper::PropertySet]
@@ -297,7 +296,6 @@ module DataMapper
       end # class Relationship
 
       class Collection < Associations::OneToMany::Collection
-        ##
         # Remove every Resource in the m:m Collection from the repository
         #
         # This performs a deletion of each Resource in the Collection from
@@ -321,7 +319,6 @@ module DataMapper
           super
         end
 
-        ##
         # Remove every Resource in the m:m Collection from the repository, bypassing validation
         #
         # This performs a deletion of each Resource in the Collection from

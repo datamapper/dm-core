@@ -60,7 +60,6 @@ module DataMapper
         # @api semipublic
         alias source_key child_key
 
-        ##
         # Returns a Resoruce for this relationship with a given source
         #
         # @param [Resource] source

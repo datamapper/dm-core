@@ -4,7 +4,6 @@ module DataMapper
   module Model
     extend Chainable
 
-    ##
     # Creates a new Model class with default_storage_name +storage_name+
     #
     # If a block is passed, it will be eval'd in the context of the new Model
@@ -40,7 +39,6 @@ module DataMapper
       model
     end
 
-    ##
     # Return all models that extend the Model module
     #
     #   class Foo
@@ -57,7 +55,6 @@ module DataMapper
       @descendants ||= DescendantSet.new
     end
 
-    ##
     # Return all models that inherit from a Model
     #
     #   class Foo
@@ -75,7 +72,6 @@ module DataMapper
     # @api private
     attr_reader :descendants
 
-    ##
     # Appends a module for inclusion into the model class after Resource.
     #
     # This is a useful way to extend Resource while still retaining a
@@ -93,7 +89,6 @@ module DataMapper
       true
     end
 
-    ##
     # The current registered extra inclusions
     #
     # @return [Set]
@@ -103,7 +98,6 @@ module DataMapper
       @extra_inclusions ||= []
     end
 
-    ##
     # Extends the model with this module after Resource has been included.
     #
     # This is a useful way to extend Model while still retaining a self.extended method.
@@ -120,7 +114,6 @@ module DataMapper
       true
     end
 
-    ##
     # The current registered extra extensions
     #
     # @return [Set]
@@ -166,7 +159,6 @@ module DataMapper
       end
     end
 
-    ##
     # Gets the name of the storage receptacle for this resource in the given
     # Repository (ie., table name, for database stores).
     #
@@ -179,7 +171,6 @@ module DataMapper
       storage_names[repository_name] ||= repository(repository_name).adapter.resource_naming_convention.call(default_storage_name).freeze
     end
 
-    ##
     # the names of the storage receptacles for this resource across all repositories
     #
     # @return [Hash(Symbol => String)]
@@ -190,7 +181,6 @@ module DataMapper
       @storage_names
     end
 
-    ##
     # Grab a single record by its key. Supports natural and composite key
     # lookups as well.
     #
@@ -214,7 +204,6 @@ module DataMapper
       repository.identity_map(self)[key] || first(key_conditions(repository, key))
     end
 
-    ##
     # Grab a single record just like #get, but raise an ObjectNotFoundError
     # if the record doesn't exist.
     #
@@ -251,7 +240,6 @@ module DataMapper
 
     alias to_a entries
 
-    ##
     # Find a set of records matching an optional set of conditions. Additionally,
     # specify the order that the records are return.
     #
@@ -276,7 +264,6 @@ module DataMapper
       end
     end
 
-    ##
     # Return the first Resource or the first N Resources for the Model with an optional query
     #
     # When there are no arguments, return the first Resource in the
@@ -317,7 +304,6 @@ module DataMapper
       end
     end
 
-    ##
     # Return the last Resource or the last N Resources for the Model with an optional query
     #
     # When there are no arguments, return the last Resource for the
@@ -358,7 +344,6 @@ module DataMapper
       end
     end
 
-    ##
     # Finds the first Resource by conditions, or initializes a new
     # Resource with the attributes if none found
     #
@@ -374,7 +359,6 @@ module DataMapper
       first(conditions) || new(conditions.merge(attributes))
     end
 
-    ##
     # Finds the first Resource by conditions, or creates a new
     # Resource with the attributes if none found
     #
@@ -390,7 +374,6 @@ module DataMapper
       first(conditions) || create(conditions.merge(attributes))
     end
 
-    ##
     # Initializes an instance of Resource with the given attributes
     #
     # @param [Hash(Symbol => Object)] attributes
@@ -407,7 +390,6 @@ module DataMapper
       end
     end
 
-    ##
     # Create a Resource
     #
     # @param [Hash(Symbol => Object)] attributes
@@ -421,7 +403,6 @@ module DataMapper
       _create(true, attributes)
     end
 
-    ##
     # Create a Resource, bypassing hooks
     #
     # @param [Hash(Symbol => Object)] attributes
@@ -435,7 +416,6 @@ module DataMapper
       _create(false, attributes)
     end
 
-    ##
     # Copy a set of records from one repository to another.
     #
     # @param [String] source
@@ -463,7 +443,6 @@ module DataMapper
       end
     end
 
-    ##
     # Loads an instance of this Model, taking into account IdentityMap lookup,
     # inheritance columns(s) and Property typecasting.
     #
@@ -565,7 +544,6 @@ module DataMapper
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }.freeze
     end
 
-    ##
     # Get the repository with a given name, or the default one for the current
     # context, or the default one for this class.
     #
@@ -660,7 +638,6 @@ module DataMapper
       base_model.name
     end
 
-    ##
     # Initializes a new Collection
     #
     # @return [Collection]

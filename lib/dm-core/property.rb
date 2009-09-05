@@ -363,7 +363,6 @@ module DataMapper
       @unique
     end
 
-    ##
     # Compares another Property for equivalency
     #
     #   TODO: needs example
@@ -391,7 +390,6 @@ module DataMapper
       cmp?(other, :==)
     end
 
-    ##
     # Compares another Property for equality
     #
     #   TODO: needs example
@@ -415,7 +413,6 @@ module DataMapper
       cmp?(other, :eql?)
     end
 
-    ##
     # Returns the hash of the property name
     #
     # This is necessary to allow comparisons between different properties
@@ -543,11 +540,7 @@ module DataMapper
       end
     end
 
-    # Bypases resource loading and returns value of
-    # @ivar on the object directly.
-    #
-    # Keep in mind this method is not safe and should be
-    # used with care.
+    # Fetch the ivar value in the resource
     #
     # @param [Resource] resource
     #   model instance for which this property is to be unsafely loaded
@@ -588,9 +581,9 @@ module DataMapper
     # Provides a standardized setter method for the property
     #
     # @param [Resource] resource
-    #   model instance for which this property is to be set
+    #   the resource to get the value from
     # @param [Object] value
-    #   value to which value of this property will be set for +resource+
+    #   the value to set in the resource
     #
     # @return [Object]
     #   +value+ after being typecasted according to this property's primitive
@@ -612,19 +605,15 @@ module DataMapper
       set!(resource, value)
     end
 
-    # Bypases resource loading and sets value on
-    # @ivar of the object directly.
-    #
-    # Keep in mind this method is not safe and should be
-    # used with care.
+    # Set the ivar value in the resource
     #
     # @param [Resource] resource
-    #   the model instance for which to unsafely set the value of this property
+    #   the resource to set
     # @param [Object] value
-    #   the value to which this property should be unsafely set for +resource+
+    #   the value to set in the resource
     #
     # @return [Object]
-    #   +value+, the value to which this property was unsafely set for +resource+
+    #   the value set in the resource
     #
     # @api private
     def set!(resource, value)
@@ -753,7 +742,6 @@ module DataMapper
       end
     end
 
-    ##
     # Test the value to see if it is a valid value for this Property
     #
     # @param [Object] value
@@ -941,10 +929,9 @@ module DataMapper
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
     end
 
-    ##
     # Test a value to see if it matches the primitive type
     #
-    # @params [Object] value
+    # @param [Object] value
     #   value to test
     #
     # @return [TrueClass, FalseClass]
@@ -959,10 +946,9 @@ module DataMapper
       end
     end
 
-    ##
     # Typecast a value to an Integer
     #
-    # @params [#to_str, #to_i] value
+    # @param [#to_str, #to_i] value
     #   value to typecast
     #
     # @return [Integer]
@@ -973,10 +959,9 @@ module DataMapper
       typecast_to_numeric(value, :to_i)
     end
 
-    ##
     # Typecast a value to a String
     #
-    # @params [#to_s] value
+    # @param [#to_s] value
     #   value to typecast
     #
     # @return [String]
@@ -987,10 +972,9 @@ module DataMapper
       value.to_s
     end
 
-    ##
     # Typecast a value to a true or false
     #
-    # @params [Integer, #to_str] value
+    # @param [Integer, #to_str] value
     #   value to typecast
     #
     # @return [TrueClass, FalseClass]
@@ -1009,10 +993,9 @@ module DataMapper
       value
     end
 
-    ##
     # Typecast a value to a BigDecimal
     #
-    # @params [#to_str, #to_d, Integer] value
+    # @param [#to_str, #to_d, Integer] value
     #   value to typecast
     #
     # @return [BigDecimal]
@@ -1028,10 +1011,9 @@ module DataMapper
       end
     end
 
-    ##
     # Typecast a value to a Float
     #
-    # @params [#to_str, #to_f] value
+    # @param [#to_str, #to_f] value
     #   value to typecast
     #
     # @return [Float]
@@ -1042,7 +1024,6 @@ module DataMapper
       typecast_to_numeric(value, :to_f)
     end
 
-    ##
     # Match numeric string
     #
     # @param [#to_str, Numeric] value
@@ -1188,10 +1169,9 @@ module DataMapper
       end
     end
 
-    ##
     # Typecast a value to a Class
     #
-    # @params [#to_s] value
+    # @param [#to_s] value
     #   value to typecast
     #
     # @return [Class]
@@ -1204,7 +1184,6 @@ module DataMapper
       value
     end
 
-    ##
     # Return true if +other+'s is equivalent or equal to +self+'s
     #
     # @param [Property] other

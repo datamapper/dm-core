@@ -3,7 +3,6 @@
 module DataMapper
   module Migrations
     module SingletonMethods
-      ##
       # destructively migrates the repository upwards to match model definitions
       #
       # @param [Symbol] name repository to act on, :default is the default
@@ -13,7 +12,6 @@ module DataMapper
         repository(repository_name).migrate!
       end
 
-      ##
       # drops and recreates the repository upwards to match model definitions
       #
       # @param [Symbol] name repository to act on, :default is the default
@@ -66,7 +64,6 @@ module DataMapper
         end
       end
 
-      ##
       # Returns whether the storage_name exists.
       #
       # @param [String] storage_name
@@ -88,7 +85,6 @@ module DataMapper
         query(statement, schema_name, storage_name).first > 0
       end
 
-      ##
       # Returns whether the field exists.
       #
       # @param [String] storage_name
@@ -1103,7 +1099,6 @@ module DataMapper
     end # module PostgresAdapter
 
     module Repository
-      ##
       # Determine whether a particular named storage exists in this repository
       #
       # @param [String]
@@ -1143,7 +1138,6 @@ module DataMapper
         end
       end
 
-      ##
       # Destructively automigrates the data-store to match the model.
       # First migrates all models down and then up.
       # REPEAT: THIS IS DESTRUCTIVE
@@ -1153,7 +1147,6 @@ module DataMapper
         DataMapper.auto_migrate!(name)
       end
 
-      ##
       # Safely migrates the data-store to match the model
       # preserving data already in the data-store
       #
@@ -1176,7 +1169,6 @@ module DataMapper
         repository(repository_name).storage_exists?(storage_name(repository_name))
       end
 
-      ##
       # Destructively automigrates the data-store to match the model
       # REPEAT: THIS IS DESTRUCTIVE
       #
@@ -1189,7 +1181,6 @@ module DataMapper
         auto_migrate_up!(repository_name)
       end
 
-      ##
       # Safely migrates the data-store to match the model
       # preserving data already in the data-store
       #
@@ -1205,7 +1196,6 @@ module DataMapper
         end
       end
 
-      ##
       # Destructively migrates the data-store down, which basically
       # deletes all the models.
       # REPEAT: THIS IS DESTRUCTIVE
@@ -1222,7 +1212,6 @@ module DataMapper
         end
       end
 
-      ##
       # Auto migrates the data-store to match the model
       #
       # @param Symbol repository_name the repository to be migrated

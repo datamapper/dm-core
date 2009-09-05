@@ -51,7 +51,6 @@ module DataMapper
         (@path = Pathname(@options[:path]).freeze).mkpath
       end
 
-      ##
       # Retrieves all records for a model and yeilds them to a block.
       #
       # The block should make any changes to the records in-place. After
@@ -71,7 +70,6 @@ module DataMapper
         result
       end
 
-      ##
       # Read all records from a file for a model
       #
       # @param [#storage_name] model
@@ -83,7 +81,6 @@ module DataMapper
         file.readable? && YAML.load_file(file) || []
       end
 
-      ##
       # Writes all records to a file
       #
       # @param [#storage_name] model
@@ -99,9 +96,9 @@ module DataMapper
         end
       end
 
-      ##
       # Given a model, gives the filename to be used for record storage
       #
+      # @example
       #   yaml_file(Article) #=> "/path/to/files/articles.yml"
       #
       # @param [#storage_name] model

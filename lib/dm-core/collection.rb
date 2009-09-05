@@ -930,7 +930,7 @@ module DataMapper
     #
     # @return [self]
     #
-    # @api semipublic
+    # @api private
     def initialize(query, resources = nil)
       raise "#{self.class}#new with a block is deprecated" if block_given?
 
@@ -950,7 +950,7 @@ module DataMapper
 
     # Copies the original Collection state
     #
-    # @params [Collection] original
+    # @param [Collection] original
     #   the original collection to copy from
     #
     # @return [undefined]

@@ -12,7 +12,6 @@ module DataMapper
     class DataObjectsAdapter < AbstractAdapter
       extend Chainable
 
-      ##
       # For each model instance in resources, issues an SQL INSERT
       # (or equivalent) statement to create a new record in the data store for
       # the instance
@@ -447,14 +446,18 @@ module DataMapper
 
         # Constructs comma separated list of fields
         #
-        # @return [String] list of fields as a string
+        # @return [String]
+        #   list of fields as a string
+        #
+        # @api private
         def columns_statement(properties, qualify)
           properties.map { |property| property_to_column_name(property, qualify) }.join(', ')
         end
 
         # Constructs joins clause
         #
-        # @return [String] joins clause
+        # @return [String]
+        #   joins clause
         #
         # @api private
         def join_statement(query, qualify)
@@ -472,7 +475,8 @@ module DataMapper
 
         # Constructs where clause
         #
-        # @return [String] where clause
+        # @return [String]
+        #   where clause
         #
         # @api private
         def conditions_statement(conditions, qualify = false)
@@ -500,7 +504,8 @@ module DataMapper
 
         # Constructs order clause
         #
-        # @return [String] order clause
+        # @return [String]
+        #   order clause
         #
         # @api private
         def order_statement(order, qualify)
@@ -549,7 +554,8 @@ module DataMapper
 
         # Constructs comparison clause
         #
-        # @return [String] comparison clause
+        # @return [String]
+        #   comparison clause
         #
         # @api private
         def comparison_statement(comparison, qualify)

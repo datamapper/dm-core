@@ -1,7 +1,6 @@
 module Kernel
   private
 
-  ##
   # Delegates to DataMapper.repository()
   #
   # TODO: document

@@ -69,7 +69,6 @@ module DataMapper
         1.0/0
       end
 
-      ##
       # A shorthand, clear syntax for defining one-to-one, one-to-many and
       # many-to-many resource relationships.
       #
@@ -140,7 +139,6 @@ module DataMapper
         relationship
       end
 
-      ##
       # A shorthand, clear syntax for defining many-to-one resource relationships.
       #
       #  * belongs_to :user                              # many to one user
@@ -239,7 +237,6 @@ module DataMapper
         end
       end
 
-      ##
       # A support method for converting Integer, Range or Infinity values into two
       # values representing the minimum and maximum cardinality of the association
       #

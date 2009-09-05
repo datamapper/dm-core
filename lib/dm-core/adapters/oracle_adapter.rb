@@ -66,7 +66,7 @@ module DataMapper
           true
         end
 
-        # INTO :insert_id is recognized by Oracle DataObjects driber
+        # INTO :insert_id is recognized by Oracle DataObjects driver
         def returning_clause(serial)
           " RETURNING #{quote_name(serial.field)} INTO :insert_id"
         end
