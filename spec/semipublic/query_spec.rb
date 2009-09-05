@@ -2250,24 +2250,24 @@ describe DataMapper::Query do
 
         it { @return.should equal(@original) }
       end
-      
+
       describe 'that has conditions set' do
         before :all do
           @and_operation = DataMapper::Query::Conditions::Operation.new(:and)
           @or_operation = DataMapper::Query::Conditions::Operation.new(:or)
-          
+
           @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.name,"Dan Kubb")
           @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.citizenship,"Canada")
-          
+
           @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.name,"Ted Han")
           @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.citizenship,"USA")
           @query_one = DataMapper::Query.new(@repository, @model, {:conditions=>@and_operation})
           @query_two = DataMapper::Query.new(@repository, @model, {:conditions=>@or_operation})
-          
+
           @conditions = @query_one.merge(@query_two).conditions
         end
-        
-        it { @conditions.should == (@and_operation << @or_operation) } 
+
+        it { @conditions.should == (@and_operation << @or_operation) }
       end
 
       describe 'that is for an ancestor model' do
