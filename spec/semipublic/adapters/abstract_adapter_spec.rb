@@ -14,12 +14,6 @@ describe 'AbstractAdapter' do
       it 'should have a name' do
         @adapter.name.should == :abstract
       end
-
-      it 'should require name to be a symbol' do
-        lambda {
-          DataMapper::Adapters::AbstractAdapter.new("somestring", @options)
-        }.should raise_error(ArgumentError)
-      end
     end
 
     it 'should set options' do

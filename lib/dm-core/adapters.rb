@@ -3,7 +3,6 @@ module DataMapper
     extend Chainable
     extend Extlib::Assertions
 
-    ##
     # Set up an adapter for a storage engine
     #
     # @see DataMapper.setup
@@ -17,7 +16,6 @@ module DataMapper
     class << self
       private
 
-      ##
       # Normalize the arguments passed to new()
       #
       # Turns options hash or connection URI into the options hash used
@@ -40,7 +38,6 @@ module DataMapper
         end
       end
 
-      ##
       # Normalize Hash options into a Mash
       #
       # @param [Hash] hash
@@ -54,7 +51,6 @@ module DataMapper
         hash.to_mash
       end
 
-      ##
       # Normalize Addressable::URI options into a Mash
       #
       # @param [Addressable::URI] uri
@@ -78,7 +74,6 @@ module DataMapper
         options
       end
 
-      ##
       # Normalize String options into a Mash
       #
       # @param [String] string
@@ -92,7 +87,6 @@ module DataMapper
         normalize_options_uri(Addressable::URI.parse(string))
       end
 
-      ##
       # Return the adapter class constant
       #
       # @param [Symbol] name
@@ -108,7 +102,6 @@ module DataMapper
         const_get(class_name)
       end
 
-      ##
       # Require the adapter library
       #
       # @param [String, Symbol] name

@@ -10,74 +10,68 @@ module DataMapper
 
       # Relationship name
       #
-      # Example: for :parent association in
+      # @example for :parent association in
       #
-      # class VersionControl::Commit
-      #   include DataMapper::Resource
+      #   class VersionControl::Commit
+      #     # ...
       #
-      #   belongs_to :parent
-      # end
+      #     belongs_to :parent
+      #   end
       #
       # name is :parent
       #
       # @api semipublic
       attr_reader :name
 
-      # Options used to set up association
-      # of this relationship
+      # Options used to set up association of this relationship
       #
-      # Example: for :author association in
+      # @example for :author association in
       #
-      # class VersionControl::Commit
-      #   include DataMapper::Resource
+      #   class VersionControl::Commit
+      #     # ...
       #
-      #   belongs_to :author, :model => 'Person'
-      # end
+      #     belongs_to :author, :model => 'Person'
+      #   end
       #
       # options is a hash with a single key, :model
       #
       # @api semipublic
       attr_reader :options
 
-      # @ivar used to store collection of child options
-      # in parent
+      # ivar used to store collection of child options in source
       #
-      # Example: for :commits association in
+      # @example for :commits association in
       #
-      # class VersionControl::Branch
-      #   include DataMapper::Resource
+      #   class VersionControl::Branch
+      #     # ...
       #
-      #   has n, :commits
-      # end
+      #     has n, :commits
+      #   end
       #
-      # instance variable name for parent will be
-      # @commits
+      # instance variable name for source will be @commits
       #
       # @api semipublic
       attr_reader :instance_variable_name
 
-      # Repository from where child objects
-      # are loaded
+      # Repository from where child objects are loaded
       #
       # @api semipublic
       attr_reader :child_repository_name
 
-      # Repository from where parent objects
-      # are loaded
+      # Repository from where parent objects are loaded
       #
       # @api semipublic
       attr_reader :parent_repository_name
 
-      # Minimum number of child objects for
-      # relationship
+      # Minimum number of child objects for relationship
       #
-      # Example: for :cores association in
+      # @example for :cores association in
       #
-      # class CPU::Multicore
-      #   include DataMapper::Resource
+      #   class CPU::Multicore
+      #     # ...
       #
-      #   has 2..n, :cores
-      # end
+      #     has 2..n, :cores
+      #   end
       #
       # minimum is 2
       #
@@ -87,13 +81,13 @@ module DataMapper
       # Maximum number of child objects for
       # relationship
       #
-      # Example: for :fouls association in
+      # @example for :fouls association in
       #
-      # class Basketball::Player
-      #   include DataMapper::Resource
+      #   class Basketball::Player
+      #     # ...
       #
-      #   has 0..5, :fouls
-      # end
+      #     has 0..5, :fouls
+      #   end
       #
       # maximum is 5
       #
@@ -112,7 +106,8 @@ module DataMapper
       # Returns a hash of conditions that scopes query that fetches
       # target object
       #
-      # @returns [Hash]  Hash of conditions that scopes query
+      # @return [Hash]
+      #   Hash of conditions that scopes query
       #
       # @api private
       def source_scope(source)
@@ -137,7 +132,9 @@ module DataMapper
 
       # Returns model class used by child side of the relationship
       #
-      # @returns [DataMapper::Resource] Class of association child
+      # @return [Resource]
+      #   Model for association child
+      #
       # @api private
       def child_model
         @child_model ||= (@parent_model || Object).find_const(child_model_name)
@@ -160,10 +157,9 @@ module DataMapper
         @child_model ? child_model.name : @child_model_name
       end
 
-      ##
       # Returns a set of keys that identify the target model
       #
-      # @return [DataMapper::PropertySet]
+      # @return [PropertySet]
       #   a set of properties that identify the target model
       #
       # @api semipublic
@@ -181,7 +177,6 @@ module DataMapper
         end
       end
 
-      ##
       # Access Relationship#child_key directly
       #
       # @api private
@@ -190,7 +185,9 @@ module DataMapper
 
       # Returns model class used by parent side of the relationship
       #
-      # @returns [DataMapper::Resource] Class of association parent
+      # @return [Resource]
+      #   Class of association parent
+      #
       # @api private
       def parent_model
         @parent_model ||= (@child_model || Object).find_const(parent_model_name)
@@ -215,7 +212,7 @@ module DataMapper
 
       # Returns a set of keys that identify parent model
       #
-      # @return [DataMapper::PropertySet]
+      # @return [PropertySet]
       #   a set of properties that identify parent model
       #
       # @api private
@@ -309,7 +306,6 @@ module DataMapper
         resource.instance_variable_defined?(instance_variable_name)
       end
 
-      ##
       # Test the source to see if it is a valid target
       #
       # @param [Object] source
@@ -328,7 +324,6 @@ module DataMapper
         end
       end
 
-      ##
       # Compares another Relationship for equality
       #
       # @param [Relationship] other
@@ -343,7 +338,6 @@ module DataMapper
         instance_of?(other.class) && cmp?(other, :eql?)
       end
 
-      ##
       # Compares another Relationship for equivalency
       #
       # @param [Relationship] other
@@ -364,7 +358,6 @@ module DataMapper
         cmp?(other, :==)
       end
 
-      ##
       # Get the inverse relationship from the target model
       #
       # @api semipublic
@@ -483,7 +476,6 @@ module DataMapper
         object
       end
 
-      ##
       # Creates reader method for association.
       #
       # Must be implemented by subclasses.
@@ -493,7 +485,6 @@ module DataMapper
         raise NotImplementedError, "#{self.class}#create_reader not implemented"
       end
 
-      ##
       # Creates both writer method for association.
       #
       # Must be implemented by subclasses.

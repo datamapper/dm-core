@@ -2,7 +2,6 @@ module DataMapper
   class Repository
     include Extlib::Assertions
 
-    ##
     # Get the list of adapters registered for all Repositories,
     # keyed by repository name.
     #
@@ -16,7 +15,6 @@ module DataMapper
       @adapters ||= {}
     end
 
-    ##
     # Get the stack of current repository contexts
     #
     #   TODO: create example
@@ -29,7 +27,6 @@ module DataMapper
       Thread.current[:dm_repository_contexts] ||= []
     end
 
-    ##
     # Get the default name of this Repository
     #
     #   TODO: create example
@@ -46,7 +43,6 @@ module DataMapper
     # @api semipublic
     attr_reader :name
 
-    ##
     # Get the adapter for this repository
     #
     # Lazy loads adapter setup from registered adapters
@@ -72,7 +68,6 @@ module DataMapper
         end
     end
 
-    ##
     # Get the identity for a particular model within this repository.
     #
     # If one doesn't yet exist, create a new default in-memory IdentityMap
@@ -91,7 +86,6 @@ module DataMapper
       @identity_maps[model.base_model] ||= IdentityMap.new
     end
 
-    ##
     # Executes a block in the scope of this Repository
     #
     #   TODO: create example
@@ -113,7 +107,6 @@ module DataMapper
       end
     end
 
-    ##
     # Create one or more resource instances in this repository.
     #
     #   TODO: create example
@@ -129,7 +122,6 @@ module DataMapper
       adapter.create(resources)
     end
 
-    ##
     # Retrieve a collection of results of a query
     #
     #   TODO: create example
@@ -146,7 +138,6 @@ module DataMapper
       query.model.load(adapter.read(query), query)
     end
 
-    ##
     # Update the attributes of one or more resource instances
     #
     #   TODO: create example
@@ -165,7 +156,6 @@ module DataMapper
       adapter.update(attributes, collection)
     end
 
-    ##
     # Delete one or more resource instances
     #
     #   TODO: create example
@@ -182,7 +172,6 @@ module DataMapper
       adapter.delete(collection)
     end
 
-    ##
     # Compares another Repository for equality
     #
     # Repository is equal to +other+ if they are the same object (identity)
@@ -207,7 +196,6 @@ module DataMapper
       cmp?(other, :eql?)
     end
 
-    ##
     # Compares another Repository for equivalency
     #
     # Repository is equal to +other+ if they are the same object (identity)
@@ -236,7 +224,6 @@ module DataMapper
       cmp?(other, :==)
     end
 
-    ##
     # Return the hash of the Repository
     #
     # This is necessary for properly determining the unique Repository
@@ -250,7 +237,6 @@ module DataMapper
       name.hash
     end
 
-    ##
     # Return a human readable representation of the repository
     #
     #   TODO: create example
@@ -265,7 +251,6 @@ module DataMapper
 
     private
 
-    ##
     # Initializes a new Repository
     #
     #   TODO: create example

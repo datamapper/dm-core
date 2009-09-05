@@ -33,7 +33,6 @@ module DataMapper
         end
       end
 
-      ##
       # Defines a Property on the Resource
       #
       # @param [Symbol] name
@@ -94,7 +93,6 @@ module DataMapper
         property
       end
 
-      ##
       # Gets a list of all properties that have been defined on this Model in
       # the requested repository
       #
@@ -118,7 +116,6 @@ module DataMapper
         end
       end
 
-      ##
       # Gets the list of key fields for this Model in +repository_name+
       #
       # @param [String] repository_name
@@ -138,7 +135,6 @@ module DataMapper
         key(repository_name).detect { |property| property.serial? }
       end
 
-      ##
       # Gets the field naming conventions for this resource in the given Repository
       #
       # @param [String, Symbol] repository_name

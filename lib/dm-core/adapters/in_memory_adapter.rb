@@ -9,7 +9,6 @@ module DataMapper
     # budding adapter developers, so it is critical that it remains well documented
     # and up to date.
     class InMemoryAdapter < AbstractAdapter
-      ##
       # Used by DataMapper to put records into a data-store: "INSERT" in SQL-speak.
       # It takes an array of the resources (model instances) to be saved. Resources
       # each have a key that can be used to quickly look them up later without
@@ -28,7 +27,6 @@ module DataMapper
         end
       end
 
-      ##
       # Looks up one record or a collection of records from the data-store:
       # "SELECT" in SQL.
       #
@@ -44,7 +42,6 @@ module DataMapper
         query.filter_records(records_for(query.model).dup)
       end
 
-      ##
       # Used by DataMapper to update the attributes on existing records in a
       # data-store: "UPDATE" in SQL-speak. It takes a hash of the attributes
       # to update with, as well as a collection object that specifies which resources
@@ -61,7 +58,6 @@ module DataMapper
         read(collection.query).each { |resource| resource.update(attributes) }.size
       end
 
-      ##
       # Destroys all the records matching the given query. "DELETE" in SQL.
       #
       # @param [DataMapper::Collection] resources
@@ -80,7 +76,6 @@ module DataMapper
 
       private
 
-      ##
       # Make a new instance of the adapter. The @records ivar is the 'data-store'
       # for this adapter. It is not shared amongst multiple incarnations of this
       # adapter, eg DataMapper.setup(:default, :adapter => :in_memory);
@@ -99,7 +94,6 @@ module DataMapper
         @records = {}
       end
 
-      ##
       # All the records we're storing. This method will look them up by model name
       #
       # @api private

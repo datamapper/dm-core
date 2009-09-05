@@ -4,7 +4,6 @@ module DataMapper
   class Transaction
     extend Chainable
 
-    ##
     # Create a new Transaction
     #
     # @see Transaction#link
@@ -24,13 +23,11 @@ module DataMapper
       end
     end
 
-    ##
     # Associate this Transaction with some things.
     #
-    # @param [Object] things  the things you want this Transaction
-    #   associated with
+    # @param [Object] things
+    #   the things you want this Transaction associated with:
     #
-    # @details [things a Transaction may be associatied with]
     #   Adapters::AbstractAdapter subclasses will be added as
     #     adapters as is.
     #   Arrays will have their elements added.
@@ -75,7 +72,6 @@ module DataMapper
       end
     end
 
-    ##
     # Begin the transaction
     #
     # Before #begin is called, the transaction is not valid and can not be used.
@@ -91,16 +87,14 @@ module DataMapper
       @state = :begin
     end
 
-    ##
     # Commit the transaction
+    #
+    #   If no block is given, it will simply commit any changes made since the
+    #   Transaction did #begin.
     #
     # @param block<Block>   a block (taking the one argument, the Transaction) to
     #   execute within this transaction. The transaction will begin and commit
     #   around the block, and roll back if an exception is raised.
-    #
-    # @note
-    #   If no block is given, it will simply commit any changes made since the
-    #   Transaction did #begin.
     #
     # @api private
     def commit
@@ -132,7 +126,6 @@ module DataMapper
       end
     end
 
-    ##
     # Rollback the transaction
     #
     # Will undo all changes made during the transaction.
@@ -147,16 +140,14 @@ module DataMapper
       @state = :rollback
     end
 
-    ##
     # Execute a block within this Transaction.
     #
-    # @param block<Block> the block of code to execute.
+    # No #begin, #commit or #rollback is performed in #within, but this
+    # Transaction will pushed on the per thread stack of transactions for each
+    # adapter it is associated with, and it will ensures that it will pop the
+    # Transaction away again after the block is finished.
     #
-    # @note
-    #   No #begin, #commit or #rollback is performed in #within, but this
-    #   Transaction will pushed on the per thread stack of transactions for each
-    #   adapter it is associated with, and it will ensures that it will pop the
-    #   Transaction away again after the block is finished.
+    # @param block<Block> the block of code to execute.
     #
     # @api private
     def within
@@ -355,7 +346,6 @@ module DataMapper
         end
       end
 
-      ##
       # Produces a fresh transaction primitive for this Adapter
       #
       # Used by Transaction to perform its various tasks.
@@ -369,7 +359,6 @@ module DataMapper
         DataObjects::Transaction.create_for_uri(normalized_uri)
       end
 
-      ##
       # Pushes the given Transaction onto the per thread Transaction stack so
       # that everything done by this Adapter is done within the context of said
       # Transaction.
@@ -385,7 +374,6 @@ module DataMapper
         transactions << transaction
       end
 
-      ##
       # Pop the 'current' Transaction from the per thread Transaction stack so
       # that everything done by this Adapter is no longer necessarily within the
       # context of said Transaction.
@@ -398,7 +386,6 @@ module DataMapper
         transactions.pop
       end
 
-      ##
       # Retrieve the current transaction for this Adapter.
       #
       # Everything done by this Adapter is done within the context of this
@@ -438,7 +425,6 @@ module DataMapper
         Thread.current[:dm_transactions] ||= []
       end
 
-      ##
       # Retrieve the current connection for this Adapter.
       #
       # @return [Transaction]
@@ -456,7 +442,7 @@ module DataMapper
     MysqlAdapter = PostgresAdapter = Sqlite3Adapter = OracleAdapter = Adapter
 
     module Repository
-      ##
+
       # Produce a new Transaction for this Repository
       #
       # @return [Adapters::Transaction]
@@ -476,7 +462,6 @@ module DataMapper
         mod.descendants.each { |model| model.extend self }
       end
 
-      ##
       # Produce a new Transaction for this Resource class
       #
       # @return <Adapters::Transaction
@@ -491,7 +476,7 @@ module DataMapper
     end # module Model
 
     module Resource
-      ##
+
       # Produce a new Transaction for the class of this Resource
       #
       # @return [Adapters::Transaction]

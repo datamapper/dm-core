@@ -32,7 +32,6 @@ module DataMapper
         # @api semipublic
         alias target_key child_key
 
-        ##
         # Returns a Collection for this relationship with a given source
         #
         # @param [Resource] source
@@ -217,7 +216,6 @@ module DataMapper
           super
         end
 
-        ##
         # Replace the Resources within the 1:m Collection
         #
         # @param [Enumerable] other
@@ -232,7 +230,6 @@ module DataMapper
           super
         end
 
-        ##
         # Removes all Resources from the 1:m Collection
         #
         # This should remove and orphan each Resource from the 1:m Collection.
@@ -246,7 +243,6 @@ module DataMapper
           super
         end
 
-        ##
         # Update every Resource in the 1:m Collection
         #
         # @param [Hash] attributes
@@ -261,7 +257,6 @@ module DataMapper
           super
         end
 
-        ##
         # Update every Resource in the 1:m Collection, bypassing validation
         #
         # @param [Hash] attributes
@@ -276,7 +271,6 @@ module DataMapper
           super
         end
 
-        ##
         # Remove every Resource in the 1:m Collection from the repository
         #
         # This performs a deletion of each Resource in the Collection from
@@ -291,7 +285,6 @@ module DataMapper
           super
         end
 
-        ##
         # Remove every Resource in the 1:m Collection from the repository, bypassing validation
         #
         # This performs a deletion of each Resource in the Collection from

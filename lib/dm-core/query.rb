@@ -77,7 +77,6 @@ module DataMapper
       end
     end
 
-    ##
     # Returns the repository query should be
     # executed in
     #
@@ -94,7 +93,6 @@ module DataMapper
     # @api semipublic
     attr_reader :repository
 
-    ##
     # Returns model (class) that is used
     # to instantiate objects from query result
     # returned by adapter
@@ -105,7 +103,6 @@ module DataMapper
     # @api semipublic
     attr_reader :model
 
-    ##
     # Returns the fields
     #
     # Set in cases like the following:
@@ -120,7 +117,6 @@ module DataMapper
     # @api semipublic
     attr_reader :fields
 
-    ##
     # Returns the links (associations) query fetches
     #
     # @return [Array<DataMapper::Associations::Relationship>]
@@ -129,7 +125,6 @@ module DataMapper
     # @api private
     attr_reader :links
 
-    ##
     # Returns the conditions of the query
     #
     # In the following example:
@@ -147,7 +142,6 @@ module DataMapper
     # @api semipublic
     attr_reader :conditions
 
-    ##
     # Returns the offset query uses
     #
     # Set in cases like the following:
@@ -162,7 +156,6 @@ module DataMapper
     # @api semipublic
     attr_reader :offset
 
-    ##
     # Returns the limit query uses
     #
     # Set in cases like the following:
@@ -177,7 +170,6 @@ module DataMapper
     # @api semipublic
     attr_reader :limit
 
-    ##
     # Returns the order
     #
     # Set in cases like the following:
@@ -195,7 +187,6 @@ module DataMapper
     # @api semipublic
     attr_reader :order
 
-    ##
     # Returns the original options
     #
     # @return [Hash]
@@ -204,7 +195,6 @@ module DataMapper
     # @api private
     attr_reader :options
 
-    ##
     # Indicates if each result should be returned in reverse order
     #
     # Set in cases like the following:
@@ -224,7 +214,6 @@ module DataMapper
       @add_reversed
     end
 
-    ##
     # Indicates if the Query results should replace the results in the Identity Map
     #
     #   TODO: needs example
@@ -237,7 +226,6 @@ module DataMapper
       @reload
     end
 
-    ##
     # Indicates if the Query results should be unique
     #
     #   TODO: needs example
@@ -250,7 +238,6 @@ module DataMapper
       @unique
     end
 
-    ##
     # Indicates if the Query has raw conditions
     #
     # @return [TrueClass, FalseClass]
@@ -261,7 +248,6 @@ module DataMapper
       @raw
     end
 
-    ##
     # Indicates if the Query is valid
     #
     # @return [TrueClass, FalseClass]
@@ -272,7 +258,6 @@ module DataMapper
       conditions.valid?
     end
 
-    ##
     # Returns a new Query with a reversed order
     #
     # @example
@@ -289,7 +274,6 @@ module DataMapper
       dup.reverse!
     end
 
-    ##
     # Reverses the sort order of the Query
     #
     # @example
@@ -313,7 +297,6 @@ module DataMapper
       self
     end
 
-    ##
     # Updates the Query with another Query or conditions
     #
     # Pretty unrealistic example:
@@ -354,7 +337,6 @@ module DataMapper
       self
     end
 
-    ##
     # Similar to Query#update, but acts on a duplicate.
     #
     # @param [Query, Hash] other
@@ -402,7 +384,6 @@ module DataMapper
       end
     end
 
-    ##
     # Takes an Enumerable of records, and destructively filters it.
     # First finds all matching conditions, then sorts it,
     # then does offset & limit
@@ -422,7 +403,6 @@ module DataMapper
       records
     end
 
-    ##
     # Filter a set of records by the conditions
     #
     # @param [Enumerable] records
@@ -438,7 +418,6 @@ module DataMapper
       end
     end
 
-    ##
     # Sorts a list of Records by the order
     #
     # @param [Enumerable] records
@@ -458,7 +437,6 @@ module DataMapper
       end
     end
 
-    ##
     # Limits a set of records by the offset and/or limit
     #
     # @param [Enumerable] records
@@ -480,7 +458,6 @@ module DataMapper
       end
     end
 
-    ##
     # Compares another Query for equivalency
     #
     # @param [Query] other
@@ -502,7 +479,6 @@ module DataMapper
       cmp?(other, :==)
     end
 
-    ##
     # Compares another Query for equality
     #
     # @param [Query] other
@@ -593,7 +569,6 @@ module DataMapper
       "#<#{self.class.name} #{attrs.map { |key, value| "@#{key}=#{value.inspect}" }.join(' ')}>"
     end
 
-    ##
     # Get the properties used in the conditions
     #
     # @return [Set<Property>]
@@ -612,7 +587,6 @@ module DataMapper
 
     private
 
-    ##
     # Initializes a Query instance
     #
     # @example
@@ -680,7 +654,6 @@ module DataMapper
       normalize_links
     end
 
-    ##
     # Copying contructor, called for Query#dup
     #
     # @api semipublic
@@ -688,7 +661,6 @@ module DataMapper
       initialize(original.repository, original.model, original.options)
     end
 
-    ##
     # Validate the options
     #
     # @param [#each] options
@@ -916,7 +888,6 @@ module DataMapper
       end
     end
 
-    ##
     # Normalize order elements to Query::Direction instances
     #
     #   TODO: needs example
@@ -947,7 +918,6 @@ module DataMapper
       end
     end
 
-    ##
     # Normalize fields to Property instances
     #
     #   TODO: needs example
@@ -965,7 +935,6 @@ module DataMapper
       end
     end
 
-    ##
     # Normalize links to Query::Path
     #
     # Normalization means links given as symbols are replaced with
@@ -1016,7 +985,6 @@ module DataMapper
       end
     end
 
-    ##
     # Append conditions to this Query
     #
     #   TODO: needs example
@@ -1122,7 +1090,6 @@ module DataMapper
       bind_value
     end
 
-    ##
     # Extract arguments for #slice and #slice! then return offset and limit
     #
     # @param [Integer, Array(Integer), Range] *args the offset,
@@ -1163,7 +1130,6 @@ module DataMapper
       return new_offset, limit
     end
 
-    ##
     # Return true if +other+'s is equivalent or equal to +self+'s
     #
     # @param [Query] other
