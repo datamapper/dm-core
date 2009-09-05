@@ -1,16 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
 describe DataMapper::Migrations do
-  before :all do
-    module ::Blog
-      class Article
-        include DataMapper::Resource
-      end
-    end
-
-    @model = ::Blog::Article
-  end
-
   def capture_log(mod)
     original, mod.logger = mod.logger, DataObjects::Logger.new(@log = StringIO.new, :debug)
     yield
@@ -24,6 +14,16 @@ describe DataMapper::Migrations do
   end
 
   supported_by :mysql do
+    before :all do
+      module ::Blog
+        class Article
+          include DataMapper::Resource
+        end
+      end
+
+      @model = ::Blog::Article
+    end
+
     describe '#auto_migrate' do
       describe 'Integer property' do
         [
@@ -208,6 +208,16 @@ describe DataMapper::Migrations do
   end
 
   supported_by :postgres do
+    before :all do
+      module ::Blog
+        class Article
+          include DataMapper::Resource
+        end
+      end
+
+      @model = ::Blog::Article
+    end
+
     describe '#auto_migrate' do
       describe 'Integer property' do
         [
