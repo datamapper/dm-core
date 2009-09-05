@@ -1130,6 +1130,7 @@ describe DataMapper::Query do
       include DataMapper::Resource
 
       property :name, String, :key => true
+      property :citizenship, String
 
       belongs_to :referrer, self, :nullable => true
       has n, :referrals, self, :inverse => :referrer
@@ -1333,7 +1334,7 @@ describe DataMapper::Query do
     it { @return.should be_kind_of(Array) }
 
     it 'should return expected value' do
-      @return.should == [ @model.properties[:name], @model.properties[:referrer_name] ]
+      @return.should == [ @model.properties[:name], @model.properties[:citizenship], @model.properties[:referrer_name] ]
     end
   end
 
@@ -1379,7 +1380,7 @@ describe DataMapper::Query do
         #<DataMapper::Query
           @repository=:default
           @model=User
-          @fields=[#<DataMapper::Property @model=User @name=:name>, #<DataMapper::Property @model=User @name=:referrer_name>]
+          @fields=[#<DataMapper::Property @model=User @name=:name>, #<DataMapper::Property @model=User @name=:citizenship>, #<DataMapper::Property @model=User @name=:referrer_name>]
           @links=[]
           @conditions=#<DataMapper::Query::Conditions::AndOperation @operands=[]>
           @order=[#<DataMapper::Query::Direction @target=#<DataMapper::Property @model=User @name=:name> @operator=:asc>]
@@ -2248,6 +2249,25 @@ describe DataMapper::Query do
         it { @return.should be_kind_of(DataMapper::Query) }
 
         it { @return.should equal(@original) }
+      end
+      
+      describe 'that has conditions set' do
+        before :all do
+          @and_operation = DataMapper::Query::Conditions::Operation.new(:and)
+          @or_operation = DataMapper::Query::Conditions::Operation.new(:or)
+          
+          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.name,"Dan Kubb")
+          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.citizenship,"Canada")
+          
+          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.name,"Ted Han")
+          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.citizenship,"USA")
+          @query_one = DataMapper::Query.new(@repository, @model, {:conditions=>@and_operation})
+          @query_two = DataMapper::Query.new(@repository, @model, {:conditions=>@or_operation})
+          
+          @conditions = @query_one.merge(@query_two).conditions
+        end
+        
+        it { @conditions.should == (@and_operation << @or_operation) } 
       end
 
       describe 'that is for an ancestor model' do

@@ -32,7 +32,7 @@ module DataMapper
 
     # Extract conditions to match a Resource or Collection
     #
-    # @param [Array, Colelction, Resource] source
+    # @param [Array, Collection, Resource] source
     #   the source to extract the values from
     # @param [ProperySet] source_key
     #   the key to extract the value from the resource
@@ -316,25 +316,23 @@ module DataMapper
     def update(other)
       assert_kind_of 'other', other, self.class, Hash
 
-      options = case other
-        when self.class
-          if self.eql?(other)
-            return self
-          end
-
-          assert_valid_other(other)
-
-          @options.merge(other.options)
-
-        when Hash
-          if other.empty?
-            return self
-          end
-
-          @options.merge(other)
+      other_options = if other.kind_of? self.class
+        if self.eql?(other)
+          return self
+        end
+        assert_valid_other(other)
+        other.options
+      else
+        other
       end
 
-      initialize(repository, model, options)
+      unless other_options.empty?
+        options = @options.merge(other_options)
+        if @options[:conditions] and other_options[:conditions]
+          options[:conditions] = @options[:conditions].dup << other_options[:conditions]
+        end
+        initialize(repository, model, options)
+      end
 
       self
     end

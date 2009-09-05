@@ -42,7 +42,7 @@ module DataMapper
         #
         # @param [Symbol] slug
         #   The type of comparison operator required. One of: :eq, :in, :gt,
-        #   :gte, :lt, :lte, :regex, :like.
+        #   :gte, :lt, :lte, :regexp, :like.
         # @param [Property, Associations::Relationship]
         #   The subject of the comparison - the value of the subject will be
         #   matched against the given value parameter.
