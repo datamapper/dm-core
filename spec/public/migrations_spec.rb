@@ -190,7 +190,7 @@ describe DataMapper::Migrations do
             end
 
             it "should create a #{statement} column" do
-              @output.last.should == "CREATE TABLE \"blog_articles\" (\"id\" #{statement} NOT NULL, PRIMARY KEY(\"id\")) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci"
+              @output.last.should =~ %r{\ACREATE TABLE "blog_articles" \("id" #{Regexp.escape(statement)} NOT NULL, PRIMARY KEY\("id"\)\) ENGINE = InnoDB CHARACTER SET [a-z\d]+ COLLATE (?:[a-z\d](?:_?[a-z\d]+)*)\z}
             end
 
             options.only(:min, :max).each do |key, value|
@@ -200,6 +200,45 @@ describe DataMapper::Migrations do
                   @model.first(@property => value).should eql(resource)
                 }.should_not raise_error
               end
+            end
+          end
+        end
+      end
+
+      describe 'Text property' do
+        before :all do
+          @model.property(:id, DataMapper::Types::Serial)
+        end
+
+        [
+          [ 0,          'TINYTEXT'   ],
+          [ 1,          'TINYTEXT'   ],
+          [ 255,        'TINYTEXT'   ],
+          [ 256,        'TEXT'       ],
+          [ 65535,      'TEXT'       ],
+          [ 65536,      'MEDIUMTEXT' ],
+          [ 16777215,   'MEDIUMTEXT' ],
+          [ 16777216,   'LONGTEXT'   ],
+          [ 4294967295, 'LONGTEXT'   ],
+
+          [ nil,        'TEXT'       ],
+        ].each do |length, statement|
+          options = {}
+          options[:length] = length if length
+
+          describe "with a length of #{length}" do
+            before :all do
+              @property = @model.property(:body, DataMapper::Types::Text, options)
+
+              @response = capture_log(DataObjects::Mysql) { @model.auto_migrate! }
+            end
+
+            it 'should return true' do
+              @response.should be_true
+            end
+
+            it "should create a #{statement} column" do
+              @output.last.should =~ %r{\ACREATE TABLE "blog_articles" \("id" INT\(10\) UNSIGNED NOT NULL AUTO_INCREMENT, "body" #{Regexp.escape(statement)}, PRIMARY KEY\("id"\)\) ENGINE = InnoDB CHARACTER SET [a-z\d]+ COLLATE (?:[a-z\d](?:_?[a-z\d]+)*)\z}
             end
           end
         end

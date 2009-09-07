@@ -376,6 +376,7 @@ module DataMapper
           schema = super
 
           if schema[:primitive] == 'TEXT'
+            schema[:primitive] = text_column_statement(property.length)
             schema.delete(:default)
           end
 
@@ -418,6 +419,30 @@ module DataMapper
         end
 
         private
+
+        # Return SQL statement for the text column
+        #
+        # @param [Integer] length
+        #   the max allowed length
+        #
+        # @return [String]
+        #   the statement to create the text column
+        #
+        # @api private
+        def text_column_statement(length)
+          if    length < 2**8  then 'TINYTEXT'
+          elsif length < 2**16 then 'TEXT'
+          elsif length < 2**24 then 'MEDIUMTEXT'
+          elsif length < 2**32 then 'LONGTEXT'
+
+          # http://www.postgresql.org/files/documentation/books/aw_pgsql/node90.html
+          # Implies that PostgreSQL doesn't have a size limit on text
+          # fields, so this param validation happens here instead of
+          # DM::Property#initialize.
+          else
+            raise ArgumentError, "length of #{length} exceeds maximum size supported"
+          end
+        end
 
         # Return SQL statement for the integer column
         #
