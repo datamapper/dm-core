@@ -468,11 +468,13 @@ module DataMapper
           min = range.first
           max = range.last
 
-          if    min < -2**31 || max >= 2**31 then 'BIGINT'
-          elsif min < -2**23 || max >= 2**23 then 'INT'
-          elsif min < -2**15 || max >= 2**15 then 'MEDIUMINT'
-          elsif min < -2**7  || max >= 2**7  then 'SMALLINT'
-          else                                    'TINYINT'
+          if    min >= -2**7  && max < 2**7  then 'TINYINT'
+          elsif min >= -2**15 && max < 2**15 then 'SMALLINT'
+          elsif min >= -2**23 && max < 2**23 then 'MEDIUMINT'
+          elsif min >= -2**31 && max < 2**31 then 'INT'
+          elsif min >= -2**63 && max < 2**63 then 'BIGINT'
+          else
+            raise ArgumentError, "min #{min} and max #{max} exceeds supported range"
           end
         end
 
@@ -487,11 +489,13 @@ module DataMapper
         def unsigned_integer_column_type(range)
           max = range.last
 
-          if    max >= 2**32 then 'BIGINT'
-          elsif max >= 2**24 then 'INT'
-          elsif max >= 2**16 then 'MEDIUMINT'
-          elsif max >= 2**8  then 'SMALLINT'
-          else                    'TINYINT'
+          if    max < 2**8  then 'TINYINT'
+          elsif max < 2**16 then 'SMALLINT'
+          elsif max < 2**24 then 'MEDIUMINT'
+          elsif max < 2**32 then 'INT'
+          elsif max < 2**64 then 'BIGINT'
+          else
+            raise ArgumentError, "min #{range.first} and max #{max} exceeds supported range"
           end
         end
 
@@ -622,7 +626,7 @@ module DataMapper
           end
 
           if schema[:serial]
-            schema[:primitive] = serial_column_statement(property.max)
+            schema[:primitive] = serial_column_statement(property.min..property.max)
           end
 
           schema
@@ -643,9 +647,11 @@ module DataMapper
           min = range.first
           max = range.last
 
-          if    min < -2**31 || max >= 2**31 then 'BIGINT'
-          elsif min < -2**15 || max >= 2**15 then 'INTEGER'
-          else                                    'SMALLINT'
+          if    min >= -2**15 && max < 2**15 then 'SMALLINT'
+          elsif min >= -2**31 && max < 2**31 then 'INTEGER'
+          elsif min >= -2**63 && max < 2**63 then 'BIGINT'
+          else
+            raise ArgumentError, "min #{min} and max #{max} exceeds supported range"
           end
         end
 
@@ -658,8 +664,14 @@ module DataMapper
         #   the statement to create the serial column
         #
         # @api private
-        def serial_column_statement(max)
-          max && max >= 2**31 ? 'BIGSERIAL' : 'SERIAL'
+        def serial_column_statement(range)
+          max = range.last
+
+          if    max.nil? || max < 2**31 then 'SERIAL'
+          elsif             max < 2**63 then 'BIGSERIAL'
+          else
+            raise ArgumentError, "min #{range.first} and max #{max} exceeds supported range"
+          end
         end
       end # module SQL
 
