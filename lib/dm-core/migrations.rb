@@ -318,7 +318,7 @@ module DataMapper
     module MysqlAdapter
       DEFAULT_ENGINE        = 'InnoDB'.freeze
       DEFAULT_CHARACTER_SET = 'utf8'.freeze
-      DEFAULT_COLLATION     = 'utf8_general_ci'.freeze
+      DEFAULT_COLLATION     = 'utf8_unicode_ci'.freeze
 
       # TODO: document
       # @api private
