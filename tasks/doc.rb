@@ -7,13 +7,10 @@ Rake::RDocTask.new('doc') do |config|
 end
 
 begin
-  # sudo gem install lsegal-yard --source http://gems.github.com
-  gem 'lsegal-yard', '~>0.2.3'
   require 'yard'
 
   YARD::Rake::YardocTask.new('yardoc') do |config|
-    config.files   << 'lib/**/*.rb' << 'CONTRIBUTING' << 'History.txt'
-#    config.readme = 'README.txt'
+    config.files << 'lib/**/*.rb'
   end
 rescue LoadError
   # yard not installed

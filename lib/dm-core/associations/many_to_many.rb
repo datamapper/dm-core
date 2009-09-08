@@ -301,7 +301,7 @@ module DataMapper
         # This performs a deletion of each Resource in the Collection from
         # the repository and clears the Collection.
         #
-        # @return [TrueClass, FalseClass]
+        # @return [Boolean]
         #   true if the resources were successfully destroyed
         #
         # @api public
@@ -325,7 +325,7 @@ module DataMapper
         # the repository and clears the Collection while skipping
         # validation.
         #
-        # @return [TrueClass, FalseClass]
+        # @return [Boolean]
         #   true if the resources were successfully destroyed
         #
         # @api public

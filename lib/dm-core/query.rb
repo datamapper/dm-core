@@ -206,7 +206,7 @@ module DataMapper
     # Note that :add_reversed option may be used in conditions directly,
     # but this is rarely the case
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the results should be reversed, false if not
     #
     # @api private
@@ -218,7 +218,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the results should be reloaded, false if not
     #
     # @api semipublic
@@ -230,7 +230,7 @@ module DataMapper
     #
     #   TODO: needs example
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the results should be unique, false if not
     #
     # @api semipublic
@@ -240,7 +240,7 @@ module DataMapper
 
     # Indicates if the Query has raw conditions
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the query has raw conditions, false if not
     #
     # @api semipublic
@@ -250,7 +250,7 @@ module DataMapper
 
     # Indicates if the Query is valid
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the query is valid
     #
     # @api semipublic
@@ -463,7 +463,7 @@ module DataMapper
     # @param [Query] other
     #   the other Query to compare with
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if they are equivalent, false if not
     #
     # @api semipublic
@@ -484,7 +484,7 @@ module DataMapper
     # @param [Query] other
     #   the other Query to compare with
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if they are equal, false if not
     #
     # @api semipublic
@@ -1137,7 +1137,7 @@ module DataMapper
     # @param [Symbol] operator
     #   The comparison operator to use to compare the attributes
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   The result of the comparison of +other+'s attributes with +self+'s
     #
     # @api private

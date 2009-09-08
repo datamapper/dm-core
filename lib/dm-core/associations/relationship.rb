@@ -311,7 +311,7 @@ module DataMapper
       # @param [Object] source
       #   the resource or collection to be tested
       #
-      # @return [TrueClass, FalseClass]
+      # @return [Boolean]
       #   true if the resource is valid
       #
       # @api semipulic
@@ -329,7 +329,7 @@ module DataMapper
       # @param [Relationship] other
       #   the other Relationship to compare with
       #
-      # @return [TrueClass, FalseClass]
+      # @return [Boolean]
       #   true if they are equal, false if not
       #
       # @api public
@@ -343,7 +343,7 @@ module DataMapper
       # @param [Relationship] other
       #   the other Relationship to compare with
       #
-      # @return [TrueClass, FalseClass]
+      # @return [Boolean]
       #   true if they are equal, false if not
       #
       # @api public

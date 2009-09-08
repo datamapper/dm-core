@@ -80,7 +80,7 @@ module DataMapper
     # @param [Module] inclusions
     #   the module that is to be appended to the module after Resource
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the inclusions have been successfully appended to the list
     #
     # @api semipublic
@@ -105,7 +105,7 @@ module DataMapper
     # @param [Module] extensions
     #   List of modules that will extend the model after it is extended by Model
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   whether or not the inclusions have been successfully appended to the list
     #
     # @api semipublic

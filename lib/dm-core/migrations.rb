@@ -69,7 +69,7 @@ module DataMapper
       # @param [String] storage_name
       #   a String defining the name of a storage, for example a table name.
       #
-      # @return [TrueClass, FalseClass]
+      # @return [Boolean]
       #   true if the storage exists
       #
       # @api semipublic
@@ -92,7 +92,7 @@ module DataMapper
       # @param [String] field
       #   a String defining the name of a field, for example a column name.
       #
-      # @return [TrueClass, FalseClass]
+      # @return [Boolean]
       #   true if the field exists.
       #
       # @api semipublic
@@ -1141,7 +1141,7 @@ module DataMapper
       # @param [String]
       #   storage_name name of the storage to test for
       #
-      # @return [TrueClass, FalseClass]
+      # @return [Boolean]
       #   true if the data-store +storage_name+ exists
       #
       # @api semipublic

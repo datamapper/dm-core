@@ -107,7 +107,7 @@ module DataMapper
       # @param [String, Symbol] name
       #   the name of the adapter
       #
-      # @return [TrueClass, FalseClass]
+      # @return [Boolean]
       #   true if the adapter is loaded
       #
       # @api private

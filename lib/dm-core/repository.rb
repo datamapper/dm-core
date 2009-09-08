@@ -180,7 +180,7 @@ module DataMapper
     # @param [Repository] other
     #   the other Repository to compare with
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if they are equal, false if not
     #
     # @api public
@@ -204,7 +204,7 @@ module DataMapper
     # @param [Repository] other
     #   the other Repository to compare with
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if they are equal, false if not
     #
     # @api public

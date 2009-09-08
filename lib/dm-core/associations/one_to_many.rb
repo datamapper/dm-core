@@ -248,7 +248,7 @@ module DataMapper
         # @param [Hash] attributes
         #   attributes to update with
         #
-        # @return [TrueClass, FalseClass]
+        # @return [Boolean]
         #   true if the resources were successfully updated
         #
         # @api public
@@ -262,7 +262,7 @@ module DataMapper
         # @param [Hash] attributes
         #   attributes to update
         #
-        # @return [TrueClass, FalseClass]
+        # @return [Boolean]
         #   true if the resources were successfully updated
         #
         # @api public
@@ -276,7 +276,7 @@ module DataMapper
         # This performs a deletion of each Resource in the Collection from
         # the repository and clears the Collection.
         #
-        # @return [TrueClass, FalseClass]
+        # @return [Boolean]
         #   true if the resources were successfully destroyed
         #
         # @api public
@@ -291,7 +291,7 @@ module DataMapper
         # the repository and clears the Collection while skipping
         # validation.
         #
-        # @return [TrueClass, FalseClass]
+        # @return [Boolean]
         #   true if the resources were successfully destroyed
         #
         # @api public

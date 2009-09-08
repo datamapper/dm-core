@@ -39,7 +39,7 @@ module DataMapper
   # By default, DataMapper supports the following primitive (Ruby) types
   # also called core types:
   #
-  # * TrueClass, Boolean
+  # * Boolean
   # * String (default length is 50)
   # * Text (limit of 65k characters by default)
   # * Float
@@ -355,7 +355,7 @@ module DataMapper
     # Returns true if property is unique. Serial properties and keys
     # are unique by default.
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if property has uniq index defined, false otherwise
     #
     # @api public
@@ -370,7 +370,7 @@ module DataMapper
     # @param [Property] other
     #   the other Property to compare with
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if they are equivalent, false if not
     #
     # @api semipublic
@@ -397,7 +397,7 @@ module DataMapper
     # @param [Property] other
     #   the other Property to compare with
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if they are equal, false if not
     #
     # @api semipublic
@@ -444,7 +444,7 @@ module DataMapper
 
     # Returns index name if property has index.
     #
-    # @return [TrueClass, Symbol, Array, NilClass]
+    # @return [true, Symbol, Array, nil]
     #   returns true if property is indexed by itself
     #   returns a Symbol if the property is indexed with other properties
     #   returns an Array if the property belongs to multiple indexes
@@ -458,7 +458,7 @@ module DataMapper
     # Returns true if property has unique index. Serial properties and
     # keys are unique by default.
     #
-    # @return [TrueClass, Symbol, Array, NilClass]
+    # @return [true, Symbol, Array, nil]
     #   returns true if property is indexed by itself
     #   returns a Symbol if the property is indexed with other properties
     #   returns an Array if the property belongs to multiple indexes
@@ -471,7 +471,7 @@ module DataMapper
 
     # Returns whether or not the property is to be lazy-loaded
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the property is to be lazy-loaded
     #
     # @api public
@@ -481,7 +481,7 @@ module DataMapper
 
     # Returns whether or not the property is a key or a part of a key
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the property is a key or a part of a key
     #
     # @api public
@@ -491,7 +491,7 @@ module DataMapper
 
     # Returns whether or not the property is "serial" (auto-incrementing)
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   whether or not the property is "serial"
     #
     # @api public
@@ -501,7 +501,7 @@ module DataMapper
 
     # Returns whether or not the property can accept 'nil' as it's value
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   whether or not the property can accept 'nil'
     #
     # @api public
@@ -511,7 +511,7 @@ module DataMapper
 
     # Returns whether or not the property is custom (not provided by dm-core)
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   whether or not the property is custom
     #
     # @api public
@@ -625,7 +625,7 @@ module DataMapper
     # @param [Resource] resource
     #   model instance for which the attribute is to be tested
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the attribute is loaded in the resource
     #
     # @api private
@@ -670,7 +670,7 @@ module DataMapper
     # @param [#to_s, #to_f, #to_i, #to_d, Hash] value
     #   the value to typecast
     #
-    # @return [TrueClass, String, Float, Integer, BigDecimal, DateTime, Date, Time, Class]
+    # @return [rue, String, Float, Integer, BigDecimal, DateTime, Date, Time, Class]
     #   The typecasted +value+
     #
     # @api private
@@ -716,7 +716,7 @@ module DataMapper
 
     # Returns true if the property has a default value
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the property has a default value
     #
     # @api semipublic
@@ -747,7 +747,7 @@ module DataMapper
     # @param [Object] value
     #   the value to be tested
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the value is valid
     #
     # @api semipulic
@@ -934,7 +934,7 @@ module DataMapper
     # @param [Object] value
     #   value to test
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true if the value is the correct type
     #
     # @api private
@@ -977,7 +977,7 @@ module DataMapper
     # @param [Integer, #to_str] value
     #   value to typecast
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   true or false constructed from value
     #
     # @api private
@@ -1191,7 +1191,7 @@ module DataMapper
     # @param [Symbol] operator
     #   The comparison operator to use to compare the attributes
     #
-    # @return [TrueClass, FalseClass]
+    # @return [Boolean]
     #   The result of the comparison of +other+'s attributes with +self+'s
     #
     # @api private
