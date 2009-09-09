@@ -349,11 +349,9 @@ module DataMapper
         #
         # @api private
         def cmp?(other, operator)
-          return false unless self.class.slug.send(operator, other.class.slug)
-          return false unless subject.send(operator, other.subject)
-          return false unless value.send(operator, other.value)
-
-          true
+          self.class.slug.send(operator, other.class.slug) &&
+          subject.send(operator, other.subject)            &&
+          value.send(operator, other.value)
         end
 
         # Typecasts the given +val+ using subject#typecast
