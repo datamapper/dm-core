@@ -136,19 +136,22 @@ describe DataMapper::Model do
       end
     end
 
-    @article_model = Blog::Article
+    @article_model     = Blog::Article
+    @publication_model = Blog::Publication
   end
 
   supported_by :all do
     # model cannot be a kicker
     def should_not_be_a_kicker; end
 
+    def model?; true end
+
     before :all do
       @articles = @article_model
 
-      @original = @articles.create(:title => 'Original Article'                      )
-      @article  = @articles.create(:title => 'Sample Article',   :content => 'Sample')
-      @other    = @articles.create(:title => 'Other Article',    :content => 'Other' )
+      @original = @articles.create(:title => 'Original Article')
+      @article  = @articles.create(:title => 'Sample Article', :content => 'Sample', :original => @original)
+      @other    = @articles.create(:title => 'Other Article',  :content => 'Other')
     end
 
     it_should_behave_like 'Finder Interface'

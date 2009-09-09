@@ -331,6 +331,10 @@ describe DataMapper::Query do
                 )
               )
           end
+
+          it 'should be valid' do
+            @return.should be_valid
+          end
         end
 
         describe 'with the Symbol key mapping to a Property' do
@@ -350,6 +354,10 @@ describe DataMapper::Query do
                   'Dan Kubb'
                 )
               )
+          end
+
+          it 'should be valid' do
+            @return.should be_valid
           end
         end
 
@@ -371,6 +379,10 @@ describe DataMapper::Query do
                   'Dan Kubb'
                 )
               )
+          end
+
+          it 'should be valid' do
+            @return.should be_valid
           end
         end
 
@@ -397,6 +409,10 @@ describe DataMapper::Query do
                   )
                 )
             end
+
+            it 'should be valid' do
+              @return.should be_valid
+            end
           end
 
           describe 'with the String key mapping to a Relationship' do
@@ -421,6 +437,62 @@ describe DataMapper::Query do
                   )
                 )
             end
+
+            it 'should be valid' do
+              @return.should be_valid
+            end
+          end
+
+          describe 'with the Symbol key mapping to a Relationship and a nil value' do
+            before :all do
+              @options[:conditions] = { :referrer => nil }
+
+              @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+            end
+
+            it { @return.should be_kind_of(DataMapper::Query) }
+
+            it 'should set the conditions' do
+              @return.conditions.should ==
+                DataMapper::Query::Conditions::Operation.new(
+                  :and,
+                  DataMapper::Query::Conditions::Comparison.new(
+                    :eql,
+                    @model.relationships[:referrer],
+                    nil
+                  )
+                )
+            end
+
+            it 'should be valid' do
+              @return.should be_valid
+            end
+          end
+
+          describe 'with the Symbol key mapping to a Relationship and an empty Array' do
+            before :all do
+              @options[:conditions] = { :referrer => [] }
+
+              @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+            end
+
+            it { @return.should be_kind_of(DataMapper::Query) }
+
+            it 'should set the conditions' do
+              @return.conditions.should ==
+                DataMapper::Query::Conditions::Operation.new(
+                  :and,
+                  DataMapper::Query::Conditions::Comparison.new(
+                    :in,
+                    @model.relationships[:referrer],
+                    []
+                  )
+                )
+            end
+
+            it 'should be invalid' do
+              @return.should_not be_valid
+            end
           end
         end
 
@@ -442,6 +514,10 @@ describe DataMapper::Query do
                   'Dan Kubb'
                 )
               )
+          end
+
+          it 'should be valid' do
+            @return.should be_valid
           end
         end
 
@@ -468,6 +544,10 @@ describe DataMapper::Query do
           it 'should set the links' do
             @return.links.should == [ @model.relationships[:referrals], @model.relationships[:referrer] ]
           end
+
+          it 'should be valid' do
+            @return.should be_valid
+          end
         end
 
         describe 'with the String key mapping to a Query::Path' do
@@ -493,6 +573,10 @@ describe DataMapper::Query do
           it 'should set the links' do
             @return.links.should == [ @model.relationships[:referrals], @model.relationships[:referrer] ]
           end
+
+          it 'should be valid' do
+            @return.should be_valid
+          end
         end
 
         describe 'with a Proc value' do
@@ -514,6 +598,10 @@ describe DataMapper::Query do
                 )
               )
           end
+
+          it 'should be valid' do
+            @return.should be_valid
+          end
         end
 
         describe 'with a custom Property' do
@@ -534,6 +622,10 @@ describe DataMapper::Query do
                   'password'
                 )
               )
+          end
+
+          it 'should be valid' do
+            @return.should be_valid
           end
         end
 
@@ -557,8 +649,8 @@ describe DataMapper::Query do
               )
           end
 
-          it 'should have valid conditions' do
-            @return.conditions.should be_valid
+          it 'should be valid' do
+            @return.should be_valid
           end
         end
 
@@ -582,8 +674,8 @@ describe DataMapper::Query do
               )
           end
 
-          it 'should have valid conditions' do
-            @return.conditions.should be_valid
+          it 'should be valid' do
+            @return.should be_valid
           end
         end
       end
@@ -600,6 +692,10 @@ describe DataMapper::Query do
         it 'should set the conditions' do
           @return.conditions.should == DataMapper::Query::Conditions::Operation.new(:and, [ 'name = ?', [ 'Dan Kubb' ] ])
         end
+
+        it 'should be valid' do
+          @return.should be_valid
+        end
       end
 
       describe 'that is missing' do
@@ -611,6 +707,10 @@ describe DataMapper::Query do
 
         it 'should set conditions to an empty And operation' do
           @return.conditions.should == DataMapper::Query::Conditions::Operation.new(:and)
+        end
+
+        it 'should be valid' do
+          @return.should be_valid
         end
       end
 

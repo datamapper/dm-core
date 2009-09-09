@@ -12,11 +12,11 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         class Article
           include DataMapper::Resource
 
-          property :id,      Serial
-          property :title,   String, :nullable => false
-          property :content, Text
+          property :id,       Serial
+          property :title,    String, :nullable => false
+          property :content,  Text
           property :subtitle, String
-          property :author,  String, :nullable => false
+          property :author,   String, :nullable => false
 
           belongs_to :original, self, :nullable => true
           has n, :revisions, self, :child_key => [ :original_id ]
@@ -34,7 +34,8 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
       end
 
-      @article_model = Blog::Article
+      @article_model     = Blog::Article
+      @publication_model = Blog::Publication
     end
 
     supported_by :all do

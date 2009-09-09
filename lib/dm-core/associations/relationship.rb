@@ -316,6 +316,8 @@ module DataMapper
       #
       # @api semipulic
       def valid?(source)
+        return true if source.nil?
+
         case source
           when Array, Collection then valid_collection?(source)
           when Resource          then valid_resource?(source)

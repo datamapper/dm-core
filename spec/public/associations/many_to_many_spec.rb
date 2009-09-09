@@ -39,9 +39,9 @@ end
         class Article
           include DataMapper::Resource
 
-          property :id,      Serial
-          property :title,   String, :nullable => false
-          property :content, Text
+          property :id,       Serial
+          property :title,    String, :nullable => false
+          property :content,  Text
           property :subtitle, String
 
           has n, :authors, :through => Resource
@@ -61,8 +61,9 @@ end
         end
       end
 
-      @author_model  = Blog::Author
-      @article_model = Blog::Article
+      @author_model      = Blog::Author
+      @article_model     = Blog::Article
+      @publication_model = Blog::Publication
 
       # initialize the join model
       Blog::Author.relationships(:default)[:articles].through
@@ -152,8 +153,9 @@ end
         end
       end
 
-      @author_model  = Blog::Author
-      @article_model = Blog::Article
+      @author_model      = Blog::Author
+      @article_model     = Blog::Article
+      @publication_model = Blog::Publication
 
       @join_model = Blog::Site
     end

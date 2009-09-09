@@ -46,9 +46,13 @@ module DataMapper
     def self.target_conditions(source, source_key, target_key)
       source_values = []
 
-      Array(source).each do |resource|
-        next unless source_key.loaded?(resource)
-        source_values << source_key.get!(resource)
+      if source.nil?
+        source_values << [ nil ] * target_key.size
+      else
+        Array(source).each do |resource|
+          next unless source_key.loaded?(resource)
+          source_values << source_key.get!(resource)
+        end
       end
 
       if target_key.size == 1

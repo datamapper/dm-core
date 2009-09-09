@@ -219,67 +219,66 @@ share_examples_for 'Finder Interface' do
   it { @articles.should respond_to(:all) }
 
   describe '#all' do
-     describe 'with no arguments' do
-       before :all do
-         @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
+    describe 'with no arguments' do
+      before :all do
+        @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
 
-         @return = @collection = @articles.all
-       end
+        @return = @collection = @articles.all
+      end
 
-       it 'should return a Collection' do
-         @return.should be_kind_of(DataMapper::Collection)
-       end
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
 
-       it 'should return a new instance' do
-         @return.should_not equal(@articles)
-       end
+      it 'should return a new instance' do
+        @return.should_not equal(@articles)
+      end
 
-       it 'should be expected Resources' do
-         @collection.should == @articles.entries
-       end
+      it 'should be expected Resources' do
+        @collection.should == @articles.entries
+      end
 
-       it 'should not have a Query the same as the original' do
-         @return.query.should_not equal(@articles.query)
-       end
+      it 'should not have a Query the same as the original' do
+        @return.query.should_not equal(@articles.query)
+      end
 
-       it 'should have a Query equal to the original' do
-         @return.query.should eql(@articles.query)
-       end
+      it 'should have a Query equal to the original' do
+        @return.query.should eql(@articles.query)
+      end
 
-       it 'should scope the Collection' do
-         @collection.reload.should == @copy.entries
-       end
-     end
+      it 'should scope the Collection' do
+        @collection.reload.should == @copy.entries
+      end
+    end
 
-     describe 'with a query' do
-       before :all do
-         @new  = @articles.create(:content => 'New Article')
-         @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
+    describe 'with a query' do
+      before :all do
+        @new  = @articles.create(:content => 'New Article')
+        @copy = @articles.kind_of?(Class) ? @articles : @articles.dup
 
-         @return = @articles.all(:content => [ 'New Article' ])
-       end
+        @return = @articles.all(:content => [ 'New Article' ])
+      end
 
-       it 'should return a Collection' do
-         @return.should be_kind_of(DataMapper::Collection)
-       end
+      it 'should return a Collection' do
+        @return.should be_kind_of(DataMapper::Collection)
+      end
 
-       it 'should return a new instance' do
-         @return.should_not equal(@articles)
-       end
+      it 'should return a new instance' do
+        @return.should_not equal(@articles)
+      end
 
-       it 'should be expected Resources' do
-         @return.size.should == 1
-         @return.first.should == @new
-       end
+      it 'should be expected Resources' do
+        @return.should == [ @new ]
+      end
 
-       it 'should have a different query than original Collection' do
-         @return.query.should_not equal(@articles.query)
-       end
+      it 'should have a different query than original Collection' do
+        @return.query.should_not equal(@articles.query)
+      end
 
-       it 'should scope the Collection' do
-         @return.reload.should == @copy.entries.select { |resource| resource.content == 'New Article' }
-       end
-     end
+      it 'should scope the Collection' do
+        @return.reload.should == @copy.entries.select { |resource| resource.content == 'New Article' }
+      end
+    end
 
     describe 'with a query using raw conditions' do
       before do
@@ -319,6 +318,333 @@ share_examples_for 'Finder Interface' do
         lambda {
           @articles.all(:limit => 10).all(:offset => 10)
         }.should raise_error(RangeError, 'offset 10 and limit 0 are outside allowed range')
+      end
+    end
+
+    describe 'with a query using a m:1 relationship' do
+      describe 'with a resource' do
+        before :all do
+          @return = @articles.all(:original => @original)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+
+      describe 'with a collection' do
+        before :all do
+          @collection = @article_model.all(@article_model.key.zip(@original.key).to_hash)
+
+          @return = @articles.all(:original => @collection)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+
+      end
+
+      describe 'with an empty Array' do
+        before :all do
+          @return = @articles.all(:original => [])
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be an empty Collection' do
+          @return.should be_empty
+        end
+
+        it 'should not have a valid query' do
+          @return.query.should_not be_valid
+        end
+      end
+
+      describe 'with a nil value' do
+        before :all do
+          @return = @articles.all(:original => nil)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        if respond_to?(:model?) && model?
+          it 'should be expected Resources' do
+            @return.should == [ @original, @other ]
+          end
+        else
+          it 'should be an empty Collection' do
+            @return.should be_empty
+          end
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+    end
+
+    describe 'with a query using a 1:1 relationship' do
+      before :all do
+        @new = @articles.create(:content => 'New Article', :original => @article)
+      end
+
+      describe 'with a resource' do
+        before :all do
+          @return = @articles.all(:previous => @new)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+
+      describe 'with a collection' do
+        before :all do
+          @collection = @article_model.all(@article_model.key.zip(@new.key).to_hash)
+
+          @return = @articles.all(:previous => @collection)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+
+      describe 'with an empty Array' do
+        before :all do
+          @return = @articles.all(:previous => [])
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be an empty Collection' do
+          @return.should be_empty
+        end
+
+        it 'should not have a valid query' do
+          @return.query.should_not be_valid
+        end
+      end
+
+      describe 'with a nil value' do
+        before :all do
+          @return = @articles.all(:previous => nil)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be an empty Collection' do
+          @return.should be_empty
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+    end
+
+    describe 'with a query using a 1:m relationship' do
+      before :all do
+        @new = @articles.create(:content => 'New Article', :original => @article)
+      end
+
+      describe 'with a resource' do
+        before :all do
+          @return = @articles.all(:revisions => @new)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+
+      describe 'with a collection' do
+        before :all do
+          @collection = @article_model.all(@article_model.key.zip(@new.key).to_hash)
+
+          @return = @articles.all(:revisions => @collection)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          @return.should == [ @article ]
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+
+      describe 'with an empty Array' do
+        before :all do
+          @return = @articles.all(:revisions => [])
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be an empty Collection' do
+          @return.should be_empty
+        end
+
+        it 'should not have a valid query' do
+          @return.query.should_not be_valid
+        end
+      end
+
+      describe 'with a nil value' do
+        before :all do
+          @return = @articles.all(:revisions => nil)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be an empty Collection' do
+          @return.should be_empty
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+    end
+
+    describe 'with a query using a m:m relationship' do
+      before :all do
+        @publication = @article.publications.create(:name => 'DataMapper Now')
+      end
+
+      describe 'with a resource' do
+        before :all do
+          @return = @articles.all(:publications => @publication)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          pending 'TODO' do
+            @return.should == [ @article ]
+          end
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+
+      describe 'with a collection' do
+        before :all do
+          @collection = @publication_model.all(@publication_model.key.zip(@publication.key).to_hash)
+
+          @return = @articles.all(:publications => @collection)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be expected Resources' do
+          pending 'TODO' do
+            @return.should == [ @article ]
+          end
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
+      end
+
+      describe 'with an empty Array' do
+        before :all do
+          @return = @articles.all(:publications => [])
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be an empty Collection' do
+          @return.should be_empty
+        end
+
+        it 'should not have a valid query' do
+          @return.query.should_not be_valid
+        end
+      end
+
+      describe 'with a nil value' do
+        before :all do
+          @return = @articles.all(:publications => nil)
+        end
+
+        it 'should return a Collection' do
+          @return.should be_kind_of(DataMapper::Collection)
+        end
+
+        it 'should be an empty Collection' do
+          @return.should be_empty
+        end
+
+        it 'should have a valid query' do
+          @return.query.should be_valid
+        end
       end
     end
   end

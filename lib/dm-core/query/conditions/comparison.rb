@@ -518,8 +518,7 @@ module DataMapper
         def foreign_key_mapping
           relationship = subject.inverse
 
-          Query.target_conditions(
-            value, relationship.source_key, relationship.target_key)
+          Query.target_conditions(value, relationship.source_key, relationship.target_key)
         end
       end # module RelationshipHandler
 

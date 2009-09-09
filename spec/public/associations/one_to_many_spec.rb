@@ -22,9 +22,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         class Article
           include DataMapper::Resource
 
-          property :id,      Serial
-          property :title,   String, :nullable => false
-          property :content, Text
+          property :id,       Serial
+          property :title,    String, :nullable => false
+          property :content,  Text
           property :subtitle, String
 
           belongs_to :author, :nullable => true
@@ -44,8 +44,9 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
         end
       end
 
-      @author_model  = Blog::Author
-      @article_model = Blog::Article
+      @author_model      = Blog::Author
+      @article_model     = Blog::Article
+      @publication_model = Blog::Publication
     end
 
     supported_by :all do
