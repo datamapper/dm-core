@@ -190,7 +190,7 @@ describe DataMapper::Migrations do
             end
 
             it "should create a #{statement} column" do
-              @output.last.should =~ %r{\ACREATE TABLE "blog_articles" \("id" #{Regexp.escape(statement)} NOT NULL, PRIMARY KEY\("id"\)\) ENGINE = InnoDB CHARACTER SET [a-z\d]+ COLLATE (?:[a-z\d](?:_?[a-z\d]+)*)\z}
+              @output.last.should =~ %r{\ACREATE TABLE `blog_articles` \(`id` #{Regexp.escape(statement)} NOT NULL, PRIMARY KEY\(`id`\)\) ENGINE = InnoDB CHARACTER SET [a-z\d]+ COLLATE (?:[a-z\d](?:_?[a-z\d]+)*)\z}
             end
 
             options.only(:min, :max).each do |key, value|
@@ -238,7 +238,7 @@ describe DataMapper::Migrations do
             end
 
             it "should create a #{statement} column" do
-              @output.last.should =~ %r{\ACREATE TABLE "blog_articles" \("id" INT\(10\) UNSIGNED NOT NULL AUTO_INCREMENT, "body" #{Regexp.escape(statement)}, PRIMARY KEY\("id"\)\) ENGINE = InnoDB CHARACTER SET [a-z\d]+ COLLATE (?:[a-z\d](?:_?[a-z\d]+)*)\z}
+              @output.last.should =~ %r{\ACREATE TABLE `blog_articles` \(`id` INT\(10\) UNSIGNED NOT NULL AUTO_INCREMENT, `body` #{Regexp.escape(statement)}, PRIMARY KEY\(`id`\)\) ENGINE = InnoDB CHARACTER SET [a-z\d]+ COLLATE (?:[a-z\d](?:_?[a-z\d]+)*)\z}
             end
           end
         end
