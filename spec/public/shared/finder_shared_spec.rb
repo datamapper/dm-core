@@ -846,7 +846,7 @@ share_examples_for 'Finder Interface' do
       end
     end
 
-    describe 'with limit specified' do
+    describe 'with a limit specified' do
       before :all do
         @return = @resources = @articles.first(1)
       end
@@ -882,7 +882,7 @@ share_examples_for 'Finder Interface' do
       end
     end
 
-    # describe 'with limit specified', 'after prepending to the collection' do
+    # describe 'with a limit specified', 'after prepending to the collection' do
     #   before :all do
     #     @return = @resources = @articles.unshift(@other).first(1)
     #   end
@@ -904,7 +904,7 @@ share_examples_for 'Finder Interface' do
     #   end
     # end
 
-    describe 'with limit and query specified' do
+    describe 'with a limit and query specified' do
       before :all do
         @return = @resources = @articles.first(1, :content => 'Sample')
       end
@@ -1222,7 +1222,7 @@ share_examples_for 'Finder Interface' do
       # end
     end
 
-    describe 'with limit specified' do
+    describe 'with a limit specified' do
       before :all do
         @return = @resources = @articles.last(1)
       end
@@ -1258,7 +1258,7 @@ share_examples_for 'Finder Interface' do
       end
     end
 
-    # describe 'with limit specified', 'after appending to the collection' do
+    # describe 'with a limit specified', 'after appending to the collection' do
     #   before :all do
     #     @return = @resources = @articles.push(@other).last(1)
     #   end
@@ -1280,7 +1280,7 @@ share_examples_for 'Finder Interface' do
     #   end
     # end
 
-    describe 'with limit and query specified' do
+    describe 'with a limit and query specified' do
       before :all do
         @return = @resources = @articles.last(1, :content => 'Sample')
       end

@@ -618,24 +618,52 @@ share_examples_for 'A public Collection' do
   describe '#pop' do
     before :all do
       @new = @articles.create(:title => 'Sample Article')  # TODO: freeze @new
-
-      @return = @resource = @articles.pop
     end
 
-    it 'should return a Resource' do
-      @return.should be_kind_of(DataMapper::Resource)
+    describe 'with no arguments' do
+      before :all do
+        @return = @articles.pop
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be the last Resource in the Collection' do
+        @return.should == @new
+      end
+
+      it 'should remove the Resource from the Collection' do
+        @articles.should_not be_include(@new)
+      end
+
+      it 'should orphan the Resource' do
+        @return.collection.should_not equal(@articles)
+      end
     end
 
-    it 'should be the last Resource in the Collection' do
-      @resource.should == @new
-    end
+    if RUBY_VERSION >= '1.8.7'
+      describe 'with a limit specified' do
+        before :all do
+          @return = @articles.pop(1)
+        end
 
-    it 'should remove the Resource from the Collection' do
-      @articles.should_not be_include(@resource)
-    end
+        it 'should return an Array' do
+          @return.should be_kind_of(Array)
+        end
 
-    it 'should orphan the Resource' do
-      @resource.collection.should_not equal(@articles)
+        it 'should return the expected Resources' do
+          @return.should == [ @new ]
+        end
+
+        it 'should remove the Resource from the Collection' do
+          @articles.should_not be_include(@new)
+        end
+
+        it 'should orphan the Resource' do
+          @return.each { |resource| resource.collection.should_not equal(@articles) }
+        end
+      end
     end
   end
 
@@ -941,26 +969,51 @@ share_examples_for 'A public Collection' do
   it { @articles.should respond_to(:shift) }
 
   describe '#shift' do
-    before :all do
-      @new = @articles.create(:title => 'Sample Article')
+    describe 'with no arguments' do
+      before :all do
+        @return = @articles.shift
+      end
 
-      @return = @resource = @articles.shift
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be the first Resource in the Collection' do
+        @return.key.should == @article.key
+      end
+
+      it 'should remove the Resource from the Collection' do
+        @articles.should_not be_include(@return)
+      end
+
+      it 'should orphan the Resource' do
+        @return.collection.should_not equal(@articles)
+      end
     end
 
-    it 'should return a Resource' do
-      @return.should be_kind_of(DataMapper::Resource)
-    end
+    if RUBY_VERSION >= '1.8.7'
+      describe 'with a limit specified' do
+        before :all do
+          @return = @articles.shift(1)
+        end
 
-    it 'should be the first Resource in the Collection' do
-      @resource.key.should == @article.key
-    end
+        it 'should return an Array' do
+          @return.should be_kind_of(Array)
+        end
 
-    it 'should remove the Resource from the Collection' do
-      @articles.should_not be_include(@resource)
-    end
+        it 'should return the expected Resources' do
+          @return.size.should == 1
+          @return.first.key.should == @article.key
+        end
 
-    it 'should orphan the Resource' do
-      @resource.collection.should_not equal(@articles)
+        it 'should remove the Resource from the Collection' do
+          @articles.should_not be_include(@article)
+        end
+
+        it 'should orphan the Resource' do
+          @return.each { |resource| resource.collection.should_not equal(@articles) }
+        end
+      end
     end
   end
 

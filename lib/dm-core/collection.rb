@@ -534,9 +534,10 @@ module DataMapper
     #   the last Resource in the Collection
     #
     # @api public
-    def pop
-      return nil unless resource = super
-      resource_removed(resource)
+    def pop(*)
+      if removed = super
+        resources_removed(removed)
+      end
     end
 
     # Removes and returns the first Resource in the Collection
@@ -545,9 +546,10 @@ module DataMapper
     #   the first Resource in the Collection
     #
     # @api public
-    def shift
-      return nil unless resource = super
-      resource_removed(resource)
+    def shift(*)
+      if removed = super
+        resources_removed(removed)
+      end
     end
 
     # Remove Resource from the Collection
@@ -566,8 +568,9 @@ module DataMapper
     #
     # @api public
     def delete(resource)
-      return nil unless resource = super
-      resource_removed(resource)
+      if resource = super
+        resource_removed(resource)
+      end
     end
 
     # Remove Resource from the Collection by offset
@@ -586,8 +589,9 @@ module DataMapper
     #
     # @api public
     def delete_at(offset)
-      return nil unless resource = super
-      resource_removed(resource)
+      if resource = super
+        resource_removed(resource)
+      end
     end
 
     # Deletes every Resource for which block evaluates to true.
