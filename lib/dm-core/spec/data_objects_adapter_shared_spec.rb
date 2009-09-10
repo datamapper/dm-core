@@ -53,7 +53,7 @@ share_examples_for 'A DataObjects Adapter' do
       end
 
       it 'should not send NULL values' do
-        statement = if @adapter.kind_of?(DataMapper::Adapters::MysqlAdapter)
+        statement = if defined?(DataMapper::Adapters::MysqlAdapter) && @adapter.kind_of?(DataMapper::Adapters::MysqlAdapter)
           /\AINSERT INTO `articles` \(\) VALUES \(\)\z/
         elsif supports_default_values? && supports_returning?
           /\AINSERT INTO "articles" DEFAULT VALUES RETURNING \"id\"\z/
@@ -87,7 +87,7 @@ share_examples_for 'A DataObjects Adapter' do
       end
 
       it 'should not send NULL values' do
-        if @adapter.kind_of?(DataMapper::Adapters::MysqlAdapter)
+        if defined?(DataMapper::Adapters::MysqlAdapter) && @adapter.kind_of?(DataMapper::Adapters::MysqlAdapter)
           log_output.should =~ /^INSERT INTO `articles` \(`id`\) VALUES \(.{1,2}\)$/i
         else
           log_output.should =~ /^INSERT INTO "articles" \("id"\) VALUES \(.{1,2}\)$/i

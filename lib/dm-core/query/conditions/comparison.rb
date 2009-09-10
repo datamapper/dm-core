@@ -579,12 +579,12 @@ module DataMapper
         #
         # @api semipublic
         def valid?
-          return false unless
-            value.kind_of?(Array) ||
-            value.kind_of?(Range) ||
-            value.kind_of?(Set)
-
-          loaded_value.any? && loaded_value.all? { |val| subject.valid?(val) }
+          case value
+            when Array, Range, Set
+              loaded_value.any? && loaded_value.all? { |val| subject.valid?(val) }
+            else
+              false
+          end
         end
 
         private

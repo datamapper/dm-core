@@ -55,6 +55,8 @@ module DataMapper
         end
       end
 
+      source_values.uniq!
+
       if target_key.size == 1
         target_key = target_key.first
         source_values.flatten!
@@ -1089,6 +1091,11 @@ module DataMapper
       # TODO: bypass this for Collection, once subqueries can be handled by adapters
       if bind_value.respond_to?(:to_ary)
         bind_value = bind_value.to_ary
+        bind_value.uniq!
+      end
+
+      if bind_value.instance_of?(Array) && bind_value.size == 1
+        bind_value = bind_value.first
       end
 
       bind_value
