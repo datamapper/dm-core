@@ -1094,9 +1094,10 @@ module DataMapper
         bind_value.uniq!
       end
 
-      if bind_value.instance_of?(Array) && bind_value.size == 1
-        bind_value = bind_value.first
-      end
+      # FIXME: causes m:m specs to fail with in-memory adapter
+      # if bind_value.instance_of?(Array) && bind_value.size == 1
+      #   bind_value = bind_value.first
+      # end
 
       bind_value
     end

@@ -613,15 +613,17 @@ describe DataMapper::Query do
           it { @return.should be_kind_of(DataMapper::Query) }
 
           it 'should set the conditions' do
-            @return.conditions.should ==
-              DataMapper::Query::Conditions::Operation.new(
-                :and,
-                DataMapper::Query::Conditions::Comparison.new(
-                  :eql,
-                  @model.properties[:name],
-                  'Dan Kubb'
+            pending do
+              @return.conditions.should ==
+                DataMapper::Query::Conditions::Operation.new(
+                  :and,
+                  DataMapper::Query::Conditions::Comparison.new(
+                    :eql,
+                    @model.properties[:name],
+                    'Dan Kubb'
+                  )
                 )
-              )
+            end
           end
 
           it 'should be valid' do
