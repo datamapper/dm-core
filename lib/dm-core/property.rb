@@ -375,18 +375,9 @@ module DataMapper
     #
     # @api semipublic
     def ==(other)
-      if equal?(other)
-        return true
-      end
-
-      unless other.respond_to?(:model)
-        return false
-      end
-
-      unless other.respond_to?(:name)
-        return false
-      end
-
+      return true if equal?(other)
+      other.respond_to?(:model) &&
+      other.respond_to?(:name)  &&
       cmp?(other, :==)
     end
 
@@ -402,15 +393,8 @@ module DataMapper
     #
     # @api semipublic
     def eql?(other)
-      if equal?(other)
-        return true
-      end
-
-      unless instance_of?(other.class)
-        return false
-      end
-
-      cmp?(other, :eql?)
+      return true if equal?(other)
+      instance_of?(other.class) && cmp?(other, :eql?)
     end
 
     # Returns the hash of the property name
@@ -1197,15 +1181,8 @@ module DataMapper
     #
     # @api private
     def cmp?(other, operator)
-      unless model.base_model.send(operator, other.model.base_model)
-        return false
-      end
-
-      unless name.send(operator, other.name)
-        return false
-      end
-
-      true
+      model.base_model.send(operator, other.model.base_model) &&
+      name.send(operator, other.name)
     end
   end # class Property
 end # module DataMapper

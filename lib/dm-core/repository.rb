@@ -185,15 +185,8 @@ module DataMapper
     #
     # @api public
     def eql?(other)
-      if equal?(other)
-        return true
-      end
-
-      unless instance_of?(other.class)
-        return false
-      end
-
-      cmp?(other, :eql?)
+      return true if equal?(other)
+      instance_of?(other.class) && cmp?(other, :eql?)
     end
 
     # Compares another Repository for equivalency
@@ -209,18 +202,9 @@ module DataMapper
     #
     # @api public
     def ==(other)
-      if equal?(other)
-        return true
-      end
-
-      unless other.respond_to?(:name)
-        return false
-      end
-
-      unless other.respond_to?(:adapter)
-        return false
-      end
-
+      return true if equal?(other)
+      other.respond_to?(:name)    &&
+      other.respond_to?(:adapter) &&
       cmp?(other, :==)
     end
 
@@ -269,15 +253,8 @@ module DataMapper
     # TODO: document
     # @api private
     def cmp?(other, operator)
-      unless name.send(operator, other.name)
-        return false
-      end
-
-      unless adapter.send(operator, other.adapter)
-        return false
-      end
-
-      true
+      name.send(operator, other.name) &&
+      adapter.send(operator, other.adapter)
     end
   end # class Repository
 end # module DataMapper

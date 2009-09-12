@@ -158,15 +158,8 @@ module DataMapper
       #
       # @api public
       def eql?(other)
-        if equal?(other)
-          return true
-        end
-
-        unless instance_of?(other.class)
-          return false
-        end
-
-        cmp?(other, :eql?)
+        return true if equal?(other)
+        instance_of?(other.class) && cmp?(other, :eql?)
       end
 
       # Compares another AbstractAdapter for equivalency
@@ -189,7 +182,6 @@ module DataMapper
       # @api public
       def ==(other)
         return true if equal?(other)
-
         other.respond_to?(:name)                       &&
         other.respond_to?(:options)                    &&
         other.respond_to?(:resource_naming_convention) &&

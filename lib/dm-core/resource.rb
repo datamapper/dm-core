@@ -388,9 +388,7 @@ module DataMapper
     # @api public
     def eql?(other)
       return true if equal?(other)
-      return false unless instance_of?(other.class)
-
-      cmp?(other, :eql?)
+      instance_of?(other.class) && cmp?(other, :eql?)
     end
 
     # Compares another Resource for equivalency
@@ -408,8 +406,8 @@ module DataMapper
     # @api public
     def ==(other)
       return true if equal?(other)
-      return false unless other.respond_to?(:model) && model.base_model.equal?(other.model.base_model)
-
+      other.respond_to?(:model)                       &&
+      model.base_model.equal?(other.model.base_model) &&
       cmp?(other, :==)
     end
 

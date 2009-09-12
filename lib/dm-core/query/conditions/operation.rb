@@ -96,35 +96,18 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def ==(other)
-          if equal?(other)
-            return true
-          end
-
-          other_class = other.class
-
-          unless other_class.respond_to?(:slug) && other_class.slug == self.class.slug
-            return false
-          end
-
-          unless other.respond_to?(:operands)
-            return false
-          end
-
+          return true if equal?(other)
+          other.class.respond_to?(:slug)      &&
+          other.class.slug == self.class.slug &&
+          other.respond_to?(:operands)        &&
           cmp?(other, :==)
         end
 
         # TODO: document
         # @api semipublic
         def eql?(other)
-          if equal?(other)
-            return true
-          end
-
-          unless instance_of?(other.class)
-            return false
-          end
-
-          cmp?(other, :eql?)
+          return true if equal?(other)
+          instance_of?(other.class) && cmp?(other, :eql?)
         end
 
         # TODO: document

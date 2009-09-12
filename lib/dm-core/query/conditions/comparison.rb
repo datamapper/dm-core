@@ -252,11 +252,9 @@ module DataMapper
         # @api semipublic
         def ==(other)
           return true if equal?(other)
-
-          return false unless other.class.respond_to?(:slug)
-          return false unless other.respond_to?(:subject)
-          return false unless other.respond_to?(:value)
-
+          other.class.respond_to?(:slug) &&
+          other.respond_to?(:subject)    &&
+          other.respond_to?(:value)      &&
           cmp?(other, :==)
         end
 
@@ -273,9 +271,7 @@ module DataMapper
         # @api semipublic
         def eql?(other)
           return true if equal?(other)
-          return false unless instance_of?(other.class)
-
-          cmp?(other, :eql?)
+          instance_of?(other.class) && cmp?(other, :eql?)
         end
 
         # Returns a human-readable representation of this object

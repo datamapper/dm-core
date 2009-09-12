@@ -39,13 +39,13 @@ module DataMapper
       # TODO: document
       # @api public
       def kind_of?(klass)
-        super || (defined?(@property) && @property.kind_of?(klass))
+        super || (defined?(@property) ? @property.kind_of?(klass) : false)
       end
 
       # TODO: document
       # @api public
       def instance_of?(klass)
-        super || (defined?(@property) && @property.instance_of?(klass))
+        super || (defined?(@property) ? @property.instance_of?(klass) : false)
       end
 
       # TODO: document
@@ -60,33 +60,17 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def ==(other)
-        if equal?(other)
-          return true
-        end
-
-        unless other.respond_to?(:relationships)
-          return false
-        end
-
-        unless other.respond_to?(:property)
-          return false
-        end
-
+        return true if equal?(other)
+        other.respond_to?(:relationships) &&
+        other.respond_to?(:property)      &&
         cmp?(other, :==)
       end
 
       # TODO: document
       # @api semipublic
       def eql?(other)
-        if equal?(other)
-          return true
-        end
-
-        unless instance_of?(other.class)
-          return false
-        end
-
-        cmp?(other, :eql?)
+        return true if equal?(other)
+        instance_of?(other.class) && cmp?(other, :eql?)
       end
 
       private

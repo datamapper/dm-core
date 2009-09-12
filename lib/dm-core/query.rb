@@ -474,14 +474,8 @@ module DataMapper
     #
     # @api semipublic
     def ==(other)
-      if equal?(other)
-        return true
-      end
-
-      unless [ :repository, :model, :fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed? ].all? { |method| other.respond_to?(method) }
-        return false
-      end
-
+      return true if equal?(other)
+      [ :repository, :model, :fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed? ].all? { |method| other.respond_to?(method) } &&
       cmp?(other, :==)
     end
 
@@ -495,15 +489,8 @@ module DataMapper
     #
     # @api semipublic
     def eql?(other)
-      if equal?(other)
-        return true
-      end
-
-      unless instance_of?(other.class)
-        return false
-      end
-
-      cmp?(other, :eql?)
+      return true if equal?(other)
+      instance_of?(other.class) && cmp?(other, :eql?)
     end
 
     # Slices collection by adding limit and offset to the
@@ -1157,52 +1144,17 @@ module DataMapper
     #
     # @api private
     def cmp?(other, operator)
-      # check the attributes that are most likely to differ first
-      unless repository.send(operator, other.repository)
-        return false
-      end
-
-      unless model.send(operator, other.model)
-        return false
-      end
-
-      unless conditions.send(operator, other.conditions)
-        return false
-      end
-
-      unless offset.send(operator, other.offset)
-        return false
-      end
-
-      unless limit.send(operator, other.limit)
-        return false
-      end
-
-      unless order.send(operator, other.order)
-        return false
-      end
-
-      unless fields.sort_by { |property| property.hash }.send(operator, other.fields.sort_by { |property| property.hash })
-        return false
-      end
-
-      unless links.send(operator, other.links)
-        return false
-      end
-
-      unless reload?.send(operator, other.reload?)
-        return false
-      end
-
-      unless unique?.send(operator, other.unique?)
-        return false
-      end
-
-      unless add_reversed?.send(operator, other.add_reversed?)
-        return false
-      end
-
-      true
+      repository.send(operator, other.repository) &&
+      model.send(operator, other.model)           &&
+      conditions.send(operator, other.conditions) &&
+      offset.send(operator, other.offset)         &&
+      limit.send(operator, other.limit)           &&
+      order.send(operator, other.order)           &&
+      fields.sort_by { |property| property.hash }.send(operator, other.fields.sort_by { |property| property.hash }) &&
+      links.send(operator, other.links)           &&
+      reload?.send(operator, other.reload?)       &&
+      unique?.send(operator, other.unique?)       &&
+      add_reversed?.send(operator, other.add_reversed?)
     end
 
     # TODO: DRY this up with conditions

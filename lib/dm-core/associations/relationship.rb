@@ -352,7 +352,6 @@ module DataMapper
       def ==(other)
         return true  if equal?(other)
         return false if kind_of_inverse?(other)
-
         other.respond_to?(:cmp_repository?, true) &&
         other.respond_to?(:cmp_model?, true)      &&
         other.respond_to?(:cmp_key?, true)        &&

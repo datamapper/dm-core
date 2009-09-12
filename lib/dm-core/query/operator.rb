@@ -21,33 +21,17 @@ module DataMapper
       # TODO: document
       # @api private
       def ==(other)
-        if equal?(other)
-          return true
-        end
-
-        unless other.respond_to?(:target)
-          return false
-        end
-
-        unless other.respond_to?(:operator)
-          return false
-        end
-
+        return true if equal?(other)
+        other.respond_to?(:target)   &&
+        other.respond_to?(:operator) &&
         cmp?(other, :==)
       end
 
       # TODO: document
       # @api private
       def eql?(other)
-        if equal?(other)
-          return true
-        end
-
-        unless instance_of?(other.class)
-          return false
-        end
-
-        cmp?(other, :eql?)
+        return true if equal?(other)
+        instance_of?(other.class) && cmp?(other, :eql?)
       end
 
       # TODO: document
