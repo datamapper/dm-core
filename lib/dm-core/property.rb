@@ -766,6 +766,23 @@ module DataMapper
       "#<#{self.class.name} @model=#{model.inspect} @name=#{name.inspect}>"
     end
 
+    # Test a value to see if it matches the primitive type
+    #
+    # @param [Object] value
+    #   value to test
+    #
+    # @return [Boolean]
+    #   true if the value is the correct type
+    #
+    # @api semipublic
+    def primitive?(value)
+      if primitive == TrueClass
+        value == true || value == false
+      else
+        value.kind_of?(primitive)
+      end
+    end
+
     private
 
     # TODO: document
@@ -929,22 +946,6 @@ module DataMapper
       @writer_visibility = @options[:writer] || @options[:accessor] || :public
     end
 
-    # Test a value to see if it matches the primitive type
-    #
-    # @param [Object] value
-    #   value to test
-    #
-    # @return [Boolean]
-    #   true if the value is the correct type
-    #
-    # @api private
-    def primitive?(value)
-      if primitive == TrueClass
-        value == true || value == false
-      else
-        value.kind_of?(primitive)
-      end
-    end
 
     # Typecast a value to an Integer
     #
