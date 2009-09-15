@@ -39,6 +39,9 @@ module DataMapper
 
       class AbstractOperation
         include Enumerable
+        extend Equalizer
+
+        equalize :slug, :sorted_operands
 
         # TODO: document
         # @api semipublic
@@ -60,6 +63,16 @@ module DataMapper
         # @api semipublic
         def self.slug(slug = nil)
           slug ? @slug = slug : @slug
+        end
+
+        # Return the comparison class slug
+        #
+        # @return [Symbol]
+        #   the comparison class slug
+        #
+        # @api private
+        def slug
+          self.class.slug
         end
 
         # TODO: document
@@ -89,31 +102,18 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def hash
-          @operands.sort_by { |operand| operand.hash }.hash
-        end
-
-        # TODO: document
-        # @api semipublic
-        def ==(other)
-          return true if equal?(other)
-          other.class.respond_to?(:slug)      &&
-          other.class.slug == self.class.slug &&
-          other.respond_to?(:operands)        &&
-          cmp?(other, :==)
-        end
-
-        # TODO: document
-        # @api semipublic
-        def eql?(other)
-          return true if equal?(other)
-          instance_of?(other.class) && cmp?(other, :eql?)
-        end
-
-        # TODO: document
-        # @api semipublic
         def inspect
           "#<#{self.class} @operands=#{@operands.inspect}>"
+        end
+
+        # Return a list of operands in predictable order
+        #
+        # @return [Array<AbstractOperation>]
+        #   list of operands sorted in deterministic order
+        #
+        # @api private
+        def sorted_operands
+          @operands.sort_by { |operand| operand.hash }
         end
 
         private
@@ -128,12 +128,6 @@ module DataMapper
         # @api semipublic
         def initialize_copy(*)
           @operands = @operands.map { |operand| operand.dup }
-        end
-
-        # TODO: document
-        # @api private
-        def cmp?(other, operator)
-          @operands.sort_by { |operand| operand.hash }.send(operator, other.operands.sort_by { |operand| operand.hash })
         end
       end # class AbstractOperation
 

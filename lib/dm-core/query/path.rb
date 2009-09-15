@@ -10,6 +10,9 @@ module DataMapper
       instance_methods.each { |method| undef_method method unless %w[ __id__ __send__ send class dup object_id kind_of? instance_of? respond_to? equal? should should_not instance_variable_set instance_variable_get extend hash inspect ].include?(method.to_s) }
 
       include Extlib::Assertions
+      extend Equalizer
+
+      equalize :relationships, :property
 
       # TODO: document
       # @api semipublic
@@ -57,22 +60,6 @@ module DataMapper
         @model.properties(@repository_name).named?(method)
       end
 
-      # TODO: document
-      # @api semipublic
-      def ==(other)
-        return true if equal?(other)
-        other.respond_to?(:relationships) &&
-        other.respond_to?(:property)      &&
-        cmp?(other, :==)
-      end
-
-      # TODO: document
-      # @api semipublic
-      def eql?(other)
-        return true if equal?(other)
-        instance_of?(other.class) && cmp?(other, :eql?)
-      end
-
       private
 
       # TODO: document
@@ -91,13 +78,6 @@ module DataMapper
           @property = @model.properties(@repository_name)[property_name] ||
             raise(ArgumentError, "Unknown property '#{property_name}' in #{@model}")
         end
-      end
-
-      # TODO: document
-      # @api private
-      def cmp?(other, operator)
-        relationships.send(operator, other.relationships) &&
-        property.send(operator, other.property)
       end
 
       # TODO: document

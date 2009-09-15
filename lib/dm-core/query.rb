@@ -27,8 +27,11 @@ module DataMapper
   #
   class Query
     include Extlib::Assertions
+    extend Equalizer
 
     OPTIONS = [ :fields, :links, :conditions, :offset, :limit, :order, :unique, :add_reversed, :reload ].to_set.freeze
+
+    equalize :repository, :model, :sorted_fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed?
 
     # Extract conditions to match a Resource or Collection
     #
@@ -464,35 +467,6 @@ module DataMapper
       end
     end
 
-    # Compares another Query for equivalency
-    #
-    # @param [Query] other
-    #   the other Query to compare with
-    #
-    # @return [Boolean]
-    #   true if they are equivalent, false if not
-    #
-    # @api semipublic
-    def ==(other)
-      return true if equal?(other)
-      [ :repository, :model, :fields, :links, :conditions, :order, :offset, :limit, :reload?, :unique?, :add_reversed? ].all? { |method| other.respond_to?(method) } &&
-      cmp?(other, :==)
-    end
-
-    # Compares another Query for equality
-    #
-    # @param [Query] other
-    #   the other Query to compare with
-    #
-    # @return [Boolean]
-    #   true if they are equal, false if not
-    #
-    # @api semipublic
-    def eql?(other)
-      return true if equal?(other)
-      instance_of?(other.class) && cmp?(other, :eql?)
-    end
-
     # Slices collection by adding limit and offset to the
     # query, so a single query is executed
     #
@@ -576,6 +550,16 @@ module DataMapper
       end
 
       properties
+    end
+
+    # Return a list of fields in predictable order
+    #
+    # @return [Array<Property>]
+    #   list of fields sorted in deterministic order
+    #
+    # @api private
+    def sorted_fields
+      fields.sort_by { |property| property.hash }
     end
 
     private
@@ -1130,31 +1114,6 @@ module DataMapper
       end
 
       return new_offset, limit
-    end
-
-    # Return true if +other+'s is equivalent or equal to +self+'s
-    #
-    # @param [Query] other
-    #   The Resource whose attributes are to be compared with +self+'s
-    # @param [Symbol] operator
-    #   The comparison operator to use to compare the attributes
-    #
-    # @return [Boolean]
-    #   The result of the comparison of +other+'s attributes with +self+'s
-    #
-    # @api private
-    def cmp?(other, operator)
-      repository.send(operator, other.repository) &&
-      model.send(operator, other.model)           &&
-      conditions.send(operator, other.conditions) &&
-      offset.send(operator, other.offset)         &&
-      limit.send(operator, other.limit)           &&
-      order.send(operator, other.order)           &&
-      fields.sort_by { |property| property.hash }.send(operator, other.fields.sort_by { |property| property.hash }) &&
-      links.send(operator, other.links)           &&
-      reload?.send(operator, other.reload?)       &&
-      unique?.send(operator, other.unique?)       &&
-      add_reversed?.send(operator, other.add_reversed?)
     end
 
     # TODO: DRY this up with conditions

@@ -1346,7 +1346,7 @@ describe DataMapper::Query do
         @other = OpenStruct.new(
           :repository    => @query.repository,
           :model         => @query.model,
-          :fields        => @query.fields,
+          :sorted_fields => @query.sorted_fields,
           :links         => @query.links,
           :conditions    => @query.conditions,
           :order         => @query.order,
@@ -1368,7 +1368,7 @@ describe DataMapper::Query do
         @other = OpenStruct.new(
           :repository    => @query.repository,
           :model         => @query.model,
-          :fields        => @query.fields,
+          :sorted_fields => @query.sorted_fields,
           :links         => @query.links,
           :conditions    => @query.conditions,
           :order         => @query.order,
@@ -1458,7 +1458,7 @@ describe DataMapper::Query do
         @other = OpenStruct.new(
           :repository    => @query.repository,
           :model         => @query.model,
-          :fields        => @query.fields,
+          :sorted_fields => @query.sorted_fields,
           :links         => @query.links,
           :conditions    => @query.conditions,
           :order         => @query.order,

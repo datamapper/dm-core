@@ -1,5 +1,3 @@
-# TODO: move this to Extlib::Chainable
-
 module DataMapper
   module Chainable
 

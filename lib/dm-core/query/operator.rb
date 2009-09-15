@@ -9,6 +9,9 @@ module DataMapper
   class Query
     class Operator
       include Extlib::Assertions
+      extend Equalizer
+
+      equalize :target, :operator
 
       # TODO: document
       # @api private
@@ -17,28 +20,6 @@ module DataMapper
       # TODO: document
       # @api private
       attr_reader :operator
-
-      # TODO: document
-      # @api private
-      def ==(other)
-        return true if equal?(other)
-        other.respond_to?(:target)   &&
-        other.respond_to?(:operator) &&
-        cmp?(other, :==)
-      end
-
-      # TODO: document
-      # @api private
-      def eql?(other)
-        return true if equal?(other)
-        instance_of?(other.class) && cmp?(other, :eql?)
-      end
-
-      # TODO: document
-      # @api private
-      def hash
-        @target.hash
-      end
 
       # TODO: document
       # @api private
@@ -55,13 +36,6 @@ module DataMapper
 
         @target   = target
         @operator = operator
-      end
-
-      # TODO: document
-      # @api private
-      def cmp?(other, operator)
-        target.send(operator, other.target) &&
-        self.operator.send(operator, other.operator)
       end
     end # class Operator
   end # class Query

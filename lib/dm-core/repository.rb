@@ -1,6 +1,9 @@
 module DataMapper
   class Repository
     include Extlib::Assertions
+    extend Equalizer
+
+    equalize :name, :adapter
 
     # Get the list of adapters registered for all Repositories,
     # keyed by repository name.
@@ -172,55 +175,6 @@ module DataMapper
       adapter.delete(collection)
     end
 
-    # Compares another Repository for equality
-    #
-    # Repository is equal to +other+ if they are the same object (identity)
-    # or if they are of the same class and have the same name
-    #
-    # @param [Repository] other
-    #   the other Repository to compare with
-    #
-    # @return [Boolean]
-    #   true if they are equal, false if not
-    #
-    # @api public
-    def eql?(other)
-      return true if equal?(other)
-      instance_of?(other.class) && cmp?(other, :eql?)
-    end
-
-    # Compares another Repository for equivalency
-    #
-    # Repository is equal to +other+ if they are the same object (identity)
-    # or if they both have the same name
-    #
-    # @param [Repository] other
-    #   the other Repository to compare with
-    #
-    # @return [Boolean]
-    #   true if they are equal, false if not
-    #
-    # @api public
-    def ==(other)
-      return true if equal?(other)
-      other.respond_to?(:name)    &&
-      other.respond_to?(:adapter) &&
-      cmp?(other, :==)
-    end
-
-    # Return the hash of the Repository
-    #
-    # This is necessary for properly determining the unique Repository
-    # in a Set or Hash
-    #
-    # @return [Integer]
-    #   the Hash of the Repository name
-    #
-    # @api private
-    def hash
-      name.hash
-    end
-
     # Return a human readable representation of the repository
     #
     #   TODO: create example
@@ -248,13 +202,6 @@ module DataMapper
 
       @name          = name
       @identity_maps = {}
-    end
-
-    # TODO: document
-    # @api private
-    def cmp?(other, operator)
-      name.send(operator, other.name) &&
-      adapter.send(operator, other.adapter)
     end
   end # class Repository
 end # module DataMapper

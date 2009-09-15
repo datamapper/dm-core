@@ -108,8 +108,11 @@ module DataMapper
       # A base class for the various comparison classes.
       class AbstractComparison
         extend Deprecate
+        extend Equalizer
 
         deprecate :property, :subject
+
+        equalize :slug, :subject, :value
 
         # The property or relationship which is being matched against
         #
@@ -188,6 +191,16 @@ module DataMapper
           slug ? @slug = slug : @slug
         end
 
+        # Return the comparison class slug
+        #
+        # @return [Symbol]
+        #   the comparison class slug
+        #
+        # @api private
+        def slug
+          self.class.slug
+        end
+
         # Tests that the Comparison is valid
         #
         # Subclasses can overload this to customise the means by which they
@@ -225,53 +238,6 @@ module DataMapper
         # @api semipublic
         def property?
           subject.kind_of?(Property)
-        end
-
-        # Computes a hash-code for this Comparison
-        #
-        # Two Comparisons of the same class, and with the same subject and
-        # value will have the same hash-code.
-        #
-        # @return [Fixnum] The computed hash-code.
-        #
-        # @api semipublic
-        def hash
-          [ self.class, @subject, @value ].hash
-        end
-
-        # Returns true if this object equals +other+
-        #
-        # The objects are considered equal if they are the same object, or
-        # have the same slug, subject and value.
-        #
-        # @param [Object] other
-        #   Another object to be compared against this one.
-        #
-        # @return [Boolean]
-        #
-        # @api semipublic
-        def ==(other)
-          return true if equal?(other)
-          other.class.respond_to?(:slug) &&
-          other.respond_to?(:subject)    &&
-          other.respond_to?(:value)      &&
-          cmp?(other, :==)
-        end
-
-        # Returns true if this object equals +other+
-        #
-        # The objects are considered equal if they are the same object, or are
-        # the same class, and have the same slug, subject and value.
-        #
-        # @param [Object] other
-        #   Another object to be compared against this one.
-        #
-        # @return [Boolean]
-        #
-        # @api semipublic
-        def eql?(other)
-          return true if equal?(other)
-          instance_of?(other.class) && cmp?(other, :eql?)
         end
 
         # Returns a human-readable representation of this object
@@ -328,26 +294,6 @@ module DataMapper
         def initialize_copy(*)
           @value = @value.dup
           @loaded_value = @loaded_value.dup
-        end
-
-        # Compares this comparison with +other+ using the given +operator+
-        #
-        # Checks that the slug, subject and value all return true when
-        # compared with their counterparts in +other+ with +operator+.
-        #
-        # @param [AbstractComparison] other
-        #    Another object to be compared against this one.
-        #
-        # @see AbstractComparison#==
-        # @see AbstractComparison#eql?
-        #
-        # @return [Boolean]
-        #
-        # @api private
-        def cmp?(other, operator)
-          self.class.slug.send(operator, other.class.slug) &&
-          subject.send(operator, other.subject)            &&
-          value.send(operator, other.value)
         end
 
         # Typecasts the given +val+ using subject#typecast

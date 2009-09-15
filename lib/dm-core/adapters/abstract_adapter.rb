@@ -14,6 +14,9 @@ module DataMapper
     class AbstractAdapter
       include Extlib::Assertions
       extend Extlib::Assertions
+      extend Equalizer
+
+      equalize :name, :options, :resource_naming_convention, :field_naming_convention
 
       # Adapter name
       #
@@ -139,56 +142,6 @@ module DataMapper
         raise NotImplementedError, "#{self.class}#delete not implemented"
       end
 
-      # Compares another AbstractAdapter for equality
-      #
-      # @example with an equal adapter
-      #   adapter.eql?(equal_adapter)  # => true
-      #
-      # @example with a different adapter
-      #   adapter.eql?(different_adapter)  # => false
-      #
-      # AbstractAdapter is equal to +other+ if they are the same object (identity)
-      # or if they are of the same class and have the same name
-      #
-      # @param [AbstractAdapter] other
-      #   the other AbstractAdapter to compare with
-      #
-      # @return [Boolean]
-      #   true if they are equal, false if not
-      #
-      # @api public
-      def eql?(other)
-        return true if equal?(other)
-        instance_of?(other.class) && cmp?(other, :eql?)
-      end
-
-      # Compares another AbstractAdapter for equivalency
-      #
-      # @example with an equivalent adapter
-      #   adapter == equivalent_adapter  # => true
-      #
-      # @example with a different adapter
-      #   adapter == different_adapter  # => false
-      #
-      # AbstractAdapter is equal to +other+ if they are the same object (identity)
-      # or if they both have the same name
-      #
-      # @param [AbstractAdapter] other
-      #   the other AbstractAdapter to compare with
-      #
-      # @return [Boolean]
-      #   true if they are equal, false if not
-      #
-      # @api public
-      def ==(other)
-        return true if equal?(other)
-        other.respond_to?(:name)                       &&
-        other.respond_to?(:options)                    &&
-        other.respond_to?(:resource_naming_convention) &&
-        other.respond_to?(:field_naming_convention)    &&
-        cmp?(other, :==)
-      end
-
       protected
 
       # Set the serial value of the Resource
@@ -245,24 +198,6 @@ module DataMapper
         @options                    = options.dup.freeze
         @resource_naming_convention = NamingConventions::Resource::UnderscoredAndPluralized
         @field_naming_convention    = NamingConventions::Field::Underscored
-      end
-
-      # Compare other object for equality of equivalency
-      #
-      # @param [AbstractAdapter] other
-      #   the other adapter
-      # @param [Symbol] operator
-      #   the comparison operator
-      #
-      # @return [Boolean]
-      #   true if the other object is equal or equivalent
-      #
-      # @api private
-      def cmp?(other, operator)
-        name.send(operator, other.name)                                             &&
-        options.send(operator, other.options)                                       &&
-        resource_naming_convention.send(operator, other.resource_naming_convention) &&
-        field_naming_convention.send(operator, other.field_naming_convention)
       end
     end # class AbstractAdapter
 

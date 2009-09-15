@@ -293,9 +293,12 @@ module DataMapper
   class Property
     include Extlib::Assertions
     extend Deprecate
+    extend Equalizer
 
     deprecate :unique, :unique?
     deprecate :size,   :length
+
+    equalize :model, :name
 
     # NOTE: PLEASE update OPTIONS in DataMapper::Type when updating
     # them here
@@ -361,40 +364,6 @@ module DataMapper
     # @api public
     def unique?
       @unique
-    end
-
-    # Compares another Property for equivalency
-    #
-    #   TODO: needs example
-    #
-    # @param [Property] other
-    #   the other Property to compare with
-    #
-    # @return [Boolean]
-    #   true if they are equivalent, false if not
-    #
-    # @api semipublic
-    def ==(other)
-      return true if equal?(other)
-      other.respond_to?(:model) &&
-      other.respond_to?(:name)  &&
-      cmp?(other, :==)
-    end
-
-    # Compares another Property for equality
-    #
-    #   TODO: needs example
-    #
-    # @param [Property] other
-    #   the other Property to compare with
-    #
-    # @return [Boolean]
-    #   true if they are equal, false if not
-    #
-    # @api semipublic
-    def eql?(other)
-      return true if equal?(other)
-      instance_of?(other.class) && cmp?(other, :eql?)
     end
 
     # Returns the hash of the property name
@@ -1167,22 +1136,6 @@ module DataMapper
       model.find_const(value.to_s)
     rescue NameError
       value
-    end
-
-    # Return true if +other+'s is equivalent or equal to +self+'s
-    #
-    # @param [Property] other
-    #   The Property whose attributes are to be compared with +self+'s
-    # @param [Symbol] operator
-    #   The comparison operator to use to compare the attributes
-    #
-    # @return [Boolean]
-    #   The result of the comparison of +other+'s attributes with +self+'s
-    #
-    # @api private
-    def cmp?(other, operator)
-      model.base_model.send(operator, other.model.base_model) &&
-      name.send(operator, other.name)
     end
   end # class Property
 end # module DataMapper

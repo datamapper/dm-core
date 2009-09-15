@@ -27,6 +27,7 @@ dir = Pathname(__FILE__).dirname.expand_path / 'dm-core'
 
 require dir / 'support' / 'chainable'
 require dir / 'support' / 'deprecate'
+require dir / 'support' / 'equalizer'
 
 require dir / 'model'
 require dir / 'model' / 'descendant_set'
