@@ -593,11 +593,19 @@ module DataMapper
     #
     # @api private
     def lazy_load(resource)
-      # If we're trying to load a lazy property, load it. Otherwise, lazy-load
-      # any properties that should be eager-loaded but were not included
-      # in the original :fields list
-      property_names = lazy? ? [ name ] : model.properties(resource.repository.name).defaults.map { |property| property.name }
-      resource.send(:lazy_load, property_names)
+      resource.send(:lazy_load, lazy_load_properties)
+    end
+
+    # TODO: document
+    # @api private
+    def lazy_load_properties
+      @lazy_load_properties ||= properties.in_context(lazy? ? [ self ] : properties.defaults)
+    end
+
+    # TODO: document
+    # @api private
+    def properties
+      @properties ||= model.properties(repository_name)
     end
 
     # typecasts values into a primitive (Ruby class that backs DataMapper

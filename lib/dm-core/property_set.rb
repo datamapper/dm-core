@@ -132,10 +132,10 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def property_contexts(property_name)
+    def property_contexts(property)
       contexts = []
-      lazy_contexts.each do |context, property_names|
-        contexts << context if property_names.include?(property_name)
+      lazy_contexts.each do |context, properties|
+        contexts << context if properties.include?(property)
       end
       contexts
     end
@@ -148,16 +148,16 @@ module DataMapper
 
     # TODO: document
     # @api private
-    def in_context(property_names)
-      property_names_in_context = property_names.map do |property_name|
-        if (contexts = property_contexts(property_name)).any?
+    def in_context(properties)
+      properties_in_context = properties.map do |property|
+        if (contexts = property_contexts(property)).any?
           lazy_contexts.values_at(*contexts)
         else
-          property_name  # not lazy
+          property
         end
       end
 
-      values_at(*property_names_in_context.flatten.uniq)
+      properties_in_context.flatten.uniq
     end
 
     private

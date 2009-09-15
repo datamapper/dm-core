@@ -21,7 +21,7 @@ module DataMapper
     # @deprecated
     def self.descendants
       warn "DataMapper::Resource.descendants is deprecated, use DataMapper::Model.descendants instead (#{caller[0]})"
-      DataMapper::Model.descendants
+      Model.descendants
     end
 
     # Deprecated API for updating attributes and saving Resource
@@ -283,7 +283,7 @@ module DataMapper
     # @api public
     def reload
       if saved?
-        reload_attributes(loaded_properties)
+        eager_load(loaded_properties)
         child_relationships.each { |relationship| relationship.get!(self).reload }
       end
 
@@ -427,7 +427,7 @@ module DataMapper
         raise ArgumentError, "Cannot compare a #{other.model} instance with a #{model} instance"
       end
       cmp = 0
-      model.default_order(repository_name).map do |direction|
+      model.default_order(repository_name).each do |direction|
         cmp = direction.get(self) <=> direction.get(other)
         break if cmp != 0
       end
@@ -502,27 +502,6 @@ module DataMapper
     # @api private
     def attribute_loaded?(name)
       properties[name].loaded?(self)
-    end
-
-    # Fetches all the names of the attributes that have been loaded,
-    # even if they are lazy but have been called
-    #
-    # @example
-    #   class Foo
-    #     include DataMapper::Resource
-    #
-    #     property :name,        String
-    #     property :description, Text,   :lazy => false
-    #   end
-    #
-    #   Foo.new.loaded_properties   #=>  [ #<Property @model=Foo @name=:name> ]
-    #
-    # @return [Array(Property)]
-    #   names of attributes that have been loaded
-    #
-    # @api private
-    def loaded_properties
-      properties.select { |property| property.loaded?(self) }
     end
 
     # Checks if an attribute has unsaved changes
@@ -688,10 +667,9 @@ module DataMapper
       model.relationships(repository_name)
     end
 
-    # Returns identity map of repository this object
-    # was loaded from
+    # Returns the identity map for the model from the repository
     #
-    # @return [DataMapper::IdentityMap]
+    # @return [IdentityMap]
     #   identity map of repository this object was loaded from
     #
     # @api semipublic
@@ -699,26 +677,41 @@ module DataMapper
       repository.identity_map(model)
     end
 
-    # Reloads attributes that belong to given lazy loading
-    # context, and not yet loaded
+    # Fetches all the names of the attributes that have been loaded,
+    # even if they are lazy but have been called
+    #
+    # @return [Array<Property>]
+    #   names of attributes that have been loaded
     #
     # @api private
-    def lazy_load(property_names)
-      reload_attributes(properties.in_context(property_names) - loaded_properties)
+    def loaded_properties
+      properties.select { |property| property.loaded?(self) }
+    end
+
+    # Lazy loads attributes not yet loaded
+    #
+    # @param [Array<Property>] fields
+    #   the properties to reload
+    #
+    # @return [self]
+    #
+    # @api private
+    def lazy_load(fields)
+      eager_load(fields - loaded_properties)
     end
 
     # Reloads specified attributes
     #
-    # @param [Enumerable(Symbol)] attributes
-    #   name(s) of attribute(s) to reload
+    # @param [Array<Property>] fields
+    #   the properties to reload
     #
     # @return [Resource]
     #   the receiver, the current Resource instance
     #
     # @api private
-    def reload_attributes(attributes)
-      unless attributes.empty? || new?
-        collection.reload(:fields => attributes)
+    def eager_load(fields)
+      unless fields.empty? || new?
+        collection.reload(:fields => fields)
       end
 
       self
@@ -749,9 +742,9 @@ module DataMapper
       parent_relationships
     end
 
-    # Returns array of child relationships for which this resource is parent and is loaded
+    # Returns loaded child relationships
     #
-    # @return [Array<DataMapper::Associations::OneToMany::Relationship>]
+    # @return [Array<Associations::OneToMany::Relationship>]
     #   array of child relationships for which this resource is parent and is loaded
     #
     # @api private
@@ -768,14 +761,13 @@ module DataMapper
       end
 
       many_to_many, other = child_relationships.partition do |relationship|
-        relationship.kind_of?(DataMapper::Associations::ManyToMany::Relationship)
+        relationship.kind_of?(Associations::ManyToMany::Relationship)
       end
 
       many_to_many + other
     end
 
-    # Saves this Resource instance to the repository,
-    # setting default values for any unset properties
+    # Creates the resource with default values
     #
     # If resource is not dirty or a new (not yet saved),
     # this method returns false
@@ -875,6 +867,11 @@ module DataMapper
     end
 
     # Raises an exception if #update is performed on a dirty resource
+    #
+    # @param [Symbol] method
+    #   the name of the method to use in the exception
+    #
+    # @return [undefined]
     #
     # @raise [UpdateConflictError]
     #   raise if the resource is dirty

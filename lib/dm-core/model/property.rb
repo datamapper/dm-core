@@ -74,8 +74,10 @@ module DataMapper
           context = options.fetch(:lazy, :default)
           context = :default if context == true
 
-          Array(context).each do |item|
-            properties(repository_name).lazy_context(item) << name
+          properties = properties(repository_name)
+
+          Array(context).each do |context|
+            properties.lazy_context(context) << self
           end
         end
 
