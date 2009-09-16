@@ -10,6 +10,7 @@ README.txt
 Rakefile
 SPECS
 TODO
+deps.rip
 dm-core.gemspec
 lib/dm-core.rb
 lib/dm-core/adapters.rb
@@ -77,6 +78,7 @@ spec/public/associations/many_to_one_spec.rb
 spec/public/associations/one_to_many_spec.rb
 spec/public/associations/one_to_one_spec.rb
 spec/public/collection_spec.rb
+spec/public/migrations_spec.rb
 spec/public/model/relationship_spec.rb
 spec/public/model_spec.rb
 spec/public/property_spec.rb
@@ -106,6 +108,7 @@ spec/semipublic/query/conditions_spec.rb
 spec/semipublic/query/path_spec.rb
 spec/semipublic/query_spec.rb
 spec/semipublic/resource_spec.rb
+spec/semipublic/shared/condition_shared_spec.rb
 spec/semipublic/shared/resource_shared_spec.rb
 spec/spec.opts
 spec/spec_helper.rb
