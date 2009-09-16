@@ -1,4 +1,4 @@
-=== 0.10.0 / not released
+=== 0.10.0 / 2009-10-15
 
   * Countless enhancements:
 
