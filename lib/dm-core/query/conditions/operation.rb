@@ -84,7 +84,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def valid?
-          operands.all? do |operand|
+          operands.any? && operands.all? do |operand|
             if operand.respond_to?(:valid?)
               operand.valid?
             else

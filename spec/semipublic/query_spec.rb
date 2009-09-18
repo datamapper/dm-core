@@ -757,8 +757,8 @@ describe DataMapper::Query do
 
         it { @return.should be_kind_of(DataMapper::Query) }
 
-        it 'should set conditions to an empty And operation' do
-          @return.conditions.should == DataMapper::Query::Conditions::Operation.new(:and)
+        it 'should set conditions to nil by default' do
+          @return.conditions.should be_nil
         end
 
         it 'should be valid' do
@@ -1534,7 +1534,7 @@ describe DataMapper::Query do
           @model=User
           @fields=[#<DataMapper::Property @model=User @name=:name>, #<DataMapper::Property @model=User @name=:citizenship>, #<DataMapper::Property @model=User @name=:referrer_name>]
           @links=[]
-          @conditions=#<DataMapper::Query::Conditions::AndOperation @operands=[]>
+          @conditions=nil
           @order=[#<DataMapper::Query::Direction @target=#<DataMapper::Property @model=User @name=:name> @operator=:asc>]
           @limit=3
           @offset=0

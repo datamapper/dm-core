@@ -422,6 +422,7 @@ module DataMapper
     #
     # @api semipublic
     def match_records(records)
+      return records if conditions.nil?
       records.select do |record|
         conditions.matches?(record)
       end
@@ -598,7 +599,7 @@ module DataMapper
 
       @fields       = @options.fetch :fields,       @properties.defaults
       @links        = @options.fetch :links,        []
-      @conditions   = Conditions::Operation.new(:and)  # AND all the conditions together
+      @conditions   = Conditions::Operation.new(:null)
       @offset       = @options.fetch :offset,       0
       @limit        = @options.fetch :limit,        nil
       @order        = @options.fetch :order,        @model.default_order(repository_name)
@@ -615,14 +616,14 @@ module DataMapper
       # parse @options[:conditions] differently
       case conditions = @options[:conditions]
         when Conditions::AbstractOperation, Conditions::AbstractComparison
-          @conditions << conditions
+          add_condition(conditions)
 
         when Hash
           conditions.each { |kv| append_condition(*kv) }
 
         when Array
           statement, *bind_values = *conditions
-          @conditions << [ statement, bind_values ]
+          add_condition([ statement, bind_values ])
           @raw = true
       end
 
@@ -1009,7 +1010,7 @@ module DataMapper
         condition = Conditions::Operation.new(:not, condition)
       end
 
-      @conditions << condition
+      add_condition(condition)
     end
 
     # TODO: document
@@ -1049,6 +1050,19 @@ module DataMapper
     def append_path(path, bind_value, model, operator)
       @links.unshift(*path.relationships.reverse.map { |relationship| relationship.inverse })
       append_condition(path.property, bind_value, path.model, operator)
+    end
+
+    # Add a condition to the Query
+    #
+    # @param [AbstractOperation, AbstractComparison]
+    #   the condition to add to the Query
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def add_condition(condition)
+      @conditions = Conditions::Operation.new(:and) if @conditions.nil?
+      @conditions << condition
     end
 
     # TODO: make this typecast all bind values that do not match the
