@@ -1107,36 +1107,33 @@ module DataMapper
     #
     # @api private
     def default_attributes
-      @default_attributes ||=
-        begin
-          unless query.conditions.kind_of?(Query::Conditions::AndOperation)
-            return
-          end
+      return @default_attributes if @default_attributes
 
-          default_attributes = {}
+      default_attributes = {}
 
-          repository_name = repository.name
-          relationships   = self.relationships.values
-          properties      = model.properties(repository_name)
-          key             = model.key(repository_name)
+      conditions = query.conditions
 
-          # if all the key properties are included in the conditions,
-          # then do not allow them to be default attributes
-          if query.condition_properties.to_set.superset?(key.to_set)
-            properties -= key
-          end
+      if conditions.kind_of?(Query::Conditions::AndOperation)
+        repository_name = repository.name
+        relationships   = self.relationships.values
+        properties      = model.properties(repository_name)
+        key             = model.key(repository_name)
 
-          query.conditions.each do |condition|
-            unless condition.kind_of?(Query::Conditions::EqualToComparison) &&
-              (properties.include?(condition.subject) || (condition.relationship? && condition.subject.source_model == model))
-              next
-            end
+        # if all the key properties are included in the conditions,
+        # then do not allow them to be default attributes
+        if query.condition_properties.to_set.superset?(key.to_set)
+          properties -= key
+        end
 
+        conditions.each do |condition|
+          if condition.kind_of?(Query::Conditions::EqualToComparison) &&
+            (properties.include?(condition.subject) || (condition.relationship? && condition.subject.source_model == model))
             default_attributes[condition.subject] = condition.value
           end
-
-          default_attributes.freeze
         end
+      end
+
+      @default_attributes = default_attributes.freeze
     end
 
     # Set the default attributes for a non-frozen resource
