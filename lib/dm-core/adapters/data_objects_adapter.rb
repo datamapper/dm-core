@@ -536,9 +536,13 @@ module DataMapper
           bind_values = []
 
           operation.each do |operand|
+            operands = operand.operands if operand.respond_to?(:operands)
+
+            next if operands && operands.empty?
+
             statement, values = conditions_statement(operand, qualify)
 
-            if operand.respond_to?(:operands) && operand.operands.size > 1
+            if operands && operands.size > 1
               statement = "(#{statement})"
             end
 
@@ -546,10 +550,8 @@ module DataMapper
             bind_values.concat(values)
           end
 
-          unless operand.respond_to?(:operands) and operand.operands.size == 0
-            join_with = operation.kind_of?(@negated ? Query::Conditions::OrOperation : Query::Conditions::AndOperation) ? 'AND' : 'OR'
-            statement = statements.join(" #{join_with} ")
-          end
+          join_with = operation.kind_of?(@negated ? Query::Conditions::OrOperation : Query::Conditions::AndOperation) ? 'AND' : 'OR'
+          statement = statements.join(" #{join_with} ")
 
           return statement, bind_values
         end
