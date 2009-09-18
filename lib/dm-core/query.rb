@@ -1052,7 +1052,10 @@ module DataMapper
     def append_string_condition(string, bind_value, model, operator)
       if string.include?('.')
         query_path = model
-        string.split('.').each { |method| query_path = query_path.send(method) }
+
+        target_components = string.split('.')
+        operator = target_components.pop.to_sym if DataMapper::Query::Conditions::Comparison.slugs.map{ |s| s.to_s }.include? target_components.last
+        target_components.each { |method| query_path = query_path.send(method) }
 
         append_condition(query_path, bind_value, model, operator)
       else
