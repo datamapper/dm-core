@@ -193,6 +193,55 @@ module DataMapper
           super
         end
       end # class NotOperation
+
+      class NullOperation < AbstractOperation
+        undef_method :<<
+
+        slug :null
+
+        # Match the record
+        #
+        # @param [Resource] record
+        #   the resource to match
+        #
+        # @return [true]
+        #   every record matches
+        #
+        # @api semipublic
+        def matches?(record)
+          true
+        end
+
+        # Test validity of the operation
+        #
+        # @return [true]
+        #   always valid
+        #
+        # @api semipublic
+        def valid?
+          true
+        end
+
+        # Treat the operation the same as nil
+        #
+        # @return [true]
+        #   should be treated as nil
+        #
+        # @api semipublic
+        def nil?
+          true
+        end
+
+        # Inspecting the operation should return the same as nil
+        #
+        # @return [String]
+        #   return the string 'nil'
+        #
+        # @api semipublic
+        def inspect
+          'nil'
+        end
+      end
     end # module Conditions
   end # class Query
 end # module DataMapper
