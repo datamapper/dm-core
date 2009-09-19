@@ -546,10 +546,8 @@ module DataMapper
             bind_values.concat(values)
           end
 
-          unless operand.respond_to?(:operands) and operand.operands.size == 0
-            join_with = operation.kind_of?(@negated ? Query::Conditions::OrOperation : Query::Conditions::AndOperation) ? 'AND' : 'OR'
-            statement = statements.join(" #{join_with} ")
-          end
+          join_with = operation.kind_of?(@negated ? Query::Conditions::OrOperation : Query::Conditions::AndOperation) ? 'AND' : 'OR'
+          statement = statements.join(" #{join_with} ")
 
           return statement, bind_values
         end
