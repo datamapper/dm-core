@@ -24,9 +24,8 @@ module DataMapper
           model.instance_variable_set(:@paranoid_properties,      @paranoid_properties.dup)
 
           @properties.each do |repository_name, properties|
-            properties.each do |property|
-              model.properties(repository_name) << property
-            end
+            model_properties = model.properties(repository_name)
+            properties.each { |property| model_properties << property }
           end
 
           super
@@ -86,7 +85,7 @@ module DataMapper
         # the parent
         descendants.each do |descendant|
           next if descendant.properties(repository_name).named?(name)
-          descendant.property(name, type, options)
+          descendant.properties(repository_name) << property
         end
 
         create_reader_for(property)
