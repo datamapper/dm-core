@@ -40,6 +40,6 @@ hoe = Hoe.spec(GEM_NAME) do
 
   self.rubyforge_name = PROJECT_NAME
 
-  clean_globs |= %w[ {coverage,doc,log,tmp} **/*.{log,db} profile_results.* **/.DS_Store spec/db ]
-  extra_deps  |= GEM_DEPENDENCIES
+  self.clean_globs |= %w[ {coverage,doc,log,tmp} **/*.{log,db} profile_results.* **/.DS_Store spec/db ]
+  self.extra_deps  |= GEM_DEPENDENCIES
 end
