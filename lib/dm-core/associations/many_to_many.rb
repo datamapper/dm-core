@@ -374,7 +374,7 @@ module DataMapper
           else
             if intermediary = create_intermediary(safe)
               inverse = via.inverse
-              loaded_entries.map { |resource| inverse.set(resource, intermediary) }
+              loaded_entries.each { |resource| inverse.set(resource, intermediary) }
             end
 
             super
