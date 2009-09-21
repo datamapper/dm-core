@@ -118,6 +118,16 @@ module DataMapper
       @saved == true
     end
 
+    # Checks if this Resource instance is destroyed
+    #
+    # @return [Boolean]
+    #   true if the resource has been destroyed
+    #
+    # @api public
+    def destroyed?
+      @destroyed == true
+    end
+
     # Checks if the resource has no changes to save
     #
     # @return [Boolean]
@@ -364,13 +374,13 @@ module DataMapper
     # @api public
     def destroy!
       if saved? && repository.delete(Collection.new(query, [ self ])) == 1
+        @destroyed = true
         @collection.delete(self) if @collection
         reset
         freeze
-        true
-      else
-        false
       end
+
+      destroyed?
     end
 
     # Compares another Resource for equality

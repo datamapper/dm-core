@@ -237,8 +237,8 @@ share_examples_for 'A public Resource' do
           @resource.should be_frozen
         end
 
-        it 'should not be able to remove an already removed resource' do
-          @resource.destroy.should be_false
+        it "should return true when calling #{method} on a destroyed resource" do
+          @resource.send(method).should be_true
         end
 
         it 'should remove object from persistent storage' do
