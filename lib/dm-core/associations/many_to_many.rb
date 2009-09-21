@@ -343,6 +343,26 @@ module DataMapper
           super
         end
 
+        # Return the intermediaries between the source and the targets
+        #
+        # @return [Collection]
+        #   the intermediary collection
+        #
+        # @api public
+        def intermediaries
+          return @intermediaries if @intermediaries
+
+          intermediaries = if through.loaded?(source)
+            through.get!(source)
+          else
+            through.set!(source, through.collection_for(source))
+          end
+
+          scoped = intermediaries.all(via => self)
+
+          @intermediaries = scoped.query == intermediaries.query ? intermediaries : scoped
+        end
+
         private
 
         # TODO: document
@@ -363,9 +383,13 @@ module DataMapper
         # TODO: document
         # @api private
         def _save(safe)
-          # delete only intermediaries linked to the removed targets
-          unless @removed.empty? || intermediaries(@removed).send(safe ? :destroy : :destroy!)
-            return false
+          if @removed.any?
+            # delete only intermediaries linked to the removed targets
+            removed_intermediaries = intermediaries.all(via => @removed).each do |resource|
+              intermediaries.delete(resource)
+            end
+
+            return false unless removed_intermediaries.send(safe ? :destroy : :destroy!)
           end
 
           if via.respond_to?(:resource_for)
@@ -379,18 +403,6 @@ module DataMapper
 
             super
           end
-        end
-
-        # TODO: document
-        # @api private
-        def intermediaries(targets = self)
-          intermediaries = if through.loaded?(source)
-            through.get!(source)
-          else
-            through.set!(source, through.collection_for(source))
-          end
-
-          intermediaries.all(via => targets)
         end
 
         # TODO: document

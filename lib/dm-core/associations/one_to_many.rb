@@ -315,7 +315,7 @@ module DataMapper
           assert_source_saved 'The source must be saved before saving the collection'
 
           # update removed resources to not reference the source
-          @removed.all? { |resource| resource.send(safe ? :save : :save!) } && super
+          @removed.all? { |resource| resource.destroyed? || resource.send(safe ? :save : :save!) } && super
         end
 
         # TODO: document
