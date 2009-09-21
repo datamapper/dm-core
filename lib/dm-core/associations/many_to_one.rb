@@ -61,7 +61,7 @@ module DataMapper
         # @api semipublic
         alias source_key child_key
 
-        # Returns a Resoruce for this relationship with a given source
+        # Returns a Resource for this relationship with a given source
         #
         # @param [Resource] source
         #   A Resource to scope the collection with
