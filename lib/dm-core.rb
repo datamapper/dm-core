@@ -7,7 +7,6 @@
 #
 
 require 'addressable/uri'
-require 'base64'
 require 'bigdecimal'
 require 'bigdecimal/util'
 require 'date'
