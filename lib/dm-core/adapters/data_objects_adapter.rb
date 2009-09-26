@@ -312,54 +312,23 @@ module DataMapper
         #
         # @api private
         def select_statement(query)
-          model      = query.model
-          fields     = query.fields
-          conditions = query.conditions
-          limit      = query.limit
-          offset     = query.offset
-          order_by   = query.order
-          group_by   = nil
-
-          # FIXME: using a boolean for qualify does not work in some cases,
-          # such as when you have a self-referrential many to many association.
-          # if you don't qualfiy the columns with a unique alias, then the
-          # SQL query will fail.  This may mean though, that it might not
-          # be enough to pass in a Property, but we may need to know the
-          # table and the alias we should use for the column.
-
-          qualify = query.links.any?
-
-          if qualify || query.unique?
-            group_by = fields.select { |property| property.kind_of?(Property) }
+          qualify  = query.links.any?
+          fields   = query.fields
+          order_by = query.order
+          group_by = if qualify || query.unique?
+            fields.select { |property| property.kind_of?(Property) }
           end
 
-          unless (limit && limit > 1) || offset > 0 || qualify
-            # TODO: move this method to Query, so that it walks the conditions
-            # and finds an OR operator
-
-            # TODO: handle cases where two or more properties need to be
-            # used together to be unique
-
-            # if a unique property is used, and there is no OR operator, then an ORDER
-            # and LIMIT are unecessary because it should only return a single row
-            if conditions.kind_of?(Query::Conditions::AndOperation) &&
-               conditions.any? { |operand| operand.kind_of?(Query::Conditions::EqualToComparison) && operand.subject.respond_to?(:unique?) && operand.subject.unique? } &&
-               !conditions.any? { |operand| operand.kind_of?(Query::Conditions::OrOperation) }
-              order_by = nil
-              limit    = nil
-            end
-          end
-
-          conditions_statement, bind_values = conditions_statement(conditions, qualify)
+          conditions_statement, bind_values = conditions_statement(query.conditions, qualify)
 
           statement = "SELECT #{columns_statement(fields, qualify)}"
-          statement << " FROM #{quote_name(model.storage_name(name))}"
+          statement << " FROM #{quote_name(query.model.storage_name(name))}"
           statement << join_statement(query, qualify)                      if qualify
           statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
           statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
           statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
 
-          add_limit_offset!(statement, limit, offset, bind_values)
+          add_limit_offset!(statement, query.limit, query.offset, bind_values)
 
           return statement, bind_values
         end
