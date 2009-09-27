@@ -925,7 +925,7 @@ module DataMapper
 
       @links.clear
 
-      while link = links.shift
+      while link = links.pop
         relationship = case link
           when Symbol, String             then @relationships[link]
           when Associations::Relationship then link
@@ -961,6 +961,7 @@ module DataMapper
           @links << relationship
         end
       end
+      @links.reverse!
     end
 
     # Append conditions to this Query
