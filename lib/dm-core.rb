@@ -109,9 +109,9 @@ DataMapper::Logger.new(StringIO.new, :fatal)
 # === Logging
 # To turn on error logging to STDOUT, issue:
 #
-#   DataMapper::Logger.new(STDOUT, :debug)
+#   DataMapper::Logger.new($stdout, :debug)
 #
-# You can pass a file location ("/path/to/log/file.log") in place of STDOUT.
+# You can pass a file location ("/path/to/log/file.log") in place of $stdout.
 # see DataMapper::Logger for more information.
 #
 module DataMapper
