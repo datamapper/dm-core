@@ -25,7 +25,7 @@ see all <tt>false</tt> results. Do the same in DataMapper and it's
     @parent = Tree.first(:name => 'bob')
 
     @parent.children.each do |child|
-      puts @parent.object_id == child.parent.object_id
+      puts @parent.equal?(child.parent)  # => true
     end
   end
 
@@ -38,16 +38,13 @@ the fields that actually changed. So it plays well with others. You can
 use it in an Integration data-store without worrying that your application will
 be a bad actor causing trouble for all of your other processes.
 
-You can also configure which strategy you'd like to use to track dirtiness.
-
 == Eager Loading
 
-Ready for something amazing? The following example executes only two queries.
+Ready for something amazing? The following example executes only two queries
+regardless of how many rows the inner and outer queries return.
 
   repository do
-    zoos = Zoo.all
-    first = zoos.first
-    first.exhibits  # Loads the exhibits for all the Zoo objects in the zoos variable.
+    Zoo.all.each { |zoo| zoo.exhibits.to_a }
   end
 
 Pretty impressive huh? The idea is that you aren't going to load a set of
@@ -55,7 +52,7 @@ objects and use only an association in just one of them. This should hold up
 pretty well against a 99% rule. When you don't want it to work like this, just
 load the item you want in it's own set. So the DataMapper thinks ahead. We
 like to call it "performant by default". This feature single-handedly wipes
-out the "N+1 Query Problem". No need to specify an <tt>include</tt> option in
+out the "N+1 Query Problem". No need to specify an <tt>:include</tt> option in
 your finders.
 
 == Laziness Can Be A Virtue
@@ -67,36 +64,84 @@ place to get what it needs. Since ActiveRecord returns everything by default,
 adding a text field to a table slows everything down drastically, across the
 board.
 
-Not so with the DataMapper. Text fields are treated like in-row associations
-by default, meaning they only load when you need them. If you want more
-control you can enable or disable this feature for any field (not just
-text-fields) by passing a @lazy@ option to your field mapping with a value of
-<tt>true</tt> or <tt>false</tt>.
+Not so with the DataMapper. Text fields are lazily loaded, meaning they
+only load when you need them. If you want more control you can enable or
+disable this feature for any field (not just text-fields) by passing a
+@:lazy@ option to your field mapping with a value of <tt>true</tt> or
+<tt>false</tt>.
 
   class Animal
     include DataMapper::Resource
 
-    property :name, String
+    property :name,  String
     property :notes, Text, :lazy => false
   end
 
-Plus, lazy-loading of text fields happens automatically and intelligently when
+Plus, lazy-loading of Text fields happens automatically and intelligently when
 working with associations.  The following only issues 2 queries to load up all
 of the notes fields on each animal:
 
   repository do
-    animals = Animal.all
-    animals.each do |pet|
-      pet.notes
+    Animal.all.each { |animal| animal.notes.to_a }
+  end
+
+Did you notice the the <tt>#to_a</tt> call in the above example?  That
+was necessary because even DataMapper collections are lazy.  If you don't
+iterate over them, or in this case ask them to become Arrays, they won't
+execute until you need them.  We needed to call <tt>#to_a</tt> to force
+the lazy load because without it, the above example would have only
+executed one query.  This extra bit of laziness can come in very handy,
+for example:
+
+  animals = Animal.all
+
+  unless note.blank?
+    animals.each do |animal|
+      animal.update(:note => note)
     end
   end
+
+In the above example, the Animals won't be retrieved until you actually
+need them.  This comes in handy in cases where you initialize the
+collection before you know if you need it, like in a web app controller.
+
+== Collection Chaining
+
+DataMapper's lazy collections are also handy because you can get the
+same effect as named scopes, without any special syntax, eg:
+
+  class Animal
+    # ... setup ...
+
+    def self.mammals
+      all(:mammal => true)
+    end
+
+    def self.zoo(zoo)
+      all(:zoo => zoo)
+    end
+  end
+
+  zoo = Zoo.first(:name => 'Greater Vancouver Zoo')
+
+  Animal.mammals.zoo(zoo).to_a  # => executes one query
+
+In the above example, we ask the Animal model for all the mammals,
+and then all the animals in a specific zoo, and DataMapper will chain
+the collection queries together and execute a single query to retrieve
+the matching records.  There's no special syntax, and no custom DSLs
+to learn, it's just plain ruby all the way down.
+
+You can even use this on association collections, eg:
+
+  zoo.animals.mammals.to_a  # => executes one query
 
 == Plays Well With Others
 
 In ActiveRecord, all your fields are mapped, whether you want them or not.
 This slows things down. In the DataMapper you define your mappings in your
 model. So instead of an _ALTER TABLE ADD field_ in your data-store, you simply
-add a <tt>property :name, :string</tt> to your model. DRY. No schema.rb. No
+add a <tt>property :name, String</tt> to your model. DRY. No schema.rb. No
 migration files to conflict or die without reverting changes. Your model
 drives the data-store, not the other way around.
 
@@ -107,7 +152,9 @@ now? In DataMapper you control the mappings:
 
   class Fruit
     include DataMapper::Resource
+
     storage_names[:repo] = 'frt'
+
     property :name, String, :field => 'col2Name'
   end
 
@@ -127,20 +174,17 @@ It's just a little thing, but it's so much nicer than writing
 <tt>Zoo.find(:all, :conditions => ['name = ?', 'Dallas'])</tt>. What if you
 need other comparisons though? Try these:
 
-  Zoo.first(:name => 'Galveston')
-
   # 'gt' means greater-than. We also do 'lt'.
   Person.all(:age.gt => 30)
 
   # 'gte' means greather-than-or-equal-to. We also do 'lte'.
   Person.all(:age.gte => 30)
 
+  # 'not' allows you to match all people without the name "bob"
   Person.all(:name.not => 'bob')
 
   # If the value of a pair is an Array, we do an IN-clause for you.
   Person.all(:name.like => 'S%', :id => [ 1, 2, 3, 4, 5 ])
-
-  Zoo.get(11)
 
   # Does a NOT IN () clause for you.
   Person.all(:name.not => [ 'bob', 'rick', 'steve' ])
