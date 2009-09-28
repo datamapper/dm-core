@@ -1,11 +1,3 @@
-# This file begins the loading sequence.
-#
-# Quick Overview:
-# * Requires fastthread, support libs, and base.
-# * Sets the application root and environment for compatibility with frameworks
-#   such as Rails or Merb.
-#
-
 require 'addressable/uri'
 require 'bigdecimal'
 require 'bigdecimal/util'
