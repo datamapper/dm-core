@@ -570,16 +570,6 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def options_with_inverse
-        if child_model? && parent_model?
-          options.merge(:inverse => inverse)
-        else
-          options.merge(:inverse => inverse_name)
-        end
-      end
-
-      # TODO: document
-      # @api private
       def kind_of_inverse?(other)
         other.kind_of?(inverse_class)
       end

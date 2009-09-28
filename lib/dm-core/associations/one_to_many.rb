@@ -82,13 +82,6 @@ module DataMapper
           get!(source).replace(targets)
         end
 
-        # TODO: document
-        # @api private
-        def inherited_by(model)
-          model.relationships(source_repository_name)[name] ||
-            self.class.new(name, child_model_name, model, options_with_inverse)
-        end
-
         private
 
         # TODO: document

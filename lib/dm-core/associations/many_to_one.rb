@@ -123,13 +123,6 @@ module DataMapper
           set!(source, target)
         end
 
-        # TODO: document
-        # @api private
-        def inherited_by(model)
-          model.relationships(source_repository_name)[name] ||
-            self.class.new(name, model, parent_model_name, options_with_inverse)
-        end
-
         private
 
         # Initializes the relationship, always using max cardinality of 1.

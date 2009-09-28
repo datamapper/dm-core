@@ -25,7 +25,7 @@ module DataMapper
 
           @properties.each do |repository_name, properties|
             model_properties = model.properties(repository_name)
-            properties.each { |property| model_properties << property }
+            properties.each { |property| model_properties[property.name] ||= property }
           end
 
           super
@@ -84,8 +84,7 @@ module DataMapper
         # added after the child classes' properties have been copied from
         # the parent
         descendants.each do |descendant|
-          next if descendant.properties(repository_name).named?(name)
-          descendant.properties(repository_name) << property
+          descendant.properties(repository_name)[name] ||= property
         end
 
         create_reader_for(property)
@@ -157,7 +156,7 @@ module DataMapper
 
         descendants.each do |model|
           model.properties(repository_name).each do |property|
-            properties << property unless properties.named?(property.name)
+            properties[property.name] ||= property
           end
         end
 

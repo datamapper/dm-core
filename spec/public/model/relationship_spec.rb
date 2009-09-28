@@ -799,8 +799,8 @@ describe DataMapper::Associations do
             @engine_relationship = ElectricCar.relationships(@repository.name)[:engine]
           end
 
-          it 'should have a source model equal to the descendant' do
-            @engine_relationship.source_model.should equal(ElectricCar)
+          it 'should have a source model equal to the ancestor' do
+            @engine_relationship.source_model.should equal(Car)
           end
 
           it 'should have a child key prefix the same as the inverse relationship' do
@@ -823,8 +823,8 @@ describe DataMapper::Associations do
             @engine_relationship = ElectricCar.relationships(@repository.name)[:engine]
           end
 
-          it 'should have a source model equal to the descendant' do
-            @engine_relationship.source_model.should equal(ElectricCar)
+          it 'should have a source model equal to the ancestor' do
+            @engine_relationship.source_model.should equal(Car)
           end
 
           it 'should have a child key prefix inferred from the source model name' do

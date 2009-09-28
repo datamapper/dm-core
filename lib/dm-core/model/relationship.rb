@@ -27,15 +27,11 @@ module DataMapper
         #
         # @api private
         def inherited(model)
-          # TODO: Create a RelationshipSet class, and then add a method that allows copying the relationships to the supplied repository and model
-          model.instance_variable_set(:@relationships, duped_relationships = {})
+          model.instance_variable_set(:@relationships, {})
 
           @relationships.each do |repository_name, relationships|
-            dup = duped_relationships[repository_name] ||= Mash.new
-
-            relationships.each do |name, relationship|
-              dup[name] = relationship.inherited_by(model)
-            end
+            model_relationships = model.relationships(repository_name)
+            relationships.each { |name, relationship| model_relationships[name] ||= relationship }
           end
 
           super
@@ -120,9 +116,11 @@ module DataMapper
 
         model ||= options.delete(:model)
 
+        repository_name = repository.name
+
         # TODO: change to :target_respository_name and :source_repository_name
         options[:child_repository_name]  = options.delete(:repository)
-        options[:parent_repository_name] = repository.name
+        options[:parent_repository_name] = repository_name
 
         klass = if options[:max] > 1
           options.key?(:through) ? Associations::ManyToMany::Relationship : Associations::OneToMany::Relationship
@@ -130,10 +128,10 @@ module DataMapper
           Associations::OneToOne::Relationship
         end
 
-        relationship = relationships(repository.name)[name] = klass.new(name, model, self, options)
+        relationship = relationships(repository_name)[name] = klass.new(name, model, self, options)
 
         descendants.each do |descendant|
-          descendant.relationships(repository.name)[name] ||= relationship.inherited_by(descendant)
+          descendant.relationships(repository_name)[name] ||= relationship
         end
 
         relationship
@@ -186,10 +184,10 @@ module DataMapper
         options[:child_repository_name]  = repository_name
         options[:parent_repository_name] = options.delete(:repository)
 
-        relationship = relationships(repository.name)[name] = Associations::ManyToOne::Relationship.new(name, self, model, options)
+        relationship = relationships(repository_name)[name] = Associations::ManyToOne::Relationship.new(name, self, model, options)
 
         descendants.each do |descendant|
-          descendant.relationships(repository.name)[name] ||= relationship.inherited_by(descendant)
+          descendant.relationships(repository_name)[name] ||= relationship
         end
 
         relationship
