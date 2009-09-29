@@ -55,6 +55,8 @@ share_examples_for 'A DataObjects Adapter' do
       it 'should not send NULL values' do
         statement = if @mysql
           /\AINSERT INTO `articles` \(\) VALUES \(\)\z/
+        elsif defined?(DataMapper::Adapters::OracleAdapter) && @adapter.kind_of?(DataMapper::Adapters::OracleAdapter)
+          /\AINSERT INTO "ARTICLES" \("ID"\) VALUES \(DEFAULT\) RETURNING "ID"/
         elsif supports_default_values? && supports_returning?
           /\AINSERT INTO "articles" DEFAULT VALUES RETURNING \"id\"\z/
         elsif supports_default_values?
