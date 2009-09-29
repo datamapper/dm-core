@@ -1,5 +1,85 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
+# class methods
+describe DataMapper::Property do
+  before :all do
+    module ::Blog
+      class Article
+        include DataMapper::Resource
+
+        property :id, Serial
+      end
+    end
+  end
+
+  describe '.new' do
+    before :all do
+      @model = Blog::Article
+      @name  = :title
+      @type  = String
+    end
+
+    describe 'when provided no options' do
+      before :all do
+        @property = DataMapper::Property.new(@model, @name, @type)
+      end
+
+      it 'should return a Property' do
+        @property.should be_kind_of(DataMapper::Property)
+      end
+
+      it 'should set the model' do
+        @property.model.should equal(@model)
+      end
+
+      it 'should set the type' do
+        @property.type.should equal(@type)
+      end
+
+      it 'should set the options to an empty Hash' do
+        @property.options.should eql({})
+      end
+    end
+
+    [ :index, :unique_index, :unique, :lazy ].each do |attribute|
+      [ true, false, :title, [ :title ] ].each do |value|
+        describe "when provided #{(options = { attribute => value }).inspect}" do
+          before :all do
+            @property = DataMapper::Property.new(@model, @name, @type, options)
+          end
+
+          it 'should return a Property' do
+            @property.should be_kind_of(DataMapper::Property)
+          end
+
+          it 'should set the model' do
+            @property.model.should equal(@model)
+          end
+
+          it 'should set the type' do
+            @property.type.should equal(@type)
+          end
+
+          it "should set the options to #{options.inspect}" do
+            @property.options.should eql(options)
+          end
+        end
+      end
+
+      [ [], nil ].each do |value|
+        describe "when provided #{(invalid_options = { attribute => value }).inspect}" do
+          it 'should raise an exception' do
+            lambda {
+              DataMapper::Property.new(@model, @name, @type, invalid_options)
+            }.should raise_error(ArgumentError, "options[#{attribute.inspect}] must be either true, false, a Symbol or an Array of Symbols")
+          end
+        end
+      end
+    end
+  end
+end
+
+# instance methods
 describe DataMapper::Property do
   before :all do
     module ::Blog
