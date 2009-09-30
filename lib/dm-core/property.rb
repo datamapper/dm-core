@@ -634,7 +634,7 @@ module DataMapper
     # @return [rue, String, Float, Integer, BigDecimal, DateTime, Date, Time, Class]
     #   The typecasted +value+
     #
-    # @api private
+    # @api semipublic
     def typecast(value)
       return type.typecast(value, self) if type.respond_to?(:typecast)
       return value if primitive?(value) || value.nil?
