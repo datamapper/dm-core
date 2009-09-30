@@ -37,7 +37,7 @@ describe DataMapper::Property do
       end
 
       it 'should set the options to an empty Hash' do
-        @property.options.should eql({})
+        @property.options.should == {}
       end
     end
 
@@ -61,7 +61,7 @@ describe DataMapper::Property do
           end
 
           it "should set the options to #{options.inspect}" do
-            @property.options.should eql(options)
+            @property.options.should == options
           end
         end
       end
