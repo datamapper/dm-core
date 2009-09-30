@@ -92,36 +92,6 @@ module DataMapper
           super
         end
 
-        # Dynamically defines reader method for source side of association
-        # (for instance, method paragraphs for model Article)
-        #
-        # @api semipublic
-        def create_reader
-          return if source_model.resource_method_defined?(name.to_s)
-
-          source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{name}(query = nil)                           # def paragraphs(query = nil)
-              relationships[#{name.inspect}].get(self, query)  #   relationships[:paragraphs].get(self, query)
-            end                                                # end
-          RUBY
-        end
-
-        # Dynamically defines reader method for source side of association
-        # (for instance, method paragraphs= for model Article)
-        #
-        # @api semipublic
-        def create_writer
-          writer_name = "#{name}="
-
-          return if source_model.resource_method_defined?(writer_name)
-
-          source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{writer_name}(targets)                          # def paragraphs=(targets)
-              relationships[#{name.inspect}].set(self, targets)  #   relationships[:paragraphs].set(self, targets)
-            end                                                  # end
-          RUBY
-        end
-
         # Loads association targets and sets resulting value on
         # given source resource
         #

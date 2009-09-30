@@ -6,7 +6,7 @@ module DataMapper
     class Relationship
       include Extlib::Assertions
 
-      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :inverse ].to_set
+      OPTIONS = [ :child_repository_name, :parent_repository_name, :child_key, :parent_key, :min, :max, :inverse, :reader_visibility, :writer_visibility ].to_set
 
       # Relationship name
       #
@@ -93,6 +93,22 @@ module DataMapper
       #
       # @api semipublic
       attr_reader :max
+
+      # Returns the visibility for the source accessor
+      #
+      # @return [Symbol]
+      #   the visibility for the accessor added to the source
+      #
+      # @api semipublic
+      attr_reader :reader_visibility
+
+      # Returns the visibility for the source mutator
+      #
+      # @return [Symbol]
+      #   the visibility for the mutator added to the source
+      #
+      # @api semipublic
+      attr_reader :writer_visibility
 
       # Returns query options for relationship.
       #
@@ -426,6 +442,8 @@ module DataMapper
         @parent_properties      = @options[:parent_key].try_dup.freeze
         @min                    = @options[:min]
         @max                    = @options[:max]
+        @reader_visibility      = @options.fetch(:reader_visibility, :public)
+        @writer_visibility      = @options.fetch(:writer_visibility, :public)
 
         # TODO: normalize the @query to become :conditions => AndOperation
         #  - Property/Relationship/Path should be left alone
@@ -477,22 +495,38 @@ module DataMapper
         object
       end
 
-      # Creates reader method for association.
-      #
-      # Must be implemented by subclasses.
+      # Dynamically defines reader method for source side of association
+      # (for instance, method article for model Paragraph)
       #
       # @api semipublic
       def create_reader
-        raise NotImplementedError, "#{self.class}#create_reader not implemented"
+        reader_name = name.to_s
+
+        return if source_model.resource_method_defined?(reader_name)
+
+        source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{reader_visibility}                               # public
+          def #{reader_name}(query = nil)                    # def author(query = nil)
+            relationships[#{name.inspect}].get(self, query)  #   relationships[:author].get(self, query)
+          end                                                # end
+        RUBY
       end
 
-      # Creates both writer method for association.
-      #
-      # Must be implemented by subclasses.
+      # Dynamically defines writer method for source side of association
+      # (for instance, method article= for model Paragraph)
       #
       # @api semipublic
       def create_writer
-        raise NotImplementedError, "#{self.class}#create_writer not implemented"
+        writer_name = "#{name}="
+
+        return if source_model.resource_method_defined?(writer_name)
+
+        source_model.class_eval <<-RUBY, __FILE__, __LINE__ + 1
+          #{writer_visibility}                                # public
+          def #{writer_name}(target)                          # def author=(target)
+            relationships[#{name.inspect}].set(self, target)  #   relationships[:author].set(self, target)
+          end                                                 # end
+        RUBY
       end
 
       # Sets the association targets in the resource
