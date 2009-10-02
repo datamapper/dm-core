@@ -10,30 +10,6 @@ describe DataMapper::Resource do
       property :description, Text
     end
 
-    # This is a special class that needs to be an exact copy of User
-    class ::Clone
-      include DataMapper::Resource
-
-      property :name,        String, :key => true
-      property :age,         Integer
-      property :description, Text
-    end
-
-    class ::Comment
-      include DataMapper::Resource
-
-      property :id,   Serial
-      property :body, Text
-
-      belongs_to :user
-    end
-
-    class ::Default
-      include DataMapper::Resource
-
-      property :name, String, :key => true, :default => 'a default value'
-    end
-
     @user_model = User
   end
 

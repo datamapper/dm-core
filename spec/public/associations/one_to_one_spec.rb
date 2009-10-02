@@ -12,6 +12,9 @@ describe 'One to One Associations' do
         property :description, Text
         property :admin,       Boolean, :accessor => :private
 
+        belongs_to :parent, self, :nullable => true
+        has n, :children, self, :inverse => :parent
+
         belongs_to :referrer, self, :nullable => true
         belongs_to :comment
 
@@ -48,6 +51,12 @@ describe 'One to One Associations' do
 
         belongs_to :article
       end
+    end
+
+    class ::Default
+      include DataMapper::Resource
+
+      property :name, String, :key => true, :default => 'a default value'
     end
 
     @user_model      = Blog::User
@@ -93,6 +102,9 @@ describe 'One to One Through Associations' do
         property :description, Text
         property :admin,       Boolean, :accessor => :private
 
+        belongs_to :parent, self, :nullable => true
+        has n, :children, self, :inverse => :parent
+
         has 1, :referral_from, Referral, :child_key => [ :referree_name ]
         has 1, :referral_to,   Referral, :child_key => [ :referrer_name ]
 
@@ -129,6 +141,12 @@ describe 'One to One Through Associations' do
 
         has 1, :article, :through => Resource
       end
+    end
+
+    class ::Default
+      include DataMapper::Resource
+
+      property :name, String, :key => true, :default => 'a default value'
     end
 
     @referral_model  = Blog::Referral

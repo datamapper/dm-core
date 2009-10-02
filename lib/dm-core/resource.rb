@@ -145,13 +145,7 @@ module DataMapper
     #
     # @api public
     def dirty?
-      if original_attributes.any?
-        true
-      elsif new?
-        model.serial || properties.any? { |property| property.default? }
-      else
-        false
-      end
+      dirty_object?
     end
 
     # Returns the value of the attribute.
@@ -294,7 +288,7 @@ module DataMapper
     def reload
       if saved?
         eager_load(loaded_properties)
-        child_relationships.each { |relationship| relationship.get!(self).reload }
+        child_collections.each { |children| children.reload }
       end
 
       self
@@ -543,6 +537,20 @@ module DataMapper
       dirty_attributes
     end
 
+    # Checks if the resource has unsaved changes
+    #
+    # @param [Array] except
+    #   list of object ids to not check for dirtyness
+    #
+    # @return [Boolean]
+    #  true if resource may be persisted
+    #
+    # @api private
+    def dirty_object?(*except)
+      except << object_id
+      dirty_self? || dirty_parents?(*except) || dirty_children?(*except)
+    end
+
     # Saves the resource
     #
     # @return [Boolean]
@@ -563,10 +571,10 @@ module DataMapper
     #   true if the parents were successfully saved
     #
     # @api private
-    def save_parents(safe = true)
+    def save_parents(safe = true, seen = [])
       parent_relationships.all? do |relationship|
         parent = relationship.get!(self)
-        if parent.dirty? ? parent.save_parents(safe) && parent.save_self(safe) : parent.saved?
+        if seen.include?(parent.object_id) || parent.save_parents(safe, seen << parent.object_id) && parent.save_self(safe)
           relationship.set(self, parent)  # set the FK values
         end
       end
@@ -579,9 +587,8 @@ module DataMapper
     #
     # @api private
     def save_children(safe = true)
-      child_relationships.all? do |relationship|
-        association = relationship.get!(self)
-        safe ? association.save : association.save!
+      child_collections.all? do |collection|
+        safe ? collection.save : collection.save!
       end
     end
 
@@ -775,6 +782,63 @@ module DataMapper
       end
 
       many_to_many + other
+    end
+
+    # TODO: document
+    # @api private
+    def parent_resources
+      parent_relationships.map { |relationship| relationship.get!(self) }
+    end
+
+    # TODO: document
+    # @api private
+    def child_collections
+      child_relationships.map { |relationship| relationship.get!(self) }
+    end
+
+    # Checks if the resource has unsaved changes
+    #
+    # @return [Boolean]
+    #  true if the resource has unsaged changes
+    #
+    # @api private
+    def dirty_self?
+      if original_attributes.any?
+        true
+      elsif new?
+        model.serial || properties.any? { |property| property.default? }
+      else
+        false
+      end
+    end
+
+    # Checks if the parents have unsaved changes
+    #
+    # @param [Array] except
+    #   list of object ids to not check for dirtyness
+    #
+    # @return [Boolean]
+    #  true if the parents have unsaved changes
+    #
+    # @api private
+    def dirty_parents?(*except)
+      parent_resources.any? do |parent|
+        next if except.include?(parent.object_id)
+        parent.dirty_object?(*except)
+      end
+    end
+
+    # Checks if the children have unsaved changes
+    #
+    # @param [Array] except
+    #   list of object ids to not check for dirtyness
+    #
+    # @return [Boolean]
+    #  true if the children have unsaved changes
+    #
+    # @api private
+    def dirty_children?(*except)
+      child_collections.any? { |children| children.dirty_object?(*except) }
     end
 
     # Creates the resource with default values

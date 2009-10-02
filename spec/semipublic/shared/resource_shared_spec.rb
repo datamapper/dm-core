@@ -5,51 +5,6 @@ share_examples_for 'A semipublic Resource' do
     end
   end
 
-  it { @user.should respond_to(:dirty?) }
-
-  describe '#dirty?' do
-
-    describe 'on a non-dirty record' do
-
-      it { @user.should_not be_dirty }
-
-    end
-
-    describe 'on a dirty record' do
-
-      before { @user.age = 100 }
-
-      it { @user.should be_dirty }
-
-    end
-
-    describe 'on a new record, with no attributes, no default attributes, and no identity field' do
-
-      before { @user = @user_model.new }
-
-      it { @user.should_not be_dirty }
-
-    end
-
-    describe 'on a new record, with no attributes, no default attributes, and an identity field' do
-
-      before { @comment = Comment.new }
-
-      it { @comment.should be_dirty }
-
-    end
-
-    describe 'on a new record, with no attributes, default attributes, and no identity field' do
-
-      before { @default = Default.new }
-
-      it { @default.should be_dirty }
-
-    end
-
-
-  end
-
   it { @user.should respond_to(:attribute_dirty?) }
 
   describe '#attribute_dirty?' do

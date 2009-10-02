@@ -12,28 +12,12 @@ describe 'Many to One Associations' do
       has n, :comments
     end
 
-    # This is a special class that needs to be an exact copy of User
-    class ::Clone
-      include DataMapper::Resource
-
-      property :name,        String, :key => true
-      property :age,         Integer
-      property :description, Text
-    end
-
     class ::Comment
       include DataMapper::Resource
 
-      property :id,   Serial
-      property :body, Text
+      property :id, Serial
 
       belongs_to :user
-    end
-
-    class ::Default
-      include DataMapper::Resource
-
-      property :name, String, :key => true, :default => 'a default value'
     end
 
     @user_model    = User
@@ -42,10 +26,9 @@ describe 'Many to One Associations' do
 
   supported_by :all do
     before :all do
-      comment = @comment_model.create(:body => 'Cool spec', :user => User.create(:name => 'dbussink', :age => 25, :description => 'Test'))
+      comment = @comment_model.create(:user => User.create(:name => 'dbussink', :age => 25, :description => 'Test'))
 
-      comment = @comment_model.get(*comment.key)
-      @user   = comment.user
+      @user = @comment_model.get(*comment.key).user
     end
 
     it_should_behave_like 'A semipublic Resource'

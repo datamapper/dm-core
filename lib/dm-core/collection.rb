@@ -884,11 +884,11 @@ module DataMapper
     # Checks if any resources have unsaved changes
     #
     # @return [Boolean]
-    #  true if a resource may be persisted
+    #  true if the resources have unsaved changed
     #
     # @api public
     def dirty?
-      loaded_entries.any? { |resource| resource.dirty? }
+      dirty_object?
     end
 
     # Gets a Human-readable representation of this collection,
@@ -921,6 +921,22 @@ module DataMapper
     # @api semipublic
     def relationships
       model.relationships(repository.name)
+    end
+
+    # Checks if any resources have unsaved changes
+    #
+    # @param [Array] except
+    #   list of object ids to not check for dirtyness
+    #
+    # @return [Boolean]
+    #  true if the resources have unsaved changes
+    #
+    # @api private
+    def dirty_object?(*except)
+      loaded_entries.any? do |resource|
+        next if except.include?(resource.object_id)
+        resource.dirty_object?(*except)
+      end
     end
 
     private

@@ -252,6 +252,60 @@ share_examples_for 'A public Resource' do
     end
   end
 
+  it { @user.should respond_to(:dirty?) }
+
+  describe '#dirty?' do
+    describe 'on a record, with dirty attributes' do
+      before { @user.age = 100 }
+
+      it { @user.should be_dirty }
+    end
+
+    describe 'on a record, with no dirty attributes, and dirty parents' do
+      before :all do
+        @user.should_not be_dirty
+
+        parent = @user.parent = @user_model.new(:name => 'Parent')
+        parent.should be_dirty
+      end
+
+      it { @user.should be_dirty }
+    end
+
+    describe 'on a record, with no dirty attributes, and dirty children' do
+      before :all do
+        @user.should_not be_dirty
+
+        child = @user.children.new(:name => 'Child')
+        child.should be_dirty
+      end
+
+      it { @user.should be_dirty }
+    end
+
+    describe 'on a saved record, with no dirty attributes' do
+      it { @user.should_not be_dirty }
+    end
+
+    describe 'on a new record, with no dirty attributes, no default attributes, and no identity field' do
+      before { @user = @user_model.new }
+
+      it { @user.should_not be_dirty }
+    end
+
+    describe 'on a new record, with no dirty attributes, no default attributes, and an identity field' do
+      before { @comment = @comment_model.new }
+
+      it { @comment.should be_dirty }
+    end
+
+    describe 'on a new record, with no dirty attributes, default attributes, and no identity field' do
+      before { @default = Default.new }
+
+      it { @default.should be_dirty }
+    end
+  end
+
   it { @user.should respond_to(:eql?) }
 
   describe '#eql?' do
