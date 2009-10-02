@@ -16,17 +16,13 @@ module DataMapper
       @properties[name]
     end
 
-    alias super_slice []=
+    alias superclass_slice []=
+    private :superclass_slice
 
     # TODO: document
     # @api semipublic
     def []=(name, property)
-      if named?(name)
-        add_property(property)
-        super_slice(index(property), property)
-      else
-        self << property
-      end
+      self << property
     end
 
     # TODO: document
@@ -46,7 +42,7 @@ module DataMapper
     def <<(property)
       if named?(property.name)
         add_property(property)
-        super_slice(index(property), property)
+        superclass_slice(index(property), property)
       else
         add_property(property)
         super
@@ -57,6 +53,12 @@ module DataMapper
     # @api semipublic
     def include?(property)
       named?(property.name)
+    end
+
+    # TODO: document
+    # @api semipublic
+    def index(property)
+      each_index { |index| break index if at(index).name == property.name }
     end
 
     # TODO: make PropertySet#reject return a PropertySet instance
