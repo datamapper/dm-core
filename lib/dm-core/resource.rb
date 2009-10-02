@@ -806,7 +806,7 @@ module DataMapper
       if original_attributes.any?
         true
       elsif new?
-        model.serial || properties.any? { |property| property.default? }
+        !model.serial.nil? || properties.any? { |property| property.default? }
       else
         false
       end
