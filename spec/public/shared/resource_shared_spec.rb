@@ -263,10 +263,12 @@ share_examples_for 'A public Resource' do
 
     describe 'on a record, with no dirty attributes, and dirty parents' do
       before :all do
-        @user.should_not be_dirty
+        rescue_if 'TODO', @skip do
+          @user.should_not be_dirty
 
-        parent = @user.parent = @user_model.new(:name => 'Parent')
-        parent.should be_dirty
+          parent = @user.parent = @user_model.new(:name => 'Parent')
+          parent.should be_dirty
+        end
       end
 
       it { @user.should be_dirty }
@@ -274,10 +276,12 @@ share_examples_for 'A public Resource' do
 
     describe 'on a record, with no dirty attributes, and dirty children' do
       before :all do
-        @user.should_not be_dirty
+        rescue_if 'TODO', @skip do
+          @user.should_not be_dirty
 
-        child = @user.children.new(:name => 'Child')
-        child.should be_dirty
+          child = @user.children.new(:name => 'Child')
+          child.should be_dirty
+        end
       end
 
       it { @user.should be_dirty }
