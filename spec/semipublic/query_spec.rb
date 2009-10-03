@@ -1421,7 +1421,25 @@ describe DataMapper::Query do
   it { @query.should respond_to(:dup) }
 
   describe '#dup' do
-    it 'should be awesome'
+    before :all do
+      @new = @query.dup
+    end
+
+    it 'should return a Query' do
+      @new.should be_kind_of(DataMapper::Query)
+    end
+
+    it 'should not equal query' do
+      @new.should_not equal(@query)
+    end
+
+    it 'should eql query' do
+      @new.should eql(@query)
+    end
+
+    it 'should == query' do
+      @new.should == @query
+    end
   end
 
   it { @query.should respond_to(:eql?) }

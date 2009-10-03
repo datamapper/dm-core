@@ -292,8 +292,8 @@ module DataMapper
         #
         # @api private
         def initialize_copy(*)
-          @value = @value.dup
-          @loaded_value = @loaded_value.dup
+          @value        = @value.try_dup
+          @loaded_value = @loaded_value.try_dup
         end
 
         # Typecasts the given +val+ using subject#typecast

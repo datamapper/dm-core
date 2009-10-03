@@ -635,8 +635,11 @@ module DataMapper
     # Copying contructor, called for Query#dup
     #
     # @api semipublic
-    def initialize_copy(original)
-      initialize(original.repository, original.model, original.options)
+    def initialize_copy(*)
+      @fields     = @fields.dup
+      @links      = @links.dup
+      @conditions = @conditions.dup
+      @order      = @order.dup
     end
 
     # Validate the options
