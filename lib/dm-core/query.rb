@@ -1149,7 +1149,7 @@ module DataMapper
 
       while operand = operands.shift
         if operand.respond_to?(:operands)
-          operands.concat(operand.operands)
+          operands.unshift(*operand.operands)
         else
           yield operand
         end
