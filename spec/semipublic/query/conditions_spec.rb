@@ -94,12 +94,12 @@ describe DataMapper::Query::Conditions do
 
     it 'should set the remaining args in @operands' do
       op = Operation.new(:and, @comp1, @comp2)
-      op.operands.should == [@comp1, @comp2]
+      op.operands.should == [ @comp1, @comp2 ].to_set
     end
 
     it 'should have operands be empty of no operands are provided' do
       op = Operation.new(:and)
-      op.operands.should == []
+      op.operands.should == [].to_set
     end
 
     describe 'NotOperation' do

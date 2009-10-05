@@ -102,6 +102,13 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
+        def merge(operands)
+          @operands.merge(operands)
+          self
+        end
+
+        # TODO: document
+        # @api semipublic
         def inspect
           "#<#{self.class} @operands=#{@operands.inspect}>"
         end
@@ -121,13 +128,13 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def initialize(*operands)
-          @operands = operands
+          @operands = operands.to_set
         end
 
         # TODO: document
         # @api semipublic
         def initialize_copy(*)
-          @operands = @operands.map { |operand| operand.dup }
+          @operands = @operands.map { |operand| operand.dup }.to_set
         end
       end # class AbstractOperation
 
@@ -136,8 +143,7 @@ module DataMapper
         # @api semipublic
         def <<(operand)
           if operand.kind_of?(self.class)
-            @operands.concat(operand.operands)
-            self
+            merge(operand.operands)
           else
             super
           end
@@ -180,7 +186,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def <<(operand)
-          raise ArgumentError, "#{self.class} cannot have more than one operand" if @operands.size > 0
+          raise ArgumentError, "#{self.class} cannot have more than one operand" if @operands.any?
           super
         end
 

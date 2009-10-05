@@ -1148,7 +1148,7 @@ module DataMapper
     # TODO: document
     # @api private
     def each_comparison
-      operands = conditions.operands.dup
+      operands = conditions.operands.to_a
 
       while operand = operands.shift
         if operand.respond_to?(:operands)
