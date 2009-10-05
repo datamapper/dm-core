@@ -81,9 +81,10 @@ describe DataMapper::Query::Conditions do
     end
 
     {
-      :and => AndOperation,
-      :or  => OrOperation,
-      :not => NotOperation
+      :and  => AndOperation,
+      :or   => OrOperation,
+      :not  => NotOperation,
+      :null => NullOperation,
     }.each do |operand, klass|
       it "should initialize as #{klass} for the #{operand} operator" do
         op = Operation.new(operand)
