@@ -82,7 +82,7 @@ module DataMapper
           AND "table_name" = ?
         SQL
 
-        query(statement, schema_name, storage_name).first > 0
+        select(statement, schema_name, storage_name).first > 0
       end
 
       # Returns whether the field exists.
@@ -105,7 +105,7 @@ module DataMapper
           AND "column_name" = ?
         SQL
 
-        query(statement, schema_name, storage_name, column_name).first > 0
+        select(statement, schema_name, storage_name, column_name).first > 0
       end
 
       # TODO: document
@@ -329,13 +329,13 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def storage_exists?(storage_name)
-        query('SHOW TABLES LIKE ?', storage_name).first == storage_name
+        select('SHOW TABLES LIKE ?', storage_name).first == storage_name
       end
 
       # TODO: document
       # @api semipublic
       def field_exists?(storage_name, field)
-        result = query("SHOW COLUMNS FROM #{quote_name(storage_name)} LIKE ?", field).first
+        result = select("SHOW COLUMNS FROM #{quote_name(storage_name)} LIKE ?", field).first
         result ? result.field == field : false
       end
 
@@ -414,7 +414,7 @@ module DataMapper
         # TODO: document
         # @api private
         def show_variable(name)
-          result = query('SHOW VARIABLES LIKE ?', name).first
+          result = select('SHOW VARIABLES LIKE ?', name).first
           result ? result.value.freeze : nil
         end
 
@@ -614,13 +614,13 @@ module DataMapper
         # TODO: document
         # @api private
         def schema_name
-          @schema_name ||= query('SELECT current_schema()').first.freeze
+          @schema_name ||= select('SELECT current_schema()').first.freeze
         end
 
         # TODO: document
         # @api private
         def postgres_version
-          @postgres_version ||= query('SELECT version()').first.split[1].freeze
+          @postgres_version ||= select('SELECT version()').first.split[1].freeze
         end
 
         # TODO: document
@@ -730,13 +730,13 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def storage_exists?(storage_name)
-        query_table(storage_name).size > 0
+        table_info(storage_name).any?
       end
 
       # TODO: document
       # @api semipublic
       def field_exists?(storage_name, column_name)
-        query_table(storage_name).any? do |row|
+        table_info(storage_name).any? do |row|
           row.name == column_name
         end
       end
@@ -758,8 +758,8 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def query_table(table_name)
-          query("PRAGMA table_info(#{quote_name(table_name)})")
+        def table_info(table_name)
+          select("PRAGMA table_info(#{quote_name(table_name)})")
         end
 
         # TODO: document
@@ -796,7 +796,7 @@ module DataMapper
         # TODO: document
         # @api private
         def sqlite_version
-          @sqlite_version ||= query('SELECT sqlite_version(*)').first.freeze
+          @sqlite_version ||= select('SELECT sqlite_version(*)').first.freeze
         end
       end # module SQL
 
@@ -831,7 +831,7 @@ module DataMapper
           AND table_name = ?
         SQL
 
-        query(statement, schema_name, oracle_upcase(storage_name)).first > 0
+        select(statement, schema_name, oracle_upcase(storage_name)).first > 0
       end
 
       # TODO: document
@@ -845,7 +845,7 @@ module DataMapper
           AND sequence_name = ?
         SQL
 
-        query(statement, schema_name, oracle_upcase(sequence_name)).first > 0
+        select(statement, schema_name, oracle_upcase(sequence_name)).first > 0
       end
 
       # TODO: document
@@ -859,7 +859,7 @@ module DataMapper
           AND column_name = ?
         SQL
 
-        query(statement, schema_name, oracle_upcase(storage_name), oracle_upcase(field_name)).first > 0
+        select(statement, schema_name, oracle_upcase(storage_name), oracle_upcase(field_name)).first > 0
       end
 
       # TODO: document
@@ -872,7 +872,7 @@ module DataMapper
           AND table_name = ?
         SQL
 
-        query(statement, schema_name, oracle_upcase(storage_name))
+        select(statement, schema_name, oracle_upcase(storage_name))
       end
 
       # TODO: document
@@ -975,7 +975,7 @@ module DataMapper
         # TODO: document
         # @api private
         def schema_name
-          @schema_name ||= query("SELECT SYS_CONTEXT('userenv','current_schema') FROM dual").first.freeze
+          @schema_name ||= select("SELECT SYS_CONTEXT('userenv','current_schema') FROM dual").first.freeze
         end
 
         # TODO: document

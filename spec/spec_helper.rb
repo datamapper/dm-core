@@ -66,7 +66,7 @@ PRIMARY.only(*adapters).each do |name, default|
 
     # test the connection if possible
     if adapter.respond_to?(:query)
-      name == 'oracle' ? adapter.query('SELECT 1 FROM dual') : adapter.query('SELECT 1')
+      name == 'oracle' ? adapter.select('SELECT 1 FROM dual') : adapter.select('SELECT 1')
     end
 
     ADAPTERS << name

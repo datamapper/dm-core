@@ -11,6 +11,67 @@ module DataMapper
     # You can extend and overwrite these copies without affecting the originals.
     class DataObjectsAdapter < AbstractAdapter
       extend Chainable
+      extend Deprecate
+
+      deprecate :query, :select
+
+      # Retrieve results using an SQL SELECT statement
+      #
+      # @param [String] statement
+      #   the SQL SELECT statement
+      # @param [Array] *bind_values
+      #   optional bind values to merge into the statement
+      #
+      # @return [Array]
+      #   if fields > 1, return an Array of Struct objects
+      #   if fields == 1, return an Array of objects
+      #
+      # @api public
+      def select(statement, *bind_values)
+        with_connection do |connection|
+          reader = connection.create_command(statement).execute_reader(*bind_values)
+          fields = reader.fields
+
+          results = []
+
+          begin
+            if fields.size > 1
+              fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
+              struct = Struct.new(*fields)
+
+              while reader.next!
+                results << struct.new(*reader.values)
+              end
+            else
+              while reader.next!
+                results << reader.values.at(0)
+              end
+            end
+          ensure
+            reader.close
+          end
+
+          results
+        end
+      end
+
+      # Execute non-SELECT SQL query
+      #
+      # @param [String] statement
+      #   the SQL statement
+      # @param [Array] *bind_values
+      #   optional bind values to merge into the statement
+      #
+      # @return [DataObjects::Result]
+      #   result with number of affected rows, and insert id if any
+      #
+      # @api public
+      def execute(statement, *bind_values)
+        with_connection do |connection|
+          command = connection.create_command(statement)
+          command.execute_non_query(*bind_values)
+        end
+      end
 
       # For each model instance in resources, issues an SQL INSERT
       # (or equivalent) statement to create a new record in the data store for
@@ -57,7 +118,7 @@ module DataMapper
           statement = insert_statement(model, properties, serial)
           result    = execute(statement, *bind_values)
 
-          if result.to_i == 1 && serial
+          if result.affected_rows == 1 && serial
             serial.set!(resource, result.insert_id)
           end
         end
@@ -131,7 +192,7 @@ module DataMapper
 
         bind_values.concat(conditions_bind_values)
 
-        execute(statement, *bind_values).to_i
+        execute(statement, *bind_values).affected_rows
       end
 
       # Constructs and executes DELETE statement for given query
@@ -150,47 +211,7 @@ module DataMapper
         # use a subselect to get the rows to be deleted
 
         statement, bind_values = delete_statement(query)
-        execute(statement, *bind_values).to_i
-      end
-
-      # Database-specific method
-      # TODO: document
-      # @api public
-      def execute(statement, *bind_values)
-        with_connection do |connection|
-          command = connection.create_command(statement)
-          command.execute_non_query(*bind_values)
-        end
-      end
-
-      # TODO: document
-      # @api public
-      def query(statement, *bind_values)
-        with_connection do |connection|
-          reader = connection.create_command(statement).execute_reader(*bind_values)
-          fields = reader.fields
-
-          results = []
-
-          begin
-            if fields.size > 1
-              fields = fields.map { |field| Extlib::Inflection.underscore(field).to_sym }
-              struct = Struct.new(*fields)
-
-              while reader.next!
-                results << struct.new(*reader.values)
-              end
-            else
-              while reader.next!
-                results << reader.values.at(0)
-              end
-            end
-          ensure
-            reader.close
-          end
-
-          results
-        end
+        execute(statement, *bind_values).affected_rows
       end
 
       protected
