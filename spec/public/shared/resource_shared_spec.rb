@@ -292,7 +292,7 @@ share_examples_for 'A public Resource' do
         rescue_if 'TODO', @skip do
           @user.should_not be_dirty
 
-          parent = @user_model.create(:name => 'Parent')
+          parent = @user_model.create(:name => 'Parent', :comment => @comment)
           parent.should_not be_dirty
 
           @user.update(:parent => parent)
