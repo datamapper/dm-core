@@ -1296,6 +1296,7 @@ module DataMapper
     def filter(query)
       fields = self.query.fields.to_set
 
+      # TODO: push this into a Query#subset? method
       if query.links.empty?                                        &&
         (query.unique? || (!query.unique? && !self.query.unique?)) &&
         !query.reload?                                             &&
