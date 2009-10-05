@@ -145,7 +145,7 @@ module DataMapper
     #
     # @api public
     def dirty?
-      dirty_object?
+      dirty_self? || dirty_parents? || dirty_children?
     end
 
     # Returns the value of the attribute.
@@ -537,20 +537,6 @@ module DataMapper
       dirty_attributes
     end
 
-    # Checks if the resource has unsaved changes
-    #
-    # @param [Array] except
-    #   list of object ids to not check for dirtyness
-    #
-    # @return [Boolean]
-    #  true if resource may be persisted
-    #
-    # @api private
-    def dirty_object?(*except)
-      except << object_id
-      dirty_self? || dirty_parents?(*except) || dirty_children?(*except)
-    end
-
     # Saves the resource
     #
     # @return [Boolean]
@@ -580,15 +566,31 @@ module DataMapper
       end
     end
 
-    # Saves the children resources
+    # Checks if the resource has unsaved changes
     #
     # @return [Boolean]
-    #   true if the children were successfully saved
+    #  true if the resource has unsaged changes
     #
     # @api private
-    def save_children(safe = true)
-      child_collections.all? do |collection|
-        safe ? collection.save : collection.save!
+    def dirty_self?
+      if original_attributes.any?
+        true
+      elsif new?
+        !model.serial.nil? || properties.any? { |property| property.default? }
+      else
+        false
+      end
+    end
+
+    # Checks if the parents have unsaved changes
+    #
+    # @return [Boolean]
+    #  true if the parents have unsaved changes
+    #
+    # @api private
+    def dirty_parents?
+      parent_resources.any? do |parent|
+        parent.dirty_self? || parent.dirty_parents?
       end
     end
 
@@ -796,51 +798,6 @@ module DataMapper
       child_relationships.map { |relationship| relationship.get!(self) }
     end
 
-    # Checks if the resource has unsaved changes
-    #
-    # @return [Boolean]
-    #  true if the resource has unsaged changes
-    #
-    # @api private
-    def dirty_self?
-      if original_attributes.any?
-        true
-      elsif new?
-        !model.serial.nil? || properties.any? { |property| property.default? }
-      else
-        false
-      end
-    end
-
-    # Checks if the parents have unsaved changes
-    #
-    # @param [Array] except
-    #   list of object ids to not check for dirtyness
-    #
-    # @return [Boolean]
-    #  true if the parents have unsaved changes
-    #
-    # @api private
-    def dirty_parents?(*except)
-      parent_resources.any? do |parent|
-        next if except.include?(parent.object_id)
-        parent.dirty_object?(*except)
-      end
-    end
-
-    # Checks if the children have unsaved changes
-    #
-    # @param [Array] except
-    #   list of object ids to not check for dirtyness
-    #
-    # @return [Boolean]
-    #  true if the children have unsaved changes
-    #
-    # @api private
-    def dirty_children?(*except)
-      child_collections.any? { |children| children.dirty_object?(*except) }
-    end
-
     # Creates the resource with default values
     #
     # If resource is not dirty or a new (not yet saved),
@@ -913,6 +870,28 @@ module DataMapper
 
         true
       end
+    end
+
+    # Saves the children resources
+    #
+    # @return [Boolean]
+    #   true if the children were successfully saved
+    #
+    # @api private
+    def save_children(safe = true)
+      child_collections.all? do |collection|
+        safe ? collection.save : collection.save!
+      end
+    end
+
+    # Checks if the children have unsaved changes
+    #
+    # @return [Boolean]
+    #  true if the children have unsaved changes
+    #
+    # @api private
+    def dirty_children?
+      child_collections.any? { |children| children.dirty? }
     end
 
     # Return true if +other+'s is equivalent or equal to +self+'s

@@ -287,6 +287,26 @@ share_examples_for 'A public Resource' do
       it { @user.should be_dirty }
     end
 
+    describe 'on a record, with no dirty attributes, and dirty siblings' do
+      before :all do
+        rescue_if 'TODO', @skip do
+          @user.should_not be_dirty
+
+          parent = @user_model.create(:name => 'Parent')
+          parent.should_not be_dirty
+
+          @user.update(:parent => parent)
+          @user.should_not be_dirty
+
+          sibling = parent.children.new(:name => 'Sibling')
+          sibling.should be_dirty
+          parent.should be_dirty
+        end
+      end
+
+      it { @user.should_not be_dirty }
+    end
+
     describe 'on a saved record, with no dirty attributes' do
       it { @user.should_not be_dirty }
     end
