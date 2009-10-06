@@ -243,7 +243,7 @@ module DataMapper
         def property_schema_hash(property)
           schema = (self.class.type_map[property.type] || self.class.type_map[property.primitive]).merge(:name => property.field)
 
-          if property.primitive == String && schema[:primitive] != 'TEXT' && schema[:primitive] != 'CLOB'
+          if property.primitive == String
             schema[:length] = property.length
           elsif property.primitive == BigDecimal || property.primitive == Float
             schema[:precision] = property.precision
@@ -299,17 +299,16 @@ module DataMapper
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
 
           @type_map ||= {
-            Integer       => { :primitive => 'INTEGER'                                           },
-            String        => { :primitive => 'VARCHAR', :length => length                        },
-            Class         => { :primitive => 'VARCHAR', :length => length                        },
-            BigDecimal    => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
-            Float         => { :primitive => 'FLOAT',   :precision => precision                  },
-            DateTime      => { :primitive => 'TIMESTAMP'                                         },
-            Date          => { :primitive => 'DATE'                                              },
-            Time          => { :primitive => 'TIMESTAMP'                                         },
-            TrueClass     => { :primitive => 'BOOLEAN'                                           },
-            Types::Object => { :primitive => 'TEXT'                                              },
-            Types::Text   => { :primitive => 'TEXT'                                              },
+            Integer     => { :primitive => 'INTEGER'                                           },
+            String      => { :primitive => 'VARCHAR', :length => length                        },
+            Class       => { :primitive => 'VARCHAR', :length => length                        },
+            BigDecimal  => { :primitive => 'DECIMAL', :precision => precision, :scale => scale },
+            Float       => { :primitive => 'FLOAT',   :precision => precision                  },
+            DateTime    => { :primitive => 'TIMESTAMP'                                         },
+            Date        => { :primitive => 'DATE'                                              },
+            Time        => { :primitive => 'TIMESTAMP'                                         },
+            TrueClass   => { :primitive => 'BOOLEAN'                                           },
+            Types::Text => { :primitive => 'TEXT'                                              },
           }.freeze
         end
       end # module ClassMethods
@@ -375,7 +374,7 @@ module DataMapper
         def property_schema_hash(property)
           schema = super
 
-          if schema[:primitive] == 'TEXT'
+          if property.primitive == Types::Text
             schema[:primitive] = text_column_statement(property.length)
             schema.delete(:default)
           end
@@ -713,8 +712,8 @@ module DataMapper
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
 
           @type_map ||= super.merge(
-            BigDecimal => { :primitive => 'NUMERIC', :precision => precision, :scale => scale },
-            Float      => { :primitive => 'DOUBLE PRECISION'                                  }
+            BigDecimal => { :primitive => 'NUMERIC',          :precision => precision, :scale => scale },
+            Float      => { :primitive => 'DOUBLE PRECISION'                                           }
           ).freeze
         end
       end # module ClassMethods
@@ -1089,17 +1088,16 @@ module DataMapper
           scale     = Property::DEFAULT_SCALE_BIGDECIMAL
 
           @type_map ||= {
-            Integer       => { :primitive => 'NUMBER',   :precision => precision, :scale => 0   },
-            String        => { :primitive => 'VARCHAR2', :length => length                      },
-            Class         => { :primitive => 'VARCHAR2', :length => length                      },
-            BigDecimal    => { :primitive => 'NUMBER',   :precision => precision, :scale => nil },
-            Float         => { :primitive => 'BINARY_FLOAT',                                    },
-            DateTime      => { :primitive => 'DATE'                                             },
-            Date          => { :primitive => 'DATE'                                             },
-            Time          => { :primitive => 'DATE'                                             },
-            TrueClass     => { :primitive => 'NUMBER',  :precision => 1, :scale => 0            },
-            Types::Object => { :primitive => 'CLOB'                                             },
-            Types::Text   => { :primitive => 'CLOB'                                             },
+            Integer     => { :primitive => 'NUMBER',   :precision => precision, :scale => 0   },
+            String      => { :primitive => 'VARCHAR2', :length => length                      },
+            Class       => { :primitive => 'VARCHAR2', :length => length                      },
+            BigDecimal  => { :primitive => 'NUMBER',   :precision => precision, :scale => nil },
+            Float       => { :primitive => 'BINARY_FLOAT',                                    },
+            DateTime    => { :primitive => 'DATE'                                             },
+            Date        => { :primitive => 'DATE'                                             },
+            Time        => { :primitive => 'DATE'                                             },
+            TrueClass   => { :primitive => 'NUMBER',  :precision => 1, :scale => 0            },
+            Types::Text => { :primitive => 'CLOB'                                             },
           }.freeze
         end
 

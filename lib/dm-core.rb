@@ -30,6 +30,15 @@ require dir / 'model' / 'property'
 
 require dir / 'collection'
 
+require dir / 'type'
+require dir / 'types' / 'boolean'
+require dir / 'types' / 'discriminator'
+require dir / 'types' / 'text'
+require dir / 'types' / 'paranoid_datetime'     # TODO: move to dm-more
+require dir / 'types' / 'paranoid_boolean'      # TODO: move to dm-more
+require dir / 'types' / 'object'
+require dir / 'types' / 'serial'
+
 require dir / 'adapters'
 require dir / 'adapters' / 'abstract_adapter'
 require dir / 'associations' / 'relationship'
@@ -53,14 +62,6 @@ require dir / 'resource'
 require dir / 'support' / 'logger'
 require dir / 'support' / 'naming_conventions'
 require dir / 'transaction'                     # TODO: move to dm-more
-require dir / 'type'
-require dir / 'types' / 'boolean'
-require dir / 'types' / 'discriminator'
-require dir / 'types' / 'text'
-require dir / 'types' / 'paranoid_datetime'     # TODO: move to dm-more
-require dir / 'types' / 'paranoid_boolean'      # TODO: move to dm-more
-require dir / 'types' / 'object'
-require dir / 'types' / 'serial'
 require dir / 'version'
 
 require dir / 'core_ext' / 'kernel'             # TODO: do not load automatically

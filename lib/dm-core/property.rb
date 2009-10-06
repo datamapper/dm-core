@@ -320,6 +320,7 @@ module DataMapper
       Time,
       Object,
       Class,
+      DataMapper::Types::Text,
     ].to_set.freeze
 
     # Possible :visibility option values

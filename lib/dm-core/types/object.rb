@@ -1,9 +1,7 @@
 module DataMapper
   module Types
     class Object < Type
-      primitive String
-      length    65535
-      lazy      true
+      primitive Text
 
       # TODO: document
       # @api private
