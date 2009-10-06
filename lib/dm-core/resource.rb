@@ -249,7 +249,7 @@ module DataMapper
             else             property
           end
 
-          attributes[key] = send(name)
+          attributes[key] = __send__(name)
         end
       end
       attributes
@@ -269,7 +269,7 @@ module DataMapper
         case name
           when String, Symbol
             if model.public_method_defined?(setter = "#{name}=")
-              send(setter, value)
+              __send__(setter, value)
             else
               raise ArgumentError, "The attribute '#{name}' is not accessible in #{model}"
             end

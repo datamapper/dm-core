@@ -613,7 +613,7 @@ module DataMapper
     # @api private
     def _create(safe, attributes)
       resource = new(attributes)
-      resource.send(safe ? :save : :save!)
+      resource.__send__(safe ? :save : :save!)
       resource
     end
 

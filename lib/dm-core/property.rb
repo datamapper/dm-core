@@ -593,7 +593,7 @@ module DataMapper
     #
     # @api private
     def lazy_load(resource)
-      resource.send(:lazy_load, lazy_load_properties)
+      resource.__send__(:lazy_load, lazy_load_properties)
     end
 
     # TODO: document
