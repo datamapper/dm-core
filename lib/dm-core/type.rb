@@ -96,7 +96,6 @@ module DataMapper
     ]
 
     class << self
-
       # TODO: document
       # @api private
       def configure(primitive_type, options)
@@ -126,6 +125,13 @@ module DataMapper
       def primitive(primitive = nil)
         return @primitive if primitive.nil?
         @primitive = primitive
+
+        # inherit the options from the primitive if any
+        if @primitive.respond_to?(:options)
+          @primitive.options.each do |key, value|
+            send(key, value) unless send(key)
+          end
+        end
       end
 
       # Load Property options

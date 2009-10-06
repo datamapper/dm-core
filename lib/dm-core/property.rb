@@ -806,9 +806,11 @@ module DataMapper
       @lazy         = @options.fetch(:lazy,         @type.respond_to?(:lazy) ? @type.lazy : false) && !@key
 
       # assign attributes per-type
-      if String == @primitive || Class == @primitive
+      if [ String, Class ].include?(@primitive)
         @length = @options.fetch(:length, DEFAULT_LENGTH)
-      elsif BigDecimal == @primitive || Float == @primitive
+      elsif DataMapper::Types::Text == @primitive
+        @length = @options.fetch(:length)
+      elsif [ BigDecimal, Float ].include?(@primitive)
         @precision = @options.fetch(:precision, DEFAULT_PRECISION)
         @scale     = @options.fetch(:scale,     Float == @primitive ? DEFAULT_SCALE_FLOAT : DEFAULT_SCALE_BIGDECIMAL)
 
