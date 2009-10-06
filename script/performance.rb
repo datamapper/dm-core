@@ -1,10 +1,10 @@
-#!/usr/bin/env ruby -KU
+#!/usr/bin/env ruby -Ku
 
 require 'ftools'
 require 'rubygems'
 
-gem 'activerecord', '~>2.3.2'
-gem 'addressable',  '~>2.0'
+gem 'activerecord', '~>2.3.4'
+gem 'addressable',  '~>2.1'
 gem 'faker',        '~>0.3.1'
 gem 'rbench',       '~>0.2.3'
 
