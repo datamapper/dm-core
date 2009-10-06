@@ -127,7 +127,7 @@ module DataMapper
         @primitive = primitive
 
         # inherit the options from the primitive if any
-        if @primitive.respond_to?(:options)
+        if @primitive.respond_to?(:options) && @primitive.options.respond_to?(:each)
           @primitive.options.each do |key, value|
             send(key, value) unless send(key)
           end
