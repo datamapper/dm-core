@@ -422,13 +422,12 @@ module DataMapper
 
           method = safe ? :save : :save!
 
-          collection = intermediaries
-          return unless collection.send(method)
+          return unless intermediaries.send(method)
 
           attributes = {}
           attributes[via] = resource if resource
 
-          intermediary = collection.first_or_new(attributes)
+          intermediary = intermediaries.first_or_new(attributes)
           return unless intermediary.send(method)
 
           # map the resource, even if it is nil, to the intermediary
