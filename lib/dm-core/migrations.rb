@@ -243,7 +243,7 @@ module DataMapper
         def property_schema_hash(property)
           schema = (self.class.type_map[property.type] || self.class.type_map[property.primitive]).merge(:name => property.field)
 
-          if property.primitive == String
+          if property.primitive == String && schema[:primitive] != 'TEXT' && schema[:primitive] != 'CLOB'
             schema[:length] = property.length
           elsif property.primitive == BigDecimal || property.primitive == Float
             schema[:precision] = property.precision
