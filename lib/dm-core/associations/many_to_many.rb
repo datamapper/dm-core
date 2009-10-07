@@ -370,7 +370,7 @@ module DataMapper
         def _create(safe, attributes)
           if via.respond_to?(:resource_for)
             resource = super
-            if create_intermediary(safe, via => resource)
+            if create_intermediary(safe, resource)
               resource
             end
           else
@@ -394,7 +394,7 @@ module DataMapper
 
           if via.respond_to?(:resource_for)
             super
-            loaded_entries.all? { |resource| create_intermediary(safe, via => resource) }
+            loaded_entries.all? { |resource| create_intermediary(safe, resource) }
           else
             if intermediary = create_intermediary(safe)
               inverse = via.inverse
@@ -405,17 +405,34 @@ module DataMapper
           end
         end
 
+        # Map the resources in the collection to the intermediaries
+        #
+        # @return [Hash]
+        #   the map of resources to their intermediaries
+        #
+        # @api private
+        def intermediary_for
+          @intermediary_for ||= {}
+        end
+
         # TODO: document
         # @api private
-        def create_intermediary(safe, attributes = {})
+        def create_intermediary(safe, resource = nil)
+          return intermediary_for[resource] if intermediary_for[resource]
+
+          method = safe ? :save : :save!
+
           collection = intermediaries
+          return unless collection.send(method)
 
-          return unless collection.send(safe ? :save : :save!)
+          attributes = {}
+          attributes[via] = resource if resource
 
-          intermediary = collection.first(attributes) ||
-                         collection.send(safe ? :create : :create!, attributes)
+          intermediary = collection.first_or_new(attributes)
+          return unless intermediary.send(method)
 
-          return intermediary if intermediary.saved?
+          # map the resource, even if it is nil, to the intermediary
+          intermediary_for[resource] = intermediary
         end
 
         # TODO: document
