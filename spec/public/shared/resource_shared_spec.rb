@@ -533,288 +533,290 @@ share_examples_for 'A public Resource' do
     end
   end
 
-  it { @user.should respond_to(:save) }
+  [ :save, :save! ].each do |method|
+    it { @user.should respond_to(method) }
 
-  describe '#save' do
-    describe 'on a new, not dirty resource' do
-      before :all do
-        @user = @user_model.new
-        @return = @user.save
-      end
+    describe "##{method}" do
+      describe 'on a new, not dirty resource' do
+        before :all do
+          @user = @user_model.new
+          @return = @user.send(method)
+        end
 
-      it 'should return false' do
-        @return.should be_false
-      end
-    end
-
-    describe 'on a not new, not dirty resource' do
-      it 'should return true even when resource is not dirty' do
-        @user.save.should be_true
-      end
-    end
-
-    describe 'on a not new, dirty resource' do
-      before :all do
-        rescue_if 'TODO', @skip do
-          @user.age = 26
-          @return = @user.save
+        it 'should return false' do
+          @return.should be_false
         end
       end
 
-      it 'should save a resource succesfully when dirty' do
-        @return.should be_true
-      end
-
-      it 'should actually store the changes to persistent storage' do
-        @user.attributes.should == @user.reload.attributes
-      end
-    end
-
-    describe 'on a dirty invalid resource' do
-      before :all do
-        rescue_if 'TODO', @skip do
-          @user.name = nil
+      describe 'on a not new, not dirty resource' do
+        it 'should return true even when resource is not dirty' do
+          @user.send(method).should be_true
         end
       end
 
-      it 'should not save an invalid resource' do
-        @user.save.should be_false
-      end
-    end
-
-    describe 'with new resources in a has relationship' do
-      before do
-        rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
-          @initial_comments = @user.comments.size
-          @first_comment    = @user.comments.new(:body => "DM is great!")
-          @second_comment   = @comment_model.new(:user => @user, :body => "is it really?")
-          @return           = @user.save
+      describe 'on a not new, dirty resource' do
+        before :all do
+          rescue_if 'TODO', @skip do
+            @user.age = 26
+            @return = @user.send(method)
+          end
         end
-      end
 
-      it 'should save resource' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
+        it 'should save a resource succesfully when dirty' do
           @return.should be_true
         end
-      end
 
-      it 'should save the first resource created through new' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
-          @first_comment.new?.should be_false
+        it 'should actually store the changes to persistent storage' do
+          @user.attributes.should == @user.reload.attributes
         end
       end
 
-      it 'should save the correct foreign key for the first resource' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
-          @first_comment.user.should eql(@user)
+      describe 'on a dirty invalid resource' do
+        before :all do
+          rescue_if 'TODO', @skip do
+            @user.name = nil
+          end
+        end
+
+        it 'should not save an invalid resource' do
+          @user.send(method).should be_false
         end
       end
 
-      it 'should save the second resource created through the constructor' do
-        pending "Changing a belongs_to parent should add the resource to the correct association" do
-          @second_comment.new?.should be_false
+      describe 'with new resources in a has relationship' do
+        before do
+          rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
+            @initial_comments = @user.comments.size
+            @first_comment    = @user.comments.new(:body => "DM is great!")
+            @second_comment   = @comment_model.new(:user => @user, :body => "is it really?")
+            @return           = @user.send(method)
+          end
+        end
+
+        it 'should save resource' do
+          pending_if 'TODO', !@user.respond_to?(:comments) do
+            @return.should be_true
+          end
+        end
+
+        it 'should save the first resource created through new' do
+          pending_if 'TODO', !@user.respond_to?(:comments) do
+            @first_comment.new?.should be_false
+          end
+        end
+
+        it 'should save the correct foreign key for the first resource' do
+          pending_if 'TODO', !@user.respond_to?(:comments) do
+            @first_comment.user.should eql(@user)
+          end
+        end
+
+        it 'should save the second resource created through the constructor' do
+          pending "Changing a belongs_to parent should add the resource to the correct association" do
+            @second_comment.new?.should be_false
+          end
+        end
+
+        it 'should save the correct foreign key for the second resource' do
+          pending_if 'TODO', !@user.respond_to?(:comments) do
+            @second_comment.user.should eql(@user)
+          end
+        end
+
+        it 'should create 2 extra resources in persistent storage' do
+          pending "Changing a belongs_to parent should add the resource to the correct association" do
+            @user.comments.size.should == @initial_comments + 2
+          end
         end
       end
 
-      it 'should save the correct foreign key for the second resource' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
-          @second_comment.user.should eql(@user)
+      describe 'with dirty resources in a has relationship' do
+        before :all do
+          rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
+            @initial_comments = @user.comments.size
+            @first_comment    = @user.comments.create(:body => "DM is great!")
+            @second_comment   = @comment_model.create(:user => @user, :body => "is it really?")
+
+            @first_comment.body  = "It still has rough edges"
+            @second_comment.body = "But these cool specs help fixing that"
+            @second_comment.user = @user_model.create(:name => 'dkubb')
+            @return              = @user.send(method)
+          end
+        end
+
+        it 'should save the dirty resources' do
+          pending_if 'TODO', !@user.respond_to?(:comments) do
+            @return.should be_true
+          end
+        end
+
+        it 'should have saved the first child resource' do
+          pending_if 'TODO', !@user.respond_to?(:comments) do
+            @first_comment.should_not be_dirty
+          end
+        end
+
+        it 'should not have saved the second child resource' do
+          pending_if 'TODO', !@user.respond_to?(:comments) do
+            @second_comment.should be_dirty
+          end
+        end
+
+      end
+
+      describe 'with a new dependency' do
+        before :all do
+          @first_comment      = @comment_model.new(:body => "DM is great!")
+          @first_comment.user = @user_model.new(:name => 'dkubb')
+        end
+
+        it 'should not raise an exception when saving the resource' do
+          pending do
+            lambda { @first_comment.send(method).should be_false }.should_not raise_error
+          end
         end
       end
 
-      it 'should create 2 extra resources in persistent storage' do
-        pending "Changing a belongs_to parent should add the resource to the correct association" do
-          @user.comments.size.should == @initial_comments + 2
+      describe 'with a dirty dependency' do
+        before :all do
+          rescue_if 'TODO', @skip do
+            @user.name = 'dbussink-the-second'
+
+            @first_comment = @comment_model.new(:body => 'DM is great!')
+            @first_comment.user = @user
+
+            @return = @first_comment.send(method)
+          end
         end
-      end
-    end
 
-    describe 'with dirty resources in a has relationship' do
-      before :all do
-        rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
-          @initial_comments = @user.comments.size
-          @first_comment    = @user.comments.create(:body => "DM is great!")
-          @second_comment   = @comment_model.create(:user => @user, :body => "is it really?")
-
-          @first_comment.body  = "It still has rough edges"
-          @second_comment.body = "But these cool specs help fixing that"
-          @second_comment.user = @user_model.create(:name => 'dkubb')
-          @return              = @user.save
-        end
-      end
-
-      it 'should save the dirty resources' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
+        it 'should succesfully save the resource' do
           @return.should be_true
         end
-      end
 
-      it 'should have saved the first child resource' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
-          @first_comment.should_not be_dirty
+        it 'should not have a dirty dependency' do
+          @user.should_not be_dirty
+        end
+
+        it 'should succesfully save the dependency' do
+          @user.attributes.should == @user_model.get(*@user.key).attributes
         end
       end
 
-      it 'should not have saved the second child resource' do
-        pending_if 'TODO', !@user.respond_to?(:comments) do
-          @second_comment.should be_dirty
+      describe 'with a new resource and new relations' do
+        before :all do
+          @article = @article_model.new(:body => "Main")
+          rescue_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
+            @paragraph = @article.paragraphs.new(:text => 'Content')
+
+            @article.send(method)
+          end
+        end
+
+        it 'should not be dirty' do
+          pending_if 'TODO', !@article.respond_to?(:paragraphs) do
+            @article.should_not be_dirty
+          end
+        end
+
+        it 'should not be dirty' do
+          pending_if 'TODO', !@article.respond_to?(:paragraphs) do
+            @paragraph.should_not be_dirty
+          end
+        end
+
+        it 'should set the related resource' do
+          pending_if 'TODO', !@article.respond_to?(:paragraphs) do
+            @paragraph.article.should == @article
+          end
+        end
+
+        it 'should set the foreign key properly' do
+          pending_if 'TODO', !@article.respond_to?(:paragraphs) do
+            @paragraph.article_id.should == @article.id
+          end
         end
       end
 
-    end
-
-    describe 'with a new dependency' do
-      before :all do
-        @first_comment      = @comment_model.new(:body => "DM is great!")
-        @first_comment.user = @user_model.new(:name => 'dkubb')
-      end
-
-      it 'should not raise an exception when saving the resource' do
-        pending do
-          lambda { @first_comment.save.should be_false }.should_not raise_error
+      describe 'with a dirty resource with a changed key' do
+        before :all do
+          rescue_if 'TODO', @skip do
+            @original_key = @user.key
+            @user.name = 'dkubb'
+            @return = @user.send(method)
+          end
         end
-      end
-    end
 
-    describe 'with a dirty dependency' do
-      before :all do
-        rescue_if 'TODO', @skip do
-          @user.name = 'dbussink-the-second'
-
-          @first_comment = @comment_model.new(:body => 'DM is great!')
-          @first_comment.user = @user
-
-          @return = @first_comment.save
+        it 'should save a resource succesfully when dirty' do
+          @return.should be_true
         end
-      end
 
-      it 'should succesfully save the resource' do
-        @return.should be_true
-      end
+        it 'should actually store the changes to persistent storage' do
+          @user.name.should == @user.reload.name
+        end
 
-      it 'should not have a dirty dependency' do
-        @user.should_not be_dirty
-      end
+        it 'should update the identity map' do
+          @user.repository.identity_map(@user_model).should have_key(%w[ dkubb ])
+        end
 
-      it 'should succesfully save the dependency' do
-        @user.attributes.should == @user_model.get(*@user.key).attributes
-      end
-    end
-
-    describe 'with a new resource and new relations' do
-      before :all do
-        @article = @article_model.new(:body => "Main")
-        rescue_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
-          @paragraph = @article.paragraphs.new(:text => 'Content')
-
-          @article.save
+        it 'should remove the old entry from the identity map' do
+          @user.repository.identity_map(@user_model).should_not have_key(@original_key)
         end
       end
 
-      it 'should not be dirty' do
-        pending_if 'TODO', !@article.respond_to?(:paragraphs) do
-          @article.should_not be_dirty
+      describe 'on a new resource with unsaved parent and grandparent' do
+        before :all do
+          @grandparent = @user_model.new(:name => 'dkubb',       :comment => @comment)
+          @parent      = @user_model.new(:name => 'ashleymoran', :comment => @comment, :referrer => @grandparent)
+          @child       = @user_model.new(:name => 'mrship',      :comment => @comment, :referrer => @parent)
+
+          @response = @child.send(method)
+        end
+
+        it 'should return true' do
+          @response.should be_true
+        end
+
+        it 'should save the child' do
+          @child.should be_saved
+        end
+
+        it 'should save the parent' do
+          @parent.should be_saved
+        end
+
+        it 'should save the grandparent' do
+          @grandparent.should be_saved
+        end
+
+        it 'should relate the child to the parent' do
+          pending_if 'TODO', @one_to_one_through do
+            @child.model.get(*@child.key).referrer.should == @parent
+          end
+        end
+
+        it 'should relate the parent to the grandparent' do
+          pending_if 'TODO', @one_to_one_through do
+            @parent.model.get(*@parent.key).referrer.should == @grandparent
+          end
+        end
+
+        it 'should relate the grandparent to nothing' do
+          pending_if 'TODO', @one_to_one_through do
+            @grandparent.model.get(*@grandparent.key).referrer.should be_nil
+          end
         end
       end
 
-      it 'should not be dirty' do
-        pending_if 'TODO', !@article.respond_to?(:paragraphs) do
-          @paragraph.should_not be_dirty
+      describe 'on a destroyed resource' do
+        before :all do
+          @user.destroy
         end
-      end
 
-      it 'should set the related resource' do
-        pending_if 'TODO', !@article.respond_to?(:paragraphs) do
-          @paragraph.article.should == @article
+        it 'should raise an exception' do
+          lambda {
+            @user.send(method)
+          }.should raise_error(DataMapper::PersistenceError, "#{@user.model}##{method} cannot be called on a destroyed resource")
         end
-      end
-
-      it 'should set the foreign key properly' do
-        pending_if 'TODO', !@article.respond_to?(:paragraphs) do
-          @paragraph.article_id.should == @article.id
-        end
-      end
-    end
-
-    describe 'with a dirty resource with a changed key' do
-      before :all do
-        rescue_if 'TODO', @skip do
-          @original_key = @user.key
-          @user.name = 'dkubb'
-          @return = @user.save
-        end
-      end
-
-      it 'should save a resource succesfully when dirty' do
-        @return.should be_true
-      end
-
-      it 'should actually store the changes to persistent storage' do
-        @user.name.should == @user.reload.name
-      end
-
-      it 'should update the identity map' do
-        @user.repository.identity_map(@user_model).should have_key(%w[ dkubb ])
-      end
-
-      it 'should remove the old entry from the identity map' do
-        @user.repository.identity_map(@user_model).should_not have_key(@original_key)
-      end
-    end
-
-    describe 'on a new resource with unsaved parent and grandparent' do
-      before :all do
-        @grandparent = @user_model.new(:name => 'dkubb',       :comment => @comment)
-        @parent      = @user_model.new(:name => 'ashleymoran', :comment => @comment, :referrer => @grandparent)
-        @child       = @user_model.new(:name => 'mrship',      :comment => @comment, :referrer => @parent)
-
-        @response = @child.save
-      end
-
-      it 'should return true' do
-        @response.should be_true
-      end
-
-      it 'should save the child' do
-        @child.should be_saved
-      end
-
-      it 'should save the parent' do
-        @parent.should be_saved
-      end
-
-      it 'should save the grandparent' do
-        @grandparent.should be_saved
-      end
-
-      it 'should relate the child to the parent' do
-        pending_if 'TODO', @one_to_one_through do
-          @child.model.get(*@child.key).referrer.should == @parent
-        end
-      end
-
-      it 'should relate the parent to the grandparent' do
-        pending_if 'TODO', @one_to_one_through do
-          @parent.model.get(*@parent.key).referrer.should == @grandparent
-        end
-      end
-
-      it 'should relate the grandparent to nothing' do
-        pending_if 'TODO', @one_to_one_through do
-          @grandparent.model.get(*@grandparent.key).referrer.should be_nil
-        end
-      end
-    end
-
-    describe 'on a destroyed resource' do
-      before :all do
-        @user.destroy
-      end
-
-      it 'should raise an exception' do
-        lambda {
-          @user.save
-        }.should raise_error(DataMapper::PersistenceError, "#{@user.model}#save cannot be called on a destroyed resource")
       end
     end
   end
