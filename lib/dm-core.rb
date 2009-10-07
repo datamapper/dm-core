@@ -141,10 +141,6 @@ module DataMapper
   # and thus there is no FK value to use in the query.
   class UnsavedParentError < PersistenceError; end
 
-  # TODO: move to dm-validations
-  class ValidationError < RuntimeError; end
-
-
   # TODO: document
   # @api private
   def self.root
