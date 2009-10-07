@@ -118,20 +118,19 @@ DataMapper::Logger.new(StringIO.new, :fatal)
 module DataMapper
   extend Extlib::Assertions
 
-  # TODO: move to dm-validations
-  class ValidationError < StandardError; end
-
-  class ObjectNotFoundError < StandardError; end
-
   class RepositoryNotSetupError < StandardError; end
 
   class IncompleteModelError < StandardError; end
 
   class PluginNotFoundError < StandardError; end
 
-  class UpdateConflictError < StandardError; end
-
   class UnknownRelationshipError < StandardError; end
+
+  class ObjectNotFoundError < RuntimeError; end
+
+  class PersistenceError < RuntimeError; end
+
+  class UpdateConflictError < PersistenceError; end
 
   # Raised on attempt to operate on collection of child objects
   # when parent object is not yet saved.
@@ -140,7 +139,11 @@ module DataMapper
   # publications (n:m case), operation cannot be completed
   # because parent object's keys are not yet persisted,
   # and thus there is no FK value to use in the query.
-  class UnsavedParentError < RuntimeError; end
+  class UnsavedParentError < PersistenceError; end
+
+  # TODO: move to dm-validations
+  class ValidationError < RuntimeError; end
+
 
   # TODO: document
   # @api private

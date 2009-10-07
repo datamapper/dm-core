@@ -334,6 +334,7 @@ module DataMapper
     # @api public
     chainable do
       def save
+        assert_not_destroyed(:save)
         save_parents && save_self && save_children
       end
     end
@@ -345,6 +346,7 @@ module DataMapper
     #
     # @api public
     def save!
+      assert_not_destroyed(:save!)
       save_parents(false) && save_self(false) && save_children(false)
     end
 
@@ -933,6 +935,23 @@ module DataMapper
     def assert_update_clean_only(method)
       if dirty?
         raise UpdateConflictError, "#{model}##{method} cannot be called on a dirty resource"
+      end
+    end
+
+    # Raises an exception if #save is performed on a destroyed resource
+    #
+    # @param [Symbol] method
+    #   the name of the method to use in the exception
+    #
+    # @return [undefined]
+    #
+    # @raise [PersistenceError]
+    #   raise if the resource is destroyed
+    #
+    # @api private
+    def assert_not_destroyed(method)
+      if destroyed?
+        raise PersistenceError, "#{model}##{method} cannot be called on a destroyed resource"
       end
     end
   end # module Resource

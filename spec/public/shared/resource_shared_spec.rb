@@ -25,7 +25,7 @@ share_examples_for 'A public Resource' do
     it { @user.should respond_to(method) }
 
     describe "##{method}" do
-      describe 'when comparing to the same object' do
+      describe 'when comparing to the same resource' do
         before :all do
           @other  = @user
           @return = @user.send(method, @other)
@@ -36,7 +36,7 @@ share_examples_for 'A public Resource' do
         end
       end
 
-      describe 'when comparing to an object that does not respond to model' do
+      describe 'when comparing to an resource that does not respond to model' do
         before :all do
           @other  = Object.new
           @return = @user.send(method, @other)
@@ -222,7 +222,7 @@ share_examples_for 'A public Resource' do
     it { @user.should respond_to(:destroy) }
 
     describe "##{method}" do
-      describe 'on a single object' do
+      describe 'on a single resource' do
         before :all do
           @resource = @user_model.create(:name => 'hacker', :age => 20, :comment => @comment)
 
@@ -241,7 +241,7 @@ share_examples_for 'A public Resource' do
           @resource.send(method).should be_true
         end
 
-        it 'should remove object from persistent storage' do
+        it 'should remove resource from persistent storage' do
           @user_model.get(*@resource.key).should be_nil
         end
       end
@@ -333,7 +333,7 @@ share_examples_for 'A public Resource' do
   it { @user.should respond_to(:eql?) }
 
   describe '#eql?' do
-    describe 'when comparing to the same object' do
+    describe 'when comparing to the same resource' do
       before :all do
         @other  = @user
         @return = @user.eql?(@other)
@@ -344,7 +344,7 @@ share_examples_for 'A public Resource' do
       end
     end
 
-    describe 'when comparing to an object that does not respond to model' do
+    describe 'when comparing to an resource that does not respond to model' do
       before :all do
         @other  = Object.new
         @return = @user.eql?(@other)
@@ -500,8 +500,7 @@ share_examples_for 'A public Resource' do
   it { @user.should respond_to(:reload) }
 
   describe '#reload' do
-
-    describe 'for a single object' do
+    describe 'for a single resource' do
 
       before :all do
         rescue_if 'TODO', @skip do
@@ -518,8 +517,7 @@ share_examples_for 'A public Resource' do
       end
     end
 
-    describe 'for when the object is changed outside another object' do
-
+    describe 'for when the resource is changed outside another resource' do
       before :all do
         rescue_if 'TODO', @skip do
           @user2 = @user.dup
@@ -529,20 +527,16 @@ share_examples_for 'A public Resource' do
         end
       end
 
-      it 'should reload the object from the data store' do
+      it 'should reload the resource from the data store' do
         @user.description.should eql('Changed')
       end
-
     end
-
   end
 
   it { @user.should respond_to(:save) }
 
   describe '#save' do
-
-    describe 'on a new, not dirty object' do
-
+    describe 'on a new, not dirty resource' do
       before :all do
         @user = @user_model.new
         @return = @user.save
@@ -551,19 +545,15 @@ share_examples_for 'A public Resource' do
       it 'should return false' do
         @return.should be_false
       end
-
     end
 
-    describe 'on a not new, not dirty object' do
-
+    describe 'on a not new, not dirty resource' do
       it 'should return true even when resource is not dirty' do
         @user.save.should be_true
       end
-
     end
 
-    describe 'on a not new, dirty object' do
-
+    describe 'on a not new, dirty resource' do
       before :all do
         rescue_if 'TODO', @skip do
           @user.age = 26
@@ -580,7 +570,7 @@ share_examples_for 'A public Resource' do
       end
     end
 
-    describe 'on a dirty invalid object' do
+    describe 'on a dirty invalid resource' do
       before :all do
         rescue_if 'TODO', @skip do
           @user.name = nil
@@ -621,7 +611,7 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should save the second resource created through the constructor' do
-        pending "Changing a belongs_to parent should add the object to the correct association" do
+        pending "Changing a belongs_to parent should add the resource to the correct association" do
           @second_comment.new?.should be_false
         end
       end
@@ -633,11 +623,10 @@ share_examples_for 'A public Resource' do
       end
 
       it 'should create 2 extra resources in persistent storage' do
-        pending "Changing a belongs_to parent should add the object to the correct association" do
+        pending "Changing a belongs_to parent should add the resource to the correct association" do
           @user.comments.size.should == @initial_comments + 2
         end
       end
-
     end
 
     describe 'with dirty resources in a has relationship' do
@@ -675,7 +664,6 @@ share_examples_for 'A public Resource' do
     end
 
     describe 'with a new dependency' do
-
       before :all do
         @first_comment      = @comment_model.new(:body => "DM is great!")
         @first_comment.user = @user_model.new(:name => 'dkubb')
@@ -686,7 +674,6 @@ share_examples_for 'A public Resource' do
           lambda { @first_comment.save.should be_false }.should_not raise_error
         end
       end
-
     end
 
     describe 'with a dirty dependency' do
@@ -701,7 +688,7 @@ share_examples_for 'A public Resource' do
         end
       end
 
-      it 'should succesfully save the object' do
+      it 'should succesfully save the resource' do
         @return.should be_true
       end
 
@@ -712,10 +699,9 @@ share_examples_for 'A public Resource' do
       it 'should succesfully save the dependency' do
         @user.attributes.should == @user_model.get(*@user.key).attributes
       end
-
     end
 
-    describe 'with a new object and new relations' do
+    describe 'with a new resource and new relations' do
       before :all do
         @article = @article_model.new(:body => "Main")
         rescue_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
@@ -737,7 +723,7 @@ share_examples_for 'A public Resource' do
         end
       end
 
-      it 'should set the related object' do
+      it 'should set the related resource' do
         pending_if 'TODO', !@article.respond_to?(:paragraphs) do
           @paragraph.article.should == @article
         end
@@ -750,8 +736,7 @@ share_examples_for 'A public Resource' do
       end
     end
 
-    describe 'with a dirty object with a changed key' do
-
+    describe 'with a dirty resource with a changed key' do
       before :all do
         rescue_if 'TODO', @skip do
           @original_key = @user.key
@@ -775,10 +760,9 @@ share_examples_for 'A public Resource' do
       it 'should remove the old entry from the identity map' do
         @user.repository.identity_map(@user_model).should_not have_key(@original_key)
       end
-
     end
 
-    describe 'on a new object with unsaved parent and grandparent' do
+    describe 'on a new resource with unsaved parent and grandparent' do
       before :all do
         @grandparent = @user_model.new(:name => 'dkubb',       :comment => @comment)
         @parent      = @user_model.new(:name => 'ashleymoran', :comment => @comment, :referrer => @grandparent)
@@ -822,6 +806,17 @@ share_examples_for 'A public Resource' do
       end
     end
 
+    describe 'on a destroyed resource' do
+      before :all do
+        @user.destroy
+      end
+
+      it 'should raise an exception' do
+        lambda {
+          @user.save
+        }.should raise_error(DataMapper::PersistenceError, "#{@user.model}#save cannot be called on a destroyed resource")
+      end
+    end
   end
 
   it { @user.should respond_to(:saved?) }
