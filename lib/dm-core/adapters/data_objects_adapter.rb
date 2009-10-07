@@ -471,21 +471,9 @@ module DataMapper
         # @api private
         def conditions_statement(conditions, qualify = false)
           case conditions
-            when Query::Conditions::NotOperation
-              negate_operation(conditions, qualify)
-
-            when Query::Conditions::AbstractOperation
-              # TODO: remove this once conditions can be compressed
-              if conditions.operands.size == 1
-                # factor out operations with a single operand
-                conditions_statement(conditions.operands.first, qualify)
-              else
-                operation_statement(conditions, qualify)
-              end
-
-            when Query::Conditions::AbstractComparison
-              comparison_statement(conditions, qualify)
-
+            when Query::Conditions::NotOperation       then negate_operation(conditions, qualify)
+            when Query::Conditions::AbstractOperation  then operation_statement(conditions, qualify)
+            when Query::Conditions::AbstractComparison then comparison_statement(conditions, qualify)
             when Array
               statement, bind_values = conditions  # handle raw conditions
               [ "(#{statement})", bind_values ]
@@ -527,17 +515,16 @@ module DataMapper
 
           operation.each do |operand|
             statement, values = conditions_statement(operand, qualify)
-
-            if operand.respond_to?(:operands) && operand.operands.size > 1
-              statement = "(#{statement})"
-            end
-
             statements << statement
             bind_values.concat(values)
           end
 
           join_with = operation.kind_of?(@negated ? Query::Conditions::OrOperation : Query::Conditions::AndOperation) ? 'AND' : 'OR'
           statement = statements.join(" #{join_with} ")
+
+          if statements.size > 1
+            statement = "(#{statement})"
+          end
 
           return statement, bind_values
         end
