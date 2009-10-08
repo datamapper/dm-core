@@ -423,9 +423,7 @@ module DataMapper
     # @api semipublic
     def match_records(records)
       return records if conditions.nil?
-      records.select do |record|
-        conditions.matches?(record)
-      end
+      records.select { |record| conditions.matches?(record) }
     end
 
     # Sorts a list of Records by the order
