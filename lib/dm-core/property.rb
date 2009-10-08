@@ -1022,7 +1022,9 @@ module DataMapper
     #
     # @api private
     def typecast_to_datetime(value)
-      if value.respond_to?(:to_mash)
+      if value.respond_to?(:to_datetime)
+        value.to_datetime
+      elsif value.respond_to?(:to_mash)
         typecast_hash_to_datetime(value)
       else
         DateTime.parse(value.to_s)
@@ -1042,7 +1044,9 @@ module DataMapper
     #
     # @api private
     def typecast_to_date(value)
-      if value.respond_to?(:to_mash)
+      if value.respond_to?(:to_date)
+        value.to_date
+      elsif value.respond_to?(:to_mash)
         typecast_hash_to_date(value)
       else
         Date.parse(value.to_s)
@@ -1062,7 +1066,9 @@ module DataMapper
     #
     # @api private
     def typecast_to_time(value)
-      if value.respond_to?(:to_mash)
+      if value.respond_to?(:to_time)
+        value.to_time
+      elsif value.respond_to?(:to_mash)
         typecast_hash_to_time(value)
       else
         Time.parse(value.to_s)
