@@ -40,11 +40,8 @@ share_examples_for 'A DataObjects Adapter' do
           include DataMapper::Resource
 
           property :id, Serial
-        end
 
-        # create all tables and constraints before each spec
-        if @repository.respond_to?(:auto_migrate!)
-          Article.auto_migrate!
+          auto_migrate!
         end
 
         reset_log
@@ -74,11 +71,8 @@ share_examples_for 'A DataObjects Adapter' do
 
           property :id,    Serial
           property :title, String
-        end
 
-        # create all tables and constraints before each spec
-        if @repository.respond_to?(:auto_migrate!)
-          Article.auto_migrate!
+          auto_migrate!
         end
 
         reset_log
@@ -103,14 +97,11 @@ share_examples_for 'A DataObjects Adapter' do
 
         property :name,   String, :key => true
         property :author, String, :nullable => false
+
+        auto_migrate!
       end
 
       @article_model = Article
-
-      # create all tables and constraints before each spec
-      if @repository.respond_to?(:auto_migrate!)
-        @article_model.auto_migrate!
-      end
 
       @article_model.create(:name => 'Learning DataMapper', :author => 'Dan Kubb')
     end
@@ -163,14 +154,11 @@ share_examples_for 'A DataObjects Adapter' do
 
         property :name,   String, :key => true
         property :author, String, :nullable => false
+
+        auto_migrate!
       end
 
       @article_model = Article
-
-      # create all tables and constraints before each spec
-      if @repository.respond_to?(:auto_migrate!)
-        @article_model.auto_migrate!
-      end
     end
 
     before :all do
@@ -188,6 +176,53 @@ share_examples_for 'A DataObjects Adapter' do
     it 'should not have an insert_id' do
       pending_if 'Inconsistent insert_id results', !(defined?(DataMapper::Adapters::PostgresAdapter) && @adapter.kind_of?(DataMapper::Adapters::PostgresAdapter)) do
         @result.insert_id.should be_nil
+      end
+    end
+  end
+
+  describe '#read' do
+    before :all do
+      class ::Article
+        include DataMapper::Resource
+
+        property :name, String, :key => true
+
+        auto_migrate!
+      end
+
+      @article_model = Article
+    end
+
+    describe 'with a raw query' do
+      before :all do
+        @article_model.create(:name => 'Test').should be_saved
+
+        @query = DataMapper::Query.new(@repository, @article_model, :conditions => [ 'name IS NOT NULL' ])
+
+        @return = @adapter.read(@query)
+      end
+
+      it 'should return an Array of Hashes' do
+        @return.should be_kind_of(Array)
+        @return.all? { |entry| entry.should be_kind_of(Hash) }
+      end
+
+      it 'should return expected values' do
+        @return.should == [ { @article_model.properties[:name] => 'Test' } ]
+      end
+    end
+
+    describe 'with a raw query with a bind value mismatch' do
+      before :all do
+        @article_model.create(:name => 'Test').should be_saved
+
+        @query = DataMapper::Query.new(@repository, @article_model, :conditions => [ 'name IS NOT NULL', nil ])
+      end
+
+      it 'should raise an error' do
+        lambda {
+          @adapter.read(@query)
+        }.should raise_error(ArgumentError, 'Binding mismatch: 1 for 0')
       end
     end
   end
