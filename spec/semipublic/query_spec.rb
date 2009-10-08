@@ -1651,23 +1651,23 @@ describe DataMapper::Query do
   it { @query.should respond_to(:merge) }
 
   describe '#merge' do
-    describe "with a Hash" do
-      before(:each) do
+    describe 'with a Hash' do
+      before do
         @return = @query.merge({ :limit => 202 })
       end
 
-      it "does not affect the receiver" do
+      it 'does not affect the receiver' do
         @query.options[:limit].should == 3
       end
     end
 
-    describe "with a Query" do
-      before(:each) do
+    describe 'with a Query' do
+      before do
         @other  = DataMapper::Query.new(@repository, @model, @options.update(@other_options))
         @return = @query.merge(@other)
       end
 
-      it "does not affect the receiver" do
+      it 'does not affect the receiver' do
         @query.options[:limit].should == 3
       end
     end
@@ -2424,15 +2424,16 @@ describe DataMapper::Query do
       describe 'that has conditions set' do
         before :all do
           @and_operation = DataMapper::Query::Conditions::Operation.new(:and)
-          @or_operation = DataMapper::Query::Conditions::Operation.new(:or)
+          @or_operation  = DataMapper::Query::Conditions::Operation.new(:or)
 
-          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.name,"Dan Kubb")
-          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.citizenship,"Canada")
+          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.name,       'Dan Kubb')
+          @and_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.citizenship,'Canada')
 
-          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.name,"Ted Han")
-          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql,User.citizenship,"USA")
-          @query_one = DataMapper::Query.new(@repository, @model, {:conditions=>@and_operation})
-          @query_two = DataMapper::Query.new(@repository, @model, {:conditions=>@or_operation})
+          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.name,        'Ted Han')
+          @or_operation << DataMapper::Query::Conditions::Comparison.new(:eql, User.citizenship, 'USA')
+
+          @query_one = DataMapper::Query.new(@repository, @model, :conditions => @and_operation)
+          @query_two = DataMapper::Query.new(@repository, @model, :conditions => @or_operation)
 
           @conditions = @query_one.merge(@query_two).conditions
         end
