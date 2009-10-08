@@ -899,8 +899,6 @@ module DataMapper
 
     # Normalize fields to Property instances
     #
-    #   TODO: needs example
-    #
     # @api private
     def normalize_fields
       @fields = @fields.map do |field|
@@ -962,6 +960,7 @@ module DataMapper
           @links << relationship
         end
       end
+
       @links.reverse!
     end
 
