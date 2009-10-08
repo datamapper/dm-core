@@ -263,14 +263,7 @@ module DataMapper
           "#{@subject} #{comparator_string} #{@value}"
         end
 
-        private # ============================================================
-
-        # Holds the actual value of the given property or relationship
-        #
-        # @return [Object]
-        #
-        # @api semipublic
-        attr_reader :expected
+        private
 
         # Creates a new AbstractComparison instance with +subject+ and +value+
         #
@@ -285,7 +278,6 @@ module DataMapper
           @subject      = subject
           @loaded_value = typecast_value(value)
           @value        = dumped_value(@loaded_value)
-          @expected     = expected_value
         end
 
         # Used by Ruby when creating a copy of the comparison
@@ -477,7 +469,7 @@ module DataMapper
         # @return [Boolean]
         # @api semipublic
         def matches?(record)
-          record_value(record) == expected
+          record_value(record) == expected_value
         end
 
         private
@@ -510,7 +502,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && expected.include?(record_value)
+          !record_value.nil? && expected_value.include?(record_value)
         end
 
         # Checks that the Comparison is valid
@@ -612,7 +604,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value =~ expected
+          !record_value.nil? && record_value =~ expected_value
         end
 
         # Checks that the Comparison is valid
@@ -662,7 +654,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value =~ expected
+          !record_value.nil? && record_value =~ expected_value
         end
 
         private
@@ -706,7 +698,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value > expected
+          !record_value.nil? && record_value > expected_value
         end
 
         private
@@ -736,7 +728,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value < expected
+          !record_value.nil? && record_value < expected_value
         end
 
         private
@@ -766,7 +758,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value >= expected
+          !record_value.nil? && record_value >= expected_value
         end
 
         private
@@ -794,7 +786,7 @@ module DataMapper
         # @api semipublic
         def matches?(record)
           record_value = record_value(record)
-          !record_value.nil? && record_value <= expected
+          !record_value.nil? && record_value <= expected_value
         end
 
         private
