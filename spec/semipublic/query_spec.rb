@@ -2592,13 +2592,33 @@ describe DataMapper::Query do
 
         it 'should update the conditions' do
           @return.conditions.should == DataMapper::Query::Conditions::Operation.new(
-                                          :and,
-                                          DataMapper::Query::Conditions::Comparison.new(:eql,
-                                                                                 @model.properties[:name],
-                                                                                 @options[:name]
-                                                                                )
+            :and,
+            DataMapper::Query::Conditions::Comparison.new(
+              :eql,
+              @model.properties[:name],
+              @options[:name]
+            )
           )
-          #@return.conditions.should == [ [ :eql, @model.properties[:name], @options[:name] ] ]
+        end
+      end
+
+      describe 'using raw conditions' do
+        before :all do
+          @query.update(:conditions => [ 'name IS NOT NULL' ])
+
+          @return = @query.update(:conditions => [ 'name = ?', 'Dan Kubb' ])
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it { @return.should equal(@original) }
+
+        it 'should update the conditions' do
+          @return.conditions.should == DataMapper::Query::Conditions::Operation.new(
+            :and,
+            [ 'name IS NOT NULL' ],
+            [ 'name = ?', [ 'Dan Kubb' ] ]
+          )
         end
       end
     end

@@ -476,7 +476,7 @@ module DataMapper
             when Query::Conditions::AbstractComparison then comparison_statement(conditions, qualify)
             when Array
               statement, bind_values = conditions  # handle raw conditions
-              [ "(#{statement})", bind_values ]
+              [ "(#{statement})", bind_values ].compact
           end
         end
 
@@ -516,7 +516,7 @@ module DataMapper
           operation.each do |operand|
             statement, values = conditions_statement(operand, qualify)
             statements << statement
-            bind_values.concat(values)
+            bind_values.concat(values) unless values.nil?
           end
 
           join_with = operation.kind_of?(@negated ? Query::Conditions::OrOperation : Query::Conditions::AndOperation) ? 'AND' : 'OR'

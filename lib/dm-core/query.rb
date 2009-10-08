@@ -325,23 +325,25 @@ module DataMapper
     def update(other)
       assert_kind_of 'other', other, self.class, Hash
 
-      other_options = if other.kind_of? self.class
-        if self.eql?(other)
-          return self
-        end
+      other_options = if other.kind_of?(self.class)
+        return self if self.eql?(other)
         assert_valid_other(other)
         other.options
       else
+        return self if other.empty?
         other
       end
 
-      unless other_options.empty?
-        options = @options.merge(other_options)
-        if @options[:conditions] and other_options[:conditions]
-          options[:conditions] = @options[:conditions].dup << other_options[:conditions]
-        end
-        initialize(repository, model, options)
+      @options = @options.merge(other_options).freeze
+      assert_valid_options(@options)
+
+      normalize = other_options.only(*OPTIONS - [ :conditions ]).map do |attribute, value|
+        instance_variable_set("@#{attribute}", value.try_dup)
+        attribute
       end
+
+      merge_conditions([ other_options.except(*OPTIONS), other_options[:conditions] ])
+      normalize_options(normalize)
 
       self
     end
@@ -381,9 +383,9 @@ module DataMapper
         offset = options.delete(:offset)
         limit  = options.delete(:limit) || self.limit - offset
 
-        self.class.new(repository, model, @options.merge(options)).slice!(offset, limit)
+        merge(options).slice!(offset, limit)
       else
-        self.class.new(repository, model, @options.merge(options))
+        merge(options)
       end
     end
 
@@ -602,26 +604,8 @@ module DataMapper
 
       @links = @links.dup
 
-      # treat all non-options as conditions
-      @options.except(*OPTIONS).each { |kv| append_condition(*kv) }
-
-      # parse @options[:conditions] differently
-      case conditions = @options[:conditions]
-        when Conditions::AbstractOperation, Conditions::AbstractComparison
-          add_condition(conditions)
-
-        when Hash
-          conditions.each { |kv| append_condition(*kv) }
-
-        when Array
-          statement, *bind_values = *conditions
-          add_condition([ statement, bind_values ])
-          @raw = true
-      end
-
-      normalize_order
-      normalize_fields
-      normalize_links
+      merge_conditions([ @options.except(*OPTIONS), @options[:conditions] ])
+      normalize_options
     end
 
     # Copying contructor, called for Query#dup
@@ -861,9 +845,51 @@ module DataMapper
       end
     end
 
-    # Normalize order elements to Query::Direction instances
+    # Handle all the conditions options provided
     #
-    #   TODO: needs example
+    # @param [Array<Conditions::AbstractOperation, Conditions::AbstractComparison, Hash, Array>]
+    #   a list of conditions
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def merge_conditions(conditions)
+      @conditions = Conditions::Operation.new(:and) << @conditions unless @conditions.nil?
+
+      conditions.compact!
+      conditions.each do |condition|
+        case condition
+          when Conditions::AbstractOperation, Conditions::AbstractComparison
+            add_condition(condition)
+
+          when Hash
+            condition.each { |kv| append_condition(*kv) }
+
+          when Array
+            statement, *bind_values = *condition
+            raw_condition = [ statement ]
+            raw_condition << bind_values if bind_values.size > 0
+            add_condition(raw_condition)
+            @raw = true
+        end
+      end
+    end
+
+    # Normalize options
+    #
+    # @param [Array<Symbol>] options
+    #   the options to normalize
+    #
+    # @return [undefined]
+    #
+    # @api private
+    def normalize_options(options = OPTIONS)
+      (options & [ :order, :fields, :links ]).each do |option|
+        send("normalize_#{option}")
+      end
+    end
+
+    # Normalize order elements to Query::Direction instances
     #
     # @api private
     def normalize_order
