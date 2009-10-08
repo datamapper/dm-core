@@ -96,7 +96,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def <<(operand)
-          @operands << operand
+          @operands << operand unless operand.nil?
           self
         end
 

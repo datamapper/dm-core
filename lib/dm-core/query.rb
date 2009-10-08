@@ -1008,7 +1008,7 @@ module DataMapper
       condition = Conditions::Comparison.new(operator, property, bind_value)
 
       if negated
-        condition = Conditions::Operation.new(:not, condition)
+        condition = Conditions::Operation.new(:not) << condition
       end
 
       add_condition(condition)
