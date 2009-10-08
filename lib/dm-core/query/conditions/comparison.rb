@@ -278,14 +278,8 @@ module DataMapper
           @subject      = subject
           @loaded_value = typecast_value(value)
           @value        = dumped_value(@loaded_value)
-        end
 
-        # Used by Ruby when creating a copy of the comparison
-        #
-        # @api private
-        def initialize_copy(*)
-          @value        = @value.try_dup
-          @loaded_value = @loaded_value.try_dup
+          freeze
         end
 
         # Typecasts the given +val+ using subject#typecast
