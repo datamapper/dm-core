@@ -809,7 +809,9 @@ share_examples_for 'A public Resource' do
 
       describe 'on a destroyed resource' do
         before :all do
-          @user.destroy
+          rescue_if 'TODO', @skip do
+            @user.destroy
+          end
         end
 
         it 'should raise an exception' do
