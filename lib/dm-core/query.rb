@@ -377,12 +377,6 @@ module DataMapper
 
       options = options.dup
 
-      repository = options.delete(:repository) || self.repository
-
-      if repository.kind_of?(Symbol)
-        repository = DataMapper.repository(repository)
-      end
-
       if options.key?(:offset) && (options.key?(:limit) || self.limit)
         offset = options.delete(:offset)
         limit  = options.delete(:limit) || self.limit - offset

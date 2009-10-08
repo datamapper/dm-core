@@ -1751,45 +1751,6 @@ describe DataMapper::Query do
         end
       end
 
-      describe 'using a different repository as a Repository' do
-        before :all do
-          @repository = DataMapper::Repository.new(:other)
-          @return = @query.relative(:repository => @repository)
-        end
-
-        it { @return.should be_kind_of(DataMapper::Query) }
-
-        it 'should not return self' do
-          @return.should_not equal(@original)
-        end
-
-        it 'should set the repository' do
-          @return.repository.should equal(@repository)
-        end
-      end
-
-      describe 'using a different repository as a Symbol' do
-        before :all do
-          @other_adapter = DataMapper.setup(:other, :adapter => :in_memory)
-
-          @return = @query.relative(:repository => :other)
-        end
-
-        after :all do
-          DataMapper::Repository.adapters.delete(@other_adapter.name)
-        end
-
-        it { @return.should be_kind_of(DataMapper::Query) }
-
-        it 'should not return self' do
-          @return.should_not equal(@original)
-        end
-
-        it 'should set the repository' do
-          @return.repository.should == DataMapper::Repository.new(:other)
-        end
-      end
-
       describe 'using different options' do
         before :all do
           @return = @query.relative(@other_options)
