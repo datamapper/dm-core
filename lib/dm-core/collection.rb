@@ -460,12 +460,7 @@ module DataMapper
     #
     # @api public
     def <<(resource)
-      if resource.kind_of?(Hash)
-        resource = new(resource)
-      end
-
-      resource_added(resource)
-      super
+      super(resource_added(resource))
     end
 
     # Appends the resources to self
@@ -477,8 +472,7 @@ module DataMapper
     #
     # @api public
     def concat(resources)
-      resources_added(resources)
-      super
+      super(resources_added(resources))
     end
 
     # Append one or more Resources to the Collection
@@ -493,8 +487,7 @@ module DataMapper
     #
     # @api public
     def push(*resources)
-      resources_added(resources)
-      super
+      super(*resources_added(resources))
     end
 
     # Prepend one or more Resources to the Collection
@@ -509,8 +502,7 @@ module DataMapper
     #
     # @api public
     def unshift(*resources)
-      resources_added(resources)
-      super
+      super(*resources_added(resources))
     end
 
     # Inserts the Resources before the Resource at the offset (which may be negative).
@@ -524,8 +516,7 @@ module DataMapper
     #
     # @api public
     def insert(offset, *resources)
-      resources_added(resources)
-      super
+      super(offset, *resources_added(resources))
     end
 
     # Removes and returns the last Resource in the Collection
@@ -628,19 +619,13 @@ module DataMapper
     #
     # @api public
     def replace(other)
-      other = other.map do |resource|
-        if resource.kind_of?(Hash)
-          new(resource)
-        else
-          resource
-        end
-      end
+      other = resources_added(other)
 
       if loaded?
         resources_removed(self - other)
       end
 
-      super(resources_added(other))
+      super(other)
     end
 
     # Access Collection#replace directly
@@ -967,6 +952,19 @@ module DataMapper
       @removed      = @removed.dup
     end
 
+    # Initialize a resource from a Hash
+    #
+    # @param [Resource, Hash] resource
+    #   resource to process
+    #
+    # @return [Resource]
+    #   an initialized resource
+    #
+    # @api private
+    def initialize_resource(resource)
+      resource.kind_of?(Hash) ? new(resource) : resource
+    end
+
     # Test if the collection is loaded between the offset and limit
     #
     # @param [Integer] offset
@@ -1204,6 +1202,8 @@ module DataMapper
     #
     # @api private
     def resource_added(resource)
+      resource = initialize_resource(resource)
+
       if resource.saved?
         @identity_map[resource.key] = resource
         @removed.delete(resource)
@@ -1225,7 +1225,7 @@ module DataMapper
     # @api private
     def resources_added(resources)
       if resources.kind_of?(Enumerable)
-        resources.each { |resource| resource_added(resource) }
+        resources.map { |resource| resource_added(resource) }
       else
         resource_added(resources)
       end

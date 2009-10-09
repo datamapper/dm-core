@@ -310,6 +310,7 @@ module DataMapper
         # TODO: document
         # @api private
         def resource_added(resource)
+          resource = initialize_resource(resource)
           inverse_set(resource, source)
           super
         end
