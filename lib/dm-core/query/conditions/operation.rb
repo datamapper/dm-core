@@ -96,6 +96,9 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def <<(operand)
+          unless operand.kind_of? Conditions::AbstractOperation or operand.kind_of? Conditions::AbstractComparison
+            raise ArgumentError, "Operands must be a kind of DataMapper::Query::Conditions::AbstractOperation or DataMapper::Query::Conditions::AbstractComparison. This one was a #{operand.class}"
+          end
           @operands << operand unless operand.nil?
           self
         end
