@@ -610,6 +610,12 @@ module DataMapper
       super { |resource| yield(resource) && resource_removed(resource) }
     end
 
+    # Access LazyArray#replace directly
+    #
+    # @api private
+    alias superclass_replace replace
+    private :superclass_replace
+
     # Replace the Resources within the Collection
     #
     # @param [Enumerable] other
@@ -628,11 +634,18 @@ module DataMapper
       super(other)
     end
 
-    # Access Collection#replace directly
+    # (Private) Set the Collection
+    #
+    # @param [Array] resources
+    #   resources to add to the collection
+    #
+    # @return [self]
     #
     # @api private
-    alias collection_replace replace
-    private :collection_replace
+    def set(resources)
+      superclass_replace(resources_added(resources))
+      self
+    end
 
     # Removes all Resources from the Collection
     #
@@ -932,9 +945,7 @@ module DataMapper
       # TODO: change LazyArray to not use a load proc at all
       remove_instance_variable(:@load_with_proc)
 
-      if resources
-        replace(resources)
-      end
+      set(resources) if resources
     end
 
     # Copies the original Collection state

@@ -125,11 +125,7 @@ module DataMapper
         #
         # @api private
         def eager_load_targets(source, targets, query)
-          # TODO: figure out an alternative approach to using a
-          # private method call collection_replace
-          association = collection_for(source, query)
-          association.send(:collection_replace, targets)
-          set!(source, association)
+          set!(source, collection_for(source, query).set(targets))
         end
 
         # Returns collection class used by this type of
@@ -301,7 +297,7 @@ module DataMapper
 
           # set the resources after the relationship and source are set
           if resources
-            collection.send(:collection_replace, resources)
+            collection.set(resources)
           end
 
           collection
