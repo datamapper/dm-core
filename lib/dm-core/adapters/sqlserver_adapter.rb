@@ -2,6 +2,8 @@ require DataMapper.root / 'lib' / 'dm-core' / 'adapters' / 'data_objects_adapter
 
 require 'do_sqlserver'
 
+DataObjects::Sqlserver = DataObjects::SqlServer
+
 module DataMapper
   module Adapters
     class SqlserverAdapter < DataObjectsAdapter
