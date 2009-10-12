@@ -1146,13 +1146,13 @@ module DataMapper
       # TODO: document
       # @api semipublic
       def storage_exists?(storage_name)
-        query("SELECT name FROM sysobjects WHERE name LIKE ?", storage_name).first == storage_name
+        select("SELECT name FROM sysobjects WHERE name LIKE ?", storage_name).first == storage_name
       end
 
       # TODO: document
       # @api semipublic
       def field_exists?(storage_name, field_name)
-        result = query("SELECT c.name FROM sysobjects as o JOIN syscolumns AS c ON o.id = c.id WHERE o.name = #{quote_name(storage_name)} AND c.name LIKE ?", field_name).first
+        result = select("SELECT c.name FROM sysobjects as o JOIN syscolumns AS c ON o.id = c.id WHERE o.name = #{quote_name(storage_name)} AND c.name LIKE ?", field_name).first
         result ? result.field == field_name : false
       end
 
@@ -1185,7 +1185,17 @@ module DataMapper
         # TODO: document
         # @api private
         def create_table_statement(connection, model, properties)
-          super
+          statement = <<-SQL.compress_lines
+            CREATE TABLE #{quote_name(model.storage_name(name))}
+            (#{properties.map { |property| property_schema_statement(connection, property_schema_hash(property)) }.join(', ')}
+          SQL
+
+          unless properties.any? { |property| property.serial? }
+            statement << ", PRIMARY KEY(#{properties.key.map { |property| quote_name(property.field) }.join(', ')})"
+          end
+
+          statement << ')'
+          statement
         end
 
         # TODO: document
@@ -1203,10 +1213,19 @@ module DataMapper
         # TODO: document
         # @api private
         def property_schema_statement(connection, schema)
-          statement = super
+          if supports_serial? && schema[:serial]
+            statement = quote_name(schema[:name])
+            statement << " #{schema[:primitive]}"
 
-          if supports_serial? && schema[:serial?]
+            if schema[:precision] && schema[:scale]
+              statement << "(#{[ :precision, :scale ].map { |key| connection.quote_value(schema[key]) }.join(', ')})"
+            elsif schema[:length]
+              statement << "(#{connection.quote_value(schema[:length])})"
+            end
+
             statement << ' IDENTITY'
+          else
+            statement = super
           end
 
           statement
@@ -1241,9 +1260,17 @@ module DataMapper
         #
         # @api private
         def type_map
+          length    = Property::DEFAULT_LENGTH
+          precision = Property::DEFAULT_PRECISION
+          scale     = Property::DEFAULT_SCALE_BIGDECIMAL
+
           @type_map ||= super.merge(
-            DateTime => { :primitive => 'DATETIME' },
-            Time     => { :primitive => 'DATETIME' }
+            BigDecimal  => { :primitive => 'FLOAT',    :precision => precision, :scale => nil },
+            DateTime    => { :primitive => 'DATETIME'                                         },
+            Date        => { :primitive => 'SMALLDATETIME'                                    },
+            Time        => { :primitive => 'SMALLDATETIME'                                    },
+            TrueClass   => { :primitive => 'BIT',                                             },
+            Types::Text => { :primitive => 'NVARCHAR(max)'                                    }
           ).freeze
         end
       end # module ClassMethods

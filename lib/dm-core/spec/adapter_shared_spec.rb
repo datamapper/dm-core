@@ -210,7 +210,8 @@ share_examples_for 'An Adapter' do
 
         describe 'regexp' do
           before do
-            if defined?(DataMapper::Adapters::Sqlite3Adapter) && @adapter.kind_of?(DataMapper::Adapters::Sqlite3Adapter)
+            if (defined?(DataMapper::Adapters::Sqlite3Adapter) && @adapter.kind_of?(DataMapper::Adapters::Sqlite3Adapter) ||
+                defined?(DataMapper::Adapters::SqlserverAdapter) && @adapter.kind_of?(DataMapper::Adapters::SqlserverAdapter))
               pending 'delegate regexp matches to same system that the InMemory and YAML adapters use'
             end
           end
