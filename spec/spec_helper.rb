@@ -36,7 +36,7 @@ PRIMARY = {
   'mysql'      => 'mysql://localhost/dm_core_test',
   'postgres'   => 'postgres://localhost/dm_core_test',
   'oracle'     => 'oracle://dm_core_test:dm_core_test@localhost/orcl',
-  'sqlserver'  => 'sqlserver://sa:sa@localhost/dm_core_test'
+  'sqlserver'  => 'sqlserver://dm_core_test:dm_core_test@localhost/dm_core_test;instance=SQLEXPRESS'
 }
 
 ALTERNATE = {
@@ -47,7 +47,7 @@ ALTERNATE = {
   'mysql'      => 'mysql://localhost/dm_core_test2',
   'postgres'   => 'postgres://localhost/dm_core_test2',
   'oracle'     => 'oracle://dm_core_test2:dm_core_test2@localhost/orcl',
-  'sqlserver'  => 'sqlserver://sa:sa@localhost/dm_core_test2'
+  'sqlserver'  => 'sqlserver://dm_core_test:dm_core_test@localhost/dm_core_test2;instance=SQLEXPRESS'
 }
 
 # These environment variables will override the default connection string:
