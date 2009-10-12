@@ -1,6 +1,5 @@
 require DataMapper.root / 'lib' / 'dm-core' / 'adapters' / 'data_objects_adapter'
 
-gem 'do_sqlserver', '~>0.0.1'
 require 'do_sqlserver'
 
 module DataMapper
