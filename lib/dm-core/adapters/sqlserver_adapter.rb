@@ -69,11 +69,6 @@ module DataMapper
           'NOT REGEXP'
         end
 
-        # TODO: document
-        # @api private
-        def quote_name(name)
-          '"'+name.gsub(/"/,'""')+'"'
-        end
       end #module SQL
 
       include SQL
