@@ -83,6 +83,8 @@ share_examples_for 'A DataObjects Adapter' do
       it 'should not send NULL values' do
         if defined?(DataMapper::Adapters::MysqlAdapter) && @adapter.kind_of?(DataMapper::Adapters::MysqlAdapter)
           log_output.should =~ /^INSERT INTO `articles` \(`id`\) VALUES \(.{1,2}\)$/i
+        elsif defined?(DataMapper::Adapters::SqlserverAdapter) && @adapter.kind_of?(DataMapper::Adapters::SqlserverAdapter)
+          log_output.should =~ /^SET IDENTITY_INSERT \"articles\" ON INSERT INTO "articles" \("id"\) VALUES \(.{1,2}\) SET IDENTITY_INSERT \"articles\" OFF $/i
         else
           log_output.should =~ /^INSERT INTO "articles" \("id"\) VALUES \(.{1,2}\)$/i
         end

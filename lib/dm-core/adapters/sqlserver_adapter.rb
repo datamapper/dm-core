@@ -10,10 +10,23 @@ module DataMapper
       module SQL #:nodoc:
         private
 
-        # TODO: document
+        # Constructs INSERT statement for given query,
+        #
+        # @return [String] INSERT statement as a string
+        #
         # @api private
-        def supports_default_values? #:nodoc:
-          false
+        def insert_statement(model, properties, serial)
+          statement = ""
+          # Check if there is a serial property being set directly
+          require_identity_insert = !properties.empty? && properties.any? { |property| property.serial? }
+          set_identity_insert(model, statement, true) if require_identity_insert
+          statement << super
+          set_identity_insert(model, statement, false) if require_identity_insert
+          statement
+        end
+
+        def set_identity_insert(model, statement, enable = true)
+          statement << " SET IDENTITY_INSERT #{quote_name(model.storage_name(name))} #{enable ? 'ON' : 'OFF'} "
         end
 
         # SQL Server does not support LIMIT and OFFSET
