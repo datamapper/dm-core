@@ -312,7 +312,7 @@ module DataMapper
           # the intermediaries are removed
           lazy_load
 
-          unless intermediaries.destroy
+          unless intermediaries.all(via => self).destroy
             return false
           end
 
@@ -336,7 +336,7 @@ module DataMapper
           # the intermediaries are removed
           lazy_load
 
-          unless intermediaries.destroy!
+          unless intermediaries.all(via => self).destroy!
             return false
           end
 
@@ -350,17 +350,11 @@ module DataMapper
         #
         # @api public
         def intermediaries
-          return @intermediaries if @intermediaries
-
-          intermediaries = if through.loaded?(source)
+          @intermediaries ||= if through.loaded?(source)
             through.get!(source)
           else
             through.set!(source, through.collection_for(source))
           end
-
-          scoped = intermediaries.all(via => self)
-
-          @intermediaries = scoped.query == intermediaries.query ? intermediaries : scoped
         end
 
         private
@@ -385,11 +379,10 @@ module DataMapper
         def _save(safe)
           if @removed.any?
             # delete only intermediaries linked to the removed targets
-            removed_intermediaries = intermediaries.all(via => @removed).each do |resource|
-              intermediaries.delete(resource)
-            end
+            return false unless intermediaries.all(via => @removed).send(safe ? :destroy : :destroy!)
 
-            return false unless removed_intermediaries.send(safe ? :destroy : :destroy!)
+            # reload the intermediaries so that it reflects the current state of the datastore
+            intermediaries.reload
           end
 
           if via.respond_to?(:resource_for)

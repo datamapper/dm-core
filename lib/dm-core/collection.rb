@@ -626,11 +626,7 @@ module DataMapper
     # @api public
     def replace(other)
       other = resources_added(other)
-
-      if loaded?
-        resources_removed(self - other)
-      end
-
+      resources_removed(self - other)
       super(other)
     end
 

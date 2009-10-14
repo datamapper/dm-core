@@ -797,9 +797,9 @@ share_examples_for 'A public Collection' do
         @return.should equal(@articles)
       end
 
-      { :id => true, :content => true, :title => true }.each do |attribute, expected|
-        it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-          @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
+      [ :id, :content, :title ].each do |attribute|
+        it "should have query field #{attribute.inspect} loaded" do
+          @collection.each { |resource| resource.attribute_loaded?(attribute).should be_true }
         end
       end
     end
@@ -829,11 +829,9 @@ share_examples_for 'A public Collection' do
         @return.should equal(@articles)
       end
 
-      { :id => true, :content => true, :title => loaded }.each do |attribute, expected|
-        it "should have query field #{attribute.inspect} #{'not' unless expected} loaded".squeeze(' ') do
-          pending_if "TODO: #{@articles.class}#reload should not be a kicker", @one_to_many && loaded == false && attribute == :title do
-            @collection.each { |resource| resource.attribute_loaded?(attribute).should == expected }
-          end
+      [ :id, :content, :title ].each do |attribute|
+        it "should have query field #{attribute.inspect} loaded" do
+          @collection.each { |resource| resource.attribute_loaded?(attribute).should be_true }
         end
       end
     end
