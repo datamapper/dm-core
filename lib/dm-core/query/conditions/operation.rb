@@ -38,6 +38,7 @@ module DataMapper
       end # class Operation
 
       class AbstractOperation
+        include Extlib::Assertions
         include Enumerable
         extend Equalizer
 
@@ -96,9 +97,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def <<(operand)
-          unless operand.kind_of? Conditions::AbstractOperation or operand.kind_of? Conditions::AbstractComparison or operand.kind_of? Array
-            raise ArgumentError, "Operands must be a kind of DataMapper::Query::Conditions::AbstractOperation or DataMapper::Query::Conditions::AbstractComparison. This one was a #{operand.class}"
-          end
+          assert_valid_operand(operand)
           @operands << operand unless operand.nil?
           self
         end
@@ -106,6 +105,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def merge(operands)
+          operands.each { |operand| assert_valid_operand(operand) }
           @operands.merge(operands)
           self
         end
@@ -138,6 +138,12 @@ module DataMapper
         # @api semipublic
         def initialize_copy(*)
           @operands = @operands.map { |operand| operand.dup }.to_set
+        end
+
+        # TODO: document
+        # @api private
+        def assert_valid_operand(operand)
+          assert_kind_of 'operand', operand, Conditions::AbstractOperation, Conditions::AbstractComparison, Array
         end
       end # class AbstractOperation
 
