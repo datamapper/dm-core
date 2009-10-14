@@ -343,7 +343,7 @@ module DataMapper
           super
         end
 
-        # Return the intermediaries between the source and the targets
+        # Return the intermediaries linking the source to the targets
         #
         # @return [Collection]
         #   the intermediary collection
