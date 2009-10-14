@@ -882,7 +882,7 @@ module DataMapper
     #
     # @api public
     def dirty?
-      loaded_entries.any? { |resource| resource.dirty? }
+      loaded_entries.any? { |resource| resource.dirty? } || @removed.any?
     end
 
     # Gets a Human-readable representation of this collection,
