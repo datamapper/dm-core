@@ -85,7 +85,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def valid?
-          operands.any? && operands.all? do |operand|
+          @operands.any? && @operands.all? do |operand|
             if operand.respond_to?(:valid?)
               operand.valid?
             else
@@ -189,14 +189,28 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def matches?(record)
-          not @operands.first.matches?(record)
+          not operand.matches?(record)
         end
 
         # TODO: document
         # @api semipublic
-        def <<(operand)
-          raise ArgumentError, "#{self.class} cannot have more than one operand" if @operands.any?
+        def <<(*)
+          assert_one_operand
           super
+        end
+
+        # TODO: document
+        # @api semipublic
+        def merge(operands)
+          assert_one_operand
+          assert_unary_operator(operands)
+          super
+        end
+
+        # TODO: document
+        # @api semipublic
+        def operand
+          @operands.to_a.first
         end
 
         private
@@ -204,8 +218,24 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def initialize(*operands)
-          raise InvalidOperation, "#{self.class} is a unary operator" if operands.size > 1
+          assert_unary_operator(operands)
           super
+        end
+
+        # TODO: document
+        # @api private
+        def assert_unary_operator(operands)
+          if operands.size > 1
+            raise InvalidOperation, "#{self.class} is a unary operator"
+          end
+        end
+
+        # TODO: document
+        # @api private
+        def assert_one_operand
+          if operand
+            raise ArgumentError, "#{self.class} cannot have more than one operand"
+          end
         end
       end # class NotOperation
 

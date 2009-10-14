@@ -471,7 +471,7 @@ module DataMapper
         # @api private
         def conditions_statement(conditions, qualify = false)
           case conditions
-            when Query::Conditions::NotOperation       then negate_operation(conditions, qualify)
+            when Query::Conditions::NotOperation       then negate_operation(conditions.operand, qualify)
             when Query::Conditions::AbstractOperation  then operation_statement(conditions, qualify)
             when Query::Conditions::AbstractComparison then comparison_statement(conditions, qualify)
             when Array
@@ -498,10 +498,10 @@ module DataMapper
 
         # TODO: document
         # @api private
-        def negate_operation(operation, qualify)
+        def negate_operation(operand, qualify)
           @negated = !@negated
           begin
-            conditions_statement(operation.operands.first, qualify)
+            conditions_statement(operand, qualify)
           ensure
             @negated = !@negated
           end
