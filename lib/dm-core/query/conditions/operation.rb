@@ -124,6 +124,12 @@ module DataMapper
           "#<#{self.class} @operands=#{@operands.inspect}>"
         end
 
+        # TODO: document
+        # @api semipublic
+        def to_s
+          "(#{@operands.to_a.join(" #{slug.upcase} ")})"
+        end
+
         # Return a list of operands in predictable order
         #
         # @return [Array<AbstractOperation>]

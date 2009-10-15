@@ -260,7 +260,7 @@ module DataMapper
         #
         # @api semipublic
         def to_s
-          "#{@subject} #{comparator_string} #{@value}"
+          "#{@subject.name} #{comparator_string} #{@value}"
         end
 
         private
@@ -407,20 +407,6 @@ module DataMapper
           else
             expected_value
           end
-        end
-
-        # Returns the name of this comparison
-        #
-        # @return [String]
-        #   The name of the comparison class minus the trailing "Comparison".
-        #
-        # @example
-        #   Comparison.new(:eql, ...).comparator_string
-        #   # => Equal
-        #
-        # @api private
-        def comparator_string
-          self.class.name.chomp('Comparison')
         end
       end # class AbstractComparison
 
