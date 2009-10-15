@@ -882,7 +882,7 @@ module DataMapper
     # @api private
     def save_children(safe = true)
       child_collections.all? do |collection|
-        safe ? collection.save : collection.save!
+        collection.send(safe ? :save : :save!)
       end
     end
 
