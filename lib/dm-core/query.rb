@@ -1079,7 +1079,11 @@ module DataMapper
     # TODO: document
     # @api private
     def append_path(path, bind_value, model, operator)
-      @links.unshift(*path.relationships.reverse.map { |relationship| relationship.inverse })
+      path.relationships.each do |relationship|
+        inverse = relationship.inverse
+        @links.unshift(inverse) unless @links.include?(inverse)
+      end
+
       append_condition(path.property, bind_value, path.model, operator)
     end
 
