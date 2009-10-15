@@ -369,7 +369,8 @@ module DataMapper
     #
     # @api public
     def destroy!
-      if saved? && repository.delete(Collection.new(query, [ self ])) == 1
+      if saved? && !destroyed?
+        repository.delete(collection_for_self)
         @destroyed = true
         @collection.delete(self) if @collection
         reset
@@ -617,7 +618,7 @@ module DataMapper
     # @api private
     def collection
       return @collection if @collection || new? || frozen?
-      @collection = Collection.new(query, [ self ])
+      @collection = collection_for_self
     end
 
     protected
@@ -748,6 +749,16 @@ module DataMapper
       Query.new(repository, model, model.key_conditions(repository, key))
     end
 
+    # Return a collection including the current resource only
+    #
+    # @return [Collection]
+    #   a collection containing self
+    #
+    # @api semipublic
+    def collection_for_self
+      Collection.new(query, [ self ])
+    end
+
     # TODO: document
     # @api private
     def parent_relationships
@@ -861,7 +872,7 @@ module DataMapper
         # remove from the identity map
         identity_map.delete(key)
 
-        return false unless repository.update(dirty_attributes, Collection.new(query, [ self ])) == 1
+        repository.update(dirty_attributes, collection_for_self)
 
         # remove the cached key in case it is updated
         remove_instance_variable(:@key)
