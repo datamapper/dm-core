@@ -389,6 +389,16 @@ module DataMapper
       end
     end
 
+    # Clear conditions
+    #
+    # @return [self]
+    #
+    # @api semipublic
+    def clear
+      @conditions = Conditions::Operation.new(:null)
+      self
+    end
+
     # Takes an Enumerable of records, and destructively filters it.
     # First finds all matching conditions, then sorts it,
     # then does offset & limit

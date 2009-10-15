@@ -112,6 +112,13 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
+        def clear
+          @operands.clear
+          self
+        end
+
+        # TODO: document
+        # @api semipublic
         def inspect
           "#<#{self.class} @operands=#{@operands.inspect}>"
         end
