@@ -80,6 +80,7 @@ module DataMapper
         # @api semipublic
         def each
           @operands.each { |*block_args| yield(*block_args) }
+          self
         end
 
         # TODO: document
