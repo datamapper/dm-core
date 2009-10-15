@@ -353,7 +353,7 @@ module DataMapper
           @intermediaries ||= if through.loaded?(source)
             through.get!(source)
           else
-            through.set!(source, through.collection_for(source))
+            reset_intermediaries
           end
         end
 
@@ -381,8 +381,8 @@ module DataMapper
             # delete only intermediaries linked to the removed targets
             return false unless intermediaries.all(via => @removed).send(safe ? :destroy : :destroy!)
 
-            # reload the intermediaries so that it reflects the current state of the datastore
-            intermediaries.reload
+            # reset the intermediaries so that it reflects the current state of the datastore
+            reset_intermediaries
           end
 
           if via.respond_to?(:resource_for)
@@ -425,6 +425,12 @@ module DataMapper
 
           # map the resource, even if it is nil, to the intermediary
           intermediary_for[resource] = intermediary
+        end
+
+        # TODO: document
+        # @api private
+        def reset_intermediaries
+          through.set!(source, through.collection_for(source))
         end
 
         # TODO: document
