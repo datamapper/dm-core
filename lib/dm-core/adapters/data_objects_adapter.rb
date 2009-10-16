@@ -300,10 +300,10 @@ module DataMapper
 
         # TODO: document
         # @api semipublic
-        def property_to_column_name(property, qualify)
+        def property_to_column_name(property, qualify, qualifier = nil)
           if qualify
             table_name = property.model.storage_name(name)
-            "#{quote_name(table_name)}.#{quote_name(property.field)}"
+            "#{qualifier || quote_name(table_name)}.#{quote_name(property.field)}"
           else
             quote_name(property.field)
           end
@@ -355,7 +355,7 @@ module DataMapper
         end
 
         # default construction of LIMIT and OFFSET
-        # overriden in Oracle adapter
+        # overriden by some adapters (currently Oracle and SQL Server)
         def add_limit_offset!(statement, limit, offset, bind_values)
           if limit
             statement   << ' LIMIT ?'
@@ -452,8 +452,8 @@ module DataMapper
         #   list of fields as a string
         #
         # @api private
-        def columns_statement(properties, qualify)
-          properties.map { |property| property_to_column_name(property, qualify) }.join(', ')
+        def columns_statement(properties, qualify, qualifier = nil)
+          properties.map { |property| property_to_column_name(property, qualify, qualifier) }.join(', ')
         end
 
         # Constructs joins clause
@@ -548,9 +548,9 @@ module DataMapper
         #   order clause
         #
         # @api private
-        def order_statement(order, qualify)
+        def order_statement(order, qualify, qualifier = nil)
           statements = order.map do |direction|
-            statement = property_to_column_name(direction.target, qualify)
+            statement = property_to_column_name(direction.target, qualify, qualifier)
             statement << ' DESC' if direction.operator == :desc
             statement
           end

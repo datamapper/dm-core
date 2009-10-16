@@ -29,27 +29,60 @@ module DataMapper
           statement << " SET IDENTITY_INSERT #{quote_name(model.storage_name(name))} #{enable ? 'ON' : 'OFF'} "
         end
 
+        def select_statement(query)
+          qualify  = query.links.any?
+          fields   = query.fields
+          order_by = query.order
+          group_by = if qualify || query.unique?
+            fields.select { |property| property.kind_of?(Property) }
+          end
+
+          conditions_statement, bind_values = conditions_statement(query.conditions, qualify)
+
+          use_limit_offset_subquery = query.limit && query.offset > 0
+
+          if use_limit_offset_subquery
+            # If using qualifiers, we must qualify elements outside the subquery
+            # with 'RowResults' -- this is a different scope to the subquery.
+            # Otherwise, we hit upon "multi-part identifier cannot be bound"
+            # error from SQL Server.
+            statement = "SELECT #{columns_statement(fields, qualify, 'RowResults')}"
+            statement << " FROM ( SELECT Row_Number() OVER (ORDER BY #{order_statement(order_by, qualify)}) AS RowID,"
+            statement << " #{columns_statement(fields, qualify)}"
+            statement << " FROM #{quote_name(query.model.storage_name(name))}"
+            statement << join_statement(query, qualify)                      if qualify
+            statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
+            statement << ") AS RowResults"
+            statement << " WHERE RowId > #{query.offset} AND RowId <= #{query.offset + query.limit}"
+            statement << " GROUP BY #{columns_statement(group_by, qualify, 'RowResults')}" if group_by && group_by.any?
+            statement << " ORDER BY #{order_statement(order_by, qualify, 'RowResults')}"   if order_by && order_by.any?
+          else
+            statement = "SELECT #{columns_statement(fields, qualify)}"
+            statement << " FROM #{quote_name(query.model.storage_name(name))}"
+            statement << join_statement(query, qualify)                      if qualify
+            statement << " WHERE #{conditions_statement}"                    unless conditions_statement.blank?
+            statement << " GROUP BY #{columns_statement(group_by, qualify)}" if group_by && group_by.any?
+            statement << " ORDER BY #{order_statement(order_by, qualify)}"   if order_by && order_by.any?
+          end
+
+          add_limit_offset!(statement, query.limit, query.offset, bind_values) unless use_limit_offset_subquery
+
+          return statement, bind_values
+        end
+
         # SQL Server does not support LIMIT and OFFSET
         # Functionality therefore must be mimicked through the use of nested selects.
         # See also:
-        # http://stackoverflow.com/questions/216673/emulate-mysql-limit-clause-in-microsoft-sql-server-2000
+        # - http://stackoverflow.com/questions/2840/paging-sql-server-2005-results
+        # - http://stackoverflow.com/questions/216673/emulate-mysql-limit-clause-in-microsoft-sql-server-2000
         #
-        # This implementation is taken from ActiveRecordJDBC project's
-        # TSqlMethods module (MIT-Licensed, and attributed in the commit log to
-        # Ryan Bell (kofno)).
         def add_limit_offset!(statement, limit, offset, bind_values)
-          if limit and offset
-            total_rows = select("SELECT count(*) as TotalRows from (#{statement.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT\\1 TOP 1000000000")}) tally", *bind_values).first.to_i
-            if (limit + offset) >= total_rows
-              limit = (total_rows - offset >= 0) ? (total_rows - offset) : 0
-            end
-            statement.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{limit} * FROM (SELECT\\1 TOP #{limit + offset} ")
-            statement << ") AS tmp1"
-            statement << " ) AS tmp2"
-          elsif statement !~ /^\s*SELECT (@@|COUNT\()/i
-            statement.sub!(/^\s*SELECT(\s+DISTINCT)?/i) do
-              "SELECT#{$1} TOP #{limit}"
-            end unless limit.nil?
+          # Limit and offset is handled by subqueries (see #select_statement).
+          if limit
+            # If there is just a limit on rows to return, but no offset, then we
+            # can use TOP clause.
+            statement.sub!(/^\s*SELECT(\s+DISTINCT)?/i) { "SELECT#{$1} TOP #{limit}" }
+            # bind_values << limit
           end
         end
 
