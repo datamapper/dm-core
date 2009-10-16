@@ -1207,6 +1207,10 @@ module DataMapper
         def property_schema_hash(property)
           schema = super
 
+          if property.primitive == Integer && property.min && property.max
+            schema[:primitive] = integer_column_statement(property.min..property.max)
+          end
+
           if schema[:primitive] == 'TEXT'
             schema.delete(:default)
           end
@@ -1251,6 +1255,30 @@ module DataMapper
         # @api private
         def show_variable(name)
           raise "SqlserverAdapter#show_variable: Not implemented"
+        end
+
+        private
+
+        # Return SQL statement for the integer column
+        #
+        # @param [Range] range
+        #   the min/max allowed integers
+        #
+        # @return [String]
+        #   the statement to create the integer column
+        #
+        # @api private
+        def integer_column_statement(range)
+          min = range.first
+          max = range.last
+
+          if    min >= 0      && max < 2**8  then 'TINYINT'
+          elsif min >= -2**15 && max < 2**15 then 'SMALLINT'
+          elsif min >= -2**31 && max < 2**31 then 'INT'
+          elsif min >= -2**63 && max < 2**63 then 'BIGINT'
+          else
+            raise ArgumentError, "min #{min} and max #{max} exceeds supported range"
+          end
         end
 
       end # module SQL
