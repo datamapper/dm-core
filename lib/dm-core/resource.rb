@@ -830,7 +830,7 @@ module DataMapper
     # @api private
     def _create
       # Can't create a resource that is not dirty and doesn't have serial keys
-      return false if new? && !dirty?
+      return false if new? && clean?
 
       # set defaults for new resource
       properties.each do |property|
@@ -920,7 +920,7 @@ module DataMapper
     # @api private
     def cmp?(other, operator)
       return false unless key.send(operator, other.key)
-      return true if repository.send(operator, other.repository) && !dirty? && !other.dirty?
+      return true if repository.send(operator, other.repository) && clean? && other.clean?
 
       # get all the loaded and non-loaded properties that are not keys,
       # since the key comparison was performed earlier
