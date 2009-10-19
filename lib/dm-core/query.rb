@@ -1106,11 +1106,6 @@ module DataMapper
     # TODO: document
     # @api private
     def normalize_bind_value(property_or_path, bind_value)
-      # TODO: defer this inside the comparison
-      if bind_value.respond_to?(:call)
-        bind_value = bind_value.call
-      end
-
       # TODO: bypass this for Collection, once subqueries can be handled by adapters
       if bind_value.respond_to?(:to_ary)
         bind_value = bind_value.to_ary

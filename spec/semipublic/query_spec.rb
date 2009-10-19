@@ -579,31 +579,6 @@ describe DataMapper::Query do
           end
         end
 
-        describe 'with a Proc value' do
-          before :all do
-            @options[:conditions] = { :name => lambda { 'Dan Kubb' } }
-            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
-          end
-
-          it { @return.should be_kind_of(DataMapper::Query) }
-
-          it 'should set the conditions' do
-            @return.conditions.should ==
-              DataMapper::Query::Conditions::Operation.new(
-                :and,
-                DataMapper::Query::Conditions::Comparison.new(
-                  :eql,
-                  @model.properties[:name],
-                  'Dan Kubb'
-                )
-              )
-          end
-
-          it 'should be valid' do
-            @return.should be_valid
-          end
-        end
-
         describe 'with an Array with 1 entry' do
           before :all do
             @options[:conditions] = { :name => [ 'Dan Kubb' ] }
