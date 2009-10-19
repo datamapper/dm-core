@@ -86,6 +86,12 @@ module DataMapper
     # @api semipublic
     def self.append_inclusions(*inclusions)
       extra_inclusions.concat inclusions
+
+      # Add the inclusion to existing descendants
+      descendants.each do |model|
+        inclusions.each { |inclusion| model.send :include, inclusion }
+      end
+
       true
     end
 
@@ -111,6 +117,12 @@ module DataMapper
     # @api semipublic
     def self.append_extensions(*extensions)
       extra_extensions.concat extensions
+
+      # Add the extension to existing descendants
+      descendants.each do |model|
+        extensions.each { |extension| model.extend(extension) }
+      end
+
       true
     end
 
