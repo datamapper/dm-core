@@ -625,7 +625,7 @@ module DataMapper
       @fields     = @fields.dup
       @links      = @links.dup
       @conditions = @conditions.dup
-      @order      = @order.dup
+      @order      = @order.try_dup
     end
 
     # Validate the options
