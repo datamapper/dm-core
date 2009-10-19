@@ -494,10 +494,12 @@ module DataMapper
         # @api semipublic
         def valid?
           case value
-            when Array, Set
-              loaded_value.any? && loaded_value.all? { |val| subject.valid?(val) }
+            when Collection
+              true
             when Range
               loaded_value.any? && subject.valid?(loaded_value.first) && subject.valid?(loaded_value.last)
+            when Enumerable
+              loaded_value.any? && loaded_value.all? { |val| subject.valid?(val) }
             else
               false
           end
@@ -512,7 +514,7 @@ module DataMapper
         #
         # @api private
         def expected_value
-          if loaded_value.is_a?(Range)
+          if loaded_value.kind_of?(Range)
             Range.new(super(loaded_value.first), super(loaded_value.last), loaded_value.exclude_end?)
           else
             loaded_value.map { |val| super(val) }
@@ -527,7 +529,7 @@ module DataMapper
         #
         # @api private
         def typecast_value(val)
-          if subject.respond_to?(:typecast) && val.is_a?(Range)
+          if subject.respond_to?(:typecast) && val.kind_of?(Range)
             if subject.primitive?(val.first)
               # If the range type matches, nothing to do
               val
@@ -550,7 +552,7 @@ module DataMapper
         #
         # @api private
         def dumped_value(val)
-          if subject.respond_to?(:value) && val.is_a?(Range) && !subject.custom?
+          if subject.respond_to?(:value) && val.kind_of?(Range) && !subject.custom?
             val
           elsif subject.respond_to?(:value) && val.respond_to?(:map)
             val.map { |el| subject.value(el) }

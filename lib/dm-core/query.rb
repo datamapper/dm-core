@@ -1029,9 +1029,9 @@ module DataMapper
 
       if operator == :eql || negated
         operator = case bind_value
-          when Array, Range, Set, Collection then :in
-          when Regexp                        then :regexp
-          else                                    :eql
+          when Enumerable then :in
+          when Regexp     then :regexp
+          else                 :eql
         end
       end
 
