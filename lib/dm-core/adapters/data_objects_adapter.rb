@@ -411,7 +411,13 @@ module DataMapper
         #
         # @api private
         def update_statement(properties, query)
-          conditions_statement, bind_values = conditions_statement(query.conditions)
+          # TODO: DRY this up with delete_statement
+          conditions_statement, bind_values = if query.limit || query.offset > 0 || query.links.any?
+            key = query.model.key(name)
+            subquery(query, key, key, false)
+          else
+            conditions_statement(query.conditions)
+          end
 
           statement = "UPDATE #{quote_name(query.model.storage_name(name))}"
           statement << " SET #{properties.map { |property| "#{quote_name(property.field)} = ?" }.join(', ')}"
@@ -426,7 +432,13 @@ module DataMapper
         #
         # @api private
         def delete_statement(query)
-          conditions_statement, bind_values = conditions_statement(query.conditions)
+          # TODO: DRY this up with update_statement
+          conditions_statement, bind_values = if query.limit || query.offset > 0 || query.links.any?
+            key = query.model.key(name)
+            subquery(query, key, key, false)
+          else
+            conditions_statement(query.conditions)
+          end
 
           statement = "DELETE FROM #{quote_name(query.model.storage_name(name))}"
           statement << " WHERE #{conditions_statement}" unless conditions_statement.blank?
@@ -477,6 +489,56 @@ module DataMapper
             when Array
               statement, bind_values = conditions  # handle raw conditions
               [ "(#{statement})", bind_values ].compact
+          end
+        end
+
+        # TODO: document
+        # @api private
+        def supports_subquery?(*)
+          true
+        end
+
+        # TODO: document
+        # @api private
+        def subquery(*args)
+          if args.first.repository.name == name && supports_subquery?(*args)
+            subquery_statement(*args)
+          else
+            subquery_execute(*args)
+          end
+        end
+
+        # TODO: document
+        # @api private
+        def subquery_statement(query, source_key, target_key, qualify)
+          query = query.merge(:fields => source_key)
+          query.update(:order => nil) unless query.limit
+
+          statement = if target_key.size == 1
+            property_to_column_name(target_key.first, qualify)
+          else
+            "(#{target_key.map { |property| property_to_column_name(property, qualify) }.join(', ')})"
+          end
+
+          select_statement, bind_values = select_statement(query)
+          statement << " IN (#{select_statement})"
+
+          return statement, bind_values
+        end
+
+        # TODO: document
+        # @api private
+        def subquery_execute(query, source_key, target_key, qualify)
+          query = query.merge(:fields => source_key)
+          query.update(:order => nil)
+
+          sources    = query.model.all(query)
+          conditions = Query.target_conditions(sources, source_key, target_key)
+
+          if conditions.valid?
+            conditions_statement(conditions, qualify)
+          else
+            [ nil, [] ]
           end
         end
 
@@ -552,10 +614,32 @@ module DataMapper
 
             return "(#{statement})", bind_values
           elsif comparison.relationship?
-            return conditions_statement(comparison.foreign_key_mapping, qualify)
+            if comparison.value.respond_to?(:query)
+              relationship = comparison.subject.inverse
+              source_key   = relationship.source_key
+              target_key   = relationship.target_key
+
+              return subquery(comparison.value.query, source_key, target_key, qualify)
+            else
+              return conditions_statement(comparison.foreign_key_mapping, qualify)
+            end
           end
 
-          operator = case comparison
+          operator = comparison_operator(comparison)
+
+          # if operator return value contains ? then it means that it is function call
+          # and it contains placeholder (%s) for property name as well (used in Oracle adapter for regexp operator)
+          if operator.include?('?')
+            return operator % property_to_column_name(comparison.subject, qualify), [ value ]
+          else
+            return "#{property_to_column_name(comparison.subject, qualify)} #{operator} #{value.nil? ? 'NULL' : '?'}", [ value ].compact
+          end
+        end
+
+        def comparison_operator(comparison)
+          value = comparison.value
+
+          case comparison
             when Query::Conditions::EqualToComparison              then @negated ? inequality_operator(comparison.subject, value) : equality_operator(comparison.subject, value)
             when Query::Conditions::InclusionComparison            then @negated ? exclude_operator(comparison.subject, value)    : include_operator(comparison.subject, value)
             when Query::Conditions::RegexpComparison               then @negated ? not_regexp_operator(value) : regexp_operator(value)
@@ -564,14 +648,6 @@ module DataMapper
             when Query::Conditions::LessThanComparison             then @negated ? '>='                       : '<'
             when Query::Conditions::GreaterThanOrEqualToComparison then @negated ? '<'                        : '>='
             when Query::Conditions::LessThanOrEqualToComparison    then @negated ? '>'                        : '<='
-          end
-
-          # if operator return value contains ? then it means that it is function call
-          # and it contains placeholder (%s) for property name as well (used in Oracle adapter for regexp operator)
-          if operator.include?('?')
-            return operator % property_to_column_name(comparison.subject, qualify), [ value ]
-          else
-            return "#{property_to_column_name(comparison.subject, qualify)} #{operator} #{value.nil? ? 'NULL' : '?'}", [ value ].compact
           end
         end
 

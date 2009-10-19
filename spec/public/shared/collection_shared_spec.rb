@@ -1571,15 +1571,7 @@ share_examples_for 'A public Collection' do
         end
 
         if method == :update!
-          # FIXME: this is spec order dependent, move this into a helper method
-          # and execute in the before :all block
-          unless loaded
-            it 'should not be a kicker' do
-              pending_if 'TODO', @many_to_many do
-                @articles.should_not be_loaded
-              end
-            end
-          end
+          should_not_be_a_kicker
         end
 
         it 'should return true' do
@@ -1604,15 +1596,7 @@ share_examples_for 'A public Collection' do
         end
 
         if method == :update!
-          # FIXME: this is spec order dependent, move this into a helper method
-          # and execute in the before :all block
-          unless loaded
-            it 'should not be a kicker' do
-              pending_if 'TODO', @many_to_many do
-                @articles.should_not be_loaded
-              end
-            end
-          end
+          should_not_be_a_kicker
         end
 
         it 'should return true' do
@@ -1653,15 +1637,7 @@ share_examples_for 'A public Collection' do
         end
 
         if method == :update!
-          # FIXME: this is spec order dependent, move this into a helper method
-          # and execute in the before :all block
-          unless loaded
-            it 'should not be a kicker' do
-              pending "Update Collection##{method} to use a subquery" do
-                @limited.should_not be_loaded
-              end
-            end
-          end
+          should_not_be_a_kicker(:@limited)
         end
 
         it 'should return true' do

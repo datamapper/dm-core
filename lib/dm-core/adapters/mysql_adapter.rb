@@ -18,6 +18,15 @@ module DataMapper
 
         # TODO: document
         # @api private
+        def supports_subquery?(query, source_key, target_key, qualify)
+          # TODO: renable once query does not include target_model for deletes and updates
+          # query.limit.nil?
+
+          false
+        end
+
+        # TODO: document
+        # @api private
         def regexp_operator(operand)
           'REGEXP'
         end

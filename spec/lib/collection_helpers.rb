@@ -6,10 +6,10 @@ module DataMapper::Spec
         base.loaded = false
       end
 
-      def should_not_be_a_kicker
+      def should_not_be_a_kicker(ivar = :@articles)
         unless loaded
           it 'should not be a kicker' do
-            @articles.should_not be_loaded
+            instance_variable_get(ivar).should_not be_loaded
           end
         end
       end

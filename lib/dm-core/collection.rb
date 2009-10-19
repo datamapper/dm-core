@@ -830,21 +830,16 @@ module DataMapper
     #
     # @api public
     def destroy!
-      if query.limit || query.offset > 0 || query.links.any?
-        key        = model.key(repository.name)
-        conditions = Query.target_conditions(self, key, key)
-
-        unless model.all(:repository => repository, :conditions => conditions).destroy!
+      if loaded?
+        unless repository.delete(self) == size
           return false
         end
+
+        each { |resource| resource.reset }
+        clear
       else
         repository.delete(self)
         mark_loaded
-      end
-
-      if loaded?
-        each { |resource| resource.reset }
-        clear
       end
 
       true
@@ -1075,19 +1070,7 @@ module DataMapper
     #
     # @api private
     def _update(dirty_attributes)
-      if query.limit || query.offset > 0 || query.links.any?
-        attributes = dirty_attributes.map { |property, value| [ property.name, value ] }.to_hash
-
-        key        = model.key(repository.name)
-        conditions = Query.target_conditions(self, key, key)
-
-        unless model.all(:repository => repository, :conditions => conditions).update!(attributes)
-          return false
-        end
-      else
-        repository.update(dirty_attributes, self)
-      end
-
+      repository.update(dirty_attributes, self)
       true
     end
 
