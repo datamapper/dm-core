@@ -36,7 +36,7 @@ share_examples_for 'A public Resource' do
         end
       end
 
-      describe 'when comparing to an resource that does not respond to model' do
+      describe 'when comparing to an resource that does not respond to resource methods' do
         before :all do
           @other  = Object.new
           @return = @user.send(method, @other)

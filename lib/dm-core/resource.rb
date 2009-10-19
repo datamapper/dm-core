@@ -382,9 +382,9 @@ module DataMapper
 
     # Compares another Resource for equality
     #
-    # Resource is equal to +other+ if they are the same object (identity)
-    # or if they are both of the *same model* and all of their attributes
-    # are equivalent
+    # Resource is equal to +other+ if they are the same object
+    # (identical object_id) or if they are both of the *same model* and
+    # all of their attributes are equivalent
     #
     # @param [Resource] other
     #   the other Resource to compare with
@@ -400,9 +400,8 @@ module DataMapper
 
     # Compares another Resource for equivalency
     #
-    # Resource is equal to +other+ if they are the same object (identity)
-    # or if they are both of the *same base model* and all of their attributes
-    # are equivalent
+    # Resource is equivalent to +other+ if they are the same object
+    # (identical object_id) or all of their attribute are equivalent
     #
     # @param [Resource] other
     #   the other Resource to compare with
@@ -413,8 +412,9 @@ module DataMapper
     # @api public
     def ==(other)
       return true if equal?(other)
-      other.respond_to?(:model)                       &&
-      model.base_model.equal?(other.model.base_model) &&
+      other.respond_to?(:repository) &&
+      other.respond_to?(:key)        &&
+      other.respond_to?(:clean?)     &&
       cmp?(other, :==)
     end
 
