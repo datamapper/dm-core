@@ -305,7 +305,7 @@ module DataMapper
         end
 
         Array(source).each do |source|
-          key = target_key.typecast(source_key.get(source))
+          key = source_key.get(source)
           eager_load_targets(source, target_maps[key], query)
         end
 
