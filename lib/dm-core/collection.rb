@@ -1133,7 +1133,7 @@ module DataMapper
     #
     # @api private
     def set_default_attributes(resource)
-      unless resource.frozen?
+      unless resource.readonly?
         resource.attributes = default_attributes
       end
     end
@@ -1153,7 +1153,7 @@ module DataMapper
     #
     # @api private
     def relate_resource(resource)
-      unless resource.frozen?
+      unless resource.readonly?
         resource.collection = self
       end
 
@@ -1175,7 +1175,7 @@ module DataMapper
     #
     # @api private
     def orphan_resource(resource)
-      if resource.collection.equal?(self) && !resource.frozen?
+      if resource.collection.equal?(self) && !resource.readonly?
         resource.collection = nil
       end
 

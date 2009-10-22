@@ -233,8 +233,8 @@ share_examples_for 'A public Resource' do
           @return.should be_true
         end
 
-        it 'should freeze the destroyed resource' do
-          @resource.should be_frozen
+        it 'should mark the destroyed resource as readonly' do
+          @resource.should be_readonly
         end
 
         it "should return true when calling #{method} on a destroyed resource" do
@@ -529,6 +529,52 @@ share_examples_for 'A public Resource' do
 
       it 'should reload the resource from the data store' do
         @user.description.should eql('Changed')
+      end
+    end
+  end
+
+  it { @user.should respond_to(:readonly?) }
+
+  describe '#readonly?' do
+    describe 'on a new resource' do
+      before :all do
+        @user = @user_model.new
+      end
+
+      it 'should return false' do
+        @user.readonly?.should be_false
+      end
+    end
+
+    describe 'on a saved resource' do
+      before :all do
+        @user = @user_model.create
+      end
+
+      it 'should return false' do
+        @user.readonly?.should be_false
+      end
+    end
+
+    describe 'on a destroyed resource' do
+      before :all do
+        @user = @user_model.create(:name => 'dkubb')
+        @user.destroy
+      end
+
+      it 'should return true' do
+        @user.readonly?.should be_true
+      end
+    end
+
+    describe 'on an anonymous resource' do
+      before :all do
+        # load the user without a key
+        @user = @user_model.first(:fields => @user_model.properties - @user_model.key)
+      end
+
+      it 'should return true' do
+        @user.readonly?.should be_true
       end
     end
   end

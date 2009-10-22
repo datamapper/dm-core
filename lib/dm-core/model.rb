@@ -521,7 +521,7 @@ module DataMapper
           # record the state of the resource after loaded
           identity_map[key_values] = resource
         else
-          resource.freeze
+          resource.instance_variable_set(:@readonly, true)
         end
 
         resource

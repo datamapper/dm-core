@@ -321,7 +321,7 @@ module DataMapper
         # TODO: document
         # @api private
         def inverse_set(source, target)
-          unless source.frozen?
+          unless source.readonly?
             relationship.inverse.set(source, target)
           end
         end

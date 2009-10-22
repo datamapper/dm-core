@@ -92,10 +92,7 @@ module DataMapper
 
       return unless key.all? { |value| !value.nil? }
 
-      # memoize the key if the Resource is not frozen
-      @key = key unless frozen?
-
-      key
+      @key = key
     end
 
     # Checks if this Resource instance is new
@@ -146,6 +143,16 @@ module DataMapper
     # @api public
     def dirty?
       dirty_self? || dirty_parents? || dirty_children?
+    end
+
+    # Checks if this Resource instance is readonly
+    #
+    # @return [Boolean]
+    #   true if the resource cannot be persisted
+    #
+    # @api public
+    def readonly?
+      @readonly == true
     end
 
     # Returns the value of the attribute.
@@ -372,9 +379,9 @@ module DataMapper
       if saved? && !destroyed?
         repository.delete(collection_for_self)
         @destroyed = true
+        @readonly  = true
         @collection.delete(self) if @collection
         reset
-        freeze
       end
 
       destroyed?
@@ -617,7 +624,7 @@ module DataMapper
     #
     # @api private
     def collection
-      return @collection if @collection || new? || frozen?
+      return @collection if @collection || new? || readonly?
       @collection = collection_for_self
     end
 
