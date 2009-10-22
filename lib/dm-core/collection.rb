@@ -912,6 +912,10 @@ module DataMapper
       model.relationships(repository.name)
     end
 
+    def hash
+      query.hash
+    end
+
     private
 
     # Initializes a new Collection identified by the query
