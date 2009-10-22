@@ -538,7 +538,9 @@ share_examples_for 'A public Resource' do
   describe '#readonly?' do
     describe 'on a new resource' do
       before :all do
-        @user = @user_model.new
+        rescue_if 'TODO', @skip do
+          @user = @user.model.new
+        end
       end
 
       it 'should return false' do
@@ -548,7 +550,9 @@ share_examples_for 'A public Resource' do
 
     describe 'on a saved resource' do
       before :all do
-        @user = @user_model.create
+        rescue_if 'TODO', @skip do
+          @user.should be_saved
+        end
       end
 
       it 'should return false' do
@@ -558,8 +562,9 @@ share_examples_for 'A public Resource' do
 
     describe 'on a destroyed resource' do
       before :all do
-        @user = @user_model.create(:name => 'dkubb')
-        @user.destroy
+        rescue_if 'TODO', @skip do
+          @user.destroy.should be_true
+        end
       end
 
       it 'should return true' do
@@ -569,8 +574,10 @@ share_examples_for 'A public Resource' do
 
     describe 'on an anonymous resource' do
       before :all do
-        # load the user without a key
-        @user = @user_model.first(:fields => @user_model.properties - @user_model.key)
+        rescue_if 'TODO', @skip do
+          # load the user without a key
+          @user = @user.model.first(:fields => @user_model.properties - @user_model.key)
+        end
       end
 
       it 'should return true' do
