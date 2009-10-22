@@ -1116,7 +1116,7 @@ describe DataMapper::Query do
 
       describe 'that is missing' do
         before :all do
-          @return = DataMapper::Query.new(@repository, @model, @options.except(:unique).freeze)
+          @return = DataMapper::Query.new(@repository, @model, @options.except(:unique, :links).freeze)
         end
 
         it { @return.should be_kind_of(DataMapper::Query) }
@@ -2338,6 +2338,24 @@ describe DataMapper::Query do
     end
 
     describe 'when the query is not unique' do
+      it { @query.should_not be_unique }
+    end
+
+    describe 'when links are provided, but unique is not specified' do
+      before :all do
+        @query.should_not be_unique
+        @query.update(:links => [ :referrer ])
+      end
+
+      it { @query.should be_unique }
+    end
+
+    describe 'when links are provided, but unique is false' do
+      before :all do
+        @query.should_not be_unique
+        @query.update(:links => [ :referrer ], :unique => false)
+      end
+
       it { @query.should_not be_unique }
     end
   end

@@ -345,7 +345,7 @@ module DataMapper
       end
 
       merge_conditions([ other_options.except(*OPTIONS), other_options[:conditions] ])
-      normalize_options(normalize | [ :links ])
+      normalize_options(normalize | [ :links, :unique ])
 
       self
     end
@@ -894,7 +894,7 @@ module DataMapper
     #
     # @api private
     def normalize_options(options = OPTIONS)
-      (options & [ :order, :fields, :links ]).each do |option|
+      (options & [ :order, :fields, :links, :unique ]).each do |option|
         send("normalize_#{option}")
       end
     end
@@ -990,6 +990,16 @@ module DataMapper
       end
 
       @links.reverse!
+    end
+
+    # Normalize the unique attribute
+    #
+    # If any links are present, and the unique attribute was not
+    # explicitly specified, then make sure the query is marked as unique
+    #
+    # @api private
+    def normalize_unique
+      @unique = @links.any? unless @options.key?(:unique)
     end
 
     # Append conditions to this Query
