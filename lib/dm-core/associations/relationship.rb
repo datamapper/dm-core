@@ -328,7 +328,7 @@ module DataMapper
           when Array, Collection then valid_collection?(source)
           when Resource          then valid_resource?(source)
           else
-            raise ArgumentError, "+source+ should be an Array or Resource, but was a #{source.class.name}"
+            raise ArgumentError, "+source+ should be an Array, Collection or Resource, but was a #{source.class.name}"
         end
       end
 
@@ -538,10 +538,10 @@ module DataMapper
       # TODO: document
       # @api private
       def valid_collection?(collection)
-        if collection.instance_of?(Array) || collection.loaded?
-          collection.all? { |resource| valid_resource?(resource) }
-        else
+        if collection.respond_to?(:model)
           collection.model <= target_model && (collection.query.fields & target_key) == target_key
+        else
+          collection.all? { |resource| valid_resource?(resource) }
         end
       end
 
