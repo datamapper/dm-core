@@ -538,7 +538,7 @@ module DataMapper
           if conditions.valid?
             conditions_statement(conditions, qualify)
           else
-            [ nil, [] ]
+            [ '1 = 0', [] ]
           end
         end
 
