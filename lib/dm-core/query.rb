@@ -345,7 +345,7 @@ module DataMapper
       end
 
       merge_conditions([ other_options.except(*OPTIONS), other_options[:conditions] ])
-      normalize_options(normalize)
+      normalize_options(normalize | [ :links ])
 
       self
     end
@@ -604,7 +604,7 @@ module DataMapper
       assert_valid_options(@options)
 
       @fields       = @options.fetch :fields,       @properties.defaults
-      @links        = @options.fetch :links,        []
+      @links        = @options.key?(:links) ? @options[:links].dup : []
       @conditions   = Conditions::Operation.new(:null)
       @offset       = @options.fetch :offset,       0
       @limit        = @options.fetch :limit,        nil
@@ -613,8 +613,6 @@ module DataMapper
       @add_reversed = @options.fetch :add_reversed, false
       @reload       = @options.fetch :reload,       false
       @raw          = false
-
-      @links = @links.dup
 
       merge_conditions([ @options.except(*OPTIONS), @options[:conditions] ])
       normalize_options
@@ -952,21 +950,19 @@ module DataMapper
     #
     # @api private
     def normalize_links
-      links = @links.dup
+      stack = @links.dup
 
       @links.clear
 
-      while link = links.pop
+      while link = stack.pop
         relationship = case link
           when Symbol, String             then @relationships[link]
           when Associations::Relationship then link
         end
 
-        next if @links.include?(relationship)
-
         if relationship.respond_to?(:links)
-          links.concat(relationship.links)
-        else
+          stack.concat(relationship.links)
+        elsif !@links.include?(relationship)
           repository_name = relationship.relative_target_repository_name
           model           = relationship.target_model
 

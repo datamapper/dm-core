@@ -1261,6 +1261,7 @@ describe DataMapper::Query do
 
       belongs_to :referrer, self, :nullable => true
       has n, :referrals, self, :inverse => :referrer
+      has n, :grandparents, self, :through => :referrals, :via => :referrer
 
       # TODO: figure out a way to remove this
       assert_valid
@@ -2594,6 +2595,38 @@ describe DataMapper::Query do
             [ 'name IS NOT NULL' ],
             [ 'name = ?', [ 'Dan Kubb' ] ]
           )
+        end
+      end
+
+      describe 'with the String key mapping to a Query::Path' do
+        before :all do
+          @query.links.should be_empty
+
+          @options = { 'grandparents.name' => 'Dan Kubb' }
+
+          @return = @query.update(@options)
+        end
+
+        it { @return.should be_kind_of(DataMapper::Query) }
+
+        it 'should set the conditions' do
+          @return.conditions.should ==
+            DataMapper::Query::Conditions::Operation.new(
+              :and,
+              DataMapper::Query::Conditions::Comparison.new(
+                :eql,
+                @model.grandparents.name,
+                'Dan Kubb'
+              )
+            )
+        end
+
+        it 'should set the links' do
+          @return.links.should == [ @model.relationships[:referrals], @model.relationships[:referrer] ]
+        end
+
+        it 'should be valid' do
+          @return.should be_valid
         end
       end
     end
