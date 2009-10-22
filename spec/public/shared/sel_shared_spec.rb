@@ -49,7 +49,7 @@ share_examples_for 'A Collection supporting Strategic Eager Loading' do
     end
 
     it "should only execute the Adapter#read #{loaded ? 'once' : 'twice'}" do
-      pending_if 'TODO', !loaded && !@many_to_many && @mysql do
+      pending_if !loaded && !@many_to_many && @mysql do
         @adapter.counts[:read].should == (loaded ? 1 : 2)
       end
     end
@@ -111,7 +111,7 @@ share_examples_for 'A Resource supporting Strategic Eager Loading' do
     end
 
     it 'should only execute the Adapter#read twice' do
-      pending_if 'TODO', @mysql do
+      pending_if @mysql do
         @adapter.counts[:read].should == 2
       end
     end

@@ -1359,7 +1359,7 @@ share_examples_for 'Finder Interface' do
       # and execute in the before :all block
       unless loaded
         it 'should not be a kicker' do
-          pending_if 'TODO', !@many_to_many do
+          pending_if !@many_to_many do
             @articles.should_not be_loaded
           end
         end
@@ -1400,7 +1400,7 @@ share_examples_for 'Finder Interface' do
         # and execute in the before :all block
         unless loaded
           it 'should not be a kicker' do
-            pending_if 'TODO', !@many_to_many do
+            pending_if !@many_to_many do
               @articles.should_not be_loaded
             end
           end
@@ -1429,7 +1429,7 @@ share_examples_for 'Finder Interface' do
         # and execute in the before :all block
         unless loaded
           it 'should not be a kicker' do
-            pending_if 'TODO', !@many_to_many do
+            pending_if !@many_to_many do
               @articles.should_not be_loaded
             end
           end
@@ -1479,7 +1479,7 @@ share_examples_for 'Finder Interface' do
         # and execute in the before :all block
         unless loaded
           it 'should not be a kicker' do
-            pending_if 'TODO', !@many_to_many do
+            pending_if !@many_to_many do
               @articles.should_not be_loaded
             end
           end
@@ -1507,7 +1507,7 @@ share_examples_for 'Finder Interface' do
         # and execute in the before :all block
         unless loaded
           it 'should not be a kicker' do
-            pending_if 'TODO', !@many_to_many do
+            pending_if !@many_to_many do
               @articles.should_not be_loaded
             end
           end
@@ -1553,13 +1553,13 @@ share_examples_for 'Finder Interface' do
         end
 
         it 'should return expected Collection' do
-          pending_if 'TODO', @no_join do
+          pending_if @no_join do
             @collection.should == [ @publication1, @publication2 ]
           end
         end
 
         it 'should set the association for each Resource' do
-          pending_if 'TODO', @no_join do
+          pending_if @no_join do
             @articles.map { |resource| resource.publications }.should == [ [ @publication1 ], [ @publication2 ] ]
           end
         end
@@ -1577,7 +1577,7 @@ share_examples_for 'Finder Interface' do
         end
 
         it 'should return expected Collection' do
-          pending_if 'TODO', @no_join do
+          pending_if @no_join do
             @collection.should == [ @publication1, @publication2 ]
           end
         end
@@ -1589,7 +1589,7 @@ share_examples_for 'Finder Interface' do
         end
 
         it 'should set the association for each Resource' do
-          pending_if 'TODO', @no_join do
+          pending_if @no_join do
             @articles.map { |resource| resource.publications }.should == [ [ @publication1 ], [ @publication2 ] ]
           end
         end

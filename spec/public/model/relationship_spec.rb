@@ -104,7 +104,7 @@ share_examples_for 'it creates a one mutator' do
         many_to_one        = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
         one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
 
-        pending_if 'TODO', many_to_one || one_to_one_through do
+        pending_if many_to_one || one_to_one_through do
           @expected.car.should == @car
         end
       end
@@ -144,7 +144,7 @@ share_examples_for 'it creates a one mutator' do
         many_to_one        = relationship.kind_of?(DataMapper::Associations::ManyToOne::Relationship)
         one_to_one_through = relationship.kind_of?(DataMapper::Associations::OneToOne::Relationship) && relationship.respond_to?(:through)
 
-        pending_if 'TODO', many_to_one || one_to_one_through do
+        pending_if many_to_one || one_to_one_through do
           @return.car.should == @car
         end
       end
@@ -315,7 +315,7 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should relate the associated Collection' do
-        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
+        pending_if Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
           @expected.each { |resource| resource.car.should == @car }
         end
       end
@@ -350,7 +350,7 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should relate the associated Collection' do
-        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
+        pending_if Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
           @return.each { |resource| resource.car.should == @car }
         end
       end
@@ -407,7 +407,7 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should relate associated Resource' do
-        pending_if 'TODO', Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
+        pending_if Car.relationships[@name].kind_of?(DataMapper::Associations::ManyToMany::Relationship) do
           @expected.each { |resource| resource.car.should == @car }
         end
       end

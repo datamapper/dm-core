@@ -1291,7 +1291,7 @@ share_examples_for 'A public Collection' do
 
       describe 'with a positive offset and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @original = @copy[1]
             @original.collection.should equal(@articles)
 
@@ -1328,7 +1328,7 @@ share_examples_for 'A public Collection' do
 
       describe 'with a positive offset and length and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @original = @copy[2]
             @original.collection.should equal(@articles)
 
@@ -1361,7 +1361,7 @@ share_examples_for 'A public Collection' do
 
       describe 'with a positive range and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @originals = @copy.values_at(2..3)
             @originals.each { |resource| resource.collection.should equal(@articles) }
 
@@ -1394,7 +1394,7 @@ share_examples_for 'A public Collection' do
 
       describe 'with a negative offset and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @original = @copy[-1]
             @original.collection.should equal(@articles)
 
@@ -1431,7 +1431,7 @@ share_examples_for 'A public Collection' do
 
       describe 'with a negative offset and length and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @original = @copy[-2]
             @original.collection.should equal(@articles)
 
@@ -1464,7 +1464,7 @@ share_examples_for 'A public Collection' do
 
       describe 'with a negative range and a Resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @originals = @articles.values_at(-3..-2)
             @originals.each { |resource| resource.collection.should equal(@articles) }
 
@@ -1500,7 +1500,7 @@ share_examples_for 'A public Collection' do
   describe '#[]=' do
     describe 'when swapping resources' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @articles.create(:content => 'Another Article')
 
           @entries = @articles.entries

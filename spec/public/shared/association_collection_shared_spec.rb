@@ -64,7 +64,7 @@ share_examples_for 'A public Association Collection' do
         @original = @other_articles
         @resource = @original.first
 
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @return = @articles << @resource
         end
       end
@@ -107,7 +107,7 @@ share_examples_for 'A public Association Collection' do
         @original = @other_articles
         @resource = @original.first
 
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @return = @articles.concat([ @resource ])
         end
       end
@@ -163,7 +163,7 @@ share_examples_for 'A public Association Collection' do
         @original = @other_articles
         @resource = @original.first
 
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @return = @articles.insert(0, @resource)
         end
       end
@@ -226,7 +226,7 @@ share_examples_for 'A public Association Collection' do
         @original = @other_articles
         @resource = @original.first
 
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @return = @articles.push(@resource)
         end
       end
@@ -249,7 +249,7 @@ share_examples_for 'A public Association Collection' do
         @original = @other_articles
         @resource = @original.first
 
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @return = @articles.replace([ @resource ])
         end
       end
@@ -276,7 +276,7 @@ share_examples_for 'A public Association Collection' do
         @original = @other_articles
         @resource = @original.first
 
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @return = @articles.unshift(@resource)
         end
       end

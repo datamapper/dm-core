@@ -49,7 +49,7 @@ share_examples_for 'A public Resource' do
 
       describe 'when comparing to a resource with the same properties, but the model is a subclass' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @other  = @author_model.new(@user.attributes)
             @return = @user.send(method, @other)
           end
@@ -62,7 +62,7 @@ share_examples_for 'A public Resource' do
 
       describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @other  = @user_model.get(*@user.key)
             @return = @user.send(method, @other)
           end
@@ -75,7 +75,7 @@ share_examples_for 'A public Resource' do
 
       describe 'when comparing to a resource with the same repository, key but either self or the other resource is dirty' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @user.age = 20
             @other  = @user_model.get(*@user.key)
             @return = @user.send(method, @other)
@@ -89,7 +89,7 @@ share_examples_for 'A public Resource' do
 
       describe 'when comparing to a resource with the same properties' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @other  = @user_model.new(@user.attributes)
             @return = @user.send(method, @other)
           end
@@ -103,7 +103,7 @@ share_examples_for 'A public Resource' do
       with_alternate_adapter do
         describe 'when comparing to a resource with a different repository, but the same properties' do
           before :all do
-            rescue_if 'TODO', @skip do
+            rescue_if @skip do
               @other = @alternate_repository.scope { @user_model.create(@user.attributes) }
               @return = @user.send(method, @other)
             end
@@ -122,7 +122,7 @@ share_examples_for 'A public Resource' do
   describe '#<=>' do
     describe 'when the default order properties are equal with another resource' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @other = @user_model.new(:name => 'dbussink')
           @return = @user <=> @other
         end
@@ -135,7 +135,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when the default order property values are sorted before another resource' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @other = @user_model.new(:name => 'c')
           @return = @user <=> @other
         end
@@ -148,7 +148,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when the default order property values are sorted after another resource' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @other = @user_model.new(:name => 'e')
           @return = @user <=> @other
         end
@@ -199,7 +199,7 @@ share_examples_for 'A public Resource' do
   describe '#attributes=' do
     describe 'when a public mutator is specified' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user.attributes = { :name => 'dkubb' }
         end
       end
@@ -263,7 +263,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a record, with no dirty attributes, and dirty parents' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user.should_not be_dirty
 
           parent = @user.parent = @user_model.new(:name => 'Parent')
@@ -276,7 +276,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a record, with no dirty attributes, and dirty children' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user.should_not be_dirty
 
           child = @user.children.new(:name => 'Child')
@@ -289,7 +289,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a record, with no dirty attributes, and dirty siblings' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user.should_not be_dirty
 
           parent = @user_model.create(:name => 'Parent', :comment => @comment)
@@ -357,7 +357,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when comparing to a resource with the same properties, but the model is a subclass' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @other  = @author_model.new(@user.attributes)
           @return = @user.eql?(@other)
         end
@@ -381,7 +381,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when comparing to a resource with the same repository, key and neither self or the other resource is dirty' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @other  = @user_model.get(*@user.key)
           @return = @user.eql?(@other)
         end
@@ -394,7 +394,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when comparing to a resource with the same repository, key but either self or the other resource is dirty' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user.age = 20
           @other  = @user_model.get(*@user.key)
           @return = @user.eql?(@other)
@@ -408,7 +408,7 @@ share_examples_for 'A public Resource' do
 
     describe 'when comparing to a resource with the same properties' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @other  = @user_model.new(@user.attributes)
           @return = @user.eql?(@other)
         end
@@ -422,7 +422,7 @@ share_examples_for 'A public Resource' do
     with_alternate_adapter do
       describe 'when comparing to a resource with a different repository, but the same properties' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @other = @alternate_repository.scope { @user_model.create(@user.attributes) }
             @return = @user.eql?(@other)
           end
@@ -440,7 +440,7 @@ share_examples_for 'A public Resource' do
   describe '#inspect' do
 
     before :all do
-      rescue_if 'TODO', @skip do
+      rescue_if @skip do
         @user = @user_model.get(*@user.key)
         @inspected = @user.inspect
       end
@@ -461,7 +461,7 @@ share_examples_for 'A public Resource' do
   describe '#key' do
 
     before :all do
-      rescue_if 'TODO', @skip do
+      rescue_if @skip do
         @key = @user.key
         @user.name = 'dkubb'
       end
@@ -503,7 +503,7 @@ share_examples_for 'A public Resource' do
     describe 'for a single resource' do
 
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user.name = 'dkubb'
           @user.description = 'test'
           @user.reload
@@ -519,7 +519,7 @@ share_examples_for 'A public Resource' do
 
     describe 'for when the resource is changed outside another resource' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user2 = @user.dup
           @user2.description = 'Changed'
           @user2.save
@@ -538,7 +538,7 @@ share_examples_for 'A public Resource' do
   describe '#readonly?' do
     describe 'on a new resource' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user = @user.model.new
         end
       end
@@ -550,7 +550,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a saved resource' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user.should be_saved
         end
       end
@@ -562,7 +562,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on a destroyed resource' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           @user.destroy.should be_true
         end
       end
@@ -574,7 +574,7 @@ share_examples_for 'A public Resource' do
 
     describe 'on an anonymous resource' do
       before :all do
-        rescue_if 'TODO', @skip do
+        rescue_if @skip do
           # load the user without a key
           @user = @user.model.first(:fields => @user_model.properties - @user_model.key)
         end
@@ -609,7 +609,7 @@ share_examples_for 'A public Resource' do
 
       describe 'on a not new, dirty resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @user.age = 26
             @return = @user.send(method)
           end
@@ -626,7 +626,7 @@ share_examples_for 'A public Resource' do
 
       describe 'on a dirty invalid resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @user.name = nil
           end
         end
@@ -647,19 +647,19 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should save resource' do
-          pending_if 'TODO', !@user.respond_to?(:comments) do
+          pending_if !@user.respond_to?(:comments) do
             @return.should be_true
           end
         end
 
         it 'should save the first resource created through new' do
-          pending_if 'TODO', !@user.respond_to?(:comments) do
+          pending_if !@user.respond_to?(:comments) do
             @first_comment.new?.should be_false
           end
         end
 
         it 'should save the correct foreign key for the first resource' do
-          pending_if 'TODO', !@user.respond_to?(:comments) do
+          pending_if !@user.respond_to?(:comments) do
             @first_comment.user.should eql(@user)
           end
         end
@@ -671,7 +671,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should save the correct foreign key for the second resource' do
-          pending_if 'TODO', !@user.respond_to?(:comments) do
+          pending_if !@user.respond_to?(:comments) do
             @second_comment.user.should eql(@user)
           end
         end
@@ -698,19 +698,19 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should save the dirty resources' do
-          pending_if 'TODO', !@user.respond_to?(:comments) do
+          pending_if !@user.respond_to?(:comments) do
             @return.should be_true
           end
         end
 
         it 'should have saved the first child resource' do
-          pending_if 'TODO', !@user.respond_to?(:comments) do
+          pending_if !@user.respond_to?(:comments) do
             @first_comment.should_not be_dirty
           end
         end
 
         it 'should not have saved the second child resource' do
-          pending_if 'TODO', !@user.respond_to?(:comments) do
+          pending_if !@user.respond_to?(:comments) do
             @second_comment.should be_dirty
           end
         end
@@ -732,7 +732,7 @@ share_examples_for 'A public Resource' do
 
       describe 'with a dirty dependency' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @user.name = 'dbussink-the-second'
 
             @first_comment = @comment_model.new(:body => 'DM is great!')
@@ -766,25 +766,25 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should not be dirty' do
-          pending_if 'TODO', !@article.respond_to?(:paragraphs) do
+          pending_if !@article.respond_to?(:paragraphs) do
             @article.should_not be_dirty
           end
         end
 
         it 'should not be dirty' do
-          pending_if 'TODO', !@article.respond_to?(:paragraphs) do
+          pending_if !@article.respond_to?(:paragraphs) do
             @paragraph.should_not be_dirty
           end
         end
 
         it 'should set the related resource' do
-          pending_if 'TODO', !@article.respond_to?(:paragraphs) do
+          pending_if !@article.respond_to?(:paragraphs) do
             @paragraph.article.should == @article
           end
         end
 
         it 'should set the foreign key properly' do
-          pending_if 'TODO', !@article.respond_to?(:paragraphs) do
+          pending_if !@article.respond_to?(:paragraphs) do
             @paragraph.article_id.should == @article.id
           end
         end
@@ -792,7 +792,7 @@ share_examples_for 'A public Resource' do
 
       describe 'with a dirty resource with a changed key' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @original_key = @user.key
             @user.name = 'dkubb'
             @return = @user.send(method)
@@ -842,19 +842,19 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should relate the child to the parent' do
-          pending_if 'TODO', @one_to_one_through do
+          pending_if @one_to_one_through do
             @child.model.get(*@child.key).referrer.should == @parent
           end
         end
 
         it 'should relate the parent to the grandparent' do
-          pending_if 'TODO', @one_to_one_through do
+          pending_if @one_to_one_through do
             @parent.model.get(*@parent.key).referrer.should == @grandparent
           end
         end
 
         it 'should relate the grandparent to nothing' do
-          pending_if 'TODO', @one_to_one_through do
+          pending_if @one_to_one_through do
             @grandparent.model.get(*@grandparent.key).referrer.should be_nil
           end
         end
@@ -862,7 +862,7 @@ share_examples_for 'A public Resource' do
 
       describe 'on a destroyed resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @user.destroy
           end
         end
@@ -902,7 +902,7 @@ share_examples_for 'A public Resource' do
     describe "##{method}" do
       describe 'with no arguments' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @return = @user.send(method)
           end
         end
@@ -914,7 +914,7 @@ share_examples_for 'A public Resource' do
 
       describe 'with attributes' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @attributes = { :description => 'Changed' }
             @return = @user.send(method, @attributes)
           end
@@ -943,19 +943,19 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should return true' do
-          pending_if 'TODO', @one_to_one_through do
+          pending_if @one_to_one_through do
             @return.should be_true
           end
         end
 
         it 'should update attributes of Resource' do
-          pending_if 'TODO', @one_to_one_through do
+          pending_if @one_to_one_through do
             @attributes.each { |key, value| @user.send(key).should == value }
           end
         end
 
         it 'should persist the changes' do
-          pending_if 'TODO', @one_to_one_through do
+          pending_if @one_to_one_through do
             resource = @user_model.get(*@user.key)
             @attributes.each { |key, value| resource.send(key).should == value }
           end
@@ -964,7 +964,7 @@ share_examples_for 'A public Resource' do
 
       describe 'with attributes where a value is nil for a property that does not allow nil' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @return = @user.send(method, :name => nil)
           end
         end
@@ -980,7 +980,7 @@ share_examples_for 'A public Resource' do
 
       describe 'on a dirty resource' do
         before :all do
-          rescue_if 'TODO', @skip do
+          rescue_if @skip do
             @user.age = 99
           end
         end
@@ -1027,7 +1027,7 @@ share_examples_for 'A public Resource' do
 
   describe 'lazy loading' do
     before :all do
-      rescue_if 'TODO', @skip do
+      rescue_if @skip do
         @user.name    = 'dkubb'
         @user.age     = 33
         @user.summary = 'Programmer'
