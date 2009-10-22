@@ -614,6 +614,8 @@ module DataMapper
 
             return "(#{statement})", bind_values
           elsif comparison.relationship?
+            # TODO: if the value is a Collection, and it is loaded, and the fields
+            # can satisfy the FK mapping, then do not use a subquery.
             if comparison.value.respond_to?(:query)
               relationship = comparison.subject.inverse
               source_key   = relationship.source_key
