@@ -1024,8 +1024,7 @@ module DataMapper
     # TODO: document
     # @api private
     def append_property_condition(property, bind_value, operator)
-      bind_value = normalize_bind_value(property, bind_value)
-      negated    = operator == :not
+      negated = operator == :not
 
       if operator == :eql || negated
         operator = equality_operator_for_type(bind_value)
@@ -1113,26 +1112,6 @@ module DataMapper
     def add_condition(condition)
       @conditions = Conditions::Operation.new(:and) if @conditions.nil?
       @conditions << condition
-    end
-
-    # TODO: make this typecast all bind values that do not match the
-    # property primitive
-
-    # TODO: document
-    # @api private
-    def normalize_bind_value(property_or_path, bind_value)
-      # TODO: bypass this for Collection, once subqueries can be handled by adapters
-      if bind_value.respond_to?(:to_ary)
-        bind_value = bind_value.to_ary
-        bind_value.uniq!
-      end
-
-      # FIXME: causes m:m specs to fail with in-memory adapter
-      # if bind_value.instance_of?(Array) && bind_value.size == 1
-      #   bind_value = bind_value.first
-      # end
-
-      bind_value
     end
 
     # Extract arguments for #slice and #slice! then return offset and limit

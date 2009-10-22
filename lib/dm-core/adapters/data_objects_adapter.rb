@@ -336,7 +336,7 @@ module DataMapper
           qualify  = query.links.any?
           fields   = query.fields
           order_by = query.order
-          group_by = if qualify || query.unique?
+          group_by = if query.unique?
             fields.select { |property| property.kind_of?(Property) }
           end
 
@@ -511,7 +511,7 @@ module DataMapper
         # TODO: document
         # @api private
         def subquery_statement(query, source_key, target_key, qualify)
-          query = query.merge(:fields => source_key)
+          query = query.merge(:fields => source_key, :unique => false)
           query.update(:order => nil) unless query.limit
 
           statement = if target_key.size == 1

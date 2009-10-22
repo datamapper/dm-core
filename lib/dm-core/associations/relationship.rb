@@ -292,24 +292,14 @@ module DataMapper
       #
       # @api private
       def eager_load(source, query = nil)
-        target_maps = Hash.new { |h,k| h[k] = [] }
+        targets = source.model.all(query_for(source, query))
 
-        collection_query = query_for(source, query)
-
-        # TODO: create an object that wraps this logic, and when the first
-        # kicker is fired, then it'll load up the collection, and then
-        # populate all the other methods
-
-        collection = source.model.all(collection_query).each do |target|
-          target_maps[target_key.get(target)] << target
+        # FIXME: cannot associate targets to m:m collection yet
+        unless source.kind_of?(ManyToMany::Collection)
+          associate_targets(source, targets)
         end
 
-        Array(source).each do |source|
-          key = source_key.get(source)
-          eager_load_targets(source, target_maps[key], query)
-        end
-
-        collection
+        targets
       end
 
       # Checks if "other end" of association is loaded on given
@@ -649,6 +639,23 @@ module DataMapper
         other_key = other.send(property_method)
 
         self_key.send(operator, other_key)
+      end
+
+      def associate_targets(source, targets)
+        # TODO: create an object that wraps this logic, and when the first
+        # kicker is fired, then it'll load up the collection, and then
+        # populate all the other methods
+
+        target_maps = Hash.new { |h,k| h[k] = [] }
+
+        targets.each do |target|
+          target_maps[target_key.get(target)] << target
+        end
+
+        Array(source).each do |source|
+          key = source_key.get(source)
+          eager_load_targets(source, target_maps[key], query)
+        end
       end
     end # class Relationship
   end # module Associations

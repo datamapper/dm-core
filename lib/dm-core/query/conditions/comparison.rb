@@ -555,7 +555,9 @@ module DataMapper
           if subject.respond_to?(:value) && val.kind_of?(Range) && !subject.custom?
             val
           elsif subject.respond_to?(:value) && val.respond_to?(:map)
-            val.map { |el| subject.value(el) }
+            val = val.map { |el| subject.value(el) }
+            val.uniq!
+            val
           else
             val
           end

@@ -1359,7 +1359,7 @@ share_examples_for 'Finder Interface' do
       # and execute in the before :all block
       unless loaded
         it 'should not be a kicker' do
-          pending do
+          pending_if 'TODO', !@many_to_many do
             @articles.should_not be_loaded
           end
         end
@@ -1380,7 +1380,9 @@ share_examples_for 'Finder Interface' do
 
     describe 'with a has 1 relationship method' do
       before :all do
-        @new = @articles.new
+        # FIXME: create is necessary for m:m so that the intermediary
+        # is created properly.  This does not occur with @new.save
+        @new = @articles.send(@many_to_many ? :create : :new)
 
         @article.previous = @new
         @new.previous     = @other
@@ -1398,7 +1400,7 @@ share_examples_for 'Finder Interface' do
         # and execute in the before :all block
         unless loaded
           it 'should not be a kicker' do
-            pending do
+            pending_if 'TODO', !@many_to_many do
               @articles.should_not be_loaded
             end
           end
@@ -1427,7 +1429,7 @@ share_examples_for 'Finder Interface' do
         # and execute in the before :all block
         unless loaded
           it 'should not be a kicker' do
-            pending do
+            pending_if 'TODO', !@many_to_many do
               @articles.should_not be_loaded
             end
           end
@@ -1456,7 +1458,9 @@ share_examples_for 'Finder Interface' do
 
     describe 'with a has n relationship method' do
       before :all do
-        @new = @articles.new
+        # FIXME: create is necessary for m:m so that the intermediary
+        # is created properly.  This does not occur with @new.save
+        @new = @articles.send(@many_to_many ? :create : :new)
 
         # associate the article with children
         @article.revisions << @new
@@ -1475,7 +1479,7 @@ share_examples_for 'Finder Interface' do
         # and execute in the before :all block
         unless loaded
           it 'should not be a kicker' do
-            pending do
+            pending_if 'TODO', !@many_to_many do
               @articles.should_not be_loaded
             end
           end
@@ -1503,7 +1507,7 @@ share_examples_for 'Finder Interface' do
         # and execute in the before :all block
         unless loaded
           it 'should not be a kicker' do
-            pending do
+            pending_if 'TODO', !@many_to_many do
               @articles.should_not be_loaded
             end
           end
@@ -1542,15 +1546,7 @@ share_examples_for 'Finder Interface' do
           @return = @collection = @articles.publications
         end
 
-        # FIXME: this is spec order dependent, move this into a helper method
-        # and execute in the before :all block
-        unless loaded
-          it 'should not be a kicker' do
-            pending do
-              @articles.should_not be_loaded
-            end
-          end
-        end
+        should_not_be_a_kicker
 
         it 'should return a Collection' do
           @return.should be_kind_of(DataMapper::Collection)
@@ -1574,15 +1570,7 @@ share_examples_for 'Finder Interface' do
           @return = @collection = @articles.publications(:fields => [ :id ])
         end
 
-        # FIXME: this is spec order dependent, move this into a helper method
-        # and execute in the before :all block
-        unless loaded
-          it 'should not be a kicker' do
-            pending do
-              @articles.should_not be_loaded
-            end
-          end
-        end
+        should_not_be_a_kicker
 
         it 'should return a Collection' do
           @return.should be_kind_of(DataMapper::Collection)
