@@ -1028,11 +1028,7 @@ module DataMapper
       negated    = operator == :not
 
       if operator == :eql || negated
-        operator = case bind_value
-          when Array, Range, Set, Collection then :in
-          when Regexp                        then :regexp
-          else                                    :eql
-        end
+        operator = equality_operator_for_type(bind_value)
       end
 
       condition = Conditions::Comparison.new(operator, property, bind_value)
@@ -1042,6 +1038,25 @@ module DataMapper
       end
 
       add_condition(condition)
+    end
+
+    if RUBY_VERSION >= '1.9'
+      def equality_operator_for_type(bind_value)
+        case bind_value
+          when Enumerable then :in
+          when Regexp     then :regexp
+          else                 :eql
+        end
+      end
+    else
+      def equality_operator_for_type(bind_value)
+        case bind_value
+          when String     then :eql
+          when Enumerable then :in
+          when Regexp     then :regexp
+          else                 :eql
+        end
+      end
     end
 
     # TODO: document
