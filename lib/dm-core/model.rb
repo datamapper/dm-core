@@ -123,7 +123,6 @@ module DataMapper
       @extra_extensions ||= []
     end
 
-    # TODO: document
     # @api private
     def self.extended(model)
       descendants << model
@@ -138,7 +137,6 @@ module DataMapper
       extra_inclusions.each { |mod| model.send(:include, mod) }
     end
 
-    # TODO: document
     # @api private
     chainable do
       def inherited(model)
@@ -530,17 +528,14 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api semipublic
     attr_reader :base_model
 
-    # TODO: document
     # @api semipublic
     def default_repository_name
       Repository.default_name
     end
 
-    # TODO: document
     # @api semipublic
     def default_order(repository_name = default_repository_name)
       @default_order[repository_name] ||= key(repository_name).map { |property| Query::Direction.new(property) }.freeze
@@ -597,13 +592,11 @@ module DataMapper
       [ repository ].to_set + @properties.keys.map { |repository_name| DataMapper.repository(repository_name) }
     end
 
-    # TODO: document
     # @api private
     def model_method_defined?(method)
       model_methods.include?(method.to_s)
     end
 
-    # TODO: document
     # @api private
     def resource_method_defined?(method)
       resource_methods.include?(method.to_s)
@@ -611,7 +604,6 @@ module DataMapper
 
     private
 
-    # TODO: document
     # @api private
     def _create(safe, attributes)
       resource = new(attributes)
@@ -619,7 +611,6 @@ module DataMapper
       resource
     end
 
-    # TODO: document
     # @api private
     def const_missing(name)
       if name == :DM
@@ -634,7 +625,6 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def default_storage_name
       base_model.name
@@ -701,19 +691,16 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def model_methods
       @model_methods ||= ancestor_instance_methods { |mod| mod.meta_class }
     end
 
-    # TODO: document
     # @api private
     def resource_methods
       @resource_methods ||= ancestor_instance_methods { |mod| mod }
     end
 
-    # TODO: document
     # @api private
     def ancestor_instance_methods
       methods = Set.new

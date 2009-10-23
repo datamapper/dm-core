@@ -31,19 +31,16 @@ module DataMapper
           relationship.set(source, [ target ].compact).first
         end
 
-        # TODO: document
         # @api public
         def kind_of?(klass)
           super || relationship.kind_of?(klass)
         end
 
-        # TODO: document
         # @api public
         def instance_of?(klass)
           super || relationship.instance_of?(klass)
         end
 
-        # TODO: document
         # @api public
         def respond_to?(method, include_private = false)
           super || relationship.respond_to?(method, include_private)
@@ -63,7 +60,6 @@ module DataMapper
           @relationship = klass.new(name, target_model, source_model, options)
         end
 
-        # TODO: document
         # @api private
         def near_relationship
           return @near_relationship if defined?(@near_relationship)
@@ -77,7 +73,6 @@ module DataMapper
           @near_relationship = near_relationship
         end
 
-        # TODO: document
         # @api private
         def valid_target?(target)
           target_key = near_relationship.target_key
@@ -86,7 +81,6 @@ module DataMapper
           target_key.valid?(target_key.get(target))
         end
 
-        # TODO: document
         # @api private
         def valid_source?(source)
           source_key = near_relationship.source_key
@@ -95,7 +89,6 @@ module DataMapper
           source_key.valid?(source_key.get(source))
         end
 
-        # TODO: document
         # @api private
         def method_missing(method, *args, &block)
           relationship.send(method, *args, &block)

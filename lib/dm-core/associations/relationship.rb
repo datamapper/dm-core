@@ -158,7 +158,6 @@ module DataMapper
         raise NameError, "Cannot find the child_model #{child_model_name} for #{parent_model_name} in #{name}"
       end
 
-      # TODO: document
       # @api private
       def child_model?
         child_model
@@ -167,7 +166,6 @@ module DataMapper
         false
       end
 
-      # TODO: document
       # @api private
       def child_model_name
         @child_model ? child_model.name : @child_model_name
@@ -211,7 +209,6 @@ module DataMapper
         raise NameError, "Cannot find the parent_model #{parent_model_name} for #{child_model_name} in #{name}"
       end
 
-      # TODO: document
       # @api private
       def parent_model?
         parent_model
@@ -220,7 +217,6 @@ module DataMapper
         false
       end
 
-      # TODO: document
       # @api private
       def parent_model_name
         @parent_model ? parent_model.name : @parent_model_name
@@ -385,13 +381,11 @@ module DataMapper
         @inverse
       end
 
-      # TODO: document
       # @api private
       def relative_target_repository_name
         target_repository_name || source_repository_name
       end
 
-      # TODO: document
       # @api private
       def relative_target_repository_name_for(source)
         target_repository_name || if source.respond_to?(:repository)
@@ -403,11 +397,9 @@ module DataMapper
 
       private
 
-      # TODO: document
       # @api private
       attr_reader :child_properties
 
-      # TODO: document
       # @api private
       attr_reader :parent_properties
 
@@ -535,7 +527,6 @@ module DataMapper
         raise NotImplementedError, "#{self.class}#eager_load_targets not implemented"
       end
 
-      # TODO: document
       # @api private
       def valid_target_collection?(collection)
         if collection.kind_of?(Collection)
@@ -550,21 +541,18 @@ module DataMapper
         end
       end
 
-      # TODO: document
       # @api private
       def valid_target?(target)
         target.kind_of?(target_model) &&
         target_key.valid?(target_key.get(target))
       end
 
-      # TODO: document
       # @api private
       def valid_source?(source)
         source.kind_of?(source_model) &&
         source_key.valid?(source_key.get(source))
       end
 
-      # TODO: document
       # @api private
       def inverse?(other)
         return true if @inverse.equal?(other)
@@ -582,7 +570,6 @@ module DataMapper
         # default scope for the target model
       end
 
-      # TODO: document
       # @api private
       def inverse_name
         if options[:inverse].kind_of?(Relationship)
@@ -592,25 +579,21 @@ module DataMapper
         end
       end
 
-      # TODO: document
       # @api private
       def invert
         inverse_class.new(inverse_name, child_model, parent_model, inverted_options)
       end
 
-      # TODO: document
       # @api private
       def inverted_options
         options.only(*OPTIONS - [ :min, :max ]).update(:inverse => self)
       end
 
-      # TODO: document
       # @api private
       def kind_of_inverse?(other)
         other.kind_of?(inverse_class)
       end
 
-      # TODO: document
       # @api private
       def cmp?(other, operator)
         name.send(operator, other.name)           &&
@@ -623,7 +606,6 @@ module DataMapper
         query.send(operator, other.query)
       end
 
-      # TODO: document
       # @api private
       def cmp_repository?(other, operator, type)
         # if either repository is nil, then the relationship is relative,
@@ -634,7 +616,6 @@ module DataMapper
         repository_name.send(operator, other_repository_name)
       end
 
-      # TODO: document
       # @api private
       def cmp_model?(other, operator, type)
         send("#{type}_model?")       &&
@@ -642,7 +623,6 @@ module DataMapper
         send("#{type}_model").base_model.send(operator, other.send("#{type}_model").base_model)
       end
 
-      # TODO: document
       # @api private
       def cmp_key?(other, operator, type)
         property_method = "#{type}_properties"

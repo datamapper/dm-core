@@ -141,7 +141,6 @@ module DataMapper
   # and thus there is no FK value to use in the query.
   class UnsavedParentError < PersistenceError; end
 
-  # TODO: document
   # @api private
   def self.root
     @root ||= Pathname(__FILE__).dirname.parent.expand_path.freeze

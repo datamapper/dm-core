@@ -26,7 +26,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api semipublic
         alias target_key child_key
 
@@ -70,7 +69,6 @@ module DataMapper
           @through
         end
 
-        # TODO: document
         # @api semipublic
         def via
           return @via if defined?(@via)
@@ -101,7 +99,6 @@ module DataMapper
           @via
         end
 
-        # TODO: document
         # @api semipublic
         def links
           return @links if defined?(@links)
@@ -120,13 +117,11 @@ module DataMapper
           @links.freeze
         end
 
-        # TODO: document
         # @api private
         def source_scope(source)
           { through.inverse => source }
         end
 
-        # TODO: document
         # @api private
         def query
           # TODO: consider making this a query_for method, so that ManyToMany::Relationship#query only
@@ -152,7 +147,6 @@ module DataMapper
 
         private
 
-        # TODO: document
         # @api private
         def through_model
           namespace, name = through_model_namespace_name
@@ -173,7 +167,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def through_model_namespace_name
           target_parts = target_model.base_model.name.split('::')
@@ -192,7 +185,6 @@ module DataMapper
           return namespace, name
         end
 
-        # TODO: document
         # @api private
         def through_relationship_name
           if anonymous_through_model?
@@ -218,7 +210,6 @@ module DataMapper
           options[:through] == Resource
         end
 
-        # TODO: document
         # @api semipublic
         chainable do
           def many_to_one_options
@@ -226,7 +217,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api semipublic
         chainable do
           def one_to_many_options
@@ -241,13 +231,11 @@ module DataMapper
           self.class
         end
 
-        # TODO: document
         # @api private
         def invert
           inverse_class.new(inverse_name, parent_model, child_model, inverted_options)
         end
 
-        # TODO: document
         # @api private
         def inverted_options
           links   = self.links.dup
@@ -365,7 +353,6 @@ module DataMapper
 
         private
 
-        # TODO: document
         # @api private
         def _create(safe, attributes)
           if via.respond_to?(:resource_for)
@@ -380,7 +367,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def _save(safe, resources = {})
           if @removed.any?
@@ -414,7 +400,6 @@ module DataMapper
           @intermediary_for ||= {}
         end
 
-        # TODO: document
         # @api private
         def create_intermediary(safe, resource = nil)
           return intermediary_for[resource] if intermediary_for[resource]
@@ -433,25 +418,21 @@ module DataMapper
           intermediary_for[resource] = intermediary
         end
 
-        # TODO: document
         # @api private
         def reset_intermediaries
           through.set!(source, through.collection_for(source))
         end
 
-        # TODO: document
         # @api private
         def through
           relationship.through
         end
 
-        # TODO: document
         # @api private
         def via
           relationship.via
         end
 
-        # TODO: document
         # @api private
         def inverse_set(*)
           # do nothing
