@@ -495,7 +495,7 @@ module DataMapper
         def valid?
           case loaded_value
             when Collection
-              loaded_value.loaded? ? loaded_value.any? : true
+              super
             when Range
               loaded_value.any? && subject.valid?(loaded_value.first) && subject.valid?(loaded_value.last)
             when Enumerable

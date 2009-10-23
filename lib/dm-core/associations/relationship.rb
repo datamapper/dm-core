@@ -325,8 +325,8 @@ module DataMapper
         return true if source.nil?
 
         case source
-          when Array, Collection then valid_collection?(source)
-          when Resource          then valid_resource?(source)
+          when Enumerable then valid_collection?(source)
+          when Resource   then valid_resource?(source)
           else
             raise ArgumentError, "+source+ should be an Array, Collection or Resource, but was a #{source.class.name}"
         end
@@ -538,8 +538,13 @@ module DataMapper
       # TODO: document
       # @api private
       def valid_collection?(collection)
-        if collection.respond_to?(:model)
-          collection.model <= target_model && (collection.query.fields & source_key) == source_key
+        if collection.kind_of?(Collection)
+          # TODO: relax the target_key check, and just ensure the model
+          # key is a subset of fields so that in the worst-case we
+          # can lazy load the collection to get the target keys
+          collection.model <= target_model                     &&
+          (collection.query.fields & target_key) == target_key &&
+          (collection.loaded? ? collection.any? : true)
         else
           collection.all? { |resource| valid_resource?(resource) }
         end
