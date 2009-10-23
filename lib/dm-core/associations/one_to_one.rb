@@ -15,7 +15,7 @@ module DataMapper
         def get(source, other_query = nil)
           assert_kind_of 'source', source, source_model
 
-          return unless loaded?(source) || valid_key?(source)
+          return unless loaded?(source) || valid_source?(source)
 
           relationship.get(source, other_query).first
         end
@@ -63,21 +63,36 @@ module DataMapper
           @relationship = klass.new(name, target_model, source_model, options)
         end
 
+        # TODO: document
+        # @api private
         def near_relationship
+          return @near_relationship if defined?(@near_relationship)
+
           near_relationship = self
 
           while near_relationship.respond_to?(:through)
             near_relationship = near_relationship.through
           end
 
-          near_relationship
+          @near_relationship = near_relationship
         end
 
-        def valid_key?(source)
+        # TODO: document
+        # @api private
+        def valid_target?(target)
           target_key = near_relationship.target_key
+
+          target.kind_of?(target_model) &&
+          target_key.valid?(target_key.get(target))
+        end
+
+        # TODO: document
+        # @api private
+        def valid_source?(source)
           source_key = near_relationship.source_key
 
-          target_key.valid?(source_key.get(source))
+          source.kind_of?(source_model) &&
+          source_key.valid?(source_key.get(source))
         end
 
         # TODO: document

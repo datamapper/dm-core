@@ -312,7 +312,7 @@ module DataMapper
         resource.instance_variable_defined?(instance_variable_name)
       end
 
-      # Test the source to see if it is a valid target
+      # Test the resource to see if it is a valid target
       #
       # @param [Object] source
       #   the resource or collection to be tested
@@ -321,14 +321,14 @@ module DataMapper
       #   true if the resource is valid
       #
       # @api semipulic
-      def valid?(source)
-        return true if source.nil?
+      def valid?(target)
+        return true if target.nil?
 
-        case source
-          when Enumerable then valid_collection?(source)
-          when Resource   then valid_resource?(source)
+        case target
+          when Enumerable then valid_target_collection?(target)
+          when Resource   then valid_target?(target)
           else
-            raise ArgumentError, "+source+ should be an Array, Collection or Resource, but was a #{source.class.name}"
+            raise ArgumentError, "+target+ should be an Array, Collection or Resource, but was a #{target.class.name}"
         end
       end
 
@@ -537,7 +537,7 @@ module DataMapper
 
       # TODO: document
       # @api private
-      def valid_collection?(collection)
+      def valid_target_collection?(collection)
         if collection.kind_of?(Collection)
           # TODO: relax the target_key check, and just ensure the model
           # key is a subset of fields so that in the worst-case we
@@ -546,15 +546,22 @@ module DataMapper
           (collection.query.fields & target_key) == target_key &&
           (collection.loaded? ? collection.any? : true)
         else
-          collection.all? { |resource| valid_resource?(resource) }
+          collection.all? { |resource| valid_target?(resource) }
         end
       end
 
       # TODO: document
       # @api private
-      def valid_resource?(resource)
-        resource.kind_of?(target_model) &&
-        target_key.valid?(target_key.get!(resource))
+      def valid_target?(target)
+        target.kind_of?(target_model) &&
+        target_key.valid?(target_key.get(target))
+      end
+
+      # TODO: document
+      # @api private
+      def valid_source?(source)
+        source.kind_of?(source_model) &&
+        source_key.valid?(source_key.get(source))
       end
 
       # TODO: document
