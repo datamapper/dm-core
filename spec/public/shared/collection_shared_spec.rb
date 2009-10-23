@@ -42,10 +42,6 @@ share_examples_for 'A public Collection' do
     it 'should append one Resource to the Collection' do
       @articles.last.should equal(@resource)
     end
-
-    it 'should not relate the Resource to the Collection' do
-      @resource.collection.should_not equal(@articles)
-    end
   end
 
   it { @articles.should respond_to(:blank?) }
@@ -104,10 +100,6 @@ share_examples_for 'A public Collection' do
     it 'should make the Collection empty' do
       @articles.should be_empty
     end
-
-    it 'should orphan the Resources' do
-      @resources.each { |resource| resource.collection.should_not equal(@articles) }
-    end
   end
 
   [ :collect!, :map! ].each do |method|
@@ -131,10 +123,6 @@ share_examples_for 'A public Collection' do
       it 'should update the Collection inline' do
         @articles.each { |resource| resource.attributes.only(:title, :content).should == { :title => 'Sample Article', :content => 'New Content' } }
       end
-
-      it 'should orphan each replaced Resource in the Collection' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      end
     end
   end
 
@@ -155,10 +143,6 @@ share_examples_for 'A public Collection' do
 
     it 'should concatenate the two collections' do
       @return.should == [ @article, @other ]
-    end
-
-    it 'should relate each Resource to the Collection' do
-      @other_articles.each { |resource| resource.collection.should equal(@articles) }
     end
   end
 
@@ -299,10 +283,6 @@ share_examples_for 'A public Collection' do
       it 'should remove the Resource from the Collection' do
         @articles.should_not be_include(@resource)
       end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
-      end
     end
 
     describe 'with a Resource not within the Collection' do
@@ -334,10 +314,6 @@ share_examples_for 'A public Collection' do
 
       it 'should remove the Resource from the Collection' do
         @articles.should_not be_include(@resource)
-      end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -372,10 +348,6 @@ share_examples_for 'A public Collection' do
 
       it 'should remove the Resources from the Collection' do
         @resources.each { |resource| @articles.should_not be_include(resource) }
-      end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
 
@@ -469,6 +441,51 @@ share_examples_for 'A public Collection' do
     end
   end
 
+  # TODO: move this to enumerable_shared_spec.rb
+  it { @articles.should respond_to(:each) }
+
+  describe '#each' do
+    before :all do
+      rescue_if @skip do
+        @resources = @articles.dup.entries
+        @resources.should_not be_empty
+
+        @yield       = []
+        @collections = []
+
+        @return = @articles.each do |resource|
+          @yield       << resource
+          @collections << [ resource, resource.collection.object_id ]
+        end
+      end
+    end
+
+    it 'should return a Collection' do
+      @return.should be_kind_of(DataMapper::Collection)
+    end
+
+    it 'should return self' do
+      @return.should equal(@articles)
+    end
+
+    it 'should yield to each entry' do
+      @yield.should == @articles
+    end
+
+    it 'should yield Resources' do
+      @yield.each { |resource| resource.should be_kind_of(DataMapper::Resource) }
+    end
+
+    it 'should relate the Resource collection to the Collection within the block only' do
+      pending_if 'Fix SEL for m:m', @many_to_many do
+        @collections.each do |resource, object_id|
+          resource.collection.should_not equal(@articles)  # collection outside block
+          object_id.should == @articles.object_id          # collection inside block
+        end
+      end
+    end
+  end
+
   it { @articles.should respond_to(:insert) }
 
   describe '#insert' do
@@ -488,10 +505,6 @@ share_examples_for 'A public Collection' do
 
     it 'should insert one or more Resources at a given offset' do
       @articles.should == @resources + [ @article ]
-    end
-
-    it 'should relate the Resources to the Collection' do
-      @resources.each { |resource| resource.collection.should equal(@articles) }
     end
   end
 
@@ -636,10 +649,6 @@ share_examples_for 'A public Collection' do
       it 'should remove the Resource from the Collection' do
         @articles.should_not be_include(@new)
       end
-
-      it 'should orphan the Resource' do
-        @return.collection.should_not equal(@articles)
-      end
     end
 
     if RUBY_VERSION >= '1.8.7'
@@ -658,10 +667,6 @@ share_examples_for 'A public Collection' do
 
         it 'should remove the Resource from the Collection' do
           @articles.should_not be_include(@new)
-        end
-
-        it 'should orphan the Resource' do
-          @return.each { |resource| resource.collection.should_not equal(@articles) }
         end
       end
     end
@@ -687,10 +692,6 @@ share_examples_for 'A public Collection' do
     it 'should append the Resources to the Collection' do
       @articles.should == [ @article ] + @resources
     end
-
-    it 'should relate the Resources to the Collection' do
-      @resources.each { |resource| resource.collection.should equal(@articles) }
-    end
   end
 
   it { @articles.should respond_to(:reject!) }
@@ -713,10 +714,6 @@ share_examples_for 'A public Collection' do
 
       it 'should remove the Resources from the Collection' do
         @resources.each { |resource| @articles.should_not be_include(resource) }
-      end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
 
@@ -858,14 +855,6 @@ share_examples_for 'A public Collection' do
       it 'should update the Collection with new Resources' do
         @articles.should == @other_articles
       end
-
-      it 'should relate each Resource added to the Collection' do
-        @articles.each { |resource| resource.collection.should equal(@articles) }
-      end
-
-      it 'should orphan each Resource removed from the Collection' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      end
     end
 
     describe 'when provided an Array of Hashes' do
@@ -956,10 +945,6 @@ share_examples_for 'A public Collection' do
         it 'should return true' do
           @return.should be_true
         end
-
-        it 'should orphan the Resources' do
-          @resources.each { |resource| resource.collection.should_not equal(@articles) }
-        end
       end
     end
   end
@@ -983,10 +968,6 @@ share_examples_for 'A public Collection' do
       it 'should remove the Resource from the Collection' do
         @articles.should_not be_include(@return)
       end
-
-      it 'should orphan the Resource' do
-        @return.collection.should_not equal(@articles)
-      end
     end
 
     if RUBY_VERSION >= '1.8.7'
@@ -1006,10 +987,6 @@ share_examples_for 'A public Collection' do
 
         it 'should remove the Resource from the Collection' do
           @articles.should_not be_include(@article)
-        end
-
-        it 'should orphan the Resource' do
-          @return.each { |resource| resource.collection.should_not equal(@articles) }
         end
       end
     end
@@ -1046,10 +1023,6 @@ share_examples_for 'A public Collection' do
       it 'should remove the Resource from the Collection' do
         @articles.should_not be_include(@resource)
       end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
-      end
     end
 
     describe 'with a positive offset and length' do
@@ -1069,10 +1042,6 @@ share_examples_for 'A public Collection' do
 
       it 'should remove the Resources from the Collection' do
         @resources.each { |resource| @articles.should_not be_include(resource) }
-      end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -1099,10 +1068,6 @@ share_examples_for 'A public Collection' do
         @resources.each { |resource| @articles.should_not be_include(resource) }
       end
 
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      end
-
       it 'should scope the Collection' do
         @resources.reload.should == @copy.entries.slice!(5..10)
       end
@@ -1126,10 +1091,6 @@ share_examples_for 'A public Collection' do
       it 'should remove the Resource from the Collection' do
         @articles.should_not be_include(@resource)
       end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
-      end
     end
 
     describe 'with a negative offset and length' do
@@ -1149,10 +1110,6 @@ share_examples_for 'A public Collection' do
 
       it 'should remove the Resources from the Collection' do
         @resources.each { |resource| @articles.should_not be_include(resource) }
-      end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -1177,10 +1134,6 @@ share_examples_for 'A public Collection' do
 
       it 'should remove the Resources from the Collection' do
         @resources.each { |resource| @articles.should_not be_include(resource) }
-      end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
 
       it 'should scope the Collection' do
@@ -1293,7 +1246,6 @@ share_examples_for 'A public Collection' do
         before :all do
           rescue_if @skip do
             @original = @copy[1]
-            @original.collection.should equal(@articles)
 
             @return = @resource = @articles.send(method, 1, @new)
           end
@@ -1316,21 +1268,12 @@ share_examples_for 'A public Collection' do
         it 'should include the Resource in the Collection' do
           @articles.should be_include(@resource)
         end
-
-        it 'should relate the Resource to the Collection' do
-          @resource.collection.should equal(@articles)
-        end
-
-        it 'should orphan the original Resource' do
-          @original.collection.should_not equal(@articles)
-        end
       end
 
       describe 'with a positive offset and length and a Resource' do
         before :all do
           rescue_if @skip do
             @original = @copy[2]
-            @original.collection.should equal(@articles)
 
             @return = @resource = @articles.send(method, 2, 1, @new)
           end
@@ -1353,17 +1296,12 @@ share_examples_for 'A public Collection' do
         it 'should include the Resource in the Collection' do
           @articles.should be_include(@resource)
         end
-
-        it 'should orphan the original Resource' do
-          @original.collection.should_not equal(@articles)
-        end
       end
 
       describe 'with a positive range and a Resource' do
         before :all do
           rescue_if @skip do
             @originals = @copy.values_at(2..3)
-            @originals.each { |resource| resource.collection.should equal(@articles) }
 
             @return = @resource = @articles.send(method, 2..3, @new)
           end
@@ -1386,17 +1324,12 @@ share_examples_for 'A public Collection' do
         it 'should include the Resource in the Collection' do
           @articles.should be_include(@resource)
         end
-
-        it 'should orphan the original Resources' do
-          @originals.each { |resource| resource.collection.should_not equal(@articles) }
-        end
       end
 
       describe 'with a negative offset and a Resource' do
         before :all do
           rescue_if @skip do
             @original = @copy[-1]
-            @original.collection.should equal(@articles)
 
             @return = @resource = @articles.send(method, -1, @new)
           end
@@ -1419,21 +1352,12 @@ share_examples_for 'A public Collection' do
         it 'should include the Resource in the Collection' do
           @articles.should be_include(@resource)
         end
-
-        it 'should relate the Resource to the Collection' do
-          @resource.collection.should equal(@articles)
-        end
-
-        it 'should orphan the original Resource' do
-          @original.collection.should_not equal(@articles)
-        end
       end
 
       describe 'with a negative offset and length and a Resource' do
         before :all do
           rescue_if @skip do
             @original = @copy[-2]
-            @original.collection.should equal(@articles)
 
             @return = @resource = @articles.send(method, -2, 1, @new)
           end
@@ -1456,17 +1380,12 @@ share_examples_for 'A public Collection' do
         it 'should include the Resource in the Collection' do
           @articles.should be_include(@resource)
         end
-
-        it 'should orphan the original Resource' do
-          @original.collection.should_not equal(@articles)
-        end
       end
 
       describe 'with a negative range and a Resource' do
         before :all do
           rescue_if @skip do
             @originals = @articles.values_at(-3..-2)
-            @originals.each { |resource| resource.collection.should equal(@articles) }
 
             @return = @resource = @articles.send(method, -3..-2, @new)
           end
@@ -1489,10 +1408,6 @@ share_examples_for 'A public Collection' do
         it 'should include the Resource in the Collection' do
           @articles.should be_include(@resource)
         end
-
-        it 'should orphan the original Resources' do
-          @originals.each { |resource| resource.collection.should_not equal(@articles) }
-        end
       end
     end
   end
@@ -1511,10 +1426,6 @@ share_examples_for 'A public Collection' do
 
       it 'should include the Resource in the Collection' do
         @articles.should == @entries.reverse
-      end
-
-      it 'should relate the Resource to the Collection' do
-        @articles.each { |resource| resource.collection.should equal(@articles) }
       end
     end
   end
@@ -1538,10 +1449,6 @@ share_examples_for 'A public Collection' do
 
     it 'should prepend the Resources to the Collection' do
       @articles.should == @resources + [ @article ]
-    end
-
-    it 'should relate the Resources to the Collection' do
-      @resources.each { |resource| resource.collection.should equal(@articles) }
     end
   end
 

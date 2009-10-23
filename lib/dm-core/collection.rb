@@ -110,7 +110,7 @@ module DataMapper
     def get(*key)
       key = model.key(repository.name).typecast(key)
 
-      resource = @identity_map[key] || if !loaded? && (query.limit || query.offset > 0)
+      @identity_map[key] || if !loaded? && (query.limit || query.offset > 0)
         # current query is exclusive, find resource within the set
 
         # TODO: use a subquery to retrieve the Collection and then match
@@ -128,10 +128,6 @@ module DataMapper
         # current query is all inclusive, lookup using normal approach
         first(model.key_conditions(repository, key))
       end
-
-      return if resource.nil?
-
-      orphan_resource(resource)
     end
 
     # Lookup a Resource in the Collection by key, raising an exception if not found
@@ -290,8 +286,7 @@ module DataMapper
     # @api public
     def at(offset)
       if loaded? || partially_loaded?(offset)
-        return unless resource = super
-        orphan_resource(resource)
+        super
       elsif offset >= 0
         first(:offset => offset)
       else
@@ -401,9 +396,6 @@ module DataMapper
       # mark resources as removed
       resources_removed(orphans - loaded_entries)
 
-      # ensure remaining orphans are still related
-      (orphans & loaded_entries).each { |resource| relate_resource(resource) }
-
       resources
     end
 
@@ -436,6 +428,24 @@ module DataMapper
       end
 
       self
+    end
+
+    # Iterate over each Resource
+    #
+    # @yield [Resource] Each resource in the collection
+    #
+    # @return [self]
+    #
+    # @api public
+    def each
+      super do |resource|
+        begin
+          original, resource.collection = resource.collection, self
+          yield resource
+        ensure
+          resource.collection = original
+        end
+      end
     end
 
     # Invoke the block for each resource and replace it the return value
@@ -1152,50 +1162,6 @@ module DataMapper
       end
     end
 
-    # Relates a Resource to the Collection
-    #
-    # This is used by SEL related code to reload a Resource and the
-    # Collection it belongs to.
-    #
-    # @param [Resource] resource
-    #   The Resource to relate
-    #
-    # @return [Resource]
-    #   If Resource was successfully related
-    # @return [nil]
-    #   If a nil resource was provided
-    #
-    # @api private
-    def relate_resource(resource)
-      unless resource.readonly?
-        resource.collection = self
-      end
-
-      resource
-    end
-
-    # Orphans a Resource from the Collection
-    #
-    # Removes the association between the Resource and Collection so that
-    # SEL related code will not load the Collection.
-    #
-    # @param [Resource] resource
-    #   The Resource to orphan
-    #
-    # @return [Resource]
-    #   The Resource that was orphaned
-    # @return [nil]
-    #   If a nil resource was provided
-    #
-    # @api private
-    def orphan_resource(resource)
-      if resource.collection.equal?(self) && !resource.readonly?
-        resource.collection = nil
-      end
-
-      resource
-    end
-
     # Track the added resource
     #
     # @param [Resource] resource
@@ -1215,7 +1181,7 @@ module DataMapper
         set_default_attributes(resource)
       end
 
-      relate_resource(resource)
+      resource
     end
 
     # Track the added resources
@@ -1250,7 +1216,7 @@ module DataMapper
         @removed << resource
       end
 
-      orphan_resource(resource)
+      resource
     end
 
     # Track the removed resources

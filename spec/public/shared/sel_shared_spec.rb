@@ -1,10 +1,6 @@
 share_examples_for 'A Collection supporting Strategic Eager Loading' do
   describe 'using SEL when looping within a loop' do
     before :all do
-      @mysql = defined?(DataMapper::Adapters::MysqlAdapter) && @adapter.kind_of?(DataMapper::Adapters::MysqlAdapter)
-    end
-
-    before :all do
       @many_to_many = @articles.kind_of?(DataMapper::Associations::ManyToMany::Collection)
     end
 
@@ -49,9 +45,7 @@ share_examples_for 'A Collection supporting Strategic Eager Loading' do
     end
 
     it "should only execute the Adapter#read #{loaded ? 'once' : 'twice'}" do
-      pending_if !loaded && !@many_to_many && @mysql do
-        @adapter.counts[:read].should == (loaded ? 1 : 2)
-      end
+      @adapter.counts[:read].should == (loaded ? 1 : 2)
     end
 
     it 'should return the expected results' do
@@ -70,10 +64,6 @@ end
 
 share_examples_for 'A Resource supporting Strategic Eager Loading' do
   describe 'using SEL when inside a Collection' do
-    before :all do
-      @mysql = defined?(DataMapper::Adapters::MysqlAdapter) && @adapter.kind_of?(DataMapper::Adapters::MysqlAdapter)
-    end
-
     before :all do
       @referrer = @user_model.create(:name => 'Referrer', :comment => @comment)
 
@@ -111,9 +101,7 @@ share_examples_for 'A Resource supporting Strategic Eager Loading' do
     end
 
     it 'should only execute the Adapter#read twice' do
-      pending_if @mysql do
-        @adapter.counts[:read].should == 2
-      end
+      @adapter.counts[:read].should == 2
     end
 
     it 'should return the expected results' do

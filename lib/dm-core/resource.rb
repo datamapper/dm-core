@@ -248,6 +248,7 @@ module DataMapper
     #
     # @api public
     def attributes(key_on = :name)
+      lazy_load(properties)
       attributes = {}
       properties.each do |property|
         if model.public_method_defined?(name = property.name)
@@ -651,8 +652,8 @@ module DataMapper
     #
     # @api private
     def collection
-      return @collection if @collection || new? || readonly?
-      @collection = collection_for_self
+      return @collection if (@collection && @collection.query.conditions.matches?(self)) || new? || readonly?
+      collection_for_self
     end
 
     protected

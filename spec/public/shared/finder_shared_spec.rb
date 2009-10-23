@@ -42,10 +42,6 @@ share_examples_for 'Finder Interface' do
         it 'should return expected Resource' do
           @return.should == @copy.entries.send(method, 0)
         end
-
-        it 'should orphan the Resource' do
-          @resource.collection.should_not equal(@articles)
-        end
       end
 
       describe 'with a positive offset and length' do
@@ -59,10 +55,6 @@ share_examples_for 'Finder Interface' do
 
         it 'should return the expected Resource' do
           @return.should == @copy.entries.send(method, 5, 5)
-        end
-
-        it 'should orphan the Resources' do
-          @resources.each { |resource| resource.collection.should_not equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -81,10 +73,6 @@ share_examples_for 'Finder Interface' do
 
         it 'should return the expected Resources' do
           @return.should == @copy.entries.send(method, 5..10)
-        end
-
-        it 'should orphan the Resources' do
-          @resources.each { |resource| resource.collection.should_not equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -106,10 +94,6 @@ share_examples_for 'Finder Interface' do
         it 'should return expected Resource' do
           @return.should == @copy.entries.send(method, -1)
         end
-
-        it 'should orphan the Resource' do
-          @resource.collection.should_not equal(@articles)
-        end
       end
 
       describe 'with a negative offset and length' do
@@ -123,10 +107,6 @@ share_examples_for 'Finder Interface' do
 
         it 'should return the expected Resources' do
           @return.should == @copy.entries.send(method, -5, 5)
-        end
-
-        it 'should orphan the Resources' do
-          @resources.each { |resource| resource.collection.should_not equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -145,10 +125,6 @@ share_examples_for 'Finder Interface' do
 
         it 'should return the expected Resources' do
           @return.to_a.should == @copy.entries.send(method, -5..-2)
-        end
-
-        it 'should orphan the Resources' do
-          @resources.each { |resource| resource.collection.should_not equal(@articles) }
         end
 
         it 'should scope the Collection' do
@@ -671,10 +647,6 @@ share_examples_for 'Finder Interface' do
       it 'should return expected Resource' do
         @resource.should == @copy.entries.at(0)
       end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
-      end
     end
 
     # describe 'with positive offset', 'after prepending to the collection' do
@@ -690,10 +662,6 @@ share_examples_for 'Finder Interface' do
     #
     #   it 'should return expected Resource' do
     #     @resource.should equal(@other)
-    #   end
-    #
-    #   it 'should relate the Resource to the Collection' do
-    #     @resource.collection.should equal(@articles)
     #   end
     # end
 
@@ -711,10 +679,6 @@ share_examples_for 'Finder Interface' do
       it 'should return expected Resource' do
         @resource.should == @copy.entries.at(-1)
       end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
-      end
     end
 
     # describe 'with negative offset', 'after appending to the collection' do
@@ -730,10 +694,6 @@ share_examples_for 'Finder Interface' do
     #
     #   it 'should return expected Resource' do
     #     @resource.should equal(@other)
-    #   end
-    #
-    #   it 'should relate the Resource to the Collection' do
-    #     @resource.collection.should equal(@articles)
     #   end
     # end
   end
@@ -760,10 +720,6 @@ share_examples_for 'Finder Interface' do
       it 'should be first Resource in the Collection' do
         @resource.should == @copy.entries.first
       end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
-      end
     end
 
     # describe 'with no arguments', 'after prepending to the collection' do
@@ -782,10 +738,6 @@ share_examples_for 'Finder Interface' do
     #   it 'should be first Resource in the Collection' do
     #     @resource.should equal(@copy.entries.unshift(@other).first)
     #   end
-    #
-    #   it 'should not relate the Resource to the Collection' do
-    #     @resource.collection.should_not equal(@articles)
-    #   end
     # end
 
     describe 'with empty query' do
@@ -799,10 +751,6 @@ share_examples_for 'Finder Interface' do
 
       it 'should be first Resource in the Collection' do
         @resource.should == @copy.entries.first
-      end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -822,10 +770,6 @@ share_examples_for 'Finder Interface' do
     #   it 'should be first Resource in the Collection' do
     #     @resource.should equal(@copy.entries.unshift(@other).first)
     #   end
-    #
-    #   it 'should not relate the Resource to the Collection' do
-    #     @resource.collection.should_not equal(@articles)
-    #   end
     # end
 
     describe 'with a query' do
@@ -839,10 +783,6 @@ share_examples_for 'Finder Interface' do
 
       it 'should should be the first Resource in the Collection matching the query' do
         @resource.should == @article
-      end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -858,10 +798,6 @@ share_examples_for 'Finder Interface' do
       it 'should be the first N Resources in the Collection' do
         @resources.should == @copy.entries.first(1)
       end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      end
     end
 
     describe 'with offset specified' do
@@ -875,10 +811,6 @@ share_examples_for 'Finder Interface' do
 
       it 'should be the second Resource in the Collection' do
         @resource.should == @copy.entries[1]
-      end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -898,10 +830,6 @@ share_examples_for 'Finder Interface' do
     #   it 'should be the first N Resources in the Collection' do
     #     @resources.should == @copy.entries.unshift(@other).first(1)
     #   end
-    #
-    #   it 'should orphan the Resources' do
-    #     @resources.each { |resource| resource.collection.should_not equal(@articles) }
-    #   end
     # end
 
     describe 'with a limit and query specified' do
@@ -915,10 +843,6 @@ share_examples_for 'Finder Interface' do
 
       it 'should be the first N Resources in the Collection matching the query' do
         @resources.should == [ @article ]
-      end
-
-      it 'should orphan the Resources' do
-        @resources.each { |resource| resource.collection.should_not equal(@articles) }
       end
     end
   end
@@ -942,10 +866,6 @@ share_examples_for 'Finder Interface' do
       it 'should be a saved Resource' do
         @resource.should be_saved
       end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
-      end
     end
 
     describe 'with conditions that do not find an existing Resource' do
@@ -967,10 +887,6 @@ share_examples_for 'Finder Interface' do
       it 'should be a saved Resource' do
         @resource.should be_saved
       end
-
-      # it 'should relate the Resource' do
-      #   @resource.collection.should equal(@articles)
-      # end
     end
   end
 
@@ -993,10 +909,6 @@ share_examples_for 'Finder Interface' do
       it 'should be a saved Resource' do
         @resource.should be_saved
       end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
-      end
     end
 
     describe 'with conditions that do not find an existing Resource' do
@@ -1018,10 +930,6 @@ share_examples_for 'Finder Interface' do
       it 'should not be a saved Resource' do
         @resource.should be_new
       end
-
-      # it 'should relate the Resource' do
-      #   @resource.collection.should equal(@articles)
-      # end
     end
   end
 
@@ -1043,10 +951,6 @@ share_examples_for 'Finder Interface' do
         it 'should be matching Resource in the Collection' do
           @resource.should == @article
         end
-
-        it 'should orphan the Resource' do
-          @resource.collection.should_not equal(@articles)
-        end
       end
 
       describe 'with a key not typecast' do
@@ -1062,10 +966,6 @@ share_examples_for 'Finder Interface' do
 
         it 'should be matching Resource in the Collection' do
           @resource.should == @article
-        end
-
-        it 'should orphan the Resource' do
-          @resource.collection.should_not equal(@articles)
         end
       end
 
@@ -1083,10 +983,6 @@ share_examples_for 'Finder Interface' do
       #   it 'should be matching Resource in the Collection' do
       #     @resource.should == @article
       #   end
-      #
-      #   it 'should orphan the Resource' do
-      #     @resource.collection.should_not equal(@articles)
-      #   end
       # end
       #
       # describe 'with a key to a Resource within a Collection using an offset' do
@@ -1103,10 +999,6 @@ share_examples_for 'Finder Interface' do
       #
       #   it 'should be matching Resource in the Collection' do
       #     @resource.should equal(@new)
-      #   end
-      #
-      #   it 'should orphan the Resource' do
-      #     @resource.collection.should_not equal(@articles)
       #   end
       # end
 
@@ -1176,10 +1068,6 @@ share_examples_for 'Finder Interface' do
       it 'should be last Resource in the Collection' do
         @resource.should == @copy.entries.last
       end
-
-      # it 'should not relate the Resource to the Collection' do
-      #   @resource.collection.should_not equal(@articles)
-      # end
     end
 
     # describe 'with no arguments', 'after appending to the collection' do
@@ -1198,10 +1086,6 @@ share_examples_for 'Finder Interface' do
     #   it 'should be last Resource in the Collection' do
     #     @resource.should equal(@copy.entries.push(@other).last)
     #   end
-    #
-    #   it 'should not relate the Resource to the Collection' do
-    #     @resource.collection.should_not equal(@articles)
-    #   end
     # end
 
     describe 'with a query' do
@@ -1216,10 +1100,6 @@ share_examples_for 'Finder Interface' do
       it 'should should be the last Resource in the Collection matching the query' do
         @resource.should == @article
       end
-
-      # it 'should not relate the Resource to the Collection' do
-      #   @resource.collection.should_not equal(@articles)
-      # end
     end
 
     describe 'with a limit specified' do
@@ -1234,10 +1114,6 @@ share_examples_for 'Finder Interface' do
       it 'should be the last N Resources in the Collection' do
         @resources.should == @copy.entries.last(1)
       end
-
-      # it 'should orphan the Resources' do
-      #   @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      # end
     end
 
     describe 'with offset specified' do
@@ -1251,10 +1127,6 @@ share_examples_for 'Finder Interface' do
 
       it 'should be the second Resource in the Collection' do
         @resource.should == @copy.entries[-2]
-      end
-
-      it 'should orphan the Resource' do
-        @resource.collection.should_not equal(@articles)
       end
     end
 
@@ -1274,10 +1146,6 @@ share_examples_for 'Finder Interface' do
     #   it 'should be the last N Resources in the Collection' do
     #     @resources.should == @copy.entries.push(@other).last(1)
     #   end
-    #
-    #  it 'should orphan the Resources' do
-    #    @resources.each { |resource| resource.collection.should_not equal(@articles) }
-    #   end
     # end
 
     describe 'with a limit and query specified' do
@@ -1292,10 +1160,6 @@ share_examples_for 'Finder Interface' do
       it 'should be the last N Resources in the Collection matching the query' do
         @resources.should == [ @article ]
       end
-
-      # it 'should orphan the Resources' do
-      #   @resources.each { |resource| resource.collection.should_not equal(@articles) }
-      # end
     end
   end
 
