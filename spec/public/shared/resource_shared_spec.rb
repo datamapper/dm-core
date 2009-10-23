@@ -873,6 +873,34 @@ share_examples_for 'A public Resource' do
           }.should raise_error(DataMapper::PersistenceError, "#{@user.model}##{method} cannot be called on a destroyed resource")
         end
       end
+
+      describe 'on a record with itself as a parent (circular dependency)' do
+        before :all do
+          rescue_if @skip do
+            @user.parent = @user
+          end
+        end
+
+        it 'should not raise an exception' do
+          lambda {
+            @user.send(method).should be_true
+          }.should_not raise_error(SystemStackError)
+        end
+      end
+
+      describe 'on a record with itself as a child (circular dependency)' do
+        before :all do
+          rescue_if @skip do
+            @user.children = [ @user ]
+          end
+        end
+
+        it 'should not raise an exception' do
+          lambda {
+            @user.send(method).should be_true
+          }.should_not raise_error(SystemStackError)
+        end
+      end
     end
   end
 
