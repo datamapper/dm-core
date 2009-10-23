@@ -128,6 +128,12 @@ module DataMapper
 
     # TODO: document
     # @api semipublic
+    def valid?(values)
+      zip(values.nil? ? [] : values).all? { |property, value| property.valid?(value) }
+    end
+
+    # TODO: document
+    # @api semipublic
     def typecast(values)
       zip(values.nil? ? [] : values).map { |property, value| property.typecast(value) }
     end

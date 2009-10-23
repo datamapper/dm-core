@@ -554,7 +554,7 @@ module DataMapper
       # @api private
       def valid_resource?(resource)
         resource.kind_of?(target_model) &&
-        target_key.zip(target_key.get!(resource)).all? { |property, value| property.valid?(value) }
+        target_key.valid?(target_key.get!(resource))
       end
 
       # TODO: document

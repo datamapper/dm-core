@@ -86,11 +86,14 @@ module DataMapper
     def key
       return @key if defined?(@key)
 
-      key = model.key(repository_name).map do |property|
+      model_key = model.key(repository_name)
+
+      key = model_key.map do |property|
         original_attributes[property] || (property.loaded?(self) ? property.get!(self) : nil)
       end
 
-      @key = key if key.all? { |value| !value.nil? }
+      # only memoize a valid key
+      @key = key if model_key.valid?(key)
     end
 
     # Checks if this Resource instance is new
