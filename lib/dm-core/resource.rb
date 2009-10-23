@@ -901,7 +901,7 @@ module DataMapper
 
       if dirty_attributes.empty?
         true
-      elsif dirty_attributes.any? { |property, value| !property.nullable? && value.nil? }
+      elsif dirty_attributes.any? { |property, value| !property.valid?(value) }
         false
       else
         # remove from the identity map

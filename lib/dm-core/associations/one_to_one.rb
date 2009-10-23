@@ -15,7 +15,7 @@ module DataMapper
         def get(source, other_query = nil)
           assert_kind_of 'source', source, source_model
 
-          return unless loaded?(source) || source_key.get(source).all? { |value| !value.nil? }
+          return unless loaded?(source) || valid_key?(source)
 
           relationship.get(source, other_query).first
         end
@@ -61,6 +61,23 @@ module DataMapper
           klass = options.key?(:through) ? ManyToMany::Relationship : OneToMany::Relationship
           target_model ||= Extlib::Inflection.camelize(name).freeze
           @relationship = klass.new(name, target_model, source_model, options)
+        end
+
+        def near_relationship
+          near_relationship = self
+
+          while near_relationship.respond_to?(:through)
+            near_relationship = near_relationship.through
+          end
+
+          near_relationship
+        end
+
+        def valid_key?(source)
+          target_key = near_relationship.target_key
+          source_key = near_relationship.source_key
+
+          target_key.valid?(source_key.get(source))
         end
 
         # TODO: document

@@ -473,9 +473,10 @@ module DataMapper
             record = record.dup
             field_map.each { |property, field| record[property] = record.delete(field) if record.key?(field) }
 
-            model = discriminator && record[discriminator] || self
+            model     = discriminator && record[discriminator] || self
+            model_key = model.key(repository_name)
 
-            resource = if (key_values = record.values_at(*model.key(repository_name))).all? { |value| !value.nil? }
+            resource = if model_key.valid?(key_values = record.values_at(*model_key))
               identity_map = repository.identity_map(model)
               identity_map[key_values]
             end
@@ -497,9 +498,10 @@ module DataMapper
             end
 
           when Resource
-            model = record.model
+            model     = record.model
+            model_key = model.key(repository_name)
 
-            resource = if (key_values = record.key).all? { |value| !value.nil? }
+            resource = if model_key.valid?(key_values = record.key)
               identity_map = repository.identity_map(model)
               identity_map[key_values]
             end
