@@ -427,7 +427,7 @@ module DataMapper
           attributes[via] = resource if resource
 
           intermediary = intermediaries.first_or_new(attributes)
-          return unless intermediary.send(method)
+          return unless intermediary.__send__(method)
 
           # map the resource, even if it is nil, to the intermediary
           intermediary_for[resource] = intermediary

@@ -1090,7 +1090,7 @@ module DataMapper
     def _save(safe, resources = {})
       loaded_entries.each { |resource| set_default_attributes(resource) }
       @removed.clear
-      loaded_entries.all? { |resource| resource.destroyed? || resource.send(:_save, safe, resources) }
+      loaded_entries.all? { |resource| resource.destroyed? || resource.__send__(:_save, safe, resources) }
     end
 
     # Checks if any resources have unsaved changes (internal)
@@ -1100,7 +1100,7 @@ module DataMapper
     #
     # @api private
     def _dirty?(resources = {})
-      loaded_entries.any? { |resource| resource.send(:_dirty?, resources) } || @removed.any?
+      loaded_entries.any? { |resource| resource.__send__(:_dirty?, resources) } || @removed.any?
     end
 
     # Returns default values to initialize new Resources in the Collection

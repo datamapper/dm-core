@@ -28,7 +28,7 @@ share_examples_for 'A public Resource' do
       describe 'when comparing to the same resource' do
         before :all do
           @other  = @user
-          @return = @user.send(method, @other)
+          @return = @user.__send__(method, @other)
         end
 
         it 'should return true' do
@@ -39,7 +39,7 @@ share_examples_for 'A public Resource' do
       describe 'when comparing to an resource that does not respond to resource methods' do
         before :all do
           @other  = Object.new
-          @return = @user.send(method, @other)
+          @return = @user.__send__(method, @other)
         end
 
         it 'should return false' do
@@ -51,7 +51,7 @@ share_examples_for 'A public Resource' do
         before :all do
           rescue_if @skip do
             @other  = @author_model.new(@user.attributes)
-            @return = @user.send(method, @other)
+            @return = @user.__send__(method, @other)
           end
         end
 
@@ -64,7 +64,7 @@ share_examples_for 'A public Resource' do
         before :all do
           rescue_if @skip do
             @other  = @user_model.get(*@user.key)
-            @return = @user.send(method, @other)
+            @return = @user.__send__(method, @other)
           end
         end
 
@@ -78,7 +78,7 @@ share_examples_for 'A public Resource' do
           rescue_if @skip do
             @user.age = 20
             @other  = @user_model.get(*@user.key)
-            @return = @user.send(method, @other)
+            @return = @user.__send__(method, @other)
           end
         end
 
@@ -91,7 +91,7 @@ share_examples_for 'A public Resource' do
         before :all do
           rescue_if @skip do
             @other  = @user_model.new(@user.attributes)
-            @return = @user.send(method, @other)
+            @return = @user.__send__(method, @other)
           end
         end
 
@@ -105,7 +105,7 @@ share_examples_for 'A public Resource' do
           before :all do
             rescue_if @skip do
               @other = @alternate_repository.scope { @user_model.create(@user.attributes) }
-              @return = @user.send(method, @other)
+              @return = @user.__send__(method, @other)
             end
           end
 
@@ -226,7 +226,7 @@ share_examples_for 'A public Resource' do
         before :all do
           @resource = @user_model.create(:name => 'hacker', :age => 20, :comment => @comment)
 
-          @return = @resource.send(method)
+          @return = @resource.__send__(method)
         end
 
         it 'should successfully remove a resource' do
@@ -238,7 +238,7 @@ share_examples_for 'A public Resource' do
         end
 
         it "should return true when calling #{method} on a destroyed resource" do
-          @resource.send(method).should be_true
+          @resource.__send__(method).should be_true
         end
 
         it 'should remove resource from persistent storage' do
@@ -593,7 +593,7 @@ share_examples_for 'A public Resource' do
       describe 'on a new, not dirty resource' do
         before :all do
           @user = @user_model.new
-          @return = @user.send(method)
+          @return = @user.__send__(method)
         end
 
         it 'should return false' do
@@ -603,7 +603,7 @@ share_examples_for 'A public Resource' do
 
       describe 'on a not new, not dirty resource' do
         it 'should return true even when resource is not dirty' do
-          @user.send(method).should be_true
+          @user.__send__(method).should be_true
         end
       end
 
@@ -611,7 +611,7 @@ share_examples_for 'A public Resource' do
         before :all do
           rescue_if @skip do
             @user.age = 26
-            @return = @user.send(method)
+            @return = @user.__send__(method)
           end
         end
 
@@ -632,7 +632,7 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should not save an invalid resource' do
-          @user.send(method).should be_false
+          @user.__send__(method).should be_false
         end
       end
 
@@ -642,7 +642,7 @@ share_examples_for 'A public Resource' do
             @initial_comments = @user.comments.size
             @first_comment    = @user.comments.new(:body => "DM is great!")
             @second_comment   = @comment_model.new(:user => @user, :body => "is it really?")
-            @return           = @user.send(method)
+            @return           = @user.__send__(method)
           end
         end
 
@@ -693,7 +693,7 @@ share_examples_for 'A public Resource' do
             @first_comment.body  = "It still has rough edges"
             @second_comment.body = "But these cool specs help fixing that"
             @second_comment.user = @user_model.create(:name => 'dkubb')
-            @return              = @user.send(method)
+            @return              = @user.__send__(method)
           end
         end
 
@@ -738,7 +738,7 @@ share_examples_for 'A public Resource' do
             @first_comment = @comment_model.new(:body => 'DM is great!')
             @first_comment.user = @user
 
-            @return = @first_comment.send(method)
+            @return = @first_comment.__send__(method)
           end
         end
 
@@ -761,7 +761,7 @@ share_examples_for 'A public Resource' do
           rescue_if 'TODO: fix for one to one association', (!@article.respond_to?(:paragraphs)) do
             @paragraph = @article.paragraphs.new(:text => 'Content')
 
-            @article.send(method)
+            @article.__send__(method)
           end
         end
 
@@ -795,7 +795,7 @@ share_examples_for 'A public Resource' do
           rescue_if @skip do
             @original_key = @user.key
             @user.name = 'dkubb'
-            @return = @user.send(method)
+            @return = @user.__send__(method)
           end
         end
 
@@ -822,7 +822,7 @@ share_examples_for 'A public Resource' do
           @parent      = @user_model.new(:name => 'ashleymoran', :comment => @comment, :referrer => @grandparent)
           @child       = @user_model.new(:name => 'mrship',      :comment => @comment, :referrer => @parent)
 
-          @response = @child.send(method)
+          @response = @child.__send__(method)
         end
 
         it 'should return true' do
@@ -869,7 +869,7 @@ share_examples_for 'A public Resource' do
 
         it 'should raise an exception' do
           lambda {
-            @user.send(method)
+            @user.__send__(method)
           }.should raise_error(DataMapper::PersistenceError, "#{@user.model}##{method} cannot be called on a destroyed resource")
         end
       end
@@ -883,7 +883,7 @@ share_examples_for 'A public Resource' do
 
         it 'should not raise an exception' do
           lambda {
-            @user.send(method).should be_true
+            @user.__send__(method).should be_true
           }.should_not raise_error(SystemStackError)
         end
       end
@@ -897,7 +897,7 @@ share_examples_for 'A public Resource' do
 
         it 'should not raise an exception' do
           lambda {
-            @user.send(method).should be_true
+            @user.__send__(method).should be_true
           }.should_not raise_error(SystemStackError)
         end
       end
@@ -931,7 +931,7 @@ share_examples_for 'A public Resource' do
       describe 'with no arguments' do
         before :all do
           rescue_if @skip do
-            @return = @user.send(method)
+            @return = @user.__send__(method)
           end
         end
 
@@ -944,7 +944,7 @@ share_examples_for 'A public Resource' do
         before :all do
           rescue_if @skip do
             @attributes = { :description => 'Changed' }
-            @return = @user.send(method, @attributes)
+            @return = @user.__send__(method, @attributes)
           end
         end
 
@@ -953,12 +953,12 @@ share_examples_for 'A public Resource' do
         end
 
         it 'should update attributes of Resource' do
-          @attributes.each { |key, value| @user.send(key).should == value }
+          @attributes.each { |key, value| @user.__send__(key).should == value }
         end
 
         it 'should persist the changes' do
           resource = @user_model.get(*@user.key)
-          @attributes.each { |key, value| resource.send(key).should == value }
+          @attributes.each { |key, value| resource.__send__(key).should == value }
         end
       end
 
@@ -966,7 +966,7 @@ share_examples_for 'A public Resource' do
         before :all do
           rescue_if 'Use table aliases to avoid ambiguous named in query', @one_to_one_through do
             @attributes = { :referrer => @user_model.create(:name => 'dkubb', :age => 33, :comment => @comment) }
-            @return = @user.send(method, @attributes)
+            @return = @user.__send__(method, @attributes)
           end
         end
 
@@ -978,14 +978,14 @@ share_examples_for 'A public Resource' do
 
         it 'should update attributes of Resource' do
           pending_if @one_to_one_through do
-            @attributes.each { |key, value| @user.send(key).should == value }
+            @attributes.each { |key, value| @user.__send__(key).should == value }
           end
         end
 
         it 'should persist the changes' do
           pending_if @one_to_one_through do
             resource = @user_model.get(*@user.key)
-            @attributes.each { |key, value| resource.send(key).should == value }
+            @attributes.each { |key, value| resource.__send__(key).should == value }
           end
         end
       end
@@ -993,7 +993,7 @@ share_examples_for 'A public Resource' do
       describe 'with attributes where a value is nil for a property that does not allow nil' do
         before :all do
           rescue_if @skip do
-            @return = @user.send(method, :name => nil)
+            @return = @user.__send__(method, :name => nil)
           end
         end
 
@@ -1015,7 +1015,7 @@ share_examples_for 'A public Resource' do
 
         it 'should raise an exception' do
           lambda {
-            @user.send(method, :admin => true)
+            @user.__send__(method, :admin => true)
           }.should raise_error(DataMapper::UpdateConflictError, "#{@user.model}##{method} cannot be called on a dirty resource")
         end
       end

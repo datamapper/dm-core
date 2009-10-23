@@ -5,7 +5,7 @@ share_examples_for 'it creates a one accessor' do
     describe 'when there is no associated resource' do
       describe 'without a query' do
         before :all do
-          @return = @car.send(@name)
+          @return = @car.__send__(@name)
         end
 
         it 'should return nil' do
@@ -15,7 +15,7 @@ share_examples_for 'it creates a one accessor' do
 
       describe 'with a query' do
         before :all do
-          @return = @car.send(@name, :id => 99)
+          @return = @car.__send__(@name, :id => 99)
         end
 
         it 'should return nil' do
@@ -27,12 +27,12 @@ share_examples_for 'it creates a one accessor' do
     describe 'when there is an associated resource' do
       before :all do
         @expected = @model.new
-        @car.send("#{@name}=", @expected)
+        @car.__send__("#{@name}=", @expected)
       end
 
       describe 'without a query' do
         before :all do
-          @return = @car.send(@name)
+          @return = @car.__send__(@name)
         end
 
         it 'should return a Resource' do
@@ -50,7 +50,7 @@ share_examples_for 'it creates a one accessor' do
 
           @expected.id.should_not be_nil
 
-          @return = @car.send(@name, :id => @expected.id)
+          @return = @car.__send__(@name, :id => @expected.id)
         end
 
         it 'should return a Resource' do
@@ -66,13 +66,13 @@ share_examples_for 'it creates a one accessor' do
     describe 'when the target model is scoped' do
       before :all do
         @resource = @model.new
-        @car.send("#{@name}=", @resource)
+        @car.__send__("#{@name}=", @resource)
         @car.save
 
         # set the model scope to not match the expected resource
         @model.default_scope.update(:id.not => @resource.id)
 
-        @return = @car.model.get(*@car.key).send(@name)
+        @return = @car.model.get(*@car.key).__send__(@name)
       end
 
       it 'should return nil' do
@@ -88,7 +88,7 @@ share_examples_for 'it creates a one mutator' do
       before :all do
         @expected = @model.new
 
-        @return = @car.send("#{@name}=", @expected)
+        @return = @car.__send__("#{@name}=", @expected)
       end
 
       it 'should return the expected Resource' do
@@ -96,7 +96,7 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should set the Resource' do
-        @car.send(@name).should equal(@expected)
+        @car.__send__(@name).should equal(@expected)
       end
 
       it 'should relate associated Resource' do
@@ -111,7 +111,7 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist the Resource' do
         @car.save.should be_true
-        @car.model.get(*@car.key).send(@name).should == @expected
+        @car.model.get(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
@@ -123,12 +123,12 @@ share_examples_for 'it creates a one mutator' do
 
     describe 'when setting a Hash' do
       before :all do
-        @car.send("#{@name}=", @model.new)
+        @car.__send__("#{@name}=", @model.new)
 
         attributes = { :id => 10 }
         @expected  = @model.new(attributes)
 
-        @return = @car.send("#{@name}=", attributes)
+        @return = @car.__send__("#{@name}=", attributes)
       end
 
       it 'should return the expected Resource' do
@@ -136,7 +136,7 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should set the Resource' do
-        @car.send(@name).should equal(@return)
+        @car.__send__(@name).should equal(@return)
       end
 
       it 'should relate associated Resource' do
@@ -151,7 +151,7 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist the Resource' do
         @car.save.should be_true
-        @car.model.get(*@car.key).send(@name).should == @return
+        @car.model.get(*@car.key).__send__(@name).should == @return
       end
 
       it 'should persist the associated Resource' do
@@ -163,9 +163,9 @@ share_examples_for 'it creates a one mutator' do
 
     describe 'when setting nil' do
       before :all do
-        @car.send("#{@name}=", @model.new)
+        @car.__send__("#{@name}=", @model.new)
 
-        @return = @car.send("#{@name}=", nil)
+        @return = @car.__send__("#{@name}=", nil)
       end
 
       it 'should return nil' do
@@ -173,21 +173,21 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should set nil' do
-        @car.send(@name).should be_nil
+        @car.__send__(@name).should be_nil
       end
 
       it 'should persist as nil' do
         @car.save.should be_true
-        @car.model.get(*@car.key).send(@name).should be_nil
+        @car.model.get(*@car.key).__send__(@name).should be_nil
       end
     end
 
     describe 'when changing the Resource' do
       before :all do
-        @car.send("#{@name}=", @model.new)
+        @car.__send__("#{@name}=", @model.new)
         @expected = @model.new
 
-        @return = @car.send("#{@name}=", @expected)
+        @return = @car.__send__("#{@name}=", @expected)
       end
 
       it 'should return the expected Resource' do
@@ -195,7 +195,7 @@ share_examples_for 'it creates a one mutator' do
       end
 
       it 'should set the Resource' do
-        @car.send(@name).should equal(@expected)
+        @car.__send__(@name).should equal(@expected)
       end
 
       it 'should relate associated Resource' do
@@ -210,7 +210,7 @@ share_examples_for 'it creates a one mutator' do
 
       it 'should persist the Resource' do
         @car.save.should be_true
-        @car.model.get(*@car.key).send(@name).should == @expected
+        @car.model.get(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
@@ -227,7 +227,7 @@ share_examples_for 'it creates a many accessor' do
     describe 'when there is no child resource and the source is saved' do
       before :all do
         @car.save.should be_true
-        @return = @car.send(@name)
+        @return = @car.__send__(@name)
       end
 
       it 'should return a Collection' do
@@ -241,7 +241,7 @@ share_examples_for 'it creates a many accessor' do
 
     describe 'when there is no child resource and the source is not saved' do
       before :all do
-        @return = @car.send(@name)
+        @return = @car.__send__(@name)
       end
 
       it 'should return a Collection' do
@@ -258,9 +258,9 @@ share_examples_for 'it creates a many accessor' do
         @return = nil
 
         @expected = @model.new
-        @car.send("#{@name}=", [ @expected ])
+        @car.__send__("#{@name}=", [ @expected ])
 
-        @return = @car.send(@name)
+        @return = @car.__send__(@name)
       end
 
       it 'should return a Collection' do
@@ -274,15 +274,15 @@ share_examples_for 'it creates a many accessor' do
 
     describe 'when the target model is scoped' do
       before :all do
-        2.times { @car.send(@name).new }
+        2.times { @car.__send__(@name).new }
         @car.save
 
-        @expected = @car.send(@name).first
+        @expected = @car.__send__(@name).first
 
         # set the model scope to only return the first record
         @model.default_scope.update(@model.key(@repository.name).zip(@expected.key).to_hash)
 
-        @return = @car.model.get(*@car.key).send(@name)
+        @return = @car.model.get(*@car.key).__send__(@name)
       end
 
       it 'should return a Collection' do
@@ -302,7 +302,7 @@ share_examples_for 'it creates a many mutator' do
       before :all do
         @expected = [ @model.new ]
 
-        @return = @car.send("#{@name}=", @expected)
+        @return = @car.__send__("#{@name}=", @expected)
       end
 
       it 'should return the expected Collection' do
@@ -310,8 +310,8 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should set the Collection' do
-        @car.send(@name).should == @expected
-        @car.send(@name).zip(@expected) { |value, expected| value.should equal(expected) }
+        @car.__send__(@name).should == @expected
+        @car.__send__(@name).zip(@expected) { |value, expected| value.should equal(expected) }
       end
 
       it 'should relate the associated Collection' do
@@ -322,7 +322,7 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should persist the Collection' do
         @car.save.should be_true
-        @car.model.get(*@car.key).send(@name).should == @expected
+        @car.model.get(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do
@@ -338,7 +338,7 @@ share_examples_for 'it creates a many mutator' do
         @hashes    = [ attributes             ]
         @expected  = [ @model.new(attributes) ]
 
-        @return = @car.send("#{@name}=", @hashes)
+        @return = @car.__send__("#{@name}=", @hashes)
       end
 
       it 'should return the expected Collection' do
@@ -346,7 +346,7 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should set the Collection' do
-        @car.send(@name).should == @return
+        @car.__send__(@name).should == @return
       end
 
       it 'should relate the associated Collection' do
@@ -357,7 +357,7 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should persist the Collection' do
         @car.save.should be_true
-        @car.model.get(*@car.key).send(@name).should == @return
+        @car.model.get(*@car.key).__send__(@name).should == @return
       end
 
       it 'should persist the associated Resource' do
@@ -369,9 +369,9 @@ share_examples_for 'it creates a many mutator' do
 
     describe 'when setting an empty collection' do
       before :all do
-        @car.send("#{@name}=", [ @model.new ])
+        @car.__send__("#{@name}=", [ @model.new ])
 
-        @return = @car.send("#{@name}=", [])
+        @return = @car.__send__("#{@name}=", [])
       end
 
       it 'should return a Collection' do
@@ -379,22 +379,22 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should set an empty Collection' do
-        @car.send(@name).should be_empty
+        @car.__send__(@name).should be_empty
       end
 
       it 'should persist as an empty Collection' do
         @car.save.should be_true
-        @car.model.get(*@car.key).send(@name).should be_empty
+        @car.model.get(*@car.key).__send__(@name).should be_empty
       end
     end
 
     describe 'when changing an associated collection' do
       before :all do
-        @car.send("#{@name}=", [ @model.new ])
+        @car.__send__("#{@name}=", [ @model.new ])
 
         @expected = [ @model.new ]
 
-        @return = @car.send("#{@name}=", @expected)
+        @return = @car.__send__("#{@name}=", @expected)
       end
 
       it 'should return the expected Resource' do
@@ -402,8 +402,8 @@ share_examples_for 'it creates a many mutator' do
       end
 
       it 'should set the Resource' do
-        @car.send(@name).should == @expected
-        @car.send(@name).zip(@expected) { |value, expected| value.should equal(expected) }
+        @car.__send__(@name).should == @expected
+        @car.__send__(@name).zip(@expected) { |value, expected| value.should equal(expected) }
       end
 
       it 'should relate associated Resource' do
@@ -414,7 +414,7 @@ share_examples_for 'it creates a many mutator' do
 
       it 'should persist the Resource' do
         @car.save.should be_true
-        @car.model.get(*@car.key).send(@name).should == @expected
+        @car.model.get(*@car.key).__send__(@name).should == @expected
       end
 
       it 'should persist the associated Resource' do

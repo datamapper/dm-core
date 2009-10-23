@@ -1579,12 +1579,12 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should update attributes of all Resources' do
-          @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
+          @articles.each { |resource| @attributes.each { |key, value| resource.__send__(key).should == value } }
         end
 
         it 'should persist the changes' do
           resource = @article_model.get(*@article.key)
-          @attributes.each { |key, value| resource.send(key).should == value }
+          @attributes.each { |key, value| resource.__send__(key).should == value }
         end
       end
 
@@ -1604,12 +1604,12 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should update attributes of all Resources' do
-          @articles.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
+          @articles.each { |resource| @attributes.each { |key, value| resource.__send__(key).should == value } }
         end
 
         it 'should persist the changes' do
           resource = @article_model.get(*@article.key)
-          @attributes.each { |key, value| resource.send(key).should == value }
+          @attributes.each { |key, value| resource.__send__(key).should == value }
         end
       end
 
@@ -1649,17 +1649,17 @@ share_examples_for 'A public Collection' do
         end
 
         it 'should update attributes of all Resources' do
-          @limited.each { |resource| @attributes.each { |key, value| resource.send(key).should == value } }
+          @limited.each { |resource| @attributes.each { |key, value| resource.__send__(key).should == value } }
         end
 
         it 'should persist the changes' do
           resource = @article_model.get(*@article.key)
-          @attributes.each { |key, value| resource.send(key).should == value }
+          @attributes.each { |key, value| resource.__send__(key).should == value }
         end
 
         it 'should not update the other Resource' do
           @other.reload
-          @attributes.each { |key, value| @other.send(key).should_not == value }
+          @attributes.each { |key, value| @other.__send__(key).should_not == value }
         end
       end
 

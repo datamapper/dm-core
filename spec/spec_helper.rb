@@ -114,3 +114,12 @@ Spec::Runner.configure do |config|
     end
   end
 end
+
+# remove the Resource#send method to ensure specs/internals do no rely on it
+module RemoveSend
+  def self.included(model)
+    model.send(:undef_method, :send)
+  end
+
+  DataMapper::Model.append_inclusions self
+end
