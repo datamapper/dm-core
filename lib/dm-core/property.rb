@@ -384,7 +384,7 @@ module DataMapper
     # This usually only makes sense when property is of
     # type Range or custom type.
     #
-    # @return [Integer, NilClass]
+    # @return [Integer, nil]
     #   the maximum length of this property
     #
     # @api semipublic
@@ -897,7 +897,8 @@ module DataMapper
     #
     # Will raise ArgumentError if this Property's reader and writer
     # visibilities are not included in VISIBILITY_OPTIONS.
-    # @return [NilClass]
+    #
+    # @return [undefined]
     #
     # @raise [ArgumentError] "property visibility must be :public, :protected, or :private"
     #

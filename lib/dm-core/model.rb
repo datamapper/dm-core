@@ -190,7 +190,7 @@ module DataMapper
     # @param [Object] *key
     #   The primary key or keys to use for lookup
     #
-    # @return [Resource,NilClass]
+    # @return [Resource, nil]
     #   A single model that was found
     #   If no instance was found matching +key+
     #

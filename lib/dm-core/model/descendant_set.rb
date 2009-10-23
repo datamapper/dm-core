@@ -41,7 +41,7 @@ module DataMapper
       # @param [Model] model
       #   the model to remove
       #
-      # @return [Model, NilClass]
+      # @return [Model, nil]
       #   the model is return if it is a descendant
       #
       # @api private

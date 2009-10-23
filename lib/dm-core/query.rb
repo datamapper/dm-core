@@ -175,7 +175,7 @@ module DataMapper
     #
     #   Document.all(:limit => 10)
     #
-    # @return [Integer, NilClass]
+    # @return [Integer, nil]
     #   the maximum number of results
     #
     # @api semipublic
@@ -1128,7 +1128,7 @@ module DataMapper
     #   offset and limit, or range indicating first and last position
     #
     # @return [Integer] the offset
-    # @return [Integer, NilClass] the limit, if any
+    # @return [Integer, nil] the limit, if any
     #
     # @api private
     def extract_slice_arguments(*args)
