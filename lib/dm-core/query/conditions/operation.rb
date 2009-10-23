@@ -127,7 +127,7 @@ module DataMapper
         # TODO: document
         # @api semipublic
         def to_s
-          "(#{@operands.to_a.join(" #{slug.upcase} ")})"
+          "(#{@operands.to_a.join(" #{slug.to_s.upcase} ")})"
         end
 
         # Return a list of operands in predictable order
