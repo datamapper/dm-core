@@ -493,9 +493,9 @@ module DataMapper
         #
         # @api semipublic
         def valid?
-          case value
+          case loaded_value
             when Collection
-              true
+              loaded_value.loaded? ? loaded_value.any? : true
             when Range
               loaded_value.any? && subject.valid?(loaded_value.first) && subject.valid?(loaded_value.last)
             when Enumerable

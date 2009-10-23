@@ -539,7 +539,7 @@ module DataMapper
       # @api private
       def valid_collection?(collection)
         if collection.respond_to?(:model)
-          collection.model <= target_model && (collection.query.fields & target_key) == target_key
+          collection.model <= target_model && (collection.query.fields & source_key) == source_key
         else
           collection.all? { |resource| valid_resource?(resource) }
         end

@@ -614,14 +614,13 @@ module DataMapper
 
             return "(#{statement})", bind_values
           elsif comparison.relationship?
-            # TODO: if the value is a Collection, and it is loaded, and the fields
-            # can satisfy the FK mapping, then do not use a subquery.
-            if comparison.value.respond_to?(:query)
+            value = comparison.value
+            if value.respond_to?(:query) && !value.loaded?
               relationship = comparison.subject.inverse
               source_key   = relationship.source_key
               target_key   = relationship.target_key
 
-              return subquery(comparison.value.query, source_key, target_key, qualify)
+              return subquery(value.query, source_key, target_key, qualify)
             else
               return conditions_statement(comparison.foreign_key_mapping, qualify)
             end
