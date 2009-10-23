@@ -90,9 +90,7 @@ module DataMapper
         original_attributes[property] || (property.loaded?(self) ? property.get!(self) : nil)
       end
 
-      return unless key.all? { |value| !value.nil? }
-
-      @key = key
+      @key = key if key.all? { |value| !value.nil? }
     end
 
     # Checks if this Resource instance is new
@@ -310,12 +308,10 @@ module DataMapper
     #   true if resource and storage state match
     #
     # @api public
-    chainable do
-      def update(attributes = {})
-        assert_update_clean_only(:update)
-        self.attributes = attributes
-        save
-      end
+    def update(attributes = {})
+      assert_update_clean_only(:update)
+      self.attributes = attributes
+      save
     end
 
     # Updates attributes and saves this Resource instance, bypassing hooks
@@ -339,10 +335,8 @@ module DataMapper
     #   true if Resource instance and all associations were saved
     #
     # @api public
-    chainable do
-      def save(resources = {})
-        _save(true, resources)
-      end
+    def save(resources = {})
+      _save(true, resources)
     end
 
     # Save the instance and loaded, dirty associations to the data-store, bypassing hooks
@@ -361,10 +355,8 @@ module DataMapper
     #   true if resource was destroyed
     #
     # @api public
-    chainable do
-      def destroy
-        destroy!
-      end
+    def destroy
+      destroy!
     end
 
     # Destroy the instance, remove it from the repository, bypassing hooks
