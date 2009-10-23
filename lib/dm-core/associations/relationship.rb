@@ -317,14 +317,13 @@ module DataMapper
       #   true if the resource is valid
       #
       # @api semipulic
-      def valid?(target)
-        return true if target.nil?
-
-        case target
-          when Enumerable then valid_target_collection?(target)
-          when Resource   then valid_target?(target)
+      def valid?(value)
+        case value
+          when Enumerable then valid_target_collection?(value)
+          when Resource   then valid_target?(value)
+          when nil        then true
           else
-            raise ArgumentError, "+target+ should be an Array, Collection or Resource, but was a #{target.class.name}"
+            raise ArgumentError, "+value+ should be an Enumerable, Resource or nil, but was a #{value.class.name}"
         end
       end
 
@@ -530,11 +529,14 @@ module DataMapper
       # @api private
       def valid_target_collection?(collection)
         if collection.kind_of?(Collection)
-          # TODO: relax the target_key check, and just ensure the model
-          # key is a subset of fields so that in the worst-case we
-          # can lazy load the collection to get the target keys
-          collection.model <= target_model                     &&
-          (collection.query.fields & target_key) == target_key &&
+          # TODO: move the check for model_key into Collection#reloadable?
+          # since what we're really checking is a Collection's ability
+          # to reload itself, which is (currently) only possible if the
+          # key was loaded.
+          model_key = target_model.key(repository.name)
+
+          collection.model <= target_model                   &&
+          (collection.query.fields & model_key) == model_key &&
           (collection.loaded? ? collection.any? : true)
         else
           collection.all? { |resource| valid_target?(resource) }
@@ -544,13 +546,13 @@ module DataMapper
       # @api private
       def valid_target?(target)
         target.kind_of?(target_model) &&
-        target_key.valid?(target_key.get(target))
+        source_key.valid?(target_key.get(target))
       end
 
       # @api private
       def valid_source?(source)
         source.kind_of?(source_model) &&
-        source_key.valid?(source_key.get(source))
+        target_key.valid?(source_key.get(source))
       end
 
       # @api private

@@ -210,6 +210,37 @@ module DataMapper
           options[:through] == Resource
         end
 
+        # @api private
+        def nearest_relationship
+          return @nearest_relationship if defined?(@nearest_relationship)
+
+          nearest_relationship = self
+
+          while nearest_relationship.respond_to?(:through)
+            nearest_relationship = nearest_relationship.through
+          end
+
+          @nearest_relationship = nearest_relationship
+        end
+
+        # @api private
+        def valid_target?(target)
+          source_key = via.source_key
+          target_key = via.target_key
+
+          target.kind_of?(target_model) &&
+          source_key.valid?(target_key.get(target))
+        end
+
+        # @api private
+        def valid_source?(source)
+          source_key = nearest_relationship.source_key
+          target_key = nearest_relationship.target_key
+
+          source.kind_of?(source_model) &&
+          target_key.valid?(source_key.get(source))
+        end
+
         # @api semipublic
         chainable do
           def many_to_one_options

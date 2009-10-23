@@ -61,35 +61,6 @@ module DataMapper
         end
 
         # @api private
-        def near_relationship
-          return @near_relationship if defined?(@near_relationship)
-
-          near_relationship = self
-
-          while near_relationship.respond_to?(:through)
-            near_relationship = near_relationship.through
-          end
-
-          @near_relationship = near_relationship
-        end
-
-        # @api private
-        def valid_target?(target)
-          target_key = near_relationship.target_key
-
-          target.kind_of?(target_model) &&
-          target_key.valid?(target_key.get(target))
-        end
-
-        # @api private
-        def valid_source?(source)
-          source_key = near_relationship.source_key
-
-          source.kind_of?(source_model) &&
-          source_key.valid?(source_key.get(source))
-        end
-
-        # @api private
         def method_missing(method, *args, &block)
           relationship.send(method, *args, &block)
         end
