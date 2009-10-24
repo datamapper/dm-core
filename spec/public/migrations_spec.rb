@@ -243,6 +243,38 @@ describe DataMapper::Migrations do
           end
         end
       end
+
+      describe 'String property' do
+        before :all do
+          @model.property(:id, DataMapper::Types::Serial)
+        end
+
+        [
+          [ 1,          'VARCHAR(1)'   ],
+          [ 50,         'VARCHAR(50)'  ],
+          [ 255,        'VARCHAR(255)' ],
+          [ nil,        'VARCHAR(50)'  ],
+        ].each do |length, statement|
+          options = {}
+          options[:length] = length if length
+
+          describe "with a length of #{length}" do
+            before :all do
+              @property = @model.property(:title, String, options)
+
+              @response = capture_log(DataObjects::Mysql) { @model.auto_migrate! }
+            end
+
+            it 'should return true' do
+              @response.should be_true
+            end
+
+            it "should create a #{statement} column" do
+              @output.last.should =~ %r{\ACREATE TABLE `blog_articles` \(`id` INT\(10\) UNSIGNED NOT NULL AUTO_INCREMENT, `title` #{Regexp.escape(statement)}, PRIMARY KEY\(`id`\)\) ENGINE = InnoDB CHARACTER SET [a-z\d]+ COLLATE (?:[a-z\d](?:_?[a-z\d]+)*)\z}
+            end
+          end
+        end
+      end
     end
   end
 
@@ -354,6 +386,38 @@ describe DataMapper::Migrations do
           end
         end
       end
+
+      describe 'String property' do
+        before :all do
+          @model.property(:id, DataMapper::Types::Serial)
+        end
+
+        [
+          [ 1,          'VARCHAR(1)'   ],
+          [ 50,         'VARCHAR(50)'  ],
+          [ 255,        'VARCHAR(255)' ],
+          [ nil,        'VARCHAR(50)'  ],
+        ].each do |length, statement|
+          options = {}
+          options[:length] = length if length
+
+          describe "with a length of #{length}" do
+            before :all do
+              @property = @model.property(:title, String, options)
+
+              @response = capture_log(DataObjects::Postgres) { @model.auto_migrate! }
+            end
+
+            it 'should return true' do
+              @response.should be_true
+            end
+
+            it "should create a #{statement} column" do
+              @output[-2].should == "CREATE TABLE \"blog_articles\" (\"id\" SERIAL NOT NULL, \"title\" #{statement}, PRIMARY KEY(\"id\"))"
+            end
+          end
+        end
+      end
     end
   end
 
@@ -429,6 +493,10 @@ describe DataMapper::Migrations do
             end
           end
         end
+      end
+
+      describe 'String property' do
+        it 'needs specs'
       end
     end
   end

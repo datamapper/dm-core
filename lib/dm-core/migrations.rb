@@ -243,7 +243,7 @@ module DataMapper
         def property_schema_hash(property)
           schema = (self.class.type_map[property.type] || self.class.type_map[property.primitive]).merge(:name => property.field)
 
-          if property.primitive == String && schema[:primitive] != 'TEXT' && schema[:primitive] != 'CLOB' && schema[:primitive != 'NVARCHAR']
+          if property.primitive == String && schema[:primitive] != 'TEXT' && schema[:primitive] != 'CLOB' && schema[:primitive] != 'NVARCHAR'
             schema[:length] = property.length
           elsif property.primitive == BigDecimal || property.primitive == Float
             schema[:precision] = property.precision
@@ -257,10 +257,10 @@ module DataMapper
             # remove the default if the property is not nullable
             schema.delete(:default) unless property.nullable?
           else
-            if property.type.respond_to?(:dump)
-              schema[:default] = property.type.dump(property.default, property)
+            schema[:default] = if property.type.respond_to?(:dump)
+              property.type.dump(property.default, property)
             else
-              schema[:default] = property.default
+              property.default
             end
           end
 
@@ -275,12 +275,10 @@ module DataMapper
 
           if schema[:precision] && schema[:scale]
             statement << "(#{[ :precision, :scale ].map { |key| connection.quote_value(schema[key]) }.join(', ')})"
+          elsif schema[:length] == 'max'
+            statement << '(max)'
           elsif schema[:length]
-            unless schema[:length] == 'max'
-              statement << "(#{connection.quote_value(schema[:length])})"
-            else
-              statement << "(max)"
-            end
+            statement << "(#{connection.quote_value(schema[:length])})"
           end
 
           statement << " DEFAULT #{connection.quote_value(schema[:default])}" if schema.key?(:default)
