@@ -114,6 +114,9 @@ module DataMapper
 
         equalize :slug, :subject, :value
 
+        # @api semipublic
+        attr_accessor :parent
+
         # The property or relationship which is being matched against
         #
         # @return [Property, Associations::Relationship]
@@ -215,11 +218,7 @@ module DataMapper
         #
         # @api semipublic
         def valid?
-          # This needs to be deferred until the last moment because the value
-          # could be a reference to a Resource, that when the comparison was
-          # created was invalid, but has since been saved and has it's key
-          # set.
-          subject.valid?(loaded_value)
+          valid_for_subject?(loaded_value)
         end
 
         # Returns whether the subject is a Relationship
@@ -263,6 +262,12 @@ module DataMapper
           "#{@subject.name} #{comparator_string} #{@value}"
         end
 
+        # @api private
+        def negated?
+          return @negated if defined?(@negated)
+          @negated = parent ? parent.negated? : false
+        end
+
         private
 
         # Creates a new AbstractComparison instance with +subject+ and +value+
@@ -278,8 +283,6 @@ module DataMapper
           @subject      = subject
           @loaded_value = typecast_value(value)
           @value        = dumped_value(@loaded_value)
-
-          freeze
         end
 
         # Typecasts the given +val+ using subject#typecast
@@ -408,6 +411,15 @@ module DataMapper
             expected_value
           end
         end
+
+        # Test the value to see if it is valid
+        #
+        # @return [Boolean] true if the value is valid
+        #
+        # @api semipublic
+        def valid_for_subject?(value)
+          subject.valid?(value, negated?)
+        end
       end # class AbstractComparison
 
       # Included into comparisons which are capable of supporting
@@ -497,9 +509,9 @@ module DataMapper
             when Collection
               super
             when Range
-              loaded_value.any? && subject.valid?(loaded_value.first) && subject.valid?(loaded_value.last)
+              loaded_value.any? && valid_for_subject?(loaded_value.first) && valid_for_subject?(loaded_value.last)
             when Enumerable
-              loaded_value.any? && loaded_value.all? { |val| subject.valid?(val) }
+              (loaded_value.any? || negated?) && loaded_value.all? { |val| valid_for_subject?(val) }
             else
               false
           end

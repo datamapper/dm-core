@@ -317,9 +317,9 @@ module DataMapper
       #   true if the resource is valid
       #
       # @api semipulic
-      def valid?(value)
+      def valid?(value, negated = false)
         case value
-          when Enumerable then valid_target_collection?(value)
+          when Enumerable then valid_target_collection?(value, negated)
           when Resource   then valid_target?(value)
           when nil        then true
           else
@@ -527,7 +527,7 @@ module DataMapper
       end
 
       # @api private
-      def valid_target_collection?(collection)
+      def valid_target_collection?(collection, negated)
         if collection.kind_of?(Collection)
           # TODO: move the check for model_key into Collection#reloadable?
           # since what we're really checking is a Collection's ability
@@ -537,7 +537,7 @@ module DataMapper
 
           collection.model <= target_model                   &&
           (collection.query.fields & model_key) == model_key &&
-          (collection.loaded? ? collection.any? : true)
+          (collection.loaded? ? (collection.any? || negated) : true)
         else
           collection.all? { |resource| valid_target?(resource) }
         end

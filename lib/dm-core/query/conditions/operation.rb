@@ -41,7 +41,13 @@ module DataMapper
         equalize :slug, :sorted_operands
 
         # @api semipublic
+        attr_accessor :parent
+
+        # @api semipublic
         attr_reader :operands
+
+        # @api semipublic
+        alias children operands
 
         # @api private
         def self.descendants
@@ -88,14 +94,17 @@ module DataMapper
         # @api semipublic
         def <<(operand)
           assert_valid_operand(operand)
-          @operands << operand unless operand.nil?
+          unless operand.nil?
+            operand.parent = self if operand.respond_to?(:parent=)
+            @operands << operand
+          end
           self
         end
 
         # @api semipublic
         def merge(operands)
           operands.each { |operand| assert_valid_operand(operand) }
-          @operands.merge(operands)
+          operands.each { |operand| self << operand }
           self
         end
 
@@ -113,6 +122,12 @@ module DataMapper
         # @api semipublic
         def to_s
           "(#{@operands.to_a.join(" #{slug.to_s.upcase} ")})"
+        end
+
+        # @api private
+        def negated?
+          return @negated if defined?(@negated)
+          @negated = parent ? parent.negated? : false
         end
 
         # Return a list of operands in predictable order
@@ -200,6 +215,12 @@ module DataMapper
         # @api semipublic
         def operand
           @operands.to_a.first
+        end
+
+        # @api private
+        def negated?
+          return @negated if defined?(@negated)
+          @negated = parent ? !parent.negated? : true
         end
 
         private

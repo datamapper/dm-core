@@ -711,9 +711,9 @@ module DataMapper
     #   true if the value is valid
     #
     # @api semipulic
-    def valid?(value)
+    def valid?(value, negated = false)
       value = self.value(value)
-      primitive?(value) || (value.nil? && nullable?)
+      primitive?(value) || (value.nil? && (nullable? || negated))
     end
 
     # Returns a concise string representation of the property instance.

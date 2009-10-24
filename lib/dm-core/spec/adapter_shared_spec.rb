@@ -173,6 +173,14 @@ share_examples_for 'An Adapter' do
             Heffalump.all(:color.not => nil).should_not be_include(@two)
           end
 
+          it 'should be able to search for object with a nil value using not-nullable properties' do
+            Heffalump.all(:id.not => nil).should == [ @red, @two, @five ]
+          end
+
+          it 'should be able to search for objects not in an empty list (match all)' do
+            Heffalump.all(:color.not => []).should == [ @red, @two, @five ]
+          end
+
           it 'should be able to search for objects not included in an array of values' do
             Heffalump.all(:num_spots.not => [ 1, 3, 5, 7 ]).should be_include(@two)
           end
