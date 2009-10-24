@@ -50,7 +50,7 @@ module DataMapper
     # @return [DescendantSet]
     #   Set containing the descendant models
     #
-    # @api private
+    # @api semipublic
     def self.descendants
       @descendants ||= DescendantSet.new
     end
@@ -69,7 +69,7 @@ module DataMapper
     # @return [Set]
     #   Set containing the descendant classes
     #
-    # @api private
+    # @api semipublic
     attr_reader :descendants
 
     # Appends a module for inclusion into the model class after Resource.
