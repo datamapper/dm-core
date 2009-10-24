@@ -75,15 +75,8 @@ module DataMapper
         identity_map[resource.key] = resource
       end
 
-      properties = model.properties(repository.name)
-      fields     = properties.key | query.fields
-
-      if discriminator = properties.discriminator
-        fields |= [ discriminator ]
-      end
-
       # sort fields based on declared order, for more consistent reload queries
-      fields = properties & fields
+      fields = properties & (query.fields | model_key | [ properties.discriminator ].compact)
 
       # replace the list of resources
       replace(all(query.update(:fields => fields, :reload => true)))
@@ -108,7 +101,7 @@ module DataMapper
     #
     # @api public
     def get(*key)
-      key = model.key(repository.name).typecast(key)
+      key = model_key.typecast(key)
 
       @identity_map[key] || if !loaded? && (query.limit || query.offset > 0)
         # current query is exclusive, find resource within the set
@@ -901,27 +894,6 @@ module DataMapper
       "[#{map { |resource| resource.inspect }.join(', ')}]"
     end
 
-    # Returns the PropertySet representing the fields in the Collection scope
-    #
-    # @return [PropertySet]
-    #   The set of properties this Collection's query will retrieve
-    #
-    # @api semipublic
-    def properties
-      PropertySet.new(query.fields)
-    end
-
-    # Returns the Relationships for the Collection's Model
-    #
-    # @return [Hash]
-    #   The model's relationships, mapping the name to the
-    #   Associations::Relationship object
-    #
-    # @api semipublic
-    def relationships
-      model.relationships(repository.name)
-    end
-
     def hash
       query.hash
     end
@@ -1042,6 +1014,47 @@ module DataMapper
       loaded? ? self : head + tail
     end
 
+    # Returns the Query Repository name
+    #
+    # @return [Symbol]
+    #   the repository name
+    #
+    # @api private
+    def repository_name
+      repository.name
+    end
+
+    # Returns the model key
+    #
+    # @return [PropertySet]
+    #   the model key
+    #
+    # @api private
+    def model_key
+      model.key(repository_name)
+    end
+
+    # Returns the PropertySet representing the fields in the Collection scope
+    #
+    # @return [PropertySet]
+    #   The set of properties this Collection's query will retrieve
+    #
+    # @api private
+    def properties
+      model.properties(repository_name)
+    end
+
+    # Returns the Relationships for the Collection's Model
+    #
+    # @return [Hash]
+    #   The model's relationships, mapping the name to the
+    #   Associations::Relationship object
+    #
+    # @api private
+    def relationships
+      model.relationships(repository_name)
+    end
+
     # Initializes a new Collection
     #
     # @return [Collection]
@@ -1125,23 +1138,20 @@ module DataMapper
 
       conditions = query.conditions
 
-      if conditions.kind_of?(Query::Conditions::AndOperation)
-        repository_name = repository.name
-        relationships   = self.relationships.values
-        properties      = model.properties(repository_name)
-        key             = model.key(repository_name)
+      if conditions.slug == :and
+        properties = self.properties.dup
 
-        # if all the key properties are included in the conditions,
-        # then do not allow them to be default attributes
-        if query.condition_properties.to_set.superset?(key.to_set)
-          properties -= key
+        if query.condition_properties.to_set.superset?(model_key.to_set)
+          properties -= model_key
         end
 
         conditions.each do |condition|
-          if condition.kind_of?(Query::Conditions::EqualToComparison) &&
-            (properties.include?(condition.subject) || (condition.relationship? && condition.subject.source_model == model))
-            default_attributes[condition.subject] = condition.value
-          end
+          next unless condition.slug == :eql
+
+          subject = condition.subject
+          next unless properties.include?(subject) || (condition.relationship? && subject.source_model == model)
+
+          default_attributes[condition.subject] = condition.value
         end
       end
 

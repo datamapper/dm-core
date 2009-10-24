@@ -187,11 +187,21 @@ share_examples_for 'A public Resource' do
   it { @user.should respond_to(:attributes) }
 
   describe '#attributes' do
+    describe 'with a new resource' do
+      before :all do
+        @user = @user.model.new
+      end
 
-    it 'should return the expected values' do
-      @user.attributes.only(:name, :description, :age).should == { :name => 'dbussink', :description => 'Test', :age => 25 }
+      it 'should return the expected values' do
+        @user.attributes.should == {}
+      end
     end
 
+    describe 'with a saved resource' do
+      it 'should return the expected values' do
+        @user.attributes.only(:name, :description, :age).should == { :name => 'dbussink', :description => 'Test', :age => 25 }
+      end
+    end
   end
 
   it { @user.should respond_to(:attributes=) }
@@ -500,8 +510,7 @@ share_examples_for 'A public Resource' do
   it { @user.should respond_to(:reload) }
 
   describe '#reload' do
-    describe 'for a single resource' do
-
+    describe 'on a resource' do
       before :all do
         rescue_if @skip do
           @user.name = 'dkubb'
@@ -517,7 +526,7 @@ share_examples_for 'A public Resource' do
       end
     end
 
-    describe 'for when the resource is changed outside another resource' do
+    describe 'on a resource that is changed outside another resource' do
       before :all do
         rescue_if @skip do
           @user2 = @user.dup
@@ -529,6 +538,29 @@ share_examples_for 'A public Resource' do
 
       it 'should reload the resource from the data store' do
         @user.description.should eql('Changed')
+      end
+    end
+
+    describe 'on an anonymous resource' do
+      before :all do
+        rescue_if @skip do
+          @user = @user.model.first(:fields => [ :description ])
+          @user.description.should == 'Test'
+
+          @return = @user.reload
+        end
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should return the expected value' do
+        @return.should equal(@user)
+      end
+
+      it 'should not reload any other attributes' do
+        @user.attributes.should == { :description => 'Test' }
       end
     end
   end

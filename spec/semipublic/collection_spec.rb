@@ -74,22 +74,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
         end
       end
 
-      it { @articles.should respond_to(:properties) }
-
-      describe '#properties' do
-        before :all do
-          @return = @properties = @articles.properties
-        end
-
-        it 'should return a PropertySet' do
-          @return.should be_kind_of(DataMapper::PropertySet)
-        end
-
-        it 'should be expected properties' do
-          @properties.to_a.should == @articles_query.fields
-        end
-      end
-
       it { @articles.should respond_to(:query) }
 
       describe '#query' do
@@ -103,22 +87,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
         it 'should return expected Query' do
           @return.should eql(@articles_query)
-        end
-      end
-
-      it { @articles.should respond_to(:relationships) }
-
-      describe '#relationships' do
-        before :all do
-          @return = @relationships = @articles.relationships
-        end
-
-        it 'should return a Hash' do
-          @return.should be_kind_of(Hash)
-        end
-
-        it 'should return expected Hash' do
-          @return.should equal(@article_model.relationships(@article_repository.name))
         end
       end
 

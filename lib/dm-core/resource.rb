@@ -248,9 +248,10 @@ module DataMapper
     #
     # @api public
     def attributes(key_on = :name)
-      lazy_load(properties)
       attributes = {}
-      properties.each do |property|
+
+      lazy_load(properties)
+      fields.each do |property|
         if model.public_method_defined?(name = property.name)
           key = case key_on
             when :name  then name
@@ -261,6 +262,7 @@ module DataMapper
           attributes[key] = __send__(name)
         end
       end
+
       attributes
     end
 
@@ -296,7 +298,7 @@ module DataMapper
     # @api public
     def reload
       if saved?
-        eager_load(loaded_properties)
+        eager_load(fields)
         child_collections.each { |children| children.reload }
       end
 
@@ -741,34 +743,36 @@ module DataMapper
     #   names of attributes that have been loaded
     #
     # @api private
-    def loaded_properties
-      properties.select { |property| property.loaded?(self) }
+    def fields
+      properties.select do |property|
+        property.loaded?(self) || (new? && property.default?)
+      end
     end
 
     # Lazy loads attributes not yet loaded
     #
-    # @param [Array<Property>] fields
+    # @param [Array<Property>] properties
     #   the properties to reload
     #
     # @return [self]
     #
     # @api private
-    def lazy_load(fields)
-      eager_load(fields - loaded_properties)
+    def lazy_load(properties)
+      eager_load(properties - fields)
     end
 
     # Reloads specified attributes
     #
-    # @param [Array<Property>] fields
+    # @param [Array<Property>] properties
     #   the properties to reload
     #
     # @return [Resource]
     #   the receiver, the current Resource instance
     #
     # @api private
-    def eager_load(fields)
-      unless fields.empty? || new?
-        collection.reload(:fields => fields)
+    def eager_load(properties)
+      unless properties.empty? || key.nil?
+        collection.reload(:fields => properties)
       end
 
       self
@@ -781,7 +785,7 @@ module DataMapper
     #
     # @api private
     def query
-      Query.new(repository, model, model.key_conditions(repository, key))
+      Query.new(repository, model, model.key_conditions(repository, key).update(:fields => fields))
     end
 
     # Return a collection including the current resource only
