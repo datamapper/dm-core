@@ -737,10 +737,6 @@ module DataMapper
 
                 assert_valid_conditions(subject.target => bind_value)
 
-                if subject.operator == :not && bind_value.kind_of?(Array) && bind_value.empty?
-                  raise ArgumentError, "Cannot use 'not' operator with a bind value that is an empty Array for #{subject.inspect}"
-                end
-
               when Path
                 assert_valid_links(subject.relationships)
 

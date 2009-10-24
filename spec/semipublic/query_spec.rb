@@ -789,14 +789,6 @@ describe DataMapper::Query do
         end
       end
 
-      describe 'that is a Hash with a not operator that has an empty Array' do
-        it 'should raise an exception' do
-          lambda {
-            DataMapper::Query.new(@repository, @model, @options.update(:conditions => { :name.not => [] }))
-          }.should raise_error(ArgumentError, 'Cannot use \'not\' operator with a bind value that is an empty Array for #<DataMapper::Query::Operator @target=:name @operator=:not>')
-        end
-      end
-
       describe 'that is a Hash with a key of a type that is not permitted' do
         it 'should raise an exception' do
           lambda {
