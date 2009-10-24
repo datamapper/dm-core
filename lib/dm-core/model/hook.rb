@@ -10,7 +10,6 @@ module DataMapper
       end
 
       module Methods
-        # TODO: document
         # @api public
         def before(target_method, *args, &block)
           remap_target_method(target_method).each do |target_method|
@@ -18,7 +17,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api public
         def after(target_method, *args, &block)
           remap_target_method(target_method).each do |target_method|
@@ -28,7 +26,6 @@ module DataMapper
 
         private
 
-        # TODO: document
         # @api private
         def remap_target_method(target_method)
           case target_method

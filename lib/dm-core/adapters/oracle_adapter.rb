@@ -60,7 +60,6 @@ module DataMapper
           'VALUES (DEFAULT)'
         end
 
-        # TODO: document
         # @api private
         def supports_returning?
           true
@@ -164,7 +163,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         # Oracle does not allow " in table or column names therefore substitute them with underscore
         def quote_name(name)
@@ -199,7 +197,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def include_operator(property, operand)
           operator = case operand
@@ -213,7 +210,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def exclude_operator(property, operand)
           operator = case operand
@@ -227,13 +223,11 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def regexp_operator(operand)
           'REGEXP_LIKE(%s, ?)'
         end
 
-        # TODO: document
         # @api private
         def not_regexp_operator(operand)
           'NOT REGEXP_LIKE(%s, ?)'

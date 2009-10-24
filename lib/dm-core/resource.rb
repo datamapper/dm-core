@@ -56,7 +56,6 @@ module DataMapper
     # @api private
     attr_writer :collection
 
-    # TODO: document
     # @api public
     alias_method :model, :class
 
@@ -798,7 +797,6 @@ module DataMapper
       Collection.new(query, [ self ])
     end
 
-    # TODO: document
     # @api private
     def parent_relationships
       parent_relationships = []
@@ -838,13 +836,11 @@ module DataMapper
       many_to_many + other
     end
 
-    # TODO: document
     # @api private
     def parent_resources
       parent_relationships.map { |relationship| relationship.get!(self) }
     end
 
-    # TODO: document
     # @api private
     def child_collections
       child_relationships.map { |relationship| relationship.get!(self) }

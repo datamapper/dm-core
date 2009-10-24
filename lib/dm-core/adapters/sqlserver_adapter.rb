@@ -86,7 +86,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         # TODO: Not actually supported out of the box. Is theoretically possible
         # via CLR integration, custom functions.
@@ -94,7 +93,6 @@ module DataMapper
           'REGEXP'
         end
 
-        # TODO: document
         # @api private
         # TODO: Not actually supported out of the box. Is theoretically possible
         # via CLR integration, custom functions.

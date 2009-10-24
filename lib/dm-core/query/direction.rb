@@ -18,14 +18,12 @@ module DataMapper
       deprecate :property,  :target
       deprecate :direction, :operator
 
-      # TODO: document
       # @api private
       def reverse!
         @operator = @operator == :asc ? :desc : :asc
         self
       end
 
-      # TODO: document
       # @api private
       def get(resource)
         Sort.new(target.get(resource), @operator == :asc)
@@ -33,7 +31,6 @@ module DataMapper
 
       private
 
-      # TODO: document
       # @api private
       def initialize(target, operator = :asc)
         super

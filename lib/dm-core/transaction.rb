@@ -172,7 +172,6 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def method_missing(meth, *args, &block)
       if args.size == 1 && args.first.kind_of?(Adapters::AbstractAdapter)
@@ -200,7 +199,6 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def primitive_for(adapter)
       unless @adapters.include?(adapter)
@@ -216,7 +214,6 @@ module DataMapper
 
     private
 
-    # TODO: document
     # @api private
     def validate_primitive(primitive)
       [:close, :begin, :rollback, :commit].each do |meth|
@@ -228,7 +225,6 @@ module DataMapper
       primitive
     end
 
-    # TODO: document
     # @api private
     def each_adapter(method, on_fail)
       begin
@@ -249,7 +245,6 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def state_for(adapter)
       unless @adapters.include?(adapter)
@@ -259,7 +254,6 @@ module DataMapper
       @adapters[adapter]
     end
 
-    # TODO: document
     # @api private
     def do_adapter(adapter, what, prerequisite)
       unless @transaction_primitives.include?(adapter)
@@ -275,13 +269,11 @@ module DataMapper
       @adapters[adapter] = what
     end
 
-    # TODO: document
     # @api private
     def log_fatal_transaction_breakage(adapter)
       DataMapper.logger.fatal("#{self} experienced a totally broken transaction execution. Presenting member #{adapter.inspect}.")
     end
 
-    # TODO: document
     # @api private
     def connect_adapter(adapter)
       if @transaction_primitives.key?(adapter)
@@ -291,7 +283,6 @@ module DataMapper
       @transaction_primitives[adapter] = validate_primitive(adapter.transaction_primitive)
     end
 
-    # TODO: document
     # @api private
     def close_adapter_if_open(adapter)
       if @transaction_primitives.include?(adapter)
@@ -299,7 +290,6 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def close_adapter(adapter)
       unless @transaction_primitives.include?(adapter)
@@ -310,25 +300,21 @@ module DataMapper
       @transaction_primitives.delete(adapter)
     end
 
-    # TODO: document
     # @api private
     def begin_adapter(adapter)
       do_adapter(adapter, :begin, :none)
     end
 
-    # TODO: document
     # @api private
     def commit_adapter(adapter)
       do_adapter(adapter, :commit, :begin)
     end
 
-    # TODO: document
     # @api private
     def rollback_adapter(adapter)
       do_adapter(adapter, :rollback, :begin)
     end
 
-    # TODO: document
     # @api private
     def rollback_and_close_adapter(adapter)
       rollback_adapter(adapter)
@@ -338,7 +324,6 @@ module DataMapper
     module Adapter
       extend Chainable
 
-      # TODO: document
       # @api private
       def self.included(base)
         [ :Repository, :Model, :Resource ].each do |name|
@@ -402,13 +387,11 @@ module DataMapper
       chainable do
         protected
 
-        # TODO: document
         # @api semipublic
         def open_connection
           current_connection || super
         end
 
-        # TODO: document
         # @api semipublic
         def close_connection(connection)
           unless current_connection == connection
@@ -419,7 +402,6 @@ module DataMapper
 
       private
 
-      # TODO: document
       # @api private
       def transactions
         Thread.current[:dm_transactions] ||= []
@@ -456,7 +438,6 @@ module DataMapper
     end # module Repository
 
     module Model
-      # TODO: document
       # @api private
       def self.included(mod)
         mod.descendants.each { |model| model.extend self }
@@ -493,7 +474,6 @@ module DataMapper
   module Adapters
     extendable do
 
-      # TODO: document
       # @api private
       def const_added(const_name)
         if Transaction.const_defined?(const_name)

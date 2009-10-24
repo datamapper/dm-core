@@ -2,33 +2,26 @@ module DataMapper
   module Associations
     module OneToMany #:nodoc:
       class Relationship < Associations::Relationship
-        # TODO: document
         # @api semipublic
         alias target_repository_name child_repository_name
 
-        # TODO: document
         # @api semipublic
         alias target_model child_model
 
-        # TODO: document
         # @api semipublic
         alias source_repository_name parent_repository_name
 
-        # TODO: document
         # @api semipublic
         alias source_model parent_model
 
-        # TODO: document
         # @api semipublic
         alias source_key parent_key
 
-        # TODO: document
         # @api semipublic
         def child_key
           inverse.child_key
         end
 
-        # TODO: document
         # @api semipublic
         alias target_key child_key
 
@@ -84,7 +77,6 @@ module DataMapper
 
         private
 
-        # TODO: document
         # @api semipublic
         def initialize(name, target_model, source_model, options = {})
           target_model ||= Extlib::Inflection.camelize(name.to_s.singular)
@@ -150,7 +142,6 @@ module DataMapper
           super || Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).to_sym
         end
 
-        # TODO: document
         # @api private
         def child_properties
           super || parent_key.map do |parent_property|
@@ -160,15 +151,12 @@ module DataMapper
       end # class Relationship
 
       class Collection < DataMapper::Collection
-        # TODO: document
         # @api private
         attr_accessor :relationship
 
-        # TODO: document
         # @api private
         attr_accessor :source
 
-        # TODO: document
         # @api public
         def reload(*)
           assert_source_saved 'The source must be saved before reloading the collection'
@@ -261,14 +249,12 @@ module DataMapper
 
         private
 
-        # TODO: document
         # @api private
         def _create(*)
           assert_source_saved 'The source must be saved before creating a resource'
           super
         end
 
-        # TODO: document
         # @api private
         def _save(safe, resources = {})
           assert_source_saved 'The source must be saved before saving the collection'
@@ -277,7 +263,6 @@ module DataMapper
           @removed.all? { |resource| resource.destroyed? || resource.__send__(:_save, safe, resources) } && super
         end
 
-        # TODO: document
         # @api private
         def lazy_load
           if source.saved?
@@ -285,7 +270,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def new_collection(query, resources = nil, &block)
           collection = self.class.new(query, &block)
@@ -303,7 +287,6 @@ module DataMapper
           collection
         end
 
-        # TODO: document
         # @api private
         def resource_added(resource)
           resource = initialize_resource(resource)
@@ -311,14 +294,12 @@ module DataMapper
           super
         end
 
-        # TODO: document
         # @api private
         def resource_removed(resource)
           inverse_set(resource, nil)
           super
         end
 
-        # TODO: document
         # @api private
         def inverse_set(source, target)
           unless source.readonly?
@@ -326,7 +307,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def assert_source_saved(message)
           unless source.saved?

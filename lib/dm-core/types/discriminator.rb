@@ -5,7 +5,6 @@ module DataMapper
       default   lambda { |resource, property| resource.model }
       nullable  false
 
-      # TODO: document
       # @api private
       def self.bind(property)
         repository_name = property.repository_name

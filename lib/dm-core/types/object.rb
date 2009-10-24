@@ -3,19 +3,16 @@ module DataMapper
     class Object < Type
       primitive Text
 
-      # TODO: document
       # @api private
       def self.typecast(value, property)
         value
       end
 
-      # TODO: document
       # @api private
       def self.dump(value, property)
         [ Marshal.dump(value) ].pack('m')
       end
 
-      # TODO: document
       # @api private
       def self.load(value, property)
         Marshal.load(value.unpack('m').first) unless value.nil?

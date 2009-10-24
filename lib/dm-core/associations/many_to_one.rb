@@ -6,27 +6,21 @@ module DataMapper
       class Relationship < Associations::Relationship
         OPTIONS = superclass::OPTIONS.dup << :nullable
 
-        # TODO: document
         # @api semipublic
         alias source_repository_name child_repository_name
 
-        # TODO: document
         # @api semipublic
         alias source_model child_model
 
-        # TODO: document
         # @api semipublic
         alias target_repository_name parent_repository_name
 
-        # TODO: document
         # @api semipublic
         alias target_model parent_model
 
-        # TODO: document
         # @api semipublic
         alias target_key parent_key
 
-        # TODO: document
         # @api semipublic
         def nullable?
           @nullable
@@ -57,7 +51,6 @@ module DataMapper
           @child_key = properties.class.new(child_key).freeze
         end
 
-        # TODO: document
         # @api semipublic
         alias source_key child_key
 
@@ -187,7 +180,6 @@ module DataMapper
           super || Extlib::Inflection.underscore(Extlib::Inflection.demodulize(source_model.name)).pluralize.to_sym
         end
 
-        # TODO: document
         # @api private
         def child_key_options(parent_property)
           options = parent_property.options.only(:length, :precision, :scale).update(:index => name, :nullable => nullable?)
@@ -199,7 +191,6 @@ module DataMapper
           options
         end
 
-        # TODO: document
         # @api private
         def child_properties
           child_key.map { |property| property.name }

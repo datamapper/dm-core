@@ -318,7 +318,6 @@ module DataMapper
       end
 
       chainable do
-        # TODO: document
         # @api public
         def method_missing(method, *args, &block)
           if relationship = relationships(repository_name)[method]

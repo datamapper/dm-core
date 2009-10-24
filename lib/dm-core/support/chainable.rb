@@ -1,7 +1,6 @@
 module DataMapper
   module Chainable
 
-    # TODO: document
     # @api private
     def chainable(&block)
       mod = Module.new(&block)
@@ -9,7 +8,6 @@ module DataMapper
       mod
     end
 
-    # TODO: document
     # @api private
     def extendable(&block)
       mod = Module.new(&block)

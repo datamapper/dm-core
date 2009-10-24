@@ -22,7 +22,6 @@ module DataMapper
         auto_migrate_up!(repository_name)
       end
 
-      # TODO: document
       # @api public
       def auto_upgrade!(repository_name = nil)
         repository_execute(:auto_upgrade!, repository_name)
@@ -30,19 +29,16 @@ module DataMapper
 
       private
 
-      # TODO: document
       # @api private
       def auto_migrate_down!(repository_name)
         repository_execute(:auto_migrate_down!, repository_name)
       end
 
-      # TODO: document
       # @api private
       def auto_migrate_up!(repository_name)
         repository_execute(:auto_migrate_up!, repository_name)
       end
 
-      # TODO: document
       # @api private
       def repository_execute(method, repository_name)
         DataMapper::Model.descendants.each do |model|
@@ -52,7 +48,6 @@ module DataMapper
     end
 
     module DataObjectsAdapter
-      # TODO: document
       # @api private
       def self.included(base)
         base.extend ClassMethods
@@ -108,7 +103,6 @@ module DataMapper
         select(statement, schema_name, storage_name, column_name).first > 0
       end
 
-      # TODO: document
       # @api semipublic
       def upgrade_model_storage(model)
         properties = model.properties_with_subclasses(name)
@@ -133,7 +127,6 @@ module DataMapper
         end
       end
 
-      # TODO: document
       # @api semipublic
       def create_model_storage(model)
         properties = model.properties_with_subclasses(name)
@@ -155,7 +148,6 @@ module DataMapper
         true
       end
 
-      # TODO: document
       # @api semipublic
       def destroy_model_storage(model)
         return true unless supports_drop_table_if_exists? || storage_exists?(model.storage_name(name))
@@ -174,25 +166,21 @@ module DataMapper
           false
         end
 
-        # TODO: document
         # @api private
         def supports_drop_table_if_exists?
           false
         end
 
-        # TODO: document
         # @api private
         def schema_name
           raise NotImplementedError, "#{self.class}#schema_name not implemented"
         end
 
-        # TODO: document
         # @api private
         def alter_table_add_column_statement(connection, table_name, schema_hash)
           "ALTER TABLE #{quote_name(table_name)} ADD COLUMN #{property_schema_statement(connection, schema_hash)}"
         end
 
-        # TODO: document
         # @api private
         def create_table_statement(connection, model, properties)
           statement = <<-SQL.compress_lines
@@ -204,7 +192,6 @@ module DataMapper
           statement
         end
 
-        # TODO: document
         # @api private
         def drop_table_statement(model)
           if supports_drop_table_if_exists?
@@ -214,7 +201,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def create_index_statements(model)
           table_name = model.storage_name(name)
@@ -226,7 +212,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def create_unique_index_statements(model)
           table_name = model.storage_name(name)
@@ -238,7 +223,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def property_schema_hash(property)
           schema = (self.class.type_map[property.type] || self.class.type_map[property.primitive]).merge(:name => property.field)
@@ -267,7 +251,6 @@ module DataMapper
           schema
         end
 
-        # TODO: document
         # @api private
         def property_schema_statement(connection, schema)
           statement = quote_name(schema[:name])
@@ -321,19 +304,16 @@ module DataMapper
       DEFAULT_CHARACTER_SET = 'utf8'.freeze
       DEFAULT_COLLATION     = 'utf8_unicode_ci'.freeze
 
-      # TODO: document
       # @api private
       def self.included(base)
         base.extend ClassMethods
       end
 
-      # TODO: document
       # @api semipublic
       def storage_exists?(storage_name)
         select('SHOW TABLES LIKE ?', storage_name).first == storage_name
       end
 
-      # TODO: document
       # @api semipublic
       def field_exists?(storage_name, field)
         result = select("SHOW COLUMNS FROM #{quote_name(storage_name)} LIKE ?", field).first
@@ -343,19 +323,16 @@ module DataMapper
       module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
-        # TODO: document
         # @api private
         def supports_serial?
           true
         end
 
-        # TODO: document
         # @api private
         def supports_drop_table_if_exists?
           true
         end
 
-        # TODO: document
         # @api private
         def schema_name
           # TODO: is there a cleaner way to find out the current DB we are connected to?
@@ -365,13 +342,11 @@ module DataMapper
         # TODO: update dkubb/dm-more/dm-migrations to use schema_name and remove this
         alias db_name schema_name
 
-        # TODO: document
         # @api private
         def create_table_statement(connection, model, properties)
           "#{super} ENGINE = #{DEFAULT_ENGINE} CHARACTER SET #{character_set} COLLATE #{collation}"
         end
 
-        # TODO: document
         # @api private
         def property_schema_hash(property)
           schema = super
@@ -388,7 +363,6 @@ module DataMapper
           schema
         end
 
-        # TODO: document
         # @api private
         def property_schema_statement(connection, schema)
           statement = super
@@ -400,19 +374,16 @@ module DataMapper
           statement
         end
 
-        # TODO: document
         # @api private
         def character_set
           @character_set ||= show_variable('character_set_connection') || DEFAULT_CHARACTER_SET
         end
 
-        # TODO: document
         # @api private
         def collation
           @collation ||= show_variable('collation_connection') || DEFAULT_COLLATION
         end
 
-        # TODO: document
         # @api private
         def show_variable(name)
           result = select('SHOW VARIABLES LIKE ?', name).first
@@ -575,25 +546,21 @@ module DataMapper
     end # module MysqlAdapter
 
     module PostgresAdapter
-      # TODO: document
       # @api private
       def self.included(base)
         base.extend ClassMethods
       end
 
-      # TODO: document
       # @api semipublic
       def upgrade_model_storage(model)
         without_notices { super }
       end
 
-      # TODO: document
       # @api semipublic
       def create_model_storage(model)
         without_notices { super }
       end
 
-      # TODO: document
       # @api semipublic
       def destroy_model_storage(model)
         if supports_drop_table_if_exists?
@@ -606,25 +573,21 @@ module DataMapper
       module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
-        # TODO: document
         # @api private
         def supports_drop_table_if_exists?
           @supports_drop_table_if_exists ||= postgres_version >= '8.2'
         end
 
-        # TODO: document
         # @api private
         def schema_name
           @schema_name ||= select('SELECT current_schema()').first.freeze
         end
 
-        # TODO: document
         # @api private
         def postgres_version
           @postgres_version ||= select('SELECT version()').first.split[1].freeze
         end
 
-        # TODO: document
         # @api private
         def without_notices
           # execute the block with NOTICE messages disabled
@@ -636,7 +599,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def property_schema_hash(property)
           schema = super
@@ -722,19 +684,16 @@ module DataMapper
     end # module PostgresAdapter
 
     module Sqlite3Adapter
-      # TODO: document
       # @api private
       def self.included(base)
         base.extend ClassMethods
       end
 
-      # TODO: document
       # @api semipublic
       def storage_exists?(storage_name)
         table_info(storage_name).any?
       end
 
-      # TODO: document
       # @api semipublic
       def field_exists?(storage_name, column_name)
         table_info(storage_name).any? do |row|
@@ -745,25 +704,21 @@ module DataMapper
       module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
-        # TODO: document
         # @api private
         def supports_serial?
           @supports_serial ||= sqlite_version >= '3.1.0'
         end
 
-        # TODO: document
         # @api private
         def supports_drop_table_if_exists?
           @supports_drop_table_if_exists ||= sqlite_version >= '3.3.0'
         end
 
-        # TODO: document
         # @api private
         def table_info(table_name)
           select("PRAGMA table_info(#{quote_name(table_name)})")
         end
 
-        # TODO: document
         # @api private
         def create_table_statement(connection, model, properties)
           statement = <<-SQL.compress_lines
@@ -782,7 +737,6 @@ module DataMapper
           statement
         end
 
-        # TODO: document
         # @api private
         def property_schema_statement(connection, schema)
           statement = super
@@ -794,7 +748,6 @@ module DataMapper
           statement
         end
 
-        # TODO: document
         # @api private
         def sqlite_version
           @sqlite_version ||= select('SELECT sqlite_version(*)').first.freeze
@@ -816,13 +769,11 @@ module DataMapper
     end # module Sqlite3Adapter
 
     module OracleAdapter
-      # TODO: document
       # @api private
       def self.included(base)
         base.extend ClassMethods
       end
 
-      # TODO: document
       # @api semipublic
       def storage_exists?(storage_name)
         statement = <<-SQL.compress_lines
@@ -835,7 +786,6 @@ module DataMapper
         select(statement, schema_name, oracle_upcase(storage_name)).first > 0
       end
 
-      # TODO: document
       # @api semipublic
       def sequence_exists?(sequence_name)
         return false unless sequence_name
@@ -849,7 +799,6 @@ module DataMapper
         select(statement, schema_name, oracle_upcase(sequence_name)).first > 0
       end
 
-      # TODO: document
       # @api semipublic
       def field_exists?(storage_name, field_name)
         statement = <<-SQL.compress_lines
@@ -863,7 +812,6 @@ module DataMapper
         select(statement, schema_name, oracle_upcase(storage_name), oracle_upcase(field_name)).first > 0
       end
 
-      # TODO: document
       # @api semipublic
       def storage_fields(storage_name)
         statement = <<-SQL.compress_lines
@@ -876,7 +824,6 @@ module DataMapper
         select(statement, schema_name, oracle_upcase(storage_name))
       end
 
-      # TODO: document
       # @api semipublic
       def create_model_storage(model)
         properties = model.properties_with_subclasses(name)
@@ -919,7 +866,6 @@ module DataMapper
         true
       end
 
-      # TODO: document
       # @api semipublic
       def destroy_model_storage(model, forced = false)
         table_name = model.storage_name(name)
@@ -973,13 +919,11 @@ module DataMapper
       module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
-        # TODO: document
         # @api private
         def schema_name
           @schema_name ||= select("SELECT SYS_CONTEXT('userenv','current_schema') FROM dual").first.freeze
         end
 
-        # TODO: document
         # @api private
         def create_sequence_statements(model)
           table_name = model.storage_name(name)
@@ -1010,7 +954,6 @@ module DataMapper
           statements
         end
 
-        # TODO: document
         # @api private
         def drop_sequence_statement(model)
           if sequence_name = model_sequence_name(model)
@@ -1020,7 +963,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def reset_sequence_statement(model)
           if sequence_name = model_sequence_name(model)
@@ -1040,13 +982,11 @@ module DataMapper
 
         end
 
-        # TODO: document
         # @api private
         def truncate_table_statement(model)
           "TRUNCATE TABLE #{quote_name(model.storage_name(name))}"
         end
 
-        # TODO: document
         # @api private
         def delete_table_statement(model)
           "DELETE FROM #{quote_name(model.storage_name(name))}"
@@ -1139,19 +1079,16 @@ module DataMapper
    module SqlserverAdapter
       DEFAULT_CHARACTER_SET = 'utf8'.freeze
 
-      # TODO: document
       # @api private
       def self.included(base)
         base.extend ClassMethods
       end
 
-      # TODO: document
       # @api semipublic
       def storage_exists?(storage_name)
         select("SELECT name FROM sysobjects WHERE name LIKE ?", storage_name).first == storage_name
       end
 
-      # TODO: document
       # @api semipublic
       def field_exists?(storage_name, field_name)
         result = select("SELECT c.name FROM sysobjects as o JOIN syscolumns AS c ON o.id = c.id WHERE o.name = #{quote_name(storage_name)} AND c.name LIKE ?", field_name).first
@@ -1161,19 +1098,16 @@ module DataMapper
       module SQL #:nodoc:
 #        private  ## This cannot be private for current migrations
 
-        # TODO: document
         # @api private
         def supports_serial?
           true
         end
 
-        # TODO: document
         # @api private
         def supports_drop_table_if_exists?
           false
         end
 
-        # TODO: document
         # @api private
         def schema_name
           # TODO: is there a cleaner way to find out the current DB we are connected to?
@@ -1184,7 +1118,6 @@ module DataMapper
 
         alias db_name schema_name
 
-        # TODO: document
         # @api private
         def create_table_statement(connection, model, properties)
           statement = <<-SQL.compress_lines
@@ -1200,7 +1133,6 @@ module DataMapper
           statement
         end
 
-        # TODO: document
         # @api private
         def property_schema_hash(property)
           schema = super
@@ -1216,7 +1148,6 @@ module DataMapper
           schema
         end
 
-        # TODO: document
         # @api private
         def property_schema_statement(connection, schema)
           if supports_serial? && schema[:serial]
@@ -1237,19 +1168,16 @@ module DataMapper
           statement
         end
 
-        # TODO: document
         # @api private
         def character_set
           @character_set ||= show_variable('character_set_connection') || DEFAULT_CHARACTER_SET
         end
 
-        # TODO: document
         # @api private
         def collation
           @collation ||= show_variable('collation_connection') || DEFAULT_COLLATION
         end
 
-        # TODO: document
         # @api private
         def show_variable(name)
           raise "SqlserverAdapter#show_variable: Not implemented"
@@ -1323,7 +1251,6 @@ module DataMapper
         end
       end
 
-      # TODO: document
       # @api semipublic
       def upgrade_model_storage(model)
         if adapter.respond_to?(:upgrade_model_storage)
@@ -1331,7 +1258,6 @@ module DataMapper
         end
       end
 
-      # TODO: document
       # @api semipublic
       def create_model_storage(model)
         if adapter.respond_to?(:create_model_storage)
@@ -1339,7 +1265,6 @@ module DataMapper
         end
       end
 
-      # TODO: document
       # @api semipublic
       def destroy_model_storage(model)
         if adapter.respond_to?(:destroy_model_storage)
@@ -1366,13 +1291,11 @@ module DataMapper
     end # module Repository
 
     module Model
-      # TODO: document
       # @api private
       def self.included(mod)
         mod.descendants.each { |model| model.extend self }
       end
 
-      # TODO: document
       # @api semipublic
       def storage_exists?(repository_name = default_repository_name)
         repository(repository_name).storage_exists?(storage_name(repository_name))
@@ -1440,7 +1363,6 @@ module DataMapper
   module Adapters
     extendable do
 
-      # TODO: document
       # @api private
       def const_added(const_name)
         if DataMapper::Migrations.const_defined?(const_name)

@@ -216,7 +216,6 @@ module DataMapper
 
       protected
 
-      # TODO: document
       # @api private
       def normalized_uri
         @normalized_uri ||=
@@ -262,7 +261,6 @@ module DataMapper
 
       private
 
-      # TODO: document
       # @api public
       def initialize(name, uri_or_options)
         super
@@ -273,14 +271,12 @@ module DataMapper
         end
       end
 
-      # TODO: document
       # @api private
       def connection_stack
         connection_stack_for = Thread.current[:dm_do_connection_stack] ||= {}
         connection_stack_for[self] ||= []
       end
 
-      # TODO: document
       # @api private
       def with_connection
         begin
@@ -298,7 +294,6 @@ module DataMapper
       module SQL #:nodoc:
         IDENTIFIER_MAX_LENGTH = 128
 
-        # TODO: document
         # @api semipublic
         def property_to_column_name(property, qualify, qualifier = nil)
           if qualify
@@ -492,13 +487,11 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def supports_subquery?(*)
           true
         end
 
-        # TODO: document
         # @api private
         def subquery(*args)
           if args.first.repository.name == name && supports_subquery?(*args)
@@ -508,7 +501,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def subquery_statement(query, source_key, target_key, qualify)
           query = query.merge(:fields => source_key, :unique => false)
@@ -526,7 +518,6 @@ module DataMapper
           return statement, bind_values
         end
 
-        # TODO: document
         # @api private
         def subquery_execute(query, source_key, target_key, qualify)
           query = query.merge(:fields => source_key)
@@ -558,7 +549,6 @@ module DataMapper
           statements.join(', ')
         end
 
-        # TODO: document
         # @api private
         def negate_operation(operand, qualify)
           @negated = !@negated
@@ -569,7 +559,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def operation_statement(operation, qualify)
           statements  = []
@@ -652,19 +641,16 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def equality_operator(property, operand)
           operand.nil? ? 'IS' : '='
         end
 
-        # TODO: document
         # @api private
         def inequality_operator(property, operand)
           operand.nil? ? 'IS NOT' : '<>'
         end
 
-        # TODO: document
         # @api private
         def include_operator(property, operand)
           case operand
@@ -673,37 +659,31 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def exclude_operator(property, operand)
           "NOT #{include_operator(property, operand)}"
         end
 
-        # TODO: document
         # @api private
         def regexp_operator(operand)
           '~'
         end
 
-        # TODO: document
         # @api private
         def not_regexp_operator(operand)
           '!~'
         end
 
-        # TODO: document
         # @api private
         def like_operator(operand)
           'LIKE'
         end
 
-        # TODO: document
         # @api private
         def unlike_operator(operand)
           'NOT LIKE'
         end
 
-        # TODO: document
         # @api private
         def quote_name(name)
           "\"#{name[0, self.class::IDENTIFIER_MAX_LENGTH].gsub('"', '""')}\""

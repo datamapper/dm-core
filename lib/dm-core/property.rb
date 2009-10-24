@@ -597,13 +597,11 @@ module DataMapper
       resource.__send__(:lazy_load, lazy_load_properties)
     end
 
-    # TODO: document
     # @api private
     def lazy_load_properties
       @lazy_load_properties ||= properties.in_context(lazy? ? [ self ] : properties.defaults)
     end
 
-    # TODO: document
     # @api private
     def properties
       @properties ||= model.properties(repository_name)
@@ -747,7 +745,6 @@ module DataMapper
 
     private
 
-    # TODO: document
     # @api semipublic
     def initialize(model, name, type, options = {})
       assert_kind_of 'model',   model,   Model
@@ -850,7 +847,6 @@ module DataMapper
       @model.auto_generate_validations(self) if @model.respond_to?(:auto_generate_validations)
     end
 
-    # TODO: document
     # @api private
     def assert_valid_options(options)
       if (unknown_keys = options.keys - OPTIONS).any?

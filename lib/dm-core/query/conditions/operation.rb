@@ -4,7 +4,6 @@ module DataMapper
       class InvalidOperation < ArgumentError; end
 
       class Operation
-        # TODO: document
         # @api semipublic
         def self.new(slug, *operands)
           if klass = operation_class(slug)
@@ -14,13 +13,11 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api semipublic
         def self.operation_class(slug)
           operation_classes[slug] ||= AbstractOperation.descendants.detect { |operation_class| operation_class.slug == slug }
         end
 
-        # TODO: document
         # @api private
         def self.slugs
           @slugs ||= AbstractOperation.descendants.map { |operation_class| operation_class.slug }
@@ -29,7 +26,6 @@ module DataMapper
         class << self
           private
 
-          # TODO: document
           # @api private
           def operation_classes
             @operation_classes ||= {}
@@ -44,23 +40,19 @@ module DataMapper
 
         equalize :slug, :sorted_operands
 
-        # TODO: document
         # @api semipublic
         attr_reader :operands
 
-        # TODO: document
         # @api private
         def self.descendants
           @descendants ||= Set.new
         end
 
-        # TODO: document
         # @api private
         def self.inherited(operation_class)
           descendants << operation_class
         end
 
-        # TODO: document
         # @api semipublic
         def self.slug(slug = nil)
           slug ? @slug = slug : @slug
@@ -76,14 +68,12 @@ module DataMapper
           self.class.slug
         end
 
-        # TODO: document
         # @api semipublic
         def each
           @operands.each { |*block_args| yield(*block_args) }
           self
         end
 
-        # TODO: document
         # @api semipublic
         def valid?
           @operands.any? && @operands.all? do |operand|
@@ -95,7 +85,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api semipublic
         def <<(operand)
           assert_valid_operand(operand)
@@ -103,7 +92,6 @@ module DataMapper
           self
         end
 
-        # TODO: document
         # @api semipublic
         def merge(operands)
           operands.each { |operand| assert_valid_operand(operand) }
@@ -111,20 +99,17 @@ module DataMapper
           self
         end
 
-        # TODO: document
         # @api semipublic
         def clear
           @operands.clear
           self
         end
 
-        # TODO: document
         # @api semipublic
         def inspect
           "#<#{self.class} @operands=#{@operands.inspect}>"
         end
 
-        # TODO: document
         # @api semipublic
         def to_s
           "(#{@operands.to_a.join(" #{slug.to_s.upcase} ")})"
@@ -142,19 +127,16 @@ module DataMapper
 
         private
 
-        # TODO: document
         # @api semipublic
         def initialize(*operands)
           @operands = operands.to_set
         end
 
-        # TODO: document
         # @api semipublic
         def initialize_copy(*)
           @operands = @operands.map { |operand| operand.dup }.to_set
         end
 
-        # TODO: document
         # @api private
         def assert_valid_operand(operand)
           assert_kind_of 'operand', operand, Conditions::AbstractOperation, Conditions::AbstractComparison, Array
@@ -162,7 +144,6 @@ module DataMapper
       end # class AbstractOperation
 
       module FlattenOperation
-        # TODO: document
         # @api semipublic
         def <<(operand)
           if operand.kind_of?(self.class)
@@ -178,7 +159,6 @@ module DataMapper
 
         slug :and
 
-        # TODO: document
         # @api semipublic
         def matches?(record)
           @operands.all? { |operand| operand.matches?(record) }
@@ -190,7 +170,6 @@ module DataMapper
 
         slug :or
 
-        # TODO: document
         # @api semipublic
         def matches?(record)
           @operands.any? { |operand| operand.matches?(record) }
@@ -200,20 +179,17 @@ module DataMapper
       class NotOperation < AbstractOperation
         slug :not
 
-        # TODO: document
         # @api semipublic
         def matches?(record)
           not operand.matches?(record)
         end
 
-        # TODO: document
         # @api semipublic
         def <<(*)
           assert_one_operand
           super
         end
 
-        # TODO: document
         # @api semipublic
         def merge(operands)
           assert_one_operand
@@ -221,7 +197,6 @@ module DataMapper
           super
         end
 
-        # TODO: document
         # @api semipublic
         def operand
           @operands.to_a.first
@@ -229,14 +204,12 @@ module DataMapper
 
         private
 
-        # TODO: document
         # @api semipublic
         def initialize(*operands)
           assert_unary_operator(operands)
           super
         end
 
-        # TODO: document
         # @api private
         def assert_unary_operator(operands)
           if operands.size > 1
@@ -244,7 +217,6 @@ module DataMapper
           end
         end
 
-        # TODO: document
         # @api private
         def assert_one_operand
           if operand

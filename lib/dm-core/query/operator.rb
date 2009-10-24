@@ -13,15 +13,12 @@ module DataMapper
 
       equalize :target, :operator
 
-      # TODO: document
       # @api private
       attr_reader :target
 
-      # TODO: document
       # @api private
       attr_reader :operator
 
-      # TODO: document
       # @api private
       def inspect
         "#<#{self.class.name} @target=#{target.inspect} @operator=#{operator.inspect}>"
@@ -29,7 +26,6 @@ module DataMapper
 
       private
 
-      # TODO: document
       # @api private
       def initialize(target, operator)
         assert_kind_of 'operator', operator, Symbol

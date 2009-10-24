@@ -10,7 +10,6 @@ module DataMapper
     deprecate :slice,         :values_at
     deprecate :add,           :<<
 
-    # TODO: document
     # @api semipublic
     def [](name)
       @properties[name]
@@ -19,25 +18,21 @@ module DataMapper
     alias superclass_slice []=
     private :superclass_slice
 
-    # TODO: document
     # @api semipublic
     def []=(name, property)
       self << property
     end
 
-    # TODO: document
     # @api semipublic
     def named?(name)
       @properties.key?(name)
     end
 
-    # TODO: document
     # @api semipublic
     def values_at(*names)
       @properties.values_at(*names)
     end
 
-    # TODO: document
     # @api semipublic
     def <<(property)
       if named?(property.name)
@@ -49,38 +44,32 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api semipublic
     def include?(property)
       named?(property.name)
     end
 
-    # TODO: document
     # @api semipublic
     def index(property)
       each_index { |index| break index if at(index).name == property.name }
     end
 
     # TODO: make PropertySet#reject return a PropertySet instance
-    # TODO: document
     # @api semipublic
     def defaults
       @defaults ||= self.class.new(key | [ discriminator ].compact | reject { |property| property.lazy? }).freeze
     end
 
-    # TODO: document
     # @api semipublic
     def key
       @key ||= self.class.new(select { |property| property.key? }).freeze
     end
 
-    # TODO: document
     # @api semipublic
     def discriminator
       @discriminator ||= detect { |property| property.type == Types::Discriminator }
     end
 
-    # TODO: document
     # @api semipublic
     def indexes
       index_hash = {}
@@ -88,7 +77,6 @@ module DataMapper
       index_hash
     end
 
-    # TODO: document
     # @api semipublic
     def unique_indexes
       index_hash = {}
@@ -96,49 +84,41 @@ module DataMapper
       index_hash
     end
 
-    # TODO: document
     # @api semipublic
     def get(resource)
       map { |property| property.get(resource) }
     end
 
-    # TODO: document
     # @api semipublic
     def get!(resource)
       map { |property| property.get!(resource) }
     end
 
-    # TODO: document
     # @api semipublic
     def set(resource, values)
       zip(values) { |property, value| property.set(resource, value) }
     end
 
-    # TODO: document
     # @api semipublic
     def set!(resource, values)
       zip(values) { |property, value| property.set!(resource, value) }
     end
 
-    # TODO: document
     # @api semipublic
     def loaded?(resource)
       all? { |property| property.loaded?(resource) }
     end
 
-    # TODO: document
     # @api semipublic
     def valid?(values)
       zip(values.nil? ? [] : values).all? { |property, value| property.valid?(value) }
     end
 
-    # TODO: document
     # @api semipublic
     def typecast(values)
       zip(values.nil? ? [] : values).map { |property, value| property.typecast(value) }
     end
 
-    # TODO: document
     # @api private
     def property_contexts(property)
       contexts = []
@@ -148,13 +128,11 @@ module DataMapper
       contexts
     end
 
-    # TODO: document
     # @api private
     def lazy_context(context)
       lazy_contexts[context] ||= []
     end
 
-    # TODO: document
     # @api private
     def in_context(properties)
       properties_in_context = properties.map do |property|
@@ -170,40 +148,34 @@ module DataMapper
 
     private
 
-    # TODO: document
     # @api semipublic
     def initialize(*)
       super
       @properties = map { |property| [ property.name, property ] }.to_mash
     end
 
-    # TODO: document
     # @api private
     def initialize_copy(*)
       super
       @properties = @properties.dup
     end
 
-    # TODO: document
     # @api private
     def add_property(property)
       clear_cache
       @properties[property.name] = property
     end
 
-    # TODO: document
     # @api private
     def clear_cache
       @defaults, @key, @discriminator = nil
     end
 
-    # TODO: document
     # @api private
     def lazy_contexts
       @lazy_contexts ||= {}
     end
 
-    # TODO: document
     # @api private
     def parse_index(index, property, index_hash)
       case index

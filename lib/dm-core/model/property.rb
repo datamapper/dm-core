@@ -129,7 +129,6 @@ module DataMapper
         properties(repository_name).key
       end
 
-      # TODO: document
       # @api public
       def serial(repository_name = default_repository_name)
         key(repository_name).detect { |property| property.serial? }
@@ -149,7 +148,6 @@ module DataMapper
         @field_naming_conventions[repository_name] ||= repository(repository_name).adapter.field_naming_convention
       end
 
-      # TODO: document
       # @api private
       def properties_with_subclasses(repository_name = default_repository_name)
         properties = PropertySet.new
@@ -163,19 +161,16 @@ module DataMapper
         properties
       end
 
-      # TODO: document
       # @api private
       def paranoid_properties
         @paranoid_properties
       end
 
-      # TODO: document
       # @api private
       def set_paranoid_property(name, &block)
         paranoid_properties[name] = block
       end
 
-      # TODO: document
       # @api private
       def key_conditions(repository, key)
         self.key(repository.name).zip(key.nil? ? [] : key).to_hash
@@ -232,7 +227,6 @@ module DataMapper
       end
 
       chainable do
-        # TODO: document
         # @api public
         def method_missing(method, *args, &block)
           if property = properties(repository_name)[method]

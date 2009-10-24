@@ -126,7 +126,6 @@ module DataMapper
     end
 
     extendable do
-      # TODO: document
       # @api private
       def const_added(const_name)
       end

@@ -3,17 +3,14 @@
 module DataMapper
   class Query
     class Sort
-      # TODO: document
       # @api semipublic
       attr_reader :value
 
-      # TODO: document
       # @api semipublic
       def direction
         @ascending ? :ascending : :descending
       end
 
-      # TODO: document
       # @api private
       def <=>(other)
         other_value = other.value
@@ -34,7 +31,6 @@ module DataMapper
 
       private
 
-      # TODO: document
       # @api private
       def initialize(value, ascending = true)
         @value     = value

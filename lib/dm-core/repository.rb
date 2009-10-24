@@ -42,7 +42,6 @@ module DataMapper
       :default
     end
 
-    # TODO: document
     # @api semipublic
     attr_reader :name
 

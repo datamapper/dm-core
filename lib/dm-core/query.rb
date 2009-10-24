@@ -1025,7 +1025,6 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def append_property_condition(property, bind_value, operator)
       negated = operator == :not
@@ -1062,13 +1061,11 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def append_symbol_condition(symbol, bind_value, model, operator)
       append_condition(symbol.to_s, bind_value, model, operator)
     end
 
-    # TODO: document
     # @api private
     def append_string_condition(string, bind_value, model, operator)
       if string.include?('.')
@@ -1088,13 +1085,11 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def append_operator_conditions(operator, bind_value, model)
       append_condition(operator.target, bind_value, model, operator.operator)
     end
 
-    # TODO: document
     # @api private
     def append_path(path, bind_value, model, operator)
       path.relationships.each do |relationship|
@@ -1146,7 +1141,6 @@ module DataMapper
       raise ArgumentError, "arguments may be 1 or 2 Integers, or 1 Range object, was: #{args.inspect}"
     end
 
-    # TODO: document
     # @api private
     def get_relative_position(offset, limit)
       new_offset = self.offset + offset
@@ -1169,7 +1163,6 @@ module DataMapper
       end
     end
 
-    # TODO: document
     # @api private
     def each_comparison
       operands = conditions.operands.to_a

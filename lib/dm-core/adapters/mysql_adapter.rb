@@ -10,13 +10,11 @@ module DataMapper
 
         private
 
-        # TODO: document
         # @api private
         def supports_default_values? #:nodoc:
           false
         end
 
-        # TODO: document
         # @api private
         def supports_subquery?(query, source_key, target_key, qualify)
           # TODO: renable once query does not include target_model for deletes and updates
@@ -25,19 +23,16 @@ module DataMapper
           false
         end
 
-        # TODO: document
         # @api private
         def regexp_operator(operand)
           'REGEXP'
         end
 
-        # TODO: document
         # @api private
         def not_regexp_operator(operand)
           'NOT REGEXP'
         end
 
-        # TODO: document
         # @api private
         def quote_name(name)
           "`#{name[0, self.class::IDENTIFIER_MAX_LENGTH].gsub('`', '``')}`"
