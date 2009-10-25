@@ -189,7 +189,9 @@ share_examples_for 'A public Resource' do
   describe '#attributes' do
     describe 'with a new resource' do
       before :all do
-        @user = @user.model.new
+        rescue_if @skip do
+          @user = @user.model.new
+        end
       end
 
       it 'should return the expected values' do
