@@ -340,6 +340,49 @@ share_examples_for 'A public Resource' do
 
       it { @default.should be_dirty }
     end
+
+    describe 'on a record with itself as a parent (circular dependency)' do
+      before :all do
+        rescue_if @skip do
+          @user.parent = @user
+        end
+      end
+
+      it 'should not raise an exception' do
+        lambda {
+          @user.dirty?.should be_true
+        }.should_not raise_error(SystemStackError)
+      end
+    end
+
+    describe 'on a record with itself as a child (circular dependency)' do
+      before :all do
+        rescue_if @skip do
+          @user.children = [ @user ]
+        end
+      end
+
+      it 'should not raise an exception' do
+        lambda {
+          @user.dirty?.should be_true
+        }.should_not raise_error(SystemStackError)
+      end
+    end
+
+    describe 'on a record with a parent as a child (circular dependency)' do
+      before :all do
+        rescue_if @skip do
+          @user.children = [ @user.parent = @user_model.new(:name => 'Parent', :comment => @comment) ]
+          @user.save.should be_true
+        end
+      end
+
+      it 'should not raise an exception' do
+        lambda {
+          @user.dirty?.should be_true
+        }.should_not raise_error(SystemStackError)
+      end
+    end
   end
 
   it { @user.should respond_to(:eql?) }
@@ -926,6 +969,20 @@ share_examples_for 'A public Resource' do
         before :all do
           rescue_if @skip do
             @user.children = [ @user ]
+          end
+        end
+
+        it 'should not raise an exception' do
+          lambda {
+            @user.__send__(method).should be_true
+          }.should_not raise_error(SystemStackError)
+        end
+      end
+
+      describe 'on a record with a parent as a child (circular dependency)' do
+        before :all do
+          rescue_if @skip do
+            @user.children = [ @user.parent = @user_model.new(:name => 'Parent', :comment => @comment) ]
           end
         end
 

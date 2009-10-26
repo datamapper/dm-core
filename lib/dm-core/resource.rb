@@ -340,8 +340,8 @@ module DataMapper
     #   true if Resource instance and all associations were saved
     #
     # @api public
-    def save(resources = {})
-      _save(true, resources)
+    def save
+      _save(true)
     end
 
     # Save the instance and loaded, dirty associations to the data-store, bypassing hooks
@@ -350,8 +350,8 @@ module DataMapper
     #   true if Resource instance and all associations were saved
     #
     # @api public
-    def save!(resources = {})
-      _save(false, resources)
+    def save!
+      _save(false)
     end
 
     # Destroy the instance, remove it from the repository
@@ -548,8 +548,8 @@ module DataMapper
     #   true if the resource was successfully saved
     #
     # @api semipublic
-    def save_self(safe)
-      if safe
+    def save_self(safe, resources)
+      resources[object_id] = if safe
         new? ? create_hook : update_hook
       else
         new? ? _create : _update
@@ -566,10 +566,13 @@ module DataMapper
     #
     # @api private
     def save_parents(safe, resources)
+      return resources[object_id] if resources.key?(object_id)
+      resources[object_id] = true
+
       parent_relationships.all? do |relationship|
-        parent    = relationship.get!(self)
-        object_id = parent.object_id
-        if resources.key?(object_id) || resources[object_id] = parent.save_parents(safe, resources.update(object_id => true)) && parent.save_self(safe)
+        parent = relationship.get!(self)
+
+        if parent.save_parents(safe, resources) && parent.save_self(safe, resources)
           relationship.set(self, parent)  # set the FK values
         end
       end
@@ -589,16 +592,11 @@ module DataMapper
 
     # Checks if the resource has unsaved changes
     #
-    # @param [Hash] resources
-    #   resources that have already been tested
-    #
     # @return [Boolean]
     #  true if the resource has unsaged changes
     #
     # @api private
     def dirty_self?(resources)
-      return resources[object_id] if resources.key?(object_id)
-
       resources[object_id] = if original_attributes.any?
         true
       elsif new?
@@ -615,6 +613,8 @@ module DataMapper
     #
     # @api private
     def dirty_parents?(resources)
+      return resources[object_id] if resources.key?(object_id)
+
       parent_resources.any? do |parent|
         parent.dirty_self?(resources) || parent.dirty_parents?(resources)
       end
@@ -920,13 +920,17 @@ module DataMapper
       end
     end
 
-    def _save(safe, resources)
+    # @api private
+    def _save(safe, resources = {})
       return resources[object_id] if resources.key?(object_id)
+
       method = safe ? :save : :save!
       assert_not_destroyed(method)
-      resources[object_id] = save_parents(safe, resources) && save_self(safe) && save_children(safe, resources)
+
+      save_parents(safe, resources) && save_self(safe, resources) && save_children(safe, resources)
     end
 
+    # @api private
     def _dirty?(resources = {})
       dirty_self?(resources) || dirty_parents?(resources) || dirty_children?(resources)
     end
