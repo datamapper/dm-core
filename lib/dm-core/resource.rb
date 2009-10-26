@@ -341,6 +341,7 @@ module DataMapper
     #
     # @api public
     def save
+      assert_not_destroyed(:save)
       _save(true)
     end
 
@@ -351,6 +352,7 @@ module DataMapper
     #
     # @api public
     def save!
+      assert_not_destroyed(:save!)
       _save(false)
     end
 
@@ -826,9 +828,6 @@ module DataMapper
     # @api private
     def _save(safe)
       run_once(true) do
-        method = safe ? :save : :save!
-        assert_not_destroyed(method)
-
         save_parents(safe) && save_self(safe) && save_children(safe)
       end
     end
