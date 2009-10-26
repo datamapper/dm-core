@@ -1,5 +1,5 @@
-WIN32 = (RUBY_PLATFORM =~ /win32|mingw|bccwin|cygwin/) rescue nil
-SUDO = WIN32 ? '' : ('sudo' unless ENV['SUDOLESS'])
+WIN32 = Gem.win_platform?
+SUDO  = WIN32 ? '' : ('sudo' unless ENV['SUDOLESS'])
 
 def sudo_gem(cmd)
   sh "#{SUDO} #{RUBY} -S gem #{cmd}", :verbose => false
