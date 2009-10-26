@@ -542,97 +542,6 @@ module DataMapper
       dirty_attributes
     end
 
-    # Saves the resource
-    #
-    # @return [Boolean]
-    #   true if the resource was successfully saved
-    #
-    # @api semipublic
-    def save_self(safe, resources)
-      resources[object_id] = if safe
-        new? ? create_hook : update_hook
-      else
-        new? ? _create : _update
-      end
-    end
-
-    # Saves the parent resources
-    #
-    # @param [Hash] resources
-    #   resources that have already been saved
-    #
-    # @return [Boolean]
-    #   true if the parents were successfully saved
-    #
-    # @api private
-    def save_parents(safe, resources)
-      return resources[object_id] if resources.key?(object_id)
-      resources[object_id] = true
-
-      parent_relationships.all? do |relationship|
-        parent = relationship.get!(self)
-
-        if parent.save_parents(safe, resources) && parent.save_self(safe, resources)
-          relationship.set(self, parent)  # set the FK values
-        end
-      end
-    end
-
-    # Saves the children resources
-    #
-    # @return [Boolean]
-    #   true if the children were successfully saved
-    #
-    # @api private
-    def save_children(safe, resources)
-      child_collections.all? do |collection|
-        collection.send(:_save, safe, resources)
-      end
-    end
-
-    # Checks if the resource has unsaved changes
-    #
-    # @return [Boolean]
-    #  true if the resource has unsaged changes
-    #
-    # @api private
-    def dirty_self?(resources)
-      resources[object_id] = if original_attributes.any?
-        true
-      elsif new?
-        !model.serial.nil? || properties.any? { |property| property.default? }
-      else
-        false
-      end
-    end
-
-    # Checks if the parents have unsaved changes
-    #
-    # @return [Boolean]
-    #  true if the parents have unsaved changes
-    #
-    # @api private
-    def dirty_parents?(resources)
-      return resources[object_id] if resources.key?(object_id)
-
-      parent_resources.any? do |parent|
-        parent.dirty_self?(resources) || parent.dirty_parents?(resources)
-      end
-    end
-
-    # Checks if the children have unsaved changes
-    #
-    # @param [Hash] resources
-    #   resources that have already been tested
-    #
-    # @return [Boolean]
-    #  true if the children have unsaved changes
-    #
-    # @api private
-    def dirty_children?(resources)
-      child_collections.any? { |children| children.send(:_dirty?, resources) }
-    end
-
     # Reset the Resource to a similar state as a new record:
     # removes it from identity map and clears original property
     # values (thus making all properties non dirty)
@@ -930,9 +839,100 @@ module DataMapper
       save_parents(safe, resources) && save_self(safe, resources) && save_children(safe, resources)
     end
 
+    # Saves the resource
+    #
+    # @return [Boolean]
+    #   true if the resource was successfully saved
+    #
+    # @api semipublic
+    def save_self(safe, resources)
+      resources[object_id] = if safe
+        new? ? create_hook : update_hook
+      else
+        new? ? _create : _update
+      end
+    end
+
+    # Saves the parent resources
+    #
+    # @param [Hash] resources
+    #   resources that have already been saved
+    #
+    # @return [Boolean]
+    #   true if the parents were successfully saved
+    #
+    # @api private
+    def save_parents(safe, resources)
+      return resources[object_id] if resources.key?(object_id)
+      resources[object_id] = true
+
+      parent_relationships.all? do |relationship|
+        parent = relationship.get!(self)
+
+        if parent.__send__(:save_parents, safe, resources) && parent.__send__(:save_self, safe, resources)
+          relationship.set(self, parent)  # set the FK values
+        end
+      end
+    end
+
+    # Saves the children resources
+    #
+    # @return [Boolean]
+    #   true if the children were successfully saved
+    #
+    # @api private
+    def save_children(safe, resources)
+      child_collections.all? do |collection|
+        collection.send(:_save, safe, resources)
+      end
+    end
+
     # @api private
     def _dirty?(resources = {})
       dirty_self?(resources) || dirty_parents?(resources) || dirty_children?(resources)
+    end
+
+    # Checks if the resource has unsaved changes
+    #
+    # @return [Boolean]
+    #  true if the resource has unsaged changes
+    #
+    # @api private
+    def dirty_self?(resources)
+      resources[object_id] = if original_attributes.any?
+        true
+      elsif new?
+        !model.serial.nil? || properties.any? { |property| property.default? }
+      else
+        false
+      end
+    end
+
+    # Checks if the parents have unsaved changes
+    #
+    # @return [Boolean]
+    #  true if the parents have unsaved changes
+    #
+    # @api private
+    def dirty_parents?(resources)
+      return resources[object_id] if resources.key?(object_id)
+
+      parent_resources.any? do |parent|
+        parent.__send__(:dirty_self?, resources) || parent.__send__(:dirty_parents?, resources)
+      end
+    end
+
+    # Checks if the children have unsaved changes
+    #
+    # @param [Hash] resources
+    #   resources that have already been tested
+    #
+    # @return [Boolean]
+    #  true if the children have unsaved changes
+    #
+    # @api private
+    def dirty_children?(resources)
+      child_collections.any? { |children| children.send(:_dirty?, resources) }
     end
 
     # Return true if +other+'s is equivalent or equal to +self+'s
