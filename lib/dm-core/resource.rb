@@ -142,7 +142,7 @@ module DataMapper
     #
     # @api public
     def dirty?
-      _dirty?
+      dirty_self? || dirty_parents? || dirty_children?
     end
 
     # Checks if this Resource instance is readonly
@@ -711,9 +711,7 @@ module DataMapper
       parent_relationships = []
 
       relationships.each_value do |relationship|
-        next unless relationship.respond_to?(:resource_for) && relationship.loaded?(self)
-        next unless relationship.get(self)
-
+        next unless relationship.respond_to?(:resource_for) && relationship.loaded?(self) && relationship.get!(self)
         parent_relationships << relationship
       end
 
@@ -730,11 +728,7 @@ module DataMapper
       child_relationships = []
 
       relationships.each_value do |relationship|
-        next unless relationship.respond_to?(:collection_for) && relationship.loaded?(self)
-
-        association = relationship.get!(self)
-        next unless association.loaded? || association.head.any? || association.tail.any?
-
+        next unless relationship.respond_to?(:collection_for) && relationship.loaded?(self) && relationship.get!(self)
         child_relationships << relationship
       end
 
@@ -830,13 +824,13 @@ module DataMapper
     end
 
     # @api private
-    def _save(safe, resources = {})
-      return resources[object_id] if resources.key?(object_id)
+    def _save(safe)
+      run_once(true) do
+        method = safe ? :save : :save!
+        assert_not_destroyed(method)
 
-      method = safe ? :save : :save!
-      assert_not_destroyed(method)
-
-      save_parents(safe, resources) && save_self(safe, resources) && save_children(safe, resources)
+        save_parents(safe) && save_self(safe) && save_children(safe)
+      end
     end
 
     # Saves the resource
@@ -845,8 +839,8 @@ module DataMapper
     #   true if the resource was successfully saved
     #
     # @api semipublic
-    def save_self(safe, resources)
-      resources[object_id] = if safe
+    def save_self(safe)
+      if safe
         new? ? create_hook : update_hook
       else
         new? ? _create : _update
@@ -855,22 +849,18 @@ module DataMapper
 
     # Saves the parent resources
     #
-    # @param [Hash] resources
-    #   resources that have already been saved
-    #
     # @return [Boolean]
     #   true if the parents were successfully saved
     #
     # @api private
-    def save_parents(safe, resources)
-      return resources[object_id] if resources.key?(object_id)
-      resources[object_id] = true
+    def save_parents(safe)
+      run_once(true) do
+        parent_relationships.all? do |relationship|
+          parent = relationship.get!(self)
 
-      parent_relationships.all? do |relationship|
-        parent = relationship.get!(self)
-
-        if parent.__send__(:save_parents, safe, resources) && parent.__send__(:save_self, safe, resources)
-          relationship.set(self, parent)  # set the FK values
+          if parent.__send__(:save_parents, safe) && parent.__send__(:save_self, safe)
+            relationship.set(self, parent)  # set the FK values
+          end
         end
       end
     end
@@ -881,15 +871,10 @@ module DataMapper
     #   true if the children were successfully saved
     #
     # @api private
-    def save_children(safe, resources)
+    def save_children(safe)
       child_collections.all? do |collection|
-        collection.send(:_save, safe, resources)
+        collection.send(safe ? :save : :save!)
       end
-    end
-
-    # @api private
-    def _dirty?(resources = {})
-      dirty_self?(resources) || dirty_parents?(resources) || dirty_children?(resources)
     end
 
     # Checks if the resource has unsaved changes
@@ -898,8 +883,8 @@ module DataMapper
     #  true if the resource has unsaged changes
     #
     # @api private
-    def dirty_self?(resources)
-      resources[object_id] = if original_attributes.any?
+    def dirty_self?
+      if original_attributes.any?
         true
       elsif new?
         !model.serial.nil? || properties.any? { |property| property.default? }
@@ -914,11 +899,11 @@ module DataMapper
     #  true if the parents have unsaved changes
     #
     # @api private
-    def dirty_parents?(resources)
-      return resources[object_id] if resources.key?(object_id)
-
-      parent_resources.any? do |parent|
-        parent.__send__(:dirty_self?, resources) || parent.__send__(:dirty_parents?, resources)
+    def dirty_parents?
+      run_once(false) do
+        parent_resources.any? do |parent|
+          parent.__send__(:dirty_self?) || parent.__send__(:dirty_parents?)
+        end
       end
     end
 
@@ -931,8 +916,8 @@ module DataMapper
     #  true if the children have unsaved changes
     #
     # @api private
-    def dirty_children?(resources)
-      child_collections.any? { |children| children.send(:_dirty?, resources) }
+    def dirty_children?
+      child_collections.any? { |children| children.dirty? }
     end
 
     # Return true if +other+'s is equivalent or equal to +self+'s
@@ -991,6 +976,34 @@ module DataMapper
     def assert_not_destroyed(method)
       if destroyed?
         raise PersistenceError, "#{model}##{method} cannot be called on a destroyed resource"
+      end
+    end
+
+    # Prevent a method from being in the stack more than once
+    #
+    # The purpose of this method is to prevent SystemStackError from
+    # being thrown from methods from encountering infinite recursion
+    # when called on resources having circular dependencies.
+    #
+    # @param [Object] default
+    #   default return value
+    #
+    # @yield The block of code to run once
+    #
+    # @return [Object]
+    #   block return value
+    #
+    # @api private
+    def run_once(default)
+      caller_method = caller(1).first[/`([^'?!]+)[?!]?'/, 1]
+      sentinel      = "@__#{caller_method}_sentinel"
+      return instance_variable_get(sentinel) if instance_variable_defined?(sentinel)
+
+      begin
+        instance_variable_set(sentinel, default)
+        yield
+      ensure
+        remove_instance_variable(sentinel)
       end
     end
   end # module Resource

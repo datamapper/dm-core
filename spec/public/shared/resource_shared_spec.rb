@@ -763,35 +763,38 @@ share_examples_for 'A public Resource' do
       describe 'with dirty resources in a has relationship' do
         before :all do
           rescue_if 'TODO: fix for one to one association', !@user.respond_to?(:comments) do
-            @initial_comments = @user.comments.size
-            @first_comment    = @user.comments.create(:body => "DM is great!")
-            @second_comment   = @comment_model.create(:user => @user, :body => "is it really?")
+            @first_comment  = @user.comments.create(:body => 'DM is great!')
+            @second_comment = @comment_model.create(:user => @user, :body => 'is it really?')
 
-            @first_comment.body  = "It still has rough edges"
-            @second_comment.body = "But these cool specs help fixing that"
+            @first_comment.body  = 'It still has rough edges'
+            @second_comment.body = 'But these cool specs help fixing that'
             @second_comment.user = @user_model.create(:name => 'dkubb')
-            @return              = @user.__send__(method)
+
+            @return = @user.__send__(method)
           end
         end
 
-        it 'should save the dirty resources' do
+        it 'should return true' do
           pending_if !@user.respond_to?(:comments) do
             @return.should be_true
           end
         end
 
+        it 'should not be dirty' do
+          @user.should_not be_dirty
+        end
+
         it 'should have saved the first child resource' do
           pending_if !@user.respond_to?(:comments) do
-            @first_comment.should_not be_dirty
+            @first_comment.model.get(*@first_comment.key).body.should == 'It still has rough edges'
           end
         end
 
         it 'should not have saved the second child resource' do
           pending_if !@user.respond_to?(:comments) do
-            @second_comment.should be_dirty
+            @second_comment.model.get(*@second_comment.key).body.should == 'is it really?'
           end
         end
-
       end
 
       describe 'with a new dependency' do

@@ -396,7 +396,7 @@ share_examples_for 'A public Collection' do
 
       describe 'on a limited collection' do
         before :all do
-          @other   = @articles.create.freeze
+          @other   = @articles.create
           @limited = @articles.all(:limit => 1)
 
           @return = @limited.send(method)

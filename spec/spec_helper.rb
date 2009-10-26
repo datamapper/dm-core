@@ -119,6 +119,7 @@ end
 module RemoveSend
   def self.included(model)
     model.send(:undef_method, :send)
+    model.send(:undef_method, :freeze)
   end
 
   DataMapper::Model.append_inclusions self

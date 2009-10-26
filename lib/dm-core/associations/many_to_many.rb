@@ -399,7 +399,7 @@ module DataMapper
         end
 
         # @api private
-        def _save(safe, resources = {})
+        def _save(safe)
           if @removed.any?
             # delete only intermediaries linked to the removed targets
             return false unless intermediaries.all(via => @removed).send(safe ? :destroy : :destroy!)

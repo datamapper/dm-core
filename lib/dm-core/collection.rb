@@ -880,7 +880,7 @@ module DataMapper
     #
     # @api public
     def dirty?
-      _dirty?
+      loaded_entries.any? { |resource| resource.dirty? } || @removed.any?
     end
 
     # Gets a Human-readable representation of this collection,
@@ -1110,20 +1110,10 @@ module DataMapper
     #   Returns true if collection was updated
     #
     # @api private
-    def _save(safe, resources = {})
+    def _save(safe)
       loaded_entries.each { |resource| set_default_attributes(resource) }
       @removed.clear
-      loaded_entries.all? { |resource| resource.destroyed? || resource.__send__(:_save, safe, resources) }
-    end
-
-    # Checks if any resources have unsaved changes (internal)
-    #
-    # @return [Boolean]
-    #  true if the resources have unsaved changed
-    #
-    # @api private
-    def _dirty?(resources = {})
-      loaded_entries.any? { |resource| resource.__send__(:_dirty?, resources) } || @removed.any?
+      loaded_entries.all? { |resource| resource.destroyed? || resource.__send__(safe ? :save : :save!) }
     end
 
     # Returns default values to initialize new Resources in the Collection

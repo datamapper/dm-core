@@ -256,11 +256,11 @@ module DataMapper
         end
 
         # @api private
-        def _save(safe, resources = {})
+        def _save(safe)
           assert_source_saved 'The source must be saved before saving the collection'
 
           # update removed resources to not reference the source
-          @removed.all? { |resource| resource.destroyed? || resource.__send__(:_save, safe, resources) } && super
+          @removed.all? { |resource| resource.destroyed? || resource.__send__(safe ? :save : :save!) } && super
         end
 
         # @api private
