@@ -64,6 +64,27 @@ share_examples_for 'Collection Finder Interface' do
 
       @copy = @articles.dup
       @copy.to_a
+
+      # reload the articles
+      @articles = @article_model.all(@articles.query)
+    end
+
+    describe 'with no arguments' do
+      before :all do
+        @return = @resource = @articles.first
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be first Resource in the Collection' do
+        @resource.should equal(@copy.entries.first)
+      end
+
+      it 'should return the same Resource every time' do
+        @return.should equal(@articles.first)
+      end
     end
 
     describe 'with no arguments', 'after prepending to the collection' do
@@ -162,6 +183,27 @@ share_examples_for 'Collection Finder Interface' do
 
       @copy = @articles.dup
       @copy.to_a
+
+      # reload the articles
+      @articles = @article_model.all(@articles.query)
+    end
+
+    describe 'with no arguments' do
+      before :all do
+        @return = @resource = @articles.last
+      end
+
+      it 'should return a Resource' do
+        @return.should be_kind_of(DataMapper::Resource)
+      end
+
+      it 'should be last Resource in the Collection' do
+        @resource.should equal(@copy.entries.last)
+      end
+
+      it 'should return the same Resource every time' do
+        @return.should equal(@articles.last)
+      end
     end
 
     describe 'with no arguments', 'after appending to the collection' do

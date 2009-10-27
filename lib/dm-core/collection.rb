@@ -214,8 +214,10 @@ module DataMapper
 
       if limit
         collection
-      else
+      elsif with_query || loaded?
         collection.to_a.first
+      else
+        head[0] = collection.to_a.first
       end
     end
 
@@ -261,8 +263,10 @@ module DataMapper
 
       if limit
         collection
-      else
+      elsif with_query || loaded?
         collection.to_a.last
+      else
+        tail[tail.empty? ? 0 : -1] = collection.to_a.last
       end
     end
 

@@ -142,7 +142,9 @@ module DataMapper
     #
     # @api public
     def dirty?
-      dirty_self? || dirty_parents? || dirty_children?
+      run_once(true) do
+        dirty_self? || dirty_parents? || dirty_children?
+      end
     end
 
     # Checks if this Resource instance is readonly
