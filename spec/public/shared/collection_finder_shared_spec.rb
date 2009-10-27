@@ -145,9 +145,11 @@ share_examples_for 'Collection Finder Interface' do
   [ :get, :get! ].each do |method|
     describe 'with a key to a Resource within a Collection using a limit' do
       before :all do
-        @articles = @articles.all(:limit => 1)
+        rescue_if @skip && method == :get! do
+          @articles = @articles.all(:limit => 1)
 
-        @return = @resource = @articles.send(method, *@article.key)
+          @return = @resource = @articles.send(method, *@article.key)
+        end
       end
 
       it 'should return a Resource' do
@@ -161,10 +163,12 @@ share_examples_for 'Collection Finder Interface' do
 
     describe 'with a key to a Resource within a Collection using an offset' do
       before :all do
-        @new = @articles.create(:content => 'New Article')  # TODO: freeze @new
-        @articles = @articles.all(:offset => 1, :limit => 1)
+        rescue_if @skip && method == :get! do
+          @new = @articles.create(:content => 'New Article')
+          @articles = @articles.all(:offset => 1, :limit => 1)
 
-        @return = @resource = @articles.send(method, *@new.key)
+          @return = @resource = @articles.send(method, *@new.key)
+        end
       end
 
       it 'should return a Resource' do
