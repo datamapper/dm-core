@@ -181,6 +181,13 @@ share_examples_for 'An Adapter' do
             Heffalump.all(:color.not => []).should == [ @red, @two, @five ]
           end
 
+          it 'should be able to search for objects in an empty list and another OR condition (match none on the empty list)' do
+            Heffalump.all(:conditions => DataMapper::Query::Conditions::Operation.new(
+                                           :or,
+                                           DataMapper::Query::Conditions::Comparison.new(:in, Heffalump.properties[:color], []),
+                                           DataMapper::Query::Conditions::Comparison.new(:in, Heffalump.properties[:num_spots], [5]))).should == [ @five ]
+          end
+
           it 'should be able to search for objects not included in an array of values' do
             Heffalump.all(:num_spots.not => [ 1, 3, 5, 7 ]).should be_include(@two)
           end

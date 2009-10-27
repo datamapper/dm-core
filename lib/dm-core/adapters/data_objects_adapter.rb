@@ -617,6 +617,8 @@ module DataMapper
             end
           elsif @negated && comparison.slug == :in && !value.any?
             return [ '1 = 1' ]  # match everything
+          elsif comparison.slug == :in && !value.any?
+            return [ '1 = 0' ]  # match nothing
           end
 
           operator = comparison_operator(comparison)
