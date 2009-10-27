@@ -94,6 +94,7 @@ end
       it_should_behave_like 'A public Association Collection'
       it_should_behave_like 'A Collection supporting Strategic Eager Loading' unless loaded
       it_should_behave_like 'Finder Interface'
+      it_should_behave_like 'Collection Finder Interface'
       it_should_behave_like 'A Limited Many to Many Collection'
     end
   end
@@ -187,6 +188,7 @@ end
       it_should_behave_like 'A public Association Collection'
       it_should_behave_like 'A Collection supporting Strategic Eager Loading' unless loaded
       it_should_behave_like 'Finder Interface'
+      it_should_behave_like 'Collection Finder Interface'
       it_should_behave_like 'A Limited Many to Many Collection'
     end
   end

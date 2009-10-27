@@ -649,22 +649,6 @@ share_examples_for 'Finder Interface' do
       end
     end
 
-    # describe 'with positive offset', 'after prepending to the collection' do
-    #   before :all do
-    #     @return = @resource = @articles.unshift(@other).at(0)
-    #   end
-    #
-    #   should_not_be_a_kicker
-    #
-    #   it 'should return a Resource' do
-    #     @return.should be_kind_of(DataMapper::Resource)
-    #   end
-    #
-    #   it 'should return expected Resource' do
-    #     @resource.should equal(@other)
-    #   end
-    # end
-
     describe 'with negative offset' do
       before :all do
         @return = @resource = @articles.at(-1)
@@ -680,22 +664,6 @@ share_examples_for 'Finder Interface' do
         @resource.should == @copy.entries.at(-1)
       end
     end
-
-    # describe 'with negative offset', 'after appending to the collection' do
-    #   before :all do
-    #     @return = @resource = @articles.push(@other).at(-1)
-    #   end
-    #
-    #   should_not_be_a_kicker
-    #
-    #   it 'should return a Resource' do
-    #     @return.should be_kind_of(DataMapper::Resource)
-    #   end
-    #
-    #   it 'should return expected Resource' do
-    #     @resource.should equal(@other)
-    #   end
-    # end
   end
 
   it { @articles.should respond_to(:first) }
@@ -722,24 +690,6 @@ share_examples_for 'Finder Interface' do
       end
     end
 
-    # describe 'with no arguments', 'after prepending to the collection' do
-    #   before :all do
-    #     @return = @resource = @articles.unshift(@other).first
-    #   end
-    #
-    #   it 'should return a Resource' do
-    #     @return.should be_kind_of(DataMapper::Resource)
-    #   end
-    #
-    #   it 'should return expected Resource' do
-    #     @resource.should equal(@other)
-    #   end
-    #
-    #   it 'should be first Resource in the Collection' do
-    #     @resource.should equal(@copy.entries.unshift(@other).first)
-    #   end
-    # end
-
     describe 'with empty query' do
       before :all do
         @return = @resource = @articles.first({})
@@ -753,24 +703,6 @@ share_examples_for 'Finder Interface' do
         @resource.should == @copy.entries.first
       end
     end
-
-    # describe 'with empty query', 'after prepending to the collection' do
-    #   before :all do
-    #     @return = @resource = @articles.unshift(@other).first({})
-    #   end
-    #
-    #   it 'should return a Resource' do
-    #     @return.should be_kind_of(DataMapper::Resource)
-    #   end
-    #
-    #   it 'should return expected Resource' do
-    #     @resource.should equal(@other)
-    #   end
-    #
-    #   it 'should be first Resource in the Collection' do
-    #     @resource.should equal(@copy.entries.unshift(@other).first)
-    #   end
-    # end
 
     describe 'with a query' do
       before :all do
@@ -813,24 +745,6 @@ share_examples_for 'Finder Interface' do
         @resource.should == @copy.entries[1]
       end
     end
-
-    # describe 'with a limit specified', 'after prepending to the collection' do
-    #   before :all do
-    #     @return = @resources = @articles.unshift(@other).first(1)
-    #   end
-    #
-    #   it 'should return a Collection' do
-    #     @return.should be_kind_of(DataMapper::Collection)
-    #   end
-    #
-    #   it 'should be the expected Collection' do
-    #     @resources.should == [ @other ]
-    #   end
-    #
-    #   it 'should be the first N Resources in the Collection' do
-    #     @resources.should == @copy.entries.unshift(@other).first(1)
-    #   end
-    # end
 
     describe 'with a limit and query specified' do
       before :all do
@@ -969,39 +883,6 @@ share_examples_for 'Finder Interface' do
         end
       end
 
-      # describe 'with a key to a Resource within a Collection using a limit' do
-      #   before :all do
-      #     @articles = @articles.all(:limit => 1)
-      #
-      #     @return = @resource = @articles.send(method, *@article.key)
-      #   end
-      #
-      #   it 'should return a Resource' do
-      #     @return.should be_kind_of(DataMapper::Resource)
-      #   end
-      #
-      #   it 'should be matching Resource in the Collection' do
-      #     @resource.should == @article
-      #   end
-      # end
-      #
-      # describe 'with a key to a Resource within a Collection using an offset' do
-      #   before :all do
-      #     @new = @articles.create(:content => 'New Article')  # TODO: freeze @new
-      #     @articles = @articles.all(:offset => 1, :limit => 1)
-      #
-      #     @return = @resource = @articles.send(method, *@new.key)
-      #   end
-      #
-      #   it 'should return a Resource' do
-      #     @return.should be_kind_of(DataMapper::Resource)
-      #   end
-      #
-      #   it 'should be matching Resource in the Collection' do
-      #     @resource.should equal(@new)
-      #   end
-      # end
-
       describe 'with a key to a Resource not within the Collection' do
         if method == :get
           it 'should return nil' do
@@ -1070,24 +951,6 @@ share_examples_for 'Finder Interface' do
       end
     end
 
-    # describe 'with no arguments', 'after appending to the collection' do
-    #   before :all do
-    #     @return = @resource = @articles.push(@other).last
-    #   end
-    #
-    #   it 'should return a Resource' do
-    #     @return.should be_kind_of(DataMapper::Resource)
-    #   end
-    #
-    #   it 'should return expected Resource' do
-    #     @resource.should equal(@other)
-    #   end
-    #
-    #   it 'should be last Resource in the Collection' do
-    #     @resource.should equal(@copy.entries.push(@other).last)
-    #   end
-    # end
-
     describe 'with a query' do
       before :all do
         @return = @resource = @articles.last(:content => 'Sample')
@@ -1129,24 +992,6 @@ share_examples_for 'Finder Interface' do
         @resource.should == @copy.entries[-2]
       end
     end
-
-    # describe 'with a limit specified', 'after appending to the collection' do
-    #   before :all do
-    #     @return = @resources = @articles.push(@other).last(1)
-    #   end
-    #
-    #   it 'should return a Collection' do
-    #     @return.should be_kind_of(DataMapper::Collection)
-    #   end
-    #
-    #   it 'should be the expected Collection' do
-    #     @resources.should == [ @other ]
-    #   end
-    #
-    #   it 'should be the last N Resources in the Collection' do
-    #     @resources.should == @copy.entries.push(@other).last(1)
-    #   end
-    # end
 
     describe 'with a limit and query specified' do
       before :all do
