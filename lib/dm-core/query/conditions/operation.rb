@@ -189,6 +189,17 @@ module DataMapper
         def matches?(record)
           @operands.any? { |operand| operand.matches?(record) }
         end
+
+        def valid?
+          @operands.any? do |operand|
+            if operand.respond_to?(:valid?)
+              operand.valid?
+            else
+              true
+            end
+          end
+        end
+
       end # class OrOperation
 
       class NotOperation < AbstractOperation

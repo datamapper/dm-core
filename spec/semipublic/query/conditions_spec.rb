@@ -73,6 +73,8 @@ describe DataMapper::Query::Conditions do
     before do
       @comp1 = Comparison.new(:eql, Heffalump.num_spots, 1)
       @comp2 = Comparison.new(:eql, Heffalump.color, 'green')
+      @comp3 = Comparison.new(:in,  Heffalump.mass, [])
+      @comp4 = Comparison.new(:in,  Heffalump.parent, [])
     end
 
     it 'should initialize an AbstractOperation object' do
@@ -141,6 +143,8 @@ describe DataMapper::Query::Conditions do
     describe 'OrOperation' do
       before do
         @op = Operation.new(:or, @comp1, @comp2)
+        @op1 = Operation.new(:or, @comp1, @comp3)
+        @op2 = Operation.new(:or, @comp3, @comp4)
       end
 
       it 'should match if any of the comparisons match' do
@@ -156,6 +160,15 @@ describe DataMapper::Query::Conditions do
 
         @op.should_not match(@heff3)
       end
+
+      it 'should be valid if at least one branch is valid' do
+        @op1.should be_valid
+      end
+
+      it 'should not be valid if there are no valid branches' do
+        @op2.should_not be_valid
+      end
+
     end
   end
 

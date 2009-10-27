@@ -606,6 +606,33 @@ describe DataMapper::Query do
           end
         end
 
+        describe 'with an Array with no entries' do
+          before :all do
+            @options[:conditions] = { :name => [] }
+            @return = DataMapper::Query.new(@repository, @model, @options.freeze)
+          end
+
+          it { @return.should be_kind_of(DataMapper::Query) }
+
+          it 'should set the conditions' do
+            pending do
+              @return.conditions.should ==
+                DataMapper::Query::Conditions::Operation.new(
+                  :and,
+                  DataMapper::Query::Conditions::Comparison.new(
+                    :eql,
+                    @model.properties[:name],
+                    'Dan Kubb'
+                  )
+                )
+            end
+          end
+
+          it 'should not be valid' do
+            @return.should_not be_valid
+          end
+        end
+
         describe 'with an Array with duplicate entries' do
           before :all do
             @options[:conditions] = { :name => [ 'John Doe', 'Dan Kubb', 'John Doe' ] }
