@@ -21,6 +21,7 @@ lib/dm-core/adapters/mysql_adapter.rb
 lib/dm-core/adapters/oracle_adapter.rb
 lib/dm-core/adapters/postgres_adapter.rb
 lib/dm-core/adapters/sqlite3_adapter.rb
+lib/dm-core/adapters/sqlserver_adapter.rb
 lib/dm-core/adapters/yaml_adapter.rb
 lib/dm-core/associations/many_to_many.rb
 lib/dm-core/associations/many_to_one.rb
@@ -28,6 +29,7 @@ lib/dm-core/associations/one_to_many.rb
 lib/dm-core/associations/one_to_one.rb
 lib/dm-core/associations/relationship.rb
 lib/dm-core/collection.rb
+lib/dm-core/core_ext/enumerable.rb
 lib/dm-core/core_ext/kernel.rb
 lib/dm-core/core_ext/symbol.rb
 lib/dm-core/identity_map.rb
@@ -89,6 +91,7 @@ spec/public/resource_spec.rb
 spec/public/sel_spec.rb
 spec/public/setup_spec.rb
 spec/public/shared/association_collection_shared_spec.rb
+spec/public/shared/collection_finder_shared_spec.rb
 spec/public/shared/collection_shared_spec.rb
 spec/public/shared/finder_shared_spec.rb
 spec/public/shared/resource_shared_spec.rb
@@ -101,6 +104,7 @@ spec/semipublic/adapters/mysql_adapter_spec.rb
 spec/semipublic/adapters/oracle_adapter_spec.rb
 spec/semipublic/adapters/postgres_adapter_spec.rb
 spec/semipublic/adapters/sqlite3_adapter_spec.rb
+spec/semipublic/adapters/sqlserver_adapter_spec.rb
 spec/semipublic/adapters/yaml_adapter_spec.rb
 spec/semipublic/associations/many_to_one_spec.rb
 spec/semipublic/associations/relationship_spec.rb

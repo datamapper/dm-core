@@ -64,6 +64,7 @@ require dir / 'support' / 'naming_conventions'
 require dir / 'transaction'                     # TODO: move to dm-more
 require dir / 'version'
 
+require dir / 'core_ext' / 'enumerable'
 require dir / 'core_ext' / 'kernel'             # TODO: do not load automatically
 require dir / 'core_ext' / 'symbol'             # TODO: do not load automatically
 

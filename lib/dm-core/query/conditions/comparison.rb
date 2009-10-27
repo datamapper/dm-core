@@ -511,7 +511,7 @@ module DataMapper
             when Range
               loaded_value.any? && valid_for_subject?(loaded_value.first) && valid_for_subject?(loaded_value.last)
             when Enumerable
-              (loaded_value.any? || negated?) && loaded_value.all? { |val| valid_for_subject?(val) }
+              (!loaded_value.empty? || negated?) && loaded_value.all? { |val| valid_for_subject?(val) }
             else
               false
           end

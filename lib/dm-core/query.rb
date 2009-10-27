@@ -55,7 +55,7 @@ module DataMapper
         Array(source).each do |resource|
           next unless source_key.loaded?(resource)
           source_value = source_key.get!(resource)
-          next if source_value.any? { |value| value.nil? }
+          next unless target_key.valid?(source_value)
           source_values << source_value
         end
       end
