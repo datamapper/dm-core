@@ -237,38 +237,70 @@ share_examples_for 'A DataObjects Adapter' do
     end
 
     describe 'with a Collection bind value' do
-      before :all do
-        5.times do |n|
-          @article_model.create(:name => "Test #{n}", :parent => @article_model.last).should be_saved
-        end
-
-        @parents = @article_model.all
-        @query   = DataMapper::Query.new(@repository, @article_model, :parent => @parents)
-
-        @expected = @article_model.all[1, 4].map { |article| article.attributes(:property) }
-      end
-
-      describe 'that is not loaded' do
+      describe 'with an inclusion comparison' do
         before :all do
-          reset_log
-          @return = @adapter.read(@query)
+          5.times do |n|
+            @article_model.create(:name => "Test #{n}", :parent => @article_model.last).should be_saved
+          end
+
+          @parents = @article_model.all
+          @query   = DataMapper::Query.new(@repository, @article_model, :parent => @parents)
+
+          @expected = @article_model.all[1, 4].map { |article| article.attributes(:property) }
         end
 
-        it 'should return an Array of Hashes' do
-          @return.should be_kind_of(Array)
-          @return.all? { |entry| entry.should be_kind_of(Hash) }
+        describe 'that is not loaded' do
+          before :all do
+            reset_log
+            @return = @adapter.read(@query)
+          end
+
+          it 'should return an Array of Hashes' do
+            @return.should be_kind_of(Array)
+            @return.all? { |entry| entry.should be_kind_of(Hash) }
+          end
+
+          it 'should return expected values' do
+            @return.should == @expected
+          end
+
+          it 'should execute one subquery' do
+            pending_if @mysql do
+              statement = if @mysql
+                [ 'SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` IN (SELECT `name` FROM `articles`) ORDER BY `name`' ]
+              else
+                [ 'SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" IN (SELECT "name" FROM "articles") ORDER BY "name"' ]
+              end
+
+              log_output.should == statement
+            end
+          end
         end
 
-        it 'should return expected values' do
-          @return.should == @expected
-        end
+        describe 'that is loaded' do
+          before :all do
+            @parents.to_a  # lazy load the collection
+          end
 
-        it 'should execute one subquery' do
-          pending_if @mysql do
+          before :all do
+            reset_log
+            @return = @adapter.read(@query)
+          end
+
+          it 'should return an Array of Hashes' do
+            @return.should be_kind_of(Array)
+            @return.all? { |entry| entry.should be_kind_of(Hash) }
+          end
+
+          it 'should return expected values' do
+            @return.should == @expected
+          end
+
+          it 'should execute one query' do
             statement = if @mysql
-              [ 'SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` IN (SELECT `name` FROM `articles`) ORDER BY `name`' ]
+              [ %[SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY `name`] ]
             else
-              [ 'SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" IN (SELECT "name" FROM "articles") ORDER BY "name"' ]
+              [ %[SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY "name"] ]
             end
 
             log_output.should == statement
@@ -276,35 +308,77 @@ share_examples_for 'A DataObjects Adapter' do
         end
       end
 
-      describe 'that is loaded' do
+      describe 'with an negated inclusion comparison' do
         before :all do
-          @parents.to_a  # lazy load the collection
-        end
-
-        before :all do
-          reset_log
-          @return = @adapter.read(@query)
-        end
-
-        it 'should return an Array of Hashes' do
-          @return.should be_kind_of(Array)
-          @return.all? { |entry| entry.should be_kind_of(Hash) }
-        end
-
-        it 'should return expected values' do
-          @return.should == @expected
-        end
-
-        it 'should execute one query' do
-          statement = if @mysql
-            [ %[SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY `name`] ]
-          else
-            [ %[SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY "name"] ]
+          5.times do |n|
+            @article_model.create(:name => "Test #{n}", :parent => @article_model.last).should be_saved
           end
 
-          log_output.should == statement
+          @parents = @article_model.all
+          @query   = DataMapper::Query.new(@repository, @article_model, :parent.not => @parents)
+
+          @expected = []
+        end
+
+        describe 'that is not loaded' do
+          before :all do
+            reset_log
+            @return = @adapter.read(@query)
+          end
+
+          it 'should return an Array of Hashes' do
+            @return.should be_kind_of(Array)
+            @return.all? { |entry| entry.should be_kind_of(Hash) }
+          end
+
+          it 'should return expected values' do
+            @return.should == @expected
+          end
+
+          it 'should execute one subquery' do
+            pending_if @mysql do
+              statement = if @mysql
+                [ 'SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` NOT IN (SELECT `name` FROM `articles`) ORDER BY `name`' ]
+              else
+                [ 'SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" NOT IN (SELECT "name" FROM "articles") ORDER BY "name"' ]
+              end
+
+              log_output.should == statement
+            end
+          end
+        end
+
+        describe 'that is loaded' do
+          before :all do
+            @parents.to_a  # lazy load the collection
+          end
+
+          before :all do
+            reset_log
+            @return = @adapter.read(@query)
+          end
+
+          it 'should return an Array of Hashes' do
+            @return.should be_kind_of(Array)
+            @return.all? { |entry| entry.should be_kind_of(Hash) }
+          end
+
+          it 'should return expected values' do
+            @return.should == @expected
+          end
+
+          it 'should execute one query' do
+            statement = if @mysql
+              [ %[SELECT `name`, `parent_name` FROM `articles` WHERE `parent_name` NOT IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY `name`] ]
+            else
+              [ %[SELECT "name", "parent_name" FROM "articles" WHERE "parent_name" NOT IN ('Test 0', 'Test 1', 'Test 2', 'Test 3', 'Test 4') ORDER BY "name"] ]
+            end
+
+            log_output.should == statement
+          end
         end
       end
+
     end
   end
 end

@@ -513,6 +513,8 @@ module DataMapper
           end
 
           select_statement, bind_values = select_statement(query)
+
+          statement << ' NOT' if @negated
           statement << " IN (#{select_statement})"
 
           return statement, bind_values
