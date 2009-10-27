@@ -1219,15 +1219,7 @@ share_examples_for 'Finder Interface' do
         end
       end
 
-      # FIXME: this is spec order dependent, move this into a helper method
-      # and execute in the before :all block
-      unless loaded
-        it 'should not be a kicker' do
-          pending_if !@many_to_many do
-            @articles.should_not be_loaded
-          end
-        end
-      end
+      should_not_be_a_kicker
 
       it 'should return a Collection' do
         @return.should be_kind_of(DataMapper::Collection)
@@ -1260,15 +1252,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.previous
         end
 
-        # FIXME: this is spec order dependent, move this into a helper method
-        # and execute in the before :all block
-        unless loaded
-          it 'should not be a kicker' do
-            pending_if !@many_to_many do
-              @articles.should_not be_loaded
-            end
-          end
-        end
+        should_not_be_a_kicker
 
         it 'should return a Collection' do
           @return.should be_kind_of(DataMapper::Collection)
@@ -1289,15 +1273,7 @@ share_examples_for 'Finder Interface' do
           @return = @articles.previous(:fields => [ :id ])
         end
 
-        # FIXME: this is spec order dependent, move this into a helper method
-        # and execute in the before :all block
-        unless loaded
-          it 'should not be a kicker' do
-            pending_if !@many_to_many do
-              @articles.should_not be_loaded
-            end
-          end
-        end
+        should_not_be_a_kicker
 
         it 'should return a Collection' do
           @return.should be_kind_of(DataMapper::Collection)
@@ -1339,15 +1315,7 @@ share_examples_for 'Finder Interface' do
           @return = @collection = @articles.revisions
         end
 
-        # FIXME: this is spec order dependent, move this into a helper method
-        # and execute in the before :all block
-        unless loaded
-          it 'should not be a kicker' do
-            pending_if !@many_to_many do
-              @articles.should_not be_loaded
-            end
-          end
-        end
+        should_not_be_a_kicker
 
         it 'should return a Collection' do
           @return.should be_kind_of(DataMapper::Collection)
@@ -1367,15 +1335,7 @@ share_examples_for 'Finder Interface' do
           @return = @collection = @articles.revisions(:fields => [ :id ])
         end
 
-        # FIXME: this is spec order dependent, move this into a helper method
-        # and execute in the before :all block
-        unless loaded
-          it 'should not be a kicker' do
-            pending_if !@many_to_many do
-              @articles.should_not be_loaded
-            end
-          end
-        end
+        should_not_be_a_kicker
 
         it 'should return a Collection' do
           @return.should be_kind_of(DataMapper::Collection)

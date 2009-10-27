@@ -278,8 +278,8 @@ module DataMapper
 
       # Eager load the collection using the source as a base
       #
-      # @param [Resource, Collection] source
-      #   the source to query with
+      # @param [Collection] source
+      #   the source collection to query with
       # @param [Query, Hash] query
       #   optional query to restrict the collection
       #
@@ -291,7 +291,7 @@ module DataMapper
         targets = source.model.all(query_for(source, query))
 
         # FIXME: cannot associate targets to m:m collection yet
-        unless source.kind_of?(ManyToMany::Collection)
+        if source.loaded? && !source.kind_of?(ManyToMany::Collection)
           associate_targets(source, targets)
         end
 
