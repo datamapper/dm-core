@@ -15,7 +15,7 @@ module DataMapper
         end
 
         def hash
-          [ #{methods.join(', ')} ].hash
+          #{methods.map { |method| "#{method}.hash" }.join(' ^ ')}
         end
       RUBY
     end
