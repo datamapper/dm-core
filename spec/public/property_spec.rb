@@ -291,7 +291,7 @@ describe DataMapper::Property do
 
       describe 'when value changes' do
         before :all do
-          @property.set_original_value(@image, 'Rome at the sunset')
+          @property.set_original_value(@image, 'New title')
         end
 
         it 'sets original value of the property' do
@@ -306,7 +306,7 @@ describe DataMapper::Property do
 
         it 'only sets original value when it has changed' do
           @property.set_original_value(@image, 'Rome at the sunset')
-          @image.original_attributes[@property].should be_blank
+          @image.original_attributes.should_not have_key(@property)
         end
       end
     end

@@ -516,19 +516,25 @@ module DataMapper
     #
     # @param [Resource] resource
     #   model instance for which to set the original value
-    # @param [Object] original
-    #   value to set as original value for this property in +resource+
+    # @param [Object] new_value
+    #   the new value that will be set for the property
     #
     # @api private
-    def set_original_value(resource, original)
+    def set_original_value(resource, new_value)
       original_attributes = resource.original_attributes
-      original            = self.value(original)
+      old_value           = get!(resource)
 
-      if original_attributes.key?(self)
-        # stop tracking the value if it has not changed
-        original_attributes.delete(self) if original == original_attributes[self] && resource.saved?
-      else
-        original_attributes[self] = original
+      if resource.new?
+        # always track changes to a new resource
+        original_attributes[self] = nil
+      elsif original_attributes.key?(self)
+        # stop tracking if the new value is the same as the original
+        if new_value == original_attributes[self]
+          original_attributes.delete(self)
+        end
+      elsif new_value != old_value
+        # track the changed value
+        original_attributes[self] = old_value
       end
     end
 
@@ -546,17 +552,9 @@ module DataMapper
     #
     # @api private
     def set(resource, value)
-      loaded   = loaded?(resource)
-      original = get!(resource) if loaded
-      value    = typecast(value)
-
-      if loaded && value == original
-        return original
-      end
-
-      set_original_value(resource, original)
-
-      set!(resource, value)
+      new_value = typecast(value)
+      set_original_value(resource, new_value)
+      set!(resource, new_value)
     end
 
     # Set the ivar value in the resource
