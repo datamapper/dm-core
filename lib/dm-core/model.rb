@@ -291,8 +291,7 @@ module DataMapper
         query.slice(0, limit || 1)
       else
         offset = query.fetch(:offset, 0)
-        query  = query.except(:offset)
-        scoped_query(query).slice(offset, limit || 1)
+        scoped_query(query.except(:offset)).slice(offset, limit || 1)
       end
 
       if limit
@@ -331,8 +330,7 @@ module DataMapper
         query.slice(0, limit || 1).reverse!
       else
         offset = query.fetch(:offset, 0)
-        query  = query.except(:offset)
-        scoped_query(query).slice(offset, limit || 1).reverse!
+        scoped_query(query.except(:offset)).slice(offset, limit || 1).reverse!
       end
 
       if limit

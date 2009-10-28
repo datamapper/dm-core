@@ -1361,7 +1361,7 @@ module DataMapper
     # @api private
     def assert_update_clean_only(method)
       if dirty?
-        raise UpdateConflictError, "##{method} cannot be called on a dirty collection"
+        raise UpdateConflictError, "#{self.class}##{method} cannot be called on a dirty collection"
       end
     end
   end # class Collection
