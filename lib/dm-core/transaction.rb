@@ -106,15 +106,18 @@ module DataMapper
         begin
           self.begin
           rval = within { |*block_args| yield(*block_args) }
-          if @state == :begin
-            self.commit
-          end
-          return rval
         rescue Exception => exception
           if @state == :begin
             self.rollback
           end
           raise exception
+        ensure
+          unless exception
+            if @state == :begin
+              self.commit
+            end
+            return rval
+          end
         end
       else
         unless @state == :begin
