@@ -1,9 +1,20 @@
 module DataMapper
   class Query
     module Conditions
-      class InvalidOperation < ArgumentError; end
-
       class Operation
+        # Factory method to initialize an operation
+        #
+        # @example
+        #   operation = Operation.new(:and, comparison)
+        #
+        # @param [Symbol] slug
+        #   the identifier for the operation class
+        # @param [Array] *operands
+        #   the operands to initialize the operation with
+        #
+        # @return [AbstractOperation]
+        #   the operation matching the slug
+        #
         # @api semipublic
         def self.new(slug, *operands)
           if klass = operation_class(slug)
@@ -13,11 +24,27 @@ module DataMapper
           end
         end
 
+        # Lookup the operation class based on the slug
+        #
+        # @example
+        #   operation_class = Operation.operation_class(:and)
+        #
+        # @param [Symbol] slug
+        #   the identifier for the operation class
+        #
+        # @return [Class]
+        #   the operation class
+        #
         # @api semipublic
         def self.operation_class(slug)
           operation_classes[slug] ||= AbstractOperation.descendants.detect { |operation_class| operation_class.slug == slug }
         end
 
+        # Return an Array of all the slugs for the operation classes
+        #
+        # @return [Array]
+        #   the slugs of all the operation classes
+        #
         # @api private
         def self.slugs
           @slugs ||= AbstractOperation.descendants.map { |operation_class| operation_class.slug }
@@ -26,6 +53,11 @@ module DataMapper
         class << self
           private
 
+          # Returns a Hash mapping the slugs to each class
+          #
+          # @return [Hash]
+          #   Hash mapping the slug to the class
+          #
           # @api private
           def operation_classes
             @operation_classes ||= {}
@@ -40,25 +72,51 @@ module DataMapper
 
         equalize :slug, :sorted_operands
 
+        # Returns the parent operation
+        #
+        # @return [AbstractOperation]
+        #   the parent operation
+        #
         # @api semipublic
         attr_reader :parent
 
+        # Returns the child operations and comparisons
+        #
+        # @return [Set<AbstractOperation, AbstractComparison, Array>]
+        #   the set of operations and comparisons
+        #
         # @api semipublic
         attr_reader :operands
 
-        # @api semipublic
         alias children operands
 
+        # Returns the classes that inherit from AbstractComparison
+        #
+        # @return [Set]
+        #   the descendant classes
+        #
         # @api private
         def self.descendants
           @descendants ||= Set.new
         end
 
+        # Hook executed when inheriting from AbstractComparison
+        #
+        # @return [undefined]
+        #
         # @api private
         def self.inherited(operation_class)
           descendants << operation_class
         end
 
+        # Get and set the slug for the operation class
+        #
+        # @param [Symbol] slug
+        #   optionally set the slug for the operation class
+        #
+        # @return [Symbol]
+        #   the slug for the operation class
+        #
         # @api semipublic
         def self.slug(slug = nil)
           slug ? @slug = slug : @slug
@@ -74,26 +132,58 @@ module DataMapper
           self.class.slug
         end
 
+        # Set the parent operation
+        #
+        # @param [AbstractOperation] parent
+        #   the operation to become the parent
+        #
+        # @return [AbstractOperation]
+        #   the parent operation
+        #
         # @api semipublic
         def parent=(parent)
           clear_memoized_values
           @parent = parent
         end
 
+        # Iterate through each operand in the operation
+        #
+        # @yield [operand]
+        #   yields to each operand
+        #
+        # @yieldparam [AbstractOperation, AbstractComparison, Array] operand
+        #   each operand
+        #
+        # @return [self]
+        #   returns the operation
+        #
         # @api semipublic
         def each
-          @operands.each { |*block_args| yield(*block_args) }
+          @operands.each { |operand| yield operand }
           self
         end
 
+        # Test if the operation is valid
+        #
+        # @return [Boolean]
+        #   true if the operation is valid, false if not
+        #
         # @api semipublic
         def valid?
           @operands.any? && @operands.all? { |operand| valid_operand?(operand) }
         end
 
+        # Add an operand to the operation
+        #
+        # @param [AbstractOperation, AbstractComparison, Array] operand
+        #   the operand to add
+        #
+        # @return [self]
+        #   the operation
+        #
         # @api semipublic
         def <<(operand)
-          assert_valid_operand(operand)
+          assert_valid_operand_type(operand)
           unless operand.nil?
             operand.parent = self if operand.respond_to?(:parent=)
             @operands << operand
@@ -101,24 +191,48 @@ module DataMapper
           self
         end
 
+        # Add operands to the operation
+        #
+        # @param [#each] operands
+        #   the operands to add
+        #
+        # @return [self]
+        #   the operation
+        #
         # @api semipublic
         def merge(operands)
           operands.each { |operand| self << operand }
           self
         end
 
+        # Clear the operands
+        #
+        # @return [self]
+        #   the operation
+        #
         # @api semipublic
         def clear
           @operands.clear
           self
         end
 
+        # Return the string representation of the operation
+        #
+        # @return [String]
+        #   the string representation of the operation
+        #
         # @api semipublic
         def to_s
-          return '' if empty?
-          "(#{sort_by { |operand| operand.to_s }.join(" #{slug.to_s.upcase} ")})"
+          empty? ? '' : "(#{sort_by { |operand| operand.to_s }.join(" #{slug.to_s.upcase} ")})"
         end
 
+        # Test if the operation is negated
+        #
+        # Defaults to return false.
+        #
+        # @return [Boolean]
+        #   true if the operation is negated, false if not
+        #
         # @api private
         def negated?
           return @negated if defined?(@negated)
@@ -127,7 +241,7 @@ module DataMapper
 
         # Return a list of operands in predictable order
         #
-        # @return [Array<AbstractOperation>]
+        # @return [Array<AbstractOperation, AbstractComparison, Array>]
         #   list of operands sorted in deterministic order
         #
         # @api private
@@ -137,27 +251,64 @@ module DataMapper
 
         private
 
+        # Initialize an operation
+        #
+        # @param [Array<AbstractOperation, AbstractComparison, Array>] *operands
+        #   the operands to include in the operation
+        #
+        # @return [AbstractOperation]
+        #   the operation
+        #
         # @api semipublic
         def initialize(*operands)
           @operands = Set.new
           merge(operands)
         end
 
+        # Copy an operation
+        #
+        # @param [AbstractOperation] original
+        #   the original operation
+        #
+        # @return [undefined]
+        #
         # @api semipublic
         def initialize_copy(*)
-          @operands = @operands.map { |operand| operand.dup }.to_set
+          @operands = map { |operand| operand.dup }.to_set
         end
 
+        # Clear all memoized ivars
+        #
+        # @return [undefined]
+        #
         # @api private
         def clear_memoized_values
           remove_instance_variable(:@negated) if defined?(@negated)
         end
 
+        # Assert that the operand is a valid type
+        #
+        # @param [AbstractOperation, AbstractComparison, Array] operand
+        #   the operand to test
+        #
+        # @return [undefined]
+        #
+        # @raise [ArgumentError]
+        #   raised if the operand is not a valid type
+        #
         # @api private
-        def assert_valid_operand(operand)
-          assert_kind_of 'operand', operand, Conditions::AbstractOperation, Conditions::AbstractComparison, Array
+        def assert_valid_operand_type(operand)
+          assert_kind_of 'operand', operand, AbstractOperation, AbstractComparison, Array
         end
 
+        # Test if the operand is valid
+        #
+        # @param [AbstractOperation, AbstractComparison, Array] operand
+        #   the operand to test
+        #
+        # @return [Boolean]
+        #   true if the operand is valid
+        #
         # @api private
         def valid_operand?(operand)
           if operand.respond_to?(:valid?)
@@ -169,6 +320,20 @@ module DataMapper
       end # class AbstractOperation
 
       module FlattenOperation
+        # Add an operand to the operation, flattening the same types
+        #
+        # Flattening means that if the operand is the same as the
+        # operation, we should just include the operand's operands
+        # in the operation and prune that part of the tree.  This results
+        # in a shallower tree, is faster to match and usually generates
+        # more efficient queries in the adapters.
+        #
+        # @param [AbstractOperation, AbstractComparison, Array] operand
+        #   the operand to add
+        #
+        # @return [self]
+        #   the operation
+        #
         # @api semipublic
         def <<(operand)
           if operand.kind_of?(self.class)
@@ -184,6 +349,20 @@ module DataMapper
 
         slug :and
 
+        # Match the record
+        #
+        # @example with a Hash
+        #   operation.matches?({ :id => 1 })  # => true
+        #
+        # @example with a Resource
+        #   operation.matches?(Blog::Article.new(:id => 1))  # => true
+        #
+        # @param [Resource, Hash] record
+        #   the resource to match
+        #
+        # @return [true]
+        #   true if the record matches, false if not
+        #
         # @api semipublic
         def matches?(record)
           @operands.all? { |operand| operand.matches?(record) }
@@ -195,11 +374,26 @@ module DataMapper
 
         slug :or
 
+        # Match the record
+        #
+        # @param [Resource, Hash] record
+        #   the resource to match
+        #
+        # @return [true]
+        #   true if the record matches, false if not
+        #
         # @api semipublic
         def matches?(record)
           @operands.any? { |operand| operand.matches?(record) }
         end
 
+        # Test if the operation is valid
+        #
+        # An OrOperation is valid if one of it's operands is valid.
+        #
+        # @return [Boolean]
+        #   true if the operation is valid, false if not
+        #
         # @api semipublic
         def valid?
           @operands.any? { |operand| valid_operand?(operand) }
@@ -209,39 +403,80 @@ module DataMapper
       class NotOperation < AbstractOperation
         slug :not
 
+        # Match the record
+        #
+        # @param [Resource, Hash] record
+        #   the resource to match
+        #
+        # @return [true]
+        #   true if the record matches, false if not
+        #
         # @api semipublic
         def matches?(record)
           not operand.matches?(record)
         end
 
+        # Add an operand to the operation
+        #
+        # This will only allow a single operand to be added.
+        #
+        # @param [AbstractOperation, AbstractComparison, Array] operand
+        #   the operand to add
+        #
+        # @return [self]
+        #   the operation
+        #
         # @api semipublic
         def <<(operand)
           assert_one_operand(operand)
           super
         end
 
+        # Return the only operand in the operation
+        #
+        # @return [AbstractOperation, AbstractComparison, Array]
+        #   the operand
+        #
         # @api semipublic
         def operand
           @operands.to_a.first
         end
 
+        # Test if the operation is negated
+        #
+        # Defaults to return true.
+        #
+        # @return [Boolean]
+        #   true if the operation is negated, false if not
+        #
         # @api private
         def negated?
           return @negated if defined?(@negated)
           @negated = parent ? !parent.negated? : true
         end
 
+        # Return the string representation of the operation
+        #
+        # @return [String]
+        #   the string representation of the operation
+        #
         # @api semipublic
         def to_s
-          if operand
-            "NOT(#{operand.to_s})"
-          else
-            ''
-          end
+          empty? ? '' : "NOT(#{operand.to_s})"
         end
 
         private
 
+        # Assert there is only one operand
+        #
+        # @param [AbstractOperation, AbstractComparison, Array] operand
+        #   the operand to test
+        #
+        # @return [undefined]
+        #
+        # @raise [ArgumentError]
+        #   raised if the operand is not a valid type
+        #
         # @api private
         def assert_one_operand(operand)
           if self.operand && self.operand != operand
@@ -258,7 +493,9 @@ module DataMapper
 
         # Match the record
         #
-        # @param [Resource] record
+        # A NullOperation matches every record.
+        #
+        # @param [Resource, Hash] record
         #   the resource to match
         #
         # @return [true]
@@ -270,6 +507,8 @@ module DataMapper
         end
 
         # Test validity of the operation
+        #
+        # A NullOperation is always valid.
         #
         # @return [true]
         #   always valid
@@ -301,6 +540,11 @@ module DataMapper
 
         private
 
+        # Initialize a NullOperation
+        #
+        # @return [NullOperation]
+        #   the operation
+        #
         # @api semipublic
         def initialize
           @operands = Set.new
