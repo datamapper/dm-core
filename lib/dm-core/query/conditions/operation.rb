@@ -170,7 +170,7 @@ module DataMapper
         #
         # @api semipublic
         def valid?
-          @operands.any? && @operands.all? { |operand| valid_operand?(operand) }
+          any? && all? { |operand| valid_operand?(operand) }
         end
 
         # Add an operand to the operation
@@ -246,7 +246,7 @@ module DataMapper
         #
         # @api private
         def sorted_operands
-          @operands.sort_by { |operand| operand.hash }
+          sort_by { |operand| operand.hash }
         end
 
         private
@@ -365,7 +365,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
-          @operands.all? { |operand| operand.matches?(record) }
+          all? { |operand| operand.matches?(record) }
         end
       end # class AndOperation
 
@@ -384,7 +384,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
-          @operands.any? { |operand| operand.matches?(record) }
+          any? { |operand| operand.matches?(record) }
         end
 
         # Test if the operation is valid
@@ -396,7 +396,7 @@ module DataMapper
         #
         # @api semipublic
         def valid?
-          @operands.any? { |operand| valid_operand?(operand) }
+          any? { |operand| valid_operand?(operand) }
         end
       end # class OrOperation
 
@@ -439,7 +439,7 @@ module DataMapper
         #
         # @api semipublic
         def operand
-          @operands.to_a.first
+          to_a.first
         end
 
         # Test if the operation is negated
