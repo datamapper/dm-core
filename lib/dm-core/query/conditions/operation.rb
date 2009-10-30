@@ -88,13 +88,7 @@ module DataMapper
 
         # @api semipublic
         def valid?
-          @operands.any? && @operands.all? do |operand|
-            if operand.respond_to?(:valid?)
-              operand.valid?
-            else
-              true
-            end
-          end
+          @operands.any? && @operands.all? { |operand| valid_operand?(operand) }
         end
 
         # @api semipublic
@@ -163,6 +157,15 @@ module DataMapper
         def assert_valid_operand(operand)
           assert_kind_of 'operand', operand, Conditions::AbstractOperation, Conditions::AbstractComparison, Array
         end
+
+        # @api private
+        def valid_operand?(operand)
+          if operand.respond_to?(:valid?)
+            operand.valid?
+          else
+            true
+          end
+        end
       end # class AbstractOperation
 
       module FlattenOperation
@@ -199,13 +202,7 @@ module DataMapper
 
         # @api semipublic
         def valid?
-          @operands.any? do |operand|
-            if operand.respond_to?(:valid?)
-              operand.valid?
-            else
-              true
-            end
-          end
+          @operands.any? { |operand| valid_operand?(operand) }
         end
       end # class OrOperation
 
