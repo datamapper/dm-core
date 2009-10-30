@@ -9,7 +9,7 @@ module DataMapper
           if klass = operation_class(slug)
             klass.new(*operands)
           else
-            raise "No Operation class for `#{slug.inspect}' has been defined"
+            raise ArgumentError, "No Operation class for `#{slug.inspect}' has been defined"
           end
         end
 
@@ -41,7 +41,7 @@ module DataMapper
         equalize :slug, :sorted_operands
 
         # @api semipublic
-        attr_accessor :parent
+        attr_reader :parent
 
         # @api semipublic
         attr_reader :operands
@@ -75,6 +75,12 @@ module DataMapper
         end
 
         # @api semipublic
+        def parent=(parent)
+          clear_memoized_values
+          @parent = parent
+        end
+
+        # @api semipublic
         def each
           @operands.each { |*block_args| yield(*block_args) }
           self
@@ -103,7 +109,6 @@ module DataMapper
 
         # @api semipublic
         def merge(operands)
-          operands.each { |operand| assert_valid_operand(operand) }
           operands.each { |operand| self << operand }
           self
         end
@@ -115,13 +120,9 @@ module DataMapper
         end
 
         # @api semipublic
-        def inspect
-          "#<#{self.class} @operands=#{@operands.inspect}>"
-        end
-
-        # @api semipublic
         def to_s
-          "(#{@operands.to_a.join(" #{slug.to_s.upcase} ")})"
+          return '' if empty?
+          "(#{sort_by { |operand| operand.to_s }.join(" #{slug.to_s.upcase} ")})"
         end
 
         # @api private
@@ -144,12 +145,18 @@ module DataMapper
 
         # @api semipublic
         def initialize(*operands)
-          @operands = operands.to_set
+          @operands = Set.new
+          merge(operands)
         end
 
         # @api semipublic
         def initialize_copy(*)
           @operands = @operands.map { |operand| operand.dup }.to_set
+        end
+
+        # @api private
+        def clear_memoized_values
+          remove_instance_variable(:@negated) if defined?(@negated)
         end
 
         # @api private
@@ -190,6 +197,7 @@ module DataMapper
           @operands.any? { |operand| operand.matches?(record) }
         end
 
+        # @api semipublic
         def valid?
           @operands.any? do |operand|
             if operand.respond_to?(:valid?)
@@ -199,7 +207,6 @@ module DataMapper
             end
           end
         end
-
       end # class OrOperation
 
       class NotOperation < AbstractOperation
@@ -211,15 +218,8 @@ module DataMapper
         end
 
         # @api semipublic
-        def <<(*)
-          assert_one_operand
-          super
-        end
-
-        # @api semipublic
-        def merge(operands)
-          assert_one_operand
-          assert_unary_operator(operands)
+        def <<(operand)
+          assert_one_operand(operand)
           super
         end
 
@@ -234,24 +234,20 @@ module DataMapper
           @negated = parent ? !parent.negated? : true
         end
 
-        private
-
         # @api semipublic
-        def initialize(*operands)
-          assert_unary_operator(operands)
-          super
-        end
-
-        # @api private
-        def assert_unary_operator(operands)
-          if operands.size > 1
-            raise InvalidOperation, "#{self.class} is a unary operator"
+        def to_s
+          if operand
+            "NOT(#{operand.to_s})"
+          else
+            ''
           end
         end
 
+        private
+
         # @api private
-        def assert_one_operand
-          if operand
+        def assert_one_operand(operand)
+          if self.operand && self.operand != operand
             raise ArgumentError, "#{self.class} cannot have more than one operand"
           end
         end
@@ -259,6 +255,7 @@ module DataMapper
 
       class NullOperation < AbstractOperation
         undef_method :<<
+        undef_method :merge
 
         slug :null
 
@@ -272,7 +269,7 @@ module DataMapper
         #
         # @api semipublic
         def matches?(record)
-          true
+          record.kind_of?(Hash) || record.kind_of?(Resource)
         end
 
         # Test validity of the operation
@@ -303,6 +300,13 @@ module DataMapper
         # @api semipublic
         def inspect
           'nil'
+        end
+
+        private
+
+        # @api semipublic
+        def initialize
+          @operands = Set.new
         end
       end
     end # module Conditions

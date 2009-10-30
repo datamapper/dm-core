@@ -115,7 +115,7 @@ module DataMapper
         equalize :slug, :subject, :value
 
         # @api semipublic
-        attr_accessor :parent
+        attr_reader :parent
 
         # The property or relationship which is being matched against
         #
@@ -202,6 +202,12 @@ module DataMapper
         # @api private
         def slug
           self.class.slug
+        end
+
+        # @api semipublic
+        def parent=(parent)
+          clear_memoized_values
+          @parent = parent
         end
 
         # Tests that the Comparison is valid
@@ -419,6 +425,11 @@ module DataMapper
         # @api semipublic
         def valid_for_subject?(value)
           subject.valid?(value, negated?)
+        end
+
+        # @api private
+        def clear_memoized_values
+          remove_instance_variable(:@negated) if defined?(@negated)
         end
       end # class AbstractComparison
 

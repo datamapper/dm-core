@@ -3,7 +3,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_hel
 include DataMapper::Query::Conditions
 
 module ComparisonSpecHelpers
-
   def match(record)
     ComparisonMatcher.new(record)
   end
@@ -28,7 +27,6 @@ module ComparisonSpecHelpers
     end
 
   end
-
 end
 
 describe DataMapper::Query::Conditions do
@@ -67,109 +65,6 @@ describe DataMapper::Query::Conditions do
     @heff1 = Heffalump.new(:id => 1, :num_spots => 1, :color => 'green', :striped => true,  :mass => 'Small')
     @heff2 = Heffalump.new(:id => 2, :num_spots => 2, :color => 'green', :striped => false, :mass => 'Large',  :parent => @heff1)
     @heff3 = Heffalump.new(:id => 3, :num_spots => 3, :color => 'blue',  :striped => false, :mass => 'XLarge', :parent => @heff2)
-  end
-
-  describe 'Operations' do
-    before do
-      @comp1 = Comparison.new(:eql, Heffalump.num_spots, 1)
-      @comp2 = Comparison.new(:eql, Heffalump.color, 'green')
-      @comp3 = Comparison.new(:in,  Heffalump.mass, [])
-      @comp4 = Comparison.new(:in,  Heffalump.parent, [])
-    end
-
-    it 'should initialize an AbstractOperation object' do
-      op = Operation.new(:and)
-      op.should be_kind_of(AbstractOperation)
-    end
-
-    {
-      :and  => AndOperation,
-      :or   => OrOperation,
-      :not  => NotOperation,
-      :null => NullOperation,
-    }.each do |operand, klass|
-      it "should initialize as #{klass} for the #{operand} operator" do
-        op = Operation.new(operand)
-        op.should be_kind_of(klass)
-      end
-    end
-
-    it 'should set the remaining args in @operands' do
-      op = Operation.new(:and, @comp1, @comp2)
-      op.operands.should == [ @comp1, @comp2 ].to_set
-    end
-
-    it 'should have operands be empty of no operands are provided' do
-      op = Operation.new(:and)
-      op.operands.should == [].to_set
-    end
-
-    describe 'NotOperation' do
-      before do
-        @op = Operation.new(:not, @comp1)
-      end
-
-      it 'should not allow more than one operand' do
-        lambda {
-          Operation.new(:not, @comp1, @comp2)
-        }.should raise_error(InvalidOperation)
-      end
-
-      it 'should negate the comparison' do
-        @comp1.should match(@heff1)
-        @op.should_not match(@heff1)
-      end
-    end
-
-    describe 'AndOperation' do
-      before do
-        @op = Operation.new(:and, @comp1, @comp2)
-      end
-
-      it 'should match if all comparisons match' do
-        @comp1.should match(@heff1)
-        @comp2.should match(@heff1)
-
-        @op.should match(@heff1)
-      end
-
-      it 'should not match of any of the comparisons does not match' do
-        @comp1.should_not match(@heff2)
-
-        @op.should_not match(@heff2)
-      end
-    end
-
-    describe 'OrOperation' do
-      before do
-        @op = Operation.new(:or, @comp1, @comp2)
-        @op1 = Operation.new(:or, @comp1, @comp3)
-        @op2 = Operation.new(:or, @comp3, @comp4)
-      end
-
-      it 'should match if any of the comparisons match' do
-        @comp1.should_not match(@heff2)
-        @comp2.should match(@heff2)
-
-        @op.should match(@heff2)
-      end
-
-      it 'should not match if none of the comparisons match' do
-        @comp1.should_not match(@heff3)
-        @comp2.should_not match(@heff3)
-
-        @op.should_not match(@heff3)
-      end
-
-      it 'should be valid if at least one branch is valid' do
-        @op1.should be_valid
-      end
-
-      it 'should not be valid if there are no valid branches' do
-        @op2.should_not be_valid
-      end
-
-    end
   end
 
   describe 'Comparisons' do
