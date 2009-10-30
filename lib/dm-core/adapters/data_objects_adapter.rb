@@ -407,9 +407,8 @@ module DataMapper
         # @api private
         def update_statement(properties, query)
           # TODO: DRY this up with delete_statement
-          conditions_statement, bind_values = if query.limit || query.offset > 0 || query.links.any?
-            key = query.model.key(name)
-            subquery(query, key, key, false)
+          conditions_statement, bind_values = if query.limit || query.links.any?
+            subquery(query, query.model.key(name), false)
           else
             conditions_statement(query.conditions)
           end
@@ -428,9 +427,8 @@ module DataMapper
         # @api private
         def delete_statement(query)
           # TODO: DRY this up with update_statement
-          conditions_statement, bind_values = if query.limit || query.offset > 0 || query.links.any?
-            key = query.model.key(name)
-            subquery(query, key, key, false)
+          conditions_statement, bind_values = if query.limit || query.links.any?
+            subquery(query, query.model.key(name), false)
           else
             conditions_statement(query.conditions)
           end
@@ -493,26 +491,26 @@ module DataMapper
         end
 
         # @api private
-        def subquery(*args)
-          if args.first.repository.name == name && supports_subquery?(*args)
-            subquery_statement(*args)
+        def subquery(query, subject, qualify)
+          source_key, target_key = subquery_keys(subject)
+
+          if query.repository.name == name && supports_subquery?(query, source_key, target_key, qualify)
+            subquery_statement(query, source_key, target_key, qualify)
           else
-            subquery_execute(*args)
+            subquery_execute(query, source_key, target_key, qualify)
           end
         end
 
         # @api private
         def subquery_statement(query, source_key, target_key, qualify)
-          query = query.merge(:fields => source_key, :unique => false)
-          query.update(:order => nil) unless query.limit
+          query = subquery_query(query, source_key)
+          select_statement, bind_values = select_statement(query)
 
           statement = if target_key.size == 1
             property_to_column_name(target_key.first, qualify)
           else
             "(#{target_key.map { |property| property_to_column_name(property, qualify) }.join(', ')})"
           end
-
-          select_statement, bind_values = select_statement(query)
 
           statement << ' NOT' if @negated
           statement << " IN (#{select_statement})"
@@ -522,9 +520,7 @@ module DataMapper
 
         # @api private
         def subquery_execute(query, source_key, target_key, qualify)
-          query = query.merge(:fields => source_key)
-          query.update(:order => nil)
-
+          query      = subquery_query(query, source_key)
           sources    = query.model.all(query)
           conditions = Query.target_conditions(sources, source_key, target_key)
 
@@ -533,6 +529,27 @@ module DataMapper
           else
             [ '1 = 0', [] ]
           end
+        end
+
+        # @api private
+        def subquery_keys(subject)
+          case subject
+            when Associations::Relationship
+              relationship = subject.inverse
+              [ relationship.source_key, relationship.target_key ]
+            when PropertySet
+              [ subject, subject ]
+          end
+        end
+
+        # @api private
+        def subquery_query(query, source_key)
+          # force unique to be false because PostgreSQL has a problem with
+          # subselects that contain a GROUP BY with different columns
+          # than the outer-most query
+          query = query.merge(:fields => source_key, :unique => false)
+          query.update(:order => nil) unless query.limit || query.links.any?
+          query
         end
 
         # Constructs order clause
@@ -607,11 +624,7 @@ module DataMapper
           elsif comparison.relationship?
             value = comparison.value
             if value.respond_to?(:query) && !value.loaded?
-              relationship = comparison.subject.inverse
-              source_key   = relationship.source_key
-              target_key   = relationship.target_key
-
-              return subquery(value.query, source_key, target_key, qualify)
+              return subquery(value.query, comparison.subject, qualify)
             else
               return conditions_statement(comparison.foreign_key_mapping, qualify)
             end
