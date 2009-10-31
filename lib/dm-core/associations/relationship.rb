@@ -352,10 +352,11 @@ module DataMapper
       # @api public
       def ==(other)
         return true  if equal?(other)
-        return false if kind_of_inverse?(other)
         other.respond_to?(:cmp_repository?, true) &&
         other.respond_to?(:cmp_model?, true)      &&
         other.respond_to?(:cmp_key?, true)        &&
+        other.respond_to?(:min)                   &&
+        other.respond_to?(:max)                   &&
         other.respond_to?(:query)                 &&
         cmp?(other, :==)
       end
@@ -568,6 +569,8 @@ module DataMapper
         cmp_model?(other,      operator, :parent) &&
         cmp_key?(other,        operator, :child)  &&
         cmp_key?(other,        operator, :parent) &&
+        min.send(operator, other.min)             &&
+        max.send(operator, other.max)             &&
         query.send(operator, other.query)
       end
 
